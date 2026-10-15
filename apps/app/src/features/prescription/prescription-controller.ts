@@ -12,9 +12,9 @@ import type {
 } from '@localmed/contracts';
 import { type Accessor, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
 
-import { createDebouncer } from '@/components/debounced-value';
 import { cardDisplayName } from '@/features/drug-interactions/drug-candidates';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+import { createDraftAutosave } from '@/state/draft-write-ahead';
 import {
   appendEvent,
   createMedicationEvent,
@@ -29,6 +29,9 @@ import { loadDoseIndex } from './dose-load';
 import {
   emptyDraft,
   loadPrescriptionDraft,
+  prescriptionDraftCopies,
+  prunePrescriptionDraftCopies,
+  rememberPrescriptionDraft,
   storePrescriptionDraft,
 } from './prescription-draft-store';
 import {
@@ -48,7 +51,18 @@ import {
 } from './prescription-model';
 import { FORM_107_ID, type PrescribedLine, recipeDate, recipeText } from './prescription-output';
 
+/**
+ * A patient's draft reaches the vault once typing has paused for this long. Every change is sealed
+ * into a write-ahead copy at once (and a draft without a patient goes to browser storage at once),
+ * so a reload inside this window loses nothing.
+ */
 export const PRESCRIPTION_AUTOSAVE_DEBOUNCE_MS = 700;
+
+/** One change of a patient's draft; the patient is fixed when it is typed. */
+interface DraftEdit {
+  readonly patientId: string;
+  readonly draft: PrescriptionDraft;
+}
 
 export type DocumentRead = 'loading' | 'missing' | MedicalDocument;
 
@@ -101,6 +115,12 @@ export interface PrescriptionController {
   removeItem: (id: string) => void;
   updateItem: (id: string, patch: Partial<PrescriptionItem>) => void;
   updatePatient: (patch: Partial<PrescriptionPatient>) => void;
+  /**
+   * Stores what is being typed into a patient fact at once, without re-reading the screen: the
+   * fields hand their value to `updatePatient` only after a short pause, and a reload inside it
+   * must not lose the figure.
+   */
+  rememberPatient: (patch: Partial<PrescriptionPatient>) => void;
   setFormId: (formId: string) => void;
   /** Approves the prescription: marks it saved and records it on the patient's card. */
   save: () => Promise<void>;
@@ -120,32 +140,51 @@ export function createPrescriptionController(
   let requested = new Set<string>();
   let loadRequest = 0;
   let editedSinceLoad = false;
-  let pending:
-    | { readonly patientId: string | undefined; readonly draft: PrescriptionDraft }
-    | undefined;
-
-  const autosave = createDebouncer(() => void flush(), PRESCRIPTION_AUTOSAVE_DEBOUNCE_MS);
-  async function flush(): Promise<void> {
-    autosave.cancel();
-    const job = pending;
-    pending = undefined;
-    if (!job) return;
-    try {
-      await storePrescriptionDraft(job.patientId, job.draft);
-      setError('');
-    } catch (cause) {
+  // A patient's draft: sealed copy at every change, vault write after the typing pauses, a flush
+  // on pagehide / hidden / freeze; leaving the screen flushes too.
+  const autosave = createDraftAutosave<DraftEdit>({
+    store: prescriptionDraftCopies,
+    patientId: () => options.patientId() ?? '',
+    target: () => undefined,
+    serialize: (edit) => JSON.stringify(edit.draft),
+    delayMs: PRESCRIPTION_AUTOSAVE_DEBOUNCE_MS,
+    onError: (cause) => {
       setError(cause instanceof Error ? cause.message : 'Не удалось сохранить черновик.');
-    }
+    },
+    save: async (edit) => {
+      await storePrescriptionDraft(edit.patientId, edit.draft);
+      setError('');
+      // Closed vault: the draft is in memory only, so the copy (if any) must stay.
+      return { complete: isPatientVaultUnlocked() };
+    },
+  });
+  async function flush(): Promise<void> {
+    await autosave.flush();
   }
-  onCleanup(() => void flush());
+  onCleanup(() => {
+    void autosave.flush();
+    autosave.dispose();
+  });
+  // Copies of patients that were deleted are not kept.
+  createEffect(() => {
+    const snapshot = options.snapshot();
+    if (snapshot && options.persist !== false) {
+      prunePrescriptionDraftCopies(new Set(snapshot.profiles.map((item) => item.id)));
+    }
+  });
+
+  /** Remembers a change at once and schedules the vault write of a patient's draft. */
+  const persistDraft = (patientId: string | undefined, next: PrescriptionDraft): void => {
+    rememberPrescriptionDraft(patientId, next);
+    if (patientId) autosave.edit({ patientId, draft: next });
+  };
 
   const commit = (next: PrescriptionDraft): void => {
     editedSinceLoad = true;
     const stamped = { ...next, updatedAt: new Date().toISOString() };
     setDraft(stamped);
     if (options.persist === false) return;
-    pending = { patientId: options.patientId(), draft: stamped };
-    autosave.call();
+    persistDraft(options.patientId(), stamped);
   };
 
   const seedItems = (base: PrescriptionDraft): PrescriptionDraft => {
@@ -202,7 +241,18 @@ export function createPrescriptionController(
         if (request === loadRequest) setReady(true);
       });
   };
-  createEffect(on(() => [options.patientId(), isPatientVaultUnlocked()] as const, hydrate));
+  // A patient's draft is read once the vault is open: after a reload the vault opens a moment
+  // later than the screen, and locking it blanks the draft again.
+  createEffect(
+    on(
+      () =>
+        [
+          options.patientId(),
+          options.patientId() ? options.snapshot() !== undefined : false,
+        ] as const,
+      hydrate,
+    ),
+  );
 
   // Seeds that name cards wait for the index (an unknown card is dropped, not guessed).
   createEffect(
@@ -366,6 +416,15 @@ export function createPrescriptionController(
       }),
     updatePatient: (patch) =>
       commit({ ...draft(), status: 'draft', patient: { ...draft().patient, ...patch } }),
+    rememberPatient: (patch) => {
+      if (options.persist === false || !ready()) return;
+      persistDraft(options.patientId(), {
+        ...draft(),
+        status: 'draft',
+        patient: { ...draft().patient, ...patch },
+        updatedAt: new Date().toISOString(),
+      });
+    },
     setFormId: (formId) => commit({ ...draft(), status: 'draft', formId }),
     save: async () => {
       const patientId = options.patientId();
@@ -377,7 +436,7 @@ export function createPrescriptionController(
         updatedAt: approvedAt,
       };
       setDraft(approved);
-      pending = { patientId, draft: approved };
+      persistDraft(patientId, approved);
       await flush();
       if (!patientId || !isPatientVaultUnlocked()) return;
       const events = lines().map((line, position) =>

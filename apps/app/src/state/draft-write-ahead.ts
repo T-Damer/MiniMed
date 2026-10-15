@@ -46,6 +46,12 @@ export interface DraftRecovery {
   readonly keep?: boolean;
 }
 
+/** Whose draft a copy is: the patient (empty for a draft of no patient) and the record. */
+export interface DraftOwner {
+  readonly patientId: string;
+  readonly targetId: string | null;
+}
+
 export interface DraftWriteAheadStore {
   readonly storageKey: string;
   readonly entryId: (patientId: string, targetId: string | null) => string;
@@ -58,6 +64,11 @@ export interface DraftWriteAheadStore {
     stillNewest: () => boolean,
   ) => Promise<void>;
   readonly remove: (ids: Iterable<string>) => void;
+  /**
+   * Drops the copies whose owner is gone (a deleted patient). Looks only at the opaque ids kept
+   * beside the sealed text, so it needs no open vault.
+   */
+  readonly prune: (keep: (owner: DraftOwner) => boolean) => void;
   /** Marks a copy as owned by a live autosave of this page: recovery leaves it alone. */
   readonly own: (id: string) => void;
   readonly release: (id: string) => void;
@@ -178,6 +189,14 @@ export function createDraftWriteAheadStore(options: {
       });
     },
     remove,
+    prune: (keep) => {
+      const entries = readEntries();
+      remove(
+        Object.entries(entries)
+          .filter(([, entry]) => !keep({ patientId: entry.patientId, targetId: entry.targetId }))
+          .map(([id]) => id),
+      );
+    },
     own: (id) => void owned.add(id),
     release: (id) => void owned.delete(id),
     read: async (patientId, targetId) => {
@@ -246,7 +265,8 @@ export interface DraftSaveResult {
 
 export interface DraftAutosaveOptions<T> {
   readonly store: DraftWriteAheadStore;
-  readonly patientId: string;
+  /** The patient the draft belongs to (empty for none); read when a change is made. */
+  readonly patientId: string | (() => string);
   /** The record the draft is bound to, read when a change is made and kept with that change. */
   readonly target: () => string | undefined;
   readonly serialize: (value: T) => string;
@@ -290,12 +310,14 @@ export function createDraftAutosave<T>(options: DraftAutosaveOptions<T>): DraftA
     writeAhead: (draft, version) => {
       latestVersion = version;
       const target = draft.target ?? null;
-      const id = store.entryId(options.patientId, target);
+      const patientId =
+        typeof options.patientId === 'function' ? options.patientId() : options.patientId;
+      const id = store.entryId(patientId, target);
       writtenIds.add(id);
       store.own(id);
       store
         .write(
-          options.patientId,
+          patientId,
           target,
           options.serialize(draft.value),
           () => version === latestVersion && version > savedVersion,

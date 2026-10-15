@@ -549,7 +549,7 @@ save, so typed text was lost on reload. They are now autosaved drafts on the sam
   request), no scrollbar.
 - **Audit of other personal editors** (loses typed text on reload?):
   - plain note, visit note, diagnosis, ICD code, form data, new patient: fixed (NOTE1/NOTE2).
-  - **Forms (`features/forms/FormFillPage`) and prescription (`prescription-controller`)**: autosave to the vault
+  - **Forms (`features/forms/FormFillPage`) and prescription (`prescription-controller`)** (fixed in DRAFT1 below): autosave to the vault
     after 700 ms but flush only when the screen unmounts, not on pagehide/hidden, and have no write-ahead copy, so a
     reload inside the debounce loses the last edits (anonymous prescription draft: same). Not fixed here (VIS2's
     paths; Request in STATE.md): `registerNoteEditorFlush(flush)` in both would close the unload case; a write-ahead
@@ -557,7 +557,7 @@ save, so typed text was lost on reload. They are now autosaved drafts on the sam
   - **Calculators / assessments**: inputs and mid-way answers live in memory only (by design: transient); «Записать» /
     «Сохранить в карточку пациента» are single explicit actions. The assessment result note
     (`AssessmentResultPage`, «Сохранить в карточку пациента») is typed text with an explicit save: loses on reload.
-    Listed, not fixed (VIS2's paths).
+    Fixed in DRAFT1 below.
   - **Manual measurement form** («Быстрая запись» → «Записать») and **observation correction**: one number and one tap,
     transient; not changed.
   - **Listed, not touched (other owners / larger editors)**: `NoteTranscriptPanel` («Сохранить правки»),
@@ -575,6 +575,44 @@ save, so typed text was lost on reload. They are now autosaved drafts on the sam
   `official-forms.spec.ts` seeds through the autosaved panels (waits for «Сохранено» instead of the removed buttons).
   Known unrelated failures on the merged build: the notes FAB under the bottom nav at 375–390 px (`openPatientVault`,
   STATE request by VIS2) and, in the 070/у test, «К карточке пациента» from the forms list not leaving it (line 245).
+
+## Typed text is never lost, part 3 — 2026-10-15 (STATE DRAFT1)
+
+The gaps NOTE2 listed (forms, «Назначение», the assessment result note) are closed; no typed text waits only in a
+debounce any more.
+
+- **Official forms (`FormFillPage`).** The 700 ms vault write now runs through `createDraftAutosave` on a new store
+  `formDraftCopies` (`form-draft-store.ts`, key `minimed.form-draft-ahead.v1`, owner = patient or empty + `form/episode`).
+  Every change is sealed with the vault key at once; the vault write is flushed on pagehide / hidden / freeze. A copy
+  newer than the vault file is restored by `loadFormDraft` (it is stored into the vault and the copy goes; an older or
+  unreadable copy is dropped). A closed vault keeps the draft in memory only and its copy stays.
+- **«Назначение» (`prescription-controller`).** A patient's draft: same machinery (`prescriptionDraftCopies`, key
+  `minimed.prescription-draft-ahead.v1`, restored by `loadPrescriptionDraft`). A draft without a patient is written to
+  browser storage on every change (`rememberPrescriptionDraft`). Age / weight / height are handed to
+  `controller.rememberPatient` at every keystroke (the 300 ms input debounce still delays only the recalculation). Two
+  older defects fixed on the way: a draft with only a typed age/weight counted as «empty» and was never stored
+  (`isUntouchedDraft`), and after a reload a patient's draft was never read because the screen hydrated before the vault
+  opened (now re-hydrated when the vault opens; locking drops patients' drafts from memory).
+- **Assessment result note.** The only typed text there is the name of a new card under «Сохранить в карточку
+  пациента». It goes to browser storage at once (`assessment-note-draft.ts`, per result, newest 20), because the card it
+  ends in lives in the same plain storage and no vault is involved; the panel reopens with the name after a reload;
+  «Сохранить» and «Отмена» remove it.
+- **Copies of deleted patients** are pruned by metadata only (`store.prune`), when the form / prescription screen has the
+  vault snapshot.
+- **User calculator editor.** Saves are synchronous browser storage after 350 ms; `onPageLeave` (`state/page-leave-flush.ts`)
+  flushes them on pagehide / beforeunload / freeze / hidden.
+- **Checked, nothing to add.** Plain note, visit note, diagnosis, ICD code, form-data panel, new-patient form (NOTE1/2).
+  User questionnaire editor: saves on every change (no debounce), only the async write itself is open. Calculator and
+  questionnaire inputs, answers of a patient-bound questionnaire and the manual measurement form are transient by design
+  (a tap or one number, an explicit «Записать»). Still explicit-save editors, unchanged: `NoteTranscriptPanel`,
+  `NoteDrawingEditor`, `UserDocumentReader`, `PatientDiaryPanel`, `VisitRecorderPanel`, reminder text and completion note,
+  tag input.
+- **Tests.** Unit: `draft-write-ahead.test.ts` (patient from a function, `prune`), `form-draft-store.test.ts` and
+  `prescription-draft-store.test.ts` (restore newer copy / keep newer vault draft / unreadable copy dropped without text
+  / closed vault / prune / lock), `assessment-note-draft.test.ts`, `page-leave-flush.test.ts`. E2E
+  `form-prescription-drafts.spec.ts`: form, patient prescription, prescription without a patient and calculator editor
+  reloaded 0 and 300 ms after typing; the assessment card name reloaded at once and saved. Known unrelated failure:
+  `note-drafts.spec.ts` «the fullscreen note toolbar scrolls with arrows» (the outline backdrop intercepts the click).
 
 ## Regulatory acts as full texts — 2026-10-14 (STATE LEGAL1)
 

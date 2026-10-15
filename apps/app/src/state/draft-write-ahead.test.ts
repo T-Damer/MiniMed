@@ -100,6 +100,42 @@ describe('draft write-ahead', () => {
     vi.unstubAllGlobals();
   });
 
+  it('takes the patient from a function, read when the change is made', async () => {
+    let patient = 'p1';
+    const draft = createDraftAutosave<string>({
+      store,
+      patientId: () => patient,
+      target: () => 'form/e1',
+      serialize: (value) => value,
+      delayMs: 60_000,
+      onError: (cause) => {
+        throw cause;
+      },
+      save: async () => ({ complete: true }),
+    });
+    draft.edit('первый');
+    await until(() => stored() !== '');
+    patient = 'p2';
+    await draft.flush();
+    draft.edit('второй');
+    await until(() => stored() !== '');
+    await expect(store.read('p2', 'form/e1')).resolves.toMatchObject({ text: 'второй' });
+    await expect(store.read('p1', 'form/e1')).resolves.toBeUndefined();
+    draft.dispose();
+  });
+
+  it('prunes the copies of owners that are gone without opening them', async () => {
+    await store.write('p1', 'a', 'один', () => true);
+    await store.write('p2', null, 'два', () => true);
+    await store.write('', 'b', 'три', () => true);
+    vault.unlocked = false;
+    store.prune((owner) => owner.patientId !== 'p2');
+    vault.unlocked = true;
+    await expect(store.read('p2', null)).resolves.toBeUndefined();
+    await expect(store.read('p1', 'a')).resolves.toMatchObject({ text: 'один' });
+    await expect(store.read('', 'b')).resolves.toMatchObject({ text: 'три' });
+  });
+
   it('writes a copy at once and drops it when the newest value is saved completely', async () => {
     const draft = autosave({ delayMs: 60_000 });
     draft.edit('черновик');

@@ -50,6 +50,7 @@ import {
 import { ToolPopulationField } from '@/features/tools/ToolPopulationField';
 import { userToolPopulationError } from '@/features/tools/user-tool-population';
 import { pluralRu } from '@/i18n/labels';
+import { onPageLeave } from '@/state/page-leave-flush';
 import {
   getUserCalculator,
   saveUserCalculator,
@@ -188,8 +189,9 @@ function CalculatorEditor(props: {
       setSaveError(cause instanceof Error ? cause.message : 'Не удалось сохранить калькулятор.');
     }
   };
-  // Leaving the page (or opening the calculator) never drops the last keystrokes.
+  // Leaving the screen, unloading the page or hiding the app never drops the last keystrokes.
   onCleanup(flush);
+  onCleanup(onPageLeave(flush));
 
   const change = (next: UserCalculator): void => {
     setDraft(next);

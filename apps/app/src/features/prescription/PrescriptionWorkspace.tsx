@@ -194,6 +194,7 @@ export function PrescriptionWorkspace(props: PrescriptionWorkspaceProps): JSX.El
         card={controller.card()}
         needsHeight={needsHeight()}
         onChange={controller.updatePatient}
+        onTyped={controller.rememberPatient}
       />
 
       <Show when={controller.indexFailed()}>

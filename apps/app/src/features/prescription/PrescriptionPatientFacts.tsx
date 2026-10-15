@@ -41,20 +41,34 @@ export function PrescriptionPatientFacts(props: {
   readonly card: PatientCardFacts;
   readonly needsHeight: boolean;
   readonly onChange: (patch: Partial<PrescriptionPatient>) => void;
+  /** Called at every keystroke with what the typed text means so far (`onChange` waits for a pause). */
+  readonly onTyped?: (patch: Partial<PrescriptionPatient>) => void;
 }): JSX.Element {
   const [age, setAge] = createSignal('');
   const [weight, setWeight] = createSignal('');
   const [height, setHeight] = createSignal('');
-  const ageDebounce = createDebouncer((text: string) => {
+  const agePatch = (text: string): Partial<PrescriptionPatient> => {
     const days = parseAgeInput(text);
-    props.onChange({ ageDays: days, ...(days === null ? {} : { group: null }) });
-  }, INPUT_DEBOUNCE_MS);
-  const weightDebounce = createDebouncer((text: string) => {
-    props.onChange({ weightKg: parseWeightInput(text) });
-  }, INPUT_DEBOUNCE_MS);
-  const heightDebounce = createDebouncer((text: string) => {
-    props.onChange({ heightCm: parseWeightInput(text) });
-  }, INPUT_DEBOUNCE_MS);
+    return { ageDays: days, ...(days === null ? {} : { group: null }) };
+  };
+  const weightPatch = (text: string): Partial<PrescriptionPatient> => ({
+    weightKg: parseWeightInput(text),
+  });
+  const heightPatch = (text: string): Partial<PrescriptionPatient> => ({
+    heightCm: parseWeightInput(text),
+  });
+  const ageDebounce = createDebouncer(
+    (text: string) => props.onChange(agePatch(text)),
+    INPUT_DEBOUNCE_MS,
+  );
+  const weightDebounce = createDebouncer(
+    (text: string) => props.onChange(weightPatch(text)),
+    INPUT_DEBOUNCE_MS,
+  );
+  const heightDebounce = createDebouncer(
+    (text: string) => props.onChange(heightPatch(text)),
+    INPUT_DEBOUNCE_MS,
+  );
 
   // A restored draft fills the fields once.
   createEffect(
@@ -98,6 +112,7 @@ export function PrescriptionPatientFacts(props: {
           data-testid="prescription-age"
           onInput={(event) => {
             setAge(event.currentTarget.value);
+            props.onTyped?.(agePatch(event.currentTarget.value));
             ageDebounce.call(event.currentTarget.value);
           }}
         />
@@ -113,6 +128,7 @@ export function PrescriptionPatientFacts(props: {
           data-testid="prescription-weight"
           onInput={(event) => {
             setWeight(event.currentTarget.value);
+            props.onTyped?.(weightPatch(event.currentTarget.value));
             weightDebounce.call(event.currentTarget.value);
           }}
         />
@@ -127,6 +143,7 @@ export function PrescriptionPatientFacts(props: {
             inputmode="decimal"
             onInput={(event) => {
               setHeight(event.currentTarget.value);
+              props.onTyped?.(heightPatch(event.currentTarget.value));
               heightDebounce.call(event.currentTarget.value);
             }}
           />

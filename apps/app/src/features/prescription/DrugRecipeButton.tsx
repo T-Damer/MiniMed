@@ -56,6 +56,7 @@ function RecipeSheet(props: {
         card={controller.card()}
         needsHeight={analysis()?.plan?.status === 'needs-bsa'}
         onChange={controller.updatePatient}
+        onTyped={controller.rememberPatient}
       />
       <Show when={item() && analysis()}>
         <PrescriptionItemCard

@@ -13,6 +13,11 @@ import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { evaluationNotice } from '@/features/assessments/assessment-evaluation-notice';
 import {
+  clearAssessmentNoteDraft,
+  readAssessmentNoteDraft,
+  writeAssessmentNoteDraft,
+} from '@/features/assessments/assessment-note-draft';
+import {
   printAssessmentRecord,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
@@ -58,9 +63,18 @@ export function AssessmentResultPage(props: {
   readonly onNotesChanged: (snapshot: PatientNotesSnapshot) => void;
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
-  const [notePanelOpen, setNotePanelOpen] = createSignal(false);
-  const [selectedCardId, setSelectedCardId] = createSignal('');
-  const [newCardTitle, setNewCardTitle] = createSignal('');
+  // A reload brings the panel back as it was left (see assessment-note-draft.ts).
+  const noteDraft = props.record.patientId ? undefined : readAssessmentNoteDraft(props.record.id);
+  const draftCardId =
+    noteDraft && props.notes.cards.some((card) => card.id === noteDraft.cardId)
+      ? noteDraft.cardId
+      : '';
+  const [notePanelOpen, setNotePanelOpen] = createSignal(noteDraft !== undefined);
+  const [selectedCardId, setSelectedCardId] = createSignal(draftCardId);
+  const [newCardTitle, setNewCardTitle] = createSignal(noteDraft?.newCardTitle ?? '');
+  const rememberNoteDraft = (cardId: string, title: string): void => {
+    writeAssessmentNoteDraft(props.record.id, { cardId, newCardTitle: title });
+  };
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
@@ -142,6 +156,7 @@ export function AssessmentResultPage(props: {
     }
     props.onNotesChanged(next);
     props.onMessage('Результат записан в карточку пациента.');
+    clearAssessmentNoteDraft(props.record.id);
     setNotePanelOpen(false);
   };
 
@@ -316,7 +331,10 @@ export function AssessmentResultPage(props: {
             <select
               class="assessment-note-panel__select"
               value={selectedCardId()}
-              onChange={(event) => setSelectedCardId(event.currentTarget.value)}
+              onChange={(event) => {
+                setSelectedCardId(event.currentTarget.value);
+                rememberNoteDraft(event.currentTarget.value, newCardTitle());
+              }}
             >
               <option value="">Создать новую карточку</option>
               <For each={props.notes.cards}>
@@ -332,7 +350,10 @@ export function AssessmentResultPage(props: {
                 list="assessment-patient-suggestions"
                 value={newCardTitle()}
                 placeholder={props.record.subjectLabel || 'Пациент'}
-                onInput={(event) => setNewCardTitle(event.currentTarget.value)}
+                onInput={(event) => {
+                  setNewCardTitle(event.currentTarget.value);
+                  rememberNoteDraft(selectedCardId(), event.currentTarget.value);
+                }}
               />
               <datalist id="assessment-patient-suggestions">
                 <For each={props.notes.cards}>{(card) => <option value={card.title} />}</For>
@@ -351,7 +372,12 @@ export function AssessmentResultPage(props: {
               class="assessment-panel-actions__button"
               variant="quiet"
               icon={<AppGlyph name="close" />}
-              onClick={() => setNotePanelOpen(false)}
+              onClick={() => {
+                clearAssessmentNoteDraft(props.record.id);
+                setNewCardTitle('');
+                setSelectedCardId('');
+                setNotePanelOpen(false);
+              }}
             >
               Отмена
             </Button>

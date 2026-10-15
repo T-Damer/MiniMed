@@ -1,13 +1,29 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const vault = vi.hoisted(() => ({
-  unlocked: false,
-  blobs: new Map<string, { mimeType: string; bytes: Uint8Array; patientId?: string }>(),
-}));
+const vault = vi.hoisted(() => {
+  class LockedError extends Error {}
+  return {
+    LockedError,
+    unlocked: false,
+    blobs: new Map<string, { mimeType: string; bytes: Uint8Array; patientId?: string }>(),
+  };
+});
 
 vi.mock('@/state/patient-vault', () => ({
   PATIENT_VAULT_LOCK_EVENT: 'minimed:patient-vault-locked',
+  PatientVaultLockedError: vault.LockedError,
   isPatientVaultUnlocked: () => vault.unlocked,
+  openPatientVaultSilently: async () => vault.unlocked,
+  updatePatientVault: async () => undefined,
+  // The real seal is covered with the vault; here a sealed copy is a tagged plain string.
+  sealPatientVaultText: async (type: string, id: string, text: string) => {
+    if (!vault.unlocked) throw new vault.LockedError();
+    return { plain: `${type}|${id}|${text}` };
+  },
+  openPatientVaultText: async (type: string, id: string, sealed: { plain: string }) => {
+    if (!vault.unlocked) throw new vault.LockedError();
+    return sealed.plain.slice(`${type}|${id}|`.length);
+  },
   addPatientBlob: async (input: {
     id: string;
     patientId?: string;
@@ -25,9 +41,13 @@ vi.mock('@/state/patient-vault', () => ({
 
 import {
   FormDraftError,
+  type FormDraftTarget,
   formDraftBlobId,
+  formDraftCopies,
+  formDraftCopyOwner,
   loadFormDraft,
   parseFormDraft,
+  pruneFormDraftCopies,
   serializeFormDraft,
   storeFormDraft,
 } from '@/features/forms/form-draft-store';
@@ -127,5 +147,106 @@ describe('form draft storage', () => {
     await storeFormDraft({ formId: 'f' }, draft);
     await storeFormDraft({ formId: 'f' }, { ...draft, edits: {} });
     expect(await loadFormDraft({ formId: 'f' })).toBeUndefined();
+  });
+});
+
+describe('form draft write-ahead copy', () => {
+  let storage: Map<string, string>;
+  const copyKey = (): string => formDraftCopies.storageKey;
+  const writeCopy = async (
+    copy: FormDraft,
+    copyTarget: FormDraftTarget = target,
+  ): Promise<void> => {
+    const owner = formDraftCopyOwner(copyTarget);
+    await formDraftCopies.write(
+      owner.patientId,
+      owner.targetId,
+      serializeFormDraft(copy),
+      () => true,
+    );
+  };
+
+  beforeEach(() => {
+    storage = new Map();
+    vi.stubGlobal('window', {
+      addEventListener: () => undefined,
+      localStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => void storage.set(key, value),
+        removeItem: (key: string) => void storage.delete(key),
+      },
+    });
+    vault.unlocked = true;
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('restores the last keystrokes a reload left in the copy and moves them into the vault', async () => {
+    await storeFormDraft(target, draft);
+    const typed: FormDraft = {
+      ...draft,
+      edits: { ...draft.edits, formNumber: '17-новый' },
+      updatedAt: '2026-10-08T10:00:01.000Z',
+    };
+    await writeCopy(typed);
+    clearFormSessions();
+
+    expect(await loadFormDraft(target)).toEqual(typed);
+    const stored = vault.blobs.get(formDraftBlobId(target));
+    expect(parseFormDraft(new TextDecoder().decode(stored?.bytes))).toEqual(typed);
+    expect(storage.has(copyKey())).toBe(false);
+  });
+
+  it('restores a copy when the vault holds no draft at all', async () => {
+    await writeCopy(draft);
+    expect(await loadFormDraft(target)).toEqual(draft);
+    expect(vault.blobs.has(formDraftBlobId(target))).toBe(true);
+  });
+
+  it('keeps the vault draft when the copy is older, and drops the stale copy', async () => {
+    const newer: FormDraft = { ...draft, updatedAt: '2026-10-08T11:00:00.000Z' };
+    await storeFormDraft(target, newer);
+    await writeCopy(draft);
+    clearFormSessions();
+    expect(await loadFormDraft(target)).toEqual(newer);
+    expect(storage.has(copyKey())).toBe(false);
+  });
+
+  it('restores the copy of a blank form with no patient', async () => {
+    const blank = { formId: target.formId };
+    await writeCopy(draft, blank);
+    expect(await loadFormDraft(blank)).toEqual(draft);
+  });
+
+  it('drops a copy nothing can read, without text in the log', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const owner = formDraftCopyOwner(target);
+    await formDraftCopies.write(owner.patientId, owner.targetId, 'секретный текст', () => true);
+    expect(await loadFormDraft(target)).toBeUndefined();
+    expect(storage.has(copyKey())).toBe(false);
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('секретный');
+    warn.mockRestore();
+  });
+
+  it('leaves a copy alone while the vault is closed', async () => {
+    await writeCopy(draft);
+    vault.unlocked = false;
+    expect(await loadFormDraft(target)).toBeUndefined();
+    expect(storage.has(copyKey())).toBe(true);
+  });
+
+  it('forgets the copies of deleted patients and keeps blank-form ones', async () => {
+    await writeCopy(draft);
+    await writeCopy(draft, { formId: 'f2', patientId: 'gone' });
+    await writeCopy(draft, { formId: 'f3' });
+    pruneFormDraftCopies(new Set(['p1']));
+    const kept = Object.values(
+      JSON.parse(storage.get(copyKey()) ?? '{}') as Record<string, { patientId: string }>,
+    )
+      .map((entry) => entry.patientId)
+      .toSorted();
+    expect(kept).toEqual(['', 'p1']);
   });
 });

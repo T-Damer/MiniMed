@@ -12,7 +12,6 @@ import {
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { createDebouncer } from '@/components/debounced-value';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
@@ -26,7 +25,11 @@ import { FormThumbnail } from '@/features/forms/FormThumbnail';
 import { formDraftStateText } from '@/features/forms/form-draft-state';
 import {
   type FormDraftTarget,
+  formDraftCopies,
+  formDraftCopyOwner,
   loadFormDraft,
+  pruneFormDraftCopies,
+  serializeFormDraft,
   storeFormDraft,
 } from '@/features/forms/form-draft-store';
 import {
@@ -58,6 +61,7 @@ import {
   getClinicianProfile,
   subscribeClinicianProfile,
 } from '@/state/clinician-profile';
+import { createDraftAutosave } from '@/state/draft-write-ahead';
 import {
   isPatientVaultUnlocked,
   openPatientVaultSilently,
@@ -66,8 +70,19 @@ import {
 import '@/styles/forms.css';
 import { navigateBack } from '@/state/app-back';
 
-/** Typed values are written to the draft once typing has paused for this long. */
+/**
+ * Typed values are written to the vault once typing has paused for this long. Every change is
+ * sealed into a write-ahead copy at once, so a reload inside this window loses nothing.
+ */
 export const FORM_AUTOSAVE_DEBOUNCE_MS = 700;
+
+/** One change of a form: the draft and the record it was typed into, fixed when it is typed. */
+interface FormEdit {
+  readonly target: FormDraftTarget;
+  readonly draft: FormDraft;
+  /** Changes when the vault locks: an older change is not written into a later session. */
+  readonly session: number;
+}
 
 export interface FormFillPageProps {
   readonly schema: FormSchema;
@@ -138,24 +153,41 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
   );
   const keyKnown = (): boolean => !props.patientId || vault.snapshot() !== undefined;
 
-  let pending: { readonly target: FormDraftTarget; readonly draft: FormDraft } | undefined;
   let loadRequest = 0;
   let editedSinceLoad = false;
-  const autosave = createDebouncer(() => void flushDraft(), FORM_AUTOSAVE_DEBOUNCE_MS);
-
-  const flushDraft = async (): Promise<void> => {
-    autosave.cancel();
-    const job = pending;
-    pending = undefined;
-    if (!job) return;
-    try {
-      await storeFormDraft(job.target, job.draft);
-      setSaveError('');
-    } catch (cause) {
+  let vaultSession = 0;
+  // A sealed copy at every change, the vault write after the typing pauses, a flush on pagehide /
+  // hidden / freeze; leaving the screen flushes too.
+  const autosave = createDraftAutosave<FormEdit>({
+    store: formDraftCopies,
+    patientId: () => formDraftCopyOwner(target()).patientId,
+    target: () => formDraftCopyOwner(target()).targetId,
+    serialize: (edit) => serializeFormDraft(edit.draft),
+    delayMs: FORM_AUTOSAVE_DEBOUNCE_MS,
+    onError: (cause) => {
       setSaveError(cause instanceof Error ? cause.message : 'Не удалось сохранить черновик.');
-    }
+    },
+    save: async (edit) => {
+      // The vault was locked after this was typed: its sealed copy is restored on the next open.
+      if (edit.session !== vaultSession) return { complete: false };
+      await storeFormDraft(edit.target, edit.draft);
+      setSaveError('');
+      // Closed vault: the draft is in memory only, so the copy (if any) must stay.
+      return { complete: isPatientVaultUnlocked() };
+    },
+  });
+  const flushDraft = async (): Promise<void> => {
+    await autosave.flush();
   };
-  onCleanup(() => void flushDraft());
+  onCleanup(() => {
+    void autosave.flush();
+    autosave.dispose();
+  });
+  // Copies of patients that were deleted are not kept.
+  createEffect(() => {
+    const snapshot = vault.snapshot();
+    if (snapshot) pruneFormDraftCopies(new Set(snapshot.profiles.map((item) => item.id)));
+  });
 
   const applyDraft = (draft: FormDraft | undefined): void => {
     setEdits(draft?.edits ?? {});
@@ -213,8 +245,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
   });
 
   const onVaultLocked = (): void => {
-    autosave.cancel();
-    pending = undefined;
+    vaultSession += 1;
     applyDraft(undefined);
   };
   window.addEventListener(PATIENT_VAULT_LOCK_EVENT, onVaultLocked);
@@ -263,8 +294,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
     setStatus(nextStatus);
     setSavedAt(approvedAt);
     writeFormSession(sessionKey(), draft);
-    pending = { target: target(), draft };
-    autosave.call();
+    autosave.edit({ target: target(), draft, session: vaultSession });
   };
   const setValue = (fieldId: string, value: FormValue): void => {
     editedSinceLoad = true;
@@ -295,7 +325,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
     }
     editedSinceLoad = true;
     commit({ ...values() }, 'saved', new Date().toISOString());
-    void flushDraft();
+    void autosave.flush();
   };
 
   const needsVault = (): boolean => Boolean(props.patientId);
