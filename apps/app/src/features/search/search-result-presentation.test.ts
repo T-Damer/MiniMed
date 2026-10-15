@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   displaySectionPath,
-  isMachineVersionLabel,
   orderResultsForDisplay,
   presentResultSnippet,
   presentSourceChunkText,
@@ -204,8 +203,7 @@ describe('registry identifiers in a result card', () => {
 
 describe('the qualifier of a repeated title', () => {
   it('never shows a source identifier as an edition', () => {
-    for (const label of ['site-4df3e404f895', '459_2', 'a1b2c3d4e5f6a7b8']) {
-      expect(isMachineVersionLabel(label)).toBe(true);
+    for (const label of ['site-4df3e404f895', 'a1b2c3d4e5f6a7b8']) {
       expect(
         resultQualifier({
           sourceType: 'official_clinical_recommendation',
@@ -214,7 +212,6 @@ describe('the qualifier of a repeated title', () => {
         }),
       ).toBeUndefined();
     }
-    expect(isMachineVersionLabel('2026-08-28')).toBe(false);
     expect(
       resultQualifier({
         sourceType: 'official_clinical_recommendation',
@@ -222,6 +219,16 @@ describe('the qualifier of a repeated title', () => {
         versionLabel: 'Редакция 2024',
       }),
     ).toBe('Редакция 2024');
+  });
+
+  it('reads the edition of a recommendation from its «code_edition» label', () => {
+    expect(
+      resultQualifier({
+        sourceType: 'official_clinical_recommendation',
+        metadata: {},
+        versionLabel: '459_2',
+      }),
+    ).toBe('ред. 2');
   });
 });
 

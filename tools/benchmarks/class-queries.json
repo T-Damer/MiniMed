@@ -1,5 +1,5 @@
 {
-  "description": "SRCH1 (owner decision 2026-10-14): queries that name a drug class. The first result block is the class card (response.drugClass) with the ATC groups of the shared class vocabulary, then the drugs of the class, then the usual documents. `codes`: ATC prefixes the card's groups must include (any of them); `drugs`: card slugs (esklp.mnn.<slug>) that a doctor expects among the class's drugs; `top`: how many of the leading result groups must be class drugs. Labels are hand-set from medical knowledge, not from the data they test.",
+  "description": "SRCH1 (owner decision 2026-10-14): queries that name a drug class. The first result block is the class card (response.drugClass) with the ATC groups of the shared class vocabulary, then the drugs of the class, then the usual documents. `codes`: ATC prefixes the card's groups must include (any of them); `drugs`: card slugs (esklp.mnn.<slug>) that a doctor expects among the class's drugs; `top`: how many of the leading result groups must be class drugs. Labels are hand-set from medical knowledge, not from the data they test. `phrases` (SRCH2): a class word inside a longer query; `class` points at the entry of `queries` whose ATC groups and drugs apply. Checked: the class card and its groups, the leading groups are class drugs, at least one expected drug among them, and the documents below keep the order the same query has without the class lead. `phraseNegatives`: queries with a drug, a singular drug-like word or no class word carry no class.",
   "queries": [
     {
       "id": "macrolides",
@@ -306,5 +306,127 @@
     "лекарства от кашля",
     "статин-индуцированная миопатия",
     "группа крови"
+  ],
+  "phrases": [
+    { "id": "in-01-macrolides", "query": "макролиды детям", "class": "macrolides" },
+    { "id": "in-02-macrolides", "query": "макролиды детям при пневмонии", "class": "macrolides" },
+    { "id": "in-03-macrolides", "query": "макролиды и беременность", "class": "macrolides" },
+    { "id": "in-04-macrolides", "query": "макролиды при коклюше", "class": "macrolides" },
+    { "id": "in-05-macrolides", "query": "аллергия на макролиды", "class": "macrolides" },
+    {
+      "id": "in-06-macrolides-gen",
+      "query": "применение макролидов у детей",
+      "class": "macrolides-gen"
+    },
+    { "id": "in-07-statins", "query": "статины при беременности", "class": "statins" },
+    { "id": "in-08-statins-gen", "query": "побочные эффекты статинов", "class": "statins-gen" },
+    { "id": "in-09-statins", "query": "статины и грейпфрут", "class": "statins" },
+    { "id": "in-10-statins", "query": "статины при циррозе печени", "class": "statins" },
+    { "id": "in-11-acei", "query": "ингибиторы АПФ кашель", "class": "acei" },
+    { "id": "in-12-acei-gen", "query": "ингибиторов АПФ при беременности", "class": "acei-gen" },
+    { "id": "in-13-acei", "query": "ингибиторы АПФ и гиперкалиемия", "class": "acei" },
+    { "id": "in-14-arb", "query": "сартаны при беременности", "class": "arb" },
+    { "id": "in-15-arb", "query": "сартаны вместо ингибиторов АПФ", "class": "arb" },
+    { "id": "in-16-beta-blockers", "query": "бета-блокаторы при астме", "class": "beta-blockers" },
+    {
+      "id": "in-17-beta-adrenoblockers",
+      "query": "бета-адреноблокаторы при ХСН",
+      "class": "beta-adrenoblockers"
+    },
+    {
+      "id": "in-18-beta-blockers",
+      "query": "бета-блокаторы и сахарный диабет",
+      "class": "beta-blockers"
+    },
+    { "id": "in-19-ccb", "query": "блокаторы кальциевых каналов отеки", "class": "ccb" },
+    {
+      "id": "in-20-ccb-synonym",
+      "query": "антагонисты кальция при брадикардии",
+      "class": "ccb-synonym"
+    },
+    { "id": "in-21-diuretics", "query": "диуретики при отеках", "class": "diuretics" },
+    {
+      "id": "in-22-diuretics-synonym",
+      "query": "мочегонные при гипертонии",
+      "class": "diuretics-synonym"
+    },
+    {
+      "id": "in-23-anticoagulants",
+      "query": "антикоагулянты при почечной недостаточности",
+      "class": "anticoagulants"
+    },
+    {
+      "id": "in-24-antiplatelets",
+      "query": "антиагреганты после стентирования",
+      "class": "antiplatelets"
+    },
+    { "id": "in-25-nsaids", "query": "НПВС при язве желудка", "class": "nsaids" },
+    { "id": "in-26-nsaids-p", "query": "НПВП и гипертония", "class": "nsaids-p" },
+    { "id": "in-27-ppi-abbr", "query": "ИПП длительный приём", "class": "ppi-abbr" },
+    { "id": "in-28-ppi", "query": "ингибиторы протонной помпы при гастрите", "class": "ppi" },
+    { "id": "in-29-opioids", "query": "опиоиды при ХОБЛ", "class": "opioids" },
+    {
+      "id": "in-30-antidepressants",
+      "query": "антидепрессанты при беременности",
+      "class": "antidepressants"
+    },
+    {
+      "id": "in-31-benzodiazepines",
+      "query": "бензодиазепины пожилым",
+      "class": "benzodiazepines"
+    },
+    { "id": "in-32-antipsychotics", "query": "антипсихотики у детей", "class": "antipsychotics" },
+    { "id": "in-33-penicillins", "query": "пенициллины при аллергии", "class": "penicillins" },
+    {
+      "id": "in-34-aminoglycosides",
+      "query": "аминогликозиды нефротоксичность",
+      "class": "aminoglycosides"
+    },
+    { "id": "in-35-fluoroquinolones", "query": "фторхинолоны детям", "class": "fluoroquinolones" },
+    {
+      "id": "in-36-cephalosporins",
+      "query": "цефалоспорины при аллергии",
+      "class": "cephalosporins"
+    },
+    { "id": "in-37-hypnotics", "query": "снотворные при бессоннице", "class": "hypnotics" },
+    { "id": "in-38-antihistamines", "query": "антигистаминные детям", "class": "antihistamines" },
+    { "id": "in-39-antivirals", "query": "противовирусные при гриппе", "class": "antivirals" },
+    {
+      "id": "in-40-antifungals",
+      "query": "противогрибковые при беременности",
+      "class": "antifungals"
+    },
+    { "id": "in-41-laxatives", "query": "слабительные при беременности", "class": "laxatives" },
+    {
+      "id": "in-42-glucocorticoids",
+      "query": "глюкокортикостероиды при астме",
+      "class": "glucocorticoids"
+    },
+    { "id": "in-43-insulins", "query": "инсулины при беременности", "class": "insulins" },
+    {
+      "id": "in-44-antihypertensives",
+      "query": "гипотензивные при беременности",
+      "class": "antihypertensives"
+    },
+    { "id": "in-45-antiarrhythmics", "query": "антиаритмики при ХСН", "class": "antiarrhythmics" },
+    {
+      "id": "in-46-anticonvulsants",
+      "query": "антиконвульсанты при беременности",
+      "class": "anticonvulsants"
+    }
+  ],
+  "phraseNegatives": [
+    "азитромицин макролиды",
+    "ацетилсалициловая кислота и статины",
+    "инсулин при беременности",
+    "витамин D дефицит",
+    "антибиотик ребенку",
+    "статин-индуцированная миопатия",
+    "аллергия на пенициллин",
+    "лекарства от кашля при беременности",
+    "препарат амоксициллин при ангине",
+    "метформин или бета-блокаторы",
+    "боль в горле у ребенка",
+    "гипертония у беременных"
   ]
 }

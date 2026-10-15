@@ -286,7 +286,7 @@ quality.
 `ScopedMedicalCore`: 315 trade names and 150 INN names derived from the shipped comparison index must find their substance card
 first («Все» and «Препараты»), homeopathic mixtures must not stand in front of an ordinary card that names the query, markup and
 keyboard smashes find nothing, and 52 class words (inflected, synonyms, abbreviations) must show the class card with the right ATC
-groups followed by the class's drugs. In a worktree set `MINIMED_CONTENT_DIR` to the main checkout's `apps/app/public/content`
+groups followed by the class's drugs; SRCH2 (2026-10-15) adds 46 queries with the class word inside a longer query («макролиды детям») and 12 that must carry no class. In a worktree set `MINIMED_CONTENT_DIR` to the main checkout's `apps/app/public/content`
 (never link the databases into the worktree). Design: `SEARCH_ARCHITECTURE.md` «Brand names, class words, homeopathy and nonsense».
 
 `bun run benchmark:runtime` runs the application `MedicalCore`, `ScopedMedicalCore` and

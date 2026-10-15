@@ -152,10 +152,17 @@ const HOMEOPATHIC = new Set(['esklp.mnn.ртуть-растворимая', 'esk
 const directory: DrugCodeDirectory = {
   entries: async () => ENTRIES,
   homeopathicIds: async () => HOMEOPATHIC,
-  classOf: async (query) =>
-    ['макролиды', 'макролидов'].includes(query.trim().toLowerCase())
-      ? { label: 'Макролиды', groups: [{ code: 'J01FA', name: 'Макролиды' }] }
-      : null,
+  // The application answers this from its class vocabulary; a class word inside a longer query
+  // comes back with the other words as `rest` (SRCH2).
+  classOf: async (query) => {
+    const [first, ...rest] = query.trim().toLowerCase().split(/\s+/u);
+    if (!['макролиды', 'макролидов'].includes(first ?? '')) return null;
+    return {
+      label: 'Макролиды',
+      groups: [{ code: 'J01FA', name: 'Макролиды' }],
+      ...(rest.length > 0 ? { rest } : {}),
+    };
+  },
 };
 
 const cores: ReturnType<typeof createMedicalCore>[] = [];
@@ -227,7 +234,7 @@ describe('a drug class named whole (item 12)', () => {
   });
 
   it('names no class for a disease, a drug, a code or a query with a filter', async () => {
-    for (const query of ['пневмония', 'азитромицин', 'J01FA', 'макролиды пневмония']) {
+    for (const query of ['пневмония', 'азитромицин', 'J01FA']) {
       expect((await lookup(query)).drugClass).toBeUndefined();
     }
     expect((await lookup('макролиды', { specialties: ['pulmonology'] })).drugClass).toBeUndefined();
@@ -236,6 +243,29 @@ describe('a drug class named whole (item 12)', () => {
       core: createCore({ drugCodes: { entries: async () => ENTRIES } }),
     });
     expect(plain.drugClass).toBeUndefined();
+  });
+});
+
+describe('a drug class inside a longer query (SRCH2)', () => {
+  it('returns the class and its drugs, while the documents still rank by the whole query', async () => {
+    const response = await lookup('макролиды пневмония');
+    expect(response.drugClass?.label).toBe('Макролиды');
+    expect(response.drugClass?.drugCount).toBe(3);
+    const leading = response.groups.slice(0, 3);
+    expect(leading.every((group) => group.atcMatch !== undefined)).toBe(true);
+    // «пневмония» is in the text of the guideline, not in the card of a macrolide.
+    expect(titles(response)).toContain('Макролиды в лечении внебольничной пневмонии');
+    expect(titles(response).indexOf('Макролиды в лечении внебольничной пневмонии')).toBeGreaterThan(
+      2,
+    );
+  });
+
+  it('shows no class when the other words name a drug, or when a filter is set', async () => {
+    expect((await lookup('азитромицин макролиды')).drugClass).toBeUndefined();
+    expect((await lookup('макролиды амоксициллину')).drugClass).toBeUndefined();
+    expect(
+      (await lookup('макролиды пневмония', { specialties: ['pulmonology'] })).drugClass,
+    ).toBeUndefined();
   });
 });
 

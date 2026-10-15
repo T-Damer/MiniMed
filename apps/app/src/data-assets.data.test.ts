@@ -3,7 +3,7 @@
 // checksums that match) and one representative assertion, never one test per item.
 // The table of types, sources and sibling tests is docs/DATA_TESTS.md.
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -247,5 +247,44 @@ describe('public static assets exist where the app and the service worker expect
     for (const icon of manifest.icons) {
       expect(existsSync(join(PUBLIC, icon.src.replace(/^\.?\//, ''))), icon.src).toBe(true);
     }
+  });
+});
+
+describe('reference documents that open a calculator', () => {
+  const tools = readdirSync('content/tool-modules')
+    .filter((file) => file.endsWith('.json'))
+    .flatMap(
+      (file) =>
+        readJson<{ tools: { id: string; kind?: string; slug?: string }[] }>(
+          `content/tool-modules/${file}`,
+        ).tools,
+    );
+  const documents = readdirSync('content/reference-rf-pilot')
+    .filter((file) => file.endsWith('.md'))
+    .map((file) => ({ file, text: readFileSync(`content/reference-rf-pilot/${file}`, 'utf8') }));
+  const linked = documents.flatMap(({ file, text }) => {
+    const id = /^ {2}interactiveCalculatorId: (\S+)$/mu.exec(text)?.[1];
+    const route = /^ {2}interactiveRoute: "(#\/calculators\/[^"]+)"$/mu.exec(text)?.[1];
+    return id ? [{ file, id, route }] : [];
+  });
+
+  it('name a calculator of a tool module and its route (SRCH2)', () => {
+    expect(linked.length).toBeGreaterThan(0);
+    for (const { file, id, route } of linked) {
+      const tool = tools.find((candidate) => candidate.id === id);
+      expect(tool?.kind, `${file}: no calculator ${id}`).toBe('calculator');
+      expect(route, `${file}: route`).toBe(`#/calculators/${tool?.slug}`);
+    }
+  });
+
+  it('leave a document that only describes a calculation without a calculator unlinked', () => {
+    // No calculator implements the WHO BMI table or CKiD U25 yet; a bedside-CKiD-2009 or a
+    // children-only tool would be a silent substitution. Link them when a matching tool exists.
+    const unlinked = documents
+      .filter(({ text }) => /calculationRequired: true/u.test(text))
+      .map(({ file }) => file)
+      .filter((file) => !linked.some((entry) => entry.file === file))
+      .toSorted();
+    expect(unlinked).toEqual(['egfr-children-ckid-u25.md', 'who-bmi-classification.md']);
   });
 });

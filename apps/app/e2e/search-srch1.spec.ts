@@ -52,6 +52,24 @@ test('a class word shows the class card, then the drugs of the class', async ({ 
   await expect(page).toHaveURL(/#\/modules\/documents\/medications\/atc\/J01FA/u);
 });
 
+test('a class word inside a longer query shows the class card and a few of its drugs (SRCH2)', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await mount(page);
+  await page.getByTestId('search-input').fill('макролиды детям');
+  await page.getByTestId('search-submit').click();
+  const card = page.getByTestId('drug-class-card');
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await expect(card).toContainText('Макролиды');
+  await expect(page.getByTestId('atc-match')).toHaveCount(3);
+  // A drug typed with the class word is the drug's own query: no class card.
+  await page.getByTestId('search-input').fill('азитромицин макролиды');
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 60_000 });
+  await expect(card).toHaveCount(0);
+});
+
 test('a disease, a drug and a code carry no class card', async ({ page }) => {
   test.setTimeout(240_000);
   await mount(page);

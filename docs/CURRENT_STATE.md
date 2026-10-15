@@ -290,7 +290,7 @@ above it small and calm. Measured on «Вермокс» with the ГРЛС instru
   (`uniquePresentations`); the registry's dosage-form code («smnnCode: 21.20.10.194-…»), the machine
   status («Статус записи ЕСКЛП: active») and a guideline's source number are dropped from reader text
   and result snippets (`dropRegistryIdentifiers`); a source's own id («site-4df3e404f895», «459_2»)
-  is never a card qualifier (`isMachineVersionLabel`); the legal citation of the read instruction
+  is never a card qualifier (`resultQualifier` reads `documentVersionLabel()`: «ред. 2» for «459_2», nothing for `site-…` or a hash; SRCH2); the legal citation of the read instruction
   («ЛП-008472, 2022 · ГРЛС · получена …») stands at the end of the compare view
   (`ComparisonSources`) and of the recipe card, in small text.
 - Not changed: the stored module text (the identifier lines are hidden at display, not rewritten —
@@ -5706,8 +5706,8 @@ below (the core alone, `MINIMED_CONTENT_DIR` = the main checkout's `apps/app/pub
 - **Marks** (item 6): only the typed words, whole (`search-highlight.ts`); `J05` marks nothing but the typed characters of a code.
 - **Label = target** (item 7): `searchResultDocumentKind` calls a document a calculator only when it names one (`interactiveCalculatorId`);
   the four reference documents flagged `calculationRequired` (WHO BMI table, eGFR, child growth) are reference documents. Data follow-up
-  (not done): link them to their calculators with `interactiveCalculatorId` + `interactiveRoute` in `content/reference-rf-pilot/*.md`
-  and rebuild `reference.db`.
+  (SRCH2 linked two of them, see «Class word inside a query, calculator links»): `interactiveCalculatorId` + `interactiveRoute` in
+  `content/reference-rf-pilot/*.md`, then rebuild `reference.db`.
 - **«Обновить»** (item 8): only after installed content changed and only if the first 12 documents or their order differ; every other
   re-run of the query on screen replaces the list at once.
 - **Query in the address** (item 9): `#/search?q=…` / `#/search/section/<id>?q=…`; reload and shared links restore the field and the search;
@@ -5750,8 +5750,42 @@ below (the core alone, `MINIMED_CONTENT_DIR` = the main checkout's `apps/app/pub
   markup shows «Ничего не найдено», marks are whole typed words.
 - Not done / known: the class card on the native (Capacitor) core was not run; the class list is 12 drugs (the card says how many more and
   links to the groups); the first class-shaped query loads the 110 kB НСИ dictionary chunk and derives the phrases (59 ms on a laptop);
-  a class word inside a longer query («макролиды при пневмонии») is a text query; not measured on a phone; the reference documents of
-  item 7 still need the data link above.
+  a class word inside a longer query is handled by SRCH2 (below); not measured on a phone; the reference documents of
+  item 7: two of the four are linked by SRCH2 (below).
+
+### Class word inside a query, calculator links, version qualifier — 2026-10-15 (STATE SRCH2)
+
+Roadmap: the class row and item 22 (`docs/SEARCH_ROADMAP.md`); design `docs/SEARCH_ARCHITECTURE.md` «Class word inside a longer query».
+
+- **Class word inside a longer query.** «макролиды детям», «статины при беременности», «ингибиторы АПФ кашель» show the class card and the
+  three commonest drugs of the class (12 for a bare class word), then the documents ranked by the whole query (unchanged order: checked per
+  query against the same core with the class lead off). `classOf` (`medications/drug-class-lookup.ts`, `classInQuery`) takes the first class
+  phrase of the query (longest run at that word) if a plural word or a capital abbreviation is in it, and at most three other words remain;
+  it returns them as `DrugClassMatch.rest`; the core (`drug-class-search.ts`, `restNamesDrug`) drops the class when they name a substance
+  (whole МНН names of the directory, never one word of a long registry name). Not triggered: «инсулин при беременности», «витамин D дефицит»,
+  «антибиотик ребёнку», «статин-индуцированная миопатия», «азитромицин макролиды», sentences with more than three other words, queries with a
+  digit or a filter. Left: a trade name typed with the class word («аспирин и статины») still shows the class; two classes in one query take
+  the first; a singular class word («антибиотик при ангине») stays a text query.
+- **Measured** (real core + companions, `ScopedMedicalCore`, before → after): `benchmark:class` 52 classes unchanged (104/104 on card, groups, lead,
+  232/232 drugs, 22/22 negatives) plus the new `phrases` set: 46 queries × 2 scopes → card 92/92, groups 92/92, leading drugs in the class 92/92,
+  documents in the plain order 92/92, 12 negatives × 2 scopes clean 24/24 (before: 0/92 cards). `benchmark:all` (lookup R@1 0.180 / R@5 0.279 /
+  MRR 0.214, demo R@1 0.053 / R@5 0.158), `benchmark:real:release` (lookup R@1 0.246 / R@5 0.328 / MRR 0.284, demo 0.105), `benchmark:srch1`
+  (315 brands 308/315 first, 150 INN 150/150, 16 nonsense, 19 controls) and `benchmark:doctor-lookup` (R@5 0.929, MRR 0.804): identical.
+  Owner queries (54, «Все»): hit@5 0.556 → 0.574 (rush 0.742 → 0.774), hit@1 0.259 unchanged; the one changed query is «фп антикоагулянты»
+  (miss → rank 3). A scan of the 3 200 queries of all benchmark query sets finds 3 that read a class inside them (the owner's
+  «фп антикоагулянты» and two parser fixtures «Антибиотики не принимал…»); without the ≤ 3 other words rule the clinical-guideline sentences
+  («…нужны ли антибактериальные препараты при ротавирусном гастроэнтерите») would have been 4 more. Unit: 625 files / 17 845 tests; e2e `search-srch1.spec.ts` (3 class cases, Chromium, built app) pass. Not run: a physical device, the native core.
+- **Calculator links.** The CKD-EPI 2021 adult eGFR document and the WHO child-growth document now carry `interactiveCalculatorId` and
+  `interactiveRoute` (`content/reference-rf-pilot/*.md`), so their result cards are «Калькулятор» and open the reference with the «Рассчитать»
+  button. The WHO BMI table (adult + child) and CKiD U25 are **not** linked: the app has no adult BMI calculator, and its only CKiD tool is the
+  older bedside-2009 equation (a different formula than the document teaches). `data-assets.data.test.ts` pins the links and the two exceptions.
+  **Needs a rebuild:** `reference.db` (`medbase build --input content/reference-rf-pilot`, as the other reference packs; the 18 documents build
+  and lint cleanly, checksum changes) — the shipped `apps/app/public/content/reference.db` and `reference-report.json` are not rebuilt yet.
+- **Version qualifier.** `resultQualifier` reads `documentVersionLabel()`: a recommendation's «459_2» shows as «ред. 2», `site-…` ids and hashes
+  show nothing (`isMachineVersionLabel` is gone).
+- **МКБ-11 section** (request ICD11, 2026-10-06): assessed, not done. The ICD-10 → ICD-11 links already exist (ICD11-MAP); a dedicated search
+  section needs a new `SearchScope`, the section list (`searchCatalog.ts`, `SearchHome`, section downloads), `search-history`/`app-preferences`
+  ids, the module-installed gating and e2e — about ten files in code other agents are editing, plus a product decision on when it is shown.
 
 ### «Лента»: opt-in news feed and site viewer — 2026-10-05 (STATE NEWS1, ADR-0024)
 

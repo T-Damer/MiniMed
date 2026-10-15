@@ -4,6 +4,7 @@ import {
   CLEANED_SECTION_TITLES,
   TECHNICAL_SECTION_TITLES,
 } from '@/features/library/document-display';
+import { documentVersionLabel } from '@/features/library/document-version-label';
 import { instructionSourceInfo } from '@/features/medications/instruction-source';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { specialtyLabel } from '@/i18n/labels';
@@ -291,16 +292,9 @@ export function presentSourceChunkText(text: string, sectionPath: readonly strin
 }
 
 /**
- * A version label that is a source's own identifier («site-4df3e404f895», «459_2», a hash), not
- * an edition a doctor can read.
- */
-export function isMachineVersionLabel(label: string): boolean {
-  return /^(?:site-[0-9a-f]{6,}|\d+_\d+|[0-9a-f]{12,})$/iu.test(label.trim());
-}
-
-/**
  * What tells one card from another of the same title: the publisher and registration of an
- * instruction, the edition of a recommendation. Shown only on cards whose title repeats.
+ * instruction, the edition of a recommendation («ред. 3» for «359_3»; a source's internal
+ * identifier is never shown, `documentVersionLabel`). Shown only on cards whose title repeats.
  */
 export function resultQualifier(
   document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'> | undefined,
@@ -316,8 +310,7 @@ export function resultQualifier(
     );
     return parts.length > 0 ? parts.join(' · ') : instruction.kindLabel;
   }
-  const version = document.versionLabel?.trim();
-  return version && !isMachineVersionLabel(version) ? version : undefined;
+  return documentVersionLabel(document.versionLabel);
 }
 
 /** Titles that more than one card carries; those cards get a qualifier. */

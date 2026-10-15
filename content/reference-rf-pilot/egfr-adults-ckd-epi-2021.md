@@ -24,6 +24,8 @@ metadata:
   audienceLabel: Для взрослых
   contentMode: source_linked_paraphrase
   calculationRequired: true
+  interactiveCalculatorId: adult-egfr-ckd-epi-2021
+  interactiveRoute: "#/calculators/adult-egfr-ckd-epi-2021"
   clinicalContextRequired: true
 ---
 

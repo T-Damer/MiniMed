@@ -28,7 +28,7 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
       → drug overview line       medication-overview.ts: group / action / indications first (S6)
   → withNameVariantFallback      layout / transliteration / Latin-name retry of a weak lookup (S3)
   → withAtcDrugs                 an ATC code or prefix as the whole query: the drugs that carry it in front (ATC5)
-  → withDrugClass                a class word as the whole query («макролиды»): class card + its drugs in front (SRCH1)
+  → withDrugClass                a class word as the whole query («макролиды») or inside a short one («макролиды детям»): class card + its drugs in front (SRCH1, SRCH2)
   → withHomeopathyDemoted        homeopathic cards behind the ordinary cards that name the query (SRCH1)
 ```
 
@@ -341,6 +341,17 @@ The fixes of the 2026-10-14 QA pass that live in the search path (the rest is pr
   (`DrugClassCard`, above the identities and the groups; every ATC group is a link to `openAtcGroup`). The text hits follow
   the drugs and keep their limit. A query with a specialty / audience / section filter, a drug, a disease or an ATC code is
   no class lookup.
+- **Class word inside a longer query** (SRCH2, 2026-10-15). `classOf` also answers «макролиды детям», «статины при беременности»,
+  «ингибиторы АПФ кашель» (`classInQuery` in `drug-class-lookup.ts`): the first class named in the query counts, at its word the longest run
+  of words that is a class phrase («ингибиторы протонной помпы», not «ингибиторы»). A run counts only if it *reads as the class*: a plural
+  word or a capital abbreviation (НПВС, ИПП, the «АПФ» of «ингибитор АПФ») is in it — «инсулин при беременности», «витамин D», «антибиотик
+  ребёнку» are drugs or singular words and stay text queries — and at most three other words remain (a sentence like «нужны ли
+  антибактериальные препараты при ротавирусном гастроэнтерите» is no class lookup). The match carries those other words as
+  `DrugClassMatch.rest`; the core drops the class when they name a substance (`restNamesDrug`: whole МНН names of the directory, components
+  of «A+B» split, never a single word of a long name — the registry names vaccines and herbal preparations after diseases and organs;
+  trade names are not in the directory, so «аспирин и статины» still shows the class). For such a query at most 3 drugs (the commonest)
+  stand in front of the documents instead of 12 (`MAX_CLASS_DRUGS_IN_PHRASE`); the documents keep the order the query has without the
+  class lead (checked by `benchmark:class`). Filters (specialty, audience, section) switch it off as before.
 - **Homeopathic mixtures** (`homeopathy-demotion.ts`). The registry's pharmacotherapeutic group «гомеопатическое средство»
   (344 cards, ATC `~`) is the class. The directory's `homeopathicIds()` names them; when the response also has an ordinary
   (not homeopathic) medication card whose title carries a typed word, the homeopathic cards move behind every ordinary
@@ -405,7 +416,7 @@ Presentation, in the app only:
 | `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
 | `bun run benchmark:atc` | ATC5: every full code of every card finds its card, agreed pairs show both codes, typing variants (case, spaces, look-alikes, Russian layout) give the same drugs, words and short codes never match; `ATC5_OFF=1` removes the directory from any `openRealCorpus` benchmark |
 | `bun run benchmark:srch1` (`srch1-queries.json`, built by `build-srch1-queries.ts` from the comparison index) | SRCH1: 315 trade names (the commonest 150 + an even sample + the QA's named brands) → the substance card first in «Все» and «Препараты», 150 INN names → their own card first, 15 homeopathy-prone words (no homeopathic card ahead of an ordinary one that names it), 16 nonsense strings → nothing, 19 controls → something; `MINIMED_CONTENT_DIR=<main checkout>/apps/app/public/content` in a worktree |
-| `bun run benchmark:class` (`class-queries.json`) | SRCH1: 52 class words (inflections, synonyms, abbreviations) × «Все» / «Препараты» → class card with the expected ATC groups, the drugs of the class lead (`atcMatch`), expected drugs listed; 11 negatives carry no class |
+| `bun run benchmark:class` (`class-queries.json`) | SRCH1: 52 class words (inflections, synonyms, abbreviations) × «Все» / «Препараты» → class card with the expected ATC groups, the drugs of the class lead (`atcMatch`), expected drugs listed; 11 negatives carry no class. SRCH2: 46 queries with a class word inside a longer query × 2 scopes → class card, right groups, leading drugs carry a code of the class, the documents below keep the plain order; 12 queries with a drug / singular word / no class word carry none |
 | `bun run benchmark:source-names` (`source-name-queries.json`) | source-name intent (read as expected, results inside the source, negatives stay plain) and the drug overview line; `--check` fails on any miss |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the embedded КР packs through MedicalCore: lexical / semantic / hybrid, `--grid` over fusion constants |
 

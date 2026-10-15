@@ -25,6 +25,8 @@ metadata:
   audienceLabel: Для детей и подростков
   contentMode: source_linked_paraphrase
   calculationRequired: true
+  interactiveCalculatorId: minimed.calculator.pediatric-anthropometry-who
+  interactiveRoute: "#/calculators/pediatric-anthropometry-who"
   clinicalContextRequired: true
 ---
 

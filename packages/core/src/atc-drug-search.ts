@@ -28,8 +28,8 @@ export interface DrugCodeDirectory {
    */
   homeopathicIds?(): Promise<ReadonlySet<string>>;
   /**
-   * The drug class a whole query names («макролиды», «статинами»): its label and the ATC groups it
-   * stands for. The class words are the application's one vocabulary (the interaction check reads
+   * The drug class a query names («макролиды», «статинами», and — SRCH2 — «макролиды детям»): its
+   * label and the ATC groups it stands for. The class words are the application's one vocabulary (the interaction check reads
    * the same table); the core only asks. With it, the main search puts a class card and the drugs of
    * the class in front of the text hits (`drug-class-search.ts`).
    */
@@ -40,6 +40,12 @@ export interface DrugCodeDirectory {
 export interface DrugClassMatch {
   readonly label: string;
   readonly groups: readonly { readonly code: string; readonly name: string | null }[];
+  /**
+   * SRCH2: the query's other words (lower case, as typed) when the class word stands inside a longer
+   * query; absent when the class is the whole query. The core shows the class for such a query only
+   * if none of these words names a drug.
+   */
+  readonly rest?: readonly string[];
 }
 
 /** Matched-branch label of a result found by its code. */

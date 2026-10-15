@@ -4,7 +4,7 @@ import type {
   SearchResponse,
   SearchResultGroup,
 } from '@localmed/contracts';
-import { type AtcDirectoryEntry, matchAtcEntry } from '@localmed/search-lexical';
+import { type AtcDirectoryEntry, lightStemRussian, matchAtcEntry } from '@localmed/search-lexical';
 
 import {
   atcResultGroups,
@@ -17,6 +17,70 @@ import { collapseGroupsByTargetDocument } from './query-group-ranking';
 
 /** The most drugs of a class that lead the results; the class card links to the rest. */
 export const MAX_CLASS_DRUGS = 12;
+/**
+ * … and for a class word inside a longer query («макролиды детям»): the rest of the query asks for
+ * documents, so only the commonest drugs stand in front of them (the class card links to the rest).
+ */
+export const MAX_CLASS_DRUGS_IN_PHRASE = 3;
+/** A one-word drug name shorter than this is never taken for a drug (prepositions, «мг», «год»). */
+const MIN_DRUG_WORD_LENGTH = 4;
+/** The longest run of the query's words compared with a drug name («ацетилсалициловая кислота»). */
+const MAX_DRUG_NAME_WORDS = 3;
+
+const drugNames = new WeakMap<readonly AtcDirectoryEntry[], ReadonlySet<string>>();
+
+function wordStem(word: string): string {
+  return lightStemRussian(lightStemRussian(word.toLowerCase().replaceAll('ё', 'е')));
+}
+
+function stemsOf(text: string): string[] {
+  return [...text.toLowerCase().matchAll(/[a-zа-яё]+/gu)].map((match) => wordStem(match[0]));
+}
+
+/**
+ * Every substance name of the directory as its stems («ацетилсалициловая кислота» is one entry); a
+ * combination «A+B» gives its components. Whole names only: the registry also names vaccines,
+ * phages and herbal preparations after diseases and organs («… профилактики гриппа», «печени
+ * экстракт»), so a single word of a long name is no drug. Cached per directory listing.
+ */
+function substanceNames(entries: readonly AtcDirectoryEntry[]): ReadonlySet<string> {
+  const cached = drugNames.get(entries);
+  if (cached) return cached;
+  const names = new Set<string>();
+  for (const entry of entries) {
+    for (const component of entry.name.split('+')) {
+      const stems = stemsOf(component);
+      if (stems.length > 0 && stems.length <= MAX_DRUG_NAME_WORDS) names.add(stems.join(' '));
+    }
+  }
+  drugNames.set(entries, names);
+  return names;
+}
+
+/**
+ * SRCH2: a class word inside a longer query leads only if the other words name no drug: with a drug
+ * typed («азитромицин макролиды») its own card comes first, as before. Trade names are not in the
+ * directory, so a query with one still shows the class (a class word lists the class).
+ */
+export function restNamesDrug(
+  rest: readonly string[],
+  entries: readonly AtcDirectoryEntry[],
+): boolean {
+  const names = substanceNames(entries);
+  const stems = rest.flatMap((word) => stemsOf(word));
+  for (let start = 0; start < stems.length; start += 1) {
+    for (
+      let length = 1;
+      length <= MAX_DRUG_NAME_WORDS && start + length <= stems.length;
+      length += 1
+    ) {
+      const run = stems.slice(start, start + length);
+      if (length === 1 && (run[0] ?? '').length < MIN_DRUG_WORD_LENGTH) continue;
+      if (names.has(run.join(' '))) return true;
+    }
+  }
+  return false;
+}
 
 export interface DrugClassSearch {
   readonly drugClass: SearchDrugClass;
@@ -71,8 +135,8 @@ export function drugsOfClass(
 }
 
 /**
- * SRCH1 (owner decision 2026-10-14): a query that names a drug class as a whole returns the class
- * first (the card the response's \`drugClass\` describes), then the drugs of the class as result
+ * SRCH1 (owner decision 2026-10-14): a query that names a drug class as a whole — SRCH2: or as a
+ * word inside a longer query that names no drug — returns the class first (the card the response's \`drugClass\` describes), then the drugs of the class as result
  * groups, then the usual documents. Null when the query names no class or no drug of it is
  * available.
  */
@@ -86,6 +150,8 @@ export async function drugClassSearch(input: {
   if (!input.directory.classOf) return null;
   const match = await input.directory.classOf(input.query);
   if (!match || match.groups.length === 0) return null;
+  const inPhrase = (match.rest?.length ?? 0) > 0;
+  if (inPhrase && restNamesDrug(match.rest ?? [], await input.directory.entries())) return null;
   // Only drugs the corpus holds (a card, or the pointer to its module) count and are listed.
   const allowed = input.filters.documentIds;
   const documentIds = new Map<string, string>();
@@ -102,11 +168,13 @@ export async function drugClassSearch(input: {
     const documentId = documentIds.get(drug.entry.id);
     return documentId === undefined ? [] : [{ documentId, ...drug }];
   });
-  const found = available.slice(0, MAX_CLASS_DRUGS).map((drug) => ({
-    documentId: drug.documentId,
-    code: drug.code,
-    registryCode: drug.registryCode,
-  }));
+  const found = available
+    .slice(0, inPhrase ? MAX_CLASS_DRUGS_IN_PHRASE : MAX_CLASS_DRUGS)
+    .map((drug) => ({
+      documentId: drug.documentId,
+      code: drug.code,
+      registryCode: drug.registryCode,
+    }));
   const groups = await atcResultGroups(found, input.readResults);
   if (groups.length === 0) return null;
   return {

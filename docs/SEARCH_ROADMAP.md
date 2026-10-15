@@ -31,6 +31,7 @@ and the list is updated when the proposal is better. How search works today:
 | Drug by trade name («Аспирин», «Нурофен», «Но-шпа», «Валидол») | `srch1-queries.json`, 315 names derived from the shipped drug index, core.db alone | «Все»: card first 0.911, among the first three 0.943 → 0.978 / 1.000; «Препараты»: 0.959 / 1.000 → 0.978 / 1.000 | — | SRCH1 |
 | Drug by INN name (own card first) | `srch1-queries.json`, 150 names | 1.000 / 1.000 (unchanged) | — | SRCH1 gate |
 | Class word («макролиды», «статинами», «ингибиторы АПФ», «бета-блокаторы») | `class-queries.json`, 52 classes × 2 scopes | no class card → class card 104/104, groups right 104/104, drugs lead 104/104, expected drugs listed 232/232, 22/22 negatives clean | — | SRCH1 (owner decision 2026-10-14) |
+| Class word inside a longer query («макролиды детям», «статины при беременности», «ингибиторы АПФ кашель») | `class-queries.json` `phrases`, 46 queries × 2 scopes + 12 negatives | no class card → class card 92/92, groups right 92/92, leading drugs in the class 92/92, documents below keep the plain order 92/92; 24/24 negatives clean | — | SRCH2; owner queries hit@5 0.556 → 0.574 (rush 0.742 → 0.774), hit@1 unchanged |
 | Drug by ATC code («J05AX13», «J05», «о05») | `benchmark:atc`, 2 192 generated | every full code finds its card; 220/220 variants identical | — | ATC5, code groups in front of the text hits |
 | Drug safety questions («X при беременности / при ГВ / ребёнку 3 лет») | `safe1-queries.json`, 44 (card, not ranking) | card correct 44/44, see item 15 | — | SAFE1, answer card above the results |
 | Drug comparison queries («X или Y», «X vs Y», «сравнить X и Y», «чем отличается X от Y») | `cmp1-queries.json`, 35 (card, not ranking) | card correct 35/35, see item 16 | — | CMP1, comparison card above the results |
@@ -230,9 +231,12 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     their own sets (`bun run benchmark:srch1`, `bun run benchmark:class`, table above) and the unchanged gates: `benchmark:all` lookup R@1 0.180 /
     R@5 0.279 / MRR 0.214 unchanged, the 19-query demo set MRR 0.105 → 0.096 (one query, «аугментин пневмония»: the Амоксиклав card is no longer
     dropped in «Все», the recommendation moves from second to third; hit@5 unchanged); typo and name-variant sets in `CURRENT_STATE.md` «SRCH1».
-    Left: complaints and descriptions as class words («лекарства от давления»: no hand-written symptom → class table, by principle); a class word
-    inside a longer query is a text query; equal-title tie-break (item 12); the reference documents flagged `calculationRequired` do not link to
-    their calculators yet.
+    Left: complaints and descriptions as class words («лекарства от давления»: no hand-written symptom → class table, by principle); equal-title
+    tie-break (item 12). **SRCH2 (2026-10-15):** a class word inside a longer query («макролиды детям», «статины при беременности», «ингибиторы АПФ
+    кашель») shows the class card and the three commonest drugs, the documents below ranked by the whole query; only for a plural class word or a
+    capital abbreviation with ≤ 3 other words that name no substance (`classInQuery`, `restNamesDrug`); `benchmark:class` `phrases`. The reference
+    documents flagged `calculationRequired`: the CKD-EPI 2021 and WHO child-growth documents are linked to their calculators, the WHO BMI table and
+    CKiD U25 wait for a calculator that implements them.
 
 ## Measured and rejected
 

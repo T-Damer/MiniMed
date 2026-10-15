@@ -42,14 +42,45 @@ describe('the class a query names', () => {
   });
 
   it('names no class for a disease, a drug, a code or a long phrase', () => {
+    for (const query of ['пневмония', 'азитромицин', 'J01FA', 'группа', 'препараты', '']) {
+      expect(classOfQuery(vocabulary, query), query).toBeNull();
+    }
+  });
+
+  it('reads a class word inside a longer query and returns the other words (SRCH2)', () => {
+    const inside = (query: string) => classOfQuery(vocabulary, query);
+    expect(inside('макролиды детям')?.groups.map((group) => group.code)).toEqual(['J01FA']);
+    expect(inside('макролиды детям')?.rest).toEqual(['детям']);
+    expect(inside('статины при беременности')?.groups.map((group) => group.code)).toEqual([
+      'C10AA',
+    ]);
+    expect(inside('статины при беременности')?.rest).toEqual(['при', 'беременности']);
+    expect(inside('ингибиторы АПФ кашель')?.rest).toEqual(['кашель']);
+    expect(inside('ингибитор АПФ кашель')?.groups.map((group) => group.code)).toContain('C09AA');
+    expect(inside('аллергия на макролиды')?.rest).toEqual(['аллергия', 'на']);
+    expect(inside('макролиды при пневмонии')?.label).toBe('Макролиды');
+    // The longest run wins: «ингибиторы протонной помпы» is not the shorter «ингибиторы …».
+    expect(
+      inside('ингибиторы протонной помпы при гастрите')?.groups.map((group) => group.code),
+    ).toEqual(['A02BC']);
+    expect(inside('НПВС и желудок')?.groups.map((group) => group.code)).toEqual(['M01A']);
+    expect(inside('препараты группы статинов при подагре')?.groups[0]?.code).toBe('C10AA');
+    // A whole-query match has no rest.
+    expect(classOfQuery(vocabulary, 'макролиды')).not.toHaveProperty('rest');
+  });
+
+  it('does not read a drug, a singular word or an ordinary phrase as the class of a longer query', () => {
     for (const query of [
-      'пневмония',
-      'азитромицин',
-      'J01FA',
-      'макролиды при пневмонии',
-      'группа',
-      'препараты',
-      '',
+      'инсулин при беременности',
+      'витамин D дефицит',
+      'антибиотик ребенку',
+      'статин-индуцированная миопатия',
+      'аспирин при головной боли',
+      'боль в животе у ребенка',
+      'сахарный диабет 2 типа',
+      'лекарства от кашля',
+      // A sentence, not a class with a qualifier.
+      'нужны ли антибактериальные препараты при ротавирусном гастроэнтерите',
     ]) {
       expect(classOfQuery(vocabulary, query), query).toBeNull();
     }
