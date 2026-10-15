@@ -16,15 +16,28 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-
 const SHOTS = process.env['RX1_SHOTS'];
 const INSTRUCTION_MODULE = 'minimed.medications.instructions.antiinfectives.ru';
 
-/** Picks the first form that matches and the first strength, when the registry offers a choice. */
+/**
+ * Picks the first form that matches and the first strength, when the registry offers a choice and
+ * the choice is not made yet. A chosen chip is left alone: tapping the form again resets the
+ * strength, and the strength group may then be gone (a form with one strength shows no chips).
+ */
 async function pickProduct(item: Locator, form: RegExp): Promise<void> {
   const forms = item.getByRole('group', { name: 'Лекарственная форма' }).getByRole('button');
-  if ((await forms.count()) > 0) {
+  if (
+    (await forms.count()) > 0 &&
+    (await forms.and(item.locator('[aria-pressed="true"]')).count()) === 0
+  ) {
     const match = forms.filter({ hasText: form });
-    await ((await match.count()) > 0 ? match : forms).first().click();
+    const target = ((await match.count()) > 0 ? match : forms).first();
+    await target.click();
+    await expect(target).toHaveAttribute('aria-pressed', 'true');
   }
   const strengths = item.getByRole('group', { name: 'Дозировка' }).getByRole('button');
-  if ((await strengths.count()) > 0) await strengths.first().click();
+  if (
+    (await strengths.count()) > 0 &&
+    (await strengths.and(item.locator('[aria-pressed="true"]')).count()) === 0
+  )
+    await strengths.first().click();
 }
 
 async function shoot(page: Page, name: string): Promise<void> {

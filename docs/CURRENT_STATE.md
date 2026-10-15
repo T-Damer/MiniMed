@@ -20,6 +20,55 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## e2e sweep before 0.6.60 — 2026-10-15 (STATE E2E1)
+
+The whole Playwright suite (single worker, `E2E_PORT=4791`, `bun run build:app` first) after the NAV1, DL1, VIS1/2,
+DOC-UI1, DRUG-UI1/2, NOTE1/2, SRCH1, REG2, CLS1, ATC3–5 changes: **573 passed, 11 skipped, 0 failed** (1.4 h; one
+rerun of the failures and of every spec the first run had skipped is in the table below).
+
+Failures of the first run (583 tests, 12 failed) and what each was:
+
+| Spec | Class | Cause → fix |
+| --- | --- | --- |
+| `app-first-paint` ×2 | stale | the desk colour became the tan `--theme-background` (VIS1); the test read the token instead of a hard-coded grey |
+| `patient-vault` (the three scenarios) and `obstetric-calculators` :140, `diary-doctor` (via `createDoctorCard`) | stale (NAV1) | «Отмена» on a new-card form opened from Notes now returns to Notes; a created card replaces the form, so back is the list it was opened from; a tab tap returns to the tab's last place (the card), a card's back steps one entry. Specs reach the list by its address (`e2e/patient-list.ts`: `openPatientList`, `patientCard`) or by the back button |
+| `patient-vault` :88 (once, second run) | flake | the card was found by role + name, which also matched the patient picker's option kept in the hidden calculator screen; cards are now located by their class |
+| `ecg-close` | stale (NAV1) | closing the editor is one history step back to the place it was opened from (not a replace by search); the test opens it from Notes and expects Notes |
+| `ecg-manual-fallback` | regression | «30 признаков для модели» swapped the editor dialog for the numbers dialog (one history layer replaced by another): the editor's layer became a dead entry and closing the numbers stepped past the editor to the search page. Fixed at the cause: the numbers open as a layer **over** the editor (`EcgPhotoCaliper`) |
+| `user-calculators` | regression | calculator ⇄ editor ping-pong piled entries (back from the calculator led to the editor, back from it to the calculator): «Изменить калькулятор» and «Открыть» now go through `visitRoute`; the import dialog closed (a deferred step back) before the async import navigated, so the step back landed after the push and ended on the list — now navigate, then close (same in the questionnaire import) |
+| `vaccination-calendar` desktop | regression (VIS1) | the 13 px floor made the capitals «ВЗРОСЛЫЕ» wider than their one-column group header, spilling 12 px past the table; the group header is no longer upper-cased/letter-spaced |
+| `offline-shell` offline | flake (race in the test) | the background warm-up of the held-back chunk failed while still online and the app (correctly) reloaded once; the request is now held until the connection is cut and fails then |
+| `item-bookmarks` 375 | flake | `page.reload()` raced the history step of the just-closed save panel (a history layer); the test waits for the panel to go |
+| `note-persistence` visit row | flake under load | passes alone and in the rerun; no change |
+| `prescription` search card (failed 2 of 3 alone, 1 of 1 under load) | race in the test | the helper tapped the already chosen form again, which resets the strength; the strength group (a form with one strength shows no chips) vanished between its `count()` and its click and the click waited 5 minutes. The helper now taps only what is not chosen yet and waits for `aria-pressed`; 4 repeats × 4 tests pass |
+| `core-identities` :168 | stale (REG2) | the fixture copied the regulatory module's `minAppVersion` 0.6.60; the fixture now lowers it like the definition module |
+| `packaging-image-source` | stale (pending release) | the photo pack is listed for 0.6.60; the catalog chunk is served with the pack's floor lowered (as the severity fixture does) instead of skipping |
+| `reader-layout-preview` illustration | — | not a failure: it passes (the suspected stale image-mirror route is not stale) |
+
+**Harness fix — 103 tests silently skipped in a worktree.** Fixtures chose the data root by `existsSync(<checkout>/output)`;
+a test run creates `output/playwright` (screenshots), so in an agent worktree the root flipped to the worktree after the
+first screenshot and every spec that needs a local release copy skipped as «local-only». `e2e/local-data.ts` now exports
+`LOCAL_DATA_ROOT` (a path under `.claude/worktrees/` → the main checkout) and all fixtures and specs that read `output/` or
+`data/` use it (no copies or symlinks). After the fix those specs run from the main checkout's copies.
+
+**Back labels (NAV1 step-back vs the words on the button).** A back button whose label names a destination was kept only
+where it is the destination in the common flows: «Назад к заметкам» (patient list, forms, templates; «К файлам» when opened
+from the files), «К карточке пациента» (dynamics, patient forms), «К ленте», «К моим калькуляторам» (editor) stay. Made
+neutral («Назад», aria-label too):
+
+- the patient card (was «Пациенты») — it is opened from Notes, the list, search hits, forms and attached conversations;
+- the sub-pages of Settings (was «К настройкам») — «Загрузки» is opened from the search section picker and the download
+  indicator;
+- the assessment result (was «К тесту») — results open from the records list as well.
+
+**Still skipped (11) and why:** `dev-server-smoke` (needs a dev server), `ecg-photo-benchmark` and `ecg-success-path`
+(need an external ECG folder / file), `grls-instruction-modules` (`GI1_MIRROR_E2E=1`, downloads from the mirror),
+`ios-layout` (WebKit behaviour), `live-prototype` (`MINIMED_LIVE_URL`), `local-model-smoke` (scheduled workflow),
+`pdf-viewer-perf` (`PDF_PERF=1`), `module-pointer` «zstd MKB» (`data/build/rls-mkb-module/release` holds the RLS packaging
+files, not the `minimed.mkb.ru` zstd the catalog names), `search.spec` ×2 (the 500 MB medication companion pack is not in
+this build's `dist/content`; copying it into a worktree is not allowed). Not run at all: `webkit-ios` project, native/device
+checks.
+
 ## Leaflet table of contents as one list — 2026-10-15 (STATE LEAF1)
 
 DRUG-UI2 (2026-10-14) found that «Вермокс» opened with a lone heading «Прием препарата», «4. Возможные нежелательные реакции.»,
