@@ -20,6 +20,38 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Result interpretations, part B — 2026-10-15 (STATE TOOLS-B)
+
+The other nine tool modules (gastroenterology, neonatology, neurology-rehab, obstetrics-gynecology, pediatrics,
+pediatrics-growth, psychology, rheum-gi-onco-uro, surgery-trauma) have no `unavailable` evaluation any more
+(`bun scripts/audit-tool-interpretations.ts`). Test: `apps/app/src/features/calculators/tool-interpretations-b.test.ts`.
+
+- **Verdicts with cited bands (30 tools).** Assessments that already carried bands got matching verdict rules: PUCAI,
+  Vesikari, partial Mayo (score-only: score 1 is «ремиссия, если нет кровотечения»), Downes–Vidyasagar, NIPS, Apgar,
+  EPDS (score 8), Ferriman–Gallwey (8), Whooley. **Silverman–Andersen now follows its cited AIIMS text** (none 0, mild <3,
+  moderate 4–6, severe >7; 3 and 7 are not assigned by the source and are shown as borderline bands) instead of the
+  earlier 0–4/5–6/7–10. **FLACC** gets 0 / 1–3 / 4–6 / 7–10 from the authors' scoring form (not in the 1997 paper; stated in
+  the evidence note). New calculator bands: fetal weight percentile from the protocol (ISUOG 2020: <3rd, <10th),
+  Gail/BCRAT 5-year risk (≥1.66 %, NSABP P-1; none for the lifetime risk), blood loss by hematocrit (ATLS classes by %
+  of blood volume), hypogalactia degree. Doppler indices (CPR, UtA-PI) stay unbanded: they need gestational-age charts.
+- **`not-applicable` with a reason (quantities, 31 tools).** ORS volume, GIR, gestational age by CRL/biometry, EFW by maternal
+  anthropometry and Rudakov, VBAC probabilities, corrected age, five feeding calculators, BASFI, SLICC/ACR, MELD-Na,
+  MELD 3.0 (Wiesner groups are for MELD without Na), prostate volume, carboplatin dose, TRISS, POSSUM, Evans, local-anaesthetic
+  dose; the seven EDD/leave calculators and Rivermead already were. Nothing is shown on a result page for them.
+- **Non-clinical profile tests** (Braverman, egogram, PAEI, team roles): the interpretation names the highest scale from
+  the tool's own scale description with the model's author named and no clinical claim; temperament keeps its quadrant text.
+  All five are `not-applicable` (no norms). The Braverman items are MiniMed's adaptation, so there is no author text to quote.
+- **WHO growth wording.** Option labels say how length was measured («По возрасту: до 2 лет лёжа, с 2 лет стоя» …), outputs name
+  their reference («Масса к возрасту (ВОЗ 0–5): отклонение от среднего» …), BMI → ИМТ, a «?» on length, head and arm
+  inputs, and each of the ten z-scores sits on a band track (WHO 2008 training course; 5–19 BMI: >+1 overweight, >+2 obese,
+  <−2 thin). The tool is not-applicable as a whole (no single verdict). Module 0.3.2 (0.3.1 was released). AAP BP got the
+  four category texts next to its verdict.
+- **UI:** an assessment verdict that repeats the result's headline and summary is written once (`evaluationNotice`).
+- **Not resolved:** none left `unavailable`. Unverified against the primary text (kept conservative): the FLACC bands come from
+  a hospital form of the authors' scale, ATLS 10th ed. was cited from memory of the class table, the GIR guideline PDF was not
+  reachable. Modules rebuilt in place (versions unchanged since the 0.6.59 release; pediatrics-growth bumped);
+  **needs publishing** with the 0.6.60 release, `minAppVersion` left to the coordinator.
+
 ## Result interpretations, part A — 2026-10-15 (STATE TOOLS-A)
 
 Five tool modules (core-clinical, emergency, intensive-care, medication-dosing, metabolic-lab; the other eleven are

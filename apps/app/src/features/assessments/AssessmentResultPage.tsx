@@ -196,7 +196,12 @@ export function AssessmentResultPage(props: {
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
-            <Show when={evaluationNotice(result().evaluation)}>
+            <Show
+              when={evaluationNotice(result().evaluation, {
+                headline: result().headline,
+                summary: result().summary,
+              })}
+            >
               {(notice) => (
                 <section class="assessment-result-evaluation" aria-live="polite">
                   <strong class="assessment-result-evaluation__title">{notice().title}</strong>

@@ -29,6 +29,27 @@ describe('the evaluation note of a result page', () => {
     ).toEqual({ title: 'Умеренная активность', text: '35–64 балла.' });
   });
 
+  it('does not repeat a verdict the page already shows as its headline and summary', () => {
+    const verdict = evaluation({
+      status: 'verdict',
+      verdict: {
+        rangeId: 'moderate',
+        title: 'Умеренная активность',
+        explanation: '35–64 балла.',
+        attentionLevel: 'moderate',
+        lowerInclusive: true,
+        upperInclusive: true,
+        sourceIds: [],
+      },
+    });
+    expect(
+      evaluationNotice(verdict, { headline: 'Умеренная активность', summary: '35–64 балла.' }),
+    ).toBeUndefined();
+    expect(
+      evaluationNotice(verdict, { headline: 'Умеренная активность', summary: 'Другой текст.' }),
+    ).toEqual({ title: 'Умеренная активность', text: '35–64 балла.' });
+  });
+
   it('asks only for context the reader can still supply', () => {
     expect(
       evaluationNotice(
@@ -64,8 +85,11 @@ describe('the evaluation note of a result page', () => {
     const undeclared = loadToolModuleRecords().filter(
       (record) => record.kind === 'assessment' && declaredOf(record)?.status === 'unavailable',
     );
-    // The audit behind the fix: assessments whose schema declares no evaluation rules.
-    expect(undeclared.length).toBeGreaterThan(0);
+    // Every shipped assessment now declares a verdict or a reason; an `unavailable` one (should a
+    // future tool ship without rules) must stay silent too.
+    expect(
+      evaluationNotice(evaluation({ status: 'unavailable', reason: 'Правила не объявлены.' })),
+    ).toBeUndefined();
     for (const record of undeclared) {
       const declared = declaredOf(record);
       expect(
