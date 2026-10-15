@@ -10,8 +10,8 @@ export interface EvaluationNotice {
  * reader can still supply is shown. A result declared `not-applicable` (a dose, a volume, a
  * conversion) and a tool schema that never declared evaluation rules say nothing: the number and
  * its interpretation stand alone, and no note about what the schema lacks (a pipeline detail)
- * reaches the screen. A verdict that repeats the headline and summary the page already shows is
- * not written a second time.
+ * reaches the screen. A verdict whose title is the headline the page already shows is not written a
+ * second time.
  */
 export function evaluationNotice(
   evaluation: AssessmentEvaluation | undefined,
@@ -21,10 +21,9 @@ export function evaluationNotice(
   if (evaluation.status === 'verdict') {
     const verdict = evaluation.verdict;
     const text = verdict?.explanation ?? evaluation.reason;
-    // The result already writes the same band as its headline and summary: say it once.
-    if (verdict && shown && verdict.title === shown.headline && text === shown.summary) {
-      return undefined;
-    }
+    // The result already names the same band as its headline: one verdict, written once. Its own
+    // summary is the fuller wording of that band, so a second explanation is not added beneath.
+    if (verdict && shown && verdict.title === shown.headline) return undefined;
     return text ? { title: verdict?.title ?? 'Оценка результата', text } : undefined;
   }
   if (evaluation.status === 'missing-context') {

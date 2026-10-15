@@ -1,3 +1,4 @@
+import { unitForQuantity } from '@/features/calculators/countable-unit';
 import { pluralRu } from '@/i18n/labels';
 
 /**
@@ -63,7 +64,12 @@ export function formatCalculatorQuantity(
     const age = monthsAsAge(value);
     if (age) return age;
   }
-  const shown = displayCalculatorUnit(unit, label);
+  const shown = unitForQuantity(value, precision, displayCalculatorUnit(unit, label));
   const number = formatCalculatorNumber(value, precision);
   return shown ? `${number} ${shown}` : number;
+}
+
+/** A share of 0–100 as the app writes every percentage: «83,3 %» (decimal comma, a space before the sign). */
+export function formatPercent(percent: number): string {
+  return formatCalculatorQuantity(percent, 1, '%');
 }

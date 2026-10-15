@@ -27,6 +27,7 @@ import type {
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 import { Chart } from '@/features/calculators/CalculatorChart';
+import { formatPercent } from '@/features/calculators/calculator-quantity';
 import { ScoreScale } from '@/features/calculators/ScoreScale';
 import { scaledValueIds } from '@/features/calculators/score-scale';
 import {
@@ -211,6 +212,14 @@ export function AssessmentResultPage(props: {
       >
         {(result) => (
           <section class="assessment-result-summary paper-card">
+            <For each={result().alerts ?? []}>
+              {(alert) => (
+                <section class="assessment-result-alert" role="alert">
+                  <strong class="assessment-result-alert__title">{alert.title}</strong>
+                  <p class="assessment-result-alert__text">{alert.message}</p>
+                </section>
+              )}
+            </For>
             <Show
               when={evaluationNotice(result().evaluation, {
                 headline: result().headline,
@@ -256,7 +265,7 @@ export function AssessmentResultPage(props: {
                         value={score.percent}
                         max={100}
                       />
-                      <b class="assessment-score-list__value">{score.percent}%</b>
+                      <b class="assessment-score-list__value">{formatPercent(score.percent)}</b>
                     </div>
                   )}
                 </For>

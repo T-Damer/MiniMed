@@ -80,7 +80,9 @@ export const CalculatorInputSchema = z.object({
     .optional(),
   minimum: z.number().optional(),
   maximum: z.number().optional(),
-  /** Native HTML number-input increment. Integer fields default to 1; other fields default to `any`. */
+  /** Declared precision grid of the field (display rounding, age-at-event binding). It is never the
+   *  HTML `step`: a native step makes every value off `minimum + k * step` «invalid», so number inputs
+   *  always render with `step="any"` and ranges are checked by the engine with a Russian message. */
   inputStep: z.number().positive().optional(),
   /** Reject non-integer values for a 'number' input (e.g. Bishop score sub-scores, whole weeks/days). */
   integer: z.boolean().optional(),
@@ -114,6 +116,10 @@ export const CalculatorInputRequirementSchema = z
 export const CalculatorWarningSchema = z.object({
   code: z.string().min(1),
   message: z.string().min(1),
+  /** Without `when` the warning belongs to every result. With it, the warning is added to a result
+   *  only when this expression, evaluated against the inputs and steps, is truthy (`1`) — a
+   *  plausibility note for a value outside the range a patient can have (creatinine of 5 мкмоль/л). */
+  when: z.string().min(1).optional(),
 });
 
 export const CalculatorStepSchema = z.object({

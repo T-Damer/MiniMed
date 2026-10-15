@@ -178,6 +178,24 @@ export function validateCalculatorSchema(candidate: unknown): CalculatorSchemaVa
     }
   }
 
+  for (const warning of schema.warnings) {
+    if (warning.when === undefined) continue;
+    let node: ExpressionNode;
+    try {
+      node = parseCalculatorExpression(warning.when);
+    } catch (error) {
+      const message = error instanceof CalculatorExpressionError ? error.message : String(error);
+      errors.push(`warning "${warning.code}": ${message}`);
+      continue;
+    }
+    const referenced = new Set<string>();
+    referencedVariables(node, referenced);
+    for (const name of referenced) {
+      if (!knownIds.has(name))
+        errors.push(`warning "${warning.code}": references unknown variable "${name}".`);
+    }
+  }
+
   const inputIds = new Set(schema.inputs.map((input) => input.id));
   const stepIds = new Set(schema.steps.map((step) => step.id));
   const outputIds = new Set(schema.steps.filter((step) => step.isOutput).map((step) => step.id));

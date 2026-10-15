@@ -30,6 +30,7 @@ import {
 } from '@/features/calculators/CalculatorInfo';
 import { USER_CALCULATORS_EVENT } from '@/features/calculators/calculator-events';
 import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
+import { calculatorNumberInputAttributes } from '@/features/calculators/calculator-number-input';
 import type {
   CalculatorInstallationState,
   CalculatorSectionId,
@@ -77,6 +78,7 @@ import {
   calculatorInputOptions,
   calculatorInputSummary,
   calculatorSchemaInputsReady,
+  calculatorSchemaMissingInputs,
   evaluateCalculatorSchema,
   initialCalculatorSchemaValues,
   toStoredCalculationResult,
@@ -86,6 +88,7 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
+import { unitForQuantity } from '@/features/calculators/countable-unit';
 import { EcgPhotoCaliper } from '@/features/calculators/EcgPhotoCaliper';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
 import { RecentCalculatorsRow } from '@/features/calculators/RecentCalculatorsRow';
@@ -534,6 +537,8 @@ function CalculatorForm(props: {
   readonly initialValues?: Readonly<Record<string, string | number>>;
   readonly inline?: boolean;
   readonly onRecord: (record: CalculationRecord) => void;
+  /** The user changed a field: a result computed from the old values no longer matches the form. */
+  readonly onEdit?: () => void;
   readonly onMessage: (message: string) => void;
 }): JSX.Element {
   const [subjectLabel, setSubjectLabel] = createSignal('');
@@ -544,6 +549,8 @@ function CalculatorForm(props: {
   // `schema.inputs[].id`, rendered dynamically below. Adding a new schema calculator needs no new signal.
   const [schemaValues, setSchemaValues] = createSignal<Record<string, string>>({});
   const [schemaStep, setSchemaStep] = createSignal(0);
+  // A field the user has changed: only then does a disabled «Рассчитать» say what it is waiting for.
+  const [schemaTouched, setSchemaTouched] = createSignal(false);
   const [schemaPreview, setSchemaPreview] = createSignal<CalculatorSchemaEvaluation>();
   let patientRefreshRequest = 0;
   const refreshPatients = (): void => {
@@ -586,6 +593,15 @@ function CalculatorForm(props: {
     const schema = getCalculatorSchema(props.definition.id);
     return schema !== undefined && schemaStep() < maxSchemaStep(schema);
   };
+  const missingInputLabels = (): readonly string[] => {
+    const schema = getCalculatorSchema(props.definition.id);
+    return schema ? calculatorSchemaMissingInputs(schema, schemaValues(), schemaStep()) : [];
+  };
+  const missingInputsHint = (): string => {
+    if (!schemaTouched()) return '';
+    const labels = missingInputLabels();
+    return labels.length === 0 ? '' : `Нужно заполнить: ${labels.join(', ')}.`;
+  };
   const schemaInputsReady = (): boolean => {
     const schema = getCalculatorSchema(props.definition.id);
     return (
@@ -594,6 +610,8 @@ function CalculatorForm(props: {
   };
   const setSchemaValue = (id: string, fieldValue: string): void => {
     const schema = getCalculatorSchema(props.definition.id);
+    props.onEdit?.();
+    setSchemaTouched(true);
     setSchemaValues((previous) =>
       schema
         ? applyCalculatorInputChange(schema, previous, id, fieldValue)
@@ -634,6 +652,7 @@ function CalculatorForm(props: {
       });
       setSchemaStep(0);
       setSchemaPreview(undefined);
+      setSchemaTouched(false);
     }),
   );
   const usesPatientData = (): boolean =>
@@ -699,6 +718,8 @@ function CalculatorForm(props: {
               ? `${measurementDate}T00:00:00.000Z`
               : record.createdAt,
         });
+        // Writing into a protected card is confirmed in words; the local save below is not (the
+        // result's own header says it, and a toast would cover the result heading).
         props.onMessage(
           saved.created
             ? 'Результат записан в защищённую карточку.'
@@ -712,7 +733,6 @@ function CalculatorForm(props: {
       }
     } else {
       saveCalculationRecord(record);
-      props.onMessage('Расчёт сохранён локально.');
     }
     props.onRecord(record);
   };
@@ -746,6 +766,7 @@ function CalculatorForm(props: {
 
   return (
     <form
+      noValidate
       class="calculator-form paper-card"
       classList={{ 'calculator-form--inline': props.inline ?? false }}
       onSubmit={(event) => {
@@ -894,10 +915,7 @@ function CalculatorForm(props: {
                     <input
                       id={`calculator-input-${input.id}`}
                       type="number"
-                      inputmode={input.integer ? 'numeric' : 'decimal'}
-                      min={input.minimum}
-                      max={input.maximum}
-                      step={input.inputStep ?? (input.integer ? 1 : 'any')}
+                      {...calculatorNumberInputAttributes(input)}
                       disabled={disabled()}
                       title={disabledTitle()}
                       value={schemaValues()[input.id] ?? ''}
@@ -947,7 +965,7 @@ function CalculatorForm(props: {
                         {output.kind === 'text'
                           ? output.text
                           : output.kind === 'number'
-                            ? `${formatNumber(output.value, output.displayPrecision)} ${output.unit}`
+                            ? `${formatNumber(output.value, output.displayPrecision)} ${unitForQuantity(output.value, output.displayPrecision, output.unit)}`
                             : ''}
                       </strong>
                     </div>
@@ -974,6 +992,13 @@ function CalculatorForm(props: {
         )}
       </Show>
 
+      <Show when={!schemaInputsReady() && missingInputsHint()}>
+        {(hint) => (
+          <p class="calculator-form__missing" role="status" data-testid="calculator-missing">
+            {hint()}
+          </p>
+        )}
+      </Show>
       <Button
         class="calculator-submit"
         type="submit"
@@ -1126,7 +1151,9 @@ function CalculationResultPanel(props: {
           <>
             <header>
               <p class="archive-kicker">
-                {props.record.patientId ? 'Результат в защищённой карточке' : 'Результат'}
+                {props.record.patientId
+                  ? 'Результат в защищённой карточке'
+                  : 'Результат · сохранён на устройстве'}
               </p>
               <h2>{props.definition.shortTitle}</h2>
             </header>
@@ -1333,7 +1360,7 @@ function CalculationResultPanel(props: {
                   <strong>{step.label}</strong>
                   <code>{step.expression}</code>
                   <span>
-                    {formatNumber(step.value, 8)} {step.unit}
+                    {formatNumber(step.value, 8)} {unitForQuantity(step.value, 8, step.unit)}
                   </span>
                 </li>
               )}
@@ -1416,6 +1443,7 @@ export function InlineCalculatorWorkspace(props: {
             inline
             onMessage={notify}
             onRecord={setActiveRecord}
+            onEdit={() => setActiveRecord(undefined)}
           />
         }
       >
@@ -2090,6 +2118,7 @@ export function CalculatorsView(): JSX.Element {
                       setActiveRecord(record);
                       setHistory(loadCalculationHistory());
                     }}
+                    onEdit={() => setActiveRecord(undefined)}
                   />
 
                   <Show when={activeRecord()}>

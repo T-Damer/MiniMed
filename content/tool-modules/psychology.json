@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.6",
+  "version": "0.1.0-preview.7",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-12T00:00:00Z",
@@ -265,24 +265,29 @@
         ],
         "interpretations": [
           {
-            "when": "(percent_dopamine >= percent_acetylcholine) * (percent_dopamine >= percent_gaba) * (percent_dopamine >= percent_serotonin)",
+            "when": "(percent_dopamine > percent_acetylcholine) * (percent_dopamine > percent_gaba) * (percent_dopamine > percent_serotonin)",
             "headline": "Ведущий паттерн: Дофаминовый паттерн",
             "message": "Выше других выражена шкала «Дофаминовый паттерн» — ориентация на цель, скорость решения, конкуренция и поиск результата. Это относительная выраженность ответов внутри опросника по популярной модели Бравермана: не норма, не диагноз и не измерение нейромедиаторов."
           },
           {
-            "when": "(percent_acetylcholine >= percent_dopamine) * (percent_acetylcholine >= percent_gaba) * (percent_acetylcholine >= percent_serotonin)",
+            "when": "(percent_acetylcholine > percent_dopamine) * (percent_acetylcholine > percent_gaba) * (percent_acetylcholine > percent_serotonin)",
             "headline": "Ведущий паттерн: Ацетилхолиновый паттерн",
             "message": "Выше других выражена шкала «Ацетилхолиновый паттерн» — гибкость ассоциаций, любознательность, образность и генерация идей. Это относительная выраженность ответов внутри опросника по популярной модели Бравермана: не норма, не диагноз и не измерение нейромедиаторов."
           },
           {
-            "when": "(percent_gaba >= percent_dopamine) * (percent_gaba >= percent_acetylcholine) * (percent_gaba >= percent_serotonin)",
+            "when": "(percent_gaba > percent_dopamine) * (percent_gaba > percent_acetylcholine) * (percent_gaba > percent_serotonin)",
             "headline": "Ведущий паттерн: ГАМК-паттерн",
             "message": "Выше других выражена шкала «ГАМК-паттерн» — потребность в порядке, надёжности, предсказуемости и завершённости. Это относительная выраженность ответов внутри опросника по популярной модели Бравермана: не норма, не диагноз и не измерение нейромедиаторов."
           },
           {
-            "when": "(percent_serotonin >= percent_dopamine) * (percent_serotonin >= percent_acetylcholine) * (percent_serotonin >= percent_gaba)",
+            "when": "(percent_serotonin > percent_dopamine) * (percent_serotonin > percent_acetylcholine) * (percent_serotonin > percent_gaba)",
             "headline": "Ведущий паттерн: Серотониновый паттерн",
             "message": "Выше других выражена шкала «Серотониновый паттерн» — социальная чувствительность, поддержка отношений и эмоциональная вовлечённость. Это относительная выраженность ответов внутри опросника по популярной модели Бравермана: не норма, не диагноз и не измерение нейромедиаторов."
+          },
+          {
+            "when": "1",
+            "headline": "Ведущего паттерна нет",
+            "message": "Наибольшие значения нескольких шкал совпадают, поэтому один ведущий паттерн не выделяется: смотрите профиль по всем шкалам. Это относительная выраженность ответов внутри опросника по популярной модели Бравермана: не норма, не диагноз и не измерение нейромедиаторов."
           }
         ]
       },
@@ -575,29 +580,34 @@
         ],
         "interpretations": [
           {
-            "when": "(percent_critical_parent >= percent_nurturing_parent) * (percent_critical_parent >= percent_adult) * (percent_critical_parent >= percent_free_child) * (percent_critical_parent >= percent_adapted_child)",
+            "when": "(percent_critical_parent > percent_nurturing_parent) * (percent_critical_parent > percent_adult) * (percent_critical_parent > percent_free_child) * (percent_critical_parent > percent_adapted_child)",
             "headline": "Наиболее выражено эго-состояние: Критический Родитель",
             "message": "Выше других выражено состояние «Критический Родитель» — нормы, требования, контроль, оценка правильности и границ. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
           },
           {
-            "when": "(percent_nurturing_parent >= percent_critical_parent) * (percent_nurturing_parent >= percent_adult) * (percent_nurturing_parent >= percent_free_child) * (percent_nurturing_parent >= percent_adapted_child)",
+            "when": "(percent_nurturing_parent > percent_critical_parent) * (percent_nurturing_parent > percent_adult) * (percent_nurturing_parent > percent_free_child) * (percent_nurturing_parent > percent_adapted_child)",
             "headline": "Наиболее выражено эго-состояние: Заботливый Родитель",
             "message": "Выше других выражено состояние «Заботливый Родитель» — поддержка, защита, сочувствие и готовность помогать. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
           },
           {
-            "when": "(percent_adult >= percent_critical_parent) * (percent_adult >= percent_nurturing_parent) * (percent_adult >= percent_free_child) * (percent_adult >= percent_adapted_child)",
+            "when": "(percent_adult > percent_critical_parent) * (percent_adult > percent_nurturing_parent) * (percent_adult > percent_free_child) * (percent_adult > percent_adapted_child)",
             "headline": "Наиболее выражено эго-состояние: Взрослый",
             "message": "Выше других выражено состояние «Взрослый» — проверка фактов, выбор по текущей ситуации и реалистичное планирование. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
           },
           {
-            "when": "(percent_free_child >= percent_critical_parent) * (percent_free_child >= percent_nurturing_parent) * (percent_free_child >= percent_adult) * (percent_free_child >= percent_adapted_child)",
+            "when": "(percent_free_child > percent_critical_parent) * (percent_free_child > percent_nurturing_parent) * (percent_free_child > percent_adult) * (percent_free_child > percent_adapted_child)",
             "headline": "Наиболее выражено эго-состояние: Свободный Ребёнок",
             "message": "Выше других выражено состояние «Свободный Ребёнок» — спонтанность, игра, творчество и непосредственное выражение желаний. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
           },
           {
-            "when": "(percent_adapted_child >= percent_critical_parent) * (percent_adapted_child >= percent_nurturing_parent) * (percent_adapted_child >= percent_adult) * (percent_adapted_child >= percent_free_child)",
+            "when": "(percent_adapted_child > percent_critical_parent) * (percent_adapted_child > percent_nurturing_parent) * (percent_adapted_child > percent_adult) * (percent_adapted_child > percent_free_child)",
             "headline": "Наиболее выражено эго-состояние: Адаптированный Ребёнок",
             "message": "Выше других выражено состояние «Адаптированный Ребёнок» — приспособление к ожиданиям, осторожность, уступчивость или внутренний протест. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
+          },
+          {
+            "when": "1",
+            "headline": "Одного наиболее выраженного эго-состояния нет",
+            "message": "Наибольшие значения нескольких состояний совпадают, поэтому одно ведущее не выделяется: смотрите эгограмму целиком. Эгограмма (Дж. Дьюси, по транзактному анализу Э. Берна) показывает относительную выраженность состояний, а не «правильный» профиль; состояния меняются с ролью и ситуацией."
           }
         ]
       },
@@ -875,24 +885,29 @@
         ],
         "interpretations": [
           {
-            "when": "(percent_producer >= percent_administrator) * (percent_producer >= percent_entrepreneur) * (percent_producer >= percent_integrator)",
+            "when": "(percent_producer > percent_administrator) * (percent_producer > percent_entrepreneur) * (percent_producer > percent_integrator)",
             "headline": "Ведущая функция: Производитель результата",
             "message": "Выше других выражена функция «Производитель результата» — фокус на выполнении, пользе для клиента и достижении конкретного результата. Рамка PAEI принадлежит И. Адизесу; результат — предпочтения в ответах неформального опросника, а не оценка профессиональной пригодности и не официальный тест Adizes."
           },
           {
-            "when": "(percent_administrator >= percent_producer) * (percent_administrator >= percent_entrepreneur) * (percent_administrator >= percent_integrator)",
+            "when": "(percent_administrator > percent_producer) * (percent_administrator > percent_entrepreneur) * (percent_administrator > percent_integrator)",
             "headline": "Ведущая функция: Администратор",
             "message": "Выше других выражена функция «Администратор» — процессы, последовательность, контроль качества и воспроизводимость. Рамка PAEI принадлежит И. Адизесу; результат — предпочтения в ответах неформального опросника, а не оценка профессиональной пригодности и не официальный тест Adizes."
           },
           {
-            "when": "(percent_entrepreneur >= percent_producer) * (percent_entrepreneur >= percent_administrator) * (percent_entrepreneur >= percent_integrator)",
+            "when": "(percent_entrepreneur > percent_producer) * (percent_entrepreneur > percent_administrator) * (percent_entrepreneur > percent_integrator)",
             "headline": "Ведущая функция: Предприниматель",
             "message": "Выше других выражена функция «Предприниматель» — возможности, направление изменений, риск и создание нового. Рамка PAEI принадлежит И. Адизесу; результат — предпочтения в ответах неформального опросника, а не оценка профессиональной пригодности и не официальный тест Adizes."
           },
           {
-            "when": "(percent_integrator >= percent_producer) * (percent_integrator >= percent_administrator) * (percent_integrator >= percent_entrepreneur)",
+            "when": "(percent_integrator > percent_producer) * (percent_integrator > percent_administrator) * (percent_integrator > percent_entrepreneur)",
             "headline": "Ведущая функция: Интегратор",
             "message": "Выше других выражена функция «Интегратор» — доверие, согласование интересов, командные связи и совместная ответственность. Рамка PAEI принадлежит И. Адизесу; результат — предпочтения в ответах неформального опросника, а не оценка профессиональной пригодности и не официальный тест Adizes."
+          },
+          {
+            "when": "1",
+            "headline": "Ведущей функции нет",
+            "message": "Наибольшие значения нескольких функций совпадают, поэтому одна ведущая функция не выделяется: смотрите профиль по всем функциям. Рамка PAEI принадлежит И. Адизесу; результат — предпочтения в ответах неформального опросника, а не оценка профессиональной пригодности и не официальный тест Adizes."
           }
         ]
       },
@@ -1291,49 +1306,54 @@
         ],
         "interpretations": [
           {
-            "when": "(percent_plant >= percent_resource_investigator) * (percent_plant >= percent_coordinator) * (percent_plant >= percent_shaper) * (percent_plant >= percent_monitor_evaluator) * (percent_plant >= percent_teamworker) * (percent_plant >= percent_implementer) * (percent_plant >= percent_completer_finisher) * (percent_plant >= percent_specialist)",
+            "when": "(percent_plant > percent_resource_investigator) * (percent_plant > percent_coordinator) * (percent_plant > percent_shaper) * (percent_plant > percent_monitor_evaluator) * (percent_plant > percent_teamworker) * (percent_plant > percent_implementer) * (percent_plant > percent_completer_finisher) * (percent_plant > percent_specialist)",
             "headline": "Ведущая роль: Генератор идей",
             "message": "Выше других выражена роль «Генератор идей» — предлагает оригинальные решения и новые концепции. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_resource_investigator >= percent_plant) * (percent_resource_investigator >= percent_coordinator) * (percent_resource_investigator >= percent_shaper) * (percent_resource_investigator >= percent_monitor_evaluator) * (percent_resource_investigator >= percent_teamworker) * (percent_resource_investigator >= percent_implementer) * (percent_resource_investigator >= percent_completer_finisher) * (percent_resource_investigator >= percent_specialist)",
+            "when": "(percent_resource_investigator > percent_plant) * (percent_resource_investigator > percent_coordinator) * (percent_resource_investigator > percent_shaper) * (percent_resource_investigator > percent_monitor_evaluator) * (percent_resource_investigator > percent_teamworker) * (percent_resource_investigator > percent_implementer) * (percent_resource_investigator > percent_completer_finisher) * (percent_resource_investigator > percent_specialist)",
             "headline": "Ведущая роль: Исследователь возможностей",
             "message": "Выше других выражена роль «Исследователь возможностей» — ищет контакты, ресурсы и внешние варианты. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_coordinator >= percent_plant) * (percent_coordinator >= percent_resource_investigator) * (percent_coordinator >= percent_shaper) * (percent_coordinator >= percent_monitor_evaluator) * (percent_coordinator >= percent_teamworker) * (percent_coordinator >= percent_implementer) * (percent_coordinator >= percent_completer_finisher) * (percent_coordinator >= percent_specialist)",
+            "when": "(percent_coordinator > percent_plant) * (percent_coordinator > percent_resource_investigator) * (percent_coordinator > percent_shaper) * (percent_coordinator > percent_monitor_evaluator) * (percent_coordinator > percent_teamworker) * (percent_coordinator > percent_implementer) * (percent_coordinator > percent_completer_finisher) * (percent_coordinator > percent_specialist)",
             "headline": "Ведущая роль: Координатор",
             "message": "Выше других выражена роль «Координатор» — проясняет цели, распределяет внимание и вовлекает людей. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_shaper >= percent_plant) * (percent_shaper >= percent_resource_investigator) * (percent_shaper >= percent_coordinator) * (percent_shaper >= percent_monitor_evaluator) * (percent_shaper >= percent_teamworker) * (percent_shaper >= percent_implementer) * (percent_shaper >= percent_completer_finisher) * (percent_shaper >= percent_specialist)",
+            "when": "(percent_shaper > percent_plant) * (percent_shaper > percent_resource_investigator) * (percent_shaper > percent_coordinator) * (percent_shaper > percent_monitor_evaluator) * (percent_shaper > percent_teamworker) * (percent_shaper > percent_implementer) * (percent_shaper > percent_completer_finisher) * (percent_shaper > percent_specialist)",
             "headline": "Ведущая роль: Драйвер",
             "message": "Выше других выражена роль «Драйвер» — поддерживает темп, бросает вызов инерции и продвигает решение. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_monitor_evaluator >= percent_plant) * (percent_monitor_evaluator >= percent_resource_investigator) * (percent_monitor_evaluator >= percent_coordinator) * (percent_monitor_evaluator >= percent_shaper) * (percent_monitor_evaluator >= percent_teamworker) * (percent_monitor_evaluator >= percent_implementer) * (percent_monitor_evaluator >= percent_completer_finisher) * (percent_monitor_evaluator >= percent_specialist)",
+            "when": "(percent_monitor_evaluator > percent_plant) * (percent_monitor_evaluator > percent_resource_investigator) * (percent_monitor_evaluator > percent_coordinator) * (percent_monitor_evaluator > percent_shaper) * (percent_monitor_evaluator > percent_teamworker) * (percent_monitor_evaluator > percent_implementer) * (percent_monitor_evaluator > percent_completer_finisher) * (percent_monitor_evaluator > percent_specialist)",
             "headline": "Ведущая роль: Аналитик",
             "message": "Выше других выражена роль «Аналитик» — сопоставляет аргументы, риски и последствия. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_teamworker >= percent_plant) * (percent_teamworker >= percent_resource_investigator) * (percent_teamworker >= percent_coordinator) * (percent_teamworker >= percent_shaper) * (percent_teamworker >= percent_monitor_evaluator) * (percent_teamworker >= percent_implementer) * (percent_teamworker >= percent_completer_finisher) * (percent_teamworker >= percent_specialist)",
+            "when": "(percent_teamworker > percent_plant) * (percent_teamworker > percent_resource_investigator) * (percent_teamworker > percent_coordinator) * (percent_teamworker > percent_shaper) * (percent_teamworker > percent_monitor_evaluator) * (percent_teamworker > percent_implementer) * (percent_teamworker > percent_completer_finisher) * (percent_teamworker > percent_specialist)",
             "headline": "Ведущая роль: Объединитель",
             "message": "Выше других выражена роль «Объединитель» — снижает трение, поддерживает сотрудничество и слышит участников. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_implementer >= percent_plant) * (percent_implementer >= percent_resource_investigator) * (percent_implementer >= percent_coordinator) * (percent_implementer >= percent_shaper) * (percent_implementer >= percent_monitor_evaluator) * (percent_implementer >= percent_teamworker) * (percent_implementer >= percent_completer_finisher) * (percent_implementer >= percent_specialist)",
+            "when": "(percent_implementer > percent_plant) * (percent_implementer > percent_resource_investigator) * (percent_implementer > percent_coordinator) * (percent_implementer > percent_shaper) * (percent_implementer > percent_monitor_evaluator) * (percent_implementer > percent_teamworker) * (percent_implementer > percent_completer_finisher) * (percent_implementer > percent_specialist)",
             "headline": "Ведущая роль: Организатор исполнения",
             "message": "Выше других выражена роль «Организатор исполнения» — превращает решение в практический план и устойчивую работу. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_completer_finisher >= percent_plant) * (percent_completer_finisher >= percent_resource_investigator) * (percent_completer_finisher >= percent_coordinator) * (percent_completer_finisher >= percent_shaper) * (percent_completer_finisher >= percent_monitor_evaluator) * (percent_completer_finisher >= percent_teamworker) * (percent_completer_finisher >= percent_implementer) * (percent_completer_finisher >= percent_specialist)",
+            "when": "(percent_completer_finisher > percent_plant) * (percent_completer_finisher > percent_resource_investigator) * (percent_completer_finisher > percent_coordinator) * (percent_completer_finisher > percent_shaper) * (percent_completer_finisher > percent_monitor_evaluator) * (percent_completer_finisher > percent_teamworker) * (percent_completer_finisher > percent_implementer) * (percent_completer_finisher > percent_specialist)",
             "headline": "Ведущая роль: Контролёр завершения",
             "message": "Выше других выражена роль «Контролёр завершения» — проверяет детали, сроки и качество перед сдачей. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           },
           {
-            "when": "(percent_specialist >= percent_plant) * (percent_specialist >= percent_resource_investigator) * (percent_specialist >= percent_coordinator) * (percent_specialist >= percent_shaper) * (percent_specialist >= percent_monitor_evaluator) * (percent_specialist >= percent_teamworker) * (percent_specialist >= percent_implementer) * (percent_specialist >= percent_completer_finisher)",
+            "when": "(percent_specialist > percent_plant) * (percent_specialist > percent_resource_investigator) * (percent_specialist > percent_coordinator) * (percent_specialist > percent_shaper) * (percent_specialist > percent_monitor_evaluator) * (percent_specialist > percent_teamworker) * (percent_specialist > percent_implementer) * (percent_specialist > percent_completer_finisher)",
             "headline": "Ведущая роль: Эксперт",
             "message": "Выше других выражена роль «Эксперт» — вносит глубокое предметное знание и профессиональные стандарты. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
+          },
+          {
+            "when": "1",
+            "headline": "Ведущей роли нет",
+            "message": "Наибольшие значения нескольких ролей совпадают, поэтому одна ведущая роль не выделяется: смотрите профиль по всем ролям. Названия ролей соотнесены с моделью Белбина; результат — неформальный профиль, а не официальный Belbin SPI и не оценка ценности человека."
           }
         ]
       },

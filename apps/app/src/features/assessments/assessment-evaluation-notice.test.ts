@@ -29,7 +29,7 @@ describe('the evaluation note of a result page', () => {
     ).toEqual({ title: 'Умеренная активность', text: '35–64 балла.' });
   });
 
-  it('does not repeat a verdict the page already shows as its headline and summary', () => {
+  it('does not repeat a verdict the page already names as its headline', () => {
     const verdict = evaluation({
       status: 'verdict',
       verdict: {
@@ -45,8 +45,12 @@ describe('the evaluation note of a result page', () => {
     expect(
       evaluationNotice(verdict, { headline: 'Умеренная активность', summary: '35–64 балла.' }),
     ).toBeUndefined();
+    // The same band with a fuller summary of its own is still one verdict, not two.
     expect(
       evaluationNotice(verdict, { headline: 'Умеренная активность', summary: 'Другой текст.' }),
+    ).toBeUndefined();
+    expect(
+      evaluationNotice(verdict, { headline: 'Другой заголовок', summary: '35–64 балла.' }),
     ).toEqual({ title: 'Умеренная активность', text: '35–64 балла.' });
   });
 

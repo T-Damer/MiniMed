@@ -1431,7 +1431,7 @@
               "label": "Креатинин",
               "kind": "number",
               "minimum": 0.01,
-              "maximum": 30,
+              "maximum": 3000,
               "required": true,
               "step": 0
             },

@@ -100,7 +100,10 @@ test('calculates body surface area and writes the result to a patient note', asy
   await page.getByLabel('Масса, кг').fill('70');
   await page.getByTestId('calculator-submit').click();
 
-  await expect(page.getByText('Расчёт сохранён локально.')).toBeVisible();
+  // A saved result says so in its own header; no toast covers the result heading.
+  await expect(page.getByTestId('calculator-result')).toContainText('сохранён на устройстве');
+  await expect(page.getByText('Расчёт сохранён локально.')).toHaveCount(0);
+  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
   await expect(page.getByTestId('calculator-result')).toContainText('1,82 м²');
 
   await page.getByTestId('calculator-save-note').click();

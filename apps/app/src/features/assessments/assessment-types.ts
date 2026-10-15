@@ -78,6 +78,20 @@ export interface AssessmentInterpretationBand {
   readonly message: string;
 }
 
+/** A notice raised by the answers whatever band the score falls in (see the contract's `alerts`). */
+export interface AssessmentAlertRule {
+  readonly id: string;
+  readonly when: string;
+  readonly title: string;
+  readonly message: string;
+}
+
+export interface AssessmentAlert {
+  readonly id: string;
+  readonly title: string;
+  readonly message: string;
+}
+
 export interface AssessmentDefinition {
   /** v2 is the only persisted tool contract. Local drafts may omit this while being edited. */
   readonly schemaVersion?: 2;
@@ -108,6 +122,7 @@ export interface AssessmentDefinition {
   readonly disclaimer: string;
   readonly evidenceNote: string;
   readonly interpretations?: readonly AssessmentInterpretationBand[];
+  readonly alerts?: readonly AssessmentAlertRule[];
   /** Headings shown above the questions of each section (local questionnaires). */
   readonly sections?: readonly AssessmentSectionHeading[];
   /**
@@ -152,6 +167,8 @@ export interface ScoredAssessment {
   readonly visuals?: readonly CalculationChartSpec[];
   readonly scales?: readonly ScoreScaleSpec[];
   readonly evaluation?: AssessmentEvaluation;
+  /** Notices the answers raised; shown above the verdict, in print and in a shared text. */
+  readonly alerts?: readonly AssessmentAlert[];
 }
 
 export type AssessmentAnswers = Readonly<Record<string, AssessmentResponseValue>>;

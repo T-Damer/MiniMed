@@ -1,6 +1,7 @@
 import type { CalculatorSchema, ToolAgeScope } from '@localmed/contracts';
 import { evaluateCalculatorSchema } from '@/features/calculators/calculator-schema-engine';
 import { validateCalculatorSchema } from '@/features/calculators/calculator-schema-validate';
+import { unitForQuantity } from '@/features/calculators/countable-unit';
 import { userCalculatorSchemaId } from '@/features/calculators/user-calculator/user-calculator-ids';
 import {
   compileUserFormula,
@@ -465,7 +466,7 @@ export function previewUserCalculator(
   return {
     ok: true,
     value: output.value,
-    display: `${formatUserNumber(output.value, output.displayPrecision)} ${output.unit}`,
+    display: `${formatUserNumber(output.value, output.displayPrecision)} ${unitForQuantity(output.value, output.displayPrecision, output.unit)}`,
     ...(interpretation ? { bandMessage: interpretation.message } : {}),
   };
 }

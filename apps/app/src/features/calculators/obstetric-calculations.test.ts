@@ -135,7 +135,7 @@ describe('obstetric calculations', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok || !('textValues' in result)) throw new Error('expected text result');
-    expect(result.textValues[2]?.text).toBe('194 календарных дней');
+    expect(result.textValues[2]?.text).toBe('194 календарных дня');
   });
 
   it('extends singleton leave to 156 days for a complicated birth', () => {

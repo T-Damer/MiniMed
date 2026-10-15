@@ -1,5 +1,6 @@
 import type { ToolEvaluation } from '@localmed/contracts';
 import type {
+  AssessmentAlert,
   AssessmentAnswers,
   AssessmentDefinition,
   AssessmentEvaluation,
@@ -16,6 +17,7 @@ import {
   type CalculatorValue,
   evaluateCalculatorExpression,
 } from '@/features/calculators/calculator-expression';
+import { formatPercent } from '@/features/calculators/calculator-quantity';
 import {
   type CalculatorChartSpec,
   evaluateCalculatorVisual,
@@ -240,6 +242,20 @@ function schemaDrivenInterpretation(
   return undefined;
 }
 
+/** Notices the answers raise whatever band the score falls in; a broken rule fails the whole scoring. */
+function raisedAlerts(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+  answers: AssessmentAnswers,
+): readonly AssessmentAlert[] {
+  const rules = definition.alerts ?? [];
+  if (rules.length === 0) return [];
+  const scope = assessmentScoreScope(scores, answers);
+  return rules
+    .filter((rule) => evaluateCalculatorExpression(rule.when, scope) === 1)
+    .map((rule) => ({ id: rule.id, title: rule.title, message: rule.message }));
+}
+
 function resolveClinicalInterpretation(
   definition: AssessmentDefinition,
   scores: readonly AssessmentScaleScore[],
@@ -254,7 +270,9 @@ function buildSummary(
 ): string {
   if (clinical) return clinical.summary;
   const top = scores.slice(0, Math.min(3, scores.length));
-  const scoreText = top.map((score) => `${score.shortLabel} — ${score.percent}%`).join('; ');
+  const scoreText = top
+    .map((score) => `${score.shortLabel} — ${formatPercent(score.percent)}`)
+    .join('; ');
   return `${genericHeadline(scores)}. Нормированные показатели: ${scoreText}. Профиль показывает относительную выраженность шкал внутри этого опросника, а не сравнение с популяционной нормой.`;
 }
 
@@ -357,8 +375,10 @@ export function scoreAssessment(
     .slice(0, 2)
     .map((score) => score.scaleId);
   let clinical: ClinicalInterpretation | undefined;
+  let alerts: readonly AssessmentAlert[];
   try {
     clinical = resolveClinicalInterpretation(definition, scores, answers);
+    alerts = raisedAlerts(definition, scores, answers);
   } catch {
     return { ok: false, error: 'В схеме опросника неверно настроено правило интерпретации.' };
   }
@@ -383,6 +403,7 @@ export function scoreAssessment(
       disclaimer: definition.disclaimer,
       ...(visuals.length > 0 ? { visuals } : {}),
       ...(scales.length > 0 ? { scales } : {}),
+      ...(alerts.length > 0 ? { alerts } : {}),
       evaluation: assessmentEvaluation(definition, scores),
     },
   };
@@ -421,13 +442,15 @@ export function formatCompletedAssessment(
   }).format(new Date(result.completedAt));
   const scores = result.scores
     .map(
-      (score) => `- ${score.label}: ${score.percent}% (${score.rawScore} из ${score.maximumScore})`,
+      (score) =>
+        `- ${score.label}: ${formatPercent(score.percent)} (${score.rawScore} из ${score.maximumScore})`,
     )
     .join('\n');
   return [
     definition.title,
     `Дата: ${date}${subject}`,
     '',
+    ...(result.alerts ?? []).map((alert) => `ВАЖНО: ${alert.title}. ${alert.message}`),
     result.headline,
     result.summary,
     '',

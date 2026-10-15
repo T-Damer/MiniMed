@@ -2,6 +2,8 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { resultPath } from '@/features/assessments/assessment-routing';
+import { formatPercent } from '@/features/calculators/calculator-quantity';
+import { unitForQuantity } from '@/features/calculators/countable-unit';
 import type { RichNoteAttachedCalculatorResult } from '@/features/notes/note-attached-results';
 import { findAssessmentRecord } from '@/state/assessment-results';
 import { findCalculationRecord } from '@/state/calculation-history';
@@ -58,7 +60,7 @@ function AssessmentAttachedCard(props: {
                   <strong>
                     {score.rawScore} / {score.maximumScore}
                   </strong>
-                  <small>{score.percent}%</small>
+                  <small>{formatPercent(score.percent)}</small>
                 </div>
               )}
             </For>
@@ -165,7 +167,7 @@ function CalculatorAttachedCard(props: {
                           <span>{step.label}</span>
                           <code>{step.expression}</code>
                           <strong>
-                            {step.value} {step.unit}
+                            {step.value} {unitForQuantity(step.value, 8, step.unit)}
                           </strong>
                         </li>
                       )}

@@ -43,6 +43,19 @@ const AssessmentInterpretationSchema = z
     }
   });
 
+/**
+ * A notice shown above the result whenever `when` holds, whatever band the score falls in — a
+ * safety answer (EPDS item 10, PHQ-9 item 9) must not hide inside one band's wording. `when` is a
+ * calculator expression over the scale scores (`score_<scale>`, `percent_<scale>`) and the answers
+ * (`answer_<question id>`).
+ */
+const AssessmentAlertSchema = z.object({
+  id: z.string().min(1),
+  when: z.string().min(1),
+  title: z.string().min(1),
+  message: z.string().min(1),
+});
+
 export const AssessmentDefinitionSchema = z
   .object({
     schemaVersion: z.literal(2),
@@ -85,6 +98,7 @@ export const AssessmentDefinitionSchema = z
     disclaimer: z.string().min(1),
     evidenceNote: z.string().min(1),
     interpretations: z.array(AssessmentInterpretationSchema).optional(),
+    alerts: z.array(AssessmentAlertSchema).default([]),
     visuals: z.array(CalculatorVisualSchema).default([]),
     /** Banded score tracks drawn under the result; `valueId` is the id of one of `scales`. */
     scoreScales: z.array(ScoreScaleSchema).default([]),

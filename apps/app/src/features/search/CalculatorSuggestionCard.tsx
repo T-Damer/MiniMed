@@ -2,6 +2,7 @@ import type { CalculatorInputDefinition, CalculatorInputOption } from '@localmed
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
+import { calculatorNumberInputAttributes } from '@/features/calculators/calculator-number-input';
 import type {
   CalculatorSchemaWithSearch,
   CalculatorSuggestion,
@@ -155,7 +156,7 @@ export function CalculatorSuggestionCard(props: CalculatorSuggestionCardProps): 
         <h2 class="calculator-suggestion-card__title">{title()}</h2>
         <p class="calculator-suggestion-card__medicine">{candidateLabel()}</p>
       </header>
-      <form class="calculator-suggestion-card__form" onSubmit={submit}>
+      <form noValidate class="calculator-suggestion-card__form" onSubmit={submit}>
         <Show
           when={props.suggestion.requiresConfirmation || !props.suggestion.selectedCalculatorId}
         >
@@ -195,10 +196,7 @@ export function CalculatorSuggestionCard(props: CalculatorSuggestionCardProps): 
                   <input
                     class="calculator-suggestion-card__input"
                     type="number"
-                    inputmode={input.integer ? 'numeric' : 'decimal'}
-                    min={input.minimum}
-                    max={input.maximum}
-                    step={input.inputStep ?? (input.integer ? 1 : 'any')}
+                    {...calculatorNumberInputAttributes(input)}
                     value={inputValue(values()[input.id])}
                     aria-label={input.label}
                     onInput={(event) => updateValue(input.id, event.currentTarget.value)}

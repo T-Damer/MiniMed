@@ -201,8 +201,8 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await page.getByLabel('Масса тела, кг').fill('49');
   await page.getByLabel('Рост, см').fill('170');
   await page.getByTestId('calculator-submit').click();
-  await expect(page.getByText('Расчёт сохранён локально.')).toBeVisible();
   const result = page.getByTestId('calculator-result');
+  await expect(result).toContainText('сохранён на устройстве');
   await expect(result).toContainText('ИМТ');
   await expect(result).toContainText('17 кг/м²');
   await expect(result).toContainText('Дефицит. ИМТ ниже нормы.');

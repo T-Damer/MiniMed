@@ -1,5 +1,7 @@
 import type { ReferenceAttentionLevel, ScoreScaleDefinition } from '@localmed/contracts';
 
+import { unitForQuantity } from '@/features/calculators/countable-unit';
+
 /**
  * Score scales: the banded track drawn under a numeric result. A scale is declared as data in the
  * tool schema (`scoreScales`); the engines turn it into a plain serializable {@link ScoreScaleSpec}
@@ -266,7 +268,7 @@ export function scoreScaleTicksVisible(
 
 /** Text for assistive technology and the print sheet: «7 баллов — Средний риск». */
 export function scoreScaleSummary(scale: ScoreScaleSpec): string {
-  const value = `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: scale.precision }).format(scale.value)}${scale.unit ? ` ${scale.unit}` : ''}`;
+  const value = `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: scale.precision }).format(scale.value)}${scale.unit ? ` ${unitForQuantity(scale.value, scale.precision, scale.unit)}` : ''}`;
   const band = scale.activeBand === undefined ? undefined : scale.bands[scale.activeBand]?.label;
   return band ? `${value} — ${band}` : value;
 }

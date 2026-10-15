@@ -80,6 +80,45 @@ From `docs/research/qa-release-0660-2026-10-15.md` items 2, 7, 9, 10, 14 (pill) 
   fields used `--theme-text-faint`, which VIS1 darkened to near ink.
 - **Not done:** the PCE calculator page overflow (TOOLFIX1); the toast «Доступно обновление» (separate notification).
 
+## Calculator and questionnaire fixes from the 0.6.60 QA pass — 2026-10-15 (STATE TOOLFIX1)
+
+Findings 3, 8, 10 (PCE overflow), 11 and 14 of [qa-release-0660](research/qa-release-0660-2026-10-15.md). Modules rebuilt:
+core-clinical 0.1.0-preview.7, emergency 0.1.0-preview.6, obstetrics-gynecology 0.1.0-preview.10, psychology 0.1.0-preview.7
+(**need publishing** with the 0.6.60 release; the app stays offline-first and nothing else depends on them).
+
+- **Inputs accept normal values (3).** A native `step` makes every value off `minimum + k·step` «invalid» with the browser's own
+  English tooltip (4 months against minimum 0.33 and step 0.1; 5,2 against 3.36). Number inputs now always render `step="any"`
+  (`calculator-number-input.ts`, also in the search calculator card), both forms are `novalidate`, and the range, the
+  whole-number rule and the message come from `calculatorNumberInputError` (Russian, decimal comma). `inputStep` is only the
+  declared precision grid. `calculator-number-input.test.ts` walks every number input of the 251 tools and requires every value
+  on its grid (and the minimum-anchored grid) to be accepted natively and by the engine. It also found a real data bug:
+  **Cockcroft–Gault creatinine had a maximum of 30 for both units, so a normal 80 мкмоль/л was refused**; now 3000 plus a
+  per-unit assertion (30 мг/дл, 2652 мкмоль/л).
+- **Counted units agree with the number (8).** `countable-unit.ts` declines баллов/балла/баллы, пунктов, дней/дни, календарных
+  дней, недель/недели, месяцев, лет, критериев, признаков, сегментов, единиц, капель, раз for the displayed (rounded) number
+  (a fraction takes «балла»). It is used by every place that writes a value with its unit: result tiles, print and share text,
+  score-scale text, the preview and trace lines, note cards, user calculators and the input summary. Abbreviations (нед, мес, дн,
+  шт.) and measurement units never change. The maternity-leave text «194 календарных дня» came out wrong in its own code; fixed.
+- **No horizontal overflow (10, PCE).** Citation text (`.calculator-footnote`, `.calculator-source-reference`,
+  `.assessment-footnote`) breaks anywhere. `tool-pages-overflow.spec.ts` opens all 251 tool pages at 375 px and fails on any
+  element or page wider than the viewport.
+- **One verdict per result (11).** `evaluationNotice` no longer writes a verdict whose title is the page's headline (the
+  headline's own summary is the fuller text). EPDS: two bands («ниже ориентира» / «достигает ориентира или выше», no «нижний»
+  for 21/30), and the item-10 answer is a new declared **`alerts`** list on an assessment (`when` over scores and
+  `answer_<question id>`): a red `role="alert"` block above the verdict, also first in the print/share text. Braverman, PAEI,
+  egogram and team roles name a leader only when its percentage is strictly the highest; tied top values say «Ведущего … нет».
+  Percentages everywhere go through `formatPercent` («83,3 %»).
+- **Calculator details (14).** Editing any field removes the result computed from the old values (it stays in the history);
+  a disabled «Рассчитать» lists the required fields still empty («Нужно заполнить: …») once the form was touched; the
+  «Расчёт сохранён локально» toast is gone (the result header says «сохранён на устройстве», so nothing covers the heading).
+  New optional **`when`** on a schema warning shows it only when the expression holds: CKD-EPI 2021, Cockcroft–Gault and
+  Schwartz warn when creatinine is below 0,2 мг/дл (18 мкмоль/л). GCS: V4 «Спутанная речь (дезориентирован)», V3 «Отдельные
+  неуместные слова», and the **flexion/extension labels were swapped** (flexion is decorticate, extension decerebrate, now
+  as in Teasdale & Jennett); verdicts speak of impaired consciousness and name head injury only as the NICE reading.
+- **Not done / open:** the «Обновление» pill belongs to UI-FIX1. Plausibility notes exist only for creatinine; other tools
+  can add `when` warnings the same way. The EPDS ≥13 level (Cox 1987) is deliberately not added: the module cites only the
+  Golubovich 8–9 guideline.
+
 ## Result interpretations, part B — 2026-10-15 (STATE TOOLS-B)
 
 The other nine tool modules (gastroenterology, neonatology, neurology-rehab, obstetrics-gynecology, pediatrics,

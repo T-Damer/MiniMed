@@ -1061,6 +1061,26 @@ html:has(.assessment-next-button) .patient-notes-fab {
   margin: 0;
 }
 
+/* A safety answer (EPDS item 10) is read before the score: strong edge, danger tint, bold title. */
+.assessment-result-alert {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem;
+  border-left: 0.3rem solid var(--theme-danger);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--theme-danger) 12%, var(--theme-surface-raised));
+}
+
+.assessment-result-alert__title {
+  margin: 0;
+  color: var(--theme-danger-text);
+  font-size: 1.05rem;
+}
+
+.assessment-result-alert__text {
+  margin: 0;
+}
+
 .assessment-score-list {
   display: grid;
   gap: 0.7rem;
@@ -1401,4 +1421,5 @@ html:has(.assessment-next-button) .patient-notes-fab {
   color: var(--theme-text-faint);
   font-size: var(--theme-type-caption);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }

@@ -84,6 +84,59 @@ describe('assessment scoring', () => {
     }
   });
 
+  it.each([
+    ['braverman-behavioral-profile', 'Ведущего паттерна нет', 'Ведущий паттерн'],
+    ['paei-work-style', 'Ведущей функции нет', 'Ведущая функция'],
+    ['personal-egogram', 'Одного наиболее выраженного эго-состояния нет', 'Наиболее выражено'],
+    ['team-role-profile', 'Ведущей роли нет', 'Ведущая роль'],
+  ])('%s names no leading scale when every scale is tied', async (slug, tied, leading) => {
+    const { definition, answers } = await uniformAnswers(slug, 3);
+    // 3 of 1–5 on every item, reversed or not: every scale ends at the same percentage.
+    const equal = scoreAssessment(definition, answers);
+    if (!equal.ok) throw new Error(equal.error);
+    expect(new Set(equal.value.scores.map((score) => score.percent)).size).toBe(1);
+    expect(equal.value.headline).toBe(tied);
+
+    // One scale raised above the rest is a leader again.
+    const first = definition.scales[0];
+    if (!first) throw new Error('no scales');
+    const raised = Object.fromEntries(
+      definition.questions.map((question) => {
+        const high = question.scaleId === first.id;
+        const value = high === Boolean(question.reverse) ? 1 : 5;
+        return [question.id, value];
+      }),
+    ) as AssessmentAnswers;
+    const leader = scoreAssessment(definition, raised);
+    if (!leader.ok) throw new Error(leader.error);
+    expect(leader.value.headline).toContain(leading);
+    expect(leader.value.headline).toContain(first.label.split(' ')[0] ?? first.label);
+  });
+
+  it('shows two equal top scales as no single leader, not as the first of them', async () => {
+    const definition = await loadAssessmentDefinition('paei-work-style');
+    const [one, two] = definition.scales;
+    if (!one || !two) throw new Error('scales missing');
+    const answers = Object.fromEntries(
+      definition.questions.map((question) => {
+        const high = question.scaleId === one.id || question.scaleId === two.id;
+        return [question.id, high === Boolean(question.reverse) ? 1 : 5];
+      }),
+    ) as AssessmentAnswers;
+    const result = scoreAssessment(definition, answers);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.value.headline).toBe('Ведущей функции нет');
+  });
+
+  it('writes the score list with the decimal comma and the same percent format as elsewhere', async () => {
+    const { definition, answers } = await uniformAnswers('personal-egogram', 4);
+    const result = scoreAssessment(definition, answers);
+    if (!result.ok) throw new Error(result.error);
+    const text = formatCompletedAssessment(definition, result.value);
+    expect(text).not.toMatch(/\d\.\d%/u);
+    expect(text).toMatch(/\d(?:,\d)? %/u);
+  });
+
   it('reports questionnaire completion', async () => {
     const { definition, answers } = await uniformAnswers('personal-egogram', 3);
     expect(answeredQuestionCount(definition, answers)).toBe(definition.questions.length);
@@ -116,7 +169,7 @@ describe('assessment scoring', () => {
         [0, 1, 3].includes(index) ? [0, 1, 2, 3] : [3, 2, 1, 0],
       );
     }
-    for (const total of [0, 7, 8, 9, 10, 13, 30]) {
+    for (const total of [0, 7, 8, 9, 10, 13, 21, 30]) {
       const answers = Object.fromEntries(
         definition.questions.map((question, index) => [
           question.id,
@@ -130,7 +183,10 @@ describe('assessment scoring', () => {
         minimumScore: 0,
         maximumScore: 30,
       });
-      expect(result.value.headline).toContain(total >= 8 ? 'Достигнут' : 'ниже');
+      expect(result.value.headline).toContain(total >= 8 ? 'достигает' : 'ниже');
+      // The same band is named by the headline and by the declared verdict: one verdict.
+      expect(result.value.evaluation?.verdict?.title).toBe(result.value.headline);
+      expect(result.value.alerts !== undefined).toBe((answers['postnatal-mood-epds-10'] ?? 0) > 0);
       expect(result.value.summary).toContain('8–9 баллов');
     }
     for (const safetyAnswer of [0, 1, 2, 3]) {
@@ -138,7 +194,14 @@ describe('assessment scoring', () => {
       answers['postnatal-mood-epds-10'] = safetyAnswer;
       const result = scoreAssessment(definition, answers);
       if (!result.ok) throw new Error(result.error);
-      expect(result.value.summary.includes('нужна немедленная оценка')).toBe(safetyAnswer > 0);
+      // Item 10 is a separate alert whatever the score; the band wording never carries it.
+      expect(result.value.alerts?.map((alert) => alert.id) ?? []).toEqual(
+        safetyAnswer > 0 ? ['epds-item-10'] : [],
+      );
+      expect(result.value.summary).not.toContain('пункт');
+      if (safetyAnswer > 0) {
+        expect(formatCompletedAssessment(definition, result.value)).toContain('ВАЖНО: Пункт 10');
+      }
     }
     expect(scoreAssessment(definition, {}).ok).toBe(false);
   });

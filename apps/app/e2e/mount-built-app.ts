@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { Page } from '@playwright/test';
 
@@ -89,8 +89,32 @@ async function waitForWorkspace(page: Page): Promise<void> {
   });
 }
 
+const MODULE_FILES_ROOT = resolve(import.meta.dirname, '../public/content/modules');
+const REMOTE_MODULE_FILES =
+  'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/';
+
+/**
+ * `E2E_LOCAL_MODULES=1`: serve the module packs this checkout has built from disk instead of the
+ * ones already pushed to GitHub. A fresh `tools:module:rebuild` is then testable before it is
+ * pushed; a pack that is not on disk still goes to the network.
+ */
+async function serveLocalModules(page: Page): Promise<void> {
+  await page.route(`${REMOTE_MODULE_FILES}**`, async (route) => {
+    const name = decodeURIComponent(route.request().url().slice(REMOTE_MODULE_FILES.length));
+    const file = join(MODULE_FILES_ROOT, name.split('?')[0] ?? name);
+    if (!existsSync(file)) return route.continue();
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/octet-stream',
+      headers: { 'access-control-allow-origin': '*' },
+      body: readFileSync(file),
+    });
+  });
+}
+
 export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = {}): Promise<void> {
   const origin = options.origin ?? E2E_ASSET_ORIGIN;
+  if (process.env['E2E_LOCAL_MODULES'] === '1') await serveLocalModules(page);
   const skippedCompanionPacks = new Set([
     'ambulatory.db',
     ...(options.includeMkbCompanionPack ? [] : ['mkb.db']),

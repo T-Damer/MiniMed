@@ -1,4 +1,5 @@
 import type {
+  CalculatorInputDefinition,
   CalculatorSchema,
   CalculatorStepDefinition,
   CalculatorVisualDefinition,
@@ -23,6 +24,7 @@ import type {
   StoredCalculationResult,
   TextCalculationResult,
 } from '@/features/calculators/clinical-calculations';
+import { unitForNumber, unitForQuantity } from '@/features/calculators/countable-unit';
 import { buildScoreScaleSpec, type ScoreScaleSpec } from '@/features/calculators/score-scale';
 
 export interface CalculatorSchemaNumberOutput {
@@ -93,6 +95,29 @@ export function initialCalculatorSchemaValues(schema: CalculatorSchema): Record<
 const INPUT_NUMBER_FORMAT = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 6 });
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/u;
 
+/**
+ * Why a typed number is refused, in Russian, or undefined when it is accepted. Only the finite
+ * number, the whole-number rule and the declared range decide: the precision grid (`inputStep`)
+ * never refuses a value, so 4 months against a minimum of 0.33 is as valid as 0.33.
+ */
+export function calculatorNumberInputError(
+  input: Pick<CalculatorInputDefinition, 'label' | 'integer' | 'minimum' | 'maximum'>,
+  raw: string | number,
+): string | undefined {
+  const value = typeof raw === 'number' ? raw : Number(raw);
+  if (!Number.isFinite(value)) return `${input.label}: требуется конечное число.`;
+  if (input.integer === true && !Number.isInteger(value)) {
+    return `${input.label}: требуется целое число.`;
+  }
+  if (input.minimum !== undefined && value < input.minimum) {
+    return `${input.label}: значение меньше допустимого минимума ${INPUT_NUMBER_FORMAT.format(input.minimum)}.`;
+  }
+  if (input.maximum !== undefined && value > input.maximum) {
+    return `${input.label}: значение больше допустимого максимума ${INPUT_NUMBER_FORMAT.format(input.maximum)}.`;
+  }
+  return undefined;
+}
+
 /** A typed number with the decimal comma and a date as dd.mm.yyyy; anything else as entered. */
 function readableInputValue(kind: string, raw: string | number): string {
   const text = String(raw);
@@ -136,7 +161,10 @@ export function calculatorInputFacts(
       continue;
     }
     const shown = optionLabel ?? readableInputValue(input.kind, raw);
-    facts.push({ label: input.label, value: `${shown}${input.unit ? ` ${input.unit}` : ''}` });
+    const numeric = input.kind === 'number' ? Number(raw) : Number.NaN;
+    const unit =
+      input.unit && Number.isFinite(numeric) ? unitForNumber(numeric, input.unit) : input.unit;
+    facts.push({ label: input.label, value: `${shown}${unit ? ` ${unit}` : ''}` });
   }
   return facts;
 }
@@ -195,6 +223,20 @@ export function calculatorSchemaInputsReady(
       requirement.inputIds.some((id) => inputValueIsPresent(rawInputs[id])),
     )
   );
+}
+
+/** Labels of the required inputs (up to the given step) that still have no value, in form order. */
+export function calculatorSchemaMissingInputs(
+  schema: CalculatorSchema,
+  rawInputs: Readonly<Record<string, string | number>>,
+  maxStep = Number.MAX_SAFE_INTEGER,
+): readonly string[] {
+  return schema.inputs
+    .filter(
+      (input) =>
+        input.step <= maxStep && input.required && !inputValueIsPresent(rawInputs[input.id]),
+    )
+    .map((input) => input.label);
 }
 
 /** Plain serializable Chart.js-ready spec: the engine evaluates dataset expressions to finite
@@ -274,7 +316,9 @@ function formatNumberOutputText(output: CalculatorSchemaNumberOutput): string {
     output.displayPrecision === 0
       ? String(Math.round(output.value))
       : output.value.toFixed(output.displayPrecision);
-  return output.unit ? `${rounded} ${output.unit}` : rounded;
+  return output.unit
+    ? `${rounded} ${unitForQuantity(output.value, output.displayPrecision, output.unit)}`
+    : rounded;
 }
 
 /** A step's unit: the chosen option's label when it takes the unit from a select, else its own. */
@@ -355,19 +399,9 @@ function evaluateCalculatorSchemaInner(
       continue;
     }
     if (input.kind === 'number') {
+      const numberError = calculatorNumberInputError(input, raw);
+      if (numberError) return failure(numberError);
       const value = typeof raw === 'number' ? raw : Number(raw);
-      if (!Number.isFinite(value)) {
-        return failure(`${input.label}: требуется конечное число.`);
-      }
-      if (input.integer === true && !Number.isInteger(value)) {
-        return failure(`${input.label}: требуется целое число.`);
-      }
-      if (input.minimum !== undefined && value < input.minimum) {
-        return failure(`${input.label}: значение меньше допустимого минимума ${input.minimum}.`);
-      }
-      if (input.maximum !== undefined && value > input.maximum) {
-        return failure(`${input.label}: значение больше допустимого максимума ${input.maximum}.`);
-      }
       scope[input.id] = value;
     } else if (input.kind === 'date') {
       const dateText = String(raw);
@@ -483,7 +517,10 @@ function evaluateCalculatorSchemaInner(
 
   if (outputs.length === 0) return failure('Калькулятор не определил ни одного результата.');
 
-  const warnings: CalculatorWarning[] = [...schema.warnings];
+  // A warning without `when` is the tool's own; one with `when` joins only a result that triggers it.
+  const warnings: CalculatorWarning[] = schema.warnings
+    .filter((warning) => warning.when === undefined)
+    .map(({ code, message }) => ({ code, message }));
   let matchedInterpretation: number | undefined;
   let evaluation: CalculatorSchemaEvaluation['evaluation'] = {
     status: schema.evaluation.status,
@@ -503,6 +540,19 @@ function evaluateCalculatorSchemaInner(
       }
       if (triggered === 1) return failure(assertion.error);
     }
+    const triggeredWarnings: CalculatorWarning[] = [];
+    for (const warning of schema.warnings) {
+      if (warning.when === undefined) continue;
+      let triggered: CalculatorValue;
+      try {
+        triggered = evaluateCalculatorExpression(warning.when, scope as CalculatorScope);
+      } catch (error) {
+        return failure(formatExpressionError('Проверка правдоподобия', error));
+      }
+      if (triggered === 1) triggeredWarnings.push({ code: warning.code, message: warning.message });
+    }
+    // A plausibility note comes before the tool's general cautions: it concerns this result.
+    warnings.unshift(...triggeredWarnings);
     for (const [index, interpretation] of schema.interpretations.entries()) {
       let matched: CalculatorValue;
       try {

@@ -4,6 +4,7 @@ import type {
   CalculatorWarning,
   ClinicalCalculationResult,
 } from '@/features/calculators/clinical-calculations';
+import { unitForNumber } from '@/features/calculators/countable-unit';
 
 export type Parity = 'primigravida' | 'multigravida';
 export type PregnancyType = 'single' | 'multiple';
@@ -348,7 +349,10 @@ export function calculateMaternityLeaveTimeframe(input: {
     textValues: [
       { label: 'Начало отпуска по беременности и родам', text: formatDateRu(leaveStart) },
       { label: 'Окончание отпуска (при выдаче единым листом)', text: formatDateRu(leaveEnd) },
-      { label: 'Продолжительность', text: `${totalDays} календарных дней` },
+      {
+        label: 'Продолжительность',
+        text: `${totalDays} ${unitForNumber(totalDays, 'календарных дней')}`,
+      },
     ],
     trace: [
       {
