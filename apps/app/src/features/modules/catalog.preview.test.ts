@@ -22,19 +22,6 @@ const ESKLP_MODULE_IDS = [
   'minimed.medications.various.ru',
 ] as const;
 
-/** The groups with a node whose registry code is a stub and other sources agree on a full code. */
-const ATC3_MODULE_IDS: ReadonlySet<string> = new Set([
-  'minimed.medications.alimentary-metabolism.ru',
-  'minimed.medications.antiinfectives.ru',
-  'minimed.medications.antineoplastic-immunomodulating.ru',
-  'minimed.medications.cardiovascular.ru',
-  'minimed.medications.dermatological.ru',
-  'minimed.medications.genitourinary-hormones.ru',
-  'minimed.medications.musculoskeletal.ru',
-  'minimed.medications.nervous-system.ru',
-  'minimed.medications.sensory-organs.ru',
-]);
-
 describe('catalog.preview.json', () => {
   it('parses with ContentModuleCatalogSchema', () => {
     const result = ContentModuleCatalogSchema.safeParse(rawCatalog);
@@ -120,16 +107,10 @@ describe('catalog.preview.json', () => {
       }
       expect(module.previewDocumentCount).toBeGreaterThan(0);
       expect(module.artifacts).toHaveLength(1);
-      // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS. The 14
-      // modules whose ATC codes were completed (ATC2) come from the `-atc2` mirror tag, the nine
-      // of them with a stub consensus (ATC3, registry code plus the agreed code) from `-atc3`;
-      // the antiparasitic group had no code to add and stays on the original one.
-      const tag =
-        module.id === 'minimed.medications.antiparasitic.ru'
-          ? 'esklp-2026-08-28'
-          : ATC3_MODULE_IDS.has(module.id)
-            ? 'esklp-2026-08-28-atc3'
-            : 'esklp-2026-08-28-atc2';
+      // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS. All 15
+      // groups come from the `-str1` mirror tag: the ATC fills (ATC2, ATC3) were carried into it and
+      // the glued «1.0» placeholder and the «НЕ УКАЗАНО» dosages were repaired (DOSE1).
+      const tag = 'esklp-2026-08-28-str1';
       expect(module.artifacts[0]).toMatchObject({
         kind: 'index',
         compression: 'zstd',

@@ -191,12 +191,15 @@ def repair_chunk_text(text: str, changes: Mapping[str, str | None]) -> str:
     # «1.0 25 мг» without the rest of the line. The spaced placeholder is unambiguous by itself.
     result = re.sub(r"(?<![\d.,])1\.0\s+(?=[\d(])", "", result)
     result = re.sub(
-        rf"(?<=: )(?:1\.0\s?~|(?:1\.0\s?)?{UNSTATED_LITERAL})(?=\.(?:\s|$))",
+        rf"(?:(?<=: )|^)(?:1\.0\s?~|(?:1\.0\s?)?{UNSTATED_LITERAL})(?=\.(?:\s|$)|$)",
         EMPTY_FIELD,
         result,
     )
     # The registry's normalized form string keeps its form and loses the empty dosage.
     result = re.sub(rf"\s*\({UNSTATED_LITERAL}\)", "", result)
+    # …and the chunk limit can cut «(НЕ УКАЗАНО)» itself in two.
+    result = re.sub(rf"^{UNSTATED_LITERAL}\)", "", result)
+    result = re.sub(r"\s*\(НЕ$", "", result)
     if result != text:
         result = _dedupe_dosage_lists(result)
     return result

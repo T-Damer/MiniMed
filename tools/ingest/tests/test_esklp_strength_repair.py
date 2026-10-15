@@ -150,6 +150,24 @@ def test_a_text_cut_inside_its_label_is_still_repaired() -> None:
     )
 
 
+def test_a_text_cut_at_either_end_of_a_chunk_is_still_repaired() -> None:
+    # The chunk limit cuts a line anywhere: the label may be in the chunk before, the value may end it.
+    assert repair_chunk_text("НЕ УКАЗАНО. Единица: шт. (таблетка).", {}) == (
+        "не указано в каталоге. Единица: шт. (таблетка)."
+    )
+    assert repair_chunk_text("1.0 ~. Единица: мл. Нормализованные МНН: ПАРА", {}) == (
+        "не указано в каталоге. Единица: мл. Нормализованные МНН: ПАРА"
+    )
+    assert repair_chunk_text("форма: ТАБЛЕТКИ. Дозировка/концентрация: НЕ УКАЗАНО", {}) == (
+        "форма: ТАБЛЕТКИ. Дозировка/концентрация: не указано в каталоге"
+    )
+
+
+def test_a_tail_cut_in_two_by_the_chunk_limit_leaves_no_half_of_it() -> None:
+    assert repair_chunk_text("форма: СИРОП (НЕ", {}) == "форма: СИРОП"
+    assert repair_chunk_text("НЕ УКАЗАНО).\n- ТН: Кислород", {}) == ".\n- ТН: Кислород"
+
+
 def test_a_chunk_without_a_dosage_is_returned_as_it_was() -> None:
     text = "Компонентные МНН: ПАРАЦЕТАМОЛ, ФЕНИЛЭФРИН, ФЕНИРАМИН.\n\nЦена: не указано в каталоге."
     assert repair_chunk_text(text, {}) == text

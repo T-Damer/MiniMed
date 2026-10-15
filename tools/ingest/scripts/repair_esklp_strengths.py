@@ -282,8 +282,17 @@ def apply(args: argparse.Namespace) -> None:
     work_dir, out_dir = Path(args.work), Path(args.out)
     work_dir.mkdir(parents=True, exist_ok=True)
     out_dir.mkdir(parents=True, exist_ok=True)
-    report: dict[str, Any] = {"modules": {}}
+    report_path = Path(args.report)
+    only = {name for name in (args.only or "").split(",") if name}
+    # A rerun of some groups keeps the results of the others from the report of the earlier run.
+    report: dict[str, Any] = (
+        json.loads(report_path.read_text(encoding="utf-8"))
+        if only and report_path.exists()
+        else {"modules": {}}
+    )
     for published in modules(published_dir):
+        if only and not any(f".{name}.ru." in published.name for name in only):
+            continue
         original = original_dir / published.name
         work, out = work_dir / published.name, out_dir / published.name
         work.unlink(missing_ok=True)
@@ -309,6 +318,9 @@ def main() -> None:
     applier = sub.add_parser("apply")
     for name in ("original", "published", "work", "out", "report"):
         applier.add_argument(f"--{name}", required=True)
+    applier.add_argument(
+        "--only", help="comma-separated group names to (re)run, e.g. blood,various"
+    )
     mapper = sub.add_parser("repairs")
     mapper.add_argument("--published", required=True)
     mapper.add_argument("--out", required=True)
