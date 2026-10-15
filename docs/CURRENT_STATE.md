@@ -5779,8 +5779,9 @@ Roadmap: the class row and item 22 (`docs/SEARCH_ROADMAP.md`); design `docs/SEAR
   `interactiveRoute` (`content/reference-rf-pilot/*.md`), so their result cards are «Калькулятор» and open the reference with the «Рассчитать»
   button. The WHO BMI table (adult + child) and CKiD U25 are **not** linked: the app has no adult BMI calculator, and its only CKiD tool is the
   older bedside-2009 equation (a different formula than the document teaches). `data-assets.data.test.ts` pins the links and the two exceptions.
-  **Needs a rebuild:** `reference.db` (`medbase build --input content/reference-rf-pilot`, as the other reference packs; the 18 documents build
-  and lint cleanly, checksum changes) — the shipped `apps/app/public/content/reference.db` and `reference-report.json` are not rebuilt yet.
+  **Rebuilt 2026-10-15:** `apps/app/public/content/reference.db` (`medbase build --input content/reference-rf-pilot`; first rebuild since
+  0.6.33, now the current pack schema: external-content FTS, definition-reference tables; same 18 document ids, 1.02 → 0.97 MB) and
+  `reference-report.json` (sha256 5b3e1a0e…; 6 warnings: the diet tables have no chunk source spans, as before).
 - **Version qualifier.** `resultQualifier` reads `documentVersionLabel()`: a recommendation's «459_2» shows as «ред. 2», `site-…` ids and hashes
   show nothing (`isMachineVersionLabel` is gone).
 - **МКБ-11 section** (request ICD11, 2026-10-06): assessed, not done. The ICD-10 → ICD-11 links already exist (ICD11-MAP); a dedicated search

@@ -5,9 +5,16 @@
   "aliases": 29,
   "embeddingProfiles": 1,
   "embeddings": 94,
-  "warnings": [],
+  "warnings": [
+    "reference.pevzner.diet-table-1: imported document has no chunk source spans",
+    "reference.pevzner.diet-table-15: imported document has no chunk source spans",
+    "reference.pevzner.diet-table-5: imported document has no chunk source spans",
+    "reference.pevzner.diet-table-7: imported document has no chunk source spans",
+    "reference.pevzner.diet-table-8: imported document has no chunk source spans",
+    "reference.pevzner.diet-table-9: imported document has no chunk source spans"
+  ],
   "errors": [],
-  "outputChecksum": "sha256:1822dede2898f6781236cc638cd8bf1c0885d821e864746940e271bcbada7213",
+  "outputChecksum": "sha256:5b3e1a0e759e7d3f43b373b383d3af44cf81cbfda809ce3a9d2fb09fa3b5f1e4",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }
