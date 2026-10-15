@@ -28,7 +28,10 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
 1. **Device check of the module shelf (MEM1)** on a phone / Android WebView: ~800 OPFS handles in one pool,
    memory, first-start migration time (7–10 s for 774 modules on desktop), startup-to-searchable after a
    full install (13–17 s on a loaded desktop; a cold query took 9–10 s).
-2. **Drug search leftovers (QA 12)**: «МНН записи: …, ~.» still on cards/snippets; «АМОКСИЦИЛЛИН» and
+2. **Drug search leftovers (QA 12)** — owner 2026-10-15: fix generally, cards from fields (search step 1). Started and paused
+   (owner's weekly limits): the label prose is in the core pointers too («Стандартизированное МНН: …», «ТН: …; форма/дозировка:
+   …», «Полные данные находятся в скачиваемом модуле «minimed…»»), so the fix is a builder change + core rebuild + the 15
+   ЕСКЛП modules, then deleting the regex layer in `search-result-presentation.ts`; gates: every benchmark before/after. «МНН записи: …, ~.» still on cards/snippets; «АМОКСИЦИЛЛИН» and
    «Амоксициллин» still two cards; «статины при беременности» lists «Острый промиелоцитарный лейкоз».
 3. **Drug screen class line (QA 13)**: primary class shows the long registry phrase + code, not
    «N02BE51 · анилиды» on cards that have a pharmacological-group link; Цитрамон has no «также:» (by
@@ -69,6 +72,18 @@ developer build synced without the model falls back to it. Trust, loading, clean
 `apps/app/src/scripts/fetch-query-model.test.ts` (join, checksum mismatch fails the build, cache reuse,
 staging, APK check). Not yet built into an APK: this machine has no Android SDK, so the first real build is the
 next `release:` workflow run (its `--check-apk` step fails the release if the model is missing); not tried on a phone.
+
+## Search home: tools capsule, sections wait for the core, carousel switch — 2026-10-15 (STATE HOME-UI)
+
+Owner screenshots 2026-10-15. «Все инструменты» is an icon-only capsule as tall as the chips (always: the row starts with
+favourites). Sections whose page lists core documents (`search-section-gate.ts`: all but «Все», personal files, calculators,
+assessments) cannot be opened, nor the clinical analysis switched on, while the core opens or downloads: the tap shows one
+notice «Загружаем ядро знаний, подождите» (offline / error / other-tab wordings), the rows are dimmed with the core's download
+share; a section reached by address shows `SearchSectionWait` (message + progress) and then the catalog in place. The feature
+carousel's «Скрыть» became an eye-slash icon; hiding shows «Вернуть можно в настройках» with a «Настройки» action, and Settings
+→ Оформление has «Полезные функции на главной» (lightbulb); the bottom «Показать полезные функции» link is gone. e2e
+`home-core-gate.spec.ts`; the shared helpers (`openHomeSection`, `selectSearchSection`, `setClinicalAnalysis`) wait for the
+core. Not tried on a phone.
 
 ## МКБ-11 search section — 2026-10-15 (STATE ICD11-SEC)
 
