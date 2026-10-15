@@ -5,6 +5,8 @@ import { ClinicalTags } from '@/components/ClinicalTags';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import { SearchSectionWait } from '@/features/search/SearchSectionWait';
+import type { SearchCoreStatus } from '@/features/search/search-core-status';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
 import {
   ItemCollectionMenu,
@@ -18,6 +20,8 @@ import type { ToolAgeFilter } from '@/features/tools/tool-age-filter';
 export function UnifiedSearchCatalog(props: {
   /** Absent while the medical core opens: tools stay listed, documents wait for the core. */
   readonly core?: MedicalCore | undefined;
+  /** Why the core is not ready yet; undefined once it is. */
+  readonly coreStatus?: SearchCoreStatus | undefined;
   readonly scope: SearchScope;
   readonly query: string;
   readonly hideDocuments?: boolean;
@@ -84,10 +88,9 @@ export function UnifiedSearchCatalog(props: {
         </Show>
       </Show>
       <Show when={!props.hideDocuments && !tools() && !props.query.trim()}>
-        <Show when={props.loading}>
-          <p class="unified-catalog__status" role="status">
-            Открываем каталог…
-          </p>
+        {/* One loading state until the catalog stands: it names the waiting core and its progress. */}
+        <Show when={props.loading || (!props.core && !props.error)}>
+          <SearchSectionWait status={props.coreStatus} />
         </Show>
         <Show when={props.error}>
           {(message) => (

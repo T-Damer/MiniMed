@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js';
 
-import { Button } from '@/components/Button';
+import { AppGlyph } from '@/components/AppGlyph';
 import { Carousel, type CarouselSlide } from '@/components/Carousel';
 import { onboardingOnScreen } from '@/features/onboarding/onboarding-state';
 import { featureOfDayIndex } from '@/features/search/feature-of-day';
@@ -34,14 +34,15 @@ export function SearchHomeIntro(props: {
           autoplayMs={USEFUL_FEATURES_AUTOPLAY_MS}
           autoplayPaused={onboardingOnScreen}
           controlsEnd={
-            <Button
-              variant="quiet"
+            <button
+              type="button"
               class="useful-features__hide"
               aria-label="Скрыть полезные функции"
+              title="Скрыть полезные функции"
               onClick={props.onHideFeatures}
             >
-              Скрыть
-            </Button>
+              <AppGlyph name="eye-slash" class="useful-features__hide-icon" />
+            </button>
           }
         />
       </div>

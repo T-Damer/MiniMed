@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { setClinicalAnalysis } from './select-search-section';
 
 async function openHomeSection(page: Page, name: string): Promise<void> {
   const row = page.locator('.search-sections__row', { hasText: name }).first();
@@ -125,7 +126,8 @@ test('clinical analysis shows one line above the results, explains itself behind
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const field = page.getByTestId('search-input');
   await expect(page.getByRole('complementary', { name: 'О клиническом разборе' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Клинический разбор' }).click();
+  // The analysis waits for the medical core; until then a tap only shows a notice.
+  await setClinicalAnalysis(page, true);
   const note = page.getByRole('complementary', { name: 'О клиническом разборе' });
   await expect(note).toBeVisible();
   // The explanation is not body copy: it opens from the «?» button.
@@ -138,23 +140,39 @@ test('clinical analysis shows one line above the results, explains itself behind
   await expect(note).toHaveCount(0);
 });
 
-test('«Скрыть» closes the useful-features block and a quiet link brings it back', async ({
+test('the carousel closes with an icon, says where to undo it, and Settings brings it back', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await expect(page.getByRole('region', { name: 'Полезные функции' })).toBeVisible();
-  await page.getByRole('button', { name: 'Скрыть полезные функции' }).click();
-  await expect(page.getByRole('region', { name: 'Полезные функции' })).toHaveCount(0);
+  const carousel = page.getByRole('region', { name: 'Полезные функции' });
+  await expect(carousel).toBeVisible();
+  // An icon beside the arrows and dots, not a text button.
+  const hide = page.getByRole('button', { name: 'Скрыть полезные функции' });
+  await expect(hide).toHaveText('');
+  await expect(hide.locator('svg')).toBeVisible();
+  await hide.click();
+  await expect(carousel).toHaveCount(0);
+  await expect(page.getByText('Вернуть можно в настройках')).toBeVisible();
   // The choice is a stored preference, not component state.
-  expect(
-    await page.evaluate(
+  const hiddenPreference = (): Promise<boolean | undefined> =>
+    page.evaluate(
       () =>
         JSON.parse(localStorage.getItem('minimed.app-preferences.v1') ?? '{}').usefulFeaturesHidden,
-    ),
-  ).toBe(true);
-  await page.getByRole('button', { name: 'Показать полезные функции' }).click();
-  await expect(page.getByRole('region', { name: 'Полезные функции' })).toBeVisible();
+    );
+  expect(await hiddenPreference()).toBe(true);
+  // No way back at the bottom of the home any more: Settings is the one place.
   await expect(page.getByRole('button', { name: 'Показать полезные функции' })).toHaveCount(0);
+  // The notice's action opens the settings page that holds the switch.
+  await page.locator('.app-notification__action', { hasText: 'Настройки' }).click();
+  await expect(page).toHaveURL(/#\/settings\/appearance$/u);
+  const toggle = page.getByRole('switch', { name: 'Полезные функции на главной' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  expect(await hiddenPreference()).toBe(false);
+  await page.goBack();
+  await expect(page.getByRole('region', { name: 'Полезные функции' })).toBeVisible();
 });
 
 test('a stored «hidden» preference starts the home without the block', async ({ page }) => {
@@ -168,5 +186,5 @@ test('a stored «hidden» preference starts the home without the block', async (
     },
   });
   await expect(page.getByRole('region', { name: 'Полезные функции' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Показать полезные функции' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Показать полезные функции' })).toHaveCount(0);
 });

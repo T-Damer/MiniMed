@@ -158,13 +158,41 @@
   }
 }
 
-/* Quiet text actions: closing the block and, once it is closed, bringing it back. */
-.useful-features__hide,
-.useful-features-restore {
-  font-size: 0.8125rem;
+/* The carousel's close control: a small round icon like the arrows beside it, at the end of
+   the dots row. The way back is the Settings switch «Полезные функции на главной». */
+.useful-features__hide {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
 }
 
-.useful-features-restore {
-  display: flex;
-  margin: var(--home-gap, 1rem) auto 0;
+.useful-features__hide:hover {
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-surface-raised) 88%, transparent);
+}
+
+.useful-features__hide:active {
+  transform: scale(0.96);
+}
+
+.useful-features__hide:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.useful-features__hide-icon {
+  width: 1rem;
+  height: 1rem;
 }

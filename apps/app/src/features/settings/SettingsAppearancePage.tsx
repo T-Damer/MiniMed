@@ -5,6 +5,7 @@ import { RangeSlider } from '@/components/RangeSlider';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { StepSlider } from '@/components/StepSlider';
 import { Switch } from '@/components/Switch';
+import { setUsefulFeaturesShown, usefulFeaturesShown } from '@/features/search/useful-features';
 import { THEME_LABELS } from '@/features/settings/settings-status';
 import {
   getFloatingWindowsEnabled,
@@ -46,6 +47,7 @@ export function SettingsAppearancePage(): JSX.Element {
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
     getFloatingWindowsEnabled(),
   );
+  const [usefulFeatures, setUsefulFeaturesState] = createSignal(usefulFeaturesShown());
   const [theme, setTheme] = createSignal(getThemePreference());
 
   onMount(() => {
@@ -55,6 +57,7 @@ export function SettingsAppearancePage(): JSX.Element {
       setSoundVolumeState(preferences.soundVolume);
       setMotionSpeedState(preferences.motionSpeed);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
+      setUsefulFeaturesState(!preferences.usefulFeaturesHidden);
     });
     const unsubscribeTheme = subscribeTheme(() => setTheme(getThemePreference()));
     onCleanup(() => {
@@ -149,6 +152,23 @@ export function SettingsAppearancePage(): JSX.Element {
           checked={splitNavigation()}
           aria-label="Отдельные вкладки разделов"
           onChange={setSplitNavigation}
+        />
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row__text">
+          <span class="settings-row__label settings-row__label--with-icon">
+            <AppGlyph name="lightbulb" class="settings-row__label-icon" aria-hidden="true" />
+            Полезные функции на главной
+          </span>
+          <p class="settings-row__helper">
+            Карточки с возможностями приложения под строкой поиска.
+          </p>
+        </div>
+        <Switch
+          checked={usefulFeatures()}
+          aria-label="Полезные функции на главной"
+          onChange={setUsefulFeaturesShown}
         />
       </div>
 

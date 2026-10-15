@@ -128,7 +128,8 @@ test('the tool row stays under the field while results show; «Все инстр
   await waitForSearchReady(page);
   const row = page.locator('.search-quick-access');
   const all = row.getByRole('button', { name: 'Все инструменты', exact: true });
-  await expect(all).toContainText('Все инструменты');
+  // An icon-only capsule from the start (owner 2026-10-15), still named for assistive tech.
+  await expect(all).toHaveText('');
   await all.click();
   const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
   await sheet.getByRole('button', { name: 'Добавить «Формы» в избранное' }).click();
@@ -136,7 +137,7 @@ test('the tool row stays under the field while results show; «Все инстр
   await expect(sheet).toHaveCount(0);
   // With a tool in the row the entry is its icon alone, still named for assistive tech.
   await expect(all).toHaveText('');
-  expect((await all.boundingBox())?.width).toBeLessThanOrEqual(44);
+  expect((await all.boundingBox())?.width).toBeLessThanOrEqual(56);
 
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();

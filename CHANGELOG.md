@@ -9,6 +9,11 @@ All notable changes are documented here. The project follows Semantic Versioning
   смыслу» shows it as built in; onboarding, «Скачать всё» and the search offer no longer list it on
   Android. The browser and iOS keep the optional download. `bun run native:sync:android` fetches the model
   and checks its SHA-256; it is never committed.
+- Search home (owner 2026-10-15): «Все инструменты» is an icon-only capsule as tall as the tool chips; sections that
+  read the medical core cannot be opened while it downloads — a tap shows «Загружаем ядро знаний, подождите», the rows
+  are dimmed with the download progress, and a section reached by address shows one loading card instead of the bare
+  «Открываем каталог…»; the feature carousel closes with an eye icon, a notice says it comes back in Settings →
+  Оформление («Полезные функции на главной», lightbulb icon), and the old «Показать полезные функции» link is gone.
 
 ## [0.6.60] - 2026-10-15
 

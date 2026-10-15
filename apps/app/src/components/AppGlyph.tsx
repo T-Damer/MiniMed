@@ -47,6 +47,7 @@ import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-v
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
 import envelopeSimpleBold from '@phosphor-icons/core/assets/bold/envelope-simple-bold.svg?raw';
 import eraserBold from '@phosphor-icons/core/assets/bold/eraser-bold.svg?raw';
+import eyeSlashBold from '@phosphor-icons/core/assets/bold/eye-slash-bold.svg?raw';
 import fileArrowDownBold from '@phosphor-icons/core/assets/bold/file-arrow-down-bold.svg?raw';
 import fileDocBold from '@phosphor-icons/core/assets/bold/file-doc-bold.svg?raw';
 import filePdfBold from '@phosphor-icons/core/assets/bold/file-pdf-bold.svg?raw';
@@ -70,6 +71,7 @@ import highlighterBold from '@phosphor-icons/core/assets/bold/highlighter-bold.s
 import houseBold from '@phosphor-icons/core/assets/bold/house-bold.svg?raw';
 import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.svg?raw';
 import infoBold from '@phosphor-icons/core/assets/bold/info-bold.svg?raw';
+import lightbulbBold from '@phosphor-icons/core/assets/bold/lightbulb-bold.svg?raw';
 import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
 import listBulletsBold from '@phosphor-icons/core/assets/bold/list-bullets-bold.svg?raw';
 import listChecksBold from '@phosphor-icons/core/assets/bold/list-checks-bold.svg?raw';
@@ -180,6 +182,8 @@ export type AppGlyphName =
   | 'edit'
   | 'edit-fill'
   | 'eraser'
+  | 'eye-slash'
+  | 'lightbulb'
   | 'trash'
   | 'users'
   | 'vibrate'
@@ -324,6 +328,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   edit: svgBody(pencilSimpleBold),
   'edit-fill': svgBody(pencilSimpleFill),
   eraser: svgBody(eraserBold),
+  'eye-slash': svgBody(eyeSlashBold),
+  lightbulb: svgBody(lightbulbBold),
   trash: svgBody(trashBold),
   users: svgBody(usersBold),
   vibrate: svgBody(vibrateBold),

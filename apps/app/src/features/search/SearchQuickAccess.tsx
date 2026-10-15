@@ -257,8 +257,7 @@ export function SearchQuickAccess(props: {
           <li class="search-quick-access__chip-item">
             <button
               type="button"
-              class="search-quick-access__all"
-              classList={{ 'search-quick-access__all--icon': chips().length > 0 }}
+              class="search-quick-access__all search-quick-access__all--icon"
               data-tour="all-tools"
               aria-haspopup="dialog"
               aria-label="Все инструменты"
@@ -269,9 +268,6 @@ export function SearchQuickAccess(props: {
                 name="squares-four"
                 class="search-quick-access__chip-icon search-quick-access__chip-icon--on-primary"
               />
-              <Show when={chips().length === 0}>
-                <span class="search-quick-access__chip-label">Все инструменты</span>
-              </Show>
             </button>
           </li>
           <For each={chips()}>{(tool) => <QuickToolChip tool={tool} />}</For>

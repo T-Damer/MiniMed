@@ -166,3 +166,88 @@
     animation: none;
   }
 }
+
+/* Rows of a section that waits for the core: readable but visibly unavailable. Only the content
+   dims; the row still takes the tap and answers it with a notice. */
+.search-sections__row--locked {
+  cursor: progress;
+}
+
+.search-sections__icon-frame,
+.search-sections__name,
+.search-sections__count {
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
+.search-sections__row--locked .search-sections__icon-frame,
+.search-sections__row--locked .search-sections__name,
+.search-sections__row--locked .search-sections__count {
+  opacity: 0.5;
+}
+
+.search-sections__wait-mark {
+  --download-progress-mark-size: 0.875rem;
+  justify-self: center;
+}
+
+@media (max-width: 600px) {
+  .search-sections__wait-mark {
+    grid-area: caret;
+  }
+}
+
+/* A section opened while the core is still downloading (an address, back/forward): one loading
+   card with the download share, replaced in place by the catalog. */
+.search-section-wait {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: var(--home-gap, 1rem) 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+  animation: search-section-wait-in var(--motion-base) var(--motion-ease-out) backwards;
+}
+
+.search-section-wait__mark {
+  --download-progress-mark-size: 1.5rem;
+}
+
+.search-section-wait__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.search-section-wait__title {
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+}
+
+.search-section-wait__detail {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@keyframes search-section-wait-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-section-wait {
+    animation: none;
+  }
+}

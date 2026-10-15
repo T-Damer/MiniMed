@@ -13,7 +13,6 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { SheetPopover } from '@/components/SheetPopover';
@@ -80,6 +79,11 @@ import {
 } from '@/features/search/search-core-status';
 import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { isSearchHash } from '@/features/search/search-query-route';
+import {
+  SECTION_WAIT_NOTICE_ID,
+  sectionGate,
+  sectionWaitMark,
+} from '@/features/search/search-section-gate';
 import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
   matchingCatalogTools,
@@ -92,15 +96,13 @@ import {
 import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
 import { sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
+import { hideUsefulFeatures, USEFUL_FEATURES_NOTICE_ID } from '@/features/search/useful-features';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
+import { settingsPageHash } from '@/features/settings/settings-routing';
 import { FeatureTour } from '@/features/setup/FeatureTour';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
-import {
-  getUsefulFeaturesHidden,
-  setUsefulFeaturesHidden,
-  subscribeAppPreferences,
-} from '@/state/app-preferences';
+import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import {
@@ -154,6 +156,22 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     props.coreStatus && searchCoreStatusHomeNoteVisible(props.coreStatus, coreNoteDelayPassed())
       ? props.coreStatus
       : undefined;
+  /**
+   * Why the medical core is not ready, or undefined once it is. A core that is absent without a
+   * status (a moment between signals) counts as opening, so nothing opens onto an empty core.
+   */
+  const waitingCoreStatus = (): SearchCoreStatus | undefined =>
+    props.coreStatus ??
+    (props.baseCore === undefined ? { kind: 'opening', slow: false } : undefined);
+  const sectionLocked = (next: SearchScope): boolean =>
+    !sectionGate(next, waitingCoreStatus()).allowed;
+  /** A section or scope that needs the core cannot be chosen yet: say so, stay where we are. */
+  const allowSection = (next: SearchScope): boolean => {
+    const gate = sectionGate(next, waitingCoreStatus());
+    if (gate.allowed) return true;
+    toast(gate.message, { id: SECTION_WAIT_NOTICE_ID });
+    return false;
+  };
   const [featuresHidden, setFeaturesHidden] = createSignal(getUsefulFeaturesHidden());
   onCleanup(
     subscribeAppPreferences((preferences) => setFeaturesHidden(preferences.usefulFeaturesHidden)),
@@ -295,6 +313,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           </Show>
           <UnifiedSearchCatalog
             core={props.baseCore}
+            coreStatus={waitingCoreStatus()}
             scope={scope()}
             query={catalogQuery()}
             catalogOnly={catalogOnly()}
@@ -316,6 +335,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     >
       <SearchSectionsOverview
         rows={sectionsOverviewRows(sourceSections())}
+        locked={sectionLocked}
+        waitMark={sectionWaitMark(waitingCoreStatus())}
         onSelect={(next) => openSection(next)}
       />
     </Show>
@@ -670,6 +691,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   const setClinicalAnalysis = (on: boolean): void => {
     if (on === clinicalAnalysis()) return;
+    if (on && !allowSection('diagnosis')) return;
     if (on) setSourceScope(scope());
     setScope(on ? 'diagnosis' : sourceScope());
   };
@@ -719,6 +741,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     resetToSections();
   };
   const openSection = (next: SearchScope, group?: string): void => {
+    if (!allowSection(next)) return;
     if (openSectionId() === undefined) listScroll = window.scrollY;
     setGroups({ ...groups(), [next]: group });
     setSourceScope(next);
@@ -984,7 +1007,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             featuresHidden() || openSectionId() !== undefined ? undefined : (
               <SearchHomeIntro
                 features={homeFeatures()}
-                onHideFeatures={() => setUsefulFeaturesHidden(true)}
+                onHideFeatures={() =>
+                  hideUsefulFeatures((message) =>
+                    toast(message, {
+                      id: USEFUL_FEATURES_NOTICE_ID,
+                      action: {
+                        label: 'Настройки',
+                        onClick: () => {
+                          window.location.hash = settingsPageHash('appearance');
+                        },
+                      },
+                    }),
+                  )
+                }
               />
             )
           }
@@ -1039,15 +1074,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             </div>
           }
         />
-        <Show when={featuresHidden() && showSectionsOverview()}>
-          <Button
-            variant="quiet"
-            class="useful-features-restore"
-            onClick={() => setUsefulFeaturesHidden(false)}
-          >
-            Показать полезные функции
-          </Button>
-        </Show>
       </div>
 
       <Show when={referenceOpen() && experimentalModulesEnabled() && props.baseCore}>

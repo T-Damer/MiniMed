@@ -25,13 +25,17 @@
 }
 
 /* The one fixed entry of the row, a primary control (depth comes from styles/primary-depth.css);
-   everything else in the row is the doctor's own favourites. */
+   everything else in the row is the doctor's own favourites. It is as tall as the chips beside
+   it; its touch area still reaches 44 px through the pseudo-element. */
 .search-quick-access__all {
+  position: relative;
   display: inline-flex;
   flex: none;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  min-height: 2.75rem;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--theme-primary-edge);
   border-radius: 999px;
@@ -44,11 +48,21 @@
   cursor: pointer;
 }
 
-/* Once a tool is starred, «Все инструменты» shrinks to its icon and leaves the room to the tools. */
+.search-quick-access__all::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 2.75rem);
+  height: 2.75rem;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+/* Once a tool is starred, «Все инструменты» shrinks to an icon-only capsule and leaves the room to
+   the tools: the same height as a chip, wider than tall. */
 .search-quick-access__all--icon {
-  width: 2.25rem;
+  width: 3.25rem;
   padding: 0;
-  justify-content: center;
 }
 
 /* Arrows on the row's edges, for pointers that cannot swipe; they sit on the middle of the chips,
