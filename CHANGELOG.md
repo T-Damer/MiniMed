@@ -4,6 +4,17 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.62] - 2026-10-19
+
+- «Травник» (owner 2026-10-18): a downloadable herbal book of 30 medicinal plants in «База знаний» → «Травник».
+  Each plant has its botanical plate, how to brew and take it (cells read from the ГРЛС instruction, every
+  value opens its source sentence), who must not take it, EMA/HMPC doses by age, indications and active
+  components with their evidence level (Russian lines, the English EMA quote and page on tap, marked
+  «черновик» until a clinician reviews them), and the full ГРЛС instruction text; a guide to infusions and
+  decoctions from ГФ XV. Text 1 MB (`minimed.reference.herbal`); the 30 public-domain plates are a separate
+  7 MB image pack that «Скачать всё» leaves out. Celandine shows EMA's position against oral use first.
+- Reader: a portrait picture at the top of an article now fits its frame instead of running under the title.
+
 ## [0.6.61] - 2026-10-15
 
 - The Android app carries the meaning-search model (KD1 query encoder, about 125 MB; the APK grows from
