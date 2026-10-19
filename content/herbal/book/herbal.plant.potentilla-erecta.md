@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530887/2f68d269-0d09-4cc7-be3c-a7a3d5ec4289.pdf
-source_checksum: sha256:017227b2008509c00868207860d732a82036cd2e290c9bda3f6e430ab1119b04
+source_checksum: sha256:9266638cbc4a5cb0753172122256b971a62624b8af26be2e8eb68642b5e250c9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -201,6 +201,14 @@ metadata:
         classRu: танины
         effectRu: танины обладают противомикробным действием независимо от растения-источника
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0023.15
+        title: Лапчатки прямостоячей корневища
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lapchatki-pryamostoyachey-kornevishcha/
+      definition: Собранные в фазу цветения (или осенью или весной до появления прикорневых листьев), очищенные от корней и отмытые от земли, высушенные корневища дикорастущего и культивируемого многолетнего травянистого растения лапчатки прямостоячей - Potentilla erecta L. Raeusch. - (syn. Potentilla tormentilla Stokes.), сем. розоцветных - Rosaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014605)-(РГ-RU)
       tradeName: Лапчатки корневища
@@ -244,6 +252,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b23","p2-b24","p2-b25","p2-b26"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530887/2f68d269-0d09-4cc7-be3c-a7a3d5ec4289.pdf","page":2,"registrationNumber":"ЛП-№(014605)-(РГ-RU)","sourceDocument":"drug.rf.4fc717a03d89a28f6acf.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0023.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lapchatki-pryamostoyachey-kornevishcha/","sourceSection":"definition"} -->
+
+Собранные в фазу цветения (или осенью или весной до появления прикорневых листьев), очищенные от корней и отмытые от земли, высушенные корневища дикорастущего и культивируемого многолетнего травянистого растения лапчатки прямостоячей - Potentilla erecta L. Raeusch. - (syn. Potentilla tormentilla Stokes.), сем. розоцветных - Rosaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0023.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lapchatki-pryamostoyachey-kornevishcha/","sourceSection":"appearance"} -->
+
+Цельное сырье. Цельные или разрезанные на куски корневища длиной от 2 до 9 см, толщиной не менее 0,5 см, прямые или изогнутые, часто неопределенной формы (цилиндрические или почти шаровидные, комковатые); твердые, тяжелые, с ямчатыми следами от отрезанных корней и бугристыми рубцами от стеблей. Излом зернистый.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0023.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lapchatki-pryamostoyachey-kornevishcha/","sourceSection":"appearance"} -->
+
+Цвет снаружи от красновато-коричневого до темно-коричневого (почти черного), цвет на изломе желтовато-коричневый, розовато-коричневый или коричневый. На поперечном разрезе под лупой виден слой пробки темно-коричневого цвета, светло-желтая кора и древесина, и сердцевина розоватого цвета. Запах слабый, характерный. Вкус водного извлечения вяжущий.
 
 ## Противопоказания
 
@@ -353,4 +375,5 @@ metadata:
 
 - Инструкция ГРЛС «Лапчатки корневища», Изм. № 0, ЛП-№(014605)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/tormentillae-rhizoma (обновлено 16/03/2011). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Potentilla_erecta_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-248-whole.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0023.15 «Лапчатки прямостоячей корневища»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lapchatki-pryamostoyachey-kornevishcha/

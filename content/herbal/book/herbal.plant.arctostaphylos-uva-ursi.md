@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:a88241728ea06a723dad2d26cbc9310840b1a890391f27fd2d53f1cb74323ed0
+source_checksum: sha256:6e242ab39634d2eb20c86eed7c16160e5faca2eacd2469897cc3f3c4c3889e19
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -192,6 +192,14 @@ metadata:
         classRu: танины
         effectRu: относительно много танинов; по литературным данным, они ответственны за нежелательные эффекты со стороны ЖКТ (поэтому повышать суточную дозу до 15 г не сочли целесообразным)
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0099
+        title: Толокнянки обыкновенной листья
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/
+      definition: Собранные весной до и в начале цветения или осенью с начала созревания плодов до появления снежного покрова, высушенные листья дикорастущего вечнозелёного кустарничка толокнянки обыкновенной – Arctostaphylos uva-ursi (L.) Spreng., семейства вересковых– Ericaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(015439)-(РГ-RU)
       tradeName: Толокнянки листья
@@ -219,6 +227,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b4"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf","page":2,"registrationNumber":"ЛП-№(015439)-(РГ-RU)","sourceDocument":"drug.rf.e1b2c46d80635efe3bc9.instruction","sourceSection":"dosage"} -->
 
 Около 9 г (1 столовая ложка) листьев помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и настаивают на кипящей водяной бане в течение 30 минут, процеживают, не охлаждая, оставшееся сырье отжимают. Объем полученного отвара доводят кипяченой водой до 200 мл. Принимают внутрь по 1 столовой ложке теплого отвара 3-5 раз в день через 40 минут после еды. Курс лечения 20-25 дней. Возможно повторение курса после 10-12 дневного перерыва, но не более 4 курсов в год. Перед применением отвар рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0099","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/","sourceSection":"definition"} -->
+
+Собранные весной до и в начале цветения или осенью с начала созревания плодов до появления снежного покрова, высушенные листья дикорастущего вечнозелёного кустарничка толокнянки обыкновенной – Arctostaphylos uva-ursi (L.) Spreng., семейства вересковых– Ericaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0099","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Смесь цельных или частично измельчённых листьев. Листья мелкие, кожистые, ломкие, обратно-яйцевидной или удлинённо-овальной формы, иногда с небольшой выемкой, на верхушке закруглённые, к основанию клиновидно-суженные, с очень коротким черешком. Длина листьев 1–2,2 см, ширина 0,5–1,2 см. Жилкование сетчатое. При рассмотрении под лупой (10× и др.) на верхней поверхности листа жилки заметно вдавлены. Черешки листьев в поперечном сечении округло-треугольной формы.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0099","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/","sourceSection":"appearance"} -->
+
+Листья с верхней стороны тёмно-зелёные, блестящие, с нижней стороны немного светлее, матовые, голые. Запах отсутствует.
 
 ## Противопоказания
 
@@ -312,4 +334,5 @@ metadata:
 
 - Инструкция ГРЛС «Толокнянки листья», Изм. № 0, ЛП-№(015439)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium (обновлено 10/04/2018). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Arctostaphylos_uva-ursi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-013.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0099 «Толокнянки обыкновенной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/

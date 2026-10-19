@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:7883b29b9e7f5d8b578138dc7ac6f545a2c84f28bf1584c3aa19dc78be65d17a
+source_checksum: sha256:cf313a1d576e54ee7c8753367fe9443cd096f4fdc0a8cb1b8d378f9e7f7fb103
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -177,6 +177,14 @@ metadata:
         classRu: метаболит сеннозидов
         effectRu: слабительное — образуется из сеннозидов кишечными бактериями
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0038.15
+        title: Сенны листья
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/senny-listya/
+      definition: Собранные в фазу цветения и плодоношения, высушенные и обмолоченные листья дикорастущих и культивируемых многолетних кустарников кассии остролистной (cенны) - Cassia acutifolia Del. (С. senna L.) и кассии узколистной - Cassia angustifolia Vahl., сем. бобовых - Fabaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013970)-(РГ-RU)
       tradeName: Сенны листья
@@ -205,6 +213,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b6"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (2 столовые ложки) листьев сенны помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, затем продолжают настаивание при комнатной температуре до полного охлаждения, процеживают, оставшееся сырье отжимают. Объем полученного отвара доводят кипяченой водой до 200 мл. Принимают внутрь по 1/2 стакана отвара вечером после еды. Курс лечения 2-3 недели. Перед применением отвар рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0038.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/senny-listya/","sourceSection":"definition"} -->
+
+Собранные в фазу цветения и плодоношения, высушенные и обмолоченные листья дикорастущих и культивируемых многолетних кустарников кассии остролистной (cенны) - Cassia acutifolia Del. (С. senna L.) и кассии узколистной - Cassia angustifolia Vahl., сем. бобовых - Fabaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0038.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/senny-listya/","sourceSection":"appearance"} -->
+
+Цельное сырье. Отдельные листочки и черешки сложного парноперистого листа, цельные или частично измельченные; кусочки тонких травянистых стеблей; бутоны; цветки и незрелые плоды. Листочки удлиненно-ланцетовидные (Cassia angustifolia) или ланцетоовальные (Cassia acutifolia), заостренные к верхушке, наиболее широкие в средней части, у основания неравнобокие, тонкие, ломкие, цельнокрайние, с очень коротким черешком. Вторичные жилки, ясно заметные с обеих сторон, отходят под острым углом от главной жилки и соединяются между собой дугами, идущими параллельно краю листочка. Длина листочка 1-6 см (2-6 см у Cassiaangustifolia и 1-3,5 см у Cassiaacutifolia), ширина 0,4-2 см (0,6-2 см у Cassiaangustifolia и 0,4-1,2 см у Cassiaacutifolia). Плод боб, плоский, кожистый, слабоизогнутый, 3-5 см длиной, 1,5-2 см шириной. Цвет листочков от серовато-зеленого (Cassia acutifolia) или желтовато-зеленого (Cassia angustifolia) до коричневато-зеленого (Cassia acutifolia, Cassia angustifolia), матовый, иногда верхняя и нижняя стороны листочков различаются по цвету; плодов - зеленовато-коричневый с темными очертаниями семенных камер; стеблей - серовато-зеленый, зеленовато-коричневый, желтовато- или серовато-белый; бутонов - коричневато-зеленый, желтовато-зеленый; цветков - желтый. Запах слабый. Вкус водного извлечения слегка горьковатый, с ощущением слизистости.
 
 ## Противопоказания
 
@@ -302,4 +320,5 @@ metadata:
 
 - Инструкция ГРЛС «Сенны листья», Изм. № 0, ЛП-№(013970)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium (обновлено 26/10/2006). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Senna_alexandrina_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-031.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0038.15 «Сенны листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/senny-listya/

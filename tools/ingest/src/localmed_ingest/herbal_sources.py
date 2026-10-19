@@ -7,6 +7,8 @@
   Commons metadata and anything that is not public domain is refused.
 * ГФ XV general monograph «Настои и отвары» (ОФС.1.4.1.0018): the article page, whose HTML holds
   the text, and the order that approved it.
+* The ГФ raw-material article (ФС) of every plant — ГФ XV, else the ГФ XIV article still in force:
+  definition (when and what is collected), appearance of the whole raw material, look-alikes.
 
 ``MANIFEST.json`` records every URL, SHA-256 and fetch time. A file already on disk is kept, so the
 reviewed bytes never change silently; ``--refresh`` re-downloads and fails when the bytes changed.
@@ -318,12 +320,32 @@ def _fetch_gf15(store: _Store) -> dict[str, object]:
     return articles
 
 
+_GF_NUMBER = re.compile(r'<meta name="description" content="(ФС\.[0-9.]+):\s*([^"]+?)\.?"')
+
+
+def _fetch_gf_article(store: _Store, plant: Plant) -> dict[str, object]:
+    """The plant's ГФ raw-material article; its HTML holds the text (definition, appearance)."""
+    page_url = GF15_BASE + plant.gf.path
+    page = store.save(f"gf/{plant.id}.html", page_url, _download(page_url), pinned=False)
+    found = _GF_NUMBER.search((store.root / page.path).read_text(encoding="utf-8"))
+    if found is None:
+        raise ValueError(f"{plant.id}: the ГФ page has no article number ({page_url})")
+    return {
+        "page": page_url,
+        "path": page.path,
+        "edition": plant.gf.edition,
+        "number": found.group(1),
+        "title": html.unescape(found.group(2)).strip(),
+    }
+
+
 def fetch_herbal_sources(
     plants_path: Path,
     output: Path,
     *,
     refresh: bool = False,
     only: frozenset[str] | None = None,
+    gf_only: bool = False,
 ) -> dict[str, object]:
     plants = load_plants(plants_path)
     output.mkdir(parents=True, exist_ok=True)
@@ -336,12 +358,15 @@ def fetch_herbal_sources(
     )
     ema = cast("dict[str, object]", previous.get("ema") or {})
     plates = cast("dict[str, object]", previous.get("plates") or {})
+    gf_articles = cast("dict[str, object]", previous.get("gfArticles") or {})
     for plant in plants:
         if only is not None and plant.id not in only:
             continue
-        ema[plant.id] = _fetch_ema(store, plant)
-        plates[plant.id] = _fetch_plate(store, plant)
-        store.write_manifest({**previous, "ema": ema, "plates": plates})
+        if not gf_only:
+            ema[plant.id] = _fetch_ema(store, plant)
+            plates[plant.id] = _fetch_plate(store, plant)
+        gf_articles[plant.id] = _fetch_gf_article(store, plant)
+        store.write_manifest({**previous, "ema": ema, "plates": plates, "gfArticles": gf_articles})
     gf15 = _fetch_gf15(store)
     return store.write_manifest(
         {
@@ -350,12 +375,13 @@ def fetch_herbal_sources(
             "ema": ema,
             "plates": plates,
             "gf15": gf15,
+            "gfArticles": gf_articles,
             "notices": {
                 "ema": (
                     "© European Medicines Agency. Reproduction is authorised provided the "
                     "source is acknowledged."
                 ),
-                "gf15": "Государственная фармакопея Российской Федерации, XV издание.",
+                "gf15": "Государственная фармакопея Российской Федерации, XV и XIV издания.",
             },
         }
     )

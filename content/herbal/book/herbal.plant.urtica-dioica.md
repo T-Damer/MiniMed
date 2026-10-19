@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:be1bf27ebfb2089b5519324bb438cc569fe258b67515e0a79fdbf8b268a4202e
+source_checksum: sha256:c41b27446a6ef9c828d278e822fc8af88e70431e0dc211eefbae424528b47ee6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -183,6 +183,14 @@ metadata:
         compoundRu: спиртовой экстракт листа (IDS23)
         effectRu: у крыс с экспериментальным гонартритом — дозозависимое противовоспалительное действие
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0019.15
+        title: Крапивы двудомной листья
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/
+      definition: Собранные во время бутонизации и цветения, высушенные листья дикорастущего и культивируемого многолетнего травянистого растения крапивы двудомной - Urtica dioica L., сем. крапивных - Urticaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013449)-(РГ-RU)
       tradeName: Крапивы листья
@@ -223,6 +231,28 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b29","p2-b30","p2-b31","p2-b32"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf","page":2,"registrationNumber":"ЛП-№(013449)-(РГ-RU)","sourceDocument":"drug.rf.213a6d0aaf9c40311f57.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"definition"} -->
+
+Собранные во время бутонизации и цветения, высушенные листья дикорастущего и культивируемого многолетнего травянистого растения крапивы двудомной - Urtica dioica L., сем. крапивных - Urticaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"appearance"} -->
+
+Цельное сырье. Листья цельные или частично измельченные, простые, черешковые, длиной до 20 см, шириной до 9 см, яйцевидно-ланцетовидные и широкояйцевидные с острой верхушкой и сердцевидным основанием; край остро- и крупнопильчатый с изогнутыми к верхушке зубцами. При рассматривании сырья под лупой (10х) или стереомикроскопом (16х) видно, что листовая пластинка с двух сторон опушена короткими одноклеточными волосками с острой верхушкой (ретортовидными), поэтому на ощупь она шершавая. Кроме того, с нижней стороны и по жилкам встречаются волоски с многоклеточным основанием и длинной конечной клеткой (жгучие). Цистолиты - беловатые округлые и эллиптические образования на темно-зелёном фоне.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"appearance"} -->
+
+Черешки листьев длиной до 8 см, округлые или полукруглые в сечении с бороздкой на верхней стороне, опушены густо жесткими ретортовидными волосками и режежгучими волосками или их основаниями.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"appearance"} -->
+
+Плод - орешек яйцевидной или эллиптической формы, в разной степени зрелости от зелёного, желтовато-зелёного до светло-коричневого цвета.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"appearance"} -->
+
+Цвет листьев с верхней стороны от зеленого до темно-зеленого, с нижней светлее - серовато-зеленый или зеленый; черешков - зеленый, желтовато-зелёный или серовато-зеленый. Запах слабый. Вкус водного извлечения горьковатый.
 
 ## Противопоказания
 
@@ -334,4 +364,5 @@ metadata:
 
 - Инструкция ГРЛС «Крапивы листья», Изм. № 0, ЛП-№(013449)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/urticae-folium (обновлено 17/01/2011). © European Medicines Agency
-- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885),  — Public domain
+- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Urtica_dioica0.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0019.15 «Крапивы двудомной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/

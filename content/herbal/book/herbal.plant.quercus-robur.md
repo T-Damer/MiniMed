@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:27a3959e3aa61d0bcf3f4a1e32ceb561851f1e13903d3a4526890e417d860077
+source_checksum: sha256:198d378d0d0bdbe711fa64224aa40877e69d5816fcff57907c8391a1f9eeb66b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -253,6 +253,14 @@ metadata:
         classRu: танины
         effectRu: по сообщениям, антисекретолитическое, противораздражающее, противомикробное и противопаразитарное действие
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0071.18
+        title: Дуба кора
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/
+      definition: 'Собранная ранней весной кора поросли, молодых ветвей и тонких стволов дикорастущих и культивируемых деревьев дуба обыкновенного (черешчатого) - Quercus robur L. (syn.; Q. pedunculata Ehrh.) и дуба скального - Quercus petraea (Mattuschka) Liebl. (syn.: Q. sessiliflora Salisb.), сем. буковых - Fagaceae.'
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013901)-(РГ-RU)
       tradeName: Дуба кора
@@ -296,6 +304,24 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b11","p2-b12","p2-b13","p2-b14"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf","page":2,"registrationNumber":"ЛП-№(013901)-(РГ-RU)","sourceDocument":"drug.rf.95b82de69ebd65031a25.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0071.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/","sourceSection":"definition"} -->
+
+Собранная ранней весной кора поросли, молодых ветвей и тонких стволов дикорастущих и культивируемых деревьев дуба обыкновенного (черешчатого) - Quercus robur L. (syn.; Q. pedunculata Ehrh.) и дуба скального - Quercus petraea (Mattuschka) Liebl. (syn.: Q. sessiliflora Salisb.), сем. буковых - Fagaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0071.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/","sourceSection":"appearance"} -->
+
+Цельное сырье. Куски коры трубчатые, желобоватые или в виде узких полосок различной длины, толщиной около 2-3 мм (до 6 мм). Наружная поверхность блестящая, реже матовая, гладкая или слегка морщинистая, иногда с мелкими трещинками; часто заметны поперечно-вытянутые чечевички. Внутренняя поверхность с многочисленными продольными тонкими выдающимися ребрышками. В изломе наружная кора зернистая, ровная, внутренняя - сильно волокнистая, занозистая.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0071.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/","sourceSection":"appearance"} -->
+
+Цвет коры снаружи светло-коричневый или светло-серый, серебристый, внутри желтовато-коричневый.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0071.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/","sourceSection":"appearance"} -->
+
+Запах слабый, своеобразный, усиливающийся при смачивании коры водой. Вкус водного извлечения сильно вяжущий.
 
 ## Противопоказания
 
@@ -413,4 +439,5 @@ metadata:
 
 - Инструкция ГРЛС «Дуба кора», Изм. № 0, ЛП-№(013901)-(РГ-RU), 2026, ПКФ "Фитофарм" (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/quercus-cortex (обновлено 28/01/2011). © European Medicines Agency
-- Иллюстрация: Prof. Dr. Otto Wilhelm Thomé Flora von Deutschland, Österreich und der Schweiz 1885, Gera, Germany, 1885 — Public domain
+- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Quercus_robur0.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0071.18 «Дуба кора»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/

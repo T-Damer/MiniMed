@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:a95594329e0c98f500a6229f8006cdf89762fc4fcaa394e046d297e999bc394b
+source_checksum: sha256:78b43f47cb22191528e69c2ef1f13ba66ff2d891769438011a10444d99c6e78e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -240,6 +240,14 @@ metadata:
         classRu: флороглюцины
         effectRu: включает ферменты печени (через рецептор PXR) — причина лекарственных взаимодействий
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0015.15
+        title: Зверобоя трава
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/
+      definition: Собранная в фазу цветения и высушенная трава дикорастущего и культивируемого многолетнего растения зверобоя продырявленного Hypericum perforatum L., и зверобоя пятнистого (зверобоя четырехгранного) Hypericum maculatum Crantz (H. quadrangulum L.), сем. зверобойных - Hypericaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013735)-(РГ-RU)
       tradeName: Зверобоя трава
@@ -284,6 +292,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b24","p2-b25","p2-b26","p2-b27"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf","page":2,"registrationNumber":"ЛП-№(013735)-(РГ-RU)","sourceDocument":"drug.rf.a7dc0d599084d044f436.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0015.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу цветения и высушенная трава дикорастущего и культивируемого многолетнего растения зверобоя продырявленного Hypericum perforatum L., и зверобоя пятнистого (зверобоя четырехгранного) Hypericum maculatum Crantz (H. quadrangulum L.), сем. зверобойных - Hypericaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0015.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/","sourceSection":"appearance"} -->
+
+Цельное сырье. Верхние части стеблей с листьями, цветками, бутонами и недозрелыми плодами. Стебли полые, цилиндрические, длиной до 50 см, с 2 (у зверобоя продырявленного) или 4 (у зверобоя пятнистого) продольными ребрами. Листья супротивные, сидячие, продолговатые или продолговато-овальные, цельнокрайние, голые, до 3,5 см, шириной до 1,4 см. У зверобоя продырявленного листья с многочисленными просвечивающимися вместилищами в виде светлых точек. Цветки многочисленные, около 1-1,5 см в диаметре, собраны в щитковидную метелку. Чашечка сростнолистная, глубокопятираздельная, чашелистики ланцетовидные, тонко заостренные (у зверобоя продырявленного) или продолговато-овальные (у зверобоя пятнистого). Венчик раздельнолепестной, в 2-3 раза длиннее чашечки, лепестков 5. Тычинки многочисленные, сросшиеся у основания нитями в 3 пучка. Плод - трехгнездная многосемянная коробочка.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0015.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/","sourceSection":"appearance"} -->
+
+Цвет стеблей - от зеленовато-желтого до серовато-зеленого, иногда розовато-фиолетовый; листьев - от серовато-зеленого до темно-зеленого; лепестков - ярко-желтый или желтый с темными точками, хорошо заметными под лупой; плодов - зеленовато-коричневый. Запах слабый, характерный. Вкус водного извлечения горьковатый, слегка вяжущий.
 
 ## Противопоказания
 
@@ -401,4 +423,5 @@ metadata:
 
 - Инструкция ГРЛС «Зверобоя трава», Изм. № 0, ЛП-№(013735)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/hyperici-herba-0 (обновлено 08/03/2018). © European Medicines Agency
-- Иллюстрация: Johann Georg Sturm (Painter: Jacob Sturm), 1796 — Public domain
+- Иллюстрация: J. Sturm, Deutschlands Flora in Abbildungen (1796–1862) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Hypericum_perforatum_(Sturm_06,_plate_060)_clean.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0015.15 «Зверобоя трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/

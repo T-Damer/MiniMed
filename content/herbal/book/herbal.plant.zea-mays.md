@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528273/f8aa0ed8-8fbf-4da0-98dc-7a1943f326f9.pdf
-source_checksum: sha256:f185ed794d308ad3f9a0c9ea76b36718a5cfe7591d7b6d1306911d4ac2054ec9
+source_checksum: sha256:1e92fbb54ebc6695864120213b32097ba80949af4cc72c2abd9e42ca80c2f50d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -178,6 +178,14 @@ metadata:
         compoundRu: водный экстракт
         effectRu: по выводу авторов, мочегонный эффект согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0079
+        title: Кукурузы столбики с рыльцами
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/kukuruzy-stolbiki-s-ryltsami/
+      definition: Собранные в период созревания початков и высушенные столбики с рыльцами культивируемого однолетнего травянистого растения кукурузы – Zea mays L., сем. мятликовых – Poaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013810)-(РГ-RU)
       tradeName: Кукурузы столбики с рыльцами
@@ -217,6 +225,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b26","p2-b27","p2-b28","p2-b29"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528273/f8aa0ed8-8fbf-4da0-98dc-7a1943f326f9.pdf","page":2,"registrationNumber":"ЛП-№(013810)-(РГ-RU)","sourceDocument":"drug.rf.d1c36a56081a53e38d7e.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0079","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/kukuruzy-stolbiki-s-ryltsami/","sourceSection":"definition"} -->
+
+Собранные в период созревания початков и высушенные столбики с рыльцами культивируемого однолетнего травянистого растения кукурузы – Zea mays L., сем. мятликовых – Poaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0079","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/kukuruzy-stolbiki-s-ryltsami/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Мягкие шелковистые нити (столбики), собранные пучками или частично перепутанные, на верхушке которых находятся двухлопастные рыльца. Столбики несколько искривлённые, плоские, шириной 0,1–0,15 мм; длиной 0,5–20 см, рыльца короткие, длиной 0,4–3 мм. Часто встречаются столбики без рылец.
 
 ## Противопоказания
 
@@ -322,4 +340,5 @@ metadata:
 
 - Инструкция ГРЛС «Кукурузы столбики с рыльцами», Изм. № 0, ЛП-№(013810)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/maydis-stigma. © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Zea_mays_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-283.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0079 «Кукурузы столбики с рыльцами»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/kukuruzy-stolbiki-s-ryltsami/

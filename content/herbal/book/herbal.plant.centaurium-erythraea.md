@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530382/cc0903a7-f936-4ebb-b78b-f00f686dac55.pdf
-source_checksum: sha256:703d3405f2af20fb54ee67ede208c00e94b377ba6699a2d0a4135cffb8fa73e7
+source_checksum: sha256:56fe7f64f1567fa34921cfab9345437ac11129045e66893a2ed9db2fb6408e29
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -158,6 +158,14 @@ metadata:
         classRu: секоиридоиды
         effectRu: подавляли рост бактерий (B. cereus, B. subtilis, C. freundii, E. coli)
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0075.18
+        title: Золототысячника трава
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zolototysyachnika-trava/
+      definition: 'Собранная в фазу цветения и высушенная трава одно-, двухлетних дикорастущих и культивируемых травянистых растений: золототысячника обыкновенного - Centaurium erythraea Rafn [syn.: Centaurium minus Moench, Centaurium umbellatum Gilib., Erythraea centaurium (L.) Borkh] и золототысячника красивого - Centaurium pulchellum (Sw.) Druce [syn.: Erythraea pulchella (Sw.) Hornem], сем. горечавковых - Gentianaceae.'
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014393)-(РГ-RU)
       tradeName: Золототысячника трава
@@ -197,6 +205,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b20","p2-b21","p2-b22","p2-b23"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530382/cc0903a7-f936-4ebb-b78b-f00f686dac55.pdf","page":2,"registrationNumber":"ЛП-№(014393)-(РГ-RU)","sourceDocument":"drug.rf.8730fce1d53e57dd5afd.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0075.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zolototysyachnika-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу цветения и высушенная трава одно-, двухлетних дикорастущих и культивируемых травянистых растений: золототысячника обыкновенного - Centaurium erythraea Rafn [syn.: Centaurium minus Moench, Centaurium umbellatum Gilib., Erythraea centaurium (L.) Borkh] и золототысячника красивого - Centaurium pulchellum (Sw.) Druce [syn.: Erythraea pulchella (Sw.) Hornem], сем. горечавковых - Gentianaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0075.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zolototysyachnika-trava/","sourceSection":"appearance"} -->
+
+Цельное сырье. Стебли голые, простые или разветвленные, четырехгранные, иногда с крылатыми ребрами. Листья сидячие, супротивные, с пятью жилками, средние - продолговато-яйцевидные, голые, цельнокрайние, с пятью жилками, верхние - продолговато- или линейно-ланцетные. Соцветия верхушечные, щитковидные. Цветки правильные. Чашечка сростнолистная с пятью долями. Венчик с длинной цилиндрической трубкой и пятираздельным отгибом. Тычинок пять. Цвет стеблей, листьев и чашечки желтовато-зеленый, венчика - розовато-фиолетовый, желтовато-розовый и желтый. Запах слабый. Вкус водного извлечения горький.
 
 ## Противопоказания
 
@@ -302,4 +320,5 @@ metadata:
 
 - Инструкция ГРЛС «Золототысячника трава», Изм. № 0, ЛП-№(014393)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/centaurii-herba (обновлено 10/02/2016). © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Centaurium_erythraea_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-058.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0075.18 «Золототысячника трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zolototysyachnika-trava/

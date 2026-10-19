@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf
-source_checksum: sha256:2b770a4f698e5397ea224b0b6517fcd7ac65920e65d4d4f2922201da041447e9
+source_checksum: sha256:a3abcb5532c02a3a6a1826e50cc6b515c154fcde852154f37957137424bf0833
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -202,6 +202,14 @@ metadata:
         compoundRu: экстракты цветков (гексановый, этанольный, водный)
         effectRu: гексановый и этанольный влияют на воспалительную фазу заживления в кератиноцитах (NF-κB, IL-8); миграцию кератиноцитов меняют лишь незначительно; этанольный и водный умеренно тормозят коллагеназу
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0030.15
+        title: Календулы лекарственной цветки
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/
+      definition: Собранные в начале распускания трубчатых цветков и высушенные цветочные корзинки культивируемого однолетнего травянистого растения календулы лекарственной - Calendula officinalis L., cем. астровых - Asteraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013370)-(РГ-RU)
       tradeName: Ноготков цветки
@@ -246,6 +254,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b29","p2-b30","p2-b31","p2-b32"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf","page":2,"registrationNumber":"ЛП-№(013370)-(РГ-RU)","sourceDocument":"drug.rf.82de8db387887aabfded.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0030.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/","sourceSection":"definition"} -->
+
+Собранные в начале распускания трубчатых цветков и высушенные цветочные корзинки культивируемого однолетнего травянистого растения календулы лекарственной - Calendula officinalis L., cем. астровых - Asteraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0030.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/","sourceSection":"appearance"} -->
+
+Цельное сырье. Цельные или частично осыпавшиеся корзинки диаметром до 5 см, без цветоносов или с остатками цветоносов длиной не более 3 см. Обвертка серовато-зеленая, одно-, двухрядная; листочки ее линейные, заостренные, густоопушенные. Цветоложе слегка выпуклое, голое. Краевые цветки язычковые, длиной 15-28 мм, шириной 3-5 мм с изогнутой короткой опушенной трубкой, трехзубчатым отгибом, вдвое превышающим обвертку, и 4-5 жилками. Цветки расположены в 2-3 ряда у немахровых и в 10-15 рядов у махровых форм. Пестик с изогнутой нижней одногнездной завязью, тонким столбиком и двухлопастным рыльцем. Срединные цветки трубчатые с пятизубчатым венчиком. Изредка встречаются недозрелые плоды и их кусочки различной формы.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0030.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/","sourceSection":"appearance"} -->
+
+Цвет краевых цветков красновато-оранжевый, оранжевый, ярко- или бледно-желтый; срединных - оранжевый, желтовато-коричневый или желтый; незрелых плодов - зеленый, серовато-зеленый, желтовато-зеленый, желтовато-коричневый и коричневый. Запах слабый. Вкус водного извлечения солоновато-горький.
 
 ## Противопоказания
 
@@ -359,4 +381,5 @@ metadata:
 
 - Инструкция ГРЛС «Ноготков цветки», Изм. № 0, ЛП-№(013370)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/calendulae-flos (обновлено 02/07/2018). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Calendula_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-024.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0030.15 «Календулы лекарственной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/

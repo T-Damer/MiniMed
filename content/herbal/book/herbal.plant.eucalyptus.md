@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
-source_checksum: sha256:21f30da7227c6ed880028d7f9ae99ca70ba17cf04ce89829bb8536c35f25cfda
+source_checksum: sha256:d5397ff7f38cef3f60cc709a48f63a3ae9147bc071729c32b6c8db18a5624a25
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -200,6 +200,14 @@ metadata:
         classRu: танины
         effectRu: вирусостатический эффект настоев листа, возможно, связан с дубильными веществами
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0107
+        title: Эвкалипта прутовидного листья
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/
+      definition: Собранные поздней осенью, зимой или ранней весной и высушенные листья культивируемого дерева эвкалипта прутовидного – Eucalyptus viminalis Labill., сем. Миртовых – Myrtaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014404)-(РГ-RU)
       tradeName: Эвкалипта прутовидного листья
@@ -238,6 +246,24 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b27","p2-b28","p2-b29","p2-b30"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"dosage"} -->
 
 Если через 1 неделю лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0107","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/","sourceSection":"definition"} -->
+
+Собранные поздней осенью, зимой или ранней весной и высушенные листья культивируемого дерева эвкалипта прутовидного – Eucalyptus viminalis Labill., сем. Миртовых – Myrtaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0107","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Смесь двух типов листьев: листья старых ветвей – черешковые от узколанцентных до серповидно-изогнутых, остроконечные, плотные, длиной 4–27 см, шириной 0,5–5 см; листья молодых ветвей – сидячие с округлым основанием или с короткими черешками (длина черешков от 0,6 до 1,5 см, форма черешка на поперечном сечении овальная с адаксиальной стороны немного сплюснутая), удлинённо-яйцевидной формы, на верхушке заострённые, длиной 3,5–11 см, шириной 0,7–4 см. Встречаются листья, имеющие переходящую форму от удлинённо-яйцевидной до ланцетной. Листья голые с цельным, ровным или волнистым краем с многочисленными точками, просвечивающимися в проходящем ярком свете (вместилища с эфирным маслом).
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0107","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/","sourceSection":"appearance"} -->
+
+Цвет листьев от светло-зелёного до серовато-зелёного, иногда с фиолетовым оттенком и слабым сизоватым налётом.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0107","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/","sourceSection":"appearance"} -->
+
+Запах характерный, усиливающийся при растирании.
 
 ## Противопоказания
 
@@ -353,4 +379,5 @@ metadata:
 
 - Инструкция ГРЛС «Эвкалипта прутовидного листья», Изм. № 0, ЛП-№(014404)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium (обновлено 16/06/2014). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Eucalyptus_globulus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-147.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0107 «Эвкалипта прутовидного листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/

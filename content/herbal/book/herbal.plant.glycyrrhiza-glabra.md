@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:1bcb402e5a1ca7a285138f2e7a02f0f423af8a08f31662e94a59bf2a714e8907
+source_checksum: sha256:4b15323fe1f4c082dd58480ebbe92c56f4d354f295c817b8785b3e6a390915bb
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -215,6 +215,14 @@ metadata:
         classRu: метаболит глицирризина
         effectRu: основной метаболит глицирризина при приёме внутрь; сильнее глицирризина тормозит 5α-, 5β-редуктазу и 11β-дегидрогеназу (превращает кортизол в кортизон)
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0040.15
+        title: Солодки корни
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/
+      definition: Собранные в разное время года неочищенные (naturales) или очищенные (mundatae) от пробки корни и подземные побеги многолетних дикорастущих травянистых растений солодки голой - Glycyrrhiza glabra L. и солодки уральской - Glycyrrhiza uralensis Fisch., сем. бобовых - Fabaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(015141)-(РГ-RU)
       tradeName: Солодки корни
@@ -242,6 +250,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf","page":2,"registrationNumber":"ЛП-№(015141)-(РГ-RU)","sourceDocument":"drug.rf.86a683f8752e8cd50a06.instruction","sourceSection":"dosage"} -->
 
 Около 8 г (2 столовые ложки) измельченных корней солодки помещают в эмалированную посуду, заливают 200 мл (l стакан) охлажденной кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, охлаждают при комнатной температуре 10 минут, процеживают, оставшееся сырье отжимают. Объем полученного отвара доводят кипяченой водой до 200 мл. Принимают внутрь: взрослые и дети старше 12 лет – по 1 столовой ложке 3-4 раза в день; дети от 5 до 12 лет – по 1 десертной ложке 3-4 раза в день; дети от 3 до 5 лет – по 1 десертной ложке 2-3 раза в день; дети от 1 года до 3 лет – по 1 чайной ложке 2-3 раза в день. Курс лечения – 2-3 недели. Перед применением отвар рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции по применению.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0040.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/","sourceSection":"definition"} -->
+
+Собранные в разное время года неочищенные (naturales) или очищенные (mundatae) от пробки корни и подземные побеги многолетних дикорастущих травянистых растений солодки голой - Glycyrrhiza glabra L. и солодки уральской - Glycyrrhiza uralensis Fisch., сем. бобовых - Fabaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0040.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/","sourceSection":"appearance"} -->
+
+Цельное сырье. Куски корней и подземных побегов цилиндрической формы различной длины и толщины. Встречаются куски корней, переходящие в сильно разросшееся корневище более 10 см толщиной.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0040.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/","sourceSection":"appearance"} -->
+
+Поверхность неочищенных корней и побегов продольно-морщинистая, покрытая серовато-коричневой или коричневой пробкой; очищенное сырье снаружи от светло-желтого до коричневато-желтого цвета с незначительными остатками пробки; излом от светло-желтого до желтовато-оранжевого цвета, зернисто-волокнистый.
 
 ## Противопоказания
 
@@ -339,4 +361,5 @@ metadata:
 
 - Инструкция ГРЛС «Солодки корни», Изм. № 0, ЛП-№(015141)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/liquiritiae-radix (обновлено 20/07/2026). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Glycyrrhiza_glabra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-207.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0040.15 «Солодки корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/

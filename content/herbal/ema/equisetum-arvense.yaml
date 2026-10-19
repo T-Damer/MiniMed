@@ -83,6 +83,16 @@ facts:
     doc: monograph
     page: 8
     quote: No case of overdose has been reported.
+  - kind: lookalike
+    ru: Хвощ болотный похож на полевой и содержит потенциально ядовитый палюстрин
+    doc: assessment-report
+    page: 4
+    quote: Some Equisetum species such as Equisetum palustre contains potentially toxic palustrin
+  - kind: lookalike
+    ru: Пить только проверенный аптечный хвощ — при сборе неспециалистом возможна примесь хвоща болотного
+    doc: assessment-report
+    page: 4
+    quote: Only quality controlled horsetail (from pharmacies) should be consumed by the patients, as adulteration with Equisetum palustre is possible, when it is harvested by unqualified persons.
 constituents:
   - compound: silicic acid, silicates
     compoundRu: кремниевая кислота, силикаты

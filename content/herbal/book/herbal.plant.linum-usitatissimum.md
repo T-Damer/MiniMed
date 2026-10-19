@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:5a90811554172931e20149b694162fd34411465e649787a4d910551e3b72cc06
+source_checksum: sha256:b26917400a01e4bd880a5a138b93efeff02ce3089a711e9610aad9e02454ec57
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -221,6 +221,14 @@ metadata:
         classRu: полисахариды
         effectRu: по оценке EMA, защитное действие на слизистую за счёт обволакивающего действия слизи
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0026.15
+        title: Льна посевного семена
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lna-posevnogo-semena/
+      definition: Собранные в период плодоношения зрелые и высушенные семена культивируемого травянистого растения льна посевного (обыкновенного) - Linum usitatissimum L., сем. льновых - Linaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014461)-(РГ-RU)
       tradeName: Льна семена
@@ -248,6 +256,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf","page":2,"registrationNumber":"ЛП-№(014461)-(РГ-RU)","sourceDocument":"drug.rf.13d536fcb923d8f9c54e.instruction","sourceSection":"dosage"} -->
 
 1,5 чайные ложки цельных семян льна заливают 200 мл (l стакан) горячей кипяченой воды, перемешивают в течение 15 минут, процеживают, оставшееся сырье отжимают. Настой семян льна и цельные набухшие в воде семена применяют внутрь. При воспалительных и язвенных процессах желудочно-кишечного тракта полученный настой принимают внутрь по 1/4 стакана 3 раза в день за 30 минут до еды. Курс лечения – 2-3 недели. При запорах набухшие в воде семена льна принимают внутрь по 1-3 чайные ложки, запивая водой, 2-3 раза в день. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем указаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0026.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lna-posevnogo-semena/","sourceSection":"definition"} -->
+
+Собранные в период плодоношения зрелые и высушенные семена культивируемого травянистого растения льна посевного (обыкновенного) - Linum usitatissimum L., сем. льновых - Linaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0026.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lna-posevnogo-semena/","sourceSection":"appearance"} -->
+
+Цельное сырье. Семена сплюснутые, яйцевидной формы, заостренные с одного конца и округлые с другого, неравнобокие, длиной до 6 мм, шириной до 3 мм. Поверхность семян гладкая, блестящая, со светло-желтым, ясно заметным семенным рубчиком (под лупой или стереомикроскопом ). Цвет семян от светло-желтого до темно-коричневого. Запах отсутствует. Вкус водного извлечения слизисто-маслянистый.
 
 ## Противопоказания
 
@@ -345,4 +363,5 @@ metadata:
 
 - Инструкция ГРЛС «Льна семена», Изм. № 0, ЛП-№(014461)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/lini-semen (обновлено 03/02/2016). © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Linum_usitatissimum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-088.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0026.15 «Льна посевного семена»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lna-posevnogo-semena/

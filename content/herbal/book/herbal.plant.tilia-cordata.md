@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf
-source_checksum: sha256:40d13c446987f2507aad04af71023199b995700ef27f779fd14eb469329241cf
+source_checksum: sha256:079fc692473c1794ea5d19ffead440a67a756a278bcb887c27774f40e3c192ac
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -168,6 +168,11 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
+      - doc: assessment-report
+        page: 4
+        quote: Macroscopic and microscopic tests are used for detecting common adulterations with other species (mainly Tilia tomentosa = Tilia argentea).
+        kind: lookalike
+        ru: Частая примесь — цветки других лип, чаще всего липы войлочной (серебристой)
       constituents:
       - doc: assessment-report
         page: 14
@@ -193,6 +198,14 @@ metadata:
         classRu: слизи
         effectRu: входят в состав цветков (около 3%)
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0024
+        title: Липы цветки
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/lipy-tsvetki/
+      definition: Собранные во время цветения и высушенные соцветия дикорастущих и культивируемых деревьев липы сердцевидной – Tilia cordata Mill. и липы широколистной – Tilia platyphyllos Sсop., сем. липовых– Tiliaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(015190)-(РГ-RU)
       tradeName: Липы цветки
@@ -220,6 +233,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b4"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf","page":2,"registrationNumber":"ЛП-№(015190)-(РГ-RU)","sourceDocument":"drug.rf.79d88a84f19af361d9f1.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (3 столовые ложки) цветков липы помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, накрывают крышкой и нагревают на кипящей водяной бане 15 минут, затем охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Принимают внутрь в горячем или теплом виде 2-3 раза в день: взрослые и дети старше 12 лет – по 1 стакану; дети от 7 до 12 лет – по 1/2 стакана; дети от 3 до 6 лет – по 1/3 стакана; дети до 3 лет – по 1-2 столовой ложке. Курс лечения 5-7 дней. Перед применением настой рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0024","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/lipy-tsvetki/","sourceSection":"definition"} -->
+
+Собранные во время цветения и высушенные соцветия дикорастущих и культивируемых деревьев липы сердцевидной – Tilia cordata Mill. и липы широколистной – Tilia platyphyllos Sсop., сем. липовых– Tiliaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0024","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/lipy-tsvetki/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Соцветия щитковидные, состоят из 5–15 (у липы сердцевидной) или 2–9 (у липы широколистной) цветков на удлинённых цветоножках, сидящих на общем цветоносе, сросшимся в нижней части с главной жилкой прицветного листа. Цветки правильные, 1–1,5 см в диаметре. Чашечка из 5 продолговато-яйцевидных чашелистиков, густо опушённых по краю и с внутренней стороны. Венчик из 5 свободных яйцевидных лепестков, длиннее чашечки. Тычинки многочисленные, с 2 жёлтыми пыльниками на длинных нитях, сросшихся в 5 пучков. Пестик один с верхней шаровидной завязью, густо покрытой пушистыми волосками. Встречаются цветочные бутоны и незрелые плоды – шаровидные сильно опушённые орешки до 2 мм в диаметре. Прицветный лист плёнчатый, с густой сетью жилок, длиной до 6 см и шириной до 1,5 см, продолговато-эллиптической формы с притуплённой верхушкой, в нижней половине сросшийся по главной жилке с цветоносом. Цвет лепестков беловато-жёлтый, чашелистиков зеленовато- или желтовато-серый, прицветных листьев светло-жёлтый или зеленовато-жёлтый. Запах слабый, характерный.
 
 ## Противопоказания
 
@@ -321,4 +344,5 @@ metadata:
 
 - Инструкция ГРЛС «Липы цветки», Изм. № 0, ЛП-№(015190)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/tiliae-flos (обновлено 10/07/2012). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Tilia_cordata_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-139.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0024 «Липы цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/lipy-tsvetki/

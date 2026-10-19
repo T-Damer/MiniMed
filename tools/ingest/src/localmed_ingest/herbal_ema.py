@@ -36,6 +36,7 @@ FactKind = Literal[
     "adverse",
     "overdose",
     "statement",
+    "lookalike",
 ]
 Evidence = Literal["clinical", "animal", "in-vitro", "traditional", "review"]
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")

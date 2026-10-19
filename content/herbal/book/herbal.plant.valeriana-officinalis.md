@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:a8b102a7801c2ad14fcf1fb42fff49f3eb7658cc0edcca27bbcbb5d5b98845d6
+source_checksum: sha256:bba391efd8c1316f062a75af4883b4dfb4c7c66fc6e8efff57487521cb234202
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -218,6 +218,14 @@ metadata:
         classRu: сесквитерпены
         effectRu: снижают активность NF-κB (ацетилвалеренолевая — до 4%, валереновая — до 25%)
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0009
+        title: Валерианы лекарственной корневища с корнями
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/
+      definition: Собранные осенью или ранней весной, освобождённые от остатков листьев и стеблей, отмытые от земли и высушенные корневища с корнями многолетнего дикорастущего и культивируемого травянистого растения валерианы лекарственной – Valeriana officinalis L. s. l., сем. валериановых – Valerianaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013852)-(РГ-RU)
       tradeName: Валерианы корневища с корнями
@@ -258,6 +266,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b26"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf","page":2,"registrationNumber":"ЛП-№(013852)-(РГ-RU)","sourceDocument":"drug.rf.59e6fb0edad3ba3ad91b.instruction","sourceSection":"dosage"} -->
 
 Перед применением настой рекомендуется взбалтывать.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0009","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/","sourceSection":"definition"} -->
+
+Собранные осенью или ранней весной, освобождённые от остатков листьев и стеблей, отмытые от земли и высушенные корневища с корнями многолетнего дикорастущего и культивируемого травянистого растения валерианы лекарственной – Valeriana officinalis L. s. l., сем. валериановых – Valerianaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0009","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Корневища цельные или разрезанные, длиной до 4 см, толщиной до 3 см, часто с рыхлой или полой с поперечными перегородками сердцевиной. От корневища отходят многочисленные придаточные корни, редко подземные побеги – столоны. Корни гладкие или слегка продольно-морщинистые, ломкие, различной длины, часто отделены от корневища.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0009","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/","sourceSection":"appearance"} -->
+
+Цвет корневищ и корней снаружи желтовато-коричневый, беловато-коричневый, коричневый, тёмно-коричневый, на изломе желтоватый, желтовато-белый, светло-коричневый, коричневый.Запах сильный, характерный.
 
 ## Противопоказания
 
@@ -367,4 +389,5 @@ metadata:
 
 - Инструкция ГРЛС «Валерианы корневища с корнями», Изм. № 0, ЛП-№(013852)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/valerianae-radix (обновлено 11/03/2026). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Valeriana_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-143.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0009 «Валерианы лекарственной корневища с корнями»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/

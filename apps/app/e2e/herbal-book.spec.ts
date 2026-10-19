@@ -63,4 +63,14 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   await openChapter(page, 'Чистотел большой');
   const headings = page.locator('.herbal-chapter__heading');
   await expect(headings.first()).toContainText('Позиция EMA');
+
+  // Field identification from the ГФ article, and the look-alikes ГФ and EMA name.
+  await openChapter(page, 'Хвощ полевой');
+  const lookalikes = page.locator('.herbal-chapter__heading', { hasText: 'Не спутать' });
+  await expect(lookalikes).toBeVisible();
+  await expect(page.locator('.herbal-chapter')).toContainText(
+    'Хвощ болотный (Equisetum palustre L.)',
+  );
+  await expect(page.locator('.document-overlay-paper')).toContainText('Как узнать');
+  await expect(page.locator('.document-overlay-paper')).toContainText('ФС.2.5.0045');
 });

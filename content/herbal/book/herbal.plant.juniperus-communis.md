@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:042c835ad6e3af52ccc8fc7b302b0ffdf9c6af9590902ababae03e62dbc69eb5
+source_checksum: sha256:b58ee78867b41760dc3fe5ef023a1ac5f6bedc433becc79a0651f4871b31d94f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -174,6 +174,21 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
+      - doc: assessment-report
+        page: 5
+        quote: Adulteration is occasionally observed with fruits of other Juniperus species.
+        kind: lookalike
+        ru: Иногда попадают плоды других видов можжевельника
+      - doc: assessment-report
+        page: 5
+        quote: Fruits from Juniperus oxycedrus L. (cade- or prickly-jumper) are brown-red and larger than genuine juniper cone berries.
+        kind: lookalike
+        ru: Можжевельник красный — плоды буро-красные и крупнее настоящих шишкоягод
+      - doc: assessment-report
+        page: 5
+        quote: Juniperus sabina L. (savine) has almost black fruits with a diameter of only 5-8 mm
+        kind: lookalike
+        ru: Можжевельник казацкий — плоды почти чёрные, всего 5–8 мм в диаметре
       constituents:
       - doc: assessment-report
         page: 19
@@ -190,6 +205,14 @@ metadata:
         classRu: эфирное масло (монотерпены)
         effectRu: биохимические, патологические и гистологические исследования не показали нефротоксичности масла и терпинен-4-ола, которую раньше считали причиной мочегонного действия
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0028.15
+        title: Можжевельника обыкновенного плоды
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/
+      definition: Собранные в фазу полного созревания, высушенные плоды (шишко-ягоды) дикорастущих кустарников можжевельника обыкновенного - Juniperus communis L., сем. кипарисовых - Cupressaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014418)-(РГ-RU)
       tradeName: Можжевельника плоды
@@ -234,6 +257,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b20","p2-b21","p2-b22","p2-b23"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0028.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/","sourceSection":"definition"} -->
+
+Собранные в фазу полного созревания, высушенные плоды (шишко-ягоды) дикорастущих кустарников можжевельника обыкновенного - Juniperus communis L., сем. кипарисовых - Cupressaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0028.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Плоды шишко-ягоды 6-10 мм в диаметре, цилиндрической формы, шаровидные, иногда овальные или эллиптические, часто по бокам вдавленные, гладкие, блестящие, реже матовые. Плоды образованы 3 сросшимися семенными плодолистиками. На верхушке заметен трёхлучевой шов, образованный сросшимися чешуевидными мегаспорофиллами, иногда они с выдающимися кончиками, отвёрнутыми назад; при основании плода заметны под лупой (10x) 2 трёхлистные мутовки из светло-коричневых чешуек (неоплодотворённые чешуевидные мегаспорофиллы шишки). В мякоти находится 3 (иногда 1 или 2) семени. Семена овально-продолговатые, тупо-трехгранные, выпуклые снаружи и плоские на соприкасающихся сторонах, длиной 4-5 мм. Кожура семени твёрдая. Цвет плодов снаружи почти черный или фиолетовый с коричневым оттенком, иногда с серо-голубым восковым налетом. Цвет мякоти зеленовато-коричневый, цвет семян желтовато-коричневый. Запах характерный. Вкус водного извлечения сладковатый, пряный.
 
 ## Противопоказания
 
@@ -347,4 +380,5 @@ metadata:
 
 - Инструкция ГРЛС «Можжевельника плоды», Изм. № 0, ЛП-№(014418)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus (обновлено 13/06/2023). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Juniperus_communis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-082.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0028.15 «Можжевельника обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/

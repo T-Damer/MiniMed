@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524121/7dd6501b-5d7c-4cf8-8131-ca64aa508560.pdf
-source_checksum: sha256:9d23c2c9081f15c348f86fa0d0cf3120d1c7c7630b25a64d8ebb17eafb4cfd77
+source_checksum: sha256:fcfd9bb1018ffd3e391b080efc3f814e0786bc0370554703eb4c9e7c6081d18a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -227,6 +227,14 @@ metadata:
         compoundRu: спиртовой экстракт травы
         effectRu: у крыс уменьшал отёк лапы (на 29%; индометацин — на 45%)
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0101
+        title: Тысячелистника обыкновенного трава
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/tysyachelistnika-obyknovennogo-trava/
+      definition: Собранная в фазу цветения, высушенная трава дикорастущего и культивируемого многолетнего травянистого растения тысячелистника обыкновенного – Achillea millefolium L., сем. астровых – Asteraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(012366)-(РГ-RU)
       tradeName: Тысячелистника трава
@@ -267,6 +275,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b32","p2-b33","p2-b34","p2-b35"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524121/7dd6501b-5d7c-4cf8-8131-ca64aa508560.pdf","page":2,"registrationNumber":"ЛП-№(012366)-(РГ-RU)","sourceDocument":"drug.rf.660a86d9d5142d1dd70b.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0101","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/tysyachelistnika-obyknovennogo-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу цветения, высушенная трава дикорастущего и культивируемого многолетнего травянистого растения тысячелистника обыкновенного – Achillea millefolium L., сем. астровых – Asteraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0101","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/tysyachelistnika-obyknovennogo-trava/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Цельные или частично измельчённые цветоносные побеги. Стебли округлые, опушённые, с очерёдными листьями, длиной до 15 см. Листья длиной до 10 см, шириной до 3 см, продолговатые, дважды-перисторассечённые на ланцетные или линейные доли. Корзинки продолговато-яйцевидные, длиной 3‑4 мм, шириной 1,5‑3 мм, в щитковидных соцветиях или одиночные. Обвёртки их из черепитчатых продолговато-яйцевидных листочков с перепончатыми коричневатыми краями. Цветоложе корзинок с плёнчатыми прицветниками. Краевые цветки язычковые пестичные, срединные – трубчатые обоеполые.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0101","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/tysyachelistnika-obyknovennogo-trava/","sourceSection":"appearance"} -->
+
+Цвет стеблей и листьев серовато-зелёный, реже – красновато-зелёный; краевых цветков – белый, реже розовый, срединных – жёлтый или серовато-жёлтый; листочков обвёртки – серовато-коричневый. Запах слабый, характерный.
 
 ## Противопоказания
 
@@ -382,4 +404,5 @@ metadata:
 
 - Инструкция ГРЛС «Тысячелистника трава», Изм. № 0, ЛП-№(012366)-(РГ-RU), 2025, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/millefolii-herba (обновлено 30/09/2011). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Achillea_millefolium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-149.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0101 «Тысячелистника обыкновенного трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/tysyachelistnika-obyknovennogo-trava/

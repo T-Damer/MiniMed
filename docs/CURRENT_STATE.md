@@ -120,6 +120,17 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   traditional duration, abdominal-pain, fluid/obstruction and debilitated-patients warnings, quercus capsules,
   dry extract, rinses/poultices and the hot-bath caution. Text module `2026.10.19-qa3`. Open: salvia thujone
   (Symbol-font α/β), no clinician review.
+- **Field identification and look-alikes 2026-10-19** (HERB1-ID, owner request): every chapter has «Как
+  узнать», verbatim from the plant's ГФ raw-material article (ФС; ГФ XV for 14 plants, else the ГФ XIV article
+  still in force — `gf` in `plants.yaml`, pages fetched by `fetch-herbal-sources --gf-only` into
+  `data/raw/herbal/gf/`): the definition (what is collected, when, species, family) and the appearance of the
+  whole raw material (shape, size, colour, smell; cut herb, powder, microscopy and lab tests left out). The
+  panel gains «Не спутать» where a source names look-alikes: horsetail (ГФ XV note on four other Equisetum
+  species incl. marsh horsetail; EMA: palustre «potentially toxic», «only quality controlled horsetail»),
+  juniper (EMA: other Juniperus species, J. oxycedrus and J. sabina berries described) and lime (EMA: Tilia
+  tomentosa) — new EMA fact kind `lookalike`, quote-checked. The other 27 plants have no look-alike warning:
+  no official source names one, and none is invented. Source lines now cite the ГФ article; the illustration
+  line no longer prints raw Commons date markup. Text module `2026.10.19-id1`; e2e opens horsetail.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

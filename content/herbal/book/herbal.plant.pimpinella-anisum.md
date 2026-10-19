@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf
-source_checksum: sha256:97ac4043e4e437a2169290c9caf1b2b195293688ff300ea069ae936c9ea6120c
+source_checksum: sha256:bb3cd14c07a03760e50ce184eeb8b457454dd0e7aa7bd4cd60d35a6634717072
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -175,6 +175,14 @@ metadata:
         classRu: эфирное масло
         effectRu: у кошек (2 капли эмульсии внутрижелудочно) вызывало гиперсекрецию слизи в дыхательных путях и стимулировало цилиарное удаление слизи, ранее подавленное алкалоидами опия
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0057
+        title: Аниса обыкновенного плоды
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/anisa-obyknovennogo-plody/
+      definition: Собранные зрелые и высушенные плоды культивируемого однолетнего травянистого растения аниса обыкновенного (бедренца анисового) – Anisum vulgare Gaertn. (Pimpinella anisum L.), сем. сельдерейных – Apiaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(003267)-(РГ-RU)
       tradeName: Аниса обыкновенного плоды
@@ -210,6 +218,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b26","p2-b27","p2-b28","p2-b29"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf","page":2,"registrationNumber":"ЛП-№(003267)-(РГ-RU)","sourceDocument":"drug.rf.4defb728f4dec1c487bc.instruction","sourceSection":"dosage"} -->
 
 Если через 7 дней лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0057","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/anisa-obyknovennogo-plody/","sourceSection":"definition"} -->
+
+Собранные зрелые и высушенные плоды культивируемого однолетнего травянистого растения аниса обыкновенного (бедренца анисового) – Anisum vulgare Gaertn. (Pimpinella anisum L.), сем. сельдерейных – Apiaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0057","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/anisa-obyknovennogo-plody/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Плоды – вислоплодники, состоящие из двух не отделённых друг от друга полуплодиков (мерикарпиев), иногда распавшиеся, иногда с плодоножкой. Плоды яйцевидной или обратногрушевидной формы, с боков слегка сплюснутые, к основанию более широкие, к верхушке суженные. На верхушке имеются остатки пятизубчатой чашечки и вздутый надпестичный диск с двумя расходящимися столбиками. Поверхность плода шероховатая. Наружная сторона мерикарпия выпуклая, внутренняя – плоская. Каждый мерикарпий имеет пять слабо выступающих продольных рёбрышек: три из них находятся на выпуклой стороне, два – по бокам. В мерикарпии одно семя, сросшееся с околоплодником. Длина плодов 3–5 мм, ширина 2–3 мм. Цвет плодов желтовато-серый или коричневато-серый. Запах сильный, характерный.
 
 ## Противопоказания
 
@@ -327,4 +345,5 @@ metadata:
 
 - Инструкция ГРЛС «Аниса обыкновенного плоды», Изм. № 0, ЛП-№(003267)-(РГ-RU), 2023, Общество с ограниченной ответственностью Фирма "Здоровье" (ООО Фирма "Здоровье") (распознана OCR)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/anisi-fructus (обновлено 06/10/2016). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Pimpinella_anisum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-240.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0057 «Аниса обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/anisa-obyknovennogo-plody/

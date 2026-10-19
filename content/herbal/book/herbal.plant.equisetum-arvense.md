@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:0e28724cc17f5b3bf1d76a9ed795b4378402ba71a03977fb48e6ee0bb252e490
+source_checksum: sha256:bf9b99ff6fc20d5c2afd85c14b79b317a6411884b14c93473a868dfc4f78f10f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -171,6 +171,16 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
+      - doc: assessment-report
+        page: 4
+        quote: Some Equisetum species such as Equisetum palustre contains potentially toxic palustrin
+        kind: lookalike
+        ru: Хвощ болотный похож на полевой и содержит потенциально ядовитый палюстрин
+      - doc: assessment-report
+        page: 4
+        quote: Only quality controlled horsetail (from pharmacies) should be consumed by the patients, as adulteration with Equisetum palustre is possible, when it is harvested by unqualified persons.
+        kind: lookalike
+        ru: Пить только проверенный аптечный хвощ — при сборе неспециалистом возможна примесь хвоща болотного
       constituents:
       - doc: assessment-report
         page: 4
@@ -194,6 +204,22 @@ metadata:
         compoundRu: препараты травы (исследования мочегонного действия)
         effectRu: данных недостаточно, чтобы подтвердить мочегонное действие с отрицательным водным балансом; в части исследований слабый эффект, в других эффекта нет или нужны дозы выше традиционных
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0045
+        title: Хвоща полевого трава
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/
+      definition: Собранные в течение лета и высушенные надземные вегетативные побеги многолетнего травянистого дикорастущего растения хвоща полевого – Equisetum arvense L., сем. хвощевых – Equisetaceae.
+      lookalikes:
+      - name: Хвощ лесной (Equisetum sylvaticum L.)
+        text: а) Хвощ лесной (Equisetum sylvaticum L.) имеет нежёсткий стебель с вторично ветвящимися, отклонёнными вниз, тонкими ветвями. В верхней части стебля на рёбрах под лупой (10× и др.) заметны 2 ряда роговидных выростов (шипиков). Зубцы влагалищ на стебле сросшиеся и в сырье легко обламываются. Веточки с 3–5 рёбрами. На верхушках встречаются тупые колоски.
+      - name: Хвощ луговой (Equisetum pratense L.)
+        text: б) Хвощ луговой (Equisetum pratense L.) имеет ветви с почти горизонтальным расположением, дуговидно книзу отогнутые. Зубцы влагалищ неспаянные. На верхушках стеблей могут быть тупые колоски. В верхней части стебля по рёбрам видны множественные, острые конусовидные выросты (сосочки), хорошо заметные под лупой (10× и др.). Веточки с 3 рёбрами.
+      - name: 'Хвощ речной (синонимы: топяной, приречный) (Equisetum fluviatile L.)'
+        text: 'в) Хвощ речной (синонимы: топяной, приречный) (Equisetum fluviatile L.) имеет мощный стебель толщиной около 0,5 см и высотой от 20 до 150 см. На верхушках стеблей встречаются тупые колоски. При рассмотрении под лупой (10× и др.) видно, что ветви очень короткие, малочисленные или отсутствуют, влагалища с многочисленными зубцами (от 18 до 20).'
+      - name: Хвощ болотный (Equisetum palustre L.)
+        text: г) Хвощ болотный (Equisetum palustre L.). На верхушке стеблей могут быть тупые колоски. При рассмотрении под лупой (10× и др.) видно, что стеблевые влагалища с неспаянными, снабжёнными широкой белой каймой зубцами, влагалища ветвей на стебле чёрного цвета. При отрывании ветвей на стебле удерживаются не только влагалища, но и первые членики. Поверхность стеблей и ветвей поперечно-морщинистая.
     grls:
       registrationNumber: ЛП-№(015144)-(РГ-RU)
       tradeName: Хвоща полевого трава
@@ -233,6 +259,42 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b19","p2-b20","p2-b21","p2-b22"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf","page":2,"registrationNumber":"ЛП-№(015144)-(РГ-RU)","sourceDocument":"drug.rf.d5edade0e7a4a566df0f.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"definition"} -->
+
+Собранные в течение лета и высушенные надземные вегетативные побеги многолетнего травянистого дикорастущего растения хвоща полевого – Equisetum arvense L., сем. хвощевых – Equisetaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Цельные и частично измельчённые стебли длиной до 30 см, жёсткие, членистые, бороздчатые, с 6–18 продольными рёбрышками, почти от основания мутовчато-ветвистые, с полыми междоузлиями и утолщениями в узлах. Ветви неразветвлённые, членистые, косо вверх направленные, 4–5-гранные, без полости. Влагалища стеблей цилиндрические, длиной 4–8 мм, с треугольно-ланцетными, тёмно-коричневыми, белоокаймлёнными по краю зубцами, спаянными по 2–3. Влагалища веточек зелёные с 4–5 коричневатыми длиннооттянутыми зубчиками. При обрывании ветвей на стебле удерживаются только первые короткие членики.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"appearance"} -->
+
+Цвет серовато-зелёный. Запах слабый.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
+
+Примечание – К другим видам хвощей, встречающимся в сырье как примесь, относят:
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
+
+а) Хвощ лесной (Equisetum sylvaticum L.) имеет нежёсткий стебель с вторично ветвящимися, отклонёнными вниз, тонкими ветвями. В верхней части стебля на рёбрах под лупой (10× и др.) заметны 2 ряда роговидных выростов (шипиков). Зубцы влагалищ на стебле сросшиеся и в сырье легко обламываются. Веточки с 3–5 рёбрами. На верхушках встречаются тупые колоски.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
+
+б) Хвощ луговой (Equisetum pratense L.) имеет ветви с почти горизонтальным расположением, дуговидно книзу отогнутые. Зубцы влагалищ неспаянные. На верхушках стеблей могут быть тупые колоски. В верхней части стебля по рёбрам видны множественные, острые конусовидные выросты (сосочки), хорошо заметные под лупой (10× и др.). Веточки с 3 рёбрами.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
+
+в) Хвощ речной (синонимы: топяной, приречный) (Equisetum fluviatile L.) имеет мощный стебель толщиной около 0,5 см и высотой от 20 до 150 см. На верхушках стеблей встречаются тупые колоски. При рассмотрении под лупой (10× и др.) видно, что ветви очень короткие, малочисленные или отсутствуют, влагалища с многочисленными зубцами (от 18 до 20).
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
+
+г) Хвощ болотный (Equisetum palustre L.). На верхушке стеблей могут быть тупые колоски. При рассмотрении под лупой (10× и др.) видно, что стеблевые влагалища с неспаянными, снабжёнными широкой белой каймой зубцами, влагалища ветвей на стебле чёрного цвета. При отрывании ветвей на стебле удерживаются не только влагалища, но и первые членики. Поверхность стеблей и ветвей поперечно-морщинистая.
 
 ## Противопоказания
 
@@ -346,4 +408,5 @@ metadata:
 
 - Инструкция ГРЛС «Хвоща полевого трава», Изм. № 0, ЛП-№(015144)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba (обновлено 28/04/2016). © European Medicines Agency
-- Иллюстрация: Carl Axel Magnus Lindman, between 1917 and 1926date QS:P,+1950-00-00T00:00:00Z/7,P1319,+1917-00-00T00:00:00Z/9,P1326,+1926-00-00T00:00:00Z/9 — Public domain
+- Иллюстрация: C. A. M. Lindman, Bilder ur Nordens Flora (1901–1905) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:515_Equisetum_arvense.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0045 «Хвоща полевого трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/

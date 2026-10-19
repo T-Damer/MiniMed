@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:10803993ac75cf0746e800efed990447255863b88fd4eac3fd1142baeea5cd3b
+source_checksum: sha256:60b307b47bfc75ab37bdc8777dd3ea2ac4a4d715c8eaf04613c0bc5d35c6c598
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -208,6 +208,14 @@ metadata:
         classRu: эфирное масло (фенилпропаноиды)
         effectRu: в обоих опытах на животных — высокоактивный канцероген печени
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0102
+        title: Фенхеля обыкновенного плоды
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/fenkhelya-obyknovennogo-plody/
+      definition: Собранные зрелые и высушенные плоды культивируемого двухлетнего и многолетнего травянистого растения фенхеля обыкновенного – Foeniculum vulgare Mill., сем. сельдерейных – Apiaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(015581)-(РГ-RU)
       tradeName: Фенхеля плоды
@@ -236,6 +244,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b7"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf","page":2,"registrationNumber":"ЛП-№(015581)-(РГ-RU)","sourceDocument":"drug.rf.94673ba4f9425078df6a.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (1,5 столовые ложки) плодов помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и настаивают на кипящей водяной бане в течение 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Принимают внутрь теплый настой 3-4 раза в день: взрослые и дети старше 12 лет – по 1/3 стакана; дети от 7 до 12 лет – по 1-2 столовые ложки; дети от 3 до 7 лет – по 1 столовой ложке; дети до 3 лет – по 1/2-1 чайной ложке. Перед применением настой рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции по применению.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0102","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/fenkhelya-obyknovennogo-plody/","sourceSection":"definition"} -->
+
+Собранные зрелые и высушенные плоды культивируемого двухлетнего и многолетнего травянистого растения фенхеля обыкновенного – Foeniculum vulgare Mill., сем. сельдерейных – Apiaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0102","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/fenkhelya-obyknovennogo-plody/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Плоды – вислоплодники, распадающиеся на два полуплодика (мерикарпия). Мерикарпий продолговатой, почти цилиндрической формы, голый. На верхушке имеются остатки пятизубчатой чашечки и надпестичный диск с двумя расходящимися столбиками. Наружная сторона мерикарпия выпуклая, внутренняя – плоская. Каждый мерикарпий с пятью сильно выступающими продольными рёбрышками: три из них находятся на выпуклой стороне и два более развитых – по бокам. Семя в мерикарпии одно, сросшееся с околоплодником. Длина плодов 4–10 мм, ширина 1,5–4 мм. Цвет плодов зеленовато-коричневый, коричневый. Запах сильный, характерный.
 
 ## Противопоказания
 
@@ -333,4 +351,5 @@ metadata:
 
 - Инструкция ГРЛС «Фенхеля плоды», Изм. № 0, ЛП-№(015581)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/foeniculi-amari-fructus (обновлено 01/03/2024). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Foeniculum_vulgare_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-148.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0102 «Фенхеля обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/fenkhelya-obyknovennogo-plody/

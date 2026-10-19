@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf
-source_checksum: sha256:3a90dacc57eb91b46253f958262fb5956145dd70261fca39a53cd1a3ecf9db17
+source_checksum: sha256:ec78dddd104e2bbd70bb97af4ce7fbcb4c2119ba433d7ef25f6bdec56d212974
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -212,6 +212,14 @@ metadata:
         classRu: минералы
         effectRu: очень высокий салуретический индекс по выведению калия может быть связан с высоким содержанием калия
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0086.18
+        title: Одуванчика лекарственного корни
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/
+      definition: Собранные в период увядания листьев, очищенные от корневой шейки, отмытые от земли и высушенные корни дикорастущего многолетнего травянистого растения одуванчика лекарственного - Taraxacum officinale Wigg., сем. астровых - Asteraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(015039)-(РГ-RU)
       tradeName: Одуванчика корни
@@ -239,6 +247,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf","page":2,"registrationNumber":"ЛП-№(015039)-(РГ-RU)","sourceDocument":"drug.rf.a8dae8cada0963191388.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (2 столовые ложки) корней помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане 30 минут, охлаждают при комнатной температуре 10 минут, процеживают, оставшееся сырье отжимают. Объем полученного отвара доводят кипяченой водой до 200 мл. Принимают внутрь по 1/4-1/3 стакана теплого отвара 3-4 раза в день за 30 минут до еды. Курс лечения 3-4 недели. Перед применением отвар рекомендуется взбалтывать. Если через 7-10 дней лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0086.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/","sourceSection":"definition"} -->
+
+Собранные в период увядания листьев, очищенные от корневой шейки, отмытые от земли и высушенные корни дикорастущего многолетнего травянистого растения одуванчика лекарственного - Taraxacum officinale Wigg., сем. астровых - Asteraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0086.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/","sourceSection":"appearance"} -->
+
+Цельное сырье. Корни стержневые, маловетвистые, цельные или изломанные, длиной 2-15 см, толщиной 0,3-3 см, продольно-морщинистые, иногда спирально-перекрученные, плотные, хрупкие. Излом неровный. В центре корня видна небольшая желтая древесина, окруженная широкой серовато-белой корой, в которой заметны (под лупой 10x) буроватые концентрические тонкие пояса млечников.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0086.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/","sourceSection":"appearance"} -->
+
+Цвет снаружи от светло-коричневого до темно-коричневого. Запах отсутствует. Вкус водного извлечения горьковатый со сладким привкусом.
 
 ## Противопоказания
 
@@ -336,4 +358,5 @@ metadata:
 
 - Инструкция ГРЛС «Одуванчика корни», Изм. № 0, ЛП-№(015039)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/taraxaci-officinalis-radix-0. © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1887 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Taraxacum_officinale_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-135_0243-scan.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0086.18 «Одуванчика лекарственного корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/

@@ -142,6 +142,34 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
   const limits = () => limitFacts(ema());
   const constituents = () => ema()?.constituents ?? [];
 
+  const emaLookalikes = () => factsOfKind(ema(), 'lookalike');
+  const gfLookalikes = () => props.chapter.identification?.lookalikes ?? [];
+  const lookalikesBlock = (): JSX.Element => (
+    <Show when={emaLookalikes().length + gfLookalikes().length > 0}>
+      <h2 class="herbal-chapter__heading">Не спутать</h2>
+      <div class="herbal-chapter__cells">
+        <For each={emaLookalikes()}>
+          {(fact) => <QuoteCell label="EMA" value={fact.ru} source={emaSource(fact)} wide warn />}
+        </For>
+        <For each={gfLookalikes()}>
+          {(item) => (
+            <QuoteCell
+              label="ГФ"
+              value={item.name}
+              source={{
+                quote: item.text,
+                label: props.chapter.identification?.sourceLabel ?? 'ГФ',
+                url: props.chapter.identification?.url ?? null,
+                english: false,
+              }}
+              wide
+            />
+          )}
+        </For>
+      </div>
+    </Show>
+  );
+
   const limitsFirst = (): boolean => ema()?.useType === 'public-statement';
   const limitsBlock = (): JSX.Element => (
     <Show when={limits().length > 0}>
@@ -202,6 +230,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
         </div>
       </Show>
       <Show when={!limitsFirst()}>{limitsBlock()}</Show>
+      {lookalikesBlock()}
       <Show when={posology().length > 0}>
         <h2 class="herbal-chapter__heading">
           Дозы EMA

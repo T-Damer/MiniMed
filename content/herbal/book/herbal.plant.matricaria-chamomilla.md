@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf
-source_checksum: sha256:08ab912f09a78fbe7f6a54d5dfd377186609fb9c903667c0be2af441eeaad067
+source_checksum: sha256:0959a6376b4edd8737894483058ab83b08482aa75ad20ebc6c918b34beaea6d6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -268,6 +268,14 @@ metadata:
         classRu: кумарины
         effectRu: растворяются в горячей воде и при частом питье чая поступают в заметном количестве
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0037.15
+        title: Ромашки аптечной цветки
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/
+      definition: Собранные в начале цветения и высушенные цветки (цветочные корзинки) культивируемого и дикорастущего однолетнего травянистого растения ромашки аптечной (ромашки ободранной) - Chamomilla recutita (L.) Rauschert (Matricaria recutita L., M. chamomilla L.), сем. астровых - Asteraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013631)-(РГ-RU)
       tradeName: Ромашки цветки
@@ -296,6 +304,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b7"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf","page":2,"registrationNumber":"ЛП-№(013631)-(РГ-RU)","sourceDocument":"drug.rf.af08dc3eaca515b90069.instruction","sourceSection":"dosage"} -->
 
 Около 8-10 г (2-3 столовые ложки) цветков помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, накрывают крышкой и нагревают на кипящей водяной бане 15 минут, затем охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Принимают внутрь теплый настой 2-3 раза в сутки: взрослые и дети старше 12 лет – по 2-3 столовые ложки; дети от 7 до 12 лет – по 1-2 столовые ложки; дети от 3 до 7 лет – по 1 столовой ложке; дети до 3 лет – по 1 чайной ложке. Местно для полосканий полости рта и глотки – по 1/2-1 стакану теплого настоя 3-5 раз в день. Ректально в виде микроклизм – по 50 мл теплого настоя 1-2 раза в день. Перед применением настой рекомендуется взбалтывать. Длительность курса лечения определяется врачом индивидуально с учетом особенностей заболевания. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0037.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/","sourceSection":"definition"} -->
+
+Собранные в начале цветения и высушенные цветки (цветочные корзинки) культивируемого и дикорастущего однолетнего травянистого растения ромашки аптечной (ромашки ободранной) - Chamomilla recutita (L.) Rauschert (Matricaria recutita L., M. chamomilla L.), сем. астровых - Asteraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0037.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/","sourceSection":"appearance"} -->
+
+Цельное сырье. Цельные или частично осыпавшиеся цветочные корзинки полушаровидной или конической формы, без ребристых цветоносов или с их остатками не длиннее 3 см. Корзинка состоит из краевых язычковых пестичных и срединных обоеполых трубчатых цветков. Цветоложе голое, мелкоямчатое, полое, в начале цветения полушаровидное, к концу - коническое. Обвертка корзинки черепитчатая, многорядная, состоящая из многочисленных продолговатых, с тупыми верхушками и широкими пленчатыми краями листочков. Размер корзинки (без язычковых цветков) 4-8 мм в поперечнике. Цвет язычковых цветков белый, трубчатых - желтый, обвертки - желтовато-зеленый, цветоносов - от светло-зеленого до зеленовато-коричневого. Запах сильный, характерный. Вкус водного извлечения пряный, горьковатый, слегка слизистый.
 
 ## Противопоказания
 
@@ -397,4 +415,5 @@ metadata:
 
 - Инструкция ГРЛС «Ромашки цветки», Изм. № 0, ЛП-№(013631)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/matricariae-flos (обновлено 05/04/2016). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, in Köhler's Medizinal-Pflanzen, published in 1887 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Matricaria_recutita_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-091.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0037.15 «Ромашки аптечной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/

@@ -23,6 +23,7 @@ PLATE_BOOKS = {
 # The short credit under a plate: the author of the book.
 PLATE_AUTHORS = {"kohler": "Köhler", "thome": "Thomé", "sturm": "Sturm", "lindman": "Lindman"}
 _ID = re.compile(r"^[a-z][a-z0-9-]*$")
+_GF_PATH = re.compile(r"^/pharmacopoeia/izdanie-1(?:4/2/2-5|5/2/2-3)/[a-z0-9-]+/$")
 _EMA_PAGE = re.compile(r"^https://www\.ema\.europa\.eu/en/medicines/herbal/[a-z0-9-]+$")
 
 
@@ -76,6 +77,20 @@ class PlateLink(_Strict):
         return value
 
 
+class GfLink(_Strict):
+    """The ГФ raw-material article (ФС) of the plant: XV where it has one, else XIV."""
+
+    edition: Literal[14, 15]
+    path: str
+
+    @field_validator("path")
+    @classmethod
+    def _path(cls, value: str) -> str:
+        if not _GF_PATH.fullmatch(value):
+            raise ValueError(f"not a ГФ raw-material article path: {value}")
+        return value
+
+
 class Plant(_Strict):
     id: str
     ru: str
@@ -85,6 +100,7 @@ class Plant(_Strict):
     grls: GrlsLink
     ema: EmaLink
     plate: PlateLink
+    gf: GfLink
 
     @field_validator("id")
     @classmethod

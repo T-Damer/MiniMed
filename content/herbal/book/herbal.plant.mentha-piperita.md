@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:f75b09ad0527988d0b3ea42e3cd6a03c0445aa17a3aa6c329df2f5f29627374d
+source_checksum: sha256:81adf38ce80fc27030f15fea33dd9fa8d65d67a43c7ba80b48f80dd7b028ff0a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -215,6 +215,14 @@ metadata:
         classRu: эфирное масло
         effectRu: in vitro — противовспенивающее и ветрогонное действие
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0029.15
+        title: Мяты перечной листья
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/myaty-perechnoy-listya/
+      definition: Собранные в фазу цветения механизированным способом и обмолоченные, высушенные листья многолетнего культивируемого травянистого растения мяты перечной - Mentha piperita L., сем. яснотковых - Lamiaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(012387)-(РГ-RU)
       tradeName: Мяты перечной листья
@@ -254,6 +262,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b24","p2-b25","p2-b26","p2-b27"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf","page":2,"registrationNumber":"ЛП-№(012387)-(РГ-RU)","sourceDocument":"drug.rf.22f580c6d7d339995f36.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0029.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/myaty-perechnoy-listya/","sourceSection":"definition"} -->
+
+Собранные в фазу цветения механизированным способом и обмолоченные, высушенные листья многолетнего культивируемого травянистого растения мяты перечной - Mentha piperita L., сем. яснотковых - Lamiaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0029.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/myaty-perechnoy-listya/","sourceSection":"appearance"} -->
+
+Цельное сырье. Различной формы кусочки листьев, стеблей, реже - цветков и бутонов, размером 10 мм и более.
 
 ## Противопоказания
 
@@ -363,4 +381,5 @@ metadata:
 
 - Инструкция ГРЛС «Мяты перечной листья», Изм. № 0, ЛП-№(012387)-(РГ-RU), 2025, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/menthae-piperitae-folium (обновлено 08/03/2017). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Mentha_%C3%97_piperita_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-095.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0029.15 «Мяты перечной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/myaty-perechnoy-listya/

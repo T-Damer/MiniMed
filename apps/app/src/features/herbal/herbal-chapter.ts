@@ -77,6 +77,19 @@ export interface HerbalPlate {
   readonly commonsPage: string | null;
 }
 
+/** A species the ГФ article names as found among the raw material, with its distinguishing text. */
+export interface HerbalLookalike {
+  readonly name: string;
+  readonly text: string;
+}
+
+/** Where the chapter's «Как узнать» comes from (the ГФ raw-material article) and its look-alikes. */
+export interface HerbalIdentification {
+  readonly sourceLabel: string;
+  readonly url: string | null;
+  readonly lookalikes: readonly HerbalLookalike[];
+}
+
 export interface HerbalChapter {
   readonly documentId: string;
   readonly title: string;
@@ -88,6 +101,7 @@ export interface HerbalChapter {
   readonly thumbnail: string | null;
   readonly plate: HerbalPlate | null;
   readonly ema: HerbalEma | null;
+  readonly identification: HerbalIdentification | null;
   readonly grlsOcr: boolean;
   readonly hasGrls: boolean;
 }
@@ -250,6 +264,27 @@ interface DocumentLike {
   readonly metadata?: Readonly<Record<string, unknown>> | undefined;
 }
 
+function readLookalike(value: unknown): HerbalLookalike | null {
+  const item = record(value);
+  const name = text(item?.['name']);
+  const body = text(item?.['text']);
+  return name && body ? { name, text: body } : null;
+}
+
+function readIdentification(value: unknown): HerbalIdentification | null {
+  const item = record(value);
+  const source = record(item?.['source']);
+  const number = text(source?.['number']);
+  if (!item || !number) return null;
+  const url = text(source?.['url']);
+  const edition = source?.['edition'];
+  return {
+    sourceLabel: `ГФ ${edition === 14 ? 'XIV' : 'XV'}, ${number}`,
+    url: url?.startsWith('https://pharmacopoeia.regmed.ru/') ? url : null,
+    lookalikes: list(item['lookalikes']).map(readLookalike).filter(present),
+  };
+}
+
 /** The herbal chapter a document carries, or null for any other document. */
 export function readHerbalChapter(document: DocumentLike): HerbalChapter | null {
   if (document.sourceType !== HERBAL_SOURCE_TYPE) return null;
@@ -269,6 +304,7 @@ export function readHerbalChapter(document: DocumentLike): HerbalChapter | null 
     thumbnail: thumbnail?.startsWith('data:image/jpeg;base64,') ? thumbnail : null,
     plate: readPlate(herbal['plate']),
     ema: readEma(herbal['ema']),
+    identification: readIdentification(herbal['identification']),
     grlsOcr: grls?.['ocr'] === true,
     hasGrls: grls !== null,
   };

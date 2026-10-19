@@ -506,6 +506,74 @@ def gf15_paragraphs(page: Path) -> list[str]:
     return result
 
 
+@dataclass(frozen=True)
+class Identification:
+    """What the ГФ raw-material article says about recognising the plant, verbatim."""
+
+    definition: str
+    features: tuple[str, ...]
+    lookalike_note: str | None
+    lookalikes: tuple[str, ...]
+
+
+# The definition opens «Собранные …» (one article types a Latin «C»).
+_DEFINITION = re.compile(r"^[СC]обранн")
+_FEATURES_HEAD = re.compile(r"^Внешние признаки\.\s*")
+_OFS_REFERENCE = re.compile(
+    r"^Определение проводят в соответствии с (?:требованиями )?ОФС «[^»]+»\.\s*"
+)
+# The whole raw material ends where the cut herb, powder, microscopy, loupe views or figures begin.
+_FEATURES_END = re.compile(
+    r"^(?:Измельч[её]нн|Порошок|Резан|Микроскопические признаки|Определение основных|Примечани"
+    r"|Рисунок|\d+\s*[–—-]|При рассмотрении|Цельное сырь?[её]\.\s*При рассмотрении)"
+)
+_INLINE_END = re.compile(r"\s(?=(?:Измельч[её]нное сырь?[её]|Порошок)\.)")
+_LOOKALIKE_NOTE = re.compile(r"^Примечани[ея]\s*[–—-]\s*.*(?:других видов|примесь)", re.IGNORECASE)
+_LOOKALIKE_ITEM = re.compile(r"^[а-я]\)\s")
+
+
+def gf_identification(page: Path) -> Identification:
+    """Definition, the whole raw material's appearance (not the cut herb, powder or microscopy)
+    and the article's note on other species found as an admixture, all verbatim."""
+    paragraphs = gf15_paragraphs(page)
+    definition = next((text for text in paragraphs if _DEFINITION.match(text)), None)
+    start = next(
+        (index for index, text in enumerate(paragraphs) if _FEATURES_HEAD.match(text)), None
+    )
+    if definition is None or start is None:
+        raise HerbalSourceError(f"{page}: no definition or «Внешние признаки» in the ГФ article")
+    features: list[str] = []
+    for index, text in enumerate(paragraphs[start:]):
+        if index == 0:
+            text = _OFS_REFERENCE.sub("", _FEATURES_HEAD.sub("", text))
+        elif _FEATURES_END.match(text):
+            break
+        if not text:
+            continue
+        head, *rest = _INLINE_END.split(text, maxsplit=1)
+        features.append(head.strip())
+        if rest:
+            break
+    microscopy = next(
+        (
+            index
+            for index, text in enumerate(paragraphs)
+            if index > start and text.startswith("Микроскопические признаки")
+        ),
+        len(paragraphs),
+    )
+    note: str | None = None
+    items: list[str] = []
+    for text in paragraphs[start:microscopy]:
+        if note is None and _LOOKALIKE_NOTE.match(text):
+            note = text
+        elif note is not None and _LOOKALIKE_ITEM.match(text):
+            items.append(text)
+        elif note is not None:
+            break
+    return Identification(definition, tuple(features), note, tuple(items))
+
+
 # ---------------------------------------------------------------------------------------------
 # Rendering
 # ---------------------------------------------------------------------------------------------
@@ -607,6 +675,11 @@ def render_plant(
         else {}
     )
     plate = cast("dict[str, dict[str, object]]", raw_manifest["plates"])[plant.id]
+    gf_articles = cast("dict[str, dict[str, object]]", raw_manifest.get("gfArticles") or {})
+    if plant.id not in gf_articles:
+        raise HerbalSourceError(f"{plant.id}: no ГФ article; run fetch-herbal-sources --gf-only")
+    gf_article = gf_articles[plant.id]
+    identification = gf_identification(raw_root / str(gf_article["path"]))
     files = {
         str(item["path"]): str(item["sha256"])
         for item in cast("list[dict[str, object]]", raw_manifest["files"])
@@ -622,6 +695,9 @@ def render_plant(
             "plate": files[str(plate["path"])],
             **{path: files[path] for path in ema_paths},
             **({"emaExtraction": extraction_sha256} if extraction_sha256 else {}),
+            "gfIdentification": _sha256_bytes(
+                json.dumps(asdict(identification), ensure_ascii=False).encode()
+            ),
         }
     )
     aliases = _aliases(plant)
@@ -675,6 +751,7 @@ def render_plant(
                     **({"species": plant.plate.species} if plant.plate.species else {}),
                 },
                 "ema": _ema_metadata(plant, extraction, raw_manifest),
+                "identification": _identification_metadata(identification, gf_article),
                 "grls": {
                     "registrationNumber": choice.registration_number,
                     "tradeName": choice.trade_name,
@@ -695,13 +772,69 @@ def render_plant(
         },
     }
     blocks: list[str] = [f"# {plant.ru}"]
+    recognise = _identification_blocks(identification, gf_article)
     if choice is not None:
-        blocks += _grls_blocks(choice, sections, str(grls_front["officialSourceUrl"]))
+        grls = _grls_blocks(choice, sections, str(grls_front["officialSourceUrl"]))
+        # «Как узнать» follows the recipe: the first ГРЛС section ends at the second heading.
+        second = next(
+            (index for index, block in enumerate(grls) if index and block.startswith("## ")),
+            len(grls),
+        )
+        blocks += grls[:second] + recognise + grls[second:]
+    else:
+        blocks += recognise
     blocks.append("## Источники")
     blocks.append(_marker({"contentMode": "editorial-note"}))
-    blocks.append("\n".join(_source_lines(plant, choice, plate, ema_entry)))
+    blocks.append("\n".join(_source_lines(plant, choice, plate, ema_entry, gf_article)))
     markdown = f"---\n{_front(metadata)}\n---\n\n" + "\n\n".join(blocks) + "\n"
     return Chapter(plant.document_id, plant.ru, markdown, aliases)
+
+
+_GF_EDITIONS = {14: "XIV изд.", 15: "XV изд."}
+# «в) Хвощ речной (синонимы: …) (Equisetum fluviatile L.) имеет …» → up to the Latin name.
+_LOOKALIKE_NAME = re.compile(r"^[а-я]\)\s*(.+?\([A-Z][a-z]+ [a-z]+[^)]*\))")
+
+
+def _lookalike_name(item: str) -> str:
+    found = _LOOKALIKE_NAME.match(item)
+    return found.group(1) if found else item.split(".", 1)[0]
+
+
+def _identification_metadata(
+    identification: Identification, gf_article: dict[str, object]
+) -> dict[str, object]:
+    return {
+        "source": {
+            "number": gf_article["number"],
+            "title": gf_article["title"],
+            "edition": gf_article["edition"],
+            "url": gf_article["page"],
+        },
+        "definition": identification.definition,
+        "lookalikes": [
+            {"name": _lookalike_name(item), "text": item} for item in identification.lookalikes
+        ],
+    }
+
+
+def _identification_blocks(
+    identification: Identification, gf_article: dict[str, object]
+) -> list[str]:
+    """«Как узнать»: the ГФ article's definition, the whole raw material and its look-alikes."""
+    base: dict[str, object] = {
+        "contentMode": "verbatim",
+        "officialUrl": gf_article["page"],
+        "documentNumber": gf_article["number"],
+    }
+    blocks = ["## Как узнать", _marker({**base, "sourceSection": "definition"})]
+    blocks.append(identification.definition)
+    for text in identification.features:
+        blocks += [_marker({**base, "sourceSection": "appearance"}), text]
+    if identification.lookalike_note:
+        blocks.append("### Не спутать")
+        for text in (identification.lookalike_note, *identification.lookalikes):
+            blocks += [_marker({**base, "sourceSection": "admixtures"}), text]
+    return blocks
 
 
 def _grls_blocks(
@@ -740,6 +873,7 @@ def _source_lines(
     choice: GrlsChoice | None,
     plate: dict[str, object],
     ema_entry: dict[str, object],
+    gf_article: dict[str, object],
 ) -> list[str]:
     lines: list[str] = []
     if choice is not None:
@@ -754,8 +888,12 @@ def _source_lines(
         + ". © European Medicines Agency"
     )
     lines.append(
-        f"- Иллюстрация: {plate.get('artist') or PLATE_BOOKS[plant.plate.book]}, "
-        f"{plate.get('date') or ''} — {plate.get('licence')}".rstrip(", ")
+        f"- Иллюстрация: {PLATE_BOOKS[plant.plate.book]} — общественное достояние "
+        f"(Wikimedia Commons: {plate.get('commonsPage')})"
+    )
+    lines.append(
+        f"- Государственная фармакопея РФ {_GF_EDITIONS[int(str(gf_article['edition']))]}, "
+        f"{gf_article['number']} «{gf_article['title']}»: {gf_article['page']}"
     )
     return lines
 

@@ -163,6 +163,33 @@ describe('herbal search and source conflicts', () => {
   });
 });
 
+describe('herbal identification', () => {
+  it('reads the ГФ source and drops look-alikes without a name or text', () => {
+    const plant = readHerbalChapter(
+      chapter('herbal.plant.equisetum-arvense', 'Хвощ полевой', {
+        plantId: 'equisetum-arvense',
+        latin: 'Equisetum arvense L.',
+        identification: {
+          source: {
+            number: 'ФС.2.5.0045',
+            edition: 15,
+            url: 'https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/x/',
+          },
+          lookalikes: [
+            { name: 'Хвощ болотный (Equisetum palustre L.)', text: 'г) Хвощ болотный …' },
+            { name: 'Без текста' },
+          ],
+        },
+      }),
+    );
+    expect(plant?.identification?.sourceLabel).toBe('ГФ XV, ФС.2.5.0045');
+    expect(plant?.identification?.lookalikes.map((item) => item.name)).toEqual([
+      'Хвощ болотный (Equisetum palustre L.)',
+    ]);
+    expect(readHerbalChapter(chamomile)?.identification).toBeNull();
+  });
+});
+
 describe('herbal book routing', () => {
   it('keeps the action filter in the address', () => {
     expect(isHerbalBookRoute('#/modules/documents/herbal')).toBe(true);

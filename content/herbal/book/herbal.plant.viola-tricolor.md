@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore
-source_checksum: sha256:9e798c9a7d542bedc85812760f1d745392d5a720f0e243fc1bb59338e350685f
+source_checksum: sha256:4d6e109c64a9c967a29b361e561be1ecc4d2fee3ff39c7fb0bfbc8a3c97b1111
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -177,6 +177,14 @@ metadata:
         compoundRu: настой и отвар травы
         effectRu: подавляют золотистый стафилококк и кандиду
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0044.15
+        title: Фиалки трава
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/fialki-trava/
+      definition: Собранная в фазу массового цветения и высушенная трава одно- или двухлетних дикорастущих травянистых растений фиалки трехцветной - Violatri color L. и фиалки полевой - Viola arvensis Мurr., сем. фиалковых - Violaceae.
+      lookalikes: []
     grls: null
   navigationAliases:
   - Фиалка трёхцветная
@@ -189,9 +197,24 @@ metadata:
 
 # Фиалка трёхцветная
 
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0044.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/fialki-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу массового цветения и высушенная трава одно- или двухлетних дикорастущих травянистых растений фиалки трехцветной - Violatri color L. и фиалки полевой - Viola arvensis Мurr., сем. фиалковых - Violaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0044.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/fialki-trava/","sourceSection":"appearance"} -->
+
+Цельное сырье. Смесь цельных или частично измельченных олиственных стеблей с цветками и плодами разной степени развития, отдельных стеблей, листьев, цветков, плодов. Стебли простые или ветвистые, слаборебристые, внутри полые, длиной до 25 см. Листья очередные, обычно черешковые, простые, с 2 крупными лировидными перисторассеченными или перистораздельными прилистниками; нижние - широкояйцевидные, верхние - продолговатые, по краю тупозубчатые или крупногородчатые, длиной до 6 см, шириной до 2 см. Цветки одиночные, неправильные. Чашечки из 5 зеленых овальных или ланцетовидных чашелистиков. Венчик из 5 неравных лепестков, нижний крупнее остальных со шпорцем у основания. У фиалки полевой лепестки короче чашечки или почти равны ей, у фиалки трехцветной - лепестки длиннее чашечки. Плод - одногнездная продолговато-яйцевидная коробочка, раскрывающаяся 3 створками. Семена мелкие, овальные, гладкие.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0044.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/fialki-trava/","sourceSection":"appearance"} -->
+
+Цвет листьев - зеленый, стеблей - зеленый, светло-зеленый или желтовато-зеленый, верхних лепестков у фиалки трехцветной - темно-фиолетовый, светло-фиолетовый или синий, у фиалки полевой - светло-желтый или белый, иногда слабо-фиолетовый, средних лепестков у фиалки трехцветной - фиолетовый, сине-фиолетовый или желтый, у фиалки полевой - светло-желтый, нижних лепестков у фиалки трехцветной - желтый с 5-7 темными продольными полосами, по краю фиолетовый, у фиалки полевой - желтый, у основания с 5-7 темными продольными полосами, по краю светло-желтый; плодов - зеленый, желтовато-зеленый, зеленовато-желтый; семян - светло-коричневый. Запах слабый. Вкус водного извлечения сладковатый, слизистый.
+
 ## Источники
 
 <!-- localmed:source {"contentMode":"editorial-note"} -->
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore (обновлено 24/01/2011). © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1887 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Viola_tricolor_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-280_0289.png)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0044.15 «Фиалки трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/fialki-trava/

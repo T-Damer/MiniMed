@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:3fd7a40f6c333111f257c7e7f6be40b9f244c10d475dcc0d4b637ace5cfa8180
+source_checksum: sha256:cd694c909ff884d52a72d4946eeded96f16832e4263fa1bff80be73b01b866be
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -182,6 +182,14 @@ metadata:
         compoundRu: розмариновая кислота, эфирное масло
         effectRu: по сообщениям — противовирусная активность, противовоспалительная активность розмариновой кислоты, противомикробная активность эфирного масла, антирадикальные свойства
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0084
+        title: Мелиссы лекарственной трава
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/
+      definition: Собранная в фазу бутонизации, начала цветения и цветения высушенная трава многолетнего культивируемого травянистого растения мелиссы лекарственной – Melissa officinalis L., сем. яснотковых – Lamiaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014264)-(РГ-RU)
       tradeName: Мелиссы лекарственной трава
@@ -221,6 +229,24 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b23","p2-b24","p2-b25","p2-b26"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf","page":2,"registrationNumber":"ЛП-№(014264)-(РГ-RU)","sourceDocument":"drug.rf.cced6c760341b04ee404.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0084","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/","sourceSection":"definition"} -->
+
+Собранная в фазу бутонизации, начала цветения и цветения высушенная трава многолетнего культивируемого травянистого растения мелиссы лекарственной – Melissa officinalis L., сем. яснотковых – Lamiaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0084","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Верхние части стеблей длиной до 35 см с супротивными черешковыми листьями, бутонами или цветками, отдельные листья, цветки, куски стеблей. Листья скрученные, тонкие, яйцевидные с клиновидным основанием, с городчатым краем и перистым жилкованием, слегка опушённые. Стебли четырёхгранные, продольно-желобчатые, слабоопушённые, с рыхлой серовато-белой сердцевиной, толщиной до 3 мм. Цветки и бутоны в ложных мутовках в пазухах верхних листьев. Прицветники эллиптические, заострённые или продолговатые, чашечка двугубая, опушённая, с плоской верхней губой. Венчик 13–15 мм длины, в полтора-два раза длиннее чашечки, двугубый, с плоской двураздельной верхней губой и трёхраздельной нижней. Тычинок 4, две из которых короче двух других.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0084","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/","sourceSection":"appearance"} -->
+
+Листья зелёные, серовато-зелёные, иногда зеленовато-коричневые, стебли от светло-зелёного до зеленовато-серого цвета, на изломе серовато-белые. Венчик желтовато-белый.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0084","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/","sourceSection":"appearance"} -->
+
+Запах слабый, характерный.
 
 ## Противопоказания
 
@@ -334,4 +360,5 @@ metadata:
 
 - Инструкция ГРЛС «Мелиссы лекарственной трава», Изм. № 0, ЛП-№(014264)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/melissae-folium (обновлено 16/06/2014). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Melissa_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-094.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0084 «Мелиссы лекарственной трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/

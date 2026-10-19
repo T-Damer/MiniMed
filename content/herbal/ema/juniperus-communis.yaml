@@ -83,6 +83,21 @@ facts:
     doc: monograph
     page: 8
     quote: No case of overdose has been reported.
+  - kind: lookalike
+    ru: Иногда попадают плоды других видов можжевельника
+    doc: assessment-report
+    page: 5
+    quote: Adulteration is occasionally observed with fruits of other Juniperus species.
+  - kind: lookalike
+    ru: Можжевельник красный — плоды буро-красные и крупнее настоящих шишкоягод
+    doc: assessment-report
+    page: 5
+    quote: Fruits from Juniperus oxycedrus L. (cade- or prickly-jumper) are brown-red and larger than genuine juniper cone berries.
+  - kind: lookalike
+    ru: Можжевельник казацкий — плоды почти чёрные, всего 5–8 мм в диаметре
+    doc: assessment-report
+    page: 5
+    quote: Juniperus sabina L. (savine) has almost black fruits with a diameter of only 5-8 mm
 constituents:
   - compound: cone berry infusion
     compoundRu: настой шишкоягод

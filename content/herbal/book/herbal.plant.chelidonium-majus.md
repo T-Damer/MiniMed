@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/28/1529276/153839fa-0ffc-443d-b3f1-d5be52f49707.pdf
-source_checksum: sha256:576f3449c3394c48f4b1e018a6b294938033ab4182b012ad7b0c498c6bb34540
+source_checksum: sha256:9cded3c4d8d86154599238a03f834a29405fb6406c2553600cbd76e4b8439622
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -114,6 +114,14 @@ metadata:
         classRu: бензилизохинолиновые алкалоиды
         effectRu: в траве больше 20 разных алкалоидов
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0105
+        title: Чистотела большого трава
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/
+      definition: Собранная в фазу цветения высушенная трава дикорастущего и культивируемого многолетнего травянистого растения чистотела большого – Chelidonium majus L., сем. маковых – Papaveraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014257)-(РГ-RU)
       tradeName: Чистотела трава
@@ -154,6 +162,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b19","p2-b20","p2-b21","p2-b22"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/28/1529276/153839fa-0ffc-443d-b3f1-d5be52f49707.pdf","page":2,"registrationNumber":"ЛП-№(014257)-(РГ-RU)","sourceDocument":"drug.rf.2ad7ebaae3d306c8d8d2.instruction","sourceSection":"dosage"} -->
 
 Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0105","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу цветения высушенная трава дикорастущего и культивируемого многолетнего травянистого растения чистотела большого – Chelidonium majus L., сем. маковых – Papaveraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0105","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Цельные или частично измельчённые олиственные стебли с бутонами, цветками и плодами разной степени зрелости, кусочки стеблей, бутоны, листья, цветки и плоды. Стебли слегка ребристые, иногда вверху ветвистые, в междоузлиях полые, слабоопушённые, около 3–7 мм в диаметре, длиной до 50 см. Листья очерёдные, черешковые, в очертании широкоэллиптические, пластинки непарноперисторассечённые с 3–4 парами городчатолопастных сегментов, с верхней стороны голые, с нижней стороны опушённые. Бутоны обратнояйцевидные с двумя опушёнными чашелистиками. Цветки по 4–8 в пазушных зонтиковидных соцветиях на цветоносах, удлиняющихся в период плодоношения. Венчик из 4 обратнояйцевидных лепестков, тычинок много. Плод – продолговатая, стручковидная, двустворчатая коробочка. Семена многочисленные, мелкие, яйцевидные с ямчатой поверхностью (под лупой), с мясистым белым придатком.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0105","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/","sourceSection":"appearance"} -->
+
+Цвет: стеблей – серовато-зелёный, зеленовато-жёлтый, желтовато-коричневый, зеленовато-коричневый и желтовато-зелёный с жёлтыми, коричневыми и чёрными вкраплениями; листьев с верхней стороны – коричневато-зелёный, зеленовато-коричневый или зелёный, с нижней стороны – светло-зелёный, зеленовато-серый или серовато-зелёный, бутонов – желтовато-зелёный, цветков – ярко-жёлтый или тёмно-жёлтый, плодов – серовато-зелёный или коричневый, семян – от тёмно-коричневого до чёрного. Запах характерный.
 
 ## Противопоказания
 
@@ -263,4 +285,5 @@ metadata:
 
 - Инструкция ГРЛС «Чистотела трава», Изм. № 0, ЛП-№(014257)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/chelidonii-herba (обновлено 20/01/2012). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Chelidonium_majus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-033.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0105 «Чистотела большого трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/

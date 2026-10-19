@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf
-source_checksum: sha256:7a031584ea4b5357af0b716c282c6ed7b2c637210057eca439a95bafcc16626d
+source_checksum: sha256:709a792335df7decab85c98fc6adcb709162d85031379afd7500f96c6b930f75
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -170,6 +170,14 @@ metadata:
         compoundRu: углекислотный экстракт листа
         effectRu: антибактериальное против золотистого стафилококка
         evidence: in-vitro
+    identification:
+      source:
+        number: ФС.2.5.0005
+        title: Берёзы листья
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/beryezy-listya/
+      definition: Cобранные в период вегетации, высушенные листья дикорастущих деревьев берёзы повислой (берёзы бородавчатой) – Betula pendula Roth. (Betula verrucosa Ehrh.) и берёзы пушистой – Betula pubescens Ehrh., сем. берёзовых – Betulaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014678)-(РГ-RU)
       tradeName: Березы листья
@@ -205,6 +213,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b19"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf","page":2,"registrationNumber":"ЛП-№(014678)-(РГ-RU)","sourceDocument":"drug.rf.10d4078832110575a403.instruction","sourceSection":"dosage"} -->
 
 Перед применением настой рекомендуется взбалтывать.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0005","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/beryezy-listya/","sourceSection":"definition"} -->
+
+Cобранные в период вегетации, высушенные листья дикорастущих деревьев берёзы повислой (берёзы бородавчатой) – Betula pendula Roth. (Betula verrucosa Ehrh.) и берёзы пушистой – Betula pubescens Ehrh., сем. берёзовых – Betulaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0005","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/beryezy-listya/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Цельные или частично измельчённые листья, простые, черешковые, без прилистников. Листовые пластины ромбические, треугольные или треугольно-яйцевидные по форме, длиной от 3,0 до 6,5 см, шириной от 2,0 до 5,5 см. Верхушка листа заострённая, основание клиновидное, округлое. Край листовой пластинки дважды остропильчатый, мелкопильчатозубчатый или удвоеннопильчатозубчатый. Жилкование перистое. Листовая пластинка слабо опушённая по всей поверхности с обеих сторон (B. pubescens) или почти голая, с редкими волосками по краю ближе к верхушке и по жилкам с нижней стороны (B. pendula), золотисто-жёлтые блестящие желёзки по всей поверхности с обеих сторон листовой пластинки и на черешке. Цвет листьев с верхней стороны – зелёный, коричневато-зелёный, с нижней стороны – светло-зелёный, серо-зелёный, светлый коричневато-зелёный.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0005","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/beryezy-listya/","sourceSection":"appearance"} -->
+
+Запах слабый, характерный.
 
 ## Противопоказания
 
@@ -314,4 +336,5 @@ metadata:
 
 - Инструкция ГРЛС «Березы листья», Изм. № 0, ЛП-№(014678)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/betulae-folium (обновлено 20/10/2015). © European Medicines Agency
-- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885),  — Public domain
+- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Betula_pendula0.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0005 «Берёзы листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/beryezy-listya/

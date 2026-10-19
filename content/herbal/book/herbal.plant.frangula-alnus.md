@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:14a2644b5b469bd998915bdf3c11dc6b1d63cbbb87b7c8e2ffcd53fee207d680
+source_checksum: sha256:744d5d4a5924cd8d6731cf8a237ea821ed70af71ad1d5752ccd2618cbe36c9d0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -196,6 +196,14 @@ metadata:
         classRu: антрагликозиды
         effectRu: данных мало; по аналогии с другими слабительными этой группы, например сенной, предполагают сходный механизм действия
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0021.18
+        title: Крушины ольховидной кора
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/
+      definition: 'Собранная весной до начала цветения кора стволов и ветвей дикорастущего кустарника или небольшого деревца крушины ольховидной (син.: крушина ломкая) - Frangula alnus Mill. (syn.: Rhamnus frangula L.), сем. крушиновых - Rhamnaceae.'
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014171)-(РГ-RU)
       tradeName: Крушины кора
@@ -232,6 +240,16 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b18"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf","page":2,"registrationNumber":"ЛП-№(014171)-(РГ-RU)","sourceDocument":"drug.rf.797e88da816f3d035424.instruction","sourceSection":"dosage"} -->
 
 Перед применением отвар рекомендуется взбалтывать.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0021.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/","sourceSection":"definition"} -->
+
+Собранная весной до начала цветения кора стволов и ветвей дикорастущего кустарника или небольшого деревца крушины ольховидной (син.: крушина ломкая) - Frangula alnus Mill. (syn.: Rhamnus frangula L.), сем. крушиновых - Rhamnaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0021.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/","sourceSection":"appearance"} -->
+
+Цельное сырье. Трубчатые или желобоватые куски коры различной длины, толщиной 0,5-2 мм. Наружная поверхность коры более или менее гладкая, темно-коричневая, серо-коричневая, темно-серая или серая, часто с беловатыми поперечно-вытянутыми чечевичками или серыми пятнами, при легком соскабливании наружной части пробки обнаруживается красный слой. Внутренняя поверхность гладкая, желтовато-оранжевого или красновато-коричневого цвета. При рассмотрении под лупой (10x) или стереомикроскопом (16x) излом светло-желтый, равномерно мелкощетинистый. Запах слабый. Вкус водного извлечения горьковатый.
 
 ## Противопоказания
 
@@ -341,4 +359,5 @@ metadata:
 
 - Инструкция ГРЛС «Крушины кора», Изм. № 0, ЛП-№(014171)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/frangulae-cortex (обновлено 26/10/2006). © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Rhamnus_frangula_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-120.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0021.18 «Крушины ольховидной кора»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/

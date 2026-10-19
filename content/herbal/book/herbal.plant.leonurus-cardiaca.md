@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/24/1532592/4c1cf892-188f-4039-8af3-5ce51ccd61b9.pdf
-source_checksum: sha256:209a0f4fa8f398bfa44a999d11cefe438ffe989c7a18667b8c12a7e350a8ec7c
+source_checksum: sha256:a17a648deae157ed34f3ad30d643d5b55d9d7e28f8347b9455cf38a3e9e4dbbe
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -172,6 +172,14 @@ metadata:
         compoundRu: трава пустырника
         effectRu: автор опытов на животных сделал вывод о слабом седативном действии; из-за моделей и малого числа животных без статистики это не подтверждается с современной точки зрения
         evidence: animal
+    identification:
+      source:
+        number: ФС.2.5.0034
+        title: Пустырника трава
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/pustyrnika-trava/
+      definition: Собранная в фазу начала цветения и высушенная трава дикорастущего и культивируемого травянистого растения пустырника пятилопастного – Leonurus quinquelobatus Gilib. и пустырника сердечного (пустырника обыкновенного) – Leonurus cardiacaL. (L. cardiaca, L. subsp. villosus (Desf.) Jav.), сем. яснотковых– Lamiaceae.ХРАНЕНИЯСИЙСКОЙ ФЕДЕРАЦИИ
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013308)-(РГ-RU)
       tradeName: Пустырника трава
@@ -211,6 +219,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b25","p2-b26","p2-b27","p2-b28"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/07/24/1532592/4c1cf892-188f-4039-8af3-5ce51ccd61b9.pdf","page":2,"registrationNumber":"ЛП-№(013308)-(РГ-RU)","sourceDocument":"drug.rf.4764c9dd17eb00da7de5.instruction","sourceSection":"dosage"} -->
 
 Если через 2 недели лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0034","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/pustyrnika-trava/","sourceSection":"definition"} -->
+
+Собранная в фазу начала цветения и высушенная трава дикорастущего и культивируемого травянистого растения пустырника пятилопастного – Leonurus quinquelobatus Gilib. и пустырника сердечного (пустырника обыкновенного) – Leonurus cardiacaL. (L. cardiaca, L. subsp. villosus (Desf.) Jav.), сем. яснотковых– Lamiaceae.ХРАНЕНИЯСИЙСКОЙ ФЕДЕРАЦИИ
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0034","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/pustyrnika-trava/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Верхние части стеблей, длиной до 40 см с цветками и листьями, могут встречаться отдельные листья, цветки, части соцветий и стеблей. Стебель четырёхгранный, опушённый, или опушение только по рёбрам, полый, толщиной до 0,5 см. Листья супротивные, нижние – трёх-, пятилопастные или раздельные, в соцветиях – трёхлопастные или ланцетовидные, зубчатые или цельнокрайние с клиновидным основанием, длиной до 14 см, шириной до 10 см. Соцветия колосовидные, прерванные; цветки и бутоны собраны в мутовки по 10–20 в пазухах листьев. Чашечка трубчато-колокольчатая с 5 шиловидно-заострёнными зубцами, коническая, колючая. Венчик длиной до 0,12 см, двугубый, длиннее чашечки, верхняя губа цельнокрайняя, нижняя – трёхлопастная; тычинок 4; завязь нижняя. Стебли, листья, чашечки цветков опушены волосками.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0034","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/pustyrnika-trava/","sourceSection":"appearance"} -->
+
+Цвет стеблей с зеленовато-серой, серовато-зелёной, коричневато-зелёной поверхностью, листьев – зелёный, тёмно-зелёный, серовато-зелёный, чашелистиков – зелёный, венчиков – серый, серовато-розовый или розовато-фиолетовый. Запах слабый.
 
 ## Противопоказания
 
@@ -324,4 +346,5 @@ metadata:
 
 - Инструкция ГРЛС «Пустырника трава», Изм. № 0, ЛП-№(013308)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/leonuri-cardiacae-herba (обновлено 20/12/2010). © European Medicines Agency
-- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885),  — Public domain
+- Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Leonurus_cardiaca0.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0034 «Пустырника трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/pustyrnika-trava/

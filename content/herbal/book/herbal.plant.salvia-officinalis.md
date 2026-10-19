@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf
-source_checksum: sha256:24f5db9457f9ba06382f221b7a9cf5acfe0c1d62a8126cd82f96cb1ad60dde2b
+source_checksum: sha256:c50804039a61194ed518fd691a7f908c8a688844402060740155ba7f0aa96ca3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -236,6 +236,14 @@ metadata:
         classRu: эфирное масло
         effectRu: механизм нейротоксичности связывают с действием α-туйона на ГАМК-А-рецептор
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0051
+        title: Шалфея лекарственного листья
+        edition: 15
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/
+      definition: Собранные в течение лета, высушенные и обмолоченные листья культивируемого полукустарника шалфея лекарственного – Salvia officinalis L., сем. яснотковых – Lamiaceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(013841)-(РГ-RU)
       tradeName: Шалфея листья
@@ -264,6 +272,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b7"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf","page":2,"registrationNumber":"ЛП-№(013841)-(РГ-RU)","sourceDocument":"drug.rf.e0f328c641e0040f737f.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (3 столовые ложки) листьев шалфея помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, накрывают крышкой и настаивают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Применяют местно для полосканий у взрослых и детей старше 12 лет по 1/2-1 стакану теплого настоя 3-5 раз в день. Курс лечения 1 неделя. Перед применением настой рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0051","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/","sourceSection":"definition"} -->
+
+Собранные в течение лета, высушенные и обмолоченные листья культивируемого полукустарника шалфея лекарственного – Salvia officinalis L., сем. яснотковых – Lamiaceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0051","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/","sourceSection":"appearance"} -->
+
+Цельное сырьё. Цельные или частично измельчённые листья размером от 1 до 35 мм с черешком или без черешка с небольшим количеством других частей растения (кусочки стеблей, цветков с цветоножками и без них). Поверхность листьев равномерно-морщинистая или мелкоячеистая с густой сетью жилок, сильно вдавленных сверху и выступающих снизу; покрыта длинными волосками, особенно с нижней стороны. Край листа мелкогородчатый. Черешок цилиндрической формы, опушённый, серовато-зелёный или серебристо-белый. Кусочки стеблей четырёхгранные, опушённые; цветки с двугубой опушённой чашечкой и двугубым сине-фиолетовым венчиком. Редко встречаются округлые гладкие чёрные или чёрно-коричневые семена.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0051","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/","sourceSection":"appearance"} -->
+
+Цвет листьев – зелёный, серовато-зелёный, зеленовато-серый или серебристо-белый; чашечки – светло-коричневый, зеленовато-коричневый, часто с красновато-фиолетовым оттенком; венчика – сине-фиолетовый или фиолетово-коричневый. Запах характерный.
 
 ## Противопоказания
 
@@ -371,4 +393,5 @@ metadata:
 
 - Инструкция ГРЛС «Шалфея листья», Изм. № 0, ЛП-№(013841)-(РГ-RU), 2026, ПКФ "Фитофарм" (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/salviae-officinalis-folium (обновлено 13/07/2017). © European Medicines Agency
-- Иллюстрация: Walther Otto Müller, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Salvia_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-126.jpg)
+- Государственная фармакопея РФ XV изд., ФС.2.5.0051 «Шалфея лекарственного листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/

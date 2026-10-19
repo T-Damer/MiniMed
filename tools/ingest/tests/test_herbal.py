@@ -14,6 +14,7 @@ from localmed_ingest.herbal_prepare import (
     Paragraph,
     action_chips,
     gf15_paragraphs,
+    gf_identification,
     instruction_sections,
     parse_brew,
 )
@@ -243,6 +244,10 @@ def test_plant_list_rejects_a_shared_grls_name(tmp_path: Path) -> None:
         "part": {"ru": "цветки", "la": "flos"},
         "grls": {"inn": ["ромашки цветки"]},
         "plate": {"book": "kohler", "file": "File:x.jpg"},
+        "gf": {
+            "edition": 14,
+            "path": "/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/",
+        },
     }
     path = tmp_path / "plants.yaml"
     path.write_text(
@@ -268,3 +273,31 @@ def test_plant_list_rejects_a_shared_grls_name(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="already belongs to a"):
         load_plants(path)
+
+
+def test_gf_identification_keeps_the_whole_raw_material_and_look_alikes(tmp_path: Path) -> None:
+    paragraphs = [
+        "ФАРМАКОПЕЙНАЯ СТАТЬЯ",
+        "ОПРЕДЕЛЕНИЕ",
+        "Cобранные летом и высушенные побеги хвоща полевого.",
+        "Внешние признаки. Определение проводят в соответствии с ОФС «Травы».",
+        "Цельное сырьё. Членистые бороздчатые стебли. Измельчённое сырьё. Кусочки стеблей.",
+        "Цвет серовато-зелёный.",
+        "Измельчённое сырьё. Кусочки стеблей и ветвей.",
+        "Рисунок 1 – Хвоща полевого трава",
+        "Примечание – К другим видам хвощей, встречающимся в сырье как примесь, относят:",
+        "а) Хвощ речной (синонимы: топяной) (Equisetum fluviatile L.) имеет мощный стебель.",
+        "б) Хвощ болотный (Equisetum palustre L.). Влагалища ветвей чёрные.",
+        "Микроскопические признаки. Определение проводят по ОФС.",
+        "а) Хвощ болотный (Equisetum palustre L.) под микроскопом.",
+    ]
+    page = tmp_path / "article.html"
+    page.write_text(
+        "".join(f'<p class="MsoNormal">{text}</p>' for text in paragraphs), encoding="utf-8"
+    )
+    found = gf_identification(page)
+    assert found.definition.endswith("побеги хвоща полевого.")
+    # The cut herb starts inside the paragraph: the description stops there.
+    assert found.features == ("Цельное сырьё. Членистые бороздчатые стебли.",)
+    assert found.lookalike_note is not None
+    assert [item[:16] for item in found.lookalikes] == ["а) Хвощ речной (", "б) Хвощ болотный"]

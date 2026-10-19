@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf
-source_checksum: sha256:1d642436fcd032bafcf515c6c1bee47eb985df773bcbf7bc36700f312fd06c28
+source_checksum: sha256:77db0df87c9da5d74ccf91fc670015d31027f9bc307dd36180b68de28cdbcf4b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -188,6 +188,14 @@ metadata:
         classRu: эфирное масло
         effectRu: верхний предел дополнительного поступления из лекарств — 6 мг в сутки (с учётом возможного поступления с пищей)
         evidence: review
+    identification:
+      source:
+        number: ФС.2.5.0033.15
+        title: Полыни горькой трава
+        edition: 14
+        url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/
+      definition: Собранная в начале цветения и высушенная трава дикорастущего многолетнего травянистого растения полыни горькой - Artemisia absinthium L., сем. астровых - Asteraceae.
+      lookalikes: []
     grls:
       registrationNumber: ЛП-№(014496)-(РГ-RU)
       tradeName: Полыни горькой трава
@@ -215,6 +223,20 @@ metadata:
 <!-- localmed:source {"blocks":["p2-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf","page":2,"registrationNumber":"ЛП-№(014496)-(РГ-RU)","sourceDocument":"drug.rf.42da7f57c43b23e37a09.instruction","sourceSection":"dosage"} -->
 
 Около 10 г (2 столовые ложки) травы полыни горькой помещают в эмалированную посуду, заливают 200 мл (1 стакан) кипятка, закрывают крышкой и нагревают на кипящей водяной бане 15 минут, затем охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Настой принимают внутрь в теплом виде по 1/4 стакана 3 раза в день за 30 минут до еды. Курс лечения 20-25 дней. Перед применением настой рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Как узнать
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0033.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/","sourceSection":"definition"} -->
+
+Собранная в начале цветения и высушенная трава дикорастущего многолетнего травянистого растения полыни горькой - Artemisia absinthium L., сем. астровых - Asteraceae.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0033.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/","sourceSection":"appearance"} -->
+
+Цельное сырье. Цельные или частично измельченные верхушки цветоносных стеблей длиной не более 25 см. Стебли цилиндрические, слегка ребристые, иногда ветвистые, заканчивающиеся облиственной раскидистой сложной метелкой, веточки которой несут мелкие корзинки диаметром 2,5-4 мм. Верхние прицветные листья сидячие, ланцетные или продолговатые, ниже на цветоносе листья тройчато-раздельные, край листа цельный, жилкование перистое, листья густо опушены короткими волосками с обеих сторон.
+
+<!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0033.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/","sourceSection":"appearance"} -->
+
+Цветки собраны в шаровидные поникающие корзинки, образующие метелку. Обертка черепитчатая, двухрядная, наружные листочки линейные, снаружи шерстистые, внутренние - широкоэллиптические, тупые, пленчатые. Цветки мелкие, наружные трубчатые - пестичные, внутренние воронковидные - обоеполые. Цветоложе выпуклое, усажено узкими, белыми пленчатыми прицветниками. Цвет стеблей - зеленовато-серый, листьев сверху - серовато-зеленый, снизу - серебристо-серый, цветков - желтый. Запах сильный, характерный. Вкус водного извлечения пряно-горький.
 
 ## Противопоказания
 
@@ -312,4 +334,5 @@ metadata:
 
 - Инструкция ГРЛС «Полыни горькой трава», Изм. № 0, ЛП-№(014496)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/absinthii-herba (обновлено 02/10/2017). © European Medicines Agency
-- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain
+- Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Artemisia_absinthium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-164.jpg)
+- Государственная фармакопея РФ XIV изд., ФС.2.5.0033.15 «Полыни горькой трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/

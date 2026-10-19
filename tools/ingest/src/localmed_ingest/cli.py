@@ -537,10 +537,13 @@ def fetch_herbal_sources_command(
     output: Annotated[Path, typer.Option("--output", file_okay=False)],
     refresh: Annotated[bool, typer.Option("--refresh")] = False,
     only: Annotated[list[str] | None, typer.Option("--only", help="Plant id; repeatable.")] = None,
+    gf_only: Annotated[
+        bool, typer.Option("--gf-only", help="Fetch only the ГФ articles (no EMA, no plates).")
+    ] = False,
 ) -> None:
-    """Download EMA herbal documents, public-domain plates and the ГФ XV infusion article."""
+    """Download EMA herbal documents, public-domain plates and the ГФ articles."""
     manifest = fetch_herbal_sources(
-        plants, output, refresh=refresh, only=frozenset(only) if only else None
+        plants, output, refresh=refresh, only=frozenset(only) if only else None, gf_only=gf_only
     )
     typer.echo(herbal_sources_report_json(manifest))
 
