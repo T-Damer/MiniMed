@@ -809,6 +809,176 @@ aliases:
   alias: chelidonii herba
   category: reference
   weight: 1.3
+- id: herbal-d5785972132b
+  canonicalTerm: Алтей лекарственный
+  alias: Алтей лекарственный
+  category: reference
+  weight: 1.5
+- id: herbal-4cdb5fd39048
+  canonicalTerm: Алтей лекарственный
+  alias: алтей
+  category: reference
+  weight: 1.3
+- id: herbal-d874f26248cd
+  canonicalTerm: Алтей лекарственный
+  alias: Althaea officinalis
+  category: reference
+  weight: 1.3
+- id: herbal-77d981a4975a
+  canonicalTerm: Алтей лекарственный
+  alias: алтея корни
+  category: reference
+  weight: 1.3
+- id: herbal-ef64c6ba2e44
+  canonicalTerm: Алтей лекарственный
+  alias: алтея лекарственного корни
+  category: reference
+  weight: 1.3
+- id: herbal-14a515fdd303
+  canonicalTerm: Алтей лекарственный
+  alias: althaeae radix
+  category: reference
+  weight: 1.3
+- id: herbal-f5ebec2ff74a
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: Пастушья сумка обыкновенная
+  category: reference
+  weight: 1.5
+- id: herbal-cece6d679e28
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: пастушья
+  category: reference
+  weight: 1.3
+- id: herbal-7648df64e1cf
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: Capsella bursa-pastoris
+  category: reference
+  weight: 1.3
+- id: herbal-81dc66dd8666
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: пастушьей сумки трава
+  category: reference
+  weight: 1.3
+- id: herbal-5735a54c9e2f
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: пастушьей сумки обыкновенной трава
+  category: reference
+  weight: 1.3
+- id: herbal-51cdee19b731
+  canonicalTerm: Пастушья сумка обыкновенная
+  alias: bursae pastoris herba
+  category: reference
+  weight: 1.3
+- id: herbal-adb2fb786a3c
+  canonicalTerm: Горец птичий (спорыш)
+  alias: Горец птичий (спорыш)
+  category: reference
+  weight: 1.5
+- id: herbal-b329651d9f62
+  canonicalTerm: Горец птичий (спорыш)
+  alias: горец
+  category: reference
+  weight: 1.3
+- id: herbal-5edbb2ca0edd
+  canonicalTerm: Горец птичий (спорыш)
+  alias: Polygonum aviculare
+  category: reference
+  weight: 1.3
+- id: herbal-53e3e5f080f4
+  canonicalTerm: Горец птичий (спорыш)
+  alias: горца птичьего трава
+  category: reference
+  weight: 1.3
+- id: herbal-b7df19359a1e
+  canonicalTerm: Горец птичий (спорыш)
+  alias: горца птичьего (спорыша) трава
+  category: reference
+  weight: 1.3
+- id: herbal-add96dc35bd8
+  canonicalTerm: Горец птичий (спорыш)
+  alias: polygoni avicularis herba
+  category: reference
+  weight: 1.3
+- id: herbal-77d859c8677c
+  canonicalTerm: Ортосифон тычиночный (почечный чай)
+  alias: Ортосифон тычиночный (почечный чай)
+  category: reference
+  weight: 1.5
+- id: herbal-717b11bd1ebb
+  canonicalTerm: Ортосифон тычиночный (почечный чай)
+  alias: ортосифон
+  category: reference
+  weight: 1.3
+- id: herbal-360335649910
+  canonicalTerm: Ортосифон тычиночный (почечный чай)
+  alias: Orthosiphon aristatus
+  category: reference
+  weight: 1.3
+- id: herbal-5abb5ad683af
+  canonicalTerm: Ортосифон тычиночный (почечный чай)
+  alias: ортосифона тычиночного листья
+  category: reference
+  weight: 1.3
+- id: herbal-6f5aac129021
+  canonicalTerm: Ортосифон тычиночный (почечный чай)
+  alias: orthosiphonis folium
+  category: reference
+  weight: 1.3
+- id: herbal-985db37f74c8
+  canonicalTerm: Тыква обыкновенная
+  alias: Тыква обыкновенная
+  category: reference
+  weight: 1.5
+- id: herbal-54a8f061832f
+  canonicalTerm: Тыква обыкновенная
+  alias: тыква
+  category: reference
+  weight: 1.3
+- id: herbal-9b922b6d3cab
+  canonicalTerm: Тыква обыкновенная
+  alias: Cucurbita pepo
+  category: reference
+  weight: 1.3
+- id: herbal-aba88d51bdcd
+  canonicalTerm: Тыква обыкновенная
+  alias: тыквы семена
+  category: reference
+  weight: 1.3
+- id: herbal-20de6fac2001
+  canonicalTerm: Тыква обыкновенная
+  alias: тыквы обыкновенной семена
+  category: reference
+  weight: 1.3
+- id: herbal-71ffef402829
+  canonicalTerm: Тыква обыкновенная
+  alias: cucurbitae semen
+  category: reference
+  weight: 1.3
+- id: herbal-7fd0507fdf8f
+  canonicalTerm: Тимьян ползучий (чабрец)
+  alias: Тимьян ползучий (чабрец)
+  category: reference
+  weight: 1.5
+- id: herbal-d8c0936996fe
+  canonicalTerm: Тимьян ползучий (чабрец)
+  alias: тимьян
+  category: reference
+  weight: 1.3
+- id: herbal-8ded7febabd6
+  canonicalTerm: Тимьян ползучий (чабрец)
+  alias: Thymus serpyllum
+  category: reference
+  weight: 1.3
+- id: herbal-f4ae7020b26a
+  canonicalTerm: Тимьян ползучий (чабрец)
+  alias: тимьяна ползучего трава
+  category: reference
+  weight: 1.3
+- id: herbal-54e499865a59
+  canonicalTerm: Тимьян ползучий (чабрец)
+  alias: thymi herba
+  category: reference
+  weight: 1.3
 - id: herbal-9b497b85f0eb
   canonicalTerm: 'Настои и отвары: общие правила'
   alias: как приготовить настой

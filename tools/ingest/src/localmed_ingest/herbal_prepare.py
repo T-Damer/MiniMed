@@ -523,8 +523,8 @@ class Identification:
     lookalikes: tuple[str, ...]
 
 
-# The definition opens «Собранные …» (one article types a Latin «C»).
-_DEFINITION = re.compile(r"^[СC]обранн")
+# The definition opens «Собранные …» (one article types a Latin «C»); seeds open «Зрелые …».
+_DEFINITION = re.compile(r"^(?:[СC]обранн|Зрелые)")
 _FEATURES_HEAD = re.compile(r"^Внешние признаки\.\s*")
 _OFS_REFERENCE = re.compile(
     r"^Определение проводят в соответствии с (?:требованиями )?ОФС «[^»]+»\.\s*"

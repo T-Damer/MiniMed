@@ -19,9 +19,18 @@ PLATE_BOOKS = {
     "thome": "O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885)",
     "sturm": "J. Sturm, Deutschlands Flora in Abbildungen (1796–1862)",
     "lindman": "C. A. M. Lindman, Bilder ur Nordens Flora (1901–1905)",
+    "curtis": "Curtis's Botanical Magazine, vol. 96 (1870)",
+    "vietz": "F. B. Vietz, Icones plantarum medico-oeconomico-technologicarum, vol. 2 (1804)",
 }
 # The short credit under a plate: the author of the book.
-PLATE_AUTHORS = {"kohler": "Köhler", "thome": "Thomé", "sturm": "Sturm", "lindman": "Lindman"}
+PLATE_AUTHORS = {
+    "kohler": "Köhler",
+    "thome": "Thomé",
+    "sturm": "Sturm",
+    "lindman": "Lindman",
+    "curtis": "Fitch",
+    "vietz": "Vietz",
+}
 _ID = re.compile(r"^[a-z][a-z0-9-]*$")
 _GF_PATH = re.compile(r"^/pharmacopoeia/izdanie-1(?:4/2/2-5|5/2/2-3)/[a-z0-9-]+/$")
 _EMA_PAGE = re.compile(r"^https://www\.ema\.europa\.eu/en/medicines/herbal/[a-z0-9-]+$")
@@ -65,7 +74,7 @@ class EmaLink(_Strict):
 
 
 class PlateLink(_Strict):
-    book: Literal["kohler", "thome", "sturm", "lindman"]
+    book: Literal["kohler", "thome", "sturm", "lindman", "curtis", "vietz"]
     file: str
     species: str | None = None
 

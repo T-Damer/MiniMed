@@ -1,0 +1,176 @@
+# EMA/HMPC facts for Тыква обыкновенная (семена). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
+# Monograph: Cucurbita pepo L., semen (pumpkin seed), traditional use only.
+plant: cucurbita-pepo
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 3
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Облегчение симптомов нижних мочевых путей при доброкачественной гиперплазии предстательной железы или гиперактивном мочевом пузыре — после того как врач исключил серьёзные состояния
+    doc: monograph
+    page: 2
+    quote: Traditional herbal medicinal product for the relief of lower urinary tract symptoms related to benign prostatic hyperplasia or related to an overactive bladder, after serious conditions have been excluded by a medical doctor.
+  - kind: posology
+    ru: "Растительное сырьё: разовая доза 2,5–7,5 г, 2 раза в день — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "Posology Adults and elderly Herbal substance Single dose: 2.5 – 7.5 g, 2 times daily."
+    dose: { preparationRu: растительное сырьё, amount: "2.5-7.5", unit: г, timesPerDay: "2", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Измельчённое растительное сырьё: разовая доза 2,5–7,5 г, 2 раза в день — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "a) Comminuted herbal substance Single dose: 2.5 – 7.5 g, 2 times daily."
+    dose: { preparationRu: измельчённое растительное сырьё, amount: "2.5-7.5", unit: г, timesPerDay: "2", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Мягкий экстракт: разовая доза 500 мг, 2 раза в день — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "b) Soft extract Single dose: 500 mg, 2 times daily."
+    dose: { preparationRu: мягкий экстракт, amount: "500", unit: мг, timesPerDay: "2", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Сухой экстракт: разовая доза 105 мг, 3 раза в день — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "c) Dry extract Single dose: 105 mg, 3 times daily or 152 mg, 2 times daily"
+    dose: { preparationRu: сухой экстракт, amount: "105", unit: мг, timesPerDay: "3", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Сухой экстракт: разовая доза 152 мг, 2 раза в день — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "c) Dry extract Single dose: 105 mg, 3 times daily or 152 mg, 2 times daily"
+    dose: { preparationRu: сухой экстракт, amount: "152", unit: мг, timesPerDay: "2", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Жирное масло: разовая доза 1–1,2 г, 3 раза в день; суточная доза 3–4 г — взрослые и пожилые"
+    doc: monograph
+    page: 3
+    quote: "d) Fatty oil Single dose: 1 – 1.2 g, 3 times daily Daily dose: 3 - 4 g"
+    dose: { preparationRu: жирное масло, amount: "1-1.2", unit: г, timesPerDay: "3", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 3
+    quote: Method of administration Oral use.
+  - kind: age
+    ru: Детям и подросткам до 18 лет не рекомендуется
+    doc: monograph
+    page: 3
+    quote: The use in children and adolescents under 18 years of age is not recommended
+    minAgeMonths: 216
+  - kind: age
+    ru: Детям и подросткам до 18 лет не рекомендуется, потому что симптомы нижних мочевых путей у этих групп требуют медицинского наблюдения
+    doc: monograph
+    page: 4
+    quote: The use in children and adolescents under 18 years of age and the use in pregnant women (see also section 4.6.) are not recommended because lower urinary tract symptoms in these populations require medical supervision.
+    minAgeMonths: 216
+  - kind: pregnancy
+    ru: Беременным не рекомендуется, потому что симптомы нижних мочевых путей у этих групп требуют медицинского наблюдения
+    doc: monograph
+    page: 4
+    quote: The use in children and adolescents under 18 years of age and the use in pregnant women (see also section 4.6.) are not recommended because lower urinary tract symptoms in these populations require medical supervision.
+  - kind: duration
+    ru: Длительное применение возможно
+    doc: monograph
+    page: 3
+    quote: Duration of use Long-term use is possible
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Если жалобы усиливаются или появляются лихорадка, спазмы, кровь в моче, болезненное мочеиспускание или задержка мочи, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: If complaints worsen or if symptoms such as fever, spasms or blood in the urine, painful urination or urinary retention occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 4
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность тыквенных экстрактов не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: Safety during pregnancy and lactation has not been established for pumpkin extracts. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Опасений по поводу пороков развития у людей после употребления тыквенных семян и жирного масла не возникло; при клинической необходимости можно применять при беременности и кормлении грудью
+    doc: monograph
+    page: 4
+    quote: No concern has arisen about any malformation in humans, following the consumption of pumpkin seeds and fatty oil. Can be used during pregnancy and lactation if clinically needed.
+  - kind: pregnancy
+    ru: Данных о влиянии на фертильность нет
+    doc: monograph
+    page: 4
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 4
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Описаны лёгкие жалобы со стороны желудочно-кишечного тракта; частота — часто (4%)
+    doc: monograph
+    page: 5
+    quote: Mild gastrointestinal complaints have been reported. The frequency is common (4%).
+  - kind: adverse
+    ru: Если возникают другие нежелательные реакции, не упомянутые выше, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If other adverse reactions not mentioned above occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 5
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
+    doc: monograph
+    page: 5
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: ∆7-sterols, ∆5-sterols
+    compoundRu: ∆7-стерины (авенастерол, спинастерол) и ∆5-стерины (ситостерол, стигмастерол)
+    classRu: стерины
+    effectRu: предположительно действующие вещества (семена дают около 50% жирного масла)
+    evidence: review
+    doc: assessment-report
+    page: 3
+    quote: "The pumpkin seeds yield approximately 50% fatty oil, (mostly linoleic and oleic acid and tocopherol), but the putative active constituents are ∆7-sterols (avenasterol, spinasterol) and ∆5-sterols (sitosterol, stigmasterol)."
+  - compound: cucurbitacins
+    compoundRu: кукурбитацины
+    classRu: тритерпеноиды
+    effectRu: плоды культурных тыкв выведены свободными от кукурбитацинов; обратные мутации могут давать токсичные горькие плоды, поэтому наличие кукурбитацинов в семенах исключить нельзя
+    evidence: review
+    doc: assessment-report
+    page: 6
+    quote: Fruits of cultivated pumpkins have been cultured to be free of cucurbitacins and are assumed to contain a supressor gene or a mutation responsible for absence of cucurbitacins. However, back-mutations occur randomly which may lead to plants with toxic and bitter fruits. Therefore the presence of cucurbitacins in seeds cannot be excluded
+  - compound: cucurbitine
+    compoundRu: кукурбитин
+    classRu: аминокислота
+    effectRu: выделен из семян C. pepo (0,18–0,66%); к нему привлечено особое внимание из-за противоглистных свойств
+    evidence: review
+    doc: assessment-report
+    page: 8
+    quote: Particular attention has been paid to cucurbitine (3-amino-3-carboxy-pyrrolidine) for its anthelmintic properties isolated from Cucurbita pepo (0.18-0.66%) and Cucurbita moschata Duch., (0.4-0.84%) seeds.
+  - compound: ∆5- and ∆7-sterols, tocopherol
+    compoundRu: ∆5- и ∆7-стерины, токоферол (в этанольном экстракте семян)
+    classRu: стерины
+    effectRu: этанольный экстракт семян (DER 2:1), содержащий в основном триглицериды, ∆5- и ∆7-стерины и токоферол, не показал антиандрогенной активности в опыте на репортёрном гене рецептора андрогена
+    evidence: in-vitro
+    doc: assessment-report
+    page: 19
+    quote: "An ethanolic extract (DER 2:1) of Cucurbita pepo seeds containing mainly triglycerides, ∆5 – and ∆7- sterols and tocopherol did not show antiandrogenic activity. Experiments were performed in vitro by use of an androgen receptor responsive reporter gene assay (Schleich et al. 2006)."
+  - compound: seed extract (5-α-reductase)
+    compoundRu: экстракт семян (фермент 5-α-редуктаза)
+    classRu: экстракт
+    effectRu: в гомогенате плаценты человека экстракт ингибировал 5-α-редуктазу типа II на 90,4% при 10 мг/мл, на 71,4% при 2 мг/мл и на 29,6% при 0,4 мг/мл
+    evidence: in-vitro
+    doc: assessment-report
+    page: 19
+    quote: "Schmidlin and Kreuter (2003) described the influence of a Cucurbitae pepo seed extract on the activity of aromatase and 5-α-reductase Typ II in the homogenates of human and rat placenta. The pumpkin extract was as well tested in an experimental model of the prostate hyperthrophy induced by injection of testosterone in Sprague-Dawley castrated male rats. The incubation of human placenta homogenate with 10 mg/ml of the extract induced 44.7±0.2 – 55.9±15.7% reduction of the activity of aromatase. The activity of the enzyme 5-α-reductase Typ II in human placenta homogenate was inhibited at 90.4±2.4%, 71.4±4.1% and 29.6±7.9% respectively by 10 mg/ml, 2 mg/ml and 0.4 mg/ml concentrations of the extract."

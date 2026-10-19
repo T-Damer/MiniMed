@@ -1,4 +1,5 @@
 import type { AppGlyphName } from '@/components/AppGlyph';
+import { isHerbalBookRoute } from '@/features/herbal/herbal-routing';
 import {
   isUserLibraryCatalogRoute,
   migrateLegacyUserDocumentHash,
@@ -84,8 +85,15 @@ const SEARCH_TOOL_NOTES_ROUTES = [
   '#/notes/vaccination',
 ] as const;
 
-export function compactRootView(view: RootView, hash: string): RootView {
+/**
+ * The tab the compact bar lights. The herbal book is both a section of search and a folder of
+ * «Мои файлы», so it keeps `herbalOrigin`, the tab it was opened from (`herbalBookOrigin`).
+ */
+export function compactRootView(view: RootView, hash: string, herbalOrigin?: RootView): RootView {
   if (view === 'settings') return 'settings';
+  if (isHerbalBookRoute(hash) && (herbalOrigin === 'search' || herbalOrigin === 'notes')) {
+    return herbalOrigin;
+  }
   if (view === 'news') return 'news';
   if (SEARCH_TOOL_NOTES_ROUTES.some((route) => hash === route || hash.startsWith(`${route}?`))) {
     return 'search';
@@ -95,6 +103,20 @@ export function compactRootView(view: RootView, hash: string): RootView {
     return 'notes';
   }
   return 'search';
+}
+
+/**
+ * Entering the herbal book records the tab of the address it was entered from; moving inside the
+ * book keeps it. Read from the addresses, not the view signal, which changes a moment earlier.
+ */
+export function herbalBookOrigin(
+  previousHash: string,
+  nextHash: string,
+  current: RootView | undefined,
+): RootView | undefined {
+  if (!isHerbalBookRoute(nextHash)) return undefined;
+  if (isHerbalBookRoute(previousHash)) return current;
+  return compactRootView(viewFromHash(previousHash), previousHash);
 }
 
 export function viewFromLocation(hash = window.location.hash): RootView {

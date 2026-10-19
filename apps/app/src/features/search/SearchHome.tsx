@@ -94,7 +94,7 @@ import {
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
 import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
-import { sectionsOverviewRows } from '@/features/search/sections-overview';
+import { sectionShortcutRows, sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { hideUsefulFeatures, USEFUL_FEATURES_NOTICE_ID } from '@/features/search/useful-features';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
@@ -335,6 +335,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     >
       <SearchSectionsOverview
         rows={sectionsOverviewRows(sourceSections())}
+        shortcuts={sectionShortcutRows(downloads.catalog().modules)}
         locked={sectionLocked}
         waitMark={sectionWaitMark(waitingCoreStatus())}
         onSelect={(next) => openSection(next)}

@@ -21,6 +21,7 @@ import {
   COMPACT_ROOT_VIEWS,
   compactRootView,
   filesTabHash,
+  herbalBookOrigin,
   ROOT_VIEWS,
   type RootView,
 } from '@/app/root-view';
@@ -139,8 +140,12 @@ export function App(): JSX.Element {
   let lastPersonalHash = USER_LIBRARY_CATALOG_HASH;
   const expandedNavigation = () => splitNavigation() && Boolean(session.ready());
   const navItems = () => (expandedNavigation() ? ROOT_VIEWS : COMPACT_ROOT_VIEWS);
+  // The tab the herbal book was opened from (it is a search section and a files folder).
+  const [herbalOrigin, setHerbalOrigin] = createSignal<RootView | undefined>();
   const navView = () =>
-    expandedNavigation() ? navigation.view() : compactRootView(navigation.view(), currentHash());
+    expandedNavigation()
+      ? navigation.view()
+      : compactRootView(navigation.view(), currentHash(), herbalOrigin());
   const navigateTab = (next: RootView): void => {
     if (!expandedNavigation() && next === 'notes') {
       // «Мои файлы» is a tab like the others: a place the history may already hold is stepped back to.
@@ -207,6 +212,7 @@ export function App(): JSX.Element {
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
+      setHerbalOrigin((origin) => herbalBookOrigin(currentHash(), hash, origin));
       setCurrentHash(hash);
       if (hash.startsWith('#/notes') || hash.startsWith(USER_LIBRARY_CATALOG_HASH))
         lastPersonalHash = hash;

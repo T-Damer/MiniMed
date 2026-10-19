@@ -4,6 +4,7 @@ import {
   compactRootView,
   countPublishedCatalogModules,
   filesTabHash,
+  herbalBookOrigin,
   ROOT_VIEWS,
   rootViewRestoresRoute,
   viewFromLocation,
@@ -63,6 +64,25 @@ describe('viewFromLocation', () => {
     expect(compactRootView('notes', '#/notes/drug-interactions?d=a')).toBe('search');
     expect(compactRootView('notes', '#/notes/vaccination')).toBe('search');
     expect(compactRootView('notes', '#/notes/forms')).toBe('notes');
+    // The herbal book keeps the tab it was opened from: a search section and a files folder.
+    expect(compactRootView('modules', '#/modules/documents/herbal', 'search')).toBe('search');
+    expect(compactRootView('modules', '#/modules/documents/herbal?action=calm', 'search')).toBe(
+      'search',
+    );
+    expect(compactRootView('modules', '#/modules/documents/herbal', 'notes')).toBe('notes');
+    expect(compactRootView('modules', '#/modules/documents/herbal')).toBe('notes');
+    expect(herbalBookOrigin('#/search', '#/modules/documents/herbal', undefined)).toBe('search');
+    expect(herbalBookOrigin('#/modules/documents', '#/modules/documents/herbal', undefined)).toBe(
+      'notes',
+    );
+    expect(
+      herbalBookOrigin(
+        '#/modules/documents/herbal',
+        '#/modules/documents/herbal?action=calm',
+        'search',
+      ),
+    ).toBe('search');
+    expect(herbalBookOrigin('#/modules/documents/herbal', '#/search', 'search')).toBeUndefined();
   });
 
   it('keeps official document reads on search when no trail is stored', () => {

@@ -1,7 +1,11 @@
+import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
-
 import type { SearchCatalogSection } from '@/features/search/searchCatalog';
-import { formatSectionCount, sectionsOverviewRows } from '@/features/search/sections-overview';
+import {
+  formatSectionCount,
+  sectionShortcutRows,
+  sectionsOverviewRows,
+} from '@/features/search/sections-overview';
 
 const forms = ['рекомендация', 'рекомендации', 'рекомендаций'] as const;
 
@@ -53,5 +57,41 @@ describe('sections overview', () => {
       }),
       expect.objectContaining({ id: 'legal', countLabel: '0 документов', empty: true }),
     ]);
+  });
+
+  it('lists «Травник» with its plant count once the release offers the herbal book', () => {
+    const herbal = (releaseState: string) =>
+      ({
+        id: 'minimed.reference.herbal',
+        releaseState,
+        sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+        artifacts: [
+          {
+            id: 'index',
+            kind: 'index',
+            required: true,
+            url: 'https://example.test/herbal.db.gz',
+            sha256: `sha256:${'b'.repeat(64)}`,
+            compression: 'none',
+            sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+          },
+        ],
+        documents: [
+          { documentId: 'herbal.plant.matricaria' },
+          { documentId: 'herbal.plant.salvia' },
+          { documentId: 'herbal.guide.infusions' },
+        ],
+      }) as unknown as ContentModuleCatalogEntry;
+    expect(sectionShortcutRows([herbal('published')])).toEqual([
+      {
+        id: 'herbal',
+        label: 'Травник',
+        icon: 'leaf',
+        countLabel: '2 растения',
+        href: '#/modules/documents/herbal',
+      },
+    ]);
+    expect(sectionShortcutRows([])).toEqual([]);
+    expect(sectionShortcutRows([herbal('planned')])).toEqual([]);
   });
 });

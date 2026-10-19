@@ -81,6 +81,12 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
   (`ForegroundContentModuleInstaller.prioritize`, driven by `BrowserModuleRuntime` from the queue).
   No library: the shared queue already admits every transfer. Priority is not persisted across a
   reload. Verified in the dev app (Травник jumped ahead; Лекарства held at 26 % and resumed from it).
+- **Follow-up (same day).** The «Скачать всё» sheet names both sizes («Скачается 1,5 ГБ, после
+  распаковки на устройстве — 6,6 ГБ»). «Травник» is a row of the search home «Разделы» (a shortcut
+  to the book, `sectionShortcutRows`, shown once the release offers it); the book keeps the bar tab it
+  was entered from (`herbalBookOrigin`, read from the addresses), «Поиск» or «Мои файлы».
+  `module-queue-reload.test.ts` waits until the stalled streams really stall before pausing (it failed
+  once under full-suite load when a stream had not yet sent its chunks).
 
 ## Herbal book «Травник» pilot — 2026-10-19 (STATE HERB1)
 
@@ -90,7 +96,7 @@ hand. EMA limits and doses are Russian structured fields with the English quote 
 Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-plan-2026-10-18.md).
 
 - **Modules** (2026.10.19, `minAppVersion` 0.6.61, preview, experimental + requires-review):
-  `minimed.reference.herbal` «Травник» — 30 plant chapters + ГФ XV «Настои и отвары», 495 chunks, 3.0 MB
+  `minimed.reference.herbal` «Травник» — 30 plant chapters (36 since the second wave) + ГФ XV «Настои и отвары», 495 chunks, 3.0 MB
   index, 1.0 MB gzip; `minimed.reference.herbal.plates` «Травник: иллюстрации» — 30 plates (≤1200 px JPEG
   q85) in one STORED source-assets ZIP, 7.0 MB, plus a 19 KB credits index. Both committed under
   `apps/app/public/content/modules/`. «Скачать всё» leaves the plates out (image pack rule). Built by
@@ -170,6 +176,21 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   tormentil, corn, viola, eucalyptus, birch, calendula, motherwort, celandine) and get no warning. Not used:
   the НФаУ bearberry row (both columns carry the same text) and the multi-column СибГМУ tables whose text
   interleaves. Text module `2026.10.19-id2`; e2e opens horsetail and checks chamomile's look-alikes.
+
+- **Second wave 2026-10-19** (HERB1-W2, owner request «add more»): 36 plants. Added where a local
+  ГРЛС raw-material text and an EMA monograph of the same species and part exist: алтей (корни),
+  пастушья сумка, горец птичий (спорыш), ортосифон (почечный чай), тыква (семена) and чабрец (тимьян
+  ползучий; EMA covers T. vulgaris/T. zygis, shown as a different species like eucalyptus). Pumpkin
+  has only an amendment notice in ГРЛС, so its chapter is EMA-only (as viola). EMA files written by
+  three Sonnet agents, quote-checked, then read fact by fact (two constituent evidence levels and one
+  4.4 warning filed as an interaction corrected). New plate books: Curtis's Botanical Magazine 1870
+  (ortosiphon) and Vietz 1804 (pumpkin); ГФ definitions opening «Зрелые …» are parsed. No look-alikes
+  for the six in either manual. Dropped: ispaghula husk (EMA monograph exists, but no ГФ raw-material
+  article and no plate of the species). Text module `2026.10.19-w2` (1.4 MB gzip), plates
+  `2026.10.19-w2` (8.1 MB). Not done: ~14 plants with a ГРЛС text but no EMA document (шиповник,
+  череда, душица, брусника, мать-и-мачеха, пижма, …) and ~10 EMA plants whose ГРЛС instructions are
+  not downloaded yet (бузина, тмин, бессмертник, эхинацея, черника, элеутерококк, …; ГРЛС fetch needs
+  the Russian TLS root in a container).
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

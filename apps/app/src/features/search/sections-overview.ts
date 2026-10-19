@@ -1,4 +1,8 @@
+import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 import type { AppGlyphName } from '@/components/AppGlyph';
+import { HERBAL_MODULE_ID, herbalPlantCountLabel } from '@/features/herbal/herbal-chapter';
+import { HERBAL_BOOK_HASH } from '@/features/herbal/herbal-routing';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SearchCatalogSection } from '@/features/search/searchCatalog';
 import { formatCount } from '@/i18n/format-count';
@@ -41,4 +45,35 @@ export function sectionsOverviewRows(
       },
     ];
   });
+}
+
+/** A book of the knowledge base listed with the sections: it opens its own page, not a search scope. */
+export interface SectionShortcutRow {
+  readonly id: string;
+  readonly label: string;
+  readonly icon: AppGlyphName;
+  readonly countLabel: string;
+  readonly href: string;
+}
+
+/**
+ * «Травник» (owner 2026-10-19): the herbal book next to the search sections, with its plant count,
+ * once the release offers it. The book itself offers the download, so it is never locked.
+ */
+export function sectionShortcutRows(
+  modules: readonly ContentModuleCatalogEntry[],
+): readonly SectionShortcutRow[] {
+  const herbal = modules.filter(
+    (module) => module.id === HERBAL_MODULE_ID && isModuleReleased(module),
+  );
+  if (herbal.length === 0) return [];
+  return [
+    {
+      id: 'herbal',
+      label: 'Травник',
+      icon: 'leaf',
+      countLabel: herbalPlantCountLabel(herbal) ?? '',
+      href: HERBAL_BOOK_HASH,
+    },
+  ];
 }

@@ -4,7 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SectionWaitMark } from '@/features/search/search-section-gate';
-import type { SectionOverviewRow } from '@/features/search/sections-overview';
+import type { SectionOverviewRow, SectionShortcutRow } from '@/features/search/sections-overview';
 
 import './search-sections.css';
 
@@ -16,6 +16,8 @@ import './search-sections.css';
  */
 export function SearchSectionsOverview(props: {
   readonly rows: readonly SectionOverviewRow[];
+  /** Books that open their own page (the herbal book), listed after the sections. */
+  readonly shortcuts?: readonly SectionShortcutRow[];
   /** Whether a section waits for the core and cannot open yet. */
   readonly locked: (scope: SearchScope) => boolean;
   /** The mark of the waiting rows: the core's real download share, or a still or turning mark. */
@@ -63,6 +65,24 @@ export function SearchSectionsOverview(props: {
                   />
                 </Show>
               </button>
+            </li>
+          )}
+        </For>
+        <For each={props.shortcuts ?? []}>
+          {(row) => (
+            <li class="search-sections__item">
+              <a
+                class="search-sections__row"
+                href={row.href}
+                data-testid={`search-shortcut-${row.id}`}
+              >
+                <span class="search-sections__icon-frame">
+                  <AppGlyph name={row.icon} class="search-sections__icon" />
+                </span>
+                <span class="search-sections__name">{row.label}</span>
+                <span class="search-sections__count">{row.countLabel}</span>
+                <AppGlyph name="caret-right" class="search-sections__caret" />
+              </a>
             </li>
           )}
         </For>

@@ -171,6 +171,8 @@ describe('pause → reload → resume of a multi-module download queue', () => {
   let stallActive = true;
   let releaseStall: () => void = () => undefined;
   let stalled: Promise<void>;
+  /** Stalled modules whose stream has sent its three chunks and now waits: their bytes are saved. */
+  const reachedStall = new Set<number>();
   let generation = 0;
   let validationStall = false;
   /** Modules whose first transfer dies with the browser's «file could not be read» after two chunks. */
@@ -200,6 +202,7 @@ describe('pause → reload → resume of a multi-module download queue', () => {
           return;
         }
         if (stallActive && STALLED.has(index) && start === 0 && sent >= 3 * CHUNK) {
+          reachedStall.add(index);
           await Promise.race([
             stalled,
             new Promise<void>((resolve) =>
@@ -243,6 +246,7 @@ describe('pause → reload → resume of a multi-module download queue', () => {
   beforeEach(() => {
     vi.resetModules();
     requests.length = 0;
+    reachedStall.clear();
     stallActive = true;
     stalled = new Promise<void>((resolve) => {
       releaseStall = resolve;
@@ -309,11 +313,13 @@ describe('pause → reload → resume of a multi-module download queue', () => {
     const first = await boot();
     // «Скачать всё»: every module is queued, three at a time are moving.
     void first.operations.installPublishedCategoryModules(first.runtime, modules(), new Set());
-    // Modules 0-5 finish; 6, 7 and 8 stall mid-stream with three chunks received.
+    // Modules 0-5 finish; 6, 7 and 8 stall mid-stream with three chunks received. Waiting for the
+    // stall itself, not only for the request: under load a stream may not have sent its chunks yet.
     await vi.waitFor(
       () => {
         expect(first.runtime.listInstalled().length).toBe(6);
         expect(requests.filter((request) => STALLED.has(request.index))).toHaveLength(3);
+        expect(reachedStall.size).toBe(3);
       },
       { timeout: 15_000 },
     );

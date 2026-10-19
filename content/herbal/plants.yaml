@@ -286,3 +286,57 @@ plants:
     ema: { page: https://www.ema.europa.eu/en/medicines/herbal/chelidonii-herba }
     plate: { book: kohler, file: "File:Chelidonium majus - Köhler–s Medizinal-Pflanzen-033.jpg" }
     gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/ }
+  - id: althaea-officinalis
+    ru: Алтей лекарственный
+    latin: Althaea officinalis L.
+    family: Malvaceae
+    part: { ru: корни, la: radix }
+    grls: { inn: [алтея корни, алтея лекарственного корни] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/althaeae-radix }
+    plate: { book: kohler, file: "File:Althaea officinalis - Köhler–s Medizinal-Pflanzen-008.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/alteya-korni/ }
+  - id: capsella-bursa-pastoris
+    ru: Пастушья сумка обыкновенная
+    latin: Capsella bursa-pastoris (L.) Medik.
+    family: Brassicaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [пастушьей сумки трава, пастушьей сумки обыкновенной трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/bursae-pastoris-herba }
+    plate: { book: sturm, file: "File:Capsella bursa-pastoris Sturm23.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/pastushey-sumki-obyknovennoy-trava/ }
+  - id: polygonum-aviculare
+    ru: Горец птичий (спорыш)
+    latin: Polygonum aviculare L.
+    family: Polygonaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [горца птичьего трава, горца птичьего (спорыша) трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/polygoni-avicularis-herba }
+    plate: { book: sturm, file: "File:Polygonum aviculare Sturm63.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/gortsa-ptichego-sporysha-trava/ }
+  - id: orthosiphon-aristatus
+    ru: Ортосифон тычиночный (почечный чай)
+    latin: Orthosiphon aristatus (Blume) Miq.
+    family: Lamiaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [ортосифона тычиночного листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/orthosiphonis-folium }
+    plate: { book: curtis, file: "File:Orthosiphon stamineus.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/ortosifona-tychinochnogo-pochechnogo-chaya-listya/ }
+  - id: cucurbita-pepo
+    ru: Тыква обыкновенная
+    latin: Cucurbita pepo L.
+    family: Cucurbitaceae
+    part: { ru: семена, la: semen }
+    grls: { inn: [тыквы семена, тыквы обыкновенной семена] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/cucurbitae-semen }
+    plate: { book: vietz, file: "File:Icones plantarum medico-oeconomico-technologicarum cum earum fructus ususque descriptione = (Tab. 148) (8096991138).jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/tykvy-semena/ }
+  - id: thymus-serpyllum
+    ru: Тимьян ползучий (чабрец)
+    latin: Thymus serpyllum L.
+    family: Lamiaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [тимьяна ползучего трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba, species: "Thymus vulgaris L., Thymus zygis L." }
+    plate: { book: kohler, file: "File:Thymus serpyllum - Köhler–s Medizinal-Pflanzen-138.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/chabretsa-trava/ }

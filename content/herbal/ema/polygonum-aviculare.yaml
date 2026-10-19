@@ -1,0 +1,175 @@
+# EMA/HMPC facts for Горец птичий, спорыш (трава). Draft artifact (status: proposed): Russian
+# fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
+# The monograph is traditional use only; its three indications are numbered 1)–3) in the source.
+plant: polygonum-aviculare
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Показание 1 — облегчение симптомов простуды
+    doc: monograph
+    page: 3
+    quote: Indication 1) Traditional herbal medicinal product used for the relief of symptoms of common cold.
+  - kind: indication
+    ru: Показание 2 — симптоматическое лечение небольших воспалений во рту или горле
+    doc: monograph
+    page: 4
+    quote: Indication 2) Traditional herbal medicinal product used for symptomatic treatment of minor inflammations in the mouth or the throat.
+  - kind: indication
+    ru: Показание 3 — увеличение количества мочи для промывания мочевых путей как вспомогательное средство при небольших мочевых жалобах
+    doc: monograph
+    page: 4
+    quote: Indication 3) Traditional herbal medicinal product used to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
+  - kind: posology
+    ru: "Показание 1 — чай: 1,5–2 г измельчённой травы на 150 мл кипятка в виде настоя 3–4 раза в день; суточная доза 4,5–8 г"
+    doc: monograph
+    page: 4
+    quote: "Adolescents, adults and elderly Indication 1) Single dose: Herbal tea: 1.5-2 g of the comminuted herbal substance in 150 mL of boiling water as a herbal infusion 3-4 times daily. Daily dose: 4.5-8 g"
+    dose: { preparationRu: чай (настой), amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — отвар для применения на слизистую рта: 1,5 г измельчённой травы в 200–250 мл воды 4–5 раз в день для полоскания рта и горла; суточная доза 6–7,5 г"
+    doc: monograph
+    page: 4
+    quote: "Indication 2) Single dose: Comminuted herbal substance for decoction preparation for oromucosal use: 1.5 g of the comminuted herbal substance in 200-250 mL of water 4-5 times daily for gargling of the mouth and throat. Daily dose: 6-7.5 g"
+    dose: { preparationRu: отвар для полоскания рта и горла, amount: "1.5", unit: г, waterMl: "200-250", timesPerDay: "4-5", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 3 — чай: 3 г измельчённой травы в 200 мл воды в виде отвара 2 раза в день; суточная доза 6 г"
+    doc: monograph
+    page: 4
+    quote: "Indication 3) Single dose: Herbal tea: 3 g of the comminuted herbal substance in 200 mL of water as a decoction 2 times daily. Daily dose: 6 g"
+    dose: { preparationRu: чай (отвар), amount: "3", unit: г, waterMl: "200", timesPerDay: "2", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Показания 1 и 3 — приём внутрь; показание 2 — применение на слизистую оболочку рта
+    doc: monograph
+    page: 5
+    quote: "Method of administration Indication 1) and 3) Oral use Indication 2) Oromucosal use"
+  - kind: age
+    ru: Показания 1, 2 и 3 — детям до 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: Indication 1), 2) and 3) The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: age
+    ru: Показания 1, 2 и 3 — применение у детей до 12 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 5
+    quote: Indication 1), 2) and 3) The use in children under 12 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 144
+  - kind: duration
+    ru: Показания 1 и 2 — если симптомы сохраняются дольше 1 недели, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: Indication 1) and 2) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: duration
+    ru: Показание 3 — если симптомы сохраняются дольше 2 недель, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: Indication 3) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance(s).
+  - kind: contraindication
+    ru: Показание 3 — состояния, при которых рекомендуется ограничить приём жидкости (например, тяжёлые болезни сердца)
+    doc: monograph
+    page: 5
+    quote: "Indication 3) Conditions where reduced fluid intake is recommended (e.g. severe cardiac diseases)."
+  - kind: warning
+    ru: Показания 1 и 2 — если симптомы ухудшаются, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: Indication 1), 2) If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Показание 3 — если появляются жалобы или симптомы вроде лихорадки, болезненного мочеиспускания, спазмов или крови в моче, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: "Indication 3) If complaints of symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted."
+  - kind: posology
+    ru: Показание 3 — чтобы количество мочи увеличилось, во время лечения нужно достаточное питьё
+    doc: monograph
+    page: 6
+    quote: "Indication 3) If complaints of symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted. To ensure an increase of the amount of urine, adequate fluid intake is required during treatment."
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о влиянии на фертильность нет
+    doc: monograph
+    page: 6
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 6
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
+    doc: monograph
+    page: 7
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: flavonoids (avicularin)
+    compoundRu: флавоноиды (авикулярин)
+    classRu: флавоноиды
+    effectRu: флавоноиды составляют 0,1–1% травы (редко 2,5–3%), в основном производные кемпферола, кверцетина и мирицетина, прежде всего авикулярин (около 0,2%)
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "Flavonoids (0.1-1%; rarely 2.5-3%): derivatives of kaempferol, quercetin and myricetin, particularly avicularin (quercetin-3-O-arabinoside approximately 0.2%)"
+  - compound: tannins
+    compoundRu: дубильные вещества
+    classRu: танины
+    effectRu: содержание 3,5–4% (ратаннин, галло- и катехиновые дубильные вещества)
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "Tannins (3.5-4%): rhatannin, gallo- and catechol tannins"
+  - compound: phenolics and flavonoids
+    compoundRu: фенольные соединения и флавоноиды
+    classRu: полифенолы
+    effectRu: в нескольких исследованиях указано, что высокое содержание фенольных соединений и флавоноидов отвечает за большинство важных фармакологических эффектов травы
+    evidence: review
+    doc: assessment-report
+    page: 22
+    quote: It has been pointed out in the several studies that the high phenolics and flavonoid content present in the leaves and stem of the Polygonum aviculare L. is responsible for the most of important pharmacological effects of Polygonum aviculare L., herba.
+  - compound: flavonol glucuronides
+    compoundRu: флавонолглюкурониды
+    classRu: флавоноиды
+    effectRu: все изученные флавонолглюкурониды, кроме двух, при 1 мкМ значимо снижали высвобождение эластазы нейтрофилами по сравнению со стимулированным контролем
+    evidence: in-vitro
+    doc: assessment-report
+    page: 16
+    quote: "All compounds with exception of kaempferol 3-O-β-D-glucuronide and quercetin 3-O-β-(2″-O-acetyl-β-D-glucuronide) at 1 μM concentration significantly decreased the release of elastase by neutrophils compared to stimulated control."
+  - compound: avicularin
+    compoundRu: авикулярин
+    classRu: флавоноид (гликозид кверцетина)
+    effectRu: после однократного внутривенного введения крысам наибольшие концентрации авикулярина были в почках и мочевом пузыре
+    evidence: animal
+    doc: assessment-report
+    page: 22
+    quote: "Tissue (heart, liver, spleen, lung, kidney and bladder) distribution of avicularin isolated from Polygoni avicularis herba after a single i.v. administration in rat was measured by HPLC method. The concentration of avicularin in above mentioned tissues showed significant diversity within 60 minutes. Determination of avicularin indicated that kidney and bladder showed the highest concentrations of this compound"

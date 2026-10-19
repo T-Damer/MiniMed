@@ -1,0 +1,275 @@
+# EMA/HMPC facts for Алтей лекарственный (корни). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: althaea-officinalis
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Обволакивающее средство для симптоматического лечения раздражения полости рта или глотки и связанного с ним сухого кашля
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used as a demulcent preparation for the symptomatic treatment of oral or pharyngeal irritation and associated dry cough.
+  - kind: indication
+    ru: Обволакивающее средство для симптоматического облегчения лёгкого дискомфорта в ЖКТ
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used as a demulcent preparation for the symptomatic relief of mild gastrointestinal discomfort.
+  # a) comminuted root, indication 1 (oral/pharyngeal irritation, dry cough)
+  - kind: posology
+    ru: Измельчённый корень в воде (мацерат) при раздражении рта и глотки и сухом кашле — дети 3–5 лет, 0,5–1,0 г на 150 мл воды 3 раза в день, суточная доза 1,5–3,0 г
+    doc: monograph
+    page: 4
+    quote: "Indication 1) Children 3-5 years of age 0.5–1.0 g of the comminuted herbal substance in 150 ml of water as a macerate 3 times daily Daily dose: 1.5–3.0 g"
+    dose: { preparationRu: измельчённый корень в воде (мацерат), amount: "0.5-1.0", unit: г, waterMl: "150", timesPerDay: "3", populationRu: дети 3–5 лет }
+  - kind: posology
+    ru: Измельчённый корень в воде (мацерат) при раздражении рта и глотки и сухом кашле — дети 6–11 лет, 0,5–1,5 г на 150 мл воды 3 раза в день, суточная доза 1,5–4,5 г
+    doc: monograph
+    page: 4
+    quote: "Indication 1) Children 3-5 years of age 0.5–1.0 g of the comminuted herbal substance in 150 ml of water as a macerate 3 times daily Daily dose: 1.5–3.0 g Children 6-11 years of age 0.5–1.5 g of the comminuted herbal substance in 150 ml of water as a macerate 3 times daily Daily dose: 1.5–4.5 g"
+    dose: { preparationRu: измельчённый корень в воде (мацерат), amount: "0.5-1.5", unit: г, waterMl: "150", timesPerDay: "3", populationRu: дети 6–11 лет }
+  - kind: posology
+    ru: Измельчённый корень в воде (мацерат) — подростки, взрослые и пожилые, 0,5–3 г на 150 мл воды несколько раз в день; максимальная суточная доза 15 г
+    doc: monograph
+    page: 4
+    quote: "Adolescents, adults and elderly 0.5-3 g of the comminuted herbal substance in 150 ml of water as a macerate several times daily Maximum daily dose: 15 g"
+    dose: { preparationRu: измельчённый корень в воде (мацерат), amount: "0.5-3", unit: г, waterMl: "150", timesPerDay: несколько, populationRu: "подростки, взрослые и пожилые" }
+  # a) comminuted root, indication 2 (mild GI discomfort)
+  - kind: posology
+    ru: Чай (мацерат) из измельчённого корня при лёгком дискомфорте в ЖКТ — подростки, взрослые и пожилые; максимальная суточная доза 15 г
+    doc: monograph
+    page: 5
+    quote: "Indication 2) Adolescents, adults and elderly Herbal tea: 2-5 g of the comminuted herbal substance in 150 ml of water as a macerate 3 times daily Maximum daily dose: 15 g"
+    dose: { preparationRu: чай (мацерат) из измельчённого корня, amount: "2-5", unit: г, waterMl: "150", timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  # b) liquid extract DER 1:19.5-23.5, indication 1
+  - kind: posology
+    ru: Жидкий экстракт (DER 1:19,5–23,5) при раздражении рта и глотки и сухом кашле — дети 3–5 лет, разовая доза 1,9 г 4 раза в день, суточная 7,6 г
+    doc: monograph
+    page: 5
+    quote: "b) Liquid extract (DER 1:19.5-23.5) Indication 1) Children 3-5 years of age Single dose: 1.9 g 4 times daily Daily dose: 7.6 g"
+    dose: { preparationRu: "жидкий экстракт (DER 1:19.5-23.5)", amount: "1.9", unit: г, timesPerDay: "4", populationRu: дети 3–5 лет }
+  - kind: posology
+    ru: Жидкий экстракт (препарат b)) — дети 6–11 лет, разовая доза 2,3 г 5 раз в день, суточная 11,5 г
+    doc: monograph
+    page: 5
+    quote: "Children 6-11 years of age Single dose: 2.3 g 5 times daily Daily dose: 11.5 g"
+    dose: { preparationRu: "жидкий экстракт (DER 1:19.5-23.5)", amount: "2.3", unit: г, timesPerDay: "5", populationRu: дети 6–11 лет }
+  - kind: posology
+    ru: Жидкий экстракт (препарат b)) — подростки, взрослые и пожилые, разовая доза 4,6 г 3–6 раз в день, суточная 13,8–27,6 г
+    doc: monograph
+    page: 5
+    quote: "Adolescents, adults and elderly Single dose: 4.6 g 3–6 times daily Daily dose: 13.8–27.6 g"
+    dose: { preparationRu: "жидкий экстракт (DER 1:19.5-23.5)", amount: "4.6", unit: г, timesPerDay: "3-6", populationRu: "подростки, взрослые и пожилые" }
+  # c) macerate for syrup, indication 1
+  - kind: posology
+    ru: Мацерат для сиропа при раздражении рта и глотки и сухом кашле — дети 3–5 лет, разовая доза соответствует 0,1–0,29 г сырья (5 мл сиропа) до 4 раз в день
+    doc: monograph
+    page: 5
+    quote: "c) Macerate for preparation of syrup Indication 1) Children 3-5 years of age Single dose: macerate amount corresponding to 0.1 to 0.29 g of the herbal substance (5 ml of syrup) up to 4 times daily"
+    dose: { preparationRu: мацерат для сиропа, amount: "0.1-0.29", unit: "г сырья в мацерате", timesPerDay: "до 4", populationRu: дети 3–5 лет }
+  - kind: posology
+    ru: Мацерат — дети 3–5 лет, суточная доза соответствует 0,21–1,16 г сырья (10–20 мл сиропа)
+    doc: monograph
+    page: 5
+    quote: "Children 3-5 years of age Single dose: macerate amount corresponding to 0.1 to 0.29 g of the herbal substance (5 ml of syrup) up to 4 times daily Daily dose: macerate amount corresponding to 0.21 to 1.16 g of herbal substance (10–20 ml of syrup)"
+  - kind: posology
+    ru: Мацерат для сиропа — дети 6–11 лет, разовая доза соответствует 0,1–0,29 г сырья (5 мл сиропа) 3–5 раз в день, суточная — 0,32–1,45 г (15–25 мл сиропа)
+    doc: monograph
+    page: 6
+    quote: "Children 6-11 years of age Single dose: macerate amount corresponding to 0.1 to 0.29 g of the herbal substance (5 ml of syrup) 3-5 times daily Daily dose: macerate amount corresponding to 0.32 to 1.45 g of the herbal substance (15–25 ml of syrup)"
+    dose: { preparationRu: мацерат для сиропа, amount: "0.1-0.29", unit: "г сырья в мацерате", timesPerDay: "3-5", populationRu: дети 6–11 лет }
+  - kind: posology
+    ru: Мацерат для сиропа — подростки, взрослые и пожилые, разовая доза соответствует 0,21–0,87 г сырья (10–15 мл сиропа) 3–5 раз в день, суточная — 0,63–2,9 г (30–50 мл сиропа)
+    doc: monograph
+    page: 6
+    quote: "Adolescents, adults and elderly Single dose: macerate amount corresponding to 0.21 to 0.87 g of the herbal substance (10–15 ml of syrup) 3–5 times daily Daily dose: macerate amount corresponding to 0.63 to 2.9 g of the herbal substance (30–50 ml of syrup)"
+    dose: { preparationRu: мацерат для сиропа, amount: "0.21-0.87", unit: "г сырья в мацерате", timesPerDay: "3-5", populationRu: "подростки, взрослые и пожилые" }
+  # d) dry extract DER 3-9:1, indication 1
+  - kind: posology
+    ru: Сухой экстракт (DER 3–9:1) при раздражении рта и глотки и сухом кашле — дети 3–5 лет, разовая доза соответствует 0,5–1 г сырья 3 раза в день, суточная — 1,5–3 г
+    doc: monograph
+    page: 6
+    quote: "d) Dry extract (DER 3-9:1) Indication 1) Children 3-5 years of age Single dose: extract amount corresponding to 0.5–1 g of herbal substance, 3 times daily Daily dose: extract amount corresponding to 1.5–3 g of herbal substance"
+    dose: { preparationRu: "сухой экстракт (DER 3-9:1)", amount: "0.5-1", unit: "г сырья в экстракте", timesPerDay: "3", populationRu: дети 3–5 лет }
+  - kind: posology
+    ru: Сухой экстракт (препарат d)) — дети 6–11 лет, разовая доза соответствует 0,5–1,5 г сырья 3 раза в день, суточная — 1,5–4,5 г
+    doc: monograph
+    page: 6
+    quote: "Children 6-11 years of age Single dose: extract amount corresponding to 0.5–1.5 g of herbal substance, 3 times daily Daily dose: extract amount corresponding to 1.5–4.5 g of herbal substance"
+    dose: { preparationRu: "сухой экстракт (DER 3-9:1)", amount: "0.5-1.5", unit: "г сырья в экстракте", timesPerDay: "3", populationRu: дети 6–11 лет }
+  - kind: posology
+    ru: Сухой экстракт (препарат d)) — подростки, взрослые и пожилые, разовая доза соответствует 0,5–3 г сырья несколько раз в день; максимальная суточная доза — экстракт, соответствующий 15 г сырья
+    doc: monograph
+    page: 6
+    quote: "Adolescents, adults and elderly Single dose: extract amount corresponding to 0.5–3 g of herbal substance, several times daily Maximum daily dose: extract amount corresponding to 15 g of herbal substance"
+    dose: { preparationRu: "сухой экстракт (DER 3-9:1)", amount: "0.5-3", unit: "г сырья в экстракте", timesPerDay: несколько, populationRu: "подростки, взрослые и пожилые" }
+  # e) liquid extract DER 1:1, ethanol 25 %, indications 1 and 2
+  - kind: posology
+    ru: Жидкий экстракт (DER 1:1) при обоих показаниях — взрослые и пожилые, разовая доза 2–5 мл 3 раза в день, суточная 6–15 мл
+    doc: monograph
+    page: 7
+    quote: "e) Liquid extract (DER 1:1) Indication 1) and 2) Adults and elderly Single dose: 2–5 ml 3 times daily Daily dose: 6–15 ml"
+    dose: { preparationRu: "жидкий экстракт (DER 1:1)", amount: "2-5", unit: мл, timesPerDay: "3", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: Раздражение рта и глотки с сухим кашлем — приём внутрь или на слизистую рта; лёгкий дискомфорт в ЖКТ — внутрь
+    doc: monograph
+    page: 7
+    quote: "Method of administration Indication 1) Oral or oromucosal use Indication 2) Oral use"
+  - kind: posology
+    ru: Мацерат использовать сразу после приготовления
+    doc: monograph
+    page: 7
+    quote: The macerate should be used immediately after preparation.
+  # ages
+  - kind: age
+    ru: "Препараты a)–d): детям до 3 лет не рекомендуется — из-за опасений, требующих медицинской консультации"
+    doc: monograph
+    page: 8
+    quote: "Preparations a), b), c) and d) The use in children under 3 years of age is not recommended because of concerns requiring medical advice."
+    minAgeMonths: 36
+  - kind: age
+    ru: "Препараты a)–d): твёрдые лекарственные формы детям до 6 лет не рекомендуются — из-за лекарственной формы"
+    doc: monograph
+    page: 8
+    quote: "Preparations a), b), c) and d) The use in children under 3 years of age is not recommended because of concerns requiring medical advice. The use of the solid dosage form in children under 6 years of age is not recommended because of the pharmaceutical form."
+    minAgeMonths: 72
+  - kind: age
+    ru: Чай из корня при лёгком дискомфорте в ЖКТ — детям до 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: "Indication 2) Adolescents, adults and elderly Herbal tea: 2-5 g of the comminuted herbal substance in 150 ml of water as a macerate 3 times daily Maximum daily dose: 15 g The use in children under 12 years of age is not recommended"
+    minAgeMonths: 144
+  - kind: age
+    ru: "При лёгком дискомфорте в ЖКТ, препарат a): применение у детей до 12 лет не установлено — данных недостаточно"
+    doc: monograph
+    page: 8
+    quote: "Indication 2) Preparation a) The use in children under 12 years of age has not been established due to lack of adequate data."
+  - kind: age
+    ru: Жидкий экстракт (DER 1:1) — детям и подросткам до 18 лет не рекомендуется
+    doc: monograph
+    page: 7
+    quote: "e) Liquid extract (DER 1:1) Indication 1) and 2) Adults and elderly Single dose: 2–5 ml 3 times daily Daily dose: 6–15 ml The use in children and adolescents under 18 years of age is not recommended"
+    minAgeMonths: 216
+  - kind: age
+    ru: "Препарат e): применение у детей и подростков до 18 лет не установлено — данных недостаточно"
+    doc: monograph
+    page: 8
+    quote: "Preparation e) The use in children and adolescents under 18 years of age has not been established due to lack of adequate data."
+  # duration
+  - kind: duration
+    ru: Раздражение рта и глотки с сухим кашлем — если симптомы сохраняются дольше 1 недели, обратиться к врачу или медработнику
+    doc: monograph
+    page: 7
+    quote: "Indication 1) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 7
+  - kind: duration
+    ru: Лёгкий дискомфорт в ЖКТ — если симптомы сохраняются дольше 2 недель, обратиться к врачу или медработнику
+    doc: monograph
+    page: 7
+    quote: "Indication 2) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 14
+  - kind: contraindication
+    ru: Гиперчувствительность к корню алтея
+    doc: monograph
+    page: 7
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Раздражение рта и глотки с сухим кашлем — при одышке, лихорадке или гнойной мокроте обратиться к врачу или медработнику
+    doc: monograph
+    page: 8
+    quote: "Indication 1) If dyspnoea, fever or purulent sputum occurs during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: При ухудшении симптомов — к врачу или медработнику
+    doc: monograph
+    page: 8
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Для экстрактов, содержащих этанол, на упаковке должно быть соответствующее указание об этаноле
+    doc: monograph
+    page: 8
+    quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 9
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: warning
+    ru: Всасывание одновременно принимаемых лекарств может замедляться; в качестве меры предосторожности препарат не следует принимать за ½–1 час до или после других лекарств
+    doc: monograph
+    page: 8
+    quote: Absorption of concomitantly administered medicines may be delayed. As a precautionary measure, the product should not be taken ½ to 1 hour before or after intake of other medicinal products.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 9
+    quote: "Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported"
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 9
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 9
+    quote: No fertility data available.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
+    doc: monograph
+    page: 9
+    quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 9
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
+    doc: monograph
+    page: 10
+    quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: mucilage polysaccharides
+    compoundRu: слизистые полисахариды
+    classRu: полисахариды (слизь)
+    effectRu: слизь 5–11,6 % (в зависимости от периода вегетации) — смесь коллоидно растворимых полисахаридов
+    evidence: review
+    doc: assessment-report
+    page: 6
+    quote: 5-11.6% mucilage (depending on vegetative period) – consisting of the mixture of colloidally soluble polysaccharides
+  - compound: polysaccharides from Althaea officinalis root
+    compoundRu: полисахариды корня алтея
+    classRu: полисахариды (слизь)
+    effectRu: очищенные полисахариды корня изучали на изолированных щёчных мембранах свиньи — они показали умеренную адгезию к эпителиальной ткани, эффект зависел от концентрации
+    evidence: in-vitro
+    doc: assessment-report
+    page: 24
+    quote: Purified polysaccharides (carbohydrates content >95%) from Althaea officinalis root were investigated for bioadhesive effect on isolated porcine buccal membranes. Polysaccharides from marshmallow root showed a moderate adhesion to epithelial tissue. The adhesive effect was concentration dependent.
+  - compound: rhamnogalacturonan
+    compoundRu: рамногалактуронан
+    classRu: полисахарид корня
+    effectRu: в опыте на морских свинках (внутрь; кашель вызывали аэрозолем лимонной кислоты) полисахарид дозозависимо подавлял кашлевой рефлекс у животных без сенсибилизации
+    evidence: animal
+    doc: assessment-report
+    page: 25
+    quote: Antitussive effect of the polysaccharide rhamnogalacturonan isolated from roots of Althaea officinalis (25 and 50 mg/kg bw administered orally) has been studied in an in vivo study with sensitised (ovalbumin) and unsensitised male guinea pigs. The cough of guinea pigs was induced by 0.3 M citric acid aerosol. The polysaccharide dose dependently inhibited cough reflex in unsensitised animals.
+  - compound: hypolaetin 8-glucoside
+    compoundRu: гиполаэтин-8-глюкозид
+    classRu: флавоноид
+    effectRu: в опыте на крысах (в/б) был сильнее фенилбутазона в подавлении острой фазы воспаления, но слабее действовал в затяжной фазе
+    evidence: animal
+    doc: assessment-report
+    page: 26
+    quote: Hypolaetin 8-glucoside has been tested for its anti-inflammatory, analgesic and anti-ulcer activity in rats. The flavonoid (30, 60 and 90 mg/kg i.p.) was more potent than phenylbutazone (30, 60 and 90 mg/kg i.p.) in suppressing the acute phase of adjuvant carrageenan-induced inflammation but had less effect in the prolonged inflammatory phase.
+  - compound: aqueous extract and polysaccharides of the root
+    compoundRu: водный экстракт и полисахариды корня
+    classRu: полисахариды
+    effectRu: по выводу авторов, экстракты и полисахариды корня — эффективные стимуляторы клеточной физиологии эпителиальных клеток
+    evidence: in-vitro
+    doc: assessment-report
+    page: 26
+    quote: The authors concluded that extracts and polysaccharides from the roots of A. officinalis are effective stimulators of cell physiology of epithelial cells

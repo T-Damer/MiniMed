@@ -156,6 +156,18 @@ function availableCount(catalog: ContentModuleCatalog): number {
   ).length;
 }
 
+/**
+ * The «Скачать всё» sheet names both sizes: the button shows what is transferred, and the
+ * unpacked bases take several times more on the device, so a single number looked like a mismatch.
+ */
+function bulkDownloadSheetText(
+  download: { readonly bytes: number; readonly incomplete: boolean },
+  storage: { readonly bytes: number; readonly incomplete: boolean },
+): string {
+  const from = (size: { readonly incomplete: boolean }): string => (size.incomplete ? 'от ' : '');
+  return `Скачается ${from(download)}${formatModuleBytes(download.bytes)}, после распаковки на устройстве — ${from(storage)}${formatModuleBytes(storage.bytes)}.`;
+}
+
 /** A section that only waits (queued or held by «Пауза») can be moved ahead: «Скачать сейчас». */
 function waitingCanRunNow(
   state: ModuleGroupTaskState,
@@ -2067,11 +2079,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <ConfirmationDialog
         open={pendingBulkDownload() !== null}
         title="Скачать всё"
-        description={
-          pendingStorage().incomplete
-            ? `Хотите скачать все пакеты знаний${catalogOverviewVisible() ? '' : ' этого раздела'}? Для пакетов с известным размером потребуется примерно ${formatModuleBytes(pendingStorage().bytes)} на вашем устройстве. Размер остальных пакетов пока не указан.`
-            : `Хотите скачать все пакеты знаний${catalogOverviewVisible() ? '' : ' этого раздела'}? Это займёт примерно ${formatModuleBytes(pendingStorage().bytes)} на вашем устройстве.`
-        }
+        description={bulkDownloadSheetText(
+          estimateDownloadSize(pendingBulkDownload() ?? []),
+          pendingStorage(),
+        )}
         confirmLabel="Скачать всё"
         onConfirm={() => {
           const modules = pendingBulkDownload();
