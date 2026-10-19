@@ -5,6 +5,10 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import {
+  canPrioritizeModules,
+  prioritizeModuleDownloads,
+} from '@/features/downloads/download-priority';
+import {
   isModuleDownloadBusy,
   moduleDownloadStatusLabel,
 } from '@/features/downloads/module-download-view';
@@ -59,6 +63,10 @@ export function ModuleDownloadOffer(props: ModuleDownloadOfferProps): JSX.Elemen
     return module !== undefined && isModuleReleased(module);
   };
   const busy = () => isModuleDownloadBusy(view());
+  // Re-read on every phase change: a waiting download can be moved ahead of the others.
+  const canRunNow = () =>
+    (view().phase === 'queued' || view().phase === 'paused') &&
+    canPrioritizeModules([props.moduleId]);
   const size = (): string => {
     const bytes = entry()?.sizes.downloadBytes;
     return typeof bytes === 'number' ? formatModuleBytes(bytes) : '';
@@ -103,40 +111,54 @@ export function ModuleDownloadOffer(props: ModuleDownloadOfferProps): JSX.Elemen
               when={busy() || !installer.failed()}
               fallback={<p class="module-offer__note">Каталог модулей не загрузился.</p>}
             >
-              <Button
-                type="button"
-                variant={props.variant ?? 'primary'}
-                class={`module-offer__button ${props.buttonClass ?? ''}`.trim()}
-                disabled={busy() || entry() === undefined}
-                data-testid={props.buttonTestId}
-                aria-label={props.ariaLabel}
-                icon={
-                  <Show
-                    when={busy()}
-                    fallback={
-                      <AppGlyph
-                        name={view().phase === 'failed' ? 'arrow-counter-clockwise' : 'download'}
-                      />
-                    }
-                  >
-                    <DownloadProgressMark
-                      state={
-                        view().phase === 'queued' || view().phase === 'paused'
-                          ? 'queued'
-                          : 'running'
+              <div class="module-offer__actions">
+                <Button
+                  type="button"
+                  variant={props.variant ?? 'primary'}
+                  class={`module-offer__button ${props.buttonClass ?? ''}`.trim()}
+                  disabled={busy() || entry() === undefined}
+                  data-testid={props.buttonTestId}
+                  aria-label={props.ariaLabel}
+                  icon={
+                    <Show
+                      when={busy()}
+                      fallback={
+                        <AppGlyph
+                          name={view().phase === 'failed' ? 'arrow-counter-clockwise' : 'download'}
+                        />
                       }
-                      progress={view().fraction}
-                      busy={view().fraction === null}
-                    />
-                  </Show>
-                }
-                onClick={() => {
-                  const module = entry();
-                  if (module && !busy()) void installer.start([module]);
-                }}
-              >
-                {label()}
-              </Button>
+                    >
+                      <DownloadProgressMark
+                        state={
+                          view().phase === 'queued' || view().phase === 'paused'
+                            ? 'queued'
+                            : 'running'
+                        }
+                        progress={view().fraction}
+                        busy={view().fraction === null}
+                      />
+                    </Show>
+                  }
+                  onClick={() => {
+                    const module = entry();
+                    if (module && !busy()) void installer.start([module]);
+                  }}
+                >
+                  {label()}
+                </Button>
+                <Show when={canRunNow()}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    class="module-offer__now"
+                    data-testid="module-offer-now"
+                    icon={<AppGlyph name="lightning" />}
+                    onClick={() => prioritizeModuleDownloads([props.moduleId])}
+                  >
+                    Скачать сейчас
+                  </Button>
+                </Show>
+              </div>
               <Show when={subtitle() !== ''}>
                 <span class="module-offer__subtitle">{subtitle()}</span>
               </Show>

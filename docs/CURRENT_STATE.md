@@ -61,6 +61,27 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
     be added later). Still no clinician sign-off.
 
+## Settings and download queue UI — 2026-10-19 (owner screenshots)
+
+- **«Профиль врача»** (Settings → Основные): the «?» sits inline after the label, the specialties
+  (or «пока пуст») are the helper line under it, «Сбросить» is the row's action.
+- **«Скачать всё»** in «База знаний» is a plain button under the page description that opens the
+  existing confirmation sheet; it no longer sits in the sticky search toolbar (it shifted the field).
+- **Compact bar:** every «База знаний» route (`view === 'modules'`) lights «Мои файлы», since the
+  knowledge base is a folder there (`compactRootView`).
+- **Bottom bar:** no controls above «Настройки» any more (download pie, pause badge and the update
+  hint removed, `ContentDownloadNavIndicator` deleted); downloads live in Settings → Загрузки and on
+  the cards, a waiting update is the dot on the tab.
+- **Queue icon and «Скачать сейчас».** A waiting download shows Phosphor `queue` instead of a clock.
+  «Скачать сейчас» (⚡ on a Загрузки row, a button next to a module offer, tapping a queued section
+  or document button in the catalog) calls `DownloadQueue.prioritize(ids)`: the chosen module
+  downloads run first, even while the queue is paused; other module transfers are interrupted like a
+  pause (bytes kept) and resume in their previous order when the last chosen one ends. The module
+  installer gives a prioritized task that still waits for an install slot one at once
+  (`ForegroundContentModuleInstaller.prioritize`, driven by `BrowserModuleRuntime` from the queue).
+  No library: the shared queue already admits every transfer. Priority is not persisted across a
+  reload. Verified in the dev app (Травник jumped ahead; Лекарства held at 26 % and resumed from it).
+
 ## Herbal book «Травник» pilot — 2026-10-19 (STATE HERB1)
 
 Owner request 2026-10-18: a downloadable herbal book with pictures — effects and the components behind
@@ -336,9 +357,8 @@ From `docs/research/qa-release-0660-2026-10-15.md` items 2, 7, 9, 10, 14 (pill) 
   into two text nodes, which a text-node highlight selection could not find); the drug
   suggestion lists, chosen items, the «Назначение» item title and the checker suggestion card use it. The candidate lists and
   their parents have `minmax(0, 1fr)` tracks, so a long row no longer widens the page and clips the header buttons.
-- **Update button (item 14).** The pill that floated over content above «Настройки» is a round button in the bar's own row,
-  left of it; a bar that fills the width (`html[data-nav-crowded='1']`, set by `watchNavCrowding`) puts it above the bar's left end,
-  as the scroll-to-top tool stands above its right end.
+- **Update button (item 14).** Superseded 2026-10-19: nothing floats beside or above the bar; a waiting update is the dot on
+  «Настройки» (see «Settings and download queue UI» below).
 - **Placeholders (item 15).** One token `--theme-placeholder` (light and dark) for every input, textarea and editor hint; the
   fields used `--theme-text-faint`, which VIS1 darkened to near ink.
 - **Not done:** the PCE calculator page overflow (TOOLFIX1); the toast «Доступно обновление» (separate notification).
@@ -771,8 +791,8 @@ and the owner decisions of the same day.
   The old «metered connection only» rule is gone; the connection hint now only gates the catalog
   refresh.
 - **Cancel / pause of the first-launch download — what exists.** The core download is a `core`
-  task of the shared queue: the bottom pie (`ContentDownloadNavIndicator`) opens Settings →
-  Загрузки, where each task has «Отменить» and the page has «Отменить все»; a cancelled or failed
+  task of the shared queue: Settings → Загрузки lists it (the bottom-bar pie was removed
+  2026-10-19), where each task has «Отменить» and the page has «Отменить все»; a cancelled or failed
   core offers «Повторить» there and on the boot screen, and a retained partial file resumes. The
   onboarding progress line itself has no stop control and there is no separate «pause»: cancel +
   retry is the pause. A real pause button is not built.
@@ -3272,11 +3292,9 @@ Owner screenshots 2026-10-07.
 
 ### App update hint
 
-- The «Доступно обновление» pill left the search header. An available update now shows a small
-  «Обновление» pill above the «Настройки» tab (`AppBottomNav`, `.app-update-nav-hint`), which opens
-  Settings → Основные and is dismissed per version as before (`state/ignored-app-updates.ts`); the dot
-  on the tab stays. e2e: `search.spec.ts` (opens settings, applies nothing), `ux8-search-header.spec.ts`
-  (header row has two buttons; the hint fits the viewport at 360/390/1280 px, light and dark).
+- The «Доступно обновление» pill left the search header. Since 2026-10-19 an available update is
+  only the dot on the «Настройки» tab (the hint above it and `state/ignored-app-updates.ts` were
+  removed). e2e: `ux8-search-header.spec.ts` (header row has two buttons, the dot shows).
 
 ### «Лента»: suggestions first, item pictures, PubMed search (ADR-0024 amended)
 

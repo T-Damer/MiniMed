@@ -81,7 +81,7 @@ test('small controls on the home screen keep a 44 px hit area', async ({ page })
   await openScreen(page, '#/search');
   const small = await smallTargets(
     page,
-    '.help-icon-link, .carousel__dot, .carousel__arrow, .content-download-nav__pie, .search-history-fab, .search-clinical-toggle, .search-button, .app-nav-button',
+    '.help-icon-link, .carousel__dot, .carousel__arrow, .search-history-fab, .search-clinical-toggle, .search-button, .app-nav-button',
   );
   expect(small, `Targets under 44 px: ${JSON.stringify(small)}`).toEqual([]);
 });

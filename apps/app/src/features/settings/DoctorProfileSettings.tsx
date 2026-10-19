@@ -9,7 +9,7 @@ import {
   resetDoctorProfile,
   subscribeDoctorProfile,
 } from '@/features/reference/doctor-profile';
-import { doctorProfileSummary } from '@/features/reference/doctor-profile-feeds';
+import { doctorProfileFieldsLine } from '@/features/reference/doctor-profile-feeds';
 import '@/styles/doctor-profile-settings.css';
 
 /**
@@ -31,37 +31,39 @@ export function DoctorProfileSettings(): JSX.Element {
       <div class="settings-row__text">
         <span class="settings-row__label settings-row__label--with-icon">
           <AppGlyph name="heartbeat" class="settings-row__label-icon" aria-hidden="true" />
-          <span class="doctor-profile-settings__summary" data-testid="doctor-profile-summary">
-            {doctorProfileSummary(profile())}
-          </span>
+          Профиль врача
+          <SheetPopover
+            open={helpOpen()}
+            onOpenChange={setHelpOpen}
+            title="Профиль врача"
+            triggerClass="doctor-profile-settings__help-button"
+            triggerLabel="Что такое профиль врача"
+            triggerTitle="Что такое профиль врача"
+            trigger={<AppGlyph name="question" class="doctor-profile-settings__help-icon" />}
+            contentClass="doctor-profile-settings__help-panel"
+            placement="bottom-start"
+          >
+            <p class="doctor-profile-settings__help-text">
+              Приложение запоминает, в каких областях медицины вы читаете и ищете, чтобы у
+              многозначного термина первым показывать нужное значение. Данные хранятся только на
+              этом устройстве и никуда не отправляются.
+            </p>
+          </SheetPopover>
         </span>
-      </div>
-      <div class="doctor-profile-settings__actions">
-        <SheetPopover
-          open={helpOpen()}
-          onOpenChange={setHelpOpen}
-          title="Профиль врача"
-          triggerClass="doctor-profile-settings__help-button"
-          triggerLabel="Что такое профиль врача"
-          triggerTitle="Что такое профиль врача"
-          trigger={<AppGlyph name="question" class="doctor-profile-settings__help-icon" />}
-          contentClass="doctor-profile-settings__help-panel"
-          placement="bottom-start"
+        <p
+          class="settings-row__helper doctor-profile-settings__summary"
+          data-testid="doctor-profile-summary"
         >
-          <p class="doctor-profile-settings__help-text">
-            Приложение запоминает, в каких областях медицины вы читаете и ищете, чтобы у
-            многозначного термина первым показывать нужное значение. Данные хранятся только на этом
-            устройстве и никуда не отправляются.
-          </p>
-        </SheetPopover>
-        <Button
-          class="settings-row__action"
-          disabled={empty()}
-          onClick={() => setProfile(resetDoctorProfile())}
-        >
-          Сбросить
-        </Button>
+          {doctorProfileFieldsLine(profile())}
+        </p>
       </div>
+      <Button
+        class="settings-row__action"
+        disabled={empty()}
+        onClick={() => setProfile(resetDoctorProfile())}
+      >
+        Сбросить
+      </Button>
     </div>
   );
 }

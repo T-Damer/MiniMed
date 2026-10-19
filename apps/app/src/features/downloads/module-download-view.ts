@@ -112,7 +112,10 @@ function fromQueue(task: DownloadTask): ModuleDownloadView {
 }
 
 /** Queue tasks of the module, newest version last (ids are `module:<id>@<version>`). */
-function queueTaskFor(moduleId: string, tasks: readonly DownloadTask[]): DownloadTask | undefined {
+export function queueTaskFor(
+  moduleId: string,
+  tasks: readonly DownloadTask[],
+): DownloadTask | undefined {
   const prefix = `module:${moduleId}@`;
   return tasks.findLast((task) => task.kind === 'module' && task.id.startsWith(prefix));
 }

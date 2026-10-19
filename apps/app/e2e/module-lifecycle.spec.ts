@@ -185,8 +185,7 @@ test('shows the real download state and resumes automatically when the network r
   await context.setOffline(true);
   await page.getByRole('button', { name: 'Скачать все документы' }).click();
   await expect(page.getByRole('button', { name: 'Скачать все документы' })).toHaveCount(0);
-  await page.getByTestId('content-download-nav').click();
-  await expect(page).toHaveURL(/#\/settings\/downloads/u);
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/settings/downloads`);
   const manager = page.getByTestId('content-download-status');
   await expect(manager).toContainText('Нет сети');
   const regulatoryTask = manager

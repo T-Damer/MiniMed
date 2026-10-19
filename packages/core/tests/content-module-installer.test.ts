@@ -476,6 +476,51 @@ describe('ForegroundContentModuleInstaller', () => {
     expect(downloader.maxActive).toBe(3);
   });
 
+  it('starts a prioritized queued install at once, ahead of earlier queued ones', async () => {
+    const indexBytes = new Uint8Array([1, 2, 3]);
+    const fixture = await moduleFixture({ indexBytes });
+    const modules = Array.from({ length: 3 }, (_, index) => ({
+      ...fixture.module,
+      id: `minimed.clinical.test-${index + 1}`,
+      title: `Test ${index + 1}`,
+    }));
+    const catalog = {
+      ...fixture.catalog,
+      modules: [fixture.catalog.modules[0] as ContentModuleCatalogEntry, ...modules],
+    };
+    const registry = new InMemoryInstalledModuleRegistry();
+    registry.activate(validatedInstallation());
+    const downloader = new BlockingDownloader(indexBytes);
+    const installer = new ForegroundContentModuleInstaller(
+      catalog,
+      runtime,
+      downloader,
+      new TestBackend(),
+      validator(),
+      registry,
+      1,
+    );
+    const tasks = modules.map((module) =>
+      installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets: false,
+      }),
+    );
+    const state = (index: number) =>
+      installer.listTasks().find((task) => task.id === tasks[index]?.id)?.state;
+    await vi.waitFor(() => expect(downloader.active).toBe(1));
+    expect(state(2)).toBe('queued');
+
+    installer.prioritize([tasks[2]?.id ?? '']);
+    await vi.waitFor(() => expect(state(2)).toBe('downloading'));
+    expect(state(1)).toBe('queued');
+    downloader.releaseAll();
+    await vi.waitFor(() => expect(state(1)).toBe('downloading'));
+    downloader.releaseAll();
+    await Promise.all(tasks.map((task) => installer.wait(task.id)));
+  });
+
   it('keeps active downloads while the catalog is updated', async () => {
     const indexBytes = new Uint8Array([1, 2, 3]);
     const fixture = await moduleFixture({ indexBytes });

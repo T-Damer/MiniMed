@@ -73,6 +73,7 @@ import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.
 import infoBold from '@phosphor-icons/core/assets/bold/info-bold.svg?raw';
 import leafBold from '@phosphor-icons/core/assets/bold/leaf-bold.svg?raw';
 import lightbulbBold from '@phosphor-icons/core/assets/bold/lightbulb-bold.svg?raw';
+import lightningBold from '@phosphor-icons/core/assets/bold/lightning-bold.svg?raw';
 import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
 import listBulletsBold from '@phosphor-icons/core/assets/bold/list-bullets-bold.svg?raw';
 import listChecksBold from '@phosphor-icons/core/assets/bold/list-checks-bold.svg?raw';
@@ -99,6 +100,7 @@ import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
 import prescriptionBold from '@phosphor-icons/core/assets/bold/prescription-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
 import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
+import queueBold from '@phosphor-icons/core/assets/bold/queue-bold.svg?raw';
 import rssBold from '@phosphor-icons/core/assets/bold/rss-bold.svg?raw';
 import scalesBold from '@phosphor-icons/core/assets/bold/scales-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
@@ -208,6 +210,10 @@ export type AppGlyphName =
   | 'image'
   | 'info'
   | 'clock'
+  /** Waiting in the download queue. */
+  | 'queue'
+  /** «Скачать сейчас»: put a queued download first. */
+  | 'lightning'
   | 'pause'
   | 'play'
   | 'microphone'
@@ -355,6 +361,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   image: svgBody(imageSquareBold),
   info: svgBody(infoBold),
   clock: svgBody(clockBold),
+  queue: svgBody(queueBold),
+  lightning: svgBody(lightningBold),
   pause: svgBody(pauseBold),
   play: svgBody(playBold),
   microphone: svgBody(microphoneBold),

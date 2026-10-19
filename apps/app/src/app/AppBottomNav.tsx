@@ -1,27 +1,7 @@
-import {
-  type Accessor,
-  createSignal,
-  For,
-  type JSX,
-  lazy,
-  onCleanup,
-  Show,
-  Suspense,
-} from 'solid-js';
+import { type Accessor, For, type JSX, onCleanup, Show } from 'solid-js';
 import { watchNavCrowding } from '@/app/nav-crowding';
 import type { RootView, RootViewItem } from '@/app/root-view';
 import { AppGlyph } from '@/components/AppGlyph';
-import {
-  ignoreAppUpdate,
-  isHomeAppUpdateVisible,
-  loadIgnoredAppUpdates,
-} from '@/state/ignored-app-updates';
-
-const ContentDownloadNavIndicator = lazy(() =>
-  import('@/features/modules/ContentDownloadNavIndicator').then(
-    ({ ContentDownloadNavIndicator: component }) => ({ default: component }),
-  ),
-);
 
 function compactCount(value: number, cap: number): string {
   return value > cap ? `${cap}+` : String(value);
@@ -38,10 +18,8 @@ export function AppBottomNav(props: {
   readonly downloadedModuleCount: Accessor<number>;
   readonly dueReminderCount: Accessor<number>;
   readonly newsUnreadCount: Accessor<number>;
+  /** A dot on «Настройки»; nothing floats above the bar (owner 2026-10-19). */
   readonly appUpdateReady: Accessor<boolean>;
-  /** The version an update offers; a small hint above «Настройки» names it until it is opened. */
-  readonly appUpdateVersion: Accessor<string | undefined>;
-  readonly onOpenAppUpdate: () => void;
   readonly bubbleStyle: () => string;
   readonly bindNav: (element: HTMLElement) => void;
   readonly onPrefetch: (next: RootView) => void;
@@ -51,9 +29,6 @@ export function AppBottomNav(props: {
   readonly onPointerCancel: (event: PointerEvent) => void;
   readonly onItemClick: (next: RootView) => void;
 }): JSX.Element {
-  const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
-  const updateHintVisible = (): boolean =>
-    isHomeAppUpdateVisible(props.appUpdateVersion(), ignoredAppUpdates());
   return (
     <nav
       ref={(element) => {
@@ -95,11 +70,6 @@ export function AppBottomNav(props: {
           };
           return (
             <div class="app-nav-item">
-              <Show when={item.id === 'settings'}>
-                <Suspense>
-                  <ContentDownloadNavIndicator />
-                </Suspense>
-              </Show>
               <button
                 class="app-nav-button"
                 data-tour={`nav-${item.id}`}
@@ -148,24 +118,6 @@ export function AppBottomNav(props: {
           );
         }}
       </For>
-      <Show when={updateHintVisible()}>
-        <button
-          type="button"
-          class="app-update-nav-hint"
-          data-testid="app-update-nav-hint"
-          aria-label="Доступно обновление приложения. Открыть настройки обновления"
-          title="Доступно обновление приложения"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation();
-            const version = props.appUpdateVersion();
-            if (version) setIgnoredAppUpdates(ignoreAppUpdate(version));
-            props.onOpenAppUpdate();
-          }}
-        >
-          <AppGlyph name="refresh" class="app-update-nav-hint__icon" />
-        </button>
-      </Show>
     </nav>
   );
 }

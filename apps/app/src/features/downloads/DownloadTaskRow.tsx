@@ -8,7 +8,9 @@ import {
   type DownloadPhase,
   type DownloadTask,
   downloadTaskFraction,
+  isDownloadActive,
 } from '@/features/downloads/download-queue';
+import { getDownloadQueue } from '@/features/downloads/download-service';
 import { formatCount } from '@/i18n/format-count';
 import { formatByteSize } from '@/i18n/format-number';
 
@@ -82,6 +84,9 @@ export function DownloadTaskRow(props: {
 }): JSX.Element {
   const fraction = () => downloadTaskFraction(props.task);
   const running = () => RUNNING_PHASES.has(props.task.state);
+  // Re-read on every state change of the row: «Скачать сейчас» for a waiting module download.
+  const canRunNow = () =>
+    isDownloadActive(props.task) && getDownloadQueue().canPrioritize(props.task.id);
   const waiting = () =>
     props.task.state === 'queued' ||
     props.task.state === 'retrying' ||
@@ -159,6 +164,17 @@ export function DownloadTaskRow(props: {
         </Show>
       </div>
       <div class="download-task__actions">
+        <Show when={canRunNow()}>
+          <Button
+            class="download-task__action"
+            variant="icon"
+            aria-label="Скачать сейчас"
+            title="Скачать сейчас"
+            data-testid="download-task-now"
+            icon={<AppGlyph name="lightning" class="download-task__glyph" />}
+            onClick={() => getDownloadQueue().prioritize([props.task.id])}
+          />
+        </Show>
         <Show when={props.task.canRetry}>
           <Button
             class="download-task__action"

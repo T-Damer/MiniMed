@@ -43,10 +43,6 @@ test('pause holds a module download, survives a reload, and resume completes it'
   await offer.locator('.module-offer__button').click();
   await expect.poll(() => moduleRequests, { timeout: 60_000 }).toBe(1);
 
-  // The indicator beside the settings tab holds the same switch.
-  const navToggle = page.getByTestId('content-download-nav-toggle');
-  await expect(navToggle).toHaveAccessibleName('Приостановить загрузки');
-
   // Settings → Загрузки: pause.
   await page.goto(DOWNLOADS);
   const downloads = page.getByTestId('downloads-page');
@@ -56,7 +52,6 @@ test('pause holds a module download, survives a reload, and resume completes it'
   await expect(toggle).toHaveAccessibleName('Продолжить загрузки');
   await expect(downloads.locator('.download-task[data-download-state="paused"]')).toHaveCount(1);
   await expect(downloads.locator('.downloads-overview__title')).toHaveText('Загрузки на паузе');
-  await expect(navToggle).toHaveAccessibleName('Продолжить загрузки');
 
   // A reload keeps it paused and sends no request for the module's bytes.
   await page.reload();
@@ -77,8 +72,8 @@ test('pause holds a module download, survives a reload, and resume completes it'
   await expect(heldOffer.locator('.module-offer__button')).toHaveText('На паузе');
   expect(moduleRequests).toBe(1);
 
-  // Resume: the transfer starts again and the install completes.
-  await page.getByTestId('content-download-nav-toggle').click();
+  // «Скачать сейчас» runs this one download even though the queue is paused.
+  await heldOffer.getByTestId('module-offer-now').click();
   await expect.poll(() => moduleRequests, { timeout: 30_000 }).toBe(2);
   release();
   await expect(page.locator('.drug-interactions__quote').first()).toBeVisible({
@@ -88,5 +83,7 @@ test('pause holds a module download, survives a reload, and resume completes it'
     page.locator(`.module-offer[data-module-id="${INSTRUCTION_MODULE_ID}"]`),
   ).toHaveCount(0);
   // Nothing is held any more: the switch is gone with the last unfinished download.
-  await expect(page.getByTestId('content-download-nav-toggle')).toHaveCount(0);
+  await page.goto(DOWNLOADS);
+  await expect(page.getByTestId('downloads-page')).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId('downloads-pause-toggle')).toHaveCount(0);
 });

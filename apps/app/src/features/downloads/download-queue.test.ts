@@ -533,6 +533,81 @@ describe('pause and resume of module downloads', () => {
     expect(reloaded.get('m')?.state).toBe('queued');
   });
 
+  it('«Скачать сейчас» runs one download first, then the queue goes on in its previous order', async () => {
+    const queue = new DownloadQueue(1);
+    const partial = { bytes: 0 };
+    const a = streamingTransport(partial);
+    const order: string[] = [];
+    const b = gate();
+    const c = gate();
+    const jobA = queue.run(descriptor('a'), (ctx) =>
+      queue.transfer(ctx.id, 'a', ctx.signal, (attempt) => {
+        order.push('a');
+        return a.transport(attempt);
+      }),
+    );
+    const jobB = queue.run(descriptor('b'), (ctx) =>
+      queue.transfer(ctx.id, 'b', ctx.signal, () => {
+        order.push('b');
+        return b.promise;
+      }),
+    );
+    const jobC = queue.run(descriptor('c'), (ctx) =>
+      queue.transfer(ctx.id, 'c', ctx.signal, () => {
+        order.push('c');
+        return c.promise;
+      }),
+    );
+    await flush();
+    expect(queue.get('c')?.state).toBe('queued');
+    expect(queue.canPrioritize('c')).toBe(true);
+    expect(queue.canPrioritize('a')).toBe(false);
+
+    queue.prioritize(['c']);
+    await flush();
+    expect(order).toEqual(['a', 'c']);
+    expect(queue.get('a')?.state).toBe('queued'); // stopped, its bytes kept
+    expect(queue.get('c')?.state).toBe('downloading');
+    expect([...queue.priorityIds()]).toEqual(['c']);
+
+    c.resolve();
+    await jobC;
+    await flush();
+    expect(queue.priorityIds().size).toBe(0);
+    expect(order).toEqual(['a', 'c', 'a']);
+    expect(a.starts).toEqual([0, 40]); // resumed from what the first attempt kept
+    a.finish();
+    await jobA;
+    await flush();
+    b.resolve();
+    await jobB;
+    expect(order).toEqual(['a', 'c', 'a', 'b']);
+  });
+
+  it('«Скачать сейчас» runs a download while the queue is paused and keeps the pause after it', async () => {
+    const queue = new DownloadQueue(3);
+    const held = gate();
+    const heldJob = queue.run(descriptor('held'), (ctx) =>
+      queue.transfer(ctx.id, 'held', ctx.signal, () => held.promise),
+    );
+    await flush();
+    queue.setPaused(true);
+    const now = vi.fn(async () => 'now');
+    const job = queue.run(descriptor('now'), (ctx) =>
+      queue.transfer(ctx.id, 'now', ctx.signal, now),
+    );
+    await flush();
+    expect(queue.get('now')?.state).toBe('paused');
+    queue.prioritize(['now']);
+    await expect(job).resolves.toBe('now');
+    await flush();
+    expect(queue.isPaused()).toBe(true);
+    expect(queue.get('held')?.state).toBe('paused');
+    queue.setPaused(false);
+    held.resolve();
+    await heldJob;
+  });
+
   it('ends a pause that no module download is left to hold', () => {
     const queue = new DownloadQueue(3);
     queue.observe(descriptor('m'), { state: 'downloading' }, {});

@@ -188,6 +188,11 @@ export class DownloadQueue {
   private readonly activeKeys = new Set<string>();
   private online = true;
   private paused = false;
+  /**
+   * «Скачать сейчас»: these module downloads run first and every other module download waits,
+   * keeping its received bytes, until the last of them ends; then the queue goes on in its order.
+   */
+  private readonly priority = new Set<string>();
   private persistenceError: string | null = null;
   private lastSaved = 0;
 
@@ -239,7 +244,7 @@ export class DownloadQueue {
       }
     }
     for (const entry of this.entries.values()) {
-      if (!PAUSABLE_KINDS.has(entry.view.kind)) continue;
+      if (!PAUSABLE_KINDS.has(entry.view.kind) || this.priority.has(entry.view.id)) continue;
       if (value) {
         if (entry.view.state === 'queued' || entry.view.state === 'downloading')
           this.update(entry, { state: 'paused', retryAt: null }, false);
@@ -253,6 +258,48 @@ export class DownloadQueue {
     }
     this.emit(true);
   }
+  /** Downloads «Скачать сейчас» put first; empty while the queue runs in its own order. */
+  public priorityIds(): ReadonlySet<string> {
+    return this.priority;
+  }
+  /** A waiting module download that «Скачать сейчас» can move ahead of the others. */
+  public canPrioritize(id: string): boolean {
+    const entry = this.entries.get(id);
+    return (
+      entry !== undefined &&
+      PAUSABLE_KINDS.has(entry.view.kind) &&
+      !this.priority.has(id) &&
+      ['queued', 'retrying', 'paused'].includes(entry.view.state)
+    );
+  }
+  /**
+   * Runs these module downloads before every other one, even while the queue is paused: the others'
+   * running transfers stop (their bytes are kept, as with «Пауза») and continue in their previous
+   * order once the last prioritized download ends.
+   */
+  public prioritize(ids: readonly string[]): void {
+    const chosen = ids.filter((id) => {
+      const entry = this.entries.get(id);
+      return entry && PAUSABLE_KINDS.has(entry.view.kind) && !TERMINAL.has(entry.view.state);
+    });
+    if (chosen.length === 0) return;
+    this.priority.clear();
+    for (const id of chosen) this.priority.add(id);
+    // Their waiting transfers go to the head of the line, the rest keep their order behind them.
+    const first = this.waiting.filter((transfer) => this.priority.has(transfer.jobId));
+    const rest = this.waiting.filter((transfer) => !this.priority.has(transfer.jobId));
+    this.waiting.splice(0, this.waiting.length, ...first, ...rest);
+    for (const transfer of this.active) {
+      if (this.isHeld(transfer.jobId)) transfer.interrupt?.();
+    }
+    for (const id of chosen) {
+      const entry = this.entries.get(id);
+      if (entry?.view.state === 'paused') this.update(entry, { state: 'queued' }, false);
+      this.refreshTransferPhase(id);
+    }
+    this.drain();
+    this.emit(false);
+  }
   /** A module download that is not finished: waiting, moving, paused or cut by a reload. */
   private hasHoldableWork(): boolean {
     return [...this.entries.values()].some(
@@ -263,7 +310,9 @@ export class DownloadQueue {
   }
   private isHeld(jobId: string): boolean {
     const entry = this.entries.get(jobId);
-    return this.paused && entry !== undefined && PAUSABLE_KINDS.has(entry.view.kind);
+    if (entry === undefined || !PAUSABLE_KINDS.has(entry.view.kind)) return false;
+    if (this.priority.has(jobId)) return false;
+    return this.paused || this.priority.size > 0;
   }
 
   private create(descriptor: DownloadDescriptor, controls: Controls): Entry {
@@ -298,11 +347,20 @@ export class DownloadQueue {
     if (
       this.paused &&
       PAUSABLE_KINDS.has(next.kind) &&
+      !this.priority.has(next.id) &&
       (next.state === 'queued' || next.state === 'downloading')
     )
       next.state = 'paused';
     entry.view = next;
+    const priorityEnded =
+      TERMINAL.has(next.state) && this.priority.delete(next.id) && this.priority.size === 0;
     this.emit(durable);
+    if (priorityEnded) this.releaseHeld();
+  }
+  /** The last prioritized download ended: the others go on from where they stopped. */
+  private releaseHeld(): void {
+    this.drain();
+    for (const entry of this.entries.values()) this.refreshTransferPhase(entry.view.id);
   }
 
   public run<T>(

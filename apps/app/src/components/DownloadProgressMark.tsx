@@ -7,7 +7,7 @@ import '@/components/DownloadProgressMark.css';
 export type DownloadProgressMarkState = 'queued' | 'running' | 'failed' | 'done';
 
 /**
- * One download status mark: a clock while work only waits in the queue, a check once it is done,
+ * One download status mark: a queue glyph while work only waits in the queue, a check once it is done,
  * otherwise a round progress pie that keeps its size however tight the surrounding row is.
  */
 export function DownloadProgressMark(props: {
@@ -19,7 +19,7 @@ export function DownloadProgressMark(props: {
   readonly class?: string;
 }): JSX.Element {
   const degrees = () => Math.round(Math.max(0, Math.min(1, props.progress ?? 0.08)) * 360);
-  const glyph = (): 'clock' | 'check' => (props.state === 'done' ? 'check' : 'clock');
+  const glyph = (): 'queue' | 'check' => (props.state === 'done' ? 'check' : 'queue');
   return (
     <Show
       when={props.state !== 'queued' && props.state !== 'done'}

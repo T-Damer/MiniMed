@@ -68,7 +68,7 @@ function createNode(
       if (selector.includes('Удалить') || selector.includes('.danger')) {
         return matchesDeleteSelector(this);
       }
-      if (selector === '.app-nav-button, .search-button, .content-download-nav__pie') {
+      if (selector === '.app-nav-button, .search-button') {
         return (
           this.className?.includes('app-nav-button') === true || this.className === 'search-button'
         );

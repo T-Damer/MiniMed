@@ -90,11 +90,8 @@ export function compactRootView(view: RootView, hash: string): RootView {
   if (SEARCH_TOOL_NOTES_ROUTES.some((route) => hash === route || hash.startsWith(`${route}?`))) {
     return 'search';
   }
-  if (
-    view === 'notes' ||
-    parseDocumentReadRoute(hash)?.kind === 'user' ||
-    (view === 'modules' && hash.startsWith('#/modules/documents/user'))
-  ) {
+  // «База знаний» is a folder of «Мои файлы» in the compact bar, so its pages keep that tab lit.
+  if (view === 'notes' || view === 'modules' || parseDocumentReadRoute(hash)?.kind === 'user') {
     return 'notes';
   }
   return 'search';

@@ -72,21 +72,6 @@
   );
 }
 
-/* The loading ring is a badge on the corner of the settings tab; its hit area reaches outwards
-   (up and right, away from the tab) to finger size. */
-.content-download-nav__pie {
-  position: relative;
-}
-
-.content-download-nav__pie::after {
-  position: absolute;
-  top: -1.75rem;
-  right: -1.75rem;
-  width: 2.75rem;
-  height: 2.75rem;
-  content: "";
-}
-
 /* ---- Tap targets: a finger-sized hit area behind a small control, its look unchanged -------- */
 
 .help-icon-link,

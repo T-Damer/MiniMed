@@ -16,25 +16,16 @@ async function announceUpdate(page: Page): Promise<void> {
 
 for (const width of [360, 390, 1280]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`the search header keeps every button inside the row and the update hint beside the bar at ${width}px, ${colorScheme}`, async ({
+    test(`the search header keeps every button inside the row at ${width}px, ${colorScheme}`, async ({
       page,
     }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ colorScheme });
       await mountBuiltApp(page, { skipLargeCompanionPacks: true });
       await waitForSearchReady(page);
+      // A waiting update is a dot on «Настройки»: nothing floats beside or above the bar.
       await announceUpdate(page);
-      await expect(page.getByTestId('app-update-nav-hint')).toBeVisible();
-      const hint = await page.getByTestId('app-update-nav-hint').boundingBox();
-      expect(hint).not.toBeNull();
-      expect((hint?.x ?? 0) + (hint?.width ?? 0)).toBeLessThanOrEqual(width);
-      expect(hint?.x ?? -1).toBeGreaterThanOrEqual(0);
-      // UI-FIX1: the hint stands beside the bar (or above its left end), never on top of it.
-      const nav = await page.locator('.app-bottom-nav').boundingBox();
-      expect(nav).not.toBeNull();
-      const beside = (hint?.x ?? 0) + (hint?.width ?? 0) <= (nav?.x ?? 0) + 1;
-      const above = (hint?.y ?? 0) + (hint?.height ?? 0) <= (nav?.y ?? 0) + 1;
-      expect(beside || above).toBe(true);
+      await expect(page.locator('.app-nav-badge--app-update')).toBeVisible();
 
       const geometry = await page.evaluate(() => {
         const row = document.querySelector('.search-mode-tools');
@@ -58,7 +49,7 @@ for (const width of [360, 390, 1280]) {
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.viewport);
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.row.right + 0.5);
       }
-      // Only the history button and «?» are left in the row; the update hint is not in it.
+      // Only the history button and «?» are in the row.
       await expect(page.locator('.search-mode-tools > *')).toHaveCount(2);
       await expect(page.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);

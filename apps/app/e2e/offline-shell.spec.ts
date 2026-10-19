@@ -164,7 +164,7 @@ test.describe('a new build is offered, never forced', () => {
       });
 
       await expect(page.getByText('Доступно обновление')).toBeVisible({ timeout: 60_000 });
-      await expect(page.getByTestId('app-update-nav-hint')).toBeVisible();
+      await expect(page.locator('.app-nav-badge--app-update')).toBeVisible();
       // Both builds are cached side by side; the page keeps running the old one.
       expect(await page.evaluate(() => caches.keys())).toEqual(
         expect.arrayContaining([firstCache, nextCache]),

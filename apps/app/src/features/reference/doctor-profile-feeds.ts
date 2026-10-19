@@ -69,10 +69,15 @@ const SHOWN_FIELDS = 3;
 
 /** The row title: the leading fields, «…» when more are known, a plain note while it is empty. */
 export function doctorProfileSummary(profile: DoctorProfile): string {
+  return `Профиль врача: ${doctorProfileFieldsLine(profile)}`;
+}
+
+/** The specialties alone («неврология, психиатрия, наркология»), or «пока пуст». */
+export function doctorProfileFieldsLine(profile: DoctorProfile): string {
   const fields = topProfileFields(profile, SHOWN_FIELDS + 1);
-  if (fields.length === 0) return 'Профиль врача: пока пуст';
+  if (fields.length === 0) return 'пока пуст';
   const shown = fields.slice(0, SHOWN_FIELDS).map(medicalFieldLabel).join(', ');
-  return `Профиль врача: ${shown}${fields.length > SHOWN_FIELDS ? '…' : ''}`;
+  return `${shown}${fields.length > SHOWN_FIELDS ? '…' : ''}`;
 }
 
 /** Test seam: forget which recommendations were already counted. */

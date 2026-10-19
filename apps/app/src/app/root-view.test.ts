@@ -52,7 +52,8 @@ describe('viewFromLocation', () => {
 
   it('groups reference routes under search and keeps personal files separate', () => {
     expect(compactRootView('calculators', '#/calculators/units')).toBe('search');
-    expect(compactRootView('modules', '#/modules/documents')).toBe('search');
+    expect(compactRootView('modules', '#/modules/documents')).toBe('notes');
+    expect(compactRootView('modules', '#/modules/documents/medications')).toBe('notes');
     expect(compactRootView('modules', '#/modules/documents/user')).toBe('notes');
     expect(compactRootView('modules', '#/modules/documents/user/doc-1')).toBe('notes');
     expect(compactRootView('notes', '#/notes')).toBe('notes');

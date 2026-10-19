@@ -34,6 +34,10 @@ import {
   CALCULATOR_SECTIONS,
 } from '@/features/calculators/calculator-packs';
 import { buildConditionCatalog } from '@/features/conditions/condition-catalog';
+import {
+  canPrioritizeModules,
+  prioritizeModuleDownloads,
+} from '@/features/downloads/download-priority';
 import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
 import {
   HERBAL_COLLECTION,
@@ -94,6 +98,7 @@ import {
   EMPTY_OVERVIEW_DOCUMENT_COUNTS,
 } from '@/features/modules/overview-document-counts';
 import {
+  type ModuleGroupTaskState,
   moduleCollectionStats,
   moduleGroupDownloadProgress,
   moduleGroupTaskState,
@@ -149,6 +154,17 @@ function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
     (module) => isModuleReleased(module) && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
   ).length;
+}
+
+/** A section that only waits (queued or held by «Пауза») can be moved ahead: «Скачать сейчас». */
+function waitingCanRunNow(
+  state: ModuleGroupTaskState,
+  modules: readonly ContentModuleCatalogEntry[],
+): boolean {
+  return (
+    (state === 'queued' || state === 'paused') &&
+    canPrioritizeModules(modules.map((module) => module.id))
+  );
 }
 
 /** A replaced edition is listed only while installed; it carries the badge and a link to the current one. */
@@ -276,6 +292,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const openCollection = (collection: string): void => {
     window.location.hash = `#/modules/documents/collection/${encodeURIComponent(collection)}`;
     syncSelectionFromLocation();
+  };
+  const openBulkDownload = (): void => {
+    setPendingBulkDownload(
+      bulkDownloadModules().filter(
+        (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
+      ),
+    );
   };
   const openCoreLibrary = (): void => {
     window.location.hash = '#/modules/documents/core-library';
@@ -487,6 +510,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const activeCategoryTaskState = createMemo(() =>
     moduleGroupTaskState(activeCategoryModules(), tasks(), downloadsPause.paused()),
   );
+  const activeCategoryRunNow = () =>
+    waitingCanRunNow(activeCategoryTaskState(), activeCategoryModules());
   const activeCategoryWorking = createMemo(
     () =>
       busyCategories().has(recommendationCategory()) ||
@@ -777,6 +802,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         : 'Раздел пока не опубликован';
     const progressValue = () => progress().byteProgress ?? progress().installedFraction;
     const percent = () => Math.round(progressValue() * 100);
+    const runNow = () => waitingCanRunNow(taskState(), modules());
 
     return (
       <>
@@ -787,25 +813,30 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               class="recommendation-section-actions__download"
               classList={{ 'recommendation-section-actions__download--busy': working() }}
               aria-label={
-                working()
-                  ? taskState() === 'queued' || taskState() === 'paused'
-                    ? `Раздел «${title}» ${taskState() === 'paused' ? 'на паузе' : 'в очереди на скачивание'}`
-                    : `Скачивается раздел «${title}»: ${percent()}%`
-                  : `Скачать раздел «${title}»`
+                runNow()
+                  ? `Скачать сейчас раздел «${title}»: он ${taskState() === 'paused' ? 'на паузе' : 'в очереди'}`
+                  : working()
+                    ? taskState() === 'queued' || taskState() === 'paused'
+                      ? `Раздел «${title}» ${taskState() === 'paused' ? 'на паузе' : 'в очереди на скачивание'}`
+                      : `Скачивается раздел «${title}»: ${percent()}%`
+                    : `Скачать раздел «${title}»`
               }
               title={
-                working()
-                  ? taskState() === 'queued' || taskState() === 'paused'
-                    ? taskState() === 'paused'
-                      ? 'На паузе'
-                      : 'В очереди'
-                    : `Скачивается ${percent()}%`
-                  : 'Скачать раздел'
+                runNow()
+                  ? 'Скачать сейчас'
+                  : working()
+                    ? taskState() === 'queued' || taskState() === 'paused'
+                      ? taskState() === 'paused'
+                        ? 'На паузе'
+                        : 'В очереди'
+                      : `Скачивается ${percent()}%`
+                    : 'Скачать раздел'
               }
-              disabled={working()}
+              disabled={working() && !runNow()}
               onClick={(event) => {
                 event.stopPropagation();
-                void installModuleGroup(groupId, modules(), title);
+                if (runNow()) prioritizeModuleDownloads(modules().map((module) => module.id));
+                else void installModuleGroup(groupId, modules(), title);
               }}
             >
               <Show
@@ -815,7 +846,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     when={taskState() === 'queued' || taskState() === 'paused'}
                     fallback={<span class="module-action-spinner" />}
                   >
-                    <AppGlyph name="clock" class="recommendation-section-actions__icon" />
+                    <AppGlyph name="queue" class="recommendation-section-actions__icon" />
                   </Show>
                 }
               >
@@ -972,37 +1003,28 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>База знаний</Heading>}
           description="Скачайте разделы — они работают без сети."
-          actions={
-            <Show when={!props.embedded && pendingDownloadCount() > 0}>
-              <button
-                type="button"
-                aria-label={
-                  installingAll()
-                    ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
-                }
-                class="module-download-all"
-                disabled={installingAll()}
-                onClick={() =>
-                  setPendingBulkDownload(
-                    bulkDownloadModules().filter(
-                      (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
-                    ),
-                  )
-                }
-              >
-                <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
-                  <AppGlyph name="download" class="module-download-all__icon" />
-                </Show>
-                <span>
-                  {installingAll()
-                    ? `Скачиваем ${bulkDownloadPercent()}%`
-                    : `Скачать всё${bulkDownloadSizeLabel()}`}
-                </span>
-              </button>
-            </Show>
-          }
         />
+        <Show when={pendingDownloadCount() > 0}>
+          <Button
+            class="module-page__download-all"
+            aria-label={
+              installingAll()
+                ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
+            }
+            disabled={installingAll()}
+            icon={
+              <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                <AppGlyph name="download" />
+              </Show>
+            }
+            onClick={openBulkDownload}
+          >
+            {installingAll()
+              ? `Скачиваем ${bulkDownloadPercent()}%`
+              : `Скачать всё${bulkDownloadSizeLabel()}`}
+          </Button>
+        </Show>
       </Show>
       <Show
         when={
@@ -1086,36 +1108,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               hideLabel
               placeholder="Поиск в текущем разделе"
             />
-            <Show
-              when={!coreLibraryOpen() && pendingDownloadCount() > 0 && !recommendationCategory()}
-            >
-              <button
-                type="button"
-                aria-label={
-                  installingAll()
-                    ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
-                }
-                class="module-download-all module-download-all--toolbar knowledge-subroute-heading__action"
-                disabled={installingAll()}
-                onClick={() =>
-                  setPendingBulkDownload(
-                    bulkDownloadModules().filter(
-                      (module) => isModuleReleased(module) && !installedModuleIds().has(module.id),
-                    ),
-                  )
-                }
-              >
-                <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
-                  <AppGlyph name="download" class="module-download-all__icon" />
-                </Show>
-                <span>
-                  {installingAll()
-                    ? `Скачиваем ${bulkDownloadPercent()}%`
-                    : `Скачать всё${bulkDownloadSizeLabel()}`}
-                </span>
-              </button>
-            </Show>
           </div>
         </div>
       </Show>
@@ -1523,6 +1515,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     categoryBusy() || taskState() !== null || selectedByBulk();
                   const showByteProgress = () => downloadProgress().byteProgress;
                   const categoryDownloadPercent = () => downloadProgressPercent(downloadProgress());
+                  const runNow = () => waitingCanRunNow(taskState(), modules());
                   return (
                     <article
                       class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--category"
@@ -1608,25 +1601,31 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                               'recommendation-section-actions__download--busy': categoryWorking(),
                             }}
                             aria-label={
-                              categoryWorking()
-                                ? taskState() === 'queued' || taskState() === 'paused'
-                                  ? `Раздел «${category.title}» ${taskState() === 'paused' ? 'на паузе' : 'в очереди на скачивание'}`
-                                  : `Скачивается раздел «${category.title}»: ${categoryDownloadPercent()}%`
-                                : `Скачать раздел «${category.title}»`
+                              runNow()
+                                ? `Скачать сейчас раздел «${category.title}»: он ${taskState() === 'paused' ? 'на паузе' : 'в очереди'}`
+                                : categoryWorking()
+                                  ? taskState() === 'queued' || taskState() === 'paused'
+                                    ? `Раздел «${category.title}» ${taskState() === 'paused' ? 'на паузе' : 'в очереди на скачивание'}`
+                                    : `Скачивается раздел «${category.title}»: ${categoryDownloadPercent()}%`
+                                  : `Скачать раздел «${category.title}»`
                             }
                             title={
-                              categoryWorking()
-                                ? taskState() === 'queued' || taskState() === 'paused'
-                                  ? taskState() === 'paused'
-                                    ? 'На паузе'
-                                    : 'В очереди'
-                                  : `Скачивается ${categoryDownloadPercent()}%`
-                                : 'Скачать раздел'
+                              runNow()
+                                ? 'Скачать сейчас'
+                                : categoryWorking()
+                                  ? taskState() === 'queued' || taskState() === 'paused'
+                                    ? taskState() === 'paused'
+                                      ? 'На паузе'
+                                      : 'В очереди'
+                                    : `Скачивается ${categoryDownloadPercent()}%`
+                                  : 'Скачать раздел'
                             }
-                            disabled={categoryWorking()}
+                            disabled={categoryWorking() && !runNow()}
                             onClick={(event) => {
                               event.stopPropagation();
-                              void installCategory(category.id);
+                              if (runNow())
+                                prioritizeModuleDownloads(modules().map((module) => module.id));
+                              else void installCategory(category.id);
                             }}
                           >
                             <Show
@@ -1644,7 +1643,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                                   }
                                 >
                                   <AppGlyph
-                                    name="clock"
+                                    name="queue"
                                     class="recommendation-section-actions__icon"
                                   />
                                 </Show>
@@ -1674,24 +1673,30 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     type="button"
                     class="recommendation-list-actions__download"
                     aria-label={
-                      activeCategoryWorking()
-                        ? activeCategoryTaskState() === 'queued' ||
-                          activeCategoryTaskState() === 'paused'
-                          ? activeCategoryTaskState() === 'paused'
-                            ? 'Раздел на паузе'
-                            : 'Раздел в очереди на скачивание'
-                          : `Скачивается раздел: ${downloadProgressPercent(
-                              activeCategoryDownloadProgress(),
-                            )}%`
-                        : activeCategoryComplete()
-                          ? 'Удалить раздел'
-                          : 'Скачать раздел'
+                      activeCategoryRunNow()
+                        ? 'Скачать раздел сейчас, раньше остальных'
+                        : activeCategoryWorking()
+                          ? activeCategoryTaskState() === 'queued' ||
+                            activeCategoryTaskState() === 'paused'
+                            ? activeCategoryTaskState() === 'paused'
+                              ? 'Раздел на паузе'
+                              : 'Раздел в очереди на скачивание'
+                            : `Скачивается раздел: ${downloadProgressPercent(
+                                activeCategoryDownloadProgress(),
+                              )}%`
+                          : activeCategoryComplete()
+                            ? 'Удалить раздел'
+                            : 'Скачать раздел'
                     }
                     title={activeCategoryComplete() ? 'Удалить раздел' : 'Скачать раздел'}
-                    disabled={activeCategoryWorking()}
-                    onClick={() =>
-                      void (activeCategoryComplete() ? removeCategory() : installCategory())
-                    }
+                    disabled={activeCategoryWorking() && !activeCategoryRunNow()}
+                    onClick={() => {
+                      if (activeCategoryRunNow())
+                        prioritizeModuleDownloads(
+                          activeCategoryModules().map((module) => module.id),
+                        );
+                      else void (activeCategoryComplete() ? removeCategory() : installCategory());
+                    }}
                   >
                     <Show
                       when={!activeCategoryWorking()}
@@ -1703,7 +1708,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           }
                           fallback={<span class="module-action-spinner" />}
                         >
-                          <AppGlyph name="clock" class="recommendation-list-actions__icon" />
+                          <AppGlyph name="queue" class="recommendation-list-actions__icon" />
                         </Show>
                       }
                     >
@@ -1713,16 +1718,18 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       />
                     </Show>
                     <span>
-                      {activeCategoryWorking()
-                        ? activeCategoryTaskState() === 'queued' ||
-                          activeCategoryTaskState() === 'paused'
-                          ? activeCategoryTaskState() === 'paused'
-                            ? 'На паузе'
-                            : 'В очереди'
-                          : `Скачиваем ${downloadProgressPercent(activeCategoryDownloadProgress())}%`
-                        : activeCategoryComplete()
-                          ? 'Удалить раздел'
-                          : 'Скачать раздел'}
+                      {activeCategoryRunNow()
+                        ? 'Скачать сейчас'
+                        : activeCategoryWorking()
+                          ? activeCategoryTaskState() === 'queued' ||
+                            activeCategoryTaskState() === 'paused'
+                            ? activeCategoryTaskState() === 'paused'
+                              ? 'На паузе'
+                              : 'В очереди'
+                            : `Скачиваем ${downloadProgressPercent(activeCategoryDownloadProgress())}%`
+                          : activeCategoryComplete()
+                            ? 'Удалить раздел'
+                            : 'Скачать раздел'}
                     </span>
                   </button>
                 </div>
@@ -1776,6 +1783,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     retryScheduled() ||
                     (task() && !['completed', 'failed', 'cancelled'].includes(task()?.state ?? ''));
                   const queued = () => task()?.state === 'queued';
+                  const runNow = () => queued() && canPrioritizeModules([module.id]);
                   return (
                     <article
                       class="recommendation-row paper-card recommendation-row-compact medication-product-card"
@@ -1890,17 +1898,22 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                           variant="icon"
                           class="recommendation-row-download-button"
                           aria-label={
-                            working()
-                              ? `Скачивается «${module.title}»: ${Math.round(
-                                  (progress() ?? 0) * 100,
-                                )}%`
-                              : `Скачать «${module.title}»`
+                            runNow()
+                              ? `Скачать сейчас «${module.title}»: он в очереди`
+                              : working()
+                                ? `Скачивается «${module.title}»: ${Math.round(
+                                    (progress() ?? 0) * 100,
+                                  )}%`
+                                : `Скачать «${module.title}»`
                           }
-                          title={working() ? 'Скачивается' : 'Скачать'}
-                          disabled={working() || !isModuleReleased(module)}
+                          title={
+                            runNow() ? 'Скачать сейчас' : working() ? 'Скачивается' : 'Скачать'
+                          }
+                          disabled={(working() && !runNow()) || !isModuleReleased(module)}
                           onClick={(event) => {
                             event.stopPropagation();
-                            void install(module);
+                            if (runNow()) prioritizeModuleDownloads([module.id]);
+                            else void install(module);
                           }}
                           icon={
                             <Show
@@ -1911,7 +1924,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                                   fallback={<span class="module-action-spinner" />}
                                 >
                                   <AppGlyph
-                                    name="clock"
+                                    name="queue"
                                     class="recommendation-row-download-button__icon"
                                   />
                                 </Show>

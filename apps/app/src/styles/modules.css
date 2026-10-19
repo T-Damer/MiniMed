@@ -1399,7 +1399,7 @@
   }
 }
 
-.module-download-all--toolbar {
-  flex: 0 0 auto;
-  white-space: nowrap;
+.module-page__download-all {
+  align-self: flex-start;
+  margin: 0 0 0.875rem;
 }

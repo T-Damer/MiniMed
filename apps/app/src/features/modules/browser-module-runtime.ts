@@ -1071,6 +1071,9 @@ export class BrowserContentModuleRuntime {
   private readonly localTaskIds = new Set<string>();
   private readonly catalogListeners = new Set<() => void>();
   private readonly unsubscribeLocalEntries: () => void;
+  private readonly unsubscribePriority: () => void;
+  /** Queue ids «Скачать сейчас» last passed on to the installer. */
+  private priorityKey = '';
   private readonly registry: PersistentInstalledModuleRegistry;
   private readonly backend = new BrowserModuleBackend();
   private readonly installer: ForegroundContentModuleInstaller;
@@ -1185,6 +1188,7 @@ export class BrowserContentModuleRuntime {
     });
     this.localSignature = localEntriesSignature(this.localEntryCandidates());
     this.unsubscribeLocalEntries = subscribeLocalModuleEntries(() => this.refreshLocalEntries());
+    this.unsubscribePriority = getDownloadQueue().subscribe(() => this.followQueuePriority());
     void loadLocalModuleEntries().then(() => this.pruneLocalEntries());
     window.addEventListener('online', this.handleOnline);
     recoverPendingModuleInstalls(
@@ -1707,8 +1711,29 @@ export class BrowserContentModuleRuntime {
     }
   }
 
+  /**
+   * «Скачать сейчас» is set on the shared queue; a module that still waits for an install slot
+   * gets one here, so its transfers can enter the queue that already holds the others.
+   */
+  private followQueuePriority(): void {
+    const ids = getDownloadQueue().priorityIds();
+    const key = [...ids].join('\n');
+    if (key === this.priorityKey) return;
+    this.priorityKey = key;
+    if (ids.size === 0) return;
+    this.installer.prioritize(
+      this.installer
+        .listTasks()
+        .filter(
+          (task) => task.state === 'queued' && ids.has(`module:${task.moduleId}@${task.version}`),
+        )
+        .map((task) => task.id),
+    );
+  }
+
   public dispose(): void {
     this.disposed = true;
+    this.unsubscribePriority();
     this.cancelAll();
     for (const timer of this.retryTimers.values()) window.clearTimeout(timer);
     this.retryTimers.clear();

@@ -1213,38 +1213,6 @@ test('shows neuroinfection clarifications without hiding search results', async 
   await expect(page.getByTestId('search-results')).toBeVisible();
 });
 
-test('opens settings from the update hint above «Настройки» without applying it', async ({
-  page,
-}) => {
-  await mountBuiltApp(page);
-  await page.evaluate(() => {
-    const worker = {
-      scriptURL: `${window.location.origin}/sw.js?v=0.6.29`,
-      postMessage: (message: unknown) => {
-        (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage = message;
-      },
-    };
-    window.dispatchEvent(new CustomEvent('minimed:app-update-ready', { detail: { worker } }));
-  });
-
-  // The search header carries no update pill; the hint is a round button in the navigation's row,
-  // beside the bar (UI-FIX1: it no longer floats over the page).
-  await expect(page.locator('.search-mode-tools').getByText('Обновление')).toHaveCount(0);
-  const update = page.getByTestId('app-update-nav-hint');
-  await expect(update).toBeVisible();
-  await expect(update).toHaveAccessibleName(/Доступно обновление приложения/u);
-  await update.click();
-  await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
-  await expect(page.getByTestId('app-update-nav-hint')).toHaveCount(0);
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => (window as typeof window & { appUpdateMessage?: unknown }).appUpdateMessage,
-      ),
-    )
-    .toBeUndefined();
-});
-
 test('shows a settings update checker and nav dot when a web update is waiting', async ({
   page,
 }) => {

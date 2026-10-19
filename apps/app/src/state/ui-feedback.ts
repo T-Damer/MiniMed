@@ -46,12 +46,7 @@ function isClickableCard(card: Element): boolean {
 function resolveButtonHaptic(button: HTMLButtonElement): HapticStrength {
   const explicit = button.dataset['haptic'];
   if (explicit === 'heavy' || button.matches(DELETE_SELECTOR)) return 'heavy';
-  if (
-    explicit === 'medium' ||
-    button.matches(
-      '.app-nav-button, .search-button, .content-download-nav__pie, .content-download-nav__toggle',
-    )
-  ) {
+  if (explicit === 'medium' || button.matches('.app-nav-button, .search-button')) {
     return 'medium';
   }
   return 'light';

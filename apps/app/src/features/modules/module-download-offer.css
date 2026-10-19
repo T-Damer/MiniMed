@@ -5,7 +5,15 @@
   min-width: 0;
 }
 
-.module-offer__button {
+.module-offer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.module-offer__button,
+.module-offer__now {
   max-width: 100%;
   white-space: nowrap;
 }

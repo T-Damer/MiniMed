@@ -280,6 +280,30 @@ export class ForegroundContentModuleInstaller {
     return [...this.tasks.values()];
   }
 
+  /**
+   * «Скачать сейчас»: these tasks go to the head of the install line, and up to the concurrency
+   * limit of them start at once even when every slot is taken (the shared transfer queue holds the
+   * others' transfers meanwhile). The rest of them take the next free slots before anyone else.
+   */
+  public prioritize(taskIds: readonly string[]): void {
+    const signals = new Set(
+      taskIds.flatMap((id) => {
+        const signal = this.controllers.get(id)?.signal;
+        return signal ? [signal] : [];
+      }),
+    );
+    const chosen = this.installSlotWaiters.filter((waiter) => signals.has(waiter.signal));
+    if (chosen.length === 0) return;
+    const rest = this.installSlotWaiters.filter((waiter) => !signals.has(waiter.signal));
+    const startNow = chosen.splice(0, Math.min(chosen.length, this.maxConcurrentInstalls));
+    this.installSlotWaiters.splice(0, this.installSlotWaiters.length, ...chosen, ...rest);
+    for (const waiter of startNow) {
+      waiter.signal.removeEventListener('abort', waiter.onAbort);
+      this.activeInstalls += 1;
+      waiter.resolve(this.createInstallSlotRelease());
+    }
+  }
+
   public subscribe(listener: ContentModuleTaskListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
