@@ -58,6 +58,11 @@ describe('feeding calculators of the pediatrics tool module', () => {
     ]);
     for (const record of feeding) {
       for (const source of record.sources) {
+        // Current official norms (МР 2.3.1.0253-21, СанПиН) are cited by their official URL.
+        if (source.kind === 'regulatory') {
+          expect(source.url).toMatch(/^https:\/\//u);
+          continue;
+        }
         expect(source.moduleId).toBe('minimed.reference.feeding.ru');
         expect(source.documentId).toMatch(/^reference\.feeding\./u);
         expect(
@@ -226,11 +231,18 @@ describe('feeding calculators of the pediatrics tool module', () => {
     expect(fractionAt(9)).toBeCloseTo(1 / 9, 6);
   });
 
-  it('child over one year: 1000 + 100n kcal, 1200 + 100n ml and the meal shares of both editions', () => {
+  it('child over one year: 1000 + 100n kcal, 1200 + 100n ml, meal shares and the МР 2021 norm', () => {
+    const sanpin = run('child-energy-volume-over-one-year', { ageYears: 2, edition: 2020 });
+    expect(sanpin.value('dailyKcal')).toBe(1200);
+    expect(sanpin.value('dailyVolumeMl')).toBe(1400);
+    expect(sanpin.value('kcalBreakfast')).toBe(300);
+    expect([sanpin.value('kcalLunchLow'), sanpin.value('kcalLunchHigh')]).toEqual([420, 420]);
+    expect([sanpin.value('kcalSnackLow'), sanpin.value('kcalSnackHigh')]).toEqual([180, 180]);
+    expect(sanpin.value('kcalDinner')).toBe(300);
+    expect(sanpin.value('normKcalMr')).toBe(1300);
+    expect(sanpin.interpretation).toContain('1300 ккал');
+
     const edition2021 = run('child-energy-volume-over-one-year', { ageYears: 2, edition: 2021 });
-    expect(edition2021.value('dailyKcal')).toBe(1200);
-    expect(edition2021.value('dailyVolumeMl')).toBe(1400);
-    expect(edition2021.value('kcalBreakfast')).toBe(300);
     expect([edition2021.value('kcalLunchLow'), edition2021.value('kcalLunchHigh')]).toEqual([
       360, 420,
     ]);
@@ -238,8 +250,6 @@ describe('feeding calculators of the pediatrics tool module', () => {
       180, 240,
     ]);
     expect(edition2021.value('kcalDinner')).toBe(240);
-    expect(edition2021.value('normKcalMr')).toBe(1400); // third year of life
-    expect(edition2021.interpretation).toContain('1400 ккал');
 
     const edition2014 = run('child-energy-volume-over-one-year', { ageYears: 2, edition: 2014 });
     expect([edition2014.value('kcalLunchLow'), edition2014.value('kcalLunchHigh')]).toEqual([
@@ -250,12 +260,11 @@ describe('feeding calculators of the pediatrics tool module', () => {
     ]);
     expect(edition2014.value('kcalDinner')).toBe(300);
 
-    const second = run('child-energy-volume-over-one-year', { ageYears: 1.5, edition: 2021 });
+    const second = run('child-energy-volume-over-one-year', { ageYears: 1.5, edition: 2020 });
     expect(second.value('dailyKcal')).toBe(1150);
-    expect(second.value('normKcalMr')).toBe(1200); // second year of life
-    expect(second.interpretation).toContain('1200 ккал');
+    expect(second.value('normKcalMr')).toBe(1300);
     expect(
-      rejects('child-energy-volume-over-one-year', { ageYears: 3.5, edition: 2021 }),
+      rejects('child-energy-volume-over-one-year', { ageYears: 3.5, edition: 2020 }),
     ).toBeTruthy();
   });
 

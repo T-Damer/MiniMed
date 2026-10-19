@@ -12,17 +12,17 @@ resolved queue item has no further reason to stay in a review queue.
 
 ## Open items
 
-### Feeding norms module — disagreements between the books (2026-10-13)
+### Feeding norms module — disagreements between the books (resolved 2026-10-19)
 
-`minimed.reference.feeding.ru` publishes the values exactly as printed and lists every disagreement in its
-document «Источники, расхождения и проблемы». **Decision needed** (clinician): which book a calculator
-should follow where they differ — kcal/kg by quarter of the year (Почивалов 120–125, 120–115, 115–110,
-100–105) vs 115 and 110 (Программа 2019, Капитан); daily volume cap (Программа 850/900/1000 мл, Капитан 1 л
-and «may exceed 1 L», workbook 1000 мл); share of calories per meal for children over one year (Почивалов
-2014 vs 2021); vitamin D prophylaxis 1000 МЕ (Программа 2019, табл. 10.4) vs 400 МЕ (`PITANIE.pdf`); niacin of
-7–12-month-olds 4 mg (workbook) vs 7 mg (Программа 2019, прил. 1); zinc 7 vs 4 mg, magnesium 50 vs 55 mg and
-iodine of Капитан табл. 16.4 vs Программа 2019 прил. 1. The calculators keep each method as a separate
-output and do not merge them.
+Owner 2026-10-19: follow the latest official documents. The module still prints every book as written; its
+document «Источники, расхождения и проблемы» now has «Какие значения действуют сейчас», and the pediatrics
+calculators follow it: energy 115/115/110 ккал/кг to one year and 1300 ккал/сут for 1–3 years
+(МР 2.3.1.0253-21, which supersedes МР 2.3.1.2432-08); volume caps 850/900/1000 мл (Программа 2019, kept in
+the 2024 draft); vitamin D 500 МЕ (to 1 mo), 500–1000 МЕ (1–12 mo), 1000–2000 МЕ (1–18 y) per the КР
+«Недостаточность витамина D. Рахит» (ред. 24.08.2024); niacin 7 mg, zinc 3/4 mg, magnesium 55/60/70 mg, iodine
+70 мкг (МР 2021); meal shares per СанПиН 2.3/2.4.3590-20 (default in the 1–3-year calculator; the textbook
+editions stay selectable). Open: the vitamin D guideline's registry entry was not seen (the PDF says «Год
+утверждения: 202_»); the 4th edition of the feeding programme is a 2024 draft.
 
 ### Feeding norms module — rights and provenance of the private books (2026-10-13)
 
