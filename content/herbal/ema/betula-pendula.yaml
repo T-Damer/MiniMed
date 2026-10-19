@@ -34,8 +34,8 @@ facts:
   - kind: duration
     ru: Традиционно применяют в течение 2–4 недель
     doc: monograph
-    page: 5
-    quote: over a period of 2-4 weeks.
+    page: 4
+    quote: The herbal preparations are traditionally used over a period of 2-4 weeks.
   - kind: contraindication
     ru: Аллергия на берёзу или её пыльцу
     doc: monograph

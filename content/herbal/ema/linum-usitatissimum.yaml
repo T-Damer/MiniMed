@@ -43,6 +43,12 @@ facts:
     page: 4
     quote: If the constipation does not resolve within 3 days, a doctor or a pharmacist should be consulted.
     maxDays: 3
+  - kind: duration
+    ru: Если симптомы держатся дольше 1 недели применения — к врачу или медработнику (традиционное применение)
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist for longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
   - kind: contraindication
     ru: Внезапное изменение стула дольше 2 недель, кровь из прямой кишки неясной причины, нет стула после слабительного
     doc: monograph
@@ -59,15 +65,25 @@ facts:
     page: 5
     quote: This product should not be taken by patients, who have difficulty swallowing or any throat problems.
   - kind: warning
-    ru: Без достаточной воды семена набухают и могут закупорить горло или пищевод
+    ru: При боли в животе или любом нарушении частоты стула — прекратить приём и обратиться к врачу (хорошо изученное применение)
     doc: monograph
     page: 5
-    quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking.
+    quote: If abdominal pain occurs or in cases of any irregularity of frequency of faeces, the use of linseed should be discontinued and medical advice must be sought.
+  - kind: warning
+    ru: Без достаточной жидкости семена набухают и могут закупорить горло или пищевод и вызвать удушье; без достаточного питья возможна непроходимость кишечника (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking. Intestinal obstruction may occur if adequate fluid intake is not maintained.
   - kind: warning
     ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу
     doc: monograph
     page: 5
     quote: If experiencing chest pain, vomiting, or difficulty in swallowing or breathing after taking this herbal substance, immediate medical attention should be sought.
+  - kind: warning
+    ru: Ослабленных и пожилых пациентов лечить под наблюдением
+    doc: monograph
+    page: 5
+    quote: The treatment of debilitated patients and elderly should be supervised.
   - kind: warning
     ru: Длительный приём может давать эстрогенное действие (исследования у здоровых женщин) — женщинам с гормонозависимыми опухолями не рекомендуется
     doc: monograph

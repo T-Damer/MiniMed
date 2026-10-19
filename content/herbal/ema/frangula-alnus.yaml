@@ -5,10 +5,10 @@ status: proposed
 useType: well-established
 facts:
   - kind: indication
-    ru: При эпизодическом запоре
+    ru: Кратковременно при эпизодическом запоре
     doc: monograph
-    page: 4
-    quote: cases of occasional constipation.
+    page: 3
+    quote: Herbal medicinal product for short-term use in cases of occasional constipation.
   - kind: posology
     ru: Разовая доза — препарат, эквивалентный 10–30 мг гидроксиантраценовых производных (в пересчёте на глюкофрангулин А), один раз в день на ночь; индивидуальная доза — наименьшая, дающая комфортный мягкий стул
     doc: monograph

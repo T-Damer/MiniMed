@@ -7,8 +7,8 @@ facts:
   - kind: indication
     ru: Кратковременно при эпизодическом запоре
     doc: monograph
-    page: 4
-    quote: cases of occasional constipation.
+    page: 3
+    quote: Herbal medicinal product for short-term use in cases of occasional constipation.
   - kind: posology
     ru: Разовая доза — препарат, соответствующий 10–30 мг антрагликозидов, один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул
     doc: monograph
@@ -28,15 +28,10 @@ facts:
     quote: Not to be used for more than 1 week. Usually it is sufficient to take this medicinal product up to two to three times during that week.
     maxDays: 7
   - kind: contraindication
-    ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные болезни кишечника
+    ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные болезни кишечника, боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
     doc: monograph
     page: 4
-    quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory bowel diseases (e.g. Crohn’s disease, ulcerative colitis),
-  - kind: contraindication
-    ru: Боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
-    doc: monograph
-    page: 5
-    quote: abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion. Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
+    quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory bowel diseases (e.g. Crohn’s disease, ulcerative colitis), abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion. Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
   - kind: warning
     ru: Долгий приём стимулирующих слабительных нарушает работу кишки и вызывает зависимость; если слабительное нужно каждый день — искать причину запора
     doc: monograph

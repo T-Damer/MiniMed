@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:950a090a655b8c16b5e9f98e7a129def6db1e91ee3ddf5ad47ff6474729e438c
+source_checksum: sha256:14a2644b5b469bd998915bdf3c11dc6b1d63cbbb87b7c8e2ffcd53fee207d680
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -82,10 +82,10 @@ metadata:
       useType: well-established
       facts:
       - doc: monograph
-        page: 4
-        quote: cases of occasional constipation.
+        page: 3
+        quote: Herbal medicinal product for short-term use in cases of occasional constipation.
         kind: indication
-        ru: При эпизодическом запоре
+        ru: Кратковременно при эпизодическом запоре
       - doc: monograph
         page: 4
         quote: Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.

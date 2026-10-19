@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:0f6fc3cb8e714f4da7d65d01575299b9206d8252c5dbe05126a89dec90f65121
+source_checksum: sha256:a95594329e0c98f500a6229f8006cdf89762fc4fcaa394e046d297e999bc394b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -98,8 +98,8 @@ metadata:
         kind: indication
         ru: Лёгкое воспаление кожи (солнечный ожог), заживление мелких ран
       - doc: monograph
-        page: 5
-        quote: symptomatic relief of mild gastrointestinal discomfort.
+        page: 4
+        quote: Traditional herbal medicinal product for the symptomatic relief of mild gastrointestinal discomfort.
         kind: indication
         ru: Лёгкий дискомфорт в ЖКТ (традиционное применение)
       - doc: monograph

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:1140041ba45e4f7b109fe1498db2eb03a64e2fb3843ce4a74e47197576363920
+source_checksum: sha256:10803993ac75cf0746e800efed990447255863b88fd4eac3fd1142baeea5cd3b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -202,11 +202,11 @@ metadata:
         evidence: animal
       - doc: assessment-report
         page: 36
-        quote: Safrole and estragole were found to be highly active as liver carcinogens
+        quote: Safrole and estragole were found to be highly active as liver carcinogens in both these tests.
         compound: estragole
         compoundRu: эстрагол
         classRu: эфирное масло (фенилпропаноиды)
-        effectRu: в опытах на животных — высокоактивный канцероген печени
+        effectRu: в обоих опытах на животных — высокоактивный канцероген печени
         evidence: animal
     grls:
       registrationNumber: ЛП-№(015581)-(РГ-RU)

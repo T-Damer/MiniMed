@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:83ff3e11f1f59950867cbbf9bcb4c6f9cc330cd00a32f2fb7712dfb2e69b583d
+source_checksum: sha256:5a90811554172931e20149b694162fd34411465e649787a4d910551e3b72cc06
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -132,6 +132,12 @@ metadata:
         maxDays: 3
       - doc: monograph
         page: 4
+        quote: If the symptoms persist for longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: duration
+        ru: Если симптомы держатся дольше 1 недели применения — к врачу или медработнику (традиционное применение)
+        maxDays: 7
+      - doc: monograph
+        page: 4
         quote: Linseed should not be used by patients with a sudden change in bowel habit that persists for more than 2 weeks, undiagnosed rectal bleeding and failure to defaecate following the use of a laxative.
         kind: contraindication
         ru: Внезапное изменение стула дольше 2 недель, кровь из прямой кишки неясной причины, нет стула после слабительного
@@ -147,14 +153,24 @@ metadata:
         ru: Трудности с глотанием или любые проблемы с горлом
       - doc: monograph
         page: 5
-        quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking.
+        quote: If abdominal pain occurs or in cases of any irregularity of frequency of faeces, the use of linseed should be discontinued and medical advice must be sought.
         kind: warning
-        ru: Без достаточной воды семена набухают и могут закупорить горло или пищевод
+        ru: При боли в животе или любом нарушении частоты стула — прекратить приём и обратиться к врачу (хорошо изученное применение)
+      - doc: monograph
+        page: 5
+        quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking. Intestinal obstruction may occur if adequate fluid intake is not maintained.
+        kind: warning
+        ru: Без достаточной жидкости семена набухают и могут закупорить горло или пищевод и вызвать удушье; без достаточного питья возможна непроходимость кишечника (хорошо изученное применение)
       - doc: monograph
         page: 5
         quote: If experiencing chest pain, vomiting, or difficulty in swallowing or breathing after taking this herbal substance, immediate medical attention should be sought.
         kind: warning
         ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу
+      - doc: monograph
+        page: 5
+        quote: The treatment of debilitated patients and elderly should be supervised.
+        kind: warning
+        ru: Ослабленных и пожилых пациентов лечить под наблюдением
       - doc: monograph
         page: 5
         quote: Investigations in healthy women suggest that long term use of linseed may have an oestrogenic effect, and its use is therefore not recommended in women with hormonally dependent tumours.

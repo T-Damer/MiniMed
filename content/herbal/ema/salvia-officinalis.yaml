@@ -33,8 +33,8 @@ facts:
     ru: Чай (настой) при расстройстве пищеварения — взрослые и пожилые
     doc: monograph
     page: 4
-    quote: "Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal"
-    dose: { preparationRu: настой, amount: "1-2", unit: г, waterMl: "150", populationRu: взрослые и пожилые }
+    quote: "Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal infusion 3 times daily."
+    dose: { preparationRu: настой, amount: "1-2", unit: г, waterMl: "150", timesPerDay: "3", populationRu: взрослые и пожилые }
   - kind: posology
     ru: Чай (настой) при потливости — взрослые и пожилые
     doc: monograph

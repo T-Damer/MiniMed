@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:b8bb5c628fbcb5371556a4a88d12735296f33e02f22ee80d3a210cf1cb80952f
+source_checksum: sha256:f75b09ad0527988d0b3ea42e3cd6a03c0445aa17a3aa6c329df2f5f29627374d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -84,8 +84,8 @@ metadata:
       useType: traditional
       facts:
       - doc: monograph
-        page: 4
-        quote: product for use in the specified indication exclusively based upon long-standing use.
+        page: 3
+        quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
         ru: Традиционное растительное средство — применение основано на длительном опыте
       - doc: monograph
@@ -103,6 +103,17 @@ metadata:
           amount: 1.5-3.0
           unit: г
           waterMl: 100-150
+          timesPerDay: '3'
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: 'Adults, elderly Single dose Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily Preparations B), C) Tincture: 2.0-3.0 ml, 3 times daily.'
+        kind: posology
+        ru: Настойка — взрослые и пожилые
+        dose:
+          preparationRu: настойка
+          amount: 2.0-3.0
+          unit: мл
           timesPerDay: '3'
           populationRu: взрослые и пожилые
       - doc: monograph

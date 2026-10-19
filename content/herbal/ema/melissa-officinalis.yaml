@@ -32,16 +32,11 @@ facts:
     quote: The use in children under 12 years of age is not recommended
     minAgeMonths: 144
   - kind: duration
-    ru: Если симптомы держатся дольше 2 недель…
+    ru: Если симптомы держатся дольше 2 недель применения — обратиться к врачу или медработнику
     doc: monograph
     page: 4
-    quote: If the symptoms persist longer than 2 weeks
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
     maxDays: 14
-  - kind: duration
-    ru: …во время применения — обратиться к врачу или медработнику
-    doc: monograph
-    page: 5
-    quote: during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
   - kind: contraindication
     ru: Аллергия на мелиссу
     doc: monograph

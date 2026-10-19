@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:0af6148a2910310eece98a06fbc5e9d884657f820c6176f8c1571c901a5ad907
+source_checksum: sha256:3fd7a40f6c333111f257c7e7f6be40b9f244c10d475dcc0d4b637ace5cfa8180
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -117,15 +117,10 @@ metadata:
         minAgeMonths: 144
       - doc: monograph
         page: 4
-        quote: If the symptoms persist longer than 2 weeks
+        quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Если симптомы держатся дольше 2 недель…
+        ru: Если симптомы держатся дольше 2 недель применения — обратиться к врачу или медработнику
         maxDays: 14
-      - doc: monograph
-        page: 5
-        quote: during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
-        kind: duration
-        ru: …во время применения — обратиться к врачу или медработнику
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance.

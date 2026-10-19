@@ -112,9 +112,14 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   quotes extended, facts split, Russian trimmed; populations follow the posology headings; modals as in the
   source; constituent evidence corrected, e.g. valerian 6-methylapigenin animal, uva-ursi metabolites
   in-vitro). All 30 files now pass `check-herbal-ema` after a fact-level read; text module `2026.10.19-qa2`.
-  Open: sentences split by a footnote across pages cannot be quoted whole (frangula, fennel, melissa, salvia);
-  a few monograph lines have no fact (mentha tinctures, linum traditional duration, quercus hot-bath caution);
-  no clinician review.
+- **Page breaks and missing lines 2026-10-19** (HERB1-QA3): the quote check now bridges a page break past
+  the page's footnote block and a running title that wraps differently on some pages, so ten quotes cut at a
+  break are whole again (frangula and senna «short-term», fennel estragole, melissa duration as one fact,
+  salvia tea «3 times daily», the mentha/quercus use-type lines, hypericum GI indication, betula duration,
+  senna contraindications as one fact). New facts quoted from the monographs: mentha tincture, linum
+  traditional duration, abdominal-pain, fluid/obstruction and debilitated-patients warnings, quercus capsules,
+  dry extract, rinses/poultices and the hot-bath caution. Text module `2026.10.19-qa3`. Open: salvia thujone
+  (Symbol-font α/β), no clinician review.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

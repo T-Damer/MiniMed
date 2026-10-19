@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:73e3a8f5708e5ec2a700c931df83ba97c13814336cb3ee728ff517f1a28a84f4
+source_checksum: sha256:27a3959e3aa61d0bcf3f4a1e32ceb561851f1e13903d3a4526890e417d860077
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -84,7 +84,7 @@ metadata:
       facts:
       - doc: monograph
         page: 3
-        quote: product for use in specified indications exclusively based upon long-standing use.
+        quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
         ru: Традиционное растительное средство — применение основано на длительном опыте
       - doc: monograph
@@ -116,6 +116,27 @@ metadata:
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
+        quote: b) 1 g powdered herbal substance in capsules/tablets for oral use, three times daily.
+        kind: posology
+        ru: Порошок коры в капсулах или таблетках внутрь при диарее, три раза в день — взрослые и пожилые
+        dose:
+          preparationRu: порошок коры в капсулах или таблетках
+          amount: '1'
+          unit: г
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 3
+        quote: 'c) Dry extract: 140 mg, 4 times daily.'
+        kind: posology
+        ru: Сухой экстракт внутрь при диарее — взрослые и пожилые
+        dose:
+          preparationRu: сухой экстракт
+          amount: '140'
+          unit: мг
+          timesPerDay: '4'
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 3
         quote: 'Decoction for oromucosal use: 20 g/L.'
         kind: posology
         ru: Отвар для слизистой рта — 20 г на литр, взрослые и пожилые
@@ -139,6 +160,11 @@ metadata:
         quote: One full or partial bath daily.
         kind: posology
         ru: Ванна — одна полная или частичная в день
+      - doc: monograph
+        page: 4
+        quote: Topical rinses or poultices several times daily.
+        kind: posology
+        ru: Местно — полоскания или припарки несколько раз в день
       - doc: monograph
         page: 4
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -172,6 +198,11 @@ metadata:
         quote: If recurrent diarrhoea or bloody stools occur, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
         ru: Если диарея повторяется или кровь в стуле — к врачу
+      - doc: monograph
+        page: 5
+        quote: Hot bathes should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
+        kind: warning
+        ru: Воспаление кожи и слизистой рта, геморрой — горячие ванны нельзя при лихорадочных или инфекционных болезнях, сердечной недостаточности и артериальной гипертензии
       - doc: monograph
         page: 5
         quote: If rectal bleeding occurs during the treatment of haemorrhoids a doctor should be consulted.

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:3666f399f1d81b543019dbdade64abea3829bf3a859db4eb9af0041380bc6f11
+source_checksum: sha256:7883b29b9e7f5d8b578138dc7ac6f545a2c84f28bf1584c3aa19dc78be65d17a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -79,8 +79,8 @@ metadata:
       useType: well-established
       facts:
       - doc: monograph
-        page: 4
-        quote: cases of occasional constipation.
+        page: 3
+        quote: Herbal medicinal product for short-term use in cases of occasional constipation.
         kind: indication
         ru: Кратковременно при эпизодическом запоре
       - doc: monograph
@@ -107,14 +107,9 @@ metadata:
         maxDays: 7
       - doc: monograph
         page: 4
-        quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory bowel diseases (e.g. Crohn’s disease, ulcerative colitis),
+        quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory bowel diseases (e.g. Crohn’s disease, ulcerative colitis), abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion. Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
         kind: contraindication
-        ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные болезни кишечника
-      - doc: monograph
-        page: 5
-        quote: abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion. Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
-        kind: contraindication
-        ru: Боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
+        ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные болезни кишечника, боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
       - doc: monograph
         page: 5
         quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives. If laxatives are needed every day the cause of the constipation should be investigated.

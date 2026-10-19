@@ -22,8 +22,8 @@ facts:
   - kind: indication
     ru: Лёгкий дискомфорт в ЖКТ (традиционное применение)
     doc: monograph
-    page: 5
-    quote: symptomatic relief of mild gastrointestinal discomfort.
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic relief of mild gastrointestinal discomfort.
   - kind: indication
     ru: Вспомогательно при нервном беспокойстве и трудностях с засыпанием (традиционное применение)
     doc: monograph

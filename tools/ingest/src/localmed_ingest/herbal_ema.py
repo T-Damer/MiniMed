@@ -119,22 +119,46 @@ def page_texts(pdf: Path, *, sort: bool = False) -> tuple[str, ...]:
 
 @lru_cache(maxsize=128)
 def _body_texts(pdf: Path) -> tuple[str, ...]:
-    """Page texts without running headers and footers (lines repeated on most pages, «Page N/M»),
-    used only to find a sentence that continues on the next page."""
+    """Page texts without running headers and footers, used only to find a sentence that continues
+    on the next page. Dropped: lines repeated on most pages, «Page N/M», and a page's header block —
+    the leading run of blank or repeated lines up to its «Page N/M» line (a running title that wraps
+    differently on some pages)."""
     pages = page_texts(pdf)
     counts: dict[str, int] = {}
     for text in pages:
         for line in {line.strip() for line in text.splitlines() if line.strip()}:
             counts[line] = counts.get(line, 0) + 1
     threshold = max(3, len(pages) // 2)
-    return tuple(
-        "\n".join(
-            line
-            for line in text.splitlines()
-            if not _PAGE_LINE.match(line) and counts.get(line.strip(), 0) < threshold
+    bodies: list[str] = []
+    for text in pages:
+        lines = text.splitlines()
+        start = 0
+        for index, line in enumerate(lines):
+            if _PAGE_LINE.match(line):
+                start = index + 1
+            elif line.strip() and counts.get(line.strip(), 0) < 2:
+                break
+        bodies.append(
+            "\n".join(
+                line
+                for line in lines[start:]
+                if not _PAGE_LINE.match(line) and counts.get(line.strip(), 0) < threshold
+            )
         )
-        for text in pages
-    )
+    return tuple(bodies)
+
+
+_FOOTNOTE = re.compile(r"^\s*\d{1,2} [A-Z]")
+
+
+def _footnote_cuts(body: str) -> list[str]:
+    """The page body, then the body cut before each line that may open its footnote block
+    («3 For guidance on herbal substance…»): a footnote at the foot of a page sits between the two
+    halves of a sentence that runs on to the next page."""
+    lines = body.splitlines()
+    return [body] + [
+        "\n".join(lines[:index]) for index, line in enumerate(lines) if _FOOTNOTE.match(line)
+    ]
 
 
 def dump_text(pdf: Path, target: Path) -> int:
@@ -192,15 +216,18 @@ def _compact(text: str) -> str:
 
 
 def _on_page(quote: str, pages: tuple[str, ...], bodies: tuple[str, ...], page: int) -> bool:
-    """The quote is on the page, or starts there and runs on to the next page (headers and
-    footers between the two are left out)."""
+    """The quote is on the page, or starts there and runs on to the next page (headers, footers
+    and the page's footnotes between the two are left out)."""
     if quote in normalize(pages[page - 1]):
         return True
     if page >= len(bodies):
         return False
-    current = normalize(bodies[page - 1])
-    position = normalize(f"{bodies[page - 1]} {bodies[page]}").find(quote)
-    return 0 <= position < len(current)
+    for body in _footnote_cuts(bodies[page - 1]):
+        current = normalize(body)
+        position = normalize(f"{body} {bodies[page]}").find(quote)
+        if 0 <= position < len(current):
+            return True
+    return False
 
 
 def _fact_numbers_text(fact: Fact) -> str:

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf
-source_checksum: sha256:0fed47d3b08e0554f1da8514a63af28247b4808a656f5c3090aa83b5c3da429a
+source_checksum: sha256:24f5db9457f9ba06382f221b7a9cf5acfe0c1d62a8126cd82f96cb1ad60dde2b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -110,7 +110,7 @@ metadata:
         ru: Лёгкое воспаление кожи
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal'
+        quote: 'Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal infusion 3 times daily.'
         kind: posology
         ru: Чай (настой) при расстройстве пищеварения — взрослые и пожилые
         dose:
@@ -118,6 +118,7 @@ metadata:
           amount: 1-2
           unit: г
           waterMl: '150'
+          timesPerDay: '3'
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5

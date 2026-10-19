@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf
-source_checksum: sha256:956d71fc136dda3e8cd61d45c3af67cad01bf8a92cbb735971660abbc447156f
+source_checksum: sha256:7a031584ea4b5357af0b716c282c6ed7b2c637210057eca439a95bafcc16626d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -115,8 +115,8 @@ metadata:
         ru: Детям младше 12 лет не рекомендуется
         minAgeMonths: 144
       - doc: monograph
-        page: 5
-        quote: over a period of 2-4 weeks.
+        page: 4
+        quote: The herbal preparations are traditionally used over a period of 2-4 weeks.
         kind: duration
         ru: Традиционно применяют в течение 2–4 недель
       - doc: monograph

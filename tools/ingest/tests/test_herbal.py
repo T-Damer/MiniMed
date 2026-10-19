@@ -99,6 +99,43 @@ def test_quote_must_be_on_its_page_and_carry_every_number(tmp_path: Path) -> Non
     assert validate_ema_extraction(good, {}) == ["fact 0 (posology): no downloaded EMA monograph"]
 
 
+def test_quote_runs_on_past_a_footnote_and_a_running_title(tmp_path: Path) -> None:
+    title = "European Union herbal monograph on Demo L., folium"
+    pdf = _pdf(
+        tmp_path / "monograph.pdf",
+        [
+            f"{title}\nPage 1/3\nDuration of use\nIf the symptoms persist longer than 2 weeks\n"
+            "3 For guidance on herbal substance, see the Glossary on herbal teas.\n",
+            f"{title}\nand Demo L., herba\nPage 2/3\n"
+            "during the use, a doctor should be consulted.\n"
+            "Overdose\nNo case of overdose has been reported.",
+            f"{title}\nand Demo L., herba\nPage 3/3\nNot relevant.",
+        ],
+    )
+
+    def fact(quote: str) -> EmaExtraction:
+        return _extraction(
+            [
+                {
+                    "kind": "duration",
+                    "ru": "Дольше 2 недель — к врачу",
+                    "doc": "monograph",
+                    "page": 1,
+                    "quote": quote,
+                }
+            ]
+        )
+
+    whole = (
+        "If the symptoms persist longer than 2 weeks during the use, a doctor should be consulted."
+    )
+    assert validate_ema_extraction(fact(whole), {"monograph": pdf}) == []
+    skipped_body = (
+        "If the symptoms persist longer than 2 weeks No case of overdose has been reported."
+    )
+    assert validate_ema_extraction(fact(skipped_body), {"monograph": pdf}) != []
+
+
 def _instruction(tmp_path: Path, lines: list[str]) -> Path:
     body: list[str] = []
     for index, line in enumerate(lines):
