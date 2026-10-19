@@ -27,8 +27,8 @@ output and do not merge them.
 ### Feeding norms module — rights and provenance of the private books (2026-10-13)
 
 The texts are published for personal use while the repository is public (owner decision 2026-10-13); the
-books' rights are not cleared (`rightsStatus: personal-library-private-use`). **Decision needed** before the
-repository stops being personal: remove or replace the cited book text, or obtain permission. `PITANIE.pdf`
+books' rights are not cleared (`rightsStatus: personal-library-private-use`). **Decided (owner 2026-10-19):**
+MiniMed is a personal project with no global release, so the book text stays; revisit only if that changes. `PITANIE.pdf`
 is a student summary of unknown authorship (created 2022-06-04, cites 2021–2022 teaching manuals without
 titles); only its regime table, the newborn volume formulas and the hypogalactia degrees (also in Почивалов)
 were used — confirm the regime table against a textbook.
