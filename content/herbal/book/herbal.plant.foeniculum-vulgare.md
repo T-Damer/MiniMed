@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:4cd02a3294c142cc2bb07374bece4af597973c27ccf1e76625c80569dcb3a621
+source_checksum: sha256:1140041ba45e4f7b109fe1498db2eb03a64e2fb3843ce4a74e47197576363920
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -134,19 +134,19 @@ metadata:
         page: 6
         quote: The use in children under 12 years of age is not recommended
         kind: age
-        ru: При менструальных спазмах — не младше 12 лет
+        ru: При менструальных спазмах детям младше 12 лет не рекомендуется
         minAgeMonths: 144
       - doc: monograph
         page: 6
-        quote: Not to be taken for more than 2 weeks.
+        quote: Adults and adolescents Not to be taken for more than 2 weeks.
         kind: duration
-        ru: Взрослым — не дольше 2 недель
+        ru: Взрослым и подросткам — не дольше 2 недель
         maxDays: 14
       - doc: monograph
         page: 6
         quote: Children between 4 and 12 years of age For short-term use in mild transitory symptoms only (less than one week).
         kind: duration
-        ru: Детям 4–12 лет — только коротко, меньше недели
+        ru: Детям 4–12 лет — кратковременно, только при лёгких преходящих симптомах (меньше недели)
         maxDays: 7
       - doc: monograph
         page: 6
@@ -155,9 +155,9 @@ metadata:
         ru: Аллергия на фенхель, другие зонтичные (анис, тмин, сельдерей, кориандр, укроп), анетол или пыльцу полыни
       - doc: monograph
         page: 7
-        quote: The use in children between 4 and 12 years of age is not recommended if the daily intake of estragole exceeds the guidance value
+        quote: The use in children between 4 and 12 years of age is not recommended if the daily intake of estragole exceeds the guidance value of 1.0 µg/kg bw, unless justified by a risk assessment based on adequate safety data
         kind: warning
-        ru: Детям 4–12 лет — только если суточное поступление эстрагола не выше безопасного предела
+        ru: Детям 4–12 лет не рекомендуется, если суточное поступление эстрагола превышает ориентир 1,0 мкг/кг массы тела, кроме случаев, обоснованных оценкой риска
       - doc: monograph
         page: 7
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -167,12 +167,12 @@ metadata:
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет (эстрагол)
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 7
         quote: There is evidence that trans-anethole is excreted in human breast milk.
         kind: lactation
-        ru: Анетол переходит в грудное молоко
+        ru: Есть данные, что транс-анетол выделяется в грудное молоко
       - doc: monograph
         page: 8
         quote: Allergic reactions to fennel, affecting the skin or the respiratory system may occur.
@@ -186,19 +186,19 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 4
-        quote: essential oil that contains not less than 60.0% of anethole and not less than 15.0% of fenchone.
+        quote: Bitter fennel fruit consists of dry cremocarps and mericarps of Foeniculum vulgare Mill. subsp. vulgare var. vulgare, and it contains not less than 40 mL per kg anhydrous fruit of essential oil that contains not less than 60.0% of anethole and not less than 15.0% of fenchone.
         compound: anethole, fenchone
         compoundRu: анетол, фенхон
         classRu: эфирное масло
-        effectRu: главные компоненты эфирного масла плодов
+        effectRu: плоды горького фенхеля — эфирного масла не менее 40 мл/кг, в нём анетола не менее 60,0% и фенхона не менее 15,0%
         evidence: review
       - doc: assessment-report
         page: 21
-        quote: significantly improved clonidine-induced delayed gastric emptying
+        quote: Oral administration of anethole (0.3 mg/kg and 3 mg/kg) significantly improved clonidine-induced delayed gastric emptying examined by the phenol red method. Anethole was administered to mice
         compound: anethole
         compoundRu: анетол
         classRu: эфирное масло (фенилпропаноиды)
-        effectRu: ускоряет опорожнение желудка
+        effectRu: у мышей улучшал замедленное клонидином опорожнение желудка
         evidence: animal
       - doc: assessment-report
         page: 36
@@ -206,7 +206,7 @@ metadata:
         compound: estragole
         compoundRu: эстрагол
         classRu: эфирное масло (фенилпропаноиды)
-        effectRu: в опытах на животных — канцероген печени; причина ограничений для детей и беременных
+        effectRu: в опытах на животных — высокоактивный канцероген печени
         evidence: animal
     grls:
       registrationNumber: ЛП-№(015581)-(РГ-RU)

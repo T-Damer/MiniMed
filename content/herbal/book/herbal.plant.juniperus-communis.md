@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:7bcd9a9275ca0f47d071e9bad08afb34f37b1a4cafcb73a1059238c0dc48e3ab
+source_checksum: sha256:042c835ad6e3af52ccc8fc7b302b0ffdf9c6af9590902ababae03e62dbc69eb5
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -97,31 +97,31 @@ metadata:
         page: 5
         quote: Traditional herbal medicinal product used for symptomatic relief of digestive disorders such as dyspepsia and flatulence.
         kind: indication
-        ru: Расстройства пищеварения — тяжесть, газы
+        ru: Расстройства пищеварения, например диспепсия и метеоризм (газы)
       - doc: monograph
         page: 5
         quote: 2.0–2.5 g of the comminuted herbal substance in 150 ml boiling water as a herbal infusion, 1-3 times daily
         kind: posology
-        ru: Чай (настой) как мочегонное — взрослые
+        ru: Чай (настой) как мочегонное — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 2.0-2.5
           unit: г
           waterMl: '150'
           timesPerDay: 1-3
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
         quote: 2.0–2.5 g of the comminuted herbal substance in 150 ml boiling water as a herbal infusion, 1-4 times daily
         kind: posology
-        ru: Чай (настой) при несварении — взрослые
+        ru: Чай (настой) при расстройствах пищеварения — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 2.0-2.5
           unit: г
           waterMl: '150'
           timesPerDay: 1-4
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -138,12 +138,12 @@ metadata:
         page: 6
         quote: Hypersensitivity to the active substance(s).
         kind: contraindication
-        ru: Аллергия на можжевельник
+        ru: Гиперчувствительность к можжевельнику
       - doc: monograph
         page: 7
         quote: Not recommended to be used in case of severe renal disease including infectious interstitial nephritis, pyelitis and pyelonephritis.
         kind: warning
-        ru: Не рекомендуется при тяжёлых болезнях почек, в том числе нефрите и пиелонефрите
+        ru: Не рекомендуется при тяжёлых болезнях почек, включая инфекционный интерстициальный нефрит, пиелит и пиелонефрит
       - doc: monograph
         page: 7
         quote: If complaints or symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted.
@@ -151,9 +151,9 @@ metadata:
         ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
       - doc: monograph
         page: 7
-        quote: is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
+        quote: Because adequate fluid intake is required during treatment (see section 4.2. ‘Method of administration’), Juniperus communis L., galbulus is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
         kind: warning
-        ru: Нужно много пить — не подходит, если врач ограничил питьё
+        ru: Во время лечения нужно достаточно жидкости — не рекомендуется, если врач советовал ограничить питьё
       - doc: monograph
         page: 7
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -163,7 +163,7 @@ metadata:
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 8
         quote: Undesirable effects None known.
@@ -177,18 +177,18 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 19
-        quote: The diuretic activity cannot be characterized as only aquaretic
+        quote: Rats were mostly used as subjects. The p.o. way of administration corresponds to traditional use in humans. The extracts are mostly prepared from whole cone berries, but also the essential oil and terpinen-4-ol are used. The diuretic activity cannot be characterized as only aquaretic, i.e. increasing the volume of water excreted by the kidneys, as several authors found also an increased excretion of minerals components (mainly chloride).
         compound: cone berry infusion
         compoundRu: настой шишкоягод
-        effectRu: мочегонное — выводит не только воду
-        evidence: review
+        effectRu: в опытах (в основном на крысах) мочегонное действие не только водное — усиливалось и выведение минеральных веществ, главным образом хлорида
+        evidence: animal
       - doc: assessment-report
         page: 8
-        quote: Biochemical, pathological and histological investigations are questioning neither the juniper oil nor the terpinene-4- ol produced nefrotoxic effects
+        quote: Biochemical, pathological and histological investigations are questioning neither the juniper oil nor the terpinene-4- ol produced nefrotoxic effects, which were formerly thought to trigger the diuretic action
         compound: essential oil, terpinen-4-ol
         compoundRu: эфирное масло, терпинен-4-ол
         classRu: эфирное масло (монотерпены)
-        effectRu: прежние опасения о вреде для почек исследованиями не подтверждены
+        effectRu: биохимические, патологические и гистологические исследования не показали нефротоксичности масла и терпинен-4-ола, которую раньше считали причиной мочегонного действия
         evidence: review
     grls:
       registrationNumber: ЛП-№(014418)-(РГ-RU)

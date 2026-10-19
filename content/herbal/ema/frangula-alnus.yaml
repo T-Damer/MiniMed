@@ -5,22 +5,22 @@ status: proposed
 useType: well-established
 facts:
   - kind: indication
-    ru: Кратковременно при эпизодическом запоре
+    ru: При эпизодическом запоре
     doc: monograph
     page: 4
     quote: cases of occasional constipation.
   - kind: posology
-    ru: Разовая доза — сырьё, содержащее 10–30 мг антрагликозидов, один раз в день на ночь; брать наименьшую дозу, дающую мягкий стул
+    ru: Разовая доза — препарат, эквивалентный 10–30 мг гидроксиантраценовых производных (в пересчёте на глюкофрангулин А), один раз в день на ночь; индивидуальная доза — наименьшая, дающая комфортный мягкий стул
     doc: monograph
     page: 4
-    quote: "Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night."
-    dose: { preparationRu: отвар или настой на ночь, amount: "10-30", unit: мг антрагликозидов, populationRu: подростки и взрослые }
+    quote: Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.
+    dose: { preparationRu: препарат на ночь, amount: "10-30", unit: мг гидроксиантраценовых производных, populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
-    ru: Чай — не больше 30 мг антрагликозидов на 150 мл кипятка
+    ru: Чай — измельчённое сырьё, эквивалентное не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка
     doc: monograph
     page: 4
     quote: "Herbal tea: amount of comminuted herbal substance equivalent to not more than 30 mg hydroxyanthracene derivatives in 150 ml of boiling water as herbal infusion"
-    dose: { preparationRu: настой, amount: "30", unit: мг антрагликозидов (не больше), waterMl: "150", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой, amount: "30", unit: мг гидроксиантраценовых производных (не больше), waterMl: "150", populationRu: "подростки, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 12 лет нельзя
     doc: monograph
@@ -44,58 +44,68 @@ facts:
     page: 5
     quote: Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
   - kind: warning
-    ru: Долгий приём стимулирующих слабительных нарушает работу кишки и вызывает зависимость; если слабительное нужно каждый день — искать причину запора
+    ru: Долгого приёма стимулирующих слабительных следует избегать — он может нарушить работу кишки и привести к зависимости; если слабительное нужно каждый день — выяснить причину запора
     doc: monograph
     page: 5
-    quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives.
+    quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives. If laxatives are needed every day the cause of the constipation should be investigated.
   - kind: warning
-    ru: Сначала — изменить питание и попробовать набухающие средства
+    ru: Применять, только если не помогли изменение питания или набухающие средства
     doc: monograph
     page: 5
     quote: Frangula bark preparations should only be used if a therapeutic effect cannot be achieved by a change of diet or the administration of bulk forming agents.
   - kind: interaction
-    ru: Потеря калия усиливает действие сердечных гликозидов и антиаритмиков; мочегонные, кортикостероиды и солодка усиливают потерю калия
+    ru: Низкий калий (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмиками; мочегонные, кортикостероиды и корень солодки при совместном приёме могут усиливать потерю калия
     doc: monograph
     page: 6
     quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
   - kind: pregnancy
-    ru: При беременности нельзя — риск повреждения генов (эмодин, франгулин)
+    ru: При беременности нельзя — по экспериментальным данным, у нескольких антраноидов (например, эмодина и франгулина) есть генотоксический риск
     doc: monograph
     page: 6
     quote: The use during pregnancy is contraindicated because of experimental data concerning a genotoxic risk of several anthranoids, e.g. emodin and frangulin.
   - kind: lactation
-    ru: При кормлении грудью нельзя — метаболиты переходят в молоко
+    ru: При кормлении грудью нельзя — после приёма антраноидов активные метаболиты (например, рейн) в малых количествах выделялись в грудное молоко
     doc: monograph
     page: 6
     quote: The use during lactation is contraindicated because after administration of anthranoids, active metabolites, such as rhein, were excreted in breast milk in small amounts.
   - kind: adverse
-    ru: Боль и спазмы в животе, жидкий стул; при долгом приёме — потеря воды и солей, окрашивание слизистой кишки
+    ru: Боль и спазмы в животе, жидкий стул — особенно у больных с раздражённой толстой кишкой
     doc: monograph
     page: 7
     quote: Frangula bark may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon.
   - kind: adverse
-    ru: Моча может окраситься в жёлтый или красно-коричневый цвет — это безопасно
+    ru: При хроническом приёме возможна пигментация слизистой кишки (псевдомеланоз), обычно проходит после отмены
+    doc: monograph
+    page: 7
+    quote: Furthermore, chronic use may cause pigmentation of the intestinal mucosa (pseudomelanosis coli), which usually recedes when the patient stops taking the preparation.
+  - kind: adverse
+    ru: При длительном приёме возможен водно-электролитный дисбаланс, вплоть до альбуминурии и гематурии
+    doc: monograph
+    page: 7
+    quote: Long term use may lead to water and electrolyte imbalance and may result in albuminuria and haematuria.
+  - kind: adverse
+    ru: Моча может окраситься в жёлтый или красно-коричневый цвет (зависит от pH) — клинического значения не имеет
     doc: monograph
     page: 7
     quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during the treatment.
   - kind: overdose
-    ru: Схваткообразная боль и сильный понос с потерей жидкости и солей — много пить, следить за калием
+    ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — достаточно жидкости, контроль электролитов, особенно калия (важно у пожилых)
     doc: monograph
     page: 7
-    quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes.
+    quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, specifically potassium, should be monitored. This is particularly important in the elderly.
 constituents:
   - compound: glucofrangulin, frangulin
     compoundRu: глюкофрангулин, франгулин
     classRu: антрагликозиды (гидроксиантраценовые производные)
-    effectRu: слабительное — сильнее неочищенного экстракта сенны
+    effectRu: у мышей слабительное действие примерно в 4–5 раз сильнее неопределённого экстракта сенны; для глюкофрангулина есть признаки снижения относительной эффективности
     evidence: animal
     doc: assessment-report
     page: 11
-    quote: Laxative effect of glucofrangulin and frangulin nearly 4 to 5 times stronger than an undefined senna extract.
+    quote: Laxative effect of glucofrangulin and frangulin nearly 4 to 5 times stronger than an undefined senna extract. For glucofrangulin signs of a reduction concerning the relative effectiveness.
   - compound: hydroxyanthracene derivatives
     compoundRu: гидроксиантраценовые производные
     classRu: антрагликозиды
-    effectRu: стимулирующее слабительное, механизм как у сенны
+    effectRu: данных мало; по аналогии с другими слабительными этой группы, например сенной, предполагают сходный механизм действия
     evidence: review
     doc: assessment-report
     page: 13

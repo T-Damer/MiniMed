@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:41a799750fd056eb5b0949dfd2943b6652693b9f42ad6968c382f2367c8602aa
+source_checksum: sha256:1bcb402e5a1ca7a285138f2e7a02f0f423af8a08f31662e94a59bf2a714e8907
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -94,12 +94,12 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product for the relief of digestive symptoms including burning sensation and dyspepsia.
         kind: indication
-        ru: Расстройства пищеварения — жжение, тяжесть в желудке
+        ru: Симптомы нарушения пищеварения, включая чувство жжения и диспепсию
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
         kind: indication
-        ru: Отхаркивающее при кашле от простуды
+        ru: Отхаркивающее при кашле, связанном с простудой
       - doc: monograph
         page: 4
         quote: 'Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals.'
@@ -111,7 +111,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily.'
@@ -123,7 +123,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -134,49 +134,49 @@ metadata:
         page: 5
         quote: Not to be used for more than 4 weeks. If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: При расстройстве пищеварения — не дольше 4 недель; если дольше 2 недель — к врачу
+        ru: При нарушениях пищеварения — не дольше 4 недель; если симптомы держатся дольше 2 недель — к врачу или медработнику
         maxDays: 28
       - doc: monograph
         page: 5
         quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: При кашле — если дольше 1 недели, к врачу
+        ru: При кашле — если симптомы держатся дольше 1 недели, обратиться к врачу или медработнику
         maxDays: 7
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance(s)
         kind: contraindication
-        ru: Аллергия на солодку
+        ru: Гиперчувствительность к солодке
       - doc: monograph
         page: 6
         quote: Liquorice medication is not recommended in patients affected by hypertension, kidney diseases, liver or cardiovascular disorders or hypokalaemia, as they are more sensitive to the adverse effects of liquorice.
         kind: warning
-        ru: Не рекомендуется при гипертонии, болезнях почек, печени и сердца, низком калии
+        ru: Не рекомендуется при гипертонии, болезнях почек, нарушениях печени или сердечно-сосудистой системы, гипокалиемии — они более чувствительны к нежелательным эффектам солодки
       - doc: monograph
-        page: 6
-        quote: take other liquorice containing products as serious adverse events may occur such as water retention, hypokalaemia, hypertension, cardiac rhythm disorders.
+        page: 5
+        quote: Patients taking liquorice medication should not take other liquorice containing products as serious adverse events may occur such as water retention, hypokalaemia, hypertension, cardiac rhythm disorders.
         kind: warning
-        ru: Не совмещать с другими продуктами из солодки — задержка воды, низкий калий, повышение давления, нарушения ритма
+        ru: Не принимать другие продукты с солодкой — возможны серьёзные нежелательные явления, например задержка воды, гипокалиемия, повышение давления, нарушения сердечного ритма
       - doc: monograph
         page: 6
         quote: Liquorice root may counteract antihypertensive action of prescribed medications. Not to be used concomitantly with diuretics, cardiac glycosides, corticosteroids, stimulant laxatives or other medications which may aggravate electrolyte imbalance
         kind: interaction
-        ru: Ослабляет действие лекарств от давления; нельзя вместе с мочегонными, сердечными гликозидами, кортикостероидами, стимулирующими слабительными
+        ru: Корень солодки может ослаблять действие назначенных препаратов от давления. Нельзя применять одновременно с диуретиками, сердечными гликозидами, кортикостероидами, стимулирующими слабительными и другими препаратами, которые могут усугублять нарушения электролитного баланса
       - doc: monograph
         page: 6
-        quote: Liquorice root preparations might affect the activity of CYP3A4.
+        quote: Liquorice root preparations might affect the activity of CYP3A4. Clinical studies have shown that the oral intake of 300 mg/day of glycyrrhizin for 14 days can modestly decrease the systemic exposure to drugs metabolised by CYP 3A4 enzymes such as midazolam and omeprazole.
         kind: interaction
-        ru: Может менять обмен лекарств через CYP3A4 (например, мидазолам, омепразол)
+        ru: Возможно влияние на активность CYP3A4; в клинических исследованиях приём 300 мг/сут глицирризина 14 дней умеренно снижал системное воздействие препаратов, метаболизируемых CYP3A4, например мидазолама и омепразола
       - doc: monograph
         page: 7
-        quote: The use is not recommended during pregnancy and in women of childbearing potential not using contraception.
+        quote: Studies in animals have shown reproductive toxicity (see section 5.3 'Preclinical safety data'). The use is not recommended during pregnancy and in women of childbearing potential not using contraception.
         kind: pregnancy
-        ru: При беременности не рекомендуется (токсичность для потомства у животных), а также женщинам без контрацепции
+        ru: При беременности и у женщин детородного возраста без контрацепции не рекомендуется; в исследованиях на животных — репродуктивная токсичность
       - doc: monograph
         page: 7
-        quote: Glycyrrhizin is detectable in the breastmilk of some women taking liquorice
+        quote: Glycyrrhizin is detectable in the breastmilk of some women taking liquorice, but studies measuring glycyrrhetinic acid have not been performed. The effect of liquorice root or its constituents on newborns/infants is unknown. The use during breast-feeding is not recommended.
         kind: lactation
-        ru: При кормлении грудью не рекомендуется — глицирризин переходит в молоко
+        ru: При кормлении грудью не рекомендуется; глицирризин обнаруживается в грудном молоке у некоторых женщин, влияние на новорождённых неизвестно
       - doc: monograph
         page: 7
         quote: Cases of overdose have been reported with prolonged use (more than 4 weeks) and/or intake of high amount of liquorice, with symptoms such as water retention, hypokalaemia, hypertension, cardiac rhythm disorders, and hypertensive encephalopathy.
@@ -189,7 +189,7 @@ metadata:
         compound: glycyrrhizin, 18β-glycyrrhetinic acid
         compoundRu: глицирризин, глицирретиновая кислота
         classRu: тритерпеновые сапонины
-        effectRu: противовоспалительное, кортикостероидоподобное
+        effectRu: противовоспалительное и противоаллергическое действие связывают с кортикостероидоподобной активностью
         evidence: review
       - doc: assessment-report
         page: 54
@@ -197,23 +197,23 @@ metadata:
         compound: glycyrrhizin
         compoundRu: глицирризин
         classRu: тритерпеновые сапонины
-        effectRu: отхаркивающее — усиливает выделение слизи в трахее
+        effectRu: противокашлевое и отхаркивающее действие связывают с глицирризином, ускоряющим секрецию слизи в трахее
         evidence: review
       - doc: assessment-report
         page: 19
-        quote: Liquiritin apioside and liquiritin at 50 mg/kg exhibited potent expectorant activities
+        quote: The expectorant activities of isolated constituents of liquorice were evaluated using the phenol red secretion mice model. Compared with the control group, the positive drug guaifenesin exhibited significant increase in phenol red secretion to 3.0 folds (p < 0.001). Liquiritin apioside and liquiritin at 50 mg/kg exhibited potent expectorant activities
         compound: liquiritin apioside, liquiritin
-        compoundRu: ликвиритин и его апиозид
+        compoundRu: ликвиритин апиозид и ликвиритин
         classRu: флавоноиды
-        effectRu: отхаркивающее
+        effectRu: отхаркивающая активность у мышей (модель выделения фенолового красного), 50 мг/кг
         evidence: animal
       - doc: assessment-report
         page: 57
-        quote: Glycyrrhetinic acid is a more potent inhibitor of 5α-, 5β-reductase and 11β-dehydrogenase than is glycyrrhizin.
+        quote: 11β-dehydrogenase converts endogenous cortisol to cortisone; orally administered glycyrrhizin is metabolised mainly to 18β-glycyrrhetinic acid. Glycyrrhetinic acid is a more potent inhibitor of 5α-, 5β-reductase and 11β-dehydrogenase than is glycyrrhizin.
         compound: glycyrrhetinic acid
         compoundRu: глицирретиновая кислота
         classRu: метаболит глицирризина
-        effectRu: тормозит фермент разрушения кортизола — причина задержки воды, потери калия и повышения давления
+        effectRu: основной метаболит глицирризина при приёме внутрь; сильнее глицирризина тормозит 5α-, 5β-редуктазу и 11β-дегидрогеназу (превращает кортизол в кортизон)
         evidence: review
     grls:
       registrationNumber: ЛП-№(015141)-(РГ-RU)

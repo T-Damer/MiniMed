@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530382/cc0903a7-f936-4ebb-b78b-f00f686dac55.pdf
-source_checksum: sha256:763311de95821b542534a9b5d7cc66e8cb50fdde05f0df5a07426108c056716a
+source_checksum: sha256:703d3405f2af20fb54ee67ede208c00e94b377ba6699a2d0a4135cffb8fa73e7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -96,14 +96,14 @@ metadata:
         page: 4
         quote: 'a) Herbal tea: 1-4 g of the comminuted herbal substance in 200 ml of boiling water as a herbal infusion, up to 4 times daily'
         kind: posology
-        ru: Чай (настой) — взрослые
+        ru: Чай (настой) — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1-4
           unit: г
           waterMl: '200'
-          timesPerDay: '4'
-          populationRu: взрослые
+          timesPerDay: до 4
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -130,7 +130,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Undesirable effects None known.
@@ -144,19 +144,19 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 4
-        quote: Secoiridoid glucosides are the characteristic bitter-tasting constituents, principally (75%) swertiamarin
+        quote: Secoiridoid glucosides are the characteristic bitter-tasting constituents, principally (75%) swertiamarin and smaller amounts of gentiopicroside (gentiopicrin) and sweroside (bitterness value ca. 12,000) and centapricin
         compound: swertiamarin, gentiopicroside, sweroside, centapicrin
         compoundRu: сверциамарин, генциопикрозид, сверозид, центапикрин
         classRu: секоиридоидные гликозиды (горечи)
-        effectRu: горечи — возбуждают аппетит
+        effectRu: характерные горькие вещества травы; главным образом (75%) сверциамарин
         evidence: review
       - doc: assessment-report
         page: 14
-        quote: Antibacterial activity could be observed for swertiamarin and sweroside
+        quote: Antibacterial activity could be observed for swertiamarin and sweroside; both compounds inhibited the growth of Bacillus cereus, Bacillus subtilis, Citrobacter freundii and Escherichia coli.
         compound: swertiamarin, sweroside
         compoundRu: сверциамарин, сверозид
         classRu: секоиридоиды
-        effectRu: антибактериальное
+        effectRu: подавляли рост бактерий (B. cereus, B. subtilis, C. freundii, E. coli)
         evidence: in-vitro
     grls:
       registrationNumber: ЛП-№(014393)-(РГ-RU)

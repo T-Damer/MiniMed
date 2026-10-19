@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:c2b8e8f9ec9e45714a35ad8116fecda91d3ea646d4946d4eea73b285740d8016
+source_checksum: sha256:b8bb5c628fbcb5371556a4a88d12735296f33e02f22ee80d3a210cf1cb80952f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -92,19 +92,19 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product for the symptomatic relief of digestive disorders such as dyspepsia and flatulence.
         kind: indication
-        ru: Расстройства пищеварения — тяжесть, вздутие
+        ru: Расстройства пищеварения, например диспепсия и метеоризм
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily'
+        quote: 'Adults, elderly Single dose Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily'
         kind: posology
-        ru: Чай (настой) — взрослые
+        ru: Чай (настой) — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-3.0
           unit: г
           waterMl: 100-150
           timesPerDay: '3'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'Children 4-11 years of age and adolescents Herbal tea: 1.0-2.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily'
@@ -133,12 +133,12 @@ metadata:
         page: 4
         quote: Hypersensitivity to peppermint leaf preparations or to menthol.
         kind: contraindication
-        ru: Аллергия на мяту или ментол
+        ru: Аллергия на препараты листа мяты перечной или на ментол
       - doc: monograph
         page: 5
         quote: Patients with gastroesophageal reflux (heartburn) should avoid peppermint leaf preparations, because heartburn may increase.
         kind: warning
-        ru: При изжоге (рефлюксе) лучше не пить — изжога может усилиться
+        ru: При гастроэзофагеальном рефлюксе (изжоге) следует избегать препаратов листа мяты — изжога может усилиться
       - doc: monograph
         page: 5
         quote: Patients with gallstones and any other biliary disorders should be cautious using peppermint leaf preparations.
@@ -153,7 +153,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: The gastroesophageal reflux may worsen and heartburn may increase.
@@ -167,11 +167,11 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 5
-        quote: Its major constituents are menthol (30-55%) and menthone (14-32%).
+        quote: Chemical composition of the essential oil. Its major constituents are menthol (30-55%) and menthone (14-32%).
         compound: menthol, menthone
         compoundRu: ментол, ментон
         classRu: эфирное масло (монотерпены)
-        effectRu: главные компоненты эфирного масла листа
+        effectRu: главные компоненты эфирного масла — ментол 30-55%, ментон 14-32%
         evidence: review
       - doc: assessment-report
         page: 28
@@ -179,14 +179,14 @@ metadata:
         compound: (-)-menthol, peppermint oil
         compoundRu: ментол, мятное масло
         classRu: эфирное масло
-        effectRu: противорвотное — действуют на серотониновые рецепторы кишки
+        effectRu: противорвотный эффект, по выводу авторов, хотя бы отчасти через 5-HT3-рецепторы
         evidence: in-vitro
       - doc: assessment-report
         page: 26
-        quote: alcoholic extracts of peppermint leaf have showed antispasmodic effects on the isolated guinea pig ile
+        quote: alcoholic extracts of peppermint leaf have showed antispasmodic effects on the isolated guinea pig ileum.
         compound: alcoholic leaf extract
         compoundRu: спиртовой экстракт листа
-        effectRu: спазмолитическое на кишку
+        effectRu: спиртовые экстракты листа снимали спазм изолированной подвздошной кишки морской свинки
         evidence: in-vitro
       - doc: assessment-report
         page: 27
@@ -194,7 +194,7 @@ metadata:
         compound: flavonoids
         compoundRu: флавоноиды листа
         classRu: флавоноиды
-        effectRu: желчегонное
+        effectRu: у собак — желчегонное действие смеси флавоноидов листа
         evidence: animal
       - doc: assessment-report
         page: 29
@@ -202,7 +202,7 @@ metadata:
         compound: peppermint oil
         compoundRu: мятное масло
         classRu: эфирное масло
-        effectRu: ветрогонное — уменьшает пену и газы
+        effectRu: in vitro — противовспенивающее и ветрогонное действие
         evidence: in-vitro
     grls:
       registrationNumber: ЛП-№(012387)-(РГ-RU)

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf
-source_checksum: sha256:c5424962b49eeb0b7e488000dbf78d5cb61d9900826e13fad0eddf9a1618e7df
+source_checksum: sha256:2b770a4f698e5397ea224b0b6517fcd7ac65920e65d4d4f2922201da041447e9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -112,7 +112,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
-          populationRu: дети, подростки и взрослые
+          populationRu: дети, подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: '1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times'
@@ -124,7 +124,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: 'Impregnated dressings: remove after 30-60 minutes'
@@ -134,13 +134,13 @@ metadata:
         page: 5
         quote: The use in children under 6 years of age is not recommended
         kind: age
-        ru: На кожу — не младше 6 лет
+        ru: На кожу — детям до 6 лет не рекомендуется
         minAgeMonths: 72
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
         kind: age
-        ru: Полоскания — не младше 12 лет
+        ru: Полоскания — детям до 12 лет не рекомендуется
         minAgeMonths: 144
       - doc: monograph
         page: 5
@@ -152,7 +152,7 @@ metadata:
         page: 6
         quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
         kind: contraindication
-        ru: Аллергия на календулу и другие астровые (сложноцветные)
+        ru: Гиперчувствительность к календуле и другим астровым (сложноцветным)
       - doc: monograph
         page: 6
         quote: If signs of skin infection are observed or the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
@@ -167,7 +167,7 @@ metadata:
         page: 6
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 7
         quote: Skin sensitization has been reported.
@@ -181,11 +181,11 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 17
-        quote: triterpenoids were shown to be the most important anti-inflammatory principles in the CO2 extract
+        quote: In the same model, triterpenoids were shown to be the most important anti-inflammatory principles in the CO2 extract
         compound: triterpenoids
         compoundRu: тритерпеноиды
         classRu: тритерпены
-        effectRu: главные противовоспалительные вещества
+        effectRu: главные противовоспалительные вещества CO2-экстракта
         evidence: animal
       - doc: assessment-report
         page: 17
@@ -193,14 +193,14 @@ metadata:
         compound: faradiol
         compoundRu: фарадиол
         classRu: тритерпеновые диолы
-        effectRu: снимает отёк не хуже индометацина (по молям)
+        effectRu: самое активное вещество в тесте с кротоновым маслом; по молярной активности сопоставим с индометацином
         evidence: animal
       - doc: assessment-report
         page: 16
-        quote: The effect of the Calendula extracts on the new tissue formation phase of wound healing was evaluated
-        compound: n-hexane and ethanolic flower extracts
-        compoundRu: экстракты цветков
-        effectRu: ускоряют заживление ран — миграцию клеток кожи и образование грануляций
+        quote: The n-hexanic and the ethanolic extracts (concentrations of 10 and 50 µg/ml) influence the inflammatory phase by activating the transcription factor NF-κB and by increasing the amount of the chemokine IL-8, both at the transcriptional and protein level, in human immortalized keratinocytes. The migration of the keratinocytes during the new tissue formation phase was only marginally influenced in the scratch assay. The ethanolic extract (EE) as well as the aqueous extract (AE) significantly reduced collagenase activity compared to the solvent control in a concentration-dependent manner but the inhibition was only moderate.
+        compound: n-hexane, ethanolic and aqueous flower extracts
+        compoundRu: экстракты цветков (гексановый, этанольный, водный)
+        effectRu: гексановый и этанольный влияют на воспалительную фазу заживления в кератиноцитах (NF-κB, IL-8); миграцию кератиноцитов меняют лишь незначительно; этанольный и водный умеренно тормозят коллагеназу
         evidence: in-vitro
     grls:
       registrationNumber: ЛП-№(013370)-(РГ-RU)

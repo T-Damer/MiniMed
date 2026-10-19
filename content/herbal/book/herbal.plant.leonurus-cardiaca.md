@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/24/1532592/4c1cf892-188f-4039-8af3-5ce51ccd61b9.pdf
-source_checksum: sha256:68337bb62e349beb6018c6114f097ca635f1097b79f30293d22585f53dcd14b3
+source_checksum: sha256:209a0f4fa8f398bfa44a999d11cefe438ffe989c7a18667b8c12a7e350a8ec7c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -98,17 +98,17 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product used to relieve symptoms of nervous cardiac complaints such as palpitations, after serious conditions have been excluded by a medical doctor.
         kind: indication
-        ru: Сердцебиение и другие «нервные» жалобы на сердце — после того как врач исключил серьёзное
+        ru: «Нервные» жалобы со стороны сердца, например сердцебиение, — после исключения врачом серьёзных состояний
       - doc: monograph
         page: 3
         quote: 'a) Comminuted herbal substance for tea preparation: single dose 1.5 to 4.5 g, daily dose 3 to 10 g.'
         kind: posology
-        ru: Чай — взрослые; в сутки 3–10 г
+        ru: Чай — разовая доза 1,5–4,5 г, в сутки 3–10 г; взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-4.5
           unit: г
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -119,13 +119,13 @@ metadata:
         page: 4
         quote: If the symptoms persist longer than 4 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Если симптомы держатся дольше 4 недель — к врачу
+        ru: Если симптомы держатся дольше 4 недель — обратиться к врачу или медработнику
         maxDays: 28
       - doc: monograph
         page: 4
         quote: Hypersensitivity to the active substance.
         kind: contraindication
-        ru: Аллергия на пустырник
+        ru: Гиперчувствительность к пустырнику
       - doc: monograph
         page: 4
         quote: Contraindicated during pregnancy.
@@ -133,14 +133,14 @@ metadata:
         ru: При беременности нельзя
       - doc: monograph
         page: 4
-        quote: The safety during lactation has not been
+        quote: The safety during lactation has not been established.
         kind: lactation
         ru: Безопасность при кормлении грудью не установлена
       - doc: monograph
         page: 5
         quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
         kind: warning
-        ru: Спиртовые препараты могут снижать внимание — не садиться за руль
+        ru: Может ухудшать способность водить и работать с механизмами; в этом случае не садиться за руль и не работать с механизмами
       - doc: monograph
         page: 4
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -159,18 +159,18 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 6
-        quote: 'Iridoids: ajugosid (= leonurid = 4-desoxyharpagid), ajugol, galiridosid, reptosid'
+        quote: 'Iridoids: ajugosid (= leonurid = 4-desoxyharpagid), ajugol, galiridosid, reptosid (no information on the concentration available) (Kartnig 2006), 0.26% ursolic acid , 0.1% caffeic acid-4-O-rutinosid, flavonoids deriving from quercetin, kaempferol, and apigenin, genkwanin'
         compound: iridoids (ajugoside, ajugol), ursolic acid, flavonoids
         compoundRu: иридоиды (аюгозид, аюгол), урсоловая кислота, флавоноиды
         classRu: иридоиды, тритерпены, флавоноиды
-        effectRu: основные компоненты травы
+        effectRu: в траве описаны иридоиды (концентрация не известна), урсоловая кислота 0,26%, флавоноиды — производные кверцетина, кемпферола и апигенина, генкванин
         evidence: review
       - doc: assessment-report
         page: 22
-        quote: cardiaca has a weak sedative action, the models used and the limited number of test animals without any statistical evaluation cannot confirm this type of action from a modern perspective.
-        compound: herb extracts
-        compoundRu: отвар и экстракт травы
-        effectRu: слабое успокаивающее в опытах на животных; современными методами не подтверждено
+        quote: Although the author concludes that L. cardiaca has a weak sedative action, the models used and the limited number of test animals without any statistical evaluation cannot confirm this type of action from a modern perspective.
+        compound: Leonurus cardiaca herb
+        compoundRu: трава пустырника
+        effectRu: автор опытов на животных сделал вывод о слабом седативном действии; из-за моделей и малого числа животных без статистики это не подтверждается с современной точки зрения
         evidence: animal
     grls:
       registrationNumber: ЛП-№(013308)-(РГ-RU)

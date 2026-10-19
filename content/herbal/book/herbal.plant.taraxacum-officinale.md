@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf
-source_checksum: sha256:89727358762cb61d8537f96cc833ab3ab3eceb4b62fc5a057f45389d81be6e74
+source_checksum: sha256:3a90dacc57eb91b46253f958262fb5956145dd70261fca39a53cd1a3ecf9db17
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,7 +91,7 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product used for the relief of symptoms related to mild digestive disorders (such as feeling of abdominal fullness, flatulence, and slow digestion).
         kind: indication
-        ru: Лёгкие расстройства пищеварения — тяжесть, газы, медленное переваривание
+        ru: Облегчение симптомов лёгких расстройств пищеварения (например, чувство переполнения живота, метеоризм, медленное пищеварение)
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for temporary loss of appetite.
@@ -101,24 +101,24 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
         kind: indication
-        ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+        ru: Увеличение количества мочи для промывания мочевых путей — как вспомогательное средство при незначительных мочевых жалобах
       - doc: monograph
         page: 4
         quote: 'a) Comminuted herbal substance for decoction: single dose of 1-5 g in 150 ml of water, 2-3 times daily'
         kind: posology
-        ru: Отвар — подростки и взрослые
+        ru: Отвар — подростки, взрослые и пожилые
         dose:
           preparationRu: отвар
           amount: 1-5
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
-        quote: To ensure an increase of the amount of urine, adequate fluid intake is required during treatment
+        quote: Indication 2) Preparations are to be taken ½ hour before meal. Indication 3) To ensure an increase of the amount of urine, adequate fluid intake is required during treatment
         kind: posology
-        ru: Для аппетита — за полчаса до еды; для мочегонного действия — пить достаточно жидкости
+        ru: При потере аппетита — принимать за полчаса до еды; для увеличения количества мочи — достаточное питьё во время лечения
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
@@ -129,28 +129,28 @@ metadata:
         page: 5
         quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Если симптомы держатся дольше 2 недель — к врачу
+        ru: Если симптомы держатся дольше 2 недель — обратиться к врачу или медработнику
         maxDays: 14
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance or to plants of the Asteraceae (Compositae) family.
         kind: contraindication
-        ru: Аллергия на одуванчик и другие астровые (сложноцветные)
+        ru: Гиперчувствительность к одуванчику или другим астровым (сложноцветным)
       - doc: monograph
-        page: 6
-        quote: obstruction of the bile duct, cholangitis, liver disease, gallstones and any other biliary diseases.
+        page: 5
+        quote: Due to possible stimulation on bile secretion, dandelion root is not recommended in case of obstruction of the bile duct, cholangitis, liver disease, gallstones and any other biliary diseases.
         kind: warning
-        ru: Усиливает отток желчи — не рекомендуется при закупорке желчных путей, холангите, болезнях печени, желчных камнях
+        ru: Из-за возможной стимуляции секреции желчи не рекомендуется при обструкции желчных протоков, холангите, заболеваниях печени, желчных камнях и любых других заболеваниях желчных путей
       - doc: monograph
         page: 6
         quote: If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: При температуре, болезненном или спастическом мочеиспускании, крови в моче — к врачу
+        ru: При применении для увеличения количества мочи — если появились лихорадка, дизурия, спазмы или кровь в моче — обратиться к врачу или медработнику
       - doc: monograph
         page: 6
-        quote: dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
+        quote: Because adequate fluid intake is required during treatment (see section 4.2. Posology and method of administration), dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
         kind: warning
-        ru: Не рекомендуется, если врач ограничил питьё (например, при болезнях сердца или почек)
+        ru: Из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
       - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -160,7 +160,7 @@ metadata:
         page: 6
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 7
         quote: Allergic reactions may occur.
@@ -176,33 +176,41 @@ metadata:
         page: 13
         quote: Bitter principles are thought to enhance excretion from salivary and stomach glands by reflectory irritation of bitter receptors
         compound: bitter principles
-        compoundRu: горечи (сесквитерпеновые лактоны)
+        compoundRu: горькие вещества
         classRu: сесквитерпены
-        effectRu: усиливают слюну и желудочный сок через рецепторы горького
+        effectRu: считается, что усиливают выделение слюнных и желудочных желёз рефлекторным раздражением рецепторов горького
         evidence: review
       - doc: assessment-report
         page: 13
-        quote: inhibited significantly the development of aspirin induced gastric lesions in the rat.
+        quote: Moreover, taraxinic acid D-glucopyranoside at the dose of 80 mg/kg p.o. inhibited significantly the development of aspirin induced gastric lesions in the rat.
         compound: taraxinic acid D-glucopyranoside
-        compoundRu: тараксиновой кислоты глюкозид
+        compoundRu: тараксиновой кислоты глюкопиранозид
         classRu: сесквитерпены
-        effectRu: защищает желудок от повреждения аспирином; может вызывать контактную аллергию
+        effectRu: у крыс (80 мг/кг внутрь) значительно подавлял развитие вызванных аспирином поражений желудка
         evidence: animal
+      - doc: assessment-report
+        page: 13
+        quote: Taraxinic acid D-glucopyranoside was found to increase Nrf2 transactivation in a dose-dependent manner (Esatbeyoglu et al., 2017). However, it acts as the contact sensitizer (Hausen 1982).
+        compound: taraxinic acid D-glucopyranoside
+        compoundRu: тараксиновой кислоты глюкопиранозид
+        classRu: сесквитерпены
+        effectRu: действует как контактный сенсибилизатор
+        evidence: review
       - doc: assessment-report
         page: 5
         quote: Inulin contents of roots range from 2% in spring - to 40% in autumn
         compound: inulin
         compoundRu: инулин
         classRu: полисахариды
-        effectRu: запасной углевод корня, больше всего осенью
+        effectRu: содержание в корнях — от 2% весной до 40% осенью
         evidence: review
       - doc: assessment-report
         page: 12
-        quote: concerning potassium excretion may be due to the high potassium content
+        quote: The very high saluretic index concerning potassium excretion may be due to the high potassium content
         compound: potassium
         compoundRu: калий
         classRu: минералы
-        effectRu: высокое содержание калия объясняет его выведение с мочой
+        effectRu: очень высокий салуретический индекс по выведению калия может быть связан с высоким содержанием калия
         evidence: animal
     grls:
       registrationNumber: ЛП-№(015039)-(РГ-RU)

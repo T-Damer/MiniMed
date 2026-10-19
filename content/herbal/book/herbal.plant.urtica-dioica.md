@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:8fc5aa43c94cc76347105f1d1a14bbc657d3bde43883b44a7ab8a814e3641a69
+source_checksum: sha256:be1bf27ebfb2089b5519324bb438cc569fe258b67515e0a79fdbf8b268a4202e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -100,13 +100,13 @@ metadata:
         page: 3
         quote: 'a) Comminuted herbal substance: 2-4 g as single dose for preparation of a herbal tea, 3-6 times daily. The daily dosage is equivalent to 8-12 g of herbal substance.'
         kind: posology
-        ru: Чай — подростки и взрослые; в сутки 8–12 г
+        ru: Чай — 2–4 г на приём, 3–6 раз в день, в сутки 8–12 г
         dose:
           preparationRu: настой
           amount: 2-4
           unit: г
           timesPerDay: 3-6
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -129,7 +129,7 @@ metadata:
         page: 4
         quote: Hypersensitivity to the active substance(s). Condition where a reduced fluid intake is recommended (e.g. severe cardiac or renal disease).
         kind: contraindication
-        ru: Аллергия на крапиву; состояния, когда нужно ограничивать питьё (тяжёлые болезни сердца или почек)
+        ru: Гиперчувствительность к крапиве; состояния, когда рекомендовано ограничить питьё (например, тяжёлые болезни сердца или почек)
       - doc: monograph
         page: 4
         quote: When articular pain is accompanied by swelling of joint, redness or fever a doctor should be consulted.
@@ -139,7 +139,7 @@ metadata:
         page: 4
         quote: If minor urinary tract complaints worsen and symptoms such as fever, dysuria, spasm, or blood in the urine occur during the use of medicinal product, a doctor or a qualified health care professional should be consulted.
         kind: warning
-        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+        ru: Если лёгкие жалобы усилились и появились температура, болезненное мочеиспускание, спазмы или кровь в моче — к врачу
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -149,12 +149,12 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 5
         quote: Mild gastrointestinal complaints (e.g. nausea, vomiting, diarrhoea) and skin reactions (e.g. itching, exanthema, hives) may occur.
         kind: adverse
-        ru: Тошнота, рвота, диарея; кожные реакции (зуд, сыпь, крапивница)
+        ru: Возможны лёгкие жалобы со стороны ЖКТ (тошнота, рвота, диарея) и кожные реакции (зуд, сыпь, крапивница)
       - doc: monograph
         page: 5
         quote: No case of overdose has been reported.
@@ -163,25 +163,25 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 20
-        quote: A hydro-ethanolic extract of nettle leaf (6.4-8:1) and its main phenolic constituent caffeic malic acid showed partial inhibitory effects
-        compound: caffeoyl malic acid
+        quote: A hydro-ethanolic extract of nettle leaf (6.4-8:1) and its main phenolic constituent caffeic malic acid showed partial inhibitory effects of 20.8% and 68.2% respectively on the 5-lipoxygenase-derived synthesis of leukotriene B4.
+        compound: caffeic malic acid
         compoundRu: кофеилъяблочная кислота
         classRu: фенольные кислоты
-        effectRu: противовоспалительное (тормозит липоксигеназу)
+        effectRu: in vitro вместе с экстрактом листа частично тормозит синтез лейкотриена B4 (путь 5-липоксигеназы)
         evidence: in-vitro
       - doc: assessment-report
         page: 15
-        quote: part of the anti-inflammatory effect of Urtica extract may be ascribed to its inhibitory effect on NF-kappa B activation.
-        compound: leaf extract
-        compoundRu: экстракт листа
-        effectRu: противовоспалительное — тормозит NF-κB
+        quote: It was demonstrated that treatment of different cells with IDS23 potently inhibits NF-kappa B activation. An inhibitory effect was observed in response to several stimuli, suggesting that IDS23 suppressed a common NF-kappa B pathway. Inhibition of NF-kappa B activation by IDS23 was not mediated by a direct modification of DNA binding, but rather by preventing degradation of its inhibitory subunit I kappa B-alpha. The author suggests that part of the anti-inflammatory effect of Urtica extract may be ascribed to its inhibitory effect on NF-kappa B activation.
+        compound: leaf extract (IDS23)
+        compoundRu: экстракт листа (IDS23)
+        effectRu: в опытах на клетках тормозит активацию NF-κB; автор предполагает, что этим объясняется часть противовоспалительного действия экстракта
         evidence: in-vitro
       - doc: assessment-report
         page: 18
-        quote: produced a dose dependent anti-inflammatory effect in rats with experimental gonarthritis
-        compound: ethanolic leaf extract
-        compoundRu: спиртовой экстракт листа
-        effectRu: уменьшает воспаление сустава
+        quote: Extract IDS23 (solvent 50% ethanol, 25,100 and 300 mg/kg) produced a dose dependent anti-inflammatory effect in rats with experimental gonarthritis induced by bovine gammaglobulin and silicon particles (diclofenac served as control).
+        compound: ethanolic leaf extract (IDS23)
+        compoundRu: спиртовой экстракт листа (IDS23)
+        effectRu: у крыс с экспериментальным гонартритом — дозозависимое противовоспалительное действие
         evidence: animal
     grls:
       registrationNumber: ЛП-№(013449)-(РГ-RU)

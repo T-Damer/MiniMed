@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:8ca74f5db0a6f8d92e9371205da9082632303a1e64928d61296a055454318bd0
+source_checksum: sha256:a88241728ea06a723dad2d26cbc9310840b1a890391f27fd2d53f1cb74323ed0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -95,19 +95,19 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product used for relief of symptoms of mild recurrent lower urinary tract infections such as burning sensation during urination and/or frequent urination in women, after serious conditions have been excluded by a medical doctor.
         kind: indication
-        ru: Лёгкие повторные инфекции нижних мочевых путей у женщин (жжение, частое мочеиспускание) — после того как врач исключил серьёзное
+        ru: Облегчение симптомов лёгких повторных инфекций нижних мочевых путей у женщин (жжение и/или частое мочеиспускание) — после того как врач исключил серьёзные состояния
       - doc: monograph
         page: 4
         quote: 'Herbal tea: 1.5-4 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion or in 150 ml of water as a macerate 2 to 4 times daily Maximum daily dose: 8 g'
         kind: posology
-        ru: Чай (настой или холодный настой) — взрослые женщины; не больше 8 г в сутки
+        ru: Чай (настой или мацерат) — взрослые и пожилые женщины; не больше 8 г в сутки
         dose:
           preparationRu: настой или мацерат
           amount: 1.5-4
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
-          populationRu: взрослые женщины
+          populationRu: взрослые и пожилые женщины
       - doc: monograph
         page: 5
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -118,7 +118,7 @@ metadata:
         page: 5
         quote: The use in men is not recommended because of concerns requiring medical supervision.
         kind: warning
-        ru: Мужчинам не рекомендуется без наблюдения врача
+        ru: Мужчинам не рекомендуется — есть опасения, требующие наблюдения врача
       - doc: monograph
         page: 5
         quote: Not to be used for more than one week. If the symptoms persist for more than 4 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
@@ -149,7 +149,7 @@ metadata:
         page: 6
         quote: In absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Nausea, vomiting, stomach-ache have been reported.
@@ -163,34 +163,34 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 4
-        quote: 'Hydroquinone derivatives: arbutin (hydroquinone-O-β-D-glucoside) 5 – 16%'
+        quote: 'Hydroquinone derivatives: arbutin (hydroquinone-O-β-D-glucoside) 5 – 16%; the arbutin content is seasonally variable, leaf content over 17% has been reported'
         compound: arbutin
         compoundRu: арбутин
         classRu: производные гидрохинона
-        effectRu: главное действующее вещество листа
+        effectRu: арбутин — 5–16% листа; содержание зависит от сезона (сообщалось и более 17%)
         evidence: review
       - doc: assessment-report
         page: 28
-        quote: converted to free hydroquinone to exert its antibacterial effect.
+        quote: In previous sections, it has been addressed that arbutin, a component of bearberry leaf extract is converted to free hydroquinone to exert its antibacterial effect.
         compound: arbutin → hydroquinone
         compoundRu: арбутин → гидрохинон
         classRu: производные гидрохинона
-        effectRu: в организме превращается в гидрохинон, который действует антибактериально
+        effectRu: арбутин (компонент экстракта листа) превращается в свободный гидрохинон, чтобы оказывать антибактериальное действие
         evidence: review
       - doc: assessment-report
         page: 36
-        quote: substances are active only in alkaline urine
+        quote: In a study without controls, urine samples from healthy volunteers were collected 3 hours after oral administration of 0.1 or 1 g arbutin. The urine samples (adjusted to pH 8) and 20 antibacterial compounds (at their usual urine concentration) were tested in vitro using 74 strains of bacteria, including E. coli, Proteus mirabilis, Pseudomonas aeruginosa and Staphylococcus aureus. Only arbutin (present in urine samples collected after administration of 1 g arbutin), gentamicin and nalidixic acid were active against all the strains tested. An antibacterial effect was observed also at 10-fold lower doses of arbutin (0.1 g). The maximum effect was detected from 3 - 4 hours post-dose. The effect of arbutin was higher in alkaline urine in comparison to urine with pH 6. It could be concluded that metabolic products of arbutin are responsible for antibacterial effect of bearberry leaves but these substances are active only in alkaline urine
         compound: arbutin metabolites
         compoundRu: метаболиты арбутина
-        effectRu: антибактериальны только в щелочной моче
-        evidence: clinical
+        effectRu: в исследовании без контроля моча здоровых добровольцев после приёма арбутина подавляла бактерии in vitro, авторы заключают, что за эффект отвечают метаболиты арбутина, но активны они только в щелочной моче
+        evidence: in-vitro
       - doc: assessment-report
         page: 17
-        quote: bearberry leaves contain relatively high amount of tannins
+        quote: it is considered not advisable to increase the daily dose up to 15 g per day due to the fact that bearberry leaves contain relatively high amount of tannins, which are reported as responsible for gastrointestinal undesirable effects of bearberry leaf products
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: много танинов — причина расстройства желудка при больших дозах
+        effectRu: относительно много танинов; по литературным данным, они ответственны за нежелательные эффекты со стороны ЖКТ (поэтому повышать суточную дозу до 15 г не сочли целесообразным)
         evidence: review
     grls:
       registrationNumber: ЛП-№(015439)-(РГ-RU)

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:5ad37609c711a0933ffb0bfa2abdcf4c7fb3726091698e6903a7f8cd3536c88e
+source_checksum: sha256:73e3a8f5708e5ec2a700c931df83ba97c13814336cb3ee728ff517f1a28a84f4
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -101,39 +101,44 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product for symptomatic relief of itching and burning associated with haemorrhoids, after serious conditions have been excluded by a medical doctor.
         kind: indication
-        ru: Зуд и жжение при геморрое — после того как врач исключил серьёзное
+        ru: Зуд и жжение при геморрое — после того как врач исключил серьёзные состояния
       - doc: monograph
         page: 3
         quote: a) 3 g comminuted herbal substance in 250 ml of water, three times daily.
         kind: posology
-        ru: Отвар внутрь при диарее — взрослые
+        ru: Измельчённая кора в воде внутрь при диарее — взрослые и пожилые
         dose:
-          preparationRu: отвар внутрь
+          preparationRu: измельчённая кора в воде
           amount: '3'
           unit: г
           waterMl: '250'
           timesPerDay: '3'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
         quote: 'Decoction for oromucosal use: 20 g/L.'
         kind: posology
-        ru: Отвар для полоскания рта — 20 г на литр
+        ru: Отвар для слизистой рта — 20 г на литр, взрослые и пожилые
         dose:
-          preparationRu: отвар для полоскания
+          preparationRu: отвар для слизистой рта
           amount: '20'
           unit: г на литр
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
-        quote: 'Decoction for bath preparation: 5 g comminuted herbal substance/1L to be added to the bath (bath duration 20'
+        quote: 'Decoction for bath preparation: 5 g comminuted herbal substance/1L to be added to the bath (bath duration 20 minutes).'
         kind: posology
-        ru: Отвар для ванны — 5 г на литр, ванна 20 минут, не чаще раза в день
+        ru: Отвар для ванны (воспаление кожи и слизистой, геморрой) — 5 г на литр, ванна 20 минут, взрослые и пожилые
         dose:
           preparationRu: отвар для ванны
           amount: '5'
           unit: г на литр
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: One full or partial bath daily.
+        kind: posology
+        ru: Ванна — одна полная или частичная в день
       - doc: monograph
         page: 4
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -150,7 +155,7 @@ metadata:
         page: 4
         quote: Not to be used for more than 1 week.
         kind: duration
-        ru: Наружно — не дольше 1 недели
+        ru: Воспаление кожи и слизистой рта, геморрой — не дольше 1 недели
         maxDays: 7
       - doc: monograph
         page: 4
@@ -176,12 +181,12 @@ metadata:
         page: 5
         quote: Internal absorption of concomitantly administered medicine may be delayed. For this reason, the product should be taken 1 hour or more before or after intake of other medicinal products.
         kind: interaction
-        ru: Задерживает всасывание других лекарств — принимать за час до или через час после них
+        ru: При приёме внутрь может задерживать всасывание других лекарств — принимать за 1 час и более до или после них
       - doc: monograph
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Allergic reactions have been reported.
@@ -199,7 +204,7 @@ metadata:
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: главные действующие вещества коры (8–20%)
+        effectRu: содержание в коре сильно варьирует (8–20%)
         evidence: review
       - doc: assessment-report
         page: 11
@@ -215,7 +220,7 @@ metadata:
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: уменьшают секрецию и раздражение, противомикробное
+        effectRu: по сообщениям, антисекретолитическое, противораздражающее, противомикробное и противопаразитарное действие
         evidence: review
     grls:
       registrationNumber: ЛП-№(013901)-(РГ-RU)

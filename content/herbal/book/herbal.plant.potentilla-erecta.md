@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530887/2f68d269-0d09-4cc7-be3c-a7a3d5ec4289.pdf
-source_checksum: sha256:dac1e29fb00ab796b473024978335b755f670c49ab15543f2856a8e3092e2411
+source_checksum: sha256:017227b2008509c00868207860d732a82036cd2e290c9bda3f6e430ab1119b04
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -101,33 +101,33 @@ metadata:
         page: 3
         quote: 'As infusion: single dose 1.4-4 g, several times daily up to a maximum daily dose of 12 g.'
         kind: posology
-        ru: Настой внутрь — несколько раз в день, не больше 12 г в сутки
+        ru: Настой внутрь при диарее — несколько раз в день, не больше 12 г в сутки
         dose:
           preparationRu: настой
           amount: 1.4-4
           unit: г
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
         quote: 'As decoction: single dose 1.4-3 g, several times daily up to a maximum daily dose of 6 g.'
         kind: posology
-        ru: Отвар внутрь — несколько раз в день, не больше 6 г в сутки
+        ru: Отвар внутрь при диарее — несколько раз в день, не больше 6 г в сутки
         dose:
           preparationRu: отвар
           amount: 1.4-3
           unit: г
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'As infusion: 1.3–2 g per 100 ml of water. As decoction: 0.8–3 g per 100 ml of water. Rinse the mouth several times daily.'
         kind: posology
-        ru: Полоскание рта настоем — несколько раз в день
+        ru: Полоскание рта настоем или отваром — несколько раз в день
         dose:
           preparationRu: настой для полоскания
           amount: 1.3-2
           unit: г
           waterMl: '100'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -150,7 +150,7 @@ metadata:
         page: 4
         quote: Hypersensitivity to the active substance.
         kind: contraindication
-        ru: Аллергия на лапчатку
+        ru: Гиперчувствительность к лапчатке
       - doc: monograph
         page: 5
         quote: If recurrent diarrhoea or bloody stools occur, a doctor or a qualified health care practitioner should be consulted.
@@ -160,17 +160,17 @@ metadata:
         page: 5
         quote: Internal absorption of concomitantly administered medicine may be delayed. For this reason the product should be taken 1 hour or more before or after intake of other medicinal products.
         kind: interaction
-        ru: Задерживает всасывание других лекарств — принимать за час до или через час после них
+        ru: При приёме внутрь может замедляться всасывание других лекарств — принимать за 1 час и более до или после них
       - doc: monograph
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Mild gastrointestinal complaints such as nausea and vomiting may occur.
         kind: adverse
-        ru: Внутрь — возможны тошнота и рвота
+        ru: Внутрь — возможны лёгкие жалобы со стороны ЖКТ, например тошнота и рвота
       - doc: monograph
         page: 6
         quote: No case of overdose has been reported.
@@ -179,19 +179,19 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 3
-        quote: It contains not less than 7% of tannins
-        compound: tannins (agrimoniin)
-        compoundRu: дубильные вещества (агримониин)
-        classRu: танины
-        effectRu: главные действующие вещества — не меньше 7% корневища
-        evidence: review
-      - doc: assessment-report
-        page: 9
-        quote: the precipitate of the protein-tannin complex serves as a protective layer.
+        quote: It contains not less than 7% of tannins, expressed as pyrogallol (C6H6O3, Mr126.1) with reference to the dried herbal substance.
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: вяжущее — связывают белки и образуют защитный слой
+        effectRu: по фармакопее в корневище не менее 7% дубильных веществ (в пересчёте на пирогаллол)
+        evidence: review
+      - doc: assessment-report
+        page: 9
+        quote: the precipitate of the protein-tannin complex serves as a protective layer. The absorption of toxins is impeded; the effects of local irritants are reduced (Dingermann & Loew 2003). For most of these presumptions no experimental data are available.
+        compound: tannins
+        compoundRu: дубильные вещества
+        classRu: танины
+        effectRu: вяжущее — осадок комплекса белок–танин служит защитным слоем; для большинства таких предположений экспериментальных данных нет
         evidence: review
       - doc: assessment-report
         page: 9
@@ -199,7 +199,7 @@ metadata:
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: противомикробное
+        effectRu: танины обладают противомикробным действием независимо от растения-источника
         evidence: review
     grls:
       registrationNumber: ЛП-№(014605)-(РГ-RU)

@@ -106,7 +106,15 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   search matches EMA indications with a stem fallback («кашель»); an «Обновить» offer for a newer text module;
   one «Открываем травник…» state after install; brew dose without the repeated frequency; plates lie on a
   herbarium-paper sheet (`--herbarium-paper`, multiply) in the grid and the hero (owner request).
-  Not done: a phone/WebView run, clinician review of the EMA fields, the other 25 EMA files.
+  Not done: a phone/WebView run, clinician review of the EMA fields.
+- **EMA re-check 2026-10-19** (HERB1-QA2): the other 25 EMA files read fact by fact against their PDF pages;
+  ~270 items changed (Russian lines adding reasons, advice, populations or limits from neighbouring sentences:
+  quotes extended, facts split, Russian trimmed; populations follow the posology headings; modals as in the
+  source; constituent evidence corrected, e.g. valerian 6-methylapigenin animal, uva-ursi metabolites
+  in-vitro). All 30 files now pass `check-herbal-ema` after a fact-level read; text module `2026.10.19-qa2`.
+  Open: sentences split by a footnote across pages cannot be quoted whole (frangula, fennel, melissa, salvia);
+  a few monograph lines have no fact (mentha tinctures, linum traditional duration, quercus hot-bath caution);
+  no clinician review.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

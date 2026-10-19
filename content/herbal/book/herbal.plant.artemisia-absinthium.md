@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf
-source_checksum: sha256:6c2d86594745e2227240b58015180b14155689943a4a7d93e71e3591efb3596b
+source_checksum: sha256:1d642436fcd032bafcf515c6c1bee47eb985df773bcbf7bc36700f312fd06c28
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -104,13 +104,13 @@ metadata:
         page: 4
         quote: 'a) Single dose herbal tea 1-1.5 g comminuted herbal substance in 150 ml of boiling water as an infusion Single dose: 1-1.5 g Daily dose: 2-3 g'
         kind: posology
-        ru: Чай (настой) — взрослые; в сутки 2–3 г
+        ru: Чай (настой) — взрослые и пожилые; в сутки 2–3 г
         dose:
           preparationRu: настой
           amount: 1-1.5
           unit: г
           waterMl: '150'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
         quote: Indication 1) To be taken 30 minutes before meals. Indication 2) To be taken after meals.
@@ -166,11 +166,11 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 24
-        quote: The Absinthii herba preparation caused in all 4 persons an increase in salivation of more than 100%
-        compound: bitter principles (absinthin)
-        compoundRu: горечи (абсинтин)
-        classRu: сесквитерпеновые лактоны
-        effectRu: усиливают слюну и желудочный сок — возбуждают аппетит
+        quote: Four healthy test persons (female, age 19-37 years) drank 100 ml of a test solution, which contained an ethanolic (EtOH 70%) preparation of A. absinthium (corresponds to 0.05 g Absinthii herba) within a time frame of 5 minutes. The amount of saliva was measured before and during the drinking. In the collected saliva the activity of amylase and the amount of hexosamine was measured. The Absinthii herba preparation caused in all 4 persons an increase in salivation of more than 100%, while the activity of amylase and the amount of hexosamine were not influenced or decreased. A non-spiced rice dish caused the same increase. A combination of a non-spiced rice-dish with the Absinthii herba preparation increased the amount of saliva in an additive manner. Furthermore the authors postulate, also in reference to other publications, that the action of bitters is more likely to be associated with the gastric juice secretion.
+        compound: bitters
+        compoundRu: горечи
+        classRu: горькие вещества
+        effectRu: препарат полыни увеличил слюноотделение более чем на 100% у всех 4 здоровых добровольцев; авторы связывают действие горечей скорее с секрецией желудочного сока
         evidence: clinical
       - doc: assessment-report
         page: 22
@@ -178,15 +178,15 @@ metadata:
         compound: thujone
         compoundRu: туйон
         classRu: эфирное масло (монотерпены)
-        effectRu: в больших дозах токсичен для нервной системы (действует на ГАМК-рецептор)
+        effectRu: механизм нейротоксичности α-туйона, по данным исследований, — модуляция ГАМК-А-рецептора
         evidence: review
       - doc: assessment-report
-        page: 24
-        quote: to give 6 mg as a limit of daily exposure
+        page: 23
+        quote: it is recommended that the amount of thujone in a preparation needs to be specified and that exposures in the range between 3 and 7 mg per day do not pose special concerns. For higher concentrations a case-by-case benefit/risk assessment would be necessary. The amount of dietary intake of 1 mg in average may not cause special concerns. However, for the upper limit of the additional intake from medicinal products, the highest safe amount was reduced by the possible intake by food, to give 6 mg as a limit of daily exposure
         compound: thujone
         compoundRu: туйон
         classRu: эфирное масло
-        effectRu: допустимый предел из лекарств — 6 мг в сутки
+        effectRu: верхний предел дополнительного поступления из лекарств — 6 мг в сутки (с учётом возможного поступления с пищей)
         evidence: review
     grls:
       registrationNumber: ЛП-№(014496)-(РГ-RU)

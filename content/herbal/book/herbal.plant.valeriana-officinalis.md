@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:cbf250e418dce3ec7fb61bb5460390ebbe1b23c942d06f279efb057a3dead5ac
+source_checksum: sha256:a8b102a7801c2ad14fcf1fb42fff49f3eb7658cc0edcca27bbcbb5d5b98845d6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -126,7 +126,7 @@ metadata:
         page: 6
         quote: 'a) single dose: 100 g for a full bath; up to 1 bath daily'
         kind: posology
-        ru: Ванна — 100 г корня на полную ванну, не чаще 1 раза в день
+        ru: Ванна — 100 г на полную ванну, до 1 ванны в день
         dose:
           preparationRu: ванна
           amount: '100'
@@ -141,30 +141,30 @@ metadata:
         minAgeMonths: 144
       - doc: monograph
         page: 5
-        quote: To achieve an optimal treatment effect, continued use over 2-4 weeks is recommended.
+        quote: Because of its gradual onset of efficacy valerian root is not suitable for acute interventional treatment of mild nervous tension or sleep disorders. To achieve an optimal treatment effect, continued use over 2-4 weeks is recommended.
         kind: duration
-        ru: Действует постепенно — не для быстрого эффекта; нужен курс 2–4 недели
+        ru: Действует постепенно — для острых состояний не подходит; для лучшего эффекта рекомендуется приём 2–4 недели (хорошо изученное применение)
       - doc: monograph
         page: 5
         quote: If the symptoms persist or worsen after 2 weeks of continued use, a doctor or a pharmacist should be consulted.
         kind: duration
-        ru: Если через 2 недели не лучше или хуже — к врачу
+        ru: Если симптомы сохраняются или усиливаются через 2 недели приёма — обратиться к врачу или фармацевту (хорошо изученное применение)
         maxDays: 14
       - doc: monograph
         page: 6
         quote: Hypersensitivity to the active substance.
         kind: contraindication
-        ru: Аллергия на валериану
+        ru: Гиперчувствительность к валериане
       - doc: monograph
         page: 6
         quote: Full baths are contraindicated in cases of open wounds, large skin injuries, acute skin diseases, high fever, severe infections, severe circulatory disturbances and cardiac insufficiency.
         kind: contraindication
-        ru: Ванны нельзя при открытых ранах, больших повреждениях и острых болезнях кожи, высокой температуре, тяжёлых инфекциях, нарушениях кровообращения и сердечной недостаточности
+        ru: Полные ванны нельзя при открытых ранах, обширных повреждениях кожи, острых болезнях кожи, высокой температуре, тяжёлых инфекциях, тяжёлых нарушениях кровообращения и сердечной недостаточности
       - doc: monograph
         page: 7
         quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
         kind: warning
-        ru: Может снижать внимание — не садиться за руль и не работать с механизмами
+        ru: Может ухудшать способность водить и работать с механизмами; в этом случае не садиться за руль и не работать с механизмами
       - doc: monograph
         page: 7
         quote: Interactions with other medicinal products and other forms of interaction None reported
@@ -174,12 +174,12 @@ metadata:
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 8
         quote: Gastrointestinal symptoms (e.g. nausea, abdominal cramps) may occur after ingestion of valerian root preparations.
         kind: adverse
-        ru: Возможны тошнота и спазмы в животе
+        ru: Возможны желудочно-кишечные симптомы, например тошнота и спазмы в животе
       - doc: monograph
         page: 8
         quote: Valerian root at a dose of approximately 20 g caused symptoms such as fatigue, abdominal cramp, chest tightness, light-headedness, hand tremor and mydriasis, which disappeared within 24 hours.
@@ -188,11 +188,11 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 26
-        quote: caused an inhibitory effect on muscimol-sensitive NTS neurons which was mediated via GABAA-receptors
+        quote: Valerenic acid (3-100 µM) caused an inhibitory effect on muscimol-sensitive NTS neurons which was mediated via GABAA-receptors
         compound: valerenic acid
         compoundRu: валереновая кислота
         classRu: сесквитерпеновые кислоты
-        effectRu: тормозит нейроны через ГАМК-рецепторы (успокаивающее)
+        effectRu: тормозит чувствительные к мусцимолу нейроны NTS (3–100 мкМ) через ГАМК-А-рецепторы
         evidence: in-vitro
       - doc: assessment-report
         page: 29
@@ -200,23 +200,23 @@ metadata:
         compound: valerenic acid, valeranone
         compoundRu: валереновая кислота, валеранон
         classRu: сесквитерпены
-        effectRu: удлиняют сон (снотворное действие)
+        effectRu: удлиняют сон, вызванный барбитуратом
         evidence: animal
       - doc: assessment-report
         page: 29
-        quote: which is a ligand for the benzodiazepine binding site of the GABAA-receptor
+        quote: 6-Methylapigenin, which is a ligand for the benzodiazepine binding site of the GABAA-receptor according to Wasowski et al. (2002), produced anxiolytic-like effects in the plus-maze test at a dose of 1 mg/kg i.p. but was devoid of sedative properties.
         compound: 6-methylapigenin
-        compoundRu: метилапигенин
+        compoundRu: 6-метилапигенин
         classRu: флавоноиды
-        effectRu: связывается с бензодиазепиновым участком ГАМК-рецептора
-        evidence: in-vitro
+        effectRu: лиганд бензодиазепинового участка ГАМК-А-рецептора; в плюс-лабиринте — анксиолитикоподобный эффект без седативного (1 мг/кг в/б)
+        evidence: animal
       - doc: assessment-report
         page: 32
         quote: Acetylvalerenolic acid reduced NF-kappaB activity to 4%, whereas valerenic acid reduced NF-kappaB activity to 25%.
         compound: acetylvalerenolic acid, valerenic acid
         compoundRu: ацетилвалеренолевая и валереновая кислоты
         classRu: сесквитерпены
-        effectRu: противовоспалительное (подавляют NF-κB)
+        effectRu: снижают активность NF-κB (ацетилвалеренолевая — до 4%, валереновая — до 25%)
         evidence: in-vitro
     grls:
       registrationNumber: ЛП-№(013852)-(РГ-RU)

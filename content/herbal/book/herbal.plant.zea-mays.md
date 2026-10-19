@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528273/f8aa0ed8-8fbf-4da0-98dc-7a1943f326f9.pdf
-source_checksum: sha256:82d71270aef45c2b14d50248bd8a1ce87f2ded0eaa1805f30516f3197463123a
+source_checksum: sha256:f185ed794d308ad3f9a0c9ea76b36718a5cfe7591d7b6d1306911d4ac2054ec9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -85,19 +85,19 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product used for the relief of symptoms associated with minor urinary tract complaints in addition to the general recommendation of a sufficient fluid intake to increase the amount of urine.
         kind: indication
-        ru: Лёгкие жалобы со стороны мочевых путей — вместе с обильным питьём
+        ru: Лёгкие жалобы со стороны мочевых путей — вместе с достаточным приёмом жидкости
       - doc: monograph
         page: 4
         quote: 'Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily.'
         kind: posology
-        ru: Отвар (кипятить 5 минут) — между едой
+        ru: Отвар (кипятить 5 минут)
         dose:
           preparationRu: отвар
           amount: 2-4
           unit: г
           waterMl: '200'
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily'
@@ -109,7 +109,12 @@ metadata:
           unit: г
           waterMl: '200'
           timesPerDay: '3'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: Decoctions to be taken between meals.
+        kind: posology
+        ru: Отвар принимают между едой
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -131,12 +136,12 @@ metadata:
         page: 5
         quote: If urinary tract complaints worsen and symptoms such as fever, dysuria, spasm, or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+        ru: Если жалобы усиливаются и появляются лихорадка, болезненное мочеиспускание, спазмы или кровь в моче — к врачу
       - doc: monograph
         page: 5
         quote: Because adequate fluid intake is required during treatment, it is not recommended for patients with conditions where reduced fluid intake is advised.
         kind: warning
-        ru: Нужно много пить — не подходит, если врач ограничил питьё
+        ru: Нужен достаточный приём жидкости — не рекомендуется при состояниях, при которых советуют ограничить питьё
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -146,7 +151,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 5
         quote: Undesirable effects None known.
@@ -160,18 +165,18 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 4
-        quote: Constituents found in hot water extracts Carbohydrates/polysaccharides
+        quote: 'Constituents found in hot water extracts Carbohydrates/polysaccharides: Current research on fraction soluble in hot water indicates mucilage polysaccharides (Pan et al., 2017; Guo et al., 2018; Deng et al., 2019; Jia Y et al., 2021) which is composed of D-mannose, L-rhamnose, D-glucose, D-galactose, L-arabinose, D-xylose and D-galacturonic acid, water soluble flavonoids, tannins'
         compound: mucilage polysaccharides, flavonoids, tannins
         compoundRu: слизистые полисахариды, флавоноиды, танины
         classRu: водорастворимые компоненты
-        effectRu: переходят в горячий отвар
+        effectRu: слизистые полисахариды, водорастворимые флавоноиды и танины — в фракции, растворимой в горячей воде
         evidence: review
       - doc: assessment-report
         page: 10
-        quote: diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate
+        quote: The authors concluded diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate and inhibition of sodium and chloride tubular reabsorption
         compound: aqueous extract
         compoundRu: водный экстракт
-        effectRu: мочегонное — повышает фильтрацию в почках и выведение натрия
+        effectRu: по выводу авторов, мочегонный эффект согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов
         evidence: animal
     grls:
       registrationNumber: ЛП-№(013810)-(РГ-RU)

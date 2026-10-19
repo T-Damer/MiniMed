@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf
-source_checksum: sha256:9e5c5c1b1c7d12dce785b42c6303c0ca548695b4bd89c6f007bb11f3de347d35
+source_checksum: sha256:956d71fc136dda3e8cd61d45c3af67cad01bf8a92cbb735971660abbc447156f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -90,19 +90,24 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
         kind: indication
-        ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+        ru: Увеличить количество мочи для промывания мочевых путей — вспомогательное средство при лёгких жалобах
       - doc: monograph
         page: 4
         quote: 'Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion up to 4 times daily'
         kind: posology
-        ru: Чай (настой) — подростки и взрослые; пить достаточно жидкости
+        ru: Чай (настой) — подростки, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 2-3
           unit: г
           waterMl: '150'
-          timesPerDay: '4'
-          populationRu: подростки и взрослые
+          timesPerDay: до 4
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: To ensure an increase of the amount of urine, adequate fluid intake is required during treatment.
+        kind: posology
+        ru: Чтобы мочи стало больше, во время лечения нужно достаточно пить
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -113,7 +118,7 @@ metadata:
         page: 5
         quote: over a period of 2-4 weeks.
         kind: duration
-        ru: Обычно курс 2–4 недели
+        ru: Традиционно применяют в течение 2–4 недель
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance or to birch pollen.
@@ -138,12 +143,12 @@ metadata:
         page: 6
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Gastrointestinal complaints (nausea, vomiting, diarrhoea) and allergic reactions (itching, rash, urticaria, allergic rhinitis) have been reported.
         kind: adverse
-        ru: Тошнота, рвота, диарея; аллергия (зуд, сыпь, крапивница, насморк)
+        ru: Описаны тошнота, рвота, диарея; аллергические реакции (зуд, сыпь, крапивница, аллергический ринит)
       - doc: monograph
         page: 6
         quote: No case of overdose has been reported.
@@ -152,11 +157,11 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 13
-        quote: The aquaretic effect correlated with the amount of flavonoid
+        quote: The findings are inconclusive. However, the results support the plausibility of the traditional use of Betulae folium as a mild aquaretic. The aquaretic effect correlated with the amount of flavonoids, however the effects achieved with isolated flavonoids are weaker compared to the entire extract.
         compound: flavonoids
         compoundRu: флавоноиды
         classRu: флавоноиды
-        effectRu: мягкое мочегонное (выводят воду) — эффект растёт с их количеством
+        effectRu: результаты неубедительны, но правдоподобно мягкое мочегонное действие; эффект коррелировал с количеством флавоноидов, отдельные флавоноиды слабее цельного экстракта
         evidence: animal
       - doc: assessment-report
         page: 12

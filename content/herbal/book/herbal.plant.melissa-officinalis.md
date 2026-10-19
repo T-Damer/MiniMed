@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:b22c67c0391db646f4027a267d707af1e80e97660e0ec252f80d0c67f5ddb44d
+source_checksum: sha256:0af6148a2910310eece98a06fbc5e9d884657f820c6176f8c1571c901a5ad907
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,24 +91,24 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
         kind: indication
-        ru: Лёгкие симптомы стресса и помощь при засыпании
+        ru: Лёгкие симптомы психического напряжения (стресса), для улучшения сна
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for symptomatic treatment of mild gastrointestinal complaints including bloating and flatulence.
         kind: indication
-        ru: Лёгкие жалобы со стороны кишечника — вздутие, газы
+        ru: Лёгкие жалобы ЖКТ, включая вздутие и метеоризм
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1.5-4.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-3 times daily.'
+        quote: 'Adolescents over 12 years of age, adults and elderly Single dose a) Herbal tea: 1.5-4.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-3 times daily.'
         kind: posology
-        ru: Чай (настой) — подростки и взрослые
+        ru: Чай (настой) — подростки старше 12 лет, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-4.5
           unit: г
           waterMl: '150'
           timesPerDay: 1-3
-          populationRu: подростки и взрослые
+          populationRu: подростки старше 12 лет, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -119,8 +119,13 @@ metadata:
         page: 4
         quote: If the symptoms persist longer than 2 weeks
         kind: duration
-        ru: Если симптомы держатся дольше 2 недель — к врачу
+        ru: Если симптомы держатся дольше 2 недель…
         maxDays: 14
+      - doc: monograph
+        page: 5
+        quote: during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: duration
+        ru: …во время применения — обратиться к врачу или медработнику
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance.
@@ -130,7 +135,7 @@ metadata:
         page: 6
         quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
         kind: warning
-        ru: Может снижать внимание — не садиться за руль и не работать с механизмами
+        ru: Может ухудшать способность водить и работать с механизмами; в этом случае не садиться за руль и не работать с механизмами
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction No data available.
@@ -140,7 +145,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Undesirable effects None known.
@@ -158,29 +163,29 @@ metadata:
         compound: rosmarinic acid
         compoundRu: розмариновая кислота
         classRu: фенилпропаноиды (гидроксикоричные кислоты)
-        effectRu: главный фенольный компонент листа
+        effectRu: в листе до 6%
         evidence: review
       - doc: assessment-report
         page: 12
-        quote: An ethanolic extract (30%) showed a dose-dependent sedative effect up to a dose of 25 mg/kg body weight
+        quote: An ethanolic extract (30%) showed a dose-dependent sedative effect up to a dose of 25 mg/kg body weight (b.w.) when administered intraperitoneally to mice.
         compound: ethanolic leaf extract
         compoundRu: спиртовой экстракт листа
-        effectRu: седативное
+        effectRu: у мышей (внутрибрюшинно) — дозозависимое седативное действие 30% спиртового экстракта до 25 мг/кг
         evidence: animal
       - doc: assessment-report
         page: 13
-        quote: Melissa inhibited binding of TBPS to the rat forebrain GABAA receptor channel
+        quote: The effects of Melissa officinalis essential oil were investigated in vitro using a range of radioligands targeting the major binding sites of the GABAA receptor. Melissa inhibited binding of TBPS to the rat forebrain GABAA receptor channel
         compound: essential oil
         compoundRu: эфирное масло
         classRu: эфирное масло (цитраль)
-        effectRu: связывается с ГАМК-рецептором мозга
+        effectRu: in vitro подавляло связывание TBPS с каналом ГАМК-А-рецептора переднего мозга крыс
         evidence: in-vitro
       - doc: assessment-report
         page: 14
         quote: Antiviral activity, anti-inflammatory activity of rosmarinic acid, antimicrobial activity of the essential oil and free radical scavenging properties have also been reported
         compound: rosmarinic acid, essential oil
         compoundRu: розмариновая кислота, эфирное масло
-        effectRu: противовирусное, противовоспалительное, противомикробное
+        effectRu: по сообщениям — противовирусная активность, противовоспалительная активность розмариновой кислоты, противомикробная активность эфирного масла, антирадикальные свойства
         evidence: review
     grls:
       registrationNumber: ЛП-№(014264)-(РГ-RU)

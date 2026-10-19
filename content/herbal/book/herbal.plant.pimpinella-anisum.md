@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf
-source_checksum: sha256:276cbe75a10ee43a013660f0cdceea3d0ece2156500334a9d2bc6f35fa5c6709
+source_checksum: sha256:97ac4043e4e437a2169290c9caf1b2b195293688ff300ea069ae936c9ea6120c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -95,24 +95,24 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product for symptomatic treatment of mild, spasmodic gastro- intestinal complaints including bloating and flatulence.
         kind: indication
-        ru: Лёгкие спастические жалобы ЖКТ — вздутие, газы
+        ru: Лёгкие спастические жалобы ЖКТ, включая вздутие и метеоризм
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold
         kind: indication
-        ru: Отхаркивающее при кашле от простуды
+        ru: Отхаркивающее при кашле, связанном с простудой
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1 to 3.5 g of the whole or (freshly) comminuted or crushed aniseed in 150 ml of boiling water as a herbal infusion 3 times daily'
+        quote: 'Adolescents over 12 years of age, adults, elderly: Single dose Herbal tea: 1 to 3.5 g of the whole or (freshly) comminuted or crushed aniseed in 150 ml of boiling water as a herbal infusion 3 times daily'
         kind: posology
-        ru: Чай из цельных или свежеизмельчённых семян — подростки и взрослые
+        ru: Чай (настой) из цельных или (свежих) измельчённых плодов — подростки старше 12 лет, взрослые, пожилые
         dose:
           preparationRu: настой
           amount: 1-3.5
           unit: г
           waterMl: '150'
           timesPerDay: '3'
-          populationRu: подростки и взрослые
+          populationRu: подростки старше 12 лет, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -129,7 +129,7 @@ metadata:
         page: 4
         quote: Hypersensitivity to the active substance or to Apiaceae (Umbelliferae) (caraway, celery, coriander, dill and fennel) or to anethole.
         kind: contraindication
-        ru: Аллергия на анис, другие зонтичные (тмин, сельдерей, кориандр, укроп, фенхель) или анетол
+        ru: Гиперчувствительность к анису, другим зонтичным (тмин, сельдерей, кориандр, укроп, фенхель) или к анетолу
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -139,7 +139,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 5
         quote: Allergic reactions to aniseed affecting the skin or the respiratory system may occur.
@@ -157,7 +157,7 @@ metadata:
         compound: anethole
         compoundRu: анетол
         classRu: эфирное масло (фенилпропаноиды)
-        effectRu: главный компонент эфирного масла (около 90%)
+        effectRu: основной из выявленных компонентов (около 90%)
         evidence: review
       - doc: assessment-report
         page: 9
@@ -165,15 +165,15 @@ metadata:
         compound: essential oil
         compoundRu: эфирное масло
         classRu: эфирное масло
-        effectRu: спазмолитическое, разжижает и выводит мокроту, антибактериальное
+        effectRu: лечебное применение аниса во многом объясняют спазмолитическим, секретолитическим, секретомоторным и антибактериальным действием эфирного масла
         evidence: review
       - doc: assessment-report
         page: 10
-        quote: caused hypersecretion of mucus, in the air passages and stimulated ciliary removal of mucus
+        quote: An emulsion of 2 drops of the essential oil, administered intragastrically to cats, caused hypersecretion of mucus, in the air passages and stimulated ciliary removal of mucus, previously inhibited by opium alkaloids
         compound: essential oil
         compoundRu: эфирное масло
         classRu: эфирное масло
-        effectRu: усиливает отделение слизи и работу ресничек в дыхательных путях
+        effectRu: у кошек (2 капли эмульсии внутрижелудочно) вызывало гиперсекрецию слизи в дыхательных путях и стимулировало цилиарное удаление слизи, ранее подавленное алкалоидами опия
         evidence: animal
     grls:
       registrationNumber: ЛП-№(003267)-(РГ-RU)

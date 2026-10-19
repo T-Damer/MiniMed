@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf
-source_checksum: sha256:cda59ba1f515c5b7bfd253aceb240960cf96fd674ee6b52fc35690e64dbcf207
+source_checksum: sha256:0fed47d3b08e0554f1da8514a63af28247b4808a656f5c3090aa83b5c3da429a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -112,48 +112,48 @@ metadata:
         page: 4
         quote: 'Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal'
         kind: posology
-        ru: Чай (настой) при расстройстве пищеварения — взрослые
+        ru: Чай (настой) при расстройстве пищеварения — взрослые и пожилые
         dose:
-          preparationRu: настой (3 раза в день)
+          preparationRu: настой
           amount: 1-2
           unit: г
           waterMl: '150'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
         quote: 'Herbal tea: 2 g of comminuted herbal substance in 150 ml boiling water as herbal infusion.'
         kind: posology
-        ru: Чай (настой) при потливости — взрослые
+        ru: Чай (настой) при потливости — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: '2'
           unit: г
           waterMl: '150'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
         quote: 2.5 g comminuted herbal substance in 100 ml boiling water as an infusion. The infusion is used warm for gargle 3 times daily.
         kind: posology
-        ru: Полоскание горла тёплым настоем — взрослые
+        ru: Полоскание горла тёплым настоем — взрослые и пожилые
         dose:
           preparationRu: настой для полоскания
           amount: '2.5'
           unit: г
           waterMl: '100'
           timesPerDay: '3'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
         quote: 2.5 g of the comminuted herbal substance in 100 ml water as herbal infusion to be applied on the affected area of the skin 2-4 times daily.
         kind: posology
-        ru: Примочки на кожу — взрослые
+        ru: Настой на поражённую кожу — взрослые и пожилые
         dose:
-          preparationRu: настой для примочек
+          preparationRu: настой для нанесения на кожу
           amount: '2.5'
           unit: г
           waterMl: '100'
           timesPerDay: 2-4
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -168,14 +168,14 @@ metadata:
         maxDays: 14
       - doc: monograph
         page: 6
-        quote: If the symptoms do not improve within 6 weeks of use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        quote: Long-term use is possible (see section 4.4 ‘Special warnings and precautions for use’). If the symptoms do not improve within 6 weeks of use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: При потливости можно долго; если за 6 недель не лучше — к врачу
+        ru: При потливости длительное применение возможно; если за 6 недель не лучше — к врачу
       - doc: monograph
         page: 6
         quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Полоскания — если дольше 1 недели, к врачу
+        ru: Воспаление во рту и горле — если дольше 1 недели, к врачу
         maxDays: 7
       - doc: monograph
         page: 7
@@ -191,7 +191,7 @@ metadata:
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 8
         quote: Undesirable effects None known
@@ -201,7 +201,7 @@ metadata:
         page: 8
         quote: Intake of sage oil corresponding to more than 15 g of sage leaf is reported to cause sensation of heat, tachycardia, vertigo and epileptiform convulsions (seizures).
         kind: overdose
-        ru: Масло шалфея в количестве больше чем из 15 г листа — жар, сердцебиение, головокружение, судороги
+        ru: Масло шалфея в количестве, соответствующем более 15 г листа, по сообщениям вызывает жар, тахикардию, головокружение, судороги
       constituents:
       - doc: assessment-report
         page: 25
@@ -209,15 +209,15 @@ metadata:
         compound: α- and β-thujone
         compoundRu: α- и β-туйон
         classRu: эфирное масло (монотерпены)
-        effectRu: противомикробное; в больших дозах токсичен для нервной системы
+        effectRu: противомикробные свойства масла шалфея приписывают главным образом этому компоненту
         evidence: review
       - doc: assessment-report
         page: 26
-        quote: seemed to contribute to the anti-inflammatory activity of sage infusion in human gingival fibroblasts
+        quote: 1,8-cineole, borneol, camphor, alpha- and beta- thujone seemed to contribute to the anti-inflammatory activity of sage infusion in human gingival fibroblasts
         compound: 1,8-cineole, borneol, camphor, thujone
         compoundRu: цинеол, борнеол, камфора, туйон
         classRu: эфирное масло
-        effectRu: противовоспалительное в клетках дёсен
+        effectRu: по-видимому, вносят вклад в противовоспалительное действие настоя на фибробласты дёсен человека
         evidence: in-vitro
       - doc: assessment-report
         page: 38
@@ -225,7 +225,7 @@ metadata:
         compound: thujone
         compoundRu: туйон
         classRu: эфирное масло
-        effectRu: может вызвать выкидыш — причина запрета при беременности
+        effectRu: известно абортивное и эмменагогное действие
         evidence: review
       - doc: assessment-report
         page: 39
@@ -233,7 +233,7 @@ metadata:
         compound: thujone
         compoundRu: туйон
         classRu: эфирное масло
-        effectRu: нейротоксичность через ГАМК-рецептор
+        effectRu: механизм нейротоксичности связывают с действием α-туйона на ГАМК-А-рецептор
         evidence: review
     grls:
       registrationNumber: ЛП-№(013841)-(РГ-RU)

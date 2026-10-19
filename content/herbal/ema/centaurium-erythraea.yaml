@@ -15,11 +15,11 @@ facts:
     page: 4
     quote: Traditional herbal medicinal product used in mild dyspeptic/gastrointestinal disorders and in temporary loss of appetite.
   - kind: posology
-    ru: Чай (настой) — взрослые
+    ru: Чай (настой) — взрослые и пожилые
     doc: monograph
     page: 4
     quote: "a) Herbal tea: 1-4 g of the comminuted herbal substance in 200 ml of boiling water as a herbal infusion, up to 4 times daily"
-    dose: { preparationRu: настой, amount: "1-4", unit: г, waterMl: "200", timesPerDay: "4", populationRu: взрослые }
+    dose: { preparationRu: настой, amount: "1-4", unit: г, waterMl: "200", timesPerDay: "до 4", populationRu: взрослые и пожилые }
   - kind: age
     ru: До 18 лет не рекомендуется
     doc: monograph
@@ -43,7 +43,7 @@ facts:
     page: 5
     quote: Interactions with other medicinal products and other forms of interaction None reported.
   - kind: pregnancy
-    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
     doc: monograph
     page: 5
     quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -61,16 +61,16 @@ constituents:
   - compound: swertiamarin, gentiopicroside, sweroside, centapicrin
     compoundRu: сверциамарин, генциопикрозид, сверозид, центапикрин
     classRu: секоиридоидные гликозиды (горечи)
-    effectRu: горечи — возбуждают аппетит
+    effectRu: характерные горькие вещества травы; главным образом (75%) сверциамарин
     evidence: review
     doc: assessment-report
     page: 4
-    quote: Secoiridoid glucosides are the characteristic bitter-tasting constituents, principally (75%) swertiamarin
+    quote: Secoiridoid glucosides are the characteristic bitter-tasting constituents, principally (75%) swertiamarin and smaller amounts of gentiopicroside (gentiopicrin) and sweroside (bitterness value ca. 12,000) and centapricin
   - compound: swertiamarin, sweroside
     compoundRu: сверциамарин, сверозид
     classRu: секоиридоиды
-    effectRu: антибактериальное
+    effectRu: подавляли рост бактерий (B. cereus, B. subtilis, C. freundii, E. coli)
     evidence: in-vitro
     doc: assessment-report
     page: 14
-    quote: Antibacterial activity could be observed for swertiamarin and sweroside
+    quote: "Antibacterial activity could be observed for swertiamarin and sweroside; both compounds inhibited the growth of Bacillus cereus, Bacillus subtilis, Citrobacter freundii and Escherichia coli."

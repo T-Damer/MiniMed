@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524121/7dd6501b-5d7c-4cf8-8131-ca64aa508560.pdf
-source_checksum: sha256:f82ed64accc239890e12e0169b2e47a89d6f406603c3c5df6b011ef1d6fa4aee
+source_checksum: sha256:9d23c2c9081f15c348f86fa0d0cf3120d1c7c7630b25a64d8ebb17eafb4cfd77
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -110,19 +110,19 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product for the treatment of small superficial wounds.
         kind: indication
-        ru: Мелкие поверхностные ранки (примочки)
+        ru: Мелкие поверхностные ранки
       - doc: monograph
         page: 5
         quote: 'Herbal tea: 1.5-4 g of the comminuted herbal substance in 150-250 ml boiling water as herbal infusion 3 or 4 times daily between meals.'
         kind: posology
-        ru: Чай (настой) при плохом аппетите и вздутии — между едой
+        ru: Чай (настой) при потере аппетита и спастических жалобах ЖКТ — между едой
         dose:
           preparationRu: настой
           amount: 1.5-4
           unit: г
           waterMl: 150-250
           timesPerDay: 3 or 4
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: 'Herbal tea: 1-2 g of the comminuted herbal substance in 250 ml of boiling water as herbal infusion 2-3 times daily'
@@ -134,19 +134,19 @@ metadata:
           unit: г
           waterMl: '250'
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
-        quote: 3-4 g of the comminuted herbal substance in 250 ml of boiling water 2-3 times daily.
+        quote: 'Comminuted herbal substance for infusion preparation for cutaneous use: 3-4 g of the comminuted herbal substance in 250 ml of boiling water 2-3 times daily.'
         kind: posology
-        ru: Настой для повязок на ранки
+        ru: Настой для наружного применения на ранки
         dose:
-          preparationRu: настой для повязок
+          preparationRu: настой для наружного применения
           amount: 3-4
           unit: г
           waterMl: '250'
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
@@ -163,7 +163,7 @@ metadata:
         page: 6
         quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Спазмы и ранки — если дольше 1 недели, к врачу
+        ru: Менструальные спазмы и ранки — если дольше 1 недели, к врачу
         maxDays: 7
       - doc: monograph
         page: 6
@@ -184,7 +184,7 @@ metadata:
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 7
         quote: Hypersensitivity reactions of the skin have been reported.
@@ -199,10 +199,10 @@ metadata:
       - doc: assessment-report
         page: 5
         quote: sesquiterpene lactones composed of guaianolides, mainly achillicin (a proazulene)
-        compound: achillicin and other proazulenes, essential oil
-        compoundRu: ахиллицин (проазулен), эфирное масло
-        classRu: сесквитерпеновые лактоны, эфирное масло
-        effectRu: основные компоненты травы
+        compound: achillicin
+        compoundRu: ахиллицин (проазулен)
+        classRu: сесквитерпеновые лактоны
+        effectRu: главный из сесквитерпеновых лактонов (гуайанолидов) травы
         evidence: review
       - doc: assessment-report
         page: 20
@@ -210,22 +210,22 @@ metadata:
         compound: quercetin, luteolin, apigenin
         compoundRu: кверцетин, лютеолин, апигенин
         classRu: флавоноиды
-        effectRu: спазмолитическое
+        effectRu: наибольшая спазмолитическая активность среди испытанных
         evidence: in-vitro
       - doc: assessment-report
         page: 21
-        quote: they seem to be the choleretic active principles in the traditional application forms of yarrow
-        compound: dicaffeoylquinic acids, luteolin-7-O-glucoside
-        compoundRu: дикофеилхинные кислоты, лютеолин-гликозид
+        quote: The combined effect of DCCAs and luteolin-7-O-beta-D-glucuronide stimulated bile flow more effectively than the single compound cynarine. Due to their polar structure, these compounds are quantitatively extracted into teas and tinctures; hence, according to the authors, they seem to be the choleretic active principles in the traditional application forms of yarrow
+        compound: dicaffeoylquinic acids, luteolin-7-O-glucuronide
+        compoundRu: дикофеилхинные кислоты, лютеолин-7-O-глюкуронид
         classRu: фенольные кислоты, флавоноиды
-        effectRu: желчегонное
+        effectRu: по мнению авторов, вероятно, действующие начала желчегонного эффекта традиционных форм
         evidence: animal
       - doc: assessment-report
         page: 21
-        quote: administered orally at 100 mg/kg, inhibited oedema in the carrageenan-induced rat paw oedem
+        quote: A dry 80% ethanolic extract from the aerial parts of yarrow (Achillea millefolium L.) administered orally at 100 mg/kg, inhibited oedema in the carrageenan-induced rat paw oedema test by 29% (p<0.05) compared to 45% by indomethacin at 5 mg/kg.
         compound: ethanolic extract of the herb
         compoundRu: спиртовой экстракт травы
-        effectRu: противовоспалительное (уменьшает отёк)
+        effectRu: у крыс уменьшал отёк лапы (на 29%; индометацин — на 45%)
         evidence: animal
     grls:
       registrationNumber: ЛП-№(012366)-(РГ-RU)

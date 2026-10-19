@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:0561d5684bc505b6c866d56a137759d789bc86e3dac86c032ad1ac623d8f60b9
+source_checksum: sha256:0e28724cc17f5b3bf1d76a9ed795b4378402ba71a03977fb48e6ee0bb252e490
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,7 +91,7 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
         kind: indication
-        ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+        ru: Усилить мочеотделение для промывания мочевых путей — вспомогательно при лёгких мочевых жалобах
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used for supportive treatment of superficial wounds.
@@ -101,14 +101,14 @@ metadata:
         page: 5
         quote: 'a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily'
         kind: posology
-        ru: Чай (настой или отвар 5–15 минут) — подростки и взрослые
+        ru: Чай (настой или отвар 5–15 минут) — подростки, взрослые и пожилые
         dose:
           preparationRu: настой или отвар
           amount: 1-4
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
         quote: 'a) single dose: 10 g of the comminuted herbal substance in 1 l of water as decoction for impregnated dressing and irrigation'
@@ -118,7 +118,7 @@ metadata:
           preparationRu: отвар для повязок
           amount: '10'
           unit: г на литр
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
@@ -127,20 +127,20 @@ metadata:
         minAgeMonths: 144
       - doc: monograph
         page: 6
-        quote: Herbal preparations are traditionally used over a period of 2 to 4 weeks. Indication 1 and 2 If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        quote: Indication 1 Herbal preparations are traditionally used over a period of 2 to 4 weeks. Indication 1 and 2 If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Обычно курс 2–4 недели; если дольше 1 недели без улучшения — к врачу
+        ru: Показание 1 (мочевые жалобы) — препараты традиционно применяют 2–4 недели. При показаниях 1 и 2, если симптомы держатся дольше 1 недели, — к врачу
         maxDays: 7
       - doc: monograph
         page: 6
-        quote: Hypersensitivity to the active substance. Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal diseases).
+        quote: Hypersensitivity to the active substance. Indication 1 Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal diseases).
         kind: contraindication
-        ru: Аллергия на хвощ; состояния, когда нужно ограничивать питьё (тяжёлые болезни сердца или почек)
+        ru: Аллергия на хвощ; для показания 1 (усиление мочеотделения) — состояния, при которых рекомендовано ограничить питьё (например, тяжёлые болезни сердца или почек)
       - doc: monograph
         page: 7
-        quote: If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        quote: Indication 1 If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+        ru: Показание 1 — при температуре, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу
       - doc: monograph
         page: 7
         quote: If signs of skin infection are observed, a doctor or a qualified health care practitioner should be consulted.
@@ -153,9 +153,9 @@ metadata:
         ru: Взаимодействий не описано
       - doc: monograph
         page: 7
-        quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+        quote: Indication 1 Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: Показание 1 — при беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 8
         quote: Products containing Equiseti herba should not be applied to the breast of breastfeeding women.
@@ -163,9 +163,9 @@ metadata:
         ru: Не наносить на грудь кормящим
       - doc: monograph
         page: 8
-        quote: Allergic reactions (e.g. rash, swelling of the face) have been reported.
+        quote: Indication 1 Mild gastrointestinal complaints have been reported. The frequency is not known. Indication 1 and 2 Allergic reactions (e.g. rash, swelling of the face) have been reported. The frequency is not known.
         kind: adverse
-        ru: Лёгкие расстройства ЖКТ; аллергия (сыпь, отёк лица)
+        ru: Сообщалось о лёгких жалобах со стороны ЖКТ (показание 1) и об аллергических реакциях (например, сыпь, отёк лица); частота неизвестна
       - doc: monograph
         page: 8
         quote: No case of overdose has been reported.
@@ -174,25 +174,25 @@ metadata:
       constituents:
       - doc: assessment-report
         page: 4
-        quote: 'Inorganic constituents: with 5-7.7% silicic acid'
+        quote: 'Inorganic constituents: with 5-7.7% silicic acid (or silicates respectively)'
         compound: silicic acid, silicates
         compoundRu: кремниевая кислота, силикаты
         classRu: минеральные вещества
-        effectRu: характерный компонент травы (5–7,7%)
+        effectRu: по данным обзора, содержание в траве — 5–7,7%
         evidence: review
       - doc: assessment-report
         page: 14
-        quote: The epithelisation was completed on post-operative day 14 on 5% decoction gauze- applied wounds
+        quote: Hayat et al. (2011) investigated the effect of a 5% water decoction of Equisetum arvense on wound healing in rabbits. The epithelisation was completed on post-operative day 14 on 5% decoction gauze- applied wounds, whereas it was not completed on 0.9% sodium chloride gauze-applied wounds
         compound: decoction of the herb
         compoundRu: отвар травы
-        effectRu: ускорил заживление ран (эпителизация к 14-му дню)
+        effectRu: у кроликов эпителизация ран с повязкой с 5% отваром завершилась на 14-й день, с физраствором — нет
         evidence: animal
       - doc: assessment-report
         page: 22
-        quote: While in some studies a low diuretic effect was reported, other studies showed no effect or high dosages compared to the dosages traditionally used were needed to see diuretic activity.
-        compound: infusion of the herb
-        compoundRu: настой травы
-        effectRu: мочегонное слабое и непостоянное — в опытах часто нужны дозы выше обычных
+        quote: The pharmacological data are not appropriate to document a diuretic action with a negative extracellular fluid balance. While in some studies a low diuretic effect was reported, other studies showed no effect or high dosages compared to the dosages traditionally used were needed to see diuretic activity.
+        compound: herb preparations (diuretic studies)
+        compoundRu: препараты травы (исследования мочегонного действия)
+        effectRu: данных недостаточно, чтобы подтвердить мочегонное действие с отрицательным водным балансом; в части исследований слабый эффект, в других эффекта нет или нужны дозы выше традиционных
         evidence: review
     grls:
       registrationNumber: ЛП-№(015144)-(РГ-RU)

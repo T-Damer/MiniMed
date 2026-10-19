@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf
-source_checksum: sha256:d864bb274b5dec47bb46ccc4aff0146057bf38d6b4c7c720279be6eea84a32fb
+source_checksum: sha256:40d13c446987f2507aad04af71023199b995700ef27f779fd14eb469329241cf
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -100,14 +100,14 @@ metadata:
         page: 3
         quote: 'Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 3-6 g'
         kind: posology
-        ru: Чай (настой) — подростки и взрослые
+        ru: Чай (настой) — подростки, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: '1.5'
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'Children between 4 and 12 years of age Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily.'
@@ -122,21 +122,21 @@ metadata:
           populationRu: дети 4–12 лет
       - doc: monograph
         page: 4
-        quote: The use in children under 4 years of age is not recommended
+        quote: 'Indication 1) Children between 4 and 12 years of age a) Comminuted herbal substance Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 2-4 g The use in children under 4 years of age is not recommended'
         kind: age
-        ru: При простуде — не младше 4 лет
+        ru: При простуде детям младше 4 лет не рекомендуется
         minAgeMonths: 48
       - doc: monograph
         page: 4
-        quote: The use in children under 12 years of age is not recommended
+        quote: Indication 2) The use in children under 12 years of age is not recommended
         kind: age
-        ru: При стрессе — не младше 12 лет
+        ru: При стрессе детям младше 12 лет не рекомендуется
         minAgeMonths: 144
       - doc: monograph
         page: 4
-        quote: The therapy should start at first signs of common cold. If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        quote: Indication 1) The therapy should start at first signs of common cold. If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Начинать при первых признаках простуды; если дольше 1 недели — к врачу
+        ru: При простуде — начинать с первых признаков; если симптомы дольше 1 недели — к врачу
         maxDays: 7
       - doc: monograph
         page: 4
@@ -145,9 +145,9 @@ metadata:
         ru: Аллергия на липу
       - doc: monograph
         page: 5
-        quote: if dyspnoea, high fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+        quote: Indication 1) If the symptoms worsen during the use of the medicinal product or if dyspnoea, high fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: Если одышка, высокая температура или гнойная мокрота — к врачу
+        ru: При простуде — если симптомы ухудшаются, появляются одышка, высокая температура или гнойная мокрота — к врачу
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -157,7 +157,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 6
         quote: Undesirable effects None known.
@@ -175,15 +175,15 @@ metadata:
         compound: p-coumaric acid, flavonoids
         compoundRu: п-кумаровая кислота, флавоноиды
         classRu: фенольные кислоты, флавоноиды
-        effectRu: потогонное и спазмолитическое
+        effectRu: потогонное и спазмолитическое действие цветков, которое им приписывают, объясняют этими веществами
         evidence: review
       - doc: assessment-report
         page: 15
-        quote: when administered intraperitoneally in mice, had a clear anxiolytic effect
-        compound: flavonoid fraction
-        compoundRu: флавоноидная фракция
-        classRu: флавоноиды
-        effectRu: противотревожное
+        quote: In the study by Viola et al., extracts of inflorescences from Tilia tomentosa Moench, one of the species found in the market, were purified using a benzodiazepine (BZD) binding assay to detect BZD receptor ligands in the different fractions. One of the ligands was identified as kaempferol, but it had low affinity (K(i) = 93 μM) for this receptor, and did not produce sedative or anxiolytic effects in mice. On the other hand, a complex fraction, containing yet unidentified constituents, but probably of a flavonoid nature, when administered intraperitoneally in mice, had a clear anxiolytic effect
+        compound: complex fraction, probably of a flavonoid nature
+        compoundRu: сложная фракция, вероятно флавоноидной природы
+        classRu: флавоноиды (вероятно)
+        effectRu: у мышей при внутрибрюшинном введении — выраженный противотревожный эффект (экстракт соцветий Tilia tomentosa)
         evidence: animal
       - doc: assessment-report
         page: 4
@@ -191,7 +191,7 @@ metadata:
         compound: mucilage polysaccharides
         compoundRu: слизистые полисахариды
         classRu: слизи
-        effectRu: смягчают вкус и действие чая (около 3% цветков)
+        effectRu: входят в состав цветков (около 3%)
         evidence: review
     grls:
       registrationNumber: ЛП-№(015190)-(РГ-RU)

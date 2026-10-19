@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
-source_checksum: sha256:72d5177e05a09deb44972edeafddf7354663b74b1f6c9255dc88ec19245d0663
+source_checksum: sha256:21f30da7227c6ed880028d7f9ae99ca70ba17cf04ce89829bb8536c35f25cfda
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -90,7 +90,7 @@ metadata:
         page: 3
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте (EMA — эвкалипт шаровидный)
+        ru: Традиционное растительное средство — применение основано на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used for relief of cough associated with cold.
@@ -100,17 +100,17 @@ metadata:
         page: 3
         quote: 'Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily.'
         kind: posology
-        ru: Чай (настой) внутрь — подростки и взрослые
+        ru: Чай (настой) внутрь — подростки, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-3
           unit: г
           waterMl: '150'
           timesPerDay: '4'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 3
-        quote: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily.
+        quote: 'Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily.'
         kind: posology
         ru: Ингаляция — залить лист кипятком
         dose:
@@ -118,18 +118,18 @@ metadata:
           amount: '3'
           unit: г
           timesPerDay: '3'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: Children under 30 months of age, because there is a risk that cineole containing preparations, like other essential oils, can induce laryngospasm.
         kind: age
-        ru: Детям младше 30 месяцев нельзя — риск спазма гортани от цинеола
+        ru: Детям младше 30 месяцев нельзя — риск ларингоспазма от препаратов с цинеолом
         minAgeMonths: 30
       - doc: monograph
         page: 3
         quote: The use in children under 12 years of age is not recommended
         kind: age
-        ru: Детям младше 12 лет не рекомендуется
+        ru: Детям младше 12 лет не рекомендуется (измельчённое сырьё)
         minAgeMonths: 144
       - doc: monograph
         page: 4
@@ -156,7 +156,7 @@ metadata:
         page: 5
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 5
         quote: Undesirable effects None known.
@@ -178,27 +178,27 @@ metadata:
         evidence: review
       - doc: assessment-report
         page: 11
-        quote: it seems to be the main active compound in the leaves.
+        quote: Although Cimanga et al. [2002] found no correlation between the amount of 1,8-cineole content and the antibacterial activity, it seems to be the main active compound in the leaves.
         compound: 1,8-cineole
         compoundRu: цинеол
         classRu: эфирное масло
-        effectRu: считается главным антибактериальным компонентом листа
+        effectRu: по-видимому, главный активный компонент листа, хотя связи его содержания с антибактериальной активностью не найдено
         evidence: in-vitro
       - doc: assessment-report
         page: 12
-        quote: The results demonstrated an antibacterial activity against periodontopathic bacteria.
+        quote: Macrocarpals and their antimicrobial activities on biological activities against oral bacteria have been investigated by Nagata et al. 2006. Purified macrocarpals were isolated from an ethanolic extract of the dried leaves (ethanol 60%, 80°C, 3 hours, lyophilised and dissolved in ethyl acetate). Eucalyptus leaf extracts were investigated for their inhibitory effects on the biological activity of Porphyromonas gingivalis and other periodontopathic bacteria. The results demonstrated an antibacterial activity against periodontopathic bacteria.
         compound: macrocarpals
         compoundRu: макрокарпали
         classRu: флороглюцины
-        effectRu: антибактериальное против бактерий полости рта
+        effectRu: изучены на бактериях полости рта; антибактериальная активность против пародонтопатогенных бактерий
         evidence: in-vitro
       - doc: assessment-report
         page: 12
-        quote: The authors indicated that the tannins content may be responsible for the virustatic effect.
+        quote: For Eucalyptus infusions, a 15-30 mm zone for Herpes Hominis HVP75, influenza virus A2 and vaccine were detected. The authors indicated that the tannins content may be responsible for the virustatic effect.
         compound: tannins
         compoundRu: дубильные вещества
         classRu: танины
-        effectRu: противовирусное
+        effectRu: вирусостатический эффект настоев листа, возможно, связан с дубильными веществами
         evidence: in-vitro
     grls:
       registrationNumber: ЛП-№(014404)-(РГ-RU)

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:68ce568b06923e697e7e443236edf2f03b19e04f9de58f709a38a2a6ae98fa45
+source_checksum: sha256:83ff3e11f1f59950867cbbf9bcb4c6f9cc330cd00a32f2fb7712dfb2e69b583d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -94,25 +94,25 @@ metadata:
         page: 4
         quote: Take 10 - 15 g seeds with 150 ml water, milk, fruit juice or similar aqueous liquid 2 - 3 times daily; then maintain adequate fluid intake.
         kind: posology
-        ru: При запоре — семена со 150 мл жидкости, потом пить достаточно
+        ru: Семена с 150 мл жидкости (вода, молоко, сок), затем поддерживать достаточный приём жидкости (хорошо изученное применение)
         dose:
           preparationRu: семена с жидкостью
           amount: 10-15
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water
+        quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water for at least <x min> and take this half an hour before eating.
         kind: posology
-        ru: Слизь — замочить семена в воде, пить за полчаса до еды
+        ru: Слизистый настой — замочить семена в воде, принимать за полчаса до еды (традиционное применение)
         dose:
           preparationRu: слизистый настой
           amount: 5-10
           unit: г
           waterMl: '250'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'The effect starts 12 - 24 hours later. Warning: not to be taken immediately prior to bedtime.'
@@ -128,7 +128,7 @@ metadata:
         page: 4
         quote: If the constipation does not resolve within 3 days, a doctor or a pharmacist should be consulted.
         kind: duration
-        ru: Если запор не прошёл за 3 дня — к врачу
+        ru: Если запор не прошёл за 3 дня — к врачу или фармацевту
         maxDays: 3
       - doc: monograph
         page: 4
@@ -139,7 +139,12 @@ metadata:
         page: 4
         quote: Linseed should also not be used by patients suffering from abnormal constrictions in the gastro-intestinal tract, with diseases of the oesophagus and cardia or existing intestinal blockage (ileus), paralysis (ileus) of the intestine or megacolon.
         kind: contraindication
-        ru: Сужения ЖКТ, болезни пищевода и кардии, непроходимость или паралич кишки, мегаколон; трудности с глотанием
+        ru: Сужения ЖКТ, болезни пищевода и кардии, непроходимость или паралич кишки, мегаколон
+      - doc: monograph
+        page: 5
+        quote: This product should not be taken by patients, who have difficulty swallowing or any throat problems.
+        kind: contraindication
+        ru: Трудности с глотанием или любые проблемы с горлом
       - doc: monograph
         page: 5
         quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking.
@@ -152,37 +157,37 @@ metadata:
         ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу
       - doc: monograph
         page: 5
-        quote: its use is therefore not recommended in women with hormonally dependent tumours.
+        quote: Investigations in healthy women suggest that long term use of linseed may have an oestrogenic effect, and its use is therefore not recommended in women with hormonally dependent tumours.
         kind: warning
-        ru: Возможное эстрогенное действие — не рекомендуется при гормонозависимых опухолях
+        ru: Длительный приём может давать эстрогенное действие (исследования у здоровых женщин) — женщинам с гормонозависимыми опухолями не рекомендуется
       - doc: monograph
         page: 5
-        quote: linseed should be used together with medicinal products known to inhibit peristaltic movement (e.g. opioids, loperamide) only under medical supervision.
+        quote: Enteral absorption of concomitantly administered medicines may be delayed by bulk forming laxatives such as linseed. For this reason the product should be taken at least ½ to 1 hour before or after intake of other medicinal products. In order to decrease the risk of gastrointestinal obstruction (ileus), linseed should be used together with medicinal products known to inhibit peristaltic movement (e.g. opioids, loperamide) only under medical supervision.
         kind: interaction
-        ru: Задерживает всасывание лекарств — принимать за полчаса–час до или после них; с опиоидами и лоперамидом — только под контролем врача
+        ru: Объёмные слабительные вроде семян льна могут замедлять всасывание других лекарств — принимать не менее чем за ½–1 час до или после них; чтобы снизить риск непроходимости, с препаратами, подавляющими перистальтику (опиоиды, лоперамид), — только под медицинским наблюдением (хорошо изученное применение)
       - doc: monograph
         page: 6
-        quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+        quote: There are no reports of any harmful or deleterious effects during pregnancy and lactation. Investigations in healthy women suggest that linseed may have an oestrogenic effect. Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: Вреда не описано, но безопасность не доказана — при беременности и кормлении не рекомендуется
+        ru: Сообщений о вреде нет, но безопасность не установлена, данных недостаточно — при беременности и кормлении не рекомендуется
       - doc: monograph
         page: 6
         quote: Meteorism, occurring with the use of the product, is common. Reactions of hypersensitivity including anaphylaxis-like reactions may occur very rarely.
         kind: adverse
-        ru: Часто — вздутие; очень редко — аллергия вплоть до анафилаксии
+        ru: Часто — вздутие; очень редко — реакции гиперчувствительности, включая анафилаксоподобные
       - doc: monograph
         page: 6
-        quote: Overdose with linseed may cause abdominal discomfort, flatulence and possibly intestinal obstruction.
+        quote: Overdose with linseed may cause abdominal discomfort, flatulence and possibly intestinal obstruction. Adequate fluid intake should be maintained and management should be symptomatic.
         kind: overdose
-        ru: Дискомфорт в животе, вздутие, возможна непроходимость — пить достаточно
+        ru: Дискомфорт в животе, вздутие, возможна непроходимость кишечника; поддерживать достаточный приём жидкости, лечение симптоматическое (хорошо изученное применение)
       constituents:
       - doc: assessment-report
         page: 4
-        quote: The seeds contain nearly 25% of bulk materials
+        quote: The seeds contain nearly 25% of bulk materials (3 - 6% of mucilage, 4 - 7% of alimentary fibres)
         compound: mucilage, dietary fibre
         compoundRu: слизи и пищевые волокна
         classRu: полисахариды
-        effectRu: набухают и увеличивают объём стула (около четверти семени)
+        effectRu: около 25% семени — слизь 3-6% и пищевые волокна 4-7%
         evidence: review
       - doc: assessment-report
         page: 10
@@ -194,11 +199,11 @@ metadata:
         evidence: review
       - doc: assessment-report
         page: 8
-        quote: attributed to the protective effect on the mucosa by the coating action of the mucilage.
+        quote: This use is plausible, attributed to the protective effect on the mucosa by the coating action of the mucilage.
         compound: mucilage
         compoundRu: слизь
         classRu: полисахариды
-        effectRu: обволакивает и защищает слизистую
+        effectRu: по оценке EMA, защитное действие на слизистую за счёт обволакивающего действия слизи
         evidence: review
     grls:
       registrationNumber: ЛП-№(014461)-(РГ-RU)

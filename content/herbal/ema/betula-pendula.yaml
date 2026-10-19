@@ -10,16 +10,21 @@ facts:
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
   - kind: indication
-    ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+    ru: Увеличить количество мочи для промывания мочевых путей — вспомогательное средство при лёгких жалобах
     doc: monograph
     page: 4
     quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
   - kind: posology
-    ru: Чай (настой) — подростки и взрослые; пить достаточно жидкости
+    ru: Чай (настой) — подростки, взрослые и пожилые
     doc: monograph
     page: 4
     quote: "Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion up to 4 times daily"
-    dose: { preparationRu: настой, amount: "2-3", unit: г, waterMl: "150", timesPerDay: "4", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой, amount: "2-3", unit: г, waterMl: "150", timesPerDay: "до 4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Чтобы мочи стало больше, во время лечения нужно достаточно пить
+    doc: monograph
+    page: 5
+    quote: To ensure an increase of the amount of urine, adequate fluid intake is required during treatment.
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph
@@ -27,7 +32,7 @@ facts:
     quote: The use in children under 12 years of age is not recommended
     minAgeMonths: 144
   - kind: duration
-    ru: Обычно курс 2–4 недели
+    ru: Традиционно применяют в течение 2–4 недель
     doc: monograph
     page: 5
     quote: over a period of 2-4 weeks.
@@ -52,12 +57,12 @@ facts:
     page: 5
     quote: Interactions with other medicinal products and other forms of interaction None reported.
   - kind: pregnancy
-    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
     doc: monograph
     page: 6
     quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
   - kind: adverse
-    ru: Тошнота, рвота, диарея; аллергия (зуд, сыпь, крапивница, насморк)
+    ru: Описаны тошнота, рвота, диарея; аллергические реакции (зуд, сыпь, крапивница, аллергический ринит)
     doc: monograph
     page: 6
     quote: Gastrointestinal complaints (nausea, vomiting, diarrhoea) and allergic reactions (itching, rash, urticaria, allergic rhinitis) have been reported.
@@ -70,11 +75,11 @@ constituents:
   - compound: flavonoids
     compoundRu: флавоноиды
     classRu: флавоноиды
-    effectRu: мягкое мочегонное (выводят воду) — эффект растёт с их количеством
+    effectRu: результаты неубедительны, но правдоподобно мягкое мочегонное действие; эффект коррелировал с количеством флавоноидов, отдельные флавоноиды слабее цельного экстракта
     evidence: animal
     doc: assessment-report
     page: 13
-    quote: The aquaretic effect correlated with the amount of flavonoid
+    quote: The findings are inconclusive. However, the results support the plausibility of the traditional use of Betulae folium as a mild aquaretic. The aquaretic effect correlated with the amount of flavonoids, however the effects achieved with isolated flavonoids are weaker compared to the entire extract.
   - compound: carbon dioxide leaf extract
     compoundRu: углекислотный экстракт листа
     effectRu: антибактериальное против золотистого стафилококка
