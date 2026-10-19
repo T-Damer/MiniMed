@@ -372,6 +372,13 @@ def _norm_range(value: str) -> str:
     return re.sub(r"\s*[-–]\s*", "–", value)
 
 
+def _dose_value(value: str) -> str:
+    """The single dose alone: «2-3 раза в день» already has its own cell, ranges use an en dash."""
+    value = _TIMES.sub(" ", value)
+    value = re.sub(r"(?<=[\d/])\s*[-–]\s*(?=\d)", "–", value)
+    return re.sub(r"\s+", " ", value).strip(" ,")
+
+
 def _field(value: str, sentence: str) -> dict[str, str]:
     return {"value": value, "quote": sentence}
 
@@ -418,7 +425,7 @@ def parse_brew(paragraphs: Sequence[Paragraph]) -> dict[str, object]:
         None,
     )
     if dose is not None:
-        brew["dose"] = _field(dose[0].group(1).strip(), dose[1])
+        brew["dose"] = _field(_dose_value(dose[0].group(1)), dose[1])
     for sentence in sentences:
         if match := _COURSE.search(sentence):
             brew["course"] = _field(f"{_norm_range(match.group(1))} {match.group(2)}", sentence)
@@ -485,7 +492,8 @@ def plate_jpeg(source: Path) -> bytes:
 # ГФ XV
 # ---------------------------------------------------------------------------------------------
 
-_GF_PARAGRAPH = re.compile(r'<p class="Mso[^"]*"[^>]*>(.*?)</p>', re.DOTALL)
+# The article mixes Word paragraph classes: «MsoNormal» and «Default» (the technology part).
+_GF_PARAGRAPH = re.compile(r'<p class="(?:Mso|Default)[^"]*"[^>]*>(.*?)</p>', re.DOTALL)
 
 
 def gf15_paragraphs(page: Path) -> list[str]:
@@ -807,7 +815,7 @@ def render_infusions(raw_root: Path, raw_manifest: dict[str, object]) -> Chapter
     )
     blocks: list[str] = [f"# {title}"]
     skipped = False
-    heading_levels = {"Хранение": 2, "Срок годности": 3}
+    heading_levels = {"Особенности технологии": 2, "Хранение": 2, "Срок годности": 3}
     for text in body:
         if text in {"Взамен ОФС.1.4.1.0018", "ОФС.1.4.1.0018"}:
             continue

@@ -8,12 +8,17 @@ facts:
     ru: EMA не одобрила приём внутрь — польза не перевешивает риск из-за сообщений о поражении печени и желчных путей
     doc: public-statement
     page: 2
-    quote: the benefit-risk assessment of oral use of Chelidonium majus is considered negative with respect to the establishment of a community monograph.
+    quote: in the presence of a high number of spontaneously reported liver-biliary adverse drug reactions and the withdrawal of products in Member States due to safety concerns, the benefit-risk assessment of oral use of Chelidonium majus is considered negative with respect to the establishment of a community monograph.
   - kind: statement
-    ru: Эффективность не доказана; есть более безопасные растительные средства
+    ru: Нет доказательств клинической эффективности в монотерапии
     doc: public-statement
     page: 2
     quote: The HMPC concluded that evidence of clinical efficacy was lacking for monotherapy
+  - kind: statement
+    ru: Для тех же показаний есть более безопасные растительные средства
+    doc: public-statement
+    page: 2
+    quote: Safer herbal medicinal products are available in the indication in question.
   - kind: statement
     ru: Наружное применение (бородавки, мозоли) данными не подтверждено
     doc: public-statement
@@ -25,15 +30,15 @@ facts:
     page: 2
     quote: there are 124 reported adverse drug reactions (derived from 56 spontaneous case reports) affecting the liver-biliary system after intake of medicinal products containing Chelidonium majus
   - kind: warning
-    ru: В ряде стран препараты сняты с рынка — те, что давали больше 2,5 мг алкалоидов в сутки
+    ru: В ряде стран препараты сняты с рынка из-за побочных эффектов, прежде всего на печень — те, что давали больше 2,5 мг алкалоидов в сутки
     doc: public-statement
     page: 2
-    quote: The products withdrawn to date have been those which would lead to a daily intake of more then 2.5 mg alkaloids from Chelidonium majus, according to the posology of the SPC.
+    quote: In some European countries marketing authorisations for medicinal products containing Chelidonium majus have been withdrawn because of concerns with reported adverse effects, particularly liver toxicity. The products withdrawn to date have been those which would lead to a daily intake of more then 2.5 mg alkaloids from Chelidonium majus, according to the posology of the SPC.
 constituents:
   - compound: benzylisoquinoline alkaloids (chelidonine, chelerythrine, sanguinarine, berberine, coptisine, protopine)
     compoundRu: алкалоиды (хелидонин, хелеритрин, сангвинарин, берберин, коптизин, протопин)
     classRu: бензилизохинолиновые алкалоиды
-    effectRu: более двадцати алкалоидов — с ними связывают токсичность для печени
+    effectRu: в траве больше 20 разных алкалоидов
     evidence: review
     doc: public-statement
     page: 2

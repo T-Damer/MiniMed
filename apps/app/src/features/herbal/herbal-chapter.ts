@@ -49,6 +49,8 @@ export interface EmaFact extends EmaQuote {
   readonly kind: string;
   readonly ru: string;
   readonly dose: EmaDose | null;
+  /** The longest use in days a `duration` fact allows, read from its quote. */
+  readonly maxDays: number | null;
 }
 
 export interface EmaConstituent extends EmaQuote {
@@ -161,7 +163,15 @@ function emaFact(value: unknown): EmaFact | null {
   const kind = text(item['kind']);
   const ru = text(item['ru']);
   if (!base || !kind || !ru) return null;
-  return { ...base, kind, ru, dose: emaDose(item['dose']) };
+  const maxDays = item['maxDays'];
+  return {
+    ...base,
+    kind,
+    ru,
+    dose: emaDose(item['dose']),
+    maxDays:
+      typeof maxDays === 'number' && Number.isInteger(maxDays) && maxDays > 0 ? maxDays : null,
+  };
 }
 
 function emaConstituent(value: unknown): EmaConstituent | null {
@@ -320,7 +330,7 @@ export const LIMIT_KINDS: readonly string[] = [
 ];
 
 const LIMIT_LABELS: Readonly<Record<string, string>> = {
-  statement: 'EMA',
+  statement: 'Вывод',
   contraindication: 'Нельзя',
   age: 'Возраст',
   pregnancy: 'Беременность',
@@ -361,15 +371,15 @@ export function emaDoseLine(dose: EmaDose): string {
 }
 
 const EVIDENCE_LABELS: Readonly<Record<string, string>> = {
-  clinical: 'у людей',
-  animal: 'на животных',
-  'in-vitro': 'в пробирке',
-  traditional: 'традиция',
-  review: 'обзор',
+  clinical: 'исследования у людей',
+  animal: 'опыты на животных',
+  'in-vitro': 'опыты в пробирке',
+  traditional: 'традиция применения',
+  review: 'обзор EMA',
 };
 
 export function evidenceLabel(evidence: string): string {
-  return EVIDENCE_LABELS[evidence] ?? evidence;
+  return EVIDENCE_LABELS[evidence] ?? '';
 }
 
 const USE_TYPE_LABELS: Readonly<Record<string, string>> = {
@@ -393,4 +403,60 @@ export function herbalPlantCountLabel(modules: readonly CatalogModuleLike[]): st
     .flatMap((module) => module.documents)
     .filter((document) => document.documentId.startsWith('herbal.plant.')).length;
   return count > 0 ? `${count} ${pluralRu(count, 'растение', 'растения', 'растений')}` : null;
+}
+
+/** What the plant search matches besides the names: the action labels and the EMA indications. */
+export function herbalSearchValues(plant: HerbalChapter): readonly string[] {
+  return [
+    plant.title,
+    plant.latin,
+    plant.partRu,
+    ...plant.actions,
+    ...factsOfKind(plant.ema, 'indication').map((fact) => fact.ru),
+  ];
+}
+
+/**
+ * The query with each word cut to a stem the inflected forms share: «кашель» → «кашл» finds «при
+ * кашле», «кашля». Words that would drop below four letters stay whole. Null when nothing changes.
+ */
+export function herbalQueryStem(query: string): string | null {
+  const stemmed = query
+    .toLocaleLowerCase('ru-RU')
+    .split(/\s+/u)
+    .map((word) => {
+      let stem = word.replace(/[ьйаеиоуыэюя]+$/u, '');
+      // A fleeting vowel before the last consonant: «кашель» → «кашл», «узелок» → «узелк».
+      stem = stem.replace(/([бвгджзклмнпрстфхцчшщ])[ео]([бвгджзклмнпрстфхцчшщ])$/u, '$1$2');
+      return stem.length >= 4 ? stem : word;
+    })
+    .join(' ');
+  return stemmed === query.toLocaleLowerCase('ru-RU') ? null : stemmed;
+}
+
+const COURSE_UNIT_DAYS: readonly (readonly [RegExp, number])[] = [
+  [/^дн|^сут/u, 1],
+  [/^недел/u, 7],
+  [/^месяц/u, 30],
+];
+
+/** The longest course of a ГРЛС course value («2–3 недели» → 21 days), or null when unread. */
+export function courseMaxDays(value: string): number | null {
+  const match = /(\d+)(?:\s*[–-]\s*(\d+))?\s*([а-яё]+)/iu.exec(value);
+  if (!match) return null;
+  const count = Number(match[2] ?? match[1]);
+  const unit = COURSE_UNIT_DAYS.find(([pattern]) => pattern.test(match[3]?.toLowerCase() ?? ''));
+  return unit ? count * unit[1] : null;
+}
+
+/**
+ * True when the ГРЛС course is longer than the shortest use EMA allows («Курс 2–3 недели» against
+ * «не дольше 1 недели»). Both sources stay as they are; the course cell only points at the conflict.
+ */
+export function courseLongerThanEma(chapter: HerbalChapter): boolean {
+  const course = chapter.brew.course ? courseMaxDays(chapter.brew.course.value) : null;
+  const limits = factsOfKind(chapter.ema, 'duration')
+    .map((fact) => fact.maxDays)
+    .filter((days): days is number => days !== null);
+  return course !== null && limits.length > 0 && course > Math.min(...limits);
 }

@@ -14,6 +14,7 @@ export function herbalHeroPicture(chapter: HerbalChapter): HeroPicture | undefin
   return {
     key: plate?.asset ?? chapter.documentId,
     credit: plate ? `Рисунок: ${plate.credit}` : '',
+    surface: 'paper',
     resolve: async () => {
       const url = plate ? await getHerbalPlateResolver().resolve(plate.asset) : null;
       const shown = url ?? chapter.thumbnail;

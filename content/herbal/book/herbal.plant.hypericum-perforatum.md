@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:4182d5a3673b1eea7a191aabf1c1161669a254140f87504d7e3e3ae3663159ba
+source_checksum: sha256:0f6fc3cb8e714f4da7d65d01575299b9206d8252c5dbe05126a89dec90f65121
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -53,7 +53,7 @@ metadata:
         value: 2–3 раза в день
         quote: 'Хронический колит: настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 30 минут до еды.'
       dose:
-        value: по 1/2 стакана 2-3 раза в день за 30 минут до еды
+        value: по 1/2 стакана за 30 минут до еды
         quote: 'Хронический колит: настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 30 минут до еды.'
       course:
         value: 2–3 недели
@@ -84,9 +84,9 @@ metadata:
       facts:
       - doc: monograph
         page: 4
-        quote: Herbal medicinal product for the treatment of mild to moderate depressive episodes.
+        quote: 'Herbal preparations a), b): Herbal medicinal product for the treatment of mild to moderate depressive episodes.'
         kind: indication
-        ru: Лёгкие и умеренные депрессивные эпизоды — только стандартизированные экстракты (хорошо изученное применение)
+        ru: Лёгкие и умеренные депрессивные эпизоды — экстракты a), b) монографии (хорошо изученное применение)
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for the relief of temporary mental exhaustion.
@@ -99,9 +99,14 @@ metadata:
         ru: Лёгкое воспаление кожи (солнечный ожог), заживление мелких ран
       - doc: monograph
         page: 5
+        quote: symptomatic relief of mild gastrointestinal discomfort.
+        kind: indication
+        ru: Лёгкий дискомфорт в ЖКТ (традиционное применение)
+      - doc: monograph
+        page: 5
         quote: Traditional herbal medicinal product for the supportive treatment of nervous restlessness and associated with difficulties in falling asleep.
         kind: indication
-        ru: Лёгкий дискомфорт в ЖКТ; нервное беспокойство и трудности с засыпанием
+        ru: Вспомогательно при нервном беспокойстве и трудностях с засыпанием (традиционное применение)
       - doc: monograph
         page: 6
         quote: 'Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g'
@@ -139,9 +144,15 @@ metadata:
           populationRu: взрослые
       - doc: monograph
         page: 8
+        quote: Since no sufficient data are available the use in children and adolescents under 18 years of age is not recommended.
+        kind: age
+        ru: Внутрь — до 18 лет не рекомендуется (данных недостаточно)
+        minAgeMonths: 216
+      - doc: monograph
+        page: 8
         quote: Since no data on the safe use in children are available, the use in children under 12 years of age is not recommended.
         kind: age
-        ru: Наружно — не младше 12 лет; внутрь — только взрослым
+        ru: Наружно — до 12 лет не рекомендуется (нет данных о безопасности)
         minAgeMonths: 144
       - doc: monograph
         page: 7
@@ -151,14 +162,14 @@ metadata:
         maxDays: 14
       - doc: monograph
         page: 8
-        quote: Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors
+        quote: 'Daily dose of hyperforin > 1 mg: Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein'
         kind: contraindication
-        ru: Нельзя вместе с варфарином и другими кумаринами, циклоспорином, такролимусом, препаратами от ВИЧ, многими противоопухолевыми (при большой дозе гиперфорина — экстракты)
+        ru: Вместе с кумариновыми антикоагулянтами (варфарин), циклоспорином, эверолимусом, сиролимусом, такролимусом, ингибиторами протеазы и нуклеозидными ингибиторами обратной транскриптазы ВИЧ, иринотеканом, иматинибом и другими цитостатиками, которые разрушаются через CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином (препараты с гиперфорином больше 1 мг в сутки)
       - doc: monograph
         page: 9
         quote: Hyperici herba preparations induce the activity of CYP3A4, CYP2B6, CYP2C9, CYP2C19 and P- glycoprotein.
         kind: interaction
-        ru: Ускоряет разрушение многих лекарств (CYP3A4, CYP2C9 и др.) — снижает их концентрацию; перед приёмом спросить врача, если пьёте другие лекарства
+        ru: Повышает активность ферментов CYP3A4, CYP2B6, CYP2C9, CYP2C19 и P-гликопротеина
       - doc: monograph
         page: 9
         quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported
@@ -181,32 +192,37 @@ metadata:
         ru: Избегать сильного солнца и УФ во время приёма
       - doc: monograph
         page: 10
-        quote: Prior to elective surgery possible interactions with products used during general and regional anaesthesia should be identified.
+        quote: Prior to elective surgery possible interactions with products used during general and regional anaesthesia should be identified. If necessary, the herbal medicinal product should be discontinued.
         kind: warning
-        ru: Перед плановой операцией — предупредить врача, может понадобиться отмена
+        ru: Перед плановой операцией — выяснить взаимодействия со средствами для наркоза и анестезии, при необходимости отменить
       - doc: monograph
         page: 11
-        quote: The use is not recommended during pregnancy and lactation.
+        quote: shown signs of reproductive toxicity (see section 5.3 ‘Preclinical safety data’). The use is not recommended during pregnancy and lactation.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется (токсичность для потомства у животных)
+        ru: При беременности и кормлении грудью не рекомендуется — у животных признаки репродуктивной токсичности
+      - doc: monograph
+        page: 11
+        quote: Gastrointestinal disorders (such as nausea, abdominal pain and diarrhoea), allergic skin reactions, fatigue and restlessness may occur.
+        kind: adverse
+        ru: Тошнота, боль в животе, диарея, аллергия на коже, усталость, беспокойство
       - doc: monograph
         page: 11
         quote: Fair-skinned individuals may react with dysesthesia (e.g. tingling, sensitivity cold or pain, burning sensation) and intensified sunburn-like symptoms under intense sunlight.
         kind: adverse
-        ru: Тошнота, боль в животе, диарея, аллергия на коже, усталость, беспокойство; у светлокожих — жжение и «солнечный ожог» на солнце
+        ru: У светлокожих на ярком солнце — покалывание, жжение, усиленный «солнечный ожог»
       - doc: monograph
         page: 12
-        quote: After ingestion of massive overdoses, the patient should be protected from sunlight and other UV- light sources for 1-2 weeks.
+        quote: before hospitalisation seizures and confusion have been reported. After ingestion of massive overdoses, the patient should be protected from sunlight and other UV- light sources for 1-2 weeks.
         kind: overdose
-        ru: Очень большие дозы экстракта — судороги и спутанность; после передозировки 1–2 недели беречься от солнца
+        ru: Описаны судороги и спутанность после сверхдоз сухого экстракта; после большой передозировки 1–2 недели беречься от солнца и УФ
       constituents:
-      - doc: assessment-report
-        page: 5
-        quote: Phloroglucinol derivates
+      - doc: monograph
+        page: 12
+        quote: Napthodianthrones (e.g. hypericin, pseudohypericin), phloroglucin derivatives (e.g. hyperforin) and flavonoids contribute to the activity.
         compound: hypericin, pseudohypericin, hyperforin
-        compoundRu: гиперицин, псевдогиперицин, гиперфорин
+        compoundRu: гиперицин, псевдогиперицин, гиперфорин, флавоноиды
         classRu: нафтодиантроны, флороглюцины
-        effectRu: характерные действующие вещества травы
+        effectRu: вносят вклад в действие сухого экстракта
         evidence: review
       - doc: assessment-report
         page: 26

@@ -60,7 +60,7 @@ facts:
     quote: "1-5 g in 100 ml water, for rinsing and gargling"
     dose: { preparationRu: настой для полосканий, amount: "1-5", unit: г, waterMl: "100", populationRu: подростки и взрослые }
   - kind: age
-    ru: Чай внутрь не применяют у детей младше 6 месяцев (питание и питьевой режим младенца)
+    ru: Чай внутрь детям младше 6 месяцев не обоснован — из-за особенностей питания и питья младенца
     doc: monograph
     page: 11
     quote: The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake.
@@ -77,10 +77,15 @@ facts:
     page: 10
     quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
   - kind: pregnancy
-    ru: Чай (сама трава) — безопасность при беременности и кормлении установлена; спиртовые и другие экстракты — не рекомендуются
+    ru: Измельчённые цветки (чай) — безопасность при беременности и кормлении установлена
     doc: monograph
     page: 12
     quote: "Preparation a) Safety during pregnancy and lactation has been established."
+  - kind: pregnancy
+    ru: Экстракты и настойки — при беременности и кормлении не рекомендуются, безопасность не установлена
+    doc: monograph
+    page: 12
+    quote: "Preparation b) to o) Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended."
   - kind: lactation
     ru: Перед кормлением смыть с сосков средства с ромашкой, чтобы не вызвать у ребёнка аллергию
     doc: monograph
@@ -145,7 +150,7 @@ constituents:
   - compound: apigenin
     compoundRu: апигенин
     classRu: флавоноиды
-    effectRu: лёгкое седативное (в высоких дозах)
+    effectRu: седативное в высоких дозах
     evidence: animal
     doc: assessment-report
     page: 40
@@ -153,7 +158,7 @@ constituents:
   - compound: herniarin, umbelliferone
     compoundRu: герниарин, умбеллиферон
     classRu: кумарины
-    effectRu: переходят в чай в заметном количестве (основание осторожности с антикоагулянтами)
+    effectRu: растворяются в горячей воде и при частом питье чая поступают в заметном количестве
     evidence: review
     doc: assessment-report
     page: 34

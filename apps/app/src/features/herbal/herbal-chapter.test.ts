@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildHerbalBook,
+  courseLongerThanEma,
+  courseMaxDays,
   emaDoseLine,
   herbalActions,
   herbalPlantCountLabel,
+  herbalQueryStem,
+  herbalSearchValues,
   limitFacts,
   readHerbalChapter,
 } from './herbal-chapter';
@@ -117,6 +121,45 @@ describe('herbal chapter metadata', () => {
     ).toBe('30 растений');
     expect(herbalPlantCountLabel([{ documents: documents(1) }])).toBe('1 растение');
     expect(herbalPlantCountLabel([{ documents: [] }])).toBeNull();
+  });
+});
+
+describe('herbal search and source conflicts', () => {
+  const senna = chapter('herbal.plant.senna-alexandrina', 'Сенна остролистная', {
+    plantId: 'senna-alexandrina',
+    latin: 'Senna alexandrina Mill.',
+    brew: { course: { value: '2–3 недели', quote: 'Курс лечения 2-3 недели.' } },
+    ema: {
+      page: 'https://www.ema.europa.eu/en/medicines/herbal/sennae-folium',
+      extracted: true,
+      status: 'proposed',
+      documents: {},
+      facts: [
+        { ...quote, kind: 'duration', ru: 'Не дольше 1 недели', maxDays: 7 },
+        { ...quote, kind: 'indication', ru: 'Кратковременно при эпизодическом запоре' },
+        { ...quote, kind: 'indication', ru: 'Отхаркивающее при кашле от простуды' },
+      ],
+      constituents: [],
+    },
+  });
+
+  it('marks a ГРЛС course longer than the EMA limit and keeps both values', () => {
+    const plant = readHerbalChapter(senna);
+    expect(plant?.brew.course?.value).toBe('2–3 недели');
+    expect(courseMaxDays('2–3 недели')).toBe(21);
+    expect(courseMaxDays('10 дней')).toBe(10);
+    expect(courseMaxDays('по мере')).toBeNull();
+    expect(plant && courseLongerThanEma(plant)).toBe(true);
+    const chamomilePlant = readHerbalChapter(chamomile);
+    expect(chamomilePlant && courseLongerThanEma(chamomilePlant)).toBe(false);
+  });
+
+  it('finds a plant by an EMA indication in another word form', () => {
+    const plant = readHerbalChapter(senna);
+    expect(plant && herbalSearchValues(plant)).toContain('Кратковременно при эпизодическом запоре');
+    expect(herbalQueryStem('кашель')).toBe('кашл');
+    expect(herbalQueryStem('сон')).toBeNull();
+    expect(herbalQueryStem('кашл')).toBeNull();
   });
 });
 

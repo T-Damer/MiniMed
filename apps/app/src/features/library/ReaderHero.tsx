@@ -20,6 +20,11 @@ export interface HeroPicture {
   readonly resolve: () => Promise<ResolvedReferenceImage | null>;
   /** The credit line under the title, e.g. «Фото: Красота и медицина». */
   readonly credit: string;
+  /**
+   * `paper`: the picture lies on a paper sheet and its white ground takes the sheet's tone (old
+   * botanical plates in the herbal book); by default it is a photo with its own frame.
+   */
+  readonly surface?: 'photo' | 'paper';
 }
 
 export function ReaderHero(props: {
@@ -83,8 +88,16 @@ export function ReaderHero(props: {
             {(resolved) => (
               <>
                 <PreviewableImage
-                  openClass="reader-hero__open"
-                  imageClass="reader-hero__photo"
+                  openClass={
+                    props.picture?.surface === 'paper'
+                      ? 'reader-hero__open reader-hero__open--paper'
+                      : 'reader-hero__open'
+                  }
+                  imageClass={
+                    props.picture?.surface === 'paper'
+                      ? 'reader-hero__photo reader-hero__photo--paper'
+                      : 'reader-hero__photo'
+                  }
                   src={resolved().url}
                   alt={resolved().alt}
                   caption={resolved().alt}

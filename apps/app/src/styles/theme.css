@@ -152,6 +152,17 @@
   --theme-assessment-legend-padding: 0.45rem 0.7rem 0.45rem 0.35rem;
   --page-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.27' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.27'/%3E%3C/svg%3E");
   --masked-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='luminanceToAlpha' result='alpha'/%3E%3CfeFlood flood-color='white' result='light'/%3E%3CfeComposite in='light' in2='alpha' operator='in'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+
+  /* A herbarium sheet: aged rag paper with faint foxing. Old botanical plates are laid on it with
+     multiply, so their white ground takes the paper tone. The sheet stays light in dark mode, only
+     dimmed, like a real sheet on a dark desk. */
+  --herbarium-paper:
+    radial-gradient(ellipse 60% 42% at 86% 8%, rgb(168 118 58 / 13%), transparent 72%),
+    radial-gradient(ellipse 50% 38% at 8% 94%, rgb(150 104 52 / 11%), transparent 72%),
+    radial-gradient(circle at 70% 64%, rgb(160 112 56 / 6%), transparent 22%),
+    linear-gradient(168deg, #f5eedc 0%, #eee3c9 58%, #e8dabd 100%);
+  --herbarium-paper-grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.32 0 0 0 0 0.2 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --herbarium-sheet-filter: none;
 }
 
 .icd-code {

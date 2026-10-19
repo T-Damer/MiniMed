@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { SheetPopover } from '@/components/SheetPopover';
 import {
+  courseLongerThanEma,
   type EmaQuote,
   emaDoseLine,
   emaSourceLabel,
@@ -36,6 +37,9 @@ function QuoteCell(props: {
   readonly value: string;
   readonly source: QuoteSource;
   readonly wide?: boolean;
+  /** A short mark under the value: the evidence level, or a conflict with the other source. */
+  readonly note?: string;
+  readonly warn?: boolean;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   return (
@@ -44,13 +48,26 @@ function QuoteCell(props: {
       onOpenChange={setOpen}
       title={props.label}
       triggerClass="herbal-cell"
-      triggerClassList={{ 'herbal-cell--wide': props.wide === true }}
+      triggerClassList={{
+        'herbal-cell--wide': props.wide === true,
+        'herbal-cell--warn': props.warn === true,
+      }}
       triggerLabel={`${props.label}: ${props.value}. Показать источник`}
       contentClass="herbal-quote"
       trigger={
         <>
           <span class="herbal-cell__label">{props.label}</span>
           <span class="herbal-cell__value">{props.value}</span>
+          <Show when={props.note}>
+            {(note) => (
+              <span
+                class="herbal-cell__note"
+                classList={{ 'herbal-cell__note--warn': props.warn === true }}
+              >
+                {note()}
+              </span>
+            )}
+          </Show>
         </>
       }
     >
@@ -85,20 +102,38 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
     url: ema()?.documents[item.doc] ?? null,
     english: true,
   });
-  const brewCells = (): readonly { label: string; value: QuotedValue; wide?: boolean }[] => {
+  interface BrewCell {
+    readonly label: string;
+    readonly value: QuotedValue;
+    readonly wide?: boolean;
+    readonly conflict?: boolean;
+  }
+  const brewCells = (): readonly BrewCell[] => {
     const brew = props.chapter.brew;
-    const cells: { label: string; value: QuotedValue | null; wide?: boolean }[] = [
+    const cells: {
+      label: string;
+      value: QuotedValue | null;
+      wide?: boolean;
+      conflict?: boolean;
+    }[] = [
       { label: 'Сырьё', value: brew.herb },
       { label: 'Вода', value: brew.water },
       { label: 'Баня', value: brew.heat },
       { label: 'Настоять', value: brew.steep },
       { label: 'Сколько раз', value: brew.times },
-      { label: 'Курс', value: brew.course },
+      { label: 'Курс', value: brew.course, conflict: courseLongerThanEma(props.chapter) },
       { label: 'Разовая доза', value: brew.dose, wide: true },
     ];
     return cells.flatMap((cell) =>
       cell.value
-        ? [{ label: cell.label, value: cell.value, ...(cell.wide ? { wide: true } : {}) }]
+        ? [
+            {
+              label: cell.label,
+              value: cell.value,
+              ...(cell.wide ? { wide: true } : {}),
+              ...(cell.conflict ? { conflict: true } : {}),
+            },
+          ]
         : [],
     );
   };
@@ -111,7 +146,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
   const limitsBlock = (): JSX.Element => (
     <Show when={limits().length > 0}>
       <h2 class="herbal-chapter__heading">
-        Кому нельзя
+        {limitsFirst() ? 'Позиция EMA' : 'Кому нельзя'}
         <Show when={ema()?.draft}>
           <span class="herbal-chapter__tag herbal-chapter__tag--draft">черновик</span>
         </Show>
@@ -160,6 +195,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
                 value={cell.value.value}
                 source={grlsSource(cell.value)}
                 {...(cell.wide ? { wide: true } : {})}
+                {...(cell.conflict ? { note: 'EMA: короче', warn: true } : {})}
               />
             )}
           </For>
@@ -179,7 +215,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
           <For each={posology()}>
             {(fact) => (
               <QuoteCell
-                label={capitalize(fact.dose?.populationRu ?? fact.ru)}
+                label={fact.dose ? capitalize(fact.dose.populationRu) : 'Как принимать'}
                 value={
                   fact.dose
                     ? [fact.dose.preparationRu, emaDoseLine(fact.dose)].filter(Boolean).join(': ')
@@ -210,8 +246,13 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
           <For each={constituents()}>
             {(item) => (
               <QuoteCell
-                label={`${item.compoundRu}${item.classRu ? ` · ${item.classRu}` : ''}`}
-                value={`${item.effectRu} (${evidenceLabel(item.evidence)})`}
+                label={[item.compoundRu, item.classRu]
+                  .filter((part, index, parts): part is string =>
+                    Boolean(part && parts.indexOf(part) === index),
+                  )
+                  .join(' · ')}
+                value={capitalize(item.effectRu)}
+                note={evidenceLabel(item.evidence)}
                 source={emaSource(item)}
                 wide
               />

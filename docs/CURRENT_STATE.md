@@ -94,9 +94,19 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
 - **Checks**: `tools/ingest/tests/test_herbal.py` (quote check, section split, brew parsing, ГФ HTML, EMA
   selection, plant list), `apps/app/src/features/herbal/herbal-chapter.test.ts`; browser run at 375×812 on a
   clean profile: install text + plates, reload, chamomile/St John's wort/celandine chapters, quote sheets.
-  Not done: the Sonnet doctor QA pass (weekly limit), a phone/WebView run, clinician review of the EMA fields.
   Known: rebuilding a module under the same version leaves an installed copy pointing at a stale shelf file
   («no such table: content_packs») — release a new version for every rebuild.
+- **QA pass 2026-10-19** (HERB1-QA, [qa-herbal-2026-10-19](research/qa-herbal-2026-10-19.md)): text module
+  re-released as `2026.10.19-qa1` (`content:module:herbal` builds the text only, `content:module:herbal:plates`
+  the plates, still `2026.10.19`). Fixed: the ГФ guide now carries «Особенности технологии» and the storage
+  temperature (the parser skipped `class="Default"` paragraphs); 4 of 5 spot-checked EMA files had Russian
+  lines adding claims beyond their quote (chamomile, St John's wort, senna, celandine — re-quoted or split;
+  viola was clean; the other 25 files are not re-read); Back from a full-screen picture closed the reader
+  (`MediaViewer` is now a history layer); a ГРЛС course longer than the EMA limit is marked «EMA: короче»;
+  search matches EMA indications with a stem fallback («кашель»); an «Обновить» offer for a newer text module;
+  one «Открываем травник…» state after install; brew dose without the repeated frequency; plates lie on a
+  herbarium-paper sheet (`--herbarium-paper`, multiply) in the grid and the hero (owner request).
+  Not done: a phone/WebView run, clinician review of the EMA fields, the other 25 EMA files.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

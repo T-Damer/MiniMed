@@ -75,6 +75,38 @@
   padding: 1rem;
 }
 
+.herbal-book__opening {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+  animation: herbal-fade-in var(--motion-base) var(--motion-ease-out);
+}
+
+.herbal-book__opening-spinner {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--theme-border);
+  border-top-color: var(--theme-accent);
+  border-radius: 50%;
+  animation: herbal-spin 0.8s linear infinite;
+}
+
+@keyframes herbal-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes herbal-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 .herbal-book__guide {
   display: flex;
   width: 100%;
@@ -125,13 +157,23 @@
   transform: scale(0.97);
 }
 
+/* The plate lies on a herbarium sheet (`--herbarium-paper`): its white ground takes the paper tone. */
+.herbal-card__sheet {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--herbarium-paper-grain), var(--herbarium-paper);
+  filter: var(--herbarium-sheet-filter);
+  isolation: isolate;
+}
+
 .herbal-card__image {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
   object-position: top;
-  background: var(--theme-surface-sunken, var(--theme-surface-raised));
+  mix-blend-mode: multiply;
 }
 
 .herbal-card__body {
@@ -271,6 +313,20 @@
 .herbal-cell__value {
   font-size: 0.9375rem;
   line-height: 1.3;
+}
+
+.herbal-cell__note {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+}
+
+.herbal-cell--warn {
+  border-color: var(--theme-warning, var(--theme-border));
+}
+
+.herbal-cell__note--warn {
+  color: var(--theme-warning, var(--theme-text-muted));
 }
 
 @media (hover: hover) and (pointer: fine) {

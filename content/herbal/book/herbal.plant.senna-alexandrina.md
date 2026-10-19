@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:b3639c7033a8f1a50d3f21c80cb9d1d292dc2bcbcffb3152877e404e086ec44a
+source_checksum: sha256:3666f399f1d81b543019dbdade64abea3829bf3a859db4eb9af0041380bc6f11
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -85,11 +85,11 @@ metadata:
         ru: Кратковременно при эпизодическом запоре
       - doc: monograph
         page: 4
-        quote: Herbal preparation equivalent to 10 – 30 mg hydroxyanthracene derivatives, calculated as sennoside B (photometric method) to be taken once daily at night.
+        quote: Herbal preparation equivalent to 10 – 30 mg hydroxyanthracene derivatives, calculated as sennoside B (photometric method) to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.
         kind: posology
-        ru: Разовая доза — сырьё, содержащее 10–30 мг антрагликозидов, один раз в день на ночь; брать наименьшую дозу, дающую мягкий стул
+        ru: Разовая доза — препарат, соответствующий 10–30 мг антрагликозидов, один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул
         dose:
-          preparationRu: настой на ночь
+          preparationRu: на ночь
           amount: 10-30
           unit: мг антрагликозидов
           populationRu: подростки и взрослые
@@ -117,7 +117,7 @@ metadata:
         ru: Боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
       - doc: monograph
         page: 5
-        quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives.
+        quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives. If laxatives are needed every day the cause of the constipation should be investigated.
         kind: warning
         ru: Долгий приём стимулирующих слабительных нарушает работу кишки и вызывает зависимость; если слабительное нужно каждый день — искать причину запора
       - doc: monograph
@@ -144,7 +144,17 @@ metadata:
         page: 7
         quote: Senna leaf preparations may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon.
         kind: adverse
-        ru: Боль и спазмы в животе, жидкий стул; при долгом приёме — потеря воды и солей, окрашивание слизистой кишки
+        ru: Боль и спазмы в животе, жидкий стул — особенно при раздражённой толстой кишке
+      - doc: monograph
+        page: 7
+        quote: Furthermore, chronic use may cause pigmentation of the intestinal mucosa (pseudomelanosis coli), which usually recedes when the patient stops taking the preparation.
+        kind: adverse
+        ru: При долгом приёме — окрашивание слизистой кишки (псевдомеланоз), обычно проходит после отмены
+      - doc: monograph
+        page: 7
+        quote: Long term use may lead to water and electrolyte imbalance and may result in albuminuria and haematuria.
+        kind: adverse
+        ru: При долгом приёме — нарушение водно-солевого баланса, белок и кровь в моче
       - doc: monograph
         page: 7
         quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during the treatment.
@@ -152,9 +162,9 @@ metadata:
         ru: Моча может окраситься в жёлтый или красно-коричневый цвет — это безопасно
       - doc: monograph
         page: 7
-        quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes.
+        quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, especially potassium, should be monitored.
         kind: overdose
-        ru: Схваткообразная боль и сильный понос с потерей жидкости и солей — много пить, следить за калием
+        ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение — поддерживающее, обильное питьё, контроль электролитов, особенно калия
       constituents:
       - doc: assessment-report
         page: 4

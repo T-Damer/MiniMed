@@ -1,6 +1,7 @@
 import type { MedicalCore } from '@localmed/contracts';
 import {
   createDeferred,
+  createEffect,
   createMemo,
   createSignal,
   For,
@@ -28,6 +29,8 @@ import {
   type HerbalChapter,
   herbalActions,
   herbalPlantCountLabel,
+  herbalQueryStem,
+  herbalSearchValues,
 } from './herbal-chapter';
 import { herbalBookActionFromHash, herbalBookHash } from './herbal-routing';
 
@@ -38,6 +41,14 @@ interface HerbalBookViewProps {
 }
 
 const EMPTY_BOOK: HerbalBook = { plants: [], guides: [] };
+
+/** A name match first; a symptom typed in another form («кашель» for «при кашле») still finds. */
+function herbalScore(query: string, values: readonly string[]): number {
+  const score = fuzzyQueryScore(query, values);
+  if (score > 0) return score;
+  const stem = herbalQueryStem(query);
+  return stem ? fuzzyQueryScore(stem, values) : 0;
+}
 
 function HerbalHelp(): JSX.Element {
   return (
@@ -62,6 +73,8 @@ function HerbalHelp(): JSX.Element {
 export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
   const [book, setBook] = createSignal<HerbalBook>(EMPTY_BOOK);
   const [loading, setLoading] = createSignal(true);
+  // After an install the book stays in its download card until the new content has been read.
+  const [opening, setOpening] = createSignal(false);
   const [error, setError] = createSignal<string>();
   const [query, setQuery] = createSignal('');
   const [action, setAction] = createSignal<string | null>(
@@ -92,8 +105,13 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
   onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged));
 
   const contentChanged = async (): Promise<void> => {
-    await props.onContentChanged?.();
-    await refresh();
+    setOpening(true);
+    try {
+      await props.onContentChanged?.();
+      await refresh();
+    } finally {
+      setOpening(false);
+    }
   };
 
   const chooseAction = (next: string | null): void => {
@@ -104,6 +122,17 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
   };
 
   const actions = createMemo(() => herbalActions(book().plants));
+  const [actionsElement, setActionsElement] = createSignal<HTMLElement | undefined>();
+  // The chosen chip stays in view, also when the address restores a filter far down the row.
+  createEffect(() => {
+    const selected = action();
+    const row = actionsElement();
+    if (!selected || !row || actions().length === 0) return;
+    const chip = Array.from(row.querySelectorAll<HTMLElement>('.herbal-book__action')).find(
+      (element) => element.textContent === selected,
+    );
+    chip?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
   const deferredQuery = createDeferred(query, { timeoutMs: 120 });
   const visiblePlants = createMemo((): readonly HerbalChapter[] => {
     const selected = action();
@@ -115,7 +144,7 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
     return filtered
       .map((plant) => ({
         plant,
-        score: fuzzyQueryScore(value, [plant.title, plant.latin, plant.partRu, ...plant.actions]),
+        score: herbalScore(value, herbalSearchValues(plant)),
       }))
       .filter(({ score }) => score > 0)
       .toSorted((left, right) => right.score - left.score)
@@ -144,12 +173,22 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
           <p class="herbal-book__offer-text">
             Лекарственные растения: как заварить, кому нельзя, действие и состав.
           </p>
-          <ModuleDownloadOffer
-            moduleId={HERBAL_MODULE_ID}
-            onContentChanged={contentChanged}
-            subtitle={(module) => herbalPlantCountLabel([module]) ?? module.title}
-            failureMessage="Не удалось скачать травник."
-          />
+          <Show
+            when={!opening()}
+            fallback={
+              <p class="herbal-book__opening" role="status">
+                <span class="herbal-book__opening-spinner" aria-hidden="true" />
+                Открываем травник…
+              </p>
+            }
+          >
+            <ModuleDownloadOffer
+              moduleId={HERBAL_MODULE_ID}
+              onContentChanged={contentChanged}
+              subtitle={(module) => herbalPlantCountLabel([module]) ?? module.title}
+              failureMessage="Не удалось скачать травник."
+            />
+          </Show>
         </div>
       </Show>
 
@@ -165,9 +204,9 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
             onClear={() => setQuery('')}
             label="Поиск растения"
             hideLabel
-            placeholder="Название или латынь"
+            placeholder="Растение или жалоба"
           />
-          <fieldset class="herbal-book__actions" aria-label="Действие">
+          <fieldset ref={setActionsElement} class="herbal-book__actions" aria-label="Действие">
             <For each={actions()}>
               {(item) => (
                 <button
@@ -198,6 +237,17 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
           )}
         </For>
 
+        {/* Hidden while the installed book is current; a newer release offers itself here. */}
+        <ModuleDownloadOffer
+          class="herbal-book__update-offer"
+          moduleId={HERBAL_MODULE_ID}
+          onContentChanged={contentChanged}
+          subtitle={() => 'Новая версия травника'}
+          action="Обновить"
+          variant="secondary"
+          failureMessage="Не удалось обновить травник."
+        />
+
         <ModuleDownloadOffer
           class="herbal-book__plates-offer"
           moduleId={HERBAL_PLATES_MODULE_ID}
@@ -220,12 +270,11 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
                 aria-label={`Открыть «${plant.title}»`}
                 onClick={() => openDocumentOverlay(plant.documentId)}
               >
-                <Show
-                  when={plant.thumbnail}
-                  fallback={<span class="herbal-card__image herbal-card__image--empty" />}
-                >
-                  {(src) => <img class="herbal-card__image" src={src()} alt="" loading="lazy" />}
-                </Show>
+                <span class="herbal-card__sheet">
+                  <Show when={plant.thumbnail}>
+                    {(src) => <img class="herbal-card__image" src={src()} alt="" loading="lazy" />}
+                  </Show>
+                </span>
                 <span class="herbal-card__body">
                   <strong class="herbal-card__title">{plant.title}</strong>
                   <em class="herbal-card__latin">{plant.latin}</em>

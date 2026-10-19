@@ -11,6 +11,7 @@ import yaml
 from localmed_ingest.herbal_ema import EmaExtraction, normalize, validate_ema_extraction
 from localmed_ingest.herbal_plants import load_plants
 from localmed_ingest.herbal_prepare import (
+    Paragraph,
     action_chips,
     gf15_paragraphs,
     instruction_sections,
@@ -152,7 +153,7 @@ def test_instruction_sections_join_lines_and_split_inline_headings(tmp_path: Pat
         "heat": "15 мин",
         "steep": "45 мин",
         "times": "2–3 раза в день",
-        "dose": "по 1/2 стакана 2-3 раза в день",
+        "dose": "по 1/2 стакана",
         "course": "3–4 недели",
     }
     herb = brew["herb"]
@@ -163,10 +164,24 @@ def test_gf15_paragraphs_read_the_article_html(tmp_path: Path) -> None:
     page = tmp_path / "page.html"
     page.write_text(
         '<p class="MsoNormal projlink" style="x"><b>Настои</b> и&nbsp;отвары</p>'
-        '<p class="MsoNormal">Срок годности – не более 2 сут.</p><p>menu</p>',
+        '<p class="MsoNormal">Срок годности – не более 2 сут.</p><p>menu</p>'
+        '<p class="Default projlink " style="x"><span>Настои – 15&nbsp;мин.</span></p>',
         encoding="utf-8",
     )
-    assert gf15_paragraphs(page) == ["Настои и отвары", "Срок годности – не более 2 сут."]
+    assert gf15_paragraphs(page) == [
+        "Настои и отвары",
+        "Срок годности – не более 2 сут.",
+        "Настои – 15 мин.",
+    ]
+
+
+def test_brew_dose_leaves_the_frequency_to_its_own_cell() -> None:
+    paragraph = Paragraph(
+        "Настой принимают внутрь по 1/2 - 1 стакану 6-8 раз в день за 30 минут до еды.", [1], ["b0"]
+    )
+    brew = parse_brew([paragraph])
+    assert cast("dict[str, str]", brew["dose"])["value"] == "по 1/2–1 стакану за 30 минут до еды"
+    assert cast("dict[str, str]", brew["times"])["value"] == "6–8 раз в день"
 
 
 def test_ema_selection_prefers_final_monograph_over_draft() -> None:

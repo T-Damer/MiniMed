@@ -13,6 +13,7 @@ import {
 import { PinchZoomSurface } from '@/features/library/PinchZoomSurface';
 import { IMAGE_ZOOM_OPTIONS, usePinchZoom } from '@/features/library/use-pinch-zoom';
 import { PrintManager } from '@/features/printing/print-manager';
+import { useHistoryLayer } from '@/state/use-history-layer';
 
 interface RichBlockHighlightProps {
   readonly rangeOffset?: number | undefined;
@@ -110,6 +111,11 @@ export function MediaViewer(props: {
     props.zoomMode === 'image'
       ? { ...IMAGE_ZOOM_OPTIONS, expandScrollPort: true }
       : { expandScrollPort: true, wheelZoom: 'ctrl' },
+  );
+  // A full-screen preview is one history layer: back closes it, not the reader under it.
+  useHistoryLayer(
+    () => props.open,
+    () => props.onClose(),
   );
 
   createEffect(() => {
