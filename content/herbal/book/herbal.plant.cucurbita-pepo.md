@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -44,6 +44,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Icones_plantarum_medico-oeconomico-technologicarum_cum_earum_fructus_ususque_descriptione_%3D_(Tab._148)_(8096991138).jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/cucurbitae-semen
       lastUpdated: 25/03/2013
       species: null
@@ -257,6 +258,7 @@ metadata:
         classRu: экстракт
         effectRu: в гомогенате плаценты человека экстракт ингибировал 5-α-редуктазу типа II на 90,4% при 10 мг/мл, на 71,4% при 2 мг/мл и на 29,6% при 0,4 мг/мл
         evidence: in-vitro
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0100.18

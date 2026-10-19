@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -69,6 +69,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Orthosiphon_stamineus.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/orthosiphonis-folium
       lastUpdated: 16/07/2009
       species: null
@@ -288,6 +289,7 @@ metadata:
         classRu: полифенольные соединения
         effectRu: по выводу авторов исследования на крысах, более раннее действие метанол-водного экстракта по сравнению с метанольным можно объяснить более полярными компонентами — флавоноидами и розмариновой кислотой, которые могут действовать синергично
         evidence: animal
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0088

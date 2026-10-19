@@ -159,12 +159,21 @@
 
 /* The plate lies on a herbarium sheet (`--herbarium-paper`): its white ground takes the paper tone. */
 .herbal-card__sheet {
-  display: block;
+  display: grid;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--herbarium-paper-grain), var(--herbarium-paper);
   filter: var(--herbarium-sheet-filter);
   isolation: isolate;
+}
+
+/* A plant with no public-domain plate keeps the sheet with a quiet leaf. */
+.herbal-card__placeholder {
+  width: 40%;
+  height: 40%;
+  place-self: center;
+  color: var(--theme-text-muted);
+  opacity: 0.45;
 }
 
 .herbal-card__image {
@@ -203,6 +212,12 @@
   font-size: var(--type-micro);
 }
 
+.herbal-card__redbook {
+  color: var(--theme-danger);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .herbal-card:hover,
   .herbal-book__guide:hover {
@@ -224,6 +239,33 @@
 
 .herbal-chapter__latin {
   font-style: italic;
+}
+
+.herbal-redbook {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.herbal-redbook__badge {
+  padding: 0.0625rem 0.4375rem;
+  border: 1px solid var(--theme-danger);
+  border-radius: 999px;
+  color: var(--theme-danger);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+}
+
+.herbal-redbook__category {
+  color: var(--theme-text);
+}
+
+.herbal-redbook__note {
+  flex-basis: 100%;
+  color: var(--theme-text-muted);
 }
 
 .herbal-chapter__actions {

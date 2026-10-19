@@ -1,0 +1,158 @@
+# EMA/HMPC facts for Мальва лесная (цветки). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: malva-sylvestris
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано исключительно на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: 'Показание 1: традиционное растительное средство как обволакивающее для симптоматического лечения раздражения полости рта или глотки и связанного с ним сухого кашля'
+    doc: monograph
+    page: 3
+    quote: Indication 1) Traditional herbal medicinal product used as a demulcent preparation for the symptomatic treatment of oral or pharyngeal irritation and associated dry cough.
+  - kind: indication
+    ru: 'Второе показание: традиционное растительное средство как обволакивающее для симптоматического облегчения лёгкого дискомфорта в ЖКТ'
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used as a demulcent preparation for the symptomatic relief of mild gastrointestinal discomfort.
+  - kind: posology
+    ru: 'Показание 1: измельчённое сырьё, 1–2 г на 250 мл кипятка (настой) или на 250 мл воды (отвар) 2–3 раза в день, средняя суточная доза 5 г — подростки, взрослые и пожилые'
+    doc: monograph
+    page: 4
+    quote: 'Indication 1) Adolescents, adults and elderly 1–2 g of the comminuted herbal substance in 250 ml of boiling water as a herbal infusion or in 250 ml of water as a decoction 2-3 times daily. Average daily dose: 5 g'
+    dose: {preparationRu: настой или отвар из измельчённого сырья, amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Показание 2: травяной чай — 1–2 г измельчённого сырья на 250 мл кипятка (настой) или на 250 мл воды (отвар) 2–3 раза в день, средняя суточная доза 5 г — подростки, взрослые и пожилые'
+    doc: monograph
+    page: 4
+    quote: 'Indication 2) Adolescents, adults and elderly Herbal tea: 1–2 g of the comminuted herbal substance in 250 ml of boiling water as a herbal infusion or in 250 ml of water as a decoction 2-3 times daily. Average daily dose: 5 g.'
+    dose: {preparationRu: 'травяной чай: настой или отвар из измельчённого сырья', amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Показание 2: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 4
+    quote: 'Indication 2) Adolescents, adults and elderly Herbal tea: 1–2 g of the comminuted herbal substance in 250 ml of boiling water as a herbal infusion or in 250 ml of water as a decoction 2-3 times daily. Average daily dose: 5 g. The use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  - kind: duration
+    ru: 'Показание 1: если симптомы сохраняются дольше 1 недели — обратиться к врачу или квалифицированному медработнику'
+    doc: monograph
+    page: 4
+    quote: Indication 1) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: duration
+    ru: 'Показание 2: если симптомы сохраняются дольше 2 недель — обратиться к врачу или квалифицированному медработнику'
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: posology
+    ru: 'Показание 1: приём внутрь и на слизистую рта; показание 2: приём внутрь'
+    doc: monograph
+    page: 5
+    quote: Method of administration Indication 1) Oral and oromucosal use. Indication 2) Oral use
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу (цветкам мальвы лесной)
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: 'Показание 1: при одышке, лихорадке или гнойной мокроте — обратиться к врачу или квалифицированному медработнику'
+    doc: monograph
+    page: 5
+    quote: Indication 1) If dyspnoea, fever or purulent sputum occurs during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: age
+    ru: 'Показания 1 и 2: применение у детей до 12 лет не установлено — данных недостаточно'
+    doc: monograph
+    page: 5
+    quote: Indications 1) and 2) The use in children under 12 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 144
+  - kind: warning
+    ru: При ухудшении симптомов — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 5
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 5
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 6
+    quote: No fertility data available.
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 6
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследований генотоксичности, репродуктивной токсичности и канцерогенности не проводилось
+    doc: monograph
+    page: 7
+    quote: Tests on genotoxicity, reproductive toxicity and carcinogenicity has not been performed.
+constituents:
+  - compound: mucilage polysaccharides
+    compoundRu: слизистые полисахариды
+    classRu: полисахариды (слизь)
+    effectRu: По-видимому, высокомолекулярные кислые полисахариды отвечают за вязкость и увеличение индекса набухания в водных растворах; в цветках около 10 % слизи
+    doc: assessment-report
+    page: 5
+    quote: It appears that high molecular weight acid polysaccharides are responsible for the viscosity and increase of the swelling index in aqueous solutions. About 10% of mucilage is present in flowers.
+    evidence: review
+  - compound: anthocyanins (malvidin glucosides, delphinidin 3-glucoside)
+    compoundRu: антоцианы (глюкозиды мальвидина, 3-глюкозид дельфинидина)
+    classRu: антоцианы
+    effectRu: Определены мальвидин 3, 5-диглюкозид, мальвидин 3-глюкозид, мальвидин 3-(6-малонилглюкозид)-5-глюкозид, 3-глюкозид дельфинидина, петунидин, цианидин и хлорид мальвидина; общее содержание антоцианов — от 0,42 до 7,3 % сухого вещества
+    doc: assessment-report
+    page: 5
+    quote: Malvidin 3, 5-diglucoside, malvidin 3-glucoside, malvidin 3-(6-malonylglucoside)-5-glucoside, delphinidin 3-glucoside, petunidin, cyanidin, malvidin chloride were identified; total anthocyanin content ranged from 0.42 to 7.3% of dry matter
+    evidence: review
+  - compound: kaempferol-3-O-rutinoside, quercetin-3-O-rutinoside
+    compoundRu: кемпферол-3-O-рутинозид, кверцетин-3-O-рутинозид
+    classRu: флавонолы
+    effectRu: Кемпферол-3-O-рутинозид и кверцетин-3-O-рутинозид — основные флавонолы M. sylvestris, определённые Barros et al. (2012)
+    doc: assessment-report
+    page: 5
+    quote: Kaempferol-3-O-rutinoside and quercetin-3-O-rutinoside were the main flavonols in M. sylvestris identified by Barros et al. (2012).
+    evidence: review
+  - compound: mucilage and rhamnogalacturonan fraction
+    compoundRu: слизь и рамногалактуронановая фракция
+    classRu: полисахариды
+    effectRu: Слизь и кислая полисахаридная фракция (рамногалактуронан) из цветков мальвы (Malva mauritiana), введённые кошкам внутрь в дозе 50 мг/кг, значимо уменьшали число случаев кашля и его интенсивность (при вдохе и выдохе)
+    doc: assessment-report
+    page: 21
+    quote: 'In experiments performed by Nosalova et al. (2005) a mucilage and an acidic polysaccharide fraction (consisting of rhamnogalacturonan) isolated from mallow flowers (Malva mauritiana) were administered orally to cats at a dose of 50 mg/kg (without anaesthesia). Antitussive effect of the polysaccharides was evaluated by surgically implanted chronic endotracheal cannula into the trachea. It served not only to register the pressure on electromanometer but also to the irritation of the airway mucous membrane in the desired areas: laryngopharyngeal and tracheobronchial. These areas were five times stimulated mechanically with nylon fibre and then monitored prior to application of the tested substance as a control value and after 0.5, 1, 2 and 5 hours after the administration of the polysaccharides. Both mucilage and rhamnogalacturonan fraction significantly diminished the number of incidents of cough and its intensity (during inhalation and exhalation).'
+    evidence: animal
+  - compound: polysaccharide and polyphenols (water fraction)
+    compoundRu: полисахарид и полифенолы (водная фракция)
+    classRu: полисахариды, полифенолы
+    effectRu: В модели колита водная фракция была очень эффективна в предотвращении воспаления, у этанольной и н-гексановой фракций терапевтическая эффективность ниже; полисахарид при предварительном введении уменьшал признаки воспаления; противовоспалительное действие, по-видимому, связано с их содержанием полисахаридов и полифенолов
+    doc: assessment-report
+    page: 24
+    quote: Macroscopic and microscopic evaluation of colitis showed that the aqueous fraction was very effective in preventing the inflammation and therapeutic effectiveness was lower for ethanolic and n-hexane fractions. Polysaccharide was effective in pretreatment reducing signs of inflammation.The protective effect of the water fraction of Malva sylvestris on reduction of microscopic and macroscopic parameters of colitis was significantly higher than prednisolone. Anti-inflammatory effects of the tested fractions in this study seem to be related to their polysaccharide and polyphenol content.
+    evidence: animal

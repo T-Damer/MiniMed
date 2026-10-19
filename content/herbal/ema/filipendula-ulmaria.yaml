@@ -1,0 +1,227 @@
+# EMA/HMPC facts for Лабазник вязолистный (трава). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: filipendula-ulmaria
+status: proposed
+useType: traditional
+facts:
+- kind: use-type
+  ru: Традиционное растительное средство — применение основано только на длительном опыте
+  doc: monograph
+  page: 3
+  quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+- kind: indication
+  ru: Традиционное растительное средство для поддерживающего лечения простуды
+  doc: monograph
+  page: 3
+  quote: Indication 1) Traditional herbal medicinal product for the supportive treatment of common cold.
+- kind: indication
+  ru: Традиционное растительное средство для облегчения лёгкой суставной боли
+  doc: monograph
+  page: 3
+  quote: Indication 2) Traditional herbal medicinal product for the relief of minor articular pain.
+- kind: posology
+  ru: 'При простуде, препарат a) — чай из измельчённого сырья, взрослые и пожилые: разовая доза 1,5–6 г в виде настоя; суточная доза 2–18 г'
+  doc: monograph
+  page: 3
+  quote: 'Indication 1) Adults, Elderly a) Comminuted herbal substance as herbal tea: single dose: 1.5-6 g, as an infusion daily dose: 2-18 g'
+  dose: {preparationRu: 'препарат a): чай из измельчённого сырья (настой); суточная доза 2-18 г', amount: 1.5-6, unit: г, populationRu: взрослые и пожилые}
+- kind: posology
+  ru: 'При простуде, препарат b) — порошок сырья, взрослые и пожилые: разовая доза 250–500 мг; суточная доза 250–1500 мг'
+  doc: monograph
+  page: 3
+  quote: 'Indication 1) Adults, Elderly a) Comminuted herbal substance as herbal tea: single dose: 1.5-6 g, as an infusion daily dose: 2-18 g b) Powdered herbal substance: single dose: 250-500 mg daily dose: 250-1500 mg'
+  dose: {preparationRu: 'препарат b): порошок сырья; суточная доза 250-1500 мг', amount: 250-500, unit: мг, populationRu: взрослые и пожилые}
+- kind: age
+  ru: 'При простуде: детям и подросткам до 18 лет не рекомендуется'
+  doc: monograph
+  page: 3
+  quote: 'daily dose: 250-1500 mg The use in children and adolescents under 18 years of age is not recommended'
+  minAgeMonths: 216
+- kind: posology
+  ru: 'При суставной боли, препарат a) — чай из измельчённого сырья, взрослые и пожилые: разовая доза 1,5–6 г в виде настоя; суточная доза 2–18 г'
+  doc: monograph
+  page: 3
+  quote: 'Indication 2) Adults, Elderly a) Comminuted herbal substance as herbal tea: single dose: 1.5-6 g, as an infusion daily dose: 2-18 g'
+  dose: {preparationRu: 'препарат a): чай из измельчённого сырья (настой); суточная доза 2-18 г', amount: 1.5-6, unit: г, populationRu: взрослые и пожилые}
+- kind: posology
+  ru: 'При суставной боли, препарат b) — порошок сырья, взрослые и пожилые: разовая доза 250–500 мг; суточная доза 250–1500 мг'
+  doc: monograph
+  page: 3
+  quote: 'Indication 2) Adults, Elderly a) Comminuted herbal substance as herbal tea: single dose: 1.5-6 g, as an infusion daily dose: 2-18 g b) Powdered herbal substance: single dose: 250-500 mg daily dose: 250-1500 mg'
+  dose: {preparationRu: 'препарат b): порошок сырья; суточная доза 250-1500 мг', amount: 250-500, unit: мг, populationRu: взрослые и пожилые}
+- kind: posology
+  ru: 'При суставной боли, препарат c) — настойка (1:5), взрослые и пожилые: разовая доза 2–4 мл; суточная доза 6–12 мл'
+  doc: monograph
+  page: 3
+  quote: 'c) Tincture (1:5): single dose: 2-4 ml daily dose: 6-12 ml'
+  dose: {preparationRu: 'препарат c): настойка (1:5); суточная доза 6-12 мл', amount: 2-4, unit: мл, populationRu: взрослые и пожилые}
+- kind: age
+  ru: 'При суставной боли: детям и подросткам до 18 лет не рекомендуется'
+  doc: monograph
+  page: 4
+  quote: 'daily dose: 6-12 ml The use in children and adolescents under 18 years of age is not recommended'
+  minAgeMonths: 216
+- kind: duration
+  ru: 'При простуде: лечение начинать при первых признаках простуды'
+  doc: monograph
+  page: 4
+  quote: Duration of use Indication 1) The therapy should start at first signs of common cold.
+- kind: duration
+  ru: 'При простуде: если симптомы сохраняются дольше 7 дней — обратиться к врачу или медработнику'
+  doc: monograph
+  page: 4
+  quote: If the symptoms persist longer than 7 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  maxDays: 7
+- kind: duration
+  ru: 'При суставной боли: не применять дольше 4 недель'
+  doc: monograph
+  page: 4
+  quote: Indication 2) Not to be used for more than 4 weeks.
+  maxDays: 28
+- kind: duration
+  ru: 'При суставной боли: если симптомы сохраняются во время применения — обратиться к врачу или медработнику'
+  doc: monograph
+  page: 4
+  quote: If the symptoms persist during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+- kind: posology
+  ru: Способ применения — внутрь
+  doc: monograph
+  page: 4
+  quote: Method of administration Oral use.
+- kind: contraindication
+  ru: Гиперчувствительность к салицилатам
+  doc: monograph
+  page: 4
+  quote: Hypersensitivity to salicylates.
+- kind: contraindication
+  ru: Гиперчувствительность к действующему веществу
+  doc: monograph
+  page: 4
+  quote: Hypersensitivity to the active substance.
+- kind: warning
+  ru: Применение у детей и подростков до 18 лет не установлено из-за недостатка адекватных данных
+  doc: monograph
+  page: 4
+  quote: The use in children and adolescents under 18 years of age has not been established due to lack of adequate data.
+  minAgeMonths: 216
+- kind: warning
+  ru: Одновременный приём с салицилатами и другими НПВП не рекомендуется без совета врача
+  doc: monograph
+  page: 4
+  quote: Concomitant use with salicylates and other NSAIDs is not recommended without medical advice.
+- kind: warning
+  ru: 'При простуде: если температура выше 39 °C, держится или сопровождается сильной головной болью либо симптомы ухудшаются во время применения — обратиться к врачу или медработнику'
+  doc: monograph
+  page: 4
+  quote: Indication 1) If fever exceeds 39°C, persists or is associated with severe headache, or if symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+- kind: warning
+  ru: 'При суставной боли: препарат не предназначен для применения при остром артрите, так как это состояние требует совета врача'
+  doc: monograph
+  page: 5
+  quote: Indication 2) The product is not intended to be used in case of acute arthritis as this condition requires medical advice.
+- kind: warning
+  ru: Для экстрактов, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
+  doc: monograph
+  page: 5
+  quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
+- kind: interaction
+  ru: Взаимодействий не описано
+  doc: monograph
+  page: 5
+  quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+- kind: interaction
+  ru: 'В отчёте оценки: клинически взаимодействия не описаны; теоретически из-за салицилатов возможно взаимодействие с другими салицилатсодержащими средствами или НПВП'
+  doc: assessment-report
+  page: 16
+  quote: No drug interactions are documented clinically. Theoretically, as preparations of Filipendula ulmaria may contain salicylates, there might be a potential for interactions with other salicylate containing products or other NSAID medicines administered concurrently.
+- kind: pregnancy
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 5
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: lactation
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 5
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: pregnancy
+  ru: Данных о фертильности нет
+  doc: monograph
+  page: 5
+  quote: No fertility data available.
+- kind: statement
+  ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+  doc: monograph
+  page: 5
+  quote: No studies on the effect on the ability to drive and use machines have been performed.
+- kind: adverse
+  ru: Нежелательные эффекты не известны; при их появлении — обратиться к врачу или медработнику
+  doc: monograph
+  page: 5
+  quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+- kind: overdose
+  ru: Случаев передозировки не описано
+  doc: monograph
+  page: 6
+  quote: No case of overdose has been reported.
+- kind: statement
+  ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+  doc: monograph
+  page: 6
+  quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+- kind: statement
+  ru: 'В отчёте оценки: клинических данных, подтверждающих правдоподобие эффективности при простуде и суставной боли, нет'
+  doc: assessment-report
+  page: 15
+  quote: No clinical data are available to contribute to the plausibility of efficacy for the specific indications of Filipendulae ulmariae herba and flos in the context of inflammatory diseases such as painful articular conditions and common colds.
+- kind: statement
+  ru: 'В отчёте оценки (итоговые выводы): для настойки (1:5; этанол 45 % V/V) суточная доза взрослым — 2–12 мл, а период традиционного применения считается выполненным только для следующего показания'
+  doc: assessment-report
+  page: 17
+  quote: For the tincture of the herb (1:5; ethanol 45% V/V) in a daily adult dosage of 2-12 ml, the period of traditional use is considered to be elapsed only with respect to the following indication
+- kind: statement
+  ru: 'В отчёте оценки (итоговые выводы), показание для настойки: традиционное растительное средство для облегчения лёгкой суставной боли'
+  doc: assessment-report
+  page: 17
+  quote: Traditional herbal medicinal product for the relief of minor articular pain. The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+constituents:
+- compound: salicylates
+  compoundRu: салицилаты
+  classRu: салицилаты (в основном гликозиды)
+  effectRu: количество салицилатов, в основном в виде гликозидов, предположительно менее 0,5 %
+  evidence: review
+  doc: assessment-report
+  page: 3
+  quote: The amount of salicylates, mostly present in the form of glycosides, is assumed to be less than 0.5% (Zeylstra, 1998; ESCOP, 2003).
+- compound: salicylates (infusion)
+  compoundRu: салицилаты (настой)
+  classRu: салицилаты
+  effectRu: по Schulz и соавт. (1998), настои содержат лишь следовые количества салицилатов, поэтому чай из лабазника считают ароматическим средством, а не салицилатным лекарством
+  evidence: review
+  doc: assessment-report
+  page: 16
+  quote: According to Schulz et al. (1998), infusions contain only trace amounts of salicylates, so meadowsweet tea is considered as an aromatic remedy rather than a salicylate medication.
+- compound: flavonoids
+  compoundRu: флавоноиды
+  classRu: флавоноиды
+  effectRu: 3–4 % в цветущей траве и до 6 % в свежих цветках, в частности спирэозид (кверцетин-4’-глюкозид), также гиперозид и другие производные кверцетина и кемпферола, например кемпферол-4’-глюкозид
+  evidence: review
+  doc: assessment-report
+  page: 3
+  quote: 'Flavonoids: from 3-4% in the flowering herb up to 6% in the fresh flowers, in particular spiraeoside (quercetin-4’-glucoside), also hyperoside, other quercetin and kaempferol derivatives, as kaempferol-4’-glucoside.'
+- compound: tannins
+  compoundRu: дубильные вещества
+  classRu: таннины (гидролизуемые)
+  effectRu: ингибирующие эластазу свойства 50 % (V/V) этанольных экстрактов цветков и листьев приписывали присутствию дубильных веществ
+  evidence: review
+  doc: assessment-report
+  page: 12
+  quote: The elastase inhibiting properties of 50% (V/V) ethanolic flower and leaf extracts were attributed to the presence of tannins (Lamaison et al., 1990).
+- compound: flavonoids (methanolic flower extracts)
+  compoundRu: флавоноиды (метанольные экстракты цветков)
+  classRu: флавоноиды
+  effectRu: метанольные экстракты цветков (основные компоненты — флавоноиды) in vitro сильно угнетали активность ксантиноксидазы
+  evidence: in-vitro
+  doc: assessment-report
+  page: 12
+  quote: Methanolic flower extracts (with flavonoids as main constituents) demonstrated to strongly inhibit xanthine oxidase activity in vitro (Kazazi et al., 2009).

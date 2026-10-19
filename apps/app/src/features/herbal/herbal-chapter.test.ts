@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  authorityLabel,
   buildHerbalBook,
   courseLongerThanEma,
   courseMaxDays,
   emaDoseLine,
+  emaSourceLabel,
+  evidenceLabel,
+  type HerbalRedBook,
   herbalActions,
   herbalPlantCountLabel,
   herbalQueryStem,
   herbalSearchValues,
   limitFacts,
   readHerbalChapter,
+  redBookLabel,
 } from './herbal-chapter';
 import { herbalBookActionFromHash, herbalBookHash, isHerbalBookRoute } from './herbal-routing';
 
@@ -221,5 +226,60 @@ describe('herbal book routing', () => {
     expect(isHerbalBookRoute(hash)).toBe(true);
     expect(herbalBookActionFromHash(hash)).toBe('седативное');
     expect(herbalBookActionFromHash(herbalBookHash(null))).toBeNull();
+  });
+});
+
+describe('Red Book', () => {
+  it('reads the category and the row note of a listed plant', () => {
+    const parsed = readHerbalChapter(
+      chapter('herbal.plant.rhodiola-rosea', 'Родиола розовая', {
+        plantId: 'rhodiola-rosea',
+        latin: 'Rhodiola rosea L.',
+        redBook: {
+          number: 156,
+          category: 3,
+          categoryRu: 'Редкие',
+          note: 'За исключением популяций Магаданской обл.',
+          url: 'http://publication.pravo.gov.ru/document/0001202307210008',
+          pdfPage: 7,
+        },
+      }),
+    );
+    expect(parsed?.redBook?.note).toBe('За исключением популяций Магаданской обл.');
+    expect(redBookLabel(parsed?.redBook as HerbalRedBook)).toBe('3 — редкие');
+    const unlisted = readHerbalChapter(
+      chapter('herbal.plant.mentha-piperita', 'Мята перечная', {
+        plantId: 'mentha-piperita',
+        latin: 'Mentha × piperita L.',
+      }),
+    );
+    expect(unlisted?.redBook).toBeNull();
+  });
+});
+
+describe('WHO monographs', () => {
+  it('labels the facts of a plant EMA does not cover as WHO facts', () => {
+    const parsed = readHerbalChapter(
+      chapter('herbal.plant.bidens-tripartita', 'Череда трёхраздельная', {
+        plantId: 'bidens-tripartita',
+        latin: 'Bidens tripartita L.',
+        ema: {
+          authority: 'WHO',
+          page: 'https://iris.who.int/handle/10665/44059',
+          extracted: true,
+          status: 'proposed',
+          useType: 'both',
+          documents: { monograph: { url: 'https://example.test/nis.pdf' } },
+          facts: [{ kind: 'pregnancy', ru: 'Не применять при беременности', ...quote, page: 53 }],
+        },
+      }),
+    );
+    expect(parsed?.ema?.authority).toBe('WHO');
+    expect(authorityLabel(parsed?.ema ?? null)).toBe('ВОЗ');
+    expect(emaSourceLabel({ ...quote, page: 53 } as never, 'WHO')).toBe('монография ВОЗ, с. 53');
+    expect(evidenceLabel('review', 'WHO')).toBe('обзор ВОЗ');
+    expect(evidenceLabel('animal', 'WHO')).toBe('опыты на животных');
+    // A block without an authority is EMA, as every chapter before WHO was.
+    expect(authorityLabel(null)).toBe('EMA');
   });
 });

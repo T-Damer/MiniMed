@@ -1,0 +1,138 @@
+# WHO monograph facts for Облепиха крушиновидная (плоды свежие). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+# Source: WHO monographs on medicinal plants commonly used in the Newly Independent States (NIS), 2010,
+# «Fructus Hippophaës recens»; `page` is the 1-based PDF page of the volume.
+plant: hippophae-rhamnoides
+status: proposed
+useType: both
+facts:
+  # Medicinal uses
+  - kind: indication
+    ru: "ВОЗ: подтверждено клиническими данными — плоды облепихи крушиновидной применяют при лечении цирроза печени"
+    doc: monograph
+    page: 200
+    quote: "Uses supported by clinical data The fruits of Hippophaë rhamnoides are used in the treatment of cirrhosis of the liver (54)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для облегчения кашля с обильным отхождением мокроты"
+    doc: monograph
+    page: 200
+    quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для улучшения пищеварения у людей с затяжным желудочно-кишечным транзитом и болью в животе"
+    doc: monograph
+    page: 200
+    quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для лечения аменореи"
+    doc: monograph
+    page: 200
+    quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — отвары плодов применяют наружно в виде обмывания при травматическом отёке и кожных высыпаниях"
+    doc: monograph
+    page: 200
+    quote: "Fruit decoctions are used externally as a wash to treat traumatic swelling and cutaneous eruptions (21)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — в Исламской Республике Иран этанольные экстракты плодов облепихи применяют внутрь как вяжущее и глистогонное средство"
+    doc: monograph
+    page: 200
+    quote: "Uses described in traditional medicine In the Islamic Republic of Iran, ethanol extracts of Hippophaë fruits are used internally as an astringent and anthelminthic."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — есть данные о применении сушёных плодов у больных цингой"
+    doc: monograph
+    page: 200
+    quote: "There are data on the use of dried fruits in patients with scurvy."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — в Индии и Тибете плоды облепихи широко применяли при нарушениях кровообращения, ишемической болезни сердца и поражении печени"
+    doc: monograph
+    page: 200
+    quote: "Hippophaë fruits have been used extensively in India and Tibet for the treatment of circulatory disorders, ischaemic heart disease and hepatic injury"
+  # Contraindications, precautions
+  - kind: contraindication
+    ru: "При появлении признаков реакций гиперчувствительности (сыпь, зуд, крапивница, отёк рта и кожи) плоды облепихи нельзя применять повторно"
+    doc: monograph
+    page: 204
+    quote: "Contraindications If signs of hypersensitivity reactions appear (rash, pruritus, urticaria, swelling of mouth and skin), Hippophaë fruits must not be used again."
+  - kind: warning
+    ru: "Если симптомы ухудшаются или сохраняются дольше 1 недели, а также при любых неясных симптомах, таких как ночная потливость, повышение температуры тела или потеря массы тела, следует обратиться к врачу"
+    doc: monograph
+    page: 204
+    quote: "Precautions If symptoms worsen or persist for longer than 1 week or in any case of unclear symptoms, such as night sweats, increased body temperature or loss of weight, a physician should be consulted."
+  - kind: interaction
+    ru: "Сведений о лекарственных взаимодействиях в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 204
+    quote: "Drug interactions No information was found."
+  - kind: pregnancy
+    ru: "Сведений о применении при беременности в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 204
+    quote: "Pregnancy No information was found."
+  - kind: lactation
+    ru: "Сведений о применении у кормящих матерей в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 204
+    quote: "Nursing mothers No information was found."
+  - kind: age
+    ru: "Сведений о применении у детей в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 204
+    quote: "Paediatric use No information was found."
+  # Posology (the monograph names no population)
+  - kind: posology
+    ru: "Внутрь, настой: 40–50 г свежих плодов на литр воды, 2–3 чашки в день"
+    doc: monograph
+    page: 205
+    quote: "For internal use. Infusion: 40–50 g of the fresh fruit per litre of water, 2–3 cups per day"
+    dose: { preparationRu: настой свежих плодов, amount: "40-50", unit: г на литр, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Внутрь, настойка (1:5): 30–50 капель 1–3 раза в день"
+    doc: monograph
+    page: 205
+    quote: "For internal use. Infusion: 40–50 g of the fresh fruit per litre of water, 2–3 cups per day (68). Tincture (1:5): 30–50 drops 1–3 times per day (68)."
+    dose: { preparationRu: "настойка (1:5)", amount: "30-50", unit: капель, timesPerDay: "1-3", populationRu: возраст не указан }
+  - kind: posology
+    ru: "Масло плодов облепихи внутрь: одна чайная ложка 2–3 раза в день за 30–40 минут до еды"
+    doc: monograph
+    page: 205
+    quote: "Dosage of oil of Hippophaë fruit for internal use: one teaspoon 2–3 times daily, 30–40 minutes before meals (69, 70)."
+    dose: { preparationRu: масло плодов облепихи, amount: одна, unit: чайная ложка, timesPerDay: "2-3", populationRu: возраст не указан }
+  - kind: posology
+    ru: "Наружно: 5–10 мл масла на тампон — для смачивания тампонов"
+    doc: monograph
+    page: 205
+    quote: "For external use. 5–10 ml of oil per tampon, used for wetting of tampons (71)."
+    dose: { preparationRu: масло плодов облепихи на тампоне, amount: "5-10", unit: мл, populationRu: возраст не указан }
+constituents:
+  - compound: carotenoids
+    compoundRu: каротиноиды
+    classRu: витамины и родственные соединения
+    effectRu: "витамины и родственные соединения — основные биологически активные компоненты; среди них каротиноиды (0,04–0,1 %: β- и γ-каротин, ликопин, зеаксантин и другие)"
+    evidence: review
+    doc: monograph
+    page: 199
+    quote: "Vitamins and related compounds are the major biologically active constituents. Among these are carotenoids (0.04–0.1%, β- and γ-carotene together with lycopene, zeaxanthine and others)"
+  - compound: vitamins (C, B group, tocopherols, tocotrienols)
+    compoundRu: витамины (C, группы B, токоферолы, токотриенолы)
+    classRu: витамины
+    effectRu: "витамин C — 0,2–1,4 %; витамины группы B — 0,1–0,16 %; также токоферолы и токотриенолы"
+    evidence: review
+    doc: monograph
+    page: 199
+    quote: "vitamin C (0.2–1.4%), vitamins of the B group (0.1–0.16%), tocopherols and tocotrienols."
+  - compound: flavonoids
+    compoundRu: флавоноиды
+    classRu: флавоноиды
+    effectRu: "среди других значимых компонентов — флавоноиды (особенно кемпферол, изорамнетин, рутин и катехин, а также три- и тетрагликозиды кверцетина)"
+    evidence: review
+    doc: monograph
+    page: 199
+    quote: "Other significant constituents are flavonoids (especially kaempferol, isorhamnetin, rutin and catechin, as well as quercetin tri- and tetra-glycosides)."
+  - compound: ethanol extract of Hippophaë fruits
+    compoundRu: этанольный экстракт плодов облепихи
+    classRu: экстракт плодов
+    effectRu: "у больных циррозом печени после курса лечения экстрактом плодов нормализация АЛТ и АСТ составила 80 % против 56 % при лечении витамином B"
+    evidence: clinical
+    doc: monograph
+    page: 203
+    quote: "Before treatment, the peripheral blood level of the above-listed factors was significantly higher in the subjects with liver cirrhosis. After a course of treatment with the extract of Hippophaë fruits, the rates of normalization were 80% for ALT and AST, compared to 56% following treatment with vitamin B."

@@ -1,0 +1,139 @@
+# EMA/HMPC facts for Коровяк густоцветковый (Verbascum densiflorum Bertol.), цветки. Draft artifact
+# (status: proposed): Russian fields are a reader's rendering of the quoted English sentence; quotes
+# are checked against the PDF. The EU monograph (final, 27 March 2018) covers three species as one
+# herbal substance: Verbascum thapsus L., V. densiflorum Bertol. (V. thapsiforme Schrad) and
+# V. phlomoides L., flos (mullein flower). It is traditional use only, one indication.
+plant: verbascum-densiflorum
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Облегчение симптомов боли в горле, сопровождающей сухой кашель и простуду
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product used to relieve symptoms of sore throat associated with dry cough and cold.
+  - kind: posology
+    ru: "Чай: 1,5–2 г цветков или измельчённых цветков на 150 мл кипятка в виде настоя три–четыре раза в день; суточная доза 4,5–8 г"
+    doc: monograph
+    page: 4
+    quote: "Adolescents, adults and elderly Single dose: Herbal tea: 1.5-2 g of the herbal substance or the comminuted herbal substance in 150 ml boiling water as a herbal infusion three to four times daily. Daily dose: 4.5-8 g"
+    dose: { preparationRu: чай (настой), amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "три-четыре", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 4
+    quote: "Method of administration Oral use"
+  - kind: age
+    ru: Детям до 12 лет применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: warning
+    ru: Применение у детей до 12 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы сохраняются дольше 1 недели, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Если симптомы ухудшаются во время применения, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: При одышке, лихорадке или гнойной мокроте нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 5
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о влиянии на фертильность нет
+    doc: monograph
+    page: 5
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 5
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 5
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Адекватные исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
+    doc: monograph
+    page: 6
+    quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: iridoid glycosides (aucubin, catalpol)
+    compoundRu: иридоидные гликозиды (аукубин, катальпол)
+    classRu: иридоиды
+    effectRu: содержание 0,56% в цветках V. phlomoides и 0,13% в V. densiflorum, включая аукубин, катальпол, 6-ксилозилаукубин и 6-ксилозилкатальпол
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Iridoid glycosides: 0.56% in V. phlomoides, 0.13% in V. densiflorum, including aucubin, catalpol, 6-xylosylaucubin and 6- xylosylcatalpol."
+  - compound: verbascoside (acteoside)
+    compoundRu: вербаскозид (актеозид)
+    classRu: фенилэтаноидный гликозид
+    effectRu: около 0,6% в цветках V. densiflorum, но лишь следы в цветках V. phlomoides; следы форзитозида B в обоих видах
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "Verbascoside (acteoside), ca. 0.6% in V. densiflorum flower, but only traces in V.phlomoides flower, traces of forsythoside B (verbascoside 6’-apioside) in both species (Bradley 2006)."
+  - compound: verbascoside (acteoside)
+    compoundRu: вербаскозид (актеозид)
+    classRu: фенилэтаноидный гликозид
+    effectRu: перорально 150 мг/кг ингибировал каррагиновый отёк лапы крысы на 94% через 3 часа (индометацин 10 мг/кг — на 40%)
+    evidence: animal
+    doc: assessment-report
+    page: 15
+    quote: "Verbascoside’s anti-inflammatory activity was evaluated by the carrageenin-induced paw oedema test in the rat. Verbascoside administered orally at 150 mg/kg inhibited carrageenan-induced rat paw oedema by 94% after 3 hours (p<0.02), compared to 40% inhibition by indometacin at 10 mg/kg (p<0.01)"
+  - compound: verbascoside (acteoside)
+    compoundRu: вербаскозид (актеозид)
+    classRu: фенилэтаноидный гликозид
+    effectRu: в митоген-стимулированных лимфоцитах человека снижал жизнеспособность клеток и митотический индекс и вызывал достоверное, зависимое от концентрации увеличение хромосомных аберраций и обмена сестринских хроматид
+    evidence: in-vitro
+    doc: assessment-report
+    page: 16
+    quote: "Verbascoside significantly (p<0.05) reduced cell viability at 0.01-1 mM and mitotic index at 0.005-0.1 mM in mitogen-stimulated human lymphocytes. It induced a significant and concentration related increase of chromosome aberrations, an increase in the percentage of aberrant cells (p<0.01) and in sister chromatid exchanges (Santoro et al., 2008)."
+  - compound: aucubin
+    compoundRu: аукубин
+    classRu: иридоидный гликозид
+    effectRu: перорально 100 мг/кг ингибировал каррагиновый отёк лапы крысы на 29,8% через 1 час, 33% через 3 часа и 20,7% через 5 часов (индометацин 7 мг/кг — 34,2%, 44,4% и 12,2%)
+    evidence: animal
+    doc: assessment-report
+    page: 14
+    quote: "Aucubin administered orally at 100 mg/kg inhibited carrageenan-induced rat paw oedema by 29.8% after 1 hour, 33% after 3 hours, and 20.7% after 5 hours (p<0.01), compared to 34.2% inhibition by indometacin at 7 mg/kg after 1 hour, 44.4% after 3 hours and 12.2% after 5 hours."

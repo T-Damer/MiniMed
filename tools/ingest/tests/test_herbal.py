@@ -8,7 +8,12 @@ import pymupdf
 import pytest
 import yaml
 
-from localmed_ingest.herbal_ema import EmaExtraction, normalize, validate_ema_extraction
+from localmed_ingest.herbal_ema import (
+    EmaExtraction,
+    normalize,
+    validate_ema_extraction,
+    validate_who_extraction,
+)
 from localmed_ingest.herbal_lookalikes import PlantLookalikes, check_lookalikes
 from localmed_ingest.herbal_plants import load_plants
 from localmed_ingest.herbal_prepare import (
@@ -352,3 +357,101 @@ def test_manual_lookalikes_must_be_on_the_cited_page(tmp_path: Path) -> None:
     assert check_lookalikes(reworded, {"nuph-2016": pdf}, {"matricaria-chamomilla"}) != []
     assert check_lookalikes(good, {}, {"matricaria-chamomilla"}) != []
     assert check_lookalikes(good, {"nuph-2016": pdf}, set()) != []
+
+
+def _plant_list(tmp_path: Path, plants: list[dict[str, object]]) -> Path:
+    path = tmp_path / "plants.yaml"
+    path.write_text(
+        yaml.safe_dump({"schemaVersion": 1, "plants": plants}, allow_unicode=True),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_plant_list_needs_exactly_one_monograph_and_nothing_else(tmp_path: Path) -> None:
+    base: dict[str, object] = {
+        "id": "a",
+        "ru": "Череда",
+        "latin": "Bidens tripartita L.",
+        "family": "Asteraceae",
+        "part": {"ru": "трава", "la": "herba"},
+    }
+    who = {"volume": "NIS", "title": "Herba Bidentis", "pages": [45, 56]}
+    ema = {"page": "https://www.ema.europa.eu/en/medicines/herbal/a"}
+    # Only a monograph: no ГРЛС name, plate or ГФ article is required.
+    (plant,) = load_plants(_plant_list(tmp_path, [{**base, "who": who}]))
+    assert plant.who is not None and plant.who.pages == (45, 56)
+    assert plant.grls is None and plant.plate is None and plant.gf is None
+    with pytest.raises(ValueError, match="exactly one of ema and who"):
+        load_plants(_plant_list(tmp_path, [base]))
+    with pytest.raises(ValueError, match="exactly one of ema and who"):
+        load_plants(_plant_list(tmp_path, [{**base, "ema": ema, "who": who}]))
+
+
+def test_owner_pictures_and_red_book_rows_are_validated(tmp_path: Path) -> None:
+    base: dict[str, object] = {
+        "id": "panax-ginseng",
+        "ru": "Женьшень настоящий",
+        "latin": "Panax ginseng C.A.Mey.",
+        "family": "Araliaceae",
+        "part": {"ru": "корни", "la": "radix"},
+        "ema": {"page": "https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix"},
+    }
+    (plant,) = load_plants(
+        _plant_list(
+            tmp_path,
+            [
+                {
+                    **base,
+                    "plate": {"book": "owner", "file": "pictures/panax-ginseng.png"},
+                    "redBook": {"number": 48, "page": 4, "category": 1},
+                }
+            ],
+        )
+    )
+    assert plant.plate is not None and plant.plate.book == "owner"
+    assert plant.red_book is not None and plant.red_book.category == 1
+    # An owner picture lives in the repository, a Commons plate is named by its file title.
+    with pytest.raises(ValueError, match="owner picture"):
+        load_plants(
+            _plant_list(tmp_path, [{**base, "plate": {"book": "owner", "file": "File:x.jpg"}}])
+        )
+    with pytest.raises(ValueError, match="Commons file title"):
+        load_plants(
+            _plant_list(tmp_path, [{**base, "plate": {"book": "kohler", "file": "pictures/x.png"}}])
+        )
+    with pytest.raises(ValueError):
+        load_plants(
+            _plant_list(tmp_path, [{**base, "redBook": {"number": 48, "page": 4, "category": 7}}])
+        )
+
+
+def test_who_facts_must_stay_inside_their_monograph(tmp_path: Path) -> None:
+    volume = _pdf(
+        tmp_path / "nis.pdf",
+        ["Other monograph. Take 5 g daily.", "Herba Bidentis. Posology: 3 g three times daily."],
+    )
+    extraction = EmaExtraction.model_validate(
+        {
+            "plant": "bidens-tripartita",
+            "useType": "traditional",
+            "facts": [
+                {
+                    "kind": "posology",
+                    "ru": "3 г три раза в день",
+                    "doc": "monograph",
+                    "page": 2,
+                    "quote": "Posology: 3 g three times daily.",
+                },
+                {
+                    "kind": "posology",
+                    "ru": "5 г в день",
+                    "doc": "monograph",
+                    "page": 1,
+                    "quote": "Take 5 g daily.",
+                },
+            ],
+        }
+    )
+    problems = validate_who_extraction(extraction, {"monograph": volume}, (2, 2))
+    assert problems == ["item 1: page 1 is outside the monograph (2, 2)"]

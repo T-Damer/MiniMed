@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -68,6 +68,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Artemisia_absinthium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-164.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/absinthii-herba
       lastUpdated: 02/10/2017
       species: null
@@ -188,6 +189,7 @@ metadata:
         classRu: эфирное масло
         effectRu: верхний предел дополнительного поступления из лекарств — 6 мг в сутки (с учётом возможного поступления с пищей)
         evidence: review
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0033.15

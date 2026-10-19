@@ -38,6 +38,8 @@ from .herbal_ema import (
     ema_documents,
     load_extraction,
     validate_ema_extraction,
+    validate_who_extraction,
+    who_documents,
 )
 from .herbal_lookalikes import (
     ManualQuote,
@@ -46,7 +48,13 @@ from .herbal_lookalikes import (
     load_lookalikes,
     manual_paths,
 )
-from .herbal_plants import PLATE_AUTHORS, PLATE_BOOKS, Plant, load_plants
+from .herbal_plants import (
+    PLATE_AUTHORS,
+    PLATE_BOOKS,
+    RED_BOOK_CATEGORIES,
+    Plant,
+    load_plants,
+)
 
 PACK_ID = "minimed.herbal.book"
 DOCUMENT_PREFIX = "herbal."
@@ -54,8 +62,9 @@ SOURCE_TYPE = "herbal_monograph"
 RIGHTS_STATUS = "official-and-attributed-sources"
 RIGHTS_BASIS = (
     "ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: "
-    "«Reproduction is authorised provided the source is acknowledged»; botanical plates: public "
-    "domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia"
+    "«Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed "
+    "(personal project); botanical plates: public domain (Wikimedia Commons licence checked at "
+    "fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications"
 )
 PUBLICATION_DECISION = {
     "decidedAt": "2026-10-18",
@@ -118,6 +127,8 @@ def instruction_candidates(
     instructions_roots: Sequence[Path],
 ) -> list[GrlsChoice]:
     """Prepared national instructions of the plant's plain raw material, best first."""
+    if plant.grls is None:
+        return []
     names = set(plant.grls.inn)
     ranked: list[tuple[tuple[int, int, int, str], GrlsChoice]] = []
     registrations = 0
@@ -541,8 +552,11 @@ class Identification:
     lookalikes: tuple[str, ...]
 
 
-# The definition opens «Собранные …» (one article types a Latin «C»); seeds open «Зрелые …».
-_DEFINITION = re.compile(r"^(?:[СC]обранн|Зрелые)")
+# The definition opens «Собранные …» (one article types a Latin «C»); seeds open «Зрелые …»,
+# bean pods «Высушенные …», some XV articles «Настоящая фармакопейная статья распространяется …».
+_DEFINITION = re.compile(
+    r"^(?:[СC]обранн|Зрелые|Высушенные|Настоящая фармакопейная статья распространяется на )"
+)
 _FEATURES_HEAD = re.compile(r"^Внешние признаки\.\s*")
 _OFS_REFERENCE = re.compile(
     r"^Определение проводят в соответствии с (?:требованиями )?ОФС «[^»]+»\.\s*"
@@ -632,20 +646,66 @@ def _digest(parts: dict[str, str]) -> str:
     return _sha256_bytes(json.dumps(parts, sort_keys=True, separators=(",", ":")).encode())
 
 
+def _who_volume(plant: Plant, raw_manifest: dict[str, object]) -> dict[str, object]:
+    assert plant.who is not None
+    volumes = cast("dict[str, dict[str, object]]", raw_manifest.get("who") or {})
+    if plant.who.volume not in volumes:
+        raise HerbalSourceError(f"{plant.id}: WHO volume {plant.who.volume} is not downloaded")
+    return volumes[plant.who.volume]
+
+
+def _monograph_entry(plant: Plant, raw_manifest: dict[str, object]) -> dict[str, object]:
+    """The plant's monograph sources in one shape: EMA documents, or the WHO volume."""
+    if plant.ema is not None:
+        return cast("dict[str, dict[str, object]]", raw_manifest["ema"])[plant.id]
+    volume = _who_volume(plant, raw_manifest)
+    return {
+        "lastUpdated": str(volume["year"]),
+        "documents": {"monograph": {"path": volume["path"], "url": volume["url"]}},
+    }
+
+
+def _red_book_metadata(plant: Plant, raw_manifest: dict[str, object]) -> dict[str, object] | None:
+    if plant.red_book is None:
+        return None
+    documents = cast("dict[str, dict[str, object]]", raw_manifest.get("redBook") or {})
+    if "list" not in documents:
+        raise HerbalSourceError("no Red Book list; run fetch-herbal-sources")
+    entry = plant.red_book
+    return {
+        "number": entry.number,
+        "category": entry.category,
+        "categoryRu": RED_BOOK_CATEGORIES[entry.category],
+        **({"note": entry.note} if entry.note else {}),
+        "url": documents["list"]["page"],
+        "pdfPage": entry.page,
+    }
+
+
 def _ema_metadata(
     plant: Plant, extraction: EmaExtraction | None, raw_manifest: dict[str, object]
 ) -> dict[str, object] | None:
-    entry = cast("dict[str, dict[str, object]]", raw_manifest["ema"])[plant.id]
+    entry = _monograph_entry(plant, raw_manifest)
     documents = cast("dict[str, dict[str, object]]", entry["documents"])
     base: dict[str, object] = {
-        "page": plant.ema.page,
+        "authority": "EMA" if plant.ema is not None else "WHO",
+        "page": plant.ema.page
+        if plant.ema is not None
+        else _who_volume(plant, raw_manifest)["handle"],
         "lastUpdated": entry.get("lastUpdated"),
-        "species": plant.ema.species,
+        "species": plant.ema.species if plant.ema is not None else None,
         "documents": {
             kind: {"url": item["url"], "draft": bool(item.get("draft"))}
             for kind, item in documents.items()
         },
     }
+    if plant.who is not None:
+        volume = _who_volume(plant, raw_manifest)
+        base["volume"] = volume["title"]
+        base["monograph"] = plant.who.title
+        base["pages"] = list(plant.who.pages)
+        if volume.get("mirror"):
+            base["mirror"] = volume["mirror"]
     if extraction is None:
         return {**base, "extracted": False}
     return {
@@ -662,6 +722,7 @@ def _ema_metadata(
 
 def _plate_credit(plant: Plant, plate: dict[str, object]) -> str:
     """«Köhler, 1887»: the book's author and the year Commons gives for the plate."""
+    assert plant.plate is not None
     year = re.search(r"\b(1[6-9]\d\d)\b", str(plate.get("date") or ""))
     author = PLATE_AUTHORS[plant.plate.book]
     return f"{author}, {year.group(1)}" if year else author
@@ -669,8 +730,16 @@ def _plate_credit(plant: Plant, plate: dict[str, object]) -> str:
 
 def _aliases(plant: Plant) -> list[str]:
     binomial = " ".join(plant.latin.replace("×", "").split()[:2])
-    names = [plant.ru, plant.ru.split()[0].lower(), binomial, *plant.grls.inn]
-    names.append(plant.ema.slug.replace("-", " "))
+    names = [
+        plant.ru,
+        plant.ru.split()[0].lower(),
+        binomial,
+        *(plant.grls.inn if plant.grls else ()),
+    ]
+    if plant.ema is not None:
+        names.append(plant.ema.slug.replace("-", " "))
+    if plant.who is not None:
+        names.append(plant.who.title)
     seen: dict[str, str] = {}
     for name in names:
         seen.setdefault(name.casefold(), name)
@@ -700,18 +769,27 @@ def render_plant(
         if choice is not None
         else {}
     )
-    plate = cast("dict[str, dict[str, object]]", raw_manifest["plates"])[plant.id]
+    plate = (
+        cast("dict[str, dict[str, object]]", raw_manifest["plates"])[plant.id]
+        if plant.plate is not None
+        else None
+    )
     gf_articles = cast("dict[str, dict[str, object]]", raw_manifest.get("gfArticles") or {})
-    if plant.id not in gf_articles:
-        raise HerbalSourceError(f"{plant.id}: no ГФ article; run fetch-herbal-sources --gf-only")
-    gf_article = gf_articles[plant.id]
-    identification = gf_identification(raw_root / str(gf_article["path"]))
+    gf_article: dict[str, object] | None = None
+    identification: Identification | None = None
+    if plant.gf is not None:
+        if plant.id not in gf_articles:
+            raise HerbalSourceError(
+                f"{plant.id}: no ГФ article; run fetch-herbal-sources --gf-only"
+            )
+        gf_article = gf_articles[plant.id]
+        identification = gf_identification(raw_root / str(gf_article["path"]))
     manuals = cast("dict[str, dict[str, object]]", raw_manifest.get("manuals") or {})
     files = {
         str(item["path"]): str(item["sha256"])
         for item in cast("list[dict[str, object]]", raw_manifest["files"])
     }
-    ema_entry = cast("dict[str, dict[str, object]]", raw_manifest["ema"])[plant.id]
+    ema_entry = _monograph_entry(plant, raw_manifest)
     ema_paths = [
         str(item["path"])
         for item in cast("dict[str, dict[str, object]]", ema_entry["documents"]).values()
@@ -719,11 +797,22 @@ def render_plant(
     checksum = _digest(
         {
             **({"grls": str(grls_front["pdfSha256"])} if choice is not None else {}),
-            "plate": files[str(plate["path"])],
+            **({"plate": files[str(plate["path"])]} if plate is not None else {}),
+            **(
+                {"redBook": _sha256_bytes(plant.red_book.model_dump_json().encode())}
+                if plant.red_book is not None
+                else {}
+            ),
             **{path: files[path] for path in ema_paths},
             **({"emaExtraction": extraction_sha256} if extraction_sha256 else {}),
-            "gfIdentification": _sha256_bytes(
-                json.dumps(asdict(identification), ensure_ascii=False).encode()
+            **(
+                {
+                    "gfIdentification": _sha256_bytes(
+                        json.dumps(asdict(identification), ensure_ascii=False).encode()
+                    )
+                }
+                if identification is not None
+                else {}
             ),
             **(
                 {"lookalikes": _sha256_bytes(manual.model_dump_json().encode())}
@@ -741,14 +830,18 @@ def render_plant(
         "short_title": plant.ru,
         "version_label": f"grls-{grls_front.get('catalogEdition')}"
         if choice is not None
-        else f"ema-{ema_updated}",
+        else f"ema-{ema_updated}"
+        if plant.ema is not None
+        else f"who-{plant.who.volume if plant.who else ''}",
         "source_type": SOURCE_TYPE,
         "status": "active",
         "specialties": ["phytotherapy"],
         "age_groups": [],
         "source_file": str(grls_front["officialSourceUrl"])
         if choice is not None
-        else plant.ema.page,
+        else plant.ema.page
+        if plant.ema is not None
+        else str(_who_volume(plant, raw_manifest)["handle"]),
         "source_checksum": checksum,
         "synthetic_fixture": False,
         "metadata": {
@@ -771,7 +864,9 @@ def render_plant(
                 "partLa": plant.part.la,
                 "actions": action_chips(sections),
                 "brew": brew,
-                "thumbnail": thumbnail_data_url(raw_root / str(plate["path"])),
+                "thumbnail": thumbnail_data_url(raw_root / str(plate["path"]))
+                if plate is not None
+                else None,
                 "plate": {
                     "asset": f"plates/{plant.id}.jpg",
                     "book": PLATE_BOOKS[plant.plate.book],
@@ -781,11 +876,16 @@ def render_plant(
                     "licence": plate.get("licence"),
                     "commonsPage": plate.get("commonsPage"),
                     **({"species": plant.plate.species} if plant.plate.species else {}),
-                },
+                }
+                if plate is not None and plant.plate is not None
+                else None,
                 "ema": _ema_metadata(plant, extraction, raw_manifest),
+                "redBook": _red_book_metadata(plant, raw_manifest),
                 "identification": _identification_metadata(
                     identification, gf_article, manual, manuals
-                ),
+                )
+                if identification is not None and gf_article is not None
+                else None,
                 "grls": {
                     "registrationNumber": choice.registration_number,
                     "tradeName": choice.trade_name,
@@ -806,7 +906,11 @@ def render_plant(
         },
     }
     blocks: list[str] = [f"# {plant.ru}"]
-    recognise = _identification_blocks(identification, gf_article, manual, manuals)
+    recognise = (
+        _identification_blocks(identification, gf_article, manual, manuals)
+        if identification is not None and gf_article is not None
+        else []
+    )
     if choice is not None:
         grls = _grls_blocks(choice, sections, str(grls_front["officialSourceUrl"]))
         # «Как узнать» follows the recipe: the first ГРЛС section ends at the second heading.
@@ -820,7 +924,19 @@ def render_plant(
     blocks.append("## Источники")
     blocks.append(_marker({"contentMode": "editorial-note"}))
     blocks.append(
-        "\n".join(_source_lines(plant, choice, plate, ema_entry, gf_article, manual, manuals))
+        "\n".join(
+            _source_lines(
+                plant,
+                choice,
+                plate,
+                ema_entry,
+                gf_article,
+                manual,
+                manuals,
+                _who_volume(plant, raw_manifest) if plant.who is not None else None,
+                cast("dict[str, dict[str, object]]", raw_manifest.get("redBook") or {}),
+            )
+        )
     )
     markdown = f"---\n{_front(metadata)}\n---\n\n" + "\n\n".join(blocks) + "\n"
     return Chapter(plant.document_id, plant.ru, markdown, aliases)
@@ -967,11 +1083,13 @@ def _grls_blocks(
 def _source_lines(
     plant: Plant,
     choice: GrlsChoice | None,
-    plate: dict[str, object],
+    plate: dict[str, object] | None,
     ema_entry: dict[str, object],
-    gf_article: dict[str, object],
+    gf_article: dict[str, object] | None,
     manual: PlantLookalikes | None = None,
     manuals: dict[str, dict[str, object]] | None = None,
+    who_volume: dict[str, object] | None = None,
+    red_book: dict[str, dict[str, object]] | None = None,
 ) -> list[str]:
     lines: list[str] = []
     if choice is not None:
@@ -980,19 +1098,38 @@ def _source_lines(
             + (" (распознана OCR)" if choice.ocr else "")
         )
     updated = ema_entry.get("lastUpdated")
-    lines.append(
-        f"- EMA/HMPC: {plant.ema.page}"
-        + (f" (обновлено {updated})" if updated else "")
-        + ". © European Medicines Agency"
-    )
-    lines.append(
-        f"- Иллюстрация: {PLATE_BOOKS[plant.plate.book]} — общественное достояние "
-        f"(Wikimedia Commons: {plate.get('commonsPage')})"
-    )
-    lines.append(
-        f"- Государственная фармакопея РФ {_GF_EDITIONS[int(str(gf_article['edition']))]}, "
-        f"{gf_article['number']} «{gf_article['title']}»: {gf_article['page']}"
-    )
+    if plant.ema is not None:
+        lines.append(
+            f"- EMA/HMPC: {plant.ema.page}"
+            + (f" (обновлено {updated})" if updated else "")
+            + ". © European Medicines Agency"
+        )
+    if plant.who is not None and who_volume is not None:
+        first, last = plant.who.pages
+        lines.append(
+            f"- ВОЗ: {who_volume['title']} ({who_volume['year']}), «{plant.who.title}», "
+            f"с. {first}–{last} PDF: {who_volume['handle']}. © World Health Organization"
+            + (f"; файл — копия {who_volume['mirror']}" if who_volume.get("mirror") else "")
+        )
+    if plate is not None and plant.plate is not None and plant.plate.book == "owner":
+        lines.append("- Иллюстрация предоставлена владельцем приложения")
+    elif plate is not None and plant.plate is not None:
+        lines.append(
+            f"- Иллюстрация: {PLATE_BOOKS[plant.plate.book]} — общественное достояние "
+            f"(Wikimedia Commons: {plate.get('commonsPage')})"
+        )
+    if plant.red_book is not None and red_book:
+        listing = red_book["list"]
+        lines.append(
+            f"- Красная книга РФ: {listing['title']}, № {plant.red_book.number} перечня "
+            f"(с. {plant.red_book.page} PDF): {listing['page']}; категории — "
+            f"{red_book['categories']['title']}, п. 3.7"
+        )
+    if gf_article is not None:
+        lines.append(
+            f"- Государственная фармакопея РФ {_GF_EDITIONS[int(str(gf_article['edition']))]}, "
+            f"{gf_article['number']} «{gf_article['title']}»: {gf_article['page']}"
+        )
     if manual is not None and manuals:
         used = sorted(
             {item.source for item in manual.lookalikes}
@@ -1149,6 +1286,7 @@ def prepare_herbal_book(
     ema_dir: Path,
     output: Path,
     lookalikes_path: Path | None = None,
+    who_dir: Path = Path("content/herbal/who"),
 ) -> PrepareReport:
     plants = load_plants(plants_path)
     manual_lookalikes = load_lookalikes(lookalikes_path) if lookalikes_path else {}
@@ -1187,14 +1325,21 @@ def prepare_herbal_book(
             chosen[plant.id] = f"{choice.registration_number} {choice.source_id}"
             if choice.ocr:
                 ocr.append(plant.id)
-        extraction_path = ema_dir / f"{plant.id}.yaml"
+        extraction_path = (ema_dir if plant.ema is not None else who_dir) / f"{plant.id}.yaml"
         extraction: EmaExtraction | None = None
         extraction_sha: str | None = None
         if extraction_path.is_file():
             extraction = load_extraction(extraction_path)
-            problems = validate_ema_extraction(extraction, ema_documents(raw_root, plant.id))
+            if plant.who is not None:
+                problems = validate_who_extraction(
+                    extraction,
+                    who_documents(raw_root, plant.who.volume),
+                    plant.who.pages,
+                )
+            else:
+                problems = validate_ema_extraction(extraction, ema_documents(raw_root, plant.id))
             if problems:
-                raise HerbalSourceError(f"{plant.id}: EMA extraction fails its check: {problems}")
+                raise HerbalSourceError(f"{plant.id}: monograph facts fail their check: {problems}")
             extraction_sha = _sha256_bytes(extraction_path.read_bytes())
             extracted.append(plant.id)
         else:

@@ -20,7 +20,7 @@ metadata:
   officialSourceUrl: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/1/1-4/1-4-1-lekarstvennye-formy/nastoi-i-otvary/
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'

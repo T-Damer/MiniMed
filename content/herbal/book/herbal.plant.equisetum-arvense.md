@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -65,6 +65,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:515_Equisetum_arvense.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba
       lastUpdated: 28/04/2016
       species: null
@@ -204,6 +205,7 @@ metadata:
         compoundRu: препараты травы (исследования мочегонного действия)
         effectRu: данных недостаточно, чтобы подтвердить мочегонное действие с отрицательным водным балансом; в части исследований слабый эффект, в других эффекта нет или нужны дозы выше традиционных
         evidence: review
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0045

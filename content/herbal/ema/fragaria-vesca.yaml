@@ -1,0 +1,169 @@
+# EMA/HMPC facts for Земляника лесная (листья). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+# The monograph (revision 1, 2026) is traditional use only; its two indications are numbered 1) and 2).
+plant: fragaria-vesca
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Облегчение симптомов небольших жалоб со стороны мочевых путей, дополнительно к общей рекомендации достаточно пить для увеличения количества мочи
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for the relief of symptoms associated with minor urinary tract complaints in addition to the general recommendation of a sufficient fluid intake to increase the amount of urine.
+  - kind: indication
+    ru: Показание 2 — симптоматическое лечение лёгкой диареи
+    doc: monograph
+    page: 4
+    quote: Indication 2) Traditional herbal medicinal product for symptomatic treatment of mild diarrhoea.
+  - kind: posology
+    ru: "Показание 1 — чай: 5–10 г измельчённого листа на 200 мл воды в виде отвара; готовый отвар пить 2–3 раза в день"
+    doc: monograph
+    page: 4
+    quote: "Indication 1) Adolescents, adults and elderly Herbal tea: 5 – 10 g of comminuted herbal substance in 200 ml of water as a decoction. Drink the prepared decoction 2 - 3 times daily."
+    dose: { preparationRu: чай (отвар), amount: "5-10", unit: г, waterMl: "200", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — подростки: чай, 4–5 г измельчённого листа на 150–200 мл кипятка в виде настоя или отвара; пить половину приготовленного чая 2–3 раза в день"
+    doc: monograph
+    page: 4
+    quote: "Indication 2) Adolescents Herbal tea: 4 - 5 g of comminuted herbal substance in 150-200 ml of boiling water, prepared as herbal tea infusion or decoction. Drink half of the tea, 2 - 3 times daily."
+    dose: { preparationRu: чай (настой или отвар), amount: "4-5", unit: г, waterMl: "150-200", timesPerDay: "2-3", populationRu: подростки }
+  - kind: posology
+    ru: "Показание 2 — взрослые: чай, 4–5 г измельчённого листа на 150–200 мл кипятка в виде настоя или отвара; пить 2–3 раза в день"
+    doc: monograph
+    page: 4
+    quote: "Adults Herbal tea: 4 - 5 g of comminuted herbal substance in 150-200 ml of boiling water, prepared as herbal tea infusion or decoction. Drink 2 - 3 times daily."
+    dose: { preparationRu: чай (настой или отвар), amount: "4-5", unit: г, waterMl: "150-200", timesPerDay: "2-3", populationRu: взрослые }
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 5
+    quote: Method of administration Oral use
+  - kind: age
+    ru: Показание 2 (диарея) — детям до 12 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: "Adults Herbal tea: 4 - 5 g of comminuted herbal substance in 150-200 ml of boiling water, prepared as herbal tea infusion or decoction. Drink 2 - 3 times daily. The use in children under 12 years of age is not recommended"
+    minAgeMonths: 144
+  - kind: age
+    ru: Мочевые жалобы — применение у детей до 12 лет не установлено, данных недостаточно
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age has not been established due to lack of adequate data.
+  - kind: age
+    ru: Диарея — применение у детей до 12 лет не установлено, данных недостаточно
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age has not been established due to the lack of adequate data.
+  - kind: duration
+    ru: Показание 1 — если симптомы сохраняются дольше 2 недель, обратиться к врачу или медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 14
+  - kind: duration
+    ru: Показание 2 — если симптомы сохраняются дольше 3 дней, обратиться к врачу или медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 2) If the symptoms persist longer than 3 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 3
+  - kind: contraindication
+    ru: Гиперчувствительность к листу земляники лесной
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance(s).
+  - kind: warning
+    ru: Показание 1 — при лихорадке, дизурии, спазмах или крови в моче обратиться к врачу или медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: Мочевые жалобы — поскольку при лечении нужен достаточный приём жидкости, лист земляники лесной не рекомендуется пациентам с состояниями, при которых советуют снижать приём жидкости
+    doc: monograph
+    page: 5
+    quote: "Because adequate fluid intake is required during treatment, Fragaria vesca L.; Fragaria moschata Weston; Fragaria viridis Weston; Fragaria x ananassa (Weston) Duchesne ex Rozier, folium (wild strawberry leaf) is not recommended for patients with conditions where reduced fluid intake is advised."
+  - kind: warning
+    ru: Показание 2 — если диарея возобновляется или появляется кровь в стуле, обратиться к врачу или медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 2) If diarrhoea recurs or bloody stools occur, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 6
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: interaction
+    ru: Исследований взаимодействий не проводилось
+    doc: monograph
+    page: 6
+    quote: No interaction studies have been performed.
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 6
+    quote: No fertility data available.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
+    doc: monograph
+    page: 6
+    quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Сведений о передозировке нет
+    doc: monograph
+    page: 6
+    quote: No information available.
+  - kind: statement
+    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+    doc: monograph
+    page: 7
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: free and condensed tannins
+    compoundRu: свободные и конденсированные дубильные вещества
+    classRu: дубильные вещества (танины)
+    effectRu: в листе оценивают 5–10 % дубильных веществ (свободных и конденсированных) по литературным источникам
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: Free and condensed tannins. Lamaison 1990, Scholz monograph in Hagers 5th edition (1993), Blaschek (HagerRom 2006), estimated 5-10% tannins.
+  - compound: free or condensed tannoids
+    compoundRu: свободные или конденсированные дубильные вещества
+    classRu: дубильные вещества (танины)
+    effectRu: вяжущее действие земляники, возможно, связано с содержанием этих веществ (не менее 3 % в пересчёте на сухое сырьё); фармакологических исследований, доказывающих противодиарейное действие, не опубликовано
+    evidence: review
+    doc: assessment-report
+    page: 15
+    quote: The astringent effect of strawberry is possibly due to the free or condensed tannoids content (at least 3% referred to dried drug), although no pharmacology studies proving the antidiarrheal activity have been published.
+  - compound: polyphenols (ellagitannins, agrimoniin, pedunculagin, gallic and ellagic acids, procyanidins)
+    compoundRu: полифенолы (эллаготанины, агримониин, педункулагин, галловая и эллаговая кислоты, процианидины)
+    classRu: полифенолы
+    effectRu: содержание этих полифенолов может отчасти объяснять традиционное применение чая из листьев при лёгкой диарее — мягкие вяжущие, противовоспалительные и противомикробные свойства танинов
+    evidence: review
+    doc: assessment-report
+    page: 17
+    quote: The content of polyphenols such as elagitanins, agrimoniin, pedunculagin, gallic and elagic acids and procyanidins may partially explain the traditional use of the wild strawberry leaf teas, with mild astringent, anti-inflammatory and antimicrobial properties of the tannins in symptomatic treatment of mild diarrhoeas.
+  - compound: Fb fraction (tannins - proanthocyanidins and ellagitannins)
+    compoundRu: фракция Fb (танины — проантоцианидины и эллаготанины)
+    classRu: дубильные вещества (танины)
+    effectRu: наиболее активной антибактериальной фракцией экстракта листьев была фракция Fb (75 % метанол), состоящая в основном из танинов — проантоцианидинов и эллаготанинов
+    evidence: in-vitro
+    doc: assessment-report
+    page: 14
+    quote: "The most active antibacterial fraction was the Fb (MeOH 75%) fraction consisting essentially of tannins: proanthocyanidins and ellagitannins."
+  - compound: leaf decoction
+    compoundRu: отвар листьев
+    classRu: водное извлечение
+    effectRu: у крыс отвар листьев в дозе, соответствующей 1 г сырья/кг, не оказал значимого влияния на диурез при приёме внутрь
+    evidence: animal
+    doc: assessment-report
+    page: 11
+    quote: In rats, the decoction of the leaves (10 g in 100 ml) in doses corresponding to 1 g drug/kg b.w. did not have any significant influence on diuresis following oral administration

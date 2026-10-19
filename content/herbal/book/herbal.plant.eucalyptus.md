@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -69,6 +69,7 @@ metadata:
       commonsPage: https://commons.wikimedia.org/wiki/File:Eucalyptus_globulus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-147.jpg
       species: Eucalyptus globulus Labill.
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium
       lastUpdated: 16/06/2014
       species: Eucalyptus globulus Labill.
@@ -200,6 +201,7 @@ metadata:
         classRu: танины
         effectRu: вирусостатический эффект настоев листа, возможно, связан с дубильными веществами
         evidence: in-vitro
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0107

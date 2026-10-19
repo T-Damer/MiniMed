@@ -203,6 +203,34 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   (only tinctures/extracts or expired ones); the pumpkin and viola raw-herb registrations have legacy
   numbers the ГРЛС search cannot find, so both stay EMA-only. Text `2026.10.19-w3` (1.5 MB gzip), plates
   `2026.10.19-w3` (8.9 MB).
+- **Fourth wave 2026-10-19** (HERB1-W4, owner: «ГРЛС is not a good source about herbs»): 71 plants. Only
+  a monograph is required now — `plants.yaml` needs exactly one of `ema` / `who`; ГРЛС (Russian recipe),
+  ГФ (field identification) and the plate are optional, and a chapter without a plate shows a leaf
+  placeholder on its card. +27 EMA-only plants (эхинацея, черника, элеутерококк, женьшень, гинкго, хмель,
+  конский каштан, пассифлора, первоцвет, подорожник ланцетный, мальва, земляника, вахта, лопух, родиола,
+  донник, расторопша, ревень, фасоль, плющ, лабазник, кипрей, лаванда, коровяк, репешок, исландский мох,
+  овёс), plates from five more public-domain books (Curtis 1787/1870, Vietz 1804, Siebold's Flora Japonica,
+  Flora Danica). +5 WHO plants where EMA has no monograph (череда, душица, облепиха, подорожник большой,
+  укроп): `content/herbal/who/*.yaml`, same fact schema, checked by `medbase check-herbal-who` (quote on its
+  page and inside the monograph's page range). WHO volumes 1–4 come from WHO IRIS; the NIS volume (2010)
+  is only described in IRIS, so the PDF is the e-lactancia.org copy, pinned by sha256 and named as a copy
+  in the chapter's sources. The app labels facts by authority («Дозы ВОЗ», «монография ВОЗ, с. N»,
+  «Традиционное применение»). The EMA section-2 preparation lists («Препараты: a) … b) …») are no
+  longer facts: every dose cell names its preparation, and they showed as «Вывод» under «Кому нельзя».
+- **Owner picture and Red Book** (2026-10-19): женьшень has no public-domain plate; the owner supplied
+  one (`content/herbal/pictures/panax-ginseng.png`, 240 px, `plate.book: owner`, licence
+  «Owner-supplied», credit «Рисунок: от владельца»). Plants of the federal Red Book carry
+  `redBook: {number, page, category, note}` from the official list (приказ Минприроды России от
+  23.05.2023 № 320, publication.pravo.gov.ru `0001202307210008`; category names from п. 3.7 of приказ
+  № 306 of 2016). Both are scans: the list was read with the Vision OCR, every genus and Russian name of
+  our plants matched against it, and the two hits checked on the page image — женьшень настоящий (№ 48,
+  category 1) and родиола розовая (№ 156, category 3, except the populations of the Altai and
+  Krasnoyarsk krais, Tuva and Magadan oblast). The 2026 amendment (приказ № 313) changes only the animal
+  list. The PDFs are pinned in `fetch-herbal-sources` (manifest «redBook»); the chapter shows a red
+  «Красная книга РФ» badge with the category and the row's own note, the grid card a «Красная книга»
+  mark. Text `2026.10.19-w4` (2.5 MB gzip), plates `2026.10.19-w4` (20.9 MB). Next: safety lines
+  (NCCIH, LiverTox, LactMed; ТР ТС 021/2011 annex 7). Not done: regional Red Books, clinician review,
+  phone run.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

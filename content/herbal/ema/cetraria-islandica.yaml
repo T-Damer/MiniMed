@@ -1,0 +1,244 @@
+# EMA/HMPC facts for Исландский мох (цетрария исландская, Cetraria islandica (L.) Acharius s.l.),
+# слоевище. Draft artifact (status: proposed): Russian fields are a reader's rendering of the quoted
+# English sentence; quotes are checked against the PDF. The Community monograph (last revised
+# 24 November 2014) is traditional use only: indication 1) and 2); preparations are lettered
+# a) comminuted herbal substance, b) and c) soft extracts, d) tincture.
+plant: cetraria-islandica
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 3
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Показание 1 — смягчающее средство для симптоматического лечения раздражения во рту или глотке и связанного с ним сухого кашля
+    doc: monograph
+    page: 3
+    quote: Indication 1) Traditional herbal medicinal product used as a demulcent for the symptomatic treatment of oral or pharyngeal irritation and associated dry cough.
+  - kind: indication
+    ru: Показание 2 — временная потеря аппетита
+    doc: monograph
+    page: 3
+    quote: Indication 2) Traditional herbal medicinal product used in temporary loss of appetite.
+  - kind: posology
+    ru: "Показание 1 — чай: 1,5 г измельчённого слоевища в 150 мл кипятка в виде настоя или мацерата 3–4 раза в день; суточная доза 4–6 г"
+    doc: monograph
+    page: 3
+    quote: "Posology Oral use a) Comminuted herbal substance Indication 1) Adolescents, adults and elderly Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion or as a macerate 3 to 4 times daily Daily dose: 4–6 g"
+    dose: { preparationRu: чай (настой или мацерат), amount: "1.5", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — чай: 1–2 г измельчённого слоевища в 150 мл воды в виде настоя или отвара 3 раза в день; суточная доза 4–6 г"
+    doc: monograph
+    page: 3
+    quote: "Indication 2) Adults and elderly Herbal tea: 1–2 g of the comminuted herbal substance in 150 ml of water as an infusion or decoction 3 times daily Daily dose: 4-6 g"
+    dose: { preparationRu: чай (настой или отвар), amount: "1-2", unit: г, waterMl: "150", timesPerDay: "3", populationRu: "взрослые и пожилые" }
+  - kind: posology
+    ru: "Показания 1 и 2 — настойка: разовая доза 1–1,5 мл 3 раза в день; суточная доза 3–4,5 мл"
+    doc: monograph
+    page: 4
+    quote: "d) Tincture Indication 1) and 2) Adults and elderly Single dose: 1-1.5 ml 3 times daily Daily dose: 3-4.5 ml"
+    dose: { preparationRu: настойка, amount: "1-1.5", unit: мл, timesPerDay: "3", populationRu: "взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 — мягкий экстракт (DER 2–4:1): разовая доза 100–200 мг несколько раз в день; суточная доза 2 г"
+    doc: monograph
+    page: 4
+    quote: "b) Soft extract (DER 2-4:1) Indication 1) Adolescents, adults and elderly Single dose: 100-200 mg several times daily Daily dose: 2 g"
+    dose: { preparationRu: мягкий экстракт (DER 2-4:1), amount: "100-200", unit: мг, timesPerDay: "несколько", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 — мягкий экстракт (DER 2–4:1): разовая доза 100 мг 4–6 раз в день; суточная доза 400–600 мг"
+    doc: monograph
+    page: 4
+    quote: "b) Soft extract (DER 2-4:1) Indication 1) Adolescents, adults and elderly Single dose: 100-200 mg several times daily Daily dose: 2 g Children 6-12 years of age Single dose: 100 mg 4 to 6 times daily Daily dose: 400 to 600 mg"
+    dose: { preparationRu: мягкий экстракт (DER 2-4:1), amount: "100", unit: мг, timesPerDay: "4-6", populationRu: "дети 6–12 лет" }
+  - kind: posology
+    ru: "Показание 1 — мягкий экстракт (DER 0,4–0,8:1): разовая доза 80–160 мг несколько раз в день; суточная доза 0,8–1,6 г"
+    doc: monograph
+    page: 4
+    quote: "c) Soft extract (DER 0.4-0.8:1) Indication 1) Adolescents, adults and elderly Single dose: 80-160 mg several times daily Daily dose: 0.8-1.6 g"
+    dose: { preparationRu: мягкий экстракт (DER 0.4-0.8:1), amount: "80-160", unit: мг, timesPerDay: "несколько", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 — мягкий экстракт (DER 0,4–0,8:1): разовая доза 80 мг 4–6 раз в день; суточная доза 320–480 мг"
+    doc: monograph
+    page: 4
+    quote: "c) Soft extract (DER 0.4-0.8:1) Indication 1) Adolescents, adults and elderly Single dose: 80-160 mg several times daily Daily dose: 0.8-1.6 g Children 6-12 years of age Single dose: 80 mg 4 to 6 times daily Daily dose: 320 to 480 mg"
+    dose: { preparationRu: мягкий экстракт (DER 0.4-0.8:1), amount: "80", unit: мг, timesPerDay: "4-6", populationRu: "дети 6–12 лет" }
+  - kind: posology
+    ru: Препараты a) и d) — приём внутрь; препараты b) и c) — применение на слизистую оболочку рта
+    doc: monograph
+    page: 5
+    quote: "Method of administration Preparations a) and d) Oral use Preparations b) and c) Oromucosal use"
+  - kind: posology
+    ru: Мацерат нужно использовать сразу после приготовления
+    doc: monograph
+    page: 5
+    quote: The macerate should be used immediately after preparation.
+  - kind: age
+    ru: Показание 1, чай — детям до 12 лет не рекомендуется
+    doc: monograph
+    page: 3
+    quote: "Indication 1) Adolescents, adults and elderly Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion or as a macerate 3 to 4 times daily Daily dose: 4–6 g The use in children under 12 years of age is not recommended"
+    minAgeMonths: 144
+  - kind: age
+    ru: Показание 2, чай — детям и подросткам до 18 лет не рекомендуется
+    doc: monograph
+    page: 3
+    quote: "Indication 2) Adults and elderly Herbal tea: 1–2 g of the comminuted herbal substance in 150 ml of water as an infusion or decoction 3 times daily Daily dose: 4-6 g The use in children and adolescents under 18 years of age is not recommended"
+    minAgeMonths: 216
+  - kind: age
+    ru: Показания 1 и 2, настойка — детям и подросткам до 18 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: "d) Tincture Indication 1) and 2) Adults and elderly Single dose: 1-1.5 ml 3 times daily Daily dose: 3-4.5 ml The use in children and adolescents under 18 years of age is not recommended"
+    minAgeMonths: 216
+  - kind: age
+    ru: Показание 1, мягкий экстракт (DER 2–4:1) — детям до 6 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: "b) Soft extract (DER 2-4:1) Indication 1) Adolescents, adults and elderly Single dose: 100-200 mg several times daily Daily dose: 2 g Children 6-12 years of age Single dose: 100 mg 4 to 6 times daily Daily dose: 400 to 600 mg The use in children under 6 years of age is not recommended"
+    minAgeMonths: 72
+  - kind: age
+    ru: Показание 1, мягкий экстракт (DER 0,4–0,8:1) — детям до 6 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: "c) Soft extract (DER 0.4-0.8:1) Indication 1) Adolescents, adults and elderly Single dose: 80-160 mg several times daily Daily dose: 0.8-1.6 g Children 6-12 years of age Single dose: 80 mg 4 to 6 times daily Daily dose: 320 to 480 mg The use in children under 6 years of age is not recommended"
+    minAgeMonths: 72
+  - kind: duration
+    ru: Показания 1 и 2 — если симптомы сохраняются дольше одной недели, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: "Duration of use Indication 1) and 2) If the symptoms persist longer than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 7
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Показание 1 — при одышке, лихорадке или гнойной мокроте нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If dyspnoea, fever or purulent sputum occurs during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: Препарат a) — применение у детей до 12 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 5
+    quote: "Preparation a) The use in children under 12 years of age has not been established due to lack of adequate data."
+    minAgeMonths: 144
+  - kind: warning
+    ru: Препараты b) и c) — детям до 6 лет не рекомендуется из-за лекарственной формы (твёрдая лекарственная форма)
+    doc: monograph
+    page: 5
+    quote: "Preparations b) and c) The use in children under 6 years of age is not recommended because of the pharmaceutical form (solid dosage form)."
+    minAgeMonths: 72
+  - kind: warning
+    ru: Препарат d) — применение у детей и подростков до 18 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 5
+    quote: "Preparation d) The use in children and adolescents under 18 years of age has not been established due to lack of adequate data."
+    minAgeMonths: 216
+  # The next sentence sits under the heading «Indication 2)» at the foot of page 5; the heading and the
+  # sentence cannot be quoted together (the checker drops the repeated lines between the pages).
+  - kind: warning
+    ru: Препараты a) и d) — применение у детей и подростков до 18 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 6
+    quote: "Preparations a) and d) The use in children and adolescents under 18 years of age has not been established due to lack of adequate data."
+    minAgeMonths: 216
+  - kind: warning
+    ru: Показания 1 и 2 — всасывание одновременно принимаемых лекарств может замедляться; в качестве меры предосторожности препарат не следует принимать за ½–1 час до или после других лекарственных средств
+    doc: monograph
+    page: 6
+    quote: "Indications 1) and 2) Absorption of concomitantly administered medicines may be delayed. As a precautionary measure, the product should not be taken ½ to 1 hour before or after intake of other medicinal products."
+  - kind: warning
+    ru: Для настоек с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
+    doc: monograph
+    page: 6
+    quote: For tinctures containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о влиянии на фертильность нет
+    doc: monograph
+    page: 6
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 6
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
+    doc: monograph
+    page: 7
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+  - kind: statement
+    ru: В образцах из Финляндии найдено много тяжёлых металлов, прежде всего свинца, а также кадмия и ртути (Pb 30 мг/кг, Cd 0,30 мг/кг, Hg 0,075 мг/кг); лишайник способен поглощать токсичные элементы из окружающей среды
+    doc: assessment-report
+    page: 21
+    quote: "Cetraria islandica was found to be able to absorb some toxic elements from the environment (Cercasov et al., 2002). High levels of heavy metals, especially lead, but also cadmium and mercury (Pb 30 mg/kg, Cd 0.30 mg/kg, Hg 0.075 mg/kg) were found in samples originating from Finland"
+  - kind: statement
+    ru: Исландский мох входит в список EFSA природных веществ, вызывающих возможные опасения; для лекарственного сырья опасений возникать не должно, так как усниновая кислота в нём не найдена или найдена лишь следами, а содержание свинца в монографии Европейской фармакопеи ограничено 10,0 ppm
+    doc: assessment-report
+    page: 22
+    quote: "In spite of the fact that Cetraria islandica is on the EFSA list of naturally occurring substances of possible concern to human health, no safety concern should be raised for the herbal substance used for pharmaceutical purposes as usnic acid (dibenzofurane) has not been found in Cetraria islandica (Sticher, 1965, Ingólfsdóttir, 2002) or only in a traces (Airaksinen et al., 1986a) and lead content is limited to 10.0 ppm in the Ph.Eur. monograph Iceland moss."
+constituents:
+  - compound: polysaccharides (lichenan)
+    compoundRu: полисахариды (лихенан)
+    classRu: полисахариды
+    effectRu: содержание 25–50%; лихенан (лихенин) — линейный β-D-глюкан, растворимый в горячей воде
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Polysaccharides – 25-50% - lichenan (or lichenin) – a hot water soluble, linear β-D-glucan"
+  - compound: fumaroprotocetraric acid, protocetraric acid
+    compoundRu: фумаропротоцетраровая и протоцетраровая кислоты
+    classRu: лишайниковые кислоты (депсидоны)
+    effectRu: фумаропротоцетраровая кислота — 2,6–11,5%, протоцетраровая — 0,2–0,3% в зависимости от места сбора
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "depsidones fumaroprotocetraric acid (2.6-11.5%) (Gudjónsdóttir and Ingólfsdóttir, 1997; Sticher, 1965) and protocetraric acid (0.2-0.3%) (Huovinen et al., 1986) depending on the collection site"
+  - compound: protolichesterinic acid
+    compoundRu: протолихестериновая кислота
+    classRu: алифатический α-метилен-γ-лактон (лишайниковая кислота)
+    effectRu: содержание 0,1–1,5% в зависимости от места сбора
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "protolichesterinic acid, an aliphatic α-methylene-γ-lactone (0.1-1.5%) depending on the collection site"
+  - compound: usnic acid
+    compoundRu: усниновая кислота
+    classRu: производное дибензофурана
+    effectRu: в исландском мхе найдена только следами (0,04%); в других работах не обнаружена
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "usnic acid, a dibenzofurane derivative, was found in Cetraria islandica only in traces (0.04%) (Laakso and Gustafsson 1952, Shibata 1958, Virtanen and Kärki 1956 in Airaksinen, 1986a), whereas usnic acid was not detected by Sticher (1965) and by Ingólfsdóttir (2002)"
+  - compound: polysaccharides
+    compoundRu: полисахариды
+    classRu: полисахариды
+    effectRu: очищенные полисахариды (углеводов >95%) показали слабую адгезию (10%) к эпителию изолированной щёчной мембраны свиньи, зависящую от концентрации
+    evidence: in-vitro
+    doc: assessment-report
+    page: 14
+    quote: "Purified polysaccharides (carbohydrates content >95%) from Lichen islandicus were investigated for bioadhesive effect on isolated porcine buccal membranes. Polysaccharides from Iceland moss showed a slight adhesion to epithelial tissue (10%). The adhesive effects were concentration dependent."

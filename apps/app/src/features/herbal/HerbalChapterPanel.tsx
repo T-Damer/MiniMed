@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { SheetPopover } from '@/components/SheetPopover';
 import {
+  authorityLabel,
   courseLongerThanEma,
   type EmaQuote,
   emaDoseLine,
@@ -13,6 +14,7 @@ import {
   type HerbalLookalike,
   limitFacts,
   type QuotedValue,
+  redBookLabel,
   useTypeLabel,
 } from './herbal-chapter';
 
@@ -99,7 +101,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
   });
   const emaSource = (item: EmaQuote): QuoteSource => ({
     quote: item.quote,
-    label: emaSourceLabel(item),
+    label: emaSourceLabel(item, ema()?.authority ?? 'EMA'),
     url: ema()?.documents[item.doc] ?? null,
     english: true,
   });
@@ -172,7 +174,15 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
           )}
         </Show>
         <For each={emaLookalikes()}>
-          {(fact) => <QuoteCell label="EMA" value={fact.ru} source={emaSource(fact)} wide warn />}
+          {(fact) => (
+            <QuoteCell
+              label={authorityLabel(ema())}
+              value={fact.ru}
+              source={emaSource(fact)}
+              wide
+              warn
+            />
+          )}
         </For>
         <For each={sourceLookalikes()}>
           {(item) => (
@@ -193,7 +203,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
   const limitsBlock = (): JSX.Element => (
     <Show when={limits().length > 0}>
       <h2 class="herbal-chapter__heading">
-        {limitsFirst() ? 'Позиция EMA' : 'Кому нельзя'}
+        {limitsFirst() ? `Позиция ${authorityLabel(ema())}` : 'Кому нельзя'}
         <Show when={ema()?.draft}>
           <span class="herbal-chapter__tag herbal-chapter__tag--draft">черновик</span>
         </Show>
@@ -214,6 +224,17 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
         <em class="herbal-chapter__latin">{props.chapter.latin}</em>
         {` · ${props.chapter.family} · ${props.chapter.partRu}`}
       </p>
+      <Show when={props.chapter.redBook}>
+        {(redBook) => (
+          <p class="herbal-redbook">
+            <span class="herbal-redbook__badge">Красная книга РФ</span>
+            <span class="herbal-redbook__category">{redBookLabel(redBook())}</span>
+            <Show when={redBook().note}>
+              {(note) => <span class="herbal-redbook__note">{note()}</span>}
+            </Show>
+          </p>
+        )}
+      </Show>
       <Show when={props.chapter.actions.length > 0}>
         <ul class="herbal-chapter__actions">
           <For each={props.chapter.actions}>
@@ -242,7 +263,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
                 value={cell.value.value}
                 source={grlsSource(cell.value)}
                 {...(cell.wide ? { wide: true } : {})}
-                {...(cell.conflict ? { note: 'EMA: короче', warn: true } : {})}
+                {...(cell.conflict ? { note: `${authorityLabel(ema())}: короче`, warn: true } : {})}
               />
             )}
           </For>
@@ -252,8 +273,8 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
       {lookalikesBlock()}
       <Show when={posology().length > 0}>
         <h2 class="herbal-chapter__heading">
-          Дозы EMA
-          <Show when={useTypeLabel(ema()?.useType ?? null)}>
+          Дозы {authorityLabel(ema())}
+          <Show when={useTypeLabel(ema()?.useType ?? null, ema()?.authority ?? 'EMA')}>
             {(label) => (
               <span class="herbal-chapter__tag herbal-chapter__tag--muted">{label()}</span>
             )}
@@ -278,7 +299,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
       </Show>
 
       <Show when={indications().length > 0}>
-        <h2 class="herbal-chapter__heading">Показания EMA</h2>
+        <h2 class="herbal-chapter__heading">Показания {authorityLabel(ema())}</h2>
         <div class="herbal-chapter__cells">
           <For each={indications()}>
             {(fact) => (
@@ -300,7 +321,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
                   )
                   .join(' · ')}
                 value={capitalize(item.effectRu)}
-                note={evidenceLabel(item.evidence)}
+                note={evidenceLabel(item.evidence, ema()?.authority ?? 'EMA')}
                 source={emaSource(item)}
                 wide
               />

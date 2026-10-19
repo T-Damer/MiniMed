@@ -13,11 +13,6 @@ facts:
     page: 3
     quote: "Thymus vulgaris L. and Thymus zygis L., or a mixture of both species, herba (thyme)"
   - kind: statement
-    ru: "Сырьё по Европейской фармакопее — цельные листья и цветки, отделённые от предварительно высушенных стеблей Thymus vulgaris L. или Thymus zygis L. или смеси обоих видов; минимальное содержание эфирного масла 1,2%, при этом не менее 40% тимола + карвакрола"
-    doc: assessment-report
-    page: 4
-    quote: "Thyme, Thymi herba (European Pharmacopoeia) Whole leaves and flowers separated from the previously dried stems of Thymus vulgaris L. or Thymus zygis L. or a mixture of both species. Minimum content of essential oil: 1.2% with minimum 40% thymol + carvacrol."
-  - kind: statement
     ru: "У Thymus vulgaris не менее 6 хемотипов с разным составом эфирного масла; определению Европейской фармакопеи соответствует только «тимоловый» тип, где преобладает тимол"
     doc: assessment-report
     page: 4

@@ -1,0 +1,157 @@
+# EMA/HMPC facts for Овёс посевной (Avena sativa L.), трава (надземная часть до цветения, сухая или
+# свежая). Draft artifact (status: proposed): Russian fields are a reader's rendering of the quoted
+# English sentence; quotes are checked against the PDF. The Community monograph (final, 4 September
+# 2008) is traditional use only, one indication. Its text layout is damaged in places (words broken
+# over lines) and the assessment report PDF is clipped, so only intact passages are quoted.
+plant: avena-sativa
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 3
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Облегчение лёгких симптомов психического напряжения и помощь при засыпании
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
+  - kind: posology
+    ru: "Измельчённая трава: 3 г для приготовления настоя (разовая доза)"
+    doc: monograph
+    page: 3
+    quote: "Adolescents over 12 years of age, adults, elderly Herbal preparations Single dose Comminuted herbal substance: 3 g for the preparation of an infusion."
+    dose: { preparationRu: измельчённая трава для настоя, amount: "3", unit: г, populationRu: "подростки старше 12 лет, взрослые и пожилые" }
+  - kind: posology
+    ru: "Жидкий экстракт (1:4–6, этанол 15–50% по объёму): до 5 мл до 3 раз в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents over 12 years of age, adults, elderly Herbal preparations Single dose Comminuted herbal substance: 3 g for the preparation of an infusion. Liquid extract (1:4-6 ethanol 15-50% v/v): up to 5 ml up to 3 times daily"
+    dose: { preparationRu: "жидкий экстракт (1:4-6, этанол 15-50%)", amount: "до 5", unit: мл, timesPerDay: "до 3", populationRu: "подростки старше 12 лет, взрослые и пожилые" }
+  - kind: posology
+    ru: "Жидкий экстракт (1:4–6, вода): до 5 мл до 3 раз в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents over 12 years of age, adults, elderly Herbal preparations Single dose Comminuted herbal substance: 3 g for the preparation of an infusion. Liquid extract (1:4-6 ethanol 15-50% v/v): up to 5 ml up to 3 times daily Liquid extract (1:4-6 water ): up to 5 ml up to 3 times daily"
+    dose: { preparationRu: "жидкий экстракт (1:4-6, вода)", amount: "до 5", unit: мл, timesPerDay: "до 3", populationRu: "подростки старше 12 лет, взрослые и пожилые" }
+  - kind: posology
+    ru: Другие препараты — в количестве, соответствующем суточной дозе 3 г сухой травы
+    doc: monograph
+    page: 3
+    quote: Other preparations corresponding to the daily dose of 3 g dried herb.
+  - kind: posology
+    ru: "Сок свежей травы: 10 мл 3–4 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents over 12 years of age, adults, elderly Herbal preparations Single dose Comminuted herbal substance: 3 g for the preparation of an infusion. Liquid extract (1:4-6 ethanol 15-50% v/v): up to 5 ml up to 3 times daily Liquid extract (1:4-6 water ): up to 5 ml up to 3 times daily Other preparations corresponding to the daily dose of 3 g dried herb. Expressed juice from the fresh herb: 10 ml 3-4 times daily."
+    dose: { preparationRu: сок свежей травы, amount: "10", unit: мл, timesPerDay: "3-4", populationRu: "подростки старше 12 лет, взрослые и пожилые" }
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 3
+    quote: "Method of administration Oral use."
+  - kind: age
+    ru: Детям до 12 лет применение не рекомендуется
+    doc: monograph
+    page: 3
+    quote: The use is not recommended in children under 12 years of age
+    minAgeMonths: 144
+  - kind: warning
+    ru: Детям до 12 лет применение не рекомендуется из-за недостатка данных
+    doc: monograph
+    page: 4
+    quote: The use is not recommended in children under 12 years of age due to the lack of adequate data.
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы сохраняются во время применения, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 3
+    quote: If the symptoms persist during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: При целиакии рекомендуется осторожность, так как данных о содержании белка нет
+    doc: monograph
+    page: 4
+    quote: Caution is advised when used in patients with coeliac disease because data on the protein content are not available.
+  - kind: warning
+    ru: Для жидких экстрактов с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
+    doc: monograph
+    page: 4
+    quote: For liquid extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 4
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: warning
+    ru: Может нарушать способность управлять транспортом и механизмами; пациентам, у которых проявилось это действие, не следует водить транспорт и работать с механизмами
+    doc: monograph
+    page: 4
+    quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 5
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
+    doc: monograph
+    page: 5
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+
+constituents:
+  - compound: saponins (avenacoside A and B)
+    compoundRu: сапонины (авенакозиды A и B)
+    classRu: гликозилированные стероидные сапонины
+    effectRu: в листьях содержатся фуростаноловые сапонины; содержание авенакозидов в листьях — 1–3 мг/г
+    evidence: review
+    doc: assessment-report
+    page: 7
+    quote: "Saponins: avenacoside A and B. These are glycosylated steroidal saponins. Leaves contain furostanol saponins. Avenacosid content of leaves varies between 1-3 mg/g."
+  - compound: flavonoids (vitexin derivatives)
+    compoundRu: флавоноиды (производные витексина)
+    classRu: флавоноиды
+    effectRu: указаны, например, производные витексина
+    evidence: review
+    doc: assessment-report
+    page: 7
+    quote: "Flavonoids: e.g. vitexin derivatives."
+  - compound: tricin derivatives
+    compoundRu: производные трицина
+    classRu: флавоноиды
+    effectRu: производные трицина выделены из травы овса
+    evidence: review
+    doc: assessment-report
+    page: 7
+    quote: "Figure 6: tricin derivatives isolated from Avena sativa herb."
+  - compound: avenic acids
+    compoundRu: авеновые кислоты A и B
+    classRu: азотсодержащие карбоновые кислоты
+    effectRu: указаны азотсодержащие карбоновые кислоты — авеновые кислоты A и B
+    evidence: review
+    doc: assessment-report
+    page: 7
+    quote: "N-containing carboxylic acids: avenic acid A and B."
+  - compound: Avena sativa herb extracts
+    compoundRu: экстракты травы овса
+    classRu: экстракты
+    effectRu: по оценке отчёта, обе серии опытов открывают интересные перспективы для нейрогенной активности овса, но данные предварительные (хранятся в документации компании), и нужны дополнительные исследования механизмов действия
+    evidence: review
+    doc: assessment-report
+    page: 9
+    quote: "Both series of experiments open interesting perspectives as a neurogenic activity of Avena sativa is concerned. As these preliminary data are on company file, more work has to be done in order to gain insight in the mechanisms of action exerted by Avena sativa extracts."

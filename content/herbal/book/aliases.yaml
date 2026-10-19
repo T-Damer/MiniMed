@@ -1054,6 +1054,681 @@ aliases:
   alias: carvi fructus
   category: reference
   weight: 1.3
+- id: herbal-426ff8e52117
+  canonicalTerm: Эхинацея пурпурная
+  alias: Эхинацея пурпурная
+  category: reference
+  weight: 1.5
+- id: herbal-4a64ca581cfd
+  canonicalTerm: Эхинацея пурпурная
+  alias: эхинацея
+  category: reference
+  weight: 1.3
+- id: herbal-638cb2803157
+  canonicalTerm: Эхинацея пурпурная
+  alias: Echinacea purpurea
+  category: reference
+  weight: 1.3
+- id: herbal-5404a9189ab6
+  canonicalTerm: Эхинацея пурпурная
+  alias: echinaceae purpureae herba
+  category: reference
+  weight: 1.3
+- id: herbal-20d60975434b
+  canonicalTerm: Черника обыкновенная
+  alias: Черника обыкновенная
+  category: reference
+  weight: 1.5
+- id: herbal-44375e6f2ba5
+  canonicalTerm: Черника обыкновенная
+  alias: черника
+  category: reference
+  weight: 1.3
+- id: herbal-891d8a26a17e
+  canonicalTerm: Черника обыкновенная
+  alias: Vaccinium myrtillus
+  category: reference
+  weight: 1.3
+- id: herbal-98c7602ae471
+  canonicalTerm: Черника обыкновенная
+  alias: myrtilli fructus siccus
+  category: reference
+  weight: 1.3
+- id: herbal-57749112a521
+  canonicalTerm: Элеутерококк колючий
+  alias: Элеутерококк колючий
+  category: reference
+  weight: 1.5
+- id: herbal-120775f04941
+  canonicalTerm: Элеутерококк колючий
+  alias: элеутерококк
+  category: reference
+  weight: 1.3
+- id: herbal-1fc6b11e8bc3
+  canonicalTerm: Элеутерококк колючий
+  alias: Eleutherococcus senticosus
+  category: reference
+  weight: 1.3
+- id: herbal-e8b87e4d3658
+  canonicalTerm: Элеутерококк колючий
+  alias: eleutherococci radix
+  category: reference
+  weight: 1.3
+- id: herbal-1474f39245ba
+  canonicalTerm: Женьшень настоящий
+  alias: Женьшень настоящий
+  category: reference
+  weight: 1.5
+- id: herbal-58e56b7e74cc
+  canonicalTerm: Женьшень настоящий
+  alias: женьшень
+  category: reference
+  weight: 1.3
+- id: herbal-8716c74fe27a
+  canonicalTerm: Женьшень настоящий
+  alias: Panax ginseng
+  category: reference
+  weight: 1.3
+- id: herbal-1a7b7c6b95da
+  canonicalTerm: Женьшень настоящий
+  alias: ginseng radix
+  category: reference
+  weight: 1.3
+- id: herbal-80eb18f17cb5
+  canonicalTerm: Гинкго двулопастный
+  alias: Гинкго двулопастный
+  category: reference
+  weight: 1.5
+- id: herbal-7f238c073d69
+  canonicalTerm: Гинкго двулопастный
+  alias: гинкго
+  category: reference
+  weight: 1.3
+- id: herbal-5db6e17a535a
+  canonicalTerm: Гинкго двулопастный
+  alias: Ginkgo biloba
+  category: reference
+  weight: 1.3
+- id: herbal-52465d5570d8
+  canonicalTerm: Гинкго двулопастный
+  alias: ginkgo folium
+  category: reference
+  weight: 1.3
+- id: herbal-dd641e394e44
+  canonicalTerm: Хмель обыкновенный
+  alias: Хмель обыкновенный
+  category: reference
+  weight: 1.5
+- id: herbal-c5c5c7847528
+  canonicalTerm: Хмель обыкновенный
+  alias: хмель
+  category: reference
+  weight: 1.3
+- id: herbal-0340a29050f3
+  canonicalTerm: Хмель обыкновенный
+  alias: Humulus lupulus
+  category: reference
+  weight: 1.3
+- id: herbal-fc1bfb541ffb
+  canonicalTerm: Хмель обыкновенный
+  alias: lupuli flos
+  category: reference
+  weight: 1.3
+- id: herbal-d75433749f16
+  canonicalTerm: Конский каштан обыкновенный
+  alias: Конский каштан обыкновенный
+  category: reference
+  weight: 1.5
+- id: herbal-3189e7b8e886
+  canonicalTerm: Конский каштан обыкновенный
+  alias: конский
+  category: reference
+  weight: 1.3
+- id: herbal-5ac8342a9ed0
+  canonicalTerm: Конский каштан обыкновенный
+  alias: Aesculus hippocastanum
+  category: reference
+  weight: 1.3
+- id: herbal-1a6707571c33
+  canonicalTerm: Конский каштан обыкновенный
+  alias: hippocastani semen
+  category: reference
+  weight: 1.3
+- id: herbal-09961c64c333
+  canonicalTerm: Пассифлора инкарнатная
+  alias: Пассифлора инкарнатная
+  category: reference
+  weight: 1.5
+- id: herbal-b91ad1a4247c
+  canonicalTerm: Пассифлора инкарнатная
+  alias: пассифлора
+  category: reference
+  weight: 1.3
+- id: herbal-9fa497e23d94
+  canonicalTerm: Пассифлора инкарнатная
+  alias: Passiflora incarnata
+  category: reference
+  weight: 1.3
+- id: herbal-f76ca4033ddb
+  canonicalTerm: Пассифлора инкарнатная
+  alias: passiflorae herba
+  category: reference
+  weight: 1.3
+- id: herbal-0484cb48fe36
+  canonicalTerm: Первоцвет весенний
+  alias: Первоцвет весенний
+  category: reference
+  weight: 1.5
+- id: herbal-1895b4fcee2c
+  canonicalTerm: Первоцвет весенний
+  alias: первоцвет
+  category: reference
+  weight: 1.3
+- id: herbal-56ce4b7a2d43
+  canonicalTerm: Первоцвет весенний
+  alias: Primula veris
+  category: reference
+  weight: 1.3
+- id: herbal-c80a5fbc82fc
+  canonicalTerm: Первоцвет весенний
+  alias: primulae radix
+  category: reference
+  weight: 1.3
+- id: herbal-14a3a6e6e30b
+  canonicalTerm: Подорожник ланцетный
+  alias: Подорожник ланцетный
+  category: reference
+  weight: 1.5
+- id: herbal-b0fe3d03e32b
+  canonicalTerm: Подорожник ланцетный
+  alias: подорожник
+  category: reference
+  weight: 1.3
+- id: herbal-1f69753d080b
+  canonicalTerm: Подорожник ланцетный
+  alias: Plantago lanceolata
+  category: reference
+  weight: 1.3
+- id: herbal-f62bc31c3292
+  canonicalTerm: Подорожник ланцетный
+  alias: plantaginis lanceolatae folium
+  category: reference
+  weight: 1.3
+- id: herbal-b25e47a90969
+  canonicalTerm: Мальва лесная
+  alias: Мальва лесная
+  category: reference
+  weight: 1.5
+- id: herbal-112a665fb851
+  canonicalTerm: Мальва лесная
+  alias: мальва
+  category: reference
+  weight: 1.3
+- id: herbal-a17b6d1beead
+  canonicalTerm: Мальва лесная
+  alias: Malva sylvestris
+  category: reference
+  weight: 1.3
+- id: herbal-445792e9934e
+  canonicalTerm: Мальва лесная
+  alias: malvae sylvestris flos
+  category: reference
+  weight: 1.3
+- id: herbal-570dd98cfb7a
+  canonicalTerm: Земляника лесная
+  alias: Земляника лесная
+  category: reference
+  weight: 1.5
+- id: herbal-7d294db44a07
+  canonicalTerm: Земляника лесная
+  alias: земляника
+  category: reference
+  weight: 1.3
+- id: herbal-5cd31ab586e3
+  canonicalTerm: Земляника лесная
+  alias: Fragaria vesca
+  category: reference
+  weight: 1.3
+- id: herbal-b0462cd9b6a5
+  canonicalTerm: Земляника лесная
+  alias: fragariae folium
+  category: reference
+  weight: 1.3
+- id: herbal-c2b02bfd14ba
+  canonicalTerm: Вахта трёхлистная
+  alias: Вахта трёхлистная
+  category: reference
+  weight: 1.5
+- id: herbal-214484de04c0
+  canonicalTerm: Вахта трёхлистная
+  alias: вахта
+  category: reference
+  weight: 1.3
+- id: herbal-3ca6892bcb65
+  canonicalTerm: Вахта трёхлистная
+  alias: Menyanthes trifoliata
+  category: reference
+  weight: 1.3
+- id: herbal-3a5c1d566025
+  canonicalTerm: Вахта трёхлистная
+  alias: menyanthidis trifoliatae folium
+  category: reference
+  weight: 1.3
+- id: herbal-43afe86b11f9
+  canonicalTerm: Лопух большой
+  alias: Лопух большой
+  category: reference
+  weight: 1.5
+- id: herbal-84fa2bb02f9d
+  canonicalTerm: Лопух большой
+  alias: лопух
+  category: reference
+  weight: 1.3
+- id: herbal-3da2d61fee76
+  canonicalTerm: Лопух большой
+  alias: Arctium lappa
+  category: reference
+  weight: 1.3
+- id: herbal-0edef71ea689
+  canonicalTerm: Лопух большой
+  alias: arctii radix
+  category: reference
+  weight: 1.3
+- id: herbal-cf9f9a7653fe
+  canonicalTerm: Родиола розовая
+  alias: Родиола розовая
+  category: reference
+  weight: 1.5
+- id: herbal-8e5dcb4ba0e7
+  canonicalTerm: Родиола розовая
+  alias: родиола
+  category: reference
+  weight: 1.3
+- id: herbal-7ece24f4e3f0
+  canonicalTerm: Родиола розовая
+  alias: Rhodiola rosea
+  category: reference
+  weight: 1.3
+- id: herbal-83f651d54767
+  canonicalTerm: Родиола розовая
+  alias: rhodiolae roseae rhizoma et radix
+  category: reference
+  weight: 1.3
+- id: herbal-6613ae089e4d
+  canonicalTerm: Донник лекарственный
+  alias: Донник лекарственный
+  category: reference
+  weight: 1.5
+- id: herbal-5c70f7778504
+  canonicalTerm: Донник лекарственный
+  alias: донник
+  category: reference
+  weight: 1.3
+- id: herbal-655478dc846a
+  canonicalTerm: Донник лекарственный
+  alias: Melilotus officinalis
+  category: reference
+  weight: 1.3
+- id: herbal-d386c80bc6ea
+  canonicalTerm: Донник лекарственный
+  alias: meliloti herba
+  category: reference
+  weight: 1.3
+- id: herbal-f10996ab88ab
+  canonicalTerm: Расторопша пятнистая
+  alias: Расторопша пятнистая
+  category: reference
+  weight: 1.5
+- id: herbal-a132866a4b0a
+  canonicalTerm: Расторопша пятнистая
+  alias: расторопша
+  category: reference
+  weight: 1.3
+- id: herbal-1cb5c31267fd
+  canonicalTerm: Расторопша пятнистая
+  alias: Silybum marianum
+  category: reference
+  weight: 1.3
+- id: herbal-247b4636c721
+  canonicalTerm: Расторопша пятнистая
+  alias: silybi mariani fructus
+  category: reference
+  weight: 1.3
+- id: herbal-8f286ba58218
+  canonicalTerm: Ревень дланевидный
+  alias: Ревень дланевидный
+  category: reference
+  weight: 1.5
+- id: herbal-4c7457025655
+  canonicalTerm: Ревень дланевидный
+  alias: ревень
+  category: reference
+  weight: 1.3
+- id: herbal-a25eb946957e
+  canonicalTerm: Ревень дланевидный
+  alias: Rheum palmatum
+  category: reference
+  weight: 1.3
+- id: herbal-9bad7202682d
+  canonicalTerm: Ревень дланевидный
+  alias: rhei radix
+  category: reference
+  weight: 1.3
+- id: herbal-1b89f9c2ff71
+  canonicalTerm: Фасоль обыкновенная
+  alias: Фасоль обыкновенная
+  category: reference
+  weight: 1.5
+- id: herbal-75003f918dd8
+  canonicalTerm: Фасоль обыкновенная
+  alias: фасоль
+  category: reference
+  weight: 1.3
+- id: herbal-46792db37146
+  canonicalTerm: Фасоль обыкновенная
+  alias: Phaseolus vulgaris
+  category: reference
+  weight: 1.3
+- id: herbal-a80958bc2b56
+  canonicalTerm: Фасоль обыкновенная
+  alias: phaseoli fructus sine semine
+  category: reference
+  weight: 1.3
+- id: herbal-08391683a74c
+  canonicalTerm: Плющ обыкновенный
+  alias: Плющ обыкновенный
+  category: reference
+  weight: 1.5
+- id: herbal-2572e569fb13
+  canonicalTerm: Плющ обыкновенный
+  alias: плющ
+  category: reference
+  weight: 1.3
+- id: herbal-3ece5c107e97
+  canonicalTerm: Плющ обыкновенный
+  alias: Hedera helix
+  category: reference
+  weight: 1.3
+- id: herbal-6e0ff6b1a65a
+  canonicalTerm: Плющ обыкновенный
+  alias: hederae helicis folium
+  category: reference
+  weight: 1.3
+- id: herbal-585b327a8b06
+  canonicalTerm: Лабазник вязолистный
+  alias: Лабазник вязолистный
+  category: reference
+  weight: 1.5
+- id: herbal-cadb7712f915
+  canonicalTerm: Лабазник вязолистный
+  alias: лабазник
+  category: reference
+  weight: 1.3
+- id: herbal-053d9f6ecc47
+  canonicalTerm: Лабазник вязолистный
+  alias: Filipendula ulmaria
+  category: reference
+  weight: 1.3
+- id: herbal-42506b3ef8cf
+  canonicalTerm: Лабазник вязолистный
+  alias: filipendulae ulmariae herba
+  category: reference
+  weight: 1.3
+- id: herbal-208b4a6305f6
+  canonicalTerm: Иван-чай (кипрей узколистный)
+  alias: Иван-чай (кипрей узколистный)
+  category: reference
+  weight: 1.5
+- id: herbal-1e8154da917e
+  canonicalTerm: Иван-чай (кипрей узколистный)
+  alias: иван-чай
+  category: reference
+  weight: 1.3
+- id: herbal-7acb00033728
+  canonicalTerm: Иван-чай (кипрей узколистный)
+  alias: Epilobium angustifolium
+  category: reference
+  weight: 1.3
+- id: herbal-554d218d10b4
+  canonicalTerm: Иван-чай (кипрей узколистный)
+  alias: epilobii herba
+  category: reference
+  weight: 1.3
+- id: herbal-7ef3ea6398bf
+  canonicalTerm: Лаванда узколистная
+  alias: Лаванда узколистная
+  category: reference
+  weight: 1.5
+- id: herbal-35b09d11affc
+  canonicalTerm: Лаванда узколистная
+  alias: лаванда
+  category: reference
+  weight: 1.3
+- id: herbal-f90654c9ad90
+  canonicalTerm: Лаванда узколистная
+  alias: Lavandula angustifolia
+  category: reference
+  weight: 1.3
+- id: herbal-f0358a2c4551
+  canonicalTerm: Лаванда узколистная
+  alias: lavandulae flos
+  category: reference
+  weight: 1.3
+- id: herbal-876b87fe5c77
+  canonicalTerm: Коровяк густоцветковый
+  alias: Коровяк густоцветковый
+  category: reference
+  weight: 1.5
+- id: herbal-495d63ba0642
+  canonicalTerm: Коровяк густоцветковый
+  alias: коровяк
+  category: reference
+  weight: 1.3
+- id: herbal-5115d2534ff8
+  canonicalTerm: Коровяк густоцветковый
+  alias: Verbascum densiflorum
+  category: reference
+  weight: 1.3
+- id: herbal-fd3039a4b349
+  canonicalTerm: Коровяк густоцветковый
+  alias: verbasci flos
+  category: reference
+  weight: 1.3
+- id: herbal-4376ef1134e6
+  canonicalTerm: Репешок обыкновенный
+  alias: Репешок обыкновенный
+  category: reference
+  weight: 1.5
+- id: herbal-e3c68a8e7f55
+  canonicalTerm: Репешок обыкновенный
+  alias: репешок
+  category: reference
+  weight: 1.3
+- id: herbal-d5f31ee5c38b
+  canonicalTerm: Репешок обыкновенный
+  alias: Agrimonia eupatoria
+  category: reference
+  weight: 1.3
+- id: herbal-2e1b8b71cbfe
+  canonicalTerm: Репешок обыкновенный
+  alias: agrimoniae herba
+  category: reference
+  weight: 1.3
+- id: herbal-786aba8f5e6e
+  canonicalTerm: Исландский мох (цетрария)
+  alias: Исландский мох (цетрария)
+  category: reference
+  weight: 1.5
+- id: herbal-2b94d5ff4f9f
+  canonicalTerm: Исландский мох (цетрария)
+  alias: исландский
+  category: reference
+  weight: 1.3
+- id: herbal-0ccfa74a3dc9
+  canonicalTerm: Исландский мох (цетрария)
+  alias: Cetraria islandica
+  category: reference
+  weight: 1.3
+- id: herbal-ec5e0c9020cc
+  canonicalTerm: Исландский мох (цетрария)
+  alias: lichen islandicus
+  category: reference
+  weight: 1.3
+- id: herbal-5be3e3672153
+  canonicalTerm: Овёс посевной
+  alias: Овёс посевной
+  category: reference
+  weight: 1.5
+- id: herbal-9f0eccf6d508
+  canonicalTerm: Овёс посевной
+  alias: овёс
+  category: reference
+  weight: 1.3
+- id: herbal-d403e41fb266
+  canonicalTerm: Овёс посевной
+  alias: Avena sativa
+  category: reference
+  weight: 1.3
+- id: herbal-911fcc2258ba
+  canonicalTerm: Овёс посевной
+  alias: avenae herba
+  category: reference
+  weight: 1.3
+- id: herbal-3f59e1564f8c
+  canonicalTerm: Череда трёхраздельная
+  alias: Череда трёхраздельная
+  category: reference
+  weight: 1.5
+- id: herbal-61b9c4346d2c
+  canonicalTerm: Череда трёхраздельная
+  alias: череда
+  category: reference
+  weight: 1.3
+- id: herbal-6dd1022f464c
+  canonicalTerm: Череда трёхраздельная
+  alias: Bidens tripartita
+  category: reference
+  weight: 1.3
+- id: herbal-4d8032a4391e
+  canonicalTerm: Череда трёхраздельная
+  alias: череды трехраздельной трава
+  category: reference
+  weight: 1.3
+- id: herbal-f41ebcc4263b
+  canonicalTerm: Череда трёхраздельная
+  alias: череды трава
+  category: reference
+  weight: 1.3
+- id: herbal-d2fd6809cc3e
+  canonicalTerm: Череда трёхраздельная
+  alias: Herba Bidentis
+  category: reference
+  weight: 1.3
+- id: herbal-e1502e77586e
+  canonicalTerm: Душица обыкновенная
+  alias: Душица обыкновенная
+  category: reference
+  weight: 1.5
+- id: herbal-61e0a4c75665
+  canonicalTerm: Душица обыкновенная
+  alias: душица
+  category: reference
+  weight: 1.3
+- id: herbal-1b8a7611c041
+  canonicalTerm: Душица обыкновенная
+  alias: Origanum vulgare
+  category: reference
+  weight: 1.3
+- id: herbal-cea30af7ccd0
+  canonicalTerm: Душица обыкновенная
+  alias: душицы обыкновенной трава
+  category: reference
+  weight: 1.3
+- id: herbal-a9af0b9ac98f
+  canonicalTerm: Душица обыкновенная
+  alias: душицы трава
+  category: reference
+  weight: 1.3
+- id: herbal-ec0842f1badc
+  canonicalTerm: Душица обыкновенная
+  alias: Herba Origani
+  category: reference
+  weight: 1.3
+- id: herbal-7bcf9bd8ced8
+  canonicalTerm: Облепиха крушиновидная
+  alias: Облепиха крушиновидная
+  category: reference
+  weight: 1.5
+- id: herbal-03fa12664225
+  canonicalTerm: Облепиха крушиновидная
+  alias: облепиха
+  category: reference
+  weight: 1.3
+- id: herbal-1c110705b32b
+  canonicalTerm: Облепиха крушиновидная
+  alias: Hippophae rhamnoides
+  category: reference
+  weight: 1.3
+- id: herbal-42dfbcc26c8b
+  canonicalTerm: Облепиха крушиновидная
+  alias: Fructus Hippophaës recens
+  category: reference
+  weight: 1.3
+- id: herbal-061aa92c30db
+  canonicalTerm: Подорожник большой
+  alias: Подорожник большой
+  category: reference
+  weight: 1.5
+- id: herbal-334bb6721c13
+  canonicalTerm: Подорожник большой
+  alias: подорожник
+  category: reference
+  weight: 1.3
+- id: herbal-da7b812dbef7
+  canonicalTerm: Подорожник большой
+  alias: Plantago major
+  category: reference
+  weight: 1.3
+- id: herbal-282d74f28043
+  canonicalTerm: Подорожник большой
+  alias: подорожника большого листья
+  category: reference
+  weight: 1.3
+- id: herbal-6566a0539840
+  canonicalTerm: Подорожник большой
+  alias: Folium Plantaginis majoris
+  category: reference
+  weight: 1.3
+- id: herbal-317da230e382
+  canonicalTerm: Укроп пахучий
+  alias: Укроп пахучий
+  category: reference
+  weight: 1.5
+- id: herbal-f8ae8dfafec6
+  canonicalTerm: Укроп пахучий
+  alias: укроп
+  category: reference
+  weight: 1.3
+- id: herbal-885f4b195cc7
+  canonicalTerm: Укроп пахучий
+  alias: Anethum graveolens
+  category: reference
+  weight: 1.3
+- id: herbal-2c8986eddd9c
+  canonicalTerm: Укроп пахучий
+  alias: укропа пахучего плоды
+  category: reference
+  weight: 1.3
+- id: herbal-d0bdd00a4b66
+  canonicalTerm: Укроп пахучий
+  alias: укропа огородного плоды
+  category: reference
+  weight: 1.3
+- id: herbal-ca38d1ff0c1f
+  canonicalTerm: Укроп пахучий
+  alias: Fructus Anethi
+  category: reference
+  weight: 1.3
 - id: herbal-9b497b85f0eb
   canonicalTerm: 'Настои и отвары: общие правила'
   alias: как приготовить настой

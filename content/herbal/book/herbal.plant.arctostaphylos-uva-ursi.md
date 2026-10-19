@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -69,6 +69,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Arctostaphylos_uva-ursi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-013.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium
       lastUpdated: 10/04/2018
       species: null
@@ -192,6 +193,7 @@ metadata:
         classRu: танины
         effectRu: относительно много танинов; по литературным данным, они ответственны за нежелательные эффекты со стороны ЖКТ (поэтому повышать суточную дозу до 15 г не сочли целесообразным)
         evidence: review
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0099

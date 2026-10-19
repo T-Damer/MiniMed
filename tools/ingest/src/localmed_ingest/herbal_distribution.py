@@ -24,7 +24,7 @@ from zipfile import ZIP_STORED, ZipFile, ZipInfo
 import yaml
 
 from .builder import build_content_pack
-from .herbal_plants import PLATE_BOOKS, load_plants
+from .herbal_plants import PLATE_BOOKS, PLATE_LICENCES, load_plants
 from .herbal_prepare import DOCUMENT_PREFIX, RIGHTS_STATUS, SOURCE_TYPE, plate_jpeg
 from .module_distribution import (
     RELEASE_BASE_URL,
@@ -80,9 +80,12 @@ def package_herbal_module(
                 raise ValueError(f"{document_id}: source URL {url} is not official")
             return
         plants.append(required_text(herbal.get("plantId"), f"{document_id} plantId"))
-        plate = json_object(herbal.get("plate"), f"{document_id} plate")
-        if plate.get("licence") != "Public domain":
-            raise ValueError(f"{document_id}: plate is not public domain")
+        plate = herbal.get("plate")
+        if (
+            plate is not None
+            and json_object(plate, f"{document_id} plate").get("licence") not in PLATE_LICENCES
+        ):
+            raise ValueError(f"{document_id}: plate is neither public domain nor owner-supplied")
         grls = herbal.get("grls")
         ema = json_object(herbal.get("ema"), f"{document_id} ema")
         if grls is None and not ema.get("extracted"):
@@ -178,8 +181,10 @@ def package_herbal_plates(
     images: dict[str, dict[str, object]] = {}
     encoded: dict[str, bytes] = {}
     for plant in plants:
+        if plant.plate is None:
+            continue
         record = plates[plant.id]
-        if record.get("licence") != "Public domain":
+        if record.get("licence") not in PLATE_LICENCES:
             raise ValueError(f"{plant.id}: plate licence is {record.get('licence')}")
         data = plate_jpeg(raw_root / str(record["path"]))
         name = f"plates/{plant.id}.jpg"

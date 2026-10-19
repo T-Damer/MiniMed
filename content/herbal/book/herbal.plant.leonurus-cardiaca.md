@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -67,6 +67,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Illustration_Leonurus_cardiaca0.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/leonuri-cardiacae-herba
       lastUpdated: 20/12/2010
       species: null
@@ -172,6 +173,7 @@ metadata:
         compoundRu: трава пустырника
         effectRu: автор опытов на животных сделал вывод о слабом седативном действии; из-за моделей и малого числа животных без статистики это не подтверждается с современной точки зрения
         evidence: animal
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0034

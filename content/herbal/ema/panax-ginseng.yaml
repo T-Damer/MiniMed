@@ -1,0 +1,303 @@
+# EMA/HMPC facts for Женьшень (корни). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+# Monograph EMA/HMPC/27744/2023 (Panax ginseng C.A.Mey., radix): white ginseng a)-j), red ginseng k)-m); traditional use only.
+plant: panax-ginseng
+status: proposed
+useType: traditional
+facts:
+- kind: use-type
+  ru: Традиционное растительное средство — применение основано только на длительном опыте
+  doc: monograph
+  page: 4
+  quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+- kind: indication
+  ru: Традиционное растительное средство при симптомах астении, таких как усталость и слабость
+  doc: monograph
+  page: 4
+  quote: Traditional herbal medicinal product for symptoms of asthenia such as fatigue and weakness.
+- kind: posology
+  ru: 'Белый женьшень, a) чай: взрослые и пожилые, 1000–2000 мг измельчённого сырья на 150 мл воды в виде отвара 2–3 раза в день'
+  doc: monograph
+  page: 5
+  quote: 'Posology Adults and elderly White ginseng: a) Comminuted herbal substance: Herbal tea: 1000-2000 mg of the comminuted herbal substance in 150 ml of water as a decoction 2-3 times daily'
+  dose:
+    preparationRu: a) отвар измельчённого сырья (белый женьшень)
+    amount: 1000-2000
+    unit: мг
+    waterMl: '150'
+    timesPerDay: 2-3
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, b) порошок: разовая доза 250–1200 мг, суточная 600–2000 мг; один раз в день (1200 мг) или 2–8 раз в день'
+  doc: monograph
+  page: 5
+  quote: 'b) Powdered herbal substance: Single dose: 250-1200 mg Daily dose: 600-2000 mg Dosage frequency: once daily (1200 mg), 2-8 times daily'
+  dose:
+    preparationRu: b) порошок сырья (белый женьшень)
+    amount: 250-1200
+    unit: мг
+    timesPerDay: один раз в день (1200 мг) или 2-8
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, c) сухой экстракт (DER 2–7:1, этанол 34–40 % V/V): разовая доза 90–360 мг, суточная 200–670 мг, 1–4 раза в день'
+  doc: monograph
+  page: 5
+  quote: 'c) Dry extract (DER 2-7:1), extraction solvent ethanol 34-40% V/V Single dose: 90-360 mg Daily dose: 200-670 mg Dosage frequency: 1-4 times daily'
+  dose:
+    preparationRu: c) сухой экстракт (DER 2-7:1, этанол 34-40 % V/V; белый женьшень)
+    amount: 90-360
+    unit: мг
+    timesPerDay: 1-4
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, d) сухой экстракт (DER 3–7:1, этанол 40 % V/V, 4 % гинзенозидов): разовая доза 40–200 мг, суточная 40–200 мг (в особых ситуациях в первые 5 дней можно увеличить до 600 мг), 1–2 раза в день'
+  doc: monograph
+  page: 5
+  quote: 'd) Dry extract (DER 3-7:1), extraction solvent ethanol 40% V/V, containing 4% ginsenosides (sum of Rb1, Rb2, Rc, Rd, Re, Rf, Rg1, Rg2) Single dose: 40-200 mg Daily dose: 40-200 mg (can be increased up to 600 mg in the first 5 days in special situations) Dosage frequency: 1-2 times daily'
+  dose:
+    preparationRu: d) сухой экстракт (DER 3-7:1, этанол 40 % V/V, 4 % гинзенозидов; белый женьшень)
+    amount: 40-200
+    unit: мг
+    timesPerDay: 1-2
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, e) сухой экстракт (DER 3–7:1, этанол 57,9 % V/V (=50 % m/m) – 60 % V/V): разовая доза 98–360 мг, суточная 196–525 мг, 1–4 раза в день'
+  doc: monograph
+  page: 5
+  quote: 'e) Dry extract (DER 3-7:1), extraction solvent ethanol 57.9 % V/V (=50% m/m) - 60% V/V Single dose: 98-360 mg Daily dose: 196-525 mg Dosage frequency: 1-4 times daily'
+  dose:
+    preparationRu: e) сухой экстракт (DER 3-7:1, этанол 57.9-60 % V/V; белый женьшень)
+    amount: 98-360
+    unit: мг
+    timesPerDay: 1-4
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, f) сухой экстракт (DER 3,3–5:1, метанол 60 % V/V): разовая доза 120 мг, суточная 360 мг, 3 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'f) Dry extract (DER 3.3-5:1), extraction solvent methanol 60% V/V Single dose: 120 mg Daily dose: 360 mg Dosage frequency: 3 times daily'
+  dose:
+    preparationRu: f) сухой экстракт (DER 3.3-5:1, метанол 60 % V/V; белый женьшень)
+    amount: '120'
+    unit: мг
+    timesPerDay: '3'
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, g) мягкий экстракт (DER 1,7–3,2:1, этанол 60–70 % V/V): разовая доза 300–440 мг, суточная 440–700 мг; один раз в день (440 мг) или 2 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'g) Soft extract (DER 1.7-3.2:1), extraction solvent ethanol 60%-70% V/V Single dose: 300-440 mg Daily dose: 440-700 mg Dosage frequency: once daily (440 mg) or 2 times daily'
+  dose:
+    preparationRu: g) мягкий экстракт (DER 1.7-3.2:1, этанол 60-70 % V/V; белый женьшень)
+    amount: 300-440
+    unit: мг
+    timesPerDay: один раз в день (440 мг) или 2
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, h) мягкий экстракт (DER 2–6:1, метанол 30 % V/V): разовая доза 219,8 мг, суточная 439,6 мг, 2 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'h) Soft extract (DER 2-6:1), extraction solvent methanol 30% V/V Single dose: 219.8 mg Daily dose: 439.6 mg Dosage frequency: 2 times daily'
+  dose:
+    preparationRu: h) мягкий экстракт (DER 2-6:1, метанол 30 % V/V; белый женьшень)
+    amount: '219.8'
+    unit: мг
+    timesPerDay: '2'
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, i) жидкий экстракт (DER 1:0,8–1,2, этанол 30,5 % V/V (=25 % m/m) – 34 % m/m): разовая доза 500–1250 мг, суточная 900–2500 мг, 1–2 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'i) Liquid extract (DER 1:0.8-1.2), ethanol 30.5% V/V (=25% m/m) - 34% m/m Single dose: 500 mg - 1250 mg Daily dose: 900 mg - 2500 mg Dosage frequency: 1-2 times daily'
+  dose:
+    preparationRu: i) жидкий экстракт (DER 1:0.8-1.2, этанол 30.5 % V/V; белый женьшень)
+    amount: 500-1250
+    unit: мг
+    timesPerDay: 1-2
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'белый женьшень, j) жидкий экстракт (DER 1:11–13,6, ликёрное вино): разовая доза 9,90 г, суточная 19,80 г, 2 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'j) Liquid extract (DER 1:11-13.6), extraction solvent liquor wine Single dose: 9.90 g Daily dose: 19.80 g Dosage frequency: 2 times daily'
+  dose:
+    preparationRu: j) жидкий экстракт (DER 1:11-13.6, ликёрное вино; белый женьшень)
+    amount: '9.90'
+    unit: г
+    timesPerDay: '2'
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'красный женьшень, k) порошок: разовая доза 600–1200 мг, суточная 1200–1800 мг, 1–3 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'Red ginseng: k) Powdered herbal substance: Single dose: 600 mg -1200 mg Daily dose: 1200 mg - 1800 mg Dosage frequency: 1-3 times daily'
+  dose:
+    preparationRu: k) порошок сырья (красный женьшень)
+    amount: 600-1200
+    unit: мг
+    timesPerDay: 1-3
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'красный женьшень, l) сухой экстракт (DER 2–4,5:1, этанол 60 % V/V): разовая доза 180–500 мг, суточная 360–500 мг; один раз в день (475 мг или 500 мг) или 2 раза в день'
+  doc: monograph
+  page: 6
+  quote: 'l) Dry extract (DER 2-4.5:1), extraction solvent ethanol 60% V/V Single dose: 180-500 mg Daily dose: 360-500 mg Dosage frequency: once daily (475 mg or 500 mg) or 2 times daily'
+  dose:
+    preparationRu: l) сухой экстракт (DER 2-4.5:1, этанол 60 % V/V; красный женьшень)
+    amount: 180-500
+    unit: мг
+    timesPerDay: один раз в день (475 мг или 500 мг) или 2
+    populationRu: взрослые и пожилые
+- kind: posology
+  ru: 'красный женьшень, m) мягкий экстракт (DER 2,5–3,2:1, этанол 60 % V/V): разовая доза 440 мг, суточная 440 мг, один раз в день'
+  doc: monograph
+  page: 7
+  quote: 'm) Soft extract (DER 2.5-3.2:1), extraction solvent ethanol 60% V/V Single dose: 440 mg Daily dose: 440 mg Dosage frequency: once daily'
+  dose:
+    preparationRu: m) мягкий экстракт (DER 2.5-3.2:1, этанол 60 % V/V; красный женьшень)
+    amount: '440'
+    unit: мг
+    timesPerDay: один раз
+    populationRu: взрослые и пожилые
+- kind: age
+  ru: Детям и подросткам до 18 лет применение не рекомендуется
+  doc: monograph
+  page: 7
+  quote: The use in children and adolescents under 18 years of age is not recommended
+  minAgeMonths: 216
+- kind: duration
+  ru: Длительность применения — до 3 месяцев
+  doc: monograph
+  page: 7
+  quote: Duration of use up to 3 months.
+  maxDays: 90
+- kind: duration
+  ru: Если симптомы сохраняются дольше 2 недель во время применения, обратиться к врачу или медработнику
+  doc: monograph
+  page: 7
+  quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  maxDays: 14
+- kind: posology
+  ru: Способ применения — внутрь
+  doc: monograph
+  page: 7
+  quote: Method of administration Oral use.
+- kind: contraindication
+  ru: Гиперчувствительность к женьшеню
+  doc: monograph
+  page: 7
+  quote: Hypersensitivity to the active substance.
+- kind: warning
+  ru: Применение у детей и подростков до 18 лет не установлено из-за недостатка адекватных данных
+  doc: monograph
+  page: 7
+  quote: The use in children and adolescents under 18 years of age has not been established due to lack of adequate data.
+  minAgeMonths: 216
+- kind: warning
+  ru: Если симптомы ухудшаются во время применения, обратиться к врачу или медработнику
+  doc: monograph
+  page: 7
+  quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+- kind: warning
+  ru: Для экстрактов, содержащих этанол, должна быть указана соответствующая маркировка об этаноле из руководства по вспомогательным веществам на этикетке и в листке-вкладыше
+  doc: monograph
+  page: 7
+  quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
+- kind: interaction
+  ru: Взаимодействий не описано
+  doc: monograph
+  page: 8
+  quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+- kind: pregnancy
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 8
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: lactation
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 8
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: pregnancy
+  ru: Данных о фертильности нет
+  doc: monograph
+  page: 8
+  quote: No fertility data available.
+- kind: statement
+  ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+  doc: monograph
+  page: 8
+  quote: No studies on the effect on the ability to drive and use machines have been performed.
+- kind: adverse
+  ru: 'Сообщалось о нарушениях со стороны ЖКТ: дискомфорт в желудке, тошнота, рвота, диарея и запор; частота неизвестна'
+  doc: monograph
+  page: 8
+  quote: 'Gastrointestinal disorders: stomach discomfort, nausea, vomiting, diarrhoea, and constipation have been reported. The frequency is not known.'
+- kind: adverse
+  ru: 'Сообщалось о нарушениях со стороны иммунной системы: реакции гиперчувствительности (крапивница, зуд); частота неизвестна'
+  doc: monograph
+  page: 8
+  quote: 'Immune system disorders: Hypersensitivity reactions (urticaria, itching) have been reported: The frequency is not known.'
+- kind: adverse
+  ru: 'Сообщалось о нарушениях со стороны нервной системы: бессонница; частота неизвестна'
+  doc: monograph
+  page: 8
+  quote: 'Nervous system disorders: Insomnia has been reported. The frequency is not known.'
+- kind: adverse
+  ru: При других нежелательных реакциях обратиться к врачу или медработнику
+  doc: monograph
+  page: 8
+  quote: If other adverse reactions not mentioned above occur, a doctor or a qualified health care practitioner should be consulted.
+- kind: overdose
+  ru: Случаев передозировки не описано
+  doc: monograph
+  page: 9
+  quote: No case of overdose has been reported.
+- kind: statement
+  ru: Признаков генотоксичности в тесте Эймса (штаммы Salmonella typhimurium TA 1535, TA 1537, TA 1538, TA 98 и TA 100) с метаболической активацией и без неё для экстракта на этаноле 40 % V/V (препарат d) не выявлено; это подтверждено для экстракта на этаноле 80 % в тесте Эймса по OECD-471, а также в микроядерном тесте
+  doc: monograph
+  page: 9
+  quote: No signs of genotoxicity were observed in an AMES-test (Salmonella typhimurium strains TA 1535, TA 1537, TA 1538, TA 98 and TA 100) with and without metabolic activation using an extract prepared with ethanol 40% V/V (herbal preparation d). This was confirmed with an extract prepared with ethanol 80% in a guideline- conform AMES-test (OECD-471) with and without metabolic activation as well as in a micronucleus test.
+- kind: statement
+  ru: После 2 лет приёма внутрь экстракта на этаноле 80 % в дозах до 5000 мг/кг массы тела признаков канцерогенности у мышей и крыс не выявлено
+  doc: monograph
+  page: 9
+  quote: After 2 years of oral administration of an extract prepared with ethanol 80% in dosages of up to 5000 mg/kg b.w. no signs of carcinogenicity were observed in mice or rats.
+- kind: statement
+  ru: Адекватных исследований репродуктивной токсичности не проводилось
+  doc: monograph
+  page: 9
+  quote: Adequate tests on reproductive toxicity have not been performed.
+constituents:
+- compound: ginsenosides
+  compoundRu: гинзенозиды
+  classRu: тритерпеновые сапонины (даммарановые)
+  effectRu: из корней Panax ginseng выделено около 50 гинзенозидов, в основном нейтрального бисдесмозидного типа (Rb1, Rc, Re, Rg1)
+  evidence: review
+  doc: assessment-report
+  page: 5
+  quote: So far, from the roots of Panax ginseng about 50 ginsenosides have been identified, mostly belonging to the neutral, bisdesmosidic type (Rb1, Rc, Re, Rg1),
+- compound: ginsenosides Rb1 and Rg1
+  compoundRu: гинзенозиды Rb1 и Rg1
+  classRu: тритерпеновые сапонины
+  effectRu: в клеточной культуре гинзенозиды Rb1 и Rg1, по-видимому, частично проявляли нейротрофическое и нейропротективное действие против глутамата
+  evidence: in-vitro
+  doc: assessment-report
+  page: 68
+  quote: Thus, ginsenosides Rb1 and Rg1 appeared to exert partial neurotrophic and neuroprotective functions against glutamate in cell culture.
+- compound: panaxans
+  compoundRu: панаксаны
+  classRu: полисахариды
+  effectRu: исследований панаксанов очень мало, но опыты на животных показывают, что помимо гинзенозидов к эффектам Panax ginseng могут вносить вклад и полисахариды
+  evidence: animal
+  doc: assessment-report
+  page: 67
+  quote: So far very few studies have been conducted on panaxans but these investigations in animal models show that besides the ginsenosides also polysaccharides may contribute to the effects of Panax ginseng.
+- compound: ginsenosides
+  compoundRu: гинзенозиды
+  classRu: тритерпеновые сапонины
+  effectRu: по выводу отчёта, исследования показывают, что гинзенозиды обладают широким набором биологических активностей — цитопротективной, противовоспалительной, противомикробной и противоопухолевой — в клеточных культурах, а также в опытах на животных
+  evidence: review
+  doc: assessment-report
+  page: 70
+  quote: Such investigations show that ginsenosides are constituents with a broad set of biological activities e.g. cytoprotective effects, anti-inflammatory effects, antimicrobial effects, and anti-cancer effects in various cell culture models but also in animal experiments.

@@ -33,9 +33,11 @@ from .feeding_distribution import package_feeding_module
 from .feeding_norms import FeedingSourceError, prepare_feeding_norms, verify_feeding_sources
 from .feeding_norms import report_json as feeding_report_json
 from .herbal_distribution import package_herbal_module, package_herbal_plates
-from .herbal_ema import check_ema_extractions
+from .herbal_ema import check_ema_extractions, check_who_extractions
+from .herbal_plants import load_plants
 from .herbal_prepare import prepare_herbal_book
 from .herbal_prepare import report_json as herbal_prepare_report_json
+from .herbal_safety import check_safety
 from .herbal_sources import fetch_herbal_sources
 from .herbal_sources import report_json as herbal_sources_report_json
 from .icd11_api_fetch import fetch_icd11_api
@@ -560,6 +562,42 @@ def check_herbal_ema_command(
         raise typer.Exit(1)
 
 
+@app.command("check-herbal-who")
+def check_herbal_who_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+) -> None:
+    """Check every WHO quote of the herbal extraction files against its volume and page range."""
+    monographs = {
+        plant.id: (plant.who.volume, plant.who.pages)
+        for plant in load_plants(plants)
+        if plant.who is not None
+    }
+    results = check_who_extractions(directory, raw_root, monographs)
+    typer.echo(json.dumps(results, ensure_ascii=False, indent=2))
+    if any(results.values()):
+        raise typer.Exit(1)
+
+
+@app.command("check-herbal-safety")
+def check_herbal_safety_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+) -> None:
+    """Check every safety line of the herbal book against its saved NCCIH/LactMed/LiverTox source
+    and every TR CU 021/2011 row against its page."""
+    results = check_safety(directory, raw_root, {plant.id for plant in load_plants(plants)})
+    typer.echo(json.dumps(results, ensure_ascii=False, indent=2))
+    if any(results.values()):
+        raise typer.Exit(1)
+
+
 @app.command("prepare-herbal")
 def prepare_herbal_command(
     output: Annotated[Path, typer.Option("--output", file_okay=False)],
@@ -596,6 +634,7 @@ def prepare_herbal_command(
     lookalikes: Annotated[Path, typer.Option("--lookalikes", exists=True, dir_okay=False)] = Path(
         "content/herbal/lookalikes.yaml"
     ),
+    who: Annotated[Path, typer.Option("--who", file_okay=False)] = Path("content/herbal/who"),
 ) -> None:
     """Write the herbal book chapters (ГРЛС text, EMA facts, plate records) as prepared Markdown."""
     report = prepare_herbal_book(
@@ -608,6 +647,7 @@ def prepare_herbal_command(
         ema_dir=ema,
         output=output,
         lookalikes_path=lookalikes,
+        who_dir=who,
     )
     typer.echo(herbal_prepare_report_json(report))
 

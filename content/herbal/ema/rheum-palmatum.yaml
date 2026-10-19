@@ -1,0 +1,261 @@
+# EMA/HMPC facts for Ревень дланевидный (корни); монография EMA охватывает Rheum palmatum и Rheum officinale. Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: rheum-palmatum
+status: proposed
+useType: both
+facts:
+- kind: statement
+  ru: Измельчённое сырьё или препараты из него — стандартизованные
+  doc: monograph
+  page: 3
+  quote: Comminuted herbal substance, or herbal preparations thereof, standardised.
+- kind: indication
+  ru: Кратковременно при эпизодическом запоре
+  doc: monograph
+  page: 4
+  quote: Herbal medicinal product for short-term use in cases of occasional constipation.
+- kind: posology
+  ru: Разовая доза — препарат, соответствующий 20–30 мг гидроксиантраценовых производных (в пересчёте на реин), один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул
+  doc: monograph
+  page: 4
+  quote: 'Adolescents, adults, elderly Single dose: Herbal preparation equivalent to 20-30 mg hydroxyanthracene derivatives, calculated as rhein, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.'
+  dose: {preparationRu: 'препарат, соответствующий гидроксиантраценовым производным (в пересчёте на реин), на ночь', amount: 20-30, unit: мг гидроксиантраценовых производных, timesPerDay: один, populationRu: 'подростки, взрослые и пожилые'}
+- kind: posology
+  ru: Чай — измельчённое сырьё в количестве, равном не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка в виде настоя
+  doc: monograph
+  page: 4
+  quote: 'Herbal tea: amount of comminuted herbal substance (equivalent to not more than 30 mg hydroxyanthracene derivatives) in 150 ml of boiling water as herbal infusion.'
+  dose: {preparationRu: 'чай: настой измельчённого сырья', amount: не более 30, unit: мг гидроксиантраценовых производных, waterMl: '150', populationRu: 'подростки, взрослые и пожилые'}
+- kind: posology
+  ru: Лекарственная форма должна позволять уменьшать дозу
+  doc: monograph
+  page: 4
+  quote: The pharmaceutical form must allow lower dosages.
+- kind: age
+  ru: Детям младше 12 лет противопоказано
+  doc: monograph
+  page: 4
+  quote: The use in children under 12 years of age is contraindicated
+  minAgeMonths: 144
+- kind: duration
+  ru: Не дольше 1 недели; обычно достаточно двух-трёх приёмов за эту неделю
+  doc: monograph
+  page: 4
+  quote: Not to be used for more than 1 week. Usually it is sufficient to take this medicinal product up to two to three times during that week.
+  maxDays: 7
+- kind: duration
+  ru: Если симптомы сохраняются во время применения — обратиться к врачу или фармацевту
+  doc: monograph
+  page: 4
+  quote: If the symptoms persist during the use of the medicinal product, a doctor or a pharmacist should be consulted.
+- kind: posology
+  ru: Способ применения — внутрь
+  doc: monograph
+  page: 5
+  quote: Method of administration Oral use
+- kind: contraindication
+  ru: Гиперчувствительность к действующему веществу
+  doc: monograph
+  page: 5
+  quote: Hypersensitivity to the active substance.
+- kind: contraindication
+  ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные заболевания толстой кишки (например, болезнь Крона, язвенный колит), боль в животе неясной причины, тяжёлое обезвоживание с потерей воды и электролитов
+  doc: monograph
+  page: 5
+  quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory colon diseases (e.g. Crohn’s disease, ulcerative colitis), abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion.
+- kind: contraindication
+  ru: Беременность и кормление грудью
+  doc: monograph
+  page: 5
+  quote: Pregnancy and lactation (see section 4.6 and 5.3).
+- kind: contraindication
+  ru: Дети младше 12 лет
+  doc: monograph
+  page: 5
+  quote: Children under 12 years of age.
+- kind: warning
+  ru: 'Долгого применения стимулирующих слабительных следует избегать: приём дольше короткого курса может нарушить работу кишки и вызвать зависимость от слабительных; если слабительное нужно каждый день — искать причину запора'
+  doc: monograph
+  page: 5
+  quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives. If laxatives are needed every day the cause of the constipation should be investigated.
+- kind: warning
+  ru: Препараты ревеня применяют, только если нельзя добиться эффекта изменением питания или набухающими средствами
+  doc: monograph
+  page: 5
+  quote: Rhubarb preparations should only be used if a therapeutic effect cannot be achieved by a change of diet or the administration of bulk forming agents.
+- kind: warning
+  ru: Пациенты, принимающие сердечные гликозиды, антиаритмические средства, препараты, удлиняющие интервал QT, мочегонные, кортикостероиды или корень солодки, должны проконсультироваться с врачом до приёма корня ревеня
+  doc: monograph
+  page: 5
+  quote: Patients taking cardiac glycosides, antiarrhythmic medicinal products, medicinal products inducing QT-prolongation, diuretics, adrenocorticosteroids or liquorice root, have to consult a doctor before taking rhubarb root concomitantly.
+- kind: warning
+  ru: 'Как и все слабительные, препараты корня ревеня не следует принимать при копростазе (каловой пробке) и недиагностированных острых или стойких жалобах со стороны ЖКТ (боль в животе, тошнота, рвота), кроме как по совету врача: эти симптомы могут быть признаками возможной или имеющейся кишечной непроходимости (илеуса)'
+  doc: monograph
+  page: 5
+  quote: Like all laxatives, rhubarb root preparations should not be taken by patients suffering from faecal impaction and undiagnosed, acute or persistent gastro-intestinal complaints, e.g. abdominal pain, nausea and vomiting unless advised by a doctor because these symptoms can be signs of potential or existing intestinal blockage (ileus).
+- kind: warning
+  ru: Взрослым с недержанием при приёме препаратов корня ревеня прокладки нужно менять чаще, чтобы кожа не контактировала долго с калом
+  doc: monograph
+  page: 6
+  quote: When rhubarb root preparations are administered to incontinent adults, pads should be changed more frequently to prevent extended skin contact with faeces.
+- kind: warning
+  ru: Пациентам с болезнями почек следует учитывать возможный электролитный дисбаланс
+  doc: monograph
+  page: 6
+  quote: Patients with kidney disorders should be aware of possible electrolyte imbalance.
+- kind: warning
+  ru: Если симптомы ухудшаются во время применения — обратиться к врачу или фармацевту
+  doc: monograph
+  page: 6
+  quote: If the symptoms worsen during the use of the medicinal product, a doctor or a pharmacist should be consulted.
+- kind: warning
+  ru: Для жидких форм, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
+  doc: monograph
+  page: 6
+  quote: For liquid dosage forms containing ethanol the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
+- kind: interaction
+  ru: Гипокалиемия (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмическими средствами; одновременный приём с мочегонными, кортикостероидами и корнем солодки может усиливать потерю калия
+  doc: monograph
+  page: 6
+  quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
+- kind: pregnancy
+  ru: При беременности противопоказано из-за экспериментальных данных о генотоксическом риске ряда антраноидов, например эмодина и алоэ-эмодина
+  doc: monograph
+  page: 6
+  quote: Pregnancy The use during pregnancy is contraindicated due to experimental data concerning a genotoxic risk of several anthranoids, e.g. emodin and aloe-emodin.
+- kind: lactation
+  ru: 'При кормлении грудью противопоказано: после приёма антраноидов активные метаболиты, такие как реин, в небольших количествах выделялись в грудное молоко'
+  doc: monograph
+  page: 6
+  quote: Lactation The use during lactation is contraindicated because after administration of anthranoids, active metabolites, such as rhein, were excreted in breast milk in small amounts.
+- kind: pregnancy
+  ru: Данных о фертильности нет
+  doc: monograph
+  page: 7
+  quote: No fertility data are available (see section 5.3 preclinical safety data).
+- kind: statement
+  ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+  doc: monograph
+  page: 7
+  quote: No studies on the effect on the ability to drive and use machines have been performed.
+- kind: adverse
+  ru: Могут возникать реакции гиперчувствительности (зуд, крапивница, местная или генерализованная экзантема)
+  doc: monograph
+  page: 7
+  quote: Hypersensitivity reactions (pruritus, urticaria, local or generalised exanthema) may occur.
+- kind: adverse
+  ru: Корень ревеня может вызывать боль и спазмы в животе и жидкий стул, особенно при раздражённой толстой кишке; эти симптомы могут возникать и вследствие индивидуальной передозировки — тогда нужно уменьшить дозу
+  doc: monograph
+  page: 7
+  quote: Rhubarb root may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon. However, these symptoms may also occur generally as consequence of individual overdosage. In such cases dose reduction is necessary.
+- kind: adverse
+  ru: При длительном приёме — окрашивание слизистой кишки (псевдомеланоз), которое обычно проходит после отмены препарата
+  doc: monograph
+  page: 7
+  quote: Furthermore, chronic use may cause pigmentation of the intestinal mucosa (pseudomelanosis coli), which usually recedes when the patient stops taking the preparation.
+- kind: adverse
+  ru: При длительном приёме — нарушение водно-электролитного баланса, возможны альбуминурия и гематурия
+  doc: monograph
+  page: 7
+  quote: Long-term use may lead to water and electrolyte imbalance and may result in albuminuria and haematuria.
+- kind: adverse
+  ru: Моча может окраситься метаболитами в жёлтый или красно-коричневый цвет (зависит от pH) — клинического значения это не имеет
+  doc: monograph
+  page: 7
+  quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during treatment.
+- kind: adverse
+  ru: При других нежелательных реакциях, не названных выше, — обратиться к врачу или фармацевту
+  doc: monograph
+  page: 7
+  quote: If other adverse reactions not mentioned above occur, a doctor or a pharmacist should be consulted.
+- kind: overdose
+  ru: Основные симптомы передозировки или злоупотребления — схваткообразная боль и сильный понос с потерей жидкости и электролитов; лечение поддерживающее, обильное питьё, контроль электролитов, особенно калия; это особенно важно у пожилых
+  doc: monograph
+  page: 8
+  quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, especially potassium, should be monitored. This is especially important in the elderly.
+- kind: overdose
+  ru: Хронический приём избыточных доз препаратов с антраноидами может приводить к токсическому гепатиту
+  doc: monograph
+  page: 8
+  quote: Chronic ingested overdoses of anthranoid containing medicinal products may lead to toxic hepatitis.
+- kind: statement
+  ru: Фармакотерапевтическая группа — контактные слабительные; 1,8-дигидроксиантраценовые производные оказывают слабительное действие
+  doc: monograph
+  page: 8
+  quote: 'Pharmaco-therapeutic group: contact laxatives ATC-code: A06AB 1,8-dihydroxyanthracene derivatives possess a laxative effect.'
+- kind: statement
+  ru: Из двух механизмов действия первый — усиление моторики толстой кишки с ускорением транзита по ободочной кишке
+  doc: monograph
+  page: 8
+  quote: 'There are two different mechanisms of action: 1. Stimulation of the motility of the large intestine resulting in accelerated colonic transit.'
+- kind: statement
+  ru: 'Второй механизм — влияние на секрецию: угнетение всасывания воды и электролитов (Na+, Cl-) в эпителиальные клетки толстой кишки (антиабсорбтивный эффект) и повышение проницаемости плотных контактов со стимуляцией секреции воды и электролитов в просвет толстой кишки (секретогенный эффект)'
+  doc: monograph
+  page: 8
+  quote: 2. Influence on secretion processes by two concomitant mechanisms viz. inhibition of absorption of water and electrolytes (Na+, Cl-) into the colonic epithelial cells (antiabsorptive effect) and increase of the leakiness of the tight junctions and stimulation of secretion of water and electrolytes into the lumen of the colon (secretagogue effect)
+- kind: statement
+  ru: Дефекация наступает с задержкой 8–12 часов — время на транспорт в толстую кишку и превращение в активное вещество
+  doc: monograph
+  page: 9
+  quote: Defaecation takes place after a delay of 8-12 hours due to the time taken for transport to the colon and metabolisation into the active compound.
+- kind: statement
+  ru: У крыс Sprague Dawley при приёме суммарных антрахинонов Rheum palmatum в течение 13 недель в наибольшей дозе выявлена нефротоксичность
+  doc: monograph
+  page: 9
+  quote: Total rhubarb (from Rheum palmatum L.) anthraquinones were orally administered for 13 weeks to Sprague Dawley rats at a dose of 0, 140, 794, 4500 mg/kg bw. In the highest dose group, nephrotoxicity was discernible at 13 weeks.
+- kind: statement
+  ru: Другие токсикологические данные о корне ревеня и его препаратах отсутствуют
+  doc: monograph
+  page: 9
+  quote: No further toxicological data are available for rhubarb root itself or preparations thereof.
+- kind: statement
+  ru: Ряд гидроксиантраценовых производных был мутагенным и генотоксичным в нескольких системах in vitro, но in vivo это не доказано; в длительных исследованиях канцерогенности отмечены эффекты в почках и толстой кишке/слепой кишке
+  doc: monograph
+  page: 10
+  quote: Furthermore, several hydroxyl anthracene derivatives were mutagenic and genotoxic in several in vitro test systems, however this was not proven in in vivo systems. In long term carcinogenicity studies effects on kidneys and colon/caecum were reported.
+- kind: lookalike
+  ru: Нужны дополнительные исследования, чтобы выяснить, не были ли исследованные образцы фальсификатами, в основном с Rheum rhapontium; по Европейской фармакопее надо показать, что сырьё не содержит рапонтицин
+  doc: assessment-report
+  page: 4
+  quote: Further investigations are necessary to clarify the analytic and the kind of herbal substances investigated whether these were not any falsifications (Blaschek et al. 2004) mostly with Rheum rhapontium. According to the European Pharmacopoeia it has to be shown that, the herbal substance does not contain rhaponticin (European Pharmacopoeia 9:0291).
+constituents:
+- compound: hydroxyanthracene derivatives
+  compoundRu: гидроксиантраценовые производные
+  classRu: антраноиды
+  effectRu: ревень содержит сложную смесь различных гидроксиантраценовых производных, их количество составляет 3–12 % в зависимости от метода определения
+  evidence: review
+  doc: assessment-report
+  page: 4
+  quote: Rhubarb contains a complex mixture of different hydroxanthracene derivatives. The amount is 3 to 12% depending on the method of determination.
+- compound: dianthrone glycosides (sennosides)
+  compoundRu: диантроновые гликозиды (сеннозиды)
+  classRu: антраноиды
+  effectRu: диантроновые гликозиды (сеннозиды) тоже присутствуют, 10–25 %
+  evidence: review
+  doc: assessment-report
+  page: 4
+  quote: Dianthrone glycosides (sennosides) are also present (10-25%).
+- compound: tannins
+  compoundRu: дубильные вещества
+  classRu: таннины
+  effectRu: содержание дубильных веществ, возможно, противодействует слабительному эффекту антрахинонов, поэтому ревень считают более мягким слабительным, чем другие антрахиноны
+  evidence: review
+  doc: assessment-report
+  page: 18
+  quote: The content of tannin agents may possibly counteract the laxative effect of the anthraquinones and rhubarb is therefore considered a milder laxative than other anthraquinones.
+- compound: aloe-emodin anthrone and rhein anthrone
+  compoundRu: алоэ-эмодин-антрон и реин-антрон
+  classRu: антроны (метаболиты антрахинонов)
+  effectRu: авторы заключают, что синергичный слабительный эффект у мышей объясняется синергичной стимуляцией транзита по толстой кишке и секреции воды в толстой кишке
+  evidence: animal
+  doc: assessment-report
+  page: 10
+  quote: The authors conclude that the synergistic purgative effect of aloe-emodin anthrone and rhein anthrone in mice results from synergistic stimulation of large intestinal transit and large intestinal water secretion.
+- compound: rhein
+  compoundRu: реин
+  classRu: антрахинон
+  effectRu: при скрининге in vitro экстрактов 178 китайских трав против Bacteroides fragilis значимую активность показал только экстракт корня ревеня (Rheum officinale; 70 % ТГФ-экстракт); очищенное активное вещество идентифицировано как реин
+  evidence: in-vitro
+  doc: assessment-report
+  page: 11
+  quote: Cyong et al. (1987) screened in vitro extracts of 178 Chinese herbs for their antibacterial activity against Bacteroides fragilis, a major anaerobic microorganism in the intestinal flora in humans. Only rhubarb root extract (Rheum officinale; 70%THF extract) was found to have significant activity and the purified active substance was identified as rhein.

@@ -1,0 +1,140 @@
+# WHO monograph facts for Череда трёхраздельная (трава). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: bidens-tripartita
+status: proposed
+useType: both
+facts:
+  - kind: indication
+    ru: "ВОЗ: подтверждено клиническими данными — внутрь при хронической дизентерии, остром и хроническом энтерите"
+    doc: monograph
+    page: 50
+    quote: Internally used for treatment of chronic dysentery, and acute and chronic enteritis (35).
+  - kind: indication
+    ru: "ВОЗ: подтверждено клиническими данными — приём внутрь с одновременным наружным применением использовали у больных псориазом"
+    doc: monograph
+    page: 50
+    quote: Oral administration and simultaneous external application have been used in patients with psoriasis (17).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — внутрь как слабое потогонное и мочегонное при заболеваниях мочевого пузыря и почек, при состояниях с кровью в моче (гематурии)"
+    doc: monograph
+    page: 50
+    quote: "Uses described in pharmacopoeias and well-established documents Internally: as a mild sudorific and diuretic for treatment of bladder and kidney problems, for conditions producing blood in the urine (haematuria) (36)"
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — как вяжущее, при диарее и язвенном колите"
+    doc: monograph
+    page: 50
+    quote: as an astringent, and for treatment of diarrhoea and ulcerative colitis (15, 28).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — как мочегонное, противодиарейное, противоаллергическое, противовоспалительное, глистогонное, жаропонижающее, потогонное, при заболеваниях жёлчного пузыря и как тонизирующее для почек"
+    doc: monograph
+    page: 50
+    quote: "Uses described in traditional medicine As a diuretic, antidiarrhoeal, antiallergic, anti-inflammatory (37), anthelminthic, febrifuge, diaphoretic, for gallbladder and as a kidney tonic (38)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — при алопеции, золотухе, подагре, артралгии, фурункулёзе, диатезе, себорейном дерматите, угревой болезни, экземе, рахите у детей, заболеваниях пищеварительного тракта, метеоризме, лихорадке, камнях мочевого пузыря и почек, как кровоостанавливающее и при укусах насекомых"
+    doc: monograph
+    page: 50
+    quote: "Used for the treatment of alopecia (4), scrofulosis (39), gout, arthralgia (40), furunculosis, diathesis (a constitutional predisposition towards a particular state or condition and especially one that is abnormal or diseased), seborrhoeic dermatitis, acne vulgaris (17, 27, 41–43), eczema (44), infantile rickets (45, 46), digestive tract ailments, flatulence, fevers, bladder and kidney stones, as a styptic haemostatic and for curing insect bites (47)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — наружно в виде ванны при разных состояниях диатеза, особенно у детей"
+    doc: monograph
+    page: 50
+    quote: Used externally as a bath for various diathesis conditions, especially in children (28).
+  - kind: posology
+    ru: "Лекарственные формы: травяной чай или брикет"
+    doc: monograph
+    page: 52
+    quote: A herbal tea or a briquette of Herba Bidentis (17).
+  - kind: posology
+    ru: Внутрь — столовая ложка настоя (1:20) 3–4 раза в день
+    doc: monograph
+    page: 52
+    quote: "Internal use. One tablespoon of the infusion (1:20) is administered 3–4 times a day (46, 53)."
+    dose: { preparationRu: "настой (1:20), столовая ложка", amount: "1", unit: столовая ложка настоя, timesPerDay: "3-4", populationRu: возраст не указан }
+  - kind: posology
+    ru: "Наружно, в виде ванны: стакан настоя из 10 г измельчённой травы вместе со 100 г поваренной или морской соли на ванну"
+    doc: monograph
+    page: 52
+    quote: "External use as a bath. One glass of an infusion of 10 g of cut herb together with 100 g of cooking salt or sea salt per bath (54)."
+    dose: { preparationRu: "настой измельчённой травы со 100 г соли, стакан на ванну", amount: "10", unit: г, populationRu: возраст не указан }
+  - kind: contraindication
+    ru: Ирригационная терапия не рекомендуется при отёках, вызванных нарушением функции сердца или почек
+    doc: monograph
+    page: 52
+    quote: No irrigation therapy is recommended in people with oedema due to impaired heart or kidney function.
+  - kind: contraindication
+    ru: При появлении признаков реакций гиперчувствительности траву череды повторно применять нельзя
+    doc: monograph
+    page: 52
+    quote: If signs of hypersensitivity reactions appear, Herba Bidentis must not be used again.
+  - kind: adverse
+    ru: Сведений о нежелательных реакциях не найдено
+    doc: monograph
+    page: 52
+    quote: Adverse reactions No information was found.
+  - kind: interaction
+    ru: Сведений о лекарственных взаимодействиях не найдено
+    doc: monograph
+    page: 52
+    quote: Drug interactions No information was found.
+  - kind: pregnancy
+    ru: Препараты травы череды не следует применять при беременности
+    doc: monograph
+    page: 52
+    quote: Preparations of Herba Bidentis should not be used during pregnancy.
+  - kind: lactation
+    ru: Препараты травы череды не следует применять кормящим матерям
+    doc: monograph
+    page: 52
+    quote: Preparations of Herba Bidentis should not be used by nursing mothers.
+  - kind: age
+    ru: Препараты травы череды не следует применять для лечения детей младше 12 лет
+    doc: monograph
+    page: 52
+    quote: Preparations of Herba Bidentis should not be used for the treatment of children under the age of 12 years.
+    minAgeMonths: 144
+  - kind: statement
+    ru: "Этанольно-водный экстракт (1:1) надземных частей при внутрибрюшинном введении мышам: средняя летальная доза 750 мг/кг массы тела"
+    doc: monograph
+    page: 51
+    quote: An ethanol-aqueous extract (1:1) of the aerial parts administered intraperitoneally to mice had a median lethal dose of 750 mg/kg bw (52).
+constituents:
+  - compound: flavonoids, chalcones, flavanones and aurones
+    compoundRu: флавоноиды, халконы, флаваноны и ауроны
+    classRu: флавоноиды
+    effectRu: основные компоненты высушенных надземных частей — флавоноиды (лютеолин, цинарозид), родственные халконы (бутеин, бутеин-7-O-β-D-глюкопиранозид и мареин), флаваноны (изокореопсин и флавономареин) и ауроны (сульфуретин, сульфурейн, маритиметин и маритимеин)
+    evidence: review
+    doc: monograph
+    page: 49
+    quote: "The major constituents of the dried aerial parts are flavonoids (luteolin, cynaroside), related chalcones (butein, butein-7-O-β−d-glucopyranoside and marein), flavanones (isocoreopsin and flavanomarein) and aurones (sulfuretin, sulfurein, maritimetin and maritimein)"
+  - compound: total flavonoids of the aerial parts
+    compoundRu: суммарные флавоноиды надземных частей
+    classRu: флавоноиды
+    effectRu: при приёме внутрь крысам (500 мг/кг массы тела) вызывали значительный желчегонный эффект; затем отмечено увеличение холевых кислот и холестерина в жёлчи
+    evidence: animal
+    doc: monograph
+    page: 50
+    quote: Oral administration of the total flavonoids isolated from the aerial parts of the plant to rats (500 mg/kg body weight (bw)) significantly induced choleretic activity. Subsequently, an increase of cholic acids and cholesterol in bile was observed (49).
+  - compound: extract of the aerial parts (PUVA-haemolysis)
+    compoundRu: экстракт надземных частей (ПУВА-гемолиз)
+    classRu: экстракты
+    effectRu: гемолиз, вызванный in vitro псораленом и УФ-А-облучением (ПУВА-гемолиз), подавлялся экстрактом надземных частей, добавленным в среду во время облучения или после ПУВА-обработки
+    evidence: in-vitro
+    doc: monograph
+    page: 51
+    quote: Haemolysis induced in vitro by psoralen and UV-A radiation (PUVA-haemolysis) was inhibited by the presence of an extract of the aerial parts of the plant in the medium during irradiation, or by the addition of the extract to the medium after PUVA-treatment.
+  - compound: aerial parts (herbal preparations) in dysentery and enteritis
+    compoundRu: надземные части (травяные препараты) при дизентерии и энтерите
+    classRu: клиническое исследование
+    effectRu: открытое исследование без контрольной группы; препараты вводили 3–10 дней больным, у которых диарея уже длилась 7–15 дней; из 500 больных хронической дизентерией сообщено о выздоровлении 387, у 13 ответа в течение 3 дней не было
+    evidence: clinical
+    doc: monograph
+    page: 51
+    quote: "Aerial parts of the plant were used in an open clinical trial, without a control group, to treat 500 patients with dysentery, 65 with acute enteritis and 248 with chronic enteritis. Several different dosage forms of the herb were used: 200 g of fresh whole herb and 100 g of dried herb in decoctions (in three divided doses per day); granules containing 5 g of dried aqueous extract, three times daily; 0.5 g tablets of dried aqueous extract, 10 tablets each time, three times daily; and injection, 2 ml per injection (dose not stated), 2–3 times daily. The herbal preparations were administered for 3–10 days to patients who had already had diarrhoea for 7–15 days. Of the 500 patients with chronic dysentery, 387 were reported to have been cured; 13 had not responded within 3 days."
+  - compound: 70% ethanol extract of the aerial parts and ointment with 2.5% extract
+    compoundRu: 70 % этанольный экстракт надземных частей и мазь с 2,5 % экстракта
+    classRu: клиническое исследование
+    effectRu: открытое исследование без контрольной группы у 53 больных псориазом (экстракт внутрь по 20 капель три раза в день и мазь на поражённую кожу один раз в день); клиническое выздоровление у 29 больных, улучшение у 22, неудача лечения у 2
+    evidence: clinical
+    doc: monograph
+    page: 51
+    quote: In an open clinical trial without a control group, a 70% ethanol extract of the aerial parts of the plant and an ointment containing 2.5% of the extract were administered to 53 patients with psoriasis. After oral administration of the extract (20 drops three times daily) and simultaneous application of the ointment to the affected areas of the skin once a day, the combination was found to have anti-inflammatory activity as well as an ability to stimulate adrenal functions. After one week of treatment, desquamation of the skin was decreased, and a decoloration of the psoriatic plaques was observed. A clinical recovery was recorded for 29 of the patients; an improvement in condition was recorded for 22 patients; and a failure of treatment for 2 patients (17).

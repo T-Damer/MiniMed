@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -64,6 +64,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Capsella_bursa-pastoris_Sturm23.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/bursae-pastoris-herba
       lastUpdated: 22/12/2011
       species: null
@@ -240,6 +241,7 @@ metadata:
         classRu: глюкозинолат (горчичный гликозид)
         effectRu: после гидролиза растительным ферментом мирозиназой даёт аллилизотиоцианат — сильное раздражающее вещество, вызывающее волдыри на коже
         evidence: review
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0090

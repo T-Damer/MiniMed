@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/01/30/1513255/bb2a6d10-8679-45ed-8b9b-220c1421e116.pdf
-source_checksum: sha256:e0b790071297209c7f15c8c9f1e5803c2263ea7bd85ce939e1d62f25a9271e3a
+source_checksum: sha256:a8a0ba455338fb63bf4a297683d70b36f05fdd94b02a260262ff0820a1aa4ef0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -64,6 +64,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Sambucus_nigra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-127.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/sambuci-flos
       lastUpdated: 27/06/2018
       species: null
@@ -88,11 +89,6 @@ metadata:
         quote: Traditional herbal medicinal product used for the relief of early symptoms of common cold.
         kind: indication
         ru: Традиционное растительное средство для облегчения ранних симптомов простуды
-      - doc: monograph
-        page: 3
-        quote: 'ii) Herbal preparations a) Comminuted herbal substance. b) Liquid extract (DER 1:1), extraction solvent: ethanol 25 % V/V c) Tincture (1:5) extraction solvent: ethanol 25 % V/V'
-        kind: statement
-        ru: 'Препараты: a) измельчённое сырьё; b) жидкий экстракт (DER 1:1, этанол 25 % V/V); c) настойка (1:5, этанол 25 % V/V)'
       - doc: monograph
         page: 4
         quote: 'Adolescents, adults and elderly a) Single dose: Herbal tea: 2-5 g of the herbal substance or comminuted herbal substance in 150 ml boiling water as a herbal infusion three times daily.'
@@ -268,6 +264,7 @@ metadata:
         classRu: экстракт
         effectRu: у крыс внутрижелудочное введение настоя цветков (20 мл/кг) или экстракта, богатого калием и флавоноидами, вызывало диурез; эффект был сильнее, чем у теофиллина (5 мг/кг)
         evidence: animal
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0008.15

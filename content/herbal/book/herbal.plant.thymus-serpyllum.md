@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/30/1524942/3ff76436-6cd7-4ba9-a52c-c17733e37030.pdf
-source_checksum: sha256:f3ad88ce4dc4c662a568ac993af0e84b1f25f240d710f32b5cd848e15a664a11
+source_checksum: sha256:022cfcb47fc50090e3b1675fe49a4c970441c7e2661484c4491f5821023099fd
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -68,6 +68,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Thymus_serpyllum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-138.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba
       lastUpdated: 14/10/2016
       species: Thymus vulgaris L., Thymus zygis L.
@@ -90,11 +91,6 @@ metadata:
         quote: Thymus vulgaris L. and Thymus zygis L., or a mixture of both species, herba (thyme)
         kind: statement
         ru: Монография EMA охватывает траву Thymus vulgaris L. и Thymus zygis L. или смесь обоих видов (тимьян)
-      - doc: assessment-report
-        page: 4
-        quote: 'Thyme, Thymi herba (European Pharmacopoeia) Whole leaves and flowers separated from the previously dried stems of Thymus vulgaris L. or Thymus zygis L. or a mixture of both species. Minimum content of essential oil: 1.2% with minimum 40% thymol + carvacrol.'
-        kind: statement
-        ru: Сырьё по Европейской фармакопее — цельные листья и цветки, отделённые от предварительно высушенных стеблей Thymus vulgaris L. или Thymus zygis L. или смеси обоих видов; минимальное содержание эфирного масла 1,2%, при этом не менее 40% тимола + карвакрола
       - doc: assessment-report
         page: 4
         quote: there are at least 6 chemotypes of Thymus vulgaris (Thompson 2003) with different compositions of the essential oil; only the ‘thymol’-type with thymol as predominant compound complies with the definition in the European Pharmacopoeia.
@@ -411,6 +407,7 @@ metadata:
         classRu: оценка EMA
         effectRu: по оценке EMA, использованные в этих опытах концентрации слишком высоки, чтобы быть значимыми для механизма действия у человека
         evidence: review
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0047.15

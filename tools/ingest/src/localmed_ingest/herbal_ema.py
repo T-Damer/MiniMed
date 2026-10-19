@@ -256,6 +256,46 @@ def ema_documents(raw_root: Path, plant_id: str) -> dict[str, Path]:
     return {kind: raw_root / item["path"] for kind, item in entry["documents"].items()}
 
 
+def who_documents(raw_root: Path, volume: str) -> dict[str, Path]:
+    """The downloaded WHO volume as the single «monograph» document of a WHO extraction."""
+    manifest = json.loads((raw_root / "MANIFEST.json").read_text(encoding="utf-8"))
+    return {"monograph": raw_root / manifest["who"][volume]["path"]}
+
+
+def validate_who_extraction(
+    extraction: EmaExtraction, documents: dict[str, Path], pages: tuple[int, int]
+) -> list[str]:
+    """The EMA checks, plus: every quote lies within the plant's monograph in its WHO volume."""
+    problems = validate_ema_extraction(extraction, documents)
+    quotes: list[Quote] = [*extraction.facts, *extraction.constituents]
+    for index, item in enumerate(quotes):
+        if item.doc != "monograph":
+            problems.append(f"item {index}: WHO facts cite only the monograph, not {item.doc}")
+        if not pages[0] <= item.page <= pages[1]:
+            problems.append(f"item {index}: page {item.page} is outside the monograph {pages}")
+    return problems
+
+
+def check_who_extractions(
+    directory: Path, raw_root: Path, monographs: dict[str, tuple[str, tuple[int, int]]]
+) -> dict[str, list[str]]:
+    """Validate every WHO ``<plant>.yaml``; ``monographs`` maps a plant to (volume, pages)."""
+    results: dict[str, list[str]] = {}
+    for path in sorted(directory.glob("*.yaml")):
+        extraction = load_extraction(path)
+        if extraction.plant != path.stem:
+            results[path.stem] = [f"file names plant {extraction.plant}"]
+            continue
+        if extraction.plant not in monographs:
+            results[path.stem] = ["the plant list gives no WHO monograph for this plant"]
+            continue
+        volume, pages = monographs[extraction.plant]
+        results[path.stem] = validate_who_extraction(
+            extraction, who_documents(raw_root, volume), pages
+        )
+    return results
+
+
 def check_ema_extractions(directory: Path, raw_root: Path) -> dict[str, list[str]]:
     """Validate every ``<plant>.yaml`` in ``directory``; returns problems per plant (empty = ok)."""
     results: dict[str, list[str]] = {}

@@ -39,9 +39,9 @@ test('installs «Травник», opens a chapter and shows a source quote', as
 
   await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/herbal`);
   const offer = page.locator('.herbal-book__offer');
-  await expect(offer).toContainText('39 растений', { timeout: 60_000 });
+  await expect(offer).toContainText('71 растение', { timeout: 60_000 });
   await offer.getByRole('button', { name: /^Скачать/u }).click();
-  await expect(page.locator('.herbal-card')).toHaveCount(39, { timeout: 120_000 });
+  await expect(page.locator('.herbal-card')).toHaveCount(71, { timeout: 120_000 });
 
   // The plates are an image pack offered inside the book.
   await page.locator('.herbal-book__plates-offer').getByRole('button').first().click();
@@ -75,4 +75,10 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   );
   await expect(page.locator('.document-overlay-paper')).toContainText('Как узнать');
   await expect(page.locator('.document-overlay-paper')).toContainText('ФС.2.5.0045');
+
+  // A plant of the federal Red Book carries the badge with its category of rarity.
+  await openChapter(page, 'Женьшень настоящий');
+  await expect(page.locator('.herbal-redbook')).toContainText(
+    '1 — находящиеся под угрозой исчезновения',
+  );
 });

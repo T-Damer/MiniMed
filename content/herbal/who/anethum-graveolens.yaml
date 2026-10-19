@@ -1,0 +1,119 @@
+# WHO monograph facts for Укроп пахучий (плоды). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: anethum-graveolens
+status: proposed
+useType: traditional
+facts:
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — лечение диспепсии, гастрита, метеоризма и боли в желудке"
+    doc: monograph
+    page: 44
+    quote: Uses described in pharmacopoeias and well established documents Treatment of dyspepsia (25), gastritis and flatulence (1, 26), and stomach ache (27).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — как афродизиак, обезболивающее, жаропонижающее, мочегонное, эмменагогное, галактагогное средство, стимулятор аппетита и вагинальный контрацептив"
+    doc: monograph
+    page: 44
+    quote: Uses described in traditional medicine As an aphrodisiac, analgesic, antipyretic, diuretic, emmenagogue, galactagogue, appetite stimulant and vaginal contraceptive.
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — лечение диареи, астмы, невралгии, дизурии, дисменореи, заболеваний жёлчного пузыря, бессонницы, грыжи пищеводного отверстия диафрагмы и почечных камней"
+    doc: monograph
+    page: 44
+    quote: Treatment of diarrhoea, asthma, neuralgia, dysuria, dysmenorrhoea, gallbladder disease, insomnia, hiatus hernia and kidney stones (9, 26–29).
+  - kind: posology
+    ru: Средняя суточная доза плодов укропа — 3 г (или эквивалент в других препаратах)
+    doc: monograph
+    page: 46
+    quote: "Average daily dose: Fructus Anethi 3 g; essential oil 0.1–0.3 g; or equivalent for other preparations (25)."
+    dose: { preparationRu: плоды укропа (суточная доза), amount: "3", unit: г, populationRu: возраст не указан }
+  - kind: posology
+    ru: Средняя суточная доза эфирного масла — 0,1–0,3 г (или эквивалент в других препаратах)
+    doc: monograph
+    page: 46
+    quote: "Average daily dose: Fructus Anethi 3 g; essential oil 0.1–0.3 g; or equivalent for other preparations (25)."
+    dose: { preparationRu: эфирное масло (суточная доза), amount: "0.1-0.3", unit: г, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Лекарственные формы: сушёные плоды для чаёв, эфирное масло и другие галеновые препараты для внутреннего применения"
+    doc: monograph
+    page: 46
+    quote: Dried fruits for teas, essential oil and other galenical preparations for internal applications.
+  - kind: contraindication
+    ru: "Применение плодов укропа при беременности и кормлении грудью не рекомендуется: традиционно экстракты плодов (семян) использовали как контрацептив и для стимуляции родов; экстракты плодов могут оказывать тератогенное действие"
+    doc: monograph
+    page: 45
+    quote: Traditionally, extracts of fruits (seeds) have been used as a contraceptive and to induce labour (4). Furthermore, extracts of the fruits may have teratogenic effects (39). Therefore, the use of Fructus Anethi during pregnancy and nursing is not recommended.
+  - kind: pregnancy
+    ru: Применение плодов укропа при беременности не рекомендуется
+    doc: monograph
+    page: 45
+    quote: Therefore, the use of Fructus Anethi during pregnancy and nursing is not recommended.
+  - kind: lactation
+    ru: Применение плодов укропа при кормлении грудью не рекомендуется
+    doc: monograph
+    page: 45
+    quote: Therefore, the use of Fructus Anethi during pregnancy and nursing is not recommended.
+  - kind: adverse
+    ru: Сообщалось об аллергических реакциях на плоды укропа (зуд во рту, отёк языка и горла, крапивница, а также рвота и диарея) у одного пациента с аллергическим ринитом в анамнезе
+    doc: monograph
+    page: 45
+    quote: Allergic reactions to Fructus Anethi including oral pruritus, tongue and throat swelling and urticaria, as well as vomiting and diarrhoea were reported in one patient with a history of allergic rhinitis (38).
+  - kind: interaction
+    ru: Сведений о мерах предосторожности при лекарственных взаимодействиях и взаимодействиях с лабораторными тестами нет
+    doc: monograph
+    page: 46
+    quote: No information available on general precautions or precautions concerning drug interactions; drug and laboratory test interactions; teratogenic effects during pregnancy; or paediatric use.
+  - kind: statement
+    ru: Хлороформ-метанольный (2:1) экстракт плодов не обладал мутагенностью в концентрациях до 100,0 мг на чашку в тесте Salmonella/микросомы на штаммах S. typhimurium TA98 и TA100 с метаболической активацией и без неё; 95 % этанольный экстракт также не проявлял мутагенной активности в этой системе
+    doc: monograph
+    page: 46
+    quote: A chloroform–methanol (2:1) extract of the fruits was not mutagenic in concentrations up to 100.0 mg/plate in the Salmonella/microsome assay using S. typhimurium strains TA98 and TA100, with or without metabolic activation. A 95% ethanol extract was also without mutagenic activity in the same test system (40).
+  - kind: statement
+    ru: Эфирное масло из плодов было цитотоксично для лимфоцитов человека in vitro и активно в тестах на хромосомные аберрации и обмен сестринских хроматид в той же системе; in vivo в тесте на соматические мутации и рекомбинацию у Drosophila melanogaster масло было неактивно
+    doc: monograph
+    page: 46
+    quote: An essential oil prepared from the fruits was cytotoxic to human lymphocytes in vitro, and was active in the chromosome aberration and sister chromatid exchange tests in the same system. The oil was inactive in the Drosophila melanogaster somatic mutation and recombination test in vivo (41).
+  - kind: statement
+    ru: "По отчёту национального регулирующего органа, плодам укропа в 1976 г. присвоен статус «в целом признаётся безопасным» как ароматизатору"
+    doc: monograph
+    page: 45
+    quote: In a report by a national regulatory authority “generally regarded as safe status” was granted to Fructus Anethi as a flavouring agent in 1976 (37).
+constituents:
+  - compound: essential oil (carvone)
+    compoundRu: эфирное масло (карвон)
+    classRu: эфирное масло
+    effectRu: плоды содержат 2–5 % эфирного масла, главный компонент которого — карвон (20–60 %)
+    evidence: review
+    doc: monograph
+    page: 43
+    quote: Contains 2–5% essential oil, the major constituent of which is carvone (20–60%) (11, 21, 22).
+  - compound: 50% ethanol extract of the fruits
+    compoundRu: 50 % этанольный экстракт плодов
+    classRu: экстракт
+    effectRu: подавлял сокращения подвздошной кишки морской свинки, вызванные ацетилхолином и гистамином, in vitro
+    evidence: in-vitro
+    doc: monograph
+    page: 44
+    quote: A 50% ethanol extract of Fructus Anethi inhibited acetylcholine- and histamine-induced contractions of guinea-pig ileum in vitro (30).
+  - compound: 10% aqueous extract of the fruits and 5% aqueous solution of the essential oil
+    compoundRu: 10 % водный экстракт плодов и 5 % водный раствор эфирного масла
+    classRu: экстракт, эфирное масло
+    effectRu: у мышей оказывали обезболивающее действие в тестах горячей пластины и уксусных корчей
+    evidence: animal
+    doc: monograph
+    page: 45
+    quote: A 10% aqueous extract of the fruits and a 5% aqueous solution of the essential oil had analgesic effects in mice as assessed in the hot plate and acetic acid writhing tests.
+  - compound: 50% ethanol extract of the fruits
+    compoundRu: 50 % этанольный экстракт плодов
+    classRu: экстракт
+    effectRu: однократная доза 250,0 мг/кг массы тела внутрижелудочно у голодных крыс снижала уровень глюкозы в крови на 30 % по сравнению с контролем
+    evidence: animal
+    doc: monograph
+    page: 45
+    quote: A single intragastric dose of 250.0 mg/kg bw of a 50% ethanol extract of the fruits to fasted rats reduced blood glucose levels by 30% compared with controls (30).
+  - compound: 70% dried ethanol extract of the fruits
+    compoundRu: 70 % сухой этанольный экстракт плодов
+    classRu: экстракт
+    effectRu: внутривенно в дозе 12,5 мг/кг массы тела (в физиологическом растворе) собакам вызывал диуретический эффект с ростом объёма мочи в 2,2 раза
+    evidence: animal
+    doc: monograph
+    page: 45
+    quote: Intravenous administration of 12.5 mg/kg bw of a 70% dried ethanol extract of the fruits, dissolved in normal saline, to dogs had a diuretic effect, with a 2.2-fold increase in urine output.

@@ -58,13 +58,13 @@ function HerbalHelp(): JSX.Element {
       </p>
       <p class="herbal-help__text">
         Способ приготовления, показания и противопоказания — из инструкций ГРЛС на лекарственное
-        растительное сырьё. Ограничения, дозы и действующие вещества — из монографий и отчётов
-        EMA/HMPC: русская строка, по нажатию — английская цитата и страница. Эти строки пока
-        черновик, врач их не проверял.
+        растительное сырьё, если оно зарегистрировано. Ограничения, дозы и действующие вещества — из
+        монографий EMA/HMPC, а где их нет — из монографий ВОЗ: русская строка, по нажатию —
+        английская цитата и страница. Эти строки пока черновик, врач их не проверял.
       </p>
       <p class="herbal-help__text">
-        Рисунки — ботанические таблицы XIX века (общественное достояние). Определять растение в
-        природе только по рисунку нельзя.
+        Рисунки — старые ботанические таблицы (общественное достояние); у нескольких растений их
+        нет. Определять растение в природе только по рисунку нельзя.
       </p>
     </div>
   );
@@ -271,7 +271,10 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
                 onClick={() => openDocumentOverlay(plant.documentId)}
               >
                 <span class="herbal-card__sheet">
-                  <Show when={plant.thumbnail}>
+                  <Show
+                    when={plant.thumbnail}
+                    fallback={<AppGlyph name="leaf" class="herbal-card__placeholder" />}
+                  >
                     {(src) => <img class="herbal-card__image" src={src()} alt="" loading="lazy" />}
                   </Show>
                 </span>
@@ -279,6 +282,9 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
                   <strong class="herbal-card__title">{plant.title}</strong>
                   <em class="herbal-card__latin">{plant.latin}</em>
                   <span class="herbal-card__part">{plant.partRu}</span>
+                  <Show when={plant.redBook}>
+                    <span class="herbal-card__redbook">Красная книга</span>
+                  </Show>
                 </span>
               </button>
             )}

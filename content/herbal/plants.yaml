@@ -367,3 +367,260 @@ plants:
     ema: { page: https://www.ema.europa.eu/en/medicines/herbal/carvi-fructus }
     plate: { book: kohler, file: "File:Carum carvi - Köhler–s Medizinal-Pflanzen-172.jpg" }
     gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/tmina-obyknovennogo-plody/ }
+  # Owner 2026-10-19: plants with an EMA monograph but no ГРЛС raw-material text; ГФ and plate where they exist.
+  - id: echinacea-purpurea
+    ru: Эхинацея пурпурная
+    latin: Echinacea purpurea (L.) Moench
+    family: Asteraceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba }
+    plate: { book: curtis1787, file: "File:Echinacea purpurea-1787.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/ekhinatsei-purpurnoy-trava/ }
+  - id: vaccinium-myrtillus
+    ru: Черника обыкновенная
+    latin: Vaccinium myrtillus L.
+    family: Ericaceae
+    part: { ru: плоды, la: fructus siccus }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/myrtilli-fructus-siccus }
+    plate: { book: sturm, file: "File:Vaccinium myrtillus Sturm09055.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/cherniki-obyknovennoy-plody/ }
+  - id: eleutherococcus-senticosus
+    ru: Элеутерококк колючий
+    latin: Eleutherococcus senticosus (Rupr. & Maxim.) Maxim.
+    family: Araliaceae
+    part: { ru: корневища и корни, la: radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/eleutherococci-radix }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/eleuterokokka-kolyuchego-kornevishcha-i-korni/ }
+  - id: panax-ginseng
+    ru: Женьшень настоящий
+    latin: Panax ginseng C.A.Mey.
+    family: Araliaceae
+    part: { ru: корни, la: radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix }
+    plate: { book: owner, file: pictures/panax-ginseng.png }
+    redBook: { number: 48, page: 4, category: 1 }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/zhenshenya-nastoyashchego-korni/ }
+  - id: ginkgo-biloba
+    ru: Гинкго двулопастный
+    latin: Ginkgo biloba L.
+    family: Ginkgoaceae
+    part: { ru: листья, la: folium }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium }
+    plate: { book: siebold, file: "File:Ginkgo biloba SZ136.png" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/ginkgo-dvulopastnogo-listya/ }
+  - id: humulus-lupulus
+    ru: Хмель обыкновенный
+    latin: Humulus lupulus L.
+    family: Cannabaceae
+    part: { ru: соплодия (шишки), la: flos }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos }
+    plate: { book: kohler, file: "File:Humulus lupulus - Köhler–s Medizinal-Pflanzen-072.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/khmelya-obyknovennogo-soplodiya/ }
+  - id: aesculus-hippocastanum
+    ru: Конский каштан обыкновенный
+    latin: Aesculus hippocastanum L.
+    family: Sapindaceae
+    part: { ru: семена, la: semen }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen }
+    plate: { book: thome, file: "File:Illustration Aesculus hippocastanum0.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/konskogo-kashtana-obyknovennogo-semena/ }
+  - id: passiflora-incarnata
+    ru: Пассифлора инкарнатная
+    latin: Passiflora incarnata L.
+    family: Passifloraceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/passiflorae-herba }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/passiflory-inkarnatnoy-strastotsveta-myaso-krasnogo-trava/ }
+  - id: primula-veris
+    ru: Первоцвет весенний
+    latin: Primula veris L.
+    family: Primulaceae
+    part: { ru: корневища с корнями, la: radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/primulae-radix }
+    plate: { book: thome, file: "File:Illustration Primula veris0.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/pervotsveta-kornevishcha-s-kornyami/ }
+  - id: plantago-lanceolata
+    ru: Подорожник ланцетный
+    latin: Plantago lanceolata L.
+    family: Plantaginaceae
+    part: { ru: листья, la: folium }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/plantaginis-lanceolatae-folium }
+    plate: { book: sturm, file: "File:Plantago lanceolata Sturm61.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/podorozhnika-lantsetnogo-listya/ }
+  - id: malva-sylvestris
+    ru: Мальва лесная
+    latin: Malva sylvestris L.
+    family: Malvaceae
+    part: { ru: цветки, la: flos }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/malvae-sylvestris-flos }
+    plate: { book: kohler, file: "File:Malva sylvestris - Köhler–s Medizinal-Pflanzen-222.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/malvy-lesnoy-tsvetki/ }
+  - id: fragaria-vesca
+    ru: Земляника лесная
+    latin: Fragaria vesca L.
+    family: Rosaceae
+    part: { ru: листья, la: folium }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/fragariae-folium }
+    plate: { book: thome, file: "File:Illustration Fragaria vesca0.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/zemlyaniki-lesnoy-listya/ }
+  - id: menyanthes-trifoliata
+    ru: Вахта трёхлистная
+    latin: Menyanthes trifoliata L.
+    family: Menyanthaceae
+    part: { ru: листья, la: folium }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/menyanthidis-trifoliatae-folium }
+    plate: { book: kohler, file: "File:Menyanthes trifoliata - Köhler–s Medizinal-Pflanzen-225.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/vakhty-trekhlistnoy-listya/ }
+  - id: arctium-lappa
+    ru: Лопух большой
+    latin: Arctium lappa L.
+    family: Asteraceae
+    part: { ru: корни, la: radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/arctii-radix }
+    plate: { book: sturm, file: "File:Arctium spp Sturm15.jpg", species: "Arctium lappa L. и Arctium nemorosum Lej." }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/lopukha-korni/ }
+  - id: rhodiola-rosea
+    ru: Родиола розовая
+    latin: Rhodiola rosea L.
+    family: Crassulaceae
+    part: { ru: корневища и корни, la: rhizoma et radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/rhodiolae-roseae-rhizoma-et-radix }
+    plate: { book: floradanica, file: "File:Flora Danica Hft 04 Tab 0183.tif" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/rodioly-rozovoy-kornevishcha-i-korni/ }
+    redBook:
+      number: 156
+      page: 7
+      category: 3
+      note: За исключением популяций Алтайского и Красноярского краев, Республики Тыва и Магаданской обл.
+  - id: melilotus-officinalis
+    ru: Донник лекарственный
+    latin: Melilotus officinalis (L.) Pall.
+    family: Fabaceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/meliloti-herba }
+    plate: { book: kohler, file: "File:Melilotus officinalis - Köhler–s Medizinal-Pflanzen-093.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/donnika-trava/ }
+  - id: silybum-marianum
+    ru: Расторопша пятнистая
+    latin: Silybum marianum (L.) Gaertn.
+    family: Asteraceae
+    part: { ru: плоды, la: fructus }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus }
+    plate: { book: thome, file: "File:Illustration Silybum marianum0.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/rastoropshi-pyatnistoy-plody/ }
+  - id: rheum-palmatum
+    ru: Ревень дланевидный
+    latin: Rheum palmatum L.
+    family: Polygonaceae
+    part: { ru: корни, la: radix }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/rhei-radix, species: "Rheum palmatum L., Rheum officinale Baill." }
+    plate: { book: vietz, file: "File:Icones plantarum medico-oeconomico-technologicarum cum earum fructus ususque descriptione = (Tab. 163) (8096990129).jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/revenya-dlanevidnogo-korni/ }
+  - id: phaseolus-vulgaris
+    ru: Фасоль обыкновенная
+    latin: Phaseolus vulgaris L.
+    family: Fabaceae
+    part: { ru: створки плодов, la: fructus sine semine }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/phaseoli-fructus-sine-semine }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/fasoli-obyknovennoy-plodov-stvorki/ }
+  - id: hedera-helix
+    ru: Плющ обыкновенный
+    latin: Hedera helix L.
+    family: Araliaceae
+    part: { ru: листья, la: folium }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/hederae-helicis-folium }
+    plate: { book: thome, file: "File:Illustration Hedera helix0.jpg" }
+  - id: filipendula-ulmaria
+    ru: Лабазник вязолистный
+    latin: Filipendula ulmaria (L.) Maxim.
+    family: Rosaceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/filipendulae-ulmariae-herba }
+    plate: { book: thome, file: "File:Illustration Filipendula ulmaria0.jpg" }
+  - id: epilobium-angustifolium
+    ru: Иван-чай (кипрей узколистный)
+    latin: Epilobium angustifolium L.
+    family: Onagraceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/epilobii-herba, species: "Epilobium angustifolium L., Epilobium parviflorum Schreb." }
+    plate: { book: thome, file: "File:Illustration Epilobium angustifolium0.jpg" }
+  - id: lavandula-angustifolia
+    ru: Лаванда узколистная
+    latin: Lavandula angustifolia Mill.
+    family: Lamiaceae
+    part: { ru: цветки, la: flos }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/lavandulae-flos }
+    plate: { book: kohler, file: "File:Lavandula angustifolia - Köhler–s Medizinal-Pflanzen-087.jpg" }
+  - id: verbascum-densiflorum
+    ru: Коровяк густоцветковый
+    latin: Verbascum densiflorum Bertol.
+    family: Scrophulariaceae
+    part: { ru: цветки, la: flos }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/verbasci-flos, species: "Verbascum thapsus L., V. densiflorum Bertol., V. phlomoides L." }
+    plate: { book: sturm, file: "File:Verbascum densiflorum Sturm18.jpg" }
+  - id: agrimonia-eupatoria
+    ru: Репешок обыкновенный
+    latin: Agrimonia eupatoria L.
+    family: Rosaceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/agrimoniae-herba }
+    plate: { book: thome, file: "File:Illustration Agrimonia eupatoria0.jpg" }
+  - id: cetraria-islandica
+    ru: Исландский мох (цетрария)
+    latin: Cetraria islandica (L.) Ach.
+    family: Parmeliaceae
+    part: { ru: слоевище, la: lichen }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/lichen-islandicus }
+    plate: { book: kohler, file: "File:Cetraria islandica - Köhler–s Medizinal-Pflanzen-032.jpg" }
+  - id: avena-sativa
+    ru: Овёс посевной
+    latin: Avena sativa L.
+    family: Poaceae
+    part: { ru: трава, la: herba }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/avenae-herba }
+    plate: { book: thome, file: "File:Illustration Avena sativa0.jpg" }
+  # Owner 2026-10-19: plants with no EMA monograph described by a WHO monograph instead.
+  - id: bidens-tripartita
+    ru: Череда трёхраздельная
+    latin: Bidens tripartita L.
+    family: Asteraceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [череды трехраздельной трава, череды трава] }
+    who: { volume: NIS, title: Herba Bidentis, pages: [45, 56] }
+    plate: { book: thome, file: "File:Illustration Bidens tripartita0.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/cheredy-trekhrazdelnoy-trava/ }
+  - id: origanum-vulgare
+    ru: Душица обыкновенная
+    latin: Origanum vulgare L.
+    family: Lamiaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [душицы обыкновенной трава, душицы трава] }
+    who: { volume: NIS, title: Herba Origani, pages: [293, 306] }
+    plate: { book: thome, file: "File:Illustration Origanum vulgare0.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/dushitsy-obyknovennoy-trava/ }
+  - id: hippophae-rhamnoides
+    ru: Облепиха крушиновидная
+    latin: Hippophae rhamnoides L.
+    family: Elaeagnaceae
+    part: { ru: плоды, la: fructus recens }
+    who: { volume: NIS, title: Fructus Hippophaës recens, pages: [195, 208] }
+    plate: { book: thome, file: "File:Illustration Hippophae rhamnoides0.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/oblepikhi-krushinovidnoy-plody/ }
+  - id: plantago-major
+    ru: Подорожник большой
+    latin: Plantago major L.
+    family: Plantaginaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [подорожника большого листья] }
+    who: { volume: NIS, title: Folium Plantaginis majoris, pages: [321, 336] }
+    plate: { book: thome, file: "File:Illustration Plantago major0.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/podorozhnika-bolshogo-listya/ }
+  - id: anethum-graveolens
+    ru: Укроп пахучий
+    latin: Anethum graveolens L.
+    family: Apiaceae
+    part: { ru: плоды, la: fructus }
+    grls: { inn: [укропа пахучего плоды, укропа огородного плоды] }
+    who: { volume: "3", title: Fructus Anethi, pages: [41, 49] }
+    plate: { book: thome, file: "File:Illustration Anethum graveolens0.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/ukropa-pakhuchego-plody/ }

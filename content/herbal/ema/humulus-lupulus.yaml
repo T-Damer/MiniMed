@@ -1,0 +1,194 @@
+# EMA/HMPC facts for Хмель обыкновенный (соплодия, шишки). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: humulus-lupulus
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based on long standing use.
+  - kind: indication
+    ru: Традиционное растительное средство для облегчения лёгких симптомов психического стресса и для содействия сну
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
+  # mental stress, adolescents, adults, elderly
+  - kind: posology
+    ru: Травяной чай (настой) из измельчённого сырья при психическом стрессе — подростки, взрослые и пожилые, разовая доза 500 мг на 150–200 мл кипятка до 4 раз в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily.'
+    dose: {preparationRu: травяной чай (настой) из измельчённого сырья, amount: '500', unit: мг, waterMl: 150-200, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Порошок сырья при психическом стрессе — взрослые, 400 мг два раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents.'
+    dose: {preparationRu: порошок сырья, amount: '400', unit: мг, timesPerDay: два, populationRu: взрослые}
+  - kind: posology
+    ru: Порошок сырья при психическом стрессе — подростки, 200 мг два раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents.'
+    dose: {preparationRu: порошок сырья, amount: '200', unit: мг, timesPerDay: два, populationRu: подростки}
+  - kind: posology
+    ru: Жидкий экстракт (1:1) при психическом стрессе — подростки, взрослые и пожилые, 0,5–2,0 мл до 3 раз в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily.'
+    dose: {preparationRu: 'жидкий экстракт (1:1)', amount: 0.5-2.0, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Жидкий экстракт (1:10) при психическом стрессе — подростки, взрослые и пожилые, 19 г 2–3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily.'
+    dose: {preparationRu: 'жидкий экстракт (1:10)', amount: '19', unit: г, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Настойка (1:5) при психическом стрессе — подростки, взрослые и пожилые, 1–2 мл до 3 раз в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily. e) Tincture (1:5): 1-2 ml, up to 3 times daily.'
+    dose: {preparationRu: 'настойка (1:5)', amount: 1-2, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Сухой экстракт (4–5:1) при психическом стрессе — подростки, взрослые и пожилые, 125 мг 2–3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily. e) Tincture (1:5): 1-2 ml, up to 3 times daily. f) Dry extract (4-5:1): 125 mg, 2-3 times daily.'
+    dose: {preparationRu: 'сухой экстракт (4-5:1)', amount: '125', unit: мг, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+  # to aid sleep (heading «Adolescents, adults, elderly» above the two blocks)
+  - kind: posology
+    ru: Для сна — травяной чай (настой) из измельчённого сырья, 500–1000 мг на 150–200 мл кипятка за 30–60 минут до сна
+    doc: monograph
+    page: 4
+    quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime.'
+    dose: {preparationRu: травяной чай (настой) из измельчённого сырья, amount: 500-1000, unit: мг, waterMl: 150-200, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Для сна — порошок сырья, 800–2000 мг за 30–60 минут до сна
+    doc: monograph
+    page: 4
+    quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime. b) Powdered herbal substance: 800–2000 mg, 30-60 minutes before bedtime.'
+    dose: {preparationRu: порошок сырья, amount: 800-2000, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Для сна — сухой экстракт (4–5:1), 125–250 мг за 60 минут до сна
+    doc: monograph
+    page: 4
+    quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime. b) Powdered herbal substance: 800–2000 mg, 30-60 minutes before bedtime. c) Dry extract (4-5:1): 125-250 mg, 60 min before bedtime.'
+    dose: {preparationRu: 'сухой экстракт (4-5:1)', amount: 125-250, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 5
+    quote: Method of administration Oral use.
+  - kind: age
+    ru: Детям до 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended (see section 4.4. Special warnings and precautions for use).
+    minAgeMonths: 144
+  - kind: age
+    ru: Применение у детей до 12 лет не установлено — данных недостаточно
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы сохраняются дольше двух недель — обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than two weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу (шишкам хмеля)
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: При ухудшении симптомов — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
+    doc: monograph
+    page: 5
+    quote: For tinctures and extracts containing ethanol the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 6
+    quote: No fertility data are available.
+  - kind: warning
+    ru: Может снижать способность водить транспорт и управлять механизмами; пациентам, у которых это проявилось, не следует водить и работать с механизмами
+    doc: monograph
+    page: 6
+    quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
+    doc: monograph
+    page: 7
+    quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
+  - kind: statement
+    ru: 'В таблице препаратов отчёта оценки: 2–3 раза, разовая доза соответствует 1,9 г сырья'
+    doc: assessment-report
+    page: 8
+    quote: 2-3 times; Single dosage equivalent to 1.9 g herbal substance
+constituents:
+  - compound: 8-prenylnaringenin (8-PN)
+    compoundRu: 8-пренилнарингенин (8-ПН)
+    classRu: пренилфлаванон (флавоноид)
+    effectRu: 8-ПН, содержащийся в шишках хмеля в количестве 25–60 мг/кг, следует считать действующим эстрогенным соединением хмеля
+    doc: assessment-report
+    page: 20
+    quote: In conclusion, 8-PN, present in hop strobiles at levels of 25-60 mg/kg, should be considered to be the active oestrogenic compound of hops.
+    evidence: review
+  - compound: xanthohumol
+    compoundRu: ксантогумол
+    classRu: пренилированный халкон (флавоноид)
+    effectRu: Влияет на ГАМК-А-рецепторы и их латеральную подвижность в нейронах гиппокампа сходно с агонистом бензодиазепиновых рецепторов мидазоламом, не взаимодействуя с бензодиазепиновыми рецепторами; может играть важную роль в седативном действии препаратов хмеля, но это нужно подтвердить исследованиями in vivo
+    doc: assessment-report
+    page: 19
+    quote: It has been shown that one of the chalcones, viz. xanthohumol, influences the GABAA receptors and their lateral mobility at hippocampal neurons in a similar way as the benzodiazepine agonist midazolam without interfering with the benzodiazepine receptors. Thus, xanthohumol may play an important role in the sedative effect of hop preparations, but this should be confirmed by in vivo studies.
+    evidence: in-vitro
+  - compound: 2-methyl-3-buten-2-ol, myrcene
+    compoundRu: 2-метил-3-бутен-2-ол, мирцен
+    classRu: летучие соединения
+    effectRu: Предложены как кандидаты на седативное действие шишек хмеля, но их роль как седативных веществ не подтверждена
+    doc: assessment-report
+    page: 19
+    quote: Furthermore, candidate molecules for the sedative effects of hop strobiles such as myrcene and 2’-methyl-3-buten-2-ol have been suggested, but their role as sedative agents has not been substantiated.
+    evidence: review
+  - compound: humulone
+    compoundRu: гумулон
+    classRu: горькая кислота (α-кислота)
+    effectRu: In vivo наблюдались противовоспалительные эффекты гумулона, по-видимому, действующего противовоспалительного вещества шишек хмеля; сухой метанольный экстракт шишек при местном нанесении 2 мг на ухо подавлял отёк уха у мышей, вызванный форболовым эфиром (TPA), на 90 % через шесть часов
+    doc: assessment-report
+    page: 21
+    quote: In vivo anti-inflammatory effects have also been seen for humulone, which appears to be the active anti-inflammatory agent of hop strobiles. A dry methanolic extract of hop strobile, applied topically at 2 mg/ear, inhibited 12-0-tetradecanoylphorbol-13-acetate (TPA)-induced ear oedema in mice by 90% (p<0.01) six hours after TPA treatment.
+    evidence: animal

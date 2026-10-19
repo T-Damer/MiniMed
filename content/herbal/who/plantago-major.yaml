@@ -1,0 +1,198 @@
+# WHO monograph facts for Подорожник большой (листья). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+# Source: WHO monographs on medicinal plants commonly used in the Newly Independent States (NIS), 2010,
+# «Folium Plantaginis majoris»; `page` is the 1-based PDF page of the volume.
+plant: plantago-major
+status: proposed
+useType: traditional
+facts:
+  # Medicinal uses
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при катаре дыхательных путей, кашле, бронхите и застое мокроты"
+    doc: monograph
+    page: 325
+    quote: "Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при воспалительных изменениях слизистой оболочки рта"
+    doc: monograph
+    page: 325
+    quote: "Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при нефрите, цистите и задержке мочи"
+    doc: monograph
+    page: 325
+    quote: "Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при дизентерии, носовом кровотечении и чрезмерном потоотделении"
+    doc: monograph
+    page: 325
+    quote: "Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой также применяют для лечения диареи и запора"
+    doc: monograph
+    page: 325
+    quote: "It is also used for the treatment of diarrhoea and constipation (22)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — свежие листья подорожника большого веками применяют наружно во многих регионах мира как антисептик при раздражении кожи, роже, абсцессах, ожогах и золотухе"
+    doc: monograph
+    page: 325
+    quote: "Fresh leaves of Plantago major have been used externally for centuries in many parts of the world as an antiseptic for treatment of skin irritations, erysipelas, abscesses, burns, scrofula"
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — для восстановления повреждённых тканей и для лечения свищей и язв"
+    doc: monograph
+    page: 326
+    quote: "skin; for repair of damaged tissue; and to treat fistulae and ulcers (5, 43, 51, 52)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — применяют также для подавления кашля при бронхите, простуде и воспалении верхних дыхательных путей, как обезболивающее и мочегонное средство при лечении камней в почках"
+    doc: monograph
+    page: 326
+    quote: "It is also used to suppress cough associated with bronchitis, colds and upper respiratory inflammation, and as an analgesic and diuretic agent, in the treatment of kidney stones"
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — отмечено также гепатопротекторное действие"
+    doc: monograph
+    page: 326
+    quote: "It also has a hepatoprotective action"
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — листья подорожника большого использовали как слабое антибиотическое и вяжущее средство"
+    doc: monograph
+    page: 326
+    quote: "Plantago major leaves have been used as a weak antibiotic, astringent (57) and as an immunomodulating (58), antihypertensive (59), hypoglycaemic (60), haemostatic (61), antiallergic, febrifuge and antipruritic agent (62)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — листья подорожника большого использовали как иммуномодулирующее, антигипертензивное, гипогликемическое, кровоостанавливающее, противоаллергическое, жаропонижающее и противозудное средство"
+    doc: monograph
+    page: 326
+    quote: "Plantago major leaves have been used as a weak antibiotic, astringent (57) and as an immunomodulating (58), antihypertensive (59), hypoglycaemic (60), haemostatic (61), antiallergic, febrifuge and antipruritic agent (62)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — применяют при воспалении глаз и как глистогонное средство"
+    doc: monograph
+    page: 326
+    quote: "It is used in the treatment of eye inflammation, and as a vermifuge (63–65)."
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — часто назначают при цистите с гематурией и при геморрое"
+    doc: monograph
+    page: 326
+    quote: "It is commonly prescribed for treatment of cystitis with haematuria and haemorrhoids (38)."
+  # Adverse reactions, contraindications, precautions
+  - kind: adverse
+    ru: "Сообщалось об аллергическом контактном дерматите в ответ на подорожник большой"
+    doc: monograph
+    page: 331
+    quote: "Adverse reactions Allergic contact dermatitis in response to P. major has been reported (87)."
+  - kind: contraindication
+    ru: "При гиперчувствительности к пыльце подорожника большого (например, контактном дерматите) применение следует прекратить"
+    doc: monograph
+    page: 331
+    quote: "Contraindications In case of hypersensitivity to P. major pollen (e.g. contact dermatitis), use should be stopped."
+  - kind: interaction
+    ru: "Сведений о лекарственных взаимодействиях в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 332
+    quote: "Drug interactions No information was found."
+  - kind: statement
+    ru: "Данных о канцерогенности и нарушении фертильности не найдено; в экспериментальных условиях сообщалось о генотоксической активности водно-спиртовых и солевых экстрактов"
+    doc: monograph
+    page: 332
+    quote: "No information was found on carcinogenesis or impairment of fertility. Genotoxic activity of the aqueous-ethanolic and saline extracts has been reported under experimental conditions (see Toxicology above)."
+  - kind: statement
+    ru: "Результаты указывают, что в данных экспериментальных условиях водные экстракты генотоксичны (рекомбиногенны)"
+    doc: monograph
+    page: 331
+    quote: "The results indicate that, under these experimental conditions, aqueous extracts are genotoxic (recombinogenic) (84)."
+  - kind: statement
+    ru: "Экстракт (40 мкг на чашку агара) не давал положительного ответа в штаммах TA98 и TA100 Salmonella typhimurium с метаболической активацией и без неё, но в COMET-тесте значения превышали значения отрицательного контроля; результаты указывают на генотоксическую активность экстракта в лимфоцитах человека"
+    doc: monograph
+    page: 331
+    quote: "The extract (40 µg/agar plate) did not cause a positive response in strains TA98 or TA100 of Salmonella typhimurium with or without metabolic activation, but increased values above those of the negative control in the COMET assay. The results indicate that the extract has genotoxic activity in human lymphocytes (86)."
+  - kind: pregnancy
+    ru: "Применение травы при беременности не рекомендуется"
+    doc: monograph
+    page: 332
+    quote: "Pregnancy The use of the herb is not recommended during pregnancy (see sections on Toxicology and Genotoxicity)."
+  - kind: lactation
+    ru: "Сведений о применении у кормящих матерей в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 332
+    quote: "Nursing mothers No information was found."
+  - kind: age
+    ru: "Сведений о применении у детей в монографии ВОЗ не найдено"
+    doc: monograph
+    page: 332
+    quote: "Paediatric use No information was found."
+  # Posology (the monograph names no population)
+  - kind: posology
+    ru: "Внутрь, гранулы из сухого листа: 2–4 г три раза в день перед едой"
+    doc: monograph
+    page: 332
+    quote: "Internal. Granules of dried leaf: 2–4 g three times daily, before meals (38)."
+    dose: { preparationRu: гранулы из сухого листа, amount: "2-4", unit: г, timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Внутрь, настой (10 г сухого листа на 200 мл кипячёной воды, 15–20 минут): одна столовая ложка настоя три раза в день перед едой"
+    doc: monograph
+    page: 332
+    quote: "Infusion: one tablespoon of an infusion (10 g dried leaf in 200 ml boiled water for 15–20 minutes) three times daily before meals (89)."
+    dose: { preparationRu: "настой (10 г сухого листа на 200 мл кипячёной воды, 15–20 минут)", amount: одна, unit: столовая ложка настоя, timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Жидкий экстракт из сухого листа (1:1 в 25 % этаноле): 2–4 мл"
+    doc: monograph
+    page: 332
+    quote: "Liquid extract: 2–4 ml of a liquid extract from dried leaf (1:1 in 25% ethanol)"
+    dose: { preparationRu: "жидкий экстракт из сухого листа (1:1 в 25 % этаноле)", amount: "2-4", unit: мл, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Настойка из сухого листа (1:5 в 45 % этаноле): 2–4 мл три раза в день"
+    doc: monograph
+    page: 333
+    quote: "Tincture: 2–4 ml of a tincture of dried leaf (1:5 in 45% ethanol) three times daily (41)."
+    dose: { preparationRu: "настойка из сухого листа (1:5 в 45 % этаноле)", amount: "2-4", unit: мл, timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Сок свежих листьев: одна столовая ложка три раза в день перед едой"
+    doc: monograph
+    page: 333
+    quote: "Juice of the fresh leaves: one tablespoon three times daily, before meals (28)."
+    dose: { preparationRu: сок свежих листьев, amount: одна, unit: столовая ложка, timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Наружно: холодный мацерат (1,4 г нарезанной травы на 150 мл холодной воды, настаивать 1–2 часа, часто помешивая) для ополаскивания, полоскания или припарки; для ополаскивания или полоскания — три-четыре раза в день"
+    doc: monograph
+    page: 333
+    quote: "External. Cold macerate for use as a rinse, gargle or cataplasm: soak 1.4 g cut herb in 150 ml cold water for 1–2 hours, stirring often. For use as a rinse or gargle: rinse or gargle with cold macerate (soak 1.4 g cut herb in 150 ml cold water for 1–2 hours stirring often) three to four times daily (90)."
+    dose: { preparationRu: холодный мацерат нарезанной травы, amount: "1.4", unit: г, waterMl: "150", timesPerDay: три-четыре, populationRu: возраст не указан }
+constituents:
+  - compound: iridoids
+    compoundRu: иридоиды
+    classRu: иридоиды
+    effectRu: "в сухих листьях основные компоненты — иридоиды: аукубин, 3,4-дигидроаукубин, 6´-O-β-глюкозилаукубин, каталпол, плантареналозид и мелиттозид"
+    evidence: review
+    doc: monograph
+    page: 325
+    quote: "Dried leaves contain iridoids as the main constituents: aucubin, 3,4-dihydroaucubin, 6´-O-β−glucosylaucubin, catalpol, plantarenaloside and melittoside."
+  - compound: flavonoids
+    compoundRu: флавоноиды
+    classRu: флавоноиды
+    effectRu: "флавоноиды (апигенин, байкалеин, скутелляреин, байкалин, гомоплантагинин, непетрин, лютеолин, гиспидулин, плантагозид)"
+    evidence: review
+    doc: monograph
+    page: 325
+    quote: "flavonoids (apigenin, baicalein, scutellarein, baicalin, homoplantaginin, nepetrin, luteolin, hispidulin, plantagoside)"
+  - compound: aqueous extract of dried leaves
+    compoundRu: водный экстракт сухих листьев
+    classRu: экстракт листьев
+    effectRu: "внутрижелудочное введение водного экстракта сухих листьев в дозе 1 г/кг массы тела подавляло каррагениновый плеврит и подошвенный отёк у крыс"
+    evidence: animal
+    doc: monograph
+    page: 329
+    quote: "The intragastric administration of an aqueous extract of dried leaves of P. major at a dose of 1 g/kg bw inhibited carrageenan-induced pleurisy and plantar oedema in rats."
+  - compound: hexane extract fraction of dried leaves
+    compoundRu: фракция гексанового экстракта сухих листьев
+    classRu: экстракт листьев
+    effectRu: "кожное применение негидролизуемой хроматографической фракции (10 %) гексанового экстракта (25 %) сухих листьев значимо (p < 0,001) ускоряло сокращение и эпителизацию иссечённых ран у кроликов"
+    evidence: animal
+    doc: monograph
+    page: 330
+    quote: "The dermal application of the non-hydrolysable chromatographic fraction (10%) from the hexane extract (25%) of dried leaves of P. major significantly (p < 0.001) accelerated the rate of contraction and epithelialization of excision wounds in rabbits (81)."
+  - compound: ethanol extract of leaves
+    compoundRu: этанольный экстракт листьев
+    classRu: экстракт листьев
+    effectRu: "этанольный экстракт (0,5 мг/мл) подавлял иммуноглобулин E-зависимое высвобождение гистамина из клеток RBL-2H3 более чем на 80 %"
+    evidence: in-vitro
+    doc: monograph
+    page: 329
+    quote: "The ethanol extract (0.5 mg/ml) inhibited immunoglobulin E-dependent histamine release from RBL-2H3 cells. The inhibitory effect was greater than 80%."

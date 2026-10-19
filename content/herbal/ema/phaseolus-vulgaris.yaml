@@ -1,0 +1,158 @@
+# EMA/HMPC facts for Фасоль обыкновенная (створки плодов). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: phaseolus-vulgaris
+status: proposed
+useType: traditional
+facts:
+- kind: use-type
+  ru: Традиционное растительное средство — применение основано только на длительном опыте
+  doc: monograph
+  page: 2
+  quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+- kind: indication
+  ru: Традиционное растительное средство для увеличения количества мочи с целью промывания мочевых путей как вспомогательное при лёгких жалобах со стороны мочевых путей
+  doc: monograph
+  page: 2
+  quote: Traditional herbal medicinal product used to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary tract complaints.
+- kind: posology
+  ru: 'Чай — взрослые и пожилые: разовая доза 2,5 г измельчённого сырья на 150 мл кипятка в виде настоя, 2–6 раз в день'
+  doc: monograph
+  page: 3
+  quote: 'Adults and elderly Single dose Herbal tea: 2.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2 - 6 times daily.'
+  dose: {preparationRu: 'чай: настой измельчённого сырья', amount: '2.5', unit: г, waterMl: '150', timesPerDay: 2-6, populationRu: взрослые и пожилые}
+- kind: age
+  ru: Детям и подросткам до 18 лет не рекомендуется
+  doc: monograph
+  page: 3
+  quote: The use in children and adolescents under 18 years of age is not recommended
+  minAgeMonths: 216
+- kind: duration
+  ru: Если симптомы сохраняются дольше 2 недель — обратиться к врачу или медработнику
+  doc: monograph
+  page: 3
+  quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  maxDays: 14
+- kind: posology
+  ru: Способ применения — внутрь
+  doc: monograph
+  page: 3
+  quote: Method of administration Oral use.
+- kind: contraindication
+  ru: Гиперчувствительность к действующему веществу
+  doc: monograph
+  page: 3
+  quote: Hypersensitivity to the active substance.
+- kind: warning
+  ru: Применение у детей и подростков до 18 лет не рекомендуется из-за недостатка данных
+  doc: monograph
+  page: 3
+  quote: The use in children and adolescents under 18 years of age is not recommended because of lack of data.
+  minAgeMonths: 216
+- kind: warning
+  ru: Если симптомы ухудшаются во время применения — обратиться к врачу или медработнику
+  doc: monograph
+  page: 3
+  quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+- kind: interaction
+  ru: Взаимодействий не описано
+  doc: monograph
+  page: 3
+  quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+- kind: interaction
+  ru: 'В отчёте оценки: взаимодействие с пероральными гипогликемическими средствами и инсулином возможно из-за снижающего сахар крови эффекта'
+  doc: assessment-report
+  page: 15
+  quote: Interaction with oral hypoglycaemic drugs and insulin is possible due to the blood sugar level reducing effect.
+- kind: interaction
+  ru: 'В отчёте оценки: теоретически одновременный приём с противодиабетическими средствами может привести к взаимодействию; пациентам, принимающим пероральные гипогликемические средства и инсулин, может потребоваться дополнительное внимание'
+  doc: assessment-report
+  page: 15
+  quote: Theoretically the concomitant use with antidiabetic drugs can result in an interaction. Patients using oral hypoglycaemic drugs and insulin may require further attention.
+- kind: pregnancy
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 4
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: lactation
+  ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+  doc: monograph
+  page: 4
+  quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+- kind: pregnancy
+  ru: Данных о фертильности нет
+  doc: monograph
+  page: 4
+  quote: No fertility data available.
+- kind: statement
+  ru: Влияние на способность управлять транспортом и механизмами — не имеет значения
+  doc: monograph
+  page: 4
+  quote: Effects on ability to drive and use machines Well-established use Traditional use Not relevant.
+- kind: adverse
+  ru: Нежелательные эффекты не известны; при их появлении — обратиться к врачу или медработнику
+  doc: monograph
+  page: 4
+  quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+- kind: overdose
+  ru: Случаев передозировки не описано
+  doc: monograph
+  page: 4
+  quote: No case of overdose has been reported.
+- kind: statement
+  ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+  doc: monograph
+  page: 5
+  quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+- kind: statement
+  ru: 'В отчёте оценки: семена (бобы) в монографии не рассматриваются, их применение отличается от применения створок; для приёма внутрь рекомендуют только препараты, которые при изготовлении подвергаются нагреванию'
+  doc: assessment-report
+  page: 4
+  quote: It should be noted that the beans themselves are not considered in the monograph and that their use is different from that of the pods. Only preparations that are exposed to heat during manufacturing are recommended for human use.
+- kind: warning
+  ru: 'В отчёте оценки: при загрязнении створок семенами бобов существует теоретический риск нежелательных реакций, вызванных бобами'
+  doc: assessment-report
+  page: 15
+  quote: If contamination of bean pods with beans should occur, there might be a theoretical risk of adverse events caused by the beans.
+- kind: statement
+  ru: 'В отчёте оценки: клинических данных об эффективности створок нет; их эффект при показании из монографии правдоподобен на основании длительного применения и опыта'
+  doc: assessment-report
+  page: 14
+  quote: As a consequence a possible therapeutic role for bean pods (Phaseoli fructus sine semine) is not supported by clinical evidence. The efficacy or pharmacological effects of the bean pods in the indication found in the monograph are plausible on the basis of long-standing use and experience.
+- kind: statement
+  ru: 'В отчёте оценки: створки можно считать безопасными по составу и из-за длительного употребления в пищу'
+  doc: assessment-report
+  page: 14
+  quote: Nevertheless, bean pods can be considered as safe because of the composition and the long-standing use as a food substance.
+constituents:
+- compound: arginine, silicic acid and chromium salts
+  compoundRu: аргинин, кремниевая кислота и соли хрома
+  classRu: аминокислота, неорганические вещества
+  effectRu: сырьё содержит аргинин и кремниевую кислоту, а также соли хрома (ср. противодиабетическая активность)
+  evidence: review
+  doc: assessment-report
+  page: 4
+  quote: The herbal substance contains arginine and silicic acid, as well as chromium salts (cf. antidiabetic activity).
+- compound: lectins and trypsin inhibitors
+  compoundRu: лектины и ингибиторы трипсина
+  classRu: белки семян (бобов)
+  effectRu: семена (бобы) в монографии не рассматриваются; для приёма внутрь рекомендуют только препараты, прошедшие нагревание при изготовлении, так как лектины и ингибиторы трипсина чувствительны к нагреву — их активность и токсичность снижаются
+  evidence: review
+  doc: assessment-report
+  page: 4
+  quote: It should be noted that the beans themselves are not considered in the monograph and that their use is different from that of the pods. Only preparations that are exposed to heat during manufacturing are recommended for human use. Since lectins and trypsin inhibitors are heat sensitive, their activity is reduced and, with that, the toxicity of Phaseolus vulgaris (see also section 3.3).
+- compound: bean pod preparations
+  compoundRu: препараты из створок
+  classRu: препараты из створок плодов
+  effectRu: у крыс с гипергликемией препараты из створок снижали гипергликемию и уровень глюкозы натощак; использованные дозы были высокими (до 500 мг экстракта на кг массы тела), что затрудняет перенос на человека
+  evidence: animal
+  doc: assessment-report
+  page: 13
+  quote: The bean pod preparations reduced the hyperglycaemia and had a lowering effect on fasting blood glucose in hyperglycaemic rats. The doses used in the studies amounted to high levels (up to 500 mg extract per kg body weight), which makes extrapolation to human conditions difficult.
+- compound: dry Phaseolus vulgaris extract from bean pods
+  compoundRu: сухой экстракт створок
+  classRu: сухой экстракт
+  effectRu: в клиническом исследовании у 18 здоровых добровольцев сухой экстракт створок или плацебо за 30 минут до теста на толерантность к 50 г глюкозы не показал значимого влияния на толерантность к глюкозе
+  evidence: clinical
+  doc: assessment-report
+  page: 14
+  quote: A clinical trial with 18 healthy volunteers, aged 29 (±4.8) with a BMI of 23 (± 3.7) performed by Cerović et al. in 2006, showed no significant effects on glucose tolerance. The participants received either dry Phaseolus vulgaris extract from bean pods or placebo 30 minutes before a 50 g oral glucose tolerance test.

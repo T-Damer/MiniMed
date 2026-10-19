@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -66,6 +66,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Carum_carvi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-172.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/carvi-fructus
       lastUpdated: 17/02/2016
       species: null
@@ -224,6 +225,7 @@ metadata:
         classRu: экстракты
         effectRu: в опыте на крысах приём плодовых экстрактов внутрь повышал плазменные уровни рифампицина, пиразинамида и изониазида; клиническое значение этих данных неизвестно
         evidence: animal
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0098.18

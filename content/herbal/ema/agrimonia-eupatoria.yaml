@@ -1,0 +1,223 @@
+# EMA/HMPC facts for Репешок обыкновенный (Agrimonia eupatoria L.), трава. Draft artifact
+# (status: proposed): Russian fields are a reader's rendering of the quoted English sentence; quotes
+# are checked against the PDF. The EU monograph (adopted 2014, last revised 28 January 2015) is
+# traditional use only; its three indications are numbered 1)–3) in the source and its doses are
+# lettered a), b), c) per indication.
+plant: agrimonia-eupatoria
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 3
+    quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Показание 1 — симптоматическое лечение лёгкой диареи
+    doc: monograph
+    page: 3
+    quote: Indication 1) Traditional herbal medicinal product for the symptomatic treatment of mild diarrhoea.
+  - kind: indication
+    ru: Показание 2 — полоскание для симптоматического облегчения небольших воспалений рта и горла
+    doc: monograph
+    page: 3
+    quote: Indication 2) Traditional herbal medicinal product for use as a gargle for the symptomatic relief of minor inflammations of the mouth and throat.
+  - kind: indication
+    ru: Показание 3 — облегчение небольшого воспаления кожи и небольших поверхностных ран
+    doc: monograph
+    page: 3
+    quote: Indication 3) Traditional herbal medicinal product for relief of minor skin inflammation and small, superficial wounds.
+  - kind: posology
+    ru: "Показание 1 — чай: 1,5–4 г измельчённой травы в 250 мл (или меньше) кипятка в виде настоя 2–3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents, adults and elderly Indication 1) a) Herbal tea: 1.5–4 g of the comminuted herbal substance in 250 ml (or less) of boiling water as a herbal infusion, 2-3 times daily"
+    dose: { preparationRu: чай (настой), amount: "1.5-4", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 — настойка: 1–4 мл 3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents, adults and elderly Indication 1) a) Herbal tea: 1.5–4 g of the comminuted herbal substance in 250 ml (or less) of boiling water as a herbal infusion, 2-3 times daily b) Tincture: 1-4 ml, 3 times daily"
+    dose: { preparationRu: настойка, amount: "1-4", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 — жидкий экстракт: 1–3 мл 3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Adolescents, adults and elderly Indication 1) a) Herbal tea: 1.5–4 g of the comminuted herbal substance in 250 ml (or less) of boiling water as a herbal infusion, 2-3 times daily b) Tincture: 1-4 ml, 3 times daily c) Liquid extract: 1-3 ml, 3 times daily"
+    dose: { preparationRu: жидкий экстракт, amount: "1-3", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — настой измельчённой травы для полоскания: 1,5 г в 150 мл кипятка 2–4 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Indication 2) a1) Comminuted herbal substance for infusion preparation: 1.5 g of the comminuted herbal substance in 150 ml of boiling water, 2–4 times daily as a gargle"
+    dose: { preparationRu: настой для полоскания, amount: "1.5", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — отвар измельчённой травы для полоскания: 3–4,5 г в 250 мл (или меньше) воды 2–3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Indication 2) a1) Comminuted herbal substance for infusion preparation: 1.5 g of the comminuted herbal substance in 150 ml of boiling water, 2–4 times daily as a gargle a2) Comminuted herbal substance for decoction preparation: 3–4.5 g of the comminuted herbal substance in 250 ml (or less) of water, 2–3 times daily as a gargle"
+    dose: { preparationRu: отвар для полоскания, amount: "3-4.5", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — настойка для полоскания: 1–4 мл 3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Indication 2) a1) Comminuted herbal substance for infusion preparation: 1.5 g of the comminuted herbal substance in 150 ml of boiling water, 2–4 times daily as a gargle a2) Comminuted herbal substance for decoction preparation: 3–4.5 g of the comminuted herbal substance in 250 ml (or less) of water, 2–3 times daily as a gargle b) Tincture: 1-4 ml, 3 times daily as a gargle"
+    dose: { preparationRu: настойка для полоскания, amount: "1-4", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 — жидкий экстракт для полоскания: 1–3 мл 3 раза в день"
+    doc: monograph
+    page: 3
+    quote: "Indication 2) a1) Comminuted herbal substance for infusion preparation: 1.5 g of the comminuted herbal substance in 150 ml of boiling water, 2–4 times daily as a gargle a2) Comminuted herbal substance for decoction preparation: 3–4.5 g of the comminuted herbal substance in 250 ml (or less) of water, 2–3 times daily as a gargle b) Tincture: 1-4 ml, 3 times daily as a gargle c) Liquid extract: 1-3 ml, 3 times daily as a gargle"
+    dose: { preparationRu: жидкий экстракт для полоскания, amount: "1-3", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 3 — отвар измельчённой травы: 3–10 г в 250 мл (или меньше) воды; накладывать пропитанной повязкой на поражённые участки кожи"
+    doc: monograph
+    page: 4
+    quote: "Indication 3) a1) Comminuted herbal substance for decoction preparation: 3-10 g of the comminuted herbal substance in 250 ml (or less) of water Apply as an impregnated dressing to the affected areas of the skin."
+    dose: { preparationRu: отвар для пропитанной повязки, amount: "3-10", unit: г, waterMl: "250", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 3 — отвар измельчённой травы для ванны: 3–10 г в 250 мл (или меньше) воды дважды в день; ванна до 30 минут"
+    doc: monograph
+    page: 4
+    quote: "a2) Comminuted herbal substance for decoction preparation: 3-10 g of the comminuted herbal substance in 250 ml (or less) of water, twice daily Use as a bath additive up to 30 minutes."
+    dose: { preparationRu: отвар для добавления в ванну, amount: "3-10", unit: г, waterMl: "250", timesPerDay: "дважды", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Показание 1 — приём внутрь
+    doc: monograph
+    page: 4
+    quote: "Method of administration Indication 1) Oral use."
+  - kind: posology
+    ru: Показание 2 — применение на слизистую рта; показание 3 — наружно, в том числе как добавка в ванну
+    doc: monograph
+    page: 5
+    quote: "Indication 2) Oromucosal use. Indication 3) Cutaneous use. Use as a bath additive."
+  - kind: age
+    ru: Детям до 12 лет применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: warning
+    ru: Применение у детей до 12 лет не установлено из-за недостатка данных
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 144
+  - kind: duration
+    ru: Показание 1 — если симптомы сохраняются дольше 3 дней, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: "Duration of use Indication 1) If the symptoms persist longer than 3 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 3
+  - kind: duration
+    ru: Показания 2 и 3 — если симптомы сохраняются дольше 1 недели, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 4
+    quote: "Indications 2) and 3) If the symptoms persist more than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted"
+    maxDays: 7
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Для настоек и экстрактов с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
+    doc: monograph
+    page: 5
+    quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: warning
+    ru: Показание 1 — при повторной диарее или крови в стуле нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If recurrent diarrhoea or bloody stools occur, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: Показание 1 — если симптомы ухудшаются, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If recurrent diarrhoea or bloody stools occur, a doctor or a qualified health care practitioner should be consulted. If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: Показания 2 и 3 — если симптомы ухудшаются, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: "Indications 2) and 3) If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: interaction
+    ru: "Взаимодействий не описано; в опытах на мышах есть ограниченные данные о возможном снижении глюкозы крови экстрактом репешка, но случаев взаимодействий не зарегистрировано"
+    doc: assessment-report
+    page: 18
+    quote: None reported. Experimental studies in mice showed limited evidence of a possible blood glucose lowering effect of an Agrimony extract, however, there are no reported cases of interactions
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о влиянии на фертильность нет
+    doc: monograph
+    page: 6
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 6
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследования генотоксичности, канцерогенности и репродуктивной токсичности не проводились
+    doc: monograph
+    page: 7
+    quote: Tests on genotoxicity, carcinogenicity and reproductive toxicity have not been performed.
+constituents:
+  - compound: tannins (proanthocyanidins, ellagitannins)
+    compoundRu: дубильные вещества (проантоцианидины, эллаготаннины)
+    classRu: танины
+    effectRu: содержание 3–11%, в основном проантоцианидины (конденсированные танины) с небольшой долей эллаготаннинов
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Tannins 3-11% consisting mainly of proanthocyanidins (condensed tannins) with a small proportion of ellagitannins."
+  - compound: flavonoids (hyperoside)
+    compoundRu: флавоноиды (гиперозид)
+    classRu: флавоноиды
+    effectRu: около 1,9%, главным образом гиперозид (0,37%), а также рутин, изокверцитрин, кверцитрин, изовитексин
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Flavonoids Ca. 1.9%, principally hyperoside (0.37%), together with rutin, isoquercitrin, quercitrin, isovitexin"
+  - compound: ursolic acid
+    compoundRu: урсоловая кислота
+    classRu: тритерпеноид
+    effectRu: содержание 0,6%; также эускаповая кислота и 28-β-D-глюкопиранозиловые эфиры эускаповой и торментовой кислот
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Triterpenoids Ursolic acid (0.6%); also euscapic acid and the 28-β-D-glucopyranosyl esters of euscapic acid and tormentic acid"
+  - compound: tannins
+    compoundRu: дубильные вещества
+    classRu: танины
+    effectRu: считается, что дубильные вещества вносят вклад в действие травы репешка; исследований, подтверждающих, что именно они отвечают за терапевтическое действие у людей, пока нет
+    evidence: review
+    doc: assessment-report
+    page: 16
+    quote: "The tannin constituents are therefore considered to contribute to the activity of Agrimony herb. However, studies confirming that these constituents are responsible for the therapeutic activity of Agrimony preparations in humans are currently lacking."
+  - compound: agrimoniin
+    compoundRu: агримониин
+    classRu: эллаготаннин
+    effectRu: у близкого вида Agrimonia pilosa особый интерес вызвал таннин агримониин, который до недавнего времени не описывали в A. eupatoria; противоопухолевую активность in vivo у мышей приписывают агримониину
+    evidence: animal
+    doc: assessment-report
+    page: 14
+    quote: "A related species, Agrimonia pilosa, has been investigated in a number of studies. Particular interest has been shown in the tannin agrimoniin. Until recently this constituent had not been reported in Agrimonia. eupatoria. In vivo antitumour activity in mice has been attributed to the tannin agrimoniin (Miyamoto et al. 1985)."

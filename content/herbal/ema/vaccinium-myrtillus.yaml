@@ -1,0 +1,165 @@
+# EMA/HMPC facts for Черника обыкновенная (плоды сушёные). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: vaccinium-myrtillus
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: "Традиционное растительное средство — применение основано только на длительном опыте"
+    doc: monograph
+    page: 4
+    quote: "The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use."
+  - kind: indication
+    ru: "Традиционное растительное средство для симптоматического лечения лёгкой диареи (показание 1)"
+    doc: monograph
+    page: 3
+    quote: "Indication 1) Traditional herbal medicinal product for symptomatic treatment of mild diarrhoea."
+  - kind: indication
+    ru: "Традиционное растительное средство для симптоматического лечения небольших воспалений слизистой оболочки рта (показание 2)"
+    doc: monograph
+    page: 4
+    quote: "Indication 2) Traditional herbal medicinal product for symptomatic treatment of minor inflammations of the oral mucosa."
+  - kind: statement
+    ru: "Растительное сырьё — спелые сухие плоды; препарат — измельчённое растительное сырьё"
+    doc: monograph
+    page: 3
+    quote: "i) Herbal substance Ripe, dry fruits ii) Herbal preparations Comminuted herbal substance"
+  - kind: posology
+    ru: "Показание 1 (диарея), чай — подростки, взрослые и пожилые, 15–60 г сырья или измельчённого сырья в виде отвара, разделёнными дозами по 5–15 г на 250 мл воды 3–4 раза в день"
+    doc: monograph
+    page: 4
+    quote: "Posology Adolescents, adults and elderly Indication 1) Herbal tea: 15-60 g of herbal substance or comminuted herbal substance as a decoction, in divided doses of 5-15 g in 250 ml of water, 3-4 times daily."
+    dose: { preparationRu: "отвар сырья или измельчённого сырья", amount: "5-15", unit: г, waterMl: "250", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 2 (воспаление слизистой рта) — подростки, взрослые и пожилые, отвар для применения на слизистую оболочку рта; 20 г сырья или измельчённого сырья на 200 мл воды; полоскать рот несколько раз в день"
+    doc: monograph
+    page: 4
+    quote: "Indication 2) Herbal substance or comminuted herbal substance for decoction preparation for oromucosal use: 20 g of herbal substance or comminuted herbal substance in 200 ml of water. Rinse the mouth several times daily."
+    dose: { preparationRu: "отвар сырья или измельчённого сырья для применения на слизистую оболочку рта", amount: "20", unit: г, waterMl: "200", timesPerDay: несколько, populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Показание 1 (диарея) — способ применения: внутрь"
+    doc: monograph
+    page: 5
+    quote: "Method of administration Indication 1) Oral use."
+  - kind: posology
+    ru: "Показание 2 (воспаление слизистой рта) — способ применения: на слизистую оболочку рта"
+    doc: monograph
+    page: 5
+    quote: "Indication 2) Oromucosal use."
+  - kind: age
+    ru: "Детям до 12 лет применение не рекомендуется"
+    doc: monograph
+    page: 4
+    quote: "The use in children under 12 years of age is not recommended"
+    minAgeMonths: 144
+  - kind: duration
+    ru: "Показание 1 (диарея) — если симптомы сохраняются дольше 3 дней во время применения, обратиться к врачу или медработнику"
+    doc: monograph
+    page: 4
+    quote: "Indication 1) If the symptoms persist longer than 3 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 3
+  - kind: duration
+    ru: "Показание 2 (воспаление слизистой рта) — если симптомы сохраняются дольше 1 недели во время применения, обратиться к врачу или медработнику"
+    doc: monograph
+    page: 4
+    quote: "Indication 2) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+    maxDays: 7
+  - kind: contraindication
+    ru: "Гиперчувствительность к плодам черники"
+    doc: monograph
+    page: 5
+    quote: "Hypersensitivity to the active substance."
+  - kind: warning
+    ru: "Применение у детей до 12 лет не установлено из-за недостатка адекватных данных"
+    doc: monograph
+    page: 5
+    quote: "The use in children under 12 years of age has not been established due to lack of adequate data."
+    minAgeMonths: 144
+  - kind: warning
+    ru: "Показание 1 (диарея) — если симптомы ухудшаются или сохраняются дольше 3 дней во время применения, обратиться к врачу или медработнику"
+    doc: monograph
+    page: 5
+    quote: "Indication 1) If the symptoms worsen or persist longer than 3 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: warning
+    ru: "Показание 2 (воспаление слизистой рта) — если симптомы ухудшаются или сохраняются дольше 1 недели во время применения, обратиться к врачу или медработнику"
+    doc: monograph
+    page: 5
+    quote: "Indication 2) If the symptoms worsen or persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: interaction
+    ru: "Взаимодействий не описано"
+    doc: monograph
+    page: 5
+    quote: "Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported."
+  - kind: pregnancy
+    ru: "Можно применять при беременности и лактации"
+    doc: monograph
+    page: 5
+    quote: "Can be used during pregnancy and lactation."
+  - kind: lactation
+    ru: "Можно применять при беременности и лактации"
+    doc: monograph
+    page: 5
+    quote: "Can be used during pregnancy and lactation."
+  - kind: pregnancy
+    ru: "Опасений в отношении каких-либо пороков развития у человека после употребления сушёных плодов черники не возникало"
+    doc: monograph
+    page: 5
+    quote: "No concern has arisen about any malformation in humans, following the consumption of dried bilberry fruit."
+  - kind: pregnancy
+    ru: "Данных о фертильности нет"
+    doc: monograph
+    page: 6
+    quote: "No fertility data available."
+  - kind: statement
+    ru: "Исследований влияния на способность управлять транспортом и механизмами не проводилось"
+    doc: monograph
+    page: 6
+    quote: "No studies on the effect on the ability to drive and use machines have been performed."
+  - kind: adverse
+    ru: "Нежелательные эффекты не известны; при их появлении — к врачу или медработнику"
+    doc: monograph
+    page: 6
+    quote: "None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted."
+  - kind: overdose
+    ru: "Случаев передозировки не описано"
+    doc: monograph
+    page: 6
+    quote: "No case of overdose has been reported."
+  - kind: statement
+    ru: "Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось"
+    doc: monograph
+    page: 7
+    quote: "Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed."
+constituents:
+  - compound: "tannins"
+    compoundRu: "дубильные вещества"
+    classRu: "танины"
+    effectRu: "так как сухие спелые плоды содержат не менее 1 % танинов, традиционное применение препаратов сухих плодов при диарее и местно при лёгком воспалении слизистой оправдано их вяжущими свойствами"
+    evidence: review
+    doc: assessment-report
+    page: 37
+    quote: "As dried ripe fruits of bilberry contain at least 1% of tannins, the traditional use of the dry fruit preparations in diarrhea and topically in mild inflammation of the mucosa is justified on the basis of their astringent properties."
+  - compound: "anthocyanins"
+    compoundRu: "антоцианы"
+    classRu: "антоцианы (флавоноиды)"
+    effectRu: "общее содержание антоцианов в спелых плодах V. myrtillus составляет от 300 до 700 мг на 100 г"
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Total anthocyanin amount ranges from 300 to 700 mg per 100 g in ripe fruits of V. myrtillus"
+  - compound: "anthocyanins"
+    compoundRu: "антоцианы"
+    classRu: "антоцианы (флавоноиды)"
+    effectRu: "многие терапевтические свойства черники приписывают активности антоцианов"
+    evidence: review
+    doc: assessment-report
+    page: 37
+    quote: "Many therapeutic proprieties of bilberry is ascribed to anthocyanin activity."
+  - compound: "catechin"
+    compoundRu: "катехин"
+    classRu: "флаван-3-олы"
+    effectRu: "водный экстракт V. myrtillus (74,2 мг/г общих полифенолов, доля катехина 17,3 %) оказывал in vitro выраженное защитное действие на частицы ЛПНП при окислении, вызванном медью"
+    evidence: in-vitro
+    doc: assessment-report
+    page: 25
+    quote: "They found, that the extract, which contained 74.2±4.9 mg/g of total polyphenols with a proportion of catechin of 17.3±3.3% caused potent protective action on LDL particles during in vitro copper-mediated oxidation."

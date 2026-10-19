@@ -1,0 +1,223 @@
+# EMA/HMPC facts for Первоцвет весенний (корневища с корнями). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: primula-veris
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано исключительно на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: statement
+    ru: Монография относится к корню Primula veris и/или Primula elatior (первоцвет высокий)
+    doc: monograph
+    page: 3
+    quote: Primula veris L. and/or Primula elatior (L.) Hill, radix (Primula root)
+  - kind: indication
+    ru: Традиционное растительное средство, применяемое как отхаркивающее при кашле, связанном с простудой
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
+  - kind: posology
+    ru: Препарат A (по ÖAB, сухой экстракт с DER 3–3,5:1) — подростки, взрослые и пожилые, разовая доза 0,1–0,2 г 3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily'
+    dose: {preparationRu: 'сухой экстракт A (по ÖAB, DER 3-3.5:1)', amount: 0.1-0.2, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат B (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,5 г 3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily'
+    dose: {preparationRu: жидкий экстракт B, amount: '0.5', unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат C (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,6 г 4 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily'
+    dose: {preparationRu: жидкий экстракт C, amount: '0.6', unit: г, timesPerDay: '4', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат D (настойка) — подростки, взрослые и пожилые, разовая доза 0,5–1 г 3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily D) Tincture: Single dose: 0.5 – 1 g, 3 times daily'
+    dose: {preparationRu: настойка D, amount: 0.5-1, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат G (мягкий экстракт) — подростки, взрослые и пожилые, разовая доза 22,5 мг 3 раза в день
+    doc: monograph
+    page: 4
+    quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily D) Tincture: Single dose: 0.5 – 1 g, 3 times daily G) Soft extract: Single dose: 22.5 mg, 3 times daily'
+    dose: {preparationRu: мягкий экстракт G, amount: '22.5', unit: мг, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препараты A (с DER, отличным от ÖAB), E, F, H — подростки, взрослые и пожилые, разовая доза, соответствующая 0,2–0,5 г сырья (в зависимости от фактического DER), 3 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations A (different DER to ÖAB), E, F, H: Single dose equivalent to 0.2 – 0.5 g herbal substance (depending on the actual DER), 3 times daily'
+    dose: {preparationRu: 'препараты A (DER не по ÖAB), E, F, H', amount: 0.2-0.5, unit: г сырья, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат I (травяной чай из измельчённого сырья) — подростки, взрослые и пожилые, 0,2–0,5 г на 150 мл кипятка 3 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparation I: Herbal tea: 0.2 – 0.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 3 times daily.'
+    dose: {preparationRu: травяной чай (настой) из измельчённого сырья I, amount: 0.2-0.5, unit: г, waterMl: '150', timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Препарат C (жидкий экстракт) — дети 4–12 лет, разовая доза 0,33 г 3 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily'
+    dose: {preparationRu: жидкий экстракт C, amount: '0.33', unit: г, timesPerDay: '3', populationRu: дети 4–12 лет}
+  - kind: posology
+    ru: Препарат D (настойка) — дети 4–12 лет, разовая доза 0,3–0,5 мл 3 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily'
+    dose: {preparationRu: настойка D, amount: 0.3-0.5, unit: мл, timesPerDay: '3', populationRu: дети 4–12 лет}
+  - kind: posology
+    ru: Препарат F (мягкий экстракт) — дети 4–6 лет, разовая доза 0,12 г 3 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily F) Soft extract 4-6 years of age Single dose 0.12 g, 3 times daily'
+    dose: {preparationRu: мягкий экстракт F, amount: '0.12', unit: г, timesPerDay: '3', populationRu: дети 4–6 лет}
+  - kind: posology
+    ru: Препарат F (мягкий экстракт) — дети 6–12 лет, разовая доза 0,12 г 3–4 раза в день
+    doc: monograph
+    page: 5
+    quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily F) Soft extract 4-6 years of age Single dose 0.12 g, 3 times daily 6-12 years of age Single dose 0.12 g, 3-4 times daily'
+    dose: {preparationRu: мягкий экстракт F, amount: '0.12', unit: г, timesPerDay: 3-4, populationRu: дети 6–12 лет}
+  - kind: age
+    ru: 'Препараты A, B, E, G, H, I: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations A, B, E, G, H, I: The use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Препараты C, D, F: детям до 4 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations C, D, F: The use in children under 4 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 48
+  - kind: duration
+    ru: Если симптомы сохраняются дольше 1 недели — обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 1 week, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: posology
+    ru: Приём внутрь
+    doc: monograph
+    page: 6
+    quote: Method of administration Oral use.
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу (корню первоцвета)
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substance.
+  - kind: age
+    ru: 'Препараты A, B, E, G, H, I: применение у детей до 12 лет не установлено — данных недостаточно'
+    doc: monograph
+    page: 6
+    quote: 'Herbal preparations A, B, E, G, H, I: The use in children under 12 years of age has not been established due to lack of adequate data.'
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Препараты C, D, F: детям до 4 лет не рекомендуется — следует получить медицинскую консультацию'
+    doc: monograph
+    page: 6
+    quote: 'Herbal preparations C, D, F: The use in children under 4 years of age is not recommended because medical advice should be sought.'
+    minAgeMonths: 48
+  - kind: warning
+    ru: 'Все препараты: рекомендуется осторожность у пациентов с гастритом или язвой желудка'
+    doc: monograph
+    page: 6
+    quote: 'All herbal preparations: Caution is recommended in patients with gastritis or gastric ulcer.'
+  - kind: warning
+    ru: При одышке, лихорадке или гнойной мокроте — обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 6
+    quote: If dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
+    doc: monograph
+    page: 6
+    quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 6
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 7
+    quote: No fertility data available.
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 7
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 7
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Передозировка может вызвать расстройство желудка, рвоту или диарею
+    doc: monograph
+    page: 7
+    quote: Overdose may lead to stomach upset, vomiting or diarrhoea.
+  - kind: statement
+    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+    doc: monograph
+    page: 8
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: triterpene saponins
+    compoundRu: тритерпеновые сапонины
+    classRu: тритерпеновые сапонины (олеананового типа)
+    effectRu: Характерные компоненты корня — тритерпеновые сапонины (обычно 3–10 [–12] %) и фенольные гликозиды
+    doc: assessment-report
+    page: 3
+    quote: The characteristic constituents are triterpene saponins (usually 3 – 10 [-12]%) and phenolic glycosides.
+    evidence: review
+  - compound: Primula saponins (expectorant action)
+    compoundRu: сапонины первоцвета (отхаркивающее действие)
+    classRu: тритерпеновые сапонины
+    effectRu: Механизм отхаркивающего действия сапонинов первоцвета пока удовлетворительно не выяснен; в литературе общее согласие, что сапонины местно раздражают слизистую желудка, это вызывает рефлекторное усиление бронхиальной секреции, затем разжижает слизь и снижает её вязкость
+    doc: assessment-report
+    page: 12
+    quote: The mode of the expectorant action of Primula saponins is not yet satisfactorily clarified. In literature there is a general agreement that saponins irritate locally the gastric mucosa, which provokes a reflex increase in bronchial secretion, and subsequently dilutes the mucus and reduces its viscosity
+    evidence: review
+  - compound: primverin, primulaverin
+    compoundRu: примверин, примулаверин
+    classRu: фенольные гликозиды
+    effectRu: Фенольные гликозиды примверин и примулаверин содержатся у обоих видов в очень разном количестве, до 2,3 %; это 2-примверозиды метиловых эфиров 4-метокси- и 5-метоксисалициловой кислоты
+    doc: assessment-report
+    page: 3
+    quote: The phenolic glycosides primverin and primulaverin occur in both species in very variable amounts up to 2.3%, they are 2-primeverosides of 4-methoxy- and 5-methoxysalicilyc acid methyl esters
+    evidence: review
+  - compound: saponins (toxicity)
+    compoundRu: сапонины (токсичность)
+    classRu: тритерпеновые сапонины
+    effectRu: Токсические эффекты корня первоцвета в основном приписывают сапонинам, повреждающим клеточные мембраны; это приводит к местному раздражению и, в более высоких дозах, к цитотоксичности
+    doc: assessment-report
+    page: 14
+    quote: The toxic effects of Primula root are primarily ascribed to the saponins which damage the cell membranes; this results in local irritation and, at higher doses, in cytotoxicity.
+    evidence: review
+  - compound: primin (absent)
+    compoundRu: примин (в корнях отсутствует)
+    classRu: хиноидные соединения
+    effectRu: Подземные органы не содержат примина и других хиноидных соединений, ответственных за контактно-аллергенные свойства надземных частей видов рода Primula
+    doc: assessment-report
+    page: 3
+    quote: The underground organs do not contain primin or other quinoid compounds, which are responsible for contact allergenic properties of aerial parts of species of the genus Primula (Hausen 1978).
+    evidence: review

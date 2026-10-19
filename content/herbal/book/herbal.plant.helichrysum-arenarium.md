@@ -17,7 +17,7 @@ metadata:
   documentKind: травник
   contentMode: verbatim
   rightsStatus: official-and-attributed-sources
-  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
     decidedAt: '2026-10-18'
@@ -69,6 +69,7 @@ metadata:
       licence: Public domain
       commonsPage: https://commons.wikimedia.org/wiki/File:Illustration_Helichrysum_arenarium0.jpg
     ema:
+      authority: EMA
       page: https://www.ema.europa.eu/en/medicines/herbal/helichrysi-flos
       lastUpdated: 23/06/2016
       species: null
@@ -239,6 +240,7 @@ metadata:
         classRu: флавоноид
         effectRu: флавоноидная фракция была активна против грамположительных микроорганизмов, особенно стрептококков и стафилококков, в концентрациях 20–40 мкг/мл — вероятно, главным образом из-за нарингенина
         evidence: in-vitro
+    redBook: null
     identification:
       source:
         number: ФС.2.5.0007

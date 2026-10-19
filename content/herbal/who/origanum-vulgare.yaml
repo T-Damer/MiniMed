@@ -1,0 +1,135 @@
+# WHO monograph facts for Душица обыкновенная (трава). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: origanum-vulgare
+status: proposed
+useType: traditional
+facts:
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют при кашле, простуде и бронхиальном катаре, как отхаркивающее и потогонное"
+    doc: monograph
+    page: 298
+    quote: Herba Origani is used to treat cough, colds and bronchial catarrh, and is used as an expectorant and diaphoretic (39–41).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — среди других применений: вздутие живота, стимуляция выделения жёлчи, аппетита и пищеварения, а также как седативное и спазмолитическое средство"
+    doc: monograph
+    page: 298
+    quote: Other uses include the treatment of bloating, stimulation of bile secretion, of the appetite and of digestion, and as a sedative and antispasmodic agent (15, 42, 43).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют также как эмменагогное средство в унани и при альгодисменорее и импотенции"
+    doc: monograph
+    page: 298
+    quote: Herba Origani is also used as an emmenagogue in Unani medicine (44), and for treatment of algomenorrhoea and impotence (45).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву применяют как мочегонное и при инфекциях почек, почечных камнях и сниженной функции почек вследствие хронического нефрита"
+    doc: monograph
+    page: 298
+    quote: The herb is used as a diuretic and as a treatment for kidney infections, kidney stones and poor renal function resulting from chronic nephritis (22).
+  - kind: indication
+    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — применяют при воспалении, артрите, гепатите, а наружно — при золотухе и для заживления ран"
+    doc: monograph
+    page: 298
+    quote: It is also used to treat inflammation, arthritis (46), hepatitis (47, 48), and externally for scrofula and wound healing (49).
+  - kind: posology
+    ru: "Лекарственная форма: измельчённая трава для настоя"
+    doc: monograph
+    page: 301
+    quote: Comminuted herb for infusion.
+  - kind: posology
+    ru: Внутрь, настой — столовая ложка настоя (10 г сухой травы на 200 мл кипятка, 15–20 минут) три раза в день перед едой
+    doc: monograph
+    page: 301
+    quote: "Internal use. As an infusion: one tablespoon of an infusion (10 g of dried herb in 200 ml boiling water for 15–20 minutes) three times daily before meals (73)."
+    dose: { preparationRu: "настой, столовая ложка (10 г сухой травы на 200 мл кипятка, 15–20 минут)", amount: "10", unit: г сухой травы на настой, waterMl: "200", timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: Внутрь, настойка — 1 мл настойки (10 г сухой травы на 150 мл 70 % этанола) три раза в день
+    doc: monograph
+    page: 301
+    quote: "Tincture: 1 ml of a tincture (10 g of dried herb in 150 ml 70% ethanol) three times daily (74)."
+    dose: { preparationRu: "настойка (10 г сухой травы на 150 мл 70 % этанола)", amount: "1", unit: мл, timesPerDay: три, populationRu: возраст не указан }
+  - kind: posology
+    ru: "Наружно, в виде компресса, припарки или полоскания: 20–30 г травы на 200 мл кипятка, для непосредственного применения"
+    doc: monograph
+    page: 301
+    quote: "External use. As a compress, cataplasm or gargle: add 20–30 g of herb to 200 ml of boiling water for a direct application (75)."
+    dose: { preparationRu: "трава, залитая кипятком (20–30 г на 200 мл)", amount: "20-30", unit: г, waterMl: "200", populationRu: возраст не указан }
+  - kind: contraindication
+    ru: При появлении признаков реакций гиперчувствительности (сыпь, зуд, крапивница, отёк рта и кожи) траву душицы повторно применять нельзя
+    doc: monograph
+    page: 301
+    quote: If signs of hypersensitivity reactions appear (rash, pruritus, urticaria, swelling of mouth and skin) Herba Origani must not be used again.
+  - kind: interaction
+    ru: Сведений о взаимодействиях с лекарствами и лабораторными тестами не найдено
+    doc: monograph
+    page: 301
+    quote: Drug and laboratory test interactions No information was found.
+  - kind: pregnancy
+    ru: Приём крепких (концентрированных) чаёв из травы душицы может вызывать сокращения матки
+    doc: monograph
+    page: 301
+    quote: Ingestion of strong (concentrated) teas made with Herba Origani may cause uterine contractions.
+  - kind: pregnancy
+    ru: Женщинам следует избегать приёма травы во время беременности и лактации
+    doc: monograph
+    page: 301
+    quote: Women should avoid taking the herb during pregnancy and lactation (72).
+  - kind: lactation
+    ru: Женщинам следует избегать приёма травы во время лактации; для кормящих матерей — см. раздел «Беременность»
+    doc: monograph
+    page: 301
+    quote: Women should avoid taking the herb during pregnancy and lactation (72). Nursing mothers See Pregnancy.
+  - kind: adverse
+    ru: Сведений о нежелательных реакциях не найдено
+    doc: monograph
+    page: 300
+    quote: Adverse reactions No information was found.
+  - kind: statement
+    ru: "У мышей средняя летальная доза водно-спиртового экстракта (1:1) цельного растения зафиксирована как более 1 г/кг (внутрибрюшинно)"
+    doc: monograph
+    page: 300
+    quote: "In mice, the median lethal dose for an aqueous-ethanol extract (1:1) of the entire plant has been recorded as > 1 g/kg (by intraperitoneal injection) (70)."
+  - kind: statement
+    ru: Эфирное масло надземных частей в концентрации 0,01 % подавляло пролиферацию эпидермальных клеток кролика CA-HEP-2, клеток Vero и культивируемых клеток HeLa
+    doc: monograph
+    page: 300
+    quote: The essential oil of the aerial parts of the plant, at a concentration of 0.01%, inhibited proliferation of rabbit epidermal CA-HEP-2 cells, Vero cells, and cultured HeLa cells (71).
+constituents:
+  - compound: volatile oil
+    compoundRu: эфирное масло
+    classRu: эфирное масло
+    effectRu: трава содержит 0,15–1,2 % эфирного масла; его главные компоненты — карвакрол (40–70 %), γ-терпинен (8–10 %), п-цимол (2,80–10,00 %)
+    evidence: review
+    doc: monograph
+    page: 297
+    quote: "Herba Origani contains 0.15–1.2% of volatile oil. The chief components of the volatile oil are carvacrol (40–70%), γ-terpinene (8–10%), p-cymene (2.80–10.00%)"
+  - compound: flavonoids and rosmarinic acid of the ethanol-water extract
+    compoundRu: флавоноиды и розмариновая кислота этанольно-водного экстракта
+    classRu: флавоноиды, фенольные кислоты
+    effectRu: этанольно-водный экстракт содержит флавоноиды (нарингин, лютеолин-7-глюкозид, диосметин-7-глюкозид и апигенин-7-глюкозид), розмариновую кислоту (около 5 %) и другие фенольные эфиры; присутствуют также дубильные вещества
+    evidence: review
+    doc: monograph
+    page: 297
+    quote: The ethanol-water extract contains flavonoids (naringin, luteolin-7-glucoside, diosmetin-7-glucoside and apigenin-7-glucoside), rosmarinic acid (approximately 5%) and other phenolic esters; tannins are also present
+  - compound: ethanol extract (80%) of Herba Origani
+    compoundRu: этанольный экстракт (80 %) травы душицы
+    classRu: экстракт
+    effectRu: в концентрации 250 мкг/мл на чашку с агаром был активен in vitro против Pseudomonas aeruginosa, Bacillus subtilis, Escherichia coli, Klebsiella pneumoniae, Proteus mirabilis, Salmonella typhi, Staphylococcus aureus и Streptococcus hemolyticus
+    evidence: in-vitro
+    doc: monograph
+    page: 298
+    quote: An ethanol extract (80%) of Herba Origani at a concentration of 250 µg/ ml/agar plate was active against Pseudomonas aeruginosa, Bacillus subtilis, Escherichia coli, Klebsiella pneumoniae, Proteus mirabilis, Salmonella typhi, Staphylococcus aureus and Streptococcus hemolyticus in vitro.
+  - compound: aqueous extract of dried leaves
+    compoundRu: водный экстракт сухих листьев
+    classRu: экстракт
+    effectRu: при введении крысам внутрижелудочно в дозе 20 мг/кг массы тела проявил антигипергликемическую активность in vivo
+    evidence: animal
+    doc: monograph
+    page: 300
+    quote: An aqueous extract of dried leaves of Origanum vulgare exhibited anti-hyperglycaemic activity in vivo when administered to rats by the intragastric route at a dose of 20 mg/kg body weight (bw) (46).
+  - compound: methanol extract of Origanum leaf
+    compoundRu: метанольный экстракт листьев душицы
+    classRu: экстракт
+    effectRu: при наружном нанесении мышам (20 мкл на животное) проявил противовоспалительное действие на модели воспаления уха, вызванного 12-O-тетрадеканоилфорбол-13-ацетатом
+    evidence: animal
+    doc: monograph
+    page: 299
+    quote: The methanol extract of Origanum leaf applied externally to mice (20 µl/ animal) exhibited anti-inflammatory effects in animals with ear inflammation induced by 12-O-tetradecanoylphorbol-13-acetate (61).

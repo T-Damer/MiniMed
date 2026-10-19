@@ -15,11 +15,6 @@ facts:
     page: 4
     quote: Traditional herbal medicinal product used for the relief of early symptoms of common cold.
   # the preparations the letters a), b), c) of the posology refer to
-  - kind: statement
-    ru: "Препараты: a) измельчённое сырьё; b) жидкий экстракт (DER 1:1, этанол 25 % V/V); c) настойка (1:5, этанол 25 % V/V)"
-    doc: monograph
-    page: 3
-    quote: "ii) Herbal preparations a) Comminuted herbal substance. b) Liquid extract (DER 1:1), extraction solvent: ethanol 25 % V/V c) Tincture (1:5) extraction solvent: ethanol 25 % V/V"
   - kind: posology
     ru: Препарат a), чай — подростки, взрослые и пожилые, разовая доза 2–5 г сырья или измельчённого сырья в 150 мл кипятка в виде настоя, три раза в день
     doc: monograph

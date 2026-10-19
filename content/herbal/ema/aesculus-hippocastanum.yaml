@@ -1,0 +1,336 @@
+# EMA/HMPC facts for Конский каштан обыкновенный (семена). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: aesculus-hippocastanum
+status: proposed
+useType: both
+facts:
+  - kind: use-type
+    ru: Традиционное применение основано исключительно на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лечение хронической венозной недостаточности, которая проявляется отёком ног, варикозом, чувством тяжести, болью, усталостью, зудом, напряжением и судорогами в икрах (хорошо изученное применение)
+    doc: monograph
+    page: 4
+    quote: Herbal medicinal product for treatment of chronic venous insufficiency, which is characterised by swollen legs, varicose veins, a feeling of heaviness, pain, tiredness, itching, tension and cramps in the calves.
+  - kind: indication
+    ru: 'Показание 1: облегчение симптомов дискомфорта и тяжести в ногах, связанных с незначительными нарушениями венозного кровообращения (традиционное применение)'
+    doc: monograph
+    page: 4
+    quote: Indication 1) Traditional herbal medicinal product to relieve symptoms of discomfort and heaviness of legs related to minor venous circulatory disturbances.
+  - kind: indication
+    ru: 'Показание 2: облегчение признаков ушибов, таких как местный отёк и гематома (традиционное применение)'
+    doc: monograph
+    page: 4
+    quote: Indication 2) Traditional herbal medicinal product for relief of signs of bruises, such as local oedema and haematoma.
+  # well-established use: oral
+  - kind: posology
+    ru: Стандартизованный сухой экстракт с содержанием 21 мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин) 2 раза в день — взрослые и пожилые (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: Posology Adults and elderly Standardised dry extract corresponding to a content of 21 mg triterpene glycosides calculated as protoaescigenin5 2 times daily.
+    dose: {preparationRu: стандартизованный сухой экстракт, amount: '21', unit: мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин), timesPerDay: '2', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: Приём внутрь (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: Method of administration Oral use
+  - kind: age
+    ru: Для детей до 12 лет показаний нет (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: There is no relevant indication in children under 12 years of age.
+    minAgeMonths: 144
+  - kind: age
+    ru: Подросткам до 18 лет не рекомендуется (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: The use in adolescents under 18 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).
+    minAgeMonths: 216
+  - kind: duration
+    ru: Для появления эффекта может потребоваться не менее 4 недель лечения (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: At least 4 weeks of treatment may be required before any beneficial effect is observed.
+  - kind: duration
+    ru: Длительное применение возможно по согласованию с врачом (хорошо изученное применение)
+    doc: monograph
+    page: 5
+    quote: Long-term use is possible in consultation with a doctor.
+  # traditional use, indication 1: semi-solid forms a)-f)
+  - kind: posology
+    ru: 'Показание 1: препарат a), полутвёрдая лекарственная форма — количество препарата, эквивалентное 0,4 % тритерпеновых гликозидов (в пересчёте на протоаэсцигенин); взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5'
+    dose: {preparationRu: 'препарат a), полутвёрдая лекарственная форма', amount: '0.4', unit: '% тритерпеновых гликозидов (в пересчёте на протоаэсцигенин)', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Показание 1: препарат b), полутвёрдая лекарственная форма — количество, эквивалентное 20 % препарата; взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation'
+    dose: {preparationRu: 'препарат b), полутвёрдая лекарственная форма', amount: '20', unit: '% препарата', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Показание 1: препарат c), полутвёрдая лекарственная форма — количество, эквивалентное 3,2 % препарата; взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation c) In semi-solid dosage forms: amount equivalent to 3.2% herbal preparation'
+    dose: {preparationRu: 'препарат c), полутвёрдая лекарственная форма', amount: '3.2', unit: '% препарата', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Показание 1: препарат d), полутвёрдая лекарственная форма — количество, эквивалентное 0,85 % препарата; взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation c) In semi-solid dosage forms: amount equivalent to 3.2% herbal preparation d) In semi-solid dosage forms: amount equivalent to 0.85% herbal preparation'
+    dose: {preparationRu: 'препарат d), полутвёрдая лекарственная форма', amount: '0.85', unit: '% препарата', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Показание 1: препарат e), полутвёрдая лекарственная форма — количество, эквивалентное 3,8 % препарата; взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation c) In semi-solid dosage forms: amount equivalent to 3.2% herbal preparation d) In semi-solid dosage forms: amount equivalent to 0.85% herbal preparation e) In semi-solid dosage forms: amount equivalent to 3.8% herbal preparation'
+    dose: {preparationRu: 'препарат e), полутвёрдая лекарственная форма', amount: '3.8', unit: '% препарата', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Показание 1: препарат f), полутвёрдая лекарственная форма — количество, эквивалентное 1,6 % препарата; взрослые и пожилые'
+    doc: monograph
+    page: 5
+    quote: 'Indication 1) Herbal preparations a)-f) Adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to 0.4% triterpene glycosides, calculated as protoaescigenin5 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation c) In semi-solid dosage forms: amount equivalent to 3.2% herbal preparation d) In semi-solid dosage forms: amount equivalent to 0.85% herbal preparation e) In semi-solid dosage forms: amount equivalent to 3.8% herbal preparation f) In semi-solid dosage forms: amount equivalent to 1.6% herbal preparation'
+    dose: {preparationRu: 'препарат f), полутвёрдая лекарственная форма', amount: '1.6', unit: '% препарата', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Для всех препаратов a)–f): разовая доза — тонкий слой на поражённом участке; в сутки 1–3 раза'
+    doc: monograph
+    page: 5
+    quote: 'For all preparations a)-f): Single dose: Apply a thin layer on the affected area Daily dose: 1-3 times.'
+    dose: {preparationRu: 'препараты a)-f), нанесение тонким слоем', timesPerDay: 1-3, populationRu: взрослые и пожилые}
+  # traditional use, indication 1: oral g)-i)
+  - kind: posology
+    ru: 'Препарат g): жидкий экстракт, взрослые и пожилые — разовая доза 300 мг 2 раза в день, суточная 600 мг'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg'
+    dose: {preparationRu: 'препарат g), жидкий экстракт', amount: '300', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Препарат h): взрослые и пожилые — разовая доза 154 мг 3–4 раза в день, суточная 462–616 мг'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg h) Single dose: 154 mg 3-4 times daily Daily dose: 462-616 mg daily'
+    dose: {preparationRu: препарат h), amount: '154', unit: мг, timesPerDay: 3-4, populationRu: взрослые и пожилые}
+  - kind: posology
+    ru: 'Препарат i): сухой экстракт, взрослые и пожилые — разовая доза 99 мг 2 раза в день, суточная 198 мг'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg h) Single dose: 154 mg 3-4 times daily Daily dose: 462-616 mg daily i) Single dose: 99 mg dry extract 2 times daily Daily dose: 198 mg'
+    dose: {preparationRu: 'препарат i), сухой экстракт', amount: '99', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
+  - kind: age
+    ru: 'Для всех препаратов a)–i): для детей до 12 лет применения нет'
+    doc: monograph
+    page: 5
+    quote: 'For all preparations a)-i): There is no relevant use in children under 12 years of age.'
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Для всех препаратов a)–i): подросткам до 18 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: 'For all preparations a)-i): There is no relevant use in children under 12 years of age. The use in adolescents under 18 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 216
+  # traditional use, indication 2
+  - kind: posology
+    ru: 'Показание 2: препарат a), полутвёрдая лекарственная форма — количество, эквивалентное примерно 0,4 % тритерпеновых гликозидов (в пересчёте на протоаэсцигенин); подростки, взрослые и пожилые'
+    doc: monograph
+    page: 6
+    quote: 'Indication 2) Herbal preparation a)-b) Adolescents, adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to approx. 0.4% triterpene glycosides, calculated as protoaescigenin6'
+    dose: {preparationRu: 'препарат a), полутвёрдая лекарственная форма', amount: '0.4', unit: '% тритерпеновых гликозидов (в пересчёте на протоаэсцигенин)', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Показание 2: препарат b), полутвёрдая лекарственная форма — количество, эквивалентное 20 % препарата; подростки, взрослые и пожилые'
+    doc: monograph
+    page: 6
+    quote: 'Indication 2) Herbal preparation a)-b) Adolescents, adults and elderly a) In semi-solid dosage forms: herbal preparation in an amount equivalent to approx. 0.4% triterpene glycosides, calculated as protoaescigenin6 b) In semi-solid dosage forms: amount equivalent to 20% herbal preparation'
+    dose: {preparationRu: 'препарат b), полутвёрдая лекарственная форма', amount: '20', unit: '% препарата', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Для препаратов a)–b): разовая доза — тонкий слой на поражённом участке; в сутки 1–3 раза'
+    doc: monograph
+    page: 6
+    quote: 'For preparation a)-b) Single dose: Apply a thin layer on the affected area Daily dose: 1-3 times'
+    dose: {preparationRu: 'препараты a)-b), нанесение тонким слоем', timesPerDay: 1-3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Для препаратов a)–b): детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 6
+    quote: 'For preparation a)-b) Single dose: Apply a thin layer on the affected area Daily dose: 1-3 times The use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  # traditional use: duration, method
+  - kind: duration
+    ru: 'Показание 1: если симптомы сохраняются дольше 2 недель — обратиться к врачу или квалифицированному медработнику'
+    doc: monograph
+    page: 6
+    quote: Indication 1) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: duration
+    ru: 'Показание 2: если симптомы сохраняются дольше 5 дней — обратиться к врачу или квалифицированному медработнику'
+    doc: monograph
+    page: 6
+    quote: Indication 2) If the symptoms persist longer than 5 days during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 5
+  - kind: posology
+    ru: 'Препараты a)–f): нанесение на кожу; препараты g)–i): приём внутрь (традиционное применение)'
+    doc: monograph
+    page: 6
+    quote: 'Herbal preparation a)-f): Cutaneous use Herbal preparation g)-i): Oral use'
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу
+    doc: monograph
+    page: 7
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: При воспалении кожи, тромбофлебите или подкожном уплотнении, сильной боли, язвах, внезапном отёке одной или обеих ног, сердечной или почечной недостаточности — обратиться к врачу (хорошо изученное применение)
+    doc: monograph
+    page: 7
+    quote: If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted.
+  - kind: warning
+    ru: При ухудшении симптомов или признаках кожной инфекции — обратиться к врачу или фармацевту (хорошо изученное применение)
+    doc: monograph
+    page: 7
+    quote: If the symptoms worsen or signs of skin infections occur during the use of the medicinal product, a doctor or a pharmacist should be consulted.
+  - kind: age
+    ru: Подросткам до 18 лет не рекомендуется — данных о безопасности и эффективности недостаточно (хорошо изученное применение)
+    doc: monograph
+    page: 7
+    quote: The use is not recommended in adolescents under 18 years of age due to a lack of data on safety and efficacy.
+    minAgeMonths: 216
+  - kind: warning
+    ru: При ухудшении симптомов или признаках кожной инфекции — обратиться к врачу или квалифицированному медработнику (традиционное применение)
+    doc: monograph
+    page: 7
+    quote: If symptoms worsen or signs of skin infections occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: 'Нанесение на кожу: не использовать на повреждённой коже, вокруг глаз и на слизистых оболочках (традиционное применение)'
+    doc: monograph
+    page: 7
+    quote: 'Cutaneous use: The product should not be used on broken skin, around the eyes or on mucous membranes.'
+  - kind: warning
+    ru: 'Показание 1: при воспалении кожи, тромбофлебите или подкожном уплотнении, сильной боли, язвах, внезапном отёке одной или обеих ног, сердечной или почечной недостаточности — обратиться к врачу (традиционное применение)'
+    doc: monograph
+    page: 7
+    quote: Indication 1) If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted.
+  - kind: age
+    ru: 'Показание 1: подросткам до 18 лет не рекомендуется — из-за опасений, требующих медицинской консультации (традиционное применение)'
+    doc: monograph
+    page: 7
+    quote: Indication 1) If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted. The use in adolescents under 18 years of age is not recommended because of concerns requiring medical advice.
+    minAgeMonths: 216
+  - kind: age
+    ru: 'Показание 2: при недостатке данных о безопасности детям младше 12 лет не рекомендуется (традиционное применение)'
+    doc: monograph
+    page: 7
+    quote: Indication 2) In the absence of sufficient safety data, the use in children below 12 years of age is not recommended.
+    minAgeMonths: 144
+  - kind: interaction
+    ru: Взаимодействий не описано (хорошо изученное и традиционное применение)
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported None reported
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 7
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 7
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 8
+    quote: No fertility data available.
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 8
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Сообщалось о нарушениях со стороны ЖКТ, головной боли, головокружении, зуде и аллергических реакциях; частота неизвестна. При других нежелательных реакциях — к врачу или фармацевту (хорошо изученное применение)
+    doc: monograph
+    page: 8
+    quote: Gastrointestinal complaints, headache, vertigo, itching and allergic reactions have been reported. The frequency is not known. If other adverse reactions not mentioned above occur, a doctor or a pharmacist should be consulted.
+  - kind: adverse
+    ru: 'Нанесение на кожу: сообщалось о реакциях гиперчувствительности кожи (зуд и эритема); частота неизвестна (традиционное применение)'
+    doc: monograph
+    page: 8
+    quote: 'Cutaneous use: Hypersensitivity reactions of the skin (itching and erythema) have been reported. The frequency is not known.'
+  - kind: adverse
+    ru: 'Приём внутрь: сообщалось о нарушениях со стороны ЖКТ, головной боли, головокружении, зуде и аллергических реакциях; частота неизвестна (традиционное применение)'
+    doc: monograph
+    page: 8
+    quote: 'Oral use: Gastrointestinal complaints, headache, vertigo, itching and allergic reactions have been reported. The frequency is not known.'
+  - kind: adverse
+    ru: При других нежелательных реакциях (кожа и приём внутрь) — к врачу или квалифицированному медработнику (традиционное применение)
+    doc: monograph
+    page: 8
+    quote: 'Cutaneous and oral use: If other adverse reactions not mentioned above occur, a doctor or a qualified health care practitioner should be consulted.'
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 8
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Точный механизм действия не известен; доклинические и клинические фармакологические исследования указывают на участие эффекта на венозный тонус и скорость капиллярной фильтрации (хорошо изученное применение)
+    doc: monograph
+    page: 8
+    quote: The exact mechanism of action is not known, but preclinical and clinical pharmacological studies indicate that an effect on venous tone and capillary filtration rate is involved.
+  - kind: statement
+    ru: По систематическому обзору (метаанализу) 17 клинических исследований экстракт семян конского каштана значительно уменьшает симптомы хронической венозной недостаточности (хорошо изученное применение)
+    doc: monograph
+    page: 8
+    quote: Based on a systematic review (meta-analysis) of 17 clinical trials, it can be concluded that horse chestnut seed extract significantly reduces symptoms of chronic venous insufficiency,
+  - kind: statement
+    ru: Доступные доклинические данные указывают на низкую токсичность при приёме препарата внутрь. Адекватные тесты на репродуктивную токсичность, генотоксичность и канцерогенность не проводились (хорошо изученное применение)
+    doc: monograph
+    page: 9
+    quote: Available preclinical data indicate low toxicity following oral administration of the herbal preparation. Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+  - kind: statement
+    ru: Адекватные тесты на репродуктивную токсичность, генотоксичность и канцерогенность не проводились (традиционное применение)
+    doc: monograph
+    page: 9
+    quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: triterpene glycosides (saponins), aescin
+    compoundRu: тритерпеновые гликозиды (сапонины), эсцин
+    classRu: ацилированные тритерпеновые гликозиды
+    effectRu: Семена содержат 3–10 % смеси ацилированных тритерпеновых гликозидов (сапонинов)
+    doc: assessment-report
+    page: 9
+    quote: The seeds of A. hippocastanum L. contain 3-10% of a mixture of acylated triterpene glycosides (saponins).
+    evidence: review
+  - compound: β-aescin
+    compoundRu: β-эсцин
+    classRu: тритерпеновый сапонин
+    effectRu: β-эсцин обладает гемолитической активностью, а криптоэсцин — нет
+    doc: assessment-report
+    page: 10
+    quote: β-aescin has haemolytic activity, whereas cryptoaescin has not.
+    evidence: review
+  - compound: horse chestnut seed extract
+    compoundRu: экстракт семян конского каштана
+    classRu: извлечение из семян
+    effectRu: При приёме внутрь экстракта в клинико-фармакологических исследованиях сообщалось об увеличении венозного тонуса, но чистый эсцин (в/в) этого эффекта не давал
+    doc: assessment-report
+    page: 49
+    quote: An increase in venous tone has been reported for oral horse chestnut seed extract in clinical pharmacology studies, but pure aescin (i.v.) was reported not to have this effect.
+    evidence: clinical
+  - compound: aescin
+    compoundRu: эсцин
+    classRu: тритерпеновый сапонин
+    effectRu: Убедительных данных, что эсцин является терапевтически активным веществом экстракта семян конского каштана, нет
+    doc: assessment-report
+    page: 49
+    quote: There is no compelling evidence that aescin is the therapeutically active substance in horse chestnut seed extract, so the pharmacokinetic data available are of very limited value.
+    evidence: review
+  - compound: horse chestnut seed extract (HCSE), aescin
+    compoundRu: экстракт семян конского каштана (HCSE), эсцин
+    classRu: извлечение из семян
+    effectRu: Противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения
+    doc: assessment-report
+    page: 38
+    quote: Anti-oedematous effects of HCSE (and aescin) have been observed in vivo after i.v. and i.p. administration.
+    evidence: animal

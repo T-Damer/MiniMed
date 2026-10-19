@@ -1,0 +1,432 @@
+# EMA/HMPC facts for Подорожник ланцетный (листья). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: plantago-lanceolata
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано исключительно на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: 'Показание 1: традиционное растительное средство как обволакивающее для симптоматического лечения раздражения полости рта или глотки и связанного с ним сухого кашля'
+    doc: monograph
+    page: 4
+    quote: Indication 1) Traditional herbal medicinal product as a demulcent for the symptomatic treatment of oral or pharyngeal irritations and associated dry cough.
+  - kind: indication
+    ru: 'Показание 2: традиционное растительное средство для облегчения кашля, связанного с простудой'
+    doc: monograph
+    page: 4
+    quote: Indication 2) Traditional herbal medicinal product used for the relief of cough associated with cold.
+  - kind: indication
+    ru: 'Показание 3: традиционное растительное средство для лечения незначительного воспаления кожи'
+    doc: monograph
+    page: 4
+    quote: Indication 3) Traditional herbal medicinal product used for the treatment of minor inflammation of the skin.
+  # oral use, indications 1 and 2
+  - kind: posology
+    ru: Показания 1 и 2 — приём внутрь
+    doc: monograph
+    page: 4
+    quote: Posology Indications 1) and 2) Oral use
+  - kind: posology
+    ru: 'Препарат a): травяной чай (настой) из измельчённого сырья — подростки, взрослые и пожилые, 1,4–2 г на 150–250 мл кипятка, 2–3 раза в день, суточная доза 4–6 г'
+    doc: monograph
+    page: 4
+    quote: 'Indications 1) and 2) Oral use Preparation a) Adolescents, adults and elderly Herbal tea: 1.4 - 2 g of the comminuted herbal substance in 150-250 ml of boiling water as an herbal infusion Dosage frequency: 2-3 times daily Daily dose: 4 - 6 g'
+    dose: {preparationRu: травяной чай (настой) из измельчённого сырья a), amount: 1.4-2, unit: г, waterMl: 150-250, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Препарат a), приём внутрь: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: The oral use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).
+    minAgeMonths: 144
+  - kind: posology
+    ru: 'Препарат c) — подростки, взрослые и пожилые: разовая доза 233 мг, 3 раза в день, суточная доза 699 мг'
+    doc: monograph
+    page: 5
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 233 mg Dosage frequency: 3 times daily Daily dose: 699 mg'
+    dose: {preparationRu: сухой экстракт c), amount: '233', unit: мг, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат c) — дети 5–11 лет: разовая доза 233 мг, 2–3 раза в день, суточная доза 466–699 мг'
+    doc: monograph
+    page: 5
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 233 mg Dosage frequency: 3 times daily Daily dose: 699 mg Children 5-11 years of age Single dose: 233 mg Dosage frequency: 2-3 times daily Daily dose: 466 - 699 mg'
+    dose: {preparationRu: сухой экстракт c), amount: '233', unit: мг, timesPerDay: 2-3, populationRu: дети 5–11 лет}
+  - kind: posology
+    ru: 'Препарат c) — дети 3–4 лет: разовая доза 117 мг, 3 раза в день, суточная доза 351 мг'
+    doc: monograph
+    page: 5
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 233 mg Dosage frequency: 3 times daily Daily dose: 699 mg Children 5-11 years of age Single dose: 233 mg Dosage frequency: 2-3 times daily Daily dose: 466 - 699 mg Children 3-4 years of age Single dose: 117 mg Dosage frequency: 3 times daily Daily dose: 351 mg'
+    dose: {preparationRu: сухой экстракт c), amount: '117', unit: мг, timesPerDay: '3', populationRu: дети 3–4 лет}
+  - kind: age
+    ru: 'Препарат c), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 233 mg Dosage frequency: 3 times daily Daily dose: 699 mg Children 5-11 years of age Single dose: 233 mg Dosage frequency: 2-3 times daily Daily dose: 466 - 699 mg Children 3-4 years of age Single dose: 117 mg Dosage frequency: 3 times daily Daily dose: 351 mg The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат d) — подростки, взрослые и пожилые: разовая доза 0,94–2,6 г, 3–6 раз в день, суточная доза 3,75–7,5 г'
+    doc: monograph
+    page: 5
+    quote: 'Preparation d) Adolescents, adults and elderly Single dose: 0.94 - 2.6 g Dosage frequency: 3-6 times daily Daily dose: 3.75 - 7.5 g'
+    dose: {preparationRu: жидкий экстракт d), amount: 0.94-2.6, unit: г, timesPerDay: 3-6, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат d) — дети 5–11 лет: разовая доза 0,31–1,3 г, 2–6 раз в день, суточная доза 1,25–3,9 г'
+    doc: monograph
+    page: 5
+    quote: 'Preparation d) Adolescents, adults and elderly Single dose: 0.94 - 2.6 g Dosage frequency: 3-6 times daily Daily dose: 3.75 - 7.5 g Children 5-11 years of age Single dose: 0.31 - 1.3 g Dosage frequency: 2-6 times daily Daily dose: 1.25 - 3.9 g'
+    dose: {preparationRu: жидкий экстракт d), amount: 0.31-1.3, unit: г, timesPerDay: 2-6, populationRu: дети 5–11 лет}
+  - kind: posology
+    ru: 'Препарат d) — дети 3–4 лет: разовая доза 0,16–1,3 г, 2–6 раз в день, суточная доза 0,62–2,6 г'
+    doc: monograph
+    page: 5
+    quote: 'Preparation d) Adolescents, adults and elderly Single dose: 0.94 - 2.6 g Dosage frequency: 3-6 times daily Daily dose: 3.75 - 7.5 g Children 5-11 years of age Single dose: 0.31 - 1.3 g Dosage frequency: 2-6 times daily Daily dose: 1.25 - 3.9 g Children 3-4 years of age Single dose: 0.16 - 1.3 g Dosage frequency: 2-6 times daily Daily dose: 0.62 - 2.6 g'
+    dose: {preparationRu: жидкий экстракт d), amount: 0.16-1.3, unit: г, timesPerDay: 2-6, populationRu: дети 3–4 лет}
+  - kind: age
+    ru: 'Препарат d), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 5
+    quote: 'Preparation d) Adolescents, adults and elderly Single dose: 0.94 - 2.6 g Dosage frequency: 3-6 times daily Daily dose: 3.75 - 7.5 g Children 5-11 years of age Single dose: 0.31 - 1.3 g Dosage frequency: 2-6 times daily Daily dose: 1.25 - 3.9 g Children 3-4 years of age Single dose: 0.16 - 1.3 g Dosage frequency: 2-6 times daily Daily dose: 0.62 - 2.6 g The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат e) — подростки, взрослые и пожилые: разовая доза 804 мг, 4 раза в день, суточная доза 3216 мг'
+    doc: monograph
+    page: 6
+    quote: 'Adolescents, adults and elderly Single dose: 804 mg Dosage frequency: 4 times daily Daily dose: 3216 mg'
+    dose: {preparationRu: мягкий экстракт e), amount: '804', unit: мг, timesPerDay: '4', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат e) — дети 5–11 лет: разовая доза 804 мг, 3 раза в день, суточная доза 2412 мг'
+    doc: monograph
+    page: 6
+    quote: 'Adolescents, adults and elderly Single dose: 804 mg Dosage frequency: 4 times daily Daily dose: 3216 mg Children 5-11 years of age Single dose: 804 mg Dosage frequency: 3 times daily Daily dose: 2412 mg'
+    dose: {preparationRu: мягкий экстракт e), amount: '804', unit: мг, timesPerDay: '3', populationRu: дети 5–11 лет}
+  - kind: posology
+    ru: 'Препарат e) — дети 3–4 лет: разовая доза 402 мг, 3 раза в день, суточная доза 1206 мг'
+    doc: monograph
+    page: 6
+    quote: 'Adolescents, adults and elderly Single dose: 804 mg Dosage frequency: 4 times daily Daily dose: 3216 mg Children 5-11 years of age Single dose: 804 mg Dosage frequency: 3 times daily Daily dose: 2412 mg Children 3-4 years of age Single dose: 402 mg Dosage frequency: 3 times daily Daily dose: 1206 mg'
+    dose: {preparationRu: мягкий экстракт e), amount: '402', unit: мг, timesPerDay: '3', populationRu: дети 3–4 лет}
+  - kind: age
+    ru: 'Препарат e), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 6
+    quote: 'Children 3-4 years of age Single dose: 402 mg Dosage frequency: 3 times daily Daily dose: 1206 mg The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат f) — подростки, взрослые и пожилые: разовая доза 10 мл, 3 раза в день, суточная доза 30 мл'
+    doc: monograph
+    page: 6
+    quote: 'Preparation f) Adolescents, adults and elderly Single dose: 10 ml Dosage frequency: 3 times daily Daily dose: 30 ml'
+    dose: {preparationRu: отжатый сок f), amount: '10', unit: мл, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат f) — дети 3–11 лет: разовая доза 5 мл, 2 раза в день, суточная доза 10 мл'
+    doc: monograph
+    page: 6
+    quote: 'Preparation f) Adolescents, adults and elderly Single dose: 10 ml Dosage frequency: 3 times daily Daily dose: 30 ml Children 3-11 years of age Single dose: 5 ml Dosage frequency: 2 times daily Daily dose: 10 ml'
+    dose: {preparationRu: отжатый сок f), amount: '5', unit: мл, timesPerDay: '2', populationRu: дети 3–11 лет}
+  - kind: age
+    ru: 'Препарат f), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 6
+    quote: 'Preparation f) Adolescents, adults and elderly Single dose: 10 ml Dosage frequency: 3 times daily Daily dose: 30 ml Children 3-11 years of age Single dose: 5 ml Dosage frequency: 2 times daily Daily dose: 10 ml The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат g) — подростки, взрослые и пожилые: разовая доза 7,5 г, 3–4 раза в день, суточная доза 22,5–30,0 г'
+    doc: monograph
+    page: 6
+    quote: 'Preparation g) Adolescents, adults and elderly Single dose: 7.5 g Dosage frequency: 3-4 times daily Daily dose: 22.5 - 30.0 g'
+    dose: {preparationRu: жидкий экстракт g), amount: '7.5', unit: г, timesPerDay: 3-4, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат g) — дети 3–11 лет: разовая доза 2,5 г'
+    doc: monograph
+    page: 6
+    quote: 'Preparation g) Adolescents, adults and elderly Single dose: 7.5 g Dosage frequency: 3-4 times daily Daily dose: 22.5 - 30.0 g Children 3-11 years of age Single dose: 2.5 g'
+    dose: {preparationRu: жидкий экстракт g), amount: '2.5', unit: г, populationRu: дети 3–11 лет}
+  - kind: posology
+    ru: 'Препарат g) для детей: 3–4 раза в день, суточная доза 7,5–10 г'
+    doc: monograph
+    page: 7
+    quote: 'Dosage frequency: 3-4 times daily Daily dose: 7.5 - 10 g'
+  - kind: age
+    ru: 'Препарат g), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 7
+    quote: 'Dosage frequency: 3-4 times daily Daily dose: 7.5 - 10 g The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат h) — подростки, взрослые и пожилые: разовая доза 300 мг, 3–4 раза в день, суточная доза 900–1200 мг'
+    doc: monograph
+    page: 7
+    quote: 'Preparation h) Adolescents, adults and elderly Single dose: 300 mg Dosage frequency: 3-4 times daily Daily dose: 900 - 1200 mg'
+    dose: {preparationRu: сухой экстракт h), amount: '300', unit: мг, timesPerDay: 3-4, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат h) — дети 5–11 лет: разовая доза 300 мг, 3 раза в день, суточная доза 900 мг'
+    doc: monograph
+    page: 7
+    quote: 'Preparation h) Adolescents, adults and elderly Single dose: 300 mg Dosage frequency: 3-4 times daily Daily dose: 900 - 1200 mg Children 5-11 years of age Single dose: 300 mg Dosage frequency: 3 times daily Daily dose: 900 mg'
+    dose: {preparationRu: сухой экстракт h), amount: '300', unit: мг, timesPerDay: '3', populationRu: дети 5–11 лет}
+  - kind: posology
+    ru: 'Препарат h) — дети 3–4 лет: разовая доза 150 мг, 3 раза в день, суточная доза 450 мг'
+    doc: monograph
+    page: 7
+    quote: 'Preparation h) Adolescents, adults and elderly Single dose: 300 mg Dosage frequency: 3-4 times daily Daily dose: 900 - 1200 mg Children 5-11 years of age Single dose: 300 mg Dosage frequency: 3 times daily Daily dose: 900 mg Children 3-4 years of age Single dose: 150 mg Dosage frequency: 3 times daily Daily dose: 450 mg'
+    dose: {preparationRu: сухой экстракт h), amount: '150', unit: мг, timesPerDay: '3', populationRu: дети 3–4 лет}
+  - kind: age
+    ru: 'Препарат h), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 7
+    quote: 'Preparation h) Adolescents, adults and elderly Single dose: 300 mg Dosage frequency: 3-4 times daily Daily dose: 900 - 1200 mg Children 5-11 years of age Single dose: 300 mg Dosage frequency: 3 times daily Daily dose: 900 mg Children 3-4 years of age Single dose: 150 mg Dosage frequency: 3 times daily Daily dose: 450 mg The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат i) — подростки, взрослые и пожилые: разовая доза 2,1 г, 3–5 раз в день, суточная доза 6,3–10,6 г'
+    doc: monograph
+    page: 7
+    quote: 'Preparation i) Adolescents, adults and elderly Single dose: 2.1 g Dosage frequency: 3-5 times daily Daily dose: 6.3 - 10.6 g'
+    dose: {preparationRu: жидкий экстракт i), amount: '2.1', unit: г, timesPerDay: 3-5, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат i) — дети 5–11 лет: разовая доза 1,6 г, 2–4 раза в день, суточная доза 3,2–6,4 г'
+    doc: monograph
+    page: 7
+    quote: 'Preparation i) Adolescents, adults and elderly Single dose: 2.1 g Dosage frequency: 3-5 times daily Daily dose: 6.3 - 10.6 g Children 5-11 years of age Single dose: 1.6 g Dosage frequency: 2-4 times daily Daily dose: 3.2 - 6.4 g'
+    dose: {preparationRu: жидкий экстракт i), amount: '1.6', unit: г, timesPerDay: 2-4, populationRu: дети 5–11 лет}
+  - kind: posology
+    ru: 'Препарат i) — дети 3–4 лет: разовая доза 1,1 г, 2–3 раза в день, суточная доза 2,2–3,3 г'
+    doc: monograph
+    page: 7
+    quote: 'Preparation i) Adolescents, adults and elderly Single dose: 2.1 g Dosage frequency: 3-5 times daily Daily dose: 6.3 - 10.6 g Children 5-11 years of age Single dose: 1.6 g Dosage frequency: 2-4 times daily Daily dose: 3.2 - 6.4 g Children 3-4 years of age Single dose: 1.1 g Dosage frequency: 2-3 times daily Daily dose: 2.2 - 3.3 g'
+    dose: {preparationRu: жидкий экстракт i), amount: '1.1', unit: г, timesPerDay: 2-3, populationRu: дети 3–4 лет}
+  - kind: age
+    ru: 'Препарат i), приём внутрь: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 8
+    quote: The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).
+    minAgeMonths: 36
+  - kind: posology
+    ru: 'Препарат k) — подростки, взрослые и пожилые: разовая доза 1,9 г, 3–4 раза в день, суточная доза 5,8–7,8 г'
+    doc: monograph
+    page: 8
+    quote: 'Preparation k) Adolescents, adults and elderly Single dose: 1.9 g Dosage frequency: 3-4 times daily Daily dose: 5.8 - 7.8 g'
+    dose: {preparationRu: жидкий экстракт k), amount: '1.9', unit: г, timesPerDay: 3-4, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: 'Препарат k) — дети 6–11 лет: разовая доза 0,65 г, 3–4 раза в день, суточная доза 1,9–2,6 г'
+    doc: monograph
+    page: 8
+    quote: 'Preparation k) Adolescents, adults and elderly Single dose: 1.9 g Dosage frequency: 3-4 times daily Daily dose: 5.8 - 7.8 g Children 6-11 years of age Single dose: 0.65 g Dosage frequency: 3-4 times daily Daily dose: 1.9 – 2.6 g'
+    dose: {preparationRu: жидкий экстракт k), amount: '0.65', unit: г, timesPerDay: 3-4, populationRu: дети 6–11 лет}
+  - kind: age
+    ru: 'Препарат k), приём внутрь: детям до 6 лет не рекомендуется'
+    doc: monograph
+    page: 8
+    quote: 'Preparation k) Adolescents, adults and elderly Single dose: 1.9 g Dosage frequency: 3-4 times daily Daily dose: 5.8 - 7.8 g Children 6-11 years of age Single dose: 0.65 g Dosage frequency: 3-4 times daily Daily dose: 1.9 – 2.6 g The oral use in children under 6 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 72
+  # indication 2 oral; oromucosal; cutaneous
+  - kind: posology
+    ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день, суточная доза 1,2–4,8 мг'
+    doc: monograph
+    page: 8
+    quote: 'Indication 2) Oral use Preparation j) Adolescents, adults and elderly Single dose: 0.4-1.26 g liquid extract Dosage frequency: 3-4 times daily Daily dose: 1.2-4.8 mg'
+    dose: {preparationRu: жидкий экстракт j), amount: 0.4-1.26, unit: г, timesPerDay: 3-4, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Показание 2, препарат j), приём внутрь: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 8
+    quote: 'Indication 2) Oral use Preparation j) Adolescents, adults and elderly Single dose: 0.4-1.26 g liquid extract Dosage frequency: 3-4 times daily Daily dose: 1.2-4.8 mg The oral use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  - kind: posology
+    ru: 'Показание 1, приём на слизистую рта, препарат a): мацерат в 150 мл холодной воды — дети от 3 лет, подростки, взрослые и пожилые, разовая доза 1,4 г, 3–4 раза в день, суточная доза 4,2–5,6 г'
+    doc: monograph
+    page: 8
+    quote: 'Indication 1) Oromucosal use Preparation a) as macerate in 150 ml of cold water Children from 3 years of age, adolescents, adults and elderly: Single dose: 1.4 g Dosage frequency: 3-4 times daily Daily dose: 4.2-5.6 g'
+    dose: {preparationRu: мацерат a) в холодной воде, amount: '1.4', unit: г, waterMl: '150', timesPerDay: 3-4, populationRu: 'дети от 3 лет, подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Показание 1, приём на слизистую рта, препарат a): детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 8
+    quote: 'Indication 1) Oromucosal use Preparation a) as macerate in 150 ml of cold water Children from 3 years of age, adolescents, adults and elderly: Single dose: 1.4 g Dosage frequency: 3-4 times daily Daily dose: 4.2-5.6 g The oromucosal use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 36
+  - kind: posology
+    ru: Препарат b), приём на слизистую рта — подростки, взрослые и пожилые, разовая доза 190 мг, 9 раз в день, суточная доза 1,71 г
+    doc: monograph
+    page: 9
+    quote: 'Adolescents, adults and elderly Single dose: 190 mg Dosage frequency: 9 times daily Daily dose: 1.71 g The oromucosal use in children under 12'
+    dose: {preparationRu: препарат b), amount: '190', unit: мг, timesPerDay: '9', populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Препарат b), приём на слизистую рта: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 9
+    quote: 'Adolescents, adults and elderly Single dose: 190 mg Dosage frequency: 9 times daily Daily dose: 1.71 g The oromucosal use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  - kind: posology
+    ru: Препарат c), приём на слизистую рта — подростки, взрослые и пожилые, разовая доза 160 мг, 4–8 раз в день (каждые 2 ч), суточная доза 640–1280 мг
+    doc: monograph
+    page: 9
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 160 mg Dosage frequency: 4-8 times daily (every 2 h) Daily dose: 640-1280 mg'
+    dose: {preparationRu: препарат c), amount: '160', unit: мг, timesPerDay: 4-8, populationRu: 'подростки, взрослые и пожилые'}
+  - kind: age
+    ru: 'Препарат c), приём на слизистую рта: детям до 12 лет не рекомендуется'
+    doc: monograph
+    page: 9
+    quote: 'Preparation c) Adolescents, adults and elderly Single dose: 160 mg Dosage frequency: 4-8 times daily (every 2 h) Daily dose: 640-1280 mg The oromucosal use in children under 12 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
+    minAgeMonths: 144
+  - kind: posology
+    ru: 'Показание 3, нанесение на кожу, препарат a): мацерат в 150 мл холодной воды — дети от 3 лет, подростки, взрослые и пожилые, разовая доза 1,4 г, 3–4 раза в день, суточная доза 4,2–5,6 г'
+    doc: monograph
+    page: 9
+    quote: 'Indication 3) Cutaneous use Children from 3 years of age, adolescents, adults and elderly: Preparation a) as macerate in 150 ml of cold water Single dose: 1.4 g Dosage frequency: 3-4 times daily Daily dose: 4.2-5.6 g'
+    dose: {preparationRu: мацерат a) в холодной воде, amount: '1.4', unit: г, waterMl: '150', timesPerDay: 3-4, populationRu: 'дети от 3 лет, подростки, взрослые и пожилые'}
+  - kind: posology
+    ru: Мацерат наносят на поражённое место чистой повязкой
+    doc: monograph
+    page: 9
+    quote: The macerate is applied on the affected area with a clean dressing.
+  - kind: age
+    ru: 'Показание 3, нанесение на кожу: детям до 3 лет не рекомендуется'
+    doc: monograph
+    page: 9
+    quote: The cutaneous use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).
+    minAgeMonths: 36
+  - kind: duration
+    ru: Если симптомы сохраняются дольше 1 недели — обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 9
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: posology
+    ru: 'Способы применения: внутрь, на слизистую рта, на кожу; мацерат использовать сразу после приготовления'
+    doc: monograph
+    page: 9
+    quote: Method of administration Oral use. Oromucosal use. Cutaneous use. The macerate should be used immediately after preparation.
+  - kind: contraindication
+    ru: Гиперчувствительность к действующему веществу или к пыльце подорожника ланцетного
+    doc: monograph
+    page: 10
+    quote: Hypersensitivity to the active substance or to ribwort plantain pollen.
+  - kind: age
+    ru: 'Приём внутрь и на слизистую рта: детям до 3 лет не рекомендуется — есть опасения, требующие медицинской консультации'
+    doc: monograph
+    page: 10
+    quote: The oral and oromucosal use in children under 3 years of age is not recommended because of concerns requiring medical advice.
+    minAgeMonths: 36
+  - kind: age
+    ru: 'Препарат a): приём внутрь детям до 12 лет не рекомендуется из-за недостатка адекватных данных'
+    doc: monograph
+    page: 10
+    quote: Preparation a) The oral use in children under 12 years of age is not recommended due to the lack of adequate data.
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Препарат a): нанесение на кожу детям до 3 лет не рекомендуется из-за недостатка адекватных данных'
+    doc: monograph
+    page: 10
+    quote: The cutaneous use in children under 3 years of age is not recommended due to the lack of adequate data.
+    minAgeMonths: 36
+  - kind: age
+    ru: 'Препараты b) и c): приём на слизистую рта детям до 12 лет не рекомендуется из-за недостатка адекватных данных'
+    doc: monograph
+    page: 10
+    quote: Preparations b) and c) The oromucosal use in children under 12 years of age is not recommended due to the lack of adequate data.
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Препарат j): приём внутрь детям до 12 лет не рекомендуется из-за недостатка адекватных данных'
+    doc: monograph
+    page: 10
+    quote: Preparation j) The oral use in children under 12 years of age is not recommended due to the lack of adequate data.
+    minAgeMonths: 144
+  - kind: age
+    ru: 'Препарат k): приём внутрь детям до 6 лет не рекомендуется из-за недостатка адекватных данных'
+    doc: monograph
+    page: 10
+    quote: Preparation k) The oral use in children under 6 years of age is not recommended due to the lack of adequate data.
+    minAgeMonths: 72
+  - kind: warning
+    ru: При одышке, лихорадке или гнойной мокроте — обратиться к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 10
+    quote: If dyspnoea, fever or purulent sputum occurs during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Для экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
+    doc: monograph
+    page: 10
+    quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 10
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 10
+    quote: No fertility data available.
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 11
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 11
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: warning
+    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
+    doc: monograph
+    page: 11
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 11
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 11
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+    doc: monograph
+    page: 11
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: iridoid glycosides (aucubin, catalpol)
+    compoundRu: иридоидные гликозиды (аукубин, каталпол)
+    classRu: иридоиды
+    effectRu: Сырьё содержит около 2–3 % иридоидных гликозидов, главные из которых — аукубин и каталпол
+    doc: assessment-report
+    page: 5
+    quote: The herbal substance contains about 2-3% iridoid glycosides with aucubin and catalpol as the main compounds.
+    evidence: review
+  - compound: mucilage polysaccharides
+    compoundRu: слизистые полисахариды
+    classRu: полисахариды (слизь)
+    effectRu: Слизистые полисахариды, в основном арабиноза и галактоза, не всасываются и покрывают слизистую защитным слоем против местных раздражений
+    doc: assessment-report
+    page: 17
+    quote: The mucilage polysaccharides, mainly arabinose and galactose (Bräutigam and Franz, 1985), are not resorbed and cover the mucosa with a protective layer against local irritations
+    evidence: review
+  - compound: acteoside, plantamajoside
+    compoundRu: актеозид, плантамаджозид
+    classRu: фенилэтаноиды
+    effectRu: Показали противовоспалительную активность на модели кислотного отёка уха мыши (1 и/или 3 мг на ухо) и на модели колита, вызванного декстран-сульфатом натрия, у мышей (30 мг/кг)
+    doc: assessment-report
+    page: 18
+    quote: The phenylethanoids acteoside and plantamajoside showed anti-inflammatory activity in the acid-induced mouse ear oedema with 1 and/or 3 mg/ear (Murai et al., 1995), in the dextran sulphate sodium induced colitis in mice with 30 mg/kg bw (Hausmann et al., 2007)
+    evidence: animal
+  - compound: aucubin
+    compoundRu: аукубин
+    classRu: иридоидный гликозид
+    effectRu: Аукубин (100 мг/кг) показал противовоспалительную активность на модели отёка лапы мыши, вызванного каррагинаном (100 мг/кг, внутрь)
+    doc: assessment-report
+    page: 18
+    quote: the iridoid glycosides aucubin (100 mg/kg) showed anti-inflammatory activity in the carrageenan-induced mouse paw oedema (100 mg/kg bw, p.o.)
+    evidence: animal
+  - compound: aucubin (safety)
+    compoundRu: аукубин (безопасность)
+    classRu: иридоидный гликозид
+    effectRu: Максимальные дозы аукубина 800 мг/кг 4 раза в неделю не вызывали значимых изменений печёночных трансаминаз, щелочной фосфатазы, триглицеридов, глюкозы, азота мочевины крови и общего белка
+    doc: assessment-report
+    page: 22
+    quote: Maximum aucubin doses of 800 mg/kg bodyweight 4 times a week did not cause significant changes of liver transaminases, alkaline phosphatase, triglycerides, glucose, blood urea nitrogen and total protein.
+    evidence: animal

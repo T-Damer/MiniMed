@@ -60,7 +60,11 @@ export interface EmaConstituent extends EmaQuote {
   readonly evidence: string;
 }
 
+/** Whose monograph the facts come from: EMA/HMPC, or WHO where EMA has none. */
+export type MonographAuthority = 'EMA' | 'WHO';
+
 export interface HerbalEma {
+  readonly authority: MonographAuthority;
   readonly page: string;
   readonly extracted: boolean;
   readonly draft: boolean;
@@ -75,6 +79,14 @@ export interface HerbalPlate {
   readonly book: string;
   readonly credit: string;
   readonly commonsPage: string | null;
+}
+
+/** The plant's row in the federal Red Book plant list: category of rarity and its own note. */
+export interface HerbalRedBook {
+  readonly category: number;
+  readonly categoryRu: string;
+  readonly note: string | null;
+  readonly url: string | null;
 }
 
 /**
@@ -115,6 +127,7 @@ export interface HerbalChapter {
   readonly plate: HerbalPlate | null;
   readonly ema: HerbalEma | null;
   readonly identification: HerbalIdentification | null;
+  readonly redBook: HerbalRedBook | null;
   readonly grlsOcr: boolean;
   readonly hasGrls: boolean;
 }
@@ -231,6 +244,7 @@ function readEma(value: unknown): HerbalEma | null {
   const extracted = item['extracted'] === true;
   if (extracted && item['status'] !== 'reviewed') draft = true;
   return {
+    authority: item['authority'] === 'WHO' ? 'WHO' : 'EMA',
     page,
     extracted,
     draft,
@@ -314,6 +328,25 @@ function readIdentification(value: unknown): HerbalIdentification | null {
   };
 }
 
+function readRedBook(value: unknown): HerbalRedBook | null {
+  const item = record(value);
+  const category = item?.['category'];
+  const categoryRu = text(item?.['categoryRu']);
+  if (typeof category !== 'number' || !categoryRu) return null;
+  const url = text(item?.['url']);
+  return {
+    category,
+    categoryRu,
+    note: text(item?.['note']),
+    url: url?.startsWith('http://publication.pravo.gov.ru/') ? url : null,
+  };
+}
+
+/** «1 — находящиеся под угрозой исчезновения»: the category beside the Red Book badge. */
+export function redBookLabel(redBook: HerbalRedBook): string {
+  return `${redBook.category} — ${redBook.categoryRu.toLowerCase()}`;
+}
+
 /** The herbal chapter a document carries, or null for any other document. */
 export function readHerbalChapter(document: DocumentLike): HerbalChapter | null {
   if (document.sourceType !== HERBAL_SOURCE_TYPE) return null;
@@ -334,6 +367,7 @@ export function readHerbalChapter(document: DocumentLike): HerbalChapter | null 
     plate: readPlate(herbal['plate']),
     ema: readEma(herbal['ema']),
     identification: readIdentification(herbal['identification']),
+    redBook: readRedBook(herbal['redBook']),
     grlsOcr: grls?.['ocr'] === true,
     hasGrls: grls !== null,
   };
@@ -378,7 +412,15 @@ const EMA_DOCUMENT_LABELS: Readonly<Record<EmaDocumentKind, string>> = {
   summary: 'резюме EMA',
 };
 
-export function emaSourceLabel(quote: EmaQuote): string {
+const AUTHORITY_LABELS: Readonly<Record<MonographAuthority, string>> = { EMA: 'EMA', WHO: 'ВОЗ' };
+
+/** «EMA» or «ВОЗ» in headings and notes. */
+export function authorityLabel(ema: HerbalEma | null): string {
+  return AUTHORITY_LABELS[ema?.authority ?? 'EMA'];
+}
+
+export function emaSourceLabel(quote: EmaQuote, authority: MonographAuthority = 'EMA'): string {
+  if (authority === 'WHO') return `монография ВОЗ, с. ${quote.page}`;
   return `${EMA_DOCUMENT_LABELS[quote.doc]}, с. ${quote.page}`;
 }
 
@@ -440,11 +482,12 @@ const EVIDENCE_LABELS: Readonly<Record<string, string>> = {
   animal: 'опыты на животных',
   'in-vitro': 'опыты в пробирке',
   traditional: 'традиция применения',
-  review: 'обзор EMA',
+  review: 'обзор',
 };
 
-export function evidenceLabel(evidence: string): string {
-  return EVIDENCE_LABELS[evidence] ?? '';
+export function evidenceLabel(evidence: string, authority: MonographAuthority = 'EMA'): string {
+  const label = EVIDENCE_LABELS[evidence] ?? '';
+  return evidence === 'review' ? `${label} ${AUTHORITY_LABELS[authority]}` : label;
 }
 
 const USE_TYPE_LABELS: Readonly<Record<string, string>> = {
@@ -454,8 +497,18 @@ const USE_TYPE_LABELS: Readonly<Record<string, string>> = {
   'public-statement': 'EMA не дала монографии',
 };
 
-export function useTypeLabel(useType: string | null): string | null {
-  return useType ? (USE_TYPE_LABELS[useType] ?? null) : null;
+/** WHO separates uses with clinical data from traditional ones; it has no «well-established». */
+const WHO_USE_TYPE_LABELS: Readonly<Record<string, string>> = {
+  traditional: 'Традиционное применение',
+  both: 'Есть клинические данные',
+};
+
+export function useTypeLabel(
+  useType: string | null,
+  authority: MonographAuthority = 'EMA',
+): string | null {
+  if (!useType) return null;
+  return (authority === 'WHO' ? WHO_USE_TYPE_LABELS : USE_TYPE_LABELS)[useType] ?? null;
 }
 
 interface CatalogModuleLike {

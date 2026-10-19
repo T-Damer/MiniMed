@@ -1,0 +1,267 @@
+# EMA/HMPC facts for Эхинацея пурпурная (трава). The EMA monograph covers the fresh flowering herb
+# (Echinacea purpurea herba recens) and its pressed (expressed) juice. Draft artifact (status: proposed):
+# Russian fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: echinacea-purpurea
+status: proposed
+useType: both
+facts:
+  - kind: use-type
+    ru: "Раны (традиционное применение) — традиционное растительное средство, применение основано только на длительном опыте"
+    doc: monograph
+    page: 3
+    quote: "The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use."
+  - kind: indication
+    ru: "Растительное средство для краткосрочной профилактики и лечения простуды (установившееся применение)"
+    doc: monograph
+    page: 3
+    quote: "Herbal medicinal product for the short-term prevention and treatment of common cold."
+  - kind: indication
+    ru: "Традиционное растительное средство для лечения небольших поверхностных ран"
+    doc: monograph
+    page: 3
+    quote: "Traditional herbal medicinal product for treatment of small superficial wounds."
+  - kind: posology
+    ru: "Простуда (установившееся применение), отжатый сок внутрь — подростки, взрослые и пожилые, разовая доза 1,5–4,5 мл, суточная доза 6–9 мл"
+    doc: monograph
+    page: 4
+    quote: "Posology Adolescents, adults and elderly Single dose: 1.5-4.5 ml expressed juice Daily dose: 6-9 ml expressed juice."
+    dose: { preparationRu: "отжатый сок (внутрь)", amount: "1.5-4.5", unit: мл, populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Простуда (установившееся применение) — дозы сухого отжатого сока должны соответствовать дозам отжатого сока"
+    doc: monograph
+    page: 4
+    quote: "Doses of dried expressed juice should correspond to the posologies of the expressed juice."
+  - kind: posology
+    ru: "Раны (традиционное применение) — подростки, взрослые и пожилые, 10–20 г на 100 г отжатого сока или эквивалентное количество сухого отжатого сока; небольшое количество мази наносят на поражённое место 2–3 раза в день"
+    doc: monograph
+    page: 4
+    quote: "Posology Adolescents, adults and elderly 10 to 20 g /100 g of expressed juice or equivalent amount of dried expressed juice. Small amount of ointment is applied on the affected area 2-3 times a day."
+    dose: { preparationRu: "отжатый сок или эквивалент сухого отжатого сока (мазь)", amount: "10-20", unit: "г на 100 г", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: "Простуда (установившееся применение) — способ применения: внутрь"
+    doc: monograph
+    page: 4
+    quote: "Method of administration Oral use"
+  - kind: posology
+    ru: "Раны (традиционное применение) — способ применения: наружно (на кожу)"
+    doc: monograph
+    page: 4
+    quote: "Method of administration Cutaneous use"
+  - kind: age
+    ru: "Простуда (установившееся применение) — детям до 12 лет не рекомендуется"
+    doc: monograph
+    page: 4
+    quote: "The use in children under 12 year of age is not recommended"
+    minAgeMonths: 144
+  - kind: age
+    ru: "Раны (традиционное применение) — детям до 12 лет не рекомендуется"
+    doc: monograph
+    page: 4
+    quote: "The use in children under 12 years of age is not recommended"
+    minAgeMonths: 144
+  - kind: duration
+    ru: "Простуда (установившееся применение) — для профилактики и лечения не применять дольше 10 дней"
+    doc: monograph
+    page: 4
+    quote: "For prevention and treatment, do not use the medicinal product for more than 10 days."
+    maxDays: 10
+  - kind: duration
+    ru: "Простуда (установившееся применение) — для лечения начинать при первых признаках простуды"
+    doc: monograph
+    page: 4
+    quote: "For treatment, start the therapy at first signs of common cold."
+  - kind: duration
+    ru: "Простуда (установившееся применение) — если симптомы сохраняются дольше 10 дней, обратиться к врачу или фармацевту"
+    doc: monograph
+    page: 4
+    quote: "If the symptoms persist for more than 10 days, a doctor or a pharmacist should be consulted."
+    maxDays: 10
+  - kind: duration
+    ru: "Раны (традиционное применение) — применять не дольше 1 недели"
+    doc: monograph
+    page: 4
+    quote: "Not to be used for more than 1 week."
+    maxDays: 7
+  - kind: duration
+    ru: "Раны (традиционное применение) — если симптомы сохраняются во время применения, обратиться к врачу или медработнику"
+    doc: monograph
+    page: 4
+    quote: "If the symptoms persist during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."
+  - kind: contraindication
+    ru: "Гиперчувствительность к эхинацее пурпурной и к другим растениям семейства Астровые (Compositae)"
+    doc: monograph
+    page: 4
+    quote: "Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family."
+  - kind: warning
+    ru: "Простуда (установившееся применение) — применение не рекомендуется при прогрессирующих системных заболеваниях, аутоиммунных заболеваниях, иммунодефицитах, иммуносупрессии и болезнях системы белой крови"
+    doc: monograph
+    page: 5
+    quote: "The use is not recommended in cases of progressive systemic disorders, autoimmune diseases, immunodeficiencies, immunosuppression and diseases of the white blood cell system"
+  - kind: warning
+    ru: "Простуда (установившееся применение) — если симптомы ухудшаются или появляется высокая температура, обратиться к врачу или фармацевту"
+    doc: monograph
+    page: 5
+    quote: "If the symptoms worsen or high fever occurs during the use of the product, a doctor or a pharmacist should be consulted."
+  - kind: warning
+    ru: "Простуда (установившееся применение) — возможен риск тяжёлых реакций гиперчувствительности у атопических пациентов; им следует обратиться к врачу перед применением эхинацеи"
+    doc: monograph
+    page: 5
+    quote: "There is a possible risk of severe hypersensitivity reactions in atopic patients. Atopic patients should consult their doctor before using Echinacea."
+  - kind: warning
+    ru: "Простуда (установившееся применение) — детям до 12 лет применение не рекомендуется из-за недостатка данных"
+    doc: monograph
+    page: 5
+    quote: "The use is not recommended in children below 12 years of age due to insufficient data."
+    minAgeMonths: 144
+  - kind: warning
+    ru: "Для препаратов с этанолом должна быть указана соответствующая маркировка об этаноле из руководства по вспомогательным веществам на этикетке и в листке-вкладыше"
+    doc: monograph
+    page: 5
+    quote: "For preparations containing ethanol the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included."
+  - kind: warning
+    ru: "Раны (традиционное применение) — при признаках кожной инфекции обратиться за медицинской помощью"
+    doc: monograph
+    page: 5
+    quote: "If signs of skin infection are observed, medical advice should be sought."
+  - kind: warning
+    ru: "Раны (традиционное применение) — детям до 12 лет применение не рекомендуется, так как безопасность недостаточно документирована"
+    doc: monograph
+    page: 5
+    quote: "The use in children below 12 years of age is not recommended because a safe use has not been sufficiently documented."
+    minAgeMonths: 144
+  - kind: interaction
+    ru: "Взаимодействий не описано"
+    doc: monograph
+    page: 5
+    quote: "Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported."
+  - kind: pregnancy
+    ru: "Простуда (установившееся применение) — ограниченные данные (несколько сотен беременностей с воздействием) не указывают на неблагоприятное влияние эхинацеи на беременность или здоровье плода и новорождённого; других значимых эпидемиологических данных нет"
+    doc: monograph
+    page: 5
+    quote: "Limited data (several hundreds of exposed pregnancies) indicate no adverse effects of Echinacea on pregnancy or on the health of the foetus/newborn child. No other relevant epidemiological data are available."
+  - kind: pregnancy
+    ru: "Простуда (установившееся применение) — данных недостаточно; применение при беременности не рекомендуется, если его не назначил врач"
+    doc: monograph
+    page: 5
+    quote: "In the absence of sufficient data, the use in pregnancy and lactation is not recommended unless advised by a doctor."
+  - kind: lactation
+    ru: "Простуда (установившееся применение) — данных недостаточно; применение при лактации не рекомендуется, если его не назначил врач"
+    doc: monograph
+    page: 5
+    quote: "In the absence of sufficient data, the use in pregnancy and lactation is not recommended unless advised by a doctor."
+  - kind: pregnancy
+    ru: "Раны (традиционное применение) — данных о применении при беременности и лактации нет"
+    doc: monograph
+    page: 5
+    quote: "There are no data on use during pregnancy or lactation."
+  - kind: lactation
+    ru: "Раны (традиционное применение) — препараты с эхинацеей не следует наносить на грудь кормящим женщинам"
+    doc: monograph
+    page: 5
+    quote: "Products containing Echinacea should not be applied to the breast of breastfeeding women."
+  - kind: pregnancy
+    ru: "Данных о фертильности нет"
+    doc: monograph
+    page: 5
+    quote: "No fertility data available."
+  - kind: statement
+    ru: "Исследований влияния на способность управлять транспортом и механизмами не проводилось"
+    doc: monograph
+    page: 6
+    quote: "No studies on the effects on the ability to drive and use machines have been performed."
+  - kind: adverse
+    ru: "Простуда (установившееся применение) — могут возникать реакции гиперчувствительности в виде сыпи, крапивницы, зуда, отёка лица"
+    doc: monograph
+    page: 6
+    quote: "Hypersensitive reactions in the form of rash, urticaria, itching, swelling of the face may occur."
+  - kind: adverse
+    ru: "Простуда (установившееся применение) — сообщалось о тяжёлых реакциях гиперчувствительности (синдром Стивенса — Джонсона, ангионевротический отёк кожи, отёк Квинке, бронхоспазм с обструкцией дыхательных путей, астма, анафилактический шок); частота неизвестна"
+    doc: monograph
+    page: 6
+    quote: "Cases of severe hypersensitivity reactions, such as Stevens-Johnson Syndrome, angioedema of the skin, Quincke oedema, bronchospasm with airway obstruction, asthma and anaphylactic shock have been reported. The frequency is not known."
+  - kind: adverse
+    ru: "Простуда (установившееся применение) — эхинацея может вызывать аллергические реакции у атопических пациентов"
+    doc: monograph
+    page: 6
+    quote: "Echinacea can trigger allergic reactions in atopic patients."
+  - kind: adverse
+    ru: "Простуда (установившееся применение) — связь с аутоиммунными заболеваниями исключить нельзя"
+    doc: monograph
+    page: 6
+    quote: "Association with autoimmune diseases cannot be excluded."
+  - kind: adverse
+    ru: "Простуда (установившееся применение) — при других нежелательных реакциях обратиться к врачу или фармацевту"
+    doc: monograph
+    page: 6
+    quote: "If other adverse reactions not mentioned above occur, a doctor or a pharmacist should be consulted."
+  - kind: adverse
+    ru: "Раны (традиционное применение) — могут возникать реакции гиперчувствительности (местная сыпь, контактный дерматит, экзема, ангионевротический отёк губ); частота неизвестна"
+    doc: monograph
+    page: 6
+    quote: "Hypersensitive reactions (local rash, contact dermatitis, eczema and angioedema of the lips) may occur. The frequency is not known."
+  - kind: adverse
+    ru: "Раны (традиционное применение) — при других нежелательных реакциях обратиться к врачу или медработнику"
+    doc: monograph
+    page: 6
+    quote: "If other adverse reactions not mentioned above occur, a doctor or a qualified health care practitioner should be consulted."
+  - kind: overdose
+    ru: "Случаев передозировки не описано"
+    doc: monograph
+    page: 6
+    quote: "No case of overdose has been reported."
+  - kind: statement
+    ru: "Механизм действия неизвестен (простуда, установившееся применение)"
+    doc: monograph
+    page: 6
+    quote: "The mechanism of action is not known."
+  - kind: statement
+    ru: "Отжатый сок эхинацеи не проявил токсичности в исследованиях однократной дозы (грызуны), повторных доз (4 недели, грызуны) и в генотоксических исследованиях in vitro и in vivo"
+    doc: monograph
+    page: 7
+    quote: "Echinaceae purpureae herba expressed juice showed no toxicity in single-dose toxicity (rodents), repeated-dose toxicity (4 weeks, rodents) and in vitro and in vivo genotoxicity studies."
+  - kind: statement
+    ru: "Исследований репродуктивной токсичности и канцерогенности не проводилось"
+    doc: monograph
+    page: 7
+    quote: "Tests on reproductive toxicity and carcinogenicity have not been performed."
+constituents:
+  - compound: "cichoric acid"
+    compoundRu: "цикориевая кислота"
+    classRu: "производные кофейной кислоты"
+    effectRu: "основной эфир кофейной кислоты в надземной части Echinacea purpurea, 1–5 %; за ней следует кафтаровая кислота"
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Cichoric acid (2,3-O-dicaffeoyl-tartaric acid) is the major caffeic ester derivative found in the aerial parts of Echinacea purpurea with a concentration range of 1 to 5%, followed by caftaric acid (2-O-caffeoyl-tartaric acid)"
+  - compound: "cichoric acid"
+    compoundRu: "цикориевая кислота"
+    classRu: "производные кофейной кислоты"
+    effectRu: "цикориевая кислота из отжатого сока Echinacea purpurea снижала выход вируса везикулярного стоматита (VSV) в клетках мышиной линии L-929; 125 мкг/мл за 4 ч снижали инфекционность VSV более чем на 50 %"
+    evidence: in-vitro
+    doc: assessment-report
+    page: 26
+    quote: "Cichoric acid from Echinacea purpurea expressed juice was found to reduce a yield of VSV in mouse L-929-cells. 125 µg/ml cichoric acid after 4 h incubation reduced the infectivity of VSV by more than 50% (Cheminat et al. 1988)."
+  - compound: "alkamides"
+    compoundRu: "алкамиды"
+    classRu: "алкиламиды"
+    effectRu: "очищенная алкамидная фракция, введённая крысам внутрь, усиливала фагоцитарную активность и фагоцитарный индекс альвеолярных макрофагов лёгких"
+    evidence: animal
+    doc: assessment-report
+    page: 29
+    quote: "A purified alkamide fraction administered orally to rats was found to enhance the phagocytic activity and phagocytic index of lung alveolar macrophages."
+  - compound: "polysaccharides"
+    compoundRu: "полисахариды"
+    classRu: "полисахариды"
+    effectRu: "содержание в сухой траве Echinacea purpurea составляет 2–7 %"
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "The content of polysaccharides in dry Echinacea purpurea herb is 2 to 7 % (Glavač et al. 2012)."
+  - compound: "caffeic acid derivatives, alkamides, polysaccharides, melanins, lipopolysaccharides, lipoproteins"
+    compoundRu: "производные кофейной кислоты, алкамиды, полисахариды, меланины, липополисахариды и липопротеины"
+    classRu: "группы компонентов"
+    effectRu: "считается, что действующими началами Echinacea purpurea могут быть несколько совершенно разных групп компонентов"
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "Several very different groups of constituents are suggested to be effective principles of Echinacea purpurea"
