@@ -581,6 +581,9 @@ def prepare_herbal_command(
     ema: Annotated[Path, typer.Option("--ema", exists=True, file_okay=False)] = Path(
         "content/herbal/ema"
     ),
+    lookalikes: Annotated[Path, typer.Option("--lookalikes", exists=True, dir_okay=False)] = Path(
+        "content/herbal/lookalikes.yaml"
+    ),
 ) -> None:
     """Write the herbal book chapters (ГРЛС text, EMA facts, plate records) as prepared Markdown."""
     report = prepare_herbal_book(
@@ -591,6 +594,7 @@ def prepare_herbal_command(
         raw_root=raw_root,
         ema_dir=ema,
         output=output,
+        lookalikes_path=lookalikes,
     )
     typer.echo(herbal_prepare_report_json(report))
 

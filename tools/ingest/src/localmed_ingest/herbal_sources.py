@@ -7,6 +7,8 @@
   Commons metadata and anything that is not public domain is refused.
 * ГФ XV general monograph «Настои и отвары» (ОФС.1.4.1.0018): the article page, whose HTML holds
   the text, and the order that approved it.
+* Two pharmacognosy teaching texts (НФаУ 2016, СибГМУ 2013) whose admixture tables name
+  look-alikes (owner decision 2026-10-19).
 * The ГФ raw-material article (ФС) of every plant — ГФ XV, else the ГФ XIV article still in force:
   definition (when and what is collected), appearance of the whole raw material, look-alikes.
 
@@ -320,6 +322,39 @@ def _fetch_gf15(store: _Store) -> dict[str, object]:
     return articles
 
 
+# Pharmacognosy teaching texts whose «примеси» tables name the look-alikes of collected herbs; used
+# with the owner's decision of 2026-10-19 (personal project). Pinned: quotes are checked on them.
+MANUALS = {
+    "nuph-2016": {
+        "url": (
+            "https://gnosy.nuph.edu.ua/wp-content/uploads/2019/02/"
+            "%D0%93%D0%AD%D0%9A_%D0%BA%D0%BE%D0%BD%D1%81%D0%BF%D0%B5%D0%BA%D1%82_45.pdf"
+        ),
+        "citation": (
+            "Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к "
+            "лекарственному растительному сырью». — Харьков: НФаУ, 2016"
+        ),
+        "short": "НФаУ, 2016",
+    },
+    "ssmu-2013": {
+        "url": "https://elar.ssmu.ru/bitstream/20.500.12701/3156/1/tut_ssmu-2013-25.pdf",
+        "citation": (
+            "Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: "
+            "учебное пособие. — Томск: СибГМУ, 2013. — 106 с."
+        ),
+        "short": "СибГМУ, 2013",
+    },
+}
+
+
+def _fetch_manuals(store: _Store) -> dict[str, object]:
+    manuals: dict[str, object] = {}
+    for key, entry in MANUALS.items():
+        saved = store.save(f"manuals/{key}.pdf", entry["url"])
+        manuals[key] = {**entry, "path": saved.path}
+    return manuals
+
+
 _GF_NUMBER = re.compile(r'<meta name="description" content="(ФС\.[0-9.]+):\s*([^"]+?)\.?"')
 
 
@@ -368,6 +403,7 @@ def fetch_herbal_sources(
         gf_articles[plant.id] = _fetch_gf_article(store, plant)
         store.write_manifest({**previous, "ema": ema, "plates": plates, "gfArticles": gf_articles})
     gf15 = _fetch_gf15(store)
+    manuals = _fetch_manuals(store)
     return store.write_manifest(
         {
             "plantList": str(plants_path),
@@ -376,6 +412,7 @@ def fetch_herbal_sources(
             "plates": plates,
             "gf15": gf15,
             "gfArticles": gf_articles,
+            "manuals": manuals,
             "notices": {
                 "ema": (
                     "© European Medicines Agency. Reproduction is authorised provided the "

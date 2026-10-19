@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:bf9b99ff6fc20d5c2afd85c14b79b317a6411884b14c93473a868dfc4f78f10f
+source_checksum: sha256:41aaf218c1bcdd4b5734a78b9b82edae7fc48e8ce6c851fb6c06c4ad5ddcff95
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -214,12 +214,20 @@ metadata:
       lookalikes:
       - name: Хвощ лесной (Equisetum sylvaticum L.)
         text: а) Хвощ лесной (Equisetum sylvaticum L.) имеет нежёсткий стебель с вторично ветвящимися, отклонёнными вниз, тонкими ветвями. В верхней части стебля на рёбрах под лупой (10× и др.) заметны 2 ряда роговидных выростов (шипиков). Зубцы влагалищ на стебле сросшиеся и в сырье легко обламываются. Веточки с 3–5 рёбрами. На верхушках встречаются тупые колоски.
+        source: gf
       - name: Хвощ луговой (Equisetum pratense L.)
         text: б) Хвощ луговой (Equisetum pratense L.) имеет ветви с почти горизонтальным расположением, дуговидно книзу отогнутые. Зубцы влагалищ неспаянные. На верхушках стеблей могут быть тупые колоски. В верхней части стебля по рёбрам видны множественные, острые конусовидные выросты (сосочки), хорошо заметные под лупой (10× и др.). Веточки с 3 рёбрами.
+        source: gf
       - name: 'Хвощ речной (синонимы: топяной, приречный) (Equisetum fluviatile L.)'
         text: 'в) Хвощ речной (синонимы: топяной, приречный) (Equisetum fluviatile L.) имеет мощный стебель толщиной около 0,5 см и высотой от 20 до 150 см. На верхушках стеблей встречаются тупые колоски. При рассмотрении под лупой (10× и др.) видно, что ветви очень короткие, малочисленные или отсутствуют, влагалища с многочисленными зубцами (от 18 до 20).'
+        source: gf
       - name: Хвощ болотный (Equisetum palustre L.)
         text: г) Хвощ болотный (Equisetum palustre L.). На верхушке стеблей могут быть тупые колоски. При рассмотрении под лупой (10× и др.) видно, что стеблевые влагалища с неспаянными, снабжёнными широкой белой каймой зубцами, влагалища ветвей на стебле чёрного цвета. При отрывании ветвей на стебле удерживаются не только влагалища, но и первые членики. Поверхность стеблей и ветвей поперечно-морщинистая.
+        source: gf
+      - name: Хвощ зимующий (Equisetum hyemale)
+        text: Equisetum hyemale – Хвощ зимующий Примесь к хвощу полевому
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 60
     grls:
       registrationNumber: ЛП-№(015144)-(РГ-RU)
       tradeName: Хвоща полевого трава
@@ -295,6 +303,10 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0045","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/","sourceSection":"admixtures"} -->
 
 г) Хвощ болотный (Equisetum palustre L.). На верхушке стеблей могут быть тупые колоски. При рассмотрении под лупой (10× и др.) видно, что стеблевые влагалища с неспаянными, снабжёнными широкой белой каймой зубцами, влагалища ветвей на стебле чёрного цвета. При отрывании ветвей на стебле удерживаются не только влагалища, но и первые членики. Поверхность стеблей и ветвей поперечно-морщинистая.
+
+<!-- localmed:source {"contentMode":"verbatim","page":60,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Хвощ зимующий (Equisetum hyemale): Equisetum hyemale – Хвощ зимующий Примесь к хвощу полевому
 
 ## Противопоказания
 
@@ -410,3 +422,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba (обновлено 28/04/2016). © European Medicines Agency
 - Иллюстрация: C. A. M. Lindman, Bilder ur Nordens Flora (1901–1905) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:515_Equisetum_arvense.jpg)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0045 «Хвоща полевого трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/
+- Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

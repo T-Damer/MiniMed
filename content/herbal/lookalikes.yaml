@@ -1,0 +1,60 @@
+# Look-alikes of the herbal book's plants from pharmacognosy teaching texts (owner decision
+# 2026-10-19: use a teaching manual where no official source names look-alikes). Sources and their
+# files are in data/raw/herbal/MANIFEST.json («manuals»):
+#   nuph-2016  НФаУ (Харьков) 2016, конспект лекций по фармакогнозии, Приложение 4 «Примеси …»
+#   ssmu-2013  Коломиец Н. Э. и др. «Учебная практика по фармакогнозии». — Томск: СибГМУ, 2013
+#
+# Every `name`, `latin` and `quote` must occur on the cited PDF page (checked by prepare-herbal).
+# `key` is the manual's line on how the genuine herb differs; `poisonous` only where the manual
+# says so. Not used: the НФаУ bearberry/lingonberry row (both columns carry the same text), the НФаУ
+# rows on frangula and buckthorn fruits (this book has frangula bark), the multi-column СибГМУ tables
+# 1, 2 and 4 (their text interleaves across columns).
+schemaVersion: 1
+plants:
+  matricaria-chamomilla:
+    key: { source: nuph-2016, page: 87, quote: "Цветоложе коническое, полое, голое, к концу цветения удлиняется." }
+    lookalikes:
+      - { name: Ромашка непахучая, latin: Matricaria inodora, source: nuph-2016, page: 87, quote: "Корзинки одиночные, цветоложе полушаровидное, без полости. Опушение и запах отсутствуют." }
+      - { name: Пупавка собачья, latin: Anthemis cotula, source: nuph-2016, page: 87, quote: "Цветоложе удлиненно-коническое, без полости, пленчатое. Запах неприятный." }
+      - { name: Пупавка полевая, latin: Anthemis arvensis, source: nuph-2016, page: 87, quote: "Цветоложе конусовидное, пленчатое, без полости. Запах отсутствует." }
+      - { name: Пупавка русская, latin: Anthemis ruthenica, source: nuph-2016, page: 87, quote: "Цветоложе цилиндрическое, пленчатое. Запах отсутствует." }
+      - { name: Пупавка красильная, latin: Anthemis tinctoria, source: ssmu-2013, page: 58, quote: "Anthemis tinctoria – Пупавка красильная Примесь к ромашке аптечной" }
+  valeriana-officinalis:
+    key: { source: nuph-2016, page: 84, quote: "Запах сильный, специфический (валериановый)" }
+    lookalikes:
+      - { name: Лабазник вязолистный, latin: Filipendula ulmaria, source: nuph-2016, page: 84, quote: "От валерианы отличается ползучим, почти горизонтальным, заполненным внутри корневищем черно-бурого цвета и отсутствием запаха" }
+      - { name: Посконник коноплевый, latin: Eupatorium cannabinum, source: nuph-2016, page: 84, quote: "Корневище похоже на валериановое, но специфическим запахом не обладает" }
+  quercus-robur:
+    key: { source: nuph-2016, page: 85, quote: "Наружная поверхность коры светло-бурая или светло-серая, блестящая, реже матовая, часто заметны поперечно вытянутые чечевички." }
+    lookalikes:
+      - { name: Ясень обыкновенный, latin: Fraxinus excelsior, source: nuph-2016, page: 85, quote: "Кора матовая, серая. Внутренняя поверхность светлая, гладкая." }
+  frangula-alnus:
+    key: { source: nuph-2016, page: 86, quote: "При соскабливании наружной части пробки обнаруживается слой малиново-красного цвета; у примесей виден зеленый или бурый слой (диагностический признак)" }
+    lookalikes:
+      - { name: Черемуха обыкновенная, latin: Padus avium, source: nuph-2016, page: 86, quote: "Снаружи черно-бурого цвета, покрыта круглыми чечевичками, при намачивании приобретает характерный запах" }
+      - { name: Ольха серая, latin: Alnus incana, source: nuph-2016, page: 86, quote: "Снаружи серая, внутри оранжево-желтая, чечевички округлые, редкие, небольшие" }
+  hypericum-perforatum:
+    key: { source: nuph-2016, page: 86, quote: "Стебли цилиндрические, с двумя продольными ребрами, голые, длиной до 30 см. Листья супротивные, голые, цельнокрайние, продолговатые, с многочисленными просвечивающими вместилищами в виде светлых точек." }
+    lookalikes:
+      - { name: Зверобой четырехгранный, latin: Hypericum quadrangulum, source: nuph-2016, page: 86, quote: "Стебель четырехгранный, внутри полый, листья овальные, более крупные. Чашелистики тупые, значительно шире, чем у зверобоя продырявленного." }
+      - { name: Зверобой жестковолосый (шершавый), latin: Hypericum hirsutum, source: nuph-2016, page: 86, quote: "Стебли цилиндрические, без продольных ребер. Стебель, листья, цветоножки густо опушенные; чашелистики по краям мелкозубчатые, с черными железками на концах зубцов, заметными под лупой" }
+  urtica-dioica:
+    lookalikes:
+      - { name: Крапива жгучая, latin: Urtica urens, source: nuph-2016, page: 86, quote: "Отличается от двудомной меньшими размерами, листьями овальной формы с глубоко надрезанными тупыми прямыми зубцами" }
+      - { name: Яснотка белая, latin: Lamium album, source: nuph-2016, page: 86, quote: "Листья отличаются чередованием крупных и мелких зубчиков по краю, отсутствием жгучести" }
+  artemisia-absinthium:
+    lookalikes:
+      - { name: Полынь обыкновенная, latin: Artemisia vulgaris, source: nuph-2016, page: 87, quote: "Листья отличаются по цвету. Нижняя сторона их серебристая, густо покрытая волосками. Верхняя – голая, темно-зеленая, после высушивания почти черная." }
+  arctostaphylos-uva-ursi:
+    key: { source: ssmu-2013, page: 29, quote: "Листья обратнояйцевидной формы, цельнокрайние, кожистые, сверху блестящие, темно-зеленые, снизу светлее. Вкус сильно вяжущий, горьковатый" }
+    lookalikes:
+      - { name: Брусника обыкновенная, latin: Vaccinium vitis idaea, source: ssmu-2013, page: 29, quote: "Листья овальные, цельнокрайние, край слегка загнутый книзу, кожистые, сверху темно-зеленые, снизу светло-зеленые с темными точечными желёзками. Вкус горький, вяжущий" }
+      - { name: Черника обыкновенная, latin: Vaccinium myrtillus, source: ssmu-2013, page: 29, quote: "Листья эллиптической формы с мелкопильчатым краем, тонкие, зеленые с обеих сторон." }
+      - { name: Голубика обыкновенная, latin: Vaccinium uliginosum, source: ssmu-2013, page: 29, quote: "Листья овальные с цельными слегка загнутыми краями, плотные, зеленые с обеих сторон." }
+      - { name: Зимолюбка зонтичная, latin: Chimaphila umbellata, source: ssmu-2013, page: 29, quote: "Листья обратно-ланцетовидно-клиновидные с остропильчатыми краями, кожистые, сверху темно-зелёные, блестящие, снизу светло-зеленые." }
+  juniperus-communis:
+    lookalikes:
+      - { name: Можжевельник казацкий, latin: Juniperus sabina, source: ssmu-2013, page: 61, poisonous: true, quote: "Juniperus sabina – Можжевельник казацкий Недопустимая (ядовитая) примесь к можжевельнику обыкновенному" }
+  equisetum-arvense:
+    lookalikes:
+      - { name: Хвощ зимующий, latin: Equisetum hyemale, source: ssmu-2013, page: 60, quote: "Equisetum hyemale – Хвощ зимующий Примесь к хвощу полевому" }

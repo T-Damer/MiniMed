@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf
-source_checksum: sha256:77db0df87c9da5d74ccf91fc670015d31027f9bc307dd36180b68de28cdbcf4b
+source_checksum: sha256:0ab6a5e7c48a0a5a284fa9626f94a8a5e08f2eea2700d14c7a4d3ae5c3533868
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -195,7 +195,11 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/
       definition: Собранная в начале цветения и высушенная трава дикорастущего многолетнего травянистого растения полыни горькой - Artemisia absinthium L., сем. астровых - Asteraceae.
-      lookalikes: []
+      lookalikes:
+      - name: Полынь обыкновенная (Artemisia vulgaris)
+        text: Листья отличаются по цвету. Нижняя сторона их серебристая, густо покрытая волосками. Верхняя – голая, темно-зеленая, после высушивания почти черная.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 87
     grls:
       registrationNumber: ЛП-№(014496)-(РГ-RU)
       tradeName: Полыни горькой трава
@@ -237,6 +241,12 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0033.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/","sourceSection":"appearance"} -->
 
 Цветки собраны в шаровидные поникающие корзинки, образующие метелку. Обертка черепитчатая, двухрядная, наружные листочки линейные, снаружи шерстистые, внутренние - широкоэллиптические, тупые, пленчатые. Цветки мелкие, наружные трубчатые - пестичные, внутренние воронковидные - обоеполые. Цветоложе выпуклое, усажено узкими, белыми пленчатыми прицветниками. Цвет стеблей - зеленовато-серый, листьев сверху - серовато-зеленый, снизу - серебристо-серый, цветков - желтый. Запах сильный, характерный. Вкус водного извлечения пряно-горький.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Полынь обыкновенная (Artemisia vulgaris): Листья отличаются по цвету. Нижняя сторона их серебристая, густо покрытая волосками. Верхняя – голая, темно-зеленая, после высушивания почти черная.
 
 ## Противопоказания
 
@@ -336,3 +346,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/absinthii-herba (обновлено 02/10/2017). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Artemisia_absinthium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-164.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0033.15 «Полыни горькой трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

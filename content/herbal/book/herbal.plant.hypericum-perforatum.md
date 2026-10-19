@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:78b43f47cb22191528e69c2ef1f13ba66ff2d891769438011a10444d99c6e78e
+source_checksum: sha256:b493f5f6fede9da435bb16cefb877d77c393b96fcc46121c61e07f2617646f6c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -247,7 +247,18 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/
       definition: Собранная в фазу цветения и высушенная трава дикорастущего и культивируемого многолетнего растения зверобоя продырявленного Hypericum perforatum L., и зверобоя пятнистого (зверобоя четырехгранного) Hypericum maculatum Crantz (H. quadrangulum L.), сем. зверобойных - Hypericaceae.
-      lookalikes: []
+      lookalikes:
+      - name: Зверобой четырехгранный (Hypericum quadrangulum)
+        text: Стебель четырехгранный, внутри полый, листья овальные, более крупные. Чашелистики тупые, значительно шире, чем у зверобоя продырявленного.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
+      - name: Зверобой жестковолосый (шершавый) (Hypericum hirsutum)
+        text: Стебли цилиндрические, без продольных ребер. Стебель, листья, цветоножки густо опушенные; чашелистики по краям мелкозубчатые, с черными железками на концах зубцов, заметными под лупой
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
+      key:
+        text: Стебли цилиндрические, с двумя продольными ребрами, голые, длиной до 30 см. Листья супротивные, голые, цельнокрайние, продолговатые, с многочисленными просвечивающими вместилищами в виде светлых точек.
+        sourceLabel: НФаУ, 2016, с. 86
     grls:
       registrationNumber: ЛП-№(013735)-(РГ-RU)
       tradeName: Зверобоя трава
@@ -306,6 +317,20 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0015.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/","sourceSection":"appearance"} -->
 
 Цвет стеблей - от зеленовато-желтого до серовато-зеленого, иногда розовато-фиолетовый; листьев - от серовато-зеленого до темно-зеленого; лепестков - ярко-желтый или желтый с темными точками, хорошо заметными под лупой; плодов - зеленовато-коричневый. Запах слабый, характерный. Вкус водного извлечения горьковатый, слегка вяжущий.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Стебли цилиндрические, с двумя продольными ребрами, голые, длиной до 30 см. Листья супротивные, голые, цельнокрайние, продолговатые, с многочисленными просвечивающими вместилищами в виде светлых точек.
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Зверобой четырехгранный (Hypericum quadrangulum): Стебель четырехгранный, внутри полый, листья овальные, более крупные. Чашелистики тупые, значительно шире, чем у зверобоя продырявленного.
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Зверобой жестковолосый (шершавый) (Hypericum hirsutum): Стебли цилиндрические, без продольных ребер. Стебель, листья, цветоножки густо опушенные; чашелистики по краям мелкозубчатые, с черными железками на концах зубцов, заметными под лупой
 
 ## Противопоказания
 
@@ -425,3 +450,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/hyperici-herba-0 (обновлено 08/03/2018). © European Medicines Agency
 - Иллюстрация: J. Sturm, Deutschlands Flora in Abbildungen (1796–1862) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Hypericum_perforatum_(Sturm_06,_plate_060)_clean.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0015.15 «Зверобоя трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

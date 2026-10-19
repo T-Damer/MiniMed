@@ -39,6 +39,13 @@ from .herbal_ema import (
     load_extraction,
     validate_ema_extraction,
 )
+from .herbal_lookalikes import (
+    ManualQuote,
+    PlantLookalikes,
+    check_lookalikes,
+    load_lookalikes,
+    manual_paths,
+)
 from .herbal_plants import PLATE_AUTHORS, PLATE_BOOKS, Plant, load_plants
 
 PACK_ID = "minimed.herbal.book"
@@ -668,6 +675,7 @@ def render_plant(
     raw_root: Path,
     raw_manifest: dict[str, object],
     extraction_sha256: str | None,
+    manual: PlantLookalikes | None = None,
 ) -> Chapter:
     grls_front = (
         cast("dict[str, object]", _front_matter(choice.markdown)["metadata"])
@@ -680,6 +688,7 @@ def render_plant(
         raise HerbalSourceError(f"{plant.id}: no ГФ article; run fetch-herbal-sources --gf-only")
     gf_article = gf_articles[plant.id]
     identification = gf_identification(raw_root / str(gf_article["path"]))
+    manuals = cast("dict[str, dict[str, object]]", raw_manifest.get("manuals") or {})
     files = {
         str(item["path"]): str(item["sha256"])
         for item in cast("list[dict[str, object]]", raw_manifest["files"])
@@ -697,6 +706,11 @@ def render_plant(
             **({"emaExtraction": extraction_sha256} if extraction_sha256 else {}),
             "gfIdentification": _sha256_bytes(
                 json.dumps(asdict(identification), ensure_ascii=False).encode()
+            ),
+            **(
+                {"lookalikes": _sha256_bytes(manual.model_dump_json().encode())}
+                if manual is not None
+                else {}
             ),
         }
     )
@@ -751,7 +765,9 @@ def render_plant(
                     **({"species": plant.plate.species} if plant.plate.species else {}),
                 },
                 "ema": _ema_metadata(plant, extraction, raw_manifest),
-                "identification": _identification_metadata(identification, gf_article),
+                "identification": _identification_metadata(
+                    identification, gf_article, manual, manuals
+                ),
                 "grls": {
                     "registrationNumber": choice.registration_number,
                     "tradeName": choice.trade_name,
@@ -772,7 +788,7 @@ def render_plant(
         },
     }
     blocks: list[str] = [f"# {plant.ru}"]
-    recognise = _identification_blocks(identification, gf_article)
+    recognise = _identification_blocks(identification, gf_article, manual, manuals)
     if choice is not None:
         grls = _grls_blocks(choice, sections, str(grls_front["officialSourceUrl"]))
         # «Как узнать» follows the recipe: the first ГРЛС section ends at the second heading.
@@ -785,7 +801,9 @@ def render_plant(
         blocks += recognise
     blocks.append("## Источники")
     blocks.append(_marker({"contentMode": "editorial-note"}))
-    blocks.append("\n".join(_source_lines(plant, choice, plate, ema_entry, gf_article)))
+    blocks.append(
+        "\n".join(_source_lines(plant, choice, plate, ema_entry, gf_article, manual, manuals))
+    )
     markdown = f"---\n{_front(metadata)}\n---\n\n" + "\n\n".join(blocks) + "\n"
     return Chapter(plant.document_id, plant.ru, markdown, aliases)
 
@@ -800,8 +818,32 @@ def _lookalike_name(item: str) -> str:
     return found.group(1) if found else item.split(".", 1)[0]
 
 
+def _manual_label(manuals: dict[str, dict[str, object]], source: str, page: int) -> str:
+    return f"{manuals[source]['short']}, с. {page}"
+
+
+def _manual_lookalikes(
+    entry: PlantLookalikes | None, manuals: dict[str, dict[str, object]]
+) -> list[dict[str, object]]:
+    if entry is None:
+        return []
+    return [
+        {
+            "name": f"{item.name} ({item.latin})",
+            "text": item.quote,
+            "source": "manual",
+            "sourceLabel": _manual_label(manuals, item.source, item.page),
+            **({"poisonous": True} if item.poisonous else {}),
+        }
+        for item in entry.lookalikes
+    ]
+
+
 def _identification_metadata(
-    identification: Identification, gf_article: dict[str, object]
+    identification: Identification,
+    gf_article: dict[str, object],
+    manual: PlantLookalikes | None,
+    manuals: dict[str, dict[str, object]],
 ) -> dict[str, object]:
     return {
         "source": {
@@ -812,13 +854,28 @@ def _identification_metadata(
         },
         "definition": identification.definition,
         "lookalikes": [
-            {"name": _lookalike_name(item), "text": item} for item in identification.lookalikes
-        ],
+            {"name": _lookalike_name(item), "text": item, "source": "gf"}
+            for item in identification.lookalikes
+        ]
+        + _manual_lookalikes(manual, manuals),
+        **(
+            {
+                "key": {
+                    "text": manual.key.quote,
+                    "sourceLabel": _manual_label(manuals, manual.key.source, manual.key.page),
+                }
+            }
+            if manual is not None and manual.key is not None
+            else {}
+        ),
     }
 
 
 def _identification_blocks(
-    identification: Identification, gf_article: dict[str, object]
+    identification: Identification,
+    gf_article: dict[str, object],
+    manual: PlantLookalikes | None,
+    manuals: dict[str, dict[str, object]],
 ) -> list[str]:
     """«Как узнать»: the ГФ article's definition, the whole raw material and its look-alikes."""
     base: dict[str, object] = {
@@ -830,10 +887,31 @@ def _identification_blocks(
     blocks.append(identification.definition)
     for text in identification.features:
         blocks += [_marker({**base, "sourceSection": "appearance"}), text]
-    if identification.lookalike_note:
+    if identification.lookalike_note or manual is not None:
         blocks.append("### Не спутать")
+    if identification.lookalike_note:
         for text in (identification.lookalike_note, *identification.lookalikes):
             blocks += [_marker({**base, "sourceSection": "admixtures"}), text]
+    if manual is not None:
+        quoted: list[tuple[ManualQuote, str]] = []
+        if manual.key is not None:
+            quoted.append((manual.key, manual.key.quote))
+        quoted += [
+            (item, f"{item.name} ({item.latin}): {item.quote}") for item in manual.lookalikes
+        ]
+        for item, text in quoted:
+            book = manuals[item.source]
+            blocks += [
+                _marker(
+                    {
+                        "contentMode": "verbatim",
+                        "sourceBook": book["citation"],
+                        "page": item.page,
+                        "sourceSection": "admixtures",
+                    }
+                ),
+                text,
+            ]
     return blocks
 
 
@@ -874,6 +952,8 @@ def _source_lines(
     plate: dict[str, object],
     ema_entry: dict[str, object],
     gf_article: dict[str, object],
+    manual: PlantLookalikes | None = None,
+    manuals: dict[str, dict[str, object]] | None = None,
 ) -> list[str]:
     lines: list[str] = []
     if choice is not None:
@@ -895,6 +975,12 @@ def _source_lines(
         f"- Государственная фармакопея РФ {_GF_EDITIONS[int(str(gf_article['edition']))]}, "
         f"{gf_article['number']} «{gf_article['title']}»: {gf_article['page']}"
     )
+    if manual is not None and manuals:
+        used = sorted(
+            {item.source for item in manual.lookalikes}
+            | ({manual.key.source} if manual.key is not None else set())
+        )
+        lines += [f"- Не спутать: {manuals[key]['citation']}" for key in used]
     return lines
 
 
@@ -1042,8 +1128,15 @@ def prepare_herbal_book(
     raw_root: Path,
     ema_dir: Path,
     output: Path,
+    lookalikes_path: Path | None = None,
 ) -> PrepareReport:
     plants = load_plants(plants_path)
+    manual_lookalikes = load_lookalikes(lookalikes_path) if lookalikes_path else {}
+    problems = check_lookalikes(
+        manual_lookalikes, manual_paths(raw_root), {plant.id for plant in plants}
+    )
+    if problems:
+        raise HerbalSourceError(f"look-alikes do not match their manuals: {problems}")
     raw_manifest = cast(
         "dict[str, object]", json.loads((raw_root / "MANIFEST.json").read_text(encoding="utf-8"))
     )
@@ -1087,7 +1180,14 @@ def prepare_herbal_book(
         else:
             missing.append(plant.id)
         chapter = render_plant(
-            plant, choice, sections, extraction, raw_root, raw_manifest, extraction_sha
+            plant,
+            choice,
+            sections,
+            extraction,
+            raw_root,
+            raw_manifest,
+            extraction_sha,
+            manual_lookalikes.get(plant.id),
         )
         brew = parse_brew(sections.get("dosage", []))
         lacking = [name for name in ("kind", "herb", "water", "dose") if name not in brew]

@@ -10,6 +10,7 @@ import {
   factLabel,
   factsOfKind,
   type HerbalChapter,
+  type HerbalLookalike,
   limitFacts,
   type QuotedValue,
   useTypeLabel,
@@ -143,26 +144,44 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
   const constituents = () => ema()?.constituents ?? [];
 
   const emaLookalikes = () => factsOfKind(ema(), 'lookalike');
-  const gfLookalikes = () => props.chapter.identification?.lookalikes ?? [];
+  const sourceLookalikes = () => props.chapter.identification?.lookalikes ?? [];
+  const lookalikeKey = () => props.chapter.identification?.key ?? null;
+  const lookalikeLabel = (item: HerbalLookalike): string =>
+    item.poisonous ? 'Ядовито' : item.source === 'gf' ? 'ГФ' : 'Пособие';
+  const lookalikeSource = (item: HerbalLookalike): QuoteSource =>
+    item.source === 'gf'
+      ? {
+          quote: item.text,
+          label: props.chapter.identification?.sourceLabel ?? 'ГФ',
+          url: props.chapter.identification?.url ?? null,
+          english: false,
+        }
+      : { quote: item.text, label: item.sourceLabel ?? 'Пособие', url: null, english: false };
   const lookalikesBlock = (): JSX.Element => (
-    <Show when={emaLookalikes().length + gfLookalikes().length > 0}>
+    <Show when={emaLookalikes().length + sourceLookalikes().length > 0}>
       <h2 class="herbal-chapter__heading">Не спутать</h2>
       <div class="herbal-chapter__cells">
+        <Show when={lookalikeKey()}>
+          {(key) => (
+            <QuoteCell
+              label="Признак"
+              value={key().text}
+              source={{ quote: key().text, label: key().sourceLabel, url: null, english: false }}
+              wide
+            />
+          )}
+        </Show>
         <For each={emaLookalikes()}>
           {(fact) => <QuoteCell label="EMA" value={fact.ru} source={emaSource(fact)} wide warn />}
         </For>
-        <For each={gfLookalikes()}>
+        <For each={sourceLookalikes()}>
           {(item) => (
             <QuoteCell
-              label="ГФ"
+              label={lookalikeLabel(item)}
               value={item.name}
-              source={{
-                quote: item.text,
-                label: props.chapter.identification?.sourceLabel ?? 'ГФ',
-                url: props.chapter.identification?.url ?? null,
-                english: false,
-              }}
+              source={lookalikeSource(item)}
               wide
+              warn={item.poisonous}
             />
           )}
         </For>

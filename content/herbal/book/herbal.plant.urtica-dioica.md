@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:c41b27446a6ef9c828d278e822fc8af88e70431e0dc211eefbae424528b47ee6
+source_checksum: sha256:280712e93980e7996ea402aa8449ab37a8bb3db7fab8a1427187514ec25ada9f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -190,7 +190,15 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/
       definition: Собранные во время бутонизации и цветения, высушенные листья дикорастущего и культивируемого многолетнего травянистого растения крапивы двудомной - Urtica dioica L., сем. крапивных - Urticaceae.
-      lookalikes: []
+      lookalikes:
+      - name: Крапива жгучая (Urtica urens)
+        text: Отличается от двудомной меньшими размерами, листьями овальной формы с глубоко надрезанными тупыми прямыми зубцами
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
+      - name: Яснотка белая (Lamium album)
+        text: Листья отличаются чередованием крупных и мелких зубчиков по краю, отсутствием жгучести
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
     grls:
       registrationNumber: ЛП-№(013449)-(РГ-RU)
       tradeName: Крапивы листья
@@ -253,6 +261,16 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0019.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/","sourceSection":"appearance"} -->
 
 Цвет листьев с верхней стороны от зеленого до темно-зеленого, с нижней светлее - серовато-зеленый или зеленый; черешков - зеленый, желтовато-зелёный или серовато-зеленый. Запах слабый. Вкус водного извлечения горьковатый.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Крапива жгучая (Urtica urens): Отличается от двудомной меньшими размерами, листьями овальной формы с глубоко надрезанными тупыми прямыми зубцами
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Яснотка белая (Lamium album): Листья отличаются чередованием крупных и мелких зубчиков по краю, отсутствием жгучести
 
 ## Противопоказания
 
@@ -366,3 +384,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/urticae-folium (обновлено 17/01/2011). © European Medicines Agency
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Urtica_dioica0.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0019.15 «Крапивы двудомной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

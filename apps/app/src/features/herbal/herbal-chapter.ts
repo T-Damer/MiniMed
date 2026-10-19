@@ -77,10 +77,22 @@ export interface HerbalPlate {
   readonly commonsPage: string | null;
 }
 
-/** A species the ГФ article names as found among the raw material, with its distinguishing text. */
+/**
+ * A species found among the raw material, with its distinguishing text: named by the ГФ article
+ * (`gf`) or by a pharmacognosy teaching manual (`manual`, cited by its own `sourceLabel`).
+ */
 export interface HerbalLookalike {
   readonly name: string;
   readonly text: string;
+  readonly source: 'gf' | 'manual';
+  readonly sourceLabel: string | null;
+  readonly poisonous: boolean;
+}
+
+/** A manual's line on how the genuine herb differs from its admixtures. */
+export interface HerbalLookalikeKey {
+  readonly text: string;
+  readonly sourceLabel: string;
 }
 
 /** Where the chapter's «Как узнать» comes from (the ГФ raw-material article) and its look-alikes. */
@@ -88,6 +100,7 @@ export interface HerbalIdentification {
   readonly sourceLabel: string;
   readonly url: string | null;
   readonly lookalikes: readonly HerbalLookalike[];
+  readonly key: HerbalLookalikeKey | null;
 }
 
 export interface HerbalChapter {
@@ -268,7 +281,22 @@ function readLookalike(value: unknown): HerbalLookalike | null {
   const item = record(value);
   const name = text(item?.['name']);
   const body = text(item?.['text']);
-  return name && body ? { name, text: body } : null;
+  if (!name || !body) return null;
+  const source = item?.['source'] === 'manual' ? 'manual' : 'gf';
+  return {
+    name,
+    text: body,
+    source,
+    sourceLabel: source === 'manual' ? (text(item?.['sourceLabel']) ?? null) : null,
+    poisonous: item?.['poisonous'] === true,
+  };
+}
+
+function readLookalikeKey(value: unknown): HerbalLookalikeKey | null {
+  const item = record(value);
+  const body = text(item?.['text']);
+  const sourceLabel = text(item?.['sourceLabel']);
+  return body && sourceLabel ? { text: body, sourceLabel } : null;
 }
 
 function readIdentification(value: unknown): HerbalIdentification | null {
@@ -282,6 +310,7 @@ function readIdentification(value: unknown): HerbalIdentification | null {
     sourceLabel: `ГФ ${edition === 14 ? 'XIV' : 'XV'}, ${number}`,
     url: url?.startsWith('https://pharmacopoeia.regmed.ru/') ? url : null,
     lookalikes: list(item['lookalikes']).map(readLookalike).filter(present),
+    key: readLookalikeKey(item['key']),
   };
 }
 

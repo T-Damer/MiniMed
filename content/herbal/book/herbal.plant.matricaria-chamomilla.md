@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf
-source_checksum: sha256:0959a6376b4edd8737894483058ab83b08482aa75ad20ebc6c918b34beaea6d6
+source_checksum: sha256:2e37114f78fdce78799c975455792579f814752b8410a71727d5568d9cfceeb4
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -275,7 +275,30 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/
       definition: Собранные в начале цветения и высушенные цветки (цветочные корзинки) культивируемого и дикорастущего однолетнего травянистого растения ромашки аптечной (ромашки ободранной) - Chamomilla recutita (L.) Rauschert (Matricaria recutita L., M. chamomilla L.), сем. астровых - Asteraceae.
-      lookalikes: []
+      lookalikes:
+      - name: Ромашка непахучая (Matricaria inodora)
+        text: Корзинки одиночные, цветоложе полушаровидное, без полости. Опушение и запах отсутствуют.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 87
+      - name: Пупавка собачья (Anthemis cotula)
+        text: Цветоложе удлиненно-коническое, без полости, пленчатое. Запах неприятный.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 87
+      - name: Пупавка полевая (Anthemis arvensis)
+        text: Цветоложе конусовидное, пленчатое, без полости. Запах отсутствует.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 87
+      - name: Пупавка русская (Anthemis ruthenica)
+        text: Цветоложе цилиндрическое, пленчатое. Запах отсутствует.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 87
+      - name: Пупавка красильная (Anthemis tinctoria)
+        text: Anthemis tinctoria – Пупавка красильная Примесь к ромашке аптечной
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 58
+      key:
+        text: Цветоложе коническое, полое, голое, к концу цветения удлиняется.
+        sourceLabel: НФаУ, 2016, с. 87
     grls:
       registrationNumber: ЛП-№(013631)-(РГ-RU)
       tradeName: Ромашки цветки
@@ -314,6 +337,32 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0037.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/","sourceSection":"appearance"} -->
 
 Цельное сырье. Цельные или частично осыпавшиеся цветочные корзинки полушаровидной или конической формы, без ребристых цветоносов или с их остатками не длиннее 3 см. Корзинка состоит из краевых язычковых пестичных и срединных обоеполых трубчатых цветков. Цветоложе голое, мелкоямчатое, полое, в начале цветения полушаровидное, к концу - коническое. Обвертка корзинки черепитчатая, многорядная, состоящая из многочисленных продолговатых, с тупыми верхушками и широкими пленчатыми краями листочков. Размер корзинки (без язычковых цветков) 4-8 мм в поперечнике. Цвет язычковых цветков белый, трубчатых - желтый, обвертки - желтовато-зеленый, цветоносов - от светло-зеленого до зеленовато-коричневого. Запах сильный, характерный. Вкус водного извлечения пряный, горьковатый, слегка слизистый.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Цветоложе коническое, полое, голое, к концу цветения удлиняется.
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Ромашка непахучая (Matricaria inodora): Корзинки одиночные, цветоложе полушаровидное, без полости. Опушение и запах отсутствуют.
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Пупавка собачья (Anthemis cotula): Цветоложе удлиненно-коническое, без полости, пленчатое. Запах неприятный.
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Пупавка полевая (Anthemis arvensis): Цветоложе конусовидное, пленчатое, без полости. Запах отсутствует.
+
+<!-- localmed:source {"contentMode":"verbatim","page":87,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Пупавка русская (Anthemis ruthenica): Цветоложе цилиндрическое, пленчатое. Запах отсутствует.
+
+<!-- localmed:source {"contentMode":"verbatim","page":58,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Пупавка красильная (Anthemis tinctoria): Anthemis tinctoria – Пупавка красильная Примесь к ромашке аптечной
 
 ## Противопоказания
 
@@ -417,3 +466,5 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/matricariae-flos (обновлено 05/04/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Matricaria_recutita_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-091.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0037.15 «Ромашки аптечной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016
+- Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

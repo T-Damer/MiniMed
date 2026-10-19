@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:bba391efd8c1316f062a75af4883b4dfb4c7c66fc6e8efff57487521cb234202
+source_checksum: sha256:ca7f8d3e8dd2fce6a44e5f1e1344c782416bbd62744b2ff1fb3bbc3e64a7da7b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -225,7 +225,18 @@ metadata:
         edition: 15
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/
       definition: Собранные осенью или ранней весной, освобождённые от остатков листьев и стеблей, отмытые от земли и высушенные корневища с корнями многолетнего дикорастущего и культивируемого травянистого растения валерианы лекарственной – Valeriana officinalis L. s. l., сем. валериановых – Valerianaceae.
-      lookalikes: []
+      lookalikes:
+      - name: Лабазник вязолистный (Filipendula ulmaria)
+        text: От валерианы отличается ползучим, почти горизонтальным, заполненным внутри корневищем черно-бурого цвета и отсутствием запаха
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 84
+      - name: Посконник коноплевый (Eupatorium cannabinum)
+        text: Корневище похоже на валериановое, но специфическим запахом не обладает
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 84
+      key:
+        text: Запах сильный, специфический (валериановый)
+        sourceLabel: НФаУ, 2016, с. 84
     grls:
       registrationNumber: ЛП-№(013852)-(РГ-RU)
       tradeName: Валерианы корневища с корнями
@@ -280,6 +291,20 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0009","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/","sourceSection":"appearance"} -->
 
 Цвет корневищ и корней снаружи желтовато-коричневый, беловато-коричневый, коричневый, тёмно-коричневый, на изломе желтоватый, желтовато-белый, светло-коричневый, коричневый.Запах сильный, характерный.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":84,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Запах сильный, специфический (валериановый)
+
+<!-- localmed:source {"contentMode":"verbatim","page":84,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Лабазник вязолистный (Filipendula ulmaria): От валерианы отличается ползучим, почти горизонтальным, заполненным внутри корневищем черно-бурого цвета и отсутствием запаха
+
+<!-- localmed:source {"contentMode":"verbatim","page":84,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Посконник коноплевый (Eupatorium cannabinum): Корневище похоже на валериановое, но специфическим запахом не обладает
 
 ## Противопоказания
 
@@ -391,3 +416,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/valerianae-radix (обновлено 11/03/2026). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Valeriana_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-143.jpg)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0009 «Валерианы лекарственной корневища с корнями»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

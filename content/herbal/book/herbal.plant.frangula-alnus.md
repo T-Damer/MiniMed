@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:744d5d4a5924cd8d6731cf8a237ea821ed70af71ad1d5752ccd2618cbe36c9d0
+source_checksum: sha256:e4aea6c2297a389960fd47b66f4a0d909327ddd9feafcb993b85ad973cf18fa6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -203,7 +203,18 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/
       definition: 'Собранная весной до начала цветения кора стволов и ветвей дикорастущего кустарника или небольшого деревца крушины ольховидной (син.: крушина ломкая) - Frangula alnus Mill. (syn.: Rhamnus frangula L.), сем. крушиновых - Rhamnaceae.'
-      lookalikes: []
+      lookalikes:
+      - name: Черемуха обыкновенная (Padus avium)
+        text: Снаружи черно-бурого цвета, покрыта круглыми чечевичками, при намачивании приобретает характерный запах
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
+      - name: Ольха серая (Alnus incana)
+        text: Снаружи серая, внутри оранжево-желтая, чечевички округлые, редкие, небольшие
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 86
+      key:
+        text: При соскабливании наружной части пробки обнаруживается слой малиново-красного цвета; у примесей виден зеленый или бурый слой (диагностический признак)
+        sourceLabel: НФаУ, 2016, с. 86
     grls:
       registrationNumber: ЛП-№(014171)-(РГ-RU)
       tradeName: Крушины кора
@@ -250,6 +261,20 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0021.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/","sourceSection":"appearance"} -->
 
 Цельное сырье. Трубчатые или желобоватые куски коры различной длины, толщиной 0,5-2 мм. Наружная поверхность коры более или менее гладкая, темно-коричневая, серо-коричневая, темно-серая или серая, часто с беловатыми поперечно-вытянутыми чечевичками или серыми пятнами, при легком соскабливании наружной части пробки обнаруживается красный слой. Внутренняя поверхность гладкая, желтовато-оранжевого или красновато-коричневого цвета. При рассмотрении под лупой (10x) или стереомикроскопом (16x) излом светло-желтый, равномерно мелкощетинистый. Запах слабый. Вкус водного извлечения горьковатый.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+При соскабливании наружной части пробки обнаруживается слой малиново-красного цвета; у примесей виден зеленый или бурый слой (диагностический признак)
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Черемуха обыкновенная (Padus avium): Снаружи черно-бурого цвета, покрыта круглыми чечевичками, при намачивании приобретает характерный запах
+
+<!-- localmed:source {"contentMode":"verbatim","page":86,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Ольха серая (Alnus incana): Снаружи серая, внутри оранжево-желтая, чечевички округлые, редкие, небольшие
 
 ## Противопоказания
 
@@ -361,3 +386,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/frangulae-cortex (обновлено 26/10/2006). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Rhamnus_frangula_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-120.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0021.18 «Крушины ольховидной кора»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

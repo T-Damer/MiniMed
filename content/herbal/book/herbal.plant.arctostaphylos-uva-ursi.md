@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:6e242ab39634d2eb20c86eed7c16160e5faca2eacd2469897cc3f3c4c3889e19
+source_checksum: sha256:670dae4228c7963ccdb22ebed2c6d13e2f8e8f8828a77c3474ee182f7415ca22
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -199,7 +199,26 @@ metadata:
         edition: 15
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/
       definition: Собранные весной до и в начале цветения или осенью с начала созревания плодов до появления снежного покрова, высушенные листья дикорастущего вечнозелёного кустарничка толокнянки обыкновенной – Arctostaphylos uva-ursi (L.) Spreng., семейства вересковых– Ericaceae.
-      lookalikes: []
+      lookalikes:
+      - name: Брусника обыкновенная (Vaccinium vitis idaea)
+        text: Листья овальные, цельнокрайние, край слегка загнутый книзу, кожистые, сверху темно-зеленые, снизу светло-зеленые с темными точечными желёзками. Вкус горький, вяжущий
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 29
+      - name: Черника обыкновенная (Vaccinium myrtillus)
+        text: Листья эллиптической формы с мелкопильчатым краем, тонкие, зеленые с обеих сторон.
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 29
+      - name: Голубика обыкновенная (Vaccinium uliginosum)
+        text: Листья овальные с цельными слегка загнутыми краями, плотные, зеленые с обеих сторон.
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 29
+      - name: Зимолюбка зонтичная (Chimaphila umbellata)
+        text: Листья обратно-ланцетовидно-клиновидные с остропильчатыми краями, кожистые, сверху темно-зелёные, блестящие, снизу светло-зеленые.
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 29
+      key:
+        text: Листья обратнояйцевидной формы, цельнокрайние, кожистые, сверху блестящие, темно-зеленые, снизу светлее. Вкус сильно вяжущий, горьковатый
+        sourceLabel: СибГМУ, 2013, с. 29
     grls:
       registrationNumber: ЛП-№(015439)-(РГ-RU)
       tradeName: Толокнянки листья
@@ -241,6 +260,28 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0099","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/","sourceSection":"appearance"} -->
 
 Листья с верхней стороны тёмно-зелёные, блестящие, с нижней стороны немного светлее, матовые, голые. Запах отсутствует.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":29,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Листья обратнояйцевидной формы, цельнокрайние, кожистые, сверху блестящие, темно-зеленые, снизу светлее. Вкус сильно вяжущий, горьковатый
+
+<!-- localmed:source {"contentMode":"verbatim","page":29,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Брусника обыкновенная (Vaccinium vitis idaea): Листья овальные, цельнокрайние, край слегка загнутый книзу, кожистые, сверху темно-зеленые, снизу светло-зеленые с темными точечными желёзками. Вкус горький, вяжущий
+
+<!-- localmed:source {"contentMode":"verbatim","page":29,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Черника обыкновенная (Vaccinium myrtillus): Листья эллиптической формы с мелкопильчатым краем, тонкие, зеленые с обеих сторон.
+
+<!-- localmed:source {"contentMode":"verbatim","page":29,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Голубика обыкновенная (Vaccinium uliginosum): Листья овальные с цельными слегка загнутыми краями, плотные, зеленые с обеих сторон.
+
+<!-- localmed:source {"contentMode":"verbatim","page":29,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Зимолюбка зонтичная (Chimaphila umbellata): Листья обратно-ланцетовидно-клиновидные с остропильчатыми краями, кожистые, сверху темно-зелёные, блестящие, снизу светло-зеленые.
 
 ## Противопоказания
 
@@ -336,3 +377,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium (обновлено 10/04/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Arctostaphylos_uva-ursi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-013.jpg)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0099 «Толокнянки обыкновенной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/
+- Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

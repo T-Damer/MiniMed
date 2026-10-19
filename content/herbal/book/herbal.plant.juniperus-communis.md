@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:b58ee78867b41760dc3fe5ef023a1ac5f6bedc433becc79a0651f4871b31d94f
+source_checksum: sha256:64b55217d2c68f16a2e2dd6ff3badb9d26848fc923f6166575c91b9f19a5ca44
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -212,7 +212,12 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/
       definition: Собранные в фазу полного созревания, высушенные плоды (шишко-ягоды) дикорастущих кустарников можжевельника обыкновенного - Juniperus communis L., сем. кипарисовых - Cupressaceae.
-      lookalikes: []
+      lookalikes:
+      - name: Можжевельник казацкий (Juniperus sabina)
+        text: Juniperus sabina – Можжевельник казацкий Недопустимая (ядовитая) примесь к можжевельнику обыкновенному
+        source: manual
+        sourceLabel: СибГМУ, 2013, с. 61
+        poisonous: true
     grls:
       registrationNumber: ЛП-№(014418)-(РГ-RU)
       tradeName: Можжевельника плоды
@@ -267,6 +272,12 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0028.15","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/","sourceSection":"appearance"} -->
 
 Цельное сырьё. Плоды шишко-ягоды 6-10 мм в диаметре, цилиндрической формы, шаровидные, иногда овальные или эллиптические, часто по бокам вдавленные, гладкие, блестящие, реже матовые. Плоды образованы 3 сросшимися семенными плодолистиками. На верхушке заметен трёхлучевой шов, образованный сросшимися чешуевидными мегаспорофиллами, иногда они с выдающимися кончиками, отвёрнутыми назад; при основании плода заметны под лупой (10x) 2 трёхлистные мутовки из светло-коричневых чешуек (неоплодотворённые чешуевидные мегаспорофиллы шишки). В мякоти находится 3 (иногда 1 или 2) семени. Семена овально-продолговатые, тупо-трехгранные, выпуклые снаружи и плоские на соприкасающихся сторонах, длиной 4-5 мм. Кожура семени твёрдая. Цвет плодов снаружи почти черный или фиолетовый с коричневым оттенком, иногда с серо-голубым восковым налетом. Цвет мякоти зеленовато-коричневый, цвет семян желтовато-коричневый. Запах характерный. Вкус водного извлечения сладковатый, пряный.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":61,"sourceBook":"Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.","sourceSection":"admixtures"} -->
+
+Можжевельник казацкий (Juniperus sabina): Juniperus sabina – Можжевельник казацкий Недопустимая (ядовитая) примесь к можжевельнику обыкновенному
 
 ## Противопоказания
 
@@ -382,3 +393,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus (обновлено 13/06/2023). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Juniperus_communis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-082.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0028.15 «Можжевельника обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/mozhzhevelnika-obyknovennogo-plody/
+- Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

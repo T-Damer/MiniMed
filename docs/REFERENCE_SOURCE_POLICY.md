@@ -146,6 +146,13 @@ decision for an experimental module, not a clinical review:
 
 The decision covers these sources and this use only.
 
+Addition (owner, 2026-10-19): where no official source (ГФ, EMA) names look-alikes of a plant, the book
+may quote a pharmacognosy teaching manual's list of admixtures — currently the НФаУ 2016 lecture notes
+(Приложение 4) and Коломиец и др., «Учебная практика по фармакогнозии» (СибГМУ, 2013). This is a personal
+project with no global release, so the manuals' rights are not a blocker. Quotes are verbatim and checked
+against the pinned PDF page; a plant the manuals do not cover gets no warning, and no look-alike is
+written from general knowledge.
+
 ## Uploaded sources belong to the same knowledge-base pipeline
 
 The user does not want a separate personal ZIP/viewer workflow as the endpoint. Prepared material

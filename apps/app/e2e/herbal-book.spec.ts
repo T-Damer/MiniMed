@@ -51,6 +51,8 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   const chapter = page.locator('.herbal-chapter');
   await expect(chapter).toContainText('Как заварить');
   await expect(chapter).toContainText('Кому нельзя');
+  // Look-alikes from a pharmacognosy teaching manual, cited by its page.
+  await expect(chapter).toContainText('Ромашка непахучая (Matricaria inodora)');
   await chapter.locator('.herbal-cell', { hasText: 'Сырьё' }).first().click();
   const quote = page.locator('.herbal-quote').first();
   await expect(quote).toBeVisible();

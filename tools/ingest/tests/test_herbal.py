@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from localmed_ingest.herbal_ema import EmaExtraction, normalize, validate_ema_extraction
+from localmed_ingest.herbal_lookalikes import PlantLookalikes, check_lookalikes
 from localmed_ingest.herbal_plants import load_plants
 from localmed_ingest.herbal_prepare import (
     Paragraph,
@@ -301,3 +302,30 @@ def test_gf_identification_keeps_the_whole_raw_material_and_look_alikes(tmp_path
     assert found.features == ("Цельное сырьё. Членистые бороздчатые стебли.",)
     assert found.lookalike_note is not None
     assert [item[:16] for item in found.lookalikes] == ["а) Хвощ речной (", "б) Хвощ болотный"]
+
+
+def test_manual_lookalikes_must_be_on_the_cited_page(tmp_path: Path) -> None:
+    pdf = _pdf(
+        tmp_path / "manual.pdf",
+        [
+            "Title page",
+            "Anthemis cotula - dog fennel. Receptacle conical, scaly, without a cavity.",
+        ],
+    )
+
+    def plants(page: int, quote: str) -> dict[str, PlantLookalikes]:
+        item = {"name": "dog fennel", "latin": "Anthemis cotula", "source": "nuph-2016"}
+        return {
+            "matricaria-chamomilla": PlantLookalikes.model_validate(
+                {"lookalikes": [{**item, "page": page, "quote": quote}]}
+            )
+        }
+
+    good = plants(2, "Receptacle conical, scaly, without a cavity.")
+    assert check_lookalikes(good, {"nuph-2016": pdf}, {"matricaria-chamomilla"}) == []
+    wrong_page = plants(1, "Receptacle conical, scaly, without a cavity.")
+    assert check_lookalikes(wrong_page, {"nuph-2016": pdf}, {"matricaria-chamomilla"}) != []
+    reworded = plants(2, "Receptacle conical and hollow inside.")
+    assert check_lookalikes(reworded, {"nuph-2016": pdf}, {"matricaria-chamomilla"}) != []
+    assert check_lookalikes(good, {}, {"matricaria-chamomilla"}) != []
+    assert check_lookalikes(good, {"nuph-2016": pdf}, set()) != []

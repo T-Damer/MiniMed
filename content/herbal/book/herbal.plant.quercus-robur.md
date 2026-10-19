@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:198d378d0d0bdbe711fa64224aa40877e69d5816fcff57907c8391a1f9eeb66b
+source_checksum: sha256:067f32cb012c487c799d1c3a72764231107a774e77d20939b807d30d5210818c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -260,7 +260,14 @@ metadata:
         edition: 14
         url: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/
       definition: 'Собранная ранней весной кора поросли, молодых ветвей и тонких стволов дикорастущих и культивируемых деревьев дуба обыкновенного (черешчатого) - Quercus robur L. (syn.; Q. pedunculata Ehrh.) и дуба скального - Quercus petraea (Mattuschka) Liebl. (syn.: Q. sessiliflora Salisb.), сем. буковых - Fagaceae.'
-      lookalikes: []
+      lookalikes:
+      - name: Ясень обыкновенный (Fraxinus excelsior)
+        text: Кора матовая, серая. Внутренняя поверхность светлая, гладкая.
+        source: manual
+        sourceLabel: НФаУ, 2016, с. 85
+      key:
+        text: Наружная поверхность коры светло-бурая или светло-серая, блестящая, реже матовая, часто заметны поперечно вытянутые чечевички.
+        sourceLabel: НФаУ, 2016, с. 85
     grls:
       registrationNumber: ЛП-№(013901)-(РГ-RU)
       tradeName: Дуба кора
@@ -322,6 +329,16 @@ metadata:
 <!-- localmed:source {"contentMode":"verbatim","documentNumber":"ФС.2.5.0071.18","officialUrl":"https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/","sourceSection":"appearance"} -->
 
 Запах слабый, своеобразный, усиливающийся при смачивании коры водой. Вкус водного извлечения сильно вяжущий.
+
+### Не спутать
+
+<!-- localmed:source {"contentMode":"verbatim","page":85,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Наружная поверхность коры светло-бурая или светло-серая, блестящая, реже матовая, часто заметны поперечно вытянутые чечевички.
+
+<!-- localmed:source {"contentMode":"verbatim","page":85,"sourceBook":"Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016","sourceSection":"admixtures"} -->
+
+Ясень обыкновенный (Fraxinus excelsior): Кора матовая, серая. Внутренняя поверхность светлая, гладкая.
 
 ## Противопоказания
 
@@ -441,3 +458,4 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/quercus-cortex (обновлено 28/01/2011). © European Medicines Agency
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Quercus_robur0.jpg)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0071.18 «Дуба кора»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/duba-kora/
+- Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

@@ -133,9 +133,22 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   panel gains «Не спутать» where a source names look-alikes: horsetail (ГФ XV note on four other Equisetum
   species incl. marsh horsetail; EMA: palustre «potentially toxic», «only quality controlled horsetail»),
   juniper (EMA: other Juniperus species, J. oxycedrus and J. sabina berries described) and lime (EMA: Tilia
-  tomentosa) — new EMA fact kind `lookalike`, quote-checked. The other 27 plants have no look-alike warning:
-  no official source names one, and none is invented. Source lines now cite the ГФ article; the illustration
-  line no longer prints raw Commons date markup. Text module `2026.10.19-id1`; e2e opens horsetail.
+  tomentosa) — new EMA fact kind `lookalike`, quote-checked. Source lines now cite the ГФ article; the
+  illustration line no longer prints raw Commons date markup.
+- **Look-alikes from teaching manuals 2026-10-19** (owner decision): where no official source names
+  look-alikes, `content/herbal/lookalikes.yaml` quotes two pharmacognosy teaching manuals, pinned in
+  `data/raw/herbal/manuals/` (`fetch-herbal-sources`, manifest «manuals»): НФаУ 2016 lecture notes, Приложение
+  4 «Примеси к лекарственному растительному сырью», and Коломиец и др., «Учебная практика по фармакогнозии»
+  (СибГМУ, 2013). Every name, Latin name and quote must occur on the cited PDF page (`check_lookalikes`,
+  run by `prepare-herbal`); the chapter's «Не спутать» gains the manual's key line on the genuine herb
+  («Признак») and one cell per admixture (label «Пособие», «Ядовито» for savin), the quote and «НФаУ, 2016,
+  с. N» behind a tap. Now 11 plants have look-alikes: chamomile (Matricaria inodora, four Anthemis),
+  valerian, oak, frangula, St John's wort, nettle, wormwood, bearberry (lingonberry, bilberry, bog bilberry,
+  Chimaphila), juniper (+ J. sabina, poisonous), horsetail (+ E. hyemale) and lime. 19 plants have none in
+  either manual (mint, melissa, sage, yarrow, senna, liquorice, centaury, dandelion, fennel, anise, flax,
+  tormentil, corn, viola, eucalyptus, birch, calendula, motherwort, celandine) and get no warning. Not used:
+  the НФаУ bearberry row (both columns carry the same text) and the multi-column СибГМУ tables whose text
+  interleaves. Text module `2026.10.19-id2`; e2e opens horsetail and checks chamomile's look-alikes.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

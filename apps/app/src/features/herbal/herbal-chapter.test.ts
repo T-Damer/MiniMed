@@ -178,14 +178,36 @@ describe('herbal identification', () => {
           lookalikes: [
             { name: 'Хвощ болотный (Equisetum palustre L.)', text: 'г) Хвощ болотный …' },
             { name: 'Без текста' },
+            {
+              name: 'Хвощ зимующий (Equisetum hyemale)',
+              text: 'Примесь к хвощу полевому',
+              source: 'manual',
+              sourceLabel: 'СибГМУ, 2013, с. 60',
+              poisonous: true,
+            },
           ],
+          key: { text: 'Побеги ветвистые', sourceLabel: 'СибГМУ, 2013, с. 60' },
         },
       }),
     );
     expect(plant?.identification?.sourceLabel).toBe('ГФ XV, ФС.2.5.0045');
-    expect(plant?.identification?.lookalikes.map((item) => item.name)).toEqual([
-      'Хвощ болотный (Equisetum palustre L.)',
+    expect(plant?.identification?.lookalikes).toEqual([
+      {
+        name: 'Хвощ болотный (Equisetum palustre L.)',
+        text: 'г) Хвощ болотный …',
+        source: 'gf',
+        sourceLabel: null,
+        poisonous: false,
+      },
+      {
+        name: 'Хвощ зимующий (Equisetum hyemale)',
+        text: 'Примесь к хвощу полевому',
+        source: 'manual',
+        sourceLabel: 'СибГМУ, 2013, с. 60',
+        poisonous: true,
+      },
     ]);
+    expect(plant?.identification?.key?.sourceLabel).toBe('СибГМУ, 2013, с. 60');
     expect(readHerbalChapter(chamomile)?.identification).toBeNull();
   });
 });
