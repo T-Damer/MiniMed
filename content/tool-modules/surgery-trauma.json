@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.surgery-trauma.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Хирургия, травма и анестезиология: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -8927,7 +8927,7 @@
     {
       "id": "minimed.calculator.blood-loss-hematocrit",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "blood-loss-by-hematocrit",
       "title": "Объём кровопотери по гематокриту (Gross, ОЦК по Nadler)",
       "shortTitle": "Кровопотеря по Ht",
@@ -8981,7 +8981,7 @@
           "Гематокрит после кровопотери меняется с инфузией и гемотрансфузией; измерять следует после стабилизации гемодинамики и с учётом введённых растворов.",
           "При очень быстрой и массивной кровопотере формула отклоняется от фактического объёма.",
           "В российских справочниках встречается упрощённая формула «Moore» (ОЦК × (Ht должный − Ht фактический) / Ht должный); здесь использован вариант Gross со средним гематокритом, который учитывает разведение.",
-          "Классы ATLS заданы для острого кровотечения при травме; значение точно на границе (30 или 40 %) отнесено к более тяжёлому классу."
+          "Классы ATLS 10-го издания: менее 15 %, 15–30 %, 31–40 %, более 40 % ОЦК; ровно 30 % — класс II, ровно 40 % — класс III. Процент потери — лишь одна ось таблицы ATLS: по всем признакам сразу классифицируются только около 9 % пациентов (Mutschler 2013); дефицит оснований калькулятор не учитывает."
         ],
         "inputs": [
           {
@@ -9114,16 +9114,16 @@
             "message": "Потеря менее 15 % ОЦК соответствует классу I кровотечения по ATLS. Класс определяют и по клинической картине, а не только по объёму."
           },
           {
-            "when": "cond(bloodLossPercent >= 15, cond(bloodLossPercent < 30, 1, 0), 0)",
+            "when": "cond(bloodLossPercent >= 15, cond(bloodLossPercent <= 30, 1, 0), 0)",
             "message": "Потеря 15–30 % ОЦК соответствует классу II кровотечения по ATLS. Класс определяют и по клинической картине, а не только по объёму."
           },
           {
-            "when": "cond(bloodLossPercent >= 30, cond(bloodLossPercent < 40, 1, 0), 0)",
-            "message": "Потеря 30–40 % ОЦК соответствует классу III кровотечения по ATLS: обычно нужна срочная инфузионная и трансфузионная терапия по протоколу."
+            "when": "cond(bloodLossPercent > 30, cond(bloodLossPercent <= 40, 1, 0), 0)",
+            "message": "Потеря более 30 и до 40 % ОЦК соответствует классу III кровотечения по ATLS: обычно нужна срочная инфузионная и трансфузионная терапия по протоколу."
           },
           {
-            "when": "bloodLossPercent >= 40",
-            "message": "Потеря 40 % ОЦК и более соответствует классу IV кровотечения по ATLS: угроза жизни, нужна немедленная помощь по протоколу."
+            "when": "bloodLossPercent > 40",
+            "message": "Потеря более 40 % ОЦК соответствует классу IV кровотечения по ATLS: угроза жизни, нужна немедленная помощь по протоколу."
           }
         ],
         "sources": [
@@ -9147,8 +9147,17 @@
             "title": "Advanced Trauma Life Support (ATLS), Student Course Manual, 10th edition: классы кровотечения",
             "publisher": "American College of Surgeons",
             "version": "10-е издание, 2018",
-            "page": "глава «Шок», классы кровотечения",
-            "reviewedAt": "2026-10-15"
+            "page": "глава «Шок», классы кровотечения; воспроизведено в табл. 2 Rossaint R et al., Crit Care 2023;27:80",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36859355/",
+            "reviewedAt": "2026-10-19"
+          },
+          {
+            "title": "Mutschler M et al. A critical reappraisal of the ATLS classification of hypovolaemic shock",
+            "publisher": "Resuscitation",
+            "version": "2013",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/22835498/",
+            "page": "84:309–313",
+            "reviewedAt": "2026-10-19"
           }
         ],
         "evaluation": {
@@ -9167,7 +9176,7 @@
               }
             },
             {
-              "when": "cond(bloodLossPercent >= 15, cond(bloodLossPercent < 30, 1, 0), 0)",
+              "when": "cond(bloodLossPercent >= 15, cond(bloodLossPercent <= 30, 1, 0), 0)",
               "verdict": {
                 "rangeId": "blood-loss-2",
                 "title": "Класс II: потеря 15–30 % ОЦК",
@@ -9175,31 +9184,33 @@
                 "attentionLevel": "moderate",
                 "lowerBound": 15,
                 "upperBound": 30,
-                "upperInclusive": false,
+                "upperInclusive": true,
                 "sourceIds": ["blood-loss-by-hematocrit-atls-10"]
               }
             },
             {
-              "when": "cond(bloodLossPercent >= 30, cond(bloodLossPercent < 40, 1, 0), 0)",
+              "when": "cond(bloodLossPercent > 30, cond(bloodLossPercent <= 40, 1, 0), 0)",
               "verdict": {
                 "rangeId": "blood-loss-3",
-                "title": "Класс III: потеря 30–40 % ОЦК",
-                "explanation": "Потеря 30–40 % ОЦК соответствует классу III кровотечения по ATLS: обычно нужна срочная инфузионная и трансфузионная терапия по протоколу.",
+                "title": "Класс III: потеря 31–40 % ОЦК",
+                "explanation": "Потеря более 30 и до 40 % ОЦК соответствует классу III кровотечения по ATLS: обычно нужна срочная инфузионная и трансфузионная терапия по протоколу.",
                 "attentionLevel": "high",
                 "lowerBound": 30,
+                "lowerInclusive": false,
                 "upperBound": 40,
-                "upperInclusive": false,
+                "upperInclusive": true,
                 "sourceIds": ["blood-loss-by-hematocrit-atls-10"]
               }
             },
             {
-              "when": "bloodLossPercent >= 40",
+              "when": "bloodLossPercent > 40",
               "verdict": {
                 "rangeId": "blood-loss-4",
                 "title": "Класс IV: потеря более 40 % ОЦК",
-                "explanation": "Потеря 40 % ОЦК и более соответствует классу IV кровотечения по ATLS: угроза жизни, нужна немедленная помощь по протоколу.",
+                "explanation": "Потеря более 40 % ОЦК соответствует классу IV кровотечения по ATLS: угроза жизни, нужна немедленная помощь по протоколу.",
                 "attentionLevel": "urgent",
                 "lowerBound": 40,
+                "lowerInclusive": false,
                 "sourceIds": ["blood-loss-by-hematocrit-atls-10"]
               }
             }
@@ -9293,8 +9304,17 @@
           "id": "blood-loss-by-hematocrit-atls-10",
           "kind": "guideline",
           "relation": "interpretation",
-          "title": "Advanced Trauma Life Support (ATLS), Student Course Manual, 10th edition: классы кровотечения",
-          "reviewedAt": "2026-10-15"
+          "title": "Advanced Trauma Life Support (ATLS), Student Course Manual, 10th edition (2018): классы кровотечения — по воспроизведению в табл. 2 European guideline on management of major bleeding, 6th ed. (Rossaint R et al., Crit Care 2023;27:80)",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36859355/",
+          "reviewedAt": "2026-10-19"
+        },
+        {
+          "id": "blood-loss-by-hematocrit-mutschler-2013",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Mutschler M et al. A critical reappraisal of the ATLS classification of hypovolaemic shock. Resuscitation 2013;84:309–313",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22835498/",
+          "reviewedAt": "2026-10-19"
         }
       ]
     },

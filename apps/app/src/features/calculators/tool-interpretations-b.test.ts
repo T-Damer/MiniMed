@@ -151,12 +151,12 @@ describe('score bands replay at their boundaries', () => {
       'silverman-andersen-respiratory-distress',
       [
         [0, 1],
-        [2, 2],
-        [3, 3],
-        [4, 4],
-        [6, 4],
-        [7, 5],
-        [8, 6],
+        [1, 2],
+        [3, 2],
+        [4, 3],
+        [6, 3],
+        [7, 4],
+        [10, 4],
       ],
     ],
     [

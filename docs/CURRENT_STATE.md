@@ -52,9 +52,14 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
    `datasets/grls-instructions-2026.10.15-8e814530e861-kd1` and
    `datasets/manufacturer-instructions-2026.10.15-230904b5fadb` were deleted (owner, 2026-10-15; superseded
    by the `…36a501e7f136-kd1` and `…4054ceb93a8a` builds).
-10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
-    mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
-    without GA percentiles, Silverman scores 3 and 7.
+10. **Weaker TOOLS-A/B sources — reviewed 2026-10-19** (owner): APRI keeps 0.5/1.5/2.0 with WHO 2016 HCV
+    table 6.4 as a second source and the WHO hepatitis B cut-offs as a limitation; GCS bands 13–15/9–12/3–8 now
+    cite Rimel 1982 (NICE NG232 gives action thresholds only) and the Teasdale PMID is fixed (4136544); ATLS
+    10th-ed. classes via Rossaint 2023 table 2 — ≤30 % is class II, 31–40 % class III, >40 % class IV, with
+    Mutschler 2013 as a limitation; GIR stays unbanded with the ESPGHAN 2018 ranges and 12 mg/kg/min ceiling in
+    its limitations; Silverman–Andersen bands 0 / 1–3 / 4–6 / 7–10 (Hedstrom 2018: thresholds not validated);
+    CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
+    be added later). Still no clinician sign-off.
 
 ## Herbal book «Травник» pilot — 2026-10-19 (STATE HERB1)
 

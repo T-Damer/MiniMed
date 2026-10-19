@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.core-clinical.ru",
-  "version": "0.1.0-preview.7",
+  "version": "0.1.0-preview.8",
   "title": "Базовые клинические расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-08-18T00:00:00Z",
@@ -1766,7 +1766,7 @@
     {
       "id": "minimed.calculator.apri",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "apri-liver-fibrosis-index",
       "title": "APRI — индекс AST к тромбоцитам",
       "shortTitle": "APRI",
@@ -1797,7 +1797,8 @@
           "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
           "Верхняя граница нормы зависит от лаборатории.",
           "Острое воспаление и тромбоцитопения другой причины искажают результат.",
-          "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается."
+          "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается.",
+          "При гепатите B ВОЗ использует другие пороги: 2015 — только APRI > 2 для цирроза у взрослых; 2024 — > 0,5 (значимый фиброз) и > 1,0 (цирроз)."
         ],
         "inputs": [
           {
@@ -1869,6 +1870,14 @@
             "version": "Wai 2003",
             "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
             "reviewedAt": "2026-08-15"
+          },
+          {
+            "title": "Guidelines for the screening, care and treatment of persons with chronic hepatitis C infection",
+            "publisher": "World Health Organization",
+            "version": "2016",
+            "url": "https://www.who.int/publications/i/item/9789241549615",
+            "page": "табл. 6.4: APRI 0,5 и 1,5 (≥F2), 1,0 и 2,0 (F4)",
+            "reviewedAt": "2026-10-19"
           }
         ],
         "evaluation": {
@@ -1882,7 +1891,7 @@
                 "explanation": "APRI 0,5 и менее: значимый фиброз (Ishak 3 и более) маловероятен, цирроз маловероятен (Wai, 2003).",
                 "attentionLevel": "none",
                 "upperBound": 0.5,
-                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003", "apri-who-hcv-2016"]
               }
             },
             {
@@ -1895,7 +1904,7 @@
                 "lowerBound": 0.5,
                 "upperBound": 1.5,
                 "lowerInclusive": false,
-                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003", "apri-who-hcv-2016"]
               }
             },
             {
@@ -1908,7 +1917,7 @@
                 "lowerBound": 1.5,
                 "upperBound": 2,
                 "lowerInclusive": false,
-                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003", "apri-who-hcv-2016"]
               }
             },
             {
@@ -1920,12 +1929,12 @@
                 "attentionLevel": "high",
                 "lowerBound": 2,
                 "lowerInclusive": false,
-                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+                "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003", "apri-who-hcv-2016"]
               }
             }
           ],
           "missingContext": [],
-          "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003"]
+          "sourceIds": ["apri-liver-fibrosis-index-apri-wai-2003", "apri-who-hcv-2016"]
         },
         "observationMappings": [
           {
@@ -1980,6 +1989,14 @@
           "title": "A simple noninvasive index can predict both significant fibrosis and cirrhosis",
           "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
           "reviewedAt": "2026-08-15"
+        },
+        {
+          "id": "apri-who-hcv-2016",
+          "kind": "guideline",
+          "relation": "interpretation",
+          "title": "WHO 2016, гепатит C, табл. 6.4: пороги APRI 0,5/1,5 и 1,0/2,0",
+          "url": "https://www.who.int/publications/i/item/9789241549615",
+          "reviewedAt": "2026-10-19"
         }
       ]
     },

@@ -584,7 +584,7 @@
       "tool": {
         "id": "minimed.calculator.neonatal-glucose-infusion-rate",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "neonatal-glucose-infusion-rate",
         "title": "Неонатология — GIR (скорость инфузии глюкозы)",
         "shortTitle": "GIR",
@@ -614,7 +614,8 @@
           "limitations": [
             "Формула относится к внутривенной инфузии глюкозы и не заменяет решение по маршрутизации (наблюдение, перевод в NICU, проверку причин гипогликемии).",
             "Используйте конценрацию раствора в единицах % (D10W = 10, D12.5W = 12.5). Неправильное указание единиц даёт неверный GIR.",
-            "Не применяйте для непрерывных кормлений, пероральной терапии или для расчёта внутриклеточного/перорального глюкозного режима без отдельной формулы."
+            "Не применяйте для непрерывных кормлений, пероральной терапии или для расчёта внутриклеточного/перорального глюкозного режима без отдельной формулы.",
+            "Ориентиры ESPGHAN 2018 для парентерального питания: недоношенные — 4–8 мг/кг/мин в 1-й день, затем 8–10; доношенные — 2,5–5, затем 5–10; минимум 4 и 2,5, максимум 12 мг/кг/мин. Это цели питания, а не диапазон лечения гипогликемии, поэтому калькулятор не окрашивает результат."
           ],
           "inputs": [
             {
@@ -662,6 +663,14 @@
               "url": "https://www.brighamandwomens.org/assets/bwh/pediatric-newborn-medicine/pdfs/dpnm-hypoglycemia-revised-12-19-16.pdf",
               "page": "P4, section GIR (line 121-122)",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Mesotten D et al. ESPGHAN/ESPEN/ESPR/CSPEN guidelines on pediatric parenteral nutrition: Carbohydrates",
+              "publisher": "Clinical Nutrition",
+              "version": "2018",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/30037708/",
+              "page": "37:2337–2343, R5.4–R5.6",
+              "reviewedAt": "2026-10-19"
             }
           ]
         }
@@ -672,7 +681,7 @@
       "tool": {
         "id": "minimed.assessment.silverman-andersen-respiratory-distress",
         "kind": "assessment",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "silverman-andersen-respiratory-distress",
         "title": "Неонатология — шкала Silverman–Andersen",
         "shortTitle": "Silverman–Andersen",
@@ -2181,7 +2190,7 @@
       "tool": {
         "id": "minimed.calculator.apri",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "apri-liver-fibrosis-index",
         "title": "APRI — индекс AST к тромбоцитам",
         "shortTitle": "APRI",
@@ -2207,7 +2216,8 @@
             "Индекс не заменяет эластографию, визуализацию или консультацию гепатолога.",
             "Верхняя граница нормы зависит от лаборатории.",
             "Острое воспаление и тромбоцитопения другой причины искажают результат.",
-            "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается."
+            "Пороги Wai (2003) получены у пациентов с хроническим гепатитом C; для других заболеваний печени применимость отличается.",
+            "При гепатите B ВОЗ использует другие пороги: 2015 — только APRI > 2 для цирроза у взрослых; 2024 — > 0,5 (значимый фиброз) и > 1,0 (цирроз)."
           ],
           "inputs": [
             {
@@ -2248,6 +2258,14 @@
               "version": "Wai 2003",
               "url": "https://pubmed.ncbi.nlm.nih.gov/12883497/",
               "reviewedAt": "2026-08-15"
+            },
+            {
+              "title": "Guidelines for the screening, care and treatment of persons with chronic hepatitis C infection",
+              "publisher": "World Health Organization",
+              "version": "2016",
+              "url": "https://www.who.int/publications/i/item/9789241549615",
+              "page": "табл. 6.4: APRI 0,5 и 1,5 (≥F2), 1,0 и 2,0 (F4)",
+              "reviewedAt": "2026-10-19"
             }
           ]
         }
@@ -5295,7 +5313,7 @@
       "tool": {
         "id": "minimed.assessment.glasgow-coma-scale",
         "kind": "assessment",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "glasgow-coma-scale",
         "title": "Шкала комы Глазго (GCS)",
         "shortTitle": "GCS",
@@ -36858,7 +36876,7 @@
       "tool": {
         "id": "minimed.calculator.blood-loss-hematocrit",
         "kind": "calculator",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "slug": "blood-loss-by-hematocrit",
         "title": "Объём кровопотери по гематокриту (Gross, ОЦК по Nadler)",
         "shortTitle": "Кровопотеря по Ht",
@@ -36897,7 +36915,7 @@
             "Гематокрит после кровопотери меняется с инфузией и гемотрансфузией; измерять следует после стабилизации гемодинамики и с учётом введённых растворов.",
             "При очень быстрой и массивной кровопотере формула отклоняется от фактического объёма.",
             "В российских справочниках встречается упрощённая формула «Moore» (ОЦК × (Ht должный − Ht фактический) / Ht должный); здесь использован вариант Gross со средним гематокритом, который учитывает разведение.",
-            "Классы ATLS заданы для острого кровотечения при травме; значение точно на границе (30 или 40 %) отнесено к более тяжёлому классу."
+            "Классы ATLS 10-го издания: менее 15 %, 15–30 %, 31–40 %, более 40 % ОЦК; ровно 30 % — класс II, ровно 40 % — класс III. Процент потери — лишь одна ось таблицы ATLS: по всем признакам сразу классифицируются только около 9 % пациентов (Mutschler 2013); дефицит оснований калькулятор не учитывает."
           ],
           "inputs": [
             {
@@ -36997,8 +37015,17 @@
               "title": "Advanced Trauma Life Support (ATLS), Student Course Manual, 10th edition: классы кровотечения",
               "publisher": "American College of Surgeons",
               "version": "10-е издание, 2018",
-              "page": "глава «Шок», классы кровотечения",
-              "reviewedAt": "2026-10-15"
+              "url": "https://pubmed.ncbi.nlm.nih.gov/36859355/",
+              "page": "глава «Шок», классы кровотечения; воспроизведено в табл. 2 Rossaint R et al., Crit Care 2023;27:80",
+              "reviewedAt": "2026-10-19"
+            },
+            {
+              "title": "Mutschler M et al. A critical reappraisal of the ATLS classification of hypovolaemic shock",
+              "publisher": "Resuscitation",
+              "version": "2013",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/22835498/",
+              "page": "84:309–313",
+              "reviewedAt": "2026-10-19"
             }
           ]
         }
