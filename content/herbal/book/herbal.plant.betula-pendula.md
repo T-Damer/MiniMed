@@ -172,6 +172,7 @@ metadata:
         effectRu: антибактериальное против золотистого стафилококка
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0005

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/01/30/1513255/bb2a6d10-8679-45ed-8b9b-220c1421e116.pdf
-source_checksum: sha256:a8a0ba455338fb63bf4a297683d70b36f05fdd94b02a260262ff0820a1aa4ef0
+source_checksum: sha256:d8be4841286c391cbfea23584cb4c389d437594b802d942f35d5f18e5bf4927f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -265,6 +265,30 @@ metadata:
         effectRu: у крыс внутрижелудочное введение настоя цветков (20 мл/кг) или экстракта, богатого калием и флавоноидами, вызывало диурез; эффект был сильнее, чем у теофиллина (5 мг/кг)
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: warning
+        ru: 'Сырые или незрелые ягоды и другие части бузины (листья, стебли) содержат ядовитые цианидообразующие вещества: тошнота, рвота, тяжёлая диарея; варка устраняет токсин'
+        quote: Raw or unripe elderberries and other parts of the elder tree, such as the leaves and stem, contain poisonous cyanide-producing substances that can cause nausea, vomiting, and severe diarrhea; cooking eliminates this toxin.
+        url: https://www.nccih.nih.gov/health/elderberry
+      - source: nccih
+        kind: warning
+        ru: Большие количества токсина могут вызвать серьёзное заболевание
+        quote: Large quantities of the toxin may cause serious illness.
+        url: https://www.nccih.nih.gov/health/elderberry
+      - source: nccih
+        kind: pregnancy
+        ru: Мало известно, безопасна ли бузина для лечебного применения при беременности и грудном вскармливании
+        quote: Little is known about whether it’s safe to use elderberry for health purposes during pregnancy or while breastfeeding.
+        url: https://www.nccih.nih.gov/health/elderberry
+      - source: lactmed
+        kind: lactation
+        ru: Рекомендаций по применению лечебных доз препаратов бузины при грудном вскармливании дать нельзя
+        quote: No recommendations can be made on the use of medicinal doses of elderberry products during breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM920/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0008.15
@@ -422,4 +446,6 @@ metadata:
 - Инструкция ГРЛС «Бузины черной цветки», Изм. № 0, ЛП-№(008227)-(РГ-RU), 2024, Общество с ограниченной ответственностью Фирма "Здоровье" (ООО Фирма "Здоровье")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/sambuci-flos (обновлено 27/06/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Sambucus_nigra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-127.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/elderberry (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM920/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0008.15 «Бузины черной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/buziny-chernoy-tsvetki/

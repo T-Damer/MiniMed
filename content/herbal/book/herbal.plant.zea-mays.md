@@ -180,6 +180,7 @@ metadata:
         effectRu: по выводу авторов, мочегонный эффект согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов
         evidence: animal
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0079

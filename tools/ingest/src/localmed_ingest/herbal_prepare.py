@@ -55,6 +55,18 @@ from .herbal_plants import (
     Plant,
     load_plants,
 )
+from .herbal_safety import (
+    TRTS_SECTIONS,
+    PlantSafety,
+    lactmed_path,
+    livertox_path,
+    livertox_score,
+    load_safety,
+    markup_text,
+    nccih_path,
+    validate_safety,
+)
+from .herbal_sources import NCCIH_BASE, TRTS_URL
 
 PACK_ID = "minimed.herbal.book"
 DOCUMENT_PREFIX = "herbal."
@@ -665,6 +677,94 @@ def _monograph_entry(plant: Plant, raw_manifest: dict[str, object]) -> dict[str,
     }
 
 
+NCCIH_PAGE = NCCIH_BASE + "{}"
+LACTMED_PAGE = "https://www.ncbi.nlm.nih.gov/books/n/lactmed/{}/"
+LIVERTOX_PAGE = "https://www.ncbi.nlm.nih.gov/books/n/livertox/{}/"
+TRTS_PAGE = TRTS_URL
+
+
+def _safety_digest(safety: PlantSafety, raw_root: Path, files: dict[str, str]) -> str:
+    """The safety file and the saved sources it was checked against."""
+    paths = [
+        *([nccih_path(safety.nccih)] if safety.nccih else []),
+        *([lactmed_path(safety.lactmed)] if safety.lactmed else []),
+        *([livertox_path(safety.livertox)] if safety.livertox else []),
+    ]
+    return _digest(
+        {
+            "file": _sha256_bytes(safety.model_dump_json().encode()),
+            **{
+                path: files.get(path) or _sha256_bytes((raw_root / path).read_bytes())
+                for path in paths
+            },
+        }
+    )
+
+
+def _safety_metadata(safety: PlantSafety, raw_root: Path) -> dict[str, object]:
+    lines: list[dict[str, object]] = [
+        {
+            "source": line.source,
+            "kind": line.kind,
+            "ru": line.ru,
+            "quote": line.quote,
+            "url": NCCIH_PAGE.format(safety.nccih)
+            if line.source == "nccih"
+            else LACTMED_PAGE.format(safety.lactmed),
+        }
+        for line in safety.lines
+    ]
+    liver: dict[str, object] | None = None
+    if safety.livertox:
+        letter, russian, sentence = livertox_score(
+            markup_text((raw_root / livertox_path(safety.livertox)).read_text(encoding="utf-8"))
+        )
+        liver = {
+            "score": letter,
+            "ru": russian,
+            "quote": sentence,
+            "url": LIVERTOX_PAGE.format(safety.livertox),
+        }
+    trts: dict[str, object] | None = None
+    if safety.trts is not None:
+        row = safety.trts
+        trts = {
+            "section": row.section,
+            "ru": TRTS_SECTIONS[row.section],
+            "parts": row.parts,
+            "number": row.number,
+            "quote": f"{row.number}. {row.name} — {row.latin} — {row.parts}",
+            "url": TRTS_PAGE,
+            "pdfPage": row.page,
+        }
+    return {"lines": lines, "liver": liver, "trts": trts}
+
+
+def _safety_source_lines(safety: PlantSafety) -> list[str]:
+    lines: list[str] = []
+    if safety.nccih:
+        lines.append(
+            f"- NCCIH «Herbs at a Glance»: {NCCIH_PAGE.format(safety.nccih)} (US public domain)"
+        )
+    if safety.lactmed:
+        lines.append(
+            "- LactMed (Drugs and Lactation Database, NICHD): "
+            f"{LACTMED_PAGE.format(safety.lactmed)} (US public domain)"
+        )
+    if safety.livertox:
+        lines.append(
+            "- LiverTox (NIDDK), шкала вероятности поражения печени: "
+            f"{LIVERTOX_PAGE.format(safety.livertox)} (US public domain)"
+        )
+    if safety.trts is not None:
+        lines.append(
+            "- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, "
+            f"п. {safety.trts.section}, № {safety.trts.number} (с. {safety.trts.page} PDF): "
+            f"{TRTS_PAGE}"
+        )
+    return lines
+
+
 def _red_book_metadata(plant: Plant, raw_manifest: dict[str, object]) -> dict[str, object] | None:
     if plant.red_book is None:
         return None
@@ -763,6 +863,7 @@ def render_plant(
     raw_manifest: dict[str, object],
     extraction_sha256: str | None,
     manual: PlantLookalikes | None = None,
+    safety: PlantSafety | None = None,
 ) -> Chapter:
     grls_front = (
         cast("dict[str, object]", _front_matter(choice.markdown)["metadata"])
@@ -803,6 +904,7 @@ def render_plant(
                 if plant.red_book is not None
                 else {}
             ),
+            **({"safety": _safety_digest(safety, raw_root, files)} if safety is not None else {}),
             **{path: files[path] for path in ema_paths},
             **({"emaExtraction": extraction_sha256} if extraction_sha256 else {}),
             **(
@@ -881,6 +983,7 @@ def render_plant(
                 else None,
                 "ema": _ema_metadata(plant, extraction, raw_manifest),
                 "redBook": _red_book_metadata(plant, raw_manifest),
+                "safety": _safety_metadata(safety, raw_root) if safety is not None else None,
                 "identification": _identification_metadata(
                     identification, gf_article, manual, manuals
                 )
@@ -935,6 +1038,7 @@ def render_plant(
                 manuals,
                 _who_volume(plant, raw_manifest) if plant.who is not None else None,
                 cast("dict[str, dict[str, object]]", raw_manifest.get("redBook") or {}),
+                safety,
             )
         )
     )
@@ -1090,6 +1194,7 @@ def _source_lines(
     manuals: dict[str, dict[str, object]] | None = None,
     who_volume: dict[str, object] | None = None,
     red_book: dict[str, dict[str, object]] | None = None,
+    safety: PlantSafety | None = None,
 ) -> list[str]:
     lines: list[str] = []
     if choice is not None:
@@ -1125,6 +1230,8 @@ def _source_lines(
             f"(с. {plant.red_book.page} PDF): {listing['page']}; категории — "
             f"{red_book['categories']['title']}, п. 3.7"
         )
+    if safety is not None:
+        lines.extend(_safety_source_lines(safety))
     if gf_article is not None:
         lines.append(
             f"- Государственная фармакопея РФ {_GF_EDITIONS[int(str(gf_article['edition']))]}, "
@@ -1287,6 +1394,7 @@ def prepare_herbal_book(
     output: Path,
     lookalikes_path: Path | None = None,
     who_dir: Path = Path("content/herbal/who"),
+    safety_dir: Path = Path("content/herbal/safety"),
 ) -> PrepareReport:
     plants = load_plants(plants_path)
     manual_lookalikes = load_lookalikes(lookalikes_path) if lookalikes_path else {}
@@ -1344,6 +1452,10 @@ def prepare_herbal_book(
             extracted.append(plant.id)
         else:
             missing.append(plant.id)
+        safety_path = safety_dir / f"{plant.id}.yaml"
+        safety = load_safety(safety_path) if safety_path.is_file() else None
+        if safety is not None and (problems := validate_safety(safety, raw_root)):
+            raise HerbalSourceError(f"{plant.id}: safety lines fail their check: {problems}")
         chapter = render_plant(
             plant,
             choice,
@@ -1353,6 +1465,7 @@ def prepare_herbal_book(
             raw_manifest,
             extraction_sha,
             manual_lookalikes.get(plant.id),
+            safety,
         )
         brew = parse_brew(sections.get("dosage", []))
         lacking = [name for name in ("kind", "herb", "water", "dose") if name not in brew]

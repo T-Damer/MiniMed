@@ -1,0 +1,32 @@
+plant: panax-ginseng
+nccih: asian-ginseng
+lactmed: LM901
+livertox: Ginseng
+trts:
+  section: '1.2'
+  number: 7
+  page: 234
+  name: Женьшень
+  latin: Ginseng
+  parts: Все виды, все части
+lines:
+- source: nccih
+  kind: use
+  ru: Приём женьшеня внутрь до 6 месяцев в рекомендуемых дозах, по-видимому, безопасен для большинства людей
+  quote: Short-term oral use (by mouth, up to 6 months) of Asian ginseng in recommended amounts appears to be safe for most people.
+- source: nccih
+  kind: adverse
+  ru: Самый частый побочный эффект — бессонница; редко описаны тяжёлая сыпь, поражение печени и тяжёлые аллергические реакции
+  quote: Insomnia (trouble sleeping) is the herb’s most common side effect. Uncommon side effects that have been reported include severe rash, liver damage, and severe allergic reactions.
+- source: nccih
+  kind: warning
+  ru: Женьшень может ухудшать аутоиммунные заболевания и влиять на свёртываемость крови; по некоторым данным, может снижать уровень сахара в крови
+  quote: Asian ginseng may worsen autoimmune disorders and interfere with blood clotting. Some evidence suggests that Asian ginseng might lower blood sugar levels.
+- source: nccih
+  kind: pregnancy
+  ru: По некоторым исследованиям, приём внутрь при беременности может быть небезопасен; один из компонентов вызывал пороки развития у животных
+  quote: Some studies of Asian ginseng suggest it may be unsafe when taken orally during pregnancy. One of the chemicals in it has been found to cause birth defects in animals.
+- source: lactmed
+  kind: lactation
+  ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при лактации
+  quote: Because of its possible estrogenic activity and lack of information during breastfeeding, many sources recommend that ginseng not be used during lactation.

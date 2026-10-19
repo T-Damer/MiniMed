@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:ca7f8d3e8dd2fce6a44e5f1e1344c782416bbd62744b2ff1fb3bbc3e64a7da7b
+source_checksum: sha256:2e37159d012d26c63c96e883bec1faeb0646697788fb88bbab9d5ad300790927
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -220,6 +220,51 @@ metadata:
         effectRu: снижают активность NF-κB (ацетилвалеренолевая — до 4%, валереновая — до 25%)
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: По данным исследований, в целом безопасна при кратковременном применении у большинства взрослых; 300–600 мг в сутки применяли без явного вреда до 6 недель
+        quote: Research suggests that valerian is generally safe for short-term use by most adults. It has been used with apparent safety in doses of 300 to 600 milligrams daily for up to 6 weeks.
+        url: https://www.nccih.nih.gov/health/valerian
+      - source: nccih
+        kind: adverse
+        ru: Головная боль, расстройство желудка, притуплённость мышления, возбудимость, беспокойство, яркие сновидения
+        quote: Side effects of valerian include headache, stomach upset, mental dullness, excitability, uneasiness, and vivid dreams.
+        url: https://www.nccih.nih.gov/health/valerian
+      - source: nccih
+        kind: interaction
+        ru: Возможно (не доказано), что валериана вызывает сонливость, поэтому её не следует принимать вместе с алкоголем или седативными средствами
+        quote: Because it is possible (though not proven) that valerian might have a sleep-inducing effect, it should not be taken along with alcohol or sedatives.
+        url: https://www.nccih.nih.gov/health/valerian
+      - source: nccih
+        kind: warning
+        ru: В очень редких случаях сообщалось о поражении печени, чаще при сочетании с другими травами; влияние длительного приёма на печень неизвестно
+        quote: In very rare cases, liver injury was reported when taking valerian, most often in combination with other herbals; however, valerian’s long-term effect on liver function is unknown.
+        url: https://www.nccih.nih.gov/health/valerian
+      - source: lactmed
+        kind: lactation
+        ru: Опыта применения при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно при кормлении новорождённого или недоношенного
+        quote: Because there is no published experience with valerian during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM902/
+      - source: lactmed
+        kind: lactation
+        ru: 'Валериану часто не рекомендуют при лактации: теоретические опасения из-за валепотриатов и бальдриналов, цитотоксичных и мутагенных in vitro'
+        quote: Valerian is often not recommended during lactation because of the theoretical concerns over its valepotriates and baldrinals which have been shown to be cytotoxic and mutagenic in vitro.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM902/
+      liver:
+        score: C
+        ru: вероятная редкая причина поражения печени
+        quote: 'Likelihood score: C (probable rare cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Valerian/
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Все виды, корень и корневища
+        number: 3
+        quote: 3. Валериана — Valeriana L. — Все виды, корень и корневища
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 233
     identification:
       source:
         number: ФС.2.5.0009
@@ -417,5 +462,9 @@ metadata:
 - Инструкция ГРЛС «Валерианы корневища с корнями», Изм. № 0, ЛП-№(013852)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/valerianae-radix (обновлено 11/03/2026). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Valeriana_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-143.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/valerian (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM902/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Valerian/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 3 (с. 233 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XV изд., ФС.2.5.0009 «Валерианы лекарственной корневища с корнями»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/valeriany-lekarstvennoy-kornevishcha-s-kornyami/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

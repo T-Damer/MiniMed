@@ -202,6 +202,7 @@ metadata:
         effectRu: вирусостатический эффект настоев листа, возможно, связан с дубильными веществами
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0107

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:cf313a1d576e54ee7c8753367fe9443cd096f4fdc0a8cb1b8d378f9e7f7fb103
+source_checksum: sha256:42b98734ed6253dbd5eea30e3abe5c1d5ccc0b818759468020f4e2a054c5e3d7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -179,6 +179,24 @@ metadata:
         effectRu: слабительное — образуется из сеннозидов кишечными бактериями
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Обычные дозы сенны приемлемы при грудном вскармливании
+        quote: Usual doses of senna are acceptable to use during breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM474/
+      - source: lactmed
+        kind: lactation
+        ru: 'Ранний неконтролируемый отчёт со старым препаратом сенны: чаще диарея у детей; в контролируемых исследованиях современных препаратов влияния на ребёнка не было'
+        quote: Although an early uncontrolled report using an old senna product found increased frequency of diarrhea in breastfed infants, several controlled studies using modern senna products found no effect on the infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM474/
+      liver:
+        score: D
+        ru: возможная редкая причина поражения печени
+        quote: 'Likelihood score: D (possible rare cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Senna/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0038.15
@@ -323,4 +341,6 @@ metadata:
 - Инструкция ГРЛС «Сенны листья», Изм. № 0, ЛП-№(013970)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium (обновлено 26/10/2006). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Senna_alexandrina_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-031.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM474/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Senna/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0038.15 «Сенны листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/senny-listya/

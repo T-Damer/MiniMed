@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf
-source_checksum: sha256:a3abcb5532c02a3a6a1826e50cc6b515c154fcde852154f37957137424bf0833
+source_checksum: sha256:9fb43e08940077d4d1e40f0fc6fbfd013fcedb47e86df670ebcd5f3738597032
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -204,6 +204,20 @@ metadata:
         effectRu: гексановый и этанольный влияют на воспалительную фазу заживления в кератиноцитах (NF-κB, IL-8); миграцию кератиноцитов меняют лишь незначительно; этанольный и водный умеренно тормозят коллагеназу
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: У календулы для приёма внутрь нет специфических показаний при лактации; сведений о её применении внутрь при грудном вскармливании нет
+        quote: Oral Calendula has no specific lactation-related uses and no information is available on the oral use of Calendula during breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM940/
+      - source: lactmed
+        kind: warning
+        ru: Аллергические реакции, в том числе перекрёстные с хризантемами, маргаритками и бархатцами (marigolds), редки
+        quote: Allergic reactions, including cross-reactions to chrysanthemums, daisies and marigolds, occur rarely.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM940/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0030.15
@@ -384,4 +398,5 @@ metadata:
 - Инструкция ГРЛС «Ноготков цветки», Изм. № 0, ЛП-№(013370)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/calendulae-flos (обновлено 02/07/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Calendula_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-024.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM940/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0030.15 «Календулы лекарственной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/kalenduly-lekarstvennoy-tsvetki/

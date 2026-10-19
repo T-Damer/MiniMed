@@ -302,6 +302,7 @@ metadata:
         effectRu: экстракт листьев (DER 1:1, этанол 55 %), содержащий горькие секоиридоиды, проверяли на грамположительных и грамотрицательных бактериях и дрожжах — активность слабая
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0065.18

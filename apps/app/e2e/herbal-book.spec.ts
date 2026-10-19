@@ -81,4 +81,12 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   await expect(page.locator('.herbal-redbook')).toContainText(
     '1 — находящиеся под угрозой исчезновения',
   );
+  // Safety: the food-supplement rule of ТР ТС 021/2011 and the LiverTox score, each with its source.
+  const safety = page.locator('.herbal-chapter__heading', { hasText: 'Безопасность' });
+  await expect(safety).toBeVisible();
+  await expect(page.locator('.herbal-chapter')).toContainText(
+    'Не допускается в однокомпонентных БАД',
+  );
+  await page.locator('.herbal-cell', { hasText: 'Печень' }).click();
+  await expect(page.locator('.herbal-quote')).toContainText('LiverTox');
 });

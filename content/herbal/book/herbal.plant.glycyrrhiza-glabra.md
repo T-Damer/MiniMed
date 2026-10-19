@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:4b15323fe1f4c082dd58480ebbe92c56f4d354f295c817b8785b3e6a390915bb
+source_checksum: sha256:c56ad01ca18da3da144e162c97a19bd228ca7efc44c06b4e1672848eceef8bf5
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -217,6 +217,39 @@ metadata:
         effectRu: основной метаболит глицирризина при приёме внутрь; сильнее глицирризина тормозит 5α-, 5β-редуктазу и 11β-дегидрогеназу (превращает кортизол в кортизон)
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: adverse
+        ru: Глицирризин солодки может вызывать тяжёлые эффекты — нерегулярное сердцебиение и остановку сердца, особенно в больших дозах или при длительном приёме
+        quote: Licorice contains a component called glycyrrhizin, or glycyrrhizic acid, that can cause serious adverse effects, such as irregular heartbeat and cardiac arrest, especially when consumed in large amounts or in the long term.
+        url: https://www.nccih.nih.gov/health/licorice-root
+      - source: nccih
+        kind: warning
+        ru: Даже малые количества глицирризина связаны с тяжёлыми эффектами у тех, кто много потребляет соли, при гипертонии, болезнях сердца или почек
+        quote: Even small amounts of glycyrrhizin from licorice root products have been linked to severe adverse effects in people who consume a lot of salt, in people with hypertension, and in people with heart or kidney conditions.
+        url: https://www.nccih.nih.gov/health/licorice-root
+      - source: nccih
+        kind: interaction
+        ru: Описаны взаимодействия солодки с кортикостероидами
+        quote: Interactions between licorice and corticosteroids have been reported.
+        url: https://www.nccih.nih.gov/health/licorice-root
+      - source: nccih
+        kind: pregnancy
+        ru: 'Экстракт солодки внутрь в больших количествах (около 250 г солодки в неделю) при беременности небезопасен: может повышать риск родов раньше 38 недель'
+        quote: Consuming oral licorice extract in large amounts (about 250 grams of licorice per week) during pregnancy is unsafe and can increase the risk of delivery before gestational age of 38 weeks.
+        url: https://www.nccih.nih.gov/health/licorice-root
+      - source: lactmed
+        kind: lactation
+        ru: Длительное чрезмерное употребление может вызывать гипертонию, гипокалиемию и нарушения гормонов надпочечников; при кормлении, вероятно, избегать
+        quote: Long-term, excessive use of licorice can cause hypertension, hypokalemia, and disturbances of adrenal hormones, and therefore should probably be avoided during nursing.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM925/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Licorice/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0040.15
@@ -364,4 +397,7 @@ metadata:
 - Инструкция ГРЛС «Солодки корни», Изм. № 0, ЛП-№(015141)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/liquiritiae-radix (обновлено 20/07/2026). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Glycyrrhiza_glabra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-207.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/licorice-root (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM925/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Licorice/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0040.15 «Солодки корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/solodki-korni/

@@ -1,0 +1,8 @@
+plant: origanum-vulgare
+lactmed: LM929
+livertox: Oregano
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Из-за недостатка данных орегано в количествах выше пищевых (как приправа), вероятно, следует избегать при грудном вскармливании
+  quote: Because of a lack of data, oregano in amounts higher than those found in foods as a flavoring should probably be avoided during breastfeeding.

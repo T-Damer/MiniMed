@@ -1,0 +1,11 @@
+plant: rheum-palmatum
+lactmed: LM945
+lines:
+- source: lactmed
+  kind: lactation
+  ru: По мнению большинства недавних обзоров, ревень не следует применять при грудном вскармливании из-за возможного слабительного действия на ребёнка
+  quote: Nevertheless, most recent reviewers state that rhubarb should not be used during breastfeeding because of possible cathartic effects on the breastfed infants.
+- source: lactmed
+  kind: lactation
+  ru: В двух очень старых исследованиях слабительные дозы ревеня у кормящих матерей, по-видимому, не переходили в молоко и не влияли на детей
+  quote: Two very old studies found that laxative doses of rhubarb given to nursing mothers did not appear to pass into milk or affect their breastfed infants.

@@ -304,6 +304,7 @@ metadata:
         effectRu: этанольный экстракт (0,5 мг/мл) подавлял иммуноглобулин E-зависимое высвобождение гистамина из клеток RBL-2H3 более чем на 80 %
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0032.15

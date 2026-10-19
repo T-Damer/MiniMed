@@ -1,0 +1,25 @@
+plant: echinacea-purpurea
+nccih: echinacea
+lactmed: LM899
+livertox: Echinacea
+lines:
+- source: nccih
+  kind: use
+  ru: Экстракты E. purpurea и некоторые смеси E. purpurea с E. angustifolia, вероятно, безопасны для большинства взрослых при кратковременном применении
+  quote: It’s likely safe for most adults to consume products with extracts of E. purpurea, and some mixtures of E. purpurea and E. angustifolia, for short periods of time.
+- source: nccih
+  kind: adverse
+  ru: 'Возможны аллергические реакции, в том числе тяжёлые; самые частые побочные эффекты — со стороны ЖКТ: боль в животе, тошнота'
+  quote: However, some people have allergic reactions to echinacea, which may be severe. The most common side effects of echinacea are digestive tract symptoms, such as abdominal pain, nausea, or stomach pain.
+- source: nccih
+  kind: interaction
+  ru: Данные о взаимодействии с препаратами печёночного метаболизма противоречивы; теоретически возможно с иммуносупрессантами и кофеином
+  quote: There is conflicting evidence about whether echinacea interacts with some drugs metabolized by the liver, and there are theoretical reasons to suspect that echinacea might interact with immunosuppressants or caffeine.
+- source: nccih
+  kind: pregnancy
+  ru: По некоторым исследованиям экстракты E. purpurea и E. angustifolia, возможно, безопасны до 7 дней в первом триместре беременности
+  quote: Some studies of the use of solid or liquid extracts of E. purpura and E. angustifolia suggest it is possibly safe for up to 7 days during the first trimester of pregnancy.
+- source: lactmed
+  kind: lactation
+  ru: Одни источники считают эхинацею безопасной в рекомендуемых дозах, другие советуют избегать при грудном вскармливании из-за отсутствия данных
+  quote: Some sources indicate that Echinacea is safe in recommended doses,[ 1 ] while others recommend avoiding it during breastfeeding because of the lack of published safety data.

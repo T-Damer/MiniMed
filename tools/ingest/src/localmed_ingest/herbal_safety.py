@@ -38,9 +38,18 @@ LIVERTOX_SCORES = {
     "possible rare cause of clinically apparent liver injury": (
         "возможная редкая причина поражения печени"
     ),
+    "possible, rare cause of clinically apparent liver injury": (
+        "возможная редкая причина поражения печени"
+    ),
+    "uncommon but likely cause of clinically apparent liver injury": (
+        "нечастая, но вероятная причина поражения печени"
+    ),
     "possible cause of clinically apparent liver injury": "возможная причина поражения печени",
     "unlikely cause of clinically apparent liver injury": (
         "маловероятная причина поражения печени"
+    ),
+    "by itself, unlikely cause of clinically apparent liver injury": (
+        "сам по себе — маловероятная причина поражения печени"
     ),
     "unproven but suspected cause of clinically apparent liver injury": (
         "не доказанная, но подозреваемая причина поражения печени"
@@ -179,11 +188,30 @@ def validate_safety(item: PlantSafety, raw_root: Path) -> list[str]:
         if item.trts.page > len(pages):
             problems.append(f"ТР ТС: no page {item.trts.page} in {TRTS_PDF}")
         else:
-            page = re.sub(r"\s+", "", normalize(pages[item.trts.page - 1]))
+            # A row may run on to the next page past the repeated table header (the valerian
+            # parts are split there): the words of each value must follow in order.
+            page = normalize(" ".join(pages[item.trts.page - 1 : item.trts.page + 1]))
             for value in (item.trts.name, item.trts.latin, item.trts.parts):
-                if re.sub(r"\s+", "", normalize(value)) not in page:
+                if not _words_in_order(normalize(value), page):
                     problems.append(f"ТР ТС: {value!r} is not on page {item.trts.page}")
     return problems
+
+
+def _words_in_order(value: str, text: str) -> bool:
+    words = value.split()
+    first = text.find(words[0]) if words else -1
+    while first >= 0:
+        position = first + len(words[0])
+        for word in words[1:]:
+            found = text.find(word, position)
+            # The words of one cell stay close; a later match elsewhere does not count.
+            if found < 0 or found - position > 200:
+                break
+            position = found + len(word)
+        else:
+            return True
+        first = text.find(words[0], first + 1)
+    return False
 
 
 def check_safety(directory: Path, raw_root: Path, plant_ids: set[str]) -> dict[str, list[str]]:

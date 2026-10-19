@@ -89,6 +89,38 @@ export interface HerbalRedBook {
   readonly url: string | null;
 }
 
+/** One quoted safety line: the Russian reading and the English sentence of NCCIH or LactMed. */
+export interface HerbalSafetyLine {
+  readonly source: 'nccih' | 'lactmed';
+  readonly kind: string;
+  readonly ru: string;
+  readonly quote: string;
+  readonly url: string | null;
+}
+
+/** LiverTox likelihood score of clinically apparent liver injury, named in Russian. */
+export interface HerbalLiverScore {
+  readonly score: string;
+  readonly ru: string;
+  readonly quote: string;
+  readonly url: string | null;
+}
+
+/** The plant's row of ТР ТС 021/2011 annex 7 (plants not allowed in food supplements). */
+export interface HerbalSupplementRule {
+  readonly ru: string;
+  readonly parts: string;
+  readonly quote: string;
+  readonly label: string;
+  readonly url: string | null;
+}
+
+export interface HerbalSafety {
+  readonly lines: readonly HerbalSafetyLine[];
+  readonly liver: HerbalLiverScore | null;
+  readonly supplements: HerbalSupplementRule | null;
+}
+
 /**
  * A species found among the raw material, with its distinguishing text: named by the ГФ article
  * (`gf`) or by a pharmacognosy teaching manual (`manual`, cited by its own `sourceLabel`).
@@ -128,6 +160,7 @@ export interface HerbalChapter {
   readonly ema: HerbalEma | null;
   readonly identification: HerbalIdentification | null;
   readonly redBook: HerbalRedBook | null;
+  readonly safety: HerbalSafety | null;
   readonly grlsOcr: boolean;
   readonly hasGrls: boolean;
 }
@@ -342,6 +375,81 @@ function readRedBook(value: unknown): HerbalRedBook | null {
   };
 }
 
+const SAFETY_HOSTS = [
+  'https://www.nccih.nih.gov/',
+  'https://www.ncbi.nlm.nih.gov/',
+  'https://eec.eaeunion.org/',
+];
+
+function safetyUrl(value: unknown): string | null {
+  const url = text(value);
+  return url && SAFETY_HOSTS.some((host) => url.startsWith(host)) ? url : null;
+}
+
+function readSafetyLine(value: unknown): HerbalSafetyLine | null {
+  const item = record(value);
+  const source = item?.['source'];
+  const kind = text(item?.['kind']);
+  const ru = text(item?.['ru']);
+  const quote = text(item?.['quote']);
+  if ((source !== 'nccih' && source !== 'lactmed') || !kind || !ru || !quote) return null;
+  return { source, kind, ru, quote, url: safetyUrl(item?.['url']) };
+}
+
+function readSafety(value: unknown): HerbalSafety | null {
+  const item = record(value);
+  if (!item) return null;
+  const liver = record(item['liver']);
+  const liverScore = text(liver?.['score']);
+  const liverRu = text(liver?.['ru']);
+  const liverQuote = text(liver?.['quote']);
+  const trts = record(item['trts']);
+  const trtsRu = text(trts?.['ru']);
+  const trtsParts = text(trts?.['parts']);
+  const trtsQuote = text(trts?.['quote']);
+  const safety: HerbalSafety = {
+    lines: list(item['lines']).map(readSafetyLine).filter(present),
+    liver:
+      liverScore && liverRu && liverQuote
+        ? { score: liverScore, ru: liverRu, quote: liverQuote, url: safetyUrl(liver?.['url']) }
+        : null,
+    supplements:
+      trtsRu && trtsParts && trtsQuote
+        ? {
+            ru: trtsRu,
+            parts: trtsParts,
+            quote: trtsQuote,
+            label: `ТР ТС 021/2011, прил. 7, п. ${text(trts?.['section']) ?? ''}`,
+            url: safetyUrl(trts?.['url']),
+          }
+        : null,
+  };
+  return safety.lines.length > 0 || safety.liver || safety.supplements ? safety : null;
+}
+
+const SAFETY_LABELS: Readonly<Record<string, string>> = {
+  use: 'В целом',
+  adverse: 'Побочное',
+  interaction: 'Лекарства',
+  pregnancy: 'Беременность',
+  lactation: 'Кормление',
+  warning: 'Осторожно',
+};
+
+export function safetyLabel(kind: string): string {
+  return SAFETY_LABELS[kind] ?? 'Безопасность';
+}
+
+export function safetySourceLabel(source: HerbalSafetyLine['source']): string {
+  return source === 'nccih' ? 'NCCIH' : 'LactMed';
+}
+
+/** «Запрещено в составе БАД: незрелые плоды, свежая кора». */
+export function supplementRuleLine(rule: HerbalSupplementRule): string {
+  const ru = rule.ru.charAt(0).toLocaleUpperCase('ru') + rule.ru.slice(1);
+  return `${ru}: ${rule.parts.charAt(0).toLocaleLowerCase('ru')}${rule.parts.slice(1)}`;
+}
+
 /** «1 — находящиеся под угрозой исчезновения»: the category beside the Red Book badge. */
 export function redBookLabel(redBook: HerbalRedBook): string {
   return `${redBook.category} — ${redBook.categoryRu.toLowerCase()}`;
@@ -368,6 +476,7 @@ export function readHerbalChapter(document: DocumentLike): HerbalChapter | null 
     ema: readEma(herbal['ema']),
     identification: readIdentification(herbal['identification']),
     redBook: readRedBook(herbal['redBook']),
+    safety: readSafety(herbal['safety']),
     grlsOcr: grls?.['ocr'] === true,
     hasGrls: grls !== null,
   };

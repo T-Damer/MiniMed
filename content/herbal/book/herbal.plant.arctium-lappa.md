@@ -272,6 +272,7 @@ metadata:
         effectRu: в исследовании in vitro арктиин значимо снижал выделение медиаторов воспаления (за счёт подавления дегрануляции и выделения цистеиниловых лейкотриенов)
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0025.15

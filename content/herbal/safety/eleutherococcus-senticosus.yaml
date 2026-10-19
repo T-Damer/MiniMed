@@ -1,0 +1,14 @@
+plant: eleutherococcus-senticosus
+lactmed: LM895
+trts:
+  section: '1.2'
+  number: 17
+  page: 234
+  name: Элеутерококк колючий
+  latin: Eleutherococcus senticosus
+  parts: Все части
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Большинство источников рекомендуют не использовать элеутерококк при грудном вскармливании из-за недостатка данных о безопасности
+  quote: Most sources recommend against the use of eleuthero during breastfeeding because of a lack of safety data.

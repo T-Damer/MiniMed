@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532404/32b1379e-45a5-43c5-b4e9-cc3e12fd0dad.pdf
-source_checksum: sha256:dfd98dbfe005283fec716f4bc2e8a9cd94e531a8918040b54c46d99c05b0e8fb
+source_checksum: sha256:c9ec909d9bc6bfce6f85746e0f0c2e7955fc5f031590fd34d230b03a2568abab
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -423,6 +423,15 @@ metadata:
         effectRu: по выводу авторов, экстракты и полисахариды корня — эффективные стимуляторы клеточной физиологии эпителиальных клеток
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Данных о безопасности корня алтея при грудном вскармливании нет, но вред для ребёнка на грудном вскармливании маловероятен
+        quote: Although no data exist on the safety of marshmallow root during breastfeeding, it is unlikely to be harmful to the breastfed infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM924/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0001.15
@@ -571,4 +580,5 @@ metadata:
 - Инструкция ГРЛС «Алтея корни», Изм. № 0, ЛП-№(015592)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/althaeae-radix (обновлено 02/12/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Althaea_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-008.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM924/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0001.15 «Алтея корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/alteya-korni/

@@ -1,0 +1,8 @@
+plant: humulus-lupulus
+lactmed: LM919
+livertox: Hops
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Некоторые источники рекомендуют избегать хмеля при грудном вскармливании из-за содержания фитоэстрогенов
+  quote: Some sources recommend avoiding hops during breastfeeding because of its phytoestrogen content.

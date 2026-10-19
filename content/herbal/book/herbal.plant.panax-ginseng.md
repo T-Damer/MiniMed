@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix
-source_checksum: sha256:9b98f10ab097dd9719d17c07ceacd413004078fb052127b0804888d55e9672b6
+source_checksum: sha256:b3451c6443abd69719e728235abc4a51d6fc3b1d37e13e194f1fa1041b0ceccc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -364,6 +364,46 @@ metadata:
       categoryRu: Находящиеся под угрозой исчезновения
       url: http://publication.pravo.gov.ru/document/0001202307210008
       pdfPage: 4
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Приём женьшеня внутрь до 6 месяцев в рекомендуемых дозах, по-видимому, безопасен для большинства людей
+        quote: Short-term oral use (by mouth, up to 6 months) of Asian ginseng in recommended amounts appears to be safe for most people.
+        url: https://www.nccih.nih.gov/health/asian-ginseng
+      - source: nccih
+        kind: adverse
+        ru: Самый частый побочный эффект — бессонница; редко описаны тяжёлая сыпь, поражение печени и тяжёлые аллергические реакции
+        quote: Insomnia (trouble sleeping) is the herb’s most common side effect. Uncommon side effects that have been reported include severe rash, liver damage, and severe allergic reactions.
+        url: https://www.nccih.nih.gov/health/asian-ginseng
+      - source: nccih
+        kind: warning
+        ru: Женьшень может ухудшать аутоиммунные заболевания и влиять на свёртываемость крови; по некоторым данным, может снижать уровень сахара в крови
+        quote: Asian ginseng may worsen autoimmune disorders and interfere with blood clotting. Some evidence suggests that Asian ginseng might lower blood sugar levels.
+        url: https://www.nccih.nih.gov/health/asian-ginseng
+      - source: nccih
+        kind: pregnancy
+        ru: По некоторым исследованиям, приём внутрь при беременности может быть небезопасен; один из компонентов вызывал пороки развития у животных
+        quote: Some studies of Asian ginseng suggest it may be unsafe when taken orally during pregnancy. One of the chemicals in it has been found to cause birth defects in animals.
+        url: https://www.nccih.nih.gov/health/asian-ginseng
+      - source: lactmed
+        kind: lactation
+        ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при лактации
+        quote: Because of its possible estrogenic activity and lack of information during breastfeeding, many sources recommend that ginseng not be used during lactation.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM901/
+      liver:
+        score: E
+        ru: сам по себе — маловероятная причина поражения печени
+        quote: 'Likelihood score: E (by itself, unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Ginseng/
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Все виды, все части
+        number: 7
+        quote: 7. Женьшень — Ginseng — Все виды, все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 234
     identification:
       source:
         number: ФС.2.5.0013.15
@@ -399,4 +439,8 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix (обновлено 12/03/2026). © European Medicines Agency
 - Иллюстрация предоставлена владельцем приложения
 - Красная книга РФ: Приказ Минприроды России от 23.05.2023 № 320 «Об утверждении Перечня объектов растительного мира, занесенных в Красную книгу Российской Федерации», № 48 перечня (с. 4 PDF): http://publication.pravo.gov.ru/document/0001202307210008; категории — Приказ Минприроды России от 23.05.2016 № 306 «Об утверждении порядка ведения Красной книги Российской Федерации», п. 3.7
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/asian-ginseng (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM901/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Ginseng/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 7 (с. 234 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0013.15 «Женьшеня настоящего корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zhenshenya-nastoyashchego-korni/

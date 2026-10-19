@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:60b307b47bfc75ab37bdc8777dd3ea2ac4a4d715c8eaf04613c0bc5d35c6c598
+source_checksum: sha256:308e2d4c1558b9e3ae0a7f2c0f3d46df10f9363e938b67afecbef9b02f2c8fd7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -210,6 +210,20 @@ metadata:
         effectRu: в обоих опытах на животных — высокоактивный канцероген печени
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Фенхель безопасно применяли у младенцев при коликах, поэтому малые количества в молоке, вероятно, не вредны при обычных дозах у матери
+        quote: It has been safely and effectively used alone and with other herbs in infants for the treatment of colic,[ 21 - 23 ] so the smaller amounts in breastmilk are likely not to be harmful with usual maternal doses.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/
+      - source: lactmed
+        kind: lactation
+        ru: Чрезмерное употребление матерью чая с фенхелем, анисом и другими травами, по-видимому, вызвало у 2 новорождённых на грудном вскармливании токсичность, как от анетола
+        quote: Excessive maternal use of an herbal tea containing fennel, anise and other herbs appeared to cause toxicity in 2 breastfed newborns that was consistent with toxicity caused by anethole, which is found in fennel and anise.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0102
@@ -354,4 +368,5 @@ metadata:
 - Инструкция ГРЛС «Фенхеля плоды», Изм. № 0, ЛП-№(015581)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/foeniculi-amari-fructus (обновлено 01/03/2024). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Foeniculum_vulgare_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-148.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0102 «Фенхеля обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/fenkhelya-obyknovennogo-plody/

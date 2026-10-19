@@ -333,6 +333,7 @@ metadata:
         effectRu: очищенные полисахариды (углеводов >95%) показали слабую адгезию (10%) к эпителию изолированной щёчной мембраны свиньи, зависящую от концентрации
         evidence: in-vitro
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

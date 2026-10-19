@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2024/03/11/1502683/f3ee60ea-d9d9-44aa-9804-c570520c54ec.pdf
-source_checksum: sha256:8d06e508331c6798556893a1226c3e672275a74f67d6933c5617f59b186be56a
+source_checksum: sha256:829898b6da18cfd1f3dc4b0d5b76b28cf42880bb4fcd0b11b616aedbfbd4e23f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -226,6 +226,20 @@ metadata:
         effectRu: в опыте на крысах приём плодовых экстрактов внутрь повышал плазменные уровни рифампицина, пиразинамида и изониазида; клиническое значение этих данных неизвестно
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+        quote: In two studies nursing mothers were given d-carvone. No adverse effects were noted in mothers or infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM881/
+      - source: lactmed
+        kind: adverse
+        ru: 'Тмин обычно хорошо переносится; основные побочные эффекты со стороны ЖКТ: изжога, отрыжка, метеоризм и тошнота'
+        quote: It is usually well tolerated, with the primary side effects being gastrointestinal such as heartburn, eructation, flatulence, and nausea.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM881/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0098.18
@@ -369,4 +383,5 @@ metadata:
 - Инструкция ГРЛС «Тмина плоды», Изм. № 0, ЛП-№(004598)-(РГ-RU), 2024, Общество с ограниченной ответственностью Фирма "Здоровье" (ООО Фирма "Здоровье")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/carvi-fructus (обновлено 17/02/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Carum_carvi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-172.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM881/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0098.18 «Тмина обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/tmina-obyknovennogo-plody/

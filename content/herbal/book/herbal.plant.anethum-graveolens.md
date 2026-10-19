@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/29/1530517/0a8dd910-ccd0-4056-a76a-7af082883644.pdf
-source_checksum: sha256:fd5a6e94b58b7ac7fca03edd9518477226b16fa5d0924bd1c3c266ba204857af
+source_checksum: sha256:f5f16415aae787f56bcec270d2e87b5c6766566746e9552a255c8217528cbe01
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -207,6 +207,20 @@ metadata:
         effectRu: внутривенно в дозе 12,5 мг/кг массы тела (в физиологическом растворе) собакам вызывал диуретический эффект с ростом объёма мочи в 2,2 раза
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+        quote: In two studies, nursing mothers were given d-carvone. No adverse effects were noted in the mothers or infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/
+      - source: lactmed
+        kind: adverse
+        ru: Укроп в целом хорошо переносится, но отмечались случайные аллергические кожные реакции, особенно после контакта со свежим укропом
+        quote: It is generally well tolerated, but occasional allergic skin reactions have been reported, especially after contact with fresh dill.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0043.15
@@ -357,4 +371,5 @@ metadata:
 - Инструкция ГРЛС «Укропа пахучего плоды», Изм. № 0, ЛП-№(014479)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - ВОЗ: WHO monographs on selected medicinal plants, volume 3 (2007), «Fructus Anethi», с. 41–49 PDF: https://iris.who.int/handle/10665/42052. © World Health Organization
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Anethum_graveolens0.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0043.15 «Укропа пахучего плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/ukropa-pakhuchego-plody/

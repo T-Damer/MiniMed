@@ -1,0 +1,32 @@
+plant: ginkgo-biloba
+nccih: ginkgo
+lactmed: LM898
+livertox: Ginkgo
+trts:
+  section: '1.2'
+  number: 4
+  page: 234
+  name: Гинкго двулопастное
+  latin: Ginkgo biloba L.
+  parts: Надземная часть
+lines:
+- source: nccih
+  kind: warning
+  ru: Свежие семена гинкго токсичны при приёме внутрь; серьёзные побочные эффекты были и после жареных семян или сырого растения
+  quote: Fresh ginkgo seeds are toxic when consumed orally, and serious side effects have also occurred in people who consumed roasted ginkgo seeds or the crude ginkgo plant.
+- source: nccih
+  kind: adverse
+  ru: 'Экстракт листьев в целом хорошо переносится; самые частые побочные эффекты: головокружение, симптомы со стороны ЖКТ и головная боль'
+  quote: Ginkgo leaf extract is generally well tolerated; the most common side effects are dizziness, gastrointestinal symptoms, and headache.
+- source: nccih
+  kind: interaction
+  ru: Гинкго может повышать риск кровотечения у людей, принимающих антикоагулянты, например варфарин
+  quote: Ginkgo may increase the risk of bleeding in people who are taking anticoagulant drugs, such as warfarin.
+- source: nccih
+  kind: pregnancy
+  ru: Гинкго может быть небезопасен при беременности; возможны ранние роды или дополнительное кровотечение при родах, если принимать его незадолго до них
+  quote: Ginkgo may be unsafe for use during pregnancy. It might cause early labor or extra bleeding during delivery if used near that time.
+- source: lactmed
+  kind: lactation
+  ru: Опыта применения гинкго при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно для новорождённого или недоношенного
+  quote: Because there is no published experience with ginkgo during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.

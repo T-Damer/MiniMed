@@ -160,6 +160,7 @@ metadata:
         effectRu: подавляли рост бактерий (B. cereus, B. subtilis, C. freundii, E. coli)
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0075.18

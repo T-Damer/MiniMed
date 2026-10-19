@@ -243,6 +243,7 @@ metadata:
         effectRu: у крыс отвар листьев в дозе, соответствующей 1 г сырья/кг, не оказал значимого влияния на диурез при приёме внутрь
         evidence: animal
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0016.15

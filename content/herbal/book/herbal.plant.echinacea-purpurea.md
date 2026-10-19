@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba
-source_checksum: sha256:e1441757e5fe9c50b1ca98d325dd9a078ce7fd4e94bc1e1bf14c8d8980aa5e69
+source_checksum: sha256:b3a108c1f161e31bf9fd95a38d72b60f60c6b191ee803491dbbae27663f022a0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -332,6 +332,39 @@ metadata:
         effectRu: считается, что действующими началами Echinacea purpurea могут быть несколько совершенно разных групп компонентов
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Экстракты E. purpurea и некоторые смеси E. purpurea с E. angustifolia, вероятно, безопасны для большинства взрослых при кратковременном применении
+        quote: It’s likely safe for most adults to consume products with extracts of E. purpurea, and some mixtures of E. purpurea and E. angustifolia, for short periods of time.
+        url: https://www.nccih.nih.gov/health/echinacea
+      - source: nccih
+        kind: adverse
+        ru: 'Возможны аллергические реакции, в том числе тяжёлые; самые частые побочные эффекты — со стороны ЖКТ: боль в животе, тошнота'
+        quote: However, some people have allergic reactions to echinacea, which may be severe. The most common side effects of echinacea are digestive tract symptoms, such as abdominal pain, nausea, or stomach pain.
+        url: https://www.nccih.nih.gov/health/echinacea
+      - source: nccih
+        kind: interaction
+        ru: Данные о взаимодействии с препаратами печёночного метаболизма противоречивы; теоретически возможно с иммуносупрессантами и кофеином
+        quote: There is conflicting evidence about whether echinacea interacts with some drugs metabolized by the liver, and there are theoretical reasons to suspect that echinacea might interact with immunosuppressants or caffeine.
+        url: https://www.nccih.nih.gov/health/echinacea
+      - source: nccih
+        kind: pregnancy
+        ru: По некоторым исследованиям экстракты E. purpurea и E. angustifolia, возможно, безопасны до 7 дней в первом триместре беременности
+        quote: Some studies of the use of solid or liquid extracts of E. purpura and E. angustifolia suggest it is possibly safe for up to 7 days during the first trimester of pregnancy.
+        url: https://www.nccih.nih.gov/health/echinacea
+      - source: lactmed
+        kind: lactation
+        ru: Одни источники считают эхинацею безопасной в рекомендуемых дозах, другие советуют избегать при грудном вскармливании из-за отсутствия данных
+        quote: Some sources indicate that Echinacea is safe in recommended doses,[ 1 ] while others recommend avoiding it during breastfeeding because of the lack of published safety data.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM899/
+      liver:
+        score: D
+        ru: возможная редкая причина поражения печени
+        quote: 'Likelihood score: D (possible rare cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Echinacea/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0055.15
@@ -370,4 +403,7 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba (обновлено 17/02/2016). © European Medicines Agency
 - Иллюстрация: Curtis's Botanical Magazine, vol. 1 (1787) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Echinacea_purpurea-1787.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/echinacea (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM899/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Echinacea/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0055.15 «Эхинацеи пурпурной трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/ekhinatsei-purpurnoy-trava/

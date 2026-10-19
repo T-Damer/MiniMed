@@ -255,6 +255,7 @@ metadata:
         effectRu: по сообщениям, антисекретолитическое, противораздражающее, противомикробное и противопаразитарное действие
         evidence: review
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0071.18

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/meliloti-herba
-source_checksum: sha256:dc65c71ebeb01cbd2dc8fff4e94870e728141c07a8f7038ee75ae40ae46eb2c4
+source_checksum: sha256:459087b5e3c80eb0f68cdb3277ccd53c3029bd5ba5c918bed3d9c94c3bbcedde
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -249,6 +249,17 @@ metadata:
         effectRu: полученные данные указывают, что кумарин вызывает нефропатию почек и желчного протока, гиперплазию печени, увеличение числа язв преджелудка, некроз, фиброз и цитологические изменения печени
         evidence: animal
     redBook: null
+    safety:
+      lines: []
+      liver: null
+      trts:
+        section: '1.1'
+        ru: запрещено в составе БАД
+        parts: Все части
+        number: 98
+        quote: 98. Донник аптечный — Melilotus oficinalis — Все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 219
     identification:
       source:
         number: ФС.2.5.0011.15
@@ -291,4 +302,5 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/meliloti-herba (обновлено 24/04/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Melilotus_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-093.jpg)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.1, № 98 (с. 219 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0011.15 «Донника трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/donnika-trava/

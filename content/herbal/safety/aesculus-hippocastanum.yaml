@@ -1,0 +1,20 @@
+plant: aesculus-hippocastanum
+nccih: horse-chestnut
+livertox: HorseChestnut
+lines:
+- source: nccih
+  kind: warning
+  ru: 'Сырые семена, кора, цветки и листья конского каштана небезопасны при приёме внутрь: содержат токсичный компонент'
+  quote: The raw seeds, bark, flowers, and leaves of horse chestnut are unsafe when used orally because they contain a toxic component.
+- source: nccih
+  kind: use
+  ru: Стандартизованные экстракты семян без этого компонента, вероятно, безопасны при кратковременном применении; в исследованиях применялись безопасно до 12 недель
+  quote: Standardized horse chestnut seed extracts, from which this component has been removed, are likely safe for short-term use and have been used safely in research studies for up to 12 weeks.
+- source: nccih
+  kind: adverse
+  ru: Экстракты семян в целом хорошо переносятся, но у некоторых людей могут вызывать головокружение, расстройства пищеварения, головную боль и зуд
+  quote: Horse chestnut seed extracts are generally well tolerated but may cause side effects such as dizziness, digestive upsets, headache, and itching in some people.
+- source: nccih
+  kind: pregnancy
+  ru: Мало известно о безопасности экстракта семян при беременности и при грудном вскармливании
+  quote: Little is known about whether it’s safe to use horse chestnut seed extract during pregnancy or while breastfeeding.

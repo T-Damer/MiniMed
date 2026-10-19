@@ -259,6 +259,7 @@ metadata:
         effectRu: в гомогенате плаценты человека экстракт ингибировал 5-α-редуктазу типа II на 90,4% при 10 мг/мл, на 71,4% при 2 мг/мл и на 29,6% при 0,4 мг/мл
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0100.18

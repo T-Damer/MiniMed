@@ -1,0 +1,24 @@
+plant: taraxacum-officinale
+nccih: dandelion
+lactmed: LM954
+lines:
+- source: nccih
+  kind: use
+  ru: Одуванчик в количествах, обычных для пищи, считается, вероятно, безопасным; о приёме больших количеств известно меньше
+  quote: The use of dandelion in the amounts commonly found in food is considered likely safe. Less is known about the safety of taking dandelion in larger amounts.
+- source: nccih
+  kind: interaction
+  ru: Теоретически одуванчик может взаимодействовать с противодиабетическими, антикоагулянтными, антитромбоцитарными и мочегонными препаратами и др.
+  quote: There are theoretical reasons to suspect that dandelion might interact with antidiabetes, anticoagulant, antiplatelet, and water pill drugs, among others.
+- source: nccih
+  kind: warning
+  ru: Местно возможна аллергия при атопическом дерматите; у чувствительных к родственным растениям (амброзия и др.) данные противоречивы
+  quote: Some evidence suggests that topical dandelion may cause an allergic reaction in people who have atopic dermatitis (eczema). There is conflicting evidence about whether dandelion causes an allergic reaction in people who are sensitive to related plants like ragweed, chrysanthemums, marigolds, and daisies.
+- source: nccih
+  kind: pregnancy
+  ru: Мало известно о безопасности одуванчика в количествах больше пищевых при беременности и грудном вскармливании
+  quote: Little is known about whether it’s safe to use dandelion in amounts greater than those found in foods during pregnancy or while breastfeeding.
+- source: lactmed
+  kind: lactation
+  ru: Использование при лактации вряд ли повредит ребёнку на грудном вскармливании
+  quote: Use during lactation is unlikely to harm the breastfed infant.

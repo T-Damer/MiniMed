@@ -1,0 +1,11 @@
+plant: foeniculum-vulgare
+lactmed: LM883
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Фенхель безопасно применяли у младенцев при коликах, поэтому малые количества в молоке, вероятно, не вредны при обычных дозах у матери
+  quote: It has been safely and effectively used alone and with other herbs in infants for the treatment of colic,[ 21 - 23 ] so the smaller amounts in breastmilk are likely not to be harmful with usual maternal doses.
+- source: lactmed
+  kind: lactation
+  ru: Чрезмерное употребление матерью чая с фенхелем, анисом и другими травами, по-видимому, вызвало у 2 новорождённых на грудном вскармливании токсичность, как от анетола
+  quote: Excessive maternal use of an herbal tea containing fennel, anise and other herbs appeared to cause toxicity in 2 breastfed newborns that was consistent with toxicity caused by anethole, which is found in fennel and anise.

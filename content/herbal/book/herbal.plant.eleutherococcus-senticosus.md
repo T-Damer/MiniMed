@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/eleutherococci-radix
-source_checksum: sha256:e667d776633d7eef1989948cf0aaff82d25618b0329da9ebcc8b24ea68c51aa3
+source_checksum: sha256:c00e44b57cc2f74e7ad0c7906bae8cc0c1eb41acdd8bd48ecd5e07607808dc15
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -298,6 +298,22 @@ metadata:
         effectRu: из корня выделено более 35 соединений, поиск действующих веществ ещё не завершён
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Большинство источников рекомендуют не использовать элеутерококк при грудном вскармливании из-за недостатка данных о безопасности
+        quote: Most sources recommend against the use of eleuthero during breastfeeding because of a lack of safety data.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM895/
+      liver: null
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Все части
+        number: 17
+        quote: 17. Элеутерококк колючий — Eleutherococcus senticosus — Все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 234
     identification:
       source:
         number: ФС.2.5.0053.15
@@ -331,4 +347,6 @@ metadata:
 <!-- localmed:source {"contentMode":"editorial-note"} -->
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/eleutherococci-radix (обновлено 10/02/2016). © European Medicines Agency
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM895/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 17 (с. 234 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0053.15 «Элеутерококка колючего корневища и корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/eleuterokokka-kolyuchego-kornevishcha-i-korni/

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/rhei-radix
-source_checksum: sha256:4dfc4df1e09363ee421f5ea026fb67cc64c33ace17212c209a75cceca2ba6ad9
+source_checksum: sha256:8e773733f34fe57269252133745e1a5d410334d758044e3eb4554f476835c895
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -328,6 +328,20 @@ metadata:
         effectRu: при скрининге in vitro экстрактов 178 китайских трав против Bacteroides fragilis значимую активность показал только экстракт корня ревеня (Rheum officinale; 70 % ТГФ-экстракт); очищенное активное вещество идентифицировано как реин
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: По мнению большинства недавних обзоров, ревень не следует применять при грудном вскармливании из-за возможного слабительного действия на ребёнка
+        quote: Nevertheless, most recent reviewers state that rhubarb should not be used during breastfeeding because of possible cathartic effects on the breastfed infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM945/
+      - source: lactmed
+        kind: lactation
+        ru: В двух очень старых исследованиях слабительные дозы ревеня у кормящих матерей, по-видимому, не переходили в молоко и не влияли на детей
+        quote: Two very old studies found that laxative doses of rhubarb given to nursing mothers did not appear to pass into milk or affect their breastfed infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM945/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0092.18
@@ -370,4 +384,5 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/rhei-radix (обновлено 18/08/2020). © European Medicines Agency
 - Иллюстрация: F. B. Vietz, Icones plantarum medico-oeconomico-technologicarum, vol. 2 (1804) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Icones_plantarum_medico-oeconomico-technologicarum_cum_earum_fructus_ususque_descriptione_%3D_(Tab._163)_(8096990129).jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM945/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0092.18 «Ревеня дланевидного корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/revenya-dlanevidnogo-korni/

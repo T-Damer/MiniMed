@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf
-source_checksum: sha256:0ab6a5e7c48a0a5a284fa9626f94a8a5e08f2eea2700d14c7a4d3ae5c3533868
+source_checksum: sha256:00b61527b6b3eafadde627dd228836aa288389d15ef4ce9d70a1d769ec67c070
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -190,6 +190,17 @@ metadata:
         effectRu: верхний предел дополнительного поступления из лекарств — 6 мг в сутки (с учётом возможного поступления с пищей)
         evidence: review
     redBook: null
+    safety:
+      lines: []
+      liver: null
+      trts:
+        section: '1.1'
+        ru: запрещено в составе БАД
+        parts: Все виды, все части
+        number: 242
+        quote: 242. Полынь — Artemisia L. — Все виды, все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 228
     identification:
       source:
         number: ФС.2.5.0033.15
@@ -347,5 +358,6 @@ metadata:
 - Инструкция ГРЛС «Полыни горькой трава», Изм. № 0, ЛП-№(014496)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/absinthii-herba (обновлено 02/10/2017). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Artemisia_absinthium_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-164.jpg)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.1, № 242 (с. 228 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0033.15 «Полыни горькой трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/polyni-gorkoy-trava/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

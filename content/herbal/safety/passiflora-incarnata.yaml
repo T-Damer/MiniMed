@@ -1,0 +1,20 @@
+plant: passiflora-incarnata
+nccih: passionflower
+livertox: Passionflower
+lines:
+  - source: nccih
+    kind: use
+    ru: "Пассифлора в виде чая может быть безопасна до 7 ночей, ежедневный приём экстракта — до 8 недель"
+    quote: "Passionflower may be safe when it’s taken as a tea for up to 7 nights, and the daily use of passionflower extract may be safe for up to 8 weeks."
+  - source: nccih
+    kind: adverse
+    ru: "Возможные побочные эффекты: сонливость, головокружение и спутанность сознания"
+    quote: "Possible side effects include drowsiness, dizziness, and confusion."
+  - source: nccih
+    kind: interaction
+    ru: "Приём пассифлоры вместе с анестезией и другими препаратами до и после операции может чрезмерно угнетать нервную систему"
+    quote: "Taking passionflower when also receiving anesthesia or other medications used before and after surgery might slow down the nervous system too much."
+  - source: nccih
+    kind: pregnancy
+    ru: "Пассифлору не следует применять при беременности: она может вызывать сокращения матки и, возможно, другие проблемы"
+    quote: "Passionflower should not be used during pregnancy as it may induce uterine contractions and possibly lead to other problems."

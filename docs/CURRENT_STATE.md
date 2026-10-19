@@ -228,9 +228,24 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   Krasnoyarsk krais, Tuva and Magadan oblast). The 2026 amendment (приказ № 313) changes only the animal
   list. The PDFs are pinned in `fetch-herbal-sources` (manifest «redBook»); the chapter shows a red
   «Красная книга РФ» badge with the category and the row's own note, the grid card a «Красная книга»
-  mark. Text `2026.10.19-w4` (2.5 MB gzip), plates `2026.10.19-w4` (20.9 MB). Next: safety lines
-  (NCCIH, LiverTox, LactMed; ТР ТС 021/2011 annex 7). Not done: regional Red Books, clinician review,
-  phone run.
+  mark. Text `2026.10.19-w4` (2.5 MB gzip), plates `2026.10.19-w4` (20.9 MB). Not done: regional Red
+  Books, clinician review, phone run.
+- **Safety lines** (2026-10-19, owner-approved plan): `content/herbal/safety/<plant>.yaml` for 37 plants,
+  a «Безопасность» block (draft badge) after «Кому нельзя». NCCIH «Herbs at a Glance» (17 plants;
+  peppermint skipped — its page is about the oil, our chapter the leaf) and LactMed (30 chapters) give
+  Russian lines, each with the English sentence it was read from; `medbase check-herbal-safety`
+  refuses a quote not in the saved page/chapter and a number not in its quote. Lines were drafted by
+  three Sonnet agents and reviewed line by line (duplicates of «no data» dropped, wording and kinds
+  corrected). LiverTox (20 chapters): the likelihood score is read by code from the chapter's own
+  sentence and translated by a fixed table — an unknown wording fails the build. ТР ТС 021/2011
+  annex 7 (official EEC PDF, base text; the 2019 amendment touches no plant of ours): п. 1.1 «запрещено в
+  составе БАД» — донник аптечный, крушина (only unripe fruit and fresh bark), полынь (all species),
+  чистотел; п. 1.2 «не допускается в однокомпонентных БАД» — валериана, гинкго, женьшень, зверобой,
+  родиола, элеутерококк; each row is checked on its PDF page (a row may run past the repeated table
+  header). LactMed «Buckthorn» covers alder buckthorn (крушина) and says it is not sea buckthorn, so
+  облепиха has no LactMed line. `fetch-herbal-sources` stores the NCCIH pages, the PDF and only the
+  needed LactMed/LiverTox chapters (the ≈200 MB NCBI Literature Archive tarballs are read once and
+  deleted; `data/raw/herbal/safety`, 12 MB). Text module `2026.10.19-w5`.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

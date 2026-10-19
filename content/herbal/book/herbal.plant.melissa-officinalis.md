@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:cd694c909ff884d52a72d4946eeded96f16832e4263fa1bff80be73b01b866be
+source_checksum: sha256:f811a746406c6572be8178c65de89ce7e9c13806ff5031b58f94cf6fe64c5ba3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -184,6 +184,24 @@ metadata:
         effectRu: по сообщениям — противовирусная активность, противовоспалительная активность розмариновой кислоты, противомикробная активность эфирного масла, антирадикальные свойства
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Данных о выделении компонентов мелиссы в грудное молоко, а также о безопасности и эффективности одной мелиссы у кормящих матерей и детей нет
+        quote: No data exist on the excretion of any components of lemon balm into breastmilk or on the safety and efficacy of lemon balm alone in nursing mothers or infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM926/
+      - source: lactmed
+        kind: lactation
+        ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+        quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM926/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/LemonBalm/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0084
@@ -363,4 +381,6 @@ metadata:
 - Инструкция ГРЛС «Мелиссы лекарственной трава», Изм. № 0, ЛП-№(014264)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/melissae-folium (обновлено 16/06/2014). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Melissa_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-094.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM926/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/LemonBalm/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0084 «Мелиссы лекарственной трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/melissy-lekarstvennoy-trava-/

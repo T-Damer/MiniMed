@@ -229,6 +229,7 @@ metadata:
         effectRu: по оценке отчёта, обе серии опытов открывают интересные перспективы для нейрогенной активности овса, но данные предварительные (хранятся в документации компании), и нужны дополнительные исследования механизмов действия
         evidence: review
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

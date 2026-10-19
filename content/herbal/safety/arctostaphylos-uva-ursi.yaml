@@ -1,0 +1,8 @@
+plant: arctostaphylos-uva-ursi
+lactmed: LM982
+livertox: UvaUrsi
+lines:
+- source: lactmed
+  kind: lactation
+  ru: При грудном вскармливании толокнянку, как правило, следует избегать из-за недостатка данных и потенциальной токсичности
+  quote: Uva ursi should generally be avoided during breastfeeding because of a lack of data and its potential toxicity.

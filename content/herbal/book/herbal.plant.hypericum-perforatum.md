@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:b493f5f6fede9da435bb16cefb877d77c393b96fcc46121c61e07f2617646f6c
+source_checksum: sha256:ca4eaae3fc0ae37311312f7b792db9ea6a777b899f940ded533b68d2824459b2
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -242,6 +242,51 @@ metadata:
         effectRu: включает ферменты печени (через рецептор PXR) — причина лекарственных взаимодействий
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: adverse
+        ru: В больших дозах внутрь или на коже возможны тяжёлые кожные реакции на солнце; также диарея, головокружение, бессонница, беспокойство, покалывание кожи
+        quote: If taken orally in large doses or applied to the skin, St. John’s wort might cause severe skin reactions after sun exposure. Other side effects can include diarrhea, dizziness, trouble sleeping, restlessness, and skin tingling.
+        url: https://www.nccih.nih.gov/health/st-johns-wort
+      - source: nccih
+        kind: interaction
+        ru: 'Может ослаблять действие многих лекарств: ряда антидепрессантов (амитриптилин, бупропион), оральных контрацептивов, циклоспорина, фенитоина, карбамазепина, дигоксина, ивабрадина, ряда препаратов от ВИЧ и рака, варфарина, симвастатина'
+        quote: 'St. John’s wort can weaken the effects of many medicines, including crucially important medicines such as: Some antidepressants, including amitriptyline and bupropion Birth control pills Cyclosporine, which prevents the body from rejecting transplanted organs Some drugs used to prevent seizures, including phenytoin and carbamazepine Some heart medications, including digoxin and ivabradine Some HIV drugs, including indinavir and nevirapine Some cancer medications, including irinotecan, imatinib, and docetaxel Warfarin, an anticoagulant (blood thinner) Certain statins, including simvastatin'
+        url: https://www.nccih.nih.gov/health/st-johns-wort
+      - source: nccih
+        kind: interaction
+        ru: С некоторыми антидепрессантами и другими препаратами, влияющими на серотонин, возможно усиление серотониновых побочных эффектов, в т.ч. серьёзных
+        quote: In addition, taking St. John’s wort with certain antidepressants or other drugs that affect serotonin (a substance produced by some nerve cells) may lead to increased serotonin-related side effects, which can be serious.
+        url: https://www.nccih.nih.gov/health/st-johns-wort
+      - source: nccih
+        kind: pregnancy
+        ru: 'При беременности применять зверобой может быть небезопасно: возможно, повышается риск врождённых пороков'
+        quote: It may be unsafe to use St. John’s wort during pregnancy because it may increase the risk of birth defects.
+        url: https://www.nccih.nih.gov/health/st-johns-wort
+      - source: lactmed
+        kind: lactation
+        ru: В одном исследовании у детей на грудном вскармливании чуть чаще были колики, сонливость и вялость; ни один эффект не был тяжёлым и не требовал лечения
+        quote: One study found a slightly increased frequency of colic, drowsiness and lethargy among breastfed infants whose mothers were taking St. John's wort, but none of the effects were severe or required treatment.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM862/
+      - source: lactmed
+        kind: lactation
+        ru: Опыта применения при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
+        quote: Because there is little published experience with St. John's wort during breastfeeding, an alternate drug may be preferred, especially while nursing a newborn or preterm infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM862/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/StJohnsWort/
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Все виды, все части
+        number: 9
+        quote: 9. Зверобой — Hypericum L. — Все виды, все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 234
     identification:
       source:
         number: ФС.2.5.0015.15
@@ -451,5 +496,9 @@ metadata:
 - Инструкция ГРЛС «Зверобоя трава», Изм. № 0, ЛП-№(013735)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/hyperici-herba-0 (обновлено 08/03/2018). © European Medicines Agency
 - Иллюстрация: J. Sturm, Deutschlands Flora in Abbildungen (1796–1862) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Hypericum_perforatum_(Sturm_06,_plate_060)_clean.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/st-johns-wort (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM862/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/StJohnsWort/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 9 (с. 234 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0015.15 «Зверобоя трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/zveroboya-trava/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

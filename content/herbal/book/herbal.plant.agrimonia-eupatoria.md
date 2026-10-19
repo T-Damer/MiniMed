@@ -326,6 +326,7 @@ metadata:
         effectRu: у близкого вида Agrimonia pilosa особый интерес вызвал таннин агримониин, который до недавнего времени не описывали в A. eupatoria; противоопухолевую активность in vivo у мышей приписывают агримониину
         evidence: animal
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

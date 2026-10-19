@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf
-source_checksum: sha256:bb3cd14c07a03760e50ce184eeb8b457454dd0e7aa7bd4cd60d35a6634717072
+source_checksum: sha256:8fd6427c219dbace6f2d3616041b37fba07ba3edfba85f93630cdd5114968203
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -177,6 +177,20 @@ metadata:
         effectRu: у кошек (2 капли эмульсии внутрижелудочно) вызывало гиперсекрецию слизи в дыхательных путях и стимулировало цилиарное удаление слизи, ранее подавленное алкалоидами опия
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Чрезмерный приём матерью чая с анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, как от анетола
+        quote: Excessive maternal use of an herbal tea containing anise and other herbs appeared to cause toxicity in two breastfed newborns, consistent with toxicity caused by anethole.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/
+      - source: lactmed
+        kind: lactation
+        ru: У женщины, принимавшей чай Mother's Milk Tea с анисом, повысились печёночные ферменты
+        quote: Elevated liver enzymes occurred in a woman taking Mother's Milk Tea, which contains anise.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0057
@@ -348,4 +362,5 @@ metadata:
 - Инструкция ГРЛС «Аниса обыкновенного плоды», Изм. № 0, ЛП-№(003267)-(РГ-RU), 2023, Общество с ограниченной ответственностью Фирма "Здоровье" (ООО Фирма "Здоровье") (распознана OCR)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/anisi-fructus (обновлено 06/10/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Pimpinella_anisum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-240.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0057 «Аниса обыкновенного плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/anisa-obyknovennogo-plody/

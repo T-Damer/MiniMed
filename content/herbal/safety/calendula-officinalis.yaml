@@ -1,0 +1,11 @@
+plant: calendula-officinalis
+lactmed: LM940
+lines:
+- source: lactmed
+  kind: lactation
+  ru: У календулы для приёма внутрь нет специфических показаний при лактации; сведений о её применении внутрь при грудном вскармливании нет
+  quote: Oral Calendula has no specific lactation-related uses and no information is available on the oral use of Calendula during breastfeeding.
+- source: lactmed
+  kind: warning
+  ru: Аллергические реакции, в том числе перекрёстные с хризантемами, маргаритками и бархатцами (marigolds), редки
+  quote: Allergic reactions, including cross-reactions to chrysanthemums, daisies and marigolds, occur rarely.

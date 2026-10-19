@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen
-source_checksum: sha256:17bee5831286d1c4598de5d116b8d71c526f98a369d78a48f55401c2e5b04834
+source_checksum: sha256:af2087bb32471bdf0ecfafd02d496169e3ad2c651fc52263dae5082d57306604
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -446,6 +446,34 @@ metadata:
         effectRu: Противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: warning
+        ru: 'Сырые семена, кора, цветки и листья конского каштана небезопасны при приёме внутрь: содержат токсичный компонент'
+        quote: The raw seeds, bark, flowers, and leaves of horse chestnut are unsafe when used orally because they contain a toxic component.
+        url: https://www.nccih.nih.gov/health/horse-chestnut
+      - source: nccih
+        kind: use
+        ru: Стандартизованные экстракты семян без этого компонента, вероятно, безопасны при кратковременном применении; в исследованиях применялись безопасно до 12 недель
+        quote: Standardized horse chestnut seed extracts, from which this component has been removed, are likely safe for short-term use and have been used safely in research studies for up to 12 weeks.
+        url: https://www.nccih.nih.gov/health/horse-chestnut
+      - source: nccih
+        kind: adverse
+        ru: Экстракты семян в целом хорошо переносятся, но у некоторых людей могут вызывать головокружение, расстройства пищеварения, головную боль и зуд
+        quote: Horse chestnut seed extracts are generally well tolerated but may cause side effects such as dizziness, digestive upsets, headache, and itching in some people.
+        url: https://www.nccih.nih.gov/health/horse-chestnut
+      - source: nccih
+        kind: pregnancy
+        ru: Мало известно о безопасности экстракта семян при беременности и при грудном вскармливании
+        quote: Little is known about whether it’s safe to use horse chestnut seed extract during pregnancy or while breastfeeding.
+        url: https://www.nccih.nih.gov/health/horse-chestnut
+      liver:
+        score: D
+        ru: возможная редкая причина поражения печени
+        quote: 'Likelihood score: D (possible, rare cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/HorseChestnut/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0117
@@ -484,4 +512,6 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen (обновлено 23/04/2020). © European Medicines Agency
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Aesculus_hippocastanum0.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/horse-chestnut (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/HorseChestnut/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0117 «Конского каштана обыкновенного семена»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/konskogo-kashtana-obyknovennogo-semena/

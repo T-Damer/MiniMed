@@ -1,0 +1,14 @@
+plant: frangula-alnus
+lactmed: LM941
+trts:
+  section: '1.1'
+  number: 157
+  page: 223
+  name: Крушина ломкая (ольховидная)
+  latin: Frangula alnus Mill
+  parts: незрелые плоды, свежая кора
+lines:
+  - source: lactmed
+    kind: lactation
+    ru: "Приём матерью слабительных препаратов крушины может вызвать жидкий стул у детей на грудном вскармливании; их использования следует избегать"
+    quote: "Maternal intake of the cathartic buckthorn products might cause loose stools in breastfed infants and their use should be avoided."

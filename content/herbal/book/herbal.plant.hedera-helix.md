@@ -392,6 +392,7 @@ metadata:
         effectRu: эмбриотоксические эффекты монодесмозида α-гедерина у крыс после однократной и повторных подкожных инъекций объясняли вызванным α-гедерином снижением концентрации цинка в сыворотке матери
         evidence: animal
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

@@ -65,7 +65,10 @@ def test_safety_lines_must_quote_their_source(tmp_path: Path) -> None:
         livertox_path("Senna"),
         "<p>Likelihood score: D (possible rare cause of clinically apparent liver injury).</p>",
     )
-    _trts_pdf(tmp_path, ["cover", "157 Krushina Frangula alnus Mill unripe fruits, fresh bark"])
+    _trts_pdf(
+        tmp_path,
+        ["cover", "contents", "157 Krushina Frangula alnus Mill unripe fruits, fresh bark"],
+    )
     good = PlantSafety.model_validate(
         {
             "plant": "salvia-officinalis",
@@ -89,7 +92,7 @@ def test_safety_lines_must_quote_their_source(tmp_path: Path) -> None:
             "trts": {
                 "section": "1.1",
                 "number": 157,
-                "page": 2,
+                "page": 3,
                 "name": "Krushina",
                 "latin": "Frangula alnus Mill",
                 "parts": "unripe fruits, fresh bark",

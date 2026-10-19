@@ -1,0 +1,12 @@
+plant: senna-alexandrina
+lactmed: LM474
+livertox: Senna
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Обычные дозы сенны приемлемы при грудном вскармливании
+  quote: Usual doses of senna are acceptable to use during breastfeeding.
+- source: lactmed
+  kind: lactation
+  ru: 'Ранний неконтролируемый отчёт со старым препаратом сенны: чаще диарея у детей; в контролируемых исследованиях современных препаратов влияния на ребёнка не было'
+  quote: Although an early uncontrolled report using an old senna product found increased frequency of diarrhea in breastfed infants, several controlled studies using modern senna products found no effect on the infant.

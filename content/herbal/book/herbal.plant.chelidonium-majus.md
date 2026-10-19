@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/28/1529276/153839fa-0ffc-443d-b3f1-d5be52f49707.pdf
-source_checksum: sha256:9cded3c4d8d86154599238a03f834a29405fb6406c2553600cbd76e4b8439622
+source_checksum: sha256:7a8a9707624cadd7f4bb2e5f231ffd8375d9d5d7155bc457b4d395f57ff1e4f6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -116,6 +116,21 @@ metadata:
         effectRu: в траве больше 20 разных алкалоидов
         evidence: review
     redBook: null
+    safety:
+      lines: []
+      liver:
+        score: B
+        ru: нечастая, но вероятная причина поражения печени
+        quote: 'Likelihood Score: B (uncommon but likely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Celandine/
+      trts:
+        section: '1.1'
+        ru: запрещено в составе БАД
+        parts: Все виды, надземная часть
+        number: 326
+        quote: 326. Чистотел — Chelidonium L. — Все виды, надземная часть
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 232
     identification:
       source:
         number: ФС.2.5.0105
@@ -288,4 +303,6 @@ metadata:
 - Инструкция ГРЛС «Чистотела трава», Изм. № 0, ЛП-№(014257)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/chelidonii-herba (обновлено 20/01/2012). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Chelidonium_majus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-033.jpg)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Celandine/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.1, № 326 (с. 232 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XV изд., ФС.2.5.0105 «Чистотела большого трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/chistotela-bolshogo-trava/

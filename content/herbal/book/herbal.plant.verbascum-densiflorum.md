@@ -199,6 +199,7 @@ metadata:
         effectRu: перорально 100 мг/кг ингибировал каррагиновый отёк лапы крысы на 29,8% через 1 час, 33% через 3 часа и 20,7% через 5 часов (индометацин 7 мг/кг — 34,2%, 44,4% и 12,2%)
         evidence: animal
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

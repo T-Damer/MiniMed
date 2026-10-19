@@ -1,0 +1,25 @@
+plant: glycyrrhiza-glabra
+nccih: licorice-root
+lactmed: LM925
+livertox: Licorice
+lines:
+- source: nccih
+  kind: adverse
+  ru: Глицирризин солодки может вызывать тяжёлые эффекты — нерегулярное сердцебиение и остановку сердца, особенно в больших дозах или при длительном приёме
+  quote: Licorice contains a component called glycyrrhizin, or glycyrrhizic acid, that can cause serious adverse effects, such as irregular heartbeat and cardiac arrest, especially when consumed in large amounts or in the long term.
+- source: nccih
+  kind: warning
+  ru: Даже малые количества глицирризина связаны с тяжёлыми эффектами у тех, кто много потребляет соли, при гипертонии, болезнях сердца или почек
+  quote: Even small amounts of glycyrrhizin from licorice root products have been linked to severe adverse effects in people who consume a lot of salt, in people with hypertension, and in people with heart or kidney conditions.
+- source: nccih
+  kind: interaction
+  ru: Описаны взаимодействия солодки с кортикостероидами
+  quote: Interactions between licorice and corticosteroids have been reported.
+- source: nccih
+  kind: pregnancy
+  ru: 'Экстракт солодки внутрь в больших количествах (около 250 г солодки в неделю) при беременности небезопасен: может повышать риск родов раньше 38 недель'
+  quote: Consuming oral licorice extract in large amounts (about 250 grams of licorice per week) during pregnancy is unsafe and can increase the risk of delivery before gestational age of 38 weeks.
+- source: lactmed
+  kind: lactation
+  ru: Длительное чрезмерное употребление может вызывать гипертонию, гипокалиемию и нарушения гормонов надпочечников; при кормлении, вероятно, избегать
+  quote: Long-term, excessive use of licorice can cause hypertension, hypokalemia, and disturbances of adrenal hormones, and therefore should probably be avoided during nursing.

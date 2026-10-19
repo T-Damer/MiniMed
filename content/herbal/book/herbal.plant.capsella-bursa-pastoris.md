@@ -242,6 +242,7 @@ metadata:
         effectRu: после гидролиза растительным ферментом мирозиназой даёт аллилизотиоцианат — сильное раздражающее вещество, вызывающее волдыри на коже
         evidence: review
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0090

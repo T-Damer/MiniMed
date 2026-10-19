@@ -1,0 +1,12 @@
+plant: urtica-dioica
+lactmed: LM869
+livertox: StingingNettle
+lines:
+  - source: lactmed
+    kind: lactation
+    ru: "Местное применение крапивы может вызвать крапивницу; нанесение на сосок одной матери вызвало аллергическую сыпь у её ребёнка на грудном вскармливании"
+    quote: "topical use can cause urticaria when applied topically, and application on one mother's nipple resulted in allergic skin rash in her breastfed infant."
+  - source: lactmed
+    kind: lactation
+    ru: "Вероятно, лучше не наносить крапиву местно на грудь при грудном вскармливании"
+    quote: "It is probably best not to apply stinging nettle topically to the breast while breastfeeding."

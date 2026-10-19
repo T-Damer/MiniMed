@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/passiflorae-herba
-source_checksum: sha256:c4955d1e0830354d6848177e8ea7c6289cb076ece66434b2eda4353920219f19
+source_checksum: sha256:9e6abfa99324a465982ba6ade862427603b5cdcd09be3db12415501fa129bdf0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -282,6 +282,34 @@ metadata:
         effectRu: Опубликованные данные о фармакодинамике экстрактов пассифлоры и их компонентов, в частности этого производного, дают некоторую поддержку традиционному применению; структура вещества, по-видимому, неизвестна, его количества в сырье и препаратах в литературе не приводились, а достоверность этих данных была поставлена под сомнение (Holbik et al., 2010)
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Пассифлора в виде чая может быть безопасна до 7 ночей, ежедневный приём экстракта — до 8 недель
+        quote: Passionflower may be safe when it’s taken as a tea for up to 7 nights, and the daily use of passionflower extract may be safe for up to 8 weeks.
+        url: https://www.nccih.nih.gov/health/passionflower
+      - source: nccih
+        kind: adverse
+        ru: 'Возможные побочные эффекты: сонливость, головокружение и спутанность сознания'
+        quote: Possible side effects include drowsiness, dizziness, and confusion.
+        url: https://www.nccih.nih.gov/health/passionflower
+      - source: nccih
+        kind: interaction
+        ru: Приём пассифлоры вместе с анестезией и другими препаратами до и после операции может чрезмерно угнетать нервную систему
+        quote: Taking passionflower when also receiving anesthesia or other medications used before and after surgery might slow down the nervous system too much.
+        url: https://www.nccih.nih.gov/health/passionflower
+      - source: nccih
+        kind: pregnancy
+        ru: 'Пассифлору не следует применять при беременности: она может вызывать сокращения матки и, возможно, другие проблемы'
+        quote: Passionflower should not be used during pregnancy as it may induce uterine contractions and possibly lead to other problems.
+        url: https://www.nccih.nih.gov/health/passionflower
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Passionflower/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0122
@@ -319,4 +347,6 @@ metadata:
 <!-- localmed:source {"contentMode":"editorial-note"} -->
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/passiflorae-herba (обновлено 06/10/2016). © European Medicines Agency
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/passionflower (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Passionflower/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0122 «Пассифлоры инкарнатной (Страстоцвета мясо-красного) трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/passiflory-inkarnatnoy-strastotsveta-myaso-krasnogo-trava/

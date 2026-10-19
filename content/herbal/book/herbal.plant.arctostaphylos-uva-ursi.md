@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:670dae4228c7963ccdb22ebed2c6d13e2f8e8f8828a77c3474ee182f7415ca22
+source_checksum: sha256:027f1bb4015c89fa64aaf300111577a2ddf3e5728c5d6f4f0e1854bd8d18200f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -194,6 +194,19 @@ metadata:
         effectRu: относительно много танинов; по литературным данным, они ответственны за нежелательные эффекты со стороны ЖКТ (поэтому повышать суточную дозу до 15 г не сочли целесообразным)
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: При грудном вскармливании толокнянку, как правило, следует избегать из-за недостатка данных и потенциальной токсичности
+        quote: Uva ursi should generally be avoided during breastfeeding because of a lack of data and its potential toxicity.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM982/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/UvaUrsi/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0099
@@ -378,5 +391,7 @@ metadata:
 - Инструкция ГРЛС «Толокнянки листья», Изм. № 0, ЛП-№(015439)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium (обновлено 10/04/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Arctostaphylos_uva-ursi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-013.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM982/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/UvaUrsi/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0099 «Толокнянки обыкновенной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/toloknyanki-obyknovennoy-listya/
 - Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

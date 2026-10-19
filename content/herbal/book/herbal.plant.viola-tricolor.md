@@ -179,6 +179,7 @@ metadata:
         effectRu: подавляют золотистый стафилококк и кандиду
         evidence: in-vitro
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0044.15

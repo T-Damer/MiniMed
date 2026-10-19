@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf
-source_checksum: sha256:2e37114f78fdce78799c975455792579f814752b8410a71727d5568d9cfceeb4
+source_checksum: sha256:e27c8842120ee9aaebc021d940c24658b6008e5c2537adda7d6fc15c161f050c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -270,6 +270,44 @@ metadata:
         effectRu: растворяются в горячей воде и при частом питье чая поступают в заметном количестве
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: adverse
+        ru: 'Нечасто: тошнота, головокружение, аллергические реакции, включая тяжёлую гиперчувствительность и анафилаксию'
+        quote: Side effects are uncommon and may include nausea, dizziness, and allergic reactions, including severe hypersensitivity reactions and anaphylaxis, in some people.
+        url: https://www.nccih.nih.gov/health/chamomile
+      - source: nccih
+        kind: warning
+        ru: 'Аллергические реакции на ромашку вероятнее при аллергии на родственные растения: амброзию, хризантемы, бархатцы, маргаритки'
+        quote: People are more likely to experience allergic reactions to chamomile if they’re allergic to related plants such as ragweed, chrysanthemums, marigolds, or daisies.
+        url: https://www.nccih.nih.gov/health/chamomile
+      - source: nccih
+        kind: interaction
+        ru: По предварительным данным, может снижать эффект оральных контрацептивов; может ухудшать эстрогензависимые состояния, например рак молочной железы или матки
+        quote: Preliminary studies suggest that taking chamomile along with birth control pills might decrease the effects of birth control pills. In addition, chamomile might worsen any condition that is sensitive to exposure to estrogen, such as breast or uterine cancer.
+        url: https://www.nccih.nih.gov/health/chamomile
+      - source: nccih
+        kind: interaction
+        ru: Описаны взаимодействия ромашки с некоторыми препаратами печёночного метаболизма и варфарином; теоретически возможны и с другими, например седативными
+        quote: Interactions between chamomile and some drugs metabolized by the liver and warfarin (a blood thinner) have been reported, and there are theoretical reasons to suspect that chamomile might interact with other drugs as well, such as sedatives.
+        url: https://www.nccih.nih.gov/health/chamomile
+      - source: lactmed
+        kind: lactation
+        ru: Данных о безопасности ромашки у кормящих матерей и детей нет, хотя изредка возможна сенсибилизация
+        quote: No data exist on the safety of chamomile in nursing mothers or infants, although rare sensitization may occur (see below).
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM897/
+      - source: lactmed
+        kind: lactation
+        ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+        quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM897/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Chamomile/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0037.15
@@ -467,6 +505,9 @@ metadata:
 - Инструкция ГРЛС «Ромашки цветки», Изм. № 0, ЛП-№(013631)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/matricariae-flos (обновлено 05/04/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Matricaria_recutita_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-091.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/chamomile (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM897/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Chamomile/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0037.15 «Ромашки аптечной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/romashki-aptechnoy-tsvetki/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016
 - Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

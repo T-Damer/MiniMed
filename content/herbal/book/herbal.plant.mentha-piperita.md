@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:81adf38ce80fc27030f15fea33dd9fa8d65d67a43c7ba80b48f80dd7b028ff0a
+source_checksum: sha256:387e6667212f5d2c1359ec395f375fdd13db40efdfe17a586de67c69320190f5
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -217,6 +217,20 @@ metadata:
         effectRu: in vitro — противовспенивающее и ветрогонное действие
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Ментол и 1,8-цинеол выделяются в грудное молоко в малых количествах; выделение других компонентов не изучено
+        quote: Menthol and 1,8-cineol are excreted into breastmilk in small quantities; the excretion of other components has not been studied.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM935/
+      - source: lactmed
+        kind: lactation
+        ru: Мяту также используют для подавления лактации; это показано in vitro и на животных при высоких дозах
+        quote: However, peppermint is also used to suppress milk production, which has been demonstrated in vitro and in animals with high doses.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM935/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0029.15
@@ -384,4 +398,5 @@ metadata:
 - Инструкция ГРЛС «Мяты перечной листья», Изм. № 0, ЛП-№(012387)-(РГ-RU), 2025, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/menthae-piperitae-folium (обновлено 08/03/2017). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Mentha_%C3%97_piperita_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-095.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM935/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0029.15 «Мяты перечной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/myaty-perechnoy-listya/

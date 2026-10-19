@@ -1,0 +1,26 @@
+plant: rhodiola-rosea
+nccih: rhodiola
+trts:
+  section: '1.2'
+  number: 15
+  page: 234
+  name: Родиола розовая, Золотой корень
+  latin: Rhodiola rosea L.
+  parts: Все части
+lines:
+  - source: nccih
+    kind: use
+    ru: "Родиола, возможно, безопасна при приёме до 12 недель"
+    quote: "Rhodiola is possibly safe for up to 12 weeks."
+  - source: nccih
+    kind: adverse
+    ru: "Возможны головокружение, головная боль, бессонница, сухость во рту или повышенное слюноотделение"
+    quote: "Side effects may include dizziness, headache, insomnia, and either dry mouth or excessive saliva production."
+  - source: nccih
+    kind: interaction
+    ru: "Сообщалось о взаимодействии родиолы с лозартаном (препарат от высокого давления)"
+    quote: "Interactions between rhodiola and losartan (a drug used for high blood pressure) have been reported."
+  - source: nccih
+    kind: pregnancy
+    ru: "Мало известно, безопасна ли родиола при беременности и грудном вскармливании"
+    quote: "Little is known about whether it’s safe to use rhodiola during pregnancy or while breastfeeding."

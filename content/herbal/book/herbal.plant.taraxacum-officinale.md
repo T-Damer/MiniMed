@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf
-source_checksum: sha256:ec78dddd104e2bbd70bb97af4ce7fbcb4c2119ba433d7ef25f6bdec56d212974
+source_checksum: sha256:2b501aa590011081e7d3a683e1f41a3e19886159f87365f47f44ea65f8bad66d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -214,6 +214,35 @@ metadata:
         effectRu: очень высокий салуретический индекс по выведению калия может быть связан с высоким содержанием калия
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Одуванчик в количествах, обычных для пищи, считается, вероятно, безопасным; о приёме больших количеств известно меньше
+        quote: The use of dandelion in the amounts commonly found in food is considered likely safe. Less is known about the safety of taking dandelion in larger amounts.
+        url: https://www.nccih.nih.gov/health/dandelion
+      - source: nccih
+        kind: interaction
+        ru: Теоретически одуванчик может взаимодействовать с противодиабетическими, антикоагулянтными, антитромбоцитарными и мочегонными препаратами и др.
+        quote: There are theoretical reasons to suspect that dandelion might interact with antidiabetes, anticoagulant, antiplatelet, and water pill drugs, among others.
+        url: https://www.nccih.nih.gov/health/dandelion
+      - source: nccih
+        kind: warning
+        ru: Местно возможна аллергия при атопическом дерматите; у чувствительных к родственным растениям (амброзия и др.) данные противоречивы
+        quote: Some evidence suggests that topical dandelion may cause an allergic reaction in people who have atopic dermatitis (eczema). There is conflicting evidence about whether dandelion causes an allergic reaction in people who are sensitive to related plants like ragweed, chrysanthemums, marigolds, and daisies.
+        url: https://www.nccih.nih.gov/health/dandelion
+      - source: nccih
+        kind: pregnancy
+        ru: Мало известно о безопасности одуванчика в количествах больше пищевых при беременности и грудном вскармливании
+        quote: Little is known about whether it’s safe to use dandelion in amounts greater than those found in foods during pregnancy or while breastfeeding.
+        url: https://www.nccih.nih.gov/health/dandelion
+      - source: lactmed
+        kind: lactation
+        ru: Использование при лактации вряд ли повредит ребёнку на грудном вскармливании
+        quote: Use during lactation is unlikely to harm the breastfed infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM954/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0086.18
@@ -361,4 +390,6 @@ metadata:
 - Инструкция ГРЛС «Одуванчика корни», Изм. № 0, ЛП-№(015039)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/taraxaci-officinalis-radix-0. © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Taraxacum_officinale_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-135_0243-scan.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/dandelion (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM954/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0086.18 «Одуванчика лекарственного корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/oduvanchika-lekarstvennogo-korni/

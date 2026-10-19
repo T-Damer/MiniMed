@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:280712e93980e7996ea402aa8449ab37a8bb3db7fab8a1427187514ec25ada9f
+source_checksum: sha256:fb7648a8fc8d7c060d9d5e197a21e3762385107ada3ad0f7aa1e1dd1f072f39b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -185,6 +185,24 @@ metadata:
         effectRu: у крыс с экспериментальным гонартритом — дозозависимое противовоспалительное действие
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Местное применение крапивы может вызвать крапивницу; нанесение на сосок одной матери вызвало аллергическую сыпь у её ребёнка на грудном вскармливании
+        quote: topical use can cause urticaria when applied topically, and application on one mother's nipple resulted in allergic skin rash in her breastfed infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM869/
+      - source: lactmed
+        kind: lactation
+        ru: Вероятно, лучше не наносить крапиву местно на грудь при грудном вскармливании
+        quote: It is probably best not to apply stinging nettle topically to the breast while breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM869/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/StingingNettle/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0019.15
@@ -385,5 +403,7 @@ metadata:
 - Инструкция ГРЛС «Крапивы листья», Изм. № 0, ЛП-№(013449)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/urticae-folium (обновлено 17/01/2011). © European Medicines Agency
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Urtica_dioica0.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM869/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/StingingNettle/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0019.15 «Крапивы двудомной листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krapivy-dvudomnoy-listya/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016

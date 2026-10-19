@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:41aaf218c1bcdd4b5734a78b9b82edae7fc48e8ce6c851fb6c06c4ad5ddcff95
+source_checksum: sha256:9d1f4470fa3af172e65b0b735023d1da2fc465a69d452be2b4d5b6f51e2d341b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -206,6 +206,14 @@ metadata:
         effectRu: данных недостаточно, чтобы подтвердить мочегонное действие с отрицательным водным балансом; в части исследований слабый эффект, в других эффекта нет или нужны дозы выше традиционных
         evidence: review
     redBook: null
+    safety:
+      lines: []
+      liver:
+        score: C
+        ru: вероятная редкая причина поражения печени
+        quote: 'Likelihood score: C (probable rare cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Horsetail/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0045
@@ -423,5 +431,6 @@ metadata:
 - Инструкция ГРЛС «Хвоща полевого трава», Изм. № 0, ЛП-№(015144)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba (обновлено 28/04/2016). © European Medicines Agency
 - Иллюстрация: C. A. M. Lindman, Bilder ur Nordens Flora (1901–1905) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:515_Equisetum_arvense.jpg)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Horsetail/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0045 «Хвоща полевого трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/khvoshcha-polevogo-trava/
 - Не спутать: Коломиец Н. Э., Калинкина Г. И., Полуэктова Т. В. Учебная практика по фармакогнозии: учебное пособие. — Томск: СибГМУ, 2013. — 106 с.

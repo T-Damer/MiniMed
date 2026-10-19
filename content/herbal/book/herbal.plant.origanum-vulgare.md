@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/09/1531902/5ecabf49-03de-4a6d-8736-6146b816389e.pdf
-source_checksum: sha256:c652f1352ad232949da26f437cbb928c4c4aff6811f951f6f10fc743dcf3f94c
+source_checksum: sha256:8365a7cda94649be168a7273eed817d91ab84c3dcd451dfc57869a6c523f7496
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -235,6 +235,19 @@ metadata:
         effectRu: при наружном нанесении мышам (20 мкл на животное) проявил противовоспалительное действие на модели воспаления уха, вызванного 12-O-тетрадеканоилфорбол-13-ацетатом
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Из-за недостатка данных орегано в количествах выше пищевых (как приправа), вероятно, следует избегать при грудном вскармливании
+        quote: Because of a lack of data, oregano in amounts higher than those found in foods as a flavoring should probably be avoided during breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM929/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Oregano/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0012
@@ -383,4 +396,6 @@ Cобранная во время цветения, высушенная тра�
 - Инструкция ГРЛС «Душицы трава», Изм. № 0, ЛП-№(015130)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - ВОЗ: WHO monographs on medicinal plants commonly used in the Newly Independent States (NIS) (2010), «Herba Origani», с. 293–306 PDF: https://iris.who.int/handle/10665/44059. © World Health Organization; файл — копия e-lactancia.org (в WHO IRIS — только описание тома)
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Origanum_vulgare0.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM929/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Oregano/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0012 «Душицы обыкновенной трава»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/dushitsy-obyknovennoy-trava/

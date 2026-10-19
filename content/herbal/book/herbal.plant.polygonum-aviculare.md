@@ -272,6 +272,7 @@ metadata:
         effectRu: после однократного внутривенного введения крысам наибольшие концентрации авикулярина были в почках и мочевом пузыре
         evidence: animal
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0069.18

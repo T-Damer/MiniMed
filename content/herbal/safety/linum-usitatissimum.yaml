@@ -1,0 +1,28 @@
+plant: linum-usitatissimum
+nccih: flaxseed-and-flaxseed-oil
+lactmed: LM975
+lines:
+  - source: nccih
+    kind: warning
+    ru: "Нельзя есть сырые или незрелые семена льна: они могут содержать потенциально токсичные соединения"
+    quote: "Don’t eat raw or unripe flaxseeds; they may contain potentially toxic compounds."
+  - source: nccih
+    kind: use
+    ru: "Ограниченные количества семян льна (особенно экстракта лигнанов или слизи) и льняного масла внутрь могут быть безопасны кратковременно (до 6 месяцев)"
+    quote: "Limited amounts of flaxseed (especially flaxseed lignan extract or mucilage) or oral flaxseed oil supplements may be safe for use in the short-term (up to 6 months)."
+  - source: nccih
+    kind: interaction
+    ru: "Теоретически семена и масло льна могут взаимодействовать с другими препаратами, например антикоагулянтами и антиагрегантами"
+    quote: "There are theoretical reasons to suspect that flaxseed or flaxseed oil might interact with other drugs, such as anticoagulant or antiplatelet drugs."
+  - source: nccih
+    kind: pregnancy
+    ru: "Часть исследований при беременности говорит, что семена льна, возможно, небезопасны, но данные неубедительны"
+    quote: "Some studies of the use of flaxseed during pregnancy suggest it is possibly unsafe, but the evidence is not conclusive."
+  - source: lactmed
+    kind: lactation
+    ru: "Семена льна как слабительное или местный компресс у кормящей, как ожидается, не вредят ребёнку на грудном вскармливании"
+    quote: "Flaxseed used by the nursing mother as a laxative or topical poultice are not expected to adversely affect the breastfed infant."
+  - source: lactmed
+    kind: lactation
+    ru: "Льняное масло можно использовать при лактации, но оно не компенсирует низкое поступление DHA у матери, например при вегетарианской или веганской диете"
+    quote: "Flaxseed oil can be used during lactation, but is not effective in counteracting a low maternal DHA intake, as in vegetarian or vegan diets."

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf
-source_checksum: sha256:c50804039a61194ed518fd691a7f908c8a688844402060740155ba7f0aa96ca3
+source_checksum: sha256:4fc8a00f29ee7500ccda286b2ebdc070713ed2726021715307d534c71b52eb94
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -238,6 +238,35 @@ metadata:
         effectRu: механизм нейротоксичности связывают с действием α-туйона на ГАМК-А-рецептор
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Шалфей, вероятно, безопасен в количествах, обычных для пищи; в исследованиях бо́льшие количества безопасно применяли до 8 недель
+        quote: Sage is likely safe in the amounts commonly found in foods, and larger amounts have been used safely for up to 8 weeks in research studies.
+        url: https://www.nccih.nih.gov/health/sage
+      - source: nccih
+        kind: warning
+        ru: Туйон некоторых видов шалфея, в том числе лекарственного, токсичен в больших количествах; поэтому шалфей может быть небезопасен в высоких дозах или при длительном приёме
+        quote: some species of sage, including common sage (S. officinalis) , contain a component called thujone that can be toxic if consumed in large amounts; therefore, sage may be unsafe in high doses or if consumed for long periods of time.
+        url: https://www.nccih.nih.gov/health/sage
+      - source: nccih
+        kind: pregnancy
+        ru: 'Применять шалфей при беременности может быть небезопасно: его компонент туйон может оказывать вредное действие'
+        quote: It may be unsafe to use sage during pregnancy because its component thujone may have harmful effects.
+        url: https://www.nccih.nih.gov/health/sage
+      - source: nccih
+        kind: lactation
+        ru: Мало известно, безопасен ли шалфей при грудном вскармливании
+        quote: Little is known about whether it’s safe to use sage while breastfeeding.
+        url: https://www.nccih.nih.gov/health/sage
+      - source: lactmed
+        kind: lactation
+        ru: Шалфей и родственный вид Salvia fruticosa, предположительно, снижают лактацию; их применяли при отлучении от груди или избытке молока
+        quote: Sage and a related species, Salvia fruticosa , purportedly reduce lactation and have been used to aid with weaning or an overabundant milk supply
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM903/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0051
@@ -396,4 +425,6 @@ metadata:
 - Инструкция ГРЛС «Шалфея листья», Изм. № 0, ЛП-№(013841)-(РГ-RU), 2026, ПКФ "Фитофарм" (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/salviae-officinalis-folium (обновлено 13/07/2017). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Salvia_officinalis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-126.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/sage (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM903/ (US public domain)
 - Государственная фармакопея РФ XV изд., ФС.2.5.0051 «Шалфея лекарственного листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-15/2/2-3/shalfeya-lekarstvennogo-listya/

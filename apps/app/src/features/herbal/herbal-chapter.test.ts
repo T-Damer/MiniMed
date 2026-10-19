@@ -9,6 +9,7 @@ import {
   emaSourceLabel,
   evidenceLabel,
   type HerbalRedBook,
+  type HerbalSupplementRule,
   herbalActions,
   herbalPlantCountLabel,
   herbalQueryStem,
@@ -16,6 +17,9 @@ import {
   limitFacts,
   readHerbalChapter,
   redBookLabel,
+  safetyLabel,
+  safetySourceLabel,
+  supplementRuleLine,
 } from './herbal-chapter';
 import { herbalBookActionFromHash, herbalBookHash, isHerbalBookRoute } from './herbal-routing';
 
@@ -254,6 +258,47 @@ describe('Red Book', () => {
       }),
     );
     expect(unlisted?.redBook).toBeNull();
+  });
+});
+
+describe('safety lines', () => {
+  it('reads quoted lines, the LiverTox score and the food-supplement rule', () => {
+    const parsed = readHerbalChapter(
+      chapter('herbal.plant.frangula-alnus', 'Крушина ломкая', {
+        plantId: 'frangula-alnus',
+        latin: 'Frangula alnus Mill.',
+        safety: {
+          lines: [
+            {
+              source: 'lactmed',
+              kind: 'lactation',
+              ru: 'Избегать',
+              quote: 'Their use should be avoided.',
+              url: 'https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM941/',
+            },
+            { source: 'blog', kind: 'use', ru: 'x', quote: 'y' },
+          ],
+          liver: null,
+          trts: {
+            section: '1.1',
+            ru: 'запрещено в составе БАД',
+            parts: 'незрелые плоды, свежая кора',
+            number: 157,
+            quote:
+              '157. Крушина ломкая (ольховидная) — Frangula alnus Mill — незрелые плоды, свежая кора',
+            url: 'https://evil.example/tr.pdf',
+          },
+        },
+      }),
+    );
+    const safety = parsed?.safety;
+    // A line of an unknown source is dropped; a link off the known hosts is not shown.
+    expect(safety?.lines.map((line) => safetySourceLabel(line.source))).toEqual(['LactMed']);
+    expect(safety?.supplements?.url).toBeNull();
+    expect(supplementRuleLine(safety?.supplements as HerbalSupplementRule)).toBe(
+      'Запрещено в составе БАД: незрелые плоды, свежая кора',
+    );
+    expect(safetyLabel('interaction')).toBe('Лекарства');
   });
 });
 

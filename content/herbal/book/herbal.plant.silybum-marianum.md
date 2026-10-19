@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus
-source_checksum: sha256:5a8c78c8d3aba98ecab5415ddc297b0c9367be822eb34df3b6abf3c680b1b1ba
+source_checksum: sha256:7ae902a9751757beeb8faf2820f6bf93408c8210535a884f6bd9f55244d285fc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -301,6 +301,44 @@ metadata:
         effectRu: в трёх открытых контролируемых исследованиях со 160 пациентами отмечено выраженное снижение повышенных трансаминаз, вызванное потенциально гепатотоксичными нейролептиками или анестетиками
         evidence: clinical
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: При приёме внутрь расторопша, по-видимому, хорошо переносится
+        quote: Milk thistle, when taken orally, appears to be well tolerated.
+        url: https://www.nccih.nih.gov/health/milk-thistle
+      - source: nccih
+        kind: adverse
+        ru: 'Чаще всего — со стороны пищеварения: вздутие, тошнота, газы'
+        quote: The most common side effects are digestive symptoms such as bloating, nausea, and gas.
+        url: https://www.nccih.nih.gov/health/milk-thistle
+      - source: nccih
+        kind: warning
+        ru: Расторопша может вызывать аллергию, особенно при аллергии на родственные растения (амброзия, хризантема, бархатцы, маргаритка)
+        quote: Milk thistle may cause allergic reactions, particularly among people who are allergic to related plants (for example, ragweed, chrysanthemum, marigold, and daisy).
+        url: https://www.nccih.nih.gov/health/milk-thistle
+      - source: nccih
+        kind: warning
+        ru: Некоторые продукты содержали силимарина существенно иное количество, чем на этикетке, или были загрязнены пестицидами, микроорганизмами, микотоксинами
+        quote: Some products have been found to contain amounts of silymarin substantially different from what’s stated on the label or to be contaminated with pesticides, microorganisms, or mycotoxins
+        url: https://www.nccih.nih.gov/health/milk-thistle
+      - source: lactmed
+        kind: lactation
+        ru: По ограниченным данным, компоненты силимарина не выделяются в молоко в измеримых количествах; они плохо всасываются, поэтому вред ребёнку маловероятен
+        quote: Limited data indicate that the silymarin components are not excreted into breastmilk in measurable quantities. Additionally, because silymarin components are poorly absorbed orally, milk thistle is unlikely to adversely affect the breastfed infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM863/
+      - source: lactmed
+        kind: lactation
+        ru: Матери, принимавшие расторопшу для увеличения молока, иногда сообщали о прибавке веса, тошноте, сухости во рту и раздражительности
+        quote: Mothers taking milk thistle to increase milk supply reported weight gain, nausea, dry mouth and irritability occasionally.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM863/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/MilkThistle/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0035.15
@@ -335,4 +373,7 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus (обновлено 19/09/2018). © European Medicines Agency
 - Иллюстрация: O. W. Thomé, Flora von Deutschland, Österreich und der Schweiz (1885) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Illustration_Silybum_marianum0.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/milk-thistle (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM863/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/MilkThistle/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0035.15 «Расторопши пятнистой плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/rastoropshi-pyatnistoy-plody/

@@ -208,6 +208,7 @@ metadata:
         effectRu: у больных циррозом печени после курса лечения экстрактом плодов нормализация АЛТ и АСТ составила 80 % против 56 % при лечении витамином B
         evidence: clinical
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0121

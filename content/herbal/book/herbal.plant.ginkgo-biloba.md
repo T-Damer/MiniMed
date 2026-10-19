@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium
-source_checksum: sha256:67a989e97e9b0097290e0ee054e892d48585a5b87c3480a8381af8d3bbcb9bd0
+source_checksum: sha256:71fc4c2cbf752aa21f7175c70d6038549d850b7e985b7370eaa1cd86e83c6b70
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -407,6 +407,46 @@ metadata:
         effectRu: в исследовании in vitro на клетках кератиноцитов человека HaCaT и почечных эпителиальных клетках макак-резусов LLC-MK2 EGb 761, содержащий менее 5 ppm гинкголевых кислот, использовали как эталонное вещество; результаты подтверждают, что гинкголевые кислоты, которые в основном удаляются при производстве стандартизованного экстракта EGb 761, обладают значительным цитотоксическим потенциалом
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: warning
+        ru: Свежие семена гинкго токсичны при приёме внутрь; серьёзные побочные эффекты были и после жареных семян или сырого растения
+        quote: Fresh ginkgo seeds are toxic when consumed orally, and serious side effects have also occurred in people who consumed roasted ginkgo seeds or the crude ginkgo plant.
+        url: https://www.nccih.nih.gov/health/ginkgo
+      - source: nccih
+        kind: adverse
+        ru: 'Экстракт листьев в целом хорошо переносится; самые частые побочные эффекты: головокружение, симптомы со стороны ЖКТ и головная боль'
+        quote: Ginkgo leaf extract is generally well tolerated; the most common side effects are dizziness, gastrointestinal symptoms, and headache.
+        url: https://www.nccih.nih.gov/health/ginkgo
+      - source: nccih
+        kind: interaction
+        ru: Гинкго может повышать риск кровотечения у людей, принимающих антикоагулянты, например варфарин
+        quote: Ginkgo may increase the risk of bleeding in people who are taking anticoagulant drugs, such as warfarin.
+        url: https://www.nccih.nih.gov/health/ginkgo
+      - source: nccih
+        kind: pregnancy
+        ru: Гинкго может быть небезопасен при беременности; возможны ранние роды или дополнительное кровотечение при родах, если принимать его незадолго до них
+        quote: Ginkgo may be unsafe for use during pregnancy. It might cause early labor or extra bleeding during delivery if used near that time.
+        url: https://www.nccih.nih.gov/health/ginkgo
+      - source: lactmed
+        kind: lactation
+        ru: Опыта применения гинкго при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно для новорождённого или недоношенного
+        quote: Because there is no published experience with ginkgo during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM898/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Ginkgo/
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Надземная часть
+        number: 4
+        quote: 4. Гинкго двулопастное — Ginkgo biloba L. — Надземная часть
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 234
     identification:
       source:
         number: ФС.2.5.0010.15
@@ -445,4 +485,8 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium (обновлено 14/12/2015). © European Medicines Agency
 - Иллюстрация: Siebold, Zuccarini, Flora Japonica (1870) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Ginkgo_biloba_SZ136.png)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/ginkgo (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM898/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Ginkgo/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 4 (с. 234 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0010.15 «Гинкго двулопастного листья»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/ginkgo-dvulopastnogo-listya/

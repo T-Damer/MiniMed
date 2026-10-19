@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos
-source_checksum: sha256:0e376699b61ee0c27408988b4ecea8a7192a4c31bd2e1b87f88b6571a96da7ed
+source_checksum: sha256:8dca5a1c028c7cbd36b896ea303d21e9ae572fa7e5cea2b001fc4ca6522aa6f9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -298,6 +298,19 @@ metadata:
         effectRu: In vivo наблюдались противовоспалительные эффекты гумулона, по-видимому, действующего противовоспалительного вещества шишек хмеля; сухой метанольный экстракт шишек при местном нанесении 2 мг на ухо подавлял отёк уха у мышей, вызванный форболовым эфиром (TPA), на 90 % через шесть часов
         evidence: animal
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Некоторые источники рекомендуют избегать хмеля при грудном вскармливании из-за содержания фитоэстрогенов
+        quote: Some sources recommend avoiding hops during breastfeeding because of its phytoestrogen content.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM919/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Hops/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0046.15
@@ -332,4 +345,6 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos (обновлено 06/10/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Humulus_lupulus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-072.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM919/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Hops/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0046.15 «Хмеля обыкновенного соплодия»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/khmelya-obyknovennogo-soplodiya/

@@ -1,0 +1,29 @@
+plant: silybum-marianum
+nccih: milk-thistle
+lactmed: LM863
+livertox: MilkThistle
+lines:
+- source: nccih
+  kind: use
+  ru: При приёме внутрь расторопша, по-видимому, хорошо переносится
+  quote: Milk thistle, when taken orally, appears to be well tolerated.
+- source: nccih
+  kind: adverse
+  ru: 'Чаще всего — со стороны пищеварения: вздутие, тошнота, газы'
+  quote: The most common side effects are digestive symptoms such as bloating, nausea, and gas.
+- source: nccih
+  kind: warning
+  ru: Расторопша может вызывать аллергию, особенно при аллергии на родственные растения (амброзия, хризантема, бархатцы, маргаритка)
+  quote: Milk thistle may cause allergic reactions, particularly among people who are allergic to related plants (for example, ragweed, chrysanthemum, marigold, and daisy).
+- source: nccih
+  kind: warning
+  ru: Некоторые продукты содержали силимарина существенно иное количество, чем на этикетке, или были загрязнены пестицидами, микроорганизмами, микотоксинами
+  quote: Some products have been found to contain amounts of silymarin substantially different from what’s stated on the label or to be contaminated with pesticides, microorganisms, or mycotoxins
+- source: lactmed
+  kind: lactation
+  ru: По ограниченным данным, компоненты силимарина не выделяются в молоко в измеримых количествах; они плохо всасываются, поэтому вред ребёнку маловероятен
+  quote: Limited data indicate that the silymarin components are not excreted into breastmilk in measurable quantities. Additionally, because silymarin components are poorly absorbed orally, milk thistle is unlikely to adversely affect the breastfed infant.
+- source: lactmed
+  kind: lactation
+  ru: Матери, принимавшие расторопшу для увеличения молока, иногда сообщали о прибавке веса, тошноте, сухости во рту и раздражительности
+  quote: Mothers taking milk thistle to increase milk supply reported weight gain, nausea, dry mouth and irritability occasionally.

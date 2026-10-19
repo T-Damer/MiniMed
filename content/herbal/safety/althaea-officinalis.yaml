@@ -1,0 +1,7 @@
+plant: althaea-officinalis
+lactmed: LM924
+lines:
+- source: lactmed
+  kind: lactation
+  ru: Данных о безопасности корня алтея при грудном вскармливании нет, но вред для ребёнка на грудном вскармливании маловероятен
+  quote: Although no data exist on the safety of marshmallow root during breastfeeding, it is unlikely to be harmful to the breastfed infant.

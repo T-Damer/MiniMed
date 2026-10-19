@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:b26917400a01e4bd880a5a138b93efeff02ce3089a711e9610aad9e02454ec57
+source_checksum: sha256:9ee3ce19535b518244fbd52c230f236db14b9426a942075a45dc6a41660fd719
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -223,6 +223,40 @@ metadata:
         effectRu: по оценке EMA, защитное действие на слизистую за счёт обволакивающего действия слизи
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: warning
+        ru: 'Нельзя есть сырые или незрелые семена льна: они могут содержать потенциально токсичные соединения'
+        quote: Don’t eat raw or unripe flaxseeds; they may contain potentially toxic compounds.
+        url: https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil
+      - source: nccih
+        kind: use
+        ru: Ограниченные количества семян льна (особенно экстракта лигнанов или слизи) и льняного масла внутрь могут быть безопасны кратковременно (до 6 месяцев)
+        quote: Limited amounts of flaxseed (especially flaxseed lignan extract or mucilage) or oral flaxseed oil supplements may be safe for use in the short-term (up to 6 months).
+        url: https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil
+      - source: nccih
+        kind: interaction
+        ru: Теоретически семена и масло льна могут взаимодействовать с другими препаратами, например антикоагулянтами и антиагрегантами
+        quote: There are theoretical reasons to suspect that flaxseed or flaxseed oil might interact with other drugs, such as anticoagulant or antiplatelet drugs.
+        url: https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil
+      - source: nccih
+        kind: pregnancy
+        ru: Часть исследований при беременности говорит, что семена льна, возможно, небезопасны, но данные неубедительны
+        quote: Some studies of the use of flaxseed during pregnancy suggest it is possibly unsafe, but the evidence is not conclusive.
+        url: https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil
+      - source: lactmed
+        kind: lactation
+        ru: Семена льна как слабительное или местный компресс у кормящей, как ожидается, не вредят ребёнку на грудном вскармливании
+        quote: Flaxseed used by the nursing mother as a laxative or topical poultice are not expected to adversely affect the breastfed infant.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM975/
+      - source: lactmed
+        kind: lactation
+        ru: Льняное масло можно использовать при лактации, но оно не компенсирует низкое поступление DHA у матери, например при вегетарианской или веганской диете
+        quote: Flaxseed oil can be used during lactation, but is not effective in counteracting a low maternal DHA intake, as in vegetarian or vegan diets.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM975/
+      liver: null
+      trts: null
     identification:
       source:
         number: ФС.2.5.0026.15
@@ -366,4 +400,6 @@ metadata:
 - Инструкция ГРЛС «Льна семена», Изм. № 0, ЛП-№(014461)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/lini-semen (обновлено 03/02/2016). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Linum_usitatissimum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-088.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/flaxseed-and-flaxseed-oil (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM975/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0026.15 «Льна посевного семена»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/lna-posevnogo-semena/

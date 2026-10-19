@@ -1,0 +1,36 @@
+plant: valeriana-officinalis
+nccih: valerian
+lactmed: LM902
+livertox: Valerian
+trts:
+  section: '1.2'
+  number: 3
+  page: 233
+  name: Валериана
+  latin: Valeriana L.
+  parts: Все виды, корень и корневища
+lines:
+- source: nccih
+  kind: use
+  ru: По данным исследований, в целом безопасна при кратковременном применении у большинства взрослых; 300–600 мг в сутки применяли без явного вреда до 6 недель
+  quote: Research suggests that valerian is generally safe for short-term use by most adults. It has been used with apparent safety in doses of 300 to 600 milligrams daily for up to 6 weeks.
+- source: nccih
+  kind: adverse
+  ru: 'Головная боль, расстройство желудка, притуплённость мышления, возбудимость, беспокойство, яркие сновидения'
+  quote: Side effects of valerian include headache, stomach upset, mental dullness, excitability, uneasiness, and vivid dreams.
+- source: nccih
+  kind: interaction
+  ru: Возможно (не доказано), что валериана вызывает сонливость, поэтому её не следует принимать вместе с алкоголем или седативными средствами
+  quote: Because it is possible (though not proven) that valerian might have a sleep-inducing effect, it should not be taken along with alcohol or sedatives.
+- source: nccih
+  kind: warning
+  ru: В очень редких случаях сообщалось о поражении печени, чаще при сочетании с другими травами; влияние длительного приёма на печень неизвестно
+  quote: In very rare cases, liver injury was reported when taking valerian, most often in combination with other herbals; however, valerian’s long-term effect on liver function is unknown.
+- source: lactmed
+  kind: lactation
+  ru: Опыта применения при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно при кормлении новорождённого или недоношенного
+  quote: Because there is no published experience with valerian during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.
+- source: lactmed
+  kind: lactation
+  ru: 'Валериану часто не рекомендуют при лактации: теоретические опасения из-за валепотриатов и бальдриналов, цитотоксичных и мутагенных in vitro'
+  quote: Valerian is often not recommended during lactation because of the theoretical concerns over its valepotriates and baldrinals which have been shown to be cytotoxic and mutagenic in vitro.

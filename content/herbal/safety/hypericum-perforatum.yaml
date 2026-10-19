@@ -1,0 +1,36 @@
+plant: hypericum-perforatum
+nccih: st-johns-wort
+lactmed: LM862
+livertox: StJohnsWort
+trts:
+  section: '1.2'
+  number: 9
+  page: 234
+  name: Зверобой
+  latin: Hypericum L.
+  parts: Все виды, все части
+lines:
+- source: nccih
+  kind: adverse
+  ru: В больших дозах внутрь или на коже возможны тяжёлые кожные реакции на солнце; также диарея, головокружение, бессонница, беспокойство, покалывание кожи
+  quote: If taken orally in large doses or applied to the skin, St. John’s wort might cause severe skin reactions after sun exposure. Other side effects can include diarrhea, dizziness, trouble sleeping, restlessness, and skin tingling.
+- source: nccih
+  kind: interaction
+  ru: 'Может ослаблять действие многих лекарств: ряда антидепрессантов (амитриптилин, бупропион), оральных контрацептивов, циклоспорина, фенитоина, карбамазепина, дигоксина, ивабрадина, ряда препаратов от ВИЧ и рака, варфарина, симвастатина'
+  quote: 'St. John’s wort can weaken the effects of many medicines, including crucially important medicines such as: Some antidepressants, including amitriptyline and bupropion Birth control pills Cyclosporine, which prevents the body from rejecting transplanted organs Some drugs used to prevent seizures, including phenytoin and carbamazepine Some heart medications, including digoxin and ivabradine Some HIV drugs, including indinavir and nevirapine Some cancer medications, including irinotecan, imatinib, and docetaxel Warfarin, an anticoagulant (blood thinner) Certain statins, including simvastatin'
+- source: nccih
+  kind: interaction
+  ru: С некоторыми антидепрессантами и другими препаратами, влияющими на серотонин, возможно усиление серотониновых побочных эффектов, в т.ч. серьёзных
+  quote: In addition, taking St. John’s wort with certain antidepressants or other drugs that affect serotonin (a substance produced by some nerve cells) may lead to increased serotonin-related side effects, which can be serious.
+- source: nccih
+  kind: pregnancy
+  ru: 'При беременности применять зверобой может быть небезопасно: возможно, повышается риск врождённых пороков'
+  quote: It may be unsafe to use St. John’s wort during pregnancy because it may increase the risk of birth defects.
+- source: lactmed
+  kind: lactation
+  ru: В одном исследовании у детей на грудном вскармливании чуть чаще были колики, сонливость и вялость; ни один эффект не был тяжёлым и не требовал лечения
+  quote: One study found a slightly increased frequency of colic, drowsiness and lethargy among breastfed infants whose mothers were taking St. John's wort, but none of the effects were severe or required treatment.
+- source: lactmed
+  kind: lactation
+  ru: Опыта применения при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
+  quote: Because there is little published experience with St. John's wort during breastfeeding, an alternate drug may be preferred, especially while nursing a newborn or preterm infant.

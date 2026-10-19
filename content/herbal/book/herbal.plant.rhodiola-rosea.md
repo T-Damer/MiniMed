@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/rhodiolae-roseae-rhizoma-et-radix
-source_checksum: sha256:049dad55da9d53d7694f08e62566550e66c078634ed0e9ffa58d002661c17118
+source_checksum: sha256:c60739fe995e22fcf0b26bd930e375e3c04a9dc0ececa45f43c108ac29bd22b7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -255,6 +255,37 @@ metadata:
       note: За исключением популяций Алтайского и Красноярского краев, Республики Тыва и Магаданской обл.
       url: http://publication.pravo.gov.ru/document/0001202307210008
       pdfPage: 7
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Родиола, возможно, безопасна при приёме до 12 недель
+        quote: Rhodiola is possibly safe for up to 12 weeks.
+        url: https://www.nccih.nih.gov/health/rhodiola
+      - source: nccih
+        kind: adverse
+        ru: Возможны головокружение, головная боль, бессонница, сухость во рту или повышенное слюноотделение
+        quote: Side effects may include dizziness, headache, insomnia, and either dry mouth or excessive saliva production.
+        url: https://www.nccih.nih.gov/health/rhodiola
+      - source: nccih
+        kind: interaction
+        ru: Сообщалось о взаимодействии родиолы с лозартаном (препарат от высокого давления)
+        quote: Interactions between rhodiola and losartan (a drug used for high blood pressure) have been reported.
+        url: https://www.nccih.nih.gov/health/rhodiola
+      - source: nccih
+        kind: pregnancy
+        ru: Мало известно, безопасна ли родиола при беременности и грудном вскармливании
+        quote: Little is known about whether it’s safe to use rhodiola during pregnancy or while breastfeeding.
+        url: https://www.nccih.nih.gov/health/rhodiola
+      liver: null
+      trts:
+        section: '1.2'
+        ru: не допускается в однокомпонентных БАД
+        parts: Все части
+        number: 15
+        quote: 15. Родиола розовая, Золотой корень — Rhodiola rosea L. — Все части
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 234
     identification:
       source:
         number: ФС.2.5.0036.15
@@ -290,4 +321,6 @@ metadata:
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/rhodiolae-roseae-rhizoma-et-radix (обновлено 16/06/2014). © European Medicines Agency
 - Иллюстрация: Flora Danica, fasc. 4 (1765) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Flora_Danica_Hft_04_Tab_0183.tif)
 - Красная книга РФ: Приказ Минприроды России от 23.05.2023 № 320 «Об утверждении Перечня объектов растительного мира, занесенных в Красную книгу Российской Федерации», № 156 перечня (с. 7 PDF): http://publication.pravo.gov.ru/document/0001202307210008; категории — Приказ Минприроды России от 23.05.2016 № 306 «Об утверждении порядка ведения Красной книги Российской Федерации», п. 3.7
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/rhodiola (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.2, № 15 (с. 234 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0036.15 «Родиолы розовой корневища и корни»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/rodioly-rozovoy-kornevishcha-i-korni/

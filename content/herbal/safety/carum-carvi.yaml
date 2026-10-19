@@ -1,0 +1,11 @@
+plant: carum-carvi
+lactmed: LM881
+lines:
+- source: lactmed
+  kind: lactation
+  ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+  quote: In two studies nursing mothers were given d-carvone. No adverse effects were noted in mothers or infants.
+- source: lactmed
+  kind: adverse
+  ru: 'Тмин обычно хорошо переносится; основные побочные эффекты со стороны ЖКТ: изжога, отрыжка, метеоризм и тошнота'
+  quote: It is usually well tolerated, with the primary side effects being gastrointestinal such as heartburn, eructation, flatulence, and nausea.

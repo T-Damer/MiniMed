@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/myrtilli-fructus-siccus
-source_checksum: sha256:f0187985a7c5c9ad45e69b7b4f2ccbdf103b2d0799dc2bee05c219e96a0ab460
+source_checksum: sha256:530f0d215fbf47887667d21e65f28a6b2e04a976af02d61d04744b063a762c5a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -234,6 +234,34 @@ metadata:
         effectRu: водный экстракт V. myrtillus (74,2 мг/г общих полифенолов, доля катехина 17,3 %) оказывал in vitro выраженное защитное действие на частицы ЛПНП при окислении, вызванном медью
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: use
+        ru: Плоды черники считаются безопасными в пищевых количествах; экстракты плодов в исследованиях безопасно применяли до 160 мг/сут до 6 месяцев
+        quote: Bilberry fruit is considered safe when consumed in amounts typically found in foods. Bilberry fruit extracts have been used safely in research studies at doses of up to 160 mg/day for up to 6 months and appear to be well tolerated.
+        url: https://www.nccih.nih.gov/health/bilberry
+      - source: nccih
+        kind: warning
+        ru: Листья черники могут быть небезопасны в высоких дозах или при длительном приёме
+        quote: Bilberry leaves may be unsafe when consumed in high doses or for long periods of time.
+        url: https://www.nccih.nih.gov/health/bilberry
+      - source: nccih
+        kind: pregnancy
+        ru: Мало известно о безопасности черники в количествах больше пищевых при беременности и грудном вскармливании
+        quote: Little is known about whether it is safe to use bilberry in amounts greater than those found in foods during pregnancy or while breastfeeding.
+        url: https://www.nccih.nih.gov/health/bilberry
+      - source: lactmed
+        kind: lactation
+        ru: Рекомендаций по применению больших количеств препаратов черники при грудном вскармливании дать нельзя
+        quote: No recommendations can be made on the use of large quantities of bilberry products during breastfeeding.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM911/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Bilberry/
+      trts: null
     identification:
       source:
         number: ФС.2.5.0050.15
@@ -272,4 +300,7 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/myrtilli-fructus-siccus (обновлено 16/12/2015). © European Medicines Agency
 - Иллюстрация: J. Sturm, Deutschlands Flora in Abbildungen (1796–1862) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Vaccinium_myrtillus_Sturm09055.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/bilberry (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM911/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Bilberry/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0050.15 «Черники обыкновенной плоды»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/cherniki-obyknovennoy-plody/

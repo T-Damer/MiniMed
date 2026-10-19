@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lavandulae-flos
-source_checksum: sha256:31dd34bce0cf9f7a3ae2cb9dc5abce9ecdf8e74e6ba458581be9e4af268419d0
+source_checksum: sha256:8ed5091d4c00b89abd2249152c8410f8d062107938ace2f678a858f3862d2246
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -221,6 +221,44 @@ metadata:
         effectRu: в препаратах сонной артерии кролика вызывал устойчивое прогрессирующее расслабление при сокращении, вызванном фенилэфрином
         evidence: in-vitro
     redBook: null
+    safety:
+      lines:
+      - source: nccih
+        kind: adverse
+        ru: Внутрь в изученных дозах кратковременно может быть безопасно, но у некоторых возможны диарея, головная боль, тошнота, отрыжка
+        quote: Oral lavender products might be safe in the short-term and in the amounts tested in studies of anxiety or other conditions. However, some people may experience adverse effects such as diarrhea, headache, nausea, or burping.
+        url: https://www.nccih.nih.gov/health/lavender
+      - source: nccih
+        kind: warning
+        ru: Местные средства с лавандой могут вызывать аллергические кожные реакции у некоторых людей
+        quote: Topical products containing lavender may cause allergic skin reactions in some people.
+        url: https://www.nccih.nih.gov/health/lavender
+      - source: nccih
+        kind: warning
+        ru: У детей при местном применении средств с лавандой описаны единичные случаи набухания ткани молочной железы; роль лаванды неясна
+        quote: A few cases of swelling of breast tissue have been reported in children who used topical products containing lavender. However, it’s unclear whether the lavender was responsible for the breast swelling, a condition that can have many causes.
+        url: https://www.nccih.nih.gov/health/lavender
+      - source: nccih
+        kind: interaction
+        ru: Теоретически лаванда может взаимодействовать с некоторыми седативными препаратами или травами — особенно важно перед операцией
+        quote: There are theoretical reasons to suspect that lavender might interact with some sedative drugs or herbs, which is especially important if you have an upcoming surgical procedure.
+        url: https://www.nccih.nih.gov/health/lavender
+      - source: lactmed
+        kind: lactation
+        ru: Лаванда в целом хорошо переносится, но данных о безопасности и эффективности у кормящих матерей и детей нет
+        quote: In general, lavender is well tolerated, but no data exist on the safety and efficacy of lavender in nursing mothers or infants.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM948/
+      - source: lactmed
+        kind: lactation
+        ru: Масло лаванды обладает эстрогенной и антиандрогенной активностью, поэтому нанесения вокруг груди следует избегать
+        quote: Lavender oil has estrogenic and antiandrogenic activity, so topical application around the breast should be avoided.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM948/
+      liver:
+        score: E
+        ru: маловероятная причина поражения печени
+        quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
+        url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Lavender/
+      trts: null
     identification: null
     grls: null
   navigationAliases:
@@ -238,3 +276,6 @@ metadata:
 
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/lavandulae-flos (обновлено 13/06/2012). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Lavandula_angustifolia_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-087.jpg)
+- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/lavender (US public domain)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM948/ (US public domain)
+- LiverTox (NIDDK), шкала вероятности поражения печени: https://www.ncbi.nlm.nih.gov/books/n/livertox/Lavender/ (US public domain)

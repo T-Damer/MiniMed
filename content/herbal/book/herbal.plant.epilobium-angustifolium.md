@@ -192,6 +192,7 @@ metadata:
         effectRu: исследования метаболитов ойнотеинов A и B и их действия на клетки рака простаты представляются интересными для обоснования традиционного применения
         evidence: review
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

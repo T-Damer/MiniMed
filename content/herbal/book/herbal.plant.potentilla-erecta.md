@@ -203,6 +203,7 @@ metadata:
         effectRu: танины обладают противомикробным действием независимо от растения-источника
         evidence: review
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0023.15

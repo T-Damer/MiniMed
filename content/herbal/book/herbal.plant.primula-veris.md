@@ -336,6 +336,7 @@ metadata:
         effectRu: Подземные органы не содержат примина и других хиноидных соединений, ответственных за контактно-аллергенные свойства надземных частей видов рода Primula
         evidence: review
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0124

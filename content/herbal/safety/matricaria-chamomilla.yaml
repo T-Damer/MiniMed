@@ -1,0 +1,29 @@
+plant: matricaria-chamomilla
+nccih: chamomile
+lactmed: LM897
+livertox: Chamomile
+lines:
+- source: nccih
+  kind: adverse
+  ru: 'Нечасто: тошнота, головокружение, аллергические реакции, включая тяжёлую гиперчувствительность и анафилаксию'
+  quote: Side effects are uncommon and may include nausea, dizziness, and allergic reactions, including severe hypersensitivity reactions and anaphylaxis, in some people.
+- source: nccih
+  kind: warning
+  ru: 'Аллергические реакции на ромашку вероятнее при аллергии на родственные растения: амброзию, хризантемы, бархатцы, маргаритки'
+  quote: People are more likely to experience allergic reactions to chamomile if they’re allergic to related plants such as ragweed, chrysanthemums, marigolds, or daisies.
+- source: nccih
+  kind: interaction
+  ru: По предварительным данным, может снижать эффект оральных контрацептивов; может ухудшать эстрогензависимые состояния, например рак молочной железы или матки
+  quote: Preliminary studies suggest that taking chamomile along with birth control pills might decrease the effects of birth control pills. In addition, chamomile might worsen any condition that is sensitive to exposure to estrogen, such as breast or uterine cancer.
+- source: nccih
+  kind: interaction
+  ru: Описаны взаимодействия ромашки с некоторыми препаратами печёночного метаболизма и варфарином; теоретически возможны и с другими, например седативными
+  quote: Interactions between chamomile and some drugs metabolized by the liver and warfarin (a blood thinner) have been reported, and there are theoretical reasons to suspect that chamomile might interact with other drugs as well, such as sedatives.
+- source: lactmed
+  kind: lactation
+  ru: Данных о безопасности ромашки у кормящих матерей и детей нет, хотя изредка возможна сенсибилизация
+  quote: No data exist on the safety of chamomile in nursing mothers or infants, although rare sensitization may occur (see below).
+- source: lactmed
+  kind: lactation
+  ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+  quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.

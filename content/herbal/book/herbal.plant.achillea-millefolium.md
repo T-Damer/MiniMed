@@ -229,6 +229,7 @@ metadata:
         effectRu: у крыс уменьшал отёк лапы (на 29%; индометацин — на 45%)
         evidence: animal
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0101

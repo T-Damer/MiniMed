@@ -408,6 +408,7 @@ metadata:
         effectRu: по оценке EMA, использованные в этих опытах концентрации слишком высоки, чтобы быть значимыми для механизма действия у человека
         evidence: review
     redBook: null
+    safety: null
     identification:
       source:
         number: ФС.2.5.0047.15

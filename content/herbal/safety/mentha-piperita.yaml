@@ -1,0 +1,11 @@
+plant: mentha-piperita
+lactmed: LM935
+lines:
+  - source: lactmed
+    kind: lactation
+    ru: "Ментол и 1,8-цинеол выделяются в грудное молоко в малых количествах; выделение других компонентов не изучено"
+    quote: "Menthol and 1,8-cineol are excreted into breastmilk in small quantities; the excretion of other components has not been studied."
+  - source: lactmed
+    kind: lactation
+    ru: "Мяту также используют для подавления лактации; это показано in vitro и на животных при высоких дозах"
+    quote: "However, peppermint is also used to suppress milk production, which has been demonstrated in vitro and in animals with high doses."

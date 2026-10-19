@@ -15,6 +15,9 @@ import {
   limitFacts,
   type QuotedValue,
   redBookLabel,
+  safetyLabel,
+  safetySourceLabel,
+  supplementRuleLine,
   useTypeLabel,
 } from './herbal-chapter';
 
@@ -199,6 +202,69 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
     </Show>
   );
 
+  const safety = () => props.chapter.safety;
+  const safetyBlock = (): JSX.Element => (
+    <Show when={safety()}>
+      {(item) => (
+        <>
+          <h2 class="herbal-chapter__heading">
+            Безопасность
+            <span class="herbal-chapter__tag herbal-chapter__tag--draft">черновик</span>
+          </h2>
+          <div class="herbal-chapter__cells">
+            <Show when={item().supplements}>
+              {(rule) => (
+                <QuoteCell
+                  label="БАД"
+                  value={supplementRuleLine(rule())}
+                  source={{
+                    quote: rule().quote,
+                    label: rule().label,
+                    url: rule().url,
+                    english: false,
+                  }}
+                  wide
+                  warn
+                />
+              )}
+            </Show>
+            <Show when={item().liver}>
+              {(liver) => (
+                <QuoteCell
+                  label="Печень"
+                  value={capitalize(liver().ru)}
+                  note={`LiverTox: ${liver().score}`}
+                  source={{
+                    quote: liver().quote,
+                    label: 'LiverTox',
+                    url: liver().url,
+                    english: true,
+                  }}
+                  wide
+                />
+              )}
+            </Show>
+            <For each={item().lines}>
+              {(line) => (
+                <QuoteCell
+                  label={safetyLabel(line.kind)}
+                  value={line.ru}
+                  source={{
+                    quote: line.quote,
+                    label: safetySourceLabel(line.source),
+                    url: line.url,
+                    english: true,
+                  }}
+                  wide
+                />
+              )}
+            </For>
+          </div>
+        </>
+      )}
+    </Show>
+  );
+
   const limitsFirst = (): boolean => ema()?.useType === 'public-statement';
   const limitsBlock = (): JSX.Element => (
     <Show when={limits().length > 0}>
@@ -244,7 +310,10 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
       </Show>
 
       {/* EMA found no safe oral use (a public statement): its verdict comes before the recipe. */}
-      <Show when={limitsFirst()}>{limitsBlock()}</Show>
+      <Show when={limitsFirst()}>
+        {limitsBlock()}
+        {safetyBlock()}
+      </Show>
       <Show when={brewCells().length > 0}>
         <h2 class="herbal-chapter__heading">
           Как заварить
@@ -269,7 +338,10 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
           </For>
         </div>
       </Show>
-      <Show when={!limitsFirst()}>{limitsBlock()}</Show>
+      <Show when={!limitsFirst()}>
+        {limitsBlock()}
+        {safetyBlock()}
+      </Show>
       {lookalikesBlock()}
       <Show when={posology().length > 0}>
         <h2 class="herbal-chapter__heading">

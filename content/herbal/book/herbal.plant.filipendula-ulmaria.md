@@ -301,6 +301,7 @@ metadata:
         effectRu: метанольные экстракты цветков (основные компоненты — флавоноиды) in vitro сильно угнетали активность ксантиноксидазы
         evidence: in-vitro
     redBook: null
+    safety: null
     identification: null
     grls: null
   navigationAliases:

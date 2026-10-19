@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:e4aea6c2297a389960fd47b66f4a0d909327ddd9feafcb993b85ad973cf18fa6
+source_checksum: sha256:258f5057a0e30e7997d0d78447afd3a84bc658beef3c65cd94edacaf17d0c195
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -198,6 +198,22 @@ metadata:
         effectRu: данных мало; по аналогии с другими слабительными этой группы, например сенной, предполагают сходный механизм действия
         evidence: review
     redBook: null
+    safety:
+      lines:
+      - source: lactmed
+        kind: lactation
+        ru: Приём матерью слабительных препаратов крушины может вызвать жидкий стул у детей на грудном вскармливании; их использования следует избегать
+        quote: Maternal intake of the cathartic buckthorn products might cause loose stools in breastfed infants and their use should be avoided.
+        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM941/
+      liver: null
+      trts:
+        section: '1.1'
+        ru: запрещено в составе БАД
+        parts: незрелые плоды, свежая кора
+        number: 157
+        quote: 157. Крушина ломкая (ольховидная) — Frangula alnus Mill — незрелые плоды, свежая кора
+        url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
+        pdfPage: 223
     identification:
       source:
         number: ФС.2.5.0021.18
@@ -387,5 +403,7 @@ metadata:
 - Инструкция ГРЛС «Крушины кора», Изм. № 0, ЛП-№(014171)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/frangulae-cortex (обновлено 26/10/2006). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Rhamnus_frangula_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-120.jpg)
+- LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM941/ (US public domain)
+- ТР ТС 021/2011 «О безопасности пищевой продукции», приложение 7, п. 1.1, № 157 (с. 223 PDF): https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0021.18 «Крушины ольховидной кора»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/krushiny-olkhovidnoy-kora/
 - Не спутать: Конспект лекций для подготовки к экзамену по фармакогнозии. Приложение 4 «Примеси к лекарственному растительному сырью». — Харьков: НФаУ, 2016
