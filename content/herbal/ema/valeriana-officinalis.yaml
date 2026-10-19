@@ -1,0 +1,124 @@
+# EMA/HMPC facts for Валериана лекарственная. Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: valeriana-officinalis
+status: proposed
+useType: both
+facts:
+  - kind: indication
+    ru: Лёгкое нервное напряжение и нарушения сна (хорошо изученное применение — сухой экстракт)
+    doc: monograph
+    page: 4
+    quote: Herbal medicinal product for the relief of mild nervous tension and sleep disorders.
+  - kind: indication
+    ru: Лёгкие симптомы стресса и помощь при засыпании (традиционное применение)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
+  - kind: posology
+    ru: Чай (настой) — подростки и взрослые
+    doc: monograph
+    page: 5
+    quote: "Herbal tea: 0.3-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion"
+    dose: { preparationRu: настой, amount: "0.3-3", unit: г, waterMl: "150", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: При стрессе — до 3 раз в день
+    doc: monograph
+    page: 4
+    quote: "single dose: 0.3-3 g For relief of mild symptoms of mental stress up to 3 times daily."
+    dose: { preparationRu: настой при стрессе, amount: "0.3-3", unit: г, timesPerDay: "3", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Для сна — за полчаса–час до сна, при необходимости ещё раз раньше вечером
+    doc: monograph
+    page: 5
+    quote: To aid sleep, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary.
+  - kind: posology
+    ru: Ванна — 100 г корня на полную ванну, не чаще 1 раза в день
+    doc: monograph
+    page: 6
+    quote: "a) single dose: 100 g for a full bath; up to 1 bath daily"
+    dose: { preparationRu: ванна, amount: "100", unit: г, timesPerDay: "1", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Действует постепенно — не для быстрого эффекта; нужен курс 2–4 недели
+    doc: monograph
+    page: 5
+    quote: To achieve an optimal treatment effect, continued use over 2-4 weeks is recommended.
+  - kind: duration
+    ru: Если через 2 недели не лучше или хуже — к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist or worsen after 2 weeks of continued use, a doctor or a pharmacist should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Аллергия на валериану
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substance.
+  - kind: contraindication
+    ru: Ванны нельзя при открытых ранах, больших повреждениях и острых болезнях кожи, высокой температуре, тяжёлых инфекциях, нарушениях кровообращения и сердечной недостаточности
+    doc: monograph
+    page: 6
+    quote: Full baths are contraindicated in cases of open wounds, large skin injuries, acute skin diseases, high fever, severe infections, severe circulatory disturbances and cardiac insufficiency.
+  - kind: warning
+    ru: Может снижать внимание — не садиться за руль и не работать с механизмами
+    doc: monograph
+    page: 7
+    quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 7
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Возможны тошнота и спазмы в животе
+    doc: monograph
+    page: 8
+    quote: Gastrointestinal symptoms (e.g. nausea, abdominal cramps) may occur after ingestion of valerian root preparations.
+  - kind: overdose
+    ru: Около 20 г корня — слабость, спазмы в животе, стеснение в груди, головокружение, дрожь рук, широкие зрачки; прошло за 24 часа
+    doc: monograph
+    page: 8
+    quote: Valerian root at a dose of approximately 20 g caused symptoms such as fatigue, abdominal cramp, chest tightness, light-headedness, hand tremor and mydriasis, which disappeared within 24 hours.
+constituents:
+  - compound: valerenic acid
+    compoundRu: валереновая кислота
+    classRu: сесквитерпеновые кислоты
+    effectRu: тормозит нейроны через ГАМК-рецепторы (успокаивающее)
+    evidence: in-vitro
+    doc: assessment-report
+    page: 26
+    quote: caused an inhibitory effect on muscimol-sensitive NTS neurons which was mediated via GABAA-receptors
+  - compound: valerenic acid, valeranone
+    compoundRu: валереновая кислота, валеранон
+    classRu: сесквитерпены
+    effectRu: удлиняют сон (снотворное действие)
+    evidence: animal
+    doc: assessment-report
+    page: 29
+    quote: valerenic acid and valeranone were found to prolong the barbiturate induced sleeping time
+  - compound: 6-methylapigenin
+    compoundRu: метилапигенин
+    classRu: флавоноиды
+    effectRu: связывается с бензодиазепиновым участком ГАМК-рецептора
+    evidence: in-vitro
+    doc: assessment-report
+    page: 29
+    quote: which is a ligand for the benzodiazepine binding site of the GABAA-receptor
+  - compound: acetylvalerenolic acid, valerenic acid
+    compoundRu: ацетилвалеренолевая и валереновая кислоты
+    classRu: сесквитерпены
+    effectRu: противовоспалительное (подавляют NF-κB)
+    evidence: in-vitro
+    doc: assessment-report
+    page: 32
+    quote: Acetylvalerenolic acid reduced NF-kappaB activity to 4%, whereas valerenic acid reduced NF-kappaB activity to 25%.

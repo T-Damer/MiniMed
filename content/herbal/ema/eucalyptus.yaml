@@ -1,0 +1,109 @@
+# EMA/HMPC facts for Эвкалипт (лист). ГРЛС: эвкалипт прутовидный; EMA: Eucalyptus globulus. Draft
+# artifact (status: proposed): Russian fields are a reader's rendering of the quoted English sentence.
+plant: eucalyptus
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте (EMA — эвкалипт шаровидный)
+    doc: monograph
+    page: 3
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Облегчение кашля при простуде
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product used for relief of cough associated with cold.
+  - kind: posology
+    ru: Чай (настой) внутрь — подростки и взрослые
+    doc: monograph
+    page: 3
+    quote: "Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily."
+    dose: { preparationRu: настой, amount: "1.5-3", unit: г, waterMl: "150", timesPerDay: "4", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Ингаляция — залить лист кипятком
+    doc: monograph
+    page: 3
+    quote: "3 g of the comminuted herbal substance in boiling water, up to 3 times daily."
+    dose: { preparationRu: настой для ингаляции, amount: "3", unit: г, timesPerDay: "3", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 30 месяцев нельзя — риск спазма гортани от цинеола
+    doc: monograph
+    page: 4
+    quote: Children under 30 months of age, because there is a risk that cineole containing preparations, like other essential oils, can induce laryngospasm.
+    minAgeMonths: 30
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 3
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы держатся дольше 1 недели — к врачу
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на эвкалипт
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: Одышка, температура или гнойная мокрота — к врачу
+    doc: monograph
+    page: 4
+    quote: When dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 5
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Побочные эффекты не известны
+    doc: monograph
+    page: 5
+    quote: Undesirable effects None known.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 5
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: 1,8-cineole (eucalyptol)
+    compoundRu: цинеол (эвкалиптол)
+    classRu: эфирное масло (монотерпены)
+    effectRu: главный компонент эфирного масла
+    evidence: review
+    doc: assessment-report
+    page: 3
+    quote: The oil contains as a major constituent 1,8-cineole in an amount of 54-95%
+  - compound: 1,8-cineole
+    compoundRu: цинеол
+    classRu: эфирное масло
+    effectRu: считается главным антибактериальным компонентом листа
+    evidence: in-vitro
+    doc: assessment-report
+    page: 11
+    quote: it seems to be the main active compound in the leaves.
+  - compound: macrocarpals
+    compoundRu: макрокарпали
+    classRu: флороглюцины
+    effectRu: антибактериальное против бактерий полости рта
+    evidence: in-vitro
+    doc: assessment-report
+    page: 12
+    quote: The results demonstrated an antibacterial activity against periodontopathic bacteria.
+  - compound: tannins
+    compoundRu: дубильные вещества
+    classRu: танины
+    effectRu: противовирусное
+    evidence: in-vitro
+    doc: assessment-report
+    page: 12
+    quote: The authors indicated that the tannins content may be responsible for the virustatic effect.

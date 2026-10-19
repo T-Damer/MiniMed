@@ -30,6 +30,9 @@ import {
   ReaderActionsMenu,
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
+import { HerbalChapterPanel } from '@/features/herbal/HerbalChapterPanel';
+import { readHerbalChapter } from '@/features/herbal/herbal-chapter';
+import { herbalHeroPicture } from '@/features/herbal/herbal-hero';
 import { Icd10ToIcd11Panel } from '@/features/icd11/Icd10ToIcd11Panel';
 import { Icd11CardPanel } from '@/features/icd11/Icd11CardPanel';
 import { isIcd11Document } from '@/features/icd11/icd11-document';
@@ -72,7 +75,7 @@ import { earlierEditionDocumentIds } from '@/features/library/edition-predecesso
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { PrintedContentsBlock } from '@/features/library/PrintedContentsBlock';
 import { type PrintedContents, splitPrintedContents } from '@/features/library/printed-contents';
-import { ReaderHero } from '@/features/library/ReaderHero';
+import { type HeroPicture, ReaderHero } from '@/features/library/ReaderHero';
 import { ReaderSectionPath } from '@/features/library/ReaderSectionPath';
 import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import { createReaderJumpHistory } from '@/features/library/reader-jump-history';
@@ -1142,6 +1145,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     }
     return undefined;
   });
+  const herbalChapter = createMemo(() =>
+    props.document ? readHerbalChapter(props.document) : null,
+  );
+  const heroPicture = createMemo((): HeroPicture | undefined => {
+    const chapter = herbalChapter();
+    if (chapter) return herbalHeroPicture(chapter);
+    const documentId = heroImageDocumentId();
+    if (!documentId) return undefined;
+    return {
+      key: documentId,
+      resolve: () => getReferenceImageResolver().resolveFirst(documentId),
+      credit: 'Фото: Красота и медицина',
+    };
+  });
   const [heroImageSource, setHeroImageSource] = createSignal<string | null>(null);
 
   const copySectionLink = async (documentId: string, sectionAnchor: string): Promise<void> => {
@@ -1451,10 +1468,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   when={drugScreen()}
                   fallback={
                     <>
-                      <ReaderHero
-                        imageDocumentId={heroImageDocumentId()}
-                        onSource={setHeroImageSource}
-                      >
+                      <ReaderHero picture={heroPicture()} onSource={setHeroImageSource}>
                         <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
                           <h1
                             class="document-overlay-paper__title"
@@ -1492,6 +1506,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       </ReaderHero>
                       <Show when={medicationPointerSlug()}>
                         {(slug) => <DrugIndexAtc slug={slug()} />}
+                      </Show>
+                      <Show when={herbalChapter()}>
+                        {(chapter) => <HerbalChapterPanel chapter={chapter()} />}
                       </Show>
                       <header class="document-overlay-paper__header">
                         <Show when={displayDocumentSubtitle(documentValue())}>

@@ -1,0 +1,110 @@
+# EMA/HMPC facts for Календула лекарственная (ноготки, цветки). Draft artifact (status: proposed):
+# Russian fields are a reader's rendering of the quoted English sentence.
+plant: calendula-officinalis
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкое воспаление кожи (например, солнечный ожог) и заживление мелких ран
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations of the skin (such as sunburn) and as an aid in healing of minor wounds.
+  - kind: indication
+    ru: Небольшое воспаление во рту и горле (полоскания)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations in the mouth or the throat.
+  - kind: posology
+    ru: Тёплый настой для повязок на кожу
+    doc: monograph
+    page: 4
+    quote: "a) Single dose: 1-2 g herbal substance or comminuted herbal substance in 150 ml water. The still warm infusion is used to prepare impregnated dressings Daily dose: 2 to 4 times"
+    dose: { preparationRu: настой для повязок, amount: "1-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "дети, подростки и взрослые" }
+  - kind: posology
+    ru: Тёплый настой для полоскания рта и горла
+    doc: monograph
+    page: 5
+    quote: "1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times"
+    dose: { preparationRu: настой для полоскания, amount: "1-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Повязку снимать через 30–60 минут
+    doc: monograph
+    page: 5
+    quote: "Impregnated dressings: remove after 30-60 minutes"
+  - kind: age
+    ru: На кожу — не младше 6 лет
+    doc: monograph
+    page: 5
+    quote: The use in children under 6 years of age is not recommended
+    minAgeMonths: 72
+  - kind: age
+    ru: Полоскания — не младше 12 лет
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы держатся дольше 1 недели — к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на календулу и другие астровые (сложноцветные)
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
+  - kind: warning
+    ru: Если на коже признаки инфекции или хуже — к врачу
+    doc: monograph
+    page: 6
+    quote: If signs of skin infection are observed or the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 6
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Описана аллергизация кожи
+    doc: monograph
+    page: 7
+    quote: Skin sensitization has been reported.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: triterpenoids
+    compoundRu: тритерпеноиды
+    classRu: тритерпены
+    effectRu: главные противовоспалительные вещества
+    evidence: animal
+    doc: assessment-report
+    page: 17
+    quote: triterpenoids were shown to be the most important anti-inflammatory principles in the CO2 extract
+  - compound: faradiol
+    compoundRu: фарадиол
+    classRu: тритерпеновые диолы
+    effectRu: снимает отёк не хуже индометацина (по молям)
+    evidence: animal
+    doc: assessment-report
+    page: 17
+    quote: The most active substance in the croton oil test is faradiol, its molar activity is comparable to indometacin
+  - compound: n-hexane and ethanolic flower extracts
+    compoundRu: экстракты цветков
+    effectRu: ускоряют заживление ран — миграцию клеток кожи и образование грануляций
+    evidence: in-vitro
+    doc: assessment-report
+    page: 16
+    quote: The effect of the Calendula extracts on the new tissue formation phase of wound healing was evaluated

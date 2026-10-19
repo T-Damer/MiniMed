@@ -1,0 +1,350 @@
+---
+id: herbal.plant.juniperus-communis
+title: Можжевельник обыкновенный
+short_title: Можжевельник обыкновенный
+version_label: grls-24.07.2026
+source_type: herbal_monograph
+status: active
+specialties:
+- phytotherapy
+age_groups: []
+source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
+source_checksum: sha256:7bcd9a9275ca0f47d071e9bad08afb34f37b1a4cafcb73a1059238c0dc48e3ab
+synthetic_fixture: false
+metadata:
+  authorityTier: official-regulatory-act
+  jurisdiction: RU
+  documentKind: травник
+  contentMode: verbatim
+  rightsStatus: official-and-attributed-sources
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  publicationState: experimental-preview
+  publicationDecision:
+    decidedAt: '2026-10-18'
+    decidedBy: project owner
+    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+  requiresReview: true
+  calculationRequired: false
+  clinicalContextRequired: true
+  herbal:
+    plantId: juniperus-communis
+    latin: Juniperus communis L.
+    family: Cupressaceae
+    partRu: плоды
+    partLa: galbulus
+    actions:
+    - противовоспалительное
+    - мочегонное
+    - противомикробное
+    brew:
+      kind: настой
+      herb:
+        value: 10 г
+        quote: Около 10 г (1 столовая ложка) плодов можжевельника помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      water:
+        value: 200 мл
+        quote: Около 10 г (1 столовая ложка) плодов можжевельника помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      heat:
+        value: 15 мин
+        quote: Около 10 г (1 столовая ложка) плодов можжевельника помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      steep:
+        value: 45 мин
+        quote: Около 10 г (1 столовая ложка) плодов можжевельника помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      times:
+        value: 3–4 раза в день
+        quote: Настой принимают внутрь в теплом виде по 1 столовой ложке 3-4 раза в день после еды.
+      dose:
+        value: по 1 столовой ложке 3-4 раза в день после еды
+        quote: Настой принимают внутрь в теплом виде по 1 столовой ложке 3-4 раза в день после еды.
+      course:
+        value: 3–4 недели
+        quote: Курс лечения 3-4 недели.
+    thumbnail: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQkKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wgARCAEwAPADAREAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAABQAEAwYCAf/EABkBAQEBAQEBAAAAAAAAAAAAAAABAgMEBf/aAAwDAQACEAMQAAAB3AiIiIiIiIiDcJultIiIiIiIiIiIiIiIiJVAbMD8mr72XSIiIiIiIicZQudIdoiDOOifXLSJFkrIECcNBuk9EFcc2aQcLVNd6icRSW1YIgnjQ/mum9mZG0LFznz+hX0ZN+vCJ5GRxnnGpiH+1upM55sQeVs1bK1PrqJnucD5H9jW6iZ/y2Dzp30wh0gHy6i5d89HfbiT0iQZMrxaTql6siIfJN6o0md8yNzF/QO96nACxAWYUt1HS+iBPNodxGvTCPWC+V5423pJ/edVAkzXGcyldtB0uV8Mi4F/YP8AWxpAXz5Z0aL3aQfIG5yXumtLFRB/EH46J98lepI+V9e0giQJyUGr6pi4zy4h4GO2tR3vtcxTJItjIgHA3tLt9ETgh80ra2mAXj6SOsK+jCRpAeLKT3Q1q57z5zfCbD2ajYEN3hCOrUma4yTuwMzTdbKtRERI+UjSDwue8HSLtp/Tgj6swcwTy170yc1b6Hc85/ldb6LXJmeMst1fepm+ci4EOkK6sm1ETg7I+EbNtSFyvehLtHQNmCuV0vWdVLWLJKt8IkgvKFlp+t4SLlmuQt1mg3rnKymkDSGVHcLXjRX148OY6r0okC40Z3OSqQFySqvpobh7to9qQfiiMtN1leQDlCG7o+tTJ5zrLoF5LIzSvuzxFZfUSB2YOllWFKh5AsSRmk+gt0Ccqs2buTqF40Z3OqzXCR+U8rXerTWMxnZb1Vl5F+1UdJwt1eATF7uR2ZTmk+iyIeWi62PIJ511JNDuejPXMgg80TzOu8P99JjcZ2W9IOki4CUKW80atoBmK3MDNqufA5ulrejwzvOVrKsF5p7cn2xZBvlhD0Uh0qY7GdjvScgrEA5SDgnVK0ozviZ61BmFVdwf0K9LDkiZDudmdJHxvS9c81xJ0d2omVznTXVlIG5yRq0pQMtMTrc/lahrcSNzdaG92lO4yvHUzpkbNGumLom2wUJW2qkWTyL7bKjR0XFCcrIrNcrBxvVduXFs05A2Z6eHZRERSltFzGSLmV1OmtP0qJFzKydqjcQJkV2J220gbMhc+s3pzIV3VwNzM1zTrYpMsH5s/SFJahjd7qPzSNiurFS6B2BXpR+Wa5yPlqe1m1cC8oOOnGuQuD2xa3K+eHe5AmUfNjnqkd4uo7q2Fq8nQLQpKCxk700OzAuUbKfultTla5BPPUKJeskNWZIE5tZ3tBWRUEYDIs1J9HrZtvoiCZC1oLnk701xAaQflIlnbB5BuZobsLJNs0+7VFlXUicQPjJ84o6ajdKW9iIJkLWhecl6s2op5AXKKMQEMaonnubvnrt3ukREpgfihbL7mbaZt7ERBEhe0NzlQa3bCNAWTO5FaO7rID49J/Xn1UtZtXUnhCkj41RYQ1Ja8DLbqIgeQxbEzLLb6SuAkZPnJaH+ltHn1d8srhMrX9LLrw9EiZvtkqq8s14+8SXSerkQ648BmYU1WI4kivCFkISSAebR9QDjuuYl9lGWj26PFm1YeiIL4bE+P0V2zO+NF6/MnMdVGkFZRImUX1bqoiGmc5O86iNkenONmKyekhSSbS1FrbREjY1lvH3rlPejmY9HFI6QYEZRIIVEzSNFNwTHOUzSJmjefSzfL3KnbR6uayjIW00WrLInPUHh0nd8VpA4dDvq4+1GkFwKkrlKqLiZaLzLNWfnAbnqdu2aDs9NF15TKsJANSORubV9b5GW8HphbzJnTV+3yd0iQJMpyF9qzRasKIyDYGZug1OSiiq57noz1xZLaQcwntZbHwk6dGX8Pop1LWtd7PN1SIIwHoc1Ul1Bius/lMk8IGECoxIurmfLb8L013W20iJE56h8OkztiX1wiJGjovrw9E4AOZYBOVh0M6tphmKjwY0n2GYIavRWZVB5tVklMXUPxohvKIlebHBfKE+q6g2YOy91SCeWyaozAed3bzTJq9CFqYlMxYMmtdJu1gSFNUTmk7LahSUxcuc5apk1faSazmY2w01mr3DXEZbl0p3yi4aXqIWyTAyA7Ba7gJ4aLVoXpLqROIFZmP561HSSU9IIf1e6Yynk9ug9Pkv3nLctlt87atln6INMYCOethrJ6ydbifN39Ta+niiQswbE22lotcxziPUl6tZj/D7z3q8hHfPiWBnRHeL6REozcn5u8/rz0nbnWZvluFLte3NB+VKFtVERERE5jqkSBz1P6ZREROY9r08ET0REREREREREREREREROY8PTqkRERERERERERERERERERE//xAAvEAACAgEEAQQABQQCAwAAAAADAgEEABIRExAFFCEiICMzMSQ1MAYlNFAyQEFC/9oACAEBAAEFAv69q2gMFMsP/wAp20zbuSjhYXJXLJY/rS0RkWxa+/VbWPoaCbV7Iz5deVxUU7VBBVej2JUqWomLBpaKZt37l1iSmQajeCL3clNe+5ANrFlo8BQUNL1DNH0mdoIwnMFXgg6cFwQlEnVyNB6zajD/AD6/vd78nvKNMjpeOiRA7ISZJpmCUvYU+0XWjVytEchFkD8idWWVhVQcyrUDgtS5MxGTZHD4cSmRQErkV9m8dx96o3u7SI8RBK9UhXj27NKxLTO9HaR56ZWZhO8pXiYVYWJ/RPllyCpbrkcS1apuSf0cxGgzbt4w7N0wtxzEoyzsTr/7O0oYCVxMmr6HFql4+Xj/AMvoxYEse8dWtYz3jchAwQ5KkrI2jePy2PHy8Sky2/TLDZAUicY41Y6a0FzkIsmb6zG8lqo+DSBp1cnkymbderA+UR2U1axbSvFOWL1e+Ngs7v41ZWpeIVMEeJr17MGnG15fEzT6uGpnLJsrD4g/Yj8fVksIvPGoJJyu5OTeMMXgaxCGwSTXcRhlyf0shYiRQNOCSBjKFSKVXr54n8zq5ZsBJYhZPSGIg1ANfrDbth01ipvMocWvC1InIpxyqirhEUin1DSm8RZJZRGHBJnIOsl6kmpyjci00I6jWVid9VgRTDgJtFITqqxtEusT2En+RwlmIYXvZ6lojshFSXpha4JBjx5aMculaT/vrBymLXKocsVJJLDtplUnwEpIUnywtxhZr5oRwzFyzxJ+pvH2Z7G23mMMGOddoPje6qONsIMm9hoIgrcDObljBWAyhSDTIbjcYxYPx4piZQayoDPypUMxWLgZSVuGjRCxEZ5BfxYFGoMR6jqP5WckayqCRJzdWmJjAvyCyY3ww1Fa5iOKCghFVsOYO/ol08VgMrO6kmYyywlwLkti4kU1sRfUR6rZFJl5M/8AVRNz9N/J9WbXBMXhlhDEBYr2eW3QK04QijSs/ICyMiFkfBIK5TQiPykIiHKbWZYhY6tSpcHa1msPL4hDTa2slxF0Kbcie8RTSVXp/wCS6mN4mgHcqxJvStFiJgLsdCoL8Itk6yH850IQVkp19R8IFTsRXwfkAP0ZSkjhxSEU0EkEpah7eb+7vpneN+3X/KNO3fkTSq1qqhSsko9cEHL5AHK5hWYixI3qpMTWBASFNEEKiRYP5MXxrMG2KNoxixClfjGXWOY5OJHC5q8k31yt2xESGi0uiPDr1Ao5rX5KNqTHGkuIilTARpRF3NP6WqzrlJoduQLQAaZEREOsOrqMCephwF96tloNVCjRFVCu3jojjKy173kiQRiWmcbDPtTcbk7s/k1J+OHIQM17KDKImrBvr7OVXYWr1TDEInLHMJ9cZfYUA4dNQ+619bQ9Izc6l4i13kAWPDGpV+Ry+PDI6iIw7tSJXx5uUWK29gkakqT88sbzlgQVhSMPIVQ1wSzCn2zb1T2QoElmtrlLEo1M08O8wm3qbdkUsP4jFVhnrFFAzNMM2qGyvAuQW9I4CwZETROQsR0H/dwPxNlmqpskAtPHy45CWW5iLEk43pnHw3ZGZdtQgUfUDrVyjyw/ELx6O9nCjgmSPSXigE2mQ7/h8UupctHnkqpIRfQP8hhfgXHjUtkIkHAisMRh1Wa2pJsCcOQXQums9bYU169jSIf/AEOFTKMajjtlhsKgzC2jQZWSVgkTXrqSFWFjtfbyeX404tkWiJ1Q0IjfjtlmByvKnJrEWFUUFDalQxrLHjhkUiTMx9XJCZY53DUVRPflStokNlVhfq/t5PPIw0gq1JkSLoXCtth2CuEb50EVmVeZDjRIGiPlaxAlSzHI1jbBNrXqcYRsNFiA1asEAOsqTMRMew1UiP8AS17W8sJLwBZQXTrLQb3j5a0nTjl0DROGKTqxzjchZ1LgJc9saE6j37tf69WNq2EbQhJZ5VZymTUnR4iS9EJxtL6SZPvloMlEStoJaMNME8gsKBjSYyzcUusyV5Ya19yiI8ZVJJMqmhsI+hIn6WH1Inu2+UZ/F62jfCuOFayJcYmLaac5IlMl4w4EKNwupBks7WolTVNIUI6xgSl4xGGaIdxBsEXnsuxDjWEXuwnIOZkT++mgLTHUN8+SdXp4IYgoAdHAUhXGhlsQ0MXfOVltNZRcGbkqPKPTrM3qFEr5FQmoVRuX0Q5h60+p3IE/jyqCvXG6xhzwFfW+wTqXLIeRUrvL9FJow9gRVgkGlmIUXAdx1QPJHGeS69kWxuxzBIWdTuBCjw3Ohdm9RuMBirqxnRxy/wA9UDC1eKw629U+T7Q77rDSuDaZIs6l7ONiKX4ZSqjIEqulmfktWFUIa5MtDIBqzjV6yhmb0wEkckzz8uXRoHGsEJiqqV4mHURNhiGsOwtZbwOUVeWkJG9zxtMbTgwasWNl7uToWhDyygRcdf3GCWeHgM+FqwS9NbSwtI1sE/FrnhbCs8Ht3my3efTTuTNeCuuJJpcSwqfQwILE1n1hAo/qcKmVBwk/R20roas9azBLUtCSdNg1hOZzgG47lJxrREOxhfGyz1f29GsJFCu+2O6jWx5idx+dJD1zpYFnJ+LnC/qvoSdKDPDVyWW11CyYRCKmWYMo3eLRojgTyFRyZ4ypIcrC/aOG040G0gr2nRxRPGtgWrrzhmYrTtGf28aYOcqhF49WlWjeLgzQEWriwwn3SzMSY8KIdhYSWYrVRcIW22NMwZqcPVOIslG0OP23iIjCTMKNoi1aQDNMFFAdhQiPvnm4kVySLs07z/b9WVw+9y3EbQUyCgRUKvbKrwepGkqSkissNPXLk3hwtF1dx6NO0ZERGWiM9iobnC6xjB1UqSaJM/K9etwv1aAluDeDOuNV4mBbf0dOvFcWXCTF4U8fkuzWUFkKW3JK6uDxrE4dMThK4iRFQER6YMZEbQ8tlncdjxg5SuZZcTjjhptMiEJRL9DtKiskckUKjjfHmYi9UOazUpn9V1Yk04GlC/0piJ+ih02ftMQ0f8BKxOaYzTH/AAP/xAAlEQABAwQCAgMBAQEAAAAAAAABABECMCAQITFAA0ESMiITUGD/2gAIAQMBAT8B/wB5rBF6r9EKQplCscDJsHTCdHDrSeg6foNY1x7AGlIWCw9QJ8HIsI6QRw6ewcVTRZHi/wBXtaFLnBoeumOl6qDjpDoirBENTPHSGlIbXFCODYKwKkaIRRweifpQbARwya8UY/Uii69o80hRjso6ojnqR5UtGiEemCp80Y8o89TyUY8o82N0J8CjHmz4sgFOLGvIvFNThyhjyfWsy18U+GoxLFA48h9Vz9U1ERdfzClAhCRCM6GlrDIoBaWkD+aXAQKH6R6I4phM2+kDhqAkQv6KU3rNl676a0IhjTlqqGuJfdORcXtaz3ih44D4qYY4hvVABHMOF5BcNKV/ikPivId4BYqY3dHlfgKXx9ZiWUi/Sdx/xf8A/8QAKBEAAgIBBAICAwACAwAAAAAAAQARAhAhIAMxEkEwIlEyE0BCYGFx/9oACAECAQE/AfnNo/zbWhEI+cmEctTsPJFo3SksT2gAZvyeLXkBDa34eO5Oh+K8SioGrUyMWtDc6y8XL6O2WCUcX52cgko0DPtrrbZdP6tetl4to10EB4+tcXsLP8wxHTx28qzksTkmH+tZxYS2oQGREPFGy2BXZc16RSDLxRGDxBHHeGvFp9kCM2nyRMaIqfeOSbfVPHDxHSMWEiE1NS0P22H8br8flql4wI0ySBtu1GmbDHEPeYfEDE4EnXeaBAjPJySXi5J02W6TYBGuOUNWvTexCLaS1tObV9s6JknT4CYxy2gQ6pB9PDexOuCYb6xCBGbiekUKEiUCNC8eTaC27a/BcSHjtIbU8k8Rl/l9pQAMES17ZzOw9NckSgEtRGJ3W5gHit5WJ3xrmWncpt+EEJr+H7Br1mxIROLGEtbes+8cgizxfvusJQUspQkBHGMzBzY+s27Za9594tUHtrQDf7x0we3RNQWCDm2iNcWBnPIMcYz7yXzDMFBlGT2nRAneUFLOubDRhoNM+9hqHvpFYLMMzixe9cTjyhFxg4mDAf8A1B+3we9lkCBCMEOqdQjpGubj26WxKUjA+G3wkEahqyNnTL6TiurXBZdUWnYWuCYa6bh+20sJllqXpD5IBYxavsI12VwXpBjZ220sEhBZwD5WSNMD8Pi2e2Hr4B3giWEhBnZyPb4IDcwHirGYwdXpn4feyHSrOJBbVEI6ZwRO63WIhE/BZnOqQgvZdEnRr01HwW6a6J+G6K7SYRgtOmcTutMIGZhkbiN3/eYePspZhGp3W6RgmAm5L5Q8dpGZ3kSxjy1wfqSWtpYaj4ef9U44v23SGWdvg1J6Ke0AVD5fhrZn4LiQkY4q+9sMDBH4fLMsttQ1Or5To+BYYfHAObXFX+5lrcWbUFmnGZ2SMwUAsFL5JsEyX7JQNdd4+pydbapAL+qNpQMjNYYGw6HfYSjEQYSzJhGyxgNd0Irjy1RogprKO0uqJ3WoLP8AAtaeO0jfLLKB7wahD7yPi8dZ2kwGdJTYtTOCHtAhNUDBlrqPjGLSdkpOj/qgSgYLEJ2FroU67pycExuNcS+T5I2cl9WpkYt+UYjabbOQEvCdkupYRmAxnkqZeMaYIkNDputMaP3ai3vNqklqIyWPmAg/8L//xAA+EAABAwMCBAQEBAQEBQUAAAABAgARAxIhMUEiEFETMmFxIARCYoFSI5GxoTNy0TDBUFNz4RQkQGOSovDx/9oACAEBAAY/Av8AH6q6MFQgnb/y0zuYYFPJGr7vxBKl/hDk01I9f8fJdvsUiOEe2aRz0LgYVuksJWCoXcJS1qqdxK5mAMOUBJV152p2ZnV3DTo7PYATq7icO5OnsSFyAxwykbMHl1UdA5LsUOHY+yS7bohchQ2d1SqUBY4Vq3eaiinrbEu1GnOTopqB0hlEykZYjb2IWk8MtCFGbzPox3eGdJPsVePRXkz6PPXRy0K1VsGDZaFYDmzAOzk81oB4tGlB8Vxz0D/MPcP1OxWehcl2nHK1TUVDh6up5tX+4dZ5xu17Cf0LtQRaABPmwuuqfIj2eHj82DJJ8i5+bfl3OKRoCyVI9AyagzLhOjwyaZsUPEnzedSREOrb4uvRhVU46XZZdLiw+JT7ajoMcimTlwtMNMczRX6oLXRqkW1IlTmjURP16vij7ey5wCIJ1aj587lexK6epx/V5OmtOx0OzBoIyjeMOQSVfNdrLIZorGZcTLUvYc8iXIHK1SoLkGFJyCzVNOUq84eU00j1n2jLO0sJG3OAwhR9OZTvsWCpIFW61TNOknI/QPulJSv08XILP4XLTO+WCnQbtNRR1wyNOXDB8i7rVDyhlJMVNGij8NNgESGlJOnn7wo+HfllkloAZRUzifTlJ8JH8XSXS1qmC5rfDKWf9wcT4FZ6PDG6g/DGerSgaBkaejFJf8sqmWs//RzI0RsYaQJWSnfd5GRraovCPaR05KS7FeJLmSwhKBG6mFTwjZ4GrhQZp/EcVM6VOnq0IURAVI/R2Jla/wAKXdVgdEjl2xrzNNKgFee7WLMA7LZoohImVL1nyfEsqcJqZ6EMoVZDvHhmLnCPiE+Yty8mXBUPZWR9I5BKd2DvBn3AL0LtCbRbcYdtMAO9HENw+6jiRuySPFMM0/h/CNS+2upcp9xFS07O9RJ62q1cUai758ETLmoQVvjQoEaKTmHCgFDrowi6xIaRkx9BcJ8RceUnL7Ss5wefrI/hy0tTjRoCOec8rqK4+lWjs+IT2lbK2/Vp7mYTYWayApNLdJOXqERsWsoqJhXiS0qCto9HZ/1BHXhYPcKh/BxoPR57aE9Ny7UBNizr0ciUUfxbl/l+FroHxkwOeXcZaQjQcx/X/lyt2cgZ5FPRkdGlfUcsumqkkCQdGqEiomNU6hhNXKduqWmsRfRnTcNPAlXTGrAWJHlqHd8MorpdGCXmlcPJpq0gm5OqYaRU4ae5/E7P5ZPhKd3T4wpZ8OHntB8awfRLSv7cpjA5p/4g5jhlwqUg7viVIBj7NSYiU/q+wcWz93co4aTvDpLSpMXRHR8Sin8NRP7MqCxwq8KnVWlFqkHiQk7OnVoyaaTJ8n2qZyoBgDQc76sinojGpdO/HbGg3LAq/ljaBKmk2rWU7EbPJFJPlkuJJ8y1JtOHkNRO/NP/ABBzhlVyv1ZTTEpSNWmxYJIkNarSkoqS11lqGMIQ6I2NLP2eTkmUvvIjtj8R1dSafj4oBa6yAoHq+530FXiKC80ypSsTLhUoP1crRakP85NSp+zUmhShROh2ZVXSVVOuzuGLgByhpnQmHG59if65/dp9eYpo8SmZypWrWteiBalqrVJi7CC6YTFxLTeb0p3GsM2EHGHxUQv60HP3Y7lUpSPlUrV0qCRwDiUzUKR20YT5nq0rQIjo092O7u7WpX4TDKnf8/ikNJshUzetWrWV0jJ0s2YtqKtOgXlpkEBaYPq1XGBGrV8RUIzj0DuGnM1CkXbF/cMK68hUUMp0dyeX3LVUPonka0A/SHFSLQZ0y8lP3a1Jji6dHA0ZSdC1UkYXFySdy6daQFJOQ1rBxfPq01EKOfD6urTppSoDGdXURItT1yR6NahuthXyqHF5ebR2+IU8qh9nYkanLVRRhI4rZlhNVKlVPqPsV5Zah0PIqi+n06OraYQRIl0KdwUdVQyRpPMU6nAned2ewAgLnxBhVcmorqrZinvEsnaccld2D5NNVclCtnSSVZtm0BmOFINwGuWVKgIqz+rvzG8bsVpGfEgnV1KgVhWNGpKyoDeC1Wp4owZdOolISoYLNSnrrAfFdcnWeS09EhqHkyOqZ5aJA/EovFa5fkGrEKX/AAYWtSilKdGkr1Il5f8A6Kf/AJOlatSRd+LRkCotcJkbtNVapXaUenRpQhJqK36BysgFxdrLp0aeB/Zrr1PEU5/s1UKSOIniVOGUd3wifUtQUizTXZ0ggZ0LX8PUSQleRdq8TUp1BiHenScNUbmeWBy+I9E8kepTykqt9GooItToT8xajRSdftDTRSlJAhSo/Z8VGB1ucVf5avCTswCtIIndqWFDBgeb79JHbCfEUKYUoWCNdyXZetMaEZSXKyCp904A5JnQGXejdMNFQ6ybzDUseEYxqWntqElEKB6v4dCuEjgWWmjTIWqISU7FpRUUJ9tcfSnko9FhXIhqVUMqjhfBRx+Ld/NaRkHV9ugnuKI+zQmsb6R6HwsJUOou11LKaI23DAhSKmhI0U+3fGcn+zHDb5OC4T7M6NZNMSNC00+2FVFeEtaSI6y6S6IyNB+7FWqs1FEOEiPYvzpcr4kEQWnjkxs5c9srU9E0x+pfcNQrIwoHZk1RpTxG7ppXWUkWySTu1U5upK+aMhmgoyQOFRHiZphRGfDOpd8JJIlMvIg+7cnoGo4pgbbumqvorwL6Fg0snf0DPxMCxXCfLzfD7af1UyOQG8sE1IuzhxJPry/lqUPpfcp8KgIUgiLg07oSMHyYFWAgC4JnV06gwUqlPo+4khB/gWsxUC5kLptNKqhVw8PDqxaTbdv0P/NlI8RWQPLzc7befs4K/wCqWq9aCPJLpqqqKhGE7Bq3kQPIODo4JwHwqB9nwqvqj+HJMbFhJ1HPCinzDVFWouNTMAOD6tQswfxDR0kU5CvwoOr7vxQKj1mbXVt0IENVO4KATMLD18wWopEz8pU5qVPskQPav0dIfSORUWZ8R/g704HR2nVPOggfKqeYu8B36MJOitDyy7EG1pUUyBUAGNoagaZNRYi1p4ZLFT4o+lPYMkaM3SZECTo+2F5Uu1WHVqkH8szjGGhKzdeOEupUVgTH6OoDiDI9C7vamJ8TWfNr8ixHmOcxy4yHAq3D8K3CaigALk3BhYBzqjr6MLTkHkd7dX+WQk9WtVQXhOMMJ7ltJehIlwtABjTq1LUApMwpqXRSqnnZTrKSpER4Tu6hnt1Uj8tJ2hpNJcpq4UPN010cosBUPR0adGD8x8nHsga7NU76NQOqnceZQr7ebsJtzCFf5MpqVrV/u+IT/UHNeqSLcA4f5SwUgyAGgDgvWOEsQcsqTvhSWpOR5H9mq0C8A3B0qM26BU7O2oO5wnXcOKV1ytU7NdIrCIF2d2KahYToZ1cVEpV52wWqgpeBoraWvhkiQsQzAKq6lQEu6qq6odfLkTBUegZUIxqH0PQuU+JpkQN+ciMahi1dqhkGNGs1QnOTmGrxmzqNHiEpI8MvgNlvi8ixCx3CmekO5SfmgGfCejN2DgBqUj0Pm7RxHZpqAamNdWFGnaRvrLopqqFhxcC7qCbkHxAbebSbk94ZSP8AJ3FO8KB2aUta1JuXWVhPXo+8syo/zPqae+PGMfTzWsKmf4Phd9xHkwfZCkJV92U9nPXLvPj+nZ9sm7ugOEmGufDcpmqmoUKVtrhqqrSlSF4WB+7UK9O9C8TullNUhShgGdQ6BpgAIM46OkExp3E/2cIqUx5al06gki6T+rIoIKEgSVKH7BoWNSoSXUprHEBxF0FeI8Q+7nVYH6MKXkJ8KX5hp7ni3dsHLJKOLwiHa9c3YtLA9mVKJPnhrnQokMECFAah01+o5KECbla+r/N+IIHSmIaKSJxlRJkw106oml4gsahqstVJ1jDtWRb5NKknw7OmUTgyS+1aLaeGChVt6cupTrGUq08ndoSIzux2wBGQwB7dSD5MGUw/P2wp46Ae0mJ8neanFUyoxiXUCsSkOpTzaVcISWVFQKpgDq76aJ7eVNKqNHxCZD73bqR80sU6ptBOC6lH4aE2RlW7FEkVFQVH6Q+3qfmI6vPIqWYSN3/29MEdVP8AMppI+lipTODy7Y1iTy7t3D09pI2YqnGMvcCHcdXxG3zOjKkxUpzPD8rSLQCtNrXTJHcp1Av7NKvh0pncdXVK4uViA0XKWCnHCWsd3h2Chl1KZpE2bjVLqfOuoBnaWgaU6qxcfxZaaVLJ2jmKKdE5LOIPJVL5VBlatmqvU8VT9nDSn4ecHOWm/wAUZ5X0lQrp1dtZMF3jiDVTViVTDtpyrplhO+7zo0p+HR21K3/5MVqSlpqRdrqXf8THEiL0aFpUN+WHwRdtLPdXaDKVZcUPzD9ImGhCwSkK8JGHw/mV6gn7f2d1VcnoNOXc+VY5q+IUNcJYop/l0/E4D4zDmmoKHl7IUJZKalvqyZkbFgH4e3Gr0H/uZJDVXrHiPhcIIjlgQ1QfDowrfdhR+VpqkcRUVMmOFfhLPw9IA/jUdEskKkRvzNKokxspkoUlQcK1dOlSzXVj+kO3VXzHkudnT7ei9fZGqugcqwhrohMdC7KqSCgxLyA4UgOO2H4P4vDFonq6lw3eRqZakp1Ih2DYYaqUwpOno7U//vtURM+THcQr7h3KRYPXXlwpku5AEQ6a6iSAgznnZQT6qc1Tcem3+Fkew1BoffBE/wCg5/0P/8QAKhABAAIBAwMDBQEBAQEBAAAAAREAITFBUWEQcYGRoSCxwdHw8eEwQFD/2gAIAQEAAT8h/wDcWPT2GdpeH/1jtFhbkjPajkUycnXnxV5zbn/76WFVkTrGPoZGOWjJJ9EySHiaJLD1BVc2GUjG5WhyQBB3zefIYr795LQDPWwVx43o9I2xo5mp8/QSIVBNFmnvRqytH6ELo3LASk7IxcdhOxt2lZsraslyvmrClPi+gESAq8s6ToTMPmsGEj/wr87hHyGkiQc90XSNavlzZ6Wck0/s2Y8zVHduf46jZo0w+vRULknNH4+gMUBja6LMsrlPL0pYtSnoKhFoXAEngi7dMiSvF3oiPB5r7tMd8hkQDUYuhpydIVESRwK08G1GdieudetBkgopWRMulMmKp9B4qM1Gms5HTCFjwn4jp3Hz+DcXdx0f2U24I2UvsGr5+SgABB3eM4KdFiqQYSx/ZqbNU62oJDo13gMji4ghGbMm9z4komlygWUt21KUVQuQoEvOJ0ZhzTnwoixGYr3VwzoFws2Z5sUZIwxigsjN2TUypF2uTxzTRqHvA4j4/HpRlJAbBvHNlBpmRPuqXwy+jG2OYmwg5WRxTpI098nNdCoBN++E8OG3U/FB/Dm1Xw0ITqPU683Igc/kXqYRUUaEAN+KwViK1dKPLUGr2Cgh1p/JOvaJyGYbgAjpmzQPmIyjQ8X5rKzT6FRIDbmprVqumH8uzizuAxQ2Azft3y3GridrB1p4yJrR6R6mP+lL2WVgDsIyRoaMx8RcQc0eKxyyG9DToT1urQYjnsBlB/GbCbHXY6zXFhjH2mvhihueeKjIozq+tkjNjo69jRoXLZthFsEC+NtIsiP4IqCCgunWyOfG8P3TBxhjvz6XICdX3RteEGqwnpZSlDtVuSf0mmwzOtGC6KLBWRM96jBMRww0GJKGuw7q7PUfUoz1OldkGMQvvX5KeXP3+kNzhPbqQYrjjc7lE4HIGtFHNlNYotqNHFQUh1NyjHyVzZpsy9ofmmluyYlhYg+WPrxff3GPL2CtOc9O0nOlEQBICQXPWojc8NhpXwRUER6gVJRDyq5TW5J+6VZRLqcVBnmf2VSBVy2PI8TddO8u1WPT/a0kFeRpVgITfDsoa0aZoySdsEO66UpmIHG9NYrrFR8L/ixLSmHHXsAOqE4WPmjZPqmhWooJ6PWyBTV0QRFpiRL7WRl67B0KzH/GGZp+IogK9qJobtnMsziiUcwOT7UM1HjpZRau91N1zs9z+U7vx2YIIPkoYI1nx2Mksdb7jT2BkW4Sv1ZMt0y/5zYhLljO+vXFGEZGQH4poIDjinLDQHfkoAiGQ5VYwvgm7g2xErPBh00XTkOhCsnF1i4G90Q2sfZ4OtgsYblRpGCNRT90kAYI7Oh0Onx+rv0TOaXVTXrj9d1D/wByokTmjWYEV15Re015dQ8VSXTfIV2AQBOt2AL5rWYEQ4PIWSCHKITjxesLzkOt3vEdaKOnrSIkGuC9HigUnamsQhTSoyXPk+1PlrCQ16VoF2NN6TpWFSSXx4NK8pBY6M5s4JO7lpWemwWTcjI5pCE0ulOr69zH9WHvFnJusVZpKcWwXJ1eWRorjQZ2WIhn8jNZQh810HOTNKCjCMJxSi4ofIslYwB60iGRgJ6LHMSQ3an5qLikJsMq+0e9EqAg7KBLpZbWUHqPFPNDRpdPSmBZZCt7aXVf0gTomzvGqPXDWVpFA6FNbGYFAPL7/wBrh7my3s4DOuFixWvAGj1h5oxvRQSA1CSEmwMRZGjy2TWIPll+6Z2peHFQcXlhM6HipOi4WzgMI2CWEFTDbv8AtVXSYkwbVySZGGPeiJJkqxW6rKtVEEcT9hSzlYcj9WU9IDkdDivMYRSYz/zsBQcmtDrCcNSLeA+iQOj4VP4MHvIU30gyH+L8gMiZ/V1Rq8jlox9tjbdayZAQ4LWjwBPKEirIiGMA9FjHmDOW+eKJYwRpBoe9mIKGPNSmfMKdOGiIQxDC3BEGMF67h8fumnsYqJu6qfewTU5gCWvpVIHIuPTdzSwVi7yAmkNPzS/4gsmNizgLux6Lv3aPDHQs5Rrg97FWye08wVo2+H4uKuXVb5q8H9LelVGtegRlkY61WWWR7Xi7Ug0x+92NOOJsCkgAaBQJkIac0kk0OvNYRimdt/3d2bT2TTpMIG6we1XBs9GjmyI4R9gqPGpl10K/pksNGwfhZQSveRrYYljNhOk1DgnEdX3u0mDKehTuZbo9jZG/757FXnbqLWT0OarCI6QD/pQIMYDz2a5CbL0R2GzoGw4NdPe+gJINJDTWojSSRYJNYXMb9gIYMShnpQ5kEwzvFOLndkbzeJnuAz+aOZAY0CTTfUzm6ourAuonk63EQHKeMbNXCBjrcTQmN5Cc0R7MJ6NIRhl9wqxyYP8Ar2/vqzeoqL4Zez/exNIzix7XB9tSWfW4iAQgaaYcTlB8UTomDioCqA5uMxxdX6syABGxpj3r4N8UWt+DAYFAhByMdOavgmqaFmDesLsf03q5rwDHzFY+mJP7KwDP0grjMaifBBWoTIEpEdbuqmWCWX90mbwiA8TQE1JDJH3r7VooNgxOvbS48dnP9WvZxv5f52REA1hrYUGNGZNfFi5AOmbAJ4jlWUi9YILAx+qnD+KrT5HqaetjJ9T72LoBGoPQs7Gl1cjoWVndageHS8QmMQeYpo4GPbsqd/nLtUQjUHXaqjUIKZn+LotsheonFYSAknJyPapSfkKoGH0AfarYRiDFEdH6MOU337cU/Af97dUabTCDg9CxmIRmQvSajOCGCXf2jidaXPKDBKNP+2KQgfYAz51qdEmMo481LMCjoNhMJUBnXTqbPWdTX1qnfSbCDaPoAjPhzc86kGa5wMybeKo44hqDbNzANTMnVZbnpXB0CwYDgPowHA+z2bA8Bbcfm6aQJM2xIkk3ucV3iX3bOn1Sx5pzkI8dKHi0bwlOGyykzPRtN3ICa4cUBMY5A4eGyGhMMpHbiyxjF6kwxw0W9Omfqx0bIZbpEEmpebgLCRwcDZ/Ys4w5Jq2FgAyP+qUwAWcfTlP4h7EFzxgqHNgT82NMDdZ7RId1f9ViPIDHF5rubVjfKPb8VNzMNHl+qRoRgOUR7WNPck+jVVIAWTG93LBCrSIYei+IXMRmLYa+i4SPM6jnuJImOpZOj0NqucMyC/NzYnXFM2Ign2KpIUQjRPB0JvxkP0YLy9y7QrzL8WEXQx3iLvAfmyFH8o9UGaZtOM3grJXBA5p6NaODYKIob4q4OiyAy2yctij7tGeTxRlTKQGX1oQdZgH+eLLyvGPz2QJO5WMm5o2+12HaFmJObOlCJIMO7GrVmZ3uTskiUbc+kO8hGw8nW7Kz1uOwBAkdrDf4WG8iksaXJ2cM8eNaio2xx80aqGQ+TmmRiWMsZvFliemtIz2lFwZX2j3qgIDda8ntNfHyY/vUSwQjtDPzNX5Fnqfugi9Dl2oMk5NfoNwBqkq5TG6IaSXp6PQ77AnnskxvNOSvqT97Pjk0zG1hMQzbOerpddjI9XtHe5hxZRJZIzPmhfzzomJuZxtGZ62DB5jTwsDEhaoOjcnYB0H+xci5BX4Xzdkjljma1TwF/modiCcL9Tcebm24LRRV3V1Xn6FTQs0ZlDJRvxTDEzRWUtoPz3j1vV8LmrCw7PKkH/qbeFiikyKw/hoHiEXxtZPlzD9rrZHB7x6lAYrj2dH3isQ8RWzp9/vUyUNrEbr91FpkNz5uS8QhDEosjgy4K6zyTaE4zXNDE0Dm4EyIRB4d6Y9Wgge1gaiMbBaDw2TYPRBJE+L1S1VjT0qPdEadB07RUAncokxGkMlCIFCaTuE/Nw2LLftQAg07R1HqdzFnH6hnWtpQ6npiizOpkMNmdaTuc5t/y6uDlRgKdTI4MGxjmqRI7gQ3XIqI7YMr9yycMghisVsjoVaE+aWBwj4qCM4Zo9bXOoERg9KIQvh4ZpL71J2iHRPwp3Cjqj/5RDuqnsUGB19sPa7A8M6HY8bVMiajcO3ZyPBXQZWNqeJY996LKAxjHm9YSfoQlekEoGM8up+KdXJ1VukxShmB/VLqriYyWB2E08TY2UGZA2FP5XU9oc0XqJQ9j+mj50ThtPmySQYeFyGbrnM/ZQxSJ/ls5RTHeKHxqlIUmTVHZUWNfW6FQ9LZuQ1cHLo5aVO3Km21WwPLSmD9e9ihBI6qkC0XJoVGcnPlBy0qZy6Cs1IxEfoL0pI+g+GIwHmKpSlyZcuPtcZUGjPnmxQtlfn8dhTZYNDlX2JJ99aCMIPQ9W7YVSGhqAY0EkxM9KrIAJhGtlGZauRKjQeUKWCy016qa10HEONYu+Mg1VQSLSlIOlzSLFoKR80HIxnz9PrQqTgAjS5cDsnbv7N68f0B2Qddu7CJBgbtyKN4lw8VCSKBcKT+6NCYYKGd6LYEF8puhoZtINvW6BNgMlRjmYY615DOhMt1fa6g0qOmQFKpwSgARym/PYipJVcFtB9fSw7e+RZsXvHaEfsB2xY4CcvpUNKJig0bDh4pyrkSNOnmid1DcOctA+6o5im7qOlEGdE4GdfvQTgpjXD8XHt62KFjsvaP5sgB7mmimllrloEjrFl5qTFNn1sb6KbAE68YoXkCd2ZeCgAW0DEc+O+jPQzq1VDhjNSHNm5qY6lQfA97qEc+NhZOSSRiyu3QQUrShEYPPZE1vSxUjHJFxdRhh0mqAkMXv+7kyim5HN9W3lUGx5TZjY3xPmooT8QZyWJBwZJNSTbE3TBFgS3abGiVu5FoetmywBAkcTzvSbidV6jazhY/nLBI2hgPwF+KBj99hiGLnqVWcNkUuKIGTflrSMko3aRBAYClnO03b5dw+iMMdbg668St3IgOKSAQwkn4pvWOTwbI3MBkkaFwWDwzcQQQaU2CHBZTQxz3p+Heday9aU5l6pyzYhbrOsda7gGgkP3QalAGrvAXMhs1EN6bNiXXqIitPiQDTQloqUmeV7EbV09CLtnt/omf5W/FDpnxx6c+amQGru82ZiQI1K6peSjYMZwRSZgCKMky8qUWigTCX0FgiZkMWZxNjDRlKqPiD0UvzsKNFp+bF3eVdVy/SCaBiEtAIc4d6sdw68u0/wChTFzMuuemlW57Lu08TqsR4sVmc9T80I0/8VMD5PoZhhRPrjCHCUAINOyxrRmqH/2aSoRG3YCD/wDA/9oADAMBAAIAAwAAABCSSSSSSSRSSSSSSSSSSSSSYeSQCSSSSZSRqSe2aRkySICSJuD6SLpKTtKQSMSeRAIAUOBKkWQC6SCrSGTvvAXG8T3GSVmS6SYfFjQHWxSSSyIiTg0Dky54uySSMMwD8odQ+CCvySSUN3D9nNZjap0JSRUSKQiD6KSMgBJSVJTII1fPZrIhCFqOSzNQQPwwXOafXyGQq4ocjoyT7ZKlSWSMPl3RyOVMJR+SFSMOyQd23FpS+2yMySYidVLPzctEnCDmedQcjCWTvaHQ+EqQebYNHcv+120CVOUXEO4ovKWibySaObaJffZaSK7USSebILK4YKSSBHSSSKPbJxq9vKSF14KSacSIFiVzYSTmOvyOZaQV2pi0qCCddSYfxoazajWzSSC9SXo0H2WRtyASJ6rRxFPbccWZA0B8miSqwKhOHO7PwRdsySTCKQqO9+JSAHoCQaSQWcQ768SKiKCSRL3FxycleS0dWBQiWZVCaIDkRs3KOSKMA1TdycqSRYxkSeGoLiUK/SSHkQsTESSSScQKSSTSSSSSSSSSSSSSSSSLISSSSSSSSSSSSSSST//EACMRAAMAAwEBAQEAAgMBAAAAAAEAESEQIDFBMFFhcUBQYIH/2gAIAQMBAT8Q/wCsJb/wIk+IKOSgpD7wSahHKPyAMwkk4SNAVOYfqOfqcYZeANQ0ODocDHiRkEpU6BpbcFGGDZQZzOykxnAH1NBrQKRqP8PvHgRsLbnU15x5645B0OwR4L6XI0I0QahA4mqlNc9AkcSyfps5fTd4FHiNg7KDU5R2BdDnS/1ESjXjMJ4ogaIfMI2SyBAZ2UKEKDELxOC4Xd5IJaGEdA50KRn5BMyhtaH1XL/rZZylSaEoEeoOx7oHCekfiUHUYGDiofeygN6vf01gOHxLGfzYj64r6Fyip0Pd/d1rYj1B2NBQMpxhyn3kepwU5RQHJ0W/ggcMHxn8SDrI6FLMpiDG6L4nIoQ+P4feDoCIaX1oqkKIC+6PBfES+Aitynx/pvB86GweFhlvNT4lIguRoZuHwvpJPjPiOD4jzd6yA/zkvjhFeMIKVwnmspfSUNA6+p4Hoqg8nQLkcoA8JhWlsKDefvIoy52CiIVAYbKOYyTk6JRyPdeHZDEZGjqIQoEH8ApARhI0Z8QGcfdEcgxMZBqBfp+NQ/2Sa+G9fdFnBRvx9A/4/Hwc1NAE+JIcH3RHX1L/AIfHIzn8PBPugKYgAgav+u2fxsZcjUAfxH9M2D2NeZLZWCJ5u7wcpx4gyKGRqaT/ABr4kbPOQYGoBIP+UcA84+tj9QUj7zYmSE8QH1jT/WlJB90NmyQQeuR+aw8xwSjLGB/0TTR8QZ8RIMf8iBOXBiUbT+AFL8QkHj8ChDOCisfvN+PqX7qQQLfwBhTkWIUxwEik03kfgTE5RWEJACNCkwd4z4zbEmPz9CUFj6mfEYSTSfUQehKUDi9T5chTHAaOigf1t9ZwNYT/AI5LOBqXuyG/1vVFPAlyiC2HobenQLwkEe8xEnATQ1vP/wBlrjQCiZDO6+vqBA0YChzkpVhIE0cTZAIjjqQWdD70AIA+JCEAmwQQh7xPypHBMAPz/wAX/8QAIxEBAQEAAwEBAAMBAQADAAAAAQARITEQIEFRYTBxUECBof/aAAgBAgEBPxD/AHPhH/zOhLWvLLf9w7TGfB6Id+GNWRJkTj3baCd4jHyLnzuNn3e2O+EdZWNM+JsRy9yIdWwYenyWG2NEeKfGs4t4tcH4eq/LmcsUyuZckObt2BziAvemXKBAHgDW6mxCcZRvUYBLOHfxyJNePy5NfgO9FjxSWxksincBP7HxEZw9QEtP1bdUy73FnDZeTwW8eZCevNrYAdfJIjNz8InobrDp6y40mRE2D/duyK+kPcdA8xPW2zRH0t2AYelkdEQ136k9huHc0a+OnEFiByV/qJMHr47MOLnmWCBn32HzVHc8jCA72m55/RBekPYt8cT+FDDIxkp/KOb6mDL8y0s+9EJsHsjfcw51HceLpDzJkEw/k/wjf3zG56vOEVUVMIv2yQmwDDxA8vwdtt1Fmnu+qHcloBPHM8NuSjukMZs66pOaX4iTYCKAgsUh5v2enbz8i/g87s9y5YoPdo5IE8OJZasWI7cEgxwC2Ey0gebHOiCj0fPQpfQ+B31M3dk4ObRF147SOMePH/khCTRzIblg5G+aHn7entIcRpja5Ooel/CXIdLQLg5k5Q87Lzpb+fBE1hbl3ahr5twl7McvT4o5ZOy4k0L9mOxjjiyLt/CFFnTpc53D4ZIc809WfzCUIU5i/DPkuetzD9jwQs122sPfUxcl+79HzNds+MBCnmJYbIO/srkxVi3nJ6h+MukOnibCPXhZzvuC/HqEgskExkBhcgZ7NyLOEuDH8hxdMiN8Tjq3Z8dZceIv6lp/i3Y9U/bev7uDu31gcys5eIACM9lpzbrZ4bOniY49WQwgsX9pY316v4e0Fu3IYONjxNc9QGWxww8MRcLZ/q2xHXNyJwcJccwcMgBkGv8AIPtZbg0sHFz5p+yM0gRvUBlDL/u3a8y7bJztxLKAS5YS/wCDx6eC6Qp/Tcup4ObqWjZTCTIh7QB8MA1BxkocS/jZv285gZbNyjTm/Jnq/CyDotONsLfpctK2ALpdf4dbI7gzxcuPzzHOG4sHMzWwAyHfA78Ix1uM2zxHaG6+toMPWeDbNyajkrhYO7of3B/La5Jcx1HzyV08JFkdeojvu/Ubnq2+5sjE5GMEc93/AEFrbGWC2ww/WjhcAJHi2I9zxkv2YXfNk04tArH/ALbWy6xOjYyc2E4h/wD2Xnj61y14bjSbl/GzqyebBebmh+Hwecs9XIsATD3mQMEV/wAWctHTci7BnqmPdhhLjDuIgcyDPWtlc4tb+RGvcHNSDnMBtOkARgnNrzRm8RPHNvM2b3Ax/nxcNtbeEOqS034bnwFxTo5ZxDCBncdsDmVdZ4TJ6t2ANpbxsumQ8DB5m/u1nMmjC0Nw5IwA7hhnxz0FNYMs5+HTzYFplp5SdL1c3MeX+JKiWcSjmSYM+eU/bDjY+X78g92fTiNWOSzeU8lg4LeZI9WzmcSHHxnxvOeC7vnYYDHaLBvjJPHCLhAkwY35BE//AKIfxh05jPz468/ZcL+fmTiPEfy49wGocV0rIzxO4RhxDfjWcW1G/IjThj3qde8nIg7Qj18JvcEh1GDMv+LEjdYR9Q7+ZtwyD9nniMfP8UPEHjEic/CCzsk5lvObJBv6oB8Khzm4i2w/kfKC/Viebdq+AOuvdfkft/yQ+NVP3/yM2yz/AMH/xAAqEAEAAQQBBAIDAAIDAQEAAAABESEAMUFRYYFxkRChscEg8NHhMEDxUP/aAAgBAQABPxD/ALy7JsJU83HtHqGv/WMIAleUU/FrvwrBDj8e7HQr/QlJLaYop5uSi9YnmMn8LGbGcf8AVG1gUFzFi3KKOWRs82M/I0CIlrNJfFbAEESRN/wNrKatGtEqP1bpZ5o+scnUvHhDZQhkkYRCEzFvXrF6CMOY5uNuNIDOkL+flNCJoGTZg0cgaf6W0aQMhrDMbvWpkFwOP4iasVEv+Fy2yROkZ/Fe1wbfQ3/AV4NwM7M6zaRyURDwphzS3XaE1QUj4iRgDby9LbTr6pVwdSBkzh5P4LAKVcBaDkrV26Ar72cgacQZhmpDuYt7m6GLoivkIvkgEl+VTYkcG0PdwNzSPv1dBJsVUj/dpLgVQgCPlQK64uOpKaKnXxPcvey5EpAdsn4t4RPsEIcOnlsRJGfl9ywgKVU6j7pcMNIwkBcjgivS1DoQQzg7zGbdGAVeliTIIzRCq/VkJ6hAYQcK7MFgyARJPcJJruz4QFI3/k2sEtiJIyPFk9EoVMi0RogKpyPWoR1uIH6ohxSphopF1F6LXg6H37tyIcrb7ogWyh+G0AqRqJZpQ5PK5sapwrkjT3LclUkhUDHtbCoGot+HR8ojE6oU5ObMiOoTBVz4qdjm6ix3qALgZVljraTHkCoxNJOlLEsBABAfOiokpxSDx6t8HUQmAww5j8LBUWVCQsfVswEIR2XGQIwlRU7UsZ6zhwWThm3TkYIwBBMWIHECygQRasTbLwE9k0OZMlpAmYRlIPxYCUwFAVkG1YxcQ8RBthCJss4Cx4tOUrX1LzT92kBZmCjXJnrcC5UKsSUn/M/Et6G5lrtbCA0IZ6lmEwUQxZbdQKRAw8g8r6izIIenARooD7t8gkDU4oSwlMXJmfZ/ETAQUkyTDBnXq2p+JRakpiF1aSEmjNKB+5+a/BAMjW6oQBPkAedaIVk0pMtJG7BWREg+R6JPWbc6CjCktblLQOnFpm2GJGQajQUjFiqoMk6lqu7ibIfu0ZOaEz/vFmwiC8sfr83ExEoE8/HQPgm4EiSVQPwHXEEiY15jVwkpjwHPRJHo3rpEQ7DVNWIJuLdShidgPuzAKUNEfxMcKo6N2ORNEKnrBeD2iXK2vV+EBVgN3VtSgjrn/OLIzLJGT9v818gAnAmTqjvdApKSahOYc+G2UBiAt552gsLGRw7BHPmKdbJiubAtNB5koz7tCxzs3S3hQEmRNJ60s0MgqCGY8iDHmxkaiYzh+63GWSBZVcdIPhHnih6H7LcKsiCQ0FPcXEjiytaj0iXpa58whUQqMI5uGM1KJ0GCnb+y+pDeeA8TmxkkuZKm4txTm5YAIS0OD1cxGyieXYatvjJjmFqiSXRfiFjstEeCrEap6Ps63EqVFIIkjE1VjVmCiVGne1drAQHA3zlWywJRkkg2a6jEQLk/FlSxVM52Hri5I4M2+tv2kZpTHJu3qedJIB+z1aBxknRavdaemxEkZHZbYB6EVaKE4zSzXNbVBRSAAZ7WiR0EjRiGtWWge1fuX8hVpoeZj8fBREvsWxzKDZceqnYuIkRAzHw7sAV4SG3WbixrA1LhPS2XpIZbVzFkRRNIlROS+aosNpcOne22M0ZIodkg97mBeDg8sDzZ1H0va1XxB8LiYUDS6WOKBKFHF12DFFmPWm1YWBYQJEFjM0i4qHOZdARFDE+bWLOxDwB/u8mKRKOdKd7q2kiU7NhxOGDRjMVSjZR1Lfu0O1hybJkvoC+r41ViAUI4T5VRoB1cP+eLUEurFSTLkaOK+bRAGoxC0e/gCVBYFSFilkaSJJ8PkGTncPm5XTEQsATjOouhfKRVna5fNu6cw6WmXrON+bTEwczwHENEslWLkWgJK/Qe7wQKmJ64BZUjIkTuhytbEdA6RI3V92+6aLgeDDFJi6E6EijDKUREq0uJlyk/0jru6oFwJP8ACiXKC0uMZUU/HW5U7qKXIAFbCAVOERM2cRATRILC14p7vLuwVYsy4qz2utpdeUCKnuI8/KIrmndD7sgkOLoGBICtVl3h92IBDQZGFfgwgQmWC4kRNgMdrAADBaXZ/wDYfse1sikZMvoKQ8Qsg3/8kyjYGLgvwakuVDJ6Zrq4hI1hjUTk6lniKCoyAvybzccNyCUWZMsTn8XCLmhTfKzdeiQoDPEfuyRggBMOMRZQcuUl1TB0K3HQFhIACTiJ72hJntn5HUdrli1gqi7rvzfTdDIwz/ilkPBCDQRcWFk0044H2uQcxA4UuieCU5aAnxY+JqYUns7BxQCSZtXaIVrTraFpESFD4CcAI2Vh6mfV0wFyO0lmRFBdHfwncSoJG1VQoAIBkGkxNl6LTMTbvxcwLK720tyw6tEIVUCaCD8dK2o5IIEPHlEOlLap1STVUDM9OLnsAwJgawOd4uKniymLQ8M4B1X6mwanSLAiWEyMMxq2exRVqxFiGXdsoeQ6DIYU8VLVUWuQgNyKLIaubBAEHXbBFhg24n3K3wkJ+Asj2hsZABFi0Q2bpUO8Sz4+X1ox/OUCjME9ly9Liq7/AAH3YJCVeGmXZsPJZmGBEiSROy+rQXNxmgdDVJJ6Rf3LgtAbbI+kLIFYntZZmzWskJmK4mLWNKpNZq4STibl42LA0wxCJS68beShIeiKaRi44FCKWJ4ijTc35Of1jodRcBIANBj4ZKAJV0WxBYuRgz30WHFOj2CCA4lLdT5dIxEE8K22yDK8GBaZ9t1aTa1Org7WIFmUUWjWZpGZTteoQrJa4CWTwY+TX5+dm5gQxm5GqtgCdaV73U4S7IbE7yONwWEsUFXiEwpIwX0a0gQ/ISTxZaFbBUQDmfVlLFq9KAfuwQRUyuQR1Ari91EAZp2gOrPv3CACApDqnSxn/nYGqKCI4Txa8bqeEkYOcKEUuMuwGAEHWA3WOlgUqhDLiEnuwSiEiNG0CFgJ4ofm2QywTGOGLVM1AQGF6LTkpLAeDq4lsxHNtMHHUWUAmYs9DHDZOLJDHkJj3j1ZToFyqGXxj3/CwMxhaHtmSBe8IfcfJJYAOJgO7qzVQ6ykRgcVfri12rnBUUmOtHaxrEaoA0B2hq0OUGFCSjg/LczQJOIiRSabzdGJFgYEk7KUbQhGDMxnknnFcXBwNVIihUNIM2FS40JWrmHYsYR0HGJOQwd7nDKAHcI2MXOmBhMPGZKw9b6ujon/ANuH1Dm22AxOJy6PdsqE3ChMAab7tpgQmPwRtEEdC5kbOpAzRHJ6tBxlzEwkUhIxVuFqkxEmUOMIsZkxluVH3FwJnR/0eWV7WakEp4jyTqypPwdUA7KwReN3kcVjhhFmQgGHDs+DTzywMZjkCnm591JHKNNwCaEvu3AUYz1dn3FBcGq7v0FgDSFIY+7HSBiTqTA61q3J3lOlpJiarlTNgEDxaFgMwAQj205sW6wCALllEHRuUPxLYppRj/m0ukjBUQTmiDxZUQUqEjkfQz0sXc6HNMM8l9WfispSjFRR1YUSQ5Fmg0nU4pewqAQoCvqzmjhUpINDAfdoRjO2IRCGKTboCxRjIwRWkLYBwqmNJ0IxzzammThvaQHglLAAAAYD4kmJrf8AgAB/VqqlSPAPyX4HghJ0545LLl/iQST8p2skNqcgcHtLqCh0+i+Jk7fEoYzqbUcXqyiUfz0uoBERoQIIqyraO0WGcmhAidkzfM3UQpD4zdH7otofYY6fAoVk03RWRtBhYlAqfd8UbdIAn0EEI11dluSyphkHEQvC5KQuAKXcX1adZEu0ydQT6bcxCgCRQ3AxGwsS8vCc6CToeIsLlItAiQhqRwUubmyoEaNWy6TZkuB7g2BG+wH8vTdbnlBJBniAE96+fhZMik6pv4LnT/eFxs13lI/h8QJ5X1nL7L4nkA6OB7vOrChlFR1Mh2sfMWkwUIhPebAIMIiqodhixKClVAFoSckzIMUnRazGaoWZTyHrS05kqBKEmlMXIK6NrUKdWa+bjpfgWAE6SESEszYNMmQ+6r9XDRSPqAhB+F0atmOlMd/obDTqDxBHQJ9rYI0mgViuXEQcXFu5TUgUgsouNXOkVLgoDQVXx3uQs0rCcIWkxCvS457Bz6MHhhKZ5uQ2mGnMxwF7WgE6gUKSmpZ+reSDYtIJ9xPe0ki5Ek8wifhwLiykluowDftPx+BkKzD2mlzyAB5gFcCysSiAI4g6rE0uLQ6UQaI4elcW6nsJIOWmLi/IlgmWbrlduLc8QRDARnpF0kwedA0dDAHpNjZiYDqZJhp73ZQQUjyUJiTRmxZHKTNYcjp92FHBEg7jjm1fIRSiKI+57PxACkSTFh4mva5PpcMQy/tLhAOdJZUBQEh0LKBYMpSpJmDilwioZA1R5IVxWwZlVQ5mNaytZ62B/rwZ1NIhZJpLPhCRAAYNvm5WBjh/hrWp9n4E9QR4arGLQRCMM4i5iKxROAHP3cKIAKJtHU9bmYxsXvnSPn8Wg26EKpW/gtu9ZGsQJ0KIsRxZkOzEkAQqiMLikMvFjNBxYgdKEcLJiabxbsNGvEnSrPQALmloKJIP25sY0kIcg48RPuycAB2Ex+f4NHUl18ubWiBg4FEcluniKgFp5U6XHKWYyJQixhJ/lAmDLRM/didVRzcgwWYH+EfxGEr9U/v4ikTTdWT7sVmlAZorIFO9mPCYhCdrhHVsb6C5rwhf0EB7bbMY8qwocKr1JuL8Mlh0kYkTNzBNIJFQYZbkiAleAYDQxM+Ytv8AI/g4AkTtS02PRTIBRQCq2cTWYgUK0Mdm0h7GPRM/1EJ3Kp/rvYHqXUulgOlbDLnYKvoy8vNmoxxV8QLmGk9W0FsaQ/uK9IsCVzMJcv8AMq3HoX9D8LrlwZEqhHiK3kLLRpDCKerAMjBKXf4WTbIKdoNxVqOQ5UkdDcZUYR3i8qYiyM1BMTA820LEKDMu79bYZPBwMDs8JW5GaoRSQOJHXN1QvCCWZgd8w1uGwIDKShJoxK4EuikxKghToK+YtCEdO9Dzr5RwknULrUT/AOiIuSTkAHE0Hq0JcUQPQy9W2WDWZh1fK/VwAQBInFxSBCdYMXNy5oH+C7Kt6f8AA+AgkKliCRdDcKlJEsfUfLTmgH6JYAwniOal0J7XNLyUQWpKC1pNOhcBN+v84Cc3jjloPBEpVTPnVyOukB6qc8oWaqOaSEMg14vqS0ARSBE2usDXhBqeZRlrSs23ncaiYWdsgkFYuEOzBOgllezxckxNblDJKeqfJCyVQKtoAhkT4fFeANA26LJiEyUi4j6uVt0aShAJhkabi0byBJnifgnZhIYYbfsggaDfY+XIBovY8HnVqJMSxDK7VO/wpICFEjcTCIwAKY+7GuSNCCOtXultAmBhmTWgcrmY0EElIJ0Jukr/AFOvLI62xolSMbkjjM26ydAOiT4TaWUPGHQsSCKJsdsINVO7RKHiLRuR8ioShxMJUoxbyCUqD9hZhgQGYovu1XDBuRgd1LRAMJDT8BGLaXSYOIpgX1ZuZesP+LiGzDdWrYINcZhDT9fLGcOhGvu5soMWGKh7VGy3EjCTgjJ3ntYrUSZpPMnJRtCuwiQsvw30d7FREUdA+pubgwoECUVqHSH1ZSLNKJjydVt/YBbV/APtt0ooH0A2BxOpuQpxmxEKnia2060UQpY0YHnOrgvKRKTNDkOWLTFrPCYczCT4ZuJMvBAk6STMai5WHIB5Q4lEPiylUwTOIesglzMilslEeJMhuC0LNU5Vld/4hIhTcmrzlrhparibqnGIrVcSWaIXDzLK9/O8UWY39zD2bSXNxIbhaMkJOcZLNYmUBHS5+mpcwGxZ1Ikg6PmwY8QB6qgUoA3as93BJFg0hPu80FUiGV0Ie24KsBiaMPH7Cw/in6V4LqgB6Wxx4w2opAwjMDElhBEjVRy5SHril1OXtJMjXjzYpTFoVFMuaBFqiMJADqfBFK2Rc8KVzIThIe1gYqKHZgklmOmLFKxTmcyo+rBXYYgMSkBnoc3EtXAmbHtM2vrODiFXAGV62BCppC0eh95+HDSJyrqFeQaUp5uNLACFOl0514gU8M2WIICVDTzZIABAGvhAVMAOof8ANzS5GnDraHDEiNlSAKSBULC4cNoFLrILkUMGN3EUwhKpNBGXhvPGVJQQK0VrQuV7jouiPUxb3YJtfUHTkuU6XNET3DsXKIUUFOU3r1cE2TgCsuKu/dvIHCqOSsgdGbNt1QJiRTRW0V06ZlhcMRXFwAtG06AxOKuurr/hR6tbUBXEg3SXTCJ0V4UjJqpablaVmaj+S1PJEFbUHABeK3M4JrhRxu1HZ1ssOAjVKJ4KD1bGxXwjb7eNQoZCYuFhbGGVELhVmI5TFkSvWlrOC1782IxQ/b+EzXEruRS0yTBckHJURyFh5UpBmLARh82Nhg9bVkMsEnrcvIGkHQd2VBnGZCmfVsYDA0jWmpB+bCgtyJ0loxi4yKlMGgwyRmKLH31OD6IAJ0ndpfhAZIvy2ZVpTyan4EV5s4ZUyinTIh92sREKSHNCmBiyPuGKz5GjE8WQm0TMPDDBcAB8WJA+aSvStmWzkZiQNvHXGatYcL7gC9Iej9meOLqMVDqsP32ukafWFJPObBBXJdCr3+rTgmlBBYNVnriwYgFPURGVqM1KerSw0U0htrMzQ/Nidg/T+JJh7ReRCnlsaIEqAiXSZfVgPODSiaY7roiccxID8vfxPcsOkjE0xEW9KLWDpKV7LCnIS00VVEwGrYhMyqVkivbp7xQK3DXmySYkYC64T0YmWOGLDDKkQYUSdSzczYyohDPnjraBzrQzlczFWdbuBePBYNTiZmxzTgwLqMUIkJ4bF/qqqUNEKRXVgikQp3dUEDHVvCUGUyqqs1mfhJzYAAEBr4XigjNCwzX1Z1JiMldzElzKiVkIBePiE1E8fKIloyHEn+erJYFDBgYD7fiNhMpOj88iZk1FsVLlIlpGKQoRWnW8kKJAnE8gsXyRQNYMyRjdG0VLYWAKWisebahTlikZc0RFy1UhkEEiob3cqdXIJ0BUOW0eIIYsQDNJiPPm0KBGzSNSHIuLgy1tggdFaHldXRoXEeh6a4iyUGhH2+J60lgCwS0UWPIP7bATvCkniVm9v+Dl2Jp+FUBD6SQPf6+CSUqZlIEcRSbPifge7oW7nrEpYhoyepFgEyMwlYyirjO7I4A4txcJtBquuB3S0xUNNcZhlnoljVLIgfPlmUHBRulmvRMWcJO6nstiBESGAxDUilfdiC9CsETXTPCzkUKtSKKOOLno5ORMIlg8VZEUPGZoVpSy9hkKri9DTNLiV0Ey2NJQOl0xQvhGZcOeafNV4rUD4GOD83R8eFMSlRtkMi2ulHEVJ9TYKCcHLRelSx1U/I2K4GTkTaHuXFR3JvVqvZzCJM9/igrP81A9rh11IQ+t+RbXAEahglsEgNTSRidw7rChFSodiDdGwRRqQ2s3Q1CYKRcQ6YFH0KRRak01eMgW0roZmcRYEqYkAyZMBtkpKlZuSoIRrmLQhCgdVl+23gnqQ5FOlxQjSjMGghHrFvMWsg+IqrrMRktNYMQos7ZiliM1KnXHqBlrluMTnB/3/Jex8UTQNSgn4922VQsiVFs5J0xCJ9FI92jrjJtO2PLYWBgNFjnDgAp2K2W3YyR5NfwpZ9CbmEIlKYK5zHmbWpJLYFjOCJg4uloJEGMzL83q3oGfsLZLJoGnW5sBwMPG9HFYjwXAcSACiwKeYCYpH4up4Zggt+j0Cgqr9Huxw0gHEK2/dAU05l9XIjkkqoyeEE725MQkoMwDQ5Gz5UMuWANvRrN1EMkCOvmaRv5MYCO1GKdWnS6qMhVTxH7uYU8pXWYsGTp9Eo4qE2HMmMvn7X4hMAlqCEj7+7VkHSXAyI08w9v4mhRJkx1WB5tBxyo+hy6qcWMthqKc1brm0LROoLh3GLK9AN00wIlPawNRBJF8xZiEMP8Ay2MJBiVfzYegRLHUvRb8qkXNU2BIpAfpseCQWpovqbVEAhw4fi60onJqFHSjsWRUClpRlNr/ADQhUzj0LnKRgw4Hu2IUEEhYknHxkaoP3IbALVKAaKffu2WUIjGD/ObPitVChgOurrFLY0wJhyZqurYAAAUA/wCkIpGwbACDHw2uKKBSsNe4+7P6WKuRI2SOAQHB8GagsMEsSVD/ANhITRP2Q3F5lMNqSIoxTvP5uABWOf8A8D//2Q==
+    plate:
+      asset: plates/juniperus-communis.jpg
+      book: Köhler's Medizinal-Pflanzen (1887–1898)
+      credit: Köhler, 1897
+      artist: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen
+      date: '1897'
+      licence: Public domain
+      commonsPage: https://commons.wikimedia.org/wiki/File:Juniperus_communis_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-082.jpg
+    ema:
+      page: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus
+      lastUpdated: 13/06/2023
+      species: null
+      documents:
+        monograph:
+          url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
+          draft: false
+        assessment-report:
+          url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
+          draft: false
+      extracted: true
+      status: proposed
+      useType: traditional
+      facts:
+      - doc: monograph
+        page: 5
+        quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+        kind: use-type
+        ru: Традиционное растительное средство — применение основано на длительном опыте
+      - doc: monograph
+        page: 5
+        quote: Traditional herbal medicinal product used to increase the amount of urine to achieve flushing of the urinary tract in minor urinary tract complaints.
+        kind: indication
+        ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах
+      - doc: monograph
+        page: 5
+        quote: Traditional herbal medicinal product used for symptomatic relief of digestive disorders such as dyspepsia and flatulence.
+        kind: indication
+        ru: Расстройства пищеварения — тяжесть, газы
+      - doc: monograph
+        page: 5
+        quote: 2.0–2.5 g of the comminuted herbal substance in 150 ml boiling water as a herbal infusion, 1-3 times daily
+        kind: posology
+        ru: Чай (настой) как мочегонное — взрослые
+        dose:
+          preparationRu: настой
+          amount: 2.0-2.5
+          unit: г
+          waterMl: '150'
+          timesPerDay: 1-3
+          populationRu: взрослые
+      - doc: monograph
+        page: 6
+        quote: 2.0–2.5 g of the comminuted herbal substance in 150 ml boiling water as a herbal infusion, 1-4 times daily
+        kind: posology
+        ru: Чай (настой) при несварении — взрослые
+        dose:
+          preparationRu: настой
+          amount: 2.0-2.5
+          unit: г
+          waterMl: '150'
+          timesPerDay: 1-4
+          populationRu: взрослые
+      - doc: monograph
+        page: 6
+        quote: The use in children and adolescents under 18 years of age is not recommended
+        kind: age
+        ru: До 18 лет не рекомендуется
+        minAgeMonths: 216
+      - doc: monograph
+        page: 6
+        quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: duration
+        ru: Если симптомы держатся дольше 2 недель — к врачу
+        maxDays: 14
+      - doc: monograph
+        page: 6
+        quote: Hypersensitivity to the active substance(s).
+        kind: contraindication
+        ru: Аллергия на можжевельник
+      - doc: monograph
+        page: 7
+        quote: Not recommended to be used in case of severe renal disease including infectious interstitial nephritis, pyelitis and pyelonephritis.
+        kind: warning
+        ru: Не рекомендуется при тяжёлых болезнях почек, в том числе нефрите и пиелонефрите
+      - doc: monograph
+        page: 7
+        quote: If complaints or symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted.
+        kind: warning
+        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+      - doc: monograph
+        page: 7
+        quote: is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
+        kind: warning
+        ru: Нужно много пить — не подходит, если врач ограничил питьё
+      - doc: monograph
+        page: 7
+        quote: Interactions with other medicinal products and other forms of interaction None reported.
+        kind: interaction
+        ru: Взаимодействий не описано
+      - doc: monograph
+        page: 7
+        quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+        kind: pregnancy
+        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+      - doc: monograph
+        page: 8
+        quote: Undesirable effects None known.
+        kind: adverse
+        ru: Побочные эффекты не известны
+      - doc: monograph
+        page: 8
+        quote: No case of overdose has been reported.
+        kind: overdose
+        ru: Случаев передозировки не описано
+      constituents:
+      - doc: assessment-report
+        page: 19
+        quote: The diuretic activity cannot be characterized as only aquaretic
+        compound: cone berry infusion
+        compoundRu: настой шишкоягод
+        effectRu: мочегонное — выводит не только воду
+        evidence: review
+      - doc: assessment-report
+        page: 8
+        quote: Biochemical, pathological and histological investigations are questioning neither the juniper oil nor the terpinene-4- ol produced nefrotoxic effects
+        compound: essential oil, terpinen-4-ol
+        compoundRu: эфирное масло, терпинен-4-ол
+        classRu: эфирное масло (монотерпены)
+        effectRu: прежние опасения о вреде для почек исследованиями не подтверждены
+        evidence: review
+    grls:
+      registrationNumber: ЛП-№(014418)-(РГ-RU)
+      tradeName: Можжевельника плоды
+      holder: Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
+      dosageForm: плоды цельные
+      instructionLabel: Изм. № 0, ЛП-№(014418)-(РГ-RU), 2026
+      officialSourceUrl: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
+      pdfSha256: sha256:bdeec8c7644d972d6a07f2b0375377b2b5b2657da2e745b41f6d240b547a2846
+      sourceDocument: drug.rf.66fb1a9db8c9f869f303.instruction
+      catalogEdition: 24.07.2026
+      ocr: false
+      otherRegistrations: 3
+  navigationAliases:
+  - Можжевельник обыкновенный
+  - можжевельник
+  - Juniperus communis
+  - можжевельника обыкновенного плоды
+  - можжевельника плоды
+  - juniperi galbulus pseudo fructus
+---
+
+# Можжевельник обыкновенный
+
+## Как заварить и принимать
+
+<!-- localmed:source {"blocks":["p2-b12","p2-b13","p2-b14","p2-b15","p2-b16"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
+
+Около 10 г (1 столовая ложка) плодов можжевельника помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл.
+
+<!-- localmed:source {"blocks":["p2-b17"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
+
+Настой принимают внутрь в теплом виде по 1 столовой ложке 3-4 раза в день после еды.
+
+<!-- localmed:source {"blocks":["p2-b18"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
+
+Курс лечения 3-4 недели.
+
+<!-- localmed:source {"blocks":["p2-b19"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
+
+Перед применением настой рекомендуется взбалтывать.
+
+<!-- localmed:source {"blocks":["p2-b20","p2-b21","p2-b22","p2-b23"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"dosage"} -->
+
+Если после лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Противопоказания
+
+<!-- localmed:source {"blocks":["p2-b4","p2-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"contraindications"} -->
+
+Повышенная чувствительность к препарату; острые воспалительные заболевания почек; беременность, период грудного вскармливания, возраст до 18 лет.
+
+### Беременность и кормление грудью
+
+<!-- localmed:source {"blocks":["p2-b8","p2-b9"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"pregnancy"} -->
+
+Противопоказано применение препарата при беременности и в период грудного вскармливания.
+
+## Показания
+
+<!-- localmed:source {"blocks":["p1-b30","p1-b31"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"indications"} -->
+
+В комплексной терапии отечного синдрома (при сердечной недостаточности, недостаточности функции почек и/или печени), цистита.
+
+## Действие и состав
+
+<!-- localmed:source {"blocks":["p1-b27","p1-b28"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"action"} -->
+
+Настой плодов можжевельника оказывает диуретическое (мочегонное), противовоспалительное и противомикробное действие.
+
+### Что содержит
+
+<!-- localmed:source {"blocks":["p1-b13","p1-b14"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"characteristics"} -->
+
+Плоды можжевельника содержат эфирное масло, сахара, флавоноиды, органические кислоты, смолы и другие биологически активные вещества.
+
+### Фармакотерапевтическая группа
+
+<!-- localmed:source {"blocks":["p1-b24"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"group"} -->
+
+Диуретическое средство растительного происхождения.
+
+## Побочное действие и взаимодействия
+
+<!-- localmed:source {"blocks":["p2-b26","p2-b27","p2-b28"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"adverse"} -->
+
+Возможны аллергические реакции. Если у Вас отмечаются побочные эффекты, указанные в инструкции, или они усугубляются, или Вы заметили любые другие побочные эффекты, не указанные в инструкции, сообщите об этом врачу.
+
+### Передозировка
+
+<!-- localmed:source {"blocks":["p2-b31","p2-b32","p2-b33","p2-b34"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":2,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"overdose"} -->
+
+При передозировке (одномоментный прием препарата в дозе, превышающей суточную дозу в 5 раз) возможны нарушение функции почек (лихорадка, расстройство мочеиспускания, кровь в моче); диспепсия, тахикардия, повышение артериального давления. Необходимо срочно обратиться к врачу. Лечение: симптоматическое.
+
+### Взаимодействие с лекарствами
+
+<!-- localmed:source {"blocks":["p3-b4"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"interactions"} -->
+
+Не описано.
+
+## Особые указания
+
+<!-- localmed:source {"blocks":["p3-b7","p3-b8"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"special"} -->
+
+При применении препарата в течение 2 недель и отсутствии эффекта следует обратиться к врачу. Не следует применять препарат более 4 недель без консультации с врачом.
+
+### Управление транспортом
+
+<!-- localmed:source {"blocks":["p3-b11","p3-b12","p3-b13","p3-b14"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"driving"} -->
+
+Препарат не оказывает влияния на способность к выполнению потенциально опасных видов деятельности, требующих повышенной концентрации внимания и быстроты психомоторных реакций (в том числе управление транспортными средствами, работа с движущимися механизмами).
+
+## Сырьё и хранение
+
+<!-- localmed:source {"blocks":["p1-b17","p1-b18"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"description"} -->
+
+Плоды шишко-ягоды 6-10 мм в диаметре, цилиндрической формы, шаровидные, иногда овальные или эллиптические, часто по бокам вдавленные, гладкие, блестящие и матовые.
+
+<!-- localmed:source {"blocks":["p1-b19","p1-b20","p1-b21","p1-b22"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":1,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"description"} -->
+
+Цвет плодов снаружи почти черный или фиолетовый с коричневым оттенком, иногда с серо-голубым восковым налетом. Цвет мякоти зеленовато-коричневый, цвет семян желтовато-коричневый. Запах своеобразный, ароматный. Вкус водного извлечения сладковатый, пряный.
+
+### Форма выпуска
+
+<!-- localmed:source {"blocks":["p3-b17","p3-b18","p3-b19","p3-b20","p3-b21"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"release-form"} -->
+
+Плоды цельные. По 30 г, 50 г, 60 г, 100 г плодов цельных в пачках из картона с контролем первого вскрытия с внутренним пакетом из бумаги с термосвариваемым полипропиленовым слоем или бумаги с термосвариваемым полиэтиленовым слоем, или алюминиевой фольги, или материала комбинированного многослойного, или полипропилена.
+
+<!-- localmed:source {"blocks":["p3-b22","p3-b23"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"release-form"} -->
+
+Инструкция по применению вкладывается в пачку или текст инструкции в полном объеме наносится на пачку.
+
+### Условия хранения
+
+<!-- localmed:source {"blocks":["p3-b26","p3-b27"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"storage"} -->
+
+В оригинальной упаковке при температуре не выше 25 °С; приготовленный настой – в прохладном месте не более 2-х суток.
+
+<!-- localmed:source {"blocks":["p3-b28"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"storage"} -->
+
+Хранить в недоступном для детей месте!
+
+### Срок годности
+
+<!-- localmed:source {"blocks":["p3-b31"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"shelf-life"} -->
+
+3 года.
+
+<!-- localmed:source {"blocks":["p3-b32"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf","page":3,"registrationNumber":"ЛП-№(014418)-(РГ-RU)","sourceDocument":"drug.rf.66fb1a9db8c9f869f303.instruction","sourceSection":"shelf-life"} -->
+
+Не использовать по истечении срока годности.
+
+## Источники
+
+<!-- localmed:source {"contentMode":"editorial-note"} -->
+
+- Инструкция ГРЛС «Можжевельника плоды», Изм. № 0, ЛП-№(014418)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
+- EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus (обновлено 13/06/2023). © European Medicines Agency
+- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain

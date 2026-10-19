@@ -71,6 +71,7 @@ import highlighterBold from '@phosphor-icons/core/assets/bold/highlighter-bold.s
 import houseBold from '@phosphor-icons/core/assets/bold/house-bold.svg?raw';
 import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.svg?raw';
 import infoBold from '@phosphor-icons/core/assets/bold/info-bold.svg?raw';
+import leafBold from '@phosphor-icons/core/assets/bold/leaf-bold.svg?raw';
 import lightbulbBold from '@phosphor-icons/core/assets/bold/lightbulb-bold.svg?raw';
 import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
 import listBulletsBold from '@phosphor-icons/core/assets/bold/list-bullets-bold.svg?raw';
@@ -183,6 +184,7 @@ export type AppGlyphName =
   | 'edit-fill'
   | 'eraser'
   | 'eye-slash'
+  | 'leaf'
   | 'lightbulb'
   | 'trash'
   | 'users'
@@ -329,6 +331,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'edit-fill': svgBody(pencilSimpleFill),
   eraser: svgBody(eraserBold),
   'eye-slash': svgBody(eyeSlashBold),
+  leaf: svgBody(leafBold),
   lightbulb: svgBody(lightbulbBold),
   trash: svgBody(trashBold),
   users: svgBody(usersBold),

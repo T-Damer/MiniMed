@@ -1,8 +1,22 @@
 # Herbal book («Травник») pilot: 30 plants
 
-Status: plan, 2026-10-18. Nothing built yet. This is an optional, downloadable reference for self-education
-and for when herbs are all that is available. It never replaces official instructions or clinical
-recommendations.
+Status: built 2026-10-19 (STATE HERB1, see `docs/CURRENT_STATE.md` «Herbal book «Травник» pilot»). This
+is an optional, downloadable reference for self-education and for when herbs are all that is available. It
+never replaces official instructions or clinical recommendations.
+
+**Outcome against this plan (2026-10-19).** Built as planned, with these changes:
+
+- **Plates:** Köhler where Commons has a plate (21), otherwise Thomé (4), Sturm (St John's wort) and
+  Lindman (field horsetail); plates ship at ≤1200 px (JPEG q85, 7.0 MB in all), not 1600 px.
+- **Dr. Duke's database** was not used: its activity claims are untyped lab notes in English, while the EMA
+  assessment reports give the constituent → effect link with an evidence level. Its fetch was removed.
+- **ГФ XV:** only ОФС.1.4.1.0018 «Настои и отвары» carries home-preparation rules; the articles on
+  tinctures, teas and extracts are laboratory quality control and were dropped. The article text is the
+  page HTML; the PDF the page links is the approving order (№448 of 25.08.2023).
+- **ГРЛС:** viola's only text is an amendment notice, so its chapter is EMA-only; anise is OCR.
+- **EMA quote check** gained a reading-order fallback for PDFs whose text spans are stored out of order
+  (oak bark), with spaces ignored, and checks numbers in the population field too.
+- **Search:** chapters are found in «Все источники»; a separate «Травник» search section is not built yet.
 
 ## 1. Sources and what each one contributes
 

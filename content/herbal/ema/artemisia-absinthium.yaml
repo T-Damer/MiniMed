@@ -1,0 +1,104 @@
+# EMA/HMPC facts for Полынь горькая. Draft artifact (status: proposed): Russian fields are a reader's
+# rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: artemisia-absinthium
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Временная потеря аппетита
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for temporary loss of appetite.
+  - kind: indication
+    ru: Лёгкие расстройства пищеварения
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for mild dyspeptic/gastrointestinal disorders.
+  - kind: posology
+    ru: Чай (настой) — взрослые; в сутки 2–3 г
+    doc: monograph
+    page: 4
+    quote: "a) Single dose herbal tea 1-1.5 g comminuted herbal substance in 150 ml of boiling water as an infusion Single dose: 1-1.5 g Daily dose: 2-3 g"
+    dose: { preparationRu: настой, amount: "1-1.5", unit: г, waterMl: "150", populationRu: взрослые }
+  - kind: posology
+    ru: Для аппетита — за 30 минут до еды; при несварении — после еды
+    doc: monograph
+    page: 5
+    quote: Indication 1) To be taken 30 minutes before meals. Indication 2) To be taken after meals.
+  - kind: age
+    ru: До 18 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children and adolescents under 18 years of age is not recommended
+    minAgeMonths: 216
+  - kind: duration
+    ru: Если симптомы держатся дольше 2 недель — к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Аллергия на полынь и другие астровые (сложноцветные)
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance(s) and to other plants of the Asteraceae (Compositae) family.
+  - kind: contraindication
+    ru: Закупорка желчного протока, холангит, болезни печени
+    doc: monograph
+    page: 5
+    quote: Obstruction of the bile duct, cholangitis or liver disease.
+  - kind: warning
+    ru: При желчных камнях и других болезнях желчных путей — сначала к врачу
+    doc: monograph
+    page: 6
+    quote: Patients with gallstones and any other biliary disorders (see section 4.3) should consult a doctor before using Absinthii herba preparations.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется
+    doc: monograph
+    page: 6
+    quote: The use is not recommended during pregnancy and lactation.
+  - kind: adverse
+    ru: Побочные эффекты не известны
+    doc: monograph
+    page: 7
+    quote: Undesirable effects None known
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: bitter principles (absinthin)
+    compoundRu: горечи (абсинтин)
+    classRu: сесквитерпеновые лактоны
+    effectRu: усиливают слюну и желудочный сок — возбуждают аппетит
+    evidence: clinical
+    doc: assessment-report
+    page: 24
+    quote: The Absinthii herba preparation caused in all 4 persons an increase in salivation of more than 100%
+  - compound: thujone
+    compoundRu: туйон
+    classRu: эфирное масло (монотерпены)
+    effectRu: в больших дозах токсичен для нервной системы (действует на ГАМК-рецептор)
+    evidence: review
+    doc: assessment-report
+    page: 22
+    quote: Several studies on the mechanism of neurotoxicity of α- thujone suggest a modulation of the GABA Type A receptor.
+  - compound: thujone
+    compoundRu: туйон
+    classRu: эфирное масло
+    effectRu: допустимый предел из лекарств — 6 мг в сутки
+    evidence: review
+    doc: assessment-report
+    page: 24
+    quote: to give 6 mg as a limit of daily exposure

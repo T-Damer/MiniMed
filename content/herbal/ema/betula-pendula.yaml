@@ -1,0 +1,84 @@
+# EMA/HMPC facts for Берёза повислая (лист). Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: betula-pendula
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
+  - kind: posology
+    ru: Чай (настой) — подростки и взрослые; пить достаточно жидкости
+    doc: monograph
+    page: 4
+    quote: "Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion up to 4 times daily"
+    dose: { preparationRu: настой, amount: "2-3", unit: г, waterMl: "150", timesPerDay: "4", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Обычно курс 2–4 недели
+    doc: monograph
+    page: 5
+    quote: over a period of 2-4 weeks.
+  - kind: contraindication
+    ru: Аллергия на берёзу или её пыльцу
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance or to birch pollen.
+  - kind: contraindication
+    ru: Состояния, когда нужно ограничивать питьё (тяжёлые болезни сердца или почек)
+    doc: monograph
+    page: 5
+    quote: Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal disease).
+  - kind: warning
+    ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+    doc: monograph
+    page: 5
+    quote: If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 6
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Тошнота, рвота, диарея; аллергия (зуд, сыпь, крапивница, насморк)
+    doc: monograph
+    page: 6
+    quote: Gastrointestinal complaints (nausea, vomiting, diarrhoea) and allergic reactions (itching, rash, urticaria, allergic rhinitis) have been reported.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: flavonoids
+    compoundRu: флавоноиды
+    classRu: флавоноиды
+    effectRu: мягкое мочегонное (выводят воду) — эффект растёт с их количеством
+    evidence: animal
+    doc: assessment-report
+    page: 13
+    quote: The aquaretic effect correlated with the amount of flavonoid
+  - compound: carbon dioxide leaf extract
+    compoundRu: углекислотный экстракт листа
+    effectRu: антибактериальное против золотистого стафилококка
+    evidence: in-vitro
+    doc: assessment-report
+    page: 12
+    quote: A carbon dioxide extract of Betula pendula leaves showed antibacterial activity against Staphylococcus aureus

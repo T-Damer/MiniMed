@@ -30,6 +30,7 @@ import '@/styles/download-status.css';
 import '@/styles/document-page.css';
 import '@/styles/medications.css';
 import '@/styles/conditions.css';
+import '@/styles/herbal.css';
 import '@/styles/assessments.css';
 import '@/styles/calculators.css';
 import '@/styles/score-scale.css';

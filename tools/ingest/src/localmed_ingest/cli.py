@@ -32,6 +32,12 @@ from .drug_sources import collect_drug_sources
 from .feeding_distribution import package_feeding_module
 from .feeding_norms import FeedingSourceError, prepare_feeding_norms, verify_feeding_sources
 from .feeding_norms import report_json as feeding_report_json
+from .herbal_distribution import package_herbal_module, package_herbal_plates
+from .herbal_ema import check_ema_extractions
+from .herbal_prepare import prepare_herbal_book
+from .herbal_prepare import report_json as herbal_prepare_report_json
+from .herbal_sources import fetch_herbal_sources
+from .herbal_sources import report_json as herbal_sources_report_json
 from .icd11_api_fetch import fetch_icd11_api
 from .icd11_distribution import package_icd11_module
 from .icd11_fetch import fetch_icd11_release
@@ -523,6 +529,100 @@ def prepare_diets_command(
 ) -> None:
     """Prepare the official therapeutic-nutrition Markdown (orders 330, 395n, 1008n, 70n)."""
     typer.echo(diets_report_json(prepare_diets_official(raw_input, output)))
+
+
+@app.command("fetch-herbal-sources")
+def fetch_herbal_sources_command(
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    refresh: Annotated[bool, typer.Option("--refresh")] = False,
+    only: Annotated[list[str] | None, typer.Option("--only", help="Plant id; repeatable.")] = None,
+) -> None:
+    """Download EMA herbal documents, public-domain plates and the ГФ XV infusion article."""
+    manifest = fetch_herbal_sources(
+        plants, output, refresh=refresh, only=frozenset(only) if only else None
+    )
+    typer.echo(herbal_sources_report_json(manifest))
+
+
+@app.command("check-herbal-ema")
+def check_herbal_ema_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+) -> None:
+    """Check every EMA quote of the herbal extraction files against the downloaded PDF pages."""
+    results = check_ema_extractions(directory, raw_root)
+    typer.echo(json.dumps(results, ensure_ascii=False, indent=2))
+    if any(results.values()):
+        raise typer.Exit(1)
+
+
+@app.command("prepare-herbal")
+def prepare_herbal_command(
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)] = Path(
+        "data/raw/official-grls-registry/catalog.json"
+    ),
+    instruction_manifest: Annotated[
+        Path, typer.Option("--instruction-manifest", exists=True, dir_okay=False)
+    ] = Path("data/build/grls-instruction-text-manifest.jsonl"),
+    instructions: Annotated[
+        Path, typer.Option("--instructions", exists=True, file_okay=False)
+    ] = Path("data/intermediate/grls-full-final"),
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)] = Path(
+        "data/raw/herbal"
+    ),
+    ema: Annotated[Path, typer.Option("--ema", exists=True, file_okay=False)] = Path(
+        "content/herbal/ema"
+    ),
+) -> None:
+    """Write the herbal book chapters (ГРЛС text, EMA facts, plate records) as prepared Markdown."""
+    report = prepare_herbal_book(
+        plants_path=plants,
+        catalog=catalog,
+        instruction_manifest=instruction_manifest,
+        instructions_root=instructions,
+        raw_root=raw_root,
+        ema_dir=ema,
+        output=output,
+    )
+    typer.echo(herbal_prepare_report_json(report))
+
+
+@app.command("package-herbal")
+def package_herbal_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the built herbal book pack and write its catalog entry."""
+    report = package_herbal_module(
+        database, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("package-herbal-plates")
+def package_herbal_plates_command(
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)] = Path(
+        "data/raw/herbal"
+    ),
+) -> None:
+    """Write the herbal plates ZIP, its index pack and the plates module catalog entry."""
+    report = package_herbal_plates(
+        plants, raw_root, output, version=version, min_app_version=min_app_version
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
 
 @app.command("package-diets")

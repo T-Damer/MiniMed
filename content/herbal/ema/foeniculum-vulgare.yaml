@@ -1,0 +1,122 @@
+# EMA/HMPC facts for Фенхель обыкновенный (плоды; EMA: горький фенхель). Draft artifact (status:
+# proposed): Russian fields are a reader's rendering of the quoted English sentence.
+plant: foeniculum-vulgare
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 5
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкие спастические жалобы ЖКТ — вздутие, газы
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for symptomatic treatment of mild, spasmodic gastro- intestinal complaints including bloating and flatulence.
+  - kind: indication
+    ru: Небольшие спазмы при менструации
+    doc: monograph
+    page: 5
+    quote: Traditional herbal medicinal product for symptomatic treatment of minor spasm associated with menstrual periods.
+  - kind: indication
+    ru: Отхаркивающее при кашле от простуды
+    doc: monograph
+    page: 5
+    quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
+  - kind: posology
+    ru: Чай (настой), настаивать 15 минут — взрослые и подростки
+    doc: monograph
+    page: 5
+    quote: "Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily."
+    dose: { preparationRu: настой, amount: "1.5", unit: г, waterMl: "250", timesPerDay: "3", populationRu: взрослые и подростки }
+  - kind: posology
+    ru: Чай (настой), настаивать 15 минут — дети 4–12 лет (вздутие, кашель)
+    doc: monograph
+    page: 5
+    quote: "Children between 4 and 12 years of age Single dose Herbal tea: 1.0 g of the herbal substance in 100 ml boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily."
+    dose: { preparationRu: настой, amount: "1.0", unit: г, waterMl: "100", timesPerDay: "3", populationRu: дети 4–12 лет }
+  - kind: age
+    ru: Детям младше 4 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use is not recommended in children under 4 years of age
+    minAgeMonths: 48
+  - kind: age
+    ru: При менструальных спазмах — не младше 12 лет
+    doc: monograph
+    page: 6
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Взрослым — не дольше 2 недель
+    doc: monograph
+    page: 6
+    quote: Not to be taken for more than 2 weeks.
+    maxDays: 14
+  - kind: duration
+    ru: Детям 4–12 лет — только коротко, меньше недели
+    doc: monograph
+    page: 6
+    quote: Children between 4 and 12 years of age For short-term use in mild transitory symptoms only (less than one week).
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на фенхель, другие зонтичные (анис, тмин, сельдерей, кориандр, укроп), анетол или пыльцу полыни
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substance or to Apiaceae (Umbelliferae) family (aniseed, caraway, celery, coriander and dill) or to anethole. Hypersensitivity to mugwort pollen, due to cross- reactivity with fennel.
+  - kind: warning
+    ru: Детям 4–12 лет — только если суточное поступление эстрагола не выше безопасного предела
+    doc: monograph
+    page: 7
+    quote: The use in children between 4 and 12 years of age is not recommended if the daily intake of estragole exceeds the guidance value
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет (эстрагол)
+    doc: monograph
+    page: 7
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Анетол переходит в грудное молоко
+    doc: monograph
+    page: 7
+    quote: There is evidence that trans-anethole is excreted in human breast milk.
+  - kind: adverse
+    ru: Возможна аллергия — кожа или дыхательные пути
+    doc: monograph
+    page: 8
+    quote: Allergic reactions to fennel, affecting the skin or the respiratory system may occur.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 8
+    quote: No cases of overdose have been reported.
+constituents:
+  - compound: anethole, fenchone
+    compoundRu: анетол, фенхон
+    classRu: эфирное масло
+    effectRu: главные компоненты эфирного масла плодов
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: essential oil that contains not less than 60.0% of anethole and not less than 15.0% of fenchone.
+  - compound: anethole
+    compoundRu: анетол
+    classRu: эфирное масло (фенилпропаноиды)
+    effectRu: ускоряет опорожнение желудка
+    evidence: animal
+    doc: assessment-report
+    page: 21
+    quote: significantly improved clonidine-induced delayed gastric emptying
+  - compound: estragole
+    compoundRu: эстрагол
+    classRu: эфирное масло (фенилпропаноиды)
+    effectRu: в опытах на животных — канцероген печени; причина ограничений для детей и беременных
+    evidence: animal
+    doc: assessment-report
+    page: 36
+    quote: Safrole and estragole were found to be highly active as liver carcinogens

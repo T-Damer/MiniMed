@@ -1,0 +1,131 @@
+# EMA/HMPC facts for Зверобой продырявленный (трава). Draft artifact (status: proposed): Russian
+# fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
+plant: hypericum-perforatum
+status: proposed
+useType: both
+facts:
+  - kind: indication
+    ru: Лёгкие и умеренные депрессивные эпизоды — только стандартизированные экстракты (хорошо изученное применение)
+    doc: monograph
+    page: 4
+    quote: "Herbal medicinal product for the treatment of mild to moderate depressive episodes."
+  - kind: indication
+    ru: Временное умственное истощение (традиционное применение)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the relief of temporary mental exhaustion.
+  - kind: indication
+    ru: Лёгкое воспаление кожи (солнечный ожог), заживление мелких ран
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations of the skin (such as sunburn) and as an aid in healing of minor wounds.
+  - kind: indication
+    ru: Лёгкий дискомфорт в ЖКТ; нервное беспокойство и трудности с засыпанием
+    doc: monograph
+    page: 5
+    quote: Traditional herbal medicinal product for the supportive treatment of nervous restlessness and associated with difficulties in falling asleep.
+  - kind: posology
+    ru: Чай при истощении — взрослые
+    doc: monograph
+    page: 6
+    quote: "Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g"
+    dose: { preparationRu: настой, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: взрослые }
+  - kind: posology
+    ru: Настой для промываний и повязок на кожу
+    doc: monograph
+    page: 6
+    quote: "2 g of the comminuted herbal substance in 150 ml of water, several times daily as washing or impregnated dressing"
+    dose: { preparationRu: настой для повязок, amount: "2", unit: г, waterMl: "150", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Чай при беспокойстве и плохом засыпании — взрослые
+    doc: monograph
+    page: 7
+    quote: "Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2 times daily"
+    dose: { preparationRu: настой, amount: "2-3", unit: г, waterMl: "150", timesPerDay: "2", populationRu: взрослые }
+  - kind: age
+    ru: Наружно — не младше 12 лет; внутрь — только взрослым
+    doc: monograph
+    page: 8
+    quote: Since no data on the safe use in children are available, the use in children under 12 years of age is not recommended.
+    minAgeMonths: 144
+  - kind: duration
+    ru: При истощении и беспокойстве — если дольше 2 недель, к врачу
+    doc: monograph
+    page: 7
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Нельзя вместе с варфарином и другими кумаринами, циклоспорином, такролимусом, препаратами от ВИЧ, многими противоопухолевыми (при большой дозе гиперфорина — экстракты)
+    doc: monograph
+    page: 8
+    quote: Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors
+  - kind: interaction
+    ru: Ускоряет разрушение многих лекарств (CYP3A4, CYP2C9 и др.) — снижает их концентрацию; перед приёмом спросить врача, если пьёте другие лекарства
+    doc: monograph
+    page: 9
+    quote: Hyperici herba preparations induce the activity of CYP3A4, CYP2B6, CYP2C9, CYP2C19 and P- glycoprotein.
+  - kind: interaction
+    ru: Чай с малой дозой гиперфорина (до 1 мг в сутки) коротким курсом до 2 недель значимых взаимодействий не даёт
+    doc: monograph
+    page: 9
+    quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported
+  - kind: interaction
+    ru: Ослабляет гормональные контрацептивы — нужна дополнительная защита
+    doc: monograph
+    page: 10
+    quote: Women using hormonal contraceptives should take additional contraceptive measures.
+  - kind: interaction
+    ru: С антидепрессантами (сертралин, пароксетин) — риск серотонинового синдрома
+    doc: monograph
+    page: 10
+    quote: Hyperici herba preparations may contribute to serotonergic effects when combined with antidepressants such as serotonin reuptake inhibitors (e.g. sertraline, paroxetine) or buspirone.
+  - kind: warning
+    ru: Избегать сильного солнца и УФ во время приёма
+    doc: monograph
+    page: 8
+    quote: During the treatment intense UV-exposure should be avoided.
+  - kind: warning
+    ru: Перед плановой операцией — предупредить врача, может понадобиться отмена
+    doc: monograph
+    page: 10
+    quote: Prior to elective surgery possible interactions with products used during general and regional anaesthesia should be identified.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется (токсичность для потомства у животных)
+    doc: monograph
+    page: 11
+    quote: The use is not recommended during pregnancy and lactation.
+  - kind: adverse
+    ru: Тошнота, боль в животе, диарея, аллергия на коже, усталость, беспокойство; у светлокожих — жжение и «солнечный ожог» на солнце
+    doc: monograph
+    page: 11
+    quote: Fair-skinned individuals may react with dysesthesia (e.g. tingling, sensitivity cold or pain, burning sensation) and intensified sunburn-like symptoms under intense sunlight.
+  - kind: overdose
+    ru: Очень большие дозы экстракта — судороги и спутанность; после передозировки 1–2 недели беречься от солнца
+    doc: monograph
+    page: 12
+    quote: After ingestion of massive overdoses, the patient should be protected from sunlight and other UV- light sources for 1-2 weeks.
+constituents:
+  - compound: hypericin, pseudohypericin, hyperforin
+    compoundRu: гиперицин, псевдогиперицин, гиперфорин
+    classRu: нафтодиантроны, флороглюцины
+    effectRu: характерные действующие вещества травы
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: Phloroglucinol derivates
+  - compound: hypericin, pseudohypericin, flavonoids, procyanidins
+    compoundRu: гиперицин, псевдогиперицин, флавоноиды, процианидины
+    classRu: нафтодиантроны, флавоноиды
+    effectRu: вклад в антидепрессивное действие
+    evidence: animal
+    doc: assessment-report
+    page: 26
+    quote: Constituents which may contribute to the activity are hypericin, pseudohypericin, flavonoids, and oligomeric procyanidins.
+  - compound: hyperforin
+    compoundRu: гиперфорин
+    classRu: флороглюцины
+    effectRu: включает ферменты печени (через рецептор PXR) — причина лекарственных взаимодействий
+    evidence: in-vitro
+    doc: assessment-report
+    page: 93
+    quote: Hyperforin is a high affinity ligand for pregnan x receptor (PXR) and activates the promoters of CYP3A4

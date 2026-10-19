@@ -1,0 +1,115 @@
+# EMA/HMPC facts for Мята перечная. Draft artifact (status: proposed): Russian fields are a reader's
+# rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: mentha-piperita
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Расстройства пищеварения — тяжесть, вздутие
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product for the symptomatic relief of digestive disorders such as dyspepsia and flatulence.
+  - kind: posology
+    ru: Чай (настой) — взрослые
+    doc: monograph
+    page: 4
+    quote: "Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily"
+    dose: { preparationRu: настой, amount: "1.5-3.0", unit: г, waterMl: "100-150", timesPerDay: "3", populationRu: взрослые }
+  - kind: posology
+    ru: Чай (настой) — дети 4–11 лет и подростки
+    doc: monograph
+    page: 4
+    quote: "Children 4-11 years of age and adolescents Herbal tea: 1.0-2.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily"
+    dose: { preparationRu: настой, amount: "1.0-2.0", unit: г, waterMl: "100-150", timesPerDay: "3", populationRu: дети 4–11 лет и подростки }
+  - kind: age
+    ru: Детям младше 4 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use is not recommended in children under 4 years of age
+    minAgeMonths: 48
+  - kind: duration
+    ru: Если симптомы держатся дольше 2 недель — к врачу
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted
+    maxDays: 14
+  - kind: contraindication
+    ru: Аллергия на мяту или ментол
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to peppermint leaf preparations or to menthol.
+  - kind: warning
+    ru: При изжоге (рефлюксе) лучше не пить — изжога может усилиться
+    doc: monograph
+    page: 5
+    quote: Patients with gastroesophageal reflux (heartburn) should avoid peppermint leaf preparations, because heartburn may increase.
+  - kind: warning
+    ru: Осторожно при желчных камнях и других болезнях желчных путей
+    doc: monograph
+    page: 5
+    quote: Patients with gallstones and any other biliary disorders should be cautious using peppermint leaf preparations.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 5
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Рефлюкс и изжога могут усилиться
+    doc: monograph
+    page: 6
+    quote: The gastroesophageal reflux may worsen and heartburn may increase.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: menthol, menthone
+    compoundRu: ментол, ментон
+    classRu: эфирное масло (монотерпены)
+    effectRu: главные компоненты эфирного масла листа
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: Its major constituents are menthol (30-55%) and menthone (14-32%).
+  - compound: (-)-menthol, peppermint oil
+    compoundRu: ментол, мятное масло
+    classRu: эфирное масло
+    effectRu: противорвотное — действуют на серотониновые рецепторы кишки
+    evidence: in-vitro
+    doc: assessment-report
+    page: 28
+    quote: It may be concluded that peppermint oil and (-)-menthol exert their antiemetic effect at least partly by acting on the 5-HT3 receptor ion-channel complex
+  - compound: alcoholic leaf extract
+    compoundRu: спиртовой экстракт листа
+    effectRu: спазмолитическое на кишку
+    evidence: in-vitro
+    doc: assessment-report
+    page: 26
+    quote: alcoholic extracts of peppermint leaf have showed antispasmodic effects on the isolated guinea pig ile
+  - compound: flavonoids
+    compoundRu: флавоноиды листа
+    classRu: флавоноиды
+    effectRu: желчегонное
+    evidence: animal
+    doc: assessment-report
+    page: 27
+    quote: Mixed flavonoids from peppermint leaf (optimum dose 2 mg/kg,), showed choleretic activity in dogs.
+  - compound: peppermint oil
+    compoundRu: мятное масло
+    classRu: эфирное масло
+    effectRu: ветрогонное — уменьшает пену и газы
+    evidence: in-vitro
+    doc: assessment-report
+    page: 29
+    quote: Peppermint oil has showed antifoaming and carminative activity in vitro.

@@ -128,6 +128,24 @@ publication decision, not rights clearance or clinical review:
   brand, in the optional `minimed.rls.packaging.ru`; a listed medicine or strength is a
   reference link on the RLS page, never an indication, prescription or dosing regimen.
 
+## User decision 2026-10-18: herbal book «Травник» (pilot, 30 plants)
+
+The project owner asked for a downloadable herbal book and chose (2026-10-18) to show EMA/HMPC limits and
+doses as Russian structured fields with the original English quote on tap. This is an owner publication
+decision for an experimental module, not a clinical review:
+
+- ГРЛС instruction text is copied verbatim with PDF page/block spans; nothing is summarised;
+- EMA/HMPC documents are reproduced only as short quotes behind Russian fields, with the EMA notice
+  («Reproduction is authorised provided the source is acknowledged») and links to the documents; every
+  quote is checked against its PDF page and every number in a Russian field must occur in its quote;
+  the fields stay `status: proposed` (draft) until a clinician reviews them;
+- botanical plates are public domain (licence read from Wikimedia Commons at fetch time; anything else is
+  refused); ГФ XV text is an official document;
+- chapters carry `publicationState: experimental-preview` with `publicationDecision`, `requiresReview: true`;
+  the modules are `preview` catalog entries tagged experimental and requires-review.
+
+The decision covers these sources and this use only.
+
 ## Uploaded sources belong to the same knowledge-base pipeline
 
 The user does not want a separate personal ZIP/viewer workflow as the endpoint. Prepared material

@@ -1,0 +1,122 @@
+# EMA/HMPC facts for Одуванчик лекарственный (корень). Draft artifact (status: proposed): Russian
+# fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
+plant: taraxacum-officinale
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкие расстройства пищеварения — тяжесть, газы, медленное переваривание
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for the relief of symptoms related to mild digestive disorders (such as feeling of abdominal fullness, flatulence, and slow digestion).
+  - kind: indication
+    ru: Временная потеря аппетита
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for temporary loss of appetite.
+  - kind: indication
+    ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
+  - kind: posology
+    ru: Отвар — подростки и взрослые
+    doc: monograph
+    page: 4
+    quote: "a) Comminuted herbal substance for decoction: single dose of 1-5 g in 150 ml of water, 2-3 times daily"
+    dose: { preparationRu: отвар, amount: "1-5", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Для аппетита — за полчаса до еды; для мочегонного действия — пить достаточно жидкости
+    doc: monograph
+    page: 5
+    quote: To ensure an increase of the amount of urine, adequate fluid intake is required during treatment
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы держатся дольше 2 недель — к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Аллергия на одуванчик и другие астровые (сложноцветные)
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance or to plants of the Asteraceae (Compositae) family.
+  - kind: warning
+    ru: Усиливает отток желчи — не рекомендуется при закупорке желчных путей, холангите, болезнях печени, желчных камнях
+    doc: monograph
+    page: 6
+    quote: obstruction of the bile duct, cholangitis, liver disease, gallstones and any other biliary diseases.
+  - kind: warning
+    ru: При температуре, болезненном или спастическом мочеиспускании, крови в моче — к врачу
+    doc: monograph
+    page: 6
+    quote: If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Не рекомендуется, если врач ограничил питьё (например, при болезнях сердца или почек)
+    doc: monograph
+    page: 6
+    quote: dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 6
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 6
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Возможны аллергические реакции
+    doc: monograph
+    page: 7
+    quote: Allergic reactions may occur.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: bitter principles
+    compoundRu: горечи (сесквитерпеновые лактоны)
+    classRu: сесквитерпены
+    effectRu: усиливают слюну и желудочный сок через рецепторы горького
+    evidence: review
+    doc: assessment-report
+    page: 13
+    quote: Bitter principles are thought to enhance excretion from salivary and stomach glands by reflectory irritation of bitter receptors
+  - compound: taraxinic acid D-glucopyranoside
+    compoundRu: тараксиновой кислоты глюкозид
+    classRu: сесквитерпены
+    effectRu: защищает желудок от повреждения аспирином; может вызывать контактную аллергию
+    evidence: animal
+    doc: assessment-report
+    page: 13
+    quote: inhibited significantly the development of aspirin induced gastric lesions in the rat.
+  - compound: inulin
+    compoundRu: инулин
+    classRu: полисахариды
+    effectRu: запасной углевод корня, больше всего осенью
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: Inulin contents of roots range from 2% in spring - to 40% in autumn
+  - compound: potassium
+    compoundRu: калий
+    classRu: минералы
+    effectRu: высокое содержание калия объясняет его выведение с мочой
+    evidence: animal
+    doc: assessment-report
+    page: 12
+    quote: concerning potassium excretion may be due to the high potassium content

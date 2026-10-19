@@ -1,0 +1,136 @@
+# EMA/HMPC facts for Шалфей лекарственный. Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: salvia-officinalis
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкие расстройства пищеварения — изжога, вздутие
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of mild dyspeptic complaints such as heartburn and bloating.
+  - kind: indication
+    ru: Повышенная потливость
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of excessive sweating.
+  - kind: indication
+    ru: Воспаление во рту и горле (полоскания)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of inflammations in the mouth or the throat.
+  - kind: indication
+    ru: Лёгкое воспаление кожи
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for relief of minor skin inflammations.
+  - kind: posology
+    ru: Чай (настой) при расстройстве пищеварения — взрослые
+    doc: monograph
+    page: 4
+    quote: "Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml boiling water as herbal"
+    dose: { preparationRu: настой (3 раза в день), amount: "1-2", unit: г, waterMl: "150", populationRu: взрослые }
+  - kind: posology
+    ru: Чай (настой) при потливости — взрослые
+    doc: monograph
+    page: 5
+    quote: "Herbal tea: 2 g of comminuted herbal substance in 150 ml boiling water as herbal infusion."
+    dose: { preparationRu: настой, amount: "2", unit: г, waterMl: "150", populationRu: взрослые }
+  - kind: posology
+    ru: Полоскание горла тёплым настоем — взрослые
+    doc: monograph
+    page: 5
+    quote: "2.5 g comminuted herbal substance in 100 ml boiling water as an infusion. The infusion is used warm for gargle 3 times daily."
+    dose: { preparationRu: настой для полоскания, amount: "2.5", unit: г, waterMl: "100", timesPerDay: "3", populationRu: взрослые }
+  - kind: posology
+    ru: Примочки на кожу — взрослые
+    doc: monograph
+    page: 6
+    quote: 2.5 g of the comminuted herbal substance in 100 ml water as herbal infusion to be applied on the affected area of the skin 2-4 times daily.
+    dose: { preparationRu: настой для примочек, amount: "2.5", unit: г, waterMl: "100", timesPerDay: "2-4", populationRu: взрослые }
+  - kind: age
+    ru: До 18 лет не рекомендуется
+    doc: monograph
+    page: 6
+    quote: The use in children and adolescents under 18 years of age is not recommended
+    minAgeMonths: 216
+  - kind: duration
+    ru: При расстройстве пищеварения — если дольше 2 недель, к врачу
+    doc: monograph
+    page: 6
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: duration
+    ru: При потливости можно долго; если за 6 недель не лучше — к врачу
+    doc: monograph
+    page: 6
+    quote: If the symptoms do not improve within 6 weeks of use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: duration
+    ru: Полоскания — если дольше 1 недели, к врачу
+    doc: monograph
+    page: 6
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на шалфей
+    doc: monograph
+    page: 7
+    quote: Hypersensitivity to the active substance(s).
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 7
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Побочные эффекты не известны
+    doc: monograph
+    page: 8
+    quote: Undesirable effects None known
+  - kind: overdose
+    ru: Масло шалфея в количестве больше чем из 15 г листа — жар, сердцебиение, головокружение, судороги
+    doc: monograph
+    page: 8
+    quote: Intake of sage oil corresponding to more than 15 g of sage leaf is reported to cause sensation of heat, tachycardia, vertigo and epileptiform convulsions (seizures).
+constituents:
+  - compound: α- and β-thujone
+    compoundRu: α- и β-туйон
+    classRu: эфирное масло (монотерпены)
+    effectRu: противомикробное; в больших дозах токсичен для нервной системы
+    evidence: review
+    doc: assessment-report
+    page: 25
+    quote: Sage oil has antimicrobial properties that have been attributed principally to the presence of
+  - compound: 1,8-cineole, borneol, camphor, thujone
+    compoundRu: цинеол, борнеол, камфора, туйон
+    classRu: эфирное масло
+    effectRu: противовоспалительное в клетках дёсен
+    evidence: in-vitro
+    doc: assessment-report
+    page: 26
+    quote: seemed to contribute to the anti-inflammatory activity of sage infusion in human gingival fibroblasts
+  - compound: thujone
+    compoundRu: туйон
+    classRu: эфирное масло
+    effectRu: может вызвать выкидыш — причина запрета при беременности
+    evidence: review
+    doc: assessment-report
+    page: 38
+    quote: The volatile oil contains a high proportion of α- and β- thujones, which are known to be abortifacient and emmenagogic
+  - compound: thujone
+    compoundRu: туйон
+    classRu: эфирное масло
+    effectRu: нейротоксичность через ГАМК-рецептор
+    evidence: review
+    doc: assessment-report
+    page: 39
+    quote: The mechanism of neurotoxicity has been ascribed to the available information regarding α-thujone and its effect on the γ-aminobutyric acid (GABA) type A receptor.

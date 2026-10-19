@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 15 October 2026
+> Updated: 19 October 2026
 > Released version: `0.6.61` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -55,6 +55,48 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
 10. **Clinician review** of TOOLS-A/B sources flagged as weaker: APRI cut-offs (secondary source), GCS
     mild/moderate/severe attribution to NICE, ATLS classes from the class table, GIR, Doppler indices
     without GA percentiles, Silverman scores 3 and 7.
+
+## Herbal book «Травник» pilot — 2026-10-19 (STATE HERB1)
+
+Owner request 2026-10-18: a downloadable herbal book with pictures — effects and the components behind
+them, how to brew and take a plant, who may take it; for self-education and situations with only herbs at
+hand. EMA limits and doses are Russian structured fields with the English quote on tap (owner choice «a»).
+Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-plan-2026-10-18.md).
+
+- **Modules** (2026.10.19, `minAppVersion` 0.6.61, preview, experimental + requires-review):
+  `minimed.reference.herbal` «Травник» — 30 plant chapters + ГФ XV «Настои и отвары», 495 chunks, 3.0 MB
+  index, 1.0 MB gzip; `minimed.reference.herbal.plates` «Травник: иллюстрации» — 30 plates (≤1200 px JPEG
+  q85) in one STORED source-assets ZIP, 7.0 MB, plus a 19 KB credits index. Both committed under
+  `apps/app/public/content/modules/`. «Скачать всё» leaves the plates out (image pack rule). Built by
+  `bun run content:module:herbal` (EMA quote check → prepare → lint → build → package → catalog → shell).
+- **Inputs**: `content/herbal/plants.yaml` (the only hand list: ГРЛС names, EMA page, Commons plate);
+  `medbase fetch-herbal-sources` → `data/raw/herbal` (EMA monographs/statements, assessment reports, public
+  summaries; public-domain plates with the Commons licence checked; the ГФ XV article page and its approving
+  order №448). Dr. Duke's database and the ГФ articles on tinctures/teas/extracts (lab QC only) were dropped.
+- **ГРЛС text**: per plant the best active registration of the plain raw material (text layer before OCR,
+  loose herb before filter bags, newest edition, an amendment-only file skipped); its sections are copied
+  verbatim with PDF page/block markers under «Как заварить и принимать», «Противопоказания», «Показания»,
+  «Действие и состав», «Побочное действие…», «Особые указания», «Сырьё и хранение». Brew cells (сырьё, вода,
+  баня, настоять, сколько раз, разовая доза, курс) are parsed from the dosage text and keep their sentence.
+  Gaps: viola has no usable ГРЛС text (only an amendment notice) — EMA only; anise is OCR (badge «скан»).
+- **EMA facts**: `content/herbal/ema/<plant>.yaml`, 30 files, status `proposed` (draft badge «черновик»):
+  indications, doses per age, age/duration limits, contraindications, pregnancy, interactions, adverse
+  effects, overdose and 2–5 constituents with evidence level. `medbase check-herbal-ema` refuses any quote not
+  on its cited PDF page (content order, or reading order with spaces ignored for PDFs whose spans are out of
+  order, e.g. oak) and any number in a Russian field the quote lacks. Written by the agent on 2026-10-19 (the
+  Sonnet extraction agents hit their weekly limit); no clinician review yet.
+- **App**: tile «Травник» in «База знаний» (`#/modules/documents/herbal`): search, action chips (kept in the
+  address), the ГФ guide card, the plates offer, a thumbnail grid. A chapter opens in the standard reader:
+  the plate is the hero (`ReaderHero` now takes any picture source; portrait pictures fit the stage), then
+  identity, action chips, brew cells, «Кому нельзя», «Дозы EMA», «Показания EMA», «Действующие вещества»;
+  every cell opens its source sentence in a sheet. A public statement (celandine: oral use not approved)
+  comes before the recipe. Search finds the chapters in «Все источники» (`herbal_monograph`, kind reference).
+- **Checks**: `tools/ingest/tests/test_herbal.py` (quote check, section split, brew parsing, ГФ HTML, EMA
+  selection, plant list), `apps/app/src/features/herbal/herbal-chapter.test.ts`; browser run at 375×812 on a
+  clean profile: install text + plates, reload, chamomile/St John's wort/celandine chapters, quote sheets.
+  Not done: the Sonnet doctor QA pass (weekly limit), a phone/WebView run, clinician review of the EMA fields.
+  Known: rebuilding a module under the same version leaves an installed copy pointing at a stale shelf file
+  («no such table: content_packs») — release a new version for every rebuild.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

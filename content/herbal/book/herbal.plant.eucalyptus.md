@@ -1,0 +1,356 @@
+---
+id: herbal.plant.eucalyptus
+title: Эвкалипт
+short_title: Эвкалипт
+version_label: grls-24.07.2026
+source_type: herbal_monograph
+status: active
+specialties:
+- phytotherapy
+age_groups: []
+source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
+source_checksum: sha256:72d5177e05a09deb44972edeafddf7354663b74b1f6c9255dc88ec19245d0663
+synthetic_fixture: false
+metadata:
+  authorityTier: official-regulatory-act
+  jurisdiction: RU
+  documentKind: травник
+  contentMode: verbatim
+  rightsStatus: official-and-attributed-sources
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  publicationState: experimental-preview
+  publicationDecision:
+    decidedAt: '2026-10-18'
+    decidedBy: project owner
+    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+  requiresReview: true
+  calculationRequired: false
+  clinicalContextRequired: true
+  herbal:
+    plantId: eucalyptus
+    latin: Eucalyptus viminalis Labill.
+    family: Myrtaceae
+    partRu: листья
+    partLa: folium
+    actions:
+    - противовоспалительное
+    - противомикробное
+    brew:
+      kind: настой
+      herb:
+        value: 10 г
+        quote: Около 10 г (2 столовые ложки) листьев эвкалипта прутовидного помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      water:
+        value: 200 мл
+        quote: Около 10 г (2 столовые ложки) листьев эвкалипта прутовидного помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      heat:
+        value: 15 мин
+        quote: Около 10 г (2 столовые ложки) листьев эвкалипта прутовидного помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      steep:
+        value: 45 мин
+        quote: Около 10 г (2 столовые ложки) листьев эвкалипта прутовидного помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают.
+      times:
+        value: 2 раза в день
+        quote: 'Применяют местно в теплом виде по 1/2-1 стакану настоя: ингаляции проводят в соответствии с рекомендациями врача 2 раза в день, полоскания 3-4 раза в день.'
+      dose:
+        value: местно в теплом виде по 1/2-1 стакану настоя
+        quote: 'Применяют местно в теплом виде по 1/2-1 стакану настоя: ингаляции проводят в соответствии с рекомендациями врача 2 раза в день, полоскания 3-4 раза в день.'
+      course:
+        value: 2–3 недели
+        quote: Курс лечения 2-3 недели.
+    thumbnail: data:image/jpeg;base64,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
+    plate:
+      asset: plates/eucalyptus.jpg
+      book: Köhler's Medizinal-Pflanzen (1887–1898)
+      credit: Köhler, 1897
+      artist: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen
+      date: '1897'
+      licence: Public domain
+      commonsPage: https://commons.wikimedia.org/wiki/File:Eucalyptus_globulus_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-147.jpg
+      species: Eucalyptus globulus Labill.
+    ema:
+      page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium
+      lastUpdated: 16/06/2014
+      species: Eucalyptus globulus Labill.
+      documents:
+        monograph:
+          url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-eucalyptus-globulus-labill-folium_en.pdf
+          draft: false
+        assessment-report:
+          url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-eucalyptus-globulus-labill-folium_en.pdf
+          draft: false
+        summary:
+          url: https://www.ema.europa.eu/en/documents/herbal-summary/eucalyptus-leaf-summary-public_en.pdf
+          draft: false
+      extracted: true
+      status: proposed
+      useType: traditional
+      facts:
+      - doc: monograph
+        page: 3
+        quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+        kind: use-type
+        ru: Традиционное растительное средство — применение основано на длительном опыте (EMA — эвкалипт шаровидный)
+      - doc: monograph
+        page: 3
+        quote: Traditional herbal medicinal product used for relief of cough associated with cold.
+        kind: indication
+        ru: Облегчение кашля при простуде
+      - doc: monograph
+        page: 3
+        quote: 'Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily.'
+        kind: posology
+        ru: Чай (настой) внутрь — подростки и взрослые
+        dose:
+          preparationRu: настой
+          amount: 1.5-3
+          unit: г
+          waterMl: '150'
+          timesPerDay: '4'
+          populationRu: подростки и взрослые
+      - doc: monograph
+        page: 3
+        quote: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily.
+        kind: posology
+        ru: Ингаляция — залить лист кипятком
+        dose:
+          preparationRu: настой для ингаляции
+          amount: '3'
+          unit: г
+          timesPerDay: '3'
+          populationRu: подростки и взрослые
+      - doc: monograph
+        page: 4
+        quote: Children under 30 months of age, because there is a risk that cineole containing preparations, like other essential oils, can induce laryngospasm.
+        kind: age
+        ru: Детям младше 30 месяцев нельзя — риск спазма гортани от цинеола
+        minAgeMonths: 30
+      - doc: monograph
+        page: 3
+        quote: The use in children under 12 years of age is not recommended
+        kind: age
+        ru: Детям младше 12 лет не рекомендуется
+        minAgeMonths: 144
+      - doc: monograph
+        page: 4
+        quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: duration
+        ru: Если симптомы держатся дольше 1 недели — к врачу
+        maxDays: 7
+      - doc: monograph
+        page: 4
+        quote: Hypersensitivity to the active substance.
+        kind: contraindication
+        ru: Аллергия на эвкалипт
+      - doc: monograph
+        page: 4
+        quote: When dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+        kind: warning
+        ru: Одышка, температура или гнойная мокрота — к врачу
+      - doc: monograph
+        page: 5
+        quote: Interactions with other medicinal products and other forms of interaction None reported.
+        kind: interaction
+        ru: Взаимодействий не описано
+      - doc: monograph
+        page: 5
+        quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+        kind: pregnancy
+        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+      - doc: monograph
+        page: 5
+        quote: Undesirable effects None known.
+        kind: adverse
+        ru: Побочные эффекты не известны
+      - doc: monograph
+        page: 5
+        quote: No case of overdose has been reported.
+        kind: overdose
+        ru: Случаев передозировки не описано
+      constituents:
+      - doc: assessment-report
+        page: 3
+        quote: The oil contains as a major constituent 1,8-cineole in an amount of 54-95%
+        compound: 1,8-cineole (eucalyptol)
+        compoundRu: цинеол (эвкалиптол)
+        classRu: эфирное масло (монотерпены)
+        effectRu: главный компонент эфирного масла
+        evidence: review
+      - doc: assessment-report
+        page: 11
+        quote: it seems to be the main active compound in the leaves.
+        compound: 1,8-cineole
+        compoundRu: цинеол
+        classRu: эфирное масло
+        effectRu: считается главным антибактериальным компонентом листа
+        evidence: in-vitro
+      - doc: assessment-report
+        page: 12
+        quote: The results demonstrated an antibacterial activity against periodontopathic bacteria.
+        compound: macrocarpals
+        compoundRu: макрокарпали
+        classRu: флороглюцины
+        effectRu: антибактериальное против бактерий полости рта
+        evidence: in-vitro
+      - doc: assessment-report
+        page: 12
+        quote: The authors indicated that the tannins content may be responsible for the virustatic effect.
+        compound: tannins
+        compoundRu: дубильные вещества
+        classRu: танины
+        effectRu: противовирусное
+        evidence: in-vitro
+    grls:
+      registrationNumber: ЛП-№(014404)-(РГ-RU)
+      tradeName: Эвкалипта прутовидного листья
+      holder: Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
+      dosageForm: листья измельченные
+      instructionLabel: Изм. № 0, ЛП-№(014404)-(РГ-RU), 2026
+      officialSourceUrl: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
+      pdfSha256: sha256:11088b38ae8bf73e30253cd953a909385fdeadbed94d4e06a2b35cffd617fac9
+      sourceDocument: drug.rf.a7ae706068594d31bba3.instruction
+      catalogEdition: 24.07.2026
+      ocr: false
+      otherRegistrations: 9
+  navigationAliases:
+  - Эвкалипт
+  - Eucalyptus viminalis
+  - эвкалипта прутовидного листья
+  - eucalypti folium
+---
+
+# Эвкалипт
+
+## Как заварить и принимать
+
+<!-- localmed:source {"blocks":["p2-b18","p2-b19","p2-b20","p2-b21","p2-b22"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"dosage"} -->
+
+Около 10 г (2 столовые ложки) листьев эвкалипта прутовидного помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой, нагревают на кипящей водяной бане 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл.
+
+<!-- localmed:source {"blocks":["p2-b23","p2-b24","p2-b25"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"dosage"} -->
+
+Применяют местно в теплом виде по 1/2-1 стакану настоя: ингаляции проводят в соответствии с рекомендациями врача 2 раза в день, полоскания 3-4 раза в день. Курс лечения 2-3 недели.
+
+<!-- localmed:source {"blocks":["p2-b26"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"dosage"} -->
+
+Перед применением настой рекомендуется взбалтывать.
+
+<!-- localmed:source {"blocks":["p2-b27","p2-b28","p2-b29","p2-b30"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"dosage"} -->
+
+Если через 1 неделю лечения улучшения не наступает или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Противопоказания
+
+<!-- localmed:source {"blocks":["p2-b7","p2-b8"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"contraindications"} -->
+
+Повышенная чувствительность к препарату, детский возраст до 3 лет. Для ингаляций – бронхиальная астма, бронхоспазм, коклюш.
+
+### С осторожностью
+
+<!-- localmed:source {"blocks":["p2-b11"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"caution"} -->
+
+Детский возраст старше 3 лет.
+
+### Беременность и кормление грудью
+
+<!-- localmed:source {"blocks":["p2-b14","p2-b15"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"pregnancy"} -->
+
+Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка. Необходимо проконсультироваться с врачом.
+
+## Показания
+
+<!-- localmed:source {"blocks":["p2-b3","p2-b4"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"indications"} -->
+
+В составе комплексной терапии инфекционно-воспалительных заболеваний глотки и верхних дыхательных путей (фарингит, ларингит, трахеит).
+
+## Действие и состав
+
+<!-- localmed:source {"blocks":["p1-b31","p1-b32"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":1,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"action"} -->
+
+Настой листьев эвкалипта прутовидного оказывает противомикробное, противовоспалительное действие.
+
+### Что содержит
+
+<!-- localmed:source {"blocks":["p1-b18","p1-b19"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":1,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"characteristics"} -->
+
+Листья эвкалипта прутовидного содержат эфирное масло, дубильные вещества и другие биологически активные вещества.
+
+### Фармакотерапевтическая группа
+
+<!-- localmed:source {"blocks":["p1-b28"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":1,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"group"} -->
+
+Антисептическое средство растительного происхождения.
+
+## Побочное действие и взаимодействия
+
+<!-- localmed:source {"blocks":["p2-b33","p2-b34","p2-b35"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":2,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"adverse"} -->
+
+Возможны аллергические реакции. Если у Вас отмечаются побочные эффекты, указанные в инструкции, или они усугубляются, или Вы заметили любые другие побочные эффекты, не указанные в инструкции, сообщите об этом врачу.
+
+### Передозировка
+
+<!-- localmed:source {"blocks":["p3-b3"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"overdose"} -->
+
+Случаи передозировки до настоящего времени не зарегистрированы.
+
+### Взаимодействие с лекарствами
+
+<!-- localmed:source {"blocks":["p3-b6"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"interactions"} -->
+
+Не описано.
+
+## Особые указания
+
+<!-- localmed:source {"blocks":["p3-b9","p3-b10","p3-b11"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"special"} -->
+
+Если при применении препарата симптомы сохраняются более 1 недели, то следует обратиться к врачу. При появлении одышки, лихорадки или гнойной мокроты – необходима консультация врача.
+
+### Управление транспортом
+
+<!-- localmed:source {"blocks":["p3-b14","p3-b15","p3-b16","p3-b17"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"driving"} -->
+
+Применение препарата не оказывает влияния на способность к выполнению потенциально опасных видов деятельности, требующих повышенной концентрации внимания и быстроты психомоторных реакций (в том числе управление транспортными средствами, работа с движущимися механизмами).
+
+## Сырьё и хранение
+
+<!-- localmed:source {"blocks":["p1-b22","p1-b23","p1-b24","p1-b25"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":1,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"description"} -->
+
+Смесь кусочков листьев различной формы. Цвет кусочков листьев от светло-зеленого до серовато-зеленого, зеленовато-коричневого, иногда с фиолетовым оттенком и слабым сизоватым налетом. Запах ароматный, усиливающийся при растирании. Вкус водного извлечения пряно-горький.
+
+### Форма выпуска
+
+<!-- localmed:source {"blocks":["p3-b20","p3-b21","p3-b22","p3-b23","p3-b24"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"release-form"} -->
+
+Листья измельченные. По 30 г, 35 г, 40 г, 50 г, 60 г, 75 г, 100 г листьев измельченных в пачках из картона с контролем первого вскрытия с внутренним пакетом из бумаги с термосвариваемым полипропиленовым слоем или бумаги с термосвариваемым полиэтиленовым слоем, или материала комбинированного многослойного, или полипропилена.
+
+<!-- localmed:source {"blocks":["p3-b25","p3-b26"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"release-form"} -->
+
+Инструкция по применению вкладывается в пачку или текст инструкции по применению наносится на пачку.
+
+### Условия хранения
+
+<!-- localmed:source {"blocks":["p3-b29","p3-b30"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"storage"} -->
+
+В оригинальной упаковке при температуре не выше 25 °С; приготовленный настой – в прохладном месте не более 2-х суток.
+
+<!-- localmed:source {"blocks":["p3-b31"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"storage"} -->
+
+Хранить в недоступном для детей месте!
+
+### Срок годности
+
+<!-- localmed:source {"blocks":["p3-b34"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"shelf-life"} -->
+
+3 года.
+
+<!-- localmed:source {"blocks":["p3-b35"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf","page":3,"registrationNumber":"ЛП-№(014404)-(РГ-RU)","sourceDocument":"drug.rf.a7ae706068594d31bba3.instruction","sourceSection":"shelf-life"} -->
+
+Не применять по истечении срока годности.
+
+## Источники
+
+<!-- localmed:source {"contentMode":"editorial-note"} -->
+
+- Инструкция ГРЛС «Эвкалипта прутовидного листья», Изм. № 0, ЛП-№(014404)-(РГ-RU), 2026, Акционерное общество "Красногорские лекарственные средства" (АО "Красногорсклексредства")
+- EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium (обновлено 16/06/2014). © European Medicines Agency
+- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain

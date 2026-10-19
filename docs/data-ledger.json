@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13411426268,
-      "modified": "2026-10-13"
+      "bytes": 13439494983,
+      "modified": "2026-10-18"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -854,7 +854,7 @@
       "consumers": ["scripts/marker_convert.py", "scripts/marker_pages_run.py"],
       "rebuild": "see the venv and cache entries",
       "note": "Parent folder of the Marker environment; only the two nested entries are large.",
-      "bytes": 0,
+      "bytes": 2940255227,
       "modified": "2026-10-14"
     },
     {
@@ -866,8 +866,8 @@
         "content/regulatory-rf-texts/sources.json (SHA-256 of every file)"
       ],
       "note": "Official files of the acts of the regulatory pack; the checksums are committed in content/regulatory-rf-texts/sources.json, re-download from the officialUrl there if lost.",
-      "bytes": 86290000,
-      "modified": "2026-10-14"
+      "bytes": 93570965,
+      "modified": "2026-10-15"
     },
     {
       "path": "data/build/marker-legal",
@@ -878,7 +878,7 @@
       ],
       "rebuild": "scripts/marker_pages_run.py over jobs.json (about 13 h on the Mac, resumable), then medbase-legal-texts reconcile and cells; page images and the upright/unlabelled PDFs are rendered on demand by medbase-legal-texts images, upright and unlabel",
       "note": "Per-page Marker Markdown, Vision readings and reports of the regulatory acts (the inputs of assemble). Everything the cards need is committed (cards, provenance, review logs); page images and derived PDFs were deleted when the last act was verified (2026-10-14).",
-      "bytes": 52400000,
+      "bytes": 48485112,
       "modified": "2026-10-14"
     },
     {
@@ -920,6 +920,31 @@
       "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The superseded first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 was deleted on 2026-10-15.",
       "bytes": 222521672,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "apps/app/public/content/modules",
+      "class": "RELEASED",
+      "producer": "bun run content:module:* (diets, feeding, herbal, medical-services, regulatory, tool modules)",
+      "consumers": [
+        "app module install (artifact-url.ts falls through to raw main for these files)"
+      ],
+      "release": "tracked in Git on main",
+      "note": "Small optional module packs committed to the repository; each file is the published artifact of its catalog entry. Remove only together with its catalog entry.",
+      "bytes": 56974803,
+      "modified": "2026-10-19"
+    },
+    {
+      "path": "data/raw/herbal",
+      "class": "SOURCE",
+      "producer": "medbase fetch-herbal-sources (content/herbal/plants.yaml)",
+      "consumers": [
+        "medbase check-herbal-ema",
+        "medbase prepare-herbal",
+        "medbase package-herbal-plates"
+      ],
+      "note": "EMA/HMPC PDFs, Wikimedia Commons plates, the ГФ XV article page; re-downloadable, but the reviewed EMA quotes are checked against these exact bytes (MANIFEST.json SHA-256).",
+      "bytes": 51861847,
+      "modified": "2026-10-19"
     }
   ]
 }

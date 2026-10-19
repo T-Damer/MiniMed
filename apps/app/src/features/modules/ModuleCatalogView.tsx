@@ -35,6 +35,12 @@ import {
 } from '@/features/calculators/calculator-packs';
 import { buildConditionCatalog } from '@/features/conditions/condition-catalog';
 import { useDownloadsPause } from '@/features/downloads/use-downloads-pause';
+import {
+  HERBAL_COLLECTION,
+  HERBAL_MODULE_ID,
+  herbalPlantCountLabel,
+} from '@/features/herbal/herbal-chapter';
+import { HERBAL_BOOK_HASH } from '@/features/herbal/herbal-routing';
 import { ICD11_COLLECTION, ICD11_SECTION_LABEL } from '@/features/icd11/icd11-document';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
@@ -293,6 +299,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const openConditions = (): void => {
     window.location.hash = '#/modules/documents/conditions';
   };
+  const openHerbalBook = (): void => {
+    window.location.hash = HERBAL_BOOK_HASH;
+  };
   const [overviewConditionCount, setOverviewConditionCount] = createSignal(0);
 
   const refreshOverviewDocumentCounts = (): void => {
@@ -353,14 +362,15 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         module.kind !== 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
     ),
   );
-  // A pack filed under «Заболевания и состояния» (collection «conditions») is not also a generic
-  // reference («Нормы и расчёты») pack, whatever its kind.
+  // A pack filed under «Заболевания и состояния» (collection «conditions») or the herbal book is not
+  // also a generic reference («Нормы и расчёты») pack, whatever its kind.
   const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
     regularModules().filter(
       (module) =>
         module.collection === section ||
         (module.kind === section &&
           module.collection !== 'conditions' &&
+          module.collection !== HERBAL_COLLECTION &&
           module.collection !== ICD11_COLLECTION),
     );
   const singleRegularSectionModule = (section: string): ContentModuleCatalogEntry | null => {
@@ -416,6 +426,10 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const conditionCatalogModules = createMemo(() =>
     catalog().modules.filter((module) => module.collection === 'conditions'),
+  );
+  // The herbal text module; its plates are an image pack, offered inside the book.
+  const herbalCatalogModules = createMemo(() =>
+    catalog().modules.filter((module) => module.id === HERBAL_MODULE_ID),
   );
   const medicationCollectionStats = createMemo(() =>
     moduleCollectionStats(medicationCatalogModules(), installedById()),
@@ -1203,6 +1217,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               <CountBadge
                 value={
                   6 +
+                  (herbalCatalogModules().length > 0 ? 1 : 0) +
                   (regularSectionModules('tool').length > 0 ? 1 : 0) +
                   (regularSectionModules(ICD11_COLLECTION).length > 0 ? 1 : 0)
                 }
@@ -1272,6 +1287,40 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                     )}
                   </Show>
                   {sectionDownloadControls('medications', 'Лекарства', medicationCatalogModules)}
+                </article>
+              </Show>
+              <Show
+                when={
+                  herbalCatalogModules().length > 0 &&
+                  matchesCatalogQuery(catalogQuery(), [
+                    'Травник',
+                    'Травы',
+                    'Лекарственные растения',
+                  ])
+                }
+              >
+                <article
+                  class="recommendation-section-card paper-card recommendation-section-card-compact recommendation-section-card--downloadable"
+                  tabindex="0"
+                  aria-label="Открыть «Травник»"
+                  onClick={openHerbalBook}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') openHerbalBook();
+                  }}
+                >
+                  <AppGlyph name="leaf" class="recommendation-section-card-icon" />
+                  <strong class="recommendation-section-card-title">Травник</strong>
+                  <Show
+                    when={overviewSubtitle(
+                      herbalPlantCountLabel(herbalCatalogModules()),
+                      moduleCollectionStats(herbalCatalogModules(), installedById()),
+                    )}
+                  >
+                    {(subtitle) => (
+                      <span class="recommendation-section-card-meta">{subtitle()}</span>
+                    )}
+                  </Show>
+                  {sectionDownloadControls('herbal', 'Травник', herbalCatalogModules)}
                 </article>
               </Show>
               <For each={['reference', 'regulatory', 'tool', ICD11_COLLECTION]}>

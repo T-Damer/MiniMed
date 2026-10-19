@@ -1,0 +1,300 @@
+---
+id: herbal.plant.senna-alexandrina
+title: Сенна остролистная
+short_title: Сенна остролистная
+version_label: grls-24.07.2026
+source_type: herbal_monograph
+status: active
+specialties:
+- phytotherapy
+age_groups: []
+source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
+source_checksum: sha256:b3639c7033a8f1a50d3f21c80cb9d1d292dc2bcbcffb3152877e404e086ec44a
+synthetic_fixture: false
+metadata:
+  authorityTier: official-regulatory-act
+  jurisdiction: RU
+  documentKind: травник
+  contentMode: verbatim
+  rightsStatus: official-and-attributed-sources
+  rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; botanical plates: public domain (Wikimedia Commons licence checked at fetch time); ГФ XV: official pharmacopoeia'
+  publicationState: experimental-preview
+  publicationDecision:
+    decidedAt: '2026-10-18'
+    decidedBy: project owner
+    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+  requiresReview: true
+  calculationRequired: false
+  clinicalContextRequired: true
+  herbal:
+    plantId: senna-alexandrina
+    latin: Senna alexandrina Mill.
+    family: Fabaceae
+    partRu: листья
+    partLa: folium
+    actions:
+    - слабительное
+    brew:
+      kind: отвар
+      herb:
+        value: 10 г
+        quote: Около 10 г (2 столовые ложки) листьев сенны помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, затем продолжают настаивание при комнатной температуре до полного охлаждения, процеживают, оставшееся сырье отжимают.
+      water:
+        value: 200 мл
+        quote: Около 10 г (2 столовые ложки) листьев сенны помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, затем продолжают настаивание при комнатной температуре до полного охлаждения, процеживают, оставшееся сырье отжимают.
+      heat:
+        value: 30 мин
+        quote: Около 10 г (2 столовые ложки) листьев сенны помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, затем продолжают настаивание при комнатной температуре до полного охлаждения, процеживают, оставшееся сырье отжимают.
+      dose:
+        value: по 1/2 стакана отвара вечером после еды
+        quote: Принимают внутрь по 1/2 стакана отвара вечером после еды.
+      course:
+        value: 2–3 недели
+        quote: Курс лечения 2-3 недели.
+    thumbnail: data:image/jpeg;base64,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
+    plate:
+      asset: plates/senna-alexandrina.jpg
+      book: Köhler's Medizinal-Pflanzen (1887–1898)
+      credit: Köhler, 1897
+      artist: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen
+      date: '1897'
+      licence: Public domain
+      commonsPage: https://commons.wikimedia.org/wiki/File:Senna_alexandrina_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-031.jpg
+    ema:
+      page: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium
+      lastUpdated: 26/10/2006
+      species: Cassia senna L.; Cassia angustifolia Vahl
+      documents:
+        monograph:
+          url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-senna-alexandrina-mill-cassia-senna-l-cassia-angustifolia-vahl-folium-revision-1_en.pdf
+          draft: false
+        assessment-report:
+          url: https://www.ema.europa.eu/en/documents/herbal-report/draft-assessment-report-senna-alexandrina-mill-cassia-senna-l-cassia-angustifolia-vahl-folium-and-fructus-revision-1_en.pdf
+          draft: true
+        summary:
+          url: https://www.ema.europa.eu/en/documents/herbal-summary/senna-leaf-summary-public_en.pdf
+          draft: false
+      extracted: true
+      status: proposed
+      useType: well-established
+      facts:
+      - doc: monograph
+        page: 4
+        quote: cases of occasional constipation.
+        kind: indication
+        ru: Кратковременно при эпизодическом запоре
+      - doc: monograph
+        page: 4
+        quote: Herbal preparation equivalent to 10 – 30 mg hydroxyanthracene derivatives, calculated as sennoside B (photometric method) to be taken once daily at night.
+        kind: posology
+        ru: Разовая доза — сырьё, содержащее 10–30 мг антрагликозидов, один раз в день на ночь; брать наименьшую дозу, дающую мягкий стул
+        dose:
+          preparationRu: настой на ночь
+          amount: 10-30
+          unit: мг антрагликозидов
+          populationRu: подростки и взрослые
+      - doc: monograph
+        page: 4
+        quote: The use in children under 12 years of age is contraindicated
+        kind: age
+        ru: Детям младше 12 лет нельзя
+        minAgeMonths: 144
+      - doc: monograph
+        page: 4
+        quote: Not to be used for more than 1 week. Usually it is sufficient to take this medicinal product up to two to three times during that week.
+        kind: duration
+        ru: Не дольше 1 недели; обычно хватает двух-трёх приёмов за неделю
+        maxDays: 7
+      - doc: monograph
+        page: 4
+        quote: Cases of intestinal obstructions and stenosis, atony, appendicitis, inflammatory bowel diseases (e.g. Crohn’s disease, ulcerative colitis),
+        kind: contraindication
+        ru: Непроходимость и сужение кишки, атония, аппендицит, воспалительные болезни кишечника
+      - doc: monograph
+        page: 5
+        quote: abdominal pain of unknown origin, severe dehydration state with water and electrolyte depletion. Pregnancy and lactation (see section 4.6 and 5.3). Children under 12 years of age.
+        kind: contraindication
+        ru: Боль в животе неясной причины, сильное обезвоживание; беременность и кормление грудью; дети младше 12 лет
+      - doc: monograph
+        page: 5
+        quote: Long-term use of stimulant laxatives should be avoided, as use for more than a brief period of treatment may lead to impaired function of the intestine and dependence on laxatives.
+        kind: warning
+        ru: Долгий приём стимулирующих слабительных нарушает работу кишки и вызывает зависимость; если слабительное нужно каждый день — искать причину запора
+      - doc: monograph
+        page: 5
+        quote: Senna leaf preparations should only be used if a therapeutic effect cannot be achieved by a change of diet or the administration of bulk forming agents.
+        kind: warning
+        ru: Сначала — изменить питание и попробовать набухающие средства
+      - doc: monograph
+        page: 6
+        quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
+        kind: interaction
+        ru: Потеря калия усиливает действие сердечных гликозидов и антиаритмиков; мочегонные, кортикостероиды и солодка усиливают потерю калия
+      - doc: monograph
+        page: 6
+        quote: The use during pregnancy is contraindicated because experimental data concerning a genotoxic risk of several anthranoids, e.g. emodin and aloe- emodin.
+        kind: pregnancy
+        ru: При беременности нельзя — риск повреждения генов (эмодин, алоэ-эмодин)
+      - doc: monograph
+        page: 6
+        quote: The use during lactation is contraindicated because after administration of anthranoids, active metabolites, such as rhein, were excreted in breast milk in small amounts.
+        kind: lactation
+        ru: При кормлении грудью нельзя — метаболиты переходят в молоко
+      - doc: monograph
+        page: 7
+        quote: Senna leaf preparations may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon.
+        kind: adverse
+        ru: Боль и спазмы в животе, жидкий стул; при долгом приёме — потеря воды и солей, окрашивание слизистой кишки
+      - doc: monograph
+        page: 7
+        quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during the treatment.
+        kind: adverse
+        ru: Моча может окраситься в жёлтый или красно-коричневый цвет — это безопасно
+      - doc: monograph
+        page: 7
+        quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes.
+        kind: overdose
+        ru: Схваткообразная боль и сильный понос с потерей жидкости и солей — много пить, следить за калием
+      constituents:
+      - doc: assessment-report
+        page: 4
+        quote: The active constituents are the anthranoids that are present in the leaf of the herbal substance as dianthrones
+        compound: sennosides A and B
+        compoundRu: сеннозиды A и B
+        classRu: антрагликозиды (диантроны)
+        effectRu: главные действующие вещества листа
+        evidence: review
+      - doc: assessment-report
+        page: 34
+        quote: Laxative effects of senna preparations are mainly mediated by rheinanthrone, a metabolite formed in the intestinal flora from dianthrones.
+        compound: rheinanthrone
+        compoundRu: реинантрон
+        classRu: метаболит сеннозидов
+        effectRu: слабительное — образуется из сеннозидов кишечными бактериями
+        evidence: in-vitro
+    grls:
+      registrationNumber: ЛП-№(013970)-(РГ-RU)
+      tradeName: Сенны листья
+      holder: Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
+      dosageForm: листья измельченные
+      instructionLabel: Изм. № 0, ЛП-№(013970)-(РГ-RU), 2026
+      officialSourceUrl: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
+      pdfSha256: sha256:68d9278c693ebfb8ce790a116623b60cff863d4a48ea63e6282eeefb88112b86
+      sourceDocument: drug.rf.50dbeffa76def7a40464.instruction
+      catalogEdition: 24.07.2026
+      ocr: false
+      otherRegistrations: 12
+  navigationAliases:
+  - Сенна остролистная
+  - сенна
+  - Senna alexandrina
+  - сенны листья
+  - сенны остролистной листья
+  - sennae folium
+---
+
+# Сенна остролистная
+
+## Как заварить и принимать
+
+<!-- localmed:source {"blocks":["p2-b6"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"dosage"} -->
+
+Около 10 г (2 столовые ложки) листьев сенны помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 30 минут, затем продолжают настаивание при комнатной температуре до полного охлаждения, процеживают, оставшееся сырье отжимают. Объем полученного отвара доводят кипяченой водой до 200 мл. Принимают внутрь по 1/2 стакана отвара вечером после еды. Курс лечения 2-3 недели. Перед применением отвар рекомендуется взбалтывать. Если после лечения улучшение не наступает, или симптомы усугубляются, или появляются новые симптомы, необходимо проконсультироваться с врачом. Применяйте препарат только согласно тем показаниям, тому способу применения и в тех дозах, которые указаны в инструкции.
+
+## Противопоказания
+
+<!-- localmed:source {"blocks":["p1-b26","p2-b2"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"pageEnd":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"contraindications"} -->
+
+Повышенная чувствительность к препарату; спастические запоры, спастический колит, острые воспалительные заболевания органов брюшной полости, аппендицит, кишечная непроходимость, ущемленная грыжа, прободная язва, проктит и геморрой (фаза обострения), боль в животе неясного генеза, метроррагия, желудочно-кишечное кровотечение, цистит, нарушения водного и электролитного обмена; беременность, период грудного вскармливания, детский возраст до 12 лет.
+
+### Беременность и кормление грудью
+
+<!-- localmed:source {"blocks":["p2-b4"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"pregnancy"} -->
+
+Применение препарата противопоказано при беременности и в период грудного вскармливания.
+
+## Показания
+
+<!-- localmed:source {"blocks":["p1-b24"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"indications"} -->
+
+Хронический запор (гипо-, атония толстой кишки), регулирование стула при геморрое и проктите (вне обострения), анальных трещинах.
+
+## Действие и состав
+
+<!-- localmed:source {"blocks":["p1-b22"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"action"} -->
+
+Фармакодинамика Отвар листьев сенны оказывает слабительное действие. Препарат вызывает химическое раздражение рецепторов слизистой оболочки кишечника, рефлекторно усиливает его перистальтику. Лечебный эффект развивается через 8-12 часов после приема препарата.
+
+### Что содержит
+
+<!-- localmed:source {"blocks":["p1-b16"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"characteristics"} -->
+
+Листья сенны содержат антрагликозиды (глюкоалоэ-эмодин, глюкореин, сеннозиды A и B), флавоноиды, смолистые вещества, слизи, макро- и микроэлементы, и другие биологически активные вещества.
+
+### Фармакотерапевтическая группа
+
+<!-- localmed:source {"blocks":["p1-b20"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"group"} -->
+
+Слабительное средство растительного происхождения.
+
+## Побочное действие и взаимодействия
+
+<!-- localmed:source {"blocks":["p2-b8"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"adverse"} -->
+
+Возможны аллергические реакции, боли в животе, метеоризм, диарея. При длительном применении – колит. При появлении побочных эффектов, не описанных в данной инструкции, следует прекратить прием препарата и сообщить об этом лечащему врачу.
+
+### Передозировка
+
+<!-- localmed:source {"blocks":["p2-b10"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"overdose"} -->
+
+Симптомы: диарея, нарушение водно-электролитного обмена. Лечение – симптоматическое.
+
+### Взаимодействие с лекарствами
+
+<!-- localmed:source {"blocks":["p2-b12"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"interactions"} -->
+
+Препараты сенны снижают адсорбцию тетрациклина.
+
+## Особые указания
+
+<!-- localmed:source {"blocks":["p2-b14"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"special"} -->
+
+При длительном применении листьев сенны может развиваться привыкание, поэтому их применение целесообразно чередовать с другими слабительными средствами.
+
+### Управление транспортом
+
+<!-- localmed:source {"blocks":["p2-b16"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"driving"} -->
+
+Применение препарата не оказывает влияния на способность к выполнению потенциально опасных видов деятельности, требующих повышенной концентрации внимания и быстроты психомоторных реакций (в т.ч. управление транспортными средствами, работа с движущимися механизмами).
+
+## Сырьё и хранение
+
+<!-- localmed:source {"blocks":["p1-b18"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":1,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"description"} -->
+
+Смесь кусочков листочков, черешков, стеблей, лепестков, чашелистиков, створок плодов и семян. Цвет серовато-зеленый, светло-зеленый, желтовато-зеленый или коричневатозеленый с желтыми, белыми и коричневыми вкраплениями. Запах слабый.
+
+### Форма выпуска
+
+<!-- localmed:source {"blocks":["p2-b18"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":2,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"release-form"} -->
+
+Листья измельченные. По 35 г, 50 г, 100 г листьев в пакет из комбинированных материалов (на основе бумаги и полиэтилена). Пакет помещают в пачку картонную. Текст инструкции по медицинскому применению полностью наносится на пачку.
+
+### Условия хранения
+
+<!-- localmed:source {"blocks":["p3-b3"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":3,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"storage"} -->
+
+При температуре не выше 25 ºC в оригинальной упаковке (пачке). Готовый отвар хранить в прохладном месте не более 2 суток. Хранить в недоступном для детей месте.
+
+### Срок годности
+
+<!-- localmed:source {"blocks":["p3-b5"],"contentMode":"verbatim","officialUrl":"https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf","page":3,"registrationNumber":"ЛП-№(013970)-(РГ-RU)","sourceDocument":"drug.rf.50dbeffa76def7a40464.instruction","sourceSection":"shelf-life"} -->
+
+3 года. Не применять по истечении срока годности.
+
+## Источники
+
+<!-- localmed:source {"contentMode":"editorial-note"} -->
+
+- Инструкция ГРЛС «Сенны листья», Изм. № 0, ЛП-№(013970)-(РГ-RU), 2026, Производственно-коммерческая фирма «ФИТОФАРМ» (общество с ограниченной ответственностью) ПКФ «ФИТОФАРМ» (ООО)
+- EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium (обновлено 26/10/2006). © European Medicines Agency
+- Иллюстрация: Franz Eugen Köhler, Köhler's Medizinal-Pflanzen, 1897 — Public domain

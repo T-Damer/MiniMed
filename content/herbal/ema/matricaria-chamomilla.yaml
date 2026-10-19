@@ -1,0 +1,160 @@
+# EMA/HMPC facts for Ромашка аптечная. Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: matricaria-chamomilla
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте, а не на клинических исследованиях
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкие желудочно-кишечные жалобы — вздутие, небольшие спазмы
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product used for the symptomatic treatment of minor gastro-intestinal complaints such as bloating and minor spasms.
+  - kind: indication
+    ru: Облегчение симптомов простуды (ингаляции)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for the relief of symptoms of common cold.
+  - kind: indication
+    ru: Небольшие язвочки и воспаление во рту и горле (полоскания)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the treatment of minor ulcers and inflammations of the mouth and throat.
+  - kind: indication
+    ru: Лёгкое воспаление кожи (солнечный ожог), поверхностные ранки, мелкие фурункулы
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for the treatment of minor inflammation of the skin (sunburn), superficial wounds and small boils (furuncles).
+  - kind: posology
+    ru: Чай (настой) внутрь — подростки и взрослые
+    doc: monograph
+    page: 4
+    quote: "Adolescents, adults and elderly Single dose: 1.5-4 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion Daily dose: 3-4 times"
+    dose: { preparationRu: настой, amount: "1.5-4", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Чай (настой) внутрь — дети 6–12 лет
+    doc: monograph
+    page: 4
+    quote: "Children (6-12 years) Single dose: 1.5-3.0 g Daily dose: 2-4 times"
+    dose: { preparationRu: настой, amount: "1.5-3.0", unit: г, timesPerDay: "2-4", populationRu: дети 6–12 лет }
+  - kind: posology
+    ru: Чай (настой) внутрь — дети 2–6 лет
+    doc: monograph
+    page: 4
+    quote: "Children (2-6 years) Single dose: 1.0-1.5 g Daily dose: 2-4 times"
+    dose: { preparationRu: настой, amount: "1.0-1.5", unit: г, timesPerDay: "2-4", populationRu: дети 2–6 лет }
+  - kind: posology
+    ru: Чай (настой) внутрь — дети от 6 месяцев до 2 лет
+    doc: monograph
+    page: 4
+    quote: "Children (6 months - 2 years) Single dose: 0.5-1.0 g Daily dose: 2-4 times"
+    dose: { preparationRu: настой, amount: "0.5-1.0", unit: г, timesPerDay: "2-4", populationRu: дети от 6 месяцев до 2 лет }
+  - kind: posology
+    ru: Полоскание рта и горла — подростки и взрослые
+    doc: monograph
+    page: 5
+    quote: "1-5 g in 100 ml water, for rinsing and gargling"
+    dose: { preparationRu: настой для полосканий, amount: "1-5", unit: г, waterMl: "100", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Чай внутрь не применяют у детей младше 6 месяцев (питание и питьевой режим младенца)
+    doc: monograph
+    page: 11
+    quote: The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake.
+    minAgeMonths: 6
+  - kind: duration
+    ru: Если симптомы держатся больше недели — к врачу
+    doc: monograph
+    page: 10
+    quote: If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на ромашку и другие астровые (сложноцветные)
+    doc: monograph
+    page: 10
+    quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
+  - kind: pregnancy
+    ru: Чай (сама трава) — безопасность при беременности и кормлении установлена; спиртовые и другие экстракты — не рекомендуются
+    doc: monograph
+    page: 12
+    quote: "Preparation a) Safety during pregnancy and lactation has been established."
+  - kind: lactation
+    ru: Перед кормлением смыть с сосков средства с ромашкой, чтобы не вызвать у ребёнка аллергию
+    doc: monograph
+    page: 12
+    quote: If applicable before nursing the baby the nipples should be cleaned of matricaria containing products for cutaneous use to prevent a sensitization of the baby.
+  - kind: interaction
+    ru: При долгом приёме высоких доз после пересадки почки описаны взаимодействия через CYP450
+    doc: monograph
+    page: 12
+    quote: "Oral use: For patients after renal transplantation taking high dosages for longer periods (about two months) interactions based on effects on CYP450 have been reported."
+  - kind: adverse
+    ru: Аллергия, включая тяжёлую (одышка, отёк Квинке, анафилаксия), при контакте слизистых с жидкими препаратами ромашки
+    doc: monograph
+    page: 12
+    quote: Hypersensitivity reactions including severe allergic reaction (dyspnoea, Quincke’s disease, vascular collapse, anaphylactic shock) following mucosal contact with liquid chamomile preparations have been reported.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 13
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: apigenin
+    compoundRu: апигенин
+    classRu: флавоноиды
+    effectRu: противовоспалительное
+    evidence: in-vitro
+    doc: assessment-report
+    page: 34
+    quote: The therapeutic potential of apigenin as an anti-inflammatory agent contributing to the clinical anti-inflammatory efficacy of matricaria extracts was demonstrated in vitro through its ability to interfere with leukocyte adhesion and adhesion protein upregulation in human endothelial cells
+  - compound: chamazulene
+    compoundRu: хамазулен
+    classRu: эфирное масло (азулены)
+    effectRu: противовоспалительное
+    evidence: in-vitro
+    doc: assessment-report
+    page: 34
+    quote: Chamazulene has also been shown to inhibit the inflammatory process in vitro (Safayhi et al. 1994).
+  - compound: (-)-α-bisabolol
+    compoundRu: (−)-α-бисаболол
+    classRu: эфирное масло (сесквитерпены)
+    effectRu: противовоспалительное
+    evidence: animal
+    doc: assessment-report
+    page: 36
+    quote: (-)-α-bisabolol was able to decrease leukocyte migration, protein extravasations and the amount of TNF-α to the peritoneal cavity in response to carrageenan induced rat paw edema.
+  - compound: α-bisabolol
+    compoundRu: α-бисаболол
+    classRu: эфирное масло (сесквитерпены)
+    effectRu: спазмолитическое
+    evidence: animal
+    doc: assessment-report
+    page: 38
+    quote: Compared to papaverine, a smooth muscle relaxing drug α-bisabolol was 91% as effective on spasms induced with barium chloride
+  - compound: apigenin, α-bisabolol
+    compoundRu: апигенин, α-бисаболол
+    classRu: флавоноиды, эфирное масло
+    effectRu: защита слизистой желудка (против язв)
+    evidence: animal
+    doc: assessment-report
+    page: 36
+    quote: In rats, both apigenin and α-bisabolol inhibited the development of gastric ulcers induced by indomethacin, stress and alcohol (Szelenyi et al. 1979).
+  - compound: apigenin
+    compoundRu: апигенин
+    classRu: флавоноиды
+    effectRu: лёгкое седативное (в высоких дозах)
+    evidence: animal
+    doc: assessment-report
+    page: 40
+    quote: indicating a sedative effect at higher doses similar to Viola et al. (1995).
+  - compound: herniarin, umbelliferone
+    compoundRu: герниарин, умбеллиферон
+    classRu: кумарины
+    effectRu: переходят в чай в заметном количестве (основание осторожности с антикоагулянтами)
+    evidence: review
+    doc: assessment-report
+    page: 34
+    quote: The coumarines herniarin and umbelliferone are soluble in hot water and the amounts obtained from frequent consumption of teas or infusions are not negligible

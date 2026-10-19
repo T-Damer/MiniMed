@@ -5,6 +5,8 @@ import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { ConditionCatalogView } from '@/features/conditions/ConditionCatalogView';
 import { isConditionCatalogRoute } from '@/features/conditions/condition-routing';
+import { HerbalBookView } from '@/features/herbal/HerbalBookView';
+import { isHerbalBookRoute } from '@/features/herbal/herbal-routing';
 import {
   knowledgeDocumentBackHash,
   shouldResetKnowledgeCatalogScroll,
@@ -21,7 +23,7 @@ import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import type { SearchCoreStatus } from '@/features/search/search-core-status';
 import { navigateBack } from '@/state/app-back';
 
-type KnowledgeRoute = 'conditions' | 'documents' | 'medications';
+type KnowledgeRoute = 'conditions' | 'documents' | 'herbal' | 'medications';
 
 interface KnowledgeBaseViewProps {
   readonly core: MedicalCore | undefined;
@@ -43,6 +45,9 @@ function routeFromLocation(): KnowledgeRoute {
   }
   if (isConditionCatalogRoute(window.location.hash)) {
     return 'conditions';
+  }
+  if (isHerbalBookRoute(window.location.hash)) {
+    return 'herbal';
   }
   return 'documents';
 }
@@ -142,6 +147,13 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
             <Show when={route() === 'conditions'}>
               <ConditionCatalogView core={state().core} onBack={leaveCatalogPage} />
+            </Show>
+            <Show when={route() === 'herbal'}>
+              <HerbalBookView
+                core={state().core}
+                onBack={leaveCatalogPage}
+                {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+              />
             </Show>
           </>
         )}

@@ -1,0 +1,91 @@
+# EMA/HMPC facts for Кукуруза (столбики с рыльцами). The EMA monograph is a draft. Draft artifact
+# (status: proposed): Russian fields are a reader's rendering of the quoted English sentence.
+plant: zea-mays
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Лёгкие жалобы со стороны мочевых путей — вместе с обильным питьём
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product used for the relief of symptoms associated with minor urinary tract complaints in addition to the general recommendation of a sufficient fluid intake to increase the amount of urine.
+  - kind: posology
+    ru: Отвар (кипятить 5 минут) — между едой
+    doc: monograph
+    page: 4
+    quote: "Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily."
+    dose: { preparationRu: отвар, amount: "2-4", unit: г, waterMl: "200", timesPerDay: "2-3", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Настой
+    doc: monograph
+    page: 4
+    quote: "Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily"
+    dose: { preparationRu: настой, amount: "4-8", unit: г, waterMl: "200", timesPerDay: "3", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если симптомы держатся дольше 2 недель — к врачу
+    doc: monograph
+    page: 4
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Аллергия на кукурузные рыльца
+    doc: monograph
+    page: 4
+    quote: Hypersensitivity to the active substance.
+  - kind: warning
+    ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+    doc: monograph
+    page: 5
+    quote: If urinary tract complaints worsen and symptoms such as fever, dysuria, spasm, or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Нужно много пить — не подходит, если врач ограничил питьё
+    doc: monograph
+    page: 5
+    quote: Because adequate fluid intake is required during treatment, it is not recommended for patients with conditions where reduced fluid intake is advised.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 5
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 5
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Побочные эффекты не известны
+    doc: monograph
+    page: 5
+    quote: Undesirable effects None known.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 6
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: mucilage polysaccharides, flavonoids, tannins
+    compoundRu: слизистые полисахариды, флавоноиды, танины
+    classRu: водорастворимые компоненты
+    effectRu: переходят в горячий отвар
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: Constituents found in hot water extracts Carbohydrates/polysaccharides
+  - compound: aqueous extract
+    compoundRu: водный экстракт
+    effectRu: мочегонное — повышает фильтрацию в почках и выведение натрия
+    evidence: animal
+    doc: assessment-report
+    page: 10
+    quote: diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate

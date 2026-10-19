@@ -1,0 +1,108 @@
+# EMA/HMPC facts for Хвощ полевой (трава). Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: equisetum-arvense
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Усилить мочеотделение — промывание мочевых путей при лёгких жалобах (вместе с основным лечением)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
+  - kind: indication
+    ru: Вспомогательно при поверхностных ранах
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for supportive treatment of superficial wounds.
+  - kind: posology
+    ru: Чай (настой или отвар 5–15 минут) — подростки и взрослые
+    doc: monograph
+    page: 5
+    quote: "a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily"
+    dose: { preparationRu: настой или отвар, amount: "1-4", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Отвар для повязок и промываний ран — 10 г на литр
+    doc: monograph
+    page: 6
+    quote: "a) single dose: 10 g of the comminuted herbal substance in 1 l of water as decoction for impregnated dressing and irrigation"
+    dose: { preparationRu: отвар для повязок, amount: "10", unit: г на литр, populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Обычно курс 2–4 недели; если дольше 1 недели без улучшения — к врачу
+    doc: monograph
+    page: 6
+    quote: Herbal preparations are traditionally used over a period of 2 to 4 weeks. Indication 1 and 2 If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на хвощ; состояния, когда нужно ограничивать питьё (тяжёлые болезни сердца или почек)
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substance. Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal diseases).
+  - kind: warning
+    ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+    doc: monograph
+    page: 7
+    quote: If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
+    ru: Если на коже признаки инфекции — к врачу
+    doc: monograph
+    page: 7
+    quote: If signs of skin infection are observed, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 7
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Не наносить на грудь кормящим
+    doc: monograph
+    page: 8
+    quote: Products containing Equiseti herba should not be applied to the breast of breastfeeding women.
+  - kind: adverse
+    ru: Лёгкие расстройства ЖКТ; аллергия (сыпь, отёк лица)
+    doc: monograph
+    page: 8
+    quote: Allergic reactions (e.g. rash, swelling of the face) have been reported.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 8
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: silicic acid, silicates
+    compoundRu: кремниевая кислота, силикаты
+    classRu: минеральные вещества
+    effectRu: характерный компонент травы (5–7,7%)
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: "Inorganic constituents: with 5-7.7% silicic acid"
+  - compound: decoction of the herb
+    compoundRu: отвар травы
+    effectRu: ускорил заживление ран (эпителизация к 14-му дню)
+    evidence: animal
+    doc: assessment-report
+    page: 14
+    quote: The epithelisation was completed on post-operative day 14 on 5% decoction gauze- applied wounds
+  - compound: infusion of the herb
+    compoundRu: настой травы
+    effectRu: мочегонное слабое и непостоянное — в опытах часто нужны дозы выше обычных
+    evidence: review
+    doc: assessment-report
+    page: 22
+    quote: While in some studies a low diuretic effect was reported, other studies showed no effect or high dosages compared to the dosages traditionally used were needed to see diuretic activity.

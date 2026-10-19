@@ -61,6 +61,9 @@
   position: absolute;
   inset: 0;
   display: grid;
+  /* A definite track, so a portrait picture's `height: 100%` fits the stage instead of its own
+     intrinsic height. */
+  grid-template: 100% / 100%;
   padding: 0.75rem;
   border: 0;
   place-items: center;

@@ -1,0 +1,124 @@
+# EMA/HMPC facts for Солодка голая (корень). Draft artifact (status: proposed): Russian fields are a
+# reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: glycyrrhiza-glabra
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Расстройства пищеварения — жжение, тяжесть в желудке
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the relief of digestive symptoms including burning sensation and dyspepsia.
+  - kind: indication
+    ru: Отхаркивающее при кашле от простуды
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
+  - kind: posology
+    ru: Чай при расстройстве пищеварения — по чашке после еды
+    doc: monograph
+    page: 4
+    quote: "Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals."
+    dose: { preparationRu: настой или отвар, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: взрослые }
+  - kind: posology
+    ru: Чай от кашля
+    doc: monograph
+    page: 4
+    quote: "Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily."
+    dose: { preparationRu: настой или отвар, amount: "1.5-4.5", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: взрослые }
+  - kind: age
+    ru: До 18 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children and adolescents under 18 years of age is not recommended
+    minAgeMonths: 216
+  - kind: duration
+    ru: При расстройстве пищеварения — не дольше 4 недель; если дольше 2 недель — к врачу
+    doc: monograph
+    page: 5
+    quote: Not to be used for more than 4 weeks. If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 28
+  - kind: duration
+    ru: При кашле — если дольше 1 недели, к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на солодку
+    doc: monograph
+    page: 5
+    quote: Hypersensitivity to the active substance(s)
+  - kind: warning
+    ru: Не рекомендуется при гипертонии, болезнях почек, печени и сердца, низком калии
+    doc: monograph
+    page: 6
+    quote: Liquorice medication is not recommended in patients affected by hypertension, kidney diseases, liver or cardiovascular disorders or hypokalaemia, as they are more sensitive to the adverse effects of liquorice.
+  - kind: warning
+    ru: Не совмещать с другими продуктами из солодки — задержка воды, низкий калий, повышение давления, нарушения ритма
+    doc: monograph
+    page: 6
+    quote: take other liquorice containing products as serious adverse events may occur such as water retention, hypokalaemia, hypertension, cardiac rhythm disorders.
+  - kind: interaction
+    ru: Ослабляет действие лекарств от давления; нельзя вместе с мочегонными, сердечными гликозидами, кортикостероидами, стимулирующими слабительными
+    doc: monograph
+    page: 6
+    quote: Liquorice root may counteract antihypertensive action of prescribed medications. Not to be used concomitantly with diuretics, cardiac glycosides, corticosteroids, stimulant laxatives or other medications which may aggravate electrolyte imbalance
+  - kind: interaction
+    ru: Может менять обмен лекарств через CYP3A4 (например, мидазолам, омепразол)
+    doc: monograph
+    page: 6
+    quote: Liquorice root preparations might affect the activity of CYP3A4.
+  - kind: pregnancy
+    ru: При беременности не рекомендуется (токсичность для потомства у животных), а также женщинам без контрацепции
+    doc: monograph
+    page: 7
+    quote: The use is not recommended during pregnancy and in women of childbearing potential not using contraception.
+  - kind: lactation
+    ru: При кормлении грудью не рекомендуется — глицирризин переходит в молоко
+    doc: monograph
+    page: 7
+    quote: Glycyrrhizin is detectable in the breastmilk of some women taking liquorice
+  - kind: overdose
+    ru: При долгом приёме (больше 4 недель) или больших количествах — задержка воды, низкий калий, повышение давления, нарушения ритма, гипертоническая энцефалопатия
+    doc: monograph
+    page: 7
+    quote: Cases of overdose have been reported with prolonged use (more than 4 weeks) and/or intake of high amount of liquorice, with symptoms such as water retention, hypokalaemia, hypertension, cardiac rhythm disorders, and hypertensive encephalopathy.
+constituents:
+  - compound: glycyrrhizin, 18β-glycyrrhetinic acid
+    compoundRu: глицирризин, глицирретиновая кислота
+    classRu: тритерпеновые сапонины
+    effectRu: противовоспалительное, кортикостероидоподобное
+    evidence: review
+    doc: assessment-report
+    page: 54
+    quote: The anti-inflammatory and antiallergic actions of the drug have been attributed to the corticosteroid-like activity of glycyrrhizin and 18β-glycyrrhetinic acid
+  - compound: glycyrrhizin
+    compoundRu: глицирризин
+    classRu: тритерпеновые сапонины
+    effectRu: отхаркивающее — усиливает выделение слизи в трахее
+    evidence: review
+    doc: assessment-report
+    page: 54
+    quote: The antitussive and expectorant properties of the drug have also been attributed to glycyrrhizin, which accelerates tracheal mucus secretion
+  - compound: liquiritin apioside, liquiritin
+    compoundRu: ликвиритин и его апиозид
+    classRu: флавоноиды
+    effectRu: отхаркивающее
+    evidence: animal
+    doc: assessment-report
+    page: 19
+    quote: Liquiritin apioside and liquiritin at 50 mg/kg exhibited potent expectorant activities
+  - compound: glycyrrhetinic acid
+    compoundRu: глицирретиновая кислота
+    classRu: метаболит глицирризина
+    effectRu: тормозит фермент разрушения кортизола — причина задержки воды, потери калия и повышения давления
+    evidence: review
+    doc: assessment-report
+    page: 57
+    quote: Glycyrrhetinic acid is a more potent inhibitor of 5α-, 5β-reductase and 11β-dehydrogenase than is glycyrrhizin.

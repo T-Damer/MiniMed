@@ -2,10 +2,7 @@ import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js'
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { PreviewableImage } from '@/features/library/document-rich-block';
-import {
-  getReferenceImageResolver,
-  type ResolvedReferenceImage,
-} from '@/features/library/reference-image-assets';
+import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 
 import './reader-hero.css';
 
@@ -17,9 +14,17 @@ import './reader-hero.css';
  * `onSource` reports the picture's source address so the text can leave out the copy of the same
  * picture it carries inline.
  */
+export interface HeroPicture {
+  /** Identity of the picture; a new key looks the picture up again. */
+  readonly key: string;
+  readonly resolve: () => Promise<ResolvedReferenceImage | null>;
+  /** The credit line under the title, e.g. «Фото: Красота и медицина». */
+  readonly credit: string;
+}
+
 export function ReaderHero(props: {
-  /** The reference-image document the picture belongs to; no hero without it. */
-  readonly imageDocumentId: string | undefined;
+  /** The picture of the article; no hero without it. */
+  readonly picture: HeroPicture | undefined;
   readonly onSource?: (source: string | null) => void;
   readonly children: JSX.Element;
 }): JSX.Element {
@@ -27,10 +32,10 @@ export function ReaderHero(props: {
   const [pending, setPending] = createSignal(false);
 
   createEffect(() => {
-    const documentId = props.imageDocumentId;
+    const picture = props.picture;
     setImage(null);
     props.onSource?.(null);
-    if (!documentId) {
+    if (!picture) {
       setPending(false);
       return;
     }
@@ -40,8 +45,8 @@ export function ReaderHero(props: {
       stale = true;
       props.onSource?.(null);
     });
-    void getReferenceImageResolver()
-      .resolveFirst(documentId)
+    void picture
+      .resolve()
       .then((resolved) => {
         if (stale) return;
         setImage(resolved);
@@ -54,7 +59,7 @@ export function ReaderHero(props: {
   });
 
   return (
-    <Show when={props.imageDocumentId} fallback={props.children}>
+    <Show when={props.picture} fallback={props.children}>
       <div
         class="reader-hero"
         classList={{
@@ -103,7 +108,7 @@ export function ReaderHero(props: {
                 rel="noreferrer"
                 target="_blank"
               >
-                Фото: Красота и медицина
+                {props.picture?.credit}
               </a>
             )}
           </Show>

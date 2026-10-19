@@ -1,0 +1,115 @@
+# EMA/HMPC facts for Лён обыкновенный (семена). Draft artifact (status: proposed): Russian fields are
+# a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: linum-usitatissimum
+status: proposed
+useType: both
+facts:
+  - kind: indication
+    ru: Привычный запор или когда нужен мягкий стул (хорошо изученное применение)
+    doc: monograph
+    page: 3
+    quote: Herbal medicinal product for the treatment of habitual constipation or in conditions in which easy defaecation with soft stool is desirable.
+  - kind: indication
+    ru: Обволакивающее при лёгком дискомфорте в ЖКТ (традиционное применение)
+    doc: monograph
+    page: 3
+    quote: Traditional herbal medicinal product used as a demulcent preparation for the symptomatic relief of mild gastrointestinal discomfort.
+  - kind: posology
+    ru: При запоре — семена со 150 мл жидкости, потом пить достаточно
+    doc: monograph
+    page: 4
+    quote: Take 10 - 15 g seeds with 150 ml water, milk, fruit juice or similar aqueous liquid 2 - 3 times daily; then maintain adequate fluid intake.
+    dose: { preparationRu: семена с жидкостью, amount: "10-15", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Слизь — замочить семена в воде, пить за полчаса до еды
+    doc: monograph
+    page: 4
+    quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water
+    dose: { preparationRu: слизистый настой, amount: "5-10", unit: г, waterMl: "250", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Действует через 12–24 часа; не принимать прямо перед сном
+    doc: monograph
+    page: 4
+    quote: "The effect starts 12 - 24 hours later. Warning: not to be taken immediately prior to bedtime."
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 4
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Если запор не прошёл за 3 дня — к врачу
+    doc: monograph
+    page: 4
+    quote: If the constipation does not resolve within 3 days, a doctor or a pharmacist should be consulted.
+    maxDays: 3
+  - kind: contraindication
+    ru: Внезапное изменение стула дольше 2 недель, кровь из прямой кишки неясной причины, нет стула после слабительного
+    doc: monograph
+    page: 4
+    quote: Linseed should not be used by patients with a sudden change in bowel habit that persists for more than 2 weeks, undiagnosed rectal bleeding and failure to defaecate following the use of a laxative.
+  - kind: contraindication
+    ru: Сужения ЖКТ, болезни пищевода и кардии, непроходимость или паралич кишки, мегаколон; трудности с глотанием
+    doc: monograph
+    page: 4
+    quote: Linseed should also not be used by patients suffering from abnormal constrictions in the gastro-intestinal tract, with diseases of the oesophagus and cardia or existing intestinal blockage (ileus), paralysis (ileus) of the intestine or megacolon.
+  - kind: warning
+    ru: Без достаточной воды семена набухают и могут закупорить горло или пищевод
+    doc: monograph
+    page: 5
+    quote: Taking this herbal substance without adequate fluid, may cause it to swell and block the throat or oesophagus and may cause choking.
+  - kind: warning
+    ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу
+    doc: monograph
+    page: 5
+    quote: If experiencing chest pain, vomiting, or difficulty in swallowing or breathing after taking this herbal substance, immediate medical attention should be sought.
+  - kind: warning
+    ru: Возможное эстрогенное действие — не рекомендуется при гормонозависимых опухолях
+    doc: monograph
+    page: 5
+    quote: its use is therefore not recommended in women with hormonally dependent tumours.
+  - kind: interaction
+    ru: Задерживает всасывание лекарств — принимать за полчаса–час до или после них; с опиоидами и лоперамидом — только под контролем врача
+    doc: monograph
+    page: 5
+    quote: linseed should be used together with medicinal products known to inhibit peristaltic movement (e.g. opioids, loperamide) only under medical supervision.
+  - kind: pregnancy
+    ru: Вреда не описано, но безопасность не доказана — при беременности и кормлении не рекомендуется
+    doc: monograph
+    page: 6
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Часто — вздутие; очень редко — аллергия вплоть до анафилаксии
+    doc: monograph
+    page: 6
+    quote: Meteorism, occurring with the use of the product, is common. Reactions of hypersensitivity including anaphylaxis-like reactions may occur very rarely.
+  - kind: overdose
+    ru: Дискомфорт в животе, вздутие, возможна непроходимость — пить достаточно
+    doc: monograph
+    page: 6
+    quote: Overdose with linseed may cause abdominal discomfort, flatulence and possibly intestinal obstruction.
+constituents:
+  - compound: mucilage, dietary fibre
+    compoundRu: слизи и пищевые волокна
+    classRu: полисахариды
+    effectRu: набухают и увеличивают объём стула (около четверти семени)
+    evidence: review
+    doc: assessment-report
+    page: 4
+    quote: The seeds contain nearly 25% of bulk materials
+  - compound: mucilage
+    compoundRu: слизь
+    classRu: полисахариды
+    effectRu: набухшая слизь смазывает кишку и облегчает продвижение содержимого
+    evidence: review
+    doc: assessment-report
+    page: 10
+    quote: The swollen mass of mucilage forms a lubrication layer facilitating the transit of intestinal content
+  - compound: mucilage
+    compoundRu: слизь
+    classRu: полисахариды
+    effectRu: обволакивает и защищает слизистую
+    evidence: review
+    doc: assessment-report
+    page: 8
+    quote: attributed to the protective effect on the mucosa by the coating action of the mucilage.

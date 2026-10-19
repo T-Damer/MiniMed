@@ -1,0 +1,129 @@
+# EMA/HMPC facts for Тысячелистник обыкновенный. Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
+plant: achillea-millefolium
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано на длительном опыте
+    doc: monograph
+    page: 4
+    quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
+  - kind: indication
+    ru: Временная потеря аппетита
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product used for temporary loss of appetite.
+  - kind: indication
+    ru: Лёгкие спастические жалобы ЖКТ — вздутие, газы
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic treatment of mild, spasmodic gastro- intestinal complaints including bloating, and flatulence.
+  - kind: indication
+    ru: Небольшие спазмы при менструации
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the symptomatic treatment of minor spasm associated with menstrual periods.
+  - kind: indication
+    ru: Мелкие поверхностные ранки (примочки)
+    doc: monograph
+    page: 4
+    quote: Traditional herbal medicinal product for the treatment of small superficial wounds.
+  - kind: posology
+    ru: Чай (настой) при плохом аппетите и вздутии — между едой
+    doc: monograph
+    page: 5
+    quote: "Herbal tea: 1.5-4 g of the comminuted herbal substance in 150-250 ml boiling water as herbal infusion 3 or 4 times daily between meals."
+    dose: { preparationRu: настой, amount: "1.5-4", unit: г, waterMl: "150-250", timesPerDay: "3 or 4", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Чай (настой) при менструальных спазмах
+    doc: monograph
+    page: 5
+    quote: "Herbal tea: 1-2 g of the comminuted herbal substance in 250 ml of boiling water as herbal infusion 2-3 times daily"
+    dose: { preparationRu: настой, amount: "1-2", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: подростки и взрослые }
+  - kind: posology
+    ru: Настой для повязок на ранки
+    doc: monograph
+    page: 5
+    quote: "3-4 g of the comminuted herbal substance in 250 ml of boiling water 2-3 times daily."
+    dose: { preparationRu: настой для повязок, amount: "3-4", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: подростки и взрослые }
+  - kind: age
+    ru: Детям младше 12 лет не рекомендуется
+    doc: monograph
+    page: 5
+    quote: The use in children under 12 years of age is not recommended
+    minAgeMonths: 144
+  - kind: duration
+    ru: Аппетит и ЖКТ — если дольше 2 недель, к врачу
+    doc: monograph
+    page: 5
+    quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: duration
+    ru: Спазмы и ранки — если дольше 1 недели, к врачу
+    doc: monograph
+    page: 6
+    quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: contraindication
+    ru: Аллергия на тысячелистник и другие астровые (сложноцветные)
+    doc: monograph
+    page: 6
+    quote: Hypersensitivity to the active substances and to other plants of the Asteraceae (Compositae) family.
+  - kind: warning
+    ru: Если на коже признаки инфекции — к врачу
+    doc: monograph
+    page: 6
+    quote: If signs of skin infection are observed, medical advice should be sought.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 7
+    quote: Interactions with other medicinal products and other forms of interaction None reported
+  - kind: pregnancy
+    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    doc: monograph
+    page: 7
+    quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: adverse
+    ru: Описаны аллергические реакции на коже
+    doc: monograph
+    page: 7
+    quote: Hypersensitivity reactions of the skin have been reported.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 7
+    quote: No case of overdose has been reported.
+constituents:
+  - compound: achillicin and other proazulenes, essential oil
+    compoundRu: ахиллицин (проазулен), эфирное масло
+    classRu: сесквитерпеновые лактоны, эфирное масло
+    effectRu: основные компоненты травы
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: sesquiterpene lactones composed of guaianolides, mainly achillicin (a proazulene)
+  - compound: quercetin, luteolin, apigenin
+    compoundRu: кверцетин, лютеолин, апигенин
+    classRu: флавоноиды
+    effectRu: спазмолитическое
+    evidence: in-vitro
+    doc: assessment-report
+    page: 20
+    quote: The aglycones quercetin, luteolin and apigenin exhibited the highest antispasmodic activities
+  - compound: dicaffeoylquinic acids, luteolin-7-O-glucoside
+    compoundRu: дикофеилхинные кислоты, лютеолин-гликозид
+    classRu: фенольные кислоты, флавоноиды
+    effectRu: желчегонное
+    evidence: animal
+    doc: assessment-report
+    page: 21
+    quote: they seem to be the choleretic active principles in the traditional application forms of yarrow
+  - compound: ethanolic extract of the herb
+    compoundRu: спиртовой экстракт травы
+    effectRu: противовоспалительное (уменьшает отёк)
+    evidence: animal
+    doc: assessment-report
+    page: 21
+    quote: administered orally at 100 mg/kg, inhibited oedema in the carrageenan-induced rat paw oedem

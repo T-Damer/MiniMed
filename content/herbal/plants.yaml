@@ -1,0 +1,256 @@
+# Herbal book («Травник») pilot: the only hand-authored input.
+#
+# Each plant links one ГРЛС raw-material name group (exact INN strings from the registry catalog),
+# one EMA/HMPC herbal page and one public-domain botanical plate on Wikimedia Commons.
+# Everything shown in the app is generated from those sources; nothing here is clinical text.
+# Plan and selection rules: docs/research/herbal-pilot-plan-2026-10-18.md.
+#
+# Fields:
+#   id          stable slug, used in document ids (herbal.plant.<id>); never renamed
+#   ru          Russian plant name; latin = accepted binomial with authority; family
+#   part        part used (ru as in ГРЛС, la as in the EMA Latin drug name)
+#   grls.inn    exact ГРЛС INN / grouping-name strings (lower case) for the raw material
+#   ema.page    EMA herbal page; ema.species = species the EMA document covers when it differs
+#   plate       Wikimedia Commons file title and book; licence is read from Commons at fetch time
+schemaVersion: 1
+plants:
+  - id: matricaria-chamomilla
+    ru: Ромашка аптечная
+    latin: Matricaria chamomilla L.
+    family: Asteraceae
+    part: { ru: цветки, la: flos }
+    grls: { inn: [ромашки аптечной цветки, ромашки цветки] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/matricariae-flos, species: Matricaria recutita L. }
+    plate: { book: kohler, file: "File:Matricaria recutita - Köhler–s Medizinal-Pflanzen-091.jpg" }
+  - id: valeriana-officinalis
+    ru: Валериана лекарственная
+    latin: Valeriana officinalis L.
+    family: Caprifoliaceae
+    part: { ru: корневища с корнями, la: radix }
+    grls: { inn: [валерианы лекарственной корневища с корнями, валерианы корневища с корнями] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/valerianae-radix }
+    plate: { book: kohler, file: "File:Valeriana officinalis - Köhler–s Medizinal-Pflanzen-143.jpg" }
+  - id: mentha-piperita
+    ru: Мята перечная
+    latin: Mentha × piperita L.
+    family: Lamiaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [мяты перечной листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/menthae-piperitae-folium }
+    plate: { book: kohler, file: "File:Mentha × piperita - Köhler–s Medizinal-Pflanzen-095.jpg" }
+  - id: melissa-officinalis
+    ru: Мелисса лекарственная
+    latin: Melissa officinalis L.
+    family: Lamiaceae
+    part: { ru: трава, la: folium }
+    grls: { inn: [мелиссы лекарственной трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/melissae-folium }
+    plate: { book: kohler, file: "File:Melissa officinalis - Köhler–s Medizinal-Pflanzen-094.jpg" }
+  - id: salvia-officinalis
+    ru: Шалфей лекарственный
+    latin: Salvia officinalis L.
+    family: Lamiaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [шалфея лекарственного листья, шалфея листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/salviae-officinalis-folium }
+    plate: { book: kohler, file: "File:Salvia officinalis - Köhler–s Medizinal-Pflanzen-126.jpg" }
+  - id: achillea-millefolium
+    ru: Тысячелистник обыкновенный
+    latin: Achillea millefolium L.
+    family: Asteraceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [тысячелистника обыкновенного трава, тысячелистника трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/millefolii-herba }
+    plate: { book: kohler, file: "File:Achillea millefolium - Köhler–s Medizinal-Pflanzen-149.jpg" }
+  - id: tilia-cordata
+    ru: Липа сердцевидная
+    latin: Tilia cordata Mill.
+    family: Malvaceae
+    part: { ru: цветки, la: flos }
+    grls: { inn: [липы цветки] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/tiliae-flos }
+    plate: { book: kohler, file: "File:Tilia cordata - Köhler–s Medizinal-Pflanzen-139.jpg" }
+  - id: quercus-robur
+    ru: Дуб черешчатый
+    latin: Quercus robur L.
+    family: Fagaceae
+    part: { ru: кора, la: cortex }
+    grls: { inn: [дуба кора] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/quercus-cortex }
+    plate: { book: thome, file: "File:Illustration Quercus robur0.jpg" }
+  - id: frangula-alnus
+    ru: Крушина ольховидная
+    latin: Frangula alnus Mill.
+    family: Rhamnaceae
+    part: { ru: кора, la: cortex }
+    grls: { inn: [крушины ольховидной кора, крушины кора] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/frangulae-cortex, species: Rhamnus frangula L. }
+    plate: { book: kohler, file: "File:Rhamnus frangula - Köhler–s Medizinal-Pflanzen-120.jpg" }
+  - id: senna-alexandrina
+    ru: Сенна остролистная
+    latin: Senna alexandrina Mill.
+    family: Fabaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [сенны листья, сенны остролистной листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium, species: Cassia senna L.; Cassia angustifolia Vahl }
+    plate: { book: kohler, file: "File:Senna alexandrina - Köhler–s Medizinal-Pflanzen-031.jpg" }
+  - id: glycyrrhiza-glabra
+    ru: Солодка голая
+    latin: Glycyrrhiza glabra L.
+    family: Fabaceae
+    part: { ru: корни, la: radix }
+    grls: { inn: [солодки корни] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/liquiritiae-radix }
+    plate: { book: kohler, file: "File:Glycyrrhiza glabra - Köhler–s Medizinal-Pflanzen-207.jpg" }
+  - id: artemisia-absinthium
+    ru: Полынь горькая
+    latin: Artemisia absinthium L.
+    family: Asteraceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [полыни горькой трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/absinthii-herba }
+    plate: { book: kohler, file: "File:Artemisia absinthium - Köhler–s Medizinal-Pflanzen-164.jpg" }
+  - id: centaurium-erythraea
+    ru: Золототысячник зонтичный
+    latin: Centaurium erythraea Rafn
+    family: Gentianaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [золототысячника трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/centaurii-herba }
+    plate: { book: kohler, file: "File:Centaurium erythraea - Köhler–s Medizinal-Pflanzen-058.jpg" }
+  - id: taraxacum-officinale
+    ru: Одуванчик лекарственный
+    latin: Taraxacum officinale F.H.Wigg.
+    family: Asteraceae
+    part: { ru: корни, la: radix }
+    grls: { inn: [одуванчика лекарственного корни] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/taraxaci-officinalis-radix-0 }
+    plate: { book: kohler, file: "File:Taraxacum officinale - Köhler–s Medizinal-Pflanzen-135 0243-scan.jpg" }
+  - id: foeniculum-vulgare
+    ru: Фенхель обыкновенный
+    latin: Foeniculum vulgare Mill.
+    family: Apiaceae
+    part: { ru: плоды, la: fructus }
+    grls: { inn: [фенхеля обыкновенного плоды, фенхеля плоды] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/foeniculi-amari-fructus, species: Foeniculum vulgare Mill. subsp. vulgare var. vulgare (горький фенхель) }
+    plate: { book: kohler, file: "File:Foeniculum vulgare - Köhler–s Medizinal-Pflanzen-148.jpg" }
+  - id: pimpinella-anisum
+    ru: Анис обыкновенный
+    latin: Pimpinella anisum L.
+    family: Apiaceae
+    part: { ru: плоды, la: fructus }
+    grls: { inn: [аниса обыкновенного плоды] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/anisi-fructus }
+    plate: { book: kohler, file: "File:Pimpinella anisum - Köhler–s Medizinal-Pflanzen-240.jpg" }
+  - id: linum-usitatissimum
+    ru: Лён посевной
+    latin: Linum usitatissimum L.
+    family: Linaceae
+    part: { ru: семена, la: semen }
+    grls: { inn: [льна посевного семена] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/lini-semen }
+    plate: { book: kohler, file: "File:Linum usitatissimum - Köhler–s Medizinal-Pflanzen-088.jpg" }
+  - id: juniperus-communis
+    ru: Можжевельник обыкновенный
+    latin: Juniperus communis L.
+    family: Cupressaceae
+    part: { ru: плоды, la: galbulus }
+    grls: { inn: [можжевельника обыкновенного плоды, можжевельника плоды] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus }
+    plate: { book: kohler, file: "File:Juniperus communis - Köhler–s Medizinal-Pflanzen-082.jpg" }
+  - id: potentilla-erecta
+    ru: Лапчатка прямостоячая
+    latin: Potentilla erecta (L.) Raeusch.
+    family: Rosaceae
+    part: { ru: корневища, la: rhizoma }
+    grls: { inn: [лапчатки прямостоячей корневища] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/tormentillae-rhizoma }
+    plate: { book: kohler, file: "File:Potentilla erecta - Köhler–s Medizinal-Pflanzen-248-whole.jpg" }
+  - id: zea-mays
+    ru: Кукуруза обыкновенная
+    latin: Zea mays L.
+    family: Poaceae
+    part: { ru: столбики с рыльцами, la: stigma }
+    grls: { inn: [кукурузы столбики с рыльцами] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/maydis-stigma }
+    plate: { book: kohler, file: "File:Zea mays - Köhler–s Medizinal-Pflanzen-283.jpg" }
+  - id: viola-tricolor
+    ru: Фиалка трёхцветная
+    latin: Viola tricolor L.
+    family: Violaceae
+    part: { ru: трава, la: herba cum flore }
+    grls: { inn: [фиалки трава, фиалки трехцветной и полевой трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore }
+    plate: { book: kohler, file: "File:Viola tricolor - Köhler–s Medizinal-Pflanzen-280 0289.png" }
+  - id: eucalyptus
+    ru: Эвкалипт
+    latin: Eucalyptus viminalis Labill.
+    family: Myrtaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [эвкалипта прутовидного листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium, species: Eucalyptus globulus Labill. }
+    plate: { book: kohler, file: "File:Eucalyptus globulus - Köhler–s Medizinal-Pflanzen-147.jpg", species: Eucalyptus globulus Labill. }
+  - id: betula-pendula
+    ru: Берёза повислая
+    latin: Betula pendula Roth
+    family: Betulaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [березы листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/betulae-folium }
+    plate: { book: thome, file: "File:Illustration Betula pendula0.jpg" }
+  - id: urtica-dioica
+    ru: Крапива двудомная
+    latin: Urtica dioica L.
+    family: Urticaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [крапивы двудомной листья, крапивы листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/urticae-folium }
+    plate: { book: thome, file: "File:Illustration Urtica dioica0.jpg" }
+  - id: calendula-officinalis
+    ru: Календула лекарственная
+    latin: Calendula officinalis L.
+    family: Asteraceae
+    part: { ru: цветки, la: flos }
+    grls: { inn: [календулы лекарственной цветки, ноготков цветки] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/calendulae-flos }
+    plate: { book: kohler, file: "File:Calendula officinalis - Köhler–s Medizinal-Pflanzen-024.jpg" }
+  - id: leonurus-cardiaca
+    ru: Пустырник сердечный
+    latin: Leonurus cardiaca L.
+    family: Lamiaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [пустырника трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/leonuri-cardiacae-herba }
+    plate: { book: thome, file: "File:Illustration Leonurus cardiaca0.jpg" }
+  - id: hypericum-perforatum
+    ru: Зверобой продырявленный
+    latin: Hypericum perforatum L.
+    family: Hypericaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [зверобоя трава, зверобоя продырявленного трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/hyperici-herba-0 }
+    plate: { book: sturm, file: "File:Hypericum perforatum (Sturm 06, plate 060) clean.jpg" }
+  - id: arctostaphylos-uva-ursi
+    ru: Толокнянка обыкновенная
+    latin: Arctostaphylos uva-ursi (L.) Spreng.
+    family: Ericaceae
+    part: { ru: листья, la: folium }
+    grls: { inn: [толокнянки обыкновенной листья] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium }
+    plate: { book: kohler, file: "File:Arctostaphylos uva-ursi - Köhler–s Medizinal-Pflanzen-013.jpg" }
+  - id: equisetum-arvense
+    ru: Хвощ полевой
+    latin: Equisetum arvense L.
+    family: Equisetaceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [хвоща полевого трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba }
+    plate: { book: lindman, file: "File:515 Equisetum arvense.jpg" }
+  - id: chelidonium-majus
+    ru: Чистотел большой
+    latin: Chelidonium majus L.
+    family: Papaveraceae
+    part: { ru: трава, la: herba }
+    grls: { inn: [чистотела большого трава, чистотела трава] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/chelidonii-herba }
+    plate: { book: kohler, file: "File:Chelidonium majus - Köhler–s Medizinal-Pflanzen-033.jpg" }
