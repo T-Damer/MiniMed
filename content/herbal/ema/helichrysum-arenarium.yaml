@@ -1,0 +1,148 @@
+# EMA/HMPC facts for Бессмертник песчаный (цветки). Draft artifact (status: proposed): Russian fields
+# are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
+plant: helichrysum-arenarium
+status: proposed
+useType: traditional
+facts:
+  - kind: use-type
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
+    doc: monograph
+    page: 2
+    quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
+  - kind: indication
+    ru: Традиционное растительное средство при нарушениях пищеварения с чувством переполнения и вздутием
+    doc: monograph
+    page: 2
+    quote: Traditional herbal medicinal product used in digestive disorders with a feeling of fullness and bloating.
+  # comminuted flowers as herbal tea for oral use (the only preparation)
+  - kind: posology
+    ru: Отвар из измельчённых цветков, 10 минут — взрослые и пожилые, разовая доза 1,5 г в 150–250 мл воды, 2–3 раза в день
+    doc: monograph
+    page: 3
+    quote: "Adults and elderly Single dose 1.5 g of comminuted herbal substance in 150-250 ml of water as a decoction for 10 minutes 2 - 3 times daily."
+    dose: { preparationRu: "отвар из измельчённых цветков (10 минут)", amount: "1.5", unit: г, waterMl: "150-250", timesPerDay: "2-3", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: Настой из измельчённых цветков — взрослые и пожилые, разовая доза 3 г в 150–200 мл кипятка, 1–3 раза в день
+    doc: monograph
+    page: 3
+    quote: "Adults and elderly Single dose 1.5 g of comminuted herbal substance in 150-250 ml of water as a decoction for 10 minutes 2 - 3 times daily. or 3 g of comminuted herbal substance, in 150-200 ml of boiling water, as an infusion, 1 - 3 times daily."
+    dose: { preparationRu: настой из измельчённых цветков, amount: "3", unit: г, waterMl: "150-200", timesPerDay: "1-3", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: Внутрь; принимать за 15–30 минут до еды или при появлении симптомов
+    doc: monograph
+    page: 3
+    quote: Method of administration Oral use To be taken 15-30 minutes before meal or when the symptoms appear.
+  - kind: age
+    ru: Применение у детей и подростков до 18 лет не рекомендуется
+    doc: monograph
+    page: 3
+    quote: The use in children and adolescents under 18 years of age is not recommended
+    minAgeMonths: 216
+  - kind: duration
+    ru: Если симптомы сохраняются дольше двух недель — обратиться к врачу или медработнику
+    doc: monograph
+    page: 3
+    quote: If the symptoms persist longer than two weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 14
+  - kind: contraindication
+    ru: Гиперчувствительность к бессмертнику песчаному и к растениям семейства астровых (сложноцветных)
+    doc: monograph
+    page: 3
+    quote: Hypersensitivity to the active substance and to plants of the Asteraceae family (Compositae).
+  - kind: warning
+    ru: Применение у детей и подростков до 18 лет не установлено из-за недостатка адекватных данных
+    doc: monograph
+    page: 3
+    quote: The use in children and adolescents under 18 years of age has not been established due to lack of adequate data.
+    minAgeMonths: 216
+  - kind: warning
+    ru: Из-за возможной стимуляции секреции жёлчи не рекомендуется при обструкции жёлчных протоков, холангите, заболеваниях печени и жёлчных камнях
+    doc: monograph
+    page: 3
+    quote: Due to the possible stimulation of bile secretion Helichrysi flos is not recommended in case of obstruction of the bile duct, cholangitis, liver disease and gallstones.
+  - kind: warning
+    ru: Если симптомы ухудшаются во время применения — обратиться к врачу или медработнику
+    doc: monograph
+    page: 4
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: interaction
+    ru: Взаимодействий не описано
+    doc: monograph
+    page: 4
+    quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: pregnancy
+    ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: lactation
+    ru: Безопасность при кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
+    doc: monograph
+    page: 4
+    quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Данных о фертильности нет
+    doc: monograph
+    page: 4
+    quote: No fertility data available.
+  - kind: statement
+    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
+    doc: monograph
+    page: 4
+    quote: No studies on the effect on the ability to drive and use machines have been performed.
+  - kind: adverse
+    ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
+    doc: monograph
+    page: 4
+    quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: overdose
+    ru: Случаев передозировки не описано
+    doc: monograph
+    page: 4
+    quote: No case of overdose has been reported.
+  - kind: statement
+    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
+    doc: monograph
+    page: 5
+    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
+constituents:
+  - compound: isosalipurposide
+    compoundRu: изосалипурпозид
+    classRu: халкон
+    effectRu: характерное, преобладающее соединение соцветия
+    evidence: review
+    doc: assessment-report
+    page: 5
+    quote: "A characteristic, dominating compound of the inflorescence is isosalipurposide (2',4,4',6'-tetrahydrochalcon-6'-O-glucoside) (Czinner et al., 2002)."
+  - compound: apigenin
+    compoundRu: апигенин
+    classRu: флавон
+    effectRu: апигенин и эфирный экстракт, содержащий в основном апигенин, показали сильнейшую спазмолитическую активность на гладких мышцах и изолированных желчных пузырях (ex vivo)
+    evidence: animal
+    doc: assessment-report
+    page: 13
+    quote: Apigenin and the ether extract that contains mainly apigenin, had the strongest antispasmodic activity on smooth muscles and isolated gall bladders ex vivo.
+  - compound: kaempferol-3-glycoside and naringenin-5-glycoside
+    compoundRu: каемпферол-3-гликозид и нарингенин-5-гликозид
+    classRu: флавоноиды
+    effectRu: при внутривенном введении крысам секреция жёлчи составила 180–185 % от исходной (100 %) через 15 мин; для апигенина — 160 %
+    evidence: animal
+    doc: assessment-report
+    page: 13
+    quote: Intravenous administration of kaempferol-3-glycoside and naringenin-5-glycoside to rats caused a 180-185%, apigenin administration caused a 160% increase of bile secretion in comparison to baseline (100%) after 15 min
+  - compound: polyphenols and flavonoids of the water extract
+    compoundRu: полифенолы и флавоноиды водного экстракта
+    classRu: полифенолы, флавоноиды
+    effectRu: у лиофилизата водного экстракта соцветий донорная по водороду активность оказалась выше, чем у силибинина, а восстановительная сила и общая способность улавливать радикалы — ниже
+    evidence: in-vitro
+    doc: assessment-report
+    page: 15
+    quote: The authors studied the antioxidant properties of the lyophilised water extracts from the inflorescences of sandy everlasting, and determinated the total polyphenol and flavonoid contents in Helichrysi flos water extracts as well as in lyophilised water extracts. The hydrogen-donating ability, reducing power property and total scavenger activity of the lyophilisate were determined using spectrophotometric and chemilumenescence methods. H-donor activity of the lyophilisate was determined to be more effective than silibinine but reducing power property and total scavenger capability were lower than that of silibilin.
+  - compound: naringenin
+    compoundRu: нарингенин
+    classRu: флавоноид
+    effectRu: флавоноидная фракция была активна против грамположительных микроорганизмов, особенно стрептококков и стафилококков, в концентрациях 20–40 мкг/мл — вероятно, главным образом из-за нарингенина
+    evidence: in-vitro
+    doc: assessment-report
+    page: 16
+    quote: First investigations of the antimicrobial activity of the flavonoid fraction of sandy everlasting were conducted in the USSR, where the preparation was observed to be active against a group of Gram positive microorganisms, specially for Streptococci and Staphylococci and other bacteria in a concentrations 20-40 µg/ml which is due probably mainly to naringen (4', 5, 7-trihydroxyflavone).

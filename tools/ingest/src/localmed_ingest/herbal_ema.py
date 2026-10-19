@@ -149,7 +149,8 @@ def _body_texts(pdf: Path) -> tuple[str, ...]:
     return tuple(bodies)
 
 
-_FOOTNOTE = re.compile(r"^\s*\d{1,2} [A-Z]")
+# «3 For guidance…», also without the space («3For…», carvi).
+_FOOTNOTE = re.compile(r"^\s*\d{1,2} ?[A-Z]")
 
 
 def _footnote_cuts(body: str) -> list[str]:

@@ -150,6 +150,29 @@ def _instruction(tmp_path: Path, lines: list[str]) -> Path:
     return path
 
 
+def test_instruction_sections_split_run_in_headings_inside_one_block(tmp_path: Path) -> None:
+    # A pack-insert layout: the next sections run on inside the dosage block (тмин, ЛП-№(004598)).
+    path = _instruction(
+        tmp_path,
+        [
+            "Способ применения и дозы. Принимают внутрь 3 - 4 раза в сутки после еды. "
+            "Побочное действие. Возможны аллергические реакции. Передозировка. Не "
+            "зарегистрированы. Взаимодействие с другими лекарственными препаратами. Не описано. "
+            "Особые указания. См. раздел «Особые указания» в начале.",
+        ],
+    )
+    sections = instruction_sections(path)
+    assert [paragraph.text for paragraph in sections["dosage"]] == [
+        "Принимают внутрь 3 - 4 раза в сутки после еды."
+    ]
+    assert sections["adverse"][0].text == "Возможны аллергические реакции."
+    assert sections["overdose"][0].text == "Не зарегистрированы."
+    assert sections["interactions"][0].text == "Не описано."
+    # A quoted heading inside a sentence is not a heading.
+    assert sections["special"][0].text == "См. раздел «Особые указания» в начале."
+    assert sections["adverse"][0].blocks == sections["dosage"][0].blocks
+
+
 def test_instruction_sections_join_lines_and_split_inline_headings(tmp_path: Path) -> None:
     path = _instruction(
         tmp_path,

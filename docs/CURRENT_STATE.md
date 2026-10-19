@@ -188,9 +188,21 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   for the six in either manual. Dropped: ispaghula husk (EMA monograph exists, but no ГФ raw-material
   article and no plate of the species). Text module `2026.10.19-w2` (1.4 MB gzip), plates
   `2026.10.19-w2` (8.1 MB). Not done: ~14 plants with a ГРЛС text but no EMA document (шиповник,
-  череда, душица, брусника, мать-и-мачеха, пижма, …) and ~10 EMA plants whose ГРЛС instructions are
-  not downloaded yet (бузина, тмин, бессмертник, эхинацея, черника, элеутерококк, …; ГРЛС fetch needs
-  the Russian TLS root in a container).
+  череда, душица, брусника, мать-и-мачеха, пижма, …).
+- **Third wave 2026-10-19** (HERB1-W3, owner request): 39 plants. The five active raw-material
+  registrations of EMA-covered plants without a text (бессмертник ×3, бузина, тмин) were fetched with
+  the polite collector (`grls-collect --registration …`, one worker, 10–20 s pauses, separate log dir
+  `data/build/grls-collect-herbal`, same ledger; 5/5, no CAPTCHA). grls.rosminzdrav.ru verifies against
+  the system trust store, so no container was needed (only nsi.rosminzdrav.ru uses the Russian root).
+  Prepared into `data/intermediate/grls-herbal-additions` with their own text manifest
+  `data/build/grls-herbal-additions-manifest.jsonl`; `prepare-herbal` now takes repeatable
+  `--instructions` / `--instruction-manifest`, and splits run-in headings inside one PDF block (the
+  caraway pack insert ran six sections into «Способ применения»). EMA check: a footnote line without a
+  space («3For…») now counts as a footnote when bridging a page break. Not fetchable: эхинацея, черника,
+  элеутерококк, родиола, женьшень, гинкго, овёс, тимьян обыкновенный — no active raw-herb registration
+  (only tinctures/extracts or expired ones); the pumpkin and viola raw-herb registrations have legacy
+  numbers the ГРЛС search cannot find, so both stay EMA-only. Text `2026.10.19-w3` (1.5 MB gzip), plates
+  `2026.10.19-w3` (8.9 MB).
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

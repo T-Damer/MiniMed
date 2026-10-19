@@ -570,11 +570,23 @@ def prepare_herbal_command(
         "data/raw/official-grls-registry/catalog.json"
     ),
     instruction_manifest: Annotated[
-        Path, typer.Option("--instruction-manifest", exists=True, dir_okay=False)
-    ] = Path("data/build/grls-instruction-text-manifest.jsonl"),
+        list[Path] | None,
+        typer.Option(
+            "--instruction-manifest",
+            exists=True,
+            dir_okay=False,
+            help="Text manifest; repeatable (targeted additions after the main one).",
+        ),
+    ] = None,
     instructions: Annotated[
-        Path, typer.Option("--instructions", exists=True, file_okay=False)
-    ] = Path("data/intermediate/grls-full-final"),
+        list[Path] | None,
+        typer.Option(
+            "--instructions",
+            exists=True,
+            file_okay=False,
+            help="Prepared instruction workspace; repeatable.",
+        ),
+    ] = None,
     raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)] = Path(
         "data/raw/herbal"
     ),
@@ -589,8 +601,9 @@ def prepare_herbal_command(
     report = prepare_herbal_book(
         plants_path=plants,
         catalog=catalog,
-        instruction_manifest=instruction_manifest,
-        instructions_root=instructions,
+        instruction_manifest=instruction_manifest
+        or [Path("data/build/grls-instruction-text-manifest.jsonl")],
+        instructions_root=instructions or [Path("data/intermediate/grls-full-final")],
         raw_root=raw_root,
         ema_dir=ema,
         output=output,

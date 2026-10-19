@@ -39,9 +39,9 @@ test('installs «Травник», opens a chapter and shows a source quote', as
 
   await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/herbal`);
   const offer = page.locator('.herbal-book__offer');
-  await expect(offer).toContainText('36 растений', { timeout: 60_000 });
+  await expect(offer).toContainText('39 растений', { timeout: 60_000 });
   await offer.getByRole('button', { name: /^Скачать/u }).click();
-  await expect(page.locator('.herbal-card')).toHaveCount(36, { timeout: 120_000 });
+  await expect(page.locator('.herbal-card')).toHaveCount(39, { timeout: 120_000 });
 
   // The plates are an image pack offered inside the book.
   await page.locator('.herbal-book__plates-offer').getByRole('button').first().click();

@@ -340,3 +340,30 @@ plants:
     ema: { page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba, species: "Thymus vulgaris L., Thymus zygis L." }
     plate: { book: kohler, file: "File:Thymus serpyllum - Köhler–s Medizinal-Pflanzen-138.jpg" }
     gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/chabretsa-trava/ }
+  - id: helichrysum-arenarium
+    ru: Бессмертник песчаный
+    latin: Helichrysum arenarium (L.) Moench
+    family: Asteraceae
+    part: { ru: цветки, la: flos }
+    grls: { inn: [бессмертника песчаного цветки] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/helichrysi-flos }
+    plate: { book: thome, file: "File:Illustration Helichrysum arenarium0.jpg" }
+    gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/bessmertnika-peschanogo-tsvetki/ }
+  - id: sambucus-nigra
+    ru: Бузина чёрная
+    latin: Sambucus nigra L.
+    family: Adoxaceae
+    part: { ru: цветки, la: flos }
+    grls: { inn: [бузины черной цветки] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/sambuci-flos }
+    plate: { book: kohler, file: "File:Sambucus nigra - Köhler–s Medizinal-Pflanzen-127.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/buziny-chernoy-tsvetki/ }
+  - id: carum-carvi
+    ru: Тмин обыкновенный
+    latin: Carum carvi L.
+    family: Apiaceae
+    part: { ru: плоды, la: fructus }
+    grls: { inn: [тмина обыкновенного плоды] }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/carvi-fructus }
+    plate: { book: kohler, file: "File:Carum carvi - Köhler–s Medizinal-Pflanzen-172.jpg" }
+    gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/tmina-obyknovennogo-plody/ }

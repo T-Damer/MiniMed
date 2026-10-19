@@ -284,3 +284,13 @@ successful OCR is not repeated. Exact instruction sections may be stored as prop
 facts. Run automated structural and applicability review over the proposed dosage candidates before
 promoting any regimen to calculator-ready support; do not infer missing medical claims or join a dose
 to a population across ambiguous paragraphs.
+
+### Targeted fetch for the herbal book (2026-10-19)
+
+Five registrations of plain herbal raw material (бессмертник ×3, бузина, тмин) were fetched outside the daily loop with
+`grls-collect --registration … --workers 1 --min-request-delay 10 --max-request-delay 20 --include-exhausted
+--log-dir data/build/grls-collect-herbal` (same plan, ledger and raw root, so the loop sees them as covered), then
+registered with `grls-additions-registry` (filtered to those five), prepared with `medbase prepare` into
+`data/intermediate/grls-herbal-additions` and given a separate text manifest
+`data/build/grls-herbal-additions-manifest.jsonl` (rows of `grls-text-manifest` for those five). The global text manifest
+was not regenerated. grls.rosminzdrav.ru needs no Russian root certificate.

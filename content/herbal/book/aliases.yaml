@@ -979,6 +979,81 @@ aliases:
   alias: thymi herba
   category: reference
   weight: 1.3
+- id: herbal-4de9f7eb951f
+  canonicalTerm: Бессмертник песчаный
+  alias: Бессмертник песчаный
+  category: reference
+  weight: 1.5
+- id: herbal-6a868a01b57e
+  canonicalTerm: Бессмертник песчаный
+  alias: бессмертник
+  category: reference
+  weight: 1.3
+- id: herbal-ca2fbc05aba9
+  canonicalTerm: Бессмертник песчаный
+  alias: Helichrysum arenarium
+  category: reference
+  weight: 1.3
+- id: herbal-895de95f4536
+  canonicalTerm: Бессмертник песчаный
+  alias: бессмертника песчаного цветки
+  category: reference
+  weight: 1.3
+- id: herbal-b5fcde6eb71b
+  canonicalTerm: Бессмертник песчаный
+  alias: helichrysi flos
+  category: reference
+  weight: 1.3
+- id: herbal-9fe8146b3cee
+  canonicalTerm: Бузина чёрная
+  alias: Бузина чёрная
+  category: reference
+  weight: 1.5
+- id: herbal-45d9476b22b6
+  canonicalTerm: Бузина чёрная
+  alias: бузина
+  category: reference
+  weight: 1.3
+- id: herbal-56ab621967cc
+  canonicalTerm: Бузина чёрная
+  alias: Sambucus nigra
+  category: reference
+  weight: 1.3
+- id: herbal-0d82df486502
+  canonicalTerm: Бузина чёрная
+  alias: бузины черной цветки
+  category: reference
+  weight: 1.3
+- id: herbal-4bdf48a06725
+  canonicalTerm: Бузина чёрная
+  alias: sambuci flos
+  category: reference
+  weight: 1.3
+- id: herbal-fc474ea416e8
+  canonicalTerm: Тмин обыкновенный
+  alias: Тмин обыкновенный
+  category: reference
+  weight: 1.5
+- id: herbal-358e888df268
+  canonicalTerm: Тмин обыкновенный
+  alias: тмин
+  category: reference
+  weight: 1.3
+- id: herbal-326fc40f7de4
+  canonicalTerm: Тмин обыкновенный
+  alias: Carum carvi
+  category: reference
+  weight: 1.3
+- id: herbal-45bd860f622a
+  canonicalTerm: Тмин обыкновенный
+  alias: тмина обыкновенного плоды
+  category: reference
+  weight: 1.3
+- id: herbal-6fc3e372db08
+  canonicalTerm: Тмин обыкновенный
+  alias: carvi fructus
+  category: reference
+  weight: 1.3
 - id: herbal-9b497b85f0eb
   canonicalTerm: 'Настои и отвары: общие правила'
   alias: как приготовить настой

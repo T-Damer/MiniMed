@@ -115,7 +115,7 @@ def instruction_candidates(
     plant: Plant,
     records: Sequence[dict[str, object]],
     manifest: dict[str, list[dict[str, object]]],
-    instructions_root: Path,
+    instructions_roots: Sequence[Path],
 ) -> list[GrlsChoice]:
     """Prepared national instructions of the plant's plain raw material, best first."""
     names = set(plant.grls.inn)
@@ -136,8 +136,15 @@ def instruction_candidates(
             if document.get("documentKind") != "national-instruction":
                 continue
             source_id = str(document["sourceId"])
-            path = instructions_root / f"{source_id}.md"
-            if not path.is_file():
+            path = next(
+                (
+                    root / f"{source_id}.md"
+                    for root in instructions_roots
+                    if (root / f"{source_id}.md").is_file()
+                ),
+                None,
+            )
+            if path is None:
                 continue
             label = str(document.get("instructionLabel") or "")
             ocr = bool(document.get("ocr"))
@@ -239,6 +246,13 @@ _INLINE_HEADING_PATTERNS = tuple(
     for key, pattern in _HEADINGS
     if key != "holder"
 )
+# Pack-insert layouts run a section into the previous one inside one text block
+# («… после еды. Побочное действие. Возможны …»): split at a sentence end followed by a heading.
+_RUN_IN_HEADING = re.compile(
+    r"(?<=[.!?])\s+(?=(?:"
+    + "|".join(pattern for key, pattern in _HEADINGS if key != "holder")
+    + r")\s*[.:]\s)"
+)
 _SENTENCE_END = re.compile(r"[.!?]\)?\s*$")
 _BULLET = re.compile(r"^[–—•·-]\s")
 _HYPHEN_BREAK = re.compile(r"[а-яёa-z]-$")
@@ -292,8 +306,12 @@ def instruction_sections(path: Path) -> dict[str, list[Paragraph]]:
             sections.setdefault(current, []).append(paragraph)
         paragraph = None
 
-    for text, page, block in read_blocks(path):
-        text = text.lstrip("#").strip()
+    segments = [
+        (segment, page, block)
+        for text, page, block in read_blocks(path)
+        for segment in _RUN_IN_HEADING.split(text.lstrip("#").strip())
+    ]
+    for text, page, block in segments:
         key = _heading(text)
         rest: str | None = None
         if key is None:
@@ -1091,12 +1109,14 @@ class PrepareReport:
     output: str
 
 
-def _load_manifest(path: Path) -> dict[str, list[dict[str, object]]]:
+def _load_manifest(paths: Sequence[Path]) -> dict[str, list[dict[str, object]]]:
+    """Text-manifest rows per registration; later files (targeted additions) extend earlier ones."""
     result: dict[str, list[dict[str, object]]] = {}
-    with path.open(encoding="utf-8") as stream:
-        for line in stream:
-            row = cast("dict[str, object]", json.loads(line))
-            result.setdefault(str(row["registrationNumber"]), []).append(row)
+    for path in paths:
+        with path.open(encoding="utf-8") as stream:
+            for line in stream:
+                row = cast("dict[str, object]", json.loads(line))
+                result.setdefault(str(row["registrationNumber"]), []).append(row)
     return result
 
 
@@ -1123,8 +1143,8 @@ def prepare_herbal_book(
     *,
     plants_path: Path,
     catalog: Path,
-    instruction_manifest: Path,
-    instructions_root: Path,
+    instruction_manifest: Sequence[Path],
+    instructions_root: Sequence[Path],
     raw_root: Path,
     ema_dir: Path,
     output: Path,
