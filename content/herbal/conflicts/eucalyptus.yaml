@@ -1,0 +1,10 @@
+plant: eucalyptus
+items:
+  - topic: age
+    ru: "ГРЛС: противопоказан детям до 3 лет; EMA: детям до 12 лет не рекомендуется"
+    grls: "Повышенная чувствительность к препарату, детский возраст до 3 лет."
+    monograph: {doc: monograph, page: 3, quote: "The use in children under 12 years of age is not recommended"}
+  - topic: course
+    ru: "ГРЛС: курс 2–3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику"
+    grls: "Курс лечения 2-3 недели."
+    monograph: {doc: monograph, page: 4, quote: "If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

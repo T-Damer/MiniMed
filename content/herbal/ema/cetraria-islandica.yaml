@@ -172,11 +172,6 @@ facts:
     page: 7
     quote: No case of overdose has been reported.
   - kind: statement
-    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 7
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-  - kind: statement
     ru: В образцах из Финляндии найдено много тяжёлых металлов, прежде всего свинца, а также кадмия и ртути (Pb 30 мг/кг, Cd 0,30 мг/кг, Hg 0,075 мг/кг); лишайник способен поглощать токсичные элементы из окружающей среды
     doc: assessment-report
     page: 21

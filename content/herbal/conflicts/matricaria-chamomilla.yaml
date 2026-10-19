@@ -1,0 +1,10 @@
+plant: matricaria-chamomilla
+items:
+  - topic: age
+    ru: "ГРЛС: дети до 3 лет — по 1 чайной ложке настоя; EMA: чай внутрь детям младше 6 месяцев — применение не установлено"
+    grls: дети до 3 лет – по 1 чайной ложке.
+    monograph: {doc: monograph, page: 11, quote: "The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake."}
+  - topic: course
+    ru: "ГРЛС: к врачу, если симптомы сохраняются более 2 недель; EMA: если симптомы держатся больше недели — к врачу или медработнику"
+    grls: Если при применении препарата симптомы сохраняются без улучшения более 2 недель или ухудшаются, следует обратиться к врачу.
+    monograph: {doc: monograph, page: 10, quote: "If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

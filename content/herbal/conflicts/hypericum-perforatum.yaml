@@ -1,0 +1,18 @@
+plant: hypericum-perforatum
+items:
+  - topic: interaction
+    ru: "ГРЛС: с циклоспорином, варфарином и др. возможно снижение эффективности; EMA: с кумариновыми антикоагулянтами, циклоспорином и др. противопоказано"
+    grls: "При совместном применении настоя с циклоспорином, варфарином, дигоксином, стероидными препаратами, противовирусными средствами – ингибиторами протеазы ВИЧ (ампренавир, индинавир, нелфинавир, ритонавир, саквинавир, невирапин, эфавиренз) возможно снижение их эффективности."
+    monograph: {doc: monograph, page: 9, quote: "Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein is contraindicated (see section 4.3. ‘Contraindications’)."}
+  - topic: dose
+    ru: "ГРЛС: настой по 1/2 стакана 2-3 раза в день; EMA: чай 1,5-2 г на 150 мл, 2-3 раза в день, в сутки 3-6 г"
+    grls: "Хронический колит: настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 30 минут до еды."
+    monograph: {doc: monograph, page: 6, quote: "Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g"}
+  - topic: course
+    ru: "ГРЛС: курс лечения 2-3 недели; EMA: к врачу, если симптомы дольше 2 недель (показания 1, 4) или 1 недели (2, 3)"
+    grls: "Курс лечения 2-3 недели."
+    monograph: {doc: monograph, page: 7, quote: "Indications 1) and 4) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted. Indications 2) and 3) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}
+  - topic: age
+    ru: "ГРЛС: противопоказан детский возраст до 12 лет; EMA: внутрь до 18 лет не рекомендуется"
+    grls: "детский возраст до 12 лет."
+    monograph: {doc: monograph, page: 8, quote: "Since no sufficient data are available the use in children and adolescents under 18 years of age is not recommended."}

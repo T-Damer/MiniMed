@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/menyanthidis-trifoliatae-folium
-source_checksum: sha256:944e090937ab628aad76895f202d9a012493d9aa80f3412188ff67a164594ac1
+source_checksum: sha256:d96a1a52b33ee691c75889ef8c086790440e8df90b5983965ed695a344bdc820
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,6 +91,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
+          daily: 0.8-4.8 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -103,6 +104,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: '3'
+          daily: 1.5-4.5 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -114,6 +116,7 @@ metadata:
           amount: '0.5'
           unit: г
           timesPerDay: 3-4
+          daily: 1.5-2.0 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -249,11 +252,6 @@ metadata:
         quote: No case of overdose have been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 8
-        quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 4
@@ -289,6 +287,27 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Белгородская область
+        year: 2019
+      - region: Карачаево-Черкесская Республика
+        year: 2013
+      - region: Краснодарский край
+        year: 2017
+      - region: Республика Адыгея
+        year: 2021
+      - region: Республика Северная Осетия — Алания
+        year: 2022
+      - region: Ростовская область
+        year: 2024
+      - region: Самарская область
+        year: 2017
+      - region: Саратовская область
+        year: 2021
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/24291.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0065.18

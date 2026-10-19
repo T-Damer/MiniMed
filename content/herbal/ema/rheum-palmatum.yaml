@@ -24,8 +24,8 @@ facts:
   ru: Чай — измельчённое сырьё в количестве, равном не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка в виде настоя
   doc: monograph
   page: 4
-  quote: 'Herbal tea: amount of comminuted herbal substance (equivalent to not more than 30 mg hydroxyanthracene derivatives) in 150 ml of boiling water as herbal infusion.'
-  dose: {preparationRu: 'чай: настой измельчённого сырья', amount: не более 30, unit: мг гидроксиантраценовых производных, waterMl: '150', populationRu: 'подростки, взрослые и пожилые'}
+  quote: 'Adolescents, adults, elderly Single dose: Herbal preparation equivalent to 20-30 mg hydroxyanthracene derivatives, calculated as rhein, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion. Herbal tea: amount of comminuted herbal substance (equivalent to not more than 30 mg hydroxyanthracene derivatives) in 150 ml of boiling water as herbal infusion.'
+  dose: {preparationRu: 'чай: настой измельчённого сырья на ночь (доза считается по гидроксиантраценовым производным, не по массе сырья)', amount: не более 30, unit: мг гидроксиантраценовых производных, waterMl: '150', timesPerDay: один, populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: Лекарственная форма должна позволять уменьшать дозу
   doc: monograph

@@ -1,0 +1,10 @@
+plant: calendula-officinalis
+items:
+  - topic: dose
+    ru: "ГРЛС: полоскание по 1/2-1 стакану настоя 3-5 раз в день; EMA: 1-2 г на 150 мл воды, 2-4 раза в день"
+    grls: "Местно для полосканий полости рта и горла применяют по 1/2-1 стакану теплого настоя 3-5 раз в день."
+    monograph: {doc: monograph, page: 5, quote: "1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times"}
+  - topic: pregnancy
+    ru: "ГРЛС: применение возможно, если польза превышает риск; EMA: при беременности и кормлении не рекомендуется"
+    grls: "Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 6, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}

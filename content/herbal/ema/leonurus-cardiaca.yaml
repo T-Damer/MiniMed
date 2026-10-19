@@ -24,7 +24,7 @@ facts:
     doc: monograph
     page: 3
     quote: "a) Comminuted herbal substance for tea preparation: single dose 1.5 to 4.5 g, daily dose 3 to 10 g."
-    dose: { preparationRu: настой, amount: "1.5-4.5", unit: г, populationRu: взрослые и пожилые }
+    dose: { preparationRu: настой, amount: "1.5-4.5", unit: г, daily: "3-10 г", populationRu: взрослые и пожилые }
   - kind: age
     ru: До 18 лет не рекомендуется
     doc: monograph

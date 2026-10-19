@@ -14,13 +14,13 @@ facts:
     doc: monograph
     page: 4
     quote: Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.
-    dose: { preparationRu: препарат на ночь, amount: "10-30", unit: мг гидроксиантраценовых производных, populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: препарат на ночь (разовая доза), amount: "10-30", unit: мг гидроксиантраценовых производных, timesPerDay: один, populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
-    ru: Чай — измельчённое сырьё, эквивалентное не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка
+    ru: Чай — измельчённое сырьё, эквивалентное не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка; разовая доза, один раз в день на ночь
     doc: monograph
     page: 4
-    quote: "Herbal tea: amount of comminuted herbal substance equivalent to not more than 30 mg hydroxyanthracene derivatives in 150 ml of boiling water as herbal infusion"
-    dose: { preparationRu: настой, amount: "30", unit: мг гидроксиантраценовых производных (не больше), waterMl: "150", populationRu: "подростки, взрослые и пожилые" }
+    quote: "to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion. Herbal tea: amount of comminuted herbal substance equivalent to not more than 30 mg hydroxyanthracene derivatives in 150 ml of boiling water as herbal infusion"
+    dose: { preparationRu: настой (разовая доза), amount: "30", unit: мг гидроксиантраценовых производных (не больше), waterMl: "150", timesPerDay: один, populationRu: "подростки, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 12 лет нельзя
     doc: monograph
@@ -53,6 +53,21 @@ facts:
     doc: monograph
     page: 5
     quote: Frangula bark preparations should only be used if a therapeutic effect cannot be achieved by a change of diet or the administration of bulk forming agents.
+  - kind: warning
+    ru: Нельзя без указания врача при каловой пробке и неустановленных острых или стойких жалобах со стороны ЖКТ (боль в животе, тошнота, рвота) — это могут быть признаки кишечной непроходимости
+    doc: monograph
+    page: 5
+    quote: Like all laxatives, frangula bark preparations should not be taken by patients suffering from faecal impaction and undiagnosed, acute or persistent gastro-intestinal complaints, e.g. abdominal pain, nausea and vomiting, unless advised by a doctor, because these symptoms can be signs of potential or existing intestinal blockage (ileus).
+  - kind: warning
+    ru: Больным с заболеваниями почек нужно учитывать возможное нарушение электролитного баланса
+    doc: monograph
+    page: 5
+    quote: Patients with kidney disorders should be aware of possible electrolyte imbalance.
+  - kind: interaction
+    ru: Принимающим сердечные гликозиды, антиаритмики, препараты, удлиняющие интервал QT, мочегонные, кортикостероиды или корень солодки — перед приёмом коры крушины к врачу
+    doc: monograph
+    page: 5
+    quote: Patients taking cardiac glycosides, antiarrhythmic medicinal products, medicinal products inducing QT-prolongation, diuretics, adrenocorticosteroids or liquorice root, have to consult a doctor before taking frangula bark concomitantly.
   - kind: interaction
     ru: Низкий калий (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмиками; мочегонные, кортикостероиды и корень солодки при совместном приёме могут усиливать потерю калия
     doc: monograph
@@ -73,6 +88,11 @@ facts:
     doc: monograph
     page: 7
     quote: Frangula bark may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon.
+  - kind: warning
+    ru: Боль, спазмы и жидкий стул могут быть следствием индивидуальной передозировки; тогда дозу нужно уменьшить
+    doc: monograph
+    page: 7
+    quote: However, these symptoms may also occur generally as a consequence of individual overdosage. In such cases dose reduction is necessary.
   - kind: adverse
     ru: При хроническом приёме возможна пигментация слизистой кишки (псевдомеланоз), обычно проходит после отмены
     doc: monograph
@@ -93,6 +113,16 @@ facts:
     doc: monograph
     page: 7
     quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, specifically potassium, should be monitored. This is particularly important in the elderly.
+  - kind: overdose
+    ru: Длительная передозировка при приёме внутрь препаратов с антраноидами может привести к токсическому гепатиту
+    doc: monograph
+    page: 8
+    quote: Chronic ingested overdoses of anthranoid containing medicinal products may lead to toxic hepatitis.
+  - kind: statement
+    ru: Некоторые гидроксиантраценовые производные были мутагенны и генотоксичны в опытах in vitro, но на живых организмах это не доказано; в длительных исследованиях канцерогенности отмечено влияние на почки и толстую/слепую кишку
+    doc: monograph
+    page: 9
+    quote: Furthermore, several hydroxyl anthracene derivatives were mutagenic and genotoxic in several in vitro test systems, however this was not proven in in vivo systems. In long term carcinogenicity studies effects on kidneys and colon/caecum were reported.
 constituents:
   - compound: glucofrangulin, frangulin
     compoundRu: глюкофрангулин, франгулин

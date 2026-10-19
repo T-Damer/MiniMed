@@ -39,19 +39,19 @@ facts:
     doc: monograph
     page: 301
     quote: "Internal use. As an infusion: one tablespoon of an infusion (10 g of dried herb in 200 ml boiling water for 15–20 minutes) three times daily before meals (73)."
-    dose: { preparationRu: "настой, столовая ложка (10 г сухой травы на 200 мл кипятка, 15–20 минут)", amount: "10", unit: г сухой травы на настой, waterMl: "200", timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: "внутрь, настой (10 г сухой травы на 200 мл кипятка, 15–20 минут)", amount: одна, unit: столовая ложка настоя, timesPerDay: три, populationRu: возраст не указан }
   - kind: posology
     ru: Внутрь, настойка — 1 мл настойки (10 г сухой травы на 150 мл 70 % этанола) три раза в день
     doc: monograph
     page: 301
     quote: "Tincture: 1 ml of a tincture (10 g of dried herb in 150 ml 70% ethanol) three times daily (74)."
-    dose: { preparationRu: "настойка (10 г сухой травы на 150 мл 70 % этанола)", amount: "1", unit: мл, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: "внутрь, настойка (10 г сухой травы на 150 мл 70 % этанола)", amount: "1", unit: мл, timesPerDay: три, populationRu: возраст не указан }
   - kind: posology
     ru: "Наружно, в виде компресса, припарки или полоскания: 20–30 г травы на 200 мл кипятка, для непосредственного применения"
     doc: monograph
     page: 301
     quote: "External use. As a compress, cataplasm or gargle: add 20–30 g of herb to 200 ml of boiling water for a direct application (75)."
-    dose: { preparationRu: "трава, залитая кипятком (20–30 г на 200 мл)", amount: "20-30", unit: г, waterMl: "200", populationRu: возраст не указан }
+    dose: { preparationRu: "наружно, компресс, припарка или полоскание: трава, залитая кипятком", amount: "20-30", unit: г, waterMl: "200", populationRu: возраст не указан }
   - kind: contraindication
     ru: При появлении признаков реакций гиперчувствительности (сыпь, зуд, крапивница, отёк рта и кожи) траву душицы повторно применять нельзя
     doc: monograph

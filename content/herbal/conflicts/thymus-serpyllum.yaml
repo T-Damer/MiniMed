@@ -1,0 +1,10 @@
+plant: thymus-serpyllum
+items:
+  - topic: course
+    ru: "ГРЛС: курс 2–3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику"
+    grls: "Курс лечения 2-3 недели."
+    monograph: {doc: monograph, page: 5, quote: "If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}
+  - topic: pregnancy
+    ru: "ГРЛС: полоскания при беременности возможны, если польза выше риска; EMA: при беременности и кормлении не рекомендуется"
+    grls: "Применение местно для полосканий возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 6, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}

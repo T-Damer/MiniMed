@@ -1,0 +1,10 @@
+plant: althaea-officinalis
+items:
+  - topic: pregnancy
+    ru: "ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: при беременности и лактации не рекомендуется"
+    grls: Применение при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+    monograph: {doc: monograph, page: 9, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}
+  - topic: course
+    ru: "ГРЛС: курс лечения 2-3 недели; EMA: при кашле и раздражении рта и горла, если симптомы держатся дольше 1 недели — к врачу или медработнику"
+    grls: Курс лечения 2-3 недели.
+    monograph: {doc: monograph, page: 7, quote: "If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

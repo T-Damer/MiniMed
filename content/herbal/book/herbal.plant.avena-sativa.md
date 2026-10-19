@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/avenae-herba
-source_checksum: sha256:576d4dc406a404e5f2121b29b5b5af28be64e3b365ef6f556bc2c4067f915931
+source_checksum: sha256:3e84d114e6efebd2d4f9567225c063b47f15c84c12ae01bdc3a550cb8e2e8b73
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -178,11 +178,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 7
@@ -226,6 +221,8 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

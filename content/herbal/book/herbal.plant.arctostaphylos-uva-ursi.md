@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:15d8ad53ff8d31ade38d600437d7cb5e7dd0b669ee42e80e8150e318e80a3950
+source_checksum: sha256:6040c3c93eb1e46f69afa75a681b15fc0b0b6a605104dc56ec81c2e5fb41f3ed
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -109,7 +109,49 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
+          daily: до 8 г
           populationRu: взрослые и пожилые женщины
+      - doc: monograph
+        page: 4
+        quote: 'Single dose: 700 – 1050 mg twice daily Maximum daily dose: 1.75 g'
+        kind: posology
+        ru: Порошок сырья — разовая доза 700–1050 мг, дважды в день; не больше 1,75 г в сутки
+        dose:
+          preparationRu: порошок сырья
+          amount: 700-1050
+          unit: мг
+          timesPerDay: дважды
+          daily: до 1.75 г
+          populationRu: взрослые и пожилые женщины
+      - doc: monograph
+        page: 4
+        quote: 'Single dose: the dose corresponding to 100–210 mg of hydroquinone derivatives calculated as anhydrous arbutin 2–4 times daily Daily dose: the dose corresponding to 200–840 mg of hydroquinone derivatives calculated as anhydrous arbutin'
+        kind: posology
+        ru: Сухие экстракты — разовая доза, соответствующая 100–210 мг гидрохиноновых производных (в пересчёте на безводный арбутин), 2–4 раза в день; в сутки 200–840 мг
+        dose:
+          preparationRu: сухие экстракты (в мг гидрохиноновых производных в пересчёте на безводный арбутин)
+          amount: 100-210
+          unit: мг
+          timesPerDay: 2-4
+          daily: 200-840 мг
+          populationRu: взрослые и пожилые женщины
+      - doc: monograph
+        page: 5
+        quote: 'Single dose: 1.5–4 ml up to three times daily Maximum daily dose: 8 ml'
+        kind: posology
+        ru: Жидкий экстракт — разовая доза 1,5–4 мл, до трёх раз в день; не больше 8 мл в сутки
+        dose:
+          preparationRu: жидкий экстракт
+          amount: 1.5-4
+          unit: мл
+          timesPerDay: до трёх
+          daily: до 8 мл
+          populationRu: взрослые и пожилые женщины
+      - doc: monograph
+        page: 5
+        quote: The macerate should be used immediately after preparation.
+        kind: posology
+        ru: Мацерат использовать сразу после приготовления
       - doc: monograph
         page: 5
         quote: The use in children and adolescents under 18 years of age is not recommended
@@ -208,6 +250,87 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/UvaUrsi/
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Брянская область
+        year: 2016
+      - region: Владимирская область
+        year: 2018
+      - region: Ивановская область
+        year: 2010
+      - region: Калининградская область
+        year: 2010
+      - region: Калужская область
+        year: 2015
+      - region: Карачаево-Черкесская Республика
+        year: 2013
+      - region: Липецкая область
+        year: 2014
+      - region: Московская область
+        year: 2018
+        checked:
+          act: Распоряжение Минэкологии Московской обл. от 20.03.2018 № 103-РМ
+          url: https://verhovye.ru/wp-content/uploads/2019/09/Elektronnaya_versiya_KKMO_2018-s-sajta-ME-MO.pdf
+          category: '1'
+      - region: Пензенская область
+        year: 2013
+      - region: Республика Мордовия
+        year: 2017
+      - region: Республика Татарстан
+        year: 2016
+      - region: Рязанская область
+        year: 2011
+      - region: Самарская область
+        year: 2017
+      - region: Смоленская область
+        year: 2012
+      - region: Тамбовская область
+        year: 2019
+      - region: Тверская область
+        year: 2016
+      - region: Тульская область
+        year: 2020
+      - region: Ярославская область
+        year: 2015
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/3573.html
+    conflicts:
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 20-25 дней, до 4 курсов в год; EMA: не дольше одной недели'
+      grls: Курс лечения 20-25 дней. Возможно повторение курса после 10-12 дневного перерыва, но не более 4 курсов в год.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Not to be used for more than one week.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-arctostaphylos-uva-ursi-l-spreng-folium-revision-2_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: детям от 12 до 18 лет; EMA: до 18 лет не рекомендуется'
+      grls: применяется у взрослых пациентов и детей в возрасте от 12 до 18 лет
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children and adolescents under 18 years of age is not recommended because of concerns requiring medical advice.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-arctostaphylos-uva-ursi-l-spreng-folium-revision-2_en.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-arctostaphylos-uva-ursi-l-spreng-folium-revision-2_en.pdf
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: взрослым при цистите, уретрите; EMA: мужчинам не рекомендуется'
+      grls: применяется у взрослых пациентов и детей в возрасте от 12 до 18 лет в комплексной терапии воспалительных заболеваний мочевого пузыря и мочевыводящих путей (цистит, уретрит)
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in men is not recommended because of concerns requiring medical supervision.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-arctostaphylos-uva-ursi-l-spreng-folium-revision-2_en.pdf
     identification:
       source:
         number: ФС.2.5.0099

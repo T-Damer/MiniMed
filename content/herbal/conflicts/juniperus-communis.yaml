@@ -1,0 +1,10 @@
+plant: juniperus-communis
+items:
+  - topic: indication
+    ru: "ГРЛС: показан при отёчном синдроме (сердечная, почечная, печёночная недостаточность); EMA: не рекомендуется при тяжёлых болезнях почек"
+    grls: "В комплексной терапии отечного синдрома (при сердечной недостаточности, недостаточности функции почек и/или печени), цистита."
+    monograph: {doc: monograph, page: 7, quote: "Not recommended to be used in case of severe renal disease including infectious interstitial nephritis, pyelitis and pyelonephritis."}
+  - topic: course
+    ru: "ГРЛС: курс лечения 3-4 недели; EMA: к врачу, если симптомы сохраняются дольше 2 недель"
+    grls: "Курс лечения 3-4 недели."
+    monograph: {doc: monograph, page: 6, quote: "If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

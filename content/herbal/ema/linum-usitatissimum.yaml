@@ -21,11 +21,16 @@ facts:
     quote: Take 10 - 15 g seeds with 150 ml water, milk, fruit juice or similar aqueous liquid 2 - 3 times daily; then maintain adequate fluid intake.
     dose: { preparationRu: семена с жидкостью, amount: "10-15", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
-    ru: Слизистый настой — замочить семена в воде, принимать за полчаса до еды (традиционное применение)
+    ru: Слизистый настой — разовая доза 5–10 г семян в 250 мл воды, до трёх раз в течение дня (традиционное применение)
+    doc: monograph
+    page: 4
+    quote: "Single dose 5 – 10 g in 250 ml water Daily dose: up to three times during the day"
+    dose: { preparationRu: слизистый настой, amount: "5-10", unit: г семян, waterMl: "250", timesPerDay: до трёх, populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Слизистый настой — замочить цельные или дроблёные семена в воде, принимать за полчаса до еды; время замачивания в монографии не указано (традиционное применение)
     doc: monograph
     page: 4
     quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water for at least <x min> and take this half an hour before eating.
-    dose: { preparationRu: слизистый настой, amount: "5-10", unit: г, waterMl: "250", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Действует через 12–24 часа; не принимать прямо перед сном (хорошо изученное применение)
     doc: monograph

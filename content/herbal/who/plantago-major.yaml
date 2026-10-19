@@ -119,37 +119,37 @@ facts:
     doc: monograph
     page: 332
     quote: "Internal. Granules of dried leaf: 2–4 g three times daily, before meals (38)."
-    dose: { preparationRu: гранулы из сухого листа, amount: "2-4", unit: г, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: гранулы из сухого листа, amount: "2-4", unit: г, timesPerDay: три, populationRu: "возраст не указан (сведений о детях нет)" }
   - kind: posology
     ru: "Внутрь, настой (10 г сухого листа на 200 мл кипячёной воды, 15–20 минут): одна столовая ложка настоя три раза в день перед едой"
     doc: monograph
     page: 332
     quote: "Infusion: one tablespoon of an infusion (10 g dried leaf in 200 ml boiled water for 15–20 minutes) three times daily before meals (89)."
-    dose: { preparationRu: "настой (10 г сухого листа на 200 мл кипячёной воды, 15–20 минут)", amount: одна, unit: столовая ложка настоя, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: "настой (10 г сухого листа на 200 мл кипячёной воды, 15–20 минут)", amount: одна, unit: столовая ложка настоя, timesPerDay: три, populationRu: "возраст не указан (сведений о детях нет)" }
   - kind: posology
     ru: 'Жидкий экстракт из сухого листа (1:1 в 25 % этаноле): 2–4 мл три раза в день'
     doc: monograph
     page: 332
     quote: 'Liquid extract: 2–4 ml of a liquid extract from dried leaf (1:1 in 25% ethanol) three times daily (41).'
-    dose: { preparationRu: "жидкий экстракт из сухого листа (1:1 в 25 % этаноле)", amount: "2-4", unit: мл, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: "жидкий экстракт из сухого листа (1:1 в 25 % этаноле)", amount: "2-4", unit: мл, timesPerDay: три, populationRu: "возраст не указан (сведений о детях нет)" }
   - kind: posology
     ru: "Настойка из сухого листа (1:5 в 45 % этаноле): 2–4 мл три раза в день"
     doc: monograph
     page: 333
     quote: "Tincture: 2–4 ml of a tincture of dried leaf (1:5 in 45% ethanol) three times daily (41)."
-    dose: { preparationRu: "настойка из сухого листа (1:5 в 45 % этаноле)", amount: "2-4", unit: мл, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: "настойка из сухого листа (1:5 в 45 % этаноле)", amount: "2-4", unit: мл, timesPerDay: три, populationRu: "возраст не указан (сведений о детях нет)" }
   - kind: posology
     ru: "Сок свежих листьев: одна столовая ложка три раза в день перед едой"
     doc: monograph
     page: 333
     quote: "Juice of the fresh leaves: one tablespoon three times daily, before meals (28)."
-    dose: { preparationRu: сок свежих листьев, amount: одна, unit: столовая ложка, timesPerDay: три, populationRu: возраст не указан }
+    dose: { preparationRu: сок свежих листьев, amount: одна, unit: столовая ложка, timesPerDay: три, populationRu: "возраст не указан (сведений о детях нет)" }
   - kind: posology
     ru: "Наружно: холодный мацерат (1,4 г нарезанной травы на 150 мл холодной воды, настаивать 1–2 часа, часто помешивая) для ополаскивания, полоскания или припарки; для ополаскивания или полоскания — три-четыре раза в день"
     doc: monograph
     page: 333
     quote: "External. Cold macerate for use as a rinse, gargle or cataplasm: soak 1.4 g cut herb in 150 ml cold water for 1–2 hours, stirring often. For use as a rinse or gargle: rinse or gargle with cold macerate (soak 1.4 g cut herb in 150 ml cold water for 1–2 hours stirring often) three to four times daily (90)."
-    dose: { preparationRu: холодный мацерат нарезанной травы, amount: "1.4", unit: г, waterMl: "150", timesPerDay: три-четыре, populationRu: возраст не указан }
+    dose: { preparationRu: "наружно: холодный мацерат нарезанной травы (ополаскивание, полоскание, припарка)", amount: "1.4", unit: г, waterMl: "150", timesPerDay: три-четыре, populationRu: "возраст не указан (сведений о детях нет)" }
 constituents:
   - compound: iridoids
     compoundRu: иридоиды

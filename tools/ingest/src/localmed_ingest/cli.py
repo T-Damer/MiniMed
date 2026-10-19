@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -32,11 +33,13 @@ from .drug_sources import collect_drug_sources
 from .feeding_distribution import package_feeding_module
 from .feeding_norms import FeedingSourceError, prepare_feeding_norms, verify_feeding_sources
 from .feeding_norms import report_json as feeding_report_json
+from .herbal_conflicts import check_conflicts
 from .herbal_distribution import package_herbal_module, package_herbal_plates
 from .herbal_ema import check_ema_extractions, check_who_extractions
 from .herbal_plants import load_plants
 from .herbal_prepare import prepare_herbal_book
 from .herbal_prepare import report_json as herbal_prepare_report_json
+from .herbal_regions import fetch_regional_red_books
 from .herbal_safety import check_safety
 from .herbal_sources import fetch_herbal_sources
 from .herbal_sources import report_json as herbal_sources_report_json
@@ -596,6 +599,48 @@ def check_herbal_safety_command(
     typer.echo(json.dumps(results, ensure_ascii=False, indent=2))
     if any(results.values()):
         raise typer.Exit(1)
+
+
+@app.command("check-herbal-conflicts")
+def check_herbal_conflicts_command(
+    directory: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    book: Annotated[Path, typer.Option("--book", exists=True, file_okay=False)] = Path(
+        "content/herbal/book"
+    ),
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+) -> None:
+    """Check every ГРЛС-against-monograph conflict: the ГРЛС sentence in the built chapter, the
+    monograph sentence on its page, every number of the Russian line in one of the two."""
+    plant_list = load_plants(plants)
+    who = {plant.id: (plant.who.volume, plant.who.pages) for plant in plant_list if plant.who}
+    results = check_conflicts(directory, raw_root, book, who, {plant.id for plant in plant_list})
+    typer.echo(json.dumps(results, ensure_ascii=False, indent=2))
+    if any(results.values()):
+        raise typer.Exit(1)
+
+
+@app.command("fetch-regional-red-books")
+def fetch_regional_red_books_command(
+    raw_root: Annotated[Path, typer.Option("--raw-root", file_okay=False)] = Path(
+        "data/raw/herbal/plantarium"
+    ),
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)] = Path(
+        "content/herbal/regional-red-books.yaml"
+    ),
+    plants: Annotated[Path, typer.Option("--plants", exists=True, dir_okay=False)] = Path(
+        "content/herbal/plants.yaml"
+    ),
+) -> None:
+    """Read each herbal plant's Plantarium taxon page (about 150 requests, 1.5 s apart) and write
+    the regions whose newest Red Book lists it; rows checked by hand keep their `checked`."""
+    plant_list = [(plant.id, plant.latin) for plant in load_plants(plants)]
+    counts = fetch_regional_red_books(
+        plant_list, raw_root, output, datetime.now().astimezone().date().isoformat()
+    )
+    typer.echo(json.dumps(counts, ensure_ascii=False, indent=2))
 
 
 @app.command("prepare-herbal")

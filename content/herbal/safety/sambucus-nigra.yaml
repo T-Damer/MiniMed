@@ -1,19 +1,6 @@
 plant: sambucus-nigra
-nccih: elderberry
 lactmed: LM920
 lines:
-- source: nccih
-  kind: warning
-  ru: 'Сырые или незрелые ягоды и другие части бузины (листья, стебли) содержат ядовитые цианидообразующие вещества: тошнота, рвота, тяжёлая диарея; варка устраняет токсин'
-  quote: Raw or unripe elderberries and other parts of the elder tree, such as the leaves and stem, contain poisonous cyanide-producing substances that can cause nausea, vomiting, and severe diarrhea; cooking eliminates this toxin.
-- source: nccih
-  kind: warning
-  ru: Большие количества токсина могут вызвать серьёзное заболевание
-  quote: Large quantities of the toxin may cause serious illness.
-- source: nccih
-  kind: pregnancy
-  ru: Мало известно, безопасна ли бузина для лечебного применения при беременности и грудном вскармливании
-  quote: Little is known about whether it’s safe to use elderberry for health purposes during pregnancy or while breastfeeding.
 - source: lactmed
   kind: lactation
   ru: Рекомендаций по применению лечебных доз препаратов бузины при грудном вскармливании дать нельзя

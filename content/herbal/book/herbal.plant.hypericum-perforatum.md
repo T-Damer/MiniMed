@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:b5f5c9f157df95cc5241f3ee18a9d8ea11cf021bd5d20aece8b16396f6f99acf
+source_checksum: sha256:67fa089e88d96f7c45d58649de460cff92b40ca076d8b2f4c36c759a8f561c5c
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,6 +91,11 @@ metadata:
         ru: Лёгкие и умеренные депрессивные эпизоды — экстракты a), b) монографии (хорошо изученное применение)
       - doc: monograph
         page: 4
+        quote: 'Herbal preparation c): Herbal medicinal product for the short-term treatment of symptoms in mild depressive disorders.'
+        kind: indication
+        ru: Кратковременное лечение симптомов лёгких депрессивных расстройств — экстракт c) монографии (хорошо изученное применение)
+      - doc: monograph
+        page: 4
         quote: Traditional herbal medicinal product for the relief of temporary mental exhaustion.
         kind: indication
         ru: Временное умственное истощение (традиционное применение)
@@ -110,6 +115,54 @@ metadata:
         kind: indication
         ru: Вспомогательно при нервном беспокойстве и трудностях с засыпанием (традиционное применение)
       - doc: monograph
+        page: 5
+        quote: 'Adults and elderly Herbal preparation a): Single dose: 300-600 mg Dosage frequency: 1-3 times daily Daily dose: 600-1800 mg'
+        kind: posology
+        ru: 'Депрессия, препарат a) — сухой экстракт: разовая доза 300–600 мг, 1–3 раза в день, суточная 600–1800 мг; взрослые и пожилые (хорошо изученное применение)'
+        dose:
+          preparationRu: 'препарат a): сухой экстракт (3-7:1), экстрагент метанол 80 % об/об'
+          amount: 300-600
+          unit: мг
+          timesPerDay: 1-3
+          daily: 600-1800 мг
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'Herbal preparation b): Single dose: 900 mg Dosage frequency: 1 single daily dose Daily dose: 900 mg'
+        kind: posology
+        ru: 'Депрессия, препарат b) — сухой экстракт: разовая доза 900 мг, один раз в день, суточная 900 мг; взрослые и пожилые (хорошо изученное применение)'
+        dose:
+          preparationRu: 'препарат b): сухой экстракт (3-6:1), экстрагент этанол 80 % об/об'
+          amount: '900'
+          unit: мг
+          timesPerDay: '1'
+          daily: 900 мг
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'Herbal preparation c): Single dose: 600 mg or 612 mg Dosage frequency: 1 single daily dose Daily dose: 600 mg or 612 mg'
+        kind: posology
+        ru: 'Лёгкие депрессивные расстройства, препарат c) — сухой экстракт: разовая доза 600 или 612 мг, один раз в день, суточная 600 или 612 мг; взрослые и пожилые (хорошо изученное применение)'
+        dose:
+          preparationRu: 'препарат c): сухой экстракт (2,5-8:1), экстрагент этанол 50-68 % об/об'
+          amount: 600 или 612
+          unit: мг
+          timesPerDay: '1'
+          daily: 600 или 612 мг
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'or Single dose: 250-600 mg Dosage frequency: 2-3 times daily Daily dose: 500-1200 mg'
+        kind: posology
+        ru: 'Лёгкие депрессивные расстройства, препарат c) — сухой экстракт: разовая доза 250–600 мг, 2–3 раза в день, суточная 500–1200 мг; взрослые и пожилые (хорошо изученное применение)'
+        dose:
+          preparationRu: 'препарат c): сухой экстракт (2,5-8:1), экстрагент этанол 50-68 % об/об'
+          amount: 250-600
+          unit: мг
+          timesPerDay: 2-3
+          daily: 500-1200 мг
+          populationRu: взрослые и пожилые
+      - doc: monograph
         page: 6
         quote: 'Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g'
         kind: posology
@@ -120,6 +173,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
+          daily: 3-6 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -163,10 +217,31 @@ metadata:
         ru: При истощении и беспокойстве — если дольше 2 недель, к врачу
         maxDays: 14
       - doc: monograph
+        page: 7
+        quote: Indications 2) and 3) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: duration
+        ru: При кожных и желудочно-кишечных жалобах (показания 2 и 3) — если симптомы держатся дольше 1 недели, к врачу или квалифицированному медработнику
+        maxDays: 7
+      - doc: monograph
+        page: 6
+        quote: Indication 1) The onset of the effect can be expected within 4 weeks of treatment. If the symptoms persist during the use of the medicinal product, a doctor should be consulted.
+        kind: duration
+        ru: 'Депрессия, препараты a), b): эффект ожидается в течение 4 недель; если симптомы сохраняются — к врачу (хорошо изученное применение)'
+      - doc: monograph
+        page: 6
+        quote: Indication 2) Six weeks. The onset of the effect can be expected within 4 weeks of treatment. If the symptoms persist during the use of the medicinal product, a doctor should be consulted.
+        kind: duration
+        ru: 'Лёгкие депрессивные расстройства, препарат c): шесть недель; эффект ожидается в течение 4 недель; если симптомы сохраняются — к врачу (хорошо изученное применение)'
+      - doc: monograph
         page: 8
         quote: 'Daily dose of hyperforin > 1 mg: Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein'
         kind: contraindication
-        ru: 'При суточной дозе гиперфорина более 1 мг: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
+        ru: 'Традиционное применение, при суточной дозе гиперфорина более 1 мг: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
+      - doc: monograph
+        page: 8
+        quote: Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein (see section 4.5 ‘Interactions with other medicinal products and other forms of interaction’).
+        kind: contraindication
+        ru: 'Экстракты при депрессии (хорошо изученное применение), без ограничения по гиперфорину: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
       - doc: monograph
         page: 9
         quote: Hyperici herba preparations induce the activity of CYP3A4, CYP2B6, CYP2C9, CYP2C19 and P- glycoprotein.
@@ -174,14 +249,24 @@ metadata:
         ru: Повышает активность ферментов CYP3A4, CYP2B6, CYP2C9, CYP2C19 и транспортёра P-гликопротеина
       - doc: monograph
         page: 9
+        quote: Special care should be taken in case of concomitant use of all drug substances the metabolism of which is influenced by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or P-glycoprotein (e.g., amitriptyline, fexofenadine, alprazolam, diazepam, midazolam, methadone, simvastatin, digoxin, finasteride), because a reduction of plasma concentrations is possible.
+        kind: interaction
+        ru: 'Особая осторожность при одновременном применении с препаратами, на метаболизм которых влияют эти ферменты и P-гликопротеин (например, амитриптилин, фексофенадин, алпразолам, диазепам, мидазолам, метадон, симвастатин, дигоксин, финастерид): возможно снижение их концентраций в плазме'
+      - doc: monograph
+        page: 9
         quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported for concomitantly administered drugs which are metabolised via CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 or transported by P- glycoprotein.
         kind: interaction
-        ru: При суточном поступлении гиперфорина менее 1 мг и курсе не дольше 2 недель клинически значимых взаимодействий с препаратами, которые метаболизируются CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 или переносятся P-гликопротеином, не описано
+        ru: При суточном поступлении гиперфорина менее 1 мг и курсе не дольше 2 недель (традиционное применение) клинически значимых взаимодействий с препаратами, которые метаболизируются CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 или переносятся P-гликопротеином, не описано
       - doc: monograph
         page: 10
         quote: Women using hormonal contraceptives should take additional contraceptive measures.
         kind: interaction
         ru: Женщинам, принимающим гормональные контрацептивы, нужны дополнительные меры контрацепции
+      - doc: monograph
+        page: 10
+        quote: The elevated enzyme activity returns within 1 week after cessation to normal level.
+        kind: interaction
+        ru: Повышенная активность ферментов возвращается к норме в течение 1 недели после прекращения приёма
       - doc: monograph
         page: 10
         quote: Hyperici herba preparations may contribute to serotonergic effects when combined with antidepressants such as serotonin reuptake inhibitors (e.g. sertraline, paroxetine) or buspirone.
@@ -288,6 +373,44 @@ metadata:
         quote: 9. Зверобой — Hypericum L. — Все виды, все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 234
+    regionalRedBooks: null
+    conflicts:
+    - topic: interaction
+      topicRu: Лекарства
+      ru: 'ГРЛС: с циклоспорином, варфарином и др. возможно снижение эффективности; EMA: с кумариновыми антикоагулянтами, циклоспорином и др. противопоказано'
+      grls: При совместном применении настоя с циклоспорином, варфарином, дигоксином, стероидными препаратами, противовирусными средствами – ингибиторами протеазы ВИЧ (ампренавир, индинавир, нелфинавир, ритонавир, саквинавир, невирапин, эфавиренз) возможно снижение их эффективности.
+      authority: EMA
+      doc: monograph
+      page: 9
+      quote: Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein is contraindicated (see section 4.3. ‘Contraindications’).
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hypericum-perforatum-l-herba-revision-1_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: настой по 1/2 стакана 2-3 раза в день; EMA: чай 1,5-2 г на 150 мл, 2-3 раза в день, в сутки 3-6 г'
+      grls: 'Хронический колит: настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 30 минут до еды.'
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: 'Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hypericum-perforatum-l-herba-revision-1_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: к врачу, если симптомы дольше 2 недель (показания 1, 4) или 1 недели (2, 3)'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: Indications 1) and 4) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted. Indications 2) and 3) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hypericum-perforatum-l-herba-revision-1_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детский возраст до 12 лет; EMA: внутрь до 18 лет не рекомендуется'
+      grls: детский возраст до 12 лет.
+      authority: EMA
+      doc: monograph
+      page: 8
+      quote: Since no sufficient data are available the use in children and adolescents under 18 years of age is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hypericum-perforatum-l-herba-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0015.15

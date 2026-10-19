@@ -26,11 +26,11 @@ facts:
     page: 3
     quote: Herbal preparations in solid dosage forms for oral use.
   - kind: posology
-    ru: Разовая доза 144–200 мг, 1–2 раза в день; суточная доза 144–400 мг
+    ru: "Только для сухого экстракта, указанного в монографии, в твёрдых формах для приёма внутрь: разовая доза 144–200 мг, 1–2 раза в день; суточная доза 144–400 мг"
     doc: monograph
     page: 4
     quote: "Posology Adults and Elderly Single dose: 144-200 mg Dosage frequency: 1-2 times daily Daily dose: 144 - 400 mg"
-    dose: { preparationRu: сухой экстракт, amount: "144-200", unit: мг, timesPerDay: "1-2", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: "сухой экстракт (DER 1.5-5:1, этанол 67-70% V/V) в твёрдых формах для приёма внутрь", amount: "144-200", unit: мг, timesPerDay: "1-2", daily: "144-400 мг", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: Приём внутрь
     doc: monograph
@@ -98,11 +98,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Данных об исследованиях репродуктивной токсичности, генотоксичности и канцерогенности нет
-    doc: monograph
-    page: 6
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity are not available.
 constituents:
   - compound: salidroside and rosavins
     compoundRu: салидрозид и розавины

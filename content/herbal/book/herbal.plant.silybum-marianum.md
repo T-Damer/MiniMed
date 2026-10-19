@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus
-source_checksum: sha256:0da8c3aa08cb45c930923a70ffbcfc20c80dc687385403150b31d9d57c2ad529
+source_checksum: sha256:b8bd3e23c74b15b5110245c144cce63e1d306d8877f925f39101306536b103e0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -95,6 +95,7 @@ metadata:
           amount: 300-600
           unit: мг
           timesPerDay: 2-3
+          daily: до 1800 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -106,6 +107,7 @@ metadata:
           amount: 82-239
           unit: мг
           timesPerDay: 2-3
+          daily: до 478 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -116,6 +118,7 @@ metadata:
           preparationRu: 'препарат d): сухой экстракт (DER 30-40:1, этанол 96 % V/V)'
           amount: '200'
           unit: мг
+          daily: 200 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -167,7 +170,7 @@ metadata:
         kind: posology
         ru: 'Препарат i) — мягкий экстракт, взрослые и пожилые: разовая доза 392 мг, 2 раза в день'
         dose:
-          preparationRu: 'препарат i): мягкий экстракт'
+          preparationRu: 'препарат i): мягкий экстракт (DER 10-17:1, этанол 60 % V/V)'
           amount: '392'
           unit: мг
           timesPerDay: '2'
@@ -240,11 +243,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 4
@@ -325,6 +323,8 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/MilkThistle/
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0035.15

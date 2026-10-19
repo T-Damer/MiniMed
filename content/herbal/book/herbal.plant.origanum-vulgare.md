@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/09/1531902/5ecabf49-03de-4a6d-8736-6146b816389e.pdf
-source_checksum: sha256:be90d2d97f942e571f5e65ea57e7074371375e66ec59eb422759cf62d88ac096
+source_checksum: sha256:b436b6a2b610eb94a266e1fb4aea534150b781e5ab8c5f2c04400ad7225aaa04
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -126,10 +126,9 @@ metadata:
         kind: posology
         ru: Внутрь, настой — столовая ложка настоя (10 г сухой травы на 200 мл кипятка, 15–20 минут) три раза в день перед едой
         dose:
-          preparationRu: настой, столовая ложка (10 г сухой травы на 200 мл кипятка, 15–20 минут)
-          amount: '10'
-          unit: г сухой травы на настой
-          waterMl: '200'
+          preparationRu: внутрь, настой (10 г сухой травы на 200 мл кипятка, 15–20 минут)
+          amount: одна
+          unit: столовая ложка настоя
           timesPerDay: три
           populationRu: возраст не указан
       - doc: monograph
@@ -138,7 +137,7 @@ metadata:
         kind: posology
         ru: Внутрь, настойка — 1 мл настойки (10 г сухой травы на 150 мл 70 % этанола) три раза в день
         dose:
-          preparationRu: настойка (10 г сухой травы на 150 мл 70 % этанола)
+          preparationRu: внутрь, настойка (10 г сухой травы на 150 мл 70 % этанола)
           amount: '1'
           unit: мл
           timesPerDay: три
@@ -149,7 +148,7 @@ metadata:
         kind: posology
         ru: 'Наружно, в виде компресса, припарки или полоскания: 20–30 г травы на 200 мл кипятка, для непосредственного применения'
         dose:
-          preparationRu: трава, залитая кипятком (20–30 г на 200 мл)
+          preparationRu: 'наружно, компресс, припарка или полоскание: трава, залитая кипятком'
           amount: 20-30
           unit: г
           waterMl: '200'
@@ -249,6 +248,22 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Oregano/
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Республика Калмыкия
+        year: 2014
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/25797.html
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: по 1/4-1/2 стакана настоя 2 раза в день; ВОЗ: по столовой ложке настоя три раза в день'
+      grls: Принимают внутрь в теплом виде по 1/4-1/2 стакана 2 раза в день за 15 минут до еды.
+      authority: WHO
+      doc: monograph
+      page: 301
+      quote: 'Internal use. As an infusion: one tablespoon of an infusion (10 g of dried herb in 200 ml boiling water for 15–20 minutes) three times daily before meals (73).'
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
     identification:
       source:
         number: ФС.2.5.0012

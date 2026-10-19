@@ -85,11 +85,6 @@ facts:
     doc: monograph
     page: 4
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Адекватные тесты на репродуктивную токсичность, генотоксичность и канцерогенность не проводились
-    doc: monograph
-    page: 5
-    quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: essential oil of the fruit (d-carvone, limonene)
     compoundRu: эфирное масло плодов (d-карвон, лимонен)

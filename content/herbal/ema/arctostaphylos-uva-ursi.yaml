@@ -19,7 +19,30 @@ facts:
     doc: monograph
     page: 4
     quote: "Herbal tea: 1.5-4 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion or in 150 ml of water as a macerate 2 to 4 times daily Maximum daily dose: 8 g"
-    dose: { preparationRu: настой или мацерат, amount: "1.5-4", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: взрослые и пожилые женщины }
+    dose: { preparationRu: настой или мацерат, amount: "1.5-4", unit: г, waterMl: "150", timesPerDay: "2-4", daily: "до 8 г", populationRu: взрослые и пожилые женщины }
+  - kind: posology
+    ru: Порошок сырья — разовая доза 700–1050 мг, дважды в день; не больше 1,75 г в сутки
+    doc: monograph
+    page: 4
+    quote: "Single dose: 700 – 1050 mg twice daily Maximum daily dose: 1.75 g"
+    dose: { preparationRu: порошок сырья, amount: "700-1050", unit: мг, timesPerDay: "дважды", daily: "до 1.75 г", populationRu: взрослые и пожилые женщины }
+  - kind: posology
+    ru: Сухие экстракты — разовая доза, соответствующая 100–210 мг гидрохиноновых производных (в пересчёте на безводный арбутин), 2–4 раза в день; в сутки 200–840 мг
+    doc: monograph
+    page: 4
+    quote: "Single dose: the dose corresponding to 100–210 mg of hydroquinone derivatives calculated as anhydrous arbutin 2–4 times daily Daily dose: the dose corresponding to 200–840 mg of hydroquinone derivatives calculated as anhydrous arbutin"
+    dose: { preparationRu: сухие экстракты (в мг гидрохиноновых производных в пересчёте на безводный арбутин), amount: "100-210", unit: мг, timesPerDay: "2-4", daily: "200-840 мг", populationRu: взрослые и пожилые женщины }
+  - kind: posology
+    ru: Жидкий экстракт — разовая доза 1,5–4 мл, до трёх раз в день; не больше 8 мл в сутки
+    doc: monograph
+    page: 5
+    quote: "Single dose: 1.5–4 ml up to three times daily Maximum daily dose: 8 ml"
+    dose: { preparationRu: жидкий экстракт, amount: "1.5-4", unit: мл, timesPerDay: "до трёх", daily: "до 8 мл", populationRu: взрослые и пожилые женщины }
+  - kind: posology
+    ru: Мацерат использовать сразу после приготовления
+    doc: monograph
+    page: 5
+    quote: The macerate should be used immediately after preparation.
   - kind: age
     ru: До 18 лет не рекомендуется
     doc: monograph

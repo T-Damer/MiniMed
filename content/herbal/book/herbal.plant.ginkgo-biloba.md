@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium
-source_checksum: sha256:44415d58674e35da3abaeb762ab114ffb44f53a787fae9ec932af08bf4b0e047
+source_checksum: sha256:29fc9380013a633b9f1ffc6738ae20b05d3dc9e990a59a414ab2cc9a7e43e3f6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -112,6 +112,7 @@ metadata:
           preparationRu: сухой экстракт (DER 35-67:1, ацетон 60 % m/m)
           amount: 120-240
           unit: мг
+          daily: 240 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -122,6 +123,7 @@ metadata:
           preparationRu: порошок растительного сырья
           amount: 250-360
           unit: мг
+          daily: 750 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -337,11 +339,6 @@ metadata:
         kind: statement
         ru: Установившееся применение (сухой экстракт) — адекватных исследований репродуктивной токсичности не существует
       - doc: monograph
-        page: 7
-        quote: Adequate tests on reproductive toxicity and tests on genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Традиционное применение (порошок листа) — адекватных исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-      - doc: monograph
         page: 8
         quote: Tests on genotoxicity and carcinogenicity are not available for the Ginkgo biloba dry extract.
         kind: statement
@@ -438,6 +435,8 @@ metadata:
         quote: 4. Гинкго двулопастное — Ginkgo biloba L. — Надземная часть
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 234
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0010.15

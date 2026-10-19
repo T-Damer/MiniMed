@@ -89,11 +89,6 @@ facts:
   page: 4
   quote: No case of overdose has been reported.
 - kind: statement
-  ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-  doc: monograph
-  page: 5
-  quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-- kind: statement
   ru: 'В отчёте оценки: семена (бобы) в монографии не рассматриваются, их применение отличается от применения створок; для приёма внутрь рекомендуют только препараты, которые при изготовлении подвергаются нагреванию'
   doc: assessment-report
   page: 4

@@ -8,10 +8,6 @@ lines:
   ru: Плоды черники считаются безопасными в пищевых количествах; экстракты плодов в исследованиях безопасно применяли до 160 мг/сут до 6 месяцев
   quote: Bilberry fruit is considered safe when consumed in amounts typically found in foods. Bilberry fruit extracts have been used safely in research studies at doses of up to 160 mg/day for up to 6 months and appear to be well tolerated.
 - source: nccih
-  kind: warning
-  ru: Листья черники могут быть небезопасны в высоких дозах или при длительном приёме
-  quote: Bilberry leaves may be unsafe when consumed in high doses or for long periods of time.
-- source: nccih
   kind: pregnancy
   ru: Мало известно о безопасности черники в количествах больше пищевых при беременности и грудном вскармливании
   quote: Little is known about whether it is safe to use bilberry in amounts greater than those found in foods during pregnancy or while breastfeeding.

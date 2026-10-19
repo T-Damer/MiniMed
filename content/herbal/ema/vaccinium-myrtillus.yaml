@@ -29,13 +29,13 @@ facts:
     doc: monograph
     page: 4
     quote: "Posology Adolescents, adults and elderly Indication 1) Herbal tea: 15-60 g of herbal substance or comminuted herbal substance as a decoction, in divided doses of 5-15 g in 250 ml of water, 3-4 times daily."
-    dose: { preparationRu: "отвар сырья или измельчённого сырья", amount: "5-15", unit: г, waterMl: "250", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "отвар сырья или измельчённого сырья", amount: "5-15", unit: г, waterMl: "250", timesPerDay: "3-4", daily: "15-60 г сырья", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 2 (воспаление слизистой рта) — подростки, взрослые и пожилые, отвар для применения на слизистую оболочку рта; 20 г сырья или измельчённого сырья на 200 мл воды; полоскать рот несколько раз в день"
     doc: monograph
     page: 4
     quote: "Indication 2) Herbal substance or comminuted herbal substance for decoction preparation for oromucosal use: 20 g of herbal substance or comminuted herbal substance in 200 ml of water. Rinse the mouth several times daily."
-    dose: { preparationRu: "отвар сырья или измельчённого сырья для применения на слизистую оболочку рта", amount: "20", unit: г, waterMl: "200", timesPerDay: несколько, populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: отвар для полоскания рта (на слизистую оболочку рта), amount: "20", unit: г, waterMl: "200", timesPerDay: несколько, populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 1 (диарея) — способ применения: внутрь"
     doc: monograph
@@ -115,11 +115,6 @@ facts:
     doc: monograph
     page: 6
     quote: "No case of overdose has been reported."
-  - kind: statement
-    ru: "Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось"
-    doc: monograph
-    page: 7
-    quote: "Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed."
 constituents:
   - compound: "tannins"
     compoundRu: "дубильные вещества"

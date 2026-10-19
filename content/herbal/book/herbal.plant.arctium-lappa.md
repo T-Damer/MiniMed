@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/arctii-radix
-source_checksum: sha256:2e715409b7a70e441c2a4d2367d2a7d4f476350d0e32115822577d0af3227ff0
+source_checksum: sha256:55c97532616dcf6732af160038313124e8ae28878e8c5a429306fa4347862610
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -120,9 +120,10 @@ metadata:
         kind: posology
         ru: Мягкий экстракт — разовая доза 0,2 г, суточная доза 1–2 г
         dose:
-          preparationRu: мягкий экстракт
+          preparationRu: мягкий экстракт (разовая доза)
           amount: '0.2'
           unit: г
+          daily: 1-2 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -224,11 +225,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 6
-        quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватных тестов на репродуктивную токсичность, генотоксичность и канцерогенность не проводилось
       constituents:
       - doc: assessment-report
         page: 6
@@ -264,6 +260,8 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0025.15

@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { SheetPopover } from '@/components/SheetPopover';
+import { pluralRu } from '@/i18n/labels';
 import {
   authorityLabel,
   courseLongerThanEma,
@@ -11,7 +12,9 @@ import {
   factLabel,
   factsOfKind,
   type HerbalChapter,
+  type HerbalConflict,
   type HerbalLookalike,
+  type HerbalRegionalRedBooks,
   limitFacts,
   type QuotedValue,
   redBookLabel,
@@ -36,6 +39,28 @@ interface QuoteSource {
   readonly label: string;
   readonly url: string | null;
   readonly english: boolean;
+  /** The other side of a ГРЛС/monograph conflict, shown under the first quote. */
+  readonly second?: QuoteSource;
+}
+
+function QuoteBlock(props: { readonly source: QuoteSource }): JSX.Element {
+  return (
+    <>
+      <blockquote class="herbal-quote__text" lang={props.source.english ? 'en' : 'ru'}>
+        {props.source.quote}
+      </blockquote>
+      <Show
+        when={props.source.url}
+        fallback={<span class="herbal-quote__source">{props.source.label}</span>}
+      >
+        {(url) => (
+          <a class="herbal-quote__source" href={url()} target="_blank" rel="noreferrer">
+            {props.source.label}
+          </a>
+        )}
+      </Show>
+    </>
+  );
 }
 
 function QuoteCell(props: {
@@ -77,16 +102,65 @@ function QuoteCell(props: {
         </>
       }
     >
-      <blockquote class="herbal-quote__text" lang={props.source.english ? 'en' : 'ru'}>
-        {props.source.quote}
-      </blockquote>
+      <QuoteBlock source={props.source} />
+      <Show when={props.source.second}>{(second) => <QuoteBlock source={second()} />}</Show>
+    </SheetPopover>
+  );
+}
+
+function RegionalRedBooks(props: { readonly regional: HerbalRegionalRedBooks }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const count = () => props.regional.regions.length;
+  return (
+    <SheetPopover
+      open={open()}
+      onOpenChange={setOpen}
+      title="Красные книги регионов"
+      triggerClass="herbal-regions"
+      triggerLabel={`Красные книги регионов: ${count()}. Показать список`}
+      contentClass="herbal-quote"
+      trigger={
+        <>
+          <span class="herbal-regions__badge">Красные книги регионов</span>
+          <span class="herbal-regions__count">
+            {count()} {pluralRu(count(), 'регион', 'региона', 'регионов')}
+          </span>
+        </>
+      }
+    >
+      <ul class="herbal-regions__list">
+        <For each={props.regional.regions}>
+          {(region) => (
+            <li class="herbal-regions__item">
+              <span class="herbal-regions__name">{region.region}</span>
+              <Show
+                when={region.checked}
+                fallback={<span class="herbal-regions__year">{region.year}</span>}
+              >
+                {(checked) => (
+                  <a
+                    class="herbal-regions__act"
+                    href={checked().url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={checked().act}
+                  >
+                    {checked().category ? `кат. ${checked().category} · ` : ''}
+                    {region.year}
+                  </a>
+                )}
+              </Show>
+            </li>
+          )}
+        </For>
+      </ul>
       <Show
-        when={props.source.url}
-        fallback={<span class="herbal-quote__source">{props.source.label}</span>}
+        when={props.regional.url}
+        fallback={<span class="herbal-quote__source">{props.regional.sourceLabel}</span>}
       >
         {(url) => (
           <a class="herbal-quote__source" href={url()} target="_blank" rel="noreferrer">
-            {props.source.label}
+            {props.regional.sourceLabel}
           </a>
         )}
       </Show>
@@ -143,6 +217,21 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
         : [],
     );
   };
+  const conflictSource = (conflict: HerbalConflict): QuoteSource => ({
+    quote: conflict.grls,
+    label: 'Инструкция ГРЛС',
+    url: null,
+    english: false,
+    second: {
+      quote: conflict.quote,
+      label:
+        conflict.authority === 'WHO'
+          ? `монография ВОЗ, с. ${conflict.page}`
+          : `монография EMA, с. ${conflict.page}`,
+      url: conflict.url,
+      english: true,
+    },
+  });
   const posology = () => factsOfKind(ema(), 'posology');
   const indications = () => factsOfKind(ema(), 'indication');
   const limits = () => limitFacts(ema());
@@ -270,6 +359,9 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
         <Show when={ema()?.draft}>
           <span class="herbal-chapter__tag herbal-chapter__tag--draft">черновик</span>
         </Show>
+        <Show when={ema()?.monographDraft}>
+          <span class="herbal-chapter__tag herbal-chapter__tag--muted">проект монографии</span>
+        </Show>
       </h2>
       <div class="herbal-chapter__cells">
         <For each={limits()}>
@@ -297,6 +389,9 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
             </Show>
           </p>
         )}
+      </Show>
+      <Show when={props.chapter.regionalRedBooks}>
+        {(regional) => <RegionalRedBooks regional={regional()} />}
       </Show>
       <Show when={ema()?.otherSpecies}>
         {(species) => (
@@ -338,6 +433,22 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
                 source={grlsSource(cell.value)}
                 {...(cell.wide ? { wide: true } : {})}
                 {...(cell.conflict ? { note: `${authorityLabel(ema())}: короче`, warn: true } : {})}
+              />
+            )}
+          </For>
+        </div>
+      </Show>
+      <Show when={props.chapter.conflicts.length > 0}>
+        <h2 class="herbal-chapter__heading">ГРЛС и {authorityLabel(ema())} расходятся</h2>
+        <div class="herbal-chapter__cells herbal-chapter__cells--conflicts">
+          <For each={props.chapter.conflicts}>
+            {(conflict) => (
+              <QuoteCell
+                label={conflict.topicRu}
+                value={conflict.ru}
+                source={conflictSource(conflict)}
+                wide
+                warn
               />
             )}
           </For>

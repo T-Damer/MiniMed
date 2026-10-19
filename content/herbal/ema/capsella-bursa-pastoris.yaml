@@ -24,13 +24,13 @@ facts:
     doc: monograph
     page: 3
     quote: "Adults Use to be started 3-5 days before the menstruation and to be continued during menstrual bleeding. a) Comminuted herbal substance: 1-5 g as a single dose for the preparation of herbal tea, 2-4 times daily (daily dose: 3-20 g)."
-    dose: { preparationRu: измельчённая трава для чая, amount: "1-5", unit: г, timesPerDay: "2-4", populationRu: взрослые }
+    dose: { preparationRu: измельчённая трава для чая, amount: "1-5", unit: г, timesPerDay: "2-4", daily: "3-20 г", populationRu: взрослые }
   - kind: posology
     ru: Жидкий экстракт — взрослые, разовая доза 1–4 мл, 3 раза в день (суточная доза 3–12 мл)
     doc: monograph
     page: 3
     quote: "Adults Use to be started 3-5 days before the menstruation and to be continued during menstrual bleeding. a) Comminuted herbal substance: 1-5 g as a single dose for the preparation of herbal tea, 2-4 times daily (daily dose: 3-20 g). b) Liquid extract: 1-4 ml as a single dose, 3 times daily (daily dose: 3-12 ml)."
-    dose: { preparationRu: жидкий экстракт, amount: "1-4", unit: мл, timesPerDay: "3", populationRu: взрослые }
+    dose: { preparationRu: жидкий экстракт, amount: "1-4", unit: мл, timesPerDay: "3", daily: "3-12 мл", populationRu: взрослые }
   - kind: posology
     ru: Приём внутрь
     doc: monograph
@@ -77,11 +77,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 5
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
   - kind: statement
     ru: Исследований гемостатического действия не найдено
     doc: assessment-report

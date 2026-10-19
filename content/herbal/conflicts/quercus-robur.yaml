@@ -1,0 +1,18 @@
+plant: quercus-robur
+items:
+  - topic: dose
+    ru: "ГРЛС: около 20 г коры на 200 мл воды; EMA: отвар для слизистой рта 20 г/л"
+    grls: "Около 20 г (2-3 столовые ложки) коры дуба помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды"
+    monograph: {doc: monograph, page: 3, quote: "Decoction for oromucosal use: 20 g/L."}
+  - topic: course
+    ru: "ГРЛС: курс 2–4 недели; EMA: не дольше 1 недели"
+    grls: "Курс лечения 2-4 недели."
+    monograph: {doc: monograph, page: 4, quote: "Not to be used for more than 1 week."}
+  - topic: age
+    ru: "ГРЛС: местно детям с 3 лет; EMA: детям и подросткам до 18 лет не рекомендуется"
+    grls: "Применяют местно у взрослых и детей с 3 лет"
+    monograph: {doc: monograph, page: 4, quote: "The use in children and adolescents under 18 years of age is not recommended"}
+  - topic: pregnancy
+    ru: "ГРЛС: возможно, если польза для матери выше риска для плода и ребёнка; EMA: при беременности и кормлении не рекомендуется"
+    grls: "Применение препарата возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 5, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}

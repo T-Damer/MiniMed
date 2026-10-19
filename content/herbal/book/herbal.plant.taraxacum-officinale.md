@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf
-source_checksum: sha256:2c73cc373c48f29bb982fd3d24b28e951fbd5a8ccd86b775c56332a29795331a
+source_checksum: sha256:dedb6a657413d2498c7f42f30592a7717c04eec1cc6796f5471f448029578731
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -153,6 +153,16 @@ metadata:
         quote: Because adequate fluid intake is required during treatment (see section 4.2. Posology and method of administration), dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
         kind: warning
         ru: Для увеличения количества мочи — из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
+      - doc: assessment-report
+        page: 22
+        quote: He had been admitted to the intensive care unit with renal failure three months before and had become intermittent haemodialysis dependent. He had no relevant family history and was an ex-smoker. He had been drinking 10–15 cups of dandelion tea (no plant part known) daily for 6 months. Examination revealed digital ischaemia with necrosis of the distal phalanges of both thumbs and the lateral three digits of both hands.
+        kind: warning
+        ru: Описан случай — пациент с почечной недостаточностью, зависимый от гемодиализа, 6 месяцев ежедневно пил по 10–15 чашек чая из одуванчика (часть растения неизвестна); ишемия с некрозом пальцев рук
+      - doc: assessment-report
+        page: 22
+        quote: A diagnosis of secondary hyperoxalaemia due to high dietary oxalate with reduced renal clearance was made.
+        kind: warning
+        ru: У этого пациента диагностирована вторичная гипероксалемия из-за высокого пищевого оксалата при сниженном почечном клиренсе
       - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction None reported.
@@ -239,11 +249,40 @@ metadata:
         url: https://www.nccih.nih.gov/health/dandelion
       - source: lactmed
         kind: lactation
-        ru: Использование при лактации вряд ли повредит ребёнку на грудном вскармливании
-        quote: Use during lactation is unlikely to harm the breastfed infant.
+        ru: Одуванчик признан «общепризнанно безопасным» как пищевой продукт (FDA); редко вызывает аллергию, понос и расстройство ЖКТ; использование при лактации вряд ли повредит ребёнку на грудном вскармливании
+        quote: Dandelion is "generally recognized as safe" (GRAS) as a food by the U.S. Food and Drug Administration. It rarely can cause allergic reactions, diarrhea, and gastrointestinal upset. Use during lactation is unlikely to harm the breastfed infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM954/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при холецистите, дискинезии желчных путей, риске камнеобразования; EMA: не рекомендуется при заболеваниях желчных путей'
+      grls: В комплексной терапии хронического некалькулезного холецистита, дискинезии желчевыводящих путей по гипомоторному типу, при изменении состава желчи с риском камнеобразования (желчегонное средство)
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Due to possible stimulation on bile secretion, dandelion root is not recommended in case of obstruction of the bile duct, cholangitis, liver disease, gallstones and any other biliary diseases.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-taraxacum-officinale-fh-wigg-radix_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 3–4 недели; EMA: если симптомы держатся дольше 2 недель — к врачу или медработнику'
+      grls: Курс лечения 3-4 недели.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-taraxacum-officinale-fh-wigg-radix_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: по 1/4–1/3 стакана отвара 3–4 раза в день; EMA: 1–5 г в 150 мл, 2–3 раза в день'
+      grls: Принимают внутрь по 1/4-1/3 стакана теплого отвара 3-4 раза в день за 30 минут до еды.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: 'a) Comminuted herbal substance for decoction: single dose of 1-5 g in 150 ml of water, 2-3 times daily'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-taraxacum-officinale-fh-wigg-radix_en.pdf
     identification:
       source:
         number: ФС.2.5.0086.18

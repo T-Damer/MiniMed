@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf
-source_checksum: sha256:e902e6f5368b1d8506840f4b412d320d9b72fb2bf2b43953824e1444d11c2d8d
+source_checksum: sha256:bdb39acabf8888fce5d8491958fcc754f577fdca498b43d524d8eef791327e3b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -128,6 +128,11 @@ metadata:
         ru: Не дольше двух недель
         maxDays: 14
       - doc: monograph
+        page: 6
+        quote: Results from non-clinical studies showed a weak mutagenic potential of anethole. Anethole and its metabolites are unlikely to be genotoxic in vivo. The genotoxic risk4 related to estragole is not considered to be relevant in the specified conditions of use (short term use in adolescents, adults and elderly) due to the small amount present in herbal infusions prepared from aniseed.
+        kind: statement
+        ru: В доклинических исследованиях выявлен слабый мутагенный потенциал анетола; анетол и его метаболиты, вероятно, не генотоксичны in vivo. Генотоксический риск эстрагола не считается значимым при указанных условиях применения (кратковременный приём подростками, взрослыми и пожилыми) из-за малого его количества в настоях плодов аниса
+      - doc: monograph
         page: 4
         quote: Hypersensitivity to the active substance or to Apiaceae (Umbelliferae) (caraway, celery, coriander, dill and fennel) or to anethole.
         kind: contraindication
@@ -192,6 +197,35 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: детям до 1 года по 1/2 чайной ложки настоя; EMA: детям младше 12 лет не рекомендуется'
+      grls: дети до 1 года - по 1/2 чайной ложки.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-pimpinella-anisum-l-fructus_en.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении грудью не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-pimpinella-anisum-l-fructus_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: не принимать дольше двух недель'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Not to be taken for more than two weeks.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-pimpinella-anisum-l-fructus_en.pdf
     identification:
       source:
         number: ФС.2.5.0057

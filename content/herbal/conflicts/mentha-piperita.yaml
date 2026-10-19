@@ -1,0 +1,6 @@
+plant: mentha-piperita
+items:
+  - topic: age
+    ru: "ГРЛС: противопоказано детям до 3 лет; EMA: детям младше 4 лет применение не рекомендуется"
+    grls: "Повышенная чувствительность к препарату, ранний детский возраст (до 3-х лет)."
+    monograph: {doc: monograph, page: 4, quote: "The use is not recommended in children under 4 years of age"}

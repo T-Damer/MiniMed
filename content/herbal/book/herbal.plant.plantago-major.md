@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528709/f609d5f6-74b1-4880-b5de-09956576d4b2.pdf
-source_checksum: sha256:ff14b09882a370fe2f19f9b0c328bc2127fa91f360250151d073e638fa999127
+source_checksum: sha256:5f927b0a7f3af3ed3ff30586e6b82ce84742d57be2a7240718610b3f5879eb81
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -202,7 +202,7 @@ metadata:
           amount: 2-4
           unit: г
           timesPerDay: три
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       - doc: monograph
         page: 332
         quote: 'Infusion: one tablespoon of an infusion (10 g dried leaf in 200 ml boiled water for 15–20 minutes) three times daily before meals (89).'
@@ -213,7 +213,7 @@ metadata:
           amount: одна
           unit: столовая ложка настоя
           timesPerDay: три
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       - doc: monograph
         page: 332
         quote: 'Liquid extract: 2–4 ml of a liquid extract from dried leaf (1:1 in 25% ethanol) three times daily (41).'
@@ -224,7 +224,7 @@ metadata:
           amount: 2-4
           unit: мл
           timesPerDay: три
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       - doc: monograph
         page: 333
         quote: 'Tincture: 2–4 ml of a tincture of dried leaf (1:5 in 45% ethanol) three times daily (41).'
@@ -235,7 +235,7 @@ metadata:
           amount: 2-4
           unit: мл
           timesPerDay: три
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       - doc: monograph
         page: 333
         quote: 'Juice of the fresh leaves: one tablespoon three times daily, before meals (28).'
@@ -246,19 +246,19 @@ metadata:
           amount: одна
           unit: столовая ложка
           timesPerDay: три
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       - doc: monograph
         page: 333
         quote: 'External. Cold macerate for use as a rinse, gargle or cataplasm: soak 1.4 g cut herb in 150 ml cold water for 1–2 hours, stirring often. For use as a rinse or gargle: rinse or gargle with cold macerate (soak 1.4 g cut herb in 150 ml cold water for 1–2 hours stirring often) three to four times daily (90).'
         kind: posology
         ru: 'Наружно: холодный мацерат (1,4 г нарезанной травы на 150 мл холодной воды, настаивать 1–2 часа, часто помешивая) для ополаскивания, полоскания или припарки; для ополаскивания или полоскания — три-четыре раза в день'
         dose:
-          preparationRu: холодный мацерат нарезанной травы
+          preparationRu: 'наружно: холодный мацерат нарезанной травы (ополаскивание, полоскание, припарка)'
           amount: '1.4'
           unit: г
           waterMl: '150'
           timesPerDay: три-четыре
-          populationRu: возраст не указан
+          populationRu: возраст не указан (сведений о детях нет)
       constituents:
       - doc: monograph
         page: 325
@@ -302,6 +302,26 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: возможно, если ожидаемая польза для матери превышает риск для плода и ребёнка; ВОЗ: при беременности не рекомендуется'
+      grls: ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: WHO
+      doc: monograph
+      page: 332
+      quote: The use of the herb is not recommended during pregnancy (see sections on Toxicology and Genotoxicity).
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: через 30 минут после еды, 2–3 раза в день; ВОЗ: 1 столовая ложка настоя 3 раза в день перед едой'
+      grls: 'Принимают внутрь теплый настой через 30 минут после еды: взрослые и дети старше 12 лет – по 1 столовой ложке 2-3 раза в день'
+      authority: WHO
+      doc: monograph
+      page: 332
+      quote: 'Infusion: one tablespoon of an infusion (10 g dried leaf in 200 ml boiled water for 15–20 minutes) three times daily before meals (89).'
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
     identification:
       source:
         number: ФС.2.5.0032.15

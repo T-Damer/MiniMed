@@ -25,17 +25,17 @@ facts:
     page: 5
     quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
   - kind: posology
-    ru: Чай (настой), настаивать 15 минут — взрослые и подростки
+    ru: Чай (настой), настаивать 15 минут — взрослые и подростки; суточная доза 4,5 г
     doc: monograph
     page: 5
-    quote: "Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily."
-    dose: { preparationRu: настой, amount: "1.5", unit: г, waterMl: "250", timesPerDay: "3", populationRu: взрослые и подростки }
+    quote: "Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily. Daily dose: 4.5 g"
+    dose: { preparationRu: настой, amount: "1.5", unit: г, waterMl: "250", timesPerDay: "3", daily: "4.5 г", populationRu: взрослые и подростки }
   - kind: posology
-    ru: Чай (настой), настаивать 15 минут — дети 4–12 лет (вздутие, кашель)
+    ru: Чай (настой), настаивать 15 минут — дети 4–12 лет (вздутие, кашель); суточная доза 3,0 г
     doc: monograph
     page: 5
-    quote: "Children between 4 and 12 years of age Single dose Herbal tea: 1.0 g of the herbal substance in 100 ml boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily."
-    dose: { preparationRu: настой, amount: "1.0", unit: г, waterMl: "100", timesPerDay: "3", populationRu: дети 4–12 лет }
+    quote: "Children between 4 and 12 years of age Single dose Herbal tea: 1.0 g of the herbal substance in 100 ml boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily. Daily dose: 3.0 g"
+    dose: { preparationRu: настой, amount: "1.0", unit: г, waterMl: "100", timesPerDay: "3", daily: "3.0 г", populationRu: дети 4–12 лет }
   - kind: age
     ru: Детям младше 4 лет не рекомендуется
     doc: monograph
@@ -70,6 +70,16 @@ facts:
     doc: monograph
     page: 7
     quote: The use in children between 4 and 12 years of age is not recommended if the daily intake of estragole exceeds the guidance value of 1.0 µg/kg bw, unless justified by a risk assessment based on adequate safety data
+  - kind: warning
+    ru: Эстрагол — в общей популяции поступление должно быть как можно ниже
+    doc: monograph
+    page: 9
+    quote: In the general population exposure to estragole should be kept as low as practically achievable.
+  - kind: warning
+    ru: Эстрагол — детям младше 12 лет суточное поступление должно быть ниже 1,0 мкг на кг массы тела
+    doc: monograph
+    page: 9
+    quote: In children below 12 years of age, the daily intake of estragole has to be below 1.0 µg/kg bw.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -80,6 +90,11 @@ facts:
     doc: monograph
     page: 7
     quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Эстрагол — у беременных и кормящих женщин суточное поступление должно быть ниже 0,05 мг на человека
+    doc: monograph
+    page: 9
+    quote: In pregnant and breast-feeding women, the daily intake of estragole has to be below 0.05 mg/person per day.
   - kind: lactation
     ru: Есть данные, что транс-анетол выделяется в грудное молоко
     doc: monograph
@@ -95,6 +110,16 @@ facts:
     doc: monograph
     page: 8
     quote: No cases of overdose have been reported.
+  - kind: statement
+    ru: Эстрагол считается генотоксичным канцерогеном у грызунов
+    doc: monograph
+    page: 9
+    quote: Estragole is considered a genotoxic carcinogen in rodents
+  - kind: statement
+    ru: Водный экстракт семян фенхеля, который ежедневно давали 24 самкам мышей линии BALB/c с 6-го по 15-й день беременности, вызывал дозозависимый тератогенный эффект
+    doc: monograph
+    page: 9
+    quote: An aqueous extract of fennel seeds given daily to 24 female BALB/c mice from day 6 to day 15 of pregnancy showed a dose-dependent teratogenic effect.
 constituents:
   - compound: anethole, fenchone
     compoundRu: анетол, фенхон

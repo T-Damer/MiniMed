@@ -42,6 +42,8 @@ export interface EmaDose {
   readonly unit: string | null;
   readonly waterMl: string | null;
   readonly timesPerDay: string | null;
+  /** The monograph's daily total, so single dose × frequency is not read as the allowed day. */
+  readonly daily: string | null;
   readonly populationRu: string;
 }
 
@@ -68,6 +70,8 @@ export interface HerbalEma {
   readonly page: string;
   readonly extracted: boolean;
   readonly draft: boolean;
+  /** EMA has only a draft monograph for this plant (public consultation, not final). */
+  readonly monographDraft: boolean;
   /** The monograph's species when they are not the plant's own (thyme), else null. */
   readonly otherSpecies: string | null;
   readonly useType: string | null;
@@ -162,9 +166,40 @@ export interface HerbalChapter {
   readonly ema: HerbalEma | null;
   readonly identification: HerbalIdentification | null;
   readonly redBook: HerbalRedBook | null;
+  readonly regionalRedBooks: HerbalRegionalRedBooks | null;
   readonly safety: HerbalSafety | null;
+  readonly conflicts: readonly HerbalConflict[];
   readonly grlsOcr: boolean;
   readonly hasGrls: boolean;
+}
+
+/** Where the ГРЛС instruction and the monograph disagree, with both sentences. */
+export interface HerbalConflict {
+  readonly topicRu: string;
+  readonly ru: string;
+  readonly grls: string;
+  readonly quote: string;
+  readonly page: number;
+  readonly authority: MonographAuthority;
+  readonly url: string | null;
+}
+
+export interface HerbalRegion {
+  readonly region: string;
+  readonly year: number;
+  /** The row compared with the region's own act: its category there and the act. */
+  readonly checked: {
+    readonly act: string;
+    readonly url: string;
+    readonly category: string | null;
+  } | null;
+}
+
+/** Regional Red Books that list the plant (newest edition of each region, per Plantarium). */
+export interface HerbalRegionalRedBooks {
+  readonly regions: readonly HerbalRegion[];
+  readonly sourceLabel: string;
+  readonly url: string | null;
 }
 
 export interface HerbalGuide {
@@ -228,6 +263,7 @@ function emaDose(value: unknown): EmaDose | null {
     unit: text(item['unit']),
     waterMl: text(item['waterMl']),
     timesPerDay: text(item['timesPerDay']),
+    daily: text(item['daily']),
   };
 }
 
@@ -270,11 +306,13 @@ function readEma(value: unknown): HerbalEma | null {
   if (!item || !page) return null;
   const documents: Partial<Record<EmaDocumentKind, string>> = {};
   let draft = false;
+  let monographDraft = false;
   for (const [kind, raw] of Object.entries(record(item['documents']) ?? {})) {
     const known = emaDocument(kind);
     const url = text(record(raw)?.['url']);
     if (!known || !url) continue;
     documents[known] = url;
+    if (known === 'monograph' && record(raw)?.['draft'] === true) monographDraft = true;
   }
   const extracted = item['extracted'] === true;
   if (extracted && item['status'] !== 'reviewed') draft = true;
@@ -283,6 +321,7 @@ function readEma(value: unknown): HerbalEma | null {
     page,
     extracted,
     draft,
+    monographDraft,
     otherSpecies: item['otherSpecies'] === true ? text(item['species']) : null,
     useType: text(item['useType']),
     documents,
@@ -375,6 +414,61 @@ function readRedBook(value: unknown): HerbalRedBook | null {
     categoryRu,
     note: text(item?.['note']),
     url: url?.startsWith('http://publication.pravo.gov.ru/') ? url : null,
+  };
+}
+
+const MONOGRAPH_HOSTS = [
+  'https://www.ema.europa.eu/',
+  'https://iris.who.int/',
+  'https://www.e-lactancia.org/',
+];
+
+function readConflict(value: unknown): HerbalConflict | null {
+  const item = record(value);
+  const topicRu = text(item?.['topicRu']);
+  const ru = text(item?.['ru']);
+  const grls = text(item?.['grls']);
+  const quote = text(item?.['quote']);
+  const page = item?.['page'];
+  if (!topicRu || !ru || !grls || !quote || typeof page !== 'number') return null;
+  const url = text(item?.['url']);
+  return {
+    topicRu,
+    ru,
+    grls,
+    quote,
+    page,
+    authority: item?.['authority'] === 'WHO' ? 'WHO' : 'EMA',
+    url: url && MONOGRAPH_HOSTS.some((host) => url.startsWith(host)) ? url : null,
+  };
+}
+
+function readRegion(value: unknown): HerbalRegion | null {
+  const item = record(value);
+  const region = text(item?.['region']);
+  const year = item?.['year'];
+  if (!region || typeof year !== 'number') return null;
+  const checked = record(item?.['checked']);
+  const act = text(checked?.['act']);
+  const url = text(checked?.['url']);
+  return {
+    region,
+    year,
+    checked:
+      act && url?.startsWith('http') ? { act, url, category: text(checked?.['category']) } : null,
+  };
+}
+
+function readRegionalRedBooks(value: unknown): HerbalRegionalRedBooks | null {
+  const item = record(value);
+  const regions = list(item?.['regions']).map(readRegion).filter(present);
+  const sourceLabel = text(item?.['sourceLabel']);
+  if (!sourceLabel || regions.length === 0) return null;
+  const url = text(item?.['url']);
+  return {
+    regions,
+    sourceLabel,
+    url: url?.startsWith('https://www.plantarium.ru/') ? url : null,
   };
 }
 
@@ -479,7 +573,9 @@ export function readHerbalChapter(document: DocumentLike): HerbalChapter | null 
     ema: readEma(herbal['ema']),
     identification: readIdentification(herbal['identification']),
     redBook: readRedBook(herbal['redBook']),
+    regionalRedBooks: readRegionalRedBooks(herbal['regionalRedBooks']),
     safety: readSafety(herbal['safety']),
+    conflicts: list(herbal['conflicts']).map(readConflict).filter(present),
     grlsOcr: grls?.['ocr'] === true,
     hasGrls: grls !== null,
   };
@@ -569,7 +665,13 @@ export function factLabel(kind: string): string {
 
 export function limitFacts(ema: HerbalEma | null): readonly EmaFact[] {
   if (!ema) return [];
-  return LIMIT_KINDS.flatMap((kind) => ema.facts.filter((fact) => fact.kind === kind));
+  // A public statement (EMA found no safe use) leads with its verdict; elsewhere statements are
+  // preclinical or regulatory notes and follow the contraindications.
+  const kinds =
+    ema.useType === 'public-statement'
+      ? LIMIT_KINDS
+      : [...LIMIT_KINDS.filter((kind) => kind !== 'statement'), 'statement'];
+  return kinds.flatMap((kind) => ema.facts.filter((fact) => fact.kind === kind));
 }
 
 export function factsOfKind(ema: HerbalEma | null, kind: string): readonly EmaFact[] {
@@ -586,7 +688,10 @@ export function emaDoseLine(dose: EmaDose): string {
   if (dose.waterMl) parts.push(`на ${dose.waterMl} мл`);
   const line = parts.join(' ');
   const times = dose.timesPerDay ? `${dose.timesPerDay.replace(/\s*-\s*/gu, '–')} р/день` : null;
-  return [line, times].filter(Boolean).join(', ');
+  const daily = dose.daily
+    ? `в сутки ${dose.daily.replaceAll('.', ',').replace(/\s*-\s*/gu, '–')}`
+    : null;
+  return [line, times, daily].filter(Boolean).join(', ');
 }
 
 const EVIDENCE_LABELS: Readonly<Record<string, string>> = {

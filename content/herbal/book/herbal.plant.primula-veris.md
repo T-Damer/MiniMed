@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/primulae-radix
-source_checksum: sha256:10df3f64bd7d7428289653e743a650b1f53e7426d4b8334ab4aeeec59ddb1447
+source_checksum: sha256:328aa2c117b889929ba5398f34178c746489ee358a2c1fb411426ca79e1c9457
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -69,11 +69,6 @@ metadata:
         kind: use-type
         ru: Традиционное растительное средство — применение основано исключительно на длительном опыте
       - doc: monograph
-        page: 3
-        quote: Primula veris L. and/or Primula elatior (L.) Hill, radix (Primula root)
-        kind: statement
-        ru: Монография относится к корню Primula veris и/или Primula elatior (первоцвет высокий)
-      - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used as an expectorant in cough associated with cold.
         kind: indication
@@ -84,7 +79,7 @@ metadata:
         kind: posology
         ru: Препарат A (по ÖAB, сухой экстракт с DER 3–3,5:1) — подростки, взрослые и пожилые, разовая доза 0,1–0,2 г 3 раза в день
         dose:
-          preparationRu: сухой экстракт A (по ÖAB, DER 3-3.5:1)
+          preparationRu: сухой экстракт A (по ÖAB, DER 3-3.5:1; экстрагент этанол 40-50 %)
           amount: 0.1-0.2
           unit: г
           timesPerDay: '3'
@@ -95,7 +90,7 @@ metadata:
         kind: posology
         ru: Препарат B (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,5 г 3 раза в день
         dose:
-          preparationRu: жидкий экстракт B
+          preparationRu: жидкий экстракт B (DER 1:1; экстрагент этанол 70 %)
           amount: '0.5'
           unit: г
           timesPerDay: '3'
@@ -106,7 +101,7 @@ metadata:
         kind: posology
         ru: Препарат C (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,6 г 4 раза в день
         dose:
-          preparationRu: жидкий экстракт C
+          preparationRu: жидкий экстракт C (DER 1:2-2.5; экстрагент этанол 70 %)
           amount: '0.6'
           unit: г
           timesPerDay: '4'
@@ -117,7 +112,7 @@ metadata:
         kind: posology
         ru: Препарат D (настойка) — подростки, взрослые и пожилые, разовая доза 0,5–1 г 3 раза в день
         dose:
-          preparationRu: настойка D
+          preparationRu: настойка D (1:5; экстрагент этанол 70 %); у взрослых доза в граммах
           amount: 0.5-1
           unit: г
           timesPerDay: '3'
@@ -128,7 +123,7 @@ metadata:
         kind: posology
         ru: Препарат G (мягкий экстракт) — подростки, взрослые и пожилые, разовая доза 22,5 мг 3 раза в день
         dose:
-          preparationRu: мягкий экстракт G
+          preparationRu: мягкий экстракт G (DER 6-10:1; экстрагент метанол, вода, аммиак)
           amount: '22.5'
           unit: мг
           timesPerDay: '3'
@@ -139,7 +134,7 @@ metadata:
         kind: posology
         ru: Препараты A (с DER, отличным от ÖAB), E, F, H — подростки, взрослые и пожилые, разовая доза, соответствующая 0,2–0,5 г сырья (в зависимости от фактического DER), 3 раза в день
         dose:
-          preparationRu: препараты A (DER не по ÖAB), E, F, H
+          preparationRu: препараты A (DER не по ÖAB), E (мягкий, DER 5-10:1, вода), F, H (мягкий, DER 6-10:1, метанол 50 %)
           amount: 0.2-0.5
           unit: г сырья
           timesPerDay: '3'
@@ -162,7 +157,7 @@ metadata:
         kind: posology
         ru: Препарат C (жидкий экстракт) — дети 4–12 лет, разовая доза 0,33 г 3 раза в день
         dose:
-          preparationRu: жидкий экстракт C
+          preparationRu: жидкий экстракт C (DER 1:2-2.5; экстрагент этанол 70 %)
           amount: '0.33'
           unit: г
           timesPerDay: '3'
@@ -173,7 +168,7 @@ metadata:
         kind: posology
         ru: Препарат D (настойка) — дети 4–12 лет, разовая доза 0,3–0,5 мл 3 раза в день
         dose:
-          preparationRu: настойка D
+          preparationRu: настойка D (1:5; экстрагент этанол 70 %); у детей доза в миллилитрах
           amount: 0.3-0.5
           unit: мл
           timesPerDay: '3'
@@ -184,7 +179,7 @@ metadata:
         kind: posology
         ru: Препарат F (мягкий экстракт) — дети 4–6 лет, разовая доза 0,12 г 3 раза в день
         dose:
-          preparationRu: мягкий экстракт F
+          preparationRu: мягкий экстракт F (DER 1-4:1; экстрагент этанол 20-55 %)
           amount: '0.12'
           unit: г
           timesPerDay: '3'
@@ -195,7 +190,7 @@ metadata:
         kind: posology
         ru: Препарат F (мягкий экстракт) — дети 6–12 лет, разовая доза 0,12 г 3–4 раза в день
         dose:
-          preparationRu: мягкий экстракт F
+          preparationRu: мягкий экстракт F (DER 1-4:1; экстрагент этанол 20-55 %)
           amount: '0.12'
           unit: г
           timesPerDay: 3-4
@@ -275,11 +270,6 @@ metadata:
         quote: Overdose may lead to stomach upset, vomiting or diarrhoea.
         kind: overdose
         ru: Передозировка может вызвать расстройство желудка, рвоту или диарею
-      - doc: monograph
-        page: 8
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 3
@@ -323,6 +313,27 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Владимирская область
+        year: 2018
+      - region: Вологодская область
+        year: 2015
+      - region: Город Москва
+        year: 2022
+        checked:
+          act: Постановление Правительства Москвы от 02.07.2019 № 745-ПП, прил. 2
+          url: https://www.mos.ru/upload/documents/docs/745-PP(2).pdf
+          category: '3'
+      - region: Ивановская область
+        year: 2010
+      - region: Костромская область
+        year: 2019
+      - region: Ростовская область
+        year: 2024
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/30374.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0124

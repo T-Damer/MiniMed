@@ -20,6 +20,11 @@ facts:
     page: 2
     quote: Safer herbal medicinal products are available in the indication in question.
   - kind: statement
+    ru: Наружное показание, которое рассматривалось, — лечение бородавок, мозолей и натоптышей
+    doc: public-statement
+    page: 2
+    quote: 2) for treatment of warts, callus and corns (cutaneous use).
+  - kind: statement
     ru: 'Наружное применение: HMPC счёл показание недостаточно подтверждённым данными рынка о монопрепаратах'
     doc: public-statement
     page: 3
@@ -34,6 +39,11 @@ facts:
     doc: public-statement
     page: 2
     quote: In some European countries marketing authorisations for medicinal products containing Chelidonium majus have been withdrawn because of concerns with reported adverse effects, particularly liver toxicity. The products withdrawn to date have been those which would lead to a daily intake of more then 2.5 mg alkaloids from Chelidonium majus, according to the posology of the SPC.
+  - kind: statement
+    ru: HMPC счёл данные достаточными для безопасного предела суточной дозы внутрь не более 2,5 мг алкалоидов, но научное обоснование и имеющаяся информация его не убедили
+    doc: public-statement
+    page: 2
+    quote: The HMPC considered the evidence to support a safe oral daily dose limit of not more than 2.5 mg alkaloids, but was not reassured by the scientific rationale or the information available.
 constituents:
   - compound: benzylisoquinoline alkaloids (chelidonine, chelerythrine, sanguinarine, berberine, coptisine, protopine)
     compoundRu: алкалоиды (хелидонин, хелеритрин, сангвинарин, берберин, коптизин, протопин)

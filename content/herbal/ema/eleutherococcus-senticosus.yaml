@@ -25,7 +25,6 @@ facts:
     amount: 0.5-4
     unit: г в сутки
     waterMl: '150'
-    timesPerDay: от одного до трёх
     populationRu: подростки, взрослые и пожилые
 - kind: posology
   ru: 'b) порошок сырья: суточная доза 0,75–3 г'
@@ -181,11 +180,6 @@ facts:
   doc: monograph
   page: 6
   quote: No case of overdose has been reported.
-- kind: statement
-  ru: Адекватных исследований репродуктивной токсичности и канцерогенности не проводилось
-  doc: monograph
-  page: 7
-  quote: Adequate tests on reproductive toxicity and carcinogenicity have not been performed.
 - kind: statement
   ru: В опытах in vitro (штаммы Salmonella typhimurium TA 100 и TA 98) и в микроядерном тесте на мышах мутагенного потенциала водных и этанольных экстрактов не выявлено
   doc: monograph

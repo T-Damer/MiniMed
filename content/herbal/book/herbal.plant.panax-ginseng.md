@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix
-source_checksum: sha256:356c7c1e9f2b11832597b0f329fd032d68ffc3255e77220b66426ad48832c754
+source_checksum: sha256:70c317105e5db58c16bf776a435d948d77680627ef25ed90f484604ed39d5a6e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -95,6 +95,7 @@ metadata:
           amount: 250-1200
           unit: мг
           timesPerDay: один раз в день (1200 мг) или 2-8
+          daily: 600-2000 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -106,6 +107,7 @@ metadata:
           amount: 90-360
           unit: мг
           timesPerDay: 1-4
+          daily: 200-670 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -117,6 +119,7 @@ metadata:
           amount: 40-200
           unit: мг
           timesPerDay: 1-2
+          daily: 40-200 мг (в первые 5 дней в особых ситуациях до 600 мг)
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -128,6 +131,7 @@ metadata:
           amount: 98-360
           unit: мг
           timesPerDay: 1-4
+          daily: 196-525 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -139,6 +143,7 @@ metadata:
           amount: '120'
           unit: мг
           timesPerDay: '3'
+          daily: 360 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -150,6 +155,7 @@ metadata:
           amount: 300-440
           unit: мг
           timesPerDay: один раз в день (440 мг) или 2
+          daily: 440-700 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -161,6 +167,7 @@ metadata:
           amount: '219.8'
           unit: мг
           timesPerDay: '2'
+          daily: 439.6 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -172,6 +179,7 @@ metadata:
           amount: 500-1250
           unit: мг
           timesPerDay: 1-2
+          daily: 900-2500 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -183,6 +191,7 @@ metadata:
           amount: '9.90'
           unit: г
           timesPerDay: '2'
+          daily: 19.80 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -194,6 +203,7 @@ metadata:
           amount: 600-1200
           unit: мг
           timesPerDay: 1-3
+          daily: 1200-1800 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
@@ -205,6 +215,7 @@ metadata:
           amount: 180-500
           unit: мг
           timesPerDay: один раз в день (475 мг или 500 мг) или 2
+          daily: 360-500 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 7
@@ -216,6 +227,7 @@ metadata:
           amount: '440'
           unit: мг
           timesPerDay: один раз
+          daily: 440 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 7
@@ -306,11 +318,6 @@ metadata:
         quote: After 2 years of oral administration of an extract prepared with ethanol 80% in dosages of up to 5000 mg/kg b.w. no signs of carcinogenicity were observed in mice or rats.
         kind: statement
         ru: После 2 лет приёма внутрь экстракта на этаноле 80 % в дозах до 5000 мг/кг массы тела признаков канцерогенности у мышей и крыс не выявлено
-      - doc: monograph
-        page: 9
-        quote: Adequate tests on reproductive toxicity have not been performed.
-        kind: statement
-        ru: Адекватных исследований репродуктивной токсичности не проводилось
       constituents:
       - doc: assessment-report
         page: 5
@@ -390,6 +397,25 @@ metadata:
         quote: 7. Женьшень — Ginseng — Все виды, все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 234
+    regionalRedBooks:
+      regions:
+      - region: Еврейская автономная область
+        year: 2019
+      - region: Приморский край
+        year: 2008
+        checked:
+          act: Постановление Губернатора Приморского края от 14.05.2002 № 272
+          url: https://base.garant.ru/30159395/
+          category: CR
+      - region: Хабаровский край
+        year: 2008
+        checked:
+          act: Постановление Правительства Хабаровского края от 27.10.2006 № 163-пр (ред. 08.05.2024), № 56
+          url: https://mpr.khabkrai.ru/?menu=getfile&id=13693
+          category: '1'
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/26683.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0013.15

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530887/2f68d269-0d09-4cc7-be3c-a7a3d5ec4289.pdf
-source_checksum: sha256:71d855967eb237dfbdd272ea559fb67f795f705cc40cd772c68418a5121ede89
+source_checksum: sha256:97bf9a7e713a5ee3dafde8b3671eaab75baef239d9d7b52881dc64ef5e9d91f2
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -105,9 +105,11 @@ metadata:
         kind: posology
         ru: Настой внутрь при диарее — несколько раз в день, не больше 12 г в сутки
         dose:
-          preparationRu: настой
+          preparationRu: настой (разовая доза)
           amount: 1.4-4
           unit: г
+          timesPerDay: несколько
+          daily: до 12 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -115,9 +117,11 @@ metadata:
         kind: posology
         ru: Отвар внутрь при диарее — несколько раз в день, не больше 6 г в сутки
         dose:
-          preparationRu: отвар
+          preparationRu: отвар (разовая доза)
           amount: 1.4-3
           unit: г
+          timesPerDay: несколько
+          daily: до 6 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -125,10 +129,23 @@ metadata:
         kind: posology
         ru: Полоскание рта настоем или отваром — несколько раз в день
         dose:
-          preparationRu: настой для полоскания
+          preparationRu: настой для полоскания рта
           amount: 1.3-2
           unit: г
           waterMl: '100'
+          timesPerDay: несколько
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: 'As infusion: 1.3–2 g per 100 ml of water. As decoction: 0.8–3 g per 100 ml of water. Rinse the mouth several times daily.'
+        kind: posology
+        ru: Полоскание рта отваром — несколько раз в день
+        dose:
+          preparationRu: отвар для полоскания рта
+          amount: 0.8-3
+          unit: г
+          waterMl: '100'
+          timesPerDay: несколько
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -205,6 +222,34 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Донецкая Народная Республика
+        year: 2020
+      - region: Кемеровская область
+        year: 2021
+      - region: Омская область
+        year: 2015
+      - region: Республика Коми
+        year: 2019
+      - region: Республика Татарстан
+        year: 2016
+      - region: Самарская область
+        year: 2017
+      - region: Томская область
+        year: 2022
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/29962.html
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: внутрь нельзя детям до 12 лет; EMA: детям и подросткам до 18 лет не рекомендуется'
+      grls: детский возраст до 12 лет
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-potentilla-erecta-l-raeusch-rhizoma_en.pdf
     identification:
       source:
         number: ФС.2.5.0023.15

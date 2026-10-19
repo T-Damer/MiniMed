@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://iris.who.int/handle/10665/44059
-source_checksum: sha256:5051790be0eea1e6986890ba4db6c3b615a24c1349d794a41468189005ab3223
+source_checksum: sha256:ce23fb24a7a4a0fe5f53899b9c6d1025edee5575219617c49f747a2e3173c345
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -137,11 +137,12 @@ metadata:
         page: 205
         quote: 'For internal use. Infusion: 40–50 g of the fresh fruit per litre of water, 2–3 cups per day'
         kind: posology
-        ru: 'Внутрь, настой: 40–50 г свежих плодов на литр воды, 2–3 чашки в день'
+        ru: 'Внутрь, настой: 40–50 г свежих плодов на литр воды; 2–3 чашки в день'
         dose:
-          preparationRu: настой свежих плодов
+          preparationRu: настой из свежих плодов
           amount: 40-50
-          unit: г на литр
+          unit: г свежих плодов на литр воды
+          daily: 2-3 чашки
           populationRu: возраст не указан
       - doc: monograph
         page: 205
@@ -160,7 +161,7 @@ metadata:
         kind: posology
         ru: 'Масло плодов облепихи внутрь: одна чайная ложка 2–3 раза в день за 30–40 минут до еды'
         dose:
-          preparationRu: масло плодов облепихи
+          preparationRu: масло плодов облепихи внутрь
           amount: одна
           unit: чайная ложка
           timesPerDay: 2-3
@@ -175,6 +176,17 @@ metadata:
           amount: 5-10
           unit: мл
           populationRu: возраст не указан
+      - doc: monograph
+        page: 203
+        quote: received 15 g of the extract by the oral route, three times a day for 6 months
+        kind: posology
+        ru: Этанольный экстракт плодов при циррозе печени (в клиническом исследовании) — 15 г внутрь три раза в день в течение 6 месяцев
+        dose:
+          preparationRu: этанольный экстракт плодов (доза в исследовании при циррозе)
+          amount: '15'
+          unit: г экстракта
+          timesPerDay: три
+          populationRu: больные циррозом печени
       constituents:
       - doc: monograph
         page: 199
@@ -210,6 +222,13 @@ metadata:
         evidence: clinical
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Чеченская Республика
+        year: 2020
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/20172.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0121

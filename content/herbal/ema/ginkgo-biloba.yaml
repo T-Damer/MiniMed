@@ -55,6 +55,7 @@ facts:
     preparationRu: сухой экстракт (DER 35-67:1, ацетон 60 % m/m)
     amount: 120-240
     unit: мг
+    daily: 240 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: Традиционное применение (порошок листа) — взрослые и пожилые, разовая доза 250–360 мг, суточная доза 750 мг
@@ -65,6 +66,7 @@ facts:
     preparationRu: порошок растительного сырья
     amount: 250-360
     unit: мг
+    daily: 750 мг
     populationRu: взрослые и пожилые
 - kind: age
   ru: Установившееся применение (сухой экстракт) — для детей и подростков показаний нет
@@ -279,11 +281,6 @@ facts:
   doc: monograph
   page: 7
   quote: Adequate tests on reproductive toxicity do not exist.
-- kind: statement
-  ru: Традиционное применение (порошок листа) — адекватных исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-  doc: monograph
-  page: 7
-  quote: Adequate tests on reproductive toxicity and tests on genotoxicity and carcinogenicity have not been performed.
 - kind: statement
   ru: Установившееся применение (сухой экстракт) — для сухого экстракта гинкго данных об исследованиях генотоксичности и канцерогенности нет
   doc: monograph

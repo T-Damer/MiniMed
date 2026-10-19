@@ -1,0 +1,18 @@
+plant: helichrysum-arenarium
+items:
+  - topic: indication
+    ru: "ГРЛС: гепатит, хронический холецистит, холангит; EMA: не рекомендуется при холангите, болезнях печени, желчных камнях и обструкции желчных протоков"
+    grls: "В комплексной терапии гепатита, хронического некалькулезного холецистита, холангита"
+    monograph: {doc: monograph, page: 3, quote: "Due to the possible stimulation of bile secretion Helichrysi flos is not recommended in case of obstruction of the bile duct, cholangitis, liver disease and gallstones."}
+  - topic: age
+    ru: "ГРЛС: противопоказан детям до 12 лет; EMA: детям и подросткам до 18 лет не рекомендуется"
+    grls: "детский возраст до 12 лет"
+    monograph: {doc: monograph, page: 3, quote: "The use in children and adolescents under 18 years of age is not recommended"}
+  - topic: course
+    ru: "ГРЛС: курс 20–25 дней; EMA: к врачу, если симптомы сохраняются дольше двух недель"
+    grls: "Курс лечения 20-25 дней."
+    monograph: {doc: monograph, page: 3, quote: "If the symptoms persist longer than two weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}
+  - topic: interaction
+    ru: "ГРЛС: повышает активность метронидазола и аминохинола при лямблиозе; EMA: взаимодействий не описано"
+    grls: "Повышает активность метронидазола и аминохинола при лечении лямблиоза."
+    monograph: {doc: monograph, page: 4, quote: "Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported."}

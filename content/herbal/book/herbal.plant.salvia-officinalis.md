@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528271/562f6285-9699-4d0d-aceb-edf406a713f6.pdf
-source_checksum: sha256:a14847f2ff1b12b3bb59c260cd7ed7f79dad41fe3931fab04110c6e0203d66de
+source_checksum: sha256:e129ef0337956dab043533b83d37bec92e40f8ab4a87885bfda8526e6ff53ca3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -205,6 +205,21 @@ metadata:
         quote: Intake of sage oil corresponding to more than 15 g of sage leaf is reported to cause sensation of heat, tachycardia, vertigo and epileptiform convulsions (seizures).
         kind: overdose
         ru: Масло шалфея в количестве, соответствующем более 15 г листа, по сообщениям вызывает ощущение жара, тахикардию, головокружение и эпилептиформные судороги
+      - doc: monograph
+        page: 9
+        quote: Thujone is reported to be neurotoxic, hence chemotypes with low content of thujone should be preferred.
+        kind: warning
+        ru: Туйон, по сообщениям, нейротоксичен, поэтому следует предпочитать хемотипы с низким содержанием туйона
+      - doc: monograph
+        page: 9
+        quote: The amount of thujone has to be specified in the given product. The daily exposure has to be below 6.0 mg.
+        kind: warning
+        ru: Количество туйона в продукте должно быть указано; суточное поступление туйона — ниже 6,0 мг
+      - doc: assessment-report
+        page: 38
+        quote: 'Conclusion: Tea made from sage may have kindled convulsions in a child with a previously unmasked seizure focus'
+        kind: warning
+        ru: Сообщалось, что чай из шалфея мог спровоцировать судороги у ребёнка с ранее не проявлявшимся очагом судорожной активности
       constituents:
       - doc: assessment-report
         page: 25
@@ -268,6 +283,35 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM903/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: не рекомендуется'
+      grls: Применение препарата возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-salvia-officinalis-l-folium-revision-1_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: настой из 10 г листьев на 200 мл воды; EMA: настой из 2,5 г на 100 мл, полоскать 3 раза в день'
+      grls: Около 10 г (3 столовые ложки) листьев шалфея помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: 2.5 g comminuted herbal substance in 100 ml boiling water as an infusion. The infusion is used warm for gargle 3 times daily.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-salvia-officinalis-l-folium-revision-1_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: полоскания детям старше 12 лет; EMA: до 18 лет не рекомендуется'
+      grls: у взрослых и детей старше 12 лет
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-salvia-officinalis-l-folium-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0051

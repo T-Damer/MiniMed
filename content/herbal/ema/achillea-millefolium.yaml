@@ -71,6 +71,11 @@ facts:
     page: 6
     quote: Hypersensitivity to the active substances and to other plants of the Asteraceae (Compositae) family.
   - kind: warning
+    ru: Если симптомы усиливаются (аппетит, спазмы ЖКТ, менструальные спазмы) — к врачу или медработнику
+    doc: monograph
+    page: 6
+    quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+  - kind: warning
     ru: Если на коже признаки инфекции — к врачу
     doc: monograph
     page: 6

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/29/1530517/0a8dd910-ccd0-4056-a76a-7af082883644.pdf
-source_checksum: sha256:58f6f4136f852bc3ac8c0a4b011d0a15bc4e3d56ae5c697e3638e4d46ecf2787
+source_checksum: sha256:80416e22d331424adc45cfadb338f8c48f281409371d5eb81b79832965451a2f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -207,6 +207,14 @@ metadata:
         classRu: экстракт
         effectRu: внутривенно в дозе 12,5 мг/кг массы тела (в физиологическом растворе) собакам вызывал диуретический эффект с ростом объёма мочи в 2,2 раза
         evidence: animal
+      - doc: monograph
+        page: 45
+        quote: Intravenous administration of 25.0 mg/kg bw of a 70% ethanol extract to dogs reduced blood pressure.
+        compound: 70% ethanol extract of the fruits
+        compoundRu: 70 % этанольный экстракт плодов
+        classRu: экстракт
+        effectRu: внутривенно в дозе 25,0 мг/кг массы тела собакам снижал артериальное давление
+        evidence: animal
     redBook: null
     safety:
       lines:
@@ -222,6 +230,26 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при грудном вскармливании возможно, если польза превышает риск; ВОЗ: при кормлении грудью не рекомендуется'
+      grls: Применение препарата в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: WHO
+      doc: monograph
+      page: 45
+      quote: Therefore, the use of Fructus Anethi during pregnancy and nursing is not recommended.
+      url: https://iris.who.int/server/api/core/bitstreams/f4e276e8-6a1a-4ea4-979f-776a7ddfe2d1/content
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: 10 г плодов на 200 мл настоя, по 1/3 стакана 3-4 раза в день; ВОЗ: средняя суточная доза плодов 3 г'
+      grls: 'Около 10 г (2 столовые ложки) плодов помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане в течение 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Настой принимают внутрь в теплом виде 3-4 раза в день: взрослые и дети старше 12 лет – по 1/3 стакана'
+      authority: WHO
+      doc: monograph
+      page: 46
+      quote: 'Average daily dose: Fructus Anethi 3 g; essential oil 0.1–0.3 g; or equivalent for other preparations (25).'
+      url: https://iris.who.int/server/api/core/bitstreams/f4e276e8-6a1a-4ea4-979f-776a7ddfe2d1/content
     identification:
       source:
         number: ФС.2.5.0043.15

@@ -1,0 +1,14 @@
+plant: carum-carvi
+items:
+  - topic: age
+    ru: "ГРЛС: детям до 3 лет по 1/2–1 чайной ложке; EMA: детям до 12 лет не рекомендуется"
+    grls: "дети до 3-х лет – по 1/2 - 1 чайной ложке."
+    monograph: {doc: monograph, page: 3, quote: "The use in children under 12 years of age is not recommended"}
+  - topic: lactation
+    ru: "ГРЛС: при кормлении грудью возможно, если польза выше риска; EMA: при кормлении грудью не рекомендуется"
+    grls: "Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка."
+    monograph: {doc: monograph, page: 4, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}
+  - topic: dose
+    ru: "ГРЛС: настой 3–4 раза в сутки по 1/3 стакана; EMA: 0,5–2 г в 150 мл, 1–3 раза в день"
+    grls: "Принимают внутрь теплый настой 3 - 4 раза в сутки после еды: взрослые и дети старше 12 лет - по 1/3 стакана"
+    monograph: {doc: monograph, page: 3, quote: "Herbal tea: 0.5-2 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-3 times daily"}

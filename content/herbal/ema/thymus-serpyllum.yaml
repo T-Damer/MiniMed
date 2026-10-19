@@ -27,85 +27,85 @@ facts:
     doc: monograph
     page: 4
     quote: "Posology Adolescents, adults and elderly a) Liquid extract (DER 1:1): Single dose: 1-2 ml, 3-4 times daily"
-    dose: { preparationRu: "жидкий экстракт (DER 1:1)", amount: "1-2", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт (DER 1:1; этанол 24 %)", amount: "1-2", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "b) жидкий экстракт (DER 1:1.16) — разовая доза 1,2–2,4 мл, 3–4 раза в день"
     doc: monograph
     page: 4
     quote: "b) Liquid extract (DER 1:1.16): Single dose 1.2-2.4 ml, 3-4 times daily"
-    dose: { preparationRu: "жидкий экстракт (DER 1:1.16)", amount: "1.2-2.4", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт (DER 1:1.16; глицерол 85 % : этанол 25 %)", amount: "1.2-2.4", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "c) жидкий экстракт (DER 1:2-2.5) — разовая доза 1–4 г, 1–7 раз в день, максимальная суточная доза 14 г"
     doc: monograph
     page: 4
     quote: "c) Liquid extract (DER 1:2-2.5): Single dose 1-4 g, 1-7 times daily, maximum daily dose 14 g"
-    dose: { preparationRu: "жидкий экстракт (DER 1:2-2.5)", amount: "1-4", unit: г, timesPerDay: "1-7", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт (DER 1:2-2.5; аммиак 10 % : глицерол 85 % : этанол 90 % : вода)", amount: "1-4", unit: г, timesPerDay: "1-7", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "d) настойка (1:10) — разовая доза 40 капель, 3 раза в день"
     doc: monograph
     page: 5
     quote: "d) Tincture (1:10): Single dose 40 drops, 3 times daily"
-    dose: { preparationRu: "настойка (1:10)", amount: "40", unit: капель, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: настойка (1:10; этанол 70 %)", amount: "40", unit: капель, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "e) настойка (1:5) — разовая доза 2–6 мл, 3 раза в день"
     doc: monograph
     page: 5
     quote: "e) Tincture (1:5): Single dose 2-6 ml, 3 times daily"
-    dose: { preparationRu: "настойка (1:5)", amount: "2-6", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: настойка (1:5; этанол 70 %)", amount: "2-6", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "f) мягкий экстракт — разовая доза 50 мг, 6 раз в день"
     doc: monograph
     page: 5
     quote: "f) Soft extract: Single dose 50 mg, 6 times daily"
-    dose: { preparationRu: "мягкий экстракт", amount: "50", unit: мг, timesPerDay: "6", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: мягкий экстракт (DER 5-8:1; этанол 25-30 %)", amount: "50", unit: мг, timesPerDay: "6", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "g) жидкий экстракт (DER 1:1.5-2.4) — разовая доза 10 мл, 3–4 раза в день"
     doc: monograph
     page: 5
     quote: "g) Liquid extract (DER 1:1.5-2.4) Single dose 10 ml, 3-4 times daily"
-    dose: { preparationRu: "жидкий экстракт (DER 1:1.5-2.4)", amount: "10", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт свежей травы (DER 1:1.5-2.4; вода, «отжатый сок»)", amount: "10", unit: мл, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "h) сухой экстракт (DER 6-10:1) — разовая доза 75–200 мг, 3 раза в день"
     doc: monograph
     page: 5
     quote: "h) Dry extract (DER 6-10:1): Single dose 75-200 mg, 3 times daily"
-    dose: { preparationRu: "сухой экстракт (DER 6-10:1)", amount: "75-200", unit: мг, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: сухой экстракт (DER 6-10:1; этанол 70 %)", amount: "75-200", unit: мг, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "i) сухой экстракт (DER 1.6-2.4:1) — разовая доза 135 мг, 1–3 раза в день"
     doc: monograph
     page: 5
     quote: "i) Dry extract (DER 1.6-2.4:1) Single dose 135 mg, 1-3 times daily"
-    dose: { preparationRu: "сухой экстракт (DER 1.6-2.4:1)", amount: "135", unit: мг, timesPerDay: "1-3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: сухой экстракт (DER 1.6-2.4:1; этанол 96 %)", amount: "135", unit: мг, timesPerDay: "1-3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "j) жидкий экстракт (1:4.5) — разовая доза 480–960 мг, 3–4 раза в день"
     doc: monograph
     page: 5
     quote: "j) Liquid extract (1:4.5) Single dose 480 – 960 mg, 3-4 times daily"
-    dose: { preparationRu: "жидкий экстракт (1:4.5)", amount: "480-960", unit: мг, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт (DER 1:4.5; аммиак 10 % : глицерол 85 % : этанол 96 % : вода)", amount: "480-960", unit: мг, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "k) сухой экстракт (DER 7-13:1) — разовая доза 100–200 мг, 3–4 раза в день"
     doc: monograph
     page: 5
     quote: "k) Dry extract (DER 7-13:1) Single dose 100 – 200 mg, 3-4 times daily"
-    dose: { preparationRu: "сухой экстракт (DER 7-13:1)", amount: "100-200", unit: мг, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: сухой экстракт (DER 7-13:1; вода)", amount: "100-200", unit: мг, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "l) измельчённое сырьё, чай — 1–2 г на 150 мл кипятка в виде настоя, 3–4 раза в день"
     doc: monograph
     page: 5
     quote: "l) Comminuted herbal substance Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 3-4 times daily"
-    dose: { preparationRu: "чай (настой) из измельчённого сырья", amount: "1-2", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "T. vulgaris/zygis: чай (настой) из измельчённого сырья", amount: "1-2", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "c) жидкий экстракт (DER 1:2-2.5) — дети 4–12 лет, разовая доза 0,5–0,9 мл, 3–5 раз в день"
     doc: monograph
     page: 5
     quote: "Children between 4 and 12 years of age: c) Liquid extract (DER 1:2-2.5): Single dose 0.5-0.9 ml, 3-5 times daily"
-    dose: { preparationRu: "жидкий экстракт (DER 1:2-2.5)", amount: "0.5-0.9", unit: мл, timesPerDay: "3-5", populationRu: "дети 4–12 лет" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт (DER 1:2-2.5; аммиак 10 % : глицерол 85 % : этанол 90 % : вода)", amount: "0.5-0.9", unit: мл, timesPerDay: "3-5", populationRu: "дети 4–12 лет" }
   - kind: posology
     ru: "g) жидкий экстракт (DER 1:1.5-2.4) — дети 4–12 лет, разовая доза 7–10 мл, 2–3 раза в день"
     doc: monograph
     page: 5
     quote: "Children between 4 and 12 years of age: c) Liquid extract (DER 1:2-2.5): Single dose 0.5-0.9 ml, 3-5 times daily g) Liquid extract (DER 1:1.5-2.4): Single dose 7-10 ml, 2-3 times daily"
-    dose: { preparationRu: "жидкий экстракт (DER 1:1.5-2.4)", amount: "7-10", unit: мл, timesPerDay: "2-3", populationRu: "дети 4–12 лет" }
+    dose: { preparationRu: "T. vulgaris/zygis: жидкий экстракт свежей травы (DER 1:1.5-2.4; вода, «отжатый сок»)", amount: "7-10", unit: мл, timesPerDay: "2-3", populationRu: "дети 4–12 лет" }
   - kind: posology
     ru: "Способ применения — внутрь"
     doc: monograph
@@ -182,6 +182,11 @@ facts:
     page: 7
     quote: "Gastric disorders may occur. The frequency is not known."
   - kind: adverse
+    ru: "Сообщалось о 17 случаях аллергических реакций в Германии (крапивница, кожная сыпь, бронхоспазм, приступ астмы, анафилактический шок)"
+    doc: assessment-report
+    page: 28
+    quote: "Germany has received 17 case reports for allergic reactions (urticaria, skin rashes, bronchospasm, asthma attack, anaphylactic shock)."
+  - kind: adverse
     ru: "Если возникают другие нежелательные реакции, не упомянутые выше, — обратиться к врачу или квалифицированному медработнику"
     doc: monograph
     page: 7
@@ -191,11 +196,6 @@ facts:
     doc: monograph
     page: 7
     quote: "No case of overdose has been reported."
-  - kind: statement
-    ru: "Адекватные испытания репродуктивной токсичности, генотоксичности и канцерогенности не проводились"
-    doc: monograph
-    page: 7
-    quote: "Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed."
 constituents:
   - compound: "essential oil (thymol, carvacrol, p-cymene, γ-terpinene, linalool, β-myrcene, terpinen-4-ol)"
     compoundRu: "эфирное масло (тимол, карвакрол, п-цимол, γ-терпинен, линалоол, β-мирцен, терпинен-4-ол)"

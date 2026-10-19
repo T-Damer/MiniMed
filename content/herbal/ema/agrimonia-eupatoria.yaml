@@ -32,7 +32,7 @@ facts:
     doc: monograph
     page: 3
     quote: "Adolescents, adults and elderly Indication 1) a) Herbal tea: 1.5–4 g of the comminuted herbal substance in 250 ml (or less) of boiling water as a herbal infusion, 2-3 times daily"
-    dose: { preparationRu: чай (настой), amount: "1.5-4", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: чай (настой), amount: "1.5-4", unit: г, waterMl: "≤250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 1 — настойка: 1–4 мл 3 раза в день"
     doc: monograph
@@ -56,7 +56,7 @@ facts:
     doc: monograph
     page: 3
     quote: "Indication 2) a1) Comminuted herbal substance for infusion preparation: 1.5 g of the comminuted herbal substance in 150 ml of boiling water, 2–4 times daily as a gargle a2) Comminuted herbal substance for decoction preparation: 3–4.5 g of the comminuted herbal substance in 250 ml (or less) of water, 2–3 times daily as a gargle"
-    dose: { preparationRu: отвар для полоскания, amount: "3-4.5", unit: г, waterMl: "250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: отвар для полоскания, amount: "3-4.5", unit: г, waterMl: "≤250", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 2 — настойка для полоскания: 1–4 мл 3 раза в день"
     doc: monograph
@@ -74,13 +74,13 @@ facts:
     doc: monograph
     page: 4
     quote: "Indication 3) a1) Comminuted herbal substance for decoction preparation: 3-10 g of the comminuted herbal substance in 250 ml (or less) of water Apply as an impregnated dressing to the affected areas of the skin."
-    dose: { preparationRu: отвар для пропитанной повязки, amount: "3-10", unit: г, waterMl: "250", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: отвар для пропитанной повязки, amount: "3-10", unit: г, waterMl: "≤250", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 3 — отвар измельчённой травы для ванны: 3–10 г в 250 мл (или меньше) воды дважды в день; ванна до 30 минут"
     doc: monograph
     page: 4
     quote: "a2) Comminuted herbal substance for decoction preparation: 3-10 g of the comminuted herbal substance in 250 ml (or less) of water, twice daily Use as a bath additive up to 30 minutes."
-    dose: { preparationRu: отвар для добавления в ванну, amount: "3-10", unit: г, waterMl: "250", timesPerDay: "дважды", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: отвар для добавления в ванну, amount: "3-10", unit: г, waterMl: "≤250", timesPerDay: "дважды", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Показание 1 — приём внутрь
     doc: monograph
@@ -160,11 +160,6 @@ facts:
     doc: monograph
     page: 6
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследования генотоксичности, канцерогенности и репродуктивной токсичности не проводились
-    doc: monograph
-    page: 7
-    quote: Tests on genotoxicity, carcinogenicity and reproductive toxicity have not been performed.
 constituents:
   - compound: tannins (proanthocyanidins, ellagitannins)
     compoundRu: дубильные вещества (проантоцианидины, эллаготаннины)

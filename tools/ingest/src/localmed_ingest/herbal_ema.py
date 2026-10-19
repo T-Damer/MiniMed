@@ -64,6 +64,9 @@ class Dose(_Strict):
     unit: str | None = None
     water_ml: str | None = Field(default=None, alias="waterMl")
     times_per_day: str | None = Field(default=None, alias="timesPerDay")
+    # The monograph's daily total («Daily dose: 24-36 mg»), shown beside the single dose so that
+    # single dose times frequency is never read as the allowed day.
+    daily: str | None = None
     population_ru: str = Field(alias="populationRu")
 
 
@@ -210,18 +213,29 @@ def validate_ema_extraction(extraction: EmaExtraction, documents: dict[str, Path
         if pdf is None:
             problems.append(f"{label}: no downloaded EMA {item.doc}")
             continue
-        pages = page_texts(pdf)
-        if item.page > len(pages):
-            problems.append(f"{label}: page {item.page} > {len(pages)} pages")
+        if item.page > len(page_texts(pdf)):
+            problems.append(f"{label}: page {item.page} > {len(page_texts(pdf))} pages")
             continue
-        if not _on_page(normalize(item.quote), pages, _body_texts(pdf), item.page) and (
-            _compact(item.quote) not in _compact(page_texts(pdf, sort=True)[item.page - 1])
-        ):
+        if not quote_on_page(item.quote, pdf, item.page):
             problems.append(f"{label}: quote not found on page {item.page}: {item.quote[:80]!r}")
         missing = _numbers(russian) - _numbers(item.quote)
         if missing:
             problems.append(f"{label}: numbers {sorted(missing)} are not in the quote")
     return problems
+
+
+def quote_on_page(quote: str, pdf: Path, page: int) -> bool:
+    """The quote is on the PDF page (or runs on to the next page), in content or reading order."""
+    pages = page_texts(pdf)
+    if not 1 <= page <= len(pages):
+        return False
+    return _on_page(normalize(quote), pages, _body_texts(pdf), page) or (
+        _compact(quote) in _compact(page_texts(pdf, sort=True)[page - 1])
+    )
+
+
+def numbers_in(text: str) -> set[str]:
+    return _numbers(text)
 
 
 def _compact(text: str) -> str:
@@ -253,6 +267,7 @@ def _fact_numbers_text(fact: Fact) -> str:
                 fact.dose.amount,
                 fact.dose.water_ml,
                 fact.dose.times_per_day,
+                fact.dose.daily,
                 fact.dose.population_ru,
             )
             if value is not None

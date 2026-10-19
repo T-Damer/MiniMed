@@ -65,6 +65,11 @@ facts:
     doc: monograph
     page: 4
     quote: Hot baths should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
+  - kind: warning
+    ru: Пациенты с дефицитом «6GTP» (так в источнике; вероятно, дефицит Г6ФД) могут быть в группе риска гемолиза после лечения фиалкой трёхцветной
+    doc: assessment-report
+    page: 18
+    quote: Patients with 6GTP deficiency can be at risk of haemolysis after Viola tricolor treatment.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph

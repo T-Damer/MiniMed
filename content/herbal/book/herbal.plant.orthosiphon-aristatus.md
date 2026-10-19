@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/02/1530642/72ea1524-04b7-4572-bc60-6a35c438256e.pdf
-source_checksum: sha256:2338d9d8ce8c06398d9a82b40b59d798a47e11298ed7fe7951e79e1a42d9eef5
+source_checksum: sha256:754e89d5414697f2f974ec4b1107ef398bafba1a6df2aa0867aa509a7314a6da
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -105,6 +105,7 @@ metadata:
           amount: 2-3
           unit: г
           waterMl: '150'
+          daily: 6-12 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -115,6 +116,7 @@ metadata:
           preparationRu: порошок листьев
           amount: 500-750
           unit: мг
+          daily: 1000-1500 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -125,6 +127,7 @@ metadata:
           preparationRu: жидкий экстракт (DER 1:1, этанол 25% m/m)
           amount: '2'
           unit: г
+          daily: 2-4 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -135,6 +138,7 @@ metadata:
           preparationRu: сухой экстракт (DER 5-7:1, вода)
           amount: '360'
           unit: мг
+          daily: 1080-1440 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -145,6 +149,7 @@ metadata:
           preparationRu: сухой экстракт (DER 8-12:1, этанол 60% V/V)
           amount: 200-400
           unit: мг
+          daily: 600-1200 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -155,6 +160,7 @@ metadata:
           preparationRu: сухой экстракт (DER 7-8:1, этанол 70% V/V)
           amount: '280'
           unit: мг
+          daily: 840 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -165,6 +171,7 @@ metadata:
           preparationRu: сухой экстракт (DER 5-7:1, этанол 30% V/V)
           amount: '200'
           unit: мг
+          daily: 400 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -229,11 +236,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Достаточных исследований генотоксичности не проводилось; исследования репродуктивной токсичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -277,6 +279,53 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при отёках при болезни почек и хронической сердечной недостаточности; EMA: противопоказаны тяжёлые болезни сердца или почек'
+      grls: В комплексной терапии при отеках, возникающих вследствие нарушения функции почек, хронической сердечной недостаточности.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal disease).
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-orthosiphon-aristatus-blume-miq-var-aristatus-folium-revision-1_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детям до 12 лет; EMA: детям и подросткам до 18 лет не рекомендуется'
+      grls: Повышенная чувствительность к препарату, детский возраст до 12 лет.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-orthosiphon-aristatus-blume-miq-var-aristatus-folium-revision-1_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: не рекомендуется'
+      grls: Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In the absence of sufficient data the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-orthosiphon-aristatus-blume-miq-var-aristatus-folium-revision-1_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: по 1/2 стакана настоя 2 раза в день; EMA: 2-3 г на 150 мл воды, в сутки 6-12 г'
+      grls: Настой применяют в теплом виде по 1/2 стакана 2 раза в день за 20-30 минут до еды.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: 'Posology Adults and Elderly a) Herbal tea: 2-3 g comminuted herbal substance in 150 ml of boiling water as a herbal infusion Daily dose: 6-12 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-orthosiphon-aristatus-blume-miq-var-aristatus-folium-revision-1_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: если симптомы сохраняются дольше 2 недель, нужно обратиться к врачу'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-orthosiphon-aristatus-blume-miq-var-aristatus-folium-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0088

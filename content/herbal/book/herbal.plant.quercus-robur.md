@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:27b7b96f41e77765c1cd9f851d8cea925174da47c7f0cb9912f0e4cf5459d25d
+source_checksum: sha256:49c548e815beb0f48e99e9a28f2c09229b2ad962d58fb17e37156cf488122499
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -257,6 +257,49 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Вологодская область
+        year: 2015
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/31185.html
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: около 20 г коры на 200 мл воды; EMA: отвар для слизистой рта 20 г/л'
+      grls: Около 20 г (2-3 столовые ложки) коры дуба помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: 'Decoction for oromucosal use: 20 g/L.'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 2–4 недели; EMA: не дольше 1 недели'
+      grls: Курс лечения 2-4 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Not to be used for more than 1 week.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: местно детям с 3 лет; EMA: детям и подросткам до 18 лет не рекомендуется'
+      grls: Применяют местно у взрослых и детей с 3 лет
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: возможно, если польза для матери выше риска для плода и ребёнка; EMA: при беременности и кормлении не рекомендуется'
+      grls: Применение препарата возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
     identification:
       source:
         number: ФС.2.5.0071.18

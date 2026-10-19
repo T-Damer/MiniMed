@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/plantaginis-lanceolatae-folium
-source_checksum: sha256:71b5d35a0f8c8bfc68cb83bbf58481329ef6a8ecec516c21e0b7f4eaf1370195
+source_checksum: sha256:903083f8142925d1936c029397e31653198b114e4895ea05b8fd3be86b67eff3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,11 +91,12 @@ metadata:
         kind: posology
         ru: 'Препарат a): травяной чай (настой) из измельчённого сырья — подростки, взрослые и пожилые, 1,4–2 г на 150–250 мл кипятка, 2–3 раза в день, суточная доза 4–6 г'
         dose:
-          preparationRu: травяной чай (настой) из измельчённого сырья a)
+          preparationRu: внутрь, травяной чай (настой) из измельчённого сырья a)
           amount: 1.4-2
           unit: г
           waterMl: 150-250
           timesPerDay: 2-3
+          daily: 4-6 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -109,10 +110,11 @@ metadata:
         kind: posology
         ru: 'Препарат c) — подростки, взрослые и пожилые: разовая доза 233 мг, 3 раза в день, суточная доза 699 мг'
         dose:
-          preparationRu: сухой экстракт c)
+          preparationRu: внутрь, сухой экстракт c) (DER 3-6:1, вода)
           amount: '233'
           unit: мг
           timesPerDay: '3'
+          daily: 699 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -120,10 +122,11 @@ metadata:
         kind: posology
         ru: 'Препарат c) — дети 5–11 лет: разовая доза 233 мг, 2–3 раза в день, суточная доза 466–699 мг'
         dose:
-          preparationRu: сухой экстракт c)
+          preparationRu: внутрь, сухой экстракт c) (DER 3-6:1, вода)
           amount: '233'
           unit: мг
           timesPerDay: 2-3
+          daily: 466-699 мг
           populationRu: дети 5–11 лет
       - doc: monograph
         page: 5
@@ -131,10 +134,11 @@ metadata:
         kind: posology
         ru: 'Препарат c) — дети 3–4 лет: разовая доза 117 мг, 3 раза в день, суточная доза 351 мг'
         dose:
-          preparationRu: сухой экстракт c)
+          preparationRu: внутрь, сухой экстракт c) (DER 3-6:1, вода)
           amount: '117'
           unit: мг
           timesPerDay: '3'
+          daily: 351 мг
           populationRu: дети 3–4 лет
       - doc: monograph
         page: 5
@@ -148,10 +152,11 @@ metadata:
         kind: posology
         ru: 'Препарат d) — подростки, взрослые и пожилые: разовая доза 0,94–2,6 г, 3–6 раз в день, суточная доза 3,75–7,5 г'
         dose:
-          preparationRu: жидкий экстракт d)
+          preparationRu: внутрь, жидкий экстракт d) (DER 1:0.9-1.1, этанол 24-35% V/V)
           amount: 0.94-2.6
           unit: г
           timesPerDay: 3-6
+          daily: 3.75-7.5 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -159,10 +164,11 @@ metadata:
         kind: posology
         ru: 'Препарат d) — дети 5–11 лет: разовая доза 0,31–1,3 г, 2–6 раз в день, суточная доза 1,25–3,9 г'
         dose:
-          preparationRu: жидкий экстракт d)
+          preparationRu: внутрь, жидкий экстракт d) (DER 1:0.9-1.1, этанол 24-35% V/V)
           amount: 0.31-1.3
           unit: г
           timesPerDay: 2-6
+          daily: 1.25-3.9 г
           populationRu: дети 5–11 лет
       - doc: monograph
         page: 5
@@ -170,10 +176,11 @@ metadata:
         kind: posology
         ru: 'Препарат d) — дети 3–4 лет: разовая доза 0,16–1,3 г, 2–6 раз в день, суточная доза 0,62–2,6 г'
         dose:
-          preparationRu: жидкий экстракт d)
+          preparationRu: внутрь, жидкий экстракт d) (DER 1:0.9-1.1, этанол 24-35% V/V)
           amount: 0.16-1.3
           unit: г
           timesPerDay: 2-6
+          daily: 0.62-2.6 г
           populationRu: дети 3–4 лет
       - doc: monograph
         page: 5
@@ -187,10 +194,11 @@ metadata:
         kind: posology
         ru: 'Препарат e) — подростки, взрослые и пожилые: разовая доза 804 мг, 4 раза в день, суточная доза 3216 мг'
         dose:
-          preparationRu: мягкий экстракт e)
+          preparationRu: внутрь, мягкий экстракт e) (DER 1.5-1.7:1, этанол 20% m/m)
           amount: '804'
           unit: мг
           timesPerDay: '4'
+          daily: 3216 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
@@ -198,10 +206,11 @@ metadata:
         kind: posology
         ru: 'Препарат e) — дети 5–11 лет: разовая доза 804 мг, 3 раза в день, суточная доза 2412 мг'
         dose:
-          preparationRu: мягкий экстракт e)
+          preparationRu: внутрь, мягкий экстракт e) (DER 1.5-1.7:1, этанол 20% m/m)
           amount: '804'
           unit: мг
           timesPerDay: '3'
+          daily: 2412 мг
           populationRu: дети 5–11 лет
       - doc: monograph
         page: 6
@@ -209,10 +218,11 @@ metadata:
         kind: posology
         ru: 'Препарат e) — дети 3–4 лет: разовая доза 402 мг, 3 раза в день, суточная доза 1206 мг'
         dose:
-          preparationRu: мягкий экстракт e)
+          preparationRu: внутрь, мягкий экстракт e) (DER 1.5-1.7:1, этанол 20% m/m)
           amount: '402'
           unit: мг
           timesPerDay: '3'
+          daily: 1206 мг
           populationRu: дети 3–4 лет
       - doc: monograph
         page: 6
@@ -226,10 +236,11 @@ metadata:
         kind: posology
         ru: 'Препарат f) — подростки, взрослые и пожилые: разовая доза 10 мл, 3 раза в день, суточная доза 30 мл'
         dose:
-          preparationRu: отжатый сок f)
+          preparationRu: внутрь, отжатый сок f) из свежей травы (DER 1:0.5-0.9)
           amount: '10'
           unit: мл
           timesPerDay: '3'
+          daily: 30 мл
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
@@ -237,10 +248,11 @@ metadata:
         kind: posology
         ru: 'Препарат f) — дети 3–11 лет: разовая доза 5 мл, 2 раза в день, суточная доза 10 мл'
         dose:
-          preparationRu: отжатый сок f)
+          preparationRu: внутрь, отжатый сок f) из свежей травы (DER 1:0.5-0.9)
           amount: '5'
           unit: мл
           timesPerDay: '2'
+          daily: 10 мл
           populationRu: дети 3–11 лет
       - doc: monograph
         page: 6
@@ -254,26 +266,24 @@ metadata:
         kind: posology
         ru: 'Препарат g) — подростки, взрослые и пожилые: разовая доза 7,5 г, 3–4 раза в день, суточная доза 22,5–30,0 г'
         dose:
-          preparationRu: жидкий экстракт g)
+          preparationRu: внутрь, жидкий экстракт g) (DER 1:11, вода)
           amount: '7.5'
           unit: г
           timesPerDay: 3-4
+          daily: 22.5-30.0 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
-        quote: 'Preparation g) Adolescents, adults and elderly Single dose: 7.5 g Dosage frequency: 3-4 times daily Daily dose: 22.5 - 30.0 g Children 3-11 years of age Single dose: 2.5 g'
+        quote: 'Children 3-11 years of age Single dose: 2.5 g Dosage frequency: 3-4 times daily Daily dose: 7.5 - 10 g'
         kind: posology
-        ru: 'Препарат g) — дети 3–11 лет: разовая доза 2,5 г'
+        ru: 'Препарат g) — дети 3–11 лет: разовая доза 2,5 г, 3–4 раза в день, суточная доза 7,5–10 г'
         dose:
-          preparationRu: жидкий экстракт g)
+          preparationRu: внутрь, жидкий экстракт g) (DER 1:11, вода)
           amount: '2.5'
           unit: г
+          timesPerDay: 3-4
+          daily: 7.5-10 г
           populationRu: дети 3–11 лет
-      - doc: monograph
-        page: 7
-        quote: 'Dosage frequency: 3-4 times daily Daily dose: 7.5 - 10 g'
-        kind: posology
-        ru: 'Препарат g) для детей: 3–4 раза в день, суточная доза 7,5–10 г'
       - doc: monograph
         page: 7
         quote: 'Dosage frequency: 3-4 times daily Daily dose: 7.5 - 10 g The oral use in children under 3 years of age is not recommended (see section 4.4 ‘Special warnings and precautions for use’).'
@@ -286,10 +296,11 @@ metadata:
         kind: posology
         ru: 'Препарат h) — подростки, взрослые и пожилые: разовая доза 300 мг, 3–4 раза в день, суточная доза 900–1200 мг'
         dose:
-          preparationRu: сухой экстракт h)
+          preparationRu: внутрь, сухой экстракт h) (DER 3-5:1, этанол 20% m/m)
           amount: '300'
           unit: мг
           timesPerDay: 3-4
+          daily: 900-1200 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 7
@@ -297,10 +308,11 @@ metadata:
         kind: posology
         ru: 'Препарат h) — дети 5–11 лет: разовая доза 300 мг, 3 раза в день, суточная доза 900 мг'
         dose:
-          preparationRu: сухой экстракт h)
+          preparationRu: внутрь, сухой экстракт h) (DER 3-5:1, этанол 20% m/m)
           amount: '300'
           unit: мг
           timesPerDay: '3'
+          daily: 900 мг
           populationRu: дети 5–11 лет
       - doc: monograph
         page: 7
@@ -308,10 +320,11 @@ metadata:
         kind: posology
         ru: 'Препарат h) — дети 3–4 лет: разовая доза 150 мг, 3 раза в день, суточная доза 450 мг'
         dose:
-          preparationRu: сухой экстракт h)
+          preparationRu: внутрь, сухой экстракт h) (DER 3-5:1, этанол 20% m/m)
           amount: '150'
           unit: мг
           timesPerDay: '3'
+          daily: 450 мг
           populationRu: дети 3–4 лет
       - doc: monograph
         page: 7
@@ -325,10 +338,11 @@ metadata:
         kind: posology
         ru: 'Препарат i) — подростки, взрослые и пожилые: разовая доза 2,1 г, 3–5 раз в день, суточная доза 6,3–10,6 г'
         dose:
-          preparationRu: жидкий экстракт i)
+          preparationRu: внутрь, жидкий экстракт i) (DER 1:5.8-5.9, вода)
           amount: '2.1'
           unit: г
           timesPerDay: 3-5
+          daily: 6.3-10.6 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 7
@@ -336,10 +350,11 @@ metadata:
         kind: posology
         ru: 'Препарат i) — дети 5–11 лет: разовая доза 1,6 г, 2–4 раза в день, суточная доза 3,2–6,4 г'
         dose:
-          preparationRu: жидкий экстракт i)
+          preparationRu: внутрь, жидкий экстракт i) (DER 1:5.8-5.9, вода)
           amount: '1.6'
           unit: г
           timesPerDay: 2-4
+          daily: 3.2-6.4 г
           populationRu: дети 5–11 лет
       - doc: monograph
         page: 7
@@ -347,10 +362,11 @@ metadata:
         kind: posology
         ru: 'Препарат i) — дети 3–4 лет: разовая доза 1,1 г, 2–3 раза в день, суточная доза 2,2–3,3 г'
         dose:
-          preparationRu: жидкий экстракт i)
+          preparationRu: внутрь, жидкий экстракт i) (DER 1:5.8-5.9, вода)
           amount: '1.1'
           unit: г
           timesPerDay: 2-3
+          daily: 2.2-3.3 г
           populationRu: дети 3–4 лет
       - doc: monograph
         page: 8
@@ -364,10 +380,11 @@ metadata:
         kind: posology
         ru: 'Препарат k) — подростки, взрослые и пожилые: разовая доза 1,9 г, 3–4 раза в день, суточная доза 5,8–7,8 г'
         dose:
-          preparationRu: жидкий экстракт k)
+          preparationRu: внутрь, жидкий экстракт k) (DER 1:3, этанол 60% V/V)
           amount: '1.9'
           unit: г
           timesPerDay: 3-4
+          daily: 5.8-7.8 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 8
@@ -375,10 +392,11 @@ metadata:
         kind: posology
         ru: 'Препарат k) — дети 6–11 лет: разовая доза 0,65 г, 3–4 раза в день, суточная доза 1,9–2,6 г'
         dose:
-          preparationRu: жидкий экстракт k)
+          preparationRu: внутрь, жидкий экстракт k) (DER 1:3, этанол 60% V/V)
           amount: '0.65'
           unit: г
           timesPerDay: 3-4
+          daily: 1.9-2.6 г
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 8
@@ -392,10 +410,11 @@ metadata:
         kind: posology
         ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день; суточная доза в монографии — 1,2–4,8 мг (так в источнике)'
         dose:
-          preparationRu: жидкий экстракт j)
+          preparationRu: внутрь, жидкий экстракт j) (DER 1:0.8-1.2, этанол 40% V/V)
           amount: 0.4-1.26
           unit: г
           timesPerDay: 3-4
+          daily: 1.2-4.8 мг (так в монографии)
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 8
@@ -409,11 +428,12 @@ metadata:
         kind: posology
         ru: 'Показание 1, приём на слизистую рта, препарат a): мацерат в 150 мл холодной воды — дети от 3 лет, подростки, взрослые и пожилые, разовая доза 1,4 г, 3–4 раза в день, суточная доза 4,2–5,6 г'
         dose:
-          preparationRu: мацерат a) в холодной воде
+          preparationRu: на слизистую рта, мацерат a) в холодной воде
           amount: '1.4'
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
+          daily: 4.2-5.6 г
           populationRu: дети от 3 лет, подростки, взрослые и пожилые
       - doc: monograph
         page: 8
@@ -427,10 +447,11 @@ metadata:
         kind: posology
         ru: Препарат b), приём на слизистую рта — подростки, взрослые и пожилые, разовая доза 190 мг, 9 раз в день, суточная доза 1,71 г
         dose:
-          preparationRu: препарат b)
+          preparationRu: на слизистую рта, порошок травы b)
           amount: '190'
           unit: мг
           timesPerDay: '9'
+          daily: 1.71 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 9
@@ -444,10 +465,11 @@ metadata:
         kind: posology
         ru: Препарат c), приём на слизистую рта — подростки, взрослые и пожилые, разовая доза 160 мг, 4–8 раз в день (каждые 2 ч), суточная доза 640–1280 мг
         dose:
-          preparationRu: препарат c)
+          preparationRu: на слизистую рта, сухой экстракт c) (DER 3-6:1, вода)
           amount: '160'
           unit: мг
           timesPerDay: 4-8
+          daily: 640-1280 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 9
@@ -461,11 +483,12 @@ metadata:
         kind: posology
         ru: 'Показание 3, нанесение на кожу, препарат a): мацерат в 150 мл холодной воды — дети от 3 лет, подростки, взрослые и пожилые, разовая доза 1,4 г, 3–4 раза в день, суточная доза 4,2–5,6 г'
         dose:
-          preparationRu: мацерат a) в холодной воде
+          preparationRu: на кожу, мацерат a) в холодной воде
           amount: '1.4'
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
+          daily: 4.2-5.6 г
           populationRu: дети от 3 лет, подростки, взрослые и пожилые
       - doc: monograph
         page: 9
@@ -560,11 +583,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 11
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 5
@@ -608,6 +626,8 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0128

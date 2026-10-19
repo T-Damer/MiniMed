@@ -1,0 +1,6 @@
+plant: origanum-vulgare
+items:
+  - topic: dose
+    ru: "ГРЛС: по 1/4-1/2 стакана настоя 2 раза в день; ВОЗ: по столовой ложке настоя три раза в день"
+    grls: "Принимают внутрь в теплом виде по 1/4-1/2 стакана 2 раза в день за 15 минут до еды."
+    monograph: {doc: monograph, page: 301, quote: "Internal use. As an infusion: one tablespoon of an infusion (10 g of dried herb in 200 ml boiling water for 15–20 minutes) three times daily before meals (73)."}

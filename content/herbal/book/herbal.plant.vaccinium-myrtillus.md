@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/myrtilli-fructus-siccus
-source_checksum: sha256:83770f1593a1588a33221548966e1bdbb0caa5dbd31b0e9601e75a45a07a115b
+source_checksum: sha256:fd7134bdbc6ef51b21ec8adfe8d86d69143a1ce9e66539c3ca105bdb36913901
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -94,6 +94,7 @@ metadata:
           unit: г
           waterMl: '250'
           timesPerDay: 3-4
+          daily: 15-60 г сырья
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -101,7 +102,7 @@ metadata:
         kind: posology
         ru: Показание 2 (воспаление слизистой рта) — подростки, взрослые и пожилые, отвар для применения на слизистую оболочку рта; 20 г сырья или измельчённого сырья на 200 мл воды; полоскать рот несколько раз в день
         dose:
-          preparationRu: отвар сырья или измельчённого сырья для применения на слизистую оболочку рта
+          preparationRu: отвар для полоскания рта (на слизистую оболочку рта)
           amount: '20'
           unit: г
           waterMl: '200'
@@ -186,11 +187,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 37
@@ -233,11 +229,6 @@ metadata:
         quote: Bilberry fruit is considered safe when consumed in amounts typically found in foods. Bilberry fruit extracts have been used safely in research studies at doses of up to 160 mg/day for up to 6 months and appear to be well tolerated.
         url: https://www.nccih.nih.gov/health/bilberry
       - source: nccih
-        kind: warning
-        ru: Листья черники могут быть небезопасны в высоких дозах или при длительном приёме
-        quote: Bilberry leaves may be unsafe when consumed in high doses or for long periods of time.
-        url: https://www.nccih.nih.gov/health/bilberry
-      - source: nccih
         kind: pregnancy
         ru: Мало известно о безопасности черники в количествах больше пищевых при беременности и грудном вскармливании
         quote: Little is known about whether it is safe to use bilberry in amounts greater than those found in foods during pregnancy or while breastfeeding.
@@ -253,6 +244,25 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Bilberry/
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Воронежская область
+        year: 2018
+      - region: Кабардино-Балкарская Республика
+        year: 2018
+      - region: Курская область
+        year: 2017
+      - region: Липецкая область
+        year: 2014
+      - region: Самарская область
+        year: 2017
+      - region: Саратовская область
+        year: 2021
+      - region: Тульская область
+        year: 2020
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/39781.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0050.15

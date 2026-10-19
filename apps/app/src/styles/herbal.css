@@ -278,6 +278,73 @@
   color: var(--theme-text-muted);
 }
 
+.herbal-regions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--theme-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.herbal-regions:active {
+  transform: scale(0.96);
+}
+
+.herbal-regions__badge {
+  padding: 0.0625rem 0.4375rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+}
+
+.herbal-regions__count {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-border);
+  text-underline-offset: 0.2em;
+}
+
+.herbal-regions__list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.herbal-regions__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.herbal-regions__name {
+  min-width: 0;
+}
+
+.herbal-regions__year {
+  color: var(--theme-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.herbal-regions__act {
+  color: var(--theme-accent, var(--theme-text));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .herbal-chapter__actions {
   display: flex;
   flex-wrap: wrap;

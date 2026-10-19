@@ -150,11 +150,6 @@ facts:
   page: 6
   quote: No case of overdose has been reported.
 - kind: statement
-  ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-  doc: monograph
-  page: 6
-  quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-- kind: statement
   ru: 'В отчёте оценки: клинических данных, подтверждающих правдоподобие эффективности при простуде и суставной боли, нет'
   doc: assessment-report
   page: 15

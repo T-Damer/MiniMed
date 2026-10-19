@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/fragariae-folium
-source_checksum: sha256:8635cc966ce0389d9a4263f84a7ee566674f9a6ced7556be7d3ff62ab88a479f
+source_checksum: sha256:5456ee9d81fdf9d02a41117ab209ef14c43b6abc094bc33a35ff0dbd82b0c385
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -96,10 +96,9 @@ metadata:
         kind: posology
         ru: 'Показание 2 — подростки: чай, 4–5 г измельчённого листа на 150–200 мл кипятка в виде настоя или отвара; пить половину приготовленного чая 2–3 раза в день'
         dose:
-          preparationRu: чай (настой или отвар)
-          amount: 4-5
-          unit: г
-          waterMl: 150-200
+          preparationRu: 'чай (настой или отвар): 4-5 г измельчённого листа на 150-200 мл кипятка'
+          amount: половина
+          unit: приготовленного чая
           timesPerDay: 2-3
           populationRu: подростки
       - doc: monograph
@@ -187,11 +186,6 @@ metadata:
         quote: No information available.
         kind: overdose
         ru: Сведений о передозировке нет
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 4
@@ -235,6 +229,8 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0016.15

@@ -25,7 +25,7 @@ facts:
     doc: monograph
     page: 4
     quote: "Adults, elderly Single dose Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily Preparations B), C) Tincture: 2.0-3.0 ml, 3 times daily."
-    dose: { preparationRu: настойка, amount: "2.0-3.0", unit: мл, timesPerDay: "3", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: "настойка (1:5, этанол 45 % или 70 % V/V)", amount: "2.0-3.0", unit: мл, timesPerDay: "3", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: Чай (настой) — дети 4–11 лет и подростки
     doc: monograph

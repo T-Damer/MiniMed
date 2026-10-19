@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/phaseoli-fructus-sine-semine
-source_checksum: sha256:944aed2035d4d30a2ade922cfce5fe6896e4761d2d36dd341ad13986297068ca
+source_checksum: sha256:e44e4b056512091de45c6abc3d6509e428662fa08649221b22d47f8a34c4a594
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -146,11 +146,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       - doc: assessment-report
         page: 4
         quote: It should be noted that the beans themselves are not considered in the monograph and that their use is different from that of the pods. Only preparations that are exposed to heat during manufacturing are recommended for human use.
@@ -206,6 +201,8 @@ metadata:
         evidence: clinical
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0131

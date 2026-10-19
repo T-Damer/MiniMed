@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532103/c2a32eff-6846-4afd-be68-601fb9608667.pdf
-source_checksum: sha256:0db6bea6717c122c144538fac354b2ea9bf01a720330ee8ac50499b9e9cde953
+source_checksum: sha256:1702c068f90e59a08ceb48b1fca50d18a240ccb8768519ca26207c688ac69d98
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -117,6 +117,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
+          daily: 4.5-8 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -129,6 +130,7 @@ metadata:
           unit: г
           waterMl: 200-250
           timesPerDay: 4-5
+          daily: 6-7.5 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -141,6 +143,7 @@ metadata:
           unit: г
           waterMl: '200'
           timesPerDay: '2'
+          daily: 6 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -216,11 +219,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 5
@@ -264,6 +262,44 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: мочекаменная болезнь, для отхождения мелких конкрементов; EMA: промывание мочевых путей — вспомогательно при небольших мочевых жалобах'
+      grls: Мочекаменная болезнь (в качестве средства, способствующего отхождению мелких конкрементов).
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Traditional herbal medicinal product used to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-polygonum-aviculare-l-herba_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: 15 г травы на 200 мл, по 1/2–1/3 стакана 2–3 раза в день; EMA: показание 3 — 3 г на 200 мл, 2 раза в день'
+      grls: Около 15 г (3 столовые ложки) травы помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и нагревают на кипящей водяной бане 15 минут. Охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Взрослые и дети старше 12 лет настой принимают внутрь по 1/2-1/3 стакана 2-3 раза в день перед едой.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: 'Indication 3) Single dose: Herbal tea: 3 g of the comminuted herbal substance in 200 mL of water as a decoction 2 times daily. Daily dose: 6 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-polygonum-aviculare-l-herba_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 20–25 дней; EMA: показание 3 — если симптомы держатся дольше 2 недель, к врачу или медработнику'
+      grls: Курс лечения 20-25 дней.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Indication 3) If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-polygonum-aviculare-l-herba_en.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза выше риска; EMA: при кормлении грудью не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-polygonum-aviculare-l-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0069.18

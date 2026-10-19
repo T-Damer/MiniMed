@@ -23,14 +23,26 @@ facts:
     ru: Чай при расстройстве пищеварения — по чашке после еды
     doc: monograph
     page: 4
-    quote: "Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals."
-    dose: { preparationRu: настой или отвар, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: взрослые и пожилые }
+    quote: "Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals. Daily dose: 3 – 8 g."
+    dose: { preparationRu: настой или отвар, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-4", daily: "3-8 г", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Мягкий экстракт (DER 1:0,4–0,5) при расстройстве пищеварения: 32 мг 2–3 раза в день; в сутки 64–96 мг, не более 160 мг"
+    doc: monograph
+    page: 4
+    quote: "b) Soft extract (DER 1:0.4-0.5) Single dose: 32 mg, 2-3 times daily. Daily dose: 64 – 96 mg (max 160 mg daily)."
+    dose: { preparationRu: "мягкий экстракт (DER 1:0.4-0.5)", amount: "32", unit: мг, timesPerDay: "2-3", daily: "64-96 мг (не более 160 мг)", populationRu: взрослые и пожилые }
   - kind: posology
     ru: Чай от кашля
     doc: monograph
     page: 4
-    quote: "Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily."
-    dose: { preparationRu: настой или отвар, amount: "1.5-4.5", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: взрослые и пожилые }
+    quote: "Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily. Daily dose: 3 – 13.5 g."
+    dose: { preparationRu: настой или отвар, amount: "1.5-4.5", unit: г, waterMl: "150", timesPerDay: "2-3", daily: "3-13.5 г", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: "Мягкий экстракт (DER 3:1) при кашле: 1,2–1,5 г 3–4 раза в день; в сутки 3,6–6 г"
+    doc: monograph
+    page: 5
+    quote: "c) Soft extract (DER 3:1) Single dose: 1.2-1.5 g, 3-4 times daily. Daily dose: 3.6 – 6 g."
+    dose: { preparationRu: "мягкий экстракт (DER 3:1)", amount: "1.2-1.5", unit: г, timesPerDay: "3-4", daily: "3.6-6 г", populationRu: взрослые и пожилые }
   - kind: age
     ru: До 18 лет не рекомендуется
     doc: monograph
@@ -49,6 +61,11 @@ facts:
     page: 5
     quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
     maxDays: 7
+  - kind: warning
+    ru: При кашле — если появляются одышка, лихорадка или гнойная мокрота, обратиться к врачу или медработнику
+    doc: monograph
+    page: 6
+    quote: If dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
   - kind: contraindication
     ru: Гиперчувствительность к солодке
     doc: monograph

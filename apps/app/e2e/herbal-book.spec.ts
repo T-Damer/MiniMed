@@ -93,6 +93,19 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   await expect(page.locator('.herbal-quote')).toHaveCount(0);
   // Reviewed facts carry no draft badge.
   await expect(page.locator('.herbal-chapter__tag--draft')).toHaveCount(0);
+  // Regional Red Books: a count that opens the list of regions with their editions.
+  await expect(page.locator('.herbal-regions')).toContainText('3 региона');
+  await page.locator('.herbal-regions').click();
+  await expect(page.locator('.herbal-regions__item').first()).toBeVisible();
+  await page.goBack();
+
+  // Where the ГРЛС instruction and EMA disagree, both sentences are shown.
+  await openChapter(page, 'Зверобой продырявленный');
+  const conflicts = page.locator('.herbal-chapter__heading', { hasText: 'ГРЛС и EMA расходятся' });
+  await expect(conflicts).toBeVisible();
+  await page.locator('.herbal-chapter__cells--conflicts .herbal-cell').first().click();
+  await expect(page.locator('.herbal-quote__text')).toHaveCount(2);
+  await page.goBack();
 
   // Thyme: EMA covers other Thymus species, and the chapter says so.
   await openChapter(page, 'Тимьян ползучий (чабрец)');

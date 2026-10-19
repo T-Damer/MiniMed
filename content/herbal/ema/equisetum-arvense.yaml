@@ -23,14 +23,19 @@ facts:
     ru: Чай (настой или отвар 5–15 минут) — подростки, взрослые и пожилые
     doc: monograph
     page: 5
-    quote: "a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily"
-    dose: { preparationRu: настой или отвар, amount: "1-4", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    quote: "a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily daily dose: 3-12 g"
+    dose: { preparationRu: настой или отвар, amount: "1-4", unit: г, waterMl: "150", timesPerDay: "3-4", daily: "3-12 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
-    ru: Отвар для повязок и промываний ран — 10 г на литр
+    ru: Отвар для повязок и промываний ран, наружно — 10 г на литр
     doc: monograph
     page: 6
     quote: "a) single dose: 10 g of the comminuted herbal substance in 1 l of water as decoction for impregnated dressing and irrigation"
-    dose: { preparationRu: отвар для повязок, amount: "10", unit: г на литр, populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "отвар для наружного применения (повязки, промывания ран)", amount: "10", unit: г на литр, populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Способ применения — показание 1 внутрь, показание 2 наружно
+    doc: monograph
+    page: 6
+    quote: Method of administration Indication 1 Oral use Indication 2 Cutaneous use
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph
@@ -54,6 +59,11 @@ facts:
     page: 7
     quote: Indication 1 If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
   - kind: warning
+    ru: Для препаратов, кроме чая, обеспечить достаточное питьё
+    doc: monograph
+    page: 7
+    quote: For preparations other than tea preparations ensure appropriate fluid intake.
+  - kind: warning
     ru: Если на коже признаки инфекции — к врачу
     doc: monograph
     page: 7
@@ -68,6 +78,11 @@ facts:
     doc: monograph
     page: 7
     quote: Indication 1 Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+  - kind: pregnancy
+    ru: Показание 2 (кожное применение) — данных о применении при беременности и кормлении грудью нет; при беременности не рекомендуется
+    doc: monograph
+    page: 8
+    quote: Indication 2 There are no data on use during pregnancy or lactation. In the absence of sufficient data, the use during pregnancy is not recommended.
   - kind: lactation
     ru: Не наносить на грудь кормящим
     doc: monograph

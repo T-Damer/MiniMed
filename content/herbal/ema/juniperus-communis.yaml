@@ -68,6 +68,11 @@ facts:
     doc: monograph
     page: 7
     quote: Interactions with other medicinal products and other forms of interaction None reported.
+  - kind: interaction
+    ru: Описан один случай неожиданного снижения МНО у пациента, получавшего фенпрокумон, на фоне приёма шишкоягод можжевельника
+    doc: assessment-report
+    page: 24
+    quote: Kaufmann et al. (2013) reported one case study on an unexpected decrease of the INR in a patient with phenprocoumon treatment during the intake of juniper cone berries.
   - kind: pregnancy
     ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
     doc: monograph

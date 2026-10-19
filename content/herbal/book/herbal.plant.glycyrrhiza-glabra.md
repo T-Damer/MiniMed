@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:f7453e913ea1e607600297e612e4fbbcb980692ba9a811e24ad84d63e2ef7106
+source_checksum: sha256:f8d0ca45ab3f90678712dac83dbd86f86818955b20d8e713ff8f6e84dc42280f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -104,7 +104,7 @@ metadata:
         ru: Отхаркивающее при кашле, связанном с простудой
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals.'
+        quote: 'Herbal tea: 1.5 - 2 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2 to 4 times daily. Take one cup after meals. Daily dose: 3 – 8 g.'
         kind: posology
         ru: Чай при расстройстве пищеварения — по чашке после еды
         dose:
@@ -113,10 +113,23 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
+          daily: 3-8 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily.'
+        quote: 'b) Soft extract (DER 1:0.4-0.5) Single dose: 32 mg, 2-3 times daily. Daily dose: 64 – 96 mg (max 160 mg daily).'
+        kind: posology
+        ru: 'Мягкий экстракт (DER 1:0,4–0,5) при расстройстве пищеварения: 32 мг 2–3 раза в день; в сутки 64–96 мг, не более 160 мг'
+        dose:
+          preparationRu: мягкий экстракт (DER 1:0.4-0.5)
+          amount: '32'
+          unit: мг
+          timesPerDay: 2-3
+          daily: 64-96 мг (не более 160 мг)
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: 'Herbal tea: 1.5 g – 4.5 g of comminuted herbal substance in 150 ml of boiling water as an herbal infusion or decoction, 2-3 times daily. Daily dose: 3 – 13.5 g.'
         kind: posology
         ru: Чай от кашля
         dose:
@@ -125,6 +138,19 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
+          daily: 3-13.5 г
+          populationRu: взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'c) Soft extract (DER 3:1) Single dose: 1.2-1.5 g, 3-4 times daily. Daily dose: 3.6 – 6 g.'
+        kind: posology
+        ru: 'Мягкий экстракт (DER 3:1) при кашле: 1,2–1,5 г 3–4 раза в день; в сутки 3,6–6 г'
+        dose:
+          preparationRu: мягкий экстракт (DER 3:1)
+          amount: 1.2-1.5
+          unit: г
+          timesPerDay: 3-4
+          daily: 3.6-6 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -144,6 +170,11 @@ metadata:
         kind: duration
         ru: При кашле — если симптомы держатся дольше 1 недели, обратиться к врачу или медработнику
         maxDays: 7
+      - doc: monograph
+        page: 6
+        quote: If dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
+        kind: warning
+        ru: При кашле — если появляются одышка, лихорадка или гнойная мокрота, обратиться к врачу или медработнику
       - doc: monograph
         page: 5
         quote: Hypersensitivity to the active substance(s)
@@ -251,6 +282,50 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Licorice/
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Донецкая Народная Республика
+        year: 2020
+      - region: Курганская область
+        year: 2012
+      - region: Республика Крым
+        year: 2025
+      - region: Самарская область
+        year: 2017
+        checked:
+          act: Красная книга Самарской области, 2017 (официальное издание; приказы 109/2016 и 552/2017)
+          url: https://shipunov.depo.msu.ru/shipunov/school/books/kr_kn_samarskoj_oblasti_2017_1.pdf
+          category: '3'
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/17684.html
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: детям от 1 года до 3 лет по 1 чайной ложке 2-3 раза в день; EMA: детям и подросткам до 18 лет не рекомендуется'
+      grls: дети от 1 года до 3 лет – по 1 чайной ложке 2-3 раза в день.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-glycyrrhiza-glabra-l-glycyrrhiza-inflata-bat-glycyrrhiza-uralensis-fisch-radix-revision-1_en.pdf
+    - topic: interaction
+      topicRu: Лекарства
+      ru: 'ГРЛС: можно с другими средствами от бронхолегочных болезней; EMA: нельзя с диуретиками, сердечными гликозидами, кортикостероидами, слабительными'
+      grls: Возможно одновременное назначение других лекарственных средств, применяемых при лечении бронхолегочных заболеваний.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: Not to be used concomitantly with diuretics, cardiac glycosides, corticosteroids, stimulant laxatives or other medications which may aggravate electrolyte imbalance
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-glycyrrhiza-glabra-l-glycyrrhiza-inflata-bat-glycyrrhiza-uralensis-fisch-radix-revision-1_en.pdf
+    - topic: contraindication
+      topicRu: Кому нельзя
+      ru: 'ГРЛС: противопоказаны бронхиальная астма, гастрит, язва в обострении; EMA: не рекомендуется при гипертонии, болезнях почек, печени, сердца, гипокалиемии'
+      grls: Повышенная чувствительность к препаратам солодки, бронхиальная астма, гастрит, язвенная болезнь желудка и двенадцатиперстной кишки в период обострения
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: Liquorice medication is not recommended in patients affected by hypertension, kidney diseases, liver or cardiovascular disorders or hypokalaemia, as they are more sensitive to the adverse effects of liquorice.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-glycyrrhiza-glabra-l-glycyrrhiza-inflata-bat-glycyrrhiza-uralensis-fisch-radix-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0040.15

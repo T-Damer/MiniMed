@@ -1,0 +1,14 @@
+plant: bidens-tripartita
+items:
+  - topic: dose
+    ru: "ГРЛС: по 1/4-1/3 стакана настоя 2-3 раза в день; ВОЗ: одна столовая ложка настоя (1:20) 3-4 раза в день"
+    grls: "При простудных заболеваниях настой принимают внутрь в теплом виде по 1/4-1/3 стакана 2-3 раза в день после еды."
+    monograph: {doc: monograph, page: 52, quote: "Internal use. One tablespoon of the infusion (1:20) is administered 3–4 times a day (46, 53)."}
+  - topic: pregnancy
+    ru: "ГРЛС: внутрь противопоказано, наружно настой возможен; ВОЗ: препараты травы череды при беременности не следует применять"
+    grls: "Применение внутрь противопоказано; возможно наружное применение настоя."
+    monograph: {doc: monograph, page: 52, quote: "Preparations of Herba Bidentis should not be used during pregnancy."}
+  - topic: lactation
+    ru: "ГРЛС: внутрь противопоказано, наружно настой возможен; ВОЗ: препараты травы череды кормящим матерям не следует применять"
+    grls: "Применение внутрь противопоказано; возможно наружное применение настоя."
+    monograph: {doc: monograph, page: 52, quote: "Preparations of Herba Bidentis should not be used by nursing mothers."}

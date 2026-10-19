@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/agrimoniae-herba
-source_checksum: sha256:c0f4df5acee66b164638b71542ec9034a02cdec976aa096fdd28803d248fb8cb
+source_checksum: sha256:1c4d789064b8352a475ba84548a210b789b2060cf3dfc2bf6e932695b3dbb627
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -92,7 +92,7 @@ metadata:
           preparationRu: чай (настой)
           amount: 1.5-4
           unit: г
-          waterMl: '250'
+          waterMl: ≤250
           timesPerDay: 2-3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -138,7 +138,7 @@ metadata:
           preparationRu: отвар для полоскания
           amount: 3-4.5
           unit: г
-          waterMl: '250'
+          waterMl: ≤250
           timesPerDay: 2-3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -172,7 +172,7 @@ metadata:
           preparationRu: отвар для пропитанной повязки
           amount: 3-10
           unit: г
-          waterMl: '250'
+          waterMl: ≤250
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -183,7 +183,7 @@ metadata:
           preparationRu: отвар для добавления в ванну
           amount: 3-10
           unit: г
-          waterMl: '250'
+          waterMl: ≤250
           timesPerDay: дважды
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -265,11 +265,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on genotoxicity, carcinogenicity and reproductive toxicity have not been performed.
-        kind: statement
-        ru: Исследования генотоксичности, канцерогенности и репродуктивной токсичности не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -313,6 +308,13 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Вологодская область
+        year: 2015
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/913.html
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

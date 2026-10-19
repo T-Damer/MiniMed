@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/meliloti-herba
-source_checksum: sha256:87ed77487e821811a097d2c103d3d062dc1aac3d9043f8d62b76ec5f35552014
+source_checksum: sha256:323e9c1ba9676188f0521b456747a7faad395b101b9af772fcc72bf330b81073
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -88,6 +88,7 @@ metadata:
           amount: 1.0-1.2
           unit: г
           timesPerDay: '2'
+          daily: 2.0-2.4 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -99,6 +100,7 @@ metadata:
           amount: '250'
           unit: мг
           timesPerDay: '3'
+          daily: 750 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -109,6 +111,7 @@ metadata:
           preparationRu: жидкий экстракт в кожном пластыре
           amount: '3'
           unit: г
+          daily: 3-6 г (до двух пластырей)
           populationRu: возраст не указан
       - doc: monograph
         page: 3
@@ -168,6 +171,16 @@ metadata:
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
         kind: interaction
         ru: Взаимодействий не описано
+      - doc: assessment-report
+        page: 30
+        quote: There is also a report of a possible interaction between oral anticoagulant treatment and topical treatment with a cream containing extracts of Ruscus and melilot. A 66 year-old woman with cardiac arythmia received acebutolol 200 mg/day and acenocoumarol 3 tab/day for years. She also had a current treatment with thyroxine 100 mg/day. 10 days after she started topical treatment for venous insufficiency, 3 times daily, the INR increased from 2 to 5.82. Either treatment was discontinued the INR returned to the usual values. Seven month later, a rechallenge with the crème was attempted. After one week the INR had again increased from 2.56 to 4.06.
+        kind: interaction
+        ru: 'Отчёт EMA: описан случай возможного взаимодействия — у женщины 66 лет, годами принимавшей аценокумарол, после начала местного применения крема с экстрактами рускуса и донника МНО выросло с 2 до 5,82; при повторной пробе крема — с 2,56 до 4,06'
+      - doc: assessment-report
+        page: 28
+        quote: Case reports of hepatotoxicity in humans are predominantly reported in daily doses above 90 mg coumarin, but a few case reports after a daily intake of 25 to 90 mg coumarin are also documented.
+        kind: warning
+        ru: 'Отчёт EMA: сообщалось о гепатотоксичности кумарина у людей — в основном при суточных дозах выше 90 мг, единичные сообщения — при приёме 25–90 мг в сутки'
       - doc: monograph
         page: 6
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -193,11 +206,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity and carcinogenicity have not been performed. Adequate tests on genotoxicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности и канцерогенности не проводилось; адекватные тесты на генотоксичность не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -251,6 +259,8 @@ metadata:
         quote: 98. Донник аптечный — Melilotus oficinalis — Все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 219
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0011.15

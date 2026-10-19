@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos
-source_checksum: sha256:bd88f941b8ea73b42a24b1329181606112aca275cc631324fb50aefb751e95de
+source_checksum: sha256:2b8a6ab85b5eb85f3d25727441b2ea021724a9700099fbb6832715a90e586db3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -79,7 +79,7 @@ metadata:
         kind: posology
         ru: Травяной чай (настой) из измельчённого сырья при психическом стрессе — подростки, взрослые и пожилые, разовая доза 500 мг на 150–200 мл кипятка до 4 раз в день
         dose:
-          preparationRu: травяной чай (настой) из измельчённого сырья
+          preparationRu: травяной чай (настой) из измельчённого сырья, при стрессе
           amount: '500'
           unit: мг
           waterMl: 150-200
@@ -91,7 +91,7 @@ metadata:
         kind: posology
         ru: Порошок сырья при психическом стрессе — взрослые, 400 мг два раза в день
         dose:
-          preparationRu: порошок сырья
+          preparationRu: порошок сырья, при стрессе
           amount: '400'
           unit: мг
           timesPerDay: два
@@ -102,7 +102,7 @@ metadata:
         kind: posology
         ru: Порошок сырья при психическом стрессе — подростки, 200 мг два раза в день
         dose:
-          preparationRu: порошок сырья
+          preparationRu: порошок сырья, при стрессе
           amount: '200'
           unit: мг
           timesPerDay: два
@@ -113,7 +113,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт (1:1) при психическом стрессе — подростки, взрослые и пожилые, 0,5–2,0 мл до 3 раз в день
         dose:
-          preparationRu: жидкий экстракт (1:1)
+          preparationRu: жидкий экстракт (DER 1:1, этанол 45 %), при стрессе
           amount: 0.5-2.0
           unit: мл
           timesPerDay: до 3
@@ -124,9 +124,9 @@ metadata:
         kind: posology
         ru: Жидкий экстракт (1:10) при психическом стрессе — подростки, взрослые и пожилые, 19 г 2–3 раза в день (так в монографии)
         dose:
-          preparationRu: жидкий экстракт (1:10)
+          preparationRu: жидкий экстракт (DER 1:10, сладкое вино), при стрессе
           amount: '19'
-          unit: г
+          unit: г (так в монографии)
           timesPerDay: 2-3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -135,7 +135,7 @@ metadata:
         kind: posology
         ru: Настойка (1:5) при психическом стрессе — подростки, взрослые и пожилые, 1–2 мл до 3 раз в день
         dose:
-          preparationRu: настойка (1:5)
+          preparationRu: настойка (1:5, этанол 60 %), при стрессе
           amount: 1-2
           unit: мл
           timesPerDay: до 3
@@ -146,7 +146,7 @@ metadata:
         kind: posology
         ru: Сухой экстракт (4–5:1) при психическом стрессе — подростки, взрослые и пожилые, 125 мг 2–3 раза в день
         dose:
-          preparationRu: сухой экстракт (4-5:1)
+          preparationRu: сухой экстракт (DER 4-5:1, метанол 50 %), при стрессе
           amount: '125'
           unit: мг
           timesPerDay: 2-3
@@ -157,7 +157,7 @@ metadata:
         kind: posology
         ru: Для сна — травяной чай (настой) из измельчённого сырья, 500–1000 мг на 150–200 мл кипятка за 30–60 минут до сна
         dose:
-          preparationRu: травяной чай (настой) из измельчённого сырья
+          preparationRu: травяной чай (настой) из измельчённого сырья, для сна, разовая доза за 30-60 мин до сна
           amount: 500-1000
           unit: мг
           waterMl: 150-200
@@ -168,7 +168,7 @@ metadata:
         kind: posology
         ru: Для сна — порошок сырья, 800–2000 мг за 30–60 минут до сна
         dose:
-          preparationRu: порошок сырья
+          preparationRu: порошок сырья, для сна, разовая доза за 30-60 мин до сна
           amount: 800-2000
           unit: мг
           populationRu: подростки, взрослые и пожилые
@@ -178,7 +178,7 @@ metadata:
         kind: posology
         ru: Для сна — сухой экстракт (4–5:1), 125–250 мг за 60 минут до сна
         dose:
-          preparationRu: сухой экстракт (4-5:1)
+          preparationRu: сухой экстракт (DER 4-5:1, метанол 50 %), для сна, разовая доза за 60 мин до сна
           amount: 125-250
           unit: мг
           populationRu: подростки, взрослые и пожилые
@@ -245,11 +245,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 20
@@ -297,6 +292,13 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Hops/
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Республика Карелия
+        year: 2020
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/20316.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0046.15

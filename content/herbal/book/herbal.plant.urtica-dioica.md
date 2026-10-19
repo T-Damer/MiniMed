@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:31f533a053e538731658e7ec163b6aafbed8ab11438cf9d8e91e825a599abd7e
+source_checksum: sha256:4de8452dfab423874e7f44d284a76b7ee4b6df58574e5a2be7a6d98b4b23dbbd
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -104,10 +104,55 @@ metadata:
         kind: posology
         ru: Чай — 2–4 г на приём, 3–6 раз в день, в сутки 8–12 г
         dose:
-          preparationRu: настой
+          preparationRu: чай из измельчённого сырья (разовая доза)
           amount: 2-4
           unit: г
           timesPerDay: 3-6
+          daily: 8-12 г
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 3
+        quote: 'b) Liquid extract (1:5): 30-40 oral drops as a single dose, 3-4 times daily.'
+        kind: posology
+        ru: Жидкий экстракт (1:5) — разовая доза 30–40 капель внутрь, 3–4 раза в день
+        dose:
+          preparationRu: жидкий экстракт (1:5)
+          amount: 30-40
+          unit: капель внутрь
+          timesPerDay: 3-4
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 3
+        quote: 'c) Dry extract (4.7-6:1): 750 mg as a single dose, 2-3 times daily.'
+        kind: posology
+        ru: Сухой экстракт (4,7–6:1) — разовая доза 750 мг, 2–3 раза в день
+        dose:
+          preparationRu: сухой экстракт (4,7–6:1; вода)
+          amount: '750'
+          unit: мг
+          timesPerDay: 2-3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 3
+        quote: 'd) Dry extract (5-10:1): 450 mg as a single dose, 3 times daily.'
+        kind: posology
+        ru: Сухой экстракт (5–10:1) — разовая доза 450 мг, 3 раза в день
+        dose:
+          preparationRu: сухой экстракт (5–10:1; вода)
+          amount: '450'
+          unit: мг
+          timesPerDay: '3'
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 3
+        quote: 'e) Dry extract (8-10:1): 540 mg as a single dose, 2 times daily.'
+        kind: posology
+        ru: Сухой экстракт (8–10:1) — разовая доза 540 мг, 2 раза в день
+        dose:
+          preparationRu: сухой экстракт (8–10:1; этанол 50 %)
+          amount: '540'
+          unit: мг
+          timesPerDay: '2'
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -204,6 +249,17 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/StingingNettle/
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-urtica-dioica-l-urtica-urens-l-folium_en.pdf
     identification:
       source:
         number: ФС.2.5.0019.15

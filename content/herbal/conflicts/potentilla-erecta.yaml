@@ -1,0 +1,6 @@
+plant: potentilla-erecta
+items:
+  - topic: age
+    ru: "ГРЛС: внутрь нельзя детям до 12 лет; EMA: детям и подросткам до 18 лет не рекомендуется"
+    grls: "детский возраст до 12 лет"
+    monograph: {doc: monograph, page: 4, quote: "The use in children and adolescents under 18 years of age is not recommended"}

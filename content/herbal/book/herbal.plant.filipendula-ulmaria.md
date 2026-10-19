@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/filipendulae-ulmariae-herba
-source_checksum: sha256:14f808b8df50cc616d7eac17e4b49190ab400a49c344a1aea85ac09ccbb0f3ba
+source_checksum: sha256:cddba55401297e44305e85c792464232af32b474caf40ef634b088a3029919e4
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -225,11 +225,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 6
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       - doc: assessment-report
         page: 15
         quote: No clinical data are available to contribute to the plausibility of efficacy for the specific indications of Filipendulae ulmariae herba and flos in the context of inflammatory diseases such as painful articular conditions and common colds.
@@ -283,6 +278,8 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

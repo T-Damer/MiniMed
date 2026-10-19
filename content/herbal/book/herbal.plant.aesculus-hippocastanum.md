@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen
-source_checksum: sha256:d7726c3614fd00cac4b79a612ace431e31c6d092b19c329621341d6f070c73bb
+source_checksum: sha256:13d7f97dce122a29f6e217d8ace6320c328da6a650464ec106dc3a3960f6a7f1
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -89,7 +89,7 @@ metadata:
         kind: posology
         ru: Стандартизованный сухой экстракт с содержанием 21 мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин) 2 раза в день — взрослые и пожилые (хорошо изученное применение)
         dose:
-          preparationRu: стандартизованный сухой экстракт
+          preparationRu: стандартизованный сухой экстракт (6,5-10 % тритерпеновых гликозидов), экстрагент этанол 40-80 % об/об
           amount: '21'
           unit: мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин)
           timesPerDay: '2'
@@ -196,10 +196,11 @@ metadata:
         kind: posology
         ru: 'Препарат g): жидкий экстракт, взрослые и пожилые — разовая доза 300 мг 2 раза в день, суточная 600 мг'
         dose:
-          preparationRu: препарат g), жидкий экстракт
+          preparationRu: 'препарат g): жидкий экстракт (1:1,5-2,5), экстрагент этанол 55 % об/об'
           amount: '300'
           unit: мг
           timesPerDay: '2'
+          daily: 600 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -207,10 +208,11 @@ metadata:
         kind: posology
         ru: 'Препарат h): взрослые и пожилые — разовая доза 154 мг 3–4 раза в день, суточная 462–616 мг'
         dose:
-          preparationRu: препарат h)
+          preparationRu: 'препарат h): жидкий экстракт (1:2), экстрагент этанол 19 % по массе'
           amount: '154'
           unit: мг
           timesPerDay: 3-4
+          daily: 462-616 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -218,10 +220,11 @@ metadata:
         kind: posology
         ru: 'Препарат i): сухой экстракт, взрослые и пожилые — разовая доза 99 мг 2 раза в день, суточная 198 мг'
         dose:
-          preparationRu: препарат i), сухой экстракт
+          preparationRu: 'препарат i): сухой экстракт (3-6:1), экстрагент вода'
           amount: '99'
           unit: мг
           timesPerDay: '2'
+          daily: 198 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -323,6 +326,11 @@ metadata:
         quote: Indication 1) If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted.
         kind: warning
         ru: 'Показание 1: при воспалении кожи, тромбофлебите или подкожном уплотнении, сильной боли, язвах, внезапном отёке одной или обеих ног, сердечной или почечной недостаточности — обратиться к врачу (традиционное применение)'
+      - doc: assessment-report
+        page: 53
+        quote: developed bleeding from a 5 cm angiomyolipoma (AML) (diagnosed since 15 years). Routine blood investigations showed an INR of 2.5. The authors state that there is a potentially life-threatening association between horse chestnut seed extract-containing products and renal AML, highlighting the risk associated with horse chestnut seed extract induced anticoagulation.
+        kind: warning
+        ru: Описан случай кровотечения из ангиомиолипомы почки (INR 2,5) у пациентки, принимавшей экстракт семян конского каштана; авторы указывают на потенциально опасную для жизни связь и риск антикоагуляции, вызванной экстрактом
       - doc: monograph
         page: 7
         quote: Indication 1) If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted. The use in adolescents under 18 years of age is not recommended because of concerns requiring medical advice.
@@ -465,6 +473,8 @@ metadata:
         quote: 'Likelihood score: D (possible, rare cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/HorseChestnut/
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0117

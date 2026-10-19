@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:f4d39e7b25c11c17a8ee67bdba34a4d14f82062a3b6ff67d341da310abcfbebe
+source_checksum: sha256:4895b64e3df1cea83e0aea9aba0b7f688a2555fdda4fe9b63ed4d129bd6a3bc3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -104,27 +104,29 @@ metadata:
         ru: Отхаркивающее при кашле от простуды
       - doc: monograph
         page: 5
-        quote: 'Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily.'
+        quote: 'Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily. Daily dose: 4.5 g'
         kind: posology
-        ru: Чай (настой), настаивать 15 минут — взрослые и подростки
+        ru: Чай (настой), настаивать 15 минут — взрослые и подростки; суточная доза 4,5 г
         dose:
           preparationRu: настой
           amount: '1.5'
           unit: г
           waterMl: '250'
           timesPerDay: '3'
+          daily: 4.5 г
           populationRu: взрослые и подростки
       - doc: monograph
         page: 5
-        quote: 'Children between 4 and 12 years of age Single dose Herbal tea: 1.0 g of the herbal substance in 100 ml boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily.'
+        quote: 'Children between 4 and 12 years of age Single dose Herbal tea: 1.0 g of the herbal substance in 100 ml boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily. Daily dose: 3.0 g'
         kind: posology
-        ru: Чай (настой), настаивать 15 минут — дети 4–12 лет (вздутие, кашель)
+        ru: Чай (настой), настаивать 15 минут — дети 4–12 лет (вздутие, кашель); суточная доза 3,0 г
         dose:
           preparationRu: настой
           amount: '1.0'
           unit: г
           waterMl: '100'
           timesPerDay: '3'
+          daily: 3.0 г
           populationRu: дети 4–12 лет
       - doc: monograph
         page: 5
@@ -161,6 +163,16 @@ metadata:
         kind: warning
         ru: Детям 4–12 лет не рекомендуется, если суточное поступление эстрагола превышает ориентир 1,0 мкг/кг массы тела, кроме случаев, обоснованных оценкой риска
       - doc: monograph
+        page: 9
+        quote: In the general population exposure to estragole should be kept as low as practically achievable.
+        kind: warning
+        ru: Эстрагол — в общей популяции поступление должно быть как можно ниже
+      - doc: monograph
+        page: 9
+        quote: In children below 12 years of age, the daily intake of estragole has to be below 1.0 µg/kg bw.
+        kind: warning
+        ru: Эстрагол — детям младше 12 лет суточное поступление должно быть ниже 1,0 мкг на кг массы тела
+      - doc: monograph
         page: 7
         quote: Interactions with other medicinal products and other forms of interaction None reported.
         kind: interaction
@@ -170,6 +182,11 @@ metadata:
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
+      - doc: monograph
+        page: 9
+        quote: In pregnant and breast-feeding women, the daily intake of estragole has to be below 0.05 mg/person per day.
+        kind: pregnancy
+        ru: Эстрагол — у беременных и кормящих женщин суточное поступление должно быть ниже 0,05 мг на человека
       - doc: monograph
         page: 7
         quote: There is evidence that trans-anethole is excreted in human breast milk.
@@ -185,6 +202,16 @@ metadata:
         quote: No cases of overdose have been reported.
         kind: overdose
         ru: Случаев передозировки не описано
+      - doc: monograph
+        page: 9
+        quote: Estragole is considered a genotoxic carcinogen in rodents
+        kind: statement
+        ru: Эстрагол считается генотоксичным канцерогеном у грызунов
+      - doc: monograph
+        page: 9
+        quote: An aqueous extract of fennel seeds given daily to 24 female BALB/c mice from day 6 to day 15 of pregnancy showed a dose-dependent teratogenic effect.
+        kind: statement
+        ru: Водный экстракт семян фенхеля, который ежедневно давали 24 самкам мышей линии BALB/c с 6-го по 15-й день беременности, вызывал дозозависимый тератогенный эффект
       constituents:
       - doc: assessment-report
         page: 4
@@ -225,6 +252,35 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: дозы детям до 3 лет; EMA: до 4 лет не рекомендуется — мало данных'
+      grls: дети до 3 лет – по 1/2-1 чайной ложке
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: The use is not recommended in children under 4 years of age due to lack of adequate data.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-foeniculum-vulgare-miller-subsp-vulgare-var-vulgare-fructus-revision-1_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: 10 г плодов на 200 мл, по 1/3 стакана 3-4 раза в день; EMA: суточная доза 4,5 г'
+      grls: 'Около 10 г (1,5 столовые ложки) плодов помещают в эмалированную посуду, заливают 200 мл (1 стакан) горячей кипяченой воды, закрывают крышкой и настаивают на кипящей водяной бане в течение 15 минут, охлаждают при комнатной температуре 45 минут, процеживают, оставшееся сырье отжимают. Объем полученного настоя доводят кипяченой водой до 200 мл. Принимают внутрь теплый настой 3-4 раза в день: взрослые и дети старше 12 лет – по 1/3 стакана'
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: 'Herbal tea: 1.5 g of herbal substance in 250 ml of boiling water (steep for 15 minutes) as a herbal infusion, 3 times daily. Daily dose: 4.5 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-foeniculum-vulgare-miller-subsp-vulgare-var-vulgare-fructus-revision-1_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: не рекомендуется'
+      grls: Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-foeniculum-vulgare-miller-subsp-vulgare-var-vulgare-fructus-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0102

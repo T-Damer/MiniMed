@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/rhei-radix
-source_checksum: sha256:518981cc16422f227deba36cfd7fc15828dc2190d9af5b326b525a8a43a242bd
+source_checksum: sha256:22c078ed954e43343c9493c67f148144394dec9a3defecaa981837d6818b1fc3
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -86,14 +86,15 @@ metadata:
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: amount of comminuted herbal substance (equivalent to not more than 30 mg hydroxyanthracene derivatives) in 150 ml of boiling water as herbal infusion.'
+        quote: 'Adolescents, adults, elderly Single dose: Herbal preparation equivalent to 20-30 mg hydroxyanthracene derivatives, calculated as rhein, to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion. Herbal tea: amount of comminuted herbal substance (equivalent to not more than 30 mg hydroxyanthracene derivatives) in 150 ml of boiling water as herbal infusion.'
         kind: posology
         ru: Чай — измельчённое сырьё в количестве, равном не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка в виде настоя
         dose:
-          preparationRu: 'чай: настой измельчённого сырья'
+          preparationRu: 'чай: настой измельчённого сырья на ночь (доза считается по гидроксиантраценовым производным, не по массе сырья)'
           amount: не более 30
           unit: мг гидроксиантраценовых производных
           waterMl: '150'
+          timesPerDay: один
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -328,6 +329,8 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM945/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0092.18

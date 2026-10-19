@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
-source_checksum: sha256:6db880ec9f1a07d556cc4c455f7c40b125af8c729f75ffe9479049531cb9b6da
+source_checksum: sha256:e9bf896ba06619012ccfe89e0efcba0db1f6a5147711346e78fc084b7832459f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -73,7 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium
       lastUpdated: 16/06/2014
       species: Eucalyptus globulus Labill.
-      otherSpecies: false
+      otherSpecies: true
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-eucalyptus-globulus-labill-folium_en.pdf
@@ -100,26 +100,28 @@ metadata:
         ru: Облегчение кашля при простуде
       - doc: monograph
         page: 3
-        quote: 'Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily.'
+        quote: 'Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily. Daily dose 4.5 - 12 g the comminuted herbal substance'
         kind: posology
         ru: Чай (настой) внутрь — подростки, взрослые и пожилые
         dose:
-          preparationRu: настой
+          preparationRu: настой листа эвкалипта шаровидного (Eucalyptus globulus)
           amount: 1.5-3
           unit: г
           waterMl: '150'
           timesPerDay: до 4
+          daily: 4.5-12 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 3
-        quote: 'Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily.'
+        quote: 'Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily. Daily dose 3 - 9 g of the comminuted herbal substance'
         kind: posology
         ru: Ингаляция — залить лист кипятком
         dose:
-          preparationRu: настой для ингаляции
+          preparationRu: настой листа эвкалипта шаровидного (Eucalyptus globulus) для ингаляции
           amount: '3'
           unit: г
           timesPerDay: до 3
+          daily: 3-9 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -204,6 +206,26 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детям до 3 лет; EMA: детям до 12 лет не рекомендуется'
+      grls: Повышенная чувствительность к препарату, детский возраст до 3 лет.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-eucalyptus-globulus-labill-folium_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 2–3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-eucalyptus-globulus-labill-folium_en.pdf
     identification:
       source:
         number: ФС.2.5.0107

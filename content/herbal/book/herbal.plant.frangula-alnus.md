@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:2d0be80bccb680ff7ec382863796899b2731f4855a24cfa0004b976edf32a12d
+source_checksum: sha256:608a2ebd9c848a720a9011195865a55b17e091dabceb3a22ebfaab1c9708891b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -94,20 +94,22 @@ metadata:
         kind: posology
         ru: Разовая доза — препарат, эквивалентный 10–30 мг гидроксиантраценовых производных (в пересчёте на глюкофрангулин А), один раз в день на ночь; индивидуальная доза — наименьшая, дающая комфортный мягкий стул
         dose:
-          preparationRu: препарат на ночь
+          preparationRu: препарат на ночь (разовая доза)
           amount: 10-30
           unit: мг гидроксиантраценовых производных
+          timesPerDay: один
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: 'Herbal tea: amount of comminuted herbal substance equivalent to not more than 30 mg hydroxyanthracene derivatives in 150 ml of boiling water as herbal infusion'
+        quote: 'to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion. Herbal tea: amount of comminuted herbal substance equivalent to not more than 30 mg hydroxyanthracene derivatives in 150 ml of boiling water as herbal infusion'
         kind: posology
-        ru: Чай — измельчённое сырьё, эквивалентное не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка
+        ru: Чай — измельчённое сырьё, эквивалентное не более 30 мг гидроксиантраценовых производных, на 150 мл кипятка; разовая доза, один раз в день на ночь
         dose:
-          preparationRu: настой
+          preparationRu: настой (разовая доза)
           amount: '30'
           unit: мг гидроксиантраценовых производных (не больше)
           waterMl: '150'
+          timesPerDay: один
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -142,6 +144,21 @@ metadata:
         kind: warning
         ru: Применять, только если не помогли изменение питания или набухающие средства
       - doc: monograph
+        page: 5
+        quote: Like all laxatives, frangula bark preparations should not be taken by patients suffering from faecal impaction and undiagnosed, acute or persistent gastro-intestinal complaints, e.g. abdominal pain, nausea and vomiting, unless advised by a doctor, because these symptoms can be signs of potential or existing intestinal blockage (ileus).
+        kind: warning
+        ru: Нельзя без указания врача при каловой пробке и неустановленных острых или стойких жалобах со стороны ЖКТ (боль в животе, тошнота, рвота) — это могут быть признаки кишечной непроходимости
+      - doc: monograph
+        page: 5
+        quote: Patients with kidney disorders should be aware of possible electrolyte imbalance.
+        kind: warning
+        ru: Больным с заболеваниями почек нужно учитывать возможное нарушение электролитного баланса
+      - doc: monograph
+        page: 5
+        quote: Patients taking cardiac glycosides, antiarrhythmic medicinal products, medicinal products inducing QT-prolongation, diuretics, adrenocorticosteroids or liquorice root, have to consult a doctor before taking frangula bark concomitantly.
+        kind: interaction
+        ru: Принимающим сердечные гликозиды, антиаритмики, препараты, удлиняющие интервал QT, мочегонные, кортикостероиды или корень солодки — перед приёмом коры крушины к врачу
+      - doc: monograph
         page: 6
         quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
         kind: interaction
@@ -163,6 +180,11 @@ metadata:
         ru: Боль и спазмы в животе, жидкий стул — особенно у больных с раздражённой толстой кишкой
       - doc: monograph
         page: 7
+        quote: However, these symptoms may also occur generally as a consequence of individual overdosage. In such cases dose reduction is necessary.
+        kind: warning
+        ru: Боль, спазмы и жидкий стул могут быть следствием индивидуальной передозировки; тогда дозу нужно уменьшить
+      - doc: monograph
+        page: 7
         quote: Furthermore, chronic use may cause pigmentation of the intestinal mucosa (pseudomelanosis coli), which usually recedes when the patient stops taking the preparation.
         kind: adverse
         ru: При хроническом приёме возможна пигментация слизистой кишки (псевдомеланоз), обычно проходит после отмены
@@ -181,6 +203,16 @@ metadata:
         quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, specifically potassium, should be monitored. This is particularly important in the elderly.
         kind: overdose
         ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — обильное питьё, контроль электролитов, особенно калия (особенно важно у пожилых)
+      - doc: monograph
+        page: 8
+        quote: Chronic ingested overdoses of anthranoid containing medicinal products may lead to toxic hepatitis.
+        kind: overdose
+        ru: Длительная передозировка при приёме внутрь препаратов с антраноидами может привести к токсическому гепатиту
+      - doc: monograph
+        page: 9
+        quote: Furthermore, several hydroxyl anthracene derivatives were mutagenic and genotoxic in several in vitro test systems, however this was not proven in in vivo systems. In long term carcinogenicity studies effects on kidneys and colon/caecum were reported.
+        kind: statement
+        ru: Некоторые гидроксиантраценовые производные были мутагенны и генотоксичны в опытах in vitro, но на живых организмах это не доказано; в длительных исследованиях канцерогенности отмечено влияние на почки и толстую/слепую кишку
       constituents:
       - doc: assessment-report
         page: 11
@@ -215,6 +247,40 @@ metadata:
         quote: 157. Крушина ломкая (ольховидная) — Frangula alnus Mill — незрелые плоды, свежая кора
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 223
+    regionalRedBooks:
+      regions:
+      - region: Мурманская область
+        year: 2025
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/16521.html
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: по 1/2 стакана отвара на ночь и утром; EMA: один раз в день на ночь'
+      grls: Отвар принимают внутрь в теплом виде взрослые и дети старше 12 лет по 1/2 стакана на ночь и утром.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-rhamnus-frangula-l-cortex-revision-1_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 1–2 недели; EMA: не дольше 1 недели'
+      grls: Курс лечения 1-2 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Not to be used for more than 1 week.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-rhamnus-frangula-l-cortex-revision-1_en.pdf
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показание — хронический запор; EMA: кратковременно, при эпизодическом запоре'
+      grls: Хронический запор.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: Herbal medicinal product for short-term use in cases of occasional constipation.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-rhamnus-frangula-l-cortex-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0021.18

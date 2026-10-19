@@ -18,14 +18,14 @@ facts:
     ru: Чай (настой) внутрь — подростки, взрослые и пожилые
     doc: monograph
     page: 3
-    quote: "Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily."
-    dose: { preparationRu: настой, amount: "1.5-3", unit: г, waterMl: "150", timesPerDay: "до 4", populationRu: "подростки, взрослые и пожилые" }
+    quote: "Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily. Daily dose 4.5 - 12 g the comminuted herbal substance"
+    dose: { preparationRu: "настой листа эвкалипта шаровидного (Eucalyptus globulus)", amount: "1.5-3", unit: г, waterMl: "150", timesPerDay: "до 4", daily: "4.5-12 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Ингаляция — залить лист кипятком
     doc: monograph
     page: 3
-    quote: "Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily."
-    dose: { preparationRu: настой для ингаляции, amount: "3", unit: г, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+    quote: "Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily. Daily dose 3 - 9 g of the comminuted herbal substance"
+    dose: { preparationRu: "настой листа эвкалипта шаровидного (Eucalyptus globulus) для ингаляции", amount: "3", unit: г, timesPerDay: "до 3", daily: "3-9 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 30 месяцев нельзя — риск ларингоспазма от препаратов с цинеолом
     doc: monograph

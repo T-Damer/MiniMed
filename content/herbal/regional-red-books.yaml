@@ -1,0 +1,650 @@
+# Regional Red Books: newest edition of each Russian region that lists the plant, from
+# Plantarium; rows with `checked` were compared with the region's own act. Rebuilt by
+# `medbase fetch-regional-red-books`; do not edit rows by hand except `checked`.
+source: 'Плантариум: перечни видов региональных Красных книг'
+url: https://www.plantarium.ru/page/redbooks.html
+fetched: '2026-10-20'
+plants:
+  valeriana-officinalis:
+    taxon: 39858
+    regions:
+    - region: Кабардино-Балкарская Республика
+      year: 2018
+      book: 286
+    - region: Чеченская Республика
+      year: 2020
+      book: 315
+  tilia-cordata:
+    taxon: 38502
+    regions:
+    - region: Курганская область
+      year: 2012
+      book: 222
+    - region: Новосибирская область
+      year: 2018
+      book: 279
+    - region: Омская область
+      year: 2015
+      book: 254
+    - region: Республика Коми
+      year: 2019
+      book: 294
+      checked:
+        act: Приказ Минприроды Республики Коми от 15.02.2024 № 306 (прил. к приказу от 27.03.2019 № 498),
+          № 457
+        url: http://publication.pravo.gov.ru/document/1101202402210001
+        category: '3'
+    - region: Томская область
+      year: 2022
+      book: 325
+    - region: Тюменская область
+      year: 2020
+      book: 316
+    - region: Ханты-Мансийский автономный округ
+      year: 2013
+      book: 120
+  quercus-robur:
+    taxon: 31185
+    regions:
+    - region: Вологодская область
+      year: 2015
+      book: 230
+  frangula-alnus:
+    taxon: 16521
+    regions:
+    - region: Мурманская область
+      year: 2025
+      book: 334
+  glycyrrhiza-glabra:
+    taxon: 17684
+    regions:
+    - region: Донецкая Народная Республика
+      year: 2020
+      book: 306
+    - region: Курганская область
+      year: 2012
+      book: 222
+    - region: Республика Крым
+      year: 2025
+      book: 329
+    - region: Самарская область
+      year: 2017
+      book: 272
+      checked:
+        act: Красная книга Самарской области, 2017 (официальное издание; приказы 109/2016 и 552/2017)
+        url: https://shipunov.depo.msu.ru/shipunov/school/books/kr_kn_samarskoj_oblasti_2017_1.pdf
+        category: '3'
+  centaurium-erythraea:
+    taxon: 9625
+    regions:
+    - region: Вологодская область
+      year: 2015
+      book: 230
+    - region: Город Москва
+      year: 2022
+      book: 324
+    - region: Костромская область
+      year: 2019
+      book: 296
+    - region: Ленинградская область
+      year: 2017
+      book: 309
+      checked:
+        act: Приказ Леноблкомприроды от 11.03.2015 № 21 (ред. 17.10.2018), № 92
+        url: https://base.garant.ru/22923362/
+        category: '1'
+    - region: Новгородская область
+      year: 2015
+      book: 246
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Тамбовская область
+      year: 2019
+      book: 298
+    - region: Удмуртская республика
+      year: 2012
+      book: 97
+    - region: Чувашская республика
+      year: 2019
+      book: 302
+    - region: Ярославская область
+      year: 2015
+      book: 257
+  juniperus-communis:
+    taxon: 21234
+    regions:
+    - region: Брянская область
+      year: 2016
+      book: 265
+    - region: Воронежская область
+      year: 2018
+      book: 292
+    - region: Город Москва
+      year: 2022
+      book: 324
+    - region: Кемеровская область
+      year: 2021
+      book: 304
+    - region: Липецкая область
+      year: 2014
+      book: 220
+    - region: Пензенская область
+      year: 2013
+      book: 119
+    - region: Республика Крым
+      year: 2025
+      book: 329
+    - region: Республика Мордовия
+      year: 2017
+      book: 320
+    - region: Тамбовская область
+      year: 2019
+      book: 298
+    - region: Томская область
+      year: 2022
+      book: 325
+      checked:
+        act: Распоряжение Администрации Томской области от 14.12.2022 № 793-ра
+        url: https://tomsk.gov.ru/files/front/download?id=375245
+    - region: Тульская область
+      year: 2020
+      book: 299
+    - region: Ульяновская область
+      year: 2025
+      book: 333
+    - region: Чувашская республика
+      year: 2019
+      book: 302
+  potentilla-erecta:
+    taxon: 29962
+    regions:
+    - region: Донецкая Народная Республика
+      year: 2020
+      book: 306
+    - region: Кемеровская область
+      year: 2021
+      book: 304
+    - region: Омская область
+      year: 2015
+      book: 254
+    - region: Республика Коми
+      year: 2019
+      book: 294
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Самарская область
+      year: 2017
+      book: 272
+    - region: Томская область
+      year: 2022
+      book: 325
+  viola-tricolor:
+    taxon: 40811
+    regions:
+    - region: Город Москва
+      year: 2022
+      book: 324
+  betula-pendula:
+    taxon: 6581
+    regions:
+    - region: Республика Крым
+      year: 2025
+      book: 329
+  arctostaphylos-uva-ursi:
+    taxon: 3573
+    regions:
+    - region: Брянская область
+      year: 2016
+      book: 265
+    - region: Владимирская область
+      year: 2018
+      book: 308
+    - region: Ивановская область
+      year: 2010
+      book: 103
+    - region: Калининградская область
+      year: 2010
+      book: 77
+    - region: Калужская область
+      year: 2015
+      book: 232
+    - region: Карачаево-Черкесская Республика
+      year: 2013
+      book: 200
+    - region: Липецкая область
+      year: 2014
+      book: 220
+    - region: Московская область
+      year: 2018
+      book: 277
+      checked:
+        act: Распоряжение Минэкологии Московской обл. от 20.03.2018 № 103-РМ
+        url: https://verhovye.ru/wp-content/uploads/2019/09/Elektronnaya_versiya_KKMO_2018-s-sajta-ME-MO.pdf
+        category: '1'
+    - region: Пензенская область
+      year: 2013
+      book: 119
+    - region: Республика Мордовия
+      year: 2017
+      book: 320
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Рязанская область
+      year: 2011
+      book: 124
+    - region: Самарская область
+      year: 2017
+      book: 272
+    - region: Смоленская область
+      year: 2012
+      book: 244
+    - region: Тамбовская область
+      year: 2019
+      book: 298
+    - region: Тверская область
+      year: 2016
+      book: 312
+    - region: Тульская область
+      year: 2020
+      book: 299
+    - region: Ярославская область
+      year: 2015
+      book: 257
+  althaea-officinalis:
+    taxon: 2417
+    regions:
+    - region: Брянская область
+      year: 2016
+      book: 265
+    - region: Кемеровская область
+      year: 2021
+      book: 304
+    - region: Курганская область
+      year: 2012
+      book: 222
+    - region: Курская область
+      year: 2017
+      book: 280
+    - region: Липецкая область
+      year: 2014
+      book: 220
+    - region: Омская область
+      year: 2015
+      book: 254
+    - region: Пензенская область
+      year: 2013
+      book: 119
+    - region: Республика Башкортостан
+      year: 2011
+      book: 203
+    - region: Республика Калмыкия
+      year: 2014
+      book: 201
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Тамбовская область
+      year: 2019
+      book: 298
+    - region: Удмуртская республика
+      year: 2012
+      book: 97
+    - region: Ульяновская область
+      year: 2025
+      book: 333
+    - region: Чувашская республика
+      year: 2019
+      book: 302
+  thymus-serpyllum:
+    taxon: 38454
+    regions:
+    - region: Владимирская область
+      year: 2018
+      book: 308
+      checked:
+        act: Постановление администрации Владимирской области от 22.08.2017 № 707 (ред. 20.12.2018), №
+          142
+        url: https://onlineecology.com/doc/2ea53442-c84d-49e0-817f-bf515afc2e44
+        category: '3'
+    - region: Ивановская область
+      year: 2010
+      book: 103
+    - region: Калужская область
+      year: 2015
+      book: 232
+    - region: Московская область
+      year: 2018
+      book: 277
+    - region: Мурманская область
+      year: 2025
+      book: 334
+    - region: Нижегородская область
+      year: 2017
+      book: 287
+  helichrysum-arenarium:
+    taxon: 18366
+    regions:
+    - region: Владимирская область
+      year: 2018
+      book: 308
+    - region: Вологодская область
+      year: 2015
+      book: 230
+    - region: Кировская область
+      year: 2014
+      book: 204
+    - region: Костромская область
+      year: 2019
+      book: 296
+    - region: Краснодарский край
+      year: 2017
+      book: 278
+      checked:
+        act: Постановление главы администрации Краснодарского края от 22.12.2017 № 1028 (ред. 27.11.2024),
+          № 260
+        url: https://base.garant.ru/43678500/53f89421bbdaf741eb2d1ecc4ddb4c33/
+        category: '3'
+    - region: Красноярский край
+      year: 2022
+      book: 321
+    - region: Ленинградская область
+      year: 2017
+      book: 309
+    - region: Нижегородская область
+      year: 2017
+      book: 287
+    - region: Новгородская область
+      year: 2015
+      book: 246
+    - region: Оренбургская область
+      year: 2019
+      book: 310
+    - region: Республика Башкортостан
+      year: 2011
+      book: 203
+    - region: Республика Марий Эл
+      year: 2013
+      book: 117
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Самарская область
+      year: 2017
+      book: 272
+    - region: Тверская область
+      year: 2016
+      book: 312
+    - region: Тульская область
+      year: 2020
+      book: 299
+    - region: Тюменская область
+      year: 2020
+      book: 316
+    - region: Чеченская Республика
+      year: 2020
+      book: 315
+    - region: Чувашская республика
+      year: 2019
+      book: 302
+  vaccinium-myrtillus:
+    taxon: 39781
+    regions:
+    - region: Воронежская область
+      year: 2018
+      book: 292
+    - region: Кабардино-Балкарская Республика
+      year: 2018
+      book: 286
+    - region: Курская область
+      year: 2017
+      book: 280
+    - region: Липецкая область
+      year: 2014
+      book: 220
+    - region: Самарская область
+      year: 2017
+      book: 272
+    - region: Саратовская область
+      year: 2021
+      book: 305
+    - region: Тульская область
+      year: 2020
+      book: 299
+  eleutherococcus-senticosus:
+    taxon: 14108
+    regions:
+    - region: Амурская область
+      year: 2020
+      book: 300
+  panax-ginseng:
+    taxon: 26683
+    regions:
+    - region: Еврейская автономная область
+      year: 2019
+      book: 314
+    - region: Приморский край
+      year: 2008
+      book: 111
+      checked:
+        act: Постановление Губернатора Приморского края от 14.05.2002 № 272
+        url: https://base.garant.ru/30159395/
+        category: CR
+    - region: Хабаровский край
+      year: 2008
+      book: 40
+      checked:
+        act: Постановление Правительства Хабаровского края от 27.10.2006 № 163-пр (ред. 08.05.2024), №
+          56
+        url: https://mpr.khabkrai.ru/?menu=getfile&id=13693
+        category: '1'
+  humulus-lupulus:
+    taxon: 20316
+    regions:
+    - region: Республика Карелия
+      year: 2020
+      book: 311
+  primula-veris:
+    taxon: 30374
+    regions:
+    - region: Владимирская область
+      year: 2018
+      book: 308
+    - region: Вологодская область
+      year: 2015
+      book: 230
+    - region: Город Москва
+      year: 2022
+      book: 324
+      checked:
+        act: Постановление Правительства Москвы от 02.07.2019 № 745-ПП, прил. 2
+        url: https://www.mos.ru/upload/documents/docs/745-PP(2).pdf
+        category: '3'
+    - region: Ивановская область
+      year: 2010
+      book: 103
+    - region: Костромская область
+      year: 2019
+      book: 296
+    - region: Ростовская область
+      year: 2024
+      book: 328
+  menyanthes-trifoliata:
+    taxon: 24291
+    regions:
+    - region: Белгородская область
+      year: 2019
+      book: 319
+    - region: Карачаево-Черкесская Республика
+      year: 2013
+      book: 200
+    - region: Краснодарский край
+      year: 2017
+      book: 278
+    - region: Республика Адыгея
+      year: 2021
+      book: 322
+    - region: Республика Северная Осетия — Алания
+      year: 2022
+      book: 323
+    - region: Ростовская область
+      year: 2024
+      book: 328
+    - region: Самарская область
+      year: 2017
+      book: 272
+    - region: Саратовская область
+      year: 2021
+      book: 305
+  rhodiola-rosea:
+    taxon: 31830
+    regions:
+    - region: Амурская область
+      year: 2020
+      book: 300
+    - region: Архангельская область
+      year: 2020
+      book: 301
+    - region: Забайкальский край
+      year: 2016
+      book: 275
+    - region: Иркутская область
+      year: 2020
+      book: 297
+    - region: Камчатский край
+      year: 2018
+      book: 282
+    - region: Кемеровская область
+      year: 2021
+      book: 304
+    - region: Красноярский край
+      year: 2022
+      book: 321
+    - region: Мурманская область
+      year: 2025
+      book: 334
+      checked:
+        act: 'Красная книга Мурманской области, кн. 1: списки видов (Минприроды Мурманской обл.), № 262'
+        url: https://mpr.gov-murman.ru/files/kniga_1_spiski_vidov_tekst.pdf
+        category: '4'
+    - region: Ненецкий автономный округ
+      year: 2020
+      book: 313
+    - region: Пермский край
+      year: 2018
+      book: 303
+    - region: Приморский край
+      year: 2008
+      book: 111
+    - region: Республика Алтай
+      year: 2017
+      book: 271
+    - region: Республика Бурятия
+      year: 2023
+      book: 330
+    - region: Республика Карелия
+      year: 2020
+      book: 311
+      checked:
+        act: Приказ Минприроды Республики Карелия от 14.09.2020 № 1590 (ред. 24.12.2020), № 95
+        url: http://kodeks.karelia.ru/api/show/407085578
+        category: '3'
+    - region: Республика Коми
+      year: 2019
+      book: 294
+    - region: Республика Саха (Якутия)
+      year: 2017
+      book: 274
+    - region: Республика Хакасия
+      year: 2022
+      book: 331
+    - region: Сахалинская область
+      year: 2015
+      book: 255
+    - region: Свердловская область
+      year: 2018
+      book: 291
+    - region: Хабаровский край
+      year: 2008
+      book: 40
+    - region: Ханты-Мансийский автономный округ
+      year: 2013
+      book: 120
+    - region: Челябинская область
+      year: 2017
+      book: 270
+    - region: Чукотский автономный округ
+      year: 2008
+      book: 70
+    - region: Ямало-Ненецкий автономный округ
+      year: 2010
+      book: 123
+  epilobium-angustifolium:
+    taxon: 10049
+    regions:
+    - region: Донецкая Народная Республика
+      year: 2020
+      book: 306
+      as: Chamerion angustifolium (L.) Holub
+    - region: Ростовская область
+      year: 2024
+      book: 328
+  verbascum-densiflorum:
+    taxon: 40015
+    regions:
+    - region: Калужская область
+      year: 2015
+      book: 232
+    - region: Саратовская область
+      year: 2021
+      book: 305
+  agrimonia-eupatoria:
+    taxon: 913
+    regions:
+    - region: Вологодская область
+      year: 2015
+      book: 230
+  cetraria-islandica:
+    taxon: 75601
+    regions:
+    - region: Брянская область
+      year: 2016
+      book: 265
+    - region: Воронежская область
+      year: 2018
+      book: 292
+    - region: Город Москва
+      year: 2022
+      book: 324
+    - region: Курская область
+      year: 2017
+      book: 280
+    - region: Липецкая область
+      year: 2014
+      book: 220
+    - region: Пензенская область
+      year: 2013
+      book: 119
+    - region: Республика Татарстан
+      year: 2016
+      book: 266
+    - region: Ростовская область
+      year: 2024
+      book: 328
+    - region: Тамбовская область
+      year: 2019
+      book: 298
+  origanum-vulgare:
+    taxon: 25797
+    regions:
+    - region: Республика Калмыкия
+      year: 2014
+      book: 201
+  hippophae-rhamnoides:
+    taxon: 20172
+    regions:
+    - region: Чеченская Республика
+      year: 2020
+      book: 315

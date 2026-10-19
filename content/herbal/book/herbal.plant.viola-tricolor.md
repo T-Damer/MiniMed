@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore
-source_checksum: sha256:6bebdd695b4cd0f8bd7ea8a919df960dd8b3da6b40ade65395e064bf4a103444
+source_checksum: sha256:23e42187437e89a1b0f7507cc208306f9798ba1d3e978924a396d326e8c4d0c5
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -135,6 +135,11 @@ metadata:
         quote: Hot baths should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
         kind: warning
         ru: Горячие ванны не следует применять при лихорадочных или инфекционных заболеваниях, сердечной недостаточности и гипертонии
+      - doc: assessment-report
+        page: 18
+        quote: Patients with 6GTP deficiency can be at risk of haemolysis after Viola tricolor treatment.
+        kind: warning
+        ru: Пациенты с дефицитом «6GTP» (так в источнике; вероятно, дефицит Г6ФД) могут быть в группе риска гемолиза после лечения фиалкой трёхцветной
       - doc: monograph
         page: 4
         quote: None reported.
@@ -181,6 +186,13 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Город Москва
+        year: 2022
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/40811.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0044.15

@@ -1,0 +1,14 @@
+plant: melissa-officinalis
+items:
+  - topic: pregnancy
+    ru: "ГРЛС: при беременности и кормлении возможно, если польза выше риска; EMA: при беременности и кормлении не рекомендуется"
+    grls: "Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 5, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}
+  - topic: course
+    ru: "ГРЛС: курс 3–4 недели; EMA: если симптомы держатся дольше 2 недель — к врачу или медработнику"
+    grls: "Курс лечения 3-4 недели."
+    monograph: {doc: monograph, page: 4, quote: "If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}
+  - topic: age
+    ru: "ГРЛС: противопоказан детям до 18 лет; EMA: детям младше 12 лет не рекомендуется"
+    grls: "детский возраст до 18 лет."
+    monograph: {doc: monograph, page: 4, quote: "The use in children under 12 years of age is not recommended"}

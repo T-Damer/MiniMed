@@ -1,0 +1,6 @@
+plant: senna-alexandrina
+items:
+  - topic: course
+    ru: "ГРЛС: курс лечения 2-3 недели; EMA: не применять дольше 1 недели, обычно 2-3 приёма за неделю"
+    grls: Курс лечения 2-3 недели.
+    monograph: {doc: monograph, page: 4, quote: "Not to be used for more than 1 week. Usually it is sufficient to take this medicinal product up to two to three times during that week."}

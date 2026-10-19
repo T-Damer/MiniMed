@@ -30,7 +30,7 @@ facts:
     doc: monograph
     page: 5
     quote: Posology Adults and elderly Standardised dry extract corresponding to a content of 21 mg triterpene glycosides calculated as protoaescigenin5 2 times daily.
-    dose: {preparationRu: стандартизованный сухой экстракт, amount: '21', unit: мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин), timesPerDay: '2', populationRu: взрослые и пожилые}
+    dose: {preparationRu: 'стандартизованный сухой экстракт (6,5-10 % тритерпеновых гликозидов), экстрагент этанол 40-80 % об/об', amount: '21', unit: мг тритерпеновых гликозидов (в пересчёте на протоаэсцигенин), timesPerDay: '2', populationRu: взрослые и пожилые}
   - kind: posology
     ru: Приём внутрь (хорошо изученное применение)
     doc: monograph
@@ -107,19 +107,19 @@ facts:
     doc: monograph
     page: 5
     quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg'
-    dose: {preparationRu: 'препарат g), жидкий экстракт', amount: '300', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
+    dose: {preparationRu: 'препарат g): жидкий экстракт (1:1,5-2,5), экстрагент этанол 55 % об/об', amount: '300', unit: мг, timesPerDay: '2', daily: '600 мг', populationRu: взрослые и пожилые}
   - kind: posology
     ru: 'Препарат h): взрослые и пожилые — разовая доза 154 мг 3–4 раза в день, суточная 462–616 мг'
     doc: monograph
     page: 5
     quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg h) Single dose: 154 mg 3-4 times daily Daily dose: 462-616 mg daily'
-    dose: {preparationRu: препарат h), amount: '154', unit: мг, timesPerDay: 3-4, populationRu: взрослые и пожилые}
+    dose: {preparationRu: 'препарат h): жидкий экстракт (1:2), экстрагент этанол 19 % по массе', amount: '154', unit: мг, timesPerDay: 3-4, daily: '462-616 мг', populationRu: взрослые и пожилые}
   - kind: posology
     ru: 'Препарат i): сухой экстракт, взрослые и пожилые — разовая доза 99 мг 2 раза в день, суточная 198 мг'
     doc: monograph
     page: 5
     quote: 'Herbal preparations g)-i) Adults and elderly g) Single dose: 300 mg liquid extract 2 times daily Daily dose: 600 mg h) Single dose: 154 mg 3-4 times daily Daily dose: 462-616 mg daily i) Single dose: 99 mg dry extract 2 times daily Daily dose: 198 mg'
-    dose: {preparationRu: 'препарат i), сухой экстракт', amount: '99', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
+    dose: {preparationRu: 'препарат i): сухой экстракт (3-6:1), экстрагент вода', amount: '99', unit: мг, timesPerDay: '2', daily: '198 мг', populationRu: взрослые и пожилые}
   - kind: age
     ru: 'Для всех препаратов a)–i): для детей до 12 лет применения нет'
     doc: monograph
@@ -211,6 +211,11 @@ facts:
     doc: monograph
     page: 7
     quote: Indication 1) If there is inflammation of the skin, thrombophlebitis or subcutaneous induration, severe pain, ulcers, sudden swelling of one or both legs, cardiac or renal insufficiency, a doctor should be consulted.
+  - kind: warning
+    ru: Описан случай кровотечения из ангиомиолипомы почки (INR 2,5) у пациентки, принимавшей экстракт семян конского каштана; авторы указывают на потенциально опасную для жизни связь и риск антикоагуляции, вызванной экстрактом
+    doc: assessment-report
+    page: 53
+    quote: developed bleeding from a 5 cm angiomyolipoma (AML) (diagnosed since 15 years). Routine blood investigations showed an INR of 2.5. The authors state that there is a potentially life-threatening association between horse chestnut seed extract-containing products and renal AML, highlighting the risk associated with horse chestnut seed extract induced anticoagulation.
   - kind: age
     ru: 'Показание 1: подросткам до 18 лет не рекомендуется — из-за опасений, требующих медицинской консультации (традиционное применение)'
     doc: monograph

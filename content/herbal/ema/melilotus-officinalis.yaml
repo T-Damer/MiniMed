@@ -26,19 +26,19 @@ facts:
     doc: monograph
     page: 4
     quote: "Indication 1) Adults and elderly a) Single dose: Herbal tea: 1.0–1.2 g of comminuted herbal substance in boiling water as an herbal infusion 2 times daily Daily dose: 2.0–2.4 g"
-    dose: { preparationRu: чай (настой), amount: "1.0-1.2", unit: г, timesPerDay: "2", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: чай (настой), amount: "1.0-1.2", unit: г, timesPerDay: "2", daily: "2.0-2.4 г", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: "Тяжесть в ногах при небольших венозных нарушениях — порошок травы: разовая доза 250 мг, 3 раза в день; суточная доза 750 мг"
     doc: monograph
     page: 4
     quote: "b) Single dose: Powdered herbal substance: 250 mg 3 times daily Daily dose: 750 mg"
-    dose: { preparationRu: порошок травы, amount: "250", unit: мг, timesPerDay: "3", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: порошок травы, amount: "250", unit: мг, timesPerDay: "3", daily: "750 мг", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: Небольшие воспаления кожи — разовая доза 3 г жидкого экстракта в виде кожного пластыря на поражённый участок кожи; суточная доза 3–6 г (до двух пластырей)
     doc: monograph
     page: 4
     quote: "c) Single dose: 3 g of liquid extract, as a cutaneous patch applied to the affected skin area. Daily dose: 3–6 g (up to two patches)."
-    dose: { preparationRu: жидкий экстракт в кожном пластыре, amount: "3", unit: г, populationRu: возраст не указан }
+    dose: { preparationRu: жидкий экстракт в кожном пластыре, amount: "3", unit: г, daily: "3-6 г (до двух пластырей)", populationRu: возраст не указан }
   - kind: posology
     ru: Жидкий экстракт — в полутвёрдых лекарственных формах для кожного применения
     doc: monograph
@@ -97,6 +97,16 @@ facts:
     doc: monograph
     page: 6
     quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
+  - kind: interaction
+    ru: "Отчёт EMA: описан случай возможного взаимодействия — у женщины 66 лет, годами принимавшей аценокумарол, после начала местного применения крема с экстрактами рускуса и донника МНО выросло с 2 до 5,82; при повторной пробе крема — с 2,56 до 4,06"
+    doc: assessment-report
+    page: 30
+    quote: There is also a report of a possible interaction between oral anticoagulant treatment and topical treatment with a cream containing extracts of Ruscus and melilot. A 66 year-old woman with cardiac arythmia received acebutolol 200 mg/day and acenocoumarol 3 tab/day for years. She also had a current treatment with thyroxine 100 mg/day. 10 days after she started topical treatment for venous insufficiency, 3 times daily, the INR increased from 2 to 5.82. Either treatment was discontinued the INR returned to the usual values. Seven month later, a rechallenge with the crème was attempted. After one week the INR had again increased from 2.56 to 4.06.
+  - kind: warning
+    ru: "Отчёт EMA: сообщалось о гепатотоксичности кумарина у людей — в основном при суточных дозах выше 90 мг, единичные сообщения — при приёме 25–90 мг в сутки"
+    doc: assessment-report
+    page: 28
+    quote: Case reports of hepatotoxicity in humans are predominantly reported in daily doses above 90 mg coumarin, but a few case reports after a daily intake of 25 to 90 mg coumarin are also documented.
   - kind: pregnancy
     ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
     doc: monograph
@@ -122,11 +132,6 @@ facts:
     doc: monograph
     page: 7
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности и канцерогенности не проводилось; адекватные тесты на генотоксичность не проводились
-    doc: monograph
-    page: 7
-    quote: Tests on reproductive toxicity and carcinogenicity have not been performed. Adequate tests on genotoxicity have not been performed.
 constituents:
   - compound: cinnamic acid and coumarin derivatives
     compoundRu: производные коричной кислоты и кумарина

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lavandulae-flos
-source_checksum: sha256:b43dcd32aad944e3c85af1efd074deb06355be553a573c53722cd0880006de98
+source_checksum: sha256:5b7d08c80abcbb1627f5112a36b87b4ee01e8868e91c64fbcee8bf14b12fda87
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -93,7 +93,7 @@ metadata:
         kind: posology
         ru: 'Настойка: 2–4 мл 3 раза в день'
         dose:
-          preparationRu: настойка
+          preparationRu: настойка (1:5, этанол 50-60 % V/V)
           amount: 2-4
           unit: мл
           timesPerDay: '3'
@@ -155,11 +155,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       - doc: assessment-report
         page: 3
         quote: The species is regularly confused with other lavender species L. x intermedia Emeric. (Lavandin) and L. latifolia MEDIK. (Spiklavender). If no detailed quality specifications are mentioned, the herbal substance consists of flowers from different flower species
@@ -245,6 +240,8 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Lavender/
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

@@ -50,7 +50,7 @@ facts:
     doc: monograph
     page: 3
     quote: "d) Soft extract: single dose 0.2 g, daily dose 1-2 g."
-    dose: { preparationRu: мягкий экстракт, amount: "0.2", unit: г, populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: мягкий экстракт (разовая доза), amount: "0.2", unit: г, daily: "1-2 г", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: Настойка (45 % V/V) — 8–12 мл, 3 раза в день
     doc: monograph
@@ -141,11 +141,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Адекватных тестов на репродуктивную токсичность, генотоксичность и канцерогенность не проводилось
-    doc: monograph
-    page: 6
-    quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: polysaccharides (inulin)
     compoundRu: полисахариды (инулин)

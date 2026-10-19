@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/30/1524942/3ff76436-6cd7-4ba9-a52c-c17733e37030.pdf
-source_checksum: sha256:7bfbd35d064a3bf026a2c97970503e22d1c2b77e4eb8b8cccc36b26e26c9de1b
+source_checksum: sha256:a70fdaf064b1d12434bb2f48675c335c266bca9a8c3761173b9659a146e79ea8
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -108,7 +108,7 @@ metadata:
         kind: posology
         ru: a) жидкий экстракт (DER 1:1) — разовая доза 1–2 мл, 3–4 раза в день
         dose:
-          preparationRu: жидкий экстракт (DER 1:1)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт (DER 1:1; этанол 24 %)'
           amount: 1-2
           unit: мл
           timesPerDay: 3-4
@@ -119,7 +119,7 @@ metadata:
         kind: posology
         ru: b) жидкий экстракт (DER 1:1.16) — разовая доза 1,2–2,4 мл, 3–4 раза в день
         dose:
-          preparationRu: жидкий экстракт (DER 1:1.16)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт (DER 1:1.16; глицерол 85 % : этанол 25 %)'
           amount: 1.2-2.4
           unit: мл
           timesPerDay: 3-4
@@ -130,7 +130,7 @@ metadata:
         kind: posology
         ru: c) жидкий экстракт (DER 1:2-2.5) — разовая доза 1–4 г, 1–7 раз в день, максимальная суточная доза 14 г
         dose:
-          preparationRu: жидкий экстракт (DER 1:2-2.5)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт (DER 1:2-2.5; аммиак 10 % : глицерол 85 % : этанол 90 % : вода)'
           amount: 1-4
           unit: г
           timesPerDay: 1-7
@@ -141,7 +141,7 @@ metadata:
         kind: posology
         ru: d) настойка (1:10) — разовая доза 40 капель, 3 раза в день
         dose:
-          preparationRu: настойка (1:10)
+          preparationRu: 'T. vulgaris/zygis: настойка (1:10; этанол 70 %)'
           amount: '40'
           unit: капель
           timesPerDay: '3'
@@ -152,7 +152,7 @@ metadata:
         kind: posology
         ru: e) настойка (1:5) — разовая доза 2–6 мл, 3 раза в день
         dose:
-          preparationRu: настойка (1:5)
+          preparationRu: 'T. vulgaris/zygis: настойка (1:5; этанол 70 %)'
           amount: 2-6
           unit: мл
           timesPerDay: '3'
@@ -163,7 +163,7 @@ metadata:
         kind: posology
         ru: f) мягкий экстракт — разовая доза 50 мг, 6 раз в день
         dose:
-          preparationRu: мягкий экстракт
+          preparationRu: 'T. vulgaris/zygis: мягкий экстракт (DER 5-8:1; этанол 25-30 %)'
           amount: '50'
           unit: мг
           timesPerDay: '6'
@@ -174,7 +174,7 @@ metadata:
         kind: posology
         ru: g) жидкий экстракт (DER 1:1.5-2.4) — разовая доза 10 мл, 3–4 раза в день
         dose:
-          preparationRu: жидкий экстракт (DER 1:1.5-2.4)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт свежей травы (DER 1:1.5-2.4; вода, «отжатый сок»)'
           amount: '10'
           unit: мл
           timesPerDay: 3-4
@@ -185,7 +185,7 @@ metadata:
         kind: posology
         ru: h) сухой экстракт (DER 6-10:1) — разовая доза 75–200 мг, 3 раза в день
         dose:
-          preparationRu: сухой экстракт (DER 6-10:1)
+          preparationRu: 'T. vulgaris/zygis: сухой экстракт (DER 6-10:1; этанол 70 %)'
           amount: 75-200
           unit: мг
           timesPerDay: '3'
@@ -196,7 +196,7 @@ metadata:
         kind: posology
         ru: i) сухой экстракт (DER 1.6-2.4:1) — разовая доза 135 мг, 1–3 раза в день
         dose:
-          preparationRu: сухой экстракт (DER 1.6-2.4:1)
+          preparationRu: 'T. vulgaris/zygis: сухой экстракт (DER 1.6-2.4:1; этанол 96 %)'
           amount: '135'
           unit: мг
           timesPerDay: 1-3
@@ -207,7 +207,7 @@ metadata:
         kind: posology
         ru: j) жидкий экстракт (1:4.5) — разовая доза 480–960 мг, 3–4 раза в день
         dose:
-          preparationRu: жидкий экстракт (1:4.5)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт (DER 1:4.5; аммиак 10 % : глицерол 85 % : этанол 96 % : вода)'
           amount: 480-960
           unit: мг
           timesPerDay: 3-4
@@ -218,7 +218,7 @@ metadata:
         kind: posology
         ru: k) сухой экстракт (DER 7-13:1) — разовая доза 100–200 мг, 3–4 раза в день
         dose:
-          preparationRu: сухой экстракт (DER 7-13:1)
+          preparationRu: 'T. vulgaris/zygis: сухой экстракт (DER 7-13:1; вода)'
           amount: 100-200
           unit: мг
           timesPerDay: 3-4
@@ -229,7 +229,7 @@ metadata:
         kind: posology
         ru: l) измельчённое сырьё, чай — 1–2 г на 150 мл кипятка в виде настоя, 3–4 раза в день
         dose:
-          preparationRu: чай (настой) из измельчённого сырья
+          preparationRu: 'T. vulgaris/zygis: чай (настой) из измельчённого сырья'
           amount: 1-2
           unit: г
           waterMl: '150'
@@ -241,7 +241,7 @@ metadata:
         kind: posology
         ru: c) жидкий экстракт (DER 1:2-2.5) — дети 4–12 лет, разовая доза 0,5–0,9 мл, 3–5 раз в день
         dose:
-          preparationRu: жидкий экстракт (DER 1:2-2.5)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт (DER 1:2-2.5; аммиак 10 % : глицерол 85 % : этанол 90 % : вода)'
           amount: 0.5-0.9
           unit: мл
           timesPerDay: 3-5
@@ -252,7 +252,7 @@ metadata:
         kind: posology
         ru: g) жидкий экстракт (DER 1:1.5-2.4) — дети 4–12 лет, разовая доза 7–10 мл, 2–3 раза в день
         dose:
-          preparationRu: жидкий экстракт (DER 1:1.5-2.4)
+          preparationRu: 'T. vulgaris/zygis: жидкий экстракт свежей травы (DER 1:1.5-2.4; вода, «отжатый сок»)'
           amount: 7-10
           unit: мл
           timesPerDay: 2-3
@@ -332,6 +332,11 @@ metadata:
         quote: Gastric disorders may occur. The frequency is not known.
         kind: adverse
         ru: Возможны расстройства желудка; частота неизвестна
+      - doc: assessment-report
+        page: 28
+        quote: Germany has received 17 case reports for allergic reactions (urticaria, skin rashes, bronchospasm, asthma attack, anaphylactic shock).
+        kind: adverse
+        ru: Сообщалось о 17 случаях аллергических реакций в Германии (крапивница, кожная сыпь, бронхоспазм, приступ астмы, анафилактический шок)
       - doc: monograph
         page: 7
         quote: If other adverse reactions not mentioned above occur, a doctor or a qualified health care practitioner should be consulted.
@@ -342,11 +347,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные испытания репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -390,6 +390,45 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Владимирская область
+        year: 2018
+        checked:
+          act: Постановление администрации Владимирской области от 22.08.2017 № 707 (ред. 20.12.2018), № 142
+          url: https://onlineecology.com/doc/2ea53442-c84d-49e0-817f-bf515afc2e44
+          category: '3'
+      - region: Ивановская область
+        year: 2010
+      - region: Калужская область
+        year: 2015
+      - region: Московская область
+        year: 2018
+      - region: Мурманская область
+        year: 2025
+      - region: Нижегородская область
+        year: 2017
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/38454.html
+    conflicts:
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 2–3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-thymus-vulgaris-l-and-thymus-zygis-l-herba_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: полоскания при беременности возможны, если польза выше риска; EMA: при беременности и кормлении не рекомендуется'
+      grls: Применение местно для полосканий возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-thymus-vulgaris-l-and-thymus-zygis-l-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0047.15

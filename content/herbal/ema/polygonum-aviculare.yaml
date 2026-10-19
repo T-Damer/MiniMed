@@ -30,19 +30,19 @@ facts:
     doc: monograph
     page: 4
     quote: "Adolescents, adults and elderly Indication 1) Single dose: Herbal tea: 1.5-2 g of the comminuted herbal substance in 150 mL of boiling water as a herbal infusion 3-4 times daily. Daily dose: 4.5-8 g"
-    dose: { preparationRu: чай (настой), amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: чай (настой), amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "3-4", daily: "4.5-8 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 2 — отвар для применения на слизистую рта: 1,5 г измельчённой травы в 200–250 мл воды 4–5 раз в день для полоскания рта и горла; суточная доза 6–7,5 г"
     doc: monograph
     page: 4
     quote: "Indication 2) Single dose: Comminuted herbal substance for decoction preparation for oromucosal use: 1.5 g of the comminuted herbal substance in 200-250 mL of water 4-5 times daily for gargling of the mouth and throat. Daily dose: 6-7.5 g"
-    dose: { preparationRu: отвар для полоскания рта и горла, amount: "1.5", unit: г, waterMl: "200-250", timesPerDay: "4-5", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: отвар для полоскания рта и горла, amount: "1.5", unit: г, waterMl: "200-250", timesPerDay: "4-5", daily: "6-7.5 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: "Показание 3 — чай: 3 г измельчённой травы в 200 мл воды в виде отвара 2 раза в день; суточная доза 6 г"
     doc: monograph
     page: 4
     quote: "Indication 3) Single dose: Herbal tea: 3 g of the comminuted herbal substance in 200 mL of water as a decoction 2 times daily. Daily dose: 6 g"
-    dose: { preparationRu: чай (отвар), amount: "3", unit: г, waterMl: "200", timesPerDay: "2", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: чай (отвар), amount: "3", unit: г, waterMl: "200", timesPerDay: "2", daily: "6 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Показания 1 и 3 — приём внутрь; показание 2 — применение на слизистую оболочку рта
     doc: monograph
@@ -117,11 +117,6 @@ facts:
     doc: monograph
     page: 7
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 7
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: flavonoids (avicularin)
     compoundRu: флавоноиды (авикулярин)

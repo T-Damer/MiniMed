@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528273/f8aa0ed8-8fbf-4da0-98dc-7a1943f326f9.pdf
-source_checksum: sha256:79183b4d3cf7508bef46f8b2ef5c5cef981885b81903f144f64db29c501a0442
+source_checksum: sha256:a1dd7864b80c8fe7a1e803f80adc1114855686afa0710bf6ea91906df4704362
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -90,7 +90,7 @@ metadata:
         ru: Лёгкие жалобы со стороны мочевых путей — вместе с достаточным приёмом жидкости
       - doc: monograph
         page: 4
-        quote: 'Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily.'
+        quote: 'Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily. Daily dose 4 g –12 g'
         kind: posology
         ru: Отвар (кипятить 5 минут)
         dose:
@@ -99,10 +99,11 @@ metadata:
           unit: г
           waterMl: '200'
           timesPerDay: 2-3
+          daily: 4-12 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: 'Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily'
+        quote: 'Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily, corresponding to the daily doses 12 g - 24 g.'
         kind: posology
         ru: Настой
         dose:
@@ -111,6 +112,7 @@ metadata:
           unit: г
           waterMl: '200'
           timesPerDay: '3'
+          daily: 12-24 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -182,6 +184,26 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при отёчном синдроме, связанном с нарушением функции почек; EMA: не рекомендуется, если советуют ограничить питьё'
+      grls: отечный синдром, связанный с нарушением функции почек
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Because adequate fluid intake is required during treatment, it is not recommended for patients with conditions where reduced fluid intake is advised.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/draft-european-union-herbal-monograph-zea-mays-l-stigma_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: отвар по 1-3 столовые ложки каждые 3-4 часа; EMA: отвар 2-4 г на 200 мл, 2-3 раза в день'
+      grls: Отвар принимают внутрь по 1-3 столовые ложки каждые 3-4 часа.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: 'Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily.'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/draft-european-union-herbal-monograph-zea-mays-l-stigma_en.pdf
     identification:
       source:
         number: ФС.2.5.0079

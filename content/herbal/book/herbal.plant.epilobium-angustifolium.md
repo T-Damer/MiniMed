@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/epilobii-herba
-source_checksum: sha256:2cd611a3ff9d0f0613bc4aec69f91d6ea148a7672fe47d2e4bbe41349fea97c4
+source_checksum: sha256:ccdac3a7044c9036eeecfe666fce7167bc597b98cfa0335ed114d0fdfaecb3fc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -131,11 +131,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       - doc: assessment-report
         page: 4
         quote: There is a monograph “Epilobii herba” available in the Czech Pharmaceutical Codex 1993 (Český farmaceutický kodex 1993). It includes the dried flowering herb of Epilobium parviflorum Schreb., Epilobium montanum L., Epilobium collinum C. C. Gmel. and Epilobium roseum Schreb. The herbal substance contains not less than 8% of tannins. According to the test for foreign matter and adulteration the two species Chamerion angustifolium (L.) Holub and Epilobium hirsutum (L.) must be absent.
@@ -184,6 +179,15 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Донецкая Народная Республика
+        year: 2020
+      - region: Ростовская область
+        year: 2024
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/10049.html
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

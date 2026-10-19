@@ -103,12 +103,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 5
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-
 constituents:
   - compound: saponins (avenacoside A and B)
     compoundRu: сапонины (авенакозиды A и B)

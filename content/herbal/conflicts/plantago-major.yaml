@@ -1,0 +1,10 @@
+plant: plantago-major
+items:
+  - topic: pregnancy
+    ru: "ГРЛС: возможно, если ожидаемая польза для матери превышает риск для плода и ребёнка; ВОЗ: при беременности не рекомендуется"
+    grls: "ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 332, quote: "The use of the herb is not recommended during pregnancy (see sections on Toxicology and Genotoxicity)."}
+  - topic: dose
+    ru: "ГРЛС: через 30 минут после еды, 2–3 раза в день; ВОЗ: 1 столовая ложка настоя 3 раза в день перед едой"
+    grls: "Принимают внутрь теплый настой через 30 минут после еды: взрослые и дети старше 12 лет – по 1 столовой ложке 2-3 раза в день"
+    monograph: {doc: monograph, page: 332, quote: "Infusion: one tablespoon of an infusion (10 g dried leaf in 200 ml boiled water for 15–20 minutes) three times daily before meals (89)."}

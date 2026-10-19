@@ -26,11 +26,23 @@ facts:
     quote: "a) Single dose: 1-2 g herbal substance or comminuted herbal substance in 150 ml water. The still warm infusion is used to prepare impregnated dressings Daily dose: 2 to 4 times"
     dose: { preparationRu: настой для повязок, amount: "1-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "дети, подростки, взрослые и пожилые" }
   - kind: posology
+    ru: Полутвёрдые формы (препараты b)–f)) на кожу — тонкий слой на поражённую область, 2–4 раза в день
+    doc: monograph
+    page: 5
+    quote: "For all preparations b) to f) Single dose: apply a thin layer of semi-solid preparation to the affected area Daily dose: 2 to 4 times"
+    dose: { preparationRu: "полутвёрдые формы (препараты b)-f))", amount: тонкий слой, unit: на поражённую область, timesPerDay: "2-4", populationRu: "дети, подростки, взрослые и пожилые" }
+  - kind: posology
     ru: Тёплый настой для полоскания рта и горла
     doc: monograph
     page: 5
     quote: "1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times"
     dose: { preparationRu: настой для полоскания, amount: "1-2", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Препарат d) для полоскания рта и горла — 2 % раствор, 2–4 раза в день
+    doc: monograph
+    page: 5
+    quote: "Preparation d) As a gargle or mouth wash in a 2% solution Daily dose: 2 to 4 times"
+    dose: { preparationRu: "препарат d) — раствор для полоскания рта и горла", amount: "2", unit: "% раствор", timesPerDay: "2-4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Повязку снимать через 30–60 минут
     doc: monograph

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf
-source_checksum: sha256:5be4ef962d9edd02c349556c5a62d78ea4d654e1ff6805d37761f0fec1d32e02
+source_checksum: sha256:d943f3c72d7bb3438ff4a5ff62886468540bca19139795714a6a0bf4b3041c64
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -107,6 +107,11 @@ metadata:
         ru: Небольшие язвочки и воспаление во рту и горле (полоскания)
       - doc: monograph
         page: 4
+        quote: Traditional herbal medicinal product used for adjuvant therapy of irritations of skin and mucosae in the anal and genital region, after serious conditions have been excluded by a medical doctor.
+        kind: indication
+        ru: Вспомогательная терапия раздражений кожи и слизистых в анальной и половой области — после исключения врачом серьёзных заболеваний (традиционное применение)
+      - doc: monograph
+        page: 4
         quote: Traditional herbal medicinal product used for the treatment of minor inflammation of the skin (sunburn), superficial wounds and small boils (furuncles).
         kind: indication
         ru: Лёгкое воспаление кожи (солнечный ожог), поверхностные ранки, мелкие фурункулы
@@ -130,7 +135,7 @@ metadata:
         dose:
           preparationRu: настой
           amount: 1.5-3.0
-          unit: г
+          unit: г сырья для настоя
           timesPerDay: 2-4
           populationRu: дети 6–12 лет
       - doc: monograph
@@ -141,7 +146,7 @@ metadata:
         dose:
           preparationRu: настой
           amount: 1.0-1.5
-          unit: г
+          unit: г сырья для настоя
           timesPerDay: 2-4
           populationRu: дети 2–6 лет
       - doc: monograph
@@ -152,9 +157,33 @@ metadata:
         dose:
           preparationRu: настой
           amount: 0.5-1.0
-          unit: г
+          unit: г сырья для настоя
           timesPerDay: 2-4
           populationRu: дети от 6 месяцев до 2 лет
+      - doc: monograph
+        page: 4
+        quote: 'Single dose: 3-10 g of herbal substance or comminuted herbal substance in 100 ml hot water for inhalation'
+        kind: posology
+        ru: Паровая ингаляция с чаем (препарат a) при простуде — подростки, взрослые и пожилые, 3–10 г на 100 мл горячей воды, несколько раз в день
+        dose:
+          preparationRu: настой для паровой ингаляции (препарат a)
+          amount: 3-10
+          unit: г
+          waterMl: '100'
+          timesPerDay: несколько
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'Children (6-12 years) Single dose: 2-5 g of herbal substance or comminuted herbal substance in 100 ml hot water for inhalation Daily dose: 1-2 times'
+        kind: posology
+        ru: Паровая ингаляция с чаем (препарат a) при простуде — дети 6–12 лет, 2–5 г на 100 мл горячей воды, 1–2 раза в день
+        dose:
+          preparationRu: настой для паровой ингаляции (препарат a)
+          amount: 2-5
+          unit: г
+          waterMl: '100'
+          timesPerDay: 1-2
+          populationRu: дети 6–12 лет
       - doc: monograph
         page: 5
         quote: 1-5 g in 100 ml water, for rinsing and gargling
@@ -173,6 +202,47 @@ metadata:
         ru: 'Чай внутрь детям младше 6 месяцев: применение не установлено — по общим соображениям питания и приёма жидкости'
         minAgeMonths: 6
       - doc: monograph
+        page: 11
+        quote: The use of herbal preparation a as steam inhalation in children under 6 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Паровые ингаляции с чаем (препарат a) детям до 6 лет: применение не установлено — данных недостаточно'
+        minAgeMonths: 72
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparations d, e, g, h, j, k, l as steam inhalation in children under 12 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Паровые ингаляции препаратами d, e, g, h, j, k, l детям до 12 лет: применение не установлено — данных недостаточно'
+        minAgeMonths: 144
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparations a, c, d, e, i, j, k, l, for mouth washes or gargling in children under 12 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Полоскания рта и горла чаем и препаратами c, d, e, i, j, k, l детям до 12 лет: применение не установлено — данных недостаточно'
+        minAgeMonths: 144
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparation h, for mouth washes or gargling in children under 6 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Полоскания рта и горла препаратом h детям до 6 лет: применение не установлено — данных недостаточно'
+        minAgeMonths: 72
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparations a, d, e, g, h, j k, l, n for partial baths or local cutaneous use in children under 12 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Анальная и половая область: частичные ванны и местное нанесение чаем и препаратами d, e, g, h, j, k, l, n детям до 12 лет — применение не установлено, данных недостаточно'
+        minAgeMonths: 144
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparation o, m for partial baths or local cutenous use in children under 4 weeks of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Анальная и половая область: частичные ванны и местное нанесение препаратами o, m детям до 4 недель — применение не установлено, данных недостаточно'
+      - doc: monograph
+        page: 11
+        quote: The use of herbal preparations a, c, d, e, f, g, i, j, k, l, n (partially) for partial baths or local cutenous use in children under 12 years of age has not been established due to lack of adequate data.
+        kind: age
+        ru: 'Кожа (солнечный ожог, раны, фурункулы): частичные ванны и местное нанесение чаем и препаратами c, d, e, f, g, i, j, k, l, n (n — частично) детям до 12 лет — применение не установлено, данных недостаточно'
+        minAgeMonths: 144
+      - doc: monograph
         page: 10
         quote: If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
@@ -183,6 +253,16 @@ metadata:
         quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
         kind: contraindication
         ru: Аллергия на ромашку и другие астровые (сложноцветные)
+      - doc: monograph
+        page: 10
+        quote: Full baths are contraindicated in cases of open wounds, large skin injuries, acute skin diseases, high fever, severe infections, severe circulatory disturbances and cardiac insufficency.
+        kind: contraindication
+        ru: 'Ванны: полные ванны противопоказаны при открытых ранах, обширных повреждениях кожи, острых заболеваниях кожи, высокой температуре, тяжёлых инфекциях, тяжёлых нарушениях кровообращения и сердечной недостаточности'
+      - doc: monograph
+        page: 10
+        quote: Partial baths or hip baths are contraindicated in cases of open wounds, large skin injuries, acute skin diseases, high fever and severe infections.
+        kind: contraindication
+        ru: 'Ванны: частичные и сидячие ванны противопоказаны при открытых ранах, обширных повреждениях кожи, острых заболеваниях кожи, высокой температуре и тяжёлых инфекциях'
       - doc: monograph
         page: 12
         quote: Preparation a) Safety during pregnancy and lactation has been established.
@@ -309,6 +389,26 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Chamomile/
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: дети до 3 лет — по 1 чайной ложке настоя; EMA: чай внутрь детям младше 6 месяцев — применение не установлено'
+      grls: дети до 3 лет – по 1 чайной ложке.
+      authority: EMA
+      doc: monograph
+      page: 11
+      quote: The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-matricaria-recutita-l-flos-first-version_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: к врачу, если симптомы сохраняются более 2 недель; EMA: если симптомы держатся больше недели — к врачу или медработнику'
+      grls: Если при применении препарата симптомы сохраняются без улучшения более 2 недель или ухудшаются, следует обратиться к врачу.
+      authority: EMA
+      doc: monograph
+      page: 10
+      quote: If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-matricaria-recutita-l-flos-first-version_en.pdf
     identification:
       source:
         number: ФС.2.5.0037.15

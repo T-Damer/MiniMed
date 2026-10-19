@@ -1,0 +1,14 @@
+plant: glycyrrhiza-glabra
+items:
+  - topic: age
+    ru: "ГРЛС: детям от 1 года до 3 лет по 1 чайной ложке 2-3 раза в день; EMA: детям и подросткам до 18 лет не рекомендуется"
+    grls: "дети от 1 года до 3 лет – по 1 чайной ложке 2-3 раза в день."
+    monograph: {doc: monograph, page: 5, quote: "The use in children and adolescents under 18 years of age is not recommended"}
+  - topic: interaction
+    ru: "ГРЛС: можно с другими средствами от бронхолегочных болезней; EMA: нельзя с диуретиками, сердечными гликозидами, кортикостероидами, слабительными"
+    grls: "Возможно одновременное назначение других лекарственных средств, применяемых при лечении бронхолегочных заболеваний."
+    monograph: {doc: monograph, page: 6, quote: "Not to be used concomitantly with diuretics, cardiac glycosides, corticosteroids, stimulant laxatives or other medications which may aggravate electrolyte imbalance"}
+  - topic: contraindication
+    ru: "ГРЛС: противопоказаны бронхиальная астма, гастрит, язва в обострении; EMA: не рекомендуется при гипертонии, болезнях почек, печени, сердца, гипокалиемии"
+    grls: "Повышенная чувствительность к препаратам солодки, бронхиальная астма, гастрит, язвенная болезнь желудка и двенадцатиперстной кишки в период обострения"
+    monograph: {doc: monograph, page: 6, quote: "Liquorice medication is not recommended in patients affected by hypertension, kidney diseases, liver or cardiovascular disorders or hypokalaemia, as they are more sensitive to the adverse effects of liquorice."}

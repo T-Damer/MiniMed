@@ -267,6 +267,38 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   longer calls the lines a draft. Catalog: text `2026.10.20` and plates (unchanged `2026.10.19-w4`
   files) are `published` without the `experimental` tag; the documents keep the shared
   `requiresReview` reference-content flag. This is a source-fidelity review, not a clinician's review.
+- **Doctor's-eye pass, conflicts, regional Red Books** (2026-10-20, owner «clinician review and regional
+  Red Books», STATE HERB1-CLIN):
+  - Seven Sonnet reviewers read every chapter as physicians against the whole monograph and the ГРЛС
+    text (≈340 findings); seven more turned them into content edits per plant batch, each checked by
+    the quote checks; every addition was then read here (63 re-added no-information lines removed:
+    ethanol labelling, «not tested», species statements).
+  - `content/herbal/conflicts/<plant>.yaml` (new, `herbal_conflicts.py`): where the ГРЛС instruction
+    and EMA/WHO disagree — 98 items in 39 chapters (age limits, course length, daily amount, indications
+    the monograph contraindicates such as oedema in heart failure for horsetail/orthosiphon/juniper,
+    pregnancy/lactation allowed vs not recommended, interactions one names and the other denies). The
+    ГРЛС sentence must be in the instruction text, the monograph sentence on its page, every number of
+    the line in one of them (`prepare-herbal` refuses otherwise; `medbase check-herbal-conflicts`
+    checks against the built chapter). The chapter shows «ГРЛС и EMA расходятся» after «Как заварить»;
+    a cell opens both sentences.
+  - About 110 new monograph facts (frangula/senna toxic hepatitis and QT drugs, estragole limits,
+    thujone cap, chamomile bath contraindications, case reports from assessment reports), dose cells
+    with the monograph's daily total (new `daily` field, shown «в сутки …»), preparation names with
+    DER/solvent, and the WHO oregano dose fixed (a tablespoon of infusion, not 10 g herb 3× a day).
+  - «Вывод» (statement) facts now follow the contraindications except in a public statement; the
+    draft EMA monograph (zea mays) is tagged «проект монографии»; eucalyptus gets the other-species
+    note (EMA: E. globulus).
+  - Regional Red Books (`herbal_regions.py`, `medbase fetch-regional-red-books`,
+    `content/herbal/regional-red-books.yaml`): from Plantarium's index (259 lists) and each plant's
+    taxon page; a region counts when its newest edition known to Plantarium lists the plant (87
+    current regions; other countries, Soviet-era and merged regions left out). 27 plants, 170 rows
+    (rhodiola 24 regions, helichrysum 19, uva-ursi 18, …). The chapter shows «Красные книги регионов —
+    N регионов» opening the list with edition years and the source. Rows checked against the
+    regional act carry `checked`. Raw pages: `data/raw/herbal/plantarium` (11 MB).
+  - Clinician review page (claude.ai artifact «Травник: проверка врачом»,
+    https://claude.ai/artifact/1WmXzFQk2nVsDRznfn6voL): all 2 401 lines (facts, doses, constituents,
+    safety, conflicts, brew cells) with «Верно»/«Ошибка» + comment, stored in the artifact's database
+    (`marks/<line key>`), read back with ArtifactData to apply. Not yet used by a clinician.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

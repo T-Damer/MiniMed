@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:535a49cce56de8684801144a13a2ac38a35397b215781019485d0c9f5acc5def
+source_checksum: sha256:fe4c78115ef80c5cdbd997645aed0c457b0388095b27528746979ace58fce145
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -91,7 +91,7 @@ metadata:
         kind: posology
         ru: 'Подростки старше 12 лет, взрослые и пожилые: разовая доза — препарат, соответствующий 10–30 мг гидроксиантраценовых производных (в пересчёте на сеннозид B), один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул'
         dose:
-          preparationRu: раз в день на ночь
+          preparationRu: препарат с гидроксиантраценовыми производными (в пересчёте на сеннозид B), один раз в день на ночь — доза по содержанию действующих веществ, не по массе листа
           amount: 10-30
           unit: мг гидроксиантраценовых производных
           populationRu: подростки старше 12 лет, взрослые и пожилые
@@ -123,10 +123,30 @@ metadata:
         kind: warning
         ru: Сначала — изменить питание и попробовать набухающие средства
       - doc: monograph
+        page: 5
+        quote: Like all laxatives, senna leaf preparations should not be taken by patients suffering from faecal impaction and undiagnosed, acute or persistent gastro-intestinal complaints, e.g. abdominal pain, nausea and vomiting, unless advised by a doctor, because these symptoms can be signs of potential or existing intestinal blockage (ileus).
+        kind: warning
+        ru: Нельзя принимать при копростазе и неуточнённых острых или стойких жалобах со стороны ЖКТ (боль в животе, тошнота, рвота) без указания врача — это могут быть признаки кишечной непроходимости
+      - doc: monograph
+        page: 5
+        quote: Patients with kidney disorders should be aware of possible electrolyte imbalance.
+        kind: warning
+        ru: Пациентам с заболеваниями почек следует учитывать возможный электролитный дисбаланс
+      - doc: monograph
+        page: 5
+        quote: When preparations containing senna leaf preparations are administered to incontinent adults, pads should be changed more frequently to prevent extended skin contact with faeces.
+        kind: warning
+        ru: 'Недержание у взрослых: прокладки менять чаще, чтобы кожа не оставалась долго в контакте с калом'
+      - doc: monograph
         page: 6
         quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
         kind: interaction
         ru: Гипокалиемия (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмическими средствами; мочегонные, кортикостероиды и корень солодки могут усиливать потерю калия
+      - doc: monograph
+        page: 5
+        quote: Patients taking cardiac glycosides, antiarrhythmic medicinal products, medicinal products inducing QT-prolongation, diuretics, adrenocorticosteroids or liquorice root, have to consult a doctor before taking senna leaf preparations concomitantly.
+        kind: interaction
+        ru: Пациентам, принимающим сердечные гликозиды, антиаритмические средства, препараты, удлиняющие интервал QT, диуретики, кортикостероиды или корень солодки, перед приёмом листьев сенны нужно обратиться к врачу
       - doc: monograph
         page: 6
         quote: The use during pregnancy is contraindicated because experimental data concerning a genotoxic risk of several anthranoids, e.g. emodin and aloe- emodin.
@@ -159,9 +179,34 @@ metadata:
         ru: Моча может окраситься в жёлтый или красно-коричневый цвет (зависит от pH) — клинического значения это не имеет
       - doc: monograph
         page: 7
+        quote: Hypersensitivity reactions (pruritus, urticaria, local or generalised exanthema) may occur.
+        kind: adverse
+        ru: Возможны реакции гиперчувствительности (зуд, крапивница, местная или генерализованная сыпь)
+      - doc: monograph
+        page: 7
+        quote: However, these symptoms may also occur generally as a consequence of individual overdosage. In such cases dose reduction is necessary.
+        kind: warning
+        ru: Боль в животе и жидкий стул могут быть следствием индивидуальной передозировки — тогда нужно снизить дозу
+      - doc: monograph
+        page: 7
         quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, especially potassium, should be monitored.
         kind: overdose
         ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение — поддерживающее, обильное питьё, контроль электролитов, особенно калия
+      - doc: monograph
+        page: 7
+        quote: Chronic ingested overdoses of anthranoid containing medicinal products may lead to toxic hepatitis.
+        kind: overdose
+        ru: Хроническая передозировка препаратов, содержащих антраноиды, может приводить к токсическому гепатиту
+      - doc: monograph
+        page: 10
+        quote: Senna pods, extracts thereof and several hydroxyl anthracene derivatives (except sennosides, rhein and sennidins) were mutagenic and genotoxic in several in vitro test systems. However, for senna and aloe-emodin this was not proven in in vivo systems.
+        kind: statement
+        ru: Плоды сенны, их экстракты и ряд гидроксиантраценовых производных (кроме сеннозидов, реина и сеннидинов) были мутагенны и генотоксичны в нескольких тест-системах in vitro; для сенны и алоэ-эмодина in vivo это не доказано
+      - doc: monograph
+        page: 10
+        quote: In long term carcinogenicity studies with senna pods effects on kidneys and colon/caecum were reported.
+        kind: statement
+        ru: В длительных исследованиях канцерогенности с плодами сенны сообщалось о влиянии на почки и толстую/слепую кишку
       constituents:
       - doc: assessment-report
         page: 4
@@ -198,6 +243,17 @@ metadata:
         quote: 'Likelihood score: D (possible rare cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Senna/
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: не применять дольше 1 недели, обычно 2-3 приёма за неделю'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Not to be used for more than 1 week. Usually it is sufficient to take this medicinal product up to two to three times during that week.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-senna-alexandrina-mill-cassia-senna-l-cassia-angustifolia-vahl-folium-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0038.15

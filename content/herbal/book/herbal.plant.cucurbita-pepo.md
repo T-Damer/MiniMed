@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/cucurbitae-semen
-source_checksum: sha256:aa6d22e43179a5fabd86df4e8ee36dbcee599dcaca339cfb1da93db7c048f075
+source_checksum: sha256:74bfd7b620aee55332a8e1bc5a7153d4c008ab491951352e2d6a39668ab08570
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -98,7 +98,7 @@ metadata:
         kind: posology
         ru: 'Мягкий экстракт: разовая доза 500 мг, 2 раза в день — взрослые и пожилые'
         dose:
-          preparationRu: мягкий экстракт
+          preparationRu: мягкий экстракт (DER 15-25:1, этанол 92 % m/m)
           amount: '500'
           unit: мг
           timesPerDay: '2'
@@ -109,7 +109,7 @@ metadata:
         kind: posology
         ru: 'Сухой экстракт: разовая доза 105 мг, 3 раза в день — взрослые и пожилые'
         dose:
-          preparationRu: сухой экстракт
+          preparationRu: сухой экстракт (DER 15-30:1, этанол 60 % v/v)
           amount: '105'
           unit: мг
           timesPerDay: '3'
@@ -120,7 +120,7 @@ metadata:
         kind: posology
         ru: 'Сухой экстракт: разовая доза 152 мг, 2 раза в день — взрослые и пожилые'
         dose:
-          preparationRu: сухой экстракт
+          preparationRu: сухой экстракт (DER 15-30:1, этанол 60 % v/v)
           amount: '152'
           unit: мг
           timesPerDay: '2'
@@ -135,6 +135,7 @@ metadata:
           amount: 1-1.2
           unit: г
           timesPerDay: '3'
+          daily: 3-4 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -203,11 +204,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 3
@@ -251,6 +247,8 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0100.18

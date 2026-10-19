@@ -34,6 +34,12 @@ from typing import Any, cast
 import pymupdf
 import yaml
 
+from .herbal_conflicts import (
+    TOPIC_LABELS,
+    PlantConflicts,
+    load_conflicts,
+    validate_conflicts,
+)
 from .herbal_ema import (
     EmaExtraction,
     ema_documents,
@@ -56,6 +62,7 @@ from .herbal_plants import (
     Plant,
     load_plants,
 )
+from .herbal_regions import PLANTARIUM, PlantRegions, RegionalRedBooks, load_regional_red_books
 from .herbal_safety import (
     TRTS_SECTIONS,
     PlantSafety,
@@ -767,6 +774,48 @@ def _safety_source_lines(safety: PlantSafety) -> list[str]:
     return lines
 
 
+def _regions_metadata(book: RegionalRedBooks, plant: PlantRegions) -> dict[str, object]:
+    return {
+        "regions": [
+            {
+                "region": row.region,
+                "year": row.year,
+                **(
+                    {"checked": row.checked.model_dump(exclude_none=True)}
+                    if row.checked is not None
+                    else {}
+                ),
+            }
+            for row in plant.regions
+        ],
+        "sourceLabel": f"Плантариум, перечни региональных Красных книг ({book.fetched})",
+        "url": f"{PLANTARIUM}/page/view/item/{plant.taxon}.html",
+    }
+
+
+def _conflicts_metadata(
+    plant: Plant, conflicts: PlantConflicts, raw_manifest: dict[str, object]
+) -> list[dict[str, object]]:
+    documents = cast(
+        "dict[str, dict[str, object]]", _monograph_entry(plant, raw_manifest)["documents"]
+    )
+    authority = "WHO" if plant.who is not None else "EMA"
+    return [
+        {
+            "topic": item.topic,
+            "topicRu": TOPIC_LABELS[item.topic],
+            "ru": item.ru,
+            "grls": item.grls,
+            "authority": authority,
+            "doc": item.monograph.doc,
+            "page": item.monograph.page,
+            "quote": item.monograph.quote,
+            "url": documents[item.monograph.doc]["url"],
+        }
+        for item in conflicts.items
+    ]
+
+
 def _red_book_metadata(plant: Plant, raw_manifest: dict[str, object]) -> dict[str, object] | None:
     if plant.red_book is None:
         return None
@@ -867,6 +916,8 @@ def render_plant(
     extraction_sha256: str | None,
     manual: PlantLookalikes | None = None,
     safety: PlantSafety | None = None,
+    conflicts: PlantConflicts | None = None,
+    regions: tuple[RegionalRedBooks, PlantRegions] | None = None,
 ) -> Chapter:
     grls_front = (
         cast("dict[str, object]", _front_matter(choice.markdown)["metadata"])
@@ -908,6 +959,16 @@ def render_plant(
                 else {}
             ),
             **({"safety": _safety_digest(safety, raw_root, files)} if safety is not None else {}),
+            **(
+                {"conflicts": _sha256_bytes(conflicts.model_dump_json().encode())}
+                if conflicts is not None
+                else {}
+            ),
+            **(
+                {"regions": _sha256_bytes(regions[1].model_dump_json().encode())}
+                if regions is not None
+                else {}
+            ),
             **{path: files[path] for path in ema_paths},
             **({"emaExtraction": extraction_sha256} if extraction_sha256 else {}),
             **(
@@ -987,6 +1048,10 @@ def render_plant(
                 "ema": _ema_metadata(plant, extraction, raw_manifest),
                 "redBook": _red_book_metadata(plant, raw_manifest),
                 "safety": _safety_metadata(safety, raw_root) if safety is not None else None,
+                "regionalRedBooks": _regions_metadata(*regions) if regions is not None else None,
+                "conflicts": _conflicts_metadata(plant, conflicts, raw_manifest)
+                if conflicts is not None
+                else None,
                 "identification": _identification_metadata(
                     identification, gf_article, manual, manuals
                 )
@@ -1398,6 +1463,8 @@ def prepare_herbal_book(
     lookalikes_path: Path | None = None,
     who_dir: Path = Path("content/herbal/who"),
     safety_dir: Path = Path("content/herbal/safety"),
+    conflicts_dir: Path = Path("content/herbal/conflicts"),
+    regional_red_books: Path = Path("content/herbal/regional-red-books.yaml"),
 ) -> PrepareReport:
     plants = load_plants(plants_path)
     manual_lookalikes = load_lookalikes(lookalikes_path) if lookalikes_path else {}
@@ -1413,6 +1480,9 @@ def prepare_herbal_book(
         "list[dict[str, object]]", json.loads(catalog.read_text(encoding="utf-8"))["records"]
     )
     manifest = _load_manifest(instruction_manifest)
+    regional = load_regional_red_books(regional_red_books) if regional_red_books.is_file() else None
+    if regional is not None and (unknown := set(regional.plants) - {p.id for p in plants}):
+        raise HerbalSourceError(f"regional Red Books name unknown plants: {sorted(unknown)}")
     chapters: list[Chapter] = []
     extracted: list[str] = []
     missing: list[str] = []
@@ -1459,6 +1529,18 @@ def prepare_herbal_book(
         safety = load_safety(safety_path) if safety_path.is_file() else None
         if safety is not None and (problems := validate_safety(safety, raw_root)):
             raise HerbalSourceError(f"{plant.id}: safety lines fail their check: {problems}")
+        conflicts_path = conflicts_dir / f"{plant.id}.yaml"
+        conflicts = load_conflicts(conflicts_path) if conflicts_path.is_file() else None
+        if conflicts is not None:
+            documents = (
+                who_documents(raw_root, plant.who.volume)
+                if plant.who is not None
+                else ema_documents(raw_root, plant.id)
+            )
+            texts = [paragraph.text for paragraphs in sections.values() for paragraph in paragraphs]
+            pages = plant.who.pages if plant.who is not None else None
+            if problems := validate_conflicts(conflicts, texts, documents, pages):
+                raise HerbalSourceError(f"{plant.id}: ГРЛС/monograph conflicts fail: {problems}")
         chapter = render_plant(
             plant,
             choice,
@@ -1469,6 +1551,10 @@ def prepare_herbal_book(
             extraction_sha,
             manual_lookalikes.get(plant.id),
             safety,
+            conflicts,
+            (regional, regional.plants[plant.id])
+            if regional is not None and plant.id in regional.plants
+            else None,
         )
         brew = parse_brew(sections.get("dosage", []))
         lacking = [name for name in ("kind", "herb", "water", "dose") if name not in brew]

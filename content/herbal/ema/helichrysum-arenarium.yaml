@@ -90,11 +90,6 @@ facts:
     doc: monograph
     page: 4
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 5
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: isosalipurposide
     compoundRu: изосалипурпозид

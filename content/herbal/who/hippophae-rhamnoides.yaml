@@ -80,11 +80,11 @@ facts:
     quote: "Paediatric use No information was found."
   # Posology (the monograph names no population)
   - kind: posology
-    ru: "Внутрь, настой: 40–50 г свежих плодов на литр воды, 2–3 чашки в день"
+    ru: "Внутрь, настой: 40–50 г свежих плодов на литр воды; 2–3 чашки в день"
     doc: monograph
     page: 205
     quote: "For internal use. Infusion: 40–50 g of the fresh fruit per litre of water, 2–3 cups per day"
-    dose: { preparationRu: настой свежих плодов, amount: "40-50", unit: г на литр, populationRu: возраст не указан }
+    dose: { preparationRu: настой из свежих плодов, amount: "40-50", unit: г свежих плодов на литр воды, daily: "2-3 чашки", populationRu: возраст не указан }
   - kind: posology
     ru: "Внутрь, настойка (1:5): 30–50 капель 1–3 раза в день"
     doc: monograph
@@ -96,13 +96,19 @@ facts:
     doc: monograph
     page: 205
     quote: "Dosage of oil of Hippophaë fruit for internal use: one teaspoon 2–3 times daily, 30–40 minutes before meals (69, 70)."
-    dose: { preparationRu: масло плодов облепихи, amount: одна, unit: чайная ложка, timesPerDay: "2-3", populationRu: возраст не указан }
+    dose: { preparationRu: масло плодов облепихи внутрь, amount: одна, unit: чайная ложка, timesPerDay: "2-3", populationRu: возраст не указан }
   - kind: posology
     ru: "Наружно: 5–10 мл масла на тампон — для смачивания тампонов"
     doc: monograph
     page: 205
     quote: "For external use. 5–10 ml of oil per tampon, used for wetting of tampons (71)."
     dose: { preparationRu: масло плодов облепихи на тампоне, amount: "5-10", unit: мл, populationRu: возраст не указан }
+  - kind: posology
+    ru: Этанольный экстракт плодов при циррозе печени (в клиническом исследовании) — 15 г внутрь три раза в день в течение 6 месяцев
+    doc: monograph
+    page: 203
+    quote: received 15 g of the extract by the oral route, three times a day for 6 months
+    dose: { preparationRu: этанольный экстракт плодов (доза в исследовании при циррозе), amount: "15", unit: г экстракта, timesPerDay: три, populationRu: больные циррозом печени }
 constituents:
   - compound: carotenoids
     compoundRu: каротиноиды

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lichen-islandicus
-source_checksum: sha256:c7293ef9d473e366c8eece74bfa890912cb56b181cafa20270165d251e463840
+source_checksum: sha256:41472bf351c6841f6f90c892d6cc43e9e467a952e179ee0543dab1c2536f340e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -262,11 +262,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       - doc: assessment-report
         page: 21
         quote: Cetraria islandica was found to be able to absorb some toxic elements from the environment (Cercasov et al., 2002). High levels of heavy metals, especially lead, but also cadmium and mercury (Pb 30 mg/kg, Cd 0.30 mg/kg, Hg 0.075 mg/kg) were found in samples originating from Finland
@@ -320,6 +315,29 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Брянская область
+        year: 2016
+      - region: Воронежская область
+        year: 2018
+      - region: Город Москва
+        year: 2022
+      - region: Курская область
+        year: 2017
+      - region: Липецкая область
+        year: 2014
+      - region: Пензенская область
+        year: 2013
+      - region: Республика Татарстан
+        year: 2016
+      - region: Ростовская область
+        year: 2024
+      - region: Тамбовская область
+        year: 2019
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/75601.html
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

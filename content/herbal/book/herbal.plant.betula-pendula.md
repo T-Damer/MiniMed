@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf
-source_checksum: sha256:2f6424a89db87b20459da7807a7e3b3276a74b696a4b081304d8456e4ed376f2
+source_checksum: sha256:7c6a3f0c65c8d29dc82c747b187d7ec3c50b59ea98b3492939a8e914d02c5112
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -174,6 +174,31 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Республика Крым
+        year: 2025
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/6581.html
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: мочегонное при отёках сердечного и почечного происхождения; EMA: нельзя, если питьё нужно ограничить (тяжёлые болезни сердца, почек)'
+      grls: В качестве диуретического средства в комплексной терапии отеков сердечно-сосудистого и почечного происхождения.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal disease).
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-betula-pendula-roth-betula-pubescens-ehrh-folium_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: возможно, если польза для матери выше риска для плода и ребёнка; EMA: при беременности и кормлении не рекомендуется'
+      grls: Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-betula-pendula-roth-betula-pubescens-ehrh-folium_en.pdf
     identification:
       source:
         number: ФС.2.5.0005

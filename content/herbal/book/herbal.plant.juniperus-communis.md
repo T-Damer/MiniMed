@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:72f9794ad2e61315db6cc2f9239ca58cda5cf9e88ddbaa568c5f33ac0a19e450
+source_checksum: sha256:8c059bc407be1fec0f88eab0bd7a1d72ec9729eda546b3696a215550e8465349
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -161,6 +161,11 @@ metadata:
         quote: Interactions with other medicinal products and other forms of interaction None reported.
         kind: interaction
         ru: Взаимодействий не описано
+      - doc: assessment-report
+        page: 24
+        quote: Kaufmann et al. (2013) reported one case study on an unexpected decrease of the INR in a patient with phenprocoumon treatment during the intake of juniper cone berries.
+        kind: interaction
+        ru: Описан один случай неожиданного снижения МНО у пациента, получавшего фенпрокумон, на фоне приёма шишкоягод можжевельника
       - doc: monograph
         page: 7
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -209,6 +214,58 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Брянская область
+        year: 2016
+      - region: Воронежская область
+        year: 2018
+      - region: Город Москва
+        year: 2022
+      - region: Кемеровская область
+        year: 2021
+      - region: Липецкая область
+        year: 2014
+      - region: Пензенская область
+        year: 2013
+      - region: Республика Крым
+        year: 2025
+      - region: Республика Мордовия
+        year: 2017
+      - region: Тамбовская область
+        year: 2019
+      - region: Томская область
+        year: 2022
+        checked:
+          act: Распоряжение Администрации Томской области от 14.12.2022 № 793-ра
+          url: https://tomsk.gov.ru/files/front/download?id=375245
+      - region: Тульская область
+        year: 2020
+      - region: Ульяновская область
+        year: 2025
+      - region: Чувашская республика
+        year: 2019
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/21234.html
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при отёчном синдроме (сердечная, почечная, печёночная недостаточность); EMA: не рекомендуется при тяжёлых болезнях почек'
+      grls: В комплексной терапии отечного синдрома (при сердечной недостаточности, недостаточности функции почек и/или печени), цистита.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: Not recommended to be used in case of severe renal disease including infectious interstitial nephritis, pyelitis and pyelonephritis.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 3-4 недели; EMA: к врачу, если симптомы сохраняются дольше 2 недель'
+      grls: Курс лечения 3-4 недели.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0028.15

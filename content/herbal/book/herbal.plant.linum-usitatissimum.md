@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:0feb65183de22f316968fb7b6b8c820d84638c3da5a1f409e2ca59759a49184f
+source_checksum: sha256:e7eccbca5668294efa1099f644c03558e543cabf6bd256856570b6860c529b19
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -106,15 +106,21 @@ metadata:
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water for at least <x min> and take this half an hour before eating.
+        quote: 'Single dose 5 – 10 g in 250 ml water Daily dose: up to three times during the day'
         kind: posology
-        ru: Слизистый настой — замочить семена в воде, принимать за полчаса до еды (традиционное применение)
+        ru: Слизистый настой — разовая доза 5–10 г семян в 250 мл воды, до трёх раз в течение дня (традиционное применение)
         dose:
           preparationRu: слизистый настой
           amount: 5-10
-          unit: г
+          unit: г семян
           waterMl: '250'
+          timesPerDay: до трёх
           populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 4
+        quote: For a mucilaginous preparation, soak 5 - 10 g whole or broken seeds in 250 ml water for at least <x min> and take this half an hour before eating.
+        kind: posology
+        ru: Слизистый настой — замочить цельные или дроблёные семена в воде, принимать за полчаса до еды; время замачивания в монографии не указано (традиционное применение)
       - doc: monograph
         page: 4
         quote: 'The effect starts 12 - 24 hours later. Warning: not to be taken immediately prior to bedtime.'
@@ -251,13 +257,28 @@ metadata:
         ru: Семена льна как слабительное или местный компресс у кормящей, как ожидается, не вредят ребёнку на грудном вскармливании
         quote: Flaxseed used by the nursing mother as a laxative or topical poultice are not expected to adversely affect the breastfed infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM975/
-      - source: lactmed
-        kind: lactation
-        ru: Льняное масло можно использовать при лактации, но оно не компенсирует низкое поступление DHA у матери, например при вегетарианской или веганской диете
-        quote: Flaxseed oil can be used during lactation, but is not effective in counteracting a low maternal DHA intake, as in vegetarian or vegan diets.
-        url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM975/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при эзофагите, язве, гастрите; EMA: не применять при болезнях пищевода и кардии, сужениях ЖКТ, непроходимости'
+      grls: В комплексной терапии при воспалительных и язвенных процессах желудочно-кишечного тракта (воспаление пищевода (эзофагит), язвенная болезнь желудка и двенадцатиперстной кишки, энтерит, колит, гастрит, запор).
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Linseed should also not be used by patients suffering from abnormal constrictions in the gastro-intestinal tract, with diseases of the oesophagus and cardia or existing intestinal blockage (ileus), paralysis (ileus) of the intestine or megacolon.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-linum-usitatissimum-l-semen_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику'
+      grls: Курс лечения – 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: If the symptoms persist for longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-linum-usitatissimum-l-semen_en.pdf
     identification:
       source:
         number: ФС.2.5.0026.15

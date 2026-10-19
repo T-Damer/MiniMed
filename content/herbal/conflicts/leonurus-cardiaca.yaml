@@ -1,0 +1,14 @@
+plant: leonurus-cardiaca
+items:
+  - topic: age
+    ru: "ГРЛС: противопоказано детям до 12 лет; EMA: детям и подросткам до 18 лет применение не рекомендуется"
+    grls: "Повышенная чувствительность к препарату; беременность, детский возраст до 12 лет."
+    monograph: {doc: monograph, page: 3, quote: "The use in children and adolescents under 18 years of age is not recommended"}
+  - topic: dose
+    ru: "ГРЛС: настой по 1/2 стакана 2-3 раза в день; EMA: чай — разовая доза 1,5–4,5 г, суточная доза 3–10 г"
+    grls: "Настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 1 час до еды."
+    monograph: {doc: monograph, page: 3, quote: "a) Comminuted herbal substance for tea preparation: single dose 1.5 to 4.5 g, daily dose 3 to 10 g."}
+  - topic: interaction
+    ru: "ГРЛС: усиливает действие снотворных и средств, угнетающих ЦНС; EMA: взаимодействий не описано"
+    grls: "Совместим с другими седативными лекарственными средствами; усиливает действие снотворных и других лекарственных препаратов, угнетающих центральную нервную систему."
+    monograph: {doc: monograph, page: 4, quote: "Interactions with other medicinal products and other forms of interaction None reported."}

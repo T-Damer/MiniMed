@@ -105,6 +105,54 @@ describe('herbal chapter metadata', () => {
     ]);
   });
 
+  it('orders statements, reads conflicts and regional Red Books', () => {
+    const ema = chamomile.metadata.herbal['ema'] as Record<string, unknown>;
+    const facts = [
+      { ...quote, kind: 'statement', ru: 'Доклинических данных мало' },
+      { ...quote, kind: 'contraindication', ru: 'Аллергия на астровые' },
+    ];
+    const withFacts = (useType: string) =>
+      readHerbalChapter({
+        ...chamomile,
+        metadata: {
+          herbal: {
+            ...chamomile.metadata.herbal,
+            ema: { ...ema, useType, facts },
+            conflicts: [
+              {
+                topicRu: 'Курс',
+                ru: 'ГРЛС: курс 2–3 недели; EMA: не дольше 1 недели',
+                grls: 'Курс лечения 2-3 недели.',
+                quote: 'Not to be used for more than 1 week.',
+                page: 4,
+                authority: 'EMA',
+                url: 'https://evil.example/x.pdf',
+              },
+              { topicRu: 'Возраст', ru: 'без цитат' },
+            ],
+            regionalRedBooks: {
+              regions: [{ region: 'Мурманская область', year: 2025 }, { region: 'x' }],
+              sourceLabel: 'Плантариум, перечни региональных Красных книг (2026-10-20)',
+              url: 'https://www.plantarium.ru/page/view/item/31830.html',
+            },
+          },
+        },
+      });
+    // Outside a public statement, preclinical notes follow the contraindications.
+    expect(limitFacts(withFacts('traditional')?.ema ?? null).map((fact) => fact.kind)).toEqual([
+      'contraindication',
+      'statement',
+    ]);
+    expect(limitFacts(withFacts('public-statement')?.ema ?? null)[0]?.kind).toBe('statement');
+    const plant = withFacts('traditional');
+    // A conflict needs both sentences; a link off the monograph hosts is dropped.
+    expect(plant?.conflicts).toHaveLength(1);
+    expect(plant?.conflicts[0]?.url).toBeNull();
+    expect(plant?.regionalRedBooks?.regions).toEqual([
+      { region: 'Мурманская область', year: 2025, checked: null },
+    ]);
+  });
+
   it('ignores other documents and builds the book in Russian order', () => {
     const guide = {
       id: 'herbal.guide.infusions',
@@ -135,9 +183,22 @@ describe('herbal chapter metadata', () => {
         unit: 'г',
         waterMl: '150',
         timesPerDay: '3-4',
+        daily: null,
         populationRu: 'взрослые',
       }),
     ).toBe('1,5–4 г на 150 мл, 3–4 р/день');
+    // The monograph's daily total follows the frequency, so single × times is not read as the day.
+    expect(
+      emaDoseLine({
+        preparationRu: 'сухой экстракт',
+        amount: '8-18',
+        unit: 'мг',
+        waterMl: null,
+        timesPerDay: '2-3',
+        daily: '24-36 мг',
+        populationRu: 'дети 2–5 лет',
+      }),
+    ).toBe('8–18 мг, 2–3 р/день, в сутки 24–36 мг');
     const documents = (count: number) =>
       Array.from({ length: count }, (_, index) => ({ documentId: `herbal.plant.p${index}` }));
     expect(

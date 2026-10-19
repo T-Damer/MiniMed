@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/24/1532592/4c1cf892-188f-4039-8af3-5ce51ccd61b9.pdf
-source_checksum: sha256:282e5dd07e94848312c95c0d895dbaac3ef19349fac26394b759b5cbfeac1bc6
+source_checksum: sha256:8b40a646170d6914ec138408558bb57808e6e64f359312d19ca8dee9691574b5
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -110,6 +110,7 @@ metadata:
           preparationRu: настой
           amount: 1.5-4.5
           unit: г
+          daily: 3-10 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
@@ -176,6 +177,35 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказано детям до 12 лет; EMA: детям и подросткам до 18 лет применение не рекомендуется'
+      grls: Повышенная чувствительность к препарату; беременность, детский возраст до 12 лет.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-leonurus-cardiaca-l-herba_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: настой по 1/2 стакана 2-3 раза в день; EMA: чай — разовая доза 1,5–4,5 г, суточная доза 3–10 г'
+      grls: Настой принимают внутрь в теплом виде по 1/2 стакана 2-3 раза в день за 1 час до еды.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: 'a) Comminuted herbal substance for tea preparation: single dose 1.5 to 4.5 g, daily dose 3 to 10 g.'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-leonurus-cardiaca-l-herba_en.pdf
+    - topic: interaction
+      topicRu: Лекарства
+      ru: 'ГРЛС: усиливает действие снотворных и средств, угнетающих ЦНС; EMA: взаимодействий не описано'
+      grls: Совместим с другими седативными лекарственными средствами; усиливает действие снотворных и других лекарственных препаратов, угнетающих центральную нервную систему.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Interactions with other medicinal products and other forms of interaction None reported.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-leonurus-cardiaca-l-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0034

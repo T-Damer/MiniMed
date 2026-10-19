@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:11eb30949da8f8586da86216320a5c787e215c6a8f5a3be15d1566816d915f93
+source_checksum: sha256:de22a31f0c138555d60a3c1630f3e08ca78b05621cb8a3eb490d31f79c98ffde
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -103,7 +103,7 @@ metadata:
         kind: posology
         ru: Чай (настой) — подростки, взрослые и пожилые
         dose:
-          preparationRu: настой
+          preparationRu: настой (разовая доза)
           amount: 0.3-3
           unit: г
           waterMl: '150'
@@ -114,16 +114,125 @@ metadata:
         kind: posology
         ru: При стрессе — до 3 раз в день
         dose:
-          preparationRu: настой при стрессе
+          preparationRu: измельчённое сырьё для чая (разовая доза), приём при стрессе
           amount: 0.3-3
           unit: г
-          timesPerDay: '3'
+          timesPerDay: до 3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: To aid sleep, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary.
         kind: posology
         ru: Для сна — за полчаса–час до сна, при необходимости ещё раз раньше вечером
+      - doc: monograph
+        page: 4
+        quote: 'Single dose: 400-600 mg dry extract; For relief of mild nervous tension up to 3 times daily.'
+        kind: posology
+        ru: Сухой экстракт (хорошо изученное применение) — разовая доза 400–600 мг при лёгком нервном напряжении, до 3 раз в день
+        dose:
+          preparationRu: сухой экстракт (DER 3–7,4:1; этанол 40–70 %)
+          amount: 400-600
+          unit: мг
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'For relief of sleep disorders, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary. Maximum daily dose: 4 single doses'
+        kind: posology
+        ru: Сухой экстракт (хорошо изученное применение) при нарушениях сна — разовая доза за полчаса–час до сна и при необходимости ещё одна раньше вечером; не больше 4 разовых доз в сутки
+      - doc: monograph
+        page: 5
+        quote: 'c) single dose: 10 ml For relief of mild symptoms of mental stress up to 3 times daily.'
+        kind: posology
+        ru: Выжатый сок свежего корня — разовая доза 10 мл, до 3 раз в день
+        dose:
+          preparationRu: выжатый сок свежего корня
+          amount: '10'
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'e) single dose: 20 ml For relief of mild symptoms of mental stress up to 3 times daily.'
+        kind: posology
+        ru: Жидкий экстракт на воде — разовая доза 20 мл, до 3 раз в день
+        dose:
+          preparationRu: жидкий экстракт (DER 1:4–6; вода)
+          amount: '20'
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'h) single dose: 10 ml, up to 3 times daily'
+        kind: posology
+        ru: Жидкий экстракт на сладком вине — разовая доза 10 мл, до 3 раз в день
+        dose:
+          preparationRu: жидкий экстракт (DER 1:7–9; сладкое вино)
+          amount: '10'
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'i) single dose: 0.3-1.0 ml, up to 3 times daily'
+        kind: posology
+        ru: Жидкий экстракт на этаноле — разовая доза 0,3–1,0 мл, до 3 раз в день
+        dose:
+          preparationRu: жидкий экстракт (DER 1:1; этанол 60 %)
+          amount: 0.3-1.0
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'j) single dose: 4-8 ml, up to 3 times daily'
+        kind: posology
+        ru: Настойка — разовая доза 4–8 мл, до 3 раз в день
+        dose:
+          preparationRu: настойка (1:8; этанол 60 %)
+          amount: 4-8
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 6
+        quote: 'k) single dose: 0.84 ml For relief of mild symptoms of mental stress 3-5 times daily.'
+        kind: posology
+        ru: Настойка — разовая доза 0,84 мл при лёгких симптомах стресса, 3–5 раз в день
+        dose:
+          preparationRu: настойка (1:10; этанол 56 %)
+          amount: '0.84'
+          unit: мл
+          timesPerDay: 3-5
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 6
+        quote: 'l) single dose: 1.5 ml (mental stress), 3 ml (to aid sleep) For relief of mild symptoms of mental stress up to 3 times daily.'
+        kind: posology
+        ru: Настойка — разовая доза 1,5 мл при стрессе, 3 мл для сна; до 3 раз в день
+        dose:
+          preparationRu: настойка (1:5; этанол 70 %)
+          amount: 1.5 (стресс), 3 (для сна)
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 6
+        quote: 'm) single dose: 10 ml, up to 3 times daily'
+        kind: posology
+        ru: Настойка — разовая доза 10 мл, до 3 раз в день
+        dose:
+          preparationRu: настойка (1:5; этанол 60–80 %)
+          amount: '10'
+          unit: мл
+          timesPerDay: до 3
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 6
+        quote: 'Use as bath additive. Temperature: 34-37°C, duration of bath 10-20 minutes.'
+        kind: posology
+        ru: Ванна — температура 34–37 °C, длительность 10–20 минут
       - doc: monograph
         page: 6
         quote: 'a) single dose: 100 g for a full bath; up to 1 bath daily The use in children under 12 years of age is not recommended'
@@ -133,7 +242,7 @@ metadata:
           preparationRu: ванна
           amount: '100'
           unit: г
-          timesPerDay: '1'
+          timesPerDay: до 1
           populationRu: кроме детей до 12 лет
       - doc: monograph
         page: 5
@@ -266,6 +375,42 @@ metadata:
         quote: 3. Валериана — Valeriana L. — Все виды, корень и корневища
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 233
+    regionalRedBooks:
+      regions:
+      - region: Кабардино-Балкарская Республика
+        year: 2018
+      - region: Чеченская Республика
+        year: 2020
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/39858.html
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: дозы детям от 1 до 3 лет, 2 раза в день; EMA: до 12 лет не рекомендуется'
+      grls: дети от 1 до 3 лет – по 1/2 чайной ложки 2 раза в день
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-valeriana-officinalis-l-radix_en.pdf
+    - topic: interaction
+      topicRu: Лекарства
+      ru: 'ГРЛС: усиливает действие снотворных, седативных и спазмолитиков; EMA: взаимодействий не описано'
+      grls: Усиливает действие снотворных и седативных лекарственных средств, а также спазмолитиков.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: Interactions with other medicinal products and other forms of interaction None reported
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-valeriana-officinalis-l-radix_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: не рекомендуется'
+      grls: Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-valeriana-officinalis-l-radix_en.pdf
     identification:
       source:
         number: ФС.2.5.0009

@@ -1,0 +1,6 @@
+plant: centaurium-erythraea
+items:
+  - topic: course
+    ru: "ГРЛС: курс лечения 2-3 недели; EMA: к врачу, если симптомы сохраняются дольше 2 недель"
+    grls: "Курс лечения 2-3 недели."
+    monograph: {doc: monograph, page: 4, quote: "If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

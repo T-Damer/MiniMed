@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532404/32b1379e-45a5-43c5-b4e9-cc3e12fd0dad.pdf
-source_checksum: sha256:7e2a5f3717ea4f012fc11fba72d68978e066d22a6171a2b344148929422286c8
+source_checksum: sha256:04772ab19e90fe527f5dd8087aa171844551a385266c46db9c86ccd680f1248d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -109,11 +109,12 @@ metadata:
         kind: posology
         ru: Измельчённый корень в воде (мацерат) при раздражении рта и глотки и сухом кашле — дети 3–5 лет, 0,5–1,0 г на 150 мл воды 3 раза в день, суточная доза 1,5–3,0 г
         dose:
-          preparationRu: измельчённый корень в воде (мацерат)
+          preparationRu: измельчённый корень в воде (мацерат), при кашле
           amount: 0.5-1.0
           unit: г
           waterMl: '150'
           timesPerDay: '3'
+          daily: 1.5-3.0 г
           populationRu: дети 3–5 лет
       - doc: monograph
         page: 4
@@ -121,11 +122,12 @@ metadata:
         kind: posology
         ru: Измельчённый корень в воде (мацерат) при раздражении рта и глотки и сухом кашле — дети 6–11 лет, 0,5–1,5 г на 150 мл воды 3 раза в день, суточная доза 1,5–4,5 г
         dose:
-          preparationRu: измельчённый корень в воде (мацерат)
+          preparationRu: измельчённый корень в воде (мацерат), при кашле
           amount: 0.5-1.5
           unit: г
           waterMl: '150'
           timesPerDay: '3'
+          daily: 1.5-4.5 г
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 4
@@ -133,11 +135,12 @@ metadata:
         kind: posology
         ru: Измельчённый корень в воде (мацерат) — подростки, взрослые и пожилые, 0,5–3 г на 150 мл воды несколько раз в день; максимальная суточная доза 15 г
         dose:
-          preparationRu: измельчённый корень в воде (мацерат)
+          preparationRu: измельчённый корень в воде (мацерат), при кашле
           amount: 0.5-3
           unit: г
           waterMl: '150'
           timesPerDay: несколько
+          daily: до 15 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -145,11 +148,12 @@ metadata:
         kind: posology
         ru: Чай (мацерат) из измельчённого корня при лёгком дискомфорте в ЖКТ — подростки, взрослые и пожилые; максимальная суточная доза 15 г
         dose:
-          preparationRu: чай (мацерат) из измельчённого корня
+          preparationRu: чай (мацерат) из измельчённого корня, при дискомфорте в ЖКТ
           amount: 2-5
           unit: г
           waterMl: '150'
           timesPerDay: '3'
+          daily: до 15 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
@@ -161,6 +165,7 @@ metadata:
           amount: '1.9'
           unit: г
           timesPerDay: '4'
+          daily: 7.6 г
           populationRu: дети 3–5 лет
       - doc: monograph
         page: 5
@@ -172,6 +177,7 @@ metadata:
           amount: '2.3'
           unit: г
           timesPerDay: '5'
+          daily: 11.5 г
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 5
@@ -183,17 +189,19 @@ metadata:
           amount: '4.6'
           unit: г
           timesPerDay: 3-6
+          daily: 13.8-27.6 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
-        quote: 'c) Macerate for preparation of syrup Indication 1) Children 3-5 years of age Single dose: macerate amount corresponding to 0.1 to 0.29 g of the herbal substance (5 ml of syrup) up to 4 times daily'
+        quote: 'Children 3-5 years of age Single dose: macerate amount corresponding to 0.1 to 0.29 g of the herbal substance (5 ml of syrup) up to 4 times daily Daily dose: macerate amount corresponding to 0.21 to 1.16 g of herbal substance (10–20 ml of syrup)'
         kind: posology
         ru: Мацерат для сиропа при раздражении рта и глотки и сухом кашле — дети 3–5 лет, разовая доза соответствует 0,1–0,29 г сырья (5 мл сиропа) до 4 раз в день
         dose:
-          preparationRu: мацерат для сиропа
+          preparationRu: мацерат для сиропа, разовая доза в 5 мл сиропа
           amount: 0.1-0.29
           unit: г сырья в мацерате
           timesPerDay: до 4
+          daily: 0.21-1.16 г сырья (10-20 мл сиропа)
           populationRu: дети 3–5 лет
       - doc: monograph
         page: 5
@@ -206,10 +214,11 @@ metadata:
         kind: posology
         ru: Мацерат для сиропа — дети 6–11 лет, разовая доза соответствует 0,1–0,29 г сырья (5 мл сиропа) 3–5 раз в день, суточная — 0,32–1,45 г (15–25 мл сиропа)
         dose:
-          preparationRu: мацерат для сиропа
+          preparationRu: мацерат для сиропа, разовая доза в 5 мл сиропа
           amount: 0.1-0.29
           unit: г сырья в мацерате
           timesPerDay: 3-5
+          daily: 0.32-1.45 г сырья (15-25 мл сиропа)
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 6
@@ -217,10 +226,11 @@ metadata:
         kind: posology
         ru: Мацерат для сиропа — подростки, взрослые и пожилые, разовая доза соответствует 0,21–0,87 г сырья (10–15 мл сиропа) 3–5 раз в день, суточная — 0,63–2,9 г (30–50 мл сиропа)
         dose:
-          preparationRu: мацерат для сиропа
+          preparationRu: мацерат для сиропа, разовая доза в 10–15 мл сиропа
           amount: 0.21-0.87
           unit: г сырья в мацерате
           timesPerDay: 3-5
+          daily: 0.63-2.9 г сырья (30-50 мл сиропа)
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
@@ -232,6 +242,7 @@ metadata:
           amount: 0.5-1
           unit: г сырья в экстракте
           timesPerDay: '3'
+          daily: 1.5-3 г сырья
           populationRu: дети 3–5 лет
       - doc: monograph
         page: 6
@@ -243,6 +254,7 @@ metadata:
           amount: 0.5-1.5
           unit: г сырья в экстракте
           timesPerDay: '3'
+          daily: 1.5-4.5 г сырья
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 6
@@ -254,6 +266,7 @@ metadata:
           amount: 0.5-3
           unit: г сырья в экстракте
           timesPerDay: несколько
+          daily: до 15 г сырья
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 7
@@ -265,6 +278,7 @@ metadata:
           amount: 2-5
           unit: мл
           timesPerDay: '3'
+          daily: 6-15 мл
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 7
@@ -362,11 +376,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 10
-        quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 6
@@ -418,6 +427,57 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM924/
       liver: null
       trts: null
+    regionalRedBooks:
+      regions:
+      - region: Брянская область
+        year: 2016
+      - region: Кемеровская область
+        year: 2021
+      - region: Курганская область
+        year: 2012
+      - region: Курская область
+        year: 2017
+      - region: Липецкая область
+        year: 2014
+      - region: Омская область
+        year: 2015
+      - region: Пензенская область
+        year: 2013
+      - region: Республика Башкортостан
+        year: 2011
+      - region: Республика Калмыкия
+        year: 2014
+      - region: Республика Татарстан
+        year: 2016
+      - region: Тамбовская область
+        year: 2019
+      - region: Удмуртская республика
+        year: 2012
+      - region: Ульяновская область
+        year: 2025
+      - region: Чувашская республика
+        year: 2019
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/2417.html
+    conflicts:
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза превышает риск; EMA: при беременности и лактации не рекомендуется'
+      grls: Применение при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 9
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-althaea-officinalis-l-radix_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: при кашле и раздражении рта и горла, если симптомы держатся дольше 1 недели — к врачу или медработнику'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 7
+      quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-althaea-officinalis-l-radix_en.pdf
     identification:
       source:
         number: ФС.2.5.0001.15

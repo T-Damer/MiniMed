@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2024/03/11/1502683/f3ee60ea-d9d9-44aa-9804-c570520c54ec.pdf
-source_checksum: sha256:a9711e345c29b261232dd98665093044c93939dfb8b1737587a932ee52df9800
+source_checksum: sha256:96167fbb05f32cb966c341db055b6a5a461ff4a9772df780e0f8af6a9ab2d4e7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -170,11 +170,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные тесты на репродуктивную токсичность, генотоксичность и канцерогенность не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -231,6 +226,35 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM881/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: детям до 3 лет по 1/2–1 чайной ложке; EMA: детям до 12 лет не рекомендуется'
+      grls: дети до 3-х лет – по 1/2 - 1 чайной ложке.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-carum-carvi-l-fructus_en.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза выше риска; EMA: при кормлении грудью не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-carum-carvi-l-fructus_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: настой 3–4 раза в сутки по 1/3 стакана; EMA: 0,5–2 г в 150 мл, 1–3 раза в день'
+      grls: 'Принимают внутрь теплый настой 3 - 4 раза в сутки после еды: взрослые и дети старше 12 лет - по 1/3 стакана'
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: 'Herbal tea: 0.5-2 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-3 times daily'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-carum-carvi-l-fructus_en.pdf
     identification:
       source:
         number: ФС.2.5.0098.18

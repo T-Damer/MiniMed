@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:49eb1b679a165f11c2ec31094b1fd17637fa370e36a6fbe76f8b0f0b9676416a
+source_checksum: sha256:0c362fba9b7fd4f095f29955de6690c8ba1b1d581bed50db4fa9ec1828889181
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -113,7 +113,7 @@ metadata:
         kind: posology
         ru: Настойка — взрослые и пожилые
         dose:
-          preparationRu: настойка
+          preparationRu: настойка (1:5, этанол 45 % или 70 % V/V)
           amount: 2.0-3.0
           unit: мл
           timesPerDay: '3'
@@ -232,6 +232,17 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM935/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказано детям до 3 лет; EMA: детям младше 4 лет применение не рекомендуется'
+      grls: Повышенная чувствительность к препарату, ранний детский возраст (до 3-х лет).
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use is not recommended in children under 4 years of age
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-mentha-x-piperita-l-folium-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0029.15

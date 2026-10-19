@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/malvae-sylvestris-flos
-source_checksum: sha256:2ef4661dd0aee52701b0d62717bb3ceeaef9c00dfccc0ebeeb8645a2d1e0fb64
+source_checksum: sha256:2379b90f0d84e8d4fa68eb27e5bc74a1f7fa30b3a6ef680d6ab3400f47c67566
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -89,6 +89,7 @@ metadata:
           unit: г
           waterMl: '250'
           timesPerDay: 2-3
+          daily: в среднем 5 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -101,6 +102,7 @@ metadata:
           unit: г
           waterMl: '250'
           timesPerDay: 2-3
+          daily: в среднем 5 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -160,16 +162,21 @@ metadata:
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
         kind: adverse
         ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+      - doc: assessment-report
+        page: 36
+        quote: Literature describes two cases of acute liver and kidney damage, after oral consumption of Malva sylvestris and Malva sylvestris var. grandiflora. In both cases, the patients ate the mallow as a meal, and the nature of organ damage was acute.
+        kind: adverse
+        ru: Описаны два случая острого поражения печени и почек после употребления мальвы внутрь; в обоих пациенты ели мальву как блюдо
+      - doc: assessment-report
+        page: 36
+        quote: The causal relationship could not be confirmed.
+        kind: adverse
+        ru: В этих двух случаях причинная связь не подтверждена
       - doc: monograph
         page: 6
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on genotoxicity, reproductive toxicity and carcinogenicity has not been performed.
-        kind: statement
-        ru: Исследований генотоксичности, репродуктивной токсичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 5
@@ -199,7 +206,7 @@ metadata:
         page: 21
         quote: 'In experiments performed by Nosalova et al. (2005) a mucilage and an acidic polysaccharide fraction (consisting of rhamnogalacturonan) isolated from mallow flowers (Malva mauritiana) were administered orally to cats at a dose of 50 mg/kg (without anaesthesia). Antitussive effect of the polysaccharides was evaluated by surgically implanted chronic endotracheal cannula into the trachea. It served not only to register the pressure on electromanometer but also to the irritation of the airway mucous membrane in the desired areas: laryngopharyngeal and tracheobronchial. These areas were five times stimulated mechanically with nylon fibre and then monitored prior to application of the tested substance as a control value and after 0.5, 1, 2 and 5 hours after the administration of the polysaccharides. Both mucilage and rhamnogalacturonan fraction significantly diminished the number of incidents of cough and its intensity (during inhalation and exhalation).'
         compound: mucilage and rhamnogalacturonan fraction
-        compoundRu: слизь и рамногалактуронановая фракция
+        compoundRu: слизь и рамногалактуронановая фракция из цветков Malva mauritiana (другой вид)
         classRu: полисахариды
         effectRu: Слизь и кислая полисахаридная фракция (рамногалактуронан) из цветков мальвы (Malva mauritiana), введённые кошкам внутрь в дозе 50 мг/кг, значимо уменьшали число случаев кашля и его интенсивность (при вдохе и выдохе)
         evidence: animal
@@ -207,12 +214,14 @@ metadata:
         page: 24
         quote: Macroscopic and microscopic evaluation of colitis showed that the aqueous fraction was very effective in preventing the inflammation and therapeutic effectiveness was lower for ethanolic and n-hexane fractions. Polysaccharide was effective in pretreatment reducing signs of inflammation.The protective effect of the water fraction of Malva sylvestris on reduction of microscopic and macroscopic parameters of colitis was significantly higher than prednisolone. Anti-inflammatory effects of the tested fractions in this study seem to be related to their polysaccharide and polyphenol content.
         compound: polysaccharide and polyphenols (water fraction)
-        compoundRu: полисахарид и полифенолы (водная фракция)
+        compoundRu: полисахарид и полифенолы (водная фракция; опыты на надземной части — цветках и листьях)
         classRu: полисахариды, полифенолы
         effectRu: В модели колита водная фракция была очень эффективна в предотвращении воспаления, у этанольной и н-гексановой фракций терапевтическая эффективность ниже; полисахарид при предварительном введении уменьшал признаки воспаления; противовоспалительное действие, по-видимому, связано с их содержанием полисахаридов и полифенолов
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0120

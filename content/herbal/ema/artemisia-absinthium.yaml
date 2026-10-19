@@ -24,7 +24,7 @@ facts:
     doc: monograph
     page: 4
     quote: "a) Single dose herbal tea 1-1.5 g comminuted herbal substance in 150 ml of boiling water as an infusion Single dose: 1-1.5 g Daily dose: 2-3 g"
-    dose: { preparationRu: настой, amount: "1-1.5", unit: г, waterMl: "150", populationRu: взрослые и пожилые }
+    dose: { preparationRu: настой, amount: "1-1.5", unit: г, waterMl: "150", daily: "2-3 г", populationRu: взрослые и пожилые }
   - kind: posology
     ru: При потере аппетита — за 30 минут до еды; при лёгких расстройствах пищеварения — после еды
     doc: monograph
@@ -57,6 +57,16 @@ facts:
     doc: monograph
     page: 6
     quote: Patients with gallstones and any other biliary disorders (see section 4.3) should consult a doctor before using Absinthii herba preparations.
+  - kind: warning
+    ru: Туйон, по сообщениям, нейротоксичен; следует предпочитать хемотипы с низким содержанием туйона
+    doc: monograph
+    page: 7
+    quote: Thujone is reported to be neurotoxic and chemotypes with low content of thujone should be preferred.
+  - kind: warning
+    ru: Количество туйона в продукте должно быть указано; суточное поступление туйона — ниже 6,0 мг
+    doc: monograph
+    page: 8
+    quote: The amount of thujone has to be specified in the given product. The daily exposure has to be below 6.0 mg.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -67,6 +77,11 @@ facts:
     doc: monograph
     page: 6
     quote: The use is not recommended during pregnancy and lactation.
+  - kind: pregnancy
+    ru: В опытах на беременных крысах сухой этанольный экстракт полыни уменьшал число мест имплантации и число рождённых крысят; туйон известен маточно-стимулирующим действием
+    doc: monograph
+    page: 7
+    quote: Tests on reproductive toxicity have been performed with a dry ethanolic extract of Absinthii herba administered orally to pregnant rats. Results showed reduced sites of implantations and a reduced rate of born pups. Thujone is known for its uterus stimulating activity.
   - kind: adverse
     ru: Побочные эффекты не известны
     doc: monograph

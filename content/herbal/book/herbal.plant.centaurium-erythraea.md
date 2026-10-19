@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530382/cc0903a7-f936-4ebb-b78b-f00f686dac55.pdf
-source_checksum: sha256:5a4d0a43fada315da8efd3793dd129ef280b76a715b3bf7b0a620f0d4d07a9d4
+source_checksum: sha256:6e185b4a2117305ba396ebe254c62daceab6e90082539a4364ba9b21a6ed09eb
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -162,6 +162,44 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Вологодская область
+        year: 2015
+      - region: Город Москва
+        year: 2022
+      - region: Костромская область
+        year: 2019
+      - region: Ленинградская область
+        year: 2017
+        checked:
+          act: Приказ Леноблкомприроды от 11.03.2015 № 21 (ред. 17.10.2018), № 92
+          url: https://base.garant.ru/22923362/
+          category: '1'
+      - region: Новгородская область
+        year: 2015
+      - region: Республика Татарстан
+        year: 2016
+      - region: Тамбовская область
+        year: 2019
+      - region: Удмуртская республика
+        year: 2012
+      - region: Чувашская республика
+        year: 2019
+      - region: Ярославская область
+        year: 2015
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/9625.html
+    conflicts:
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 2-3 недели; EMA: к врачу, если симптомы сохраняются дольше 2 недель'
+      grls: Курс лечения 2-3 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-centaurium-erythraea-rafn-sl-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0075.18

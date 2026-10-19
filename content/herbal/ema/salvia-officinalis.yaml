@@ -101,6 +101,21 @@ facts:
     doc: monograph
     page: 8
     quote: Intake of sage oil corresponding to more than 15 g of sage leaf is reported to cause sensation of heat, tachycardia, vertigo and epileptiform convulsions (seizures).
+  - kind: warning
+    ru: Туйон, по сообщениям, нейротоксичен, поэтому следует предпочитать хемотипы с низким содержанием туйона
+    doc: monograph
+    page: 9
+    quote: Thujone is reported to be neurotoxic, hence chemotypes with low content of thujone should be preferred.
+  - kind: warning
+    ru: Количество туйона в продукте должно быть указано; суточное поступление туйона — ниже 6,0 мг
+    doc: monograph
+    page: 9
+    quote: The amount of thujone has to be specified in the given product. The daily exposure has to be below 6.0 mg.
+  - kind: warning
+    ru: Сообщалось, что чай из шалфея мог спровоцировать судороги у ребёнка с ранее не проявлявшимся очагом судорожной активности
+    doc: assessment-report
+    page: 38
+    quote: "Conclusion: Tea made from sage may have kindled convulsions in a child with a previously unmasked seizure focus"
 constituents:
   - compound: α- and β-thujone
     compoundRu: α- и β-туйон

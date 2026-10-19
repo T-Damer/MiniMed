@@ -1,0 +1,10 @@
+plant: linum-usitatissimum
+items:
+  - topic: indication
+    ru: "ГРЛС: показан при эзофагите, язве, гастрите; EMA: не применять при болезнях пищевода и кардии, сужениях ЖКТ, непроходимости"
+    grls: В комплексной терапии при воспалительных и язвенных процессах желудочно-кишечного тракта (воспаление пищевода (эзофагит), язвенная болезнь желудка и двенадцатиперстной кишки, энтерит, колит, гастрит, запор).
+    monograph: {doc: monograph, page: 4, quote: "Linseed should also not be used by patients suffering from abnormal constrictions in the gastro-intestinal tract, with diseases of the oesophagus and cardia or existing intestinal blockage (ileus), paralysis (ileus) of the intestine or megacolon."}
+  - topic: course
+    ru: "ГРЛС: курс лечения 2-3 недели; EMA: если симптомы держатся дольше 1 недели — к врачу или медработнику"
+    grls: Курс лечения – 2-3 недели.
+    monograph: {doc: monograph, page: 4, quote: "If the symptoms persist for longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

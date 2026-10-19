@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527771/638bb970-581f-4955-9256-85dd271ced8e.pdf
-source_checksum: sha256:e294328b7e388f141e8c733229ce881c3f2826b0178474f8b649c19c68be5a9e
+source_checksum: sha256:ae04d6b72f273ebd9b25349262c887e5fd21d4681c76089f037e482e3c673c87
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -234,6 +234,35 @@ metadata:
         evidence: clinical
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: по 1/4-1/3 стакана настоя 2-3 раза в день; ВОЗ: одна столовая ложка настоя (1:20) 3-4 раза в день'
+      grls: При простудных заболеваниях настой принимают внутрь в теплом виде по 1/4-1/3 стакана 2-3 раза в день после еды.
+      authority: WHO
+      doc: monograph
+      page: 52
+      quote: Internal use. One tablespoon of the infusion (1:20) is administered 3–4 times a day (46, 53).
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: внутрь противопоказано, наружно настой возможен; ВОЗ: препараты травы череды при беременности не следует применять'
+      grls: Применение внутрь противопоказано; возможно наружное применение настоя.
+      authority: WHO
+      doc: monograph
+      page: 52
+      quote: Preparations of Herba Bidentis should not be used during pregnancy.
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: внутрь противопоказано, наружно настой возможен; ВОЗ: препараты травы череды кормящим матерям не следует применять'
+      grls: Применение внутрь противопоказано; возможно наружное применение настоя.
+      authority: WHO
+      doc: monograph
+      page: 52
+      quote: Preparations of Herba Bidentis should not be used by nursing mothers.
+      url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
     identification:
       source:
         number: ФС.2.5.0048.15

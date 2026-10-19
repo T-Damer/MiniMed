@@ -20,62 +20,62 @@ facts:
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily.'
-    dose: {preparationRu: травяной чай (настой) из измельчённого сырья, amount: '500', unit: мг, waterMl: 150-200, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'травяной чай (настой) из измельчённого сырья, при стрессе', amount: '500', unit: мг, waterMl: 150-200, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Порошок сырья при психическом стрессе — взрослые, 400 мг два раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents.'
-    dose: {preparationRu: порошок сырья, amount: '400', unit: мг, timesPerDay: два, populationRu: взрослые}
+    dose: {preparationRu: 'порошок сырья, при стрессе', amount: '400', unit: мг, timesPerDay: два, populationRu: взрослые}
   - kind: posology
     ru: Порошок сырья при психическом стрессе — подростки, 200 мг два раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents.'
-    dose: {preparationRu: порошок сырья, amount: '200', unit: мг, timesPerDay: два, populationRu: подростки}
+    dose: {preparationRu: 'порошок сырья, при стрессе', amount: '200', unit: мг, timesPerDay: два, populationRu: подростки}
   - kind: posology
     ru: Жидкий экстракт (1:1) при психическом стрессе — подростки, взрослые и пожилые, 0,5–2,0 мл до 3 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily.'
-    dose: {preparationRu: 'жидкий экстракт (1:1)', amount: 0.5-2.0, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'жидкий экстракт (DER 1:1, этанол 45 %), при стрессе', amount: 0.5-2.0, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт (1:10) при психическом стрессе — подростки, взрослые и пожилые, 19 г 2–3 раза в день (так в монографии)
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily.'
-    dose: {preparationRu: 'жидкий экстракт (1:10)', amount: '19', unit: г, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'жидкий экстракт (DER 1:10, сладкое вино), при стрессе', amount: '19', unit: г (так в монографии), timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Настойка (1:5) при психическом стрессе — подростки, взрослые и пожилые, 1–2 мл до 3 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily. e) Tincture (1:5): 1-2 ml, up to 3 times daily.'
-    dose: {preparationRu: 'настойка (1:5)', amount: 1-2, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'настойка (1:5, этанол 60 %), при стрессе', amount: 1-2, unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Сухой экстракт (4–5:1) при психическом стрессе — подростки, взрослые и пожилые, 125 мг 2–3 раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily. e) Tincture (1:5): 1-2 ml, up to 3 times daily. f) Dry extract (4-5:1): 125 mg, 2-3 times daily.'
-    dose: {preparationRu: 'сухой экстракт (4-5:1)', amount: '125', unit: мг, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'сухой экстракт (DER 4-5:1, метанол 50 %), при стрессе', amount: '125', unit: мг, timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
   # to aid sleep (heading «Adolescents, adults, elderly» above the two blocks)
   - kind: posology
     ru: Для сна — травяной чай (настой) из измельчённого сырья, 500–1000 мг на 150–200 мл кипятка за 30–60 минут до сна
     doc: monograph
     page: 4
     quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime.'
-    dose: {preparationRu: травяной чай (настой) из измельчённого сырья, amount: 500-1000, unit: мг, waterMl: 150-200, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'травяной чай (настой) из измельчённого сырья, для сна, разовая доза за 30-60 мин до сна', amount: 500-1000, unit: мг, waterMl: 150-200, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Для сна — порошок сырья, 800–2000 мг за 30–60 минут до сна
     doc: monograph
     page: 4
     quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime. b) Powdered herbal substance: 800–2000 mg, 30-60 minutes before bedtime.'
-    dose: {preparationRu: порошок сырья, amount: 800-2000, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'порошок сырья, для сна, разовая доза за 30-60 мин до сна', amount: 800-2000, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Для сна — сухой экстракт (4–5:1), 125–250 мг за 60 минут до сна
     doc: monograph
     page: 4
     quote: 'To aid sleep Single dose: a) Herbal tea: 500-1000 mg of comminuted herbal substance in 150-200 ml of boiling water as an herbal infusion 30 - 60 min before bedtime. b) Powdered herbal substance: 800–2000 mg, 30-60 minutes before bedtime. c) Dry extract (4-5:1): 125-250 mg, 60 min before bedtime.'
-    dose: {preparationRu: 'сухой экстракт (4-5:1)', amount: 125-250, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'сухой экстракт (DER 4-5:1, метанол 50 %), для сна, разовая доза за 60 мин до сна', amount: 125-250, unit: мг, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Приём внутрь
     doc: monograph
@@ -139,11 +139,6 @@ facts:
     doc: monograph
     page: 6
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
-    doc: monograph
-    page: 7
-    quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
 constituents:
   - compound: 8-prenylnaringenin (8-PN)
     compoundRu: 8-пренилнарингенин (8-ПН)

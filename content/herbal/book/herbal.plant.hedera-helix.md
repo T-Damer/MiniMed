@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/hederae-helicis-folium
-source_checksum: sha256:65d94c9846e79929b727c1a3fb74b3dd087f0c979bb3865ad785793d9f1773ad
+source_checksum: sha256:a97f99fad55607bbae0f7bfd531b7bbc5288a0ccd9816ac89c019b156afc49a9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -78,6 +78,7 @@ metadata:
           amount: 15-65
           unit: мг
           timesPerDay: один-три
+          daily: 45-105 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -89,6 +90,7 @@ metadata:
           amount: 14-18
           unit: мг
           timesPerDay: три
+          daily: 42-54 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -100,6 +102,7 @@ metadata:
           amount: '33'
           unit: мг
           timesPerDay: два
+          daily: 66 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -111,6 +114,7 @@ metadata:
           amount: '100'
           unit: мг
           timesPerDay: три
+          daily: 300 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -122,6 +126,7 @@ metadata:
           amount: '40'
           unit: мг
           timesPerDay: три
+          daily: 120 мг
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -133,6 +138,7 @@ metadata:
           amount: 11-35
           unit: мг
           timesPerDay: два-три
+          daily: 33-70 мг
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 4
@@ -144,6 +150,7 @@ metadata:
           amount: 9-18
           unit: мг
           timesPerDay: один-три
+          daily: 15-40 мг
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 4
@@ -155,6 +162,7 @@ metadata:
           amount: '25'
           unit: мг
           timesPerDay: два
+          daily: 50 мг
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 4
@@ -166,6 +174,7 @@ metadata:
           amount: '75'
           unit: мг
           timesPerDay: три
+          daily: 225 мг
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 4
@@ -177,6 +186,7 @@ metadata:
           amount: 20-26
           unit: мг
           timesPerDay: три-четыре
+          daily: до 80 мг
           populationRu: дети 6–11 лет
       - doc: monograph
         page: 5
@@ -188,6 +198,7 @@ metadata:
           amount: 8-18
           unit: мг
           timesPerDay: два-три
+          daily: 24-36 мг
           populationRu: дети 2–5 лет
       - doc: monograph
         page: 5
@@ -199,6 +210,7 @@ metadata:
           amount: 7-9
           unit: мг
           timesPerDay: два-три
+          daily: 14-27 мг
           populationRu: дети 2–5 лет
       - doc: monograph
         page: 5
@@ -210,6 +222,7 @@ metadata:
           amount: '17'
           unit: мг
           timesPerDay: два
+          daily: 34 мг
           populationRu: дети 2–5 лет
       - doc: monograph
         page: 5
@@ -221,6 +234,7 @@ metadata:
           amount: '20'
           unit: мг
           timesPerDay: три
+          daily: 60 мг
           populationRu: дети 2–5 лет
       - doc: monograph
         page: 5
@@ -316,11 +330,6 @@ metadata:
         quote: The mechanism of action is not known.
         kind: statement
         ru: Механизм действия не известен
-      - doc: monograph
-        page: 7
-        quote: Data on genotoxicity, carcinogenicity and reproductive toxicity testing for ivy leaf preparations are not available.
-        kind: statement
-        ru: Данных о тестах на генотоксичность, канцерогенность и репродуктивную токсичность для препаратов листа плюща нет
       - doc: assessment-report
         page: 4
         quote: 'Content: minimum 3.0% of hederacoside C (C59H96O26; Mr 1221).'
@@ -379,6 +388,8 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

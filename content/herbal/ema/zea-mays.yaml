@@ -18,14 +18,14 @@ facts:
     ru: Отвар (кипятить 5 минут)
     doc: monograph
     page: 4
-    quote: "Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily."
-    dose: { preparationRu: отвар, amount: "2-4", unit: г, waterMl: "200", timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+    quote: "Herbal tea, decoction: 2 – 4 g of comminuted herbal substance in 200 ml of boiling water as a decoction (boiled for 5 minutes) 2 - 3 times daily. Daily dose 4 g –12 g"
+    dose: { preparationRu: отвар, amount: "2-4", unit: г, waterMl: "200", timesPerDay: "2-3", daily: "4-12 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Настой
     doc: monograph
     page: 4
-    quote: "Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily"
-    dose: { preparationRu: настой, amount: "4-8", unit: г, waterMl: "200", timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    quote: "Herbal tea, infusion: 4 – 8 g of comminuted herbal substance in 200 ml of boiling water as a herbal infusion 3 times daily, corresponding to the daily doses 12 g - 24 g."
+    dose: { preparationRu: настой, amount: "4-8", unit: г, waterMl: "200", timesPerDay: "3", daily: "12-24 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Отвар принимают между едой
     doc: monograph

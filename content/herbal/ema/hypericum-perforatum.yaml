@@ -10,6 +10,11 @@ facts:
     page: 4
     quote: "Herbal preparations a), b): Herbal medicinal product for the treatment of mild to moderate depressive episodes."
   - kind: indication
+    ru: Кратковременное лечение симптомов лёгких депрессивных расстройств — экстракт c) монографии (хорошо изученное применение)
+    doc: monograph
+    page: 4
+    quote: "Herbal preparation c): Herbal medicinal product for the short-term treatment of symptoms in mild depressive disorders."
+  - kind: indication
     ru: Временное умственное истощение (традиционное применение)
     doc: monograph
     page: 4
@@ -30,11 +35,35 @@ facts:
     page: 5
     quote: Traditional herbal medicinal product for the supportive treatment of nervous restlessness and associated with difficulties in falling asleep.
   - kind: posology
+    ru: 'Депрессия, препарат a) — сухой экстракт: разовая доза 300–600 мг, 1–3 раза в день, суточная 600–1800 мг; взрослые и пожилые (хорошо изученное применение)'
+    doc: monograph
+    page: 5
+    quote: 'Adults and elderly Herbal preparation a): Single dose: 300-600 mg Dosage frequency: 1-3 times daily Daily dose: 600-1800 mg'
+    dose: { preparationRu: 'препарат a): сухой экстракт (3-7:1), экстрагент метанол 80 % об/об', amount: "300-600", unit: мг, timesPerDay: "1-3", daily: "600-1800 мг", populationRu: "взрослые и пожилые"}
+  - kind: posology
+    ru: 'Депрессия, препарат b) — сухой экстракт: разовая доза 900 мг, один раз в день, суточная 900 мг; взрослые и пожилые (хорошо изученное применение)'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparation b): Single dose: 900 mg Dosage frequency: 1 single daily dose Daily dose: 900 mg'
+    dose: { preparationRu: 'препарат b): сухой экстракт (3-6:1), экстрагент этанол 80 % об/об', amount: "900", unit: мг, timesPerDay: "1", daily: "900 мг", populationRu: "взрослые и пожилые"}
+  - kind: posology
+    ru: 'Лёгкие депрессивные расстройства, препарат c) — сухой экстракт: разовая доза 600 или 612 мг, один раз в день, суточная 600 или 612 мг; взрослые и пожилые (хорошо изученное применение)'
+    doc: monograph
+    page: 5
+    quote: 'Herbal preparation c): Single dose: 600 mg or 612 mg Dosage frequency: 1 single daily dose Daily dose: 600 mg or 612 mg'
+    dose: { preparationRu: 'препарат c): сухой экстракт (2,5-8:1), экстрагент этанол 50-68 % об/об', amount: "600 или 612", unit: мг, timesPerDay: "1", daily: "600 или 612 мг", populationRu: "взрослые и пожилые"}
+  - kind: posology
+    ru: 'Лёгкие депрессивные расстройства, препарат c) — сухой экстракт: разовая доза 250–600 мг, 2–3 раза в день, суточная 500–1200 мг; взрослые и пожилые (хорошо изученное применение)'
+    doc: monograph
+    page: 5
+    quote: 'or Single dose: 250-600 mg Dosage frequency: 2-3 times daily Daily dose: 500-1200 mg'
+    dose: { preparationRu: 'препарат c): сухой экстракт (2,5-8:1), экстрагент этанол 50-68 % об/об', amount: "250-600", unit: мг, timesPerDay: "2-3", daily: "500-1200 мг", populationRu: "взрослые и пожилые"}
+  - kind: posology
     ru: Чай при истощении — взрослые и пожилые
     doc: monograph
     page: 6
     quote: "Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g"
-    dose: { preparationRu: настой, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-3", populationRu: "взрослые и пожилые"}
+    dose: { preparationRu: настой, amount: "1.5-2", unit: г, waterMl: "150", timesPerDay: "2-3", daily: "3-6 г", populationRu: "взрослые и пожилые"}
   - kind: posology
     ru: Настой для промываний и повязок на кожу
     doc: monograph
@@ -65,18 +94,44 @@ facts:
     page: 7
     quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
     maxDays: 14
+  - kind: duration
+    ru: При кожных и желудочно-кишечных жалобах (показания 2 и 3) — если симптомы держатся дольше 1 недели, к врачу или квалифицированному медработнику
+    doc: monograph
+    page: 7
+    quote: Indications 2) and 3) If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+    maxDays: 7
+  - kind: duration
+    ru: 'Депрессия, препараты a), b): эффект ожидается в течение 4 недель; если симптомы сохраняются — к врачу (хорошо изученное применение)'
+    doc: monograph
+    page: 6
+    quote: Indication 1) The onset of the effect can be expected within 4 weeks of treatment. If the symptoms persist during the use of the medicinal product, a doctor should be consulted.
+  - kind: duration
+    ru: 'Лёгкие депрессивные расстройства, препарат c): шесть недель; эффект ожидается в течение 4 недель; если симптомы сохраняются — к врачу (хорошо изученное применение)'
+    doc: monograph
+    page: 6
+    quote: Indication 2) Six weeks. The onset of the effect can be expected within 4 weeks of treatment. If the symptoms persist during the use of the medicinal product, a doctor should be consulted.
   - kind: contraindication
-    ru: 'При суточной дозе гиперфорина более 1 мг: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
+    ru: 'Традиционное применение, при суточной дозе гиперфорина более 1 мг: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
     doc: monograph
     page: 8
     quote: "Daily dose of hyperforin > 1 mg: Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein"
+  - kind: contraindication
+    ru: 'Экстракты при депрессии (хорошо изученное применение), без ограничения по гиперфорину: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
+    doc: monograph
+    page: 8
+    quote: "Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein (see section 4.5 ‘Interactions with other medicinal products and other forms of interaction’)."
   - kind: interaction
     ru: Повышает активность ферментов CYP3A4, CYP2B6, CYP2C9, CYP2C19 и транспортёра P-гликопротеина
     doc: monograph
     page: 9
     quote: Hyperici herba preparations induce the activity of CYP3A4, CYP2B6, CYP2C9, CYP2C19 and P- glycoprotein.
   - kind: interaction
-    ru: При суточном поступлении гиперфорина менее 1 мг и курсе не дольше 2 недель клинически значимых взаимодействий с препаратами, которые метаболизируются CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 или переносятся P-гликопротеином, не описано
+    ru: 'Особая осторожность при одновременном применении с препаратами, на метаболизм которых влияют эти ферменты и P-гликопротеин (например, амитриптилин, фексофенадин, алпразолам, диазепам, мидазолам, метадон, симвастатин, дигоксин, финастерид): возможно снижение их концентраций в плазме'
+    doc: monograph
+    page: 9
+    quote: "Special care should be taken in case of concomitant use of all drug substances the metabolism of which is influenced by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or P-glycoprotein (e.g., amitriptyline, fexofenadine, alprazolam, diazepam, midazolam, methadone, simvastatin, digoxin, finasteride), because a reduction of plasma concentrations is possible."
+  - kind: interaction
+    ru: При суточном поступлении гиперфорина менее 1 мг и курсе не дольше 2 недель (традиционное применение) клинически значимых взаимодействий с препаратами, которые метаболизируются CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 или переносятся P-гликопротеином, не описано
     doc: monograph
     page: 9
     quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported for concomitantly administered drugs which are metabolised via CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 or transported by P- glycoprotein.
@@ -85,6 +140,11 @@ facts:
     doc: monograph
     page: 10
     quote: Women using hormonal contraceptives should take additional contraceptive measures.
+  - kind: interaction
+    ru: Повышенная активность ферментов возвращается к норме в течение 1 недели после прекращения приёма
+    doc: monograph
+    page: 10
+    quote: The elevated enzyme activity returns within 1 week after cessation to normal level.
   - kind: interaction
     ru: Может усиливать серотонинергические эффекты при сочетании с антидепрессантами — ингибиторами обратного захвата серотонина (например, сертралин, пароксетин) — или с буспироном
     doc: monograph

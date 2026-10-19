@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/eleutherococci-radix
-source_checksum: sha256:a9f7c478b62e005e4d1026a04a9fc9d3fa720a63e5927e75fd9bf2e676ff2166
+source_checksum: sha256:9682f488451debb9b26888527a4a609d182b185e4b4e0a109d7281c45a53a584
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -76,7 +76,6 @@ metadata:
           amount: 0.5-4
           unit: г в сутки
           waterMl: '150'
-          timesPerDay: от одного до трёх
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -234,11 +233,6 @@ metadata:
         ru: Случаев передозировки не описано
       - doc: monograph
         page: 7
-        quote: Adequate tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватных исследований репродуктивной токсичности и канцерогенности не проводилось
-      - doc: monograph
-        page: 7
         quote: In vitro experiments, using the Salmonella typhimurium strains TA 100 and TA 98 assay and the micronucleus test in mice, did not reveal any mutagenic potential of aqueous and ethanolic extracts.
         kind: statement
         ru: В опытах in vitro (штаммы Salmonella typhimurium TA 100 и TA 98) и в микроядерном тесте на мышах мутагенного потенциала водных и этанольных экстрактов не выявлено
@@ -300,6 +294,13 @@ metadata:
         quote: 17. Элеутерококк колючий — Eleutherococcus senticosus — Все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 234
+    regionalRedBooks:
+      regions:
+      - region: Амурская область
+        year: 2020
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/14108.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0053.15

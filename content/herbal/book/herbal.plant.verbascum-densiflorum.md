@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/verbasci-flos
-source_checksum: sha256:17a30b498014c501f692d021d299f80bbce19451acb3043b9cf0d01d96cce759
+source_checksum: sha256:c1182b0bdf94c2c9cd0c5ae2d5111d1d3ba25c98a7cd39fbd6e71ff28f320c7f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -143,11 +143,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 6
-        quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Адекватные исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
       constituents:
       - doc: assessment-report
         page: 4
@@ -191,6 +186,15 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Калужская область
+        year: 2015
+      - region: Саратовская область
+        year: 2021
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/40015.html
+    conflicts: null
     identification: null
     grls: null
   navigationAliases:

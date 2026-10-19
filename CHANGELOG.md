@@ -10,6 +10,11 @@ All notable changes are documented here. The project follows Semantic Versioning
   carried no information (no driving studies, no fertility data, ethanol labelling) are gone. The
   «черновик» badges are removed, and the module is no longer Experimental. The thyme chapter notes
   that EMA's data are for other Thymus species.
+- «Травник» clinical pass: a «ГРЛС и EMA расходятся» block shows, with both sentences, where the
+  official instruction and the monograph disagree (age, course length, daily amount, indications,
+  pregnancy and breastfeeding, interactions) — 98 items in 39 plants. About 110 missing safety facts
+  added; dose cells show the monograph's daily total; regional Red Books (27 plants, from Plantarium)
+  open as a list of regions with the edition year.
 
 ## [0.6.62] - 2026-10-19
 

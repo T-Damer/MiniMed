@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:3005a903f6e4fa08fe0b089641b4691e3e68ecca9981c2a321925f988fb8bd3f
+source_checksum: sha256:3cf9336f8664c9de8af320aec5aa593d1b9c5dda425793ff7816923bee855377
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -101,7 +101,7 @@ metadata:
         ru: Вспомогательно при поверхностных ранах
       - doc: monograph
         page: 5
-        quote: 'a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily'
+        quote: 'a) Herbal tea: single dose: 1-4 g of the comminuted herbal substance in 150 ml of boiling water as an infusion or as a decoction (5-15 minutes), 3-4 times daily daily dose: 3-12 g'
         kind: posology
         ru: Чай (настой или отвар 5–15 минут) — подростки, взрослые и пожилые
         dose:
@@ -110,17 +110,23 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
+          daily: 3-12 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 6
         quote: 'a) single dose: 10 g of the comminuted herbal substance in 1 l of water as decoction for impregnated dressing and irrigation'
         kind: posology
-        ru: Отвар для повязок и промываний ран — 10 г на литр
+        ru: Отвар для повязок и промываний ран, наружно — 10 г на литр
         dose:
-          preparationRu: отвар для повязок
+          preparationRu: отвар для наружного применения (повязки, промывания ран)
           amount: '10'
           unit: г на литр
           populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 6
+        quote: Method of administration Indication 1 Oral use Indication 2 Cutaneous use
+        kind: posology
+        ru: Способ применения — показание 1 внутрь, показание 2 наружно
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
@@ -145,6 +151,11 @@ metadata:
         ru: Показание 1 — при лихорадке, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу или медработнику
       - doc: monograph
         page: 7
+        quote: For preparations other than tea preparations ensure appropriate fluid intake.
+        kind: warning
+        ru: Для препаратов, кроме чая, обеспечить достаточное питьё
+      - doc: monograph
+        page: 7
         quote: If signs of skin infection are observed, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
         ru: Если на коже признаки инфекции — к врачу
@@ -158,6 +169,11 @@ metadata:
         quote: Indication 1 Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: Показание 1 — при беременности и кормлении грудью не рекомендуется — данных недостаточно
+      - doc: monograph
+        page: 8
+        quote: Indication 2 There are no data on use during pregnancy or lactation. In the absence of sufficient data, the use during pregnancy is not recommended.
+        kind: pregnancy
+        ru: Показание 2 (кожное применение) — данных о применении при беременности и кормлении грудью нет; при беременности не рекомендуется
       - doc: monograph
         page: 8
         quote: Products containing Equiseti herba should not be applied to the breast of breastfeeding women.
@@ -215,6 +231,26 @@ metadata:
         quote: 'Likelihood score: C (probable rare cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Horsetail/
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при отёках при нарушении функции почек и сердечной недостаточности; EMA: противопоказан, если нужно ограничить питьё (тяжёлые болезни сердца или почек)'
+      grls: В комплексной терапии отечного синдрома различного генеза (нарушение функции почек, хроническая сердечная недостаточность)
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal diseases).
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-equisetum-arvense-l-herba_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан до 18 лет; EMA: детям младше 12 лет не рекомендуется'
+      grls: возраст до 18 лет в связи с отсутствием данных по эффективности и безопасности препарата у данной категории пациентов.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-equisetum-arvense-l-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0045

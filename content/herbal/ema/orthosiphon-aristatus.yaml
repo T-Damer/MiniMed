@@ -20,43 +20,43 @@ facts:
     doc: monograph
     page: 4
     quote: "Posology Adults and Elderly a) Herbal tea: 2-3 g comminuted herbal substance in 150 ml of boiling water as a herbal infusion Daily dose: 6-12 g"
-    dose: { preparationRu: чай (настой), amount: "2-3", unit: г, waterMl: "150", populationRu: взрослые и пожилые }
+    dose: { preparationRu: чай (настой), amount: "2-3", unit: г, waterMl: "150", daily: "6-12 г", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Порошок листьев: разовая доза 500–750 мг, суточная 1000–1500 мг — взрослые и пожилые"
     doc: monograph
     page: 4
     quote: "b) Powdered herbal substance Single dose: 500-750 mg Daily dose: 1000-1500 mg"
-    dose: { preparationRu: порошок листьев, amount: "500-750", unit: мг, populationRu: взрослые и пожилые }
+    dose: { preparationRu: порошок листьев, amount: "500-750", unit: мг, daily: "1000-1500 мг", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Жидкий экстракт (DER 1:1, этанол 25% m/m): разовая доза 2 г, суточная 2–4 г — взрослые и пожилые"
     doc: monograph
     page: 4
     quote: "c) Liquid extract (DER 1:1), extraction solvent ethanol 25% m/m Single dose: 2 g Daily dose: 2-4 g"
-    dose: { preparationRu: "жидкий экстракт (DER 1:1, этанол 25% m/m)", amount: "2", unit: г, populationRu: взрослые и пожилые }
+    dose: { preparationRu: "жидкий экстракт (DER 1:1, этанол 25% m/m)", amount: "2", unit: г, daily: "2-4 г", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Сухой экстракт (DER 5–7:1, вода): разовая доза 360 мг, суточная 1080–1440 мг — взрослые и пожилые"
     doc: monograph
     page: 4
     quote: "d) Dry extract (DER 5-7:1), extraction solvent water Single dose: 360 mg Daily dose: 1080-1440 mg"
-    dose: { preparationRu: "сухой экстракт (DER 5-7:1, вода)", amount: "360", unit: мг, populationRu: взрослые и пожилые }
+    dose: { preparationRu: "сухой экстракт (DER 5-7:1, вода)", amount: "360", unit: мг, daily: "1080-1440 мг", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Сухой экстракт (DER 8–12:1, этанол 60% V/V): разовая доза 200–400 мг, суточная 600–1200 мг — взрослые и пожилые"
     doc: monograph
     page: 4
     quote: "e) Dry extract (DER 8-12:1), extraction solvent ethanol 60% V/V Single dose: 200-400 mg Daily dose: 600-1200 mg"
-    dose: { preparationRu: "сухой экстракт (DER 8-12:1, этанол 60% V/V)", amount: "200-400", unit: мг, populationRu: взрослые и пожилые }
+    dose: { preparationRu: "сухой экстракт (DER 8-12:1, этанол 60% V/V)", amount: "200-400", unit: мг, daily: "600-1200 мг", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Сухой экстракт (DER 7–8:1, этанол 70% V/V): разовая доза 280 мг, суточная 840 мг — взрослые и пожилые"
     doc: monograph
     page: 5
     quote: "f) Dry extract (DER 7-8:1), extraction solvent ethanol 70% V/V Single dose: 280 mg Daily dose: 840 mg"
-    dose: { preparationRu: "сухой экстракт (DER 7-8:1, этанол 70% V/V)", amount: "280", unit: мг, populationRu: взрослые и пожилые }
+    dose: { preparationRu: "сухой экстракт (DER 7-8:1, этанол 70% V/V)", amount: "280", unit: мг, daily: "840 мг", populationRu: взрослые и пожилые }
   - kind: posology
     ru: "Сухой экстракт (DER 5–7:1, этанол 30% V/V): разовая доза 200 мг, суточная 400 мг — взрослые и пожилые"
     doc: monograph
     page: 5
     quote: "g) Dry extract (DER 5-7:1), extraction solvent ethanol 30% V/V Single dose: 200 mg Daily dose: 400 mg"
-    dose: { preparationRu: "сухой экстракт (DER 5-7:1, этанол 30% V/V)", amount: "200", unit: мг, populationRu: взрослые и пожилые }
+    dose: { preparationRu: "сухой экстракт (DER 5-7:1, этанол 30% V/V)", amount: "200", unit: мг, daily: "400 мг", populationRu: взрослые и пожилые }
   - kind: posology
     ru: Приём внутрь
     doc: monograph
@@ -120,11 +120,6 @@ facts:
     doc: monograph
     page: 6
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Достаточных исследований генотоксичности не проводилось; исследования репродуктивной токсичности и канцерогенности не проводились
-    doc: monograph
-    page: 7
-    quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
 constituents:
   - compound: sinensetin, rosmarinic acid
     compoundRu: синенсетин, розмариновая кислота

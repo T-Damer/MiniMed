@@ -24,13 +24,13 @@ facts:
     doc: monograph
     page: 3
     quote: "Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 3-6 g"
-    dose: { preparationRu: настой, amount: "1.5", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: настой, amount: "1.5", unit: г, waterMl: "150", timesPerDay: "2-4", daily: "3-6 г", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Чай (настой) от простуды — дети 4–12 лет
     doc: monograph
     page: 4
-    quote: "Children between 4 and 12 years of age Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily."
-    dose: { preparationRu: настой, amount: "1", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: дети 4–12 лет }
+    quote: "Children between 4 and 12 years of age Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 2-4 g"
+    dose: { preparationRu: настой, amount: "1", unit: г, waterMl: "150", timesPerDay: "2-4", daily: "2-4 г", populationRu: дети 4–12 лет }
   - kind: age
     ru: При простуде детям младше 4 лет не рекомендуется
     doc: monograph

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528691/2585e030-9ba3-4fc1-af0d-45a265e37218.pdf
-source_checksum: sha256:dfd249dd09fb5625cf2077e090a0a5e4f8ca8ab8262275ce3936372cdcb721ca
+source_checksum: sha256:6febcaeb9d1b5d6f9bc4dfbabe5d98fdee9f6543876a969486918bdfa9b7784a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -185,11 +185,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 5
@@ -233,6 +228,89 @@ metadata:
         evidence: in-vitro
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Владимирская область
+        year: 2018
+      - region: Вологодская область
+        year: 2015
+      - region: Кировская область
+        year: 2014
+      - region: Костромская область
+        year: 2019
+      - region: Краснодарский край
+        year: 2017
+        checked:
+          act: Постановление главы администрации Краснодарского края от 22.12.2017 № 1028 (ред. 27.11.2024), № 260
+          url: https://base.garant.ru/43678500/53f89421bbdaf741eb2d1ecc4ddb4c33/
+          category: '3'
+      - region: Красноярский край
+        year: 2022
+      - region: Ленинградская область
+        year: 2017
+      - region: Нижегородская область
+        year: 2017
+      - region: Новгородская область
+        year: 2015
+      - region: Оренбургская область
+        year: 2019
+      - region: Республика Башкортостан
+        year: 2011
+      - region: Республика Марий Эл
+        year: 2013
+      - region: Республика Татарстан
+        year: 2016
+      - region: Самарская область
+        year: 2017
+      - region: Тверская область
+        year: 2016
+      - region: Тульская область
+        year: 2020
+      - region: Тюменская область
+        year: 2020
+      - region: Чеченская Республика
+        year: 2020
+      - region: Чувашская республика
+        year: 2019
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/18366.html
+    conflicts:
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: гепатит, хронический холецистит, холангит; EMA: не рекомендуется при холангите, болезнях печени, желчных камнях и обструкции желчных протоков'
+      grls: В комплексной терапии гепатита, хронического некалькулезного холецистита, холангита
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: Due to the possible stimulation of bile secretion Helichrysi flos is not recommended in case of obstruction of the bile duct, cholangitis, liver disease and gallstones.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-helichrysum-arenarium-l-moench-flos_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детям до 12 лет; EMA: детям и подросткам до 18 лет не рекомендуется'
+      grls: детский возраст до 12 лет
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-helichrysum-arenarium-l-moench-flos_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 20–25 дней; EMA: к врачу, если симптомы сохраняются дольше двух недель'
+      grls: Курс лечения 20-25 дней.
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: If the symptoms persist longer than two weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-helichrysum-arenarium-l-moench-flos_en.pdf
+    - topic: interaction
+      topicRu: Лекарства
+      ru: 'ГРЛС: повышает активность метронидазола и аминохинола при лямблиозе; EMA: взаимодействий не описано'
+      grls: Повышает активность метронидазола и аминохинола при лечении лямблиоза.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-helichrysum-arenarium-l-moench-flos_en.pdf
     identification:
       source:
         number: ФС.2.5.0007

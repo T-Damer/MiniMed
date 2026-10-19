@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf
-source_checksum: sha256:ddd43e834ca1ee60ab3fc4b9014459c932fcc79a4ecf157e32138f9695002244
+source_checksum: sha256:a352a85e5813aa74e988f04151bd2e485171e029573919eeff91967a0c1d323a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -109,10 +109,11 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
+          daily: 3-6 г
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
-        quote: 'Children between 4 and 12 years of age Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily.'
+        quote: 'Children between 4 and 12 years of age Single dose Herbal tea: 1 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 2-4 g'
         kind: posology
         ru: Чай (настой) от простуды — дети 4–12 лет
         dose:
@@ -121,6 +122,7 @@ metadata:
           unit: г
           waterMl: '150'
           timesPerDay: 2-4
+          daily: 2-4 г
           populationRu: дети 4–12 лет
       - doc: monograph
         page: 4
@@ -202,6 +204,65 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks:
+      regions:
+      - region: Курганская область
+        year: 2012
+      - region: Новосибирская область
+        year: 2018
+      - region: Омская область
+        year: 2015
+      - region: Республика Коми
+        year: 2019
+        checked:
+          act: Приказ Минприроды Республики Коми от 15.02.2024 № 306 (прил. к приказу от 27.03.2019 № 498), № 457
+          url: http://publication.pravo.gov.ru/document/1101202402210001
+          category: '3'
+      - region: Томская область
+        year: 2022
+      - region: Тюменская область
+        year: 2020
+      - region: Ханты-Мансийский автономный округ
+        year: 2013
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/38502.html
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: взрослым по 1 стакану настоя 2-3 раза в день; EMA: 1,5 г сырья на 150 мл 2–4 раза в день, суточная доза 3–6 г'
+      grls: 'Принимают внутрь в горячем или теплом виде 2-3 раза в день: взрослые и дети старше 12 лет – по 1 стакану'
+      authority: EMA
+      doc: monograph
+      page: 3
+      quote: 'Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 3-6 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: детям до 3 лет по 1-2 столовой ложке настоя; EMA: при простуде детям младше 4 лет не рекомендуется'
+      grls: дети до 3 лет – по 1-2 столовой ложке
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use in children under 4 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности возможно, если польза превышает риск; EMA: при беременности не рекомендуется, данных недостаточно'
+      grls: Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении грудью не рекомендуется, данных недостаточно'
+      grls: Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
     identification:
       source:
         number: ФС.2.5.0024

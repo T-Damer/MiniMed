@@ -25,19 +25,19 @@ facts:
   doc: monograph
   page: 4
   quote: 'b) Powdered herbal substance Single dose: 300 mg–600 mg, 2-3 times daily Daily dose: up to 1800 mg, before meals'
-  dose: {preparationRu: 'препарат b): порошок сырья, перед едой', amount: 300-600, unit: мг, timesPerDay: 2-3, populationRu: взрослые и пожилые}
+  dose: {preparationRu: 'препарат b): порошок сырья, перед едой', amount: 300-600, unit: мг, timesPerDay: 2-3, daily: до 1800 мг, populationRu: взрослые и пожилые}
 - kind: posology
   ru: 'Препарат c) — сухой экстракт (DER 20–70:1, ацетон), взрослые и пожилые: разовая доза 82–239 мг, 2–3 раза в день; суточная доза до 478 мг, перед едой'
   doc: monograph
   page: 4
   quote: 'c) Dry extract (DER 20-70:1), extraction solvent acetone Single dose: 82-239 mg, 2-3 times daily Daily dose: up to 478 mg, before meals'
-  dose: {preparationRu: 'препарат c): сухой экстракт (DER 20-70:1, ацетон), перед едой', amount: 82-239, unit: мг, timesPerDay: 2-3, populationRu: взрослые и пожилые}
+  dose: {preparationRu: 'препарат c): сухой экстракт (DER 20-70:1, ацетон), перед едой', amount: 82-239, unit: мг, timesPerDay: 2-3, daily: до 478 мг, populationRu: взрослые и пожилые}
 - kind: posology
   ru: 'Препарат d) — сухой экстракт (DER 30–40:1, этанол 96 % V/V), взрослые и пожилые: разовая доза 200 мг; суточная доза 200 мг'
   doc: monograph
   page: 4
   quote: 'd) Dry extract (DER 30-40:1), extraction solvent ethanol 96% (V/V) Single dose: 200 mg Daily dose: 200 mg'
-  dose: {preparationRu: 'препарат d): сухой экстракт (DER 30-40:1, этанол 96 % V/V)', amount: '200', unit: мг, populationRu: взрослые и пожилые}
+  dose: {preparationRu: 'препарат d): сухой экстракт (DER 30-40:1, этанол 96 % V/V)', amount: '200', unit: мг, daily: 200 мг, populationRu: взрослые и пожилые}
 - kind: posology
   ru: 'Препарат e) — сухой экстракт (DER 20–35:1, этилацетат), взрослые и пожилые: разовая доза 162,5–250 мг, 3–4 раза в день'
   doc: monograph
@@ -67,7 +67,7 @@ facts:
   doc: monograph
   page: 5
   quote: 'i) Soft extract Single dose: 392 mg 2 times daily'
-  dose: {preparationRu: 'препарат i): мягкий экстракт', amount: '392', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
+  dose: {preparationRu: 'препарат i): мягкий экстракт (DER 10-17:1, этанол 60 % V/V)', amount: '392', unit: мг, timesPerDay: '2', populationRu: взрослые и пожилые}
 - kind: posology
   ru: Способ применения — внутрь
   doc: monograph
@@ -136,11 +136,6 @@ facts:
   doc: monograph
   page: 7
   quote: No case of overdose has been reported.
-- kind: statement
-  ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-  doc: monograph
-  page: 7
-  quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
 - compound: flavonolignans (silibinin, isosilibinin A and B, silicristin, silidianin)
   compoundRu: флавонолигнаны (силибинин, изосилибинин A и B, силикристин, силидианин)

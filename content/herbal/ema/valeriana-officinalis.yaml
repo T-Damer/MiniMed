@@ -19,24 +19,88 @@ facts:
     doc: monograph
     page: 5
     quote: "Herbal tea: 0.3-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion"
-    dose: { preparationRu: настой, amount: "0.3-3", unit: г, waterMl: "150", populationRu: "подростки, взрослые и пожилые"}
+    dose: { preparationRu: "настой (разовая доза)", amount: "0.3-3", unit: г, waterMl: "150", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: При стрессе — до 3 раз в день
     doc: monograph
     page: 4
     quote: "single dose: 0.3-3 g For relief of mild symptoms of mental stress up to 3 times daily."
-    dose: { preparationRu: настой при стрессе, amount: "0.3-3", unit: г, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые"}
+    dose: { preparationRu: "измельчённое сырьё для чая (разовая доза), приём при стрессе", amount: "0.3-3", unit: г, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: Для сна — за полчаса–час до сна, при необходимости ещё раз раньше вечером
     doc: monograph
     page: 5
     quote: To aid sleep, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary.
   - kind: posology
+    ru: Сухой экстракт (хорошо изученное применение) — разовая доза 400–600 мг при лёгком нервном напряжении, до 3 раз в день
+    doc: monograph
+    page: 4
+    quote: "Single dose: 400-600 mg dry extract; For relief of mild nervous tension up to 3 times daily."
+    dose: { preparationRu: "сухой экстракт (DER 3–7,4:1; этанол 40–70 %)", amount: "400-600", unit: мг, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Сухой экстракт (хорошо изученное применение) при нарушениях сна — разовая доза за полчаса–час до сна и при необходимости ещё одна раньше вечером; не больше 4 разовых доз в сутки
+    doc: monograph
+    page: 5
+    quote: "For relief of sleep disorders, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary. Maximum daily dose: 4 single doses"
+  - kind: posology
+    ru: Выжатый сок свежего корня — разовая доза 10 мл, до 3 раз в день
+    doc: monograph
+    page: 5
+    quote: "c) single dose: 10 ml For relief of mild symptoms of mental stress up to 3 times daily."
+    dose: { preparationRu: "выжатый сок свежего корня", amount: "10", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Жидкий экстракт на воде — разовая доза 20 мл, до 3 раз в день
+    doc: monograph
+    page: 5
+    quote: "e) single dose: 20 ml For relief of mild symptoms of mental stress up to 3 times daily."
+    dose: { preparationRu: "жидкий экстракт (DER 1:4–6; вода)", amount: "20", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Жидкий экстракт на сладком вине — разовая доза 10 мл, до 3 раз в день
+    doc: monograph
+    page: 5
+    quote: "h) single dose: 10 ml, up to 3 times daily"
+    dose: { preparationRu: "жидкий экстракт (DER 1:7–9; сладкое вино)", amount: "10", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Жидкий экстракт на этаноле — разовая доза 0,3–1,0 мл, до 3 раз в день
+    doc: monograph
+    page: 5
+    quote: "i) single dose: 0.3-1.0 ml, up to 3 times daily"
+    dose: { preparationRu: "жидкий экстракт (DER 1:1; этанол 60 %)", amount: "0.3-1.0", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Настойка — разовая доза 4–8 мл, до 3 раз в день
+    doc: monograph
+    page: 5
+    quote: "j) single dose: 4-8 ml, up to 3 times daily"
+    dose: { preparationRu: "настойка (1:8; этанол 60 %)", amount: "4-8", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Настойка — разовая доза 0,84 мл при лёгких симптомах стресса, 3–5 раз в день
+    doc: monograph
+    page: 6
+    quote: "k) single dose: 0.84 ml For relief of mild symptoms of mental stress 3-5 times daily."
+    dose: { preparationRu: "настойка (1:10; этанол 56 %)", amount: "0.84", unit: мл, timesPerDay: "3-5", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Настойка — разовая доза 1,5 мл при стрессе, 3 мл для сна; до 3 раз в день
+    doc: monograph
+    page: 6
+    quote: "l) single dose: 1.5 ml (mental stress), 3 ml (to aid sleep) For relief of mild symptoms of mental stress up to 3 times daily."
+    dose: { preparationRu: "настойка (1:5; этанол 70 %)", amount: "1.5 (стресс), 3 (для сна)", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Настойка — разовая доза 10 мл, до 3 раз в день
+    doc: monograph
+    page: 6
+    quote: "m) single dose: 10 ml, up to 3 times daily"
+    dose: { preparationRu: "настойка (1:5; этанол 60–80 %)", amount: "10", unit: мл, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Ванна — температура 34–37 °C, длительность 10–20 минут
+    doc: monograph
+    page: 6
+    quote: "Use as bath additive. Temperature: 34-37°C, duration of bath 10-20 minutes."
+  - kind: posology
     ru: Ванна — 100 г на полную ванну, до 1 ванны в день
     doc: monograph
     page: 6
     quote: "a) single dose: 100 g for a full bath; up to 1 bath daily The use in children under 12 years of age is not recommended"
-    dose: { preparationRu: ванна, amount: "100", unit: г, timesPerDay: "1", populationRu: "кроме детей до 12 лет"}
+    dose: { preparationRu: ванна, amount: "100", unit: г, timesPerDay: "до 1", populationRu: "кроме детей до 12 лет"}
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph

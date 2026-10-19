@@ -32,7 +32,7 @@ facts:
     doc: monograph
     page: 3
     quote: "Adolescents, adults and elderly Herbal tea: 1-2 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion 3 times daily . Tincture: 2-4 ml, 3 times daily."
-    dose: { preparationRu: настойка, amount: "2-4", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "настойка (1:5, этанол 50-60 % V/V)", amount: "2-4", unit: мл, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Приём внутрь
     doc: monograph
@@ -90,11 +90,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 5
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
   - kind: lookalike
     ru: Вид часто путают с другими видами лаванды — L. x intermedia (лавандин) и L. latifolia (лаванда широколистная, «спиклаванда»); если нет подробных требований к качеству, сырьё состоит из цветков разных видов
     doc: assessment-report

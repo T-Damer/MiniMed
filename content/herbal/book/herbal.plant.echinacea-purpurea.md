@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba
-source_checksum: sha256:49d658a090449516f05e065c41e0f5a341f25136ca5e903b49f9015ab7b2fadc
+source_checksum: sha256:aee69855e6d9a80deeebf5d77c1dec95a237f1c5e79f3c4e2d38b4ac805a895f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -84,9 +84,10 @@ metadata:
         kind: posology
         ru: Простуда (установившееся применение), отжатый сок внутрь — подростки, взрослые и пожилые, разовая доза 1,5–4,5 мл, суточная доза 6–9 мл
         dose:
-          preparationRu: отжатый сок (внутрь)
+          preparationRu: отжатый сок свежей цветущей травы (внутрь)
           amount: 1.5-4.5
           unit: мл
+          daily: 6-9 мл
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -99,9 +100,8 @@ metadata:
         kind: posology
         ru: Раны (традиционное применение) — подростки, взрослые и пожилые, 10–20 г на 100 г отжатого сока или эквивалентное количество сухого отжатого сока; небольшое количество мази наносят на поражённое место 2–3 раза в день
         dose:
-          preparationRu: отжатый сок или эквивалент сухого отжатого сока (мазь)
-          amount: 10-20
-          unit: г на 100 г
+          preparationRu: мазь, 10–20 г отжатого сока свежей травы (или эквивалент сухого сока) на 100 г
+          amount: небольшое количество мази
           timesPerDay: 2-3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -262,6 +262,11 @@ metadata:
         kind: overdose
         ru: Случаев передозировки не описано
       - doc: monograph
+        page: 3
+        quote: Echinacea purpurea (L.) Moench, herba recens (purple coneflower herb) i) Herbal substance Not applicable ii) Herbal preparations - expressed juice (DER 1.5-2.5:1) - dried juice corresponding to the expressed juice above
+        kind: statement
+        ru: 'Монография относится к свежей траве (herba recens): сырьё — не применимо; препараты — отжатый сок (DER 1,5–2,5:1) и соответствующий ему сухой сок'
+      - doc: monograph
         page: 6
         quote: The mechanism of action is not known.
         kind: statement
@@ -271,11 +276,6 @@ metadata:
         quote: Echinaceae purpureae herba expressed juice showed no toxicity in single-dose toxicity (rodents), repeated-dose toxicity (4 weeks, rodents) and in vitro and in vivo genotoxicity studies.
         kind: statement
         ru: Отжатый сок эхинацеи не проявил токсичности в исследованиях однократной дозы (грызуны), повторных доз (4 недели, грызуны) и в генотоксических исследованиях in vitro и in vivo
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 4
@@ -351,6 +351,8 @@ metadata:
         quote: 'Likelihood score: D (possible rare cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Echinacea/
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0055.15

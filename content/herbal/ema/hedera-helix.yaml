@@ -14,85 +14,85 @@ facts:
   doc: monograph
   page: 4
   quote: 'Adolescents, adults and elderly a) Single dose: 15-65 mg, one to three times daily Daily dose: 45-105 mg (Note: maximum daily dose for ethanol-containing finished products :67 mg; corresponding to 420 mg herbal substance)'
-  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 15-65, unit: мг, timesPerDay: один-три, populationRu: 'подростки, взрослые и пожилые'}
+  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 15-65, unit: мг, timesPerDay: один-три, daily: '45-105 мг', populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: 'Препарат b) — подростки, взрослые и пожилые: разовая доза 14–18 мг, три раза в день; суточная доза 42–54 мг'
   doc: monograph
   page: 4
   quote: 'b) Single dose: 14-18 mg three times daily Daily dose: 42-54 mg'
-  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 14-18, unit: мг, timesPerDay: три, populationRu: 'подростки, взрослые и пожилые'}
+  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 14-18, unit: мг, timesPerDay: три, daily: '42-54 мг', populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: 'Препарат c) — подростки, взрослые и пожилые: разовая доза 33 мг, два раза в день; суточная доза 66 мг'
   doc: monograph
   page: 4
   quote: 'c) Single dose: 33 mg two times daily Daily dose: 66 mg'
-  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '33', unit: мг, timesPerDay: два, populationRu: 'подростки, взрослые и пожилые'}
+  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '33', unit: мг, timesPerDay: два, daily: '66 мг', populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: 'Препарат d) — подростки, взрослые и пожилые: разовая доза 100 мг, три раза в день; суточная доза 300 мг'
   doc: monograph
   page: 4
   quote: 'd) Single dose: 100 mg three times daily Daily dose: 300 mg'
-  dose: {preparationRu: 'препарат d): жидкий экстракт (DER 1:1, этанол 70 % V/V)', amount: '100', unit: мг, timesPerDay: три, populationRu: 'подростки, взрослые и пожилые'}
+  dose: {preparationRu: 'препарат d): жидкий экстракт (DER 1:1, этанол 70 % V/V)', amount: '100', unit: мг, timesPerDay: три, daily: '300 мг', populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: 'Препарат e) — подростки, взрослые и пожилые: разовая доза 40 мг, три раза в день; суточная доза 120 мг'
   doc: monograph
   page: 4
   quote: 'e) Single dose: 40 mg three times daily Daily dose: 120 mg'
-  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: '40', unit: мг, timesPerDay: три, populationRu: 'подростки, взрослые и пожилые'}
+  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: '40', unit: мг, timesPerDay: три, daily: '120 мг', populationRu: 'подростки, взрослые и пожилые'}
 - kind: posology
   ru: 'Препарат a) — дети 6–11 лет: разовая доза 11–35 мг, два–три раза в день; суточная доза 33–70 мг; для готовых форм с этанолом максимальная суточная доза 34 мг (соответствует 210 мг сырья)'
   doc: monograph
   page: 4
   quote: 'Children between 6-11 years of age a) Single dose: 11-35 mg, two to three times daily Daily dose: 33-70 mg. (Note: maximum daily dose for ethanol-containing finished products: 34 mg; corresponding to 210 mg herbal substance)'
-  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 11-35, unit: мг, timesPerDay: два-три, populationRu: дети 6–11 лет}
+  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 11-35, unit: мг, timesPerDay: два-три, daily: '33-70 мг', populationRu: дети 6–11 лет}
 - kind: posology
   ru: 'Препарат b) — дети 6–11 лет: разовая доза 9–18 мг, один–три раза в день; суточная доза 15–40 мг'
   doc: monograph
   page: 4
   quote: 'Children between 6-11 years of age a) Single dose: 11-35 mg, two to three times daily Daily dose: 33-70 mg. (Note: maximum daily dose for ethanol-containing finished products: 34 mg; corresponding to 210 mg herbal substance) b) Single dose: 9-18 mg, one to three times daily Daily dose: 15-40 mg'
-  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 9-18, unit: мг, timesPerDay: один-три, populationRu: дети 6–11 лет}
+  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 9-18, unit: мг, timesPerDay: один-три, daily: '15-40 мг', populationRu: дети 6–11 лет}
 - kind: posology
   ru: 'Препарат c) — дети 6–11 лет: разовая доза 25 мг, два раза в день; суточная доза 50 мг'
   doc: monograph
   page: 4
   quote: 'Children between 6-11 years of age a) Single dose: 11-35 mg, two to three times daily Daily dose: 33-70 mg. (Note: maximum daily dose for ethanol-containing finished products: 34 mg; corresponding to 210 mg herbal substance) b) Single dose: 9-18 mg, one to three times daily Daily dose: 15-40 mg c) Single dose: 25 mg, two times daily Daily dose: 50mg'
-  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '25', unit: мг, timesPerDay: два, populationRu: дети 6–11 лет}
+  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '25', unit: мг, timesPerDay: два, daily: '50 мг', populationRu: дети 6–11 лет}
 - kind: posology
   ru: 'Препарат d) — дети 6–11 лет: разовая доза 75 мг, три раза в день; суточная доза 225 мг'
   doc: monograph
   page: 4
   quote: 'Children between 6-11 years of age a) Single dose: 11-35 mg, two to three times daily Daily dose: 33-70 mg. (Note: maximum daily dose for ethanol-containing finished products: 34 mg; corresponding to 210 mg herbal substance) b) Single dose: 9-18 mg, one to three times daily Daily dose: 15-40 mg c) Single dose: 25 mg, two times daily Daily dose: 50mg d) Single dose: 75 mg, three times daily Daily dose: 225 mg'
-  dose: {preparationRu: 'препарат d): жидкий экстракт (DER 1:1, этанол 70 % V/V)', amount: '75', unit: мг, timesPerDay: три, populationRu: дети 6–11 лет}
+  dose: {preparationRu: 'препарат d): жидкий экстракт (DER 1:1, этанол 70 % V/V)', amount: '75', unit: мг, timesPerDay: три, daily: '225 мг', populationRu: дети 6–11 лет}
 - kind: posology
   ru: 'Препарат e) — дети 6–11 лет: разовая доза 20–26 мг, три–четыре раза в день; суточная доза максимум 80 мг'
   doc: monograph
   page: 4
   quote: 'Children between 6-11 years of age a) Single dose: 11-35 mg, two to three times daily Daily dose: 33-70 mg. (Note: maximum daily dose for ethanol-containing finished products: 34 mg; corresponding to 210 mg herbal substance) b) Single dose: 9-18 mg, one to three times daily Daily dose: 15-40 mg c) Single dose: 25 mg, two times daily Daily dose: 50mg d) Single dose: 75 mg, three times daily Daily dose: 225 mg e) Single dose: 20-26 mg, three to four times Daily Daily dose: maximum of 80 mg'
-  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: 20-26, unit: мг, timesPerDay: три-четыре, populationRu: дети 6–11 лет}
+  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: 20-26, unit: мг, timesPerDay: три-четыре, daily: 'до 80 мг', populationRu: дети 6–11 лет}
 - kind: posology
   ru: 'Препарат a) — дети 2–5 лет: разовая доза 8–18 мг, два–три раза в день; суточная доза 24–36 мг; для готовых форм с этанолом максимальная суточная доза 24 мг (соответствует 150 мг сырья)'
   doc: monograph
   page: 5
   quote: 'Children between 2-5 years of age a) Single dose: 8-18 mg, two to three times daily Daily dose: 24-36 mg (Note: maximum daily dose for ethanol-containing finished products: 24 mg; corresponding to 150 mg herbal substance)'
-  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 8-18, unit: мг, timesPerDay: два-три, populationRu: дети 2–5 лет}
+  dose: {preparationRu: 'препарат a): сухой экстракт (DER 4-8:1, этанол 24-30 % m/m)', amount: 8-18, unit: мг, timesPerDay: два-три, daily: '24-36 мг', populationRu: дети 2–5 лет}
 - kind: posology
   ru: 'Препарат b) — дети 2–5 лет: разовая доза 7–9 мг, два–три раза в день; суточная доза 14–27 мг'
   doc: monograph
   page: 5
   quote: 'Children between 2-5 years of age a) Single dose: 8-18 mg, two to three times daily Daily dose: 24-36 mg (Note: maximum daily dose for ethanol-containing finished products: 24 mg; corresponding to 150 mg herbal substance) b) Single dose: 7-9 mg, two to three times daily Daily dose: 14-27 mg'
-  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 7-9, unit: мг, timesPerDay: два-три, populationRu: дети 2–5 лет}
+  dose: {preparationRu: 'препарат b): сухой экстракт (DER 6-7:1, этанол 40 % m/m)', amount: 7-9, unit: мг, timesPerDay: два-три, daily: '14-27 мг', populationRu: дети 2–5 лет}
 - kind: posology
   ru: 'Препарат c) — дети 2–5 лет: разовая доза 17 мг, два раза в день; суточная доза 34 мг'
   doc: monograph
   page: 5
   quote: 'Children between 2-5 years of age a) Single dose: 8-18 mg, two to three times daily Daily dose: 24-36 mg (Note: maximum daily dose for ethanol-containing finished products: 24 mg; corresponding to 150 mg herbal substance) b) Single dose: 7-9 mg, two to three times daily Daily dose: 14-27 mg c) Single dose: 17 mg, two times daily Daily dose 34 mg'
-  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '17', unit: мг, timesPerDay: два, populationRu: дети 2–5 лет}
+  dose: {preparationRu: 'препарат c): сухой экстракт (DER 3-6:1, этанол 60 % m/m)', amount: '17', unit: мг, timesPerDay: два, daily: '34 мг', populationRu: дети 2–5 лет}
 - kind: posology
   ru: 'Препарат e) — дети 2–5 лет: разовая доза 20 мг, три раза в день; суточная доза 60 мг'
   doc: monograph
   page: 5
   quote: 'Children between 2-5 years of age a) Single dose: 8-18 mg, two to three times daily Daily dose: 24-36 mg (Note: maximum daily dose for ethanol-containing finished products: 24 mg; corresponding to 150 mg herbal substance) b) Single dose: 7-9 mg, two to three times daily Daily dose: 14-27 mg c) Single dose: 17 mg, two times daily Daily dose 34 mg e) Single dose: 20 mg, three times daily Daily dose: 60 mg'
-  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: '20', unit: мг, timesPerDay: три, populationRu: дети 2–5 лет}
+  dose: {preparationRu: 'препарат e): мягкий экстракт (DER 2.2-2.9:1, этанол 50 % V/V : пропиленгликоль 98:2)', amount: '20', unit: мг, timesPerDay: три, daily: '60 мг', populationRu: дети 2–5 лет}
 - kind: age
   ru: Детям младше 2 лет противопоказано
   doc: monograph
@@ -187,11 +187,6 @@ facts:
   doc: monograph
   page: 7
   quote: The mechanism of action is not known.
-- kind: statement
-  ru: Данных о тестах на генотоксичность, канцерогенность и репродуктивную токсичность для препаратов листа плюща нет
-  doc: monograph
-  page: 7
-  quote: Data on genotoxicity, carcinogenicity and reproductive toxicity testing for ivy leaf preparations are not available.
 - kind: statement
   ru: 'В отчёте оценки: листья плюща по Европейской фармакопее содержат не менее 3,0 % хедеракозида C'
   doc: assessment-report

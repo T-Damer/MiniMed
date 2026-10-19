@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/passiflorae-herba
-source_checksum: sha256:1da8025d7a645da002c2785563c06e4e3bd3d5cc6f26e67e13ec784d4985ee5a
+source_checksum: sha256:9007546588004272c40b6b7c0e7cdc25a7b5bd0d1695240f5a137f098e81acdc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -95,7 +95,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт c) — подростки, взрослые и пожилые, разовая доза 2–4 мл до 4 раз в день
         dose:
-          preparationRu: жидкий экстракт c)
+          preparationRu: 'препарат c): жидкий экстракт (1:8), экстрагент этанол 25 % об/об'
           amount: 2-4
           unit: мл
           timesPerDay: до 4
@@ -106,7 +106,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт d) — подростки, взрослые и пожилые, разовая доза 2 мл до 3 раз в день
         dose:
-          preparationRu: жидкий экстракт d)
+          preparationRu: 'препарат d): жидкий экстракт (1:8), экстрагент этанол 45 % об/об'
           amount: '2'
           unit: мл
           timesPerDay: до 3
@@ -117,7 +117,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт e) — подростки, взрослые и пожилые, разовая доза 1 мл 3–5 раз в день
         dose:
-          preparationRu: жидкий экстракт e)
+          preparationRu: 'препарат e): жидкий экстракт (1:3,6), экстрагент этанол 60 % об/об'
           amount: '1'
           unit: мл
           timesPerDay: 3-5
@@ -128,7 +128,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт f) — подростки, взрослые и пожилые, разовая доза 0,5–2 мл до 4 раз в день
         dose:
-          preparationRu: жидкий экстракт f)
+          preparationRu: 'препарат f): жидкий экстракт (1:1), экстрагент этанол 25 % об/об'
           amount: 0.5-2
           unit: мл
           timesPerDay: до 4
@@ -139,7 +139,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт g) — подростки, взрослые и пожилые, разовая доза 2 мл до 3 раз в день
         dose:
-          preparationRu: жидкий экстракт g)
+          preparationRu: 'препарат g): жидкий экстракт (1:1), экстрагент этанол 70 % об/об'
           amount: '2'
           unit: мл
           timesPerDay: до 3
@@ -150,7 +150,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт h) — взрослые, разовая доза 0,3–0,4 мл 3–5 раз в день
         dose:
-          preparationRu: жидкий экстракт h)
+          preparationRu: 'препарат h): жидкий экстракт (1:3,8-4,3), экстрагент этанол 96 % + глицерол 85 % + вода (11,8 + 1 + 7,9)'
           amount: 0.3-0.4
           unit: мл
           timesPerDay: 3-5
@@ -161,7 +161,7 @@ metadata:
         kind: posology
         ru: Жидкий экстракт h) — подростки, разовая доза 0,3–0,4 мл 3 раза в день
         dose:
-          preparationRu: жидкий экстракт h)
+          preparationRu: 'препарат h): жидкий экстракт (1:3,8-4,3), экстрагент этанол 96 % + глицерол 85 % + вода (11,8 + 1 + 7,9)'
           amount: 0.3-0.4
           unit: мл
           timesPerDay: '3'
@@ -209,6 +209,11 @@ metadata:
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
         ru: Взаимодействий не описано
+      - doc: assessment-report
+        page: 21
+        quote: Although no clinical data are available on Passiflora incarnata as a single active ingredient concerning interactions with synthetic sedatives (such as benzodiazepines), concomitant use is not recommended.
+        kind: interaction
+        ru: Клинических данных о взаимодействии пассифлоры как единственного действующего вещества с синтетическими седативными средствами (например, бензодиазепинами) нет, но одновременное применение не рекомендуется
       - doc: monograph
         page: 6
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -229,16 +234,21 @@ metadata:
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
         kind: adverse
         ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
+      - doc: assessment-report
+        page: 20
+        quote: One case of ventricular tachycardia accompanied by severe nausea, vomiting, drowsiness and prolonged QT interval required hospital admission for cardiac monitoring and intravenous fluid therapy (Fisher et al., 2000). The daily ingested dose corresponded to 1.5 g respectively 2 g crude drug during 2 days. Causality cannot be assessed with certainty due to incomplete data.
+        kind: adverse
+        ru: Описан случай желудочковой тахикардии с тяжёлой тошнотой, рвотой, сонливостью и удлинением интервала QT, потребовавший госпитализации для кардиомониторинга и внутривенной инфузионной терапии (1,5 и 2 г сырья в сутки в течение 2 дней); причинную связь нельзя оценить из-за неполных данных
+      - doc: assessment-report
+        page: 20
+        quote: One case of hypersensitivity vasculitis has been reported
+        kind: adverse
+        ru: Описан случай васкулита гиперчувствительности
       - doc: monograph
         page: 6
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 7
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       constituents:
       - doc: assessment-report
         page: 3
@@ -301,6 +311,8 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/Passionflower/
       trts: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0122

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/29/1530503/515e9004-c4ca-4455-8523-b54f9da24675.pdf
-source_checksum: sha256:6077d53e9b686803602c6b93feedafecf57c74e0c7c3d4d412904f767db09207
+source_checksum: sha256:59b6083dc8f13f82e33914f808c8b6c535db5882b60b3867195d940910a881e9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -108,6 +108,7 @@ metadata:
           amount: 1-5
           unit: г
           timesPerDay: 2-4
+          daily: 3-20 г
           populationRu: взрослые
       - doc: monograph
         page: 3
@@ -119,6 +120,7 @@ metadata:
           amount: 1-4
           unit: мл
           timesPerDay: '3'
+          daily: 3-12 мл
           populationRu: взрослые
       - doc: monograph
         page: 3
@@ -166,11 +168,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 5
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       - doc: assessment-report
         page: 17
         quote: Studies on haemostatic activity have not been found.
@@ -229,6 +226,17 @@ metadata:
         evidence: review
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: lactation
+      topicRu: Кормление
+      ru: 'ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении не рекомендуется'
+      grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-capsella-bursa-pastoris-l-medikus-herba-first-version_en.pdf
     identification:
       source:
         number: ФС.2.5.0090

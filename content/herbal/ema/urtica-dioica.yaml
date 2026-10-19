@@ -24,7 +24,31 @@ facts:
     doc: monograph
     page: 3
     quote: "a) Comminuted herbal substance: 2-4 g as single dose for preparation of a herbal tea, 3-6 times daily. The daily dosage is equivalent to 8-12 g of herbal substance."
-    dose: { preparationRu: настой, amount: "2-4", unit: г, timesPerDay: "3-6", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: "чай из измельчённого сырья (разовая доза)", amount: "2-4", unit: г, timesPerDay: "3-6", daily: "8-12 г", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Жидкий экстракт (1:5) — разовая доза 30–40 капель внутрь, 3–4 раза в день
+    doc: monograph
+    page: 3
+    quote: "b) Liquid extract (1:5): 30-40 oral drops as a single dose, 3-4 times daily."
+    dose: { preparationRu: жидкий экстракт (1:5), amount: "30-40", unit: капель внутрь, timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Сухой экстракт (4,7–6:1) — разовая доза 750 мг, 2–3 раза в день
+    doc: monograph
+    page: 3
+    quote: "c) Dry extract (4.7-6:1): 750 mg as a single dose, 2-3 times daily."
+    dose: { preparationRu: "сухой экстракт (4,7–6:1; вода)", amount: "750", unit: мг, timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Сухой экстракт (5–10:1) — разовая доза 450 мг, 3 раза в день
+    doc: monograph
+    page: 3
+    quote: "d) Dry extract (5-10:1): 450 mg as a single dose, 3 times daily."
+    dose: { preparationRu: "сухой экстракт (5–10:1; вода)", amount: "450", unit: мг, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+  - kind: posology
+    ru: Сухой экстракт (8–10:1) — разовая доза 540 мг, 2 раза в день
+    doc: monograph
+    page: 3
+    quote: "e) Dry extract (8-10:1): 540 mg as a single dose, 2 times daily."
+    dose: { preparationRu: "сухой экстракт (8–10:1; этанол 50 %)", amount: "540", unit: мг, timesPerDay: "2", populationRu: "подростки, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph

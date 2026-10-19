@@ -117,3 +117,11 @@ constituents:
     doc: monograph
     page: 45
     quote: Intravenous administration of 12.5 mg/kg bw of a 70% dried ethanol extract of the fruits, dissolved in normal saline, to dogs had a diuretic effect, with a 2.2-fold increase in urine output.
+  - compound: 70% ethanol extract of the fruits
+    compoundRu: 70 % этанольный экстракт плодов
+    classRu: экстракт
+    effectRu: внутривенно в дозе 25,0 мг/кг массы тела собакам снижал артериальное давление
+    evidence: animal
+    doc: monograph
+    page: 45
+    quote: Intravenous administration of 25.0 mg/kg bw of a 70% ethanol extract to dogs reduced blood pressure.

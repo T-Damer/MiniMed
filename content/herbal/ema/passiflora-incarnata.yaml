@@ -31,43 +31,43 @@ facts:
     doc: monograph
     page: 4
     quote: 'Adolescents, adults and elderly Single dose ii) Herbal preparations a) Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-4 times daily b) Powdered herbal substance: 0.5-2g, 1-4 times daily c) Liquid extract: 2-4 ml, up to 4 times daily'
-    dose: {preparationRu: жидкий экстракт c), amount: 2-4, unit: мл, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препарат c): жидкий экстракт (1:8), экстрагент этанол 25 % об/об', amount: 2-4, unit: мл, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт d) — подростки, взрослые и пожилые, разовая доза 2 мл до 3 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults and elderly Single dose ii) Herbal preparations a) Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-4 times daily b) Powdered herbal substance: 0.5-2g, 1-4 times daily c) Liquid extract: 2-4 ml, up to 4 times daily d) Liquid extract: 2 ml, up to 3 times daily'
-    dose: {preparationRu: жидкий экстракт d), amount: '2', unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препарат d): жидкий экстракт (1:8), экстрагент этанол 45 % об/об', amount: '2', unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт e) — подростки, взрослые и пожилые, разовая доза 1 мл 3–5 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults and elderly Single dose ii) Herbal preparations a) Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-4 times daily b) Powdered herbal substance: 0.5-2g, 1-4 times daily c) Liquid extract: 2-4 ml, up to 4 times daily d) Liquid extract: 2 ml, up to 3 times daily e) Liquid extract: 1 ml, 3-5 times daily'
-    dose: {preparationRu: жидкий экстракт e), amount: '1', unit: мл, timesPerDay: 3-5, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препарат e): жидкий экстракт (1:3,6), экстрагент этанол 60 % об/об', amount: '1', unit: мл, timesPerDay: 3-5, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт f) — подростки, взрослые и пожилые, разовая доза 0,5–2 мл до 4 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults and elderly Single dose ii) Herbal preparations a) Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-4 times daily b) Powdered herbal substance: 0.5-2g, 1-4 times daily c) Liquid extract: 2-4 ml, up to 4 times daily d) Liquid extract: 2 ml, up to 3 times daily e) Liquid extract: 1 ml, 3-5 times daily f) Liquid extract: 0.5-2 ml, up to 4 times daily'
-    dose: {preparationRu: жидкий экстракт f), amount: 0.5-2, unit: мл, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препарат f): жидкий экстракт (1:1), экстрагент этанол 25 % об/об', amount: 0.5-2, unit: мл, timesPerDay: до 4, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт g) — подростки, взрослые и пожилые, разовая доза 2 мл до 3 раз в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults and elderly Single dose ii) Herbal preparations a) Herbal tea: 1-2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-4 times daily b) Powdered herbal substance: 0.5-2g, 1-4 times daily c) Liquid extract: 2-4 ml, up to 4 times daily d) Liquid extract: 2 ml, up to 3 times daily e) Liquid extract: 1 ml, 3-5 times daily f) Liquid extract: 0.5-2 ml, up to 4 times daily g) Liquid extract: 2 ml up to 3 times daily'
-    dose: {preparationRu: жидкий экстракт g), amount: '2', unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препарат g): жидкий экстракт (1:1), экстрагент этанол 70 % об/об', amount: '2', unit: мл, timesPerDay: до 3, populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Жидкий экстракт h) — взрослые, разовая доза 0,3–0,4 мл 3–5 раз в день
     doc: monograph
     page: 5
     quote: 'h) Liquid extract: 0.3-0.4 ml, adults 3-5 times daily;'
-    dose: {preparationRu: жидкий экстракт h), amount: 0.3-0.4, unit: мл, timesPerDay: 3-5, populationRu: взрослые}
+    dose: {preparationRu: 'препарат h): жидкий экстракт (1:3,8-4,3), экстрагент этанол 96 % + глицерол 85 % + вода (11,8 + 1 + 7,9)', amount: 0.3-0.4, unit: мл, timesPerDay: 3-5, populationRu: взрослые}
   - kind: posology
     ru: Жидкий экстракт h) — подростки, разовая доза 0,3–0,4 мл 3 раза в день
     doc: monograph
     page: 5
     quote: 'h) Liquid extract: 0.3-0.4 ml, adults 3-5 times daily; adolescents 3 times daily'
-    dose: {preparationRu: жидкий экстракт h), amount: 0.3-0.4, unit: мл, timesPerDay: '3', populationRu: подростки}
+    dose: {preparationRu: 'препарат h): жидкий экстракт (1:3,8-4,3), экстрагент этанол 96 % + глицерол 85 % + вода (11,8 + 1 + 7,9)', amount: 0.3-0.4, unit: мл, timesPerDay: '3', populationRu: подростки}
   - kind: posology
     ru: Дозы сухих экстрактов соответствуют дозам чая и жидких экстрактов выше
     doc: monograph
@@ -111,6 +111,11 @@ facts:
     doc: monograph
     page: 6
     quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
+  - kind: interaction
+    ru: Клинических данных о взаимодействии пассифлоры как единственного действующего вещества с синтетическими седативными средствами (например, бензодиазепинами) нет, но одновременное применение не рекомендуется
+    doc: assessment-report
+    page: 21
+    quote: Although no clinical data are available on Passiflora incarnata as a single active ingredient concerning interactions with synthetic sedatives (such as benzodiazepines), concomitant use is not recommended.
   - kind: pregnancy
     ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
     doc: monograph
@@ -131,16 +136,21 @@ facts:
     doc: monograph
     page: 6
     quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: adverse
+    ru: Описан случай желудочковой тахикардии с тяжёлой тошнотой, рвотой, сонливостью и удлинением интервала QT, потребовавший госпитализации для кардиомониторинга и внутривенной инфузионной терапии (1,5 и 2 г сырья в сутки в течение 2 дней); причинную связь нельзя оценить из-за неполных данных
+    doc: assessment-report
+    page: 20
+    quote: One case of ventricular tachycardia accompanied by severe nausea, vomiting, drowsiness and prolonged QT interval required hospital admission for cardiac monitoring and intravenous fluid therapy (Fisher et al., 2000). The daily ingested dose corresponded to 1.5 g respectively 2 g crude drug during 2 days. Causality cannot be assessed with certainty due to incomplete data.
+  - kind: adverse
+    ru: Описан случай васкулита гиперчувствительности
+    doc: assessment-report
+    page: 20
+    quote: One case of hypersensitivity vasculitis has been reported
   - kind: overdose
     ru: Случаев передозировки не описано
     doc: monograph
     page: 6
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 7
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: flavonoid C-glycosides (isovitexin, isoorientin, schaftoside, vicenin-2, swertisin)
     compoundRu: C-гликозиды флавоноидов (изовитексин, изоориентин, шафтозид, виценин-2, свертизин)

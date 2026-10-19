@@ -1,0 +1,18 @@
+plant: artemisia-absinthium
+items:
+  - topic: age
+    ru: "ГРЛС: противопоказан детский возраст до 12 лет; EMA: до 18 лет не рекомендуется"
+    grls: "детский возраст до 12 лет."
+    monograph: {doc: monograph, page: 5, quote: "The use in children and adolescents under 18 years of age is not recommended"}
+  - topic: course
+    ru: "ГРЛС: курс лечения 20-25 дней; EMA: к врачу, если симптомы сохраняются дольше 2 недель"
+    grls: "Курс лечения 20-25 дней."
+    monograph: {doc: monograph, page: 5, quote: "If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}
+  - topic: dose
+    ru: "ГРЛС: настой по 1/4 стакана 3 раза в день; EMA: разовая доза 1-1,5 г, в сутки 2-3 г"
+    grls: "Настой принимают внутрь в теплом виде по 1/4 стакана 3 раза в день за 30 минут до еды."
+    monograph: {doc: monograph, page: 4, quote: "Single dose: 1-1.5 g Daily dose: 2-3 g"}
+  - topic: indication
+    ru: "ГРЛС: показан при хроническом холецистите и дискинезии желчевыводящих путей; EMA: при болезнях желчных путей сначала к врачу"
+    grls: "хронический холецистит; дискинезия желчевыводящих путей."
+    monograph: {doc: monograph, page: 6, quote: "Patients with gallstones and any other biliary disorders (see section 4.3) should consult a doctor before using Absinthii herba preparations."}

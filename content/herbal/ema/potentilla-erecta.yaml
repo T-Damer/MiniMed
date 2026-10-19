@@ -24,19 +24,25 @@ facts:
     doc: monograph
     page: 3
     quote: "As infusion: single dose 1.4-4 g, several times daily up to a maximum daily dose of 12 g."
-    dose: { preparationRu: настой, amount: "1.4-4", unit: г, populationRu: взрослые и пожилые }
+    dose: { preparationRu: настой (разовая доза), amount: "1.4-4", unit: г, timesPerDay: "несколько", daily: "до 12 г", populationRu: взрослые и пожилые }
   - kind: posology
     ru: Отвар внутрь при диарее — несколько раз в день, не больше 6 г в сутки
     doc: monograph
     page: 3
     quote: "As decoction: single dose 1.4-3 g, several times daily up to a maximum daily dose of 6 g."
-    dose: { preparationRu: отвар, amount: "1.4-3", unit: г, populationRu: взрослые и пожилые }
+    dose: { preparationRu: отвар (разовая доза), amount: "1.4-3", unit: г, timesPerDay: "несколько", daily: "до 6 г", populationRu: взрослые и пожилые }
   - kind: posology
     ru: Полоскание рта настоем или отваром — несколько раз в день
     doc: monograph
     page: 4
     quote: "As infusion: 1.3–2 g per 100 ml of water. As decoction: 0.8–3 g per 100 ml of water. Rinse the mouth several times daily."
-    dose: { preparationRu: настой для полоскания, amount: "1.3-2", unit: г, waterMl: "100", populationRu: взрослые и пожилые }
+    dose: { preparationRu: настой для полоскания рта, amount: "1.3-2", unit: г, waterMl: "100", timesPerDay: "несколько", populationRu: взрослые и пожилые }
+  - kind: posology
+    ru: Полоскание рта отваром — несколько раз в день
+    doc: monograph
+    page: 4
+    quote: "As infusion: 1.3–2 g per 100 ml of water. As decoction: 0.8–3 g per 100 ml of water. Rinse the mouth several times daily."
+    dose: { preparationRu: отвар для полоскания рта, amount: "0.8-3", unit: г, waterMl: "100", timesPerDay: "несколько", populationRu: взрослые и пожилые }
   - kind: age
     ru: До 18 лет не рекомендуется
     doc: monograph

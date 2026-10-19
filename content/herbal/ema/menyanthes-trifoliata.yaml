@@ -32,19 +32,19 @@ facts:
     doc: monograph
     page: 4
     quote: "Indication 1) and 2) Adults and Elderly a) Herbal teas a. Herbal tea: 0.4-1.6 g of the comminuted herbal substance in 150 ml of boiling water as herbal tea infusion used 2-4 times daily Daily doses: 0.8-4.8 g"
-    dose: { preparationRu: чай (настой), amount: "0.4-1.6", unit: г, waterMl: "150", timesPerDay: "2-4", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: чай (настой), amount: "0.4-1.6", unit: г, waterMl: "150", timesPerDay: "2-4", daily: "0.8-4.8 г", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: "Показание 1 — чай (отвар): 0,5–1,5 г измельчённого листа на 150 мл воды 3 раза в день; суточная доза 1,5–4,5 г"
     doc: monograph
     page: 4
     quote: "Indication 1) b. Herbal tea: 0.5-1.5 g of the comminuted herbal substance in 150 ml of water as decoction used 3 times daily Daily doses: 1.5-4.5 g"
-    dose: { preparationRu: чай (отвар), amount: "0.5-1.5", unit: г, waterMl: "150", timesPerDay: "3", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: чай (отвар), amount: "0.5-1.5", unit: г, waterMl: "150", timesPerDay: "3", daily: "1.5-4.5 г", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: Потеря аппетита и лёгкие расстройства пищеварения — порошок листа, разовая доза 0,5 г, 3–4 раза в день; суточная доза 1,5–2,0 г
     doc: monograph
     page: 5
     quote: b) Powdered herbal substance in single dose 0.5 g, 3-4 times daily Daily dose 1.5-2.0 g
-    dose: { preparationRu: порошок листа, amount: "0.5", unit: г, timesPerDay: "3-4", populationRu: "взрослые и пожилые" }
+    dose: { preparationRu: порошок листа, amount: "0.5", unit: г, timesPerDay: "3-4", daily: "1.5-2.0 г", populationRu: "взрослые и пожилые" }
   - kind: posology
     ru: "Боль в суставах и мышцах — чай (настой): 1,0–2,0 г измельчённого листа на 150 мл кипятка 3 раза в день"
     doc: monograph
@@ -158,11 +158,6 @@ facts:
     doc: monograph
     page: 7
     quote: No case of overdose have been reported.
-  - kind: statement
-    ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
-    doc: monograph
-    page: 8
-    quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
 constituents:
   - compound: secoiridoid and iridoid glycosides (dihydrofoliamenthin, foliamenthin, menthiafolin, loganin, sweroside)
     compoundRu: секоиридоидные и иридоидные гликозиды (дигидрофолиаментин, фолиаментин, ментиафолин, логанин, свертизид)

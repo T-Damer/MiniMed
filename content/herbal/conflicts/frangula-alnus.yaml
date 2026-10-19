@@ -1,0 +1,14 @@
+plant: frangula-alnus
+items:
+  - topic: dose
+    ru: "ГРЛС: по 1/2 стакана отвара на ночь и утром; EMA: один раз в день на ночь"
+    grls: "Отвар принимают внутрь в теплом виде взрослые и дети старше 12 лет по 1/2 стакана на ночь и утром."
+    monograph: {doc: monograph, page: 4, quote: "Herbal preparation equivalent to 10–30 mg hydroxyanthracene derivatives, calculated as glucofrangulin A, to be taken once daily at night."}
+  - topic: course
+    ru: "ГРЛС: курс 1–2 недели; EMA: не дольше 1 недели"
+    grls: "Курс лечения 1-2 недели."
+    monograph: {doc: monograph, page: 4, quote: "Not to be used for more than 1 week."}
+  - topic: indication
+    ru: "ГРЛС: показание — хронический запор; EMA: кратковременно, при эпизодическом запоре"
+    grls: "Хронический запор."
+    monograph: {doc: monograph, page: 3, quote: "Herbal medicinal product for short-term use in cases of occasional constipation."}

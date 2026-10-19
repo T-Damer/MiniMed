@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/28/1529276/153839fa-0ffc-443d-b3f1-d5be52f49707.pdf
-source_checksum: sha256:de49a9a8c97d2e5d794bc8dfb798973a27ff6e6bb0b876579b38b26dcec6f5e6
+source_checksum: sha256:754899819ddbbf0280d3ce14c48ac64b1fb41c6fc6c0c6273fbc8c77a29db58f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -93,6 +93,11 @@ metadata:
         kind: statement
         ru: Для тех же показаний есть более безопасные растительные средства
       - doc: public-statement
+        page: 2
+        quote: 2) for treatment of warts, callus and corns (cutaneous use).
+        kind: statement
+        ru: Наружное показание, которое рассматривалось, — лечение бородавок, мозолей и натоптышей
+      - doc: public-statement
         page: 3
         quote: With regard to cutaneous use, the HMPC considered that the indication was not sufficiently supported by market information on monotherapy.
         kind: statement
@@ -107,6 +112,11 @@ metadata:
         quote: In some European countries marketing authorisations for medicinal products containing Chelidonium majus have been withdrawn because of concerns with reported adverse effects, particularly liver toxicity. The products withdrawn to date have been those which would lead to a daily intake of more then 2.5 mg alkaloids from Chelidonium majus, according to the posology of the SPC.
         kind: warning
         ru: В некоторых странах Европы регистрации препаратов чистотела отозваны из-за сообщений о побочных эффектах, прежде всего токсичности для печени; отозваны те, при которых по инструкции суточный приём алкалоидов превышал бы 2,5 мг
+      - doc: public-statement
+        page: 2
+        quote: The HMPC considered the evidence to support a safe oral daily dose limit of not more than 2.5 mg alkaloids, but was not reassured by the scientific rationale or the information available.
+        kind: statement
+        ru: HMPC счёл данные достаточными для безопасного предела суточной дозы внутрь не более 2,5 мг алкалоидов, но научное обоснование и имеющаяся информация его не убедили
       constituents:
       - doc: public-statement
         page: 2
@@ -132,6 +142,8 @@ metadata:
         quote: 326. Чистотел — Chelidonium L. — Все виды, надземная часть
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 232
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0105

@@ -211,7 +211,7 @@ plants:
     family: Myrtaceae
     part: { ru: листья, la: folium }
     grls: { inn: [эвкалипта прутовидного листья] }
-    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium, species: Eucalyptus globulus Labill. }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium, species: Eucalyptus globulus Labill., otherSpecies: true }
     plate: { book: kohler, file: "File:Eucalyptus globulus - Köhler–s Medizinal-Pflanzen-147.jpg", species: Eucalyptus globulus Labill. }
     gf: { edition: 15, path: /pharmacopoeia/izdanie-15/2/2-3/evkalipta-prutovidnogo-listya/ }
   - id: betula-pendula

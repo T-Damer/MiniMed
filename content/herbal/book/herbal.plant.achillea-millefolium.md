@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524121/7dd6501b-5d7c-4cf8-8131-ca64aa508560.pdf
-source_checksum: sha256:3fcb12888b745ec9ac607fb33326ec81f355f9f1efcd13790be9e1c4a06f998d
+source_checksum: sha256:ca01364774dc7d2cdbac2866d9b3b05f19cbca06cffc6a856e361669dac75d19
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -174,6 +174,11 @@ metadata:
         ru: Аллергия на тысячелистник и другие астровые (сложноцветные)
       - doc: monograph
         page: 6
+        quote: If the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+        kind: warning
+        ru: Если симптомы усиливаются (аппетит, спазмы ЖКТ, менструальные спазмы) — к врачу или медработнику
+      - doc: monograph
+        page: 6
         quote: If signs of skin infection are observed, medical advice should be sought.
         kind: warning
         ru: Если на коже признаки инфекции — к врачу
@@ -231,6 +236,8 @@ metadata:
         evidence: animal
     redBook: null
     safety: null
+    regionalRedBooks: null
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0101

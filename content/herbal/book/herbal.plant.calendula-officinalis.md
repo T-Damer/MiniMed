@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf
-source_checksum: sha256:bdbcc9d8dfec04baa19ff59f366a1653b8c66373951dc0e0f6e6cd4748bbb751
+source_checksum: sha256:314af7876d734f6611e2d0dde0ec731525d2bfd5e04001b37c3642675b3c5b05
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -117,6 +117,17 @@ metadata:
           populationRu: дети, подростки, взрослые и пожилые
       - doc: monograph
         page: 5
+        quote: 'For all preparations b) to f) Single dose: apply a thin layer of semi-solid preparation to the affected area Daily dose: 2 to 4 times'
+        kind: posology
+        ru: Полутвёрдые формы (препараты b)–f)) на кожу — тонкий слой на поражённую область, 2–4 раза в день
+        dose:
+          preparationRu: полутвёрдые формы (препараты b)-f))
+          amount: тонкий слой
+          unit: на поражённую область
+          timesPerDay: 2-4
+          populationRu: дети, подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
         quote: '1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times'
         kind: posology
         ru: Тёплый настой для полоскания рта и горла
@@ -125,6 +136,17 @@ metadata:
           amount: 1-2
           unit: г
           waterMl: '150'
+          timesPerDay: 2-4
+          populationRu: подростки, взрослые и пожилые
+      - doc: monograph
+        page: 5
+        quote: 'Preparation d) As a gargle or mouth wash in a 2% solution Daily dose: 2 to 4 times'
+        kind: posology
+        ru: Препарат d) для полоскания рта и горла — 2 % раствор, 2–4 раза в день
+        dose:
+          preparationRu: препарат d) — раствор для полоскания рта и горла
+          amount: '2'
+          unit: '% раствор'
           timesPerDay: 2-4
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
@@ -219,6 +241,26 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM940/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: полоскание по 1/2-1 стакану настоя 3-5 раз в день; EMA: 1-2 г на 150 мл воды, 2-4 раза в день'
+      grls: Местно для полосканий полости рта и горла применяют по 1/2-1 стакану теплого настоя 3-5 раз в день.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: '1-2 g in 150 ml water; the still warm infusion is used for rinsing and gargling Daily dose: 2 to 4 times'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-calendula-officinalis-l-flos-revision-1_en.pdf
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: применение возможно, если польза превышает риск; EMA: при беременности и кормлении не рекомендуется'
+      grls: Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-calendula-officinalis-l-flos-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0030.15

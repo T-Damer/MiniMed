@@ -24,7 +24,7 @@ facts:
     doc: monograph
     page: 4
     quote: "Adolescents over 12 years of age, adults and elderly Single dose a) Herbal tea: 1.5-4.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 1-3 times daily."
-    dose: { preparationRu: настой, amount: "1.5-4.5", unit: г, waterMl: "150", timesPerDay: "1-3", populationRu: "подростки старше 12 лет, взрослые и пожилые" }
+    dose: { preparationRu: настой листа, amount: "1.5-4.5", unit: г, waterMl: "150", timesPerDay: "1-3", populationRu: "подростки старше 12 лет, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph
@@ -47,6 +47,11 @@ facts:
     doc: monograph
     page: 6
     quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
+  - kind: warning
+    ru: Данные in vitro и исследований на животных указывают, что водный экстракт листа мелиссы может подавлять активность тиреотропного гормона (ТТГ); клиническое значение неизвестно
+    doc: monograph
+    page: 6
+    quote: Data from in vitro and animal studies indicate that the water extract of Melissa officinalis L., folium may inhibit the activity of thyroid stimulating hormone (TSH). The clinical relevance of these findings is not known.
   - kind: interaction
     ru: Данных о взаимодействиях нет
     doc: monograph

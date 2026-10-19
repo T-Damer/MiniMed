@@ -68,11 +68,6 @@ facts:
     doc: monograph
     page: 4
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 5
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
   - kind: lookalike
     ru: "В чешском фармацевтическом кодексе (1993) описана трава кипрея мелкоцветкового, горного, холмового и розового с содержанием дубильных веществ не менее 8%; при проверке на посторонние примеси и подмену виды Chamerion angustifolium (L.) Holub и Epilobium hirsutum (L.) должны отсутствовать"
     doc: assessment-report

@@ -1,0 +1,6 @@
+plant: urtica-dioica
+items:
+  - topic: lactation
+    ru: "ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении не рекомендуется"
+    grls: Применение в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для ребенка.
+    monograph: {doc: monograph, page: 5, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}

@@ -37,6 +37,7 @@ facts:
     amount: 250-1200
     unit: мг
     timesPerDay: один раз в день (1200 мг) или 2-8
+    daily: 600-2000 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, c) сухой экстракт (DER 2–7:1, этанол 34–40 % V/V): разовая доза 90–360 мг, суточная 200–670 мг, 1–4 раза в день'
@@ -48,6 +49,7 @@ facts:
     amount: 90-360
     unit: мг
     timesPerDay: 1-4
+    daily: 200-670 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, d) сухой экстракт (DER 3–7:1, этанол 40 % V/V, 4 % гинзенозидов): разовая доза 40–200 мг, суточная 40–200 мг (в особых ситуациях в первые 5 дней можно увеличить до 600 мг), 1–2 раза в день'
@@ -59,6 +61,7 @@ facts:
     amount: 40-200
     unit: мг
     timesPerDay: 1-2
+    daily: '40-200 мг (в первые 5 дней в особых ситуациях до 600 мг)'
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, e) сухой экстракт (DER 3–7:1, этанол 57,9 % V/V (=50 % m/m) – 60 % V/V): разовая доза 98–360 мг, суточная 196–525 мг, 1–4 раза в день'
@@ -70,6 +73,7 @@ facts:
     amount: 98-360
     unit: мг
     timesPerDay: 1-4
+    daily: 196-525 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, f) сухой экстракт (DER 3,3–5:1, метанол 60 % V/V): разовая доза 120 мг, суточная 360 мг, 3 раза в день'
@@ -81,6 +85,7 @@ facts:
     amount: '120'
     unit: мг
     timesPerDay: '3'
+    daily: 360 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, g) мягкий экстракт (DER 1,7–3,2:1, этанол 60–70 % V/V): разовая доза 300–440 мг, суточная 440–700 мг; один раз в день (440 мг) или 2 раза в день'
@@ -92,6 +97,7 @@ facts:
     amount: 300-440
     unit: мг
     timesPerDay: один раз в день (440 мг) или 2
+    daily: 440-700 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, h) мягкий экстракт (DER 2–6:1, метанол 30 % V/V): разовая доза 219,8 мг, суточная 439,6 мг, 2 раза в день'
@@ -103,6 +109,7 @@ facts:
     amount: '219.8'
     unit: мг
     timesPerDay: '2'
+    daily: 439.6 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, i) жидкий экстракт (DER 1:0,8–1,2, этанол 30,5 % V/V (=25 % m/m) – 34 % m/m): разовая доза 500–1250 мг, суточная 900–2500 мг, 1–2 раза в день'
@@ -114,6 +121,7 @@ facts:
     amount: 500-1250
     unit: мг
     timesPerDay: 1-2
+    daily: 900-2500 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'белый женьшень, j) жидкий экстракт (DER 1:11–13,6, ликёрное вино): разовая доза 9,90 г, суточная 19,80 г, 2 раза в день'
@@ -125,6 +133,7 @@ facts:
     amount: '9.90'
     unit: г
     timesPerDay: '2'
+    daily: 19.80 г
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'красный женьшень, k) порошок: разовая доза 600–1200 мг, суточная 1200–1800 мг, 1–3 раза в день'
@@ -136,6 +145,7 @@ facts:
     amount: 600-1200
     unit: мг
     timesPerDay: 1-3
+    daily: 1200-1800 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'красный женьшень, l) сухой экстракт (DER 2–4,5:1, этанол 60 % V/V): разовая доза 180–500 мг, суточная 360–500 мг; один раз в день (475 мг или 500 мг) или 2 раза в день'
@@ -147,6 +157,7 @@ facts:
     amount: 180-500
     unit: мг
     timesPerDay: один раз в день (475 мг или 500 мг) или 2
+    daily: 360-500 мг
     populationRu: взрослые и пожилые
 - kind: posology
   ru: 'красный женьшень, m) мягкий экстракт (DER 2,5–3,2:1, этанол 60 % V/V): разовая доза 440 мг, суточная 440 мг, один раз в день'
@@ -158,6 +169,7 @@ facts:
     amount: '440'
     unit: мг
     timesPerDay: один раз
+    daily: 440 мг
     populationRu: взрослые и пожилые
 - kind: age
   ru: Детям и подросткам до 18 лет применение не рекомендуется
@@ -248,11 +260,6 @@ facts:
   doc: monograph
   page: 9
   quote: After 2 years of oral administration of an extract prepared with ethanol 80% in dosages of up to 5000 mg/kg b.w. no signs of carcinogenicity were observed in mice or rats.
-- kind: statement
-  ru: Адекватных исследований репродуктивной токсичности не проводилось
-  doc: monograph
-  page: 9
-  quote: Adequate tests on reproductive toxicity have not been performed.
 constituents:
 - compound: ginsenosides
   compoundRu: гинзенозиды

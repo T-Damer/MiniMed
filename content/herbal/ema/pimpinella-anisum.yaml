@@ -37,6 +37,11 @@ facts:
     page: 4
     quote: Not to be taken for more than two weeks.
     maxDays: 14
+  - kind: statement
+    ru: В доклинических исследованиях выявлен слабый мутагенный потенциал анетола; анетол и его метаболиты, вероятно, не генотоксичны in vivo. Генотоксический риск эстрагола не считается значимым при указанных условиях применения (кратковременный приём подростками, взрослыми и пожилыми) из-за малого его количества в настоях плодов аниса
+    doc: monograph
+    page: 6
+    quote: Results from non-clinical studies showed a weak mutagenic potential of anethole. Anethole and its metabolites are unlikely to be genotoxic in vivo. The genotoxic risk4 related to estragole is not considered to be relevant in the specified conditions of use (short term use in adolescents, adults and elderly) due to the small amount present in herbal infusions prepared from aniseed.
   - kind: contraindication
     ru: Гиперчувствительность к анису, другим зонтичным (тмин, сельдерей, кориандр, укроп, фенхель) или к анетолу
     doc: monograph

@@ -81,11 +81,6 @@ facts:
     doc: monograph
     page: 5
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Адекватные исследования репродуктивной токсичности, генотоксичности и канцерогенности не проводились
-    doc: monograph
-    page: 6
-    quote: Adequate tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: iridoid glycosides (aucubin, catalpol)
     compoundRu: иридоидные гликозиды (аукубин, катальпол)

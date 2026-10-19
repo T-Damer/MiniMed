@@ -1,0 +1,6 @@
+plant: sambucus-nigra
+items:
+  - topic: course
+    ru: "ГРЛС: возможный курс 1-2 недели; EMA: если симптомы дольше 1 недели — к врачу или медработнику"
+    grls: Возможный курс лечения 1-2 недели.
+    monograph: {doc: monograph, page: 4, quote: "If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted."}

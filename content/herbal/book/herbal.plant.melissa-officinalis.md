@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:10b9051dbed96c8911d3a641b41d56cc602bcda3c334f3fec539e42030d3a00f
+source_checksum: sha256:680a9dea0f310b55b09880dd91759eb73f2a967915a73fef31e37c4053cd86c9
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -105,7 +105,7 @@ metadata:
         kind: posology
         ru: Чай (настой) — подростки старше 12 лет, взрослые и пожилые
         dose:
-          preparationRu: настой
+          preparationRu: настой листа
           amount: 1.5-4.5
           unit: г
           waterMl: '150'
@@ -133,6 +133,11 @@ metadata:
         quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
         kind: warning
         ru: Может ухудшать способность водить и работать с механизмами; в этом случае не садиться за руль и не работать с механизмами
+      - doc: monograph
+        page: 6
+        quote: Data from in vitro and animal studies indicate that the water extract of Melissa officinalis L., folium may inhibit the activity of thyroid stimulating hormone (TSH). The clinical relevance of these findings is not known.
+        kind: warning
+        ru: Данные in vitro и исследований на животных указывают, что водный экстракт листа мелиссы может подавлять активность тиреотропного гормона (ТТГ); клиническое значение неизвестно
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction No data available.
@@ -203,6 +208,35 @@ metadata:
         quote: 'Likelihood score: E (unlikely cause of clinically apparent liver injury)'
         url: https://www.ncbi.nlm.nih.gov/books/n/livertox/LemonBalm/
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: pregnancy
+      topicRu: Беременность
+      ru: 'ГРЛС: при беременности и кормлении возможно, если польза выше риска; EMA: при беременности и кормлении не рекомендуется'
+      grls: Применение возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-melissa-officinalis-l-folium_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс 3–4 недели; EMA: если симптомы держатся дольше 2 недель — к врачу или медработнику'
+      grls: Курс лечения 3-4 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-melissa-officinalis-l-folium_en.pdf
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детям до 18 лет; EMA: детям младше 12 лет не рекомендуется'
+      grls: детский возраст до 18 лет.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: The use in children under 12 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-melissa-officinalis-l-folium_en.pdf
     identification:
       source:
         number: ФС.2.5.0084

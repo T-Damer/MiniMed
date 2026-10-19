@@ -31,7 +31,7 @@ facts:
     doc: monograph
     page: 4
     quote: "Indication 2) Adolescents Herbal tea: 4 - 5 g of comminuted herbal substance in 150-200 ml of boiling water, prepared as herbal tea infusion or decoction. Drink half of the tea, 2 - 3 times daily."
-    dose: { preparationRu: чай (настой или отвар), amount: "4-5", unit: г, waterMl: "150-200", timesPerDay: "2-3", populationRu: подростки }
+    dose: { preparationRu: "чай (настой или отвар): 4-5 г измельчённого листа на 150-200 мл кипятка", amount: половина, unit: приготовленного чая, timesPerDay: "2-3", populationRu: подростки }
   - kind: posology
     ru: "Показание 2 — взрослые: чай, 4–5 г измельчённого листа на 150–200 мл кипятка в виде настоя или отвара; пить 2–3 раза в день"
     doc: monograph
@@ -111,11 +111,6 @@ facts:
     doc: monograph
     page: 6
     quote: No information available.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 7
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: free and condensed tannins
     compoundRu: свободные и конденсированные дубильные вещества

@@ -24,13 +24,13 @@ facts:
     doc: monograph
     page: 4
     quote: 'Indication 1) Adolescents, adults and elderly 1–2 g of the comminuted herbal substance in 250 ml of boiling water as a herbal infusion or in 250 ml of water as a decoction 2-3 times daily. Average daily dose: 5 g'
-    dose: {preparationRu: настой или отвар из измельчённого сырья, amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: настой или отвар из измельчённого сырья, amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, daily: 'в среднем 5 г', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: 'Показание 2: травяной чай — 1–2 г измельчённого сырья на 250 мл кипятка (настой) или на 250 мл воды (отвар) 2–3 раза в день, средняя суточная доза 5 г — подростки, взрослые и пожилые'
     doc: monograph
     page: 4
     quote: 'Indication 2) Adolescents, adults and elderly Herbal tea: 1–2 g of the comminuted herbal substance in 250 ml of boiling water as a herbal infusion or in 250 ml of water as a decoction 2-3 times daily. Average daily dose: 5 g.'
-    dose: {preparationRu: 'травяной чай: настой или отвар из измельчённого сырья', amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'травяной чай: настой или отвар из измельчённого сырья', amount: 1-2, unit: г, waterMl: '250', timesPerDay: 2-3, daily: 'в среднем 5 г', populationRu: 'подростки, взрослые и пожилые'}
   - kind: duration
     ru: 'Показание 1: если симптомы сохраняются дольше 1 недели — обратиться к врачу или квалифицированному медработнику'
     doc: monograph
@@ -89,16 +89,21 @@ facts:
     doc: monograph
     page: 6
     quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
+  - kind: adverse
+    ru: Описаны два случая острого поражения печени и почек после употребления мальвы внутрь; в обоих пациенты ели мальву как блюдо
+    doc: assessment-report
+    page: 36
+    quote: Literature describes two cases of acute liver and kidney damage, after oral consumption of Malva sylvestris and Malva sylvestris var. grandiflora. In both cases, the patients ate the mallow as a meal, and the nature of organ damage was acute.
+  - kind: adverse
+    ru: В этих двух случаях причинная связь не подтверждена
+    doc: assessment-report
+    page: 36
+    quote: The causal relationship could not be confirmed.
   - kind: overdose
     ru: Случаев передозировки не описано
     doc: monograph
     page: 6
     quote: No case of overdose has been reported.
-  - kind: statement
-    ru: Исследований генотоксичности, репродуктивной токсичности и канцерогенности не проводилось
-    doc: monograph
-    page: 7
-    quote: Tests on genotoxicity, reproductive toxicity and carcinogenicity has not been performed.
 constituents:
   - compound: mucilage polysaccharides
     compoundRu: слизистые полисахариды
@@ -125,7 +130,7 @@ constituents:
     quote: Kaempferol-3-O-rutinoside and quercetin-3-O-rutinoside were the main flavonols in M. sylvestris identified by Barros et al. (2012).
     evidence: review
   - compound: mucilage and rhamnogalacturonan fraction
-    compoundRu: слизь и рамногалактуронановая фракция
+    compoundRu: слизь и рамногалактуронановая фракция из цветков Malva mauritiana (другой вид)
     classRu: полисахариды
     effectRu: Слизь и кислая полисахаридная фракция (рамногалактуронан) из цветков мальвы (Malva mauritiana), введённые кошкам внутрь в дозе 50 мг/кг, значимо уменьшали число случаев кашля и его интенсивность (при вдохе и выдохе)
     doc: assessment-report
@@ -133,7 +138,7 @@ constituents:
     quote: 'In experiments performed by Nosalova et al. (2005) a mucilage and an acidic polysaccharide fraction (consisting of rhamnogalacturonan) isolated from mallow flowers (Malva mauritiana) were administered orally to cats at a dose of 50 mg/kg (without anaesthesia). Antitussive effect of the polysaccharides was evaluated by surgically implanted chronic endotracheal cannula into the trachea. It served not only to register the pressure on electromanometer but also to the irritation of the airway mucous membrane in the desired areas: laryngopharyngeal and tracheobronchial. These areas were five times stimulated mechanically with nylon fibre and then monitored prior to application of the tested substance as a control value and after 0.5, 1, 2 and 5 hours after the administration of the polysaccharides. Both mucilage and rhamnogalacturonan fraction significantly diminished the number of incidents of cough and its intensity (during inhalation and exhalation).'
     evidence: animal
   - compound: polysaccharide and polyphenols (water fraction)
-    compoundRu: полисахарид и полифенолы (водная фракция)
+    compoundRu: полисахарид и полифенолы (водная фракция; опыты на надземной части — цветках и листьях)
     classRu: полисахариды, полифенолы
     effectRu: В модели колита водная фракция была очень эффективна в предотвращении воспаления, у этанольной и н-гексановой фракций терапевтическая эффективность ниже; полисахарид при предварительном введении уменьшал признаки воспаления; противовоспалительное действие, по-видимому, связано с их содержанием полисахаридов и полифенолов
     doc: assessment-report

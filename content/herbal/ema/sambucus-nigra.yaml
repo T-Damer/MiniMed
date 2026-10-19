@@ -103,11 +103,6 @@ facts:
     page: 6
     quote: No case of overdose has been reported.
   - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 6
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-  - kind: statement
     ru: Приём цветков бузины внутрь можно считать безопасным в традиционно применяемых дозах
     doc: assessment-report
     page: 13

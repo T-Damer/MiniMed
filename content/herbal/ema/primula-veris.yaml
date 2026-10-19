@@ -9,11 +9,6 @@ facts:
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
-  - kind: statement
-    ru: Монография относится к корню Primula veris и/или Primula elatior (первоцвет высокий)
-    doc: monograph
-    page: 3
-    quote: Primula veris L. and/or Primula elatior (L.) Hill, radix (Primula root)
   - kind: indication
     ru: Традиционное растительное средство, применяемое как отхаркивающее при кашле, связанном с простудой
     doc: monograph
@@ -24,37 +19,37 @@ facts:
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily'
-    dose: {preparationRu: 'сухой экстракт A (по ÖAB, DER 3-3.5:1)', amount: 0.1-0.2, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'сухой экстракт A (по ÖAB, DER 3-3.5:1; экстрагент этанол 40-50 %)', amount: 0.1-0.2, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препарат B (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,5 г 3 раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily'
-    dose: {preparationRu: жидкий экстракт B, amount: '0.5', unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'жидкий экстракт B (DER 1:1; экстрагент этанол 70 %)', amount: '0.5', unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препарат C (жидкий экстракт) — подростки, взрослые и пожилые, разовая доза 0,6 г 4 раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily'
-    dose: {preparationRu: жидкий экстракт C, amount: '0.6', unit: г, timesPerDay: '4', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'жидкий экстракт C (DER 1:2-2.5; экстрагент этанол 70 %)', amount: '0.6', unit: г, timesPerDay: '4', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препарат D (настойка) — подростки, взрослые и пожилые, разовая доза 0,5–1 г 3 раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily D) Tincture: Single dose: 0.5 – 1 g, 3 times daily'
-    dose: {preparationRu: настойка D, amount: 0.5-1, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'настойка D (1:5; экстрагент этанол 70 %); у взрослых доза в граммах', amount: 0.5-1, unit: г, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препарат G (мягкий экстракт) — подростки, взрослые и пожилые, разовая доза 22,5 мг 3 раза в день
     doc: monograph
     page: 4
     quote: 'Adolescents, adults, elderly Herbal preparations A (according to ÖAB4), B, C, D, G: A) Dry extract (according to ÖAB with DER 3-3.5:1): Single dose: 0.1 – 0.2 g, 3 times daily B) Liquid extract: Single dose: 0.5 g, 3 times daily C) Liquid extract: Single dose: 0.6 g, 4 times daily D) Tincture: Single dose: 0.5 – 1 g, 3 times daily G) Soft extract: Single dose: 22.5 mg, 3 times daily'
-    dose: {preparationRu: мягкий экстракт G, amount: '22.5', unit: мг, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'мягкий экстракт G (DER 6-10:1; экстрагент метанол, вода, аммиак)', amount: '22.5', unit: мг, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препараты A (с DER, отличным от ÖAB), E, F, H — подростки, взрослые и пожилые, разовая доза, соответствующая 0,2–0,5 г сырья (в зависимости от фактического DER), 3 раза в день
     doc: monograph
     page: 5
     quote: 'Herbal preparations A (different DER to ÖAB), E, F, H: Single dose equivalent to 0.2 – 0.5 g herbal substance (depending on the actual DER), 3 times daily'
-    dose: {preparationRu: 'препараты A (DER не по ÖAB), E, F, H', amount: 0.2-0.5, unit: г сырья, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
+    dose: {preparationRu: 'препараты A (DER не по ÖAB), E (мягкий, DER 5-10:1, вода), F, H (мягкий, DER 6-10:1, метанол 50 %)', amount: 0.2-0.5, unit: г сырья, timesPerDay: '3', populationRu: 'подростки, взрослые и пожилые'}
   - kind: posology
     ru: Препарат I (травяной чай из измельчённого сырья) — подростки, взрослые и пожилые, 0,2–0,5 г на 150 мл кипятка 3 раза в день
     doc: monograph
@@ -66,25 +61,25 @@ facts:
     doc: monograph
     page: 5
     quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily'
-    dose: {preparationRu: жидкий экстракт C, amount: '0.33', unit: г, timesPerDay: '3', populationRu: дети 4–12 лет}
+    dose: {preparationRu: 'жидкий экстракт C (DER 1:2-2.5; экстрагент этанол 70 %)', amount: '0.33', unit: г, timesPerDay: '3', populationRu: дети 4–12 лет}
   - kind: posology
     ru: Препарат D (настойка) — дети 4–12 лет, разовая доза 0,3–0,5 мл 3 раза в день
     doc: monograph
     page: 5
     quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily'
-    dose: {preparationRu: настойка D, amount: 0.3-0.5, unit: мл, timesPerDay: '3', populationRu: дети 4–12 лет}
+    dose: {preparationRu: 'настойка D (1:5; экстрагент этанол 70 %); у детей доза в миллилитрах', amount: 0.3-0.5, unit: мл, timesPerDay: '3', populationRu: дети 4–12 лет}
   - kind: posology
     ru: Препарат F (мягкий экстракт) — дети 4–6 лет, разовая доза 0,12 г 3 раза в день
     doc: monograph
     page: 5
     quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily F) Soft extract 4-6 years of age Single dose 0.12 g, 3 times daily'
-    dose: {preparationRu: мягкий экстракт F, amount: '0.12', unit: г, timesPerDay: '3', populationRu: дети 4–6 лет}
+    dose: {preparationRu: 'мягкий экстракт F (DER 1-4:1; экстрагент этанол 20-55 %)', amount: '0.12', unit: г, timesPerDay: '3', populationRu: дети 4–6 лет}
   - kind: posology
     ru: Препарат F (мягкий экстракт) — дети 6–12 лет, разовая доза 0,12 г 3–4 раза в день
     doc: monograph
     page: 5
     quote: 'Children between 4 and 12 years of age Herbal preparations C, D, F: C) Liquid extract 4-12 years of age Single dose 0.33 g, 3 times daily D) Tincture 4-12 years of age Single dose 0.3 – 0.5 ml, 3 times daily F) Soft extract 4-6 years of age Single dose 0.12 g, 3 times daily 6-12 years of age Single dose 0.12 g, 3-4 times daily'
-    dose: {preparationRu: мягкий экстракт F, amount: '0.12', unit: г, timesPerDay: 3-4, populationRu: дети 6–12 лет}
+    dose: {preparationRu: 'мягкий экстракт F (DER 1-4:1; экстрагент этанол 20-55 %)', amount: '0.12', unit: г, timesPerDay: 3-4, populationRu: дети 6–12 лет}
   - kind: age
     ru: 'Препараты A, B, E, G, H, I: детям до 12 лет не рекомендуется'
     doc: monograph
@@ -160,11 +155,6 @@ facts:
     doc: monograph
     page: 7
     quote: Overdose may lead to stomach upset, vomiting or diarrhoea.
-  - kind: statement
-    ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
-    doc: monograph
-    page: 8
-    quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
 constituents:
   - compound: triterpene saponins
     compoundRu: тритерпеновые сапонины

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/01/30/1513255/bb2a6d10-8679-45ed-8b9b-220c1421e116.pdf
-source_checksum: sha256:1750da9422b9c0abfc36d7945aef25899d42a510eeb5629419fcc4b837f69e05
+source_checksum: sha256:8f591f37a82ab77e3e9fdf82b96b6b8beb6fa03610e054cf961d4c8ab50b4635
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -198,11 +198,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 6
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity have not been performed.
-        kind: statement
-        ru: Исследований репродуктивной токсичности, генотоксичности и канцерогенности не проводилось
       - doc: assessment-report
         page: 13
         quote: Oral administration of elder flower can be regarded as safe at traditionally used doses.
@@ -252,21 +247,6 @@ metadata:
     redBook: null
     safety:
       lines:
-      - source: nccih
-        kind: warning
-        ru: 'Сырые или незрелые ягоды и другие части бузины (листья, стебли) содержат ядовитые цианидообразующие вещества: тошнота, рвота, тяжёлая диарея; варка устраняет токсин'
-        quote: Raw or unripe elderberries and other parts of the elder tree, such as the leaves and stem, contain poisonous cyanide-producing substances that can cause nausea, vomiting, and severe diarrhea; cooking eliminates this toxin.
-        url: https://www.nccih.nih.gov/health/elderberry
-      - source: nccih
-        kind: warning
-        ru: Большие количества токсина могут вызвать серьёзное заболевание
-        quote: Large quantities of the toxin may cause serious illness.
-        url: https://www.nccih.nih.gov/health/elderberry
-      - source: nccih
-        kind: pregnancy
-        ru: Мало известно, безопасна ли бузина для лечебного применения при беременности и грудном вскармливании
-        quote: Little is known about whether it’s safe to use elderberry for health purposes during pregnancy or while breastfeeding.
-        url: https://www.nccih.nih.gov/health/elderberry
       - source: lactmed
         kind: lactation
         ru: Рекомендаций по применению лечебных доз препаратов бузины при грудном вскармливании дать нельзя
@@ -274,6 +254,17 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM920/
       liver: null
       trts: null
+    regionalRedBooks: null
+    conflicts:
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: возможный курс 1-2 недели; EMA: если симптомы дольше 1 недели — к врачу или медработнику'
+      grls: Возможный курс лечения 1-2 недели.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: If the symptoms persist longer than 1 week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-sambucus-nigra-l-flos-revision-1_en.pdf
     identification:
       source:
         number: ФС.2.5.0008.15
@@ -431,6 +422,5 @@ metadata:
 - Инструкция ГРЛС «Бузины черной цветки», Изм. № 0, ЛП-№(008227)-(РГ-RU), 2024, Общество с ограниченной ответственностью Фирма "Здоровье" (ООО Фирма "Здоровье")
 - EMA/HMPC: https://www.ema.europa.eu/en/medicines/herbal/sambuci-flos (обновлено 27/06/2018). © European Medicines Agency
 - Иллюстрация: Köhler's Medizinal-Pflanzen (1887–1898) — общественное достояние (Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Sambucus_nigra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-127.jpg)
-- NCCIH «Herbs at a Glance»: https://www.nccih.nih.gov/health/elderberry (US public domain)
 - LactMed (Drugs and Lactation Database, NICHD): https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM920/ (US public domain)
 - Государственная фармакопея РФ XIV изд., ФС.2.5.0008.15 «Бузины черной цветки»: https://pharmacopoeia.regmed.ru/pharmacopoeia/izdanie-14/2/2-5/buziny-chernoy-tsvetki/

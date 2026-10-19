@@ -1,0 +1,18 @@
+plant: tilia-cordata
+items:
+  - topic: dose
+    ru: "ГРЛС: взрослым по 1 стакану настоя 2-3 раза в день; EMA: 1,5 г сырья на 150 мл 2–4 раза в день, суточная доза 3–6 г"
+    grls: "Принимают внутрь в горячем или теплом виде 2-3 раза в день: взрослые и дети старше 12 лет – по 1 стакану"
+    monograph: {doc: monograph, page: 3, quote: "Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 3-6 g"}
+  - topic: age
+    ru: "ГРЛС: детям до 3 лет по 1-2 столовой ложке настоя; EMA: при простуде детям младше 4 лет не рекомендуется"
+    grls: "дети до 3 лет – по 1-2 столовой ложке"
+    monograph: {doc: monograph, page: 4, quote: "The use in children under 4 years of age is not recommended"}
+  - topic: pregnancy
+    ru: "ГРЛС: при беременности возможно, если польза превышает риск; EMA: при беременности не рекомендуется, данных недостаточно"
+    grls: "Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 5, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}
+  - topic: lactation
+    ru: "ГРЛС: при кормлении грудью возможно, если польза превышает риск; EMA: при кормлении грудью не рекомендуется, данных недостаточно"
+    grls: "Применение препарата при беременности и в период грудного вскармливания возможно, если ожидаемая польза для матери превышает потенциальный риск для плода и ребенка."
+    monograph: {doc: monograph, page: 5, quote: "In the absence of sufficient data, the use during pregnancy and lactation is not recommended."}

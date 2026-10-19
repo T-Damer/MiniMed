@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530055/10e6f8b9-0cde-4c44-ad5b-fba7646d0fe1.pdf
-source_checksum: sha256:fb6133727704f0b6fec6720758eb3da1fe4ccc042e7a4699c2d26aa491d51a29
+source_checksum: sha256:b61c1f7f25fa7f47e4decca34b0d4b81ecd0d979fdbc983e4dfdad4bbd78043d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -112,6 +112,7 @@ metadata:
           amount: 1-1.5
           unit: г
           waterMl: '150'
+          daily: 2-3 г
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 5
@@ -146,6 +147,16 @@ metadata:
         kind: warning
         ru: При желчных камнях и других болезнях желчных путей — сначала к врачу
       - doc: monograph
+        page: 7
+        quote: Thujone is reported to be neurotoxic and chemotypes with low content of thujone should be preferred.
+        kind: warning
+        ru: Туйон, по сообщениям, нейротоксичен; следует предпочитать хемотипы с низким содержанием туйона
+      - doc: monograph
+        page: 8
+        quote: The amount of thujone has to be specified in the given product. The daily exposure has to be below 6.0 mg.
+        kind: warning
+        ru: Количество туйона в продукте должно быть указано; суточное поступление туйона — ниже 6,0 мг
+      - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction None reported
         kind: interaction
@@ -155,6 +166,11 @@ metadata:
         quote: The use is not recommended during pregnancy and lactation.
         kind: pregnancy
         ru: При беременности и кормлении грудью не рекомендуется
+      - doc: monograph
+        page: 7
+        quote: Tests on reproductive toxicity have been performed with a dry ethanolic extract of Absinthii herba administered orally to pregnant rats. Results showed reduced sites of implantations and a reduced rate of born pups. Thujone is known for its uterus stimulating activity.
+        kind: pregnancy
+        ru: В опытах на беременных крысах сухой этанольный экстракт полыни уменьшал число мест имплантации и число рождённых крысят; туйон известен маточно-стимулирующим действием
       - doc: monograph
         page: 7
         quote: Undesirable effects None known
@@ -202,6 +218,44 @@ metadata:
         quote: 242. Полынь — Artemisia L. — Все виды, все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 228
+    regionalRedBooks: null
+    conflicts:
+    - topic: age
+      topicRu: Возраст
+      ru: 'ГРЛС: противопоказан детский возраст до 12 лет; EMA: до 18 лет не рекомендуется'
+      grls: детский возраст до 12 лет.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: The use in children and adolescents under 18 years of age is not recommended
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-artemisia-absinthium-l-herba_en.pdf
+    - topic: course
+      topicRu: Курс
+      ru: 'ГРЛС: курс лечения 20-25 дней; EMA: к врачу, если симптомы сохраняются дольше 2 недель'
+      grls: Курс лечения 20-25 дней.
+      authority: EMA
+      doc: monograph
+      page: 5
+      quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-artemisia-absinthium-l-herba_en.pdf
+    - topic: dose
+      topicRu: Доза
+      ru: 'ГРЛС: настой по 1/4 стакана 3 раза в день; EMA: разовая доза 1-1,5 г, в сутки 2-3 г'
+      grls: Настой принимают внутрь в теплом виде по 1/4 стакана 3 раза в день за 30 минут до еды.
+      authority: EMA
+      doc: monograph
+      page: 4
+      quote: 'Single dose: 1-1.5 g Daily dose: 2-3 g'
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-artemisia-absinthium-l-herba_en.pdf
+    - topic: indication
+      topicRu: Показания
+      ru: 'ГРЛС: показан при хроническом холецистите и дискинезии желчевыводящих путей; EMA: при болезнях желчных путей сначала к врачу'
+      grls: хронический холецистит; дискинезия желчевыводящих путей.
+      authority: EMA
+      doc: monograph
+      page: 6
+      quote: Patients with gallstones and any other biliary disorders (see section 4.3) should consult a doctor before using Absinthii herba preparations.
+      url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-artemisia-absinthium-l-herba_en.pdf
     identification:
       source:
         number: ФС.2.5.0033.15

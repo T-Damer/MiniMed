@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/rhodiolae-roseae-rhizoma-et-radix
-source_checksum: sha256:d524b76d467a86c29c04b85080c4c6a2ef4dd8783e0b0843c8f9af798438f820
+source_checksum: sha256:d09b95180ef3d9c16e19425b265364920fd8a142c2e5cf08f7bd9db1c37898dc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -119,12 +119,13 @@ metadata:
         page: 4
         quote: 'Posology Adults and Elderly Single dose: 144-200 mg Dosage frequency: 1-2 times daily Daily dose: 144 - 400 mg'
         kind: posology
-        ru: Разовая доза 144–200 мг, 1–2 раза в день; суточная доза 144–400 мг
+        ru: 'Только для сухого экстракта, указанного в монографии, в твёрдых формах для приёма внутрь: разовая доза 144–200 мг, 1–2 раза в день; суточная доза 144–400 мг'
         dose:
-          preparationRu: сухой экстракт
+          preparationRu: сухой экстракт (DER 1.5-5:1, этанол 67-70% V/V) в твёрдых формах для приёма внутрь
           amount: 144-200
           unit: мг
           timesPerDay: 1-2
+          daily: 144-400 мг
           populationRu: взрослые и пожилые
       - doc: monograph
         page: 4
@@ -193,11 +194,6 @@ metadata:
         quote: No case of overdose has been reported.
         kind: overdose
         ru: Случаев передозировки не описано
-      - doc: monograph
-        page: 6
-        quote: Tests on reproductive toxicity, genotoxicity and carcinogenicity are not available.
-        kind: statement
-        ru: Данных об исследованиях репродуктивной токсичности, генотоксичности и канцерогенности нет
       constituents:
       - doc: assessment-report
         page: 4
@@ -277,6 +273,67 @@ metadata:
         quote: 15. Родиола розовая, Золотой корень — Rhodiola rosea L. — Все части
         url: https://eec.eaeunion.org/upload/medialibrary/6ad/TR-TS-PishevayaProd.pdf
         pdfPage: 234
+    regionalRedBooks:
+      regions:
+      - region: Амурская область
+        year: 2020
+      - region: Архангельская область
+        year: 2020
+      - region: Забайкальский край
+        year: 2016
+      - region: Иркутская область
+        year: 2020
+      - region: Камчатский край
+        year: 2018
+      - region: Кемеровская область
+        year: 2021
+      - region: Красноярский край
+        year: 2022
+      - region: Мурманская область
+        year: 2025
+        checked:
+          act: 'Красная книга Мурманской области, кн. 1: списки видов (Минприроды Мурманской обл.), № 262'
+          url: https://mpr.gov-murman.ru/files/kniga_1_spiski_vidov_tekst.pdf
+          category: '4'
+      - region: Ненецкий автономный округ
+        year: 2020
+      - region: Пермский край
+        year: 2018
+      - region: Приморский край
+        year: 2008
+      - region: Республика Алтай
+        year: 2017
+      - region: Республика Бурятия
+        year: 2023
+      - region: Республика Карелия
+        year: 2020
+        checked:
+          act: Приказ Минприроды Республики Карелия от 14.09.2020 № 1590 (ред. 24.12.2020), № 95
+          url: http://kodeks.karelia.ru/api/show/407085578
+          category: '3'
+      - region: Республика Коми
+        year: 2019
+      - region: Республика Саха (Якутия)
+        year: 2017
+      - region: Республика Хакасия
+        year: 2022
+      - region: Сахалинская область
+        year: 2015
+      - region: Свердловская область
+        year: 2018
+      - region: Хабаровский край
+        year: 2008
+      - region: Ханты-Мансийский автономный округ
+        year: 2013
+      - region: Челябинская область
+        year: 2017
+      - region: Чукотский автономный округ
+        year: 2008
+      - region: Ямало-Ненецкий автономный округ
+        year: 2010
+      sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
+      url: https://www.plantarium.ru/page/view/item/31830.html
+    conflicts: null
     identification:
       source:
         number: ФС.2.5.0036.15
