@@ -42,25 +42,15 @@ were used — confirm the regime table against a textbook.
 carried because the text layer lost the cell grouping. **Decision needed**: whether to transcribe them from
 the images; Kapitan tables 16.5–16.7 (complementary schedules by RF rules and WHO) are also not carried.
 
+### `ПДБ/ПроцентильМЖ.pdf` — closed 2026-10-19: replaced by WHO standards, not used
 
-### `ПДБ/ПроцентильМЖ.pdf` — no bibliographic source captured
-
-The OCR draft (`data/intermediate/replicate-ocr/pdb.procentil-mzh.ocr-draft.json`) contains real centile
-tables for length/height, chest circumference, and head circumference, separately for boys and girls, by
-month/year. Nothing in the extracted text names a publisher, author, edition, or year — the filename alone
-is not a citable source under the [CALCULATORS.md](CALCULATORS.md) source contract. **Decision needed**:
-identify which textbook/standard this table was scanned from (check the physical/PDF file's own cover or
-ask whoever originally saved it) before it can back any shipped calculator.
-
-### `ПДБ/ПроцентильМЖ.pdf` — two different norm systems, not reconciled
-
-The same file also contains a σ (standard-deviation / "sigma method") growth classification distinct from
-the WHO SDS/percentile system already reference-carded in `who-child-growth-standards.md`: cutoffs are
-±1σ = average, ±1–2σ = below/above average, ±2–3σ = low/high, beyond ±3σ = dwarfism/gigantism — a
-different framing than WHO's +1/+2/+3 SDS overweight-risk bands (different purpose: this one classifies
-height/stature, WHO's is BMI/weight-for-age risk). **Decision needed**: does the z-score/percentile
-calculator implement WHO only, the σ-method only, or both as separate tools — and if the σ-method ships,
-it needs its own source citation (see above) since it is a distinct claim from the WHO card.
+Owner 2026-10-19: use official / high-ranked sources instead. Length/height, weight, BMI, head and arm
+circumference are already covered by the WHO Child Growth Standards 2006 (0–5 y) and WHO Growth Reference
+2007 (5–19 y) LMS tables in `minimed.calculator.pediatric-anthropometry-who`, with z-score bands per
+indicator; Russian guidance names SDS on WHO standards (KR «Ожирение у детей», ID 229: «С учетом
+рекомендаций ВОЗ … +2,0 SDS ИМТ»). The σ-method bands are textbook practice, not current guidance, and are
+not shipped. Chest circumference has no WHO or other official reference and is not implemented. The
+unidentified file is not extracted; its OCR-only problems (source, the empty 8th column) no longer matter.
 
 ### `ПДБ/pochivalov-_db_uchebnik.pdf` — large multi-table book, only automated-checked
 
@@ -84,13 +74,6 @@ dense with normative lab values (urinalysis, Нечипоренко/Амбюрж
 priority to review first given the pediatric-norms goal. **Decision needed**: same as pochivalov above —
 no numeric value from this book backs a calculator or clinical claim until a clinician has spot-checked it
 against the source scan.
-
-### `ПДБ/ПроцентильМЖ.pdf` — stray empty 8th table column
-
-Every extracted table (length, mass, chest, head) has 7 real centile columns (3/10/25/50/75/90/97 %) plus
-a trailing empty 8th column in the OCR output. Likely a table-boundary artifact from the source scan
-rather than real data, but not verified against the original page image. **Decision needed**: confirm
-against the source PDF page before treating the 7-column reading as final.
 
 ### `neo.shabalov.ocr-draft.json` — Fenton chart missing numeric data (requires OCR source recovery)
 
