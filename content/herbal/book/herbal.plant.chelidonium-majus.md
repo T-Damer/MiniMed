@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/28/1529276/153839fa-0ffc-443d-b3f1-d5be52f49707.pdf
-source_checksum: sha256:7a8a9707624cadd7f4bb2e5f231ffd8375d9d5d7155bc457b4d395f57ff1e4f6
+source_checksum: sha256:de49a9a8c97d2e5d794bc8dfb798973a27ff6e6bb0b876579b38b26dcec6f5e6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -65,6 +65,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/chelidonii-herba
       lastUpdated: 20/01/2012
       species: null
+      otherSpecies: false
       documents:
         public-statement:
           url: https://www.ema.europa.eu/en/documents/public-statement/final-public-statement-chelidonium-majus-l-herba_en.pdf
@@ -73,14 +74,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-chelidonium-majus-l-herba_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: public-statement
       facts:
       - doc: public-statement
         page: 2
         quote: in the presence of a high number of spontaneously reported liver-biliary adverse drug reactions and the withdrawal of products in Member States due to safety concerns, the benefit-risk assessment of oral use of Chelidonium majus is considered negative with respect to the establishment of a community monograph.
         kind: statement
-        ru: EMA не одобрила приём внутрь — польза не перевешивает риск из-за сообщений о поражении печени и желчных путей
+        ru: 'Приём внутрь: HMPC оценил соотношение пользы и риска как отрицательное — много спонтанных сообщений о поражении печени и желчных путей, препараты отозваны в ряде стран ЕС'
       - doc: public-statement
         page: 2
         quote: The HMPC concluded that evidence of clinical efficacy was lacking for monotherapy
@@ -95,17 +96,17 @@ metadata:
         page: 3
         quote: With regard to cutaneous use, the HMPC considered that the indication was not sufficiently supported by market information on monotherapy.
         kind: statement
-        ru: Наружное применение (бородавки, мозоли) данными не подтверждено
+        ru: 'Наружное применение: HMPC счёл показание недостаточно подтверждённым данными рынка о монопрепаратах'
       - doc: public-statement
         page: 2
         quote: there are 124 reported adverse drug reactions (derived from 56 spontaneous case reports) affecting the liver-biliary system after intake of medicinal products containing Chelidonium majus
         kind: warning
-        ru: Описаны поражения печени и желчных путей после приёма препаратов чистотела
+        ru: Сообщалось о 124 нежелательных реакциях со стороны печени и желчных путей (56 спонтанных сообщений) после приёма препаратов, содержащих чистотел
       - doc: public-statement
         page: 2
         quote: In some European countries marketing authorisations for medicinal products containing Chelidonium majus have been withdrawn because of concerns with reported adverse effects, particularly liver toxicity. The products withdrawn to date have been those which would lead to a daily intake of more then 2.5 mg alkaloids from Chelidonium majus, according to the posology of the SPC.
         kind: warning
-        ru: В ряде стран препараты сняты с рынка из-за побочных эффектов, прежде всего на печень — те, что давали больше 2,5 мг алкалоидов в сутки
+        ru: В некоторых странах Европы регистрации препаратов чистотела отозваны из-за сообщений о побочных эффектах, прежде всего токсичности для печени; отозваны те, при которых по инструкции суточный приём алкалоидов превышал бы 2,5 мг
       constituents:
       - doc: public-statement
         page: 2

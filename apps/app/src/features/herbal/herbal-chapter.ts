@@ -68,6 +68,8 @@ export interface HerbalEma {
   readonly page: string;
   readonly extracted: boolean;
   readonly draft: boolean;
+  /** The monograph's species when they are not the plant's own (thyme), else null. */
+  readonly otherSpecies: string | null;
   readonly useType: string | null;
   readonly documents: Readonly<Partial<Record<EmaDocumentKind, string>>>;
   readonly facts: readonly EmaFact[];
@@ -281,6 +283,7 @@ function readEma(value: unknown): HerbalEma | null {
     page,
     extracted,
     draft,
+    otherSpecies: item['otherSpecies'] === true ? text(item['species']) : null,
     useType: text(item['useType']),
     documents,
     facts: list(item['facts']).map(emaFact).filter(present),

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore
-source_checksum: sha256:4d6e109c64a9c967a29b361e561be1ecc4d2fee3ff39c7fb0bfbc8a3c97b1111
+source_checksum: sha256:6bebdd695b4cd0f8bd7ea8a919df960dd8b3da6b40ade65395e064bf4a103444
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore
       lastUpdated: 24/01/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-viola-tricolor-l_en.pdf
@@ -56,14 +57,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-viola-tricolor-l-andor-subspecies-viola-arvensis-murray-gaud-and-viola-vulgaris-koch-oborny-herba-cum-flore_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for symptomatic treatment of mild seborrhoeic skin conditions.
@@ -73,24 +74,24 @@ metadata:
         page: 3
         quote: 'Herbal tea: 3 g of comminuted herbal substance as an infusion 1-3 times daily.'
         kind: posology
-        ru: Чай (настой) внутрь — взрослые
+        ru: Чай (настой) внутрь — взрослые и пожилые
         dose:
           preparationRu: настой внутрь
           amount: '3'
           unit: г
           timesPerDay: 1-3
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 3
         quote: 5-20 g/l of comminuted herbal substance as an infusion. Apply as a wet dressing to the affected areas of the skin 2-3 times daily.
         kind: posology
-        ru: Влажная повязка на кожу — подростки и взрослые
+        ru: Влажная повязка на кожу — подростки, взрослые и пожилые
         dose:
           preparationRu: настой для повязок
           amount: 5-20
           unit: г на литр
           timesPerDay: 2-3
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 3
         quote: 'Bath additive: 5-10 g/l of comminuted herbal substance as an infusion. 1 litre of infusion to be added to the bath.'
@@ -100,18 +101,18 @@ metadata:
           preparationRu: настой для ванны
           amount: 5-10
           unit: г на литр
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 3
         quote: The use in children and adolescents under 18 years of age is not recommended
         kind: age
-        ru: Внутрь — только с 18 лет
+        ru: Внутрь — детям и подросткам до 18 лет не рекомендуется
         minAgeMonths: 216
       - doc: monograph
         page: 3
         quote: The use in children under 12 years of the age is not recommended
         kind: age
-        ru: Наружно — только с 12 лет
+        ru: Наружно — детям до 12 лет не рекомендуется
         minAgeMonths: 144
       - doc: monograph
         page: 3
@@ -133,7 +134,7 @@ metadata:
         page: 4
         quote: Hot baths should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
         kind: warning
-        ru: Горячие ванны нельзя при температуре, инфекции, сердечной недостаточности и гипертонии
+        ru: Горячие ванны не следует применять при лихорадочных или инфекционных заболеваниях, сердечной недостаточности и гипертонии
       - doc: monograph
         page: 4
         quote: None reported.
@@ -143,7 +144,7 @@ metadata:
         page: 4
         quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: При беременности и кормлении грудью не рекомендуется — данных нет
+        ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
       - doc: monograph
         page: 5
         quote: One case of haemolysis in a child with G6PD deficiency has been reported after oral administration.
@@ -161,7 +162,7 @@ metadata:
         compound: salicylic acid derivatives
         compoundRu: производные салициловой кислоты
         classRu: салицилаты
-        effectRu: причина осторожности при аллергии на салицилаты
+        effectRu: из-за содержания салицилатов траву относят к применяемым с осторожностью
         evidence: review
       - doc: assessment-report
         page: 13
@@ -169,7 +170,7 @@ metadata:
         compound: oligo- and polysaccharides
         compoundRu: олиго- и полисахариды
         classRu: полисахариды (слизи)
-        effectRu: замедляют деление и поддерживают жизнеспособность клеток кожи
+        effectRu: в культуре кератиноцитов человека значимо снижали пролиферацию, но улучшали жизнеспособность клеток
         evidence: in-vitro
       - doc: assessment-report
         page: 14

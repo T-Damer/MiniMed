@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/08/1529659/b4a70338-2ecc-475b-9e4a-8008c393892c.pdf
-source_checksum: sha256:258f5057a0e30e7997d0d78447afd3a84bc658beef3c65cd94edacaf17d0c195
+source_checksum: sha256:2d0be80bccb680ff7ec382863796899b2731f4855a24cfa0004b976edf32a12d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -68,6 +68,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/frangulae-cortex
       lastUpdated: 26/10/2006
       species: Rhamnus frangula L.
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-rhamnus-frangula-l-cortex-revision-1_en.pdf
@@ -79,7 +80,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/frangula-bark-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: well-established
       facts:
       - doc: monograph
@@ -179,7 +180,7 @@ metadata:
         page: 7
         quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, specifically potassium, should be monitored. This is particularly important in the elderly.
         kind: overdose
-        ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — достаточно жидкости, контроль электролитов, особенно калия (важно у пожилых)
+        ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — обильное питьё, контроль электролитов, особенно калия (особенно важно у пожилых)
       constituents:
       - doc: assessment-report
         page: 11
@@ -195,14 +196,14 @@ metadata:
         compound: hydroxyanthracene derivatives
         compoundRu: гидроксиантраценовые производные
         classRu: антрагликозиды
-        effectRu: данных мало; по аналогии с другими слабительными этой группы, например сенной, предполагают сходный механизм действия
+        effectRu: по аналогии с другими слабительными с гидроксиантраценовыми производными, например сенной, обычно предполагают сходный механизм действия
         evidence: review
     redBook: null
     safety:
       lines:
       - source: lactmed
         kind: lactation
-        ru: Приём матерью слабительных препаратов крушины может вызвать жидкий стул у детей на грудном вскармливании; их использования следует избегать
+        ru: Приём матерью слабительных препаратов крушины (глава LactMed объединяет несколько видов крушины) может вызвать жидкий стул у детей на грудном вскармливании; их использования следует избегать
         quote: Maternal intake of the cathartic buckthorn products might cause loose stools in breastfed infants and their use should be avoided.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM941/
       liver: null

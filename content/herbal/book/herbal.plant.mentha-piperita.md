@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/29/1524857/f0052948-5e0a-42b7-b35e-aab0ee47d2dd.pdf
-source_checksum: sha256:387e6667212f5d2c1359ec395f375fdd13db40efdfe17a586de67c69320190f5
+source_checksum: sha256:49eb1b679a165f11c2ec31094b1fd17637fa370e36a6fbe76f8b0f0b9676416a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -70,6 +70,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/menthae-piperitae-folium
       lastUpdated: 08/03/2017
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-mentha-x-piperita-l-folium-revision-1_en.pdf
@@ -81,19 +82,19 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/peppermint-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for the symptomatic relief of digestive disorders such as dyspepsia and flatulence.
         kind: indication
-        ru: Расстройства пищеварения, например диспепсия и метеоризм
+        ru: Симптоматическое облегчение расстройств пищеварения, например диспепсии и метеоризма
       - doc: monograph
         page: 4
         quote: 'Adults, elderly Single dose Herbal tea: 1.5-3.0 g of the herbal substance or the comminuted herbal substance in 100-150 ml of boiling water as a herbal infusion 3 times daily'

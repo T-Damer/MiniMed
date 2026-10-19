@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Крушина ольховидная (кора). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Крушина ольховидная (кора). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: frangula-alnus
-status: proposed
+status: reviewed
 useType: well-established
 facts:
   - kind: indication
@@ -89,7 +89,7 @@ facts:
     page: 7
     quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during the treatment.
   - kind: overdose
-    ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — достаточно жидкости, контроль электролитов, особенно калия (важно у пожилых)
+    ru: Схваткообразная боль и сильный понос с потерей жидкости и солей; лечение поддерживающее — обильное питьё, контроль электролитов, особенно калия (особенно важно у пожилых)
     doc: monograph
     page: 7
     quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, specifically potassium, should be monitored. This is particularly important in the elderly.
@@ -105,7 +105,7 @@ constituents:
   - compound: hydroxyanthracene derivatives
     compoundRu: гидроксиантраценовые производные
     classRu: антрагликозиды
-    effectRu: данных мало; по аналогии с другими слабительными этой группы, например сенной, предполагают сходный механизм действия
+    effectRu: по аналогии с другими слабительными с гидроксиантраценовыми производными, например сенной, обычно предполагают сходный механизм действия
     evidence: review
     doc: assessment-report
     page: 13

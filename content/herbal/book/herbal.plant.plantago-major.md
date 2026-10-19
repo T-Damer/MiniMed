@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528709/f609d5f6-74b1-4880-b5de-09956576d4b2.pdf
-source_checksum: sha256:e6da4439422304b67f1a4e4acbb1164fafdc5475a96e3ac9907cc5502a1d9806
+source_checksum: sha256:ff14b09882a370fe2f19f9b0c328bc2127fa91f360250151d073e638fa999127
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://iris.who.int/handle/10665/44059
       lastUpdated: '2010'
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
@@ -83,74 +84,69 @@ metadata:
       - 336
       mirror: e-lactancia.org (в WHO IRIS — только описание тома)
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 325
         quote: Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при катаре дыхательных путей, кашле, бронхите и застое мокроты'
+        ru: 'ВОЗ: описано в фармакопеях — подорожник большой применяют внутрь при катаре дыхательных путей, кашле, бронхите и застое мокроты'
       - doc: monograph
         page: 325
         quote: Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при воспалительных изменениях слизистой оболочки рта'
+        ru: 'ВОЗ: описано в фармакопеях — подорожник большой применяют внутрь при воспалительных изменениях слизистой оболочки рта'
       - doc: monograph
         page: 325
         quote: Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при нефрите, цистите и задержке мочи'
+        ru: 'ВОЗ: описано в фармакопеях — подорожник большой применяют внутрь при нефрите, цистите и задержке мочи'
       - doc: monograph
         page: 325
         quote: Plantago major is used internally for catarrh of the respiratory tract, cough, bronchitis, inflammatory alterations of the oral mucosa, phlegm congestion, nephritis, cystitis, urinary retention, dysentery, epistaxis (nosebleed) and excessive diaphoresis (49, 50).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой применяют внутрь при дизентерии, носовом кровотечении и чрезмерном потоотделении'
+        ru: 'ВОЗ: описано в фармакопеях — подорожник большой применяют внутрь при дизентерии, носовом кровотечении и чрезмерном потоотделении'
       - doc: monograph
         page: 325
         quote: It is also used for the treatment of diarrhoea and constipation (22).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — подорожник большой также применяют для лечения диареи и запора'
+        ru: 'ВОЗ: описано в фармакопеях — подорожник большой также применяют для лечения диареи и запора'
       - doc: monograph
         page: 325
-        quote: Fresh leaves of Plantago major have been used externally for centuries in many parts of the world as an antiseptic for treatment of skin irritations, erysipelas, abscesses, burns, scrofula
+        quote: Fresh leaves of Plantago major have been used externally for centuries in many parts of the world as an antiseptic for treatment of skin irritations, erysipelas, abscesses, burns, scrofula and inflammatory reactions of the skin; for repair of damaged tissue; and to treat fistulae and ulcers (5, 43, 51, 52).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — свежие листья подорожника большого веками применяют наружно во многих регионах мира как антисептик при раздражении кожи, роже, абсцессах, ожогах и золотухе'
-      - doc: monograph
-        page: 326
-        quote: skin; for repair of damaged tissue; and to treat fistulae and ulcers (5, 43, 51, 52).
-        kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — для восстановления повреждённых тканей и для лечения свищей и язв'
+        ru: 'ВОЗ: описано в традиционной медицине — свежие листья подорожника большого веками применяют наружно во многих регионах мира как антисептик при раздражении кожи, роже, абсцессах, ожогах, золотухе и воспалительных реакциях кожи; для восстановления повреждённых тканей, при свищах и язвах'
       - doc: monograph
         page: 326
         quote: It is also used to suppress cough associated with bronchitis, colds and upper respiratory inflammation, and as an analgesic and diuretic agent, in the treatment of kidney stones
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — применяют также для подавления кашля при бронхите, простуде и воспалении верхних дыхательных путей, как обезболивающее и мочегонное средство при лечении камней в почках'
+        ru: 'ВОЗ: описано в традиционной медицине — применяют также для подавления кашля при бронхите, простуде и воспалении верхних дыхательных путей, как обезболивающее и мочегонное средство при лечении камней в почках'
       - doc: monograph
         page: 326
         quote: It also has a hepatoprotective action
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — отмечено также гепатопротекторное действие'
+        ru: 'ВОЗ: описано в традиционной медицине — отмечено также гепатопротекторное действие'
       - doc: monograph
         page: 326
         quote: Plantago major leaves have been used as a weak antibiotic, astringent (57) and as an immunomodulating (58), antihypertensive (59), hypoglycaemic (60), haemostatic (61), antiallergic, febrifuge and antipruritic agent (62).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — листья подорожника большого использовали как слабое антибиотическое и вяжущее средство'
+        ru: 'ВОЗ: описано в традиционной медицине — листья подорожника большого использовали как слабое антибиотическое и вяжущее средство'
       - doc: monograph
         page: 326
         quote: Plantago major leaves have been used as a weak antibiotic, astringent (57) and as an immunomodulating (58), antihypertensive (59), hypoglycaemic (60), haemostatic (61), antiallergic, febrifuge and antipruritic agent (62).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — листья подорожника большого использовали как иммуномодулирующее, антигипертензивное, гипогликемическое, кровоостанавливающее, противоаллергическое, жаропонижающее и противозудное средство'
+        ru: 'ВОЗ: описано в традиционной медицине — листья подорожника большого использовали как иммуномодулирующее, антигипертензивное, гипогликемическое, кровоостанавливающее, противоаллергическое, жаропонижающее и противозудное средство'
       - doc: monograph
         page: 326
         quote: It is used in the treatment of eye inflammation, and as a vermifuge (63–65).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — применяют при воспалении глаз и как глистогонное средство'
+        ru: 'ВОЗ: описано в традиционной медицине — применяют при воспалении глаз и как глистогонное средство'
       - doc: monograph
         page: 326
         quote: It is commonly prescribed for treatment of cystitis with haematuria and haemorrhoids (38).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — часто назначают при цистите с гематурией и при геморрое'
+        ru: 'ВОЗ: описано в традиционной медицине — часто назначают при цистите с гематурией и при геморрое'
       - doc: monograph
         page: 331
         quote: Adverse reactions Allergic contact dermatitis in response to P. major has been reported (87).
@@ -173,9 +169,9 @@ metadata:
         ru: Данных о канцерогенности и нарушении фертильности не найдено; в экспериментальных условиях сообщалось о генотоксической активности водно-спиртовых и солевых экстрактов
       - doc: monograph
         page: 331
-        quote: The results indicate that, under these experimental conditions, aqueous extracts are genotoxic (recombinogenic) (84).
+        quote: 'The somatic mutation and recombination test in Drosophila melanogaster was used to evaluate the genotoxic activity of an aqueous extract of P. major leaves. Two Drosophila crosses were produced: a standard cross and a high-bioactivation cross. Each cross produced two types of descendents. Three-day-old larvae of both types of descendents were treated with undiluted and diluted extract (1:1 and 1:2 in water). The extracts were genotoxic in both crosses, the number of induced frequencies produced were similar in both types of flies. Comparison of the frequencies of wing spots in the descendents indicated that recombination was a major response. The results indicate that, under these experimental conditions, aqueous extracts are genotoxic (recombinogenic) (84).'
         kind: statement
-        ru: Результаты указывают, что в данных экспериментальных условиях водные экстракты генотоксичны (рекомбиногенны)
+        ru: В тесте на дрозофиле водные экстракты листьев в данных экспериментальных условиях были генотоксичны (рекомбиногенны)
       - doc: monograph
         page: 331
         quote: The extract (40 µg/agar plate) did not cause a positive response in strains TA98 or TA100 of Salmonella typhimurium with or without metabolic activation, but increased values above those of the negative control in the COMET assay. The results indicate that the extract has genotoxic activity in human lymphocytes (86).
@@ -220,13 +216,14 @@ metadata:
           populationRu: возраст не указан
       - doc: monograph
         page: 332
-        quote: 'Liquid extract: 2–4 ml of a liquid extract from dried leaf (1:1 in 25% ethanol)'
+        quote: 'Liquid extract: 2–4 ml of a liquid extract from dried leaf (1:1 in 25% ethanol) three times daily (41).'
         kind: posology
-        ru: 'Жидкий экстракт из сухого листа (1:1 в 25 % этаноле): 2–4 мл'
+        ru: 'Жидкий экстракт из сухого листа (1:1 в 25 % этаноле): 2–4 мл три раза в день'
         dose:
           preparationRu: жидкий экстракт из сухого листа (1:1 в 25 % этаноле)
           amount: 2-4
           unit: мл
+          timesPerDay: три
           populationRu: возраст не указан
       - doc: monograph
         page: 333

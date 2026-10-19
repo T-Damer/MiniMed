@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba
-source_checksum: sha256:b3a108c1f161e31bf9fd95a38d72b60f60c6b191ee803491dbbae27663f022a0
+source_checksum: sha256:49d658a090449516f05e065c41e0f5a341f25136ca5e903b49f9015ab7b2fadc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/echinaceae-purpureae-herba
       lastUpdated: 17/02/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-echinacea-purpurea-l-moench-herba-recens_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/purple-coneflower-herb-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -181,11 +182,6 @@ metadata:
         minAgeMonths: 144
       - doc: monograph
         page: 5
-        quote: For preparations containing ethanol the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для препаратов с этанолом должна быть указана соответствующая маркировка об этаноле из руководства по вспомогательным веществам на этикетке и в листке-вкладыше
-      - doc: monograph
-        page: 5
         quote: If signs of skin infection are observed, medical advice should be sought.
         kind: warning
         ru: Раны (традиционное применение) — при признаках кожной инфекции обратиться за медицинской помощью
@@ -225,16 +221,6 @@ metadata:
         quote: Products containing Echinacea should not be applied to the breast of breastfeeding women.
         kind: lactation
         ru: Раны (традиционное применение) — препараты с эхинацеей не следует наносить на грудь кормящим женщинам
-      - doc: monograph
-        page: 5
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 6
-        quote: No studies on the effects on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 6
         quote: Hypersensitive reactions in the form of rash, urticaria, itching, swelling of the face may occur.

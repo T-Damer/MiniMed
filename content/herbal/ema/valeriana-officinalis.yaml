@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Валериана лекарственная. Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Валериана лекарственная. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: valeriana-officinalis
-status: proposed
+status: reviewed
 useType: both
 facts:
   - kind: indication
@@ -15,17 +15,17 @@ facts:
     page: 4
     quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
   - kind: posology
-    ru: Чай (настой) — подростки и взрослые
+    ru: Чай (настой) — подростки, взрослые и пожилые
     doc: monograph
     page: 5
     quote: "Herbal tea: 0.3-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion"
-    dose: { preparationRu: настой, amount: "0.3-3", unit: г, waterMl: "150", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой, amount: "0.3-3", unit: г, waterMl: "150", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: При стрессе — до 3 раз в день
     doc: monograph
     page: 4
     quote: "single dose: 0.3-3 g For relief of mild symptoms of mental stress up to 3 times daily."
-    dose: { preparationRu: настой при стрессе, amount: "0.3-3", unit: г, timesPerDay: "3", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой при стрессе, amount: "0.3-3", unit: г, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: Для сна — за полчаса–час до сна, при необходимости ещё раз раньше вечером
     doc: monograph
@@ -35,8 +35,8 @@ facts:
     ru: Ванна — 100 г на полную ванну, до 1 ванны в день
     doc: monograph
     page: 6
-    quote: "a) single dose: 100 g for a full bath; up to 1 bath daily"
-    dose: { preparationRu: ванна, amount: "100", unit: г, timesPerDay: "1", populationRu: подростки и взрослые }
+    quote: "a) single dose: 100 g for a full bath; up to 1 bath daily The use in children under 12 years of age is not recommended"
+    dose: { preparationRu: ванна, amount: "100", unit: г, timesPerDay: "1", populationRu: "кроме детей до 12 лет"}
   - kind: age
     ru: Детям младше 12 лет не рекомендуется
     doc: monograph
@@ -80,7 +80,7 @@ facts:
     page: 7
     quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
   - kind: adverse
-    ru: Возможны желудочно-кишечные симптомы, например тошнота и спазмы в животе
+    ru: После приёма препаратов корня валерианы внутрь возможны желудочно-кишечные симптомы, например тошнота и спазмы в животе
     doc: monograph
     page: 8
     quote: Gastrointestinal symptoms (e.g. nausea, abdominal cramps) may occur after ingestion of valerian root preparations.

@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Одуванчик лекарственный (корень). Draft artifact (status: proposed): Russian
+# EMA/HMPC facts for Одуванчик лекарственный (корень). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian
 # fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
 plant: taraxacum-officinale
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
@@ -63,7 +63,7 @@ facts:
     page: 6
     quote: If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
   - kind: warning
-    ru: Из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
+    ru: Для увеличения количества мочи — из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
     doc: monograph
     page: 6
     quote: Because adequate fluid intake is required during treatment (see section 4.2. Posology and method of administration), dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.

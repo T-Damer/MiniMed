@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527761/fc87cc48-c146-4d0a-8e7f-7fb8e9b5ad9a.pdf
-source_checksum: sha256:e27c8842120ee9aaebc021d940c24658b6008e5c2537adda7d6fc15c161f050c
+source_checksum: sha256:5be4ef962d9edd02c349556c5a62d78ea4d654e1ff6805d37761f0fec1d32e02
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -70,6 +70,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/matricariae-flos
       lastUpdated: 05/04/2016
       species: Matricaria recutita L.
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-matricaria-recutita-l-flos-first-version_en.pdf
@@ -81,14 +82,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/matricaria-flower-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте, а не на клинических исследованиях
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used for the symptomatic treatment of minor gastro-intestinal complaints such as bloating and minor spasms.
@@ -113,14 +114,14 @@ metadata:
         page: 4
         quote: 'Adolescents, adults and elderly Single dose: 1.5-4 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion Daily dose: 3-4 times'
         kind: posology
-        ru: Чай (настой) внутрь — подростки и взрослые
+        ru: Чай (настой) внутрь — подростки, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-4
           unit: г
           waterMl: '150'
           timesPerDay: 3-4
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'Children (6-12 years) Single dose: 1.5-3.0 g Daily dose: 2-4 times'
@@ -158,24 +159,24 @@ metadata:
         page: 5
         quote: 1-5 g in 100 ml water, for rinsing and gargling
         kind: posology
-        ru: Полоскание рта и горла — подростки и взрослые
+        ru: Полоскание рта и горла — подростки, взрослые и пожилые
         dose:
           preparationRu: настой для полосканий
           amount: 1-5
           unit: г
           waterMl: '100'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 11
         quote: The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake.
         kind: age
-        ru: Чай внутрь детям младше 6 месяцев не обоснован — из-за особенностей питания и питья младенца
+        ru: 'Чай внутрь детям младше 6 месяцев: применение не установлено — по общим соображениям питания и приёма жидкости'
         minAgeMonths: 6
       - doc: monograph
         page: 10
         quote: If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Если симптомы держатся больше недели — к врачу
+        ru: Если симптомы держатся больше недели — к врачу или медработнику
         maxDays: 7
       - doc: monograph
         page: 10
@@ -191,12 +192,12 @@ metadata:
         page: 12
         quote: Preparation b) to o) Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: Экстракты и настойки — при беременности и кормлении не рекомендуются, безопасность не установлена
+        ru: 'Жидкие и сухие экстракты (препараты b–o) — при беременности и кормлении не рекомендуются: безопасность не установлена, данных недостаточно'
       - doc: monograph
         page: 12
         quote: If applicable before nursing the baby the nipples should be cleaned of matricaria containing products for cutaneous use to prevent a sensitization of the baby.
         kind: lactation
-        ru: Перед кормлением смыть с сосков средства с ромашкой, чтобы не вызвать у ребёнка аллергию
+        ru: При необходимости перед кормлением смыть с сосков средства с ромашкой для наружного применения, чтобы предотвратить сенсибилизацию ребёнка
       - doc: monograph
         page: 12
         quote: 'Oral use: For patients after renal transplantation taking high dosages for longer periods (about two months) interactions based on effects on CYP450 have been reported.'
@@ -206,7 +207,7 @@ metadata:
         page: 12
         quote: Hypersensitivity reactions including severe allergic reaction (dyspnoea, Quincke’s disease, vascular collapse, anaphylactic shock) following mucosal contact with liquid chamomile preparations have been reported.
         kind: adverse
-        ru: Аллергия, включая тяжёлую (одышка, отёк Квинке, анафилаксия), при контакте слизистых с жидкими препаратами ромашки
+        ru: Сообщалось о реакциях гиперчувствительности, включая тяжёлые (одышка, отёк Квинке, сосудистый коллапс, анафилактический шок), при контакте слизистых с жидкими препаратами ромашки
       - doc: monograph
         page: 13
         quote: No case of overdose has been reported.
@@ -239,12 +240,12 @@ metadata:
         evidence: animal
       - doc: assessment-report
         page: 38
-        quote: Compared to papaverine, a smooth muscle relaxing drug α-bisabolol was 91% as effective on spasms induced with barium chloride
+        quote: The antispasmodic effects of different matricaria compounds have been examined in isolated guinea pig ileum. According to Achterrath-Tuckermann et al. (1980) compounds contained in both aqueous and oil extracts of the plant are effective antispasmodics in isolated guinea pig ileum. Compared to papaverine, a smooth muscle relaxing drug α-bisabolol was 91% as effective on spasms induced with barium chloride
         compound: α-bisabolol
         compoundRu: α-бисаболол
         classRu: эфирное масло (сесквитерпены)
         effectRu: спазмолитическое
-        evidence: animal
+        evidence: in-vitro
       - doc: assessment-report
         page: 36
         quote: In rats, both apigenin and α-bisabolol inhibited the development of gastric ulcers induced by indomethacin, stress and alcohol (Szelenyi et al. 1979).
@@ -255,11 +256,11 @@ metadata:
         evidence: animal
       - doc: assessment-report
         page: 40
-        quote: indicating a sedative effect at higher doses similar to Viola et al. (1995).
+        quote: Open filed tests showed significant reductions in locomotor activities compared with controls at apigenin doses of 25 and 50 mg/kg but not at 12.5 mg/kg indicating a sedative effect at higher doses similar to Viola et al. (1995).
         compound: apigenin
         compoundRu: апигенин
         classRu: флавоноиды
-        effectRu: седативное в высоких дозах
+        effectRu: седативное в высоких дозах (у животных — при 25 и 50 мг/кг, но не при 12,5 мг/кг)
         evidence: animal
       - doc: assessment-report
         page: 34
@@ -294,13 +295,13 @@ metadata:
         url: https://www.nccih.nih.gov/health/chamomile
       - source: lactmed
         kind: lactation
-        ru: Данных о безопасности ромашки у кормящих матерей и детей нет, хотя изредка возможна сенсибилизация
+        ru: Данных о безопасности ромашки (немецкой и римской) у кормящих матерей и детей нет, хотя изредка возможна сенсибилизация
         quote: No data exist on the safety of chamomile in nursing mothers or infants, although rare sensitization may occur (see below).
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM897/
       - source: lactmed
         kind: lactation
-        ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
-        quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
+        ru: Ромашку безопасно и эффективно применяли отдельно и с другими травами у младенцев при коликах, диарее и других состояниях, поэтому ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+        quote: It has been safely and effectively used alone and with other herbs in infants for the treatment of colic, diarrhea, and other conditions,[ 8 - 11 ] so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM897/
       liver:
         score: E

@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Шалфей лекарственный. Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Шалфей лекарственный. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: salvia-officinalis
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -97,7 +97,7 @@ facts:
     page: 8
     quote: Undesirable effects None known
   - kind: overdose
-    ru: Масло шалфея в количестве, соответствующем более 15 г листа, по сообщениям вызывает жар, тахикардию, головокружение, судороги
+    ru: Масло шалфея в количестве, соответствующем более 15 г листа, по сообщениям вызывает ощущение жара, тахикардию, головокружение и эпилептиформные судороги
     doc: monograph
     page: 8
     quote: Intake of sage oil corresponding to more than 15 g of sage leaf is reported to cause sensation of heat, tachycardia, vertigo and epileptiform convulsions (seizures).

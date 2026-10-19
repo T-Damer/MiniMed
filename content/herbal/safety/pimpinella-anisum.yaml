@@ -3,9 +3,9 @@ lactmed: LM868
 lines:
   - source: lactmed
     kind: lactation
-    ru: "Чрезмерный приём матерью чая с анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, как от анетола"
+    ru: Чрезмерный приём матерью чая с анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, соответствующую действию анетола
     quote: "Excessive maternal use of an herbal tea containing anise and other herbs appeared to cause toxicity in two breastfed newborns, consistent with toxicity caused by anethole."
   - source: lactmed
     kind: lactation
-    ru: "У женщины, принимавшей чай Mother's Milk Tea с анисом, повысились печёночные ферменты"
+    ru: У женщины, принимавшей многокомпонентный чай Mother's Milk Tea (в составе есть анис), повысились печёночные ферменты
     quote: "Elevated liver enzymes occurred in a woman taking Mother's Milk Tea, which contains anise."

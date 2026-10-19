@@ -48,13 +48,14 @@ PLATES_MANIFEST = "manifest.json"
 GRLS_HOSTS = frozenset({"grls.rosminzdrav.ru", "pharmacopoeia.regmed.ru"})
 DESCRIPTION = (
     "Лекарственные растения: как заварить и принимать, кому нельзя, действие и состав, побочное "
-    "действие. Тексты инструкций ГРЛС на лекарственное растительное сырьё, ограничения и дозы "
-    "монографий EMA/HMPC (русские поля с английской цитатой источника), правила ГФ XV для "
-    "настоев и отваров. Для самообразования; не заменяет врача."
+    "действие, безопасность. Тексты инструкций ГРЛС на лекарственное растительное сырьё, "
+    "ограничения и дозы монографий EMA/HMPC и ВОЗ, безопасность по NCCIH, LactMed, LiverTox и "
+    "ТР ТС 021/2011 (русские поля с английской цитатой источника), правила ГФ XV для настоев и "
+    "отваров. Для самообразования; не заменяет врача."
 )
 PLATES_DESCRIPTION = (
     "Ботанические таблицы к «Травнику» из изданий XIX — начала XX века (Köhler, Thomé, Sturm, "
-    "Lindman), общественное достояние."
+    "Lindman), общественное достояние; рисунок женьшеня предоставил владелец приложения."
 )
 
 
@@ -109,7 +110,8 @@ def package_herbal_module(
             release_tag=f"reference-herbal-{version}",
             file_stem=MODULE_ID,
             title=TITLE,
-            tags=("herbal", "phytotherapy", "reference", "experimental", "requires-review"),
+            tags=("herbal", "phytotherapy", "reference"),
+            release_state="published",
             collection=COLLECTION,
             list_documents=True,
         ),
@@ -274,10 +276,10 @@ def package_herbal_plates(
         "title": PLATES_TITLE,
         "description": PLATES_DESCRIPTION,
         "required": False,
-        "releaseState": "preview",
+        "releaseState": "published",
         "specialties": [],
         "populations": [],
-        "tags": ["herbal", "herbal-plates", "images", "experimental"],
+        "tags": ["herbal", "herbal-plates", "images"],
         "compatibility": {
             "minAppVersion": min_app_version,
             "maxAppVersion": None,

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2024/03/11/1502683/f3ee60ea-d9d9-44aa-9804-c570520c54ec.pdf
-source_checksum: sha256:829898b6da18cfd1f3dc4b0d5b76b28cf42880bb4fcd0b11b616aedbfbd4e23f
+source_checksum: sha256:a9711e345c29b261232dd98665093044c93939dfb8b1737587a932ee52df9800
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -70,6 +70,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/carvi-fructus
       lastUpdated: 17/02/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-carum-carvi-l-fructus_en.pdf
@@ -81,7 +82,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/caraway-fruit-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -161,16 +162,6 @@ metadata:
         ru: Безопасность при кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
       - doc: monograph
         page: 4
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 4
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-      - doc: monograph
-        page: 4
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
         kind: adverse
         ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
@@ -230,7 +221,7 @@ metadata:
       lines:
       - source: lactmed
         kind: lactation
-        ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+        ru: 'В двух исследованиях кормящим матерям давали само вещество d-карвон (не тмин): побочных эффектов у матерей и детей не отмечено'
         quote: In two studies nursing mothers were given d-carvone. No adverse effects were noted in mothers or infants.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM881/
       - source: lactmed

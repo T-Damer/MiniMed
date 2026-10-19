@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/02/26/1527075/7a1ebcbe-8a71-436f-bcd7-f31f39840645.pdf
-source_checksum: sha256:9fb43e08940077d4d1e40f0fc6fbfd013fcedb47e86df670ebcd5f3738597032
+source_checksum: sha256:bdbcc9d8dfec04baa19ff59f366a1653b8c66373951dc0e0f6e6cd4748bbb751
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/calendulae-flos
       lastUpdated: 02/07/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-calendula-officinalis-l-flos-revision-1_en.pdf
@@ -84,24 +85,24 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/calendula-flower-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations of the skin (such as sunburn) and as an aid in healing of minor wounds.
         kind: indication
-        ru: Лёгкое воспаление кожи (например, солнечный ожог) и заживление мелких ран
+        ru: Лёгкие воспаления кожи (например, солнечный ожог) — симптоматически; вспомогательное средство для заживления мелких ран
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations in the mouth or the throat.
         kind: indication
-        ru: Небольшое воспаление во рту и горле (полоскания)
+        ru: Лёгкие воспаления во рту или в горле — симптоматически
       - doc: monograph
         page: 4
         quote: 'a) Single dose: 1-2 g herbal substance or comminuted herbal substance in 150 ml water. The still warm infusion is used to prepare impregnated dressings Daily dose: 2 to 4 times'
@@ -158,7 +159,7 @@ metadata:
         page: 6
         quote: If signs of skin infection are observed or the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: Если на коже признаки инфекции или хуже — к врачу
+        ru: Если появились признаки инфекции кожи или симптомы усилились — к врачу или медработнику
       - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction None reported

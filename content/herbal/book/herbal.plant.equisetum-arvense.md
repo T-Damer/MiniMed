@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/14/1532105/1713a6ea-4f43-4099-ac9b-44c95564cdd8.pdf
-source_checksum: sha256:9d1f4470fa3af172e65b0b735023d1da2fc465a69d452be2b4d5b6f51e2d341b
+source_checksum: sha256:3005a903f6e4fa08fe0b089641b4691e3e68ecca9981c2a321925f988fb8bd3f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -69,6 +69,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/equiseti-herba
       lastUpdated: 28/04/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-equisetum-arvense-l-herba_en.pdf
@@ -80,14 +81,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/horsetail-herb-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
@@ -141,7 +142,7 @@ metadata:
         page: 7
         quote: Indication 1 If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: Показание 1 — при температуре, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу
+        ru: Показание 1 — при лихорадке, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу или медработнику
       - doc: monograph
         page: 7
         quote: If signs of skin infection are observed, a doctor or a qualified health care practitioner should be consulted.
@@ -176,7 +177,7 @@ metadata:
         page: 4
         quote: Some Equisetum species such as Equisetum palustre contains potentially toxic palustrin
         kind: lookalike
-        ru: Хвощ болотный похож на полевой и содержит потенциально ядовитый палюстрин
+        ru: Некоторые виды хвоща, например хвощ болотный, содержат потенциально ядовитый палюстрин
       - doc: assessment-report
         page: 4
         quote: Only quality controlled horsetail (from pharmacies) should be consumed by the patients, as adulteration with Equisetum palustre is possible, when it is harvested by unqualified persons.

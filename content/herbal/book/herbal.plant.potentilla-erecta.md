@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530887/2f68d269-0d09-4cc7-be3c-a7a3d5ec4289.pdf
-source_checksum: sha256:9266638cbc4a5cb0753172122256b971a62624b8af26be2e8eb68642b5e250c9
+source_checksum: sha256:71d855967eb237dfbdd272ea559fb67f795f705cc40cd772c68418a5121ede89
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -69,6 +69,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/tormentillae-rhizoma
       lastUpdated: 16/03/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-potentilla-erecta-l-raeusch-rhizoma_en.pdf
@@ -80,14 +81,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/tormentillae-rhizoma-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for symptomatic treatment of mild diarrhoea.
@@ -97,7 +98,7 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations of the oral mucosa.
         kind: indication
-        ru: Небольшое воспаление слизистой рта (полоскания)
+        ru: Небольшое воспаление слизистой рта
       - doc: monograph
         page: 3
         quote: 'As infusion: single dose 1.4-4 g, several times daily up to a maximum daily dose of 12 g.'

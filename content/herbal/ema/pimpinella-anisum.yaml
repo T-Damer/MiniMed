@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Анис обыкновенный (плоды). Draft artifact (status: proposed): Russian fields are
+# EMA/HMPC facts for Анис обыкновенный (плоды). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are
 # a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: pimpinella-anisum
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -66,7 +66,7 @@ constituents:
   - compound: anethole
     compoundRu: анетол
     classRu: эфирное масло (фенилпропаноиды)
-    effectRu: основной из выявленных компонентов (около 90%)
+    effectRu: основной из выявленных компонентов при сверхкритической флюидной экстракции (около 90%)
     evidence: review
     doc: assessment-report
     page: 4

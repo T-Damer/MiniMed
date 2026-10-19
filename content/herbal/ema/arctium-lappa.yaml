@@ -1,10 +1,10 @@
-# EMA/HMPC facts for Лопух большой (корни). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Лопух большой (корни). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 # The monograph (2010) is traditional use only; its three indications are numbered 1)-3) in the source:
 # 1) flushing of the urinary tract, 2) temporary loss of appetite, 3) seborrhoeic skin conditions.
 # The posology block is one list a)-f) for all indications.
 plant: arctium-lappa
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -116,16 +116,6 @@ facts:
     doc: monograph
     page: 4
     quote: Indication 1) If complaints of symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted. Concomitant treatment with synthetic diuretics is not recommended.
-  - kind: warning
-    ru: Для препаратов, содержащих этанол, на упаковке должно быть соответствующее указание об этаноле
-    doc: monograph
-    page: 5
-    quote: For preparations containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-  - kind: warning
-    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-    doc: monograph
-    page: 5
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph

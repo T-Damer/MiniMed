@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lichen-islandicus
-source_checksum: sha256:bfbd0c781cdb4ee32bca5d367e410f5f027fc8f72d60dc1a2374c93b582a0c06
+source_checksum: sha256:c7293ef9d473e366c8eece74bfa890912cb56b181cafa20270165d251e463840
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/lichen-islandicus
       lastUpdated: 09/03/2017
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-cetraria-islandica-l-acharius-sl-thallus-first-version_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/iceland-moss-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -243,11 +244,6 @@ metadata:
         ru: Показания 1 и 2 — всасывание одновременно принимаемых лекарств может замедляться; в качестве меры предосторожности препарат не следует принимать за ½–1 час до или после других лекарственных средств
       - doc: monograph
         page: 6
-        quote: For tinctures containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для настоек с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
-      - doc: monograph
-        page: 6
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
         ru: Взаимодействий не описано
@@ -256,16 +252,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о влиянии на фертильность нет
-      - doc: monograph
-        page: 6
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 6
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
@@ -298,7 +284,7 @@ metadata:
         compound: polysaccharides (lichenan)
         compoundRu: полисахариды (лихенан)
         classRu: полисахариды
-        effectRu: содержание 25–50%; лихенан (лихенин) — линейный β-D-глюкан, растворимый в горячей воде
+        effectRu: полисахариды — 25–50%; лихенан (лихенин) — линейный β-D-глюкан, растворимый в горячей воде
         evidence: review
       - doc: assessment-report
         page: 5

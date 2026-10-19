@@ -1,8 +1,8 @@
-# EMA/HMPC facts for Тыква обыкновенная (семена). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Тыква обыкновенная (семена). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
 # Monograph: Cucurbita pepo L., semen (pumpkin seed), traditional use only.
 plant: cucurbita-pepo
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -103,16 +103,6 @@ facts:
     doc: monograph
     page: 4
     quote: No concern has arisen about any malformation in humans, following the consumption of pumpkin seeds and fatty oil. Can be used during pregnancy and lactation if clinically needed.
-  - kind: pregnancy
-    ru: Данных о влиянии на фертильность нет
-    doc: monograph
-    page: 4
-    quote: No fertility data available.
-  - kind: statement
-    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-    doc: monograph
-    page: 4
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Описаны лёгкие жалобы со стороны желудочно-кишечного тракта; частота — часто (4%)
     doc: monograph

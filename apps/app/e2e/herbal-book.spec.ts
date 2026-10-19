@@ -89,4 +89,12 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   );
   await page.locator('.herbal-cell', { hasText: 'Печень' }).click();
   await expect(page.locator('.herbal-quote')).toContainText('LiverTox');
+  await page.goBack();
+  await expect(page.locator('.herbal-quote')).toHaveCount(0);
+  // Reviewed facts carry no draft badge.
+  await expect(page.locator('.herbal-chapter__tag--draft')).toHaveCount(0);
+
+  // Thyme: EMA covers other Thymus species, and the chapter says so.
+  await openChapter(page, 'Тимьян ползучий (чабрец)');
+  await expect(page.locator('.herbal-chapter__species')).toContainText('Thymus vulgaris L.');
 });

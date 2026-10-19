@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf
-source_checksum: sha256:079fc692473c1794ea5d19ffead440a67a756a278bcb887c27774f40e3c192ac
+source_checksum: sha256:ddd43e834ca1ee60ab3fc4b9014459c932fcc79a4ecf157e32138f9695002244
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -71,6 +71,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/tiliae-flos
       lastUpdated: 10/07/2012
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
@@ -79,14 +80,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-tilia-cordata-miller-tilia-platyphyllos-scop-tilia-x-vulgaris-heyne-or-their-mixtures-flos-first-version_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used for the relief of symptoms of common cold.
@@ -96,7 +97,7 @@ metadata:
         page: 3
         quote: Traditional herbal medicinal product for the relief of mild symptoms of mental stress.
         kind: indication
-        ru: Лёгкие симптомы стресса
+        ru: Облегчение лёгких симптомов психического стресса
       - doc: monograph
         page: 3
         quote: 'Herbal tea: 1.5 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion 2–4 times daily. Daily dose: 3-6 g'

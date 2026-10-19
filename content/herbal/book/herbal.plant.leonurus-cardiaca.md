@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/24/1532592/4c1cf892-188f-4039-8af3-5ce51ccd61b9.pdf
-source_checksum: sha256:a17a648deae157ed34f3ad30d643d5b55d9d7e28f8347b9455cf38a3e9e4dbbe
+source_checksum: sha256:282e5dd07e94848312c95c0d895dbaac3ef19349fac26394b759b5cbfeac1bc6
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -71,6 +71,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/leonuri-cardiacae-herba
       lastUpdated: 20/12/2010
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-leonurus-cardiaca-l-herba_en.pdf
@@ -82,24 +83,24 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/motherwort-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used to relieve symptoms of nervous tension.
         kind: indication
-        ru: Нервное напряжение
+        ru: Облегчение симптомов нервного напряжения
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used to relieve symptoms of nervous cardiac complaints such as palpitations, after serious conditions have been excluded by a medical doctor.
         kind: indication
-        ru: «Нервные» жалобы со стороны сердца, например сердцебиение, — после исключения врачом серьёзных состояний
+        ru: Облегчение симптомов «нервных» жалоб со стороны сердца, например сердцебиения, — после исключения врачом серьёзных состояний
       - doc: monograph
         page: 3
         quote: 'a) Comminuted herbal substance for tea preparation: single dose 1.5 to 4.5 g, daily dose 3 to 10 g.'

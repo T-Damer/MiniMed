@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/21/1528987/91770d58-0a4a-4ac5-bfda-005f4cbda517.pdf
-source_checksum: sha256:067f32cb012c487c799d1c3a72764231107a774e77d20939b807d30d5210818c
+source_checksum: sha256:27b7b96f41e77765c1cd9f851d8cea925174da47c7f0cb9912f0e4cf5459d25d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/quercus-cortex
       lastUpdated: 28/01/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
@@ -80,14 +81,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-quercus-robur-l-quercus-petraea-matt-liebl-quercus-pubescens-willd-cortex_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for symptomatic treatment of mild diarrhoea.
@@ -203,7 +204,7 @@ metadata:
         page: 5
         quote: Hot bathes should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
         kind: warning
-        ru: Воспаление кожи и слизистой рта, геморрой — горячие ванны нельзя при лихорадочных или инфекционных болезнях, сердечной недостаточности и артериальной гипертензии
+        ru: Воспаление кожи и слизистой рта, геморрой — горячие ванны не следует применять при лихорадочных или инфекционных болезнях, сердечной недостаточности и артериальной гипертензии
       - doc: monograph
         page: 5
         quote: If rectal bleeding occurs during the treatment of haemorrhoids a doctor should be consulted.
@@ -244,7 +245,7 @@ metadata:
         compound: oligomeric proanthocyanidins
         compoundRu: олигомерные проантоцианидины
         classRu: конденсированные танины
-        effectRu: вяжущее
+        effectRu: главным образом обусловливают вяжущее действие экстрактов коры
         evidence: review
       - doc: assessment-report
         page: 11

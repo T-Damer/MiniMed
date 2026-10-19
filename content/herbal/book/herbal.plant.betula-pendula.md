@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/06/05/1530883/a1ce87ce-6188-4732-9c7a-8797413de8e9.pdf
-source_checksum: sha256:709a792335df7decab85c98fc6adcb709162d85031379afd7500f96c6b930f75
+source_checksum: sha256:2f6424a89db87b20459da7807a7e3b3276a74b696a4b081304d8456e4ed376f2
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -68,6 +68,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/betulae-folium
       lastUpdated: 20/10/2015
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-betula-pendula-roth-betula-pubescens-ehrh-folium_en.pdf
@@ -79,19 +80,19 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/birch-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product to increase the amount of urine to achieve flushing of the urinary tract as an adjuvant in minor urinary complaints.
         kind: indication
-        ru: Увеличить количество мочи для промывания мочевых путей — вспомогательное средство при лёгких жалобах
+        ru: Увеличить количество мочи для промывания мочевых путей — вспомогательное средство при лёгких жалобах со стороны мочевых путей
       - doc: monograph
         page: 4
         quote: 'Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion up to 4 times daily'
@@ -129,7 +130,7 @@ metadata:
         page: 5
         quote: Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal disease).
         kind: contraindication
-        ru: Состояния, когда нужно ограничивать питьё (тяжёлые болезни сердца или почек)
+        ru: Состояния, когда рекомендуется ограничить питьё (например, тяжёлые болезни сердца или почек)
       - doc: monograph
         page: 5
         quote: If complaints or symptoms such as fever, dysuria, spasms or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.

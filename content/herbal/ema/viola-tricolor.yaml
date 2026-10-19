@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Фиалка трёхцветная. Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Фиалка трёхцветная. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: viola-tricolor
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in specified indication exclusively based upon long-standing use.
@@ -15,31 +15,31 @@ facts:
     page: 3
     quote: Traditional herbal medicinal product for symptomatic treatment of mild seborrhoeic skin conditions.
   - kind: posology
-    ru: Чай (настой) внутрь — взрослые
+    ru: Чай (настой) внутрь — взрослые и пожилые
     doc: monograph
     page: 3
     quote: "Herbal tea: 3 g of comminuted herbal substance as an infusion 1-3 times daily."
-    dose: { preparationRu: настой внутрь, amount: "3", unit: г, timesPerDay: "1-3", populationRu: взрослые }
+    dose: { preparationRu: настой внутрь, amount: "3", unit: г, timesPerDay: "1-3", populationRu: "взрослые и пожилые"}
   - kind: posology
-    ru: Влажная повязка на кожу — подростки и взрослые
+    ru: Влажная повязка на кожу — подростки, взрослые и пожилые
     doc: monograph
     page: 3
     quote: "5-20 g/l of comminuted herbal substance as an infusion. Apply as a wet dressing to the affected areas of the skin 2-3 times daily."
-    dose: { preparationRu: настой для повязок, amount: "5-20", unit: г на литр, timesPerDay: "2-3", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой для повязок, amount: "5-20", unit: г на литр, timesPerDay: "2-3", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: Ванна — 1 литр настоя на ванну
     doc: monograph
     page: 3
     quote: "Bath additive: 5-10 g/l of comminuted herbal substance as an infusion. 1 litre of infusion to be added to the bath."
-    dose: { preparationRu: настой для ванны, amount: "5-10", unit: г на литр, populationRu: подростки и взрослые }
+    dose: { preparationRu: настой для ванны, amount: "5-10", unit: г на литр, populationRu: "подростки, взрослые и пожилые"}
   - kind: age
-    ru: Внутрь — только с 18 лет
+    ru: Внутрь — детям и подросткам до 18 лет не рекомендуется
     doc: monograph
     page: 3
     quote: The use in children and adolescents under 18 years of age is not recommended
     minAgeMonths: 216
   - kind: age
-    ru: Наружно — только с 12 лет
+    ru: Наружно — детям до 12 лет не рекомендуется
     doc: monograph
     page: 3
     quote: The use in children under 12 years of the age is not recommended
@@ -61,7 +61,7 @@ facts:
     page: 4
     quote: Open wounds, large areas of damaged skin.
   - kind: warning
-    ru: Горячие ванны нельзя при температуре, инфекции, сердечной недостаточности и гипертонии
+    ru: Горячие ванны не следует применять при лихорадочных или инфекционных заболеваниях, сердечной недостаточности и гипертонии
     doc: monograph
     page: 4
     quote: Hot baths should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
@@ -71,7 +71,7 @@ facts:
     page: 4
     quote: None reported.
   - kind: pregnancy
-    ru: При беременности и кормлении грудью не рекомендуется — данных нет
+    ru: При беременности и кормлении грудью не рекомендуется — данных недостаточно
     doc: monograph
     page: 4
     quote: In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -89,7 +89,7 @@ constituents:
   - compound: salicylic acid derivatives
     compoundRu: производные салициловой кислоты
     classRu: салицилаты
-    effectRu: причина осторожности при аллергии на салицилаты
+    effectRu: из-за содержания салицилатов траву относят к применяемым с осторожностью
     evidence: review
     doc: assessment-report
     page: 18
@@ -97,7 +97,7 @@ constituents:
   - compound: oligo- and polysaccharides
     compoundRu: олиго- и полисахариды
     classRu: полисахариды (слизи)
-    effectRu: замедляют деление и поддерживают жизнеспособность клеток кожи
+    effectRu: в культуре кератиноцитов человека значимо снижали пролиферацию, но улучшали жизнеспособность клеток
     evidence: in-vitro
     doc: assessment-report
     page: 13

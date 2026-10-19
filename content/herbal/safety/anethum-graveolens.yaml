@@ -3,9 +3,9 @@ lactmed: LM959
 lines:
 - source: lactmed
   kind: lactation
-  ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+  ru: 'В двух исследованиях кормящим матерям давали само вещество d-карвон (не укроп): побочных эффектов у матерей и детей не отмечено'
   quote: In two studies, nursing mothers were given d-carvone. No adverse effects were noted in the mothers or infants.
 - source: lactmed
   kind: adverse
-  ru: Укроп в целом хорошо переносится, но отмечались случайные аллергические кожные реакции, особенно после контакта со свежим укропом
+  ru: Укроп в целом хорошо переносится, но сообщалось о единичных аллергических кожных реакциях, особенно после контакта со свежим укропом
   quote: It is generally well tolerated, but occasional allergic skin reactions have been reported, especially after contact with fresh dill.

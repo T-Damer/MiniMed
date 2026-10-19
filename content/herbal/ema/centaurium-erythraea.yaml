@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Золототысячник зонтичный. Draft artifact (status: proposed): Russian fields are
+# EMA/HMPC facts for Золототысячник зонтичный. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are
 # a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: centaurium-erythraea
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.

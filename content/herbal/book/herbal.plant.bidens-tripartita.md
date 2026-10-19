@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/23/1527771/638bb970-581f-4955-9256-85dd271ced8e.pdf
-source_checksum: sha256:6d81908f5323c478b1c07a9500bdeadd54afc637c3e56db8e971b820a9c669e7
+source_checksum: sha256:e294328b7e388f141e8c733229ce881c3f2826b0178474f8b649c19c68be5a9e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -74,6 +74,7 @@ metadata:
       page: https://iris.who.int/handle/10665/44059
       lastUpdated: '2010'
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
@@ -85,7 +86,7 @@ metadata:
       - 56
       mirror: e-lactancia.org (в WHO IRIS — только описание тома)
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -102,27 +103,27 @@ metadata:
         page: 50
         quote: 'Uses described in pharmacopoeias and well-established documents Internally: as a mild sudorific and diuretic for treatment of bladder and kidney problems, for conditions producing blood in the urine (haematuria) (36)'
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — внутрь как слабое потогонное и мочегонное при заболеваниях мочевого пузыря и почек, при состояниях с кровью в моче (гематурии)'
+        ru: 'ВОЗ: описано в фармакопеях — внутрь как слабое потогонное и мочегонное при заболеваниях мочевого пузыря и почек, при состояниях с кровью в моче (гематурии)'
       - doc: monograph
         page: 50
         quote: as an astringent, and for treatment of diarrhoea and ulcerative colitis (15, 28).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — как вяжущее, при диарее и язвенном колите'
+        ru: 'ВОЗ: описано в фармакопеях — как вяжущее, при диарее и язвенном колите'
       - doc: monograph
         page: 50
         quote: Uses described in traditional medicine As a diuretic, antidiarrhoeal, antiallergic, anti-inflammatory (37), anthelminthic, febrifuge, diaphoretic, for gallbladder and as a kidney tonic (38).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — как мочегонное, противодиарейное, противоаллергическое, противовоспалительное, глистогонное, жаропонижающее, потогонное, при заболеваниях жёлчного пузыря и как тонизирующее для почек'
+        ru: 'ВОЗ: описано в традиционной медицине — как мочегонное, противодиарейное, противоаллергическое, противовоспалительное, глистогонное, жаропонижающее, потогонное, при заболеваниях жёлчного пузыря и как тонизирующее для почек'
       - doc: monograph
         page: 50
         quote: Used for the treatment of alopecia (4), scrofulosis (39), gout, arthralgia (40), furunculosis, diathesis (a constitutional predisposition towards a particular state or condition and especially one that is abnormal or diseased), seborrhoeic dermatitis, acne vulgaris (17, 27, 41–43), eczema (44), infantile rickets (45, 46), digestive tract ailments, flatulence, fevers, bladder and kidney stones, as a styptic haemostatic and for curing insect bites (47).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — при алопеции, золотухе, подагре, артралгии, фурункулёзе, диатезе, себорейном дерматите, угревой болезни, экземе, рахите у детей, заболеваниях пищеварительного тракта, метеоризме, лихорадке, камнях мочевого пузыря и почек, как кровоостанавливающее и при укусах насекомых'
+        ru: 'ВОЗ: описано в традиционной медицине — при алопеции, золотухе, подагре, артралгии, фурункулёзе, диатезе, себорейном дерматите, угревой болезни, экземе, рахите у детей, заболеваниях пищеварительного тракта, метеоризме, лихорадке, камнях мочевого пузыря и почек, как кровоостанавливающее и при укусах насекомых'
       - doc: monograph
         page: 50
         quote: Used externally as a bath for various diathesis conditions, especially in children (28).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — наружно в виде ванны при разных состояниях диатеза, особенно у детей'
+        ru: 'ВОЗ: описано в традиционной медицине — наружно в виде ванны при разных состояниях диатеза, особенно у детей'
       - doc: monograph
         page: 52
         quote: A herbal tea or a briquette of Herba Bidentis (17).

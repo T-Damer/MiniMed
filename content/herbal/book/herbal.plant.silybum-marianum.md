@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus
-source_checksum: sha256:7ae902a9751757beeb8faf2820f6bf93408c8210535a884f6bd9f55244d285fc
+source_checksum: sha256:0da8c3aa08cb45c930923a70ffbcfc20c80dc687385403150b31d9d57c2ad529
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/silybi-mariani-fructus
       lastUpdated: 19/09/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-silybum-marianum-l-gaertn-fructus_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/milkthistle-fruit-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -211,11 +212,6 @@ metadata:
         ru: При желтухе или изменении цвета мочи или стула — немедленно обратиться к врачу
       - doc: monograph
         page: 6
-        quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для настоек и экстрактов, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
-      - doc: monograph
-        page: 6
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
         kind: interaction
         ru: Взаимодействий не описано
@@ -229,16 +225,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 6
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 6
         quote: Mild gastrointestinal symptoms such as dry mouth, nausea, upset stomach, gastric irritation and diarrhoea may occur; headache; allergic reactions (dermatitis, urticaria, skin rash, pruritus, anaphylaxis, asthma) may occur. The frequency is not known.

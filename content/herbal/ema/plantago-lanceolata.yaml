@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Подорожник ланцетный (листья). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Подорожник ланцетный (листья). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: plantago-lanceolata
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -223,7 +223,7 @@ facts:
     minAgeMonths: 72
   # indication 2 oral; oromucosal; cutaneous
   - kind: posology
-    ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день, суточная доза 1,2–4,8 мг'
+    ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день; суточная доза в монографии — 1,2–4,8 мг (так в источнике)'
     doc: monograph
     page: 8
     quote: 'Indication 2) Oral use Preparation j) Adolescents, adults and elderly Single dose: 0.4-1.26 g liquid extract Dosage frequency: 3-4 times daily Daily dose: 1.2-4.8 mg'
@@ -344,21 +344,11 @@ facts:
     doc: monograph
     page: 10
     quote: If dyspnoea, fever or purulent sputum occurs during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
-  - kind: warning
-    ru: Для экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
-    doc: monograph
-    page: 10
-    quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
     page: 10
     quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
-  - kind: pregnancy
-    ru: Данных о фертильности нет
-    doc: monograph
-    page: 10
-    quote: No fertility data available.
   - kind: pregnancy
     ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
     doc: monograph
@@ -369,11 +359,6 @@ facts:
     doc: monograph
     page: 11
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: warning
-    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-    doc: monograph
-    page: 11
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
     doc: monograph

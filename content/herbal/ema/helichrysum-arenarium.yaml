@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Бессмертник песчаный (цветки). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Бессмертник песчаный (цветки). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: helichrysum-arenarium
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -80,16 +80,6 @@ facts:
     doc: monograph
     page: 4
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о фертильности нет
-    doc: monograph
-    page: 4
-    quote: No fertility data available.
-  - kind: statement
-    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-    doc: monograph
-    page: 4
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
     doc: monograph

@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Липа сердцевидная. Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Липа сердцевидная. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: tilia-cordata
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -15,7 +15,7 @@ facts:
     page: 3
     quote: Traditional herbal medicinal product used for the relief of symptoms of common cold.
   - kind: indication
-    ru: Лёгкие симптомы стресса
+    ru: Облегчение лёгких симптомов психического стресса
     doc: monograph
     page: 3
     quote: Traditional herbal medicinal product for the relief of mild symptoms of mental stress.

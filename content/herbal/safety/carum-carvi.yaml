@@ -3,7 +3,7 @@ lactmed: LM881
 lines:
 - source: lactmed
   kind: lactation
-  ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+  ru: 'В двух исследованиях кормящим матерям давали само вещество d-карвон (не тмин): побочных эффектов у матерей и детей не отмечено'
   quote: In two studies nursing mothers were given d-carvone. No adverse effects were noted in mothers or infants.
 - source: lactmed
   kind: adverse

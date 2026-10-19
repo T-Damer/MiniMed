@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Фасоль обыкновенная (створки плодов). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Фасоль обыкновенная (створки плодов). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: phaseolus-vulgaris
-status: proposed
+status: reviewed
 useType: traditional
 facts:
 - kind: use-type
@@ -78,16 +78,6 @@ facts:
   doc: monograph
   page: 4
   quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-- kind: pregnancy
-  ru: Данных о фертильности нет
-  doc: monograph
-  page: 4
-  quote: No fertility data available.
-- kind: statement
-  ru: Влияние на способность управлять транспортом и механизмами — не имеет значения
-  doc: monograph
-  page: 4
-  quote: Effects on ability to drive and use machines Well-established use Traditional use Not relevant.
 - kind: adverse
   ru: Нежелательные эффекты не известны; при их появлении — обратиться к врачу или медработнику
   doc: monograph

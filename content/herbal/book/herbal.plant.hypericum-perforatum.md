@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528218/e9b2811e-355a-49b9-a915-e24252858440.pdf
-source_checksum: sha256:ca4eaae3fc0ae37311312f7b792db9ea6a777b899f940ded533b68d2824459b2
+source_checksum: sha256:b5f5c9f157df95cc5241f3ee18a9d8ea11cf021bd5d20aece8b16396f6f99acf
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/hyperici-herba-0
       lastUpdated: 08/03/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hypericum-perforatum-l-herba-revision-1_en.pdf
@@ -80,7 +81,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-hypericum-perforatum-l-herba-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -112,14 +113,14 @@ metadata:
         page: 6
         quote: 'Herbal tea: 1.5 - 2 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2-3 times daily Daily dose: 3-6 g'
         kind: posology
-        ru: Чай при истощении — взрослые
+        ru: Чай при истощении — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 1.5-2
           unit: г
           waterMl: '150'
           timesPerDay: 2-3
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 6
         quote: 2 g of the comminuted herbal substance in 150 ml of water, several times daily as washing or impregnated dressing
@@ -130,19 +131,19 @@ metadata:
           amount: '2'
           unit: г
           waterMl: '150'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 7
         quote: 'Herbal tea: 2-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, 2 times daily'
         kind: posology
-        ru: Чай при беспокойстве и плохом засыпании — взрослые
+        ru: Чай при беспокойстве и плохом засыпании — взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 2-3
           unit: г
           waterMl: '150'
           timesPerDay: '2'
-          populationRu: взрослые
+          populationRu: взрослые и пожилые
       - doc: monograph
         page: 8
         quote: Since no sufficient data are available the use in children and adolescents under 18 years of age is not recommended.
@@ -165,57 +166,57 @@ metadata:
         page: 8
         quote: 'Daily dose of hyperforin > 1 mg: Hypersensitivity to the active substance. Concomitant use with coumarin-type anticoagulants, cyclosporine, everolimus, sirolimus, tacrolimus for systemic use, fosamprenavir, indinavir and other protease inhibitors, nucleoside reverse transcriptase inhibitors, irinotecan, imatinib and other cytostatic agents metabolised by CYP3A4, CYP2B6, CYP2C9, CYP2C19 or transported by P-glycoprotein'
         kind: contraindication
-        ru: Вместе с кумариновыми антикоагулянтами (варфарин), циклоспорином, эверолимусом, сиролимусом, такролимусом, ингибиторами протеазы и нуклеозидными ингибиторами обратной транскриптазы ВИЧ, иринотеканом, иматинибом и другими цитостатиками, которые разрушаются через CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином (препараты с гиперфорином больше 1 мг в сутки)
+        ru: 'При суточной дозе гиперфорина более 1 мг: повышенная чувствительность; одновременный приём с кумариновыми антикоагулянтами, циклоспорином, эверолимусом, сиролимусом, такролимусом для системного применения, фосампренавиром, индинавиром и другими ингибиторами протеазы, нуклеозидными ингибиторами обратной транскриптазы, иринотеканом, иматинибом и другими цитостатиками, которые метаболизируются CYP3A4, CYP2B6, CYP2C9, CYP2C19 или переносятся P-гликопротеином'
       - doc: monograph
         page: 9
         quote: Hyperici herba preparations induce the activity of CYP3A4, CYP2B6, CYP2C9, CYP2C19 and P- glycoprotein.
         kind: interaction
-        ru: Повышает активность ферментов CYP3A4, CYP2B6, CYP2C9, CYP2C19 и P-гликопротеина
+        ru: Повышает активность ферментов CYP3A4, CYP2B6, CYP2C9, CYP2C19 и транспортёра P-гликопротеина
       - doc: monograph
         page: 9
-        quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported
+        quote: As the daily intake of hyperforin is less than 1 mg and of a duration of use not longer than 2 weeks no clinically relevant interactions are reported for concomitantly administered drugs which are metabolised via CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 or transported by P- glycoprotein.
         kind: interaction
-        ru: Чай с малой дозой гиперфорина (до 1 мг в сутки) коротким курсом до 2 недель значимых взаимодействий не даёт
+        ru: При суточном поступлении гиперфорина менее 1 мг и курсе не дольше 2 недель клинически значимых взаимодействий с препаратами, которые метаболизируются CYP1A2, CYP2B6, CYP2C9, CYP2C19, CYP3A4 или переносятся P-гликопротеином, не описано
       - doc: monograph
         page: 10
         quote: Women using hormonal contraceptives should take additional contraceptive measures.
         kind: interaction
-        ru: Ослабляет гормональные контрацептивы — нужна дополнительная защита
+        ru: Женщинам, принимающим гормональные контрацептивы, нужны дополнительные меры контрацепции
       - doc: monograph
         page: 10
         quote: Hyperici herba preparations may contribute to serotonergic effects when combined with antidepressants such as serotonin reuptake inhibitors (e.g. sertraline, paroxetine) or buspirone.
         kind: interaction
-        ru: С антидепрессантами (сертралин, пароксетин) — риск серотонинового синдрома
+        ru: Может усиливать серотонинергические эффекты при сочетании с антидепрессантами — ингибиторами обратного захвата серотонина (например, сертралин, пароксетин) — или с буспироном
       - doc: monograph
         page: 8
         quote: During the treatment intense UV-exposure should be avoided.
         kind: warning
-        ru: Избегать сильного солнца и УФ во время приёма
+        ru: Во время лечения избегать интенсивного УФ-облучения
       - doc: monograph
         page: 10
         quote: Prior to elective surgery possible interactions with products used during general and regional anaesthesia should be identified. If necessary, the herbal medicinal product should be discontinued.
         kind: warning
-        ru: Перед плановой операцией — выяснить взаимодействия со средствами для наркоза и анестезии, при необходимости отменить
+        ru: Перед плановой операцией — выяснить возможные взаимодействия со средствами для общей и регионарной анестезии, при необходимости отменить
       - doc: monograph
-        page: 11
-        quote: shown signs of reproductive toxicity (see section 5.3 ‘Preclinical safety data’). The use is not recommended during pregnancy and lactation.
+        page: 10
+        quote: Studies in animals have shown signs of reproductive toxicity (see section 5.3 ‘Preclinical safety data’). The use is not recommended during pregnancy and lactation.
         kind: pregnancy
         ru: При беременности и кормлении грудью не рекомендуется — у животных признаки репродуктивной токсичности
       - doc: monograph
         page: 11
         quote: Gastrointestinal disorders (such as nausea, abdominal pain and diarrhoea), allergic skin reactions, fatigue and restlessness may occur.
         kind: adverse
-        ru: Тошнота, боль в животе, диарея, аллергия на коже, усталость, беспокойство
+        ru: Возможны желудочно-кишечные расстройства (например, тошнота, боль в животе, диарея), аллергические кожные реакции, усталость и беспокойство
       - doc: monograph
         page: 11
         quote: Fair-skinned individuals may react with dysesthesia (e.g. tingling, sensitivity cold or pain, burning sensation) and intensified sunburn-like symptoms under intense sunlight.
         kind: adverse
-        ru: У светлокожих на ярком солнце — покалывание, жжение, усиленный «солнечный ожог»
+        ru: У светлокожих людей на интенсивном солнце возможны дизестезии (покалывание, чувствительность к холоду или боль, жжение) и усиленные симптомы, похожие на солнечный ожог
       - doc: monograph
         page: 12
-        quote: before hospitalisation seizures and confusion have been reported. After ingestion of massive overdoses, the patient should be protected from sunlight and other UV- light sources for 1-2 weeks.
+        quote: 'Herbal preparation a): After the intake of up to 4.5 g dry extract per day for 2 weeks and additionally 15 g dry extract just before hospitalisation seizures and confusion have been reported. After ingestion of massive overdoses, the patient should be protected from sunlight and other UV- light sources for 1-2 weeks.'
         kind: overdose
-        ru: Описаны судороги и спутанность после сверхдоз сухого экстракта; после большой передозировки 1–2 недели беречься от солнца и УФ
+        ru: После приёма до 4,5 г сухого экстракта в сутки 2 недели и ещё 15 г перед госпитализацией описаны судороги и спутанность; после очень больших доз 1–2 недели беречься от солнца и других источников УФ
       constituents:
       - doc: monograph
         page: 12
@@ -231,27 +232,27 @@ metadata:
         compound: hypericin, pseudohypericin, flavonoids, procyanidins
         compoundRu: гиперицин, псевдогиперицин, флавоноиды, процианидины
         classRu: нафтодиантроны, флавоноиды
-        effectRu: вклад в антидепрессивное действие
-        evidence: animal
+        effectRu: возможный вклад в антидепрессивное действие
+        evidence: review
       - doc: assessment-report
         page: 93
-        quote: Hyperforin is a high affinity ligand for pregnan x receptor (PXR) and activates the promoters of CYP3A4
+        quote: Hyperforin is a high affinity ligand for pregnan x receptor (PXR) and activates the promoters of CYP3A4 and CYP2B6 through activation of PXR and PXR-specific cis-elements.
         compound: hyperforin
         compoundRu: гиперфорин
         classRu: флороглюцины
-        effectRu: включает ферменты печени (через рецептор PXR) — причина лекарственных взаимодействий
+        effectRu: высокоаффинный лиганд рецептора PXR; через PXR активирует промоторы CYP3A4 и CYP2B6
         evidence: in-vitro
     redBook: null
     safety:
       lines:
       - source: nccih
         kind: adverse
-        ru: В больших дозах внутрь или на коже возможны тяжёлые кожные реакции на солнце; также диарея, головокружение, бессонница, беспокойство, покалывание кожи
+        ru: 'При приёме внутрь в больших дозах или при нанесении на кожу возможны тяжёлые кожные реакции на солнце. Другие побочные эффекты: диарея, головокружение, нарушения сна, беспокойство, покалывание кожи'
         quote: If taken orally in large doses or applied to the skin, St. John’s wort might cause severe skin reactions after sun exposure. Other side effects can include diarrhea, dizziness, trouble sleeping, restlessness, and skin tingling.
         url: https://www.nccih.nih.gov/health/st-johns-wort
       - source: nccih
         kind: interaction
-        ru: 'Может ослаблять действие многих лекарств: ряда антидепрессантов (амитриптилин, бупропион), оральных контрацептивов, циклоспорина, фенитоина, карбамазепина, дигоксина, ивабрадина, ряда препаратов от ВИЧ и рака, варфарина, симвастатина'
+        ru: Может ослаблять действие многих лекарств, в том числе некоторых антидепрессантов (например, амитриптилин, бупропион), оральных контрацептивов, циклоспорина, некоторых противосудорожных (фенитоин, карбамазепин), некоторых сердечных препаратов (дигоксин, ивабрадин), некоторых препаратов от ВИЧ и рака, варфарина, некоторых статинов (например, симвастатин)
         quote: 'St. John’s wort can weaken the effects of many medicines, including crucially important medicines such as: Some antidepressants, including amitriptyline and bupropion Birth control pills Cyclosporine, which prevents the body from rejecting transplanted organs Some drugs used to prevent seizures, including phenytoin and carbamazepine Some heart medications, including digoxin and ivabradine Some HIV drugs, including indinavir and nevirapine Some cancer medications, including irinotecan, imatinib, and docetaxel Warfarin, an anticoagulant (blood thinner) Certain statins, including simvastatin'
         url: https://www.nccih.nih.gov/health/st-johns-wort
       - source: nccih
@@ -271,7 +272,7 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM862/
       - source: lactmed
         kind: lactation
-        ru: Опыта применения при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
+        ru: Опубликованного опыта применения зверобоя при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
         quote: Because there is little published experience with St. John's wort during breastfeeding, an alternate drug may be preferred, especially while nursing a newborn or preterm infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM862/
       liver:

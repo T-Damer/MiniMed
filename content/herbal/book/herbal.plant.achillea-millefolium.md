@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524121/7dd6501b-5d7c-4cf8-8131-ca64aa508560.pdf
-source_checksum: sha256:fcfd9bb1018ffd3e391b080efc3f814e0786bc0370554703eb4c9e7c6081d18a
+source_checksum: sha256:3fcb12888b745ec9ac607fb33326ec81f355f9f1efcd13790be9e1c4a06f998d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/millefolii-herba
       lastUpdated: 30/09/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-opinion/final-european-union-herbal-monograph-achillea-millefolium-l-herba-revision-1_en.pdf
@@ -84,14 +85,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/yarrow-herb-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used for temporary loss of appetite.
@@ -220,7 +221,7 @@ metadata:
         compoundRu: дикофеилхинные кислоты, лютеолин-7-O-глюкуронид
         classRu: фенольные кислоты, флавоноиды
         effectRu: по мнению авторов, вероятно, действующие начала желчегонного эффекта традиционных форм
-        evidence: animal
+        evidence: in-vitro
       - doc: assessment-report
         page: 21
         quote: A dry 80% ethanolic extract from the aerial parts of yarrow (Achillea millefolium L.) administered orally at 100 mg/kg, inhibited oedema in the carrageenan-induced rat paw oedema test by 29% (p<0.05) compared to 45% by indomethacin at 5 mg/kg.

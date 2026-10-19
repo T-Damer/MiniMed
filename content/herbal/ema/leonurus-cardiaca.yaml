@@ -1,21 +1,21 @@
-# EMA/HMPC facts for Пустырник (трава). Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Пустырник (трава). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: leonurus-cardiaca
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
   - kind: indication
-    ru: Нервное напряжение
+    ru: Облегчение симптомов нервного напряжения
     doc: monograph
     page: 3
     quote: Traditional herbal medicinal product used to relieve symptoms of nervous tension.
   - kind: indication
-    ru: «Нервные» жалобы со стороны сердца, например сердцебиение, — после исключения врачом серьёзных состояний
+    ru: Облегчение симптомов «нервных» жалоб со стороны сердца, например сердцебиения, — после исключения врачом серьёзных состояний
     doc: monograph
     page: 3
     quote: Traditional herbal medicinal product used to relieve symptoms of nervous cardiac complaints such as palpitations, after serious conditions have been excluded by a medical doctor.

@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Конский каштан обыкновенный (семена). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Конский каштан обыкновенный (семена). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: aesculus-hippocastanum
-status: proposed
+status: reviewed
 useType: both
 facts:
   - kind: use-type
@@ -238,16 +238,6 @@ facts:
     doc: monograph
     page: 7
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о фертильности нет
-    doc: monograph
-    page: 8
-    quote: No fertility data available.
-  - kind: warning
-    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-    doc: monograph
-    page: 8
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Сообщалось о нарушениях со стороны ЖКТ, головной боли, головокружении, зуде и аллергических реакциях; частота неизвестна. При других нежелательных реакциях — к врачу или фармацевту (хорошо изученное применение)
     doc: monograph
@@ -329,8 +319,8 @@ constituents:
   - compound: horse chestnut seed extract (HCSE), aescin
     compoundRu: экстракт семян конского каштана (HCSE), эсцин
     classRu: извлечение из семян
-    effectRu: Противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения
+    effectRu: противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения; после приёма внутрь эффекта не отмечено
     doc: assessment-report
     page: 38
-    quote: Anti-oedematous effects of HCSE (and aescin) have been observed in vivo after i.v. and i.p. administration.
+    quote: Anti-oedematous effects of HCSE (and aescin) have been observed in vivo after i.v. and i.p. administration. No effect was observed after oral administration.
     evidence: animal

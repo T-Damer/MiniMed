@@ -7,8 +7,9 @@ Inputs, all deterministic:
   representative instruction per plant is chosen (active registration, the plain raw material, a
   text-layer PDF before OCR, loose herb before filter bags, the newest edition); its sections are
   copied verbatim, each paragraph with its PDF pages and blocks;
-* EMA: the reviewed extraction ``content/herbal/ema/<plant>.yaml`` (Russian fields with the exact
-  English quote, re-checked against the PDF page here); the English text itself is not copied;
+* EMA/WHO: the reviewed extraction ``content/herbal/ema|who/<plant>.yaml`` (Russian fields with the
+  exact English quote, re-checked against the PDF page here); the English text itself is not copied;
+* safety: ``content/herbal/safety/<plant>.yaml`` (NCCIH, LactMed, LiverTox, TR CU 021/2011);
 * the plate's licence record and a small thumbnail (the full plates are a separate image module);
 * ГФ XV ОФС.1.4.1.0018 «Настои и отвары» from the article page.
 
@@ -79,12 +80,13 @@ RIGHTS_BASIS = (
     "fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications"
 )
 PUBLICATION_DECISION = {
-    "decidedAt": "2026-10-18",
+    "decidedAt": "2026-10-20",
     "decidedBy": "project owner",
     "basis": (
-        "Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain "
-        "plates) as an experimental downloadable module for self-education; EMA limits and doses "
-        "as Russian structured fields with the English quote on tap"
+        "Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, "
+        "ТР ТС 021/2011, public-domain plates) published as a downloadable module for "
+        "self-education after a line-by-line review of the Russian fields against their English "
+        "quotes (2026-10-20); the English quote stays on tap"
     ),
 }
 ACTIVE_STATUSES = frozenset(
@@ -794,6 +796,7 @@ def _ema_metadata(
         else _who_volume(plant, raw_manifest)["handle"],
         "lastUpdated": entry.get("lastUpdated"),
         "species": plant.ema.species if plant.ema is not None else None,
+        "otherSpecies": plant.ema.other_species if plant.ema is not None else False,
         "documents": {
             kind: {"url": item["url"], "draft": bool(item.get("draft"))}
             for kind, item in documents.items()

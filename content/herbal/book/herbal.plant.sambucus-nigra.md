@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/01/30/1513255/bb2a6d10-8679-45ed-8b9b-220c1421e116.pdf
-source_checksum: sha256:d8be4841286c391cbfea23584cb4c389d437594b802d942f35d5f18e5bf4927f
+source_checksum: sha256:1750da9422b9c0abfc36d7945aef25899d42a510eeb5629419fcc4b837f69e05
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -68,6 +68,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/sambuci-flos
       lastUpdated: 27/06/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-sambucus-nigra-l-flos-revision-1_en.pdf
@@ -76,7 +77,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-sambucus-nigra-l-flos-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -105,13 +106,12 @@ metadata:
         page: 4
         quote: 'Adolescents, adults and elderly a) Single dose: Herbal tea: 2-5 g of the herbal substance or comminuted herbal substance in 150 ml boiling water as a herbal infusion three times daily. Herbal tea: 3-6 g of the comminuted herbal substance in 200 ml water as a decoction divided in 2 single doses daily.'
         kind: posology
-        ru: Препарат a), чай — подростки, взрослые и пожилые, разовая доза 3–6 г измельчённого сырья в 200 мл воды в виде отвара, суточная доза делится на 2 разовые
+        ru: 'Препарат a), чай — подростки, взрослые и пожилые: 3–6 г измельчённого сырья в 200 мл воды в виде отвара, разделить на 2 приёма в день'
         dose:
-          preparationRu: 'препарат a): отвар измельчённого сырья'
+          preparationRu: 'препарат a): отвар измельчённого сырья, в день — на 2 приёма'
           amount: 3-6
           unit: г
           waterMl: '200'
-          timesPerDay: '2'
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -175,11 +175,6 @@ metadata:
         ru: При одышке, лихорадке или гнойной мокроте — обратиться к врачу или медработнику
       - doc: monograph
         page: 5
-        quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для настоек и экстрактов, содержащих этанол, должна быть указана соответствующая маркировка об этаноле из руководства по вспомогательным веществам на этикетке и в листке-вкладыше
-      - doc: monograph
-        page: 5
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
         kind: interaction
         ru: Взаимодействий не описано
@@ -193,16 +188,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 5
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 5
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 6
         quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
@@ -239,7 +224,7 @@ metadata:
         compoundRu: хлорогеновая и кофейная кислоты
         classRu: фенолокислоты
         effectRu: в скрининге 68 растительных экстрактов, включая этанольный экстракт цветков бузины, была активность против Bacillus subtilis, Staphylococcus aureus, Salmonella typhi, Klebsiella pneumoniae и Pseudomonas aeruginosa; по поиску литературы, антибактериальные свойства цветков могут быть связаны с хлорогеновой и кофейной кислотами
-        evidence: in-vitro
+        evidence: review
       - doc: assessment-report
         page: 11
         quote: The study indicated that elder flower extract inhibits macrophage release of pro-inflammatory cytokines induced by P. gingivalis, A. actinomycetemcomitans, and selected components of these pathogens. Moreover, the elder flower extract suppressed the activation of neutrophils, which have also been implicated as effectors of periodontal tissue destruction.

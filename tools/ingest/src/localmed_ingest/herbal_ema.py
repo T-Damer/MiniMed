@@ -2,10 +2,11 @@
 
 The EMA monographs and assessment reports are English. The book shows limits, doses and
 constituent effects as short Russian structured fields; every field carries the exact English
-sentence it came from (shown on tap) and the PDF page. ``content/herbal/ema/<plant>.yaml`` is a
-separate draft artifact (status ``proposed``): it is written by a reader, never by the build, and
-``validate_ema_extraction`` refuses any quote that is not on the cited page of the downloaded PDF,
-and any number in a Russian field that the quote does not contain.
+sentence it came from (shown on tap) and the PDF page. ``content/herbal/ema/<plant>.yaml`` is
+written by a reader, never by the build; it is ``proposed`` (shown with a «черновик» badge) until
+its fields are read against their quotes, then ``reviewed``. ``validate_ema_extraction`` refuses
+any quote that is not on the cited page of the downloaded PDF, and any number in a Russian field
+that the quote does not contain.
 """
 
 from __future__ import annotations
@@ -94,13 +95,17 @@ class EmaExtraction(_Strict):
 
 def normalize(text: str) -> str:
     """Compare text the way a reader sees it: one space; case and hyphens ignored, since PDF lines
-    break at «anti-|inflammatory» as well as inside words."""
+    break at «anti-|inflammatory» as well as inside words. A ligature glyph followed by a space
+    («inﬂ ammatory» in the WHO volumes) is one word."""
+    text = re.sub(r"([\ufb00-\ufb06]) +", r"\1", text)
     text = unicodedata.normalize("NFKC", text).translate(_DASHES)
     text = re.sub(r"[­-]\s*", "", text)
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
 _PAGE_LINE = re.compile(r"^\s*Page \d+/\d+\s*$")
+# WHO volumes head a page with its bare number, then a running title (book or monograph).
+_PAGE_NUMBER = re.compile(r"^\s*\d{1,4}\s*$")
 
 
 @lru_cache(maxsize=128)
@@ -123,7 +128,8 @@ def _body_texts(pdf: Path) -> tuple[str, ...]:
     """Page texts without running headers and footers, used only to find a sentence that continues
     on the next page. Dropped: lines repeated on most pages, «Page N/M», and a page's header block —
     the leading run of blank or repeated lines up to its «Page N/M» line (a running title that wraps
-    differently on some pages)."""
+    differently on some pages), or a leading bare page number with the repeated title after it
+    (WHO volumes)."""
     pages = page_texts(pdf)
     counts: dict[str, int] = {}
     for text in pages:
@@ -134,11 +140,17 @@ def _body_texts(pdf: Path) -> tuple[str, ...]:
     for text in pages:
         lines = text.splitlines()
         start = 0
+        numbered = False
         for index, line in enumerate(lines):
             if _PAGE_LINE.match(line):
                 start = index + 1
+            elif not numbered and start == 0 and _PAGE_NUMBER.match(line):
+                numbered = True
+                start = index + 1
             elif line.strip() and counts.get(line.strip(), 0) < 2:
                 break
+            elif numbered and line.strip():
+                start = index + 1
         bodies.append(
             "\n".join(
                 line

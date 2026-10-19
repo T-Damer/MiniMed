@@ -1,31 +1,31 @@
-# WHO monograph facts for Душица обыкновенная (трава). Draft artifact (status: proposed): Russian fields
+# WHO monograph facts for Душица обыкновенная (трава). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: origanum-vulgare
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют при кашле, простуде и бронхиальном катаре, как отхаркивающее и потогонное"
+    ru: 'ВОЗ: описано в традиционной медицине — траву душицы применяют при кашле, простуде и бронхиальном катаре, как отхаркивающее и потогонное'
     doc: monograph
     page: 298
     quote: Herba Origani is used to treat cough, colds and bronchial catarrh, and is used as an expectorant and diaphoretic (39–41).
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — среди других применений: вздутие живота, стимуляция выделения жёлчи, аппетита и пищеварения, а также как седативное и спазмолитическое средство"
+    ru: 'ВОЗ: описано в традиционной медицине — среди других применений: вздутие живота, стимуляция выделения жёлчи, аппетита и пищеварения, а также как седативное и спазмолитическое средство'
     doc: monograph
     page: 298
     quote: Other uses include the treatment of bloating, stimulation of bile secretion, of the appetite and of digestion, and as a sedative and antispasmodic agent (15, 42, 43).
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют также как эмменагогное средство в унани и при альгодисменорее и импотенции"
+    ru: 'ВОЗ: описано в традиционной медицине — траву душицы применяют также как эмменагогное средство (в медицине унани) и при альгодисменорее и импотенции'
     doc: monograph
     page: 298
     quote: Herba Origani is also used as an emmenagogue in Unani medicine (44), and for treatment of algomenorrhoea and impotence (45).
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — траву применяют как мочегонное и при инфекциях почек, почечных камнях и сниженной функции почек вследствие хронического нефрита"
+    ru: 'ВОЗ: описано в традиционной медицине — траву применяют как мочегонное и при инфекциях почек, почечных камнях и сниженной функции почек вследствие хронического нефрита'
     doc: monograph
     page: 298
     quote: The herb is used as a diuretic and as a treatment for kidney infections, kidney stones and poor renal function resulting from chronic nephritis (22).
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — применяют при воспалении, артрите, гепатите, а наружно — при золотухе и для заживления ран"
+    ru: 'ВОЗ: описано в традиционной медицине — применяют при воспалении, артрите, гепатите, а наружно — при золотухе и для заживления ран'
     doc: monograph
     page: 298
     quote: It is also used to treat inflammation, arthritis (46), hepatitis (47, 48), and externally for scrofula and wound healing (49).

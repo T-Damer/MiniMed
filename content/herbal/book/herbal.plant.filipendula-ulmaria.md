@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/filipendulae-ulmariae-herba
-source_checksum: sha256:1fe238fbcc0e3e1f5f736c5ab96bb33b9bf60dd22521b0b5e97cfb439d64f179
+source_checksum: sha256:14f808b8df50cc616d7eac17e4b49190ab400a49c344a1aea85ac09ccbb0f3ba
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/filipendulae-ulmariae-herba
       lastUpdated: 29/09/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-filipendula-ulmaria-l-maxim-herba-first-version_en.pdf
@@ -56,7 +57,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-filipendula-ulmaria-l-maxim-herba-and-filipendula-ulmaria-l-maxim-flos-first-version_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -196,11 +197,6 @@ metadata:
         ru: 'При суставной боли: препарат не предназначен для применения при остром артрите, так как это состояние требует совета врача'
       - doc: monograph
         page: 5
-        quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для экстрактов, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
-      - doc: monograph
-        page: 5
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
         ru: Взаимодействий не описано
@@ -221,16 +217,6 @@ metadata:
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
       - doc: monograph
         page: 5
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 5
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-      - doc: monograph
-        page: 5
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
         kind: adverse
         ru: Нежелательные эффекты не известны; при их появлении — обратиться к врачу или медработнику
@@ -249,11 +235,6 @@ metadata:
         quote: No clinical data are available to contribute to the plausibility of efficacy for the specific indications of Filipendulae ulmariae herba and flos in the context of inflammatory diseases such as painful articular conditions and common colds.
         kind: statement
         ru: 'В отчёте оценки: клинических данных, подтверждающих правдоподобие эффективности при простуде и суставной боли, нет'
-      - doc: assessment-report
-        page: 17
-        quote: For the tincture of the herb (1:5; ethanol 45% V/V) in a daily adult dosage of 2-12 ml, the period of traditional use is considered to be elapsed only with respect to the following indication
-        kind: statement
-        ru: 'В отчёте оценки (итоговые выводы): для настойки (1:5; этанол 45 % V/V) суточная доза взрослым — 2–12 мл, а период традиционного применения считается выполненным только для следующего показания'
       - doc: assessment-report
         page: 17
         quote: Traditional herbal medicinal product for the relief of minor articular pain. The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.

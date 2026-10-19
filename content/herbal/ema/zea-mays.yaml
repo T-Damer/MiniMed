@@ -1,11 +1,11 @@
 # EMA/HMPC facts for Кукуруза (столбики с рыльцами). The EMA monograph is a draft. Draft artifact
 # (status: proposed): Russian fields are a reader's rendering of the quoted English sentence.
 plant: zea-mays
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
@@ -38,7 +38,7 @@ facts:
     quote: The use in children under 12 years of age is not recommended
     minAgeMonths: 144
   - kind: duration
-    ru: Если симптомы держатся дольше 2 недель — к врачу
+    ru: Если симптомы держатся дольше 2 недель — к врачу или медработнику
     doc: monograph
     page: 4
     quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product a doctor or a qualified health care practitioner should be consulted.
@@ -89,8 +89,8 @@ constituents:
     quote: "Constituents found in hot water extracts Carbohydrates/polysaccharides: Current research on fraction soluble in hot water indicates mucilage polysaccharides (Pan et al., 2017; Guo et al., 2018; Deng et al., 2019; Jia Y et al., 2021) which is composed of D-mannose, L-rhamnose, D-glucose, D-galactose, L-arabinose, D-xylose and D-galacturonic acid, water soluble flavonoids, tannins"
   - compound: aqueous extract
     compoundRu: водный экстракт
-    effectRu: по выводу авторов, мочегонный эффект согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов
+    effectRu: по выводу авторов, мочегонный эффект 5% водного экстракта рылец согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов (вызванным неустановленным компонентом)
     evidence: animal
     doc: assessment-report
     page: 10
-    quote: The authors concluded diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate and inhibition of sodium and chloride tubular reabsorption
+    quote: The authors concluded diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate and inhibition of sodium and chloride tubular reabsorption (caused by an unidentified constituent/factor) but not the salt- loading effect.

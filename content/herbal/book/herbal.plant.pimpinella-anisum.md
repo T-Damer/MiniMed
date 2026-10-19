@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2023/10/10/1497979/1eec22b6-e802-4249-a2b8-f89ca6629f80.pdf
-source_checksum: sha256:8fd6427c219dbace6f2d3616041b37fba07ba3edfba85f93630cdd5114968203
+source_checksum: sha256:e902e6f5368b1d8506840f4b412d320d9b72fb2bf2b43953824e1444d11c2d8d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/anisi-fructus
       lastUpdated: 06/10/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-pimpinella-anisum-l-fructus_en.pdf
@@ -84,14 +85,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/aniseed-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for symptomatic treatment of mild, spasmodic gastro- intestinal complaints including bloating and flatulence.
@@ -158,7 +159,7 @@ metadata:
         compound: anethole
         compoundRu: анетол
         classRu: эфирное масло (фенилпропаноиды)
-        effectRu: основной из выявленных компонентов (около 90%)
+        effectRu: основной из выявленных компонентов при сверхкритической флюидной экстракции (около 90%)
         evidence: review
       - doc: assessment-report
         page: 9
@@ -181,12 +182,12 @@ metadata:
       lines:
       - source: lactmed
         kind: lactation
-        ru: Чрезмерный приём матерью чая с анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, как от анетола
+        ru: Чрезмерный приём матерью чая с анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, соответствующую действию анетола
         quote: Excessive maternal use of an herbal tea containing anise and other herbs appeared to cause toxicity in two breastfed newborns, consistent with toxicity caused by anethole.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/
       - source: lactmed
         kind: lactation
-        ru: У женщины, принимавшей чай Mother's Milk Tea с анисом, повысились печёночные ферменты
+        ru: У женщины, принимавшей многокомпонентный чай Mother's Milk Tea (в составе есть анис), повысились печёночные ферменты
         quote: Elevated liver enzymes occurred in a woman taking Mother's Milk Tea, which contains anise.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM868/
       liver: null

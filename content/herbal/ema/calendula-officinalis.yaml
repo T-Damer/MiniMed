@@ -1,21 +1,21 @@
-# EMA/HMPC facts for Календула лекарственная (ноготки, цветки). Draft artifact (status: proposed):
+# EMA/HMPC facts for Календула лекарственная (ноготки, цветки). Read line by line against the quotes on 2026-10-20 (status: reviewed):
 # Russian fields are a reader's rendering of the quoted English sentence.
 plant: calendula-officinalis
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
   - kind: indication
-    ru: Лёгкое воспаление кожи (например, солнечный ожог) и заживление мелких ран
+    ru: Лёгкие воспаления кожи (например, солнечный ожог) — симптоматически; вспомогательное средство для заживления мелких ран
     doc: monograph
     page: 4
     quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations of the skin (such as sunburn) and as an aid in healing of minor wounds.
   - kind: indication
-    ru: Небольшое воспаление во рту и горле (полоскания)
+    ru: Лёгкие воспаления во рту или в горле — симптоматически
     doc: monograph
     page: 4
     quote: Traditional herbal medicinal product for the symptomatic treatment of minor inflammations in the mouth or the throat.
@@ -60,7 +60,7 @@ facts:
     page: 6
     quote: Hypersensitivity to the active substance and to other plants of the Asteraceae (Compositae) family.
   - kind: warning
-    ru: Если на коже признаки инфекции или хуже — к врачу
+    ru: Если появились признаки инфекции кожи или симптомы усилились — к врачу или медработнику
     doc: monograph
     page: 6
     quote: If signs of skin infection are observed or the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.

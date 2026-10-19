@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos
-source_checksum: sha256:8dca5a1c028c7cbd36b896ea303d21e9ae572fa7e5cea2b001fc4ca6522aa6f9
+source_checksum: sha256:bd88f941b8ea73b42a24b1329181606112aca275cc631324fb50aefb751e95de
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos
       lastUpdated: 06/10/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-humulus-lupulus-l-flos-revision-1_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/hop-strobile-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -121,7 +122,7 @@ metadata:
         page: 4
         quote: 'Adolescents, adults, elderly In mental stress Single dose: a) Herbal tea: 500 mg of comminuted herbal substance in 150-200 ml of boiling water as a herbal infusion, up to 4 times daily. b) Powdered herbal substance: 400 mg two times daily for adults and 200 mg two times daily for adolescents. c) Liquid extract (1:1): 0.5-2.0 ml, up to 3 times daily. d) Liquid extract (1:10): 19 g, 2-3 times daily.'
         kind: posology
-        ru: Жидкий экстракт (1:10) при психическом стрессе — подростки, взрослые и пожилые, 19 г 2–3 раза в день
+        ru: Жидкий экстракт (1:10) при психическом стрессе — подростки, взрослые и пожилые, 19 г 2–3 раза в день (так в монографии)
         dose:
           preparationRu: жидкий экстракт (1:10)
           amount: '19'
@@ -215,11 +216,6 @@ metadata:
         kind: warning
         ru: При ухудшении симптомов — к врачу или квалифицированному медработнику
       - doc: monograph
-        page: 5
-        quote: For tinctures and extracts containing ethanol the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
-      - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported
         kind: interaction
@@ -234,11 +230,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data are available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
       - doc: monograph
         page: 6
         quote: May impair ability to drive and use machines. Affected patients should not drive or operate machinery.
@@ -259,11 +250,6 @@ metadata:
         quote: Adequate tests on genotoxicity have not been performed. Tests on reproductive toxicity and carcinogenicity have not been performed.
         kind: statement
         ru: Адекватные тесты на генотоксичность не проводились; исследований репродуктивной токсичности и канцерогенности не проводилось
-      - doc: assessment-report
-        page: 8
-        quote: 2-3 times; Single dosage equivalent to 1.9 g herbal substance
-        kind: statement
-        ru: 'В таблице препаратов отчёта оценки: 2–3 раза, разовая доза соответствует 1,9 г сырья'
       constituents:
       - doc: assessment-report
         page: 20
@@ -295,7 +281,7 @@ metadata:
         compound: humulone
         compoundRu: гумулон
         classRu: горькая кислота (α-кислота)
-        effectRu: In vivo наблюдались противовоспалительные эффекты гумулона, по-видимому, действующего противовоспалительного вещества шишек хмеля; сухой метанольный экстракт шишек при местном нанесении 2 мг на ухо подавлял отёк уха у мышей, вызванный форболовым эфиром (TPA), на 90 % через шесть часов
+        effectRu: в опытах in vivo противовоспалительное действие показано и для гумулона, по-видимому, действующего противовоспалительного вещества шишек хмеля; сухой метанольный экстракт шишек при нанесении 2 мг на ухо подавлял у мышей отёк уха, вызванный форболовым эфиром (TPA), на 90 % через шесть часов
         evidence: animal
     redBook: null
     safety:

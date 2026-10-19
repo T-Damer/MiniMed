@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium
-source_checksum: sha256:71fc4c2cbf752aa21f7175c70d6038549d850b7e985b7370eaa1cd86e83c6b70
+source_checksum: sha256:44415d58674e35da3abaeb762ab114ffb44f53a787fae9ec932af08bf4b0e047
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/ginkgo-folium
       lastUpdated: 14/12/2015
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-ginkgo-biloba-l-folium_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/ginkgo-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -272,16 +273,6 @@ metadata:
         ru: Традиционное применение (порошок листа) — безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
       - doc: monograph
         page: 5
-        quote: No fertility data.
-        kind: pregnancy
-        ru: Традиционное применение (порошок листа) — данных о фертильности нет
-      - doc: monograph
-        page: 5
-        quote: No adequate studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Адекватных исследований влияния на способность управлять транспортом и механизмами не проводилось
-      - doc: monograph
-        page: 5
         quote: Blood and lymphatic system disorders Bleeding of individual organs has been reported (eye, nose, cerebral and gastrointestinal haemorrhage). The frequency is not known.
         kind: adverse
         ru: 'Установившееся применение (сухой экстракт) — нарушения крови и лимфатической системы: сообщалось о кровотечениях отдельных органов (глаз, нос, церебральное и желудочно-кишечное кровоизлияние); частота неизвестна'
@@ -364,7 +355,7 @@ metadata:
         page: 8
         quote: The thyroid gland tumours found in a rat carcinogenicity study and hepatocellular carcinoma found in a mouse carcinogenicity study are considered rodent specific, non-genotoxic response associated (with long-term treatment) with high doses of hepatic enzyme inducers. These types of tumours are not considered relevant to humans.
         kind: statement
-        ru: Установившееся применение (сухой экстракт) — опухоли щитовидной железы у крыс и гепатоцеллюлярная карцинома у мышей в исследованиях канцерогенности считаются видоспецифичным для грызунов, негенотоксичным ответом, связанным (при длительном лечении) с высокими дозами индукторов печёночных ферментов; такие опухоли не считаются значимыми для человека
+        ru: Установившееся применение (сухой экстракт) — опухоли щитовидной железы у крыс и гепатоцеллюлярная карцинома у мышей в исследованиях канцерогенности считаются негенотоксичным ответом, характерным для грызунов и связанным (при длительном лечении) с высокими дозами индукторов печёночных ферментов; для человека такие опухоли не считаются значимыми
       constituents:
       - doc: assessment-report
         page: 31
@@ -431,7 +422,7 @@ metadata:
         url: https://www.nccih.nih.gov/health/ginkgo
       - source: lactmed
         kind: lactation
-        ru: Опыта применения гинкго при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно для новорождённого или недоношенного
+        ru: Опубликованного опыта применения гинкго при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно для новорождённого или недоношенного
         quote: Because there is no published experience with ginkgo during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM898/
       liver:

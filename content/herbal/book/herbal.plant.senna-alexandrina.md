@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528729/6e907fce-0713-44f4-8510-71d7c8a38e2c.pdf
-source_checksum: sha256:42b98734ed6253dbd5eea30e3abe5c1d5ccc0b818759468020f4e2a054c5e3d7
+source_checksum: sha256:535a49cce56de8684801144a13a2ac38a35397b215781019485d0c9f5acc5def
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -65,6 +65,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/sennae-folium
       lastUpdated: 26/10/2006
       species: Cassia senna L.; Cassia angustifolia Vahl
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-senna-alexandrina-mill-cassia-senna-l-cassia-angustifolia-vahl-folium-revision-1_en.pdf
@@ -76,7 +77,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/senna-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: well-established
       facts:
       - doc: monograph
@@ -86,14 +87,14 @@ metadata:
         ru: Кратковременно при эпизодическом запоре
       - doc: monograph
         page: 4
-        quote: Herbal preparation equivalent to 10 – 30 mg hydroxyanthracene derivatives, calculated as sennoside B (photometric method) to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.
+        quote: 'Adolescents over 12 years of age, adults, elderly Single dose: Herbal preparation equivalent to 10 – 30 mg hydroxyanthracene derivatives, calculated as sennoside B (photometric method) to be taken once daily at night. The correct individual dose is the smallest required to produce a comfortable soft-formed motion.'
         kind: posology
-        ru: Разовая доза — препарат, соответствующий 10–30 мг антрагликозидов, один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул
+        ru: 'Подростки старше 12 лет, взрослые и пожилые: разовая доза — препарат, соответствующий 10–30 мг гидроксиантраценовых производных (в пересчёте на сеннозид B), один раз в день на ночь; нужна наименьшая доза, дающая мягкий оформленный стул'
         dose:
-          preparationRu: на ночь
+          preparationRu: раз в день на ночь
           amount: 10-30
-          unit: мг антрагликозидов
-          populationRu: подростки и взрослые
+          unit: мг гидроксиантраценовых производных
+          populationRu: подростки старше 12 лет, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is contraindicated
@@ -125,17 +126,17 @@ metadata:
         page: 6
         quote: Hypokalaemia (resulting from long-term laxative abuse) potentiates the action of cardiac glycosides and interacts with antiarrhythmic medicinal products. Concomitant use with diuretics, adrenocorticosteroids and liquorice root may enhance loss of potassium.
         kind: interaction
-        ru: Потеря калия усиливает действие сердечных гликозидов и антиаритмиков; мочегонные, кортикостероиды и солодка усиливают потерю калия
+        ru: Гипокалиемия (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмическими средствами; мочегонные, кортикостероиды и корень солодки могут усиливать потерю калия
       - doc: monograph
         page: 6
         quote: The use during pregnancy is contraindicated because experimental data concerning a genotoxic risk of several anthranoids, e.g. emodin and aloe- emodin.
         kind: pregnancy
-        ru: При беременности нельзя — риск повреждения генов (эмодин, алоэ-эмодин)
+        ru: При беременности противопоказано — есть экспериментальные данные о генотоксическом риске ряда антраноидов (например, эмодина и алоэ-эмодина)
       - doc: monograph
         page: 6
         quote: The use during lactation is contraindicated because after administration of anthranoids, active metabolites, such as rhein, were excreted in breast milk in small amounts.
         kind: lactation
-        ru: При кормлении грудью нельзя — метаболиты переходят в молоко
+        ru: При кормлении грудью противопоказано — активные метаболиты антраноидов, например реин, в небольших количествах выделяются с грудным молоком
       - doc: monograph
         page: 7
         quote: Senna leaf preparations may produce abdominal pain and spasm and passage of liquid stools, in particular in patients with irritable colon.
@@ -155,7 +156,7 @@ metadata:
         page: 7
         quote: Yellow or red-brown (pH dependent) discolouration of urine by metabolites, which is not clinically significant, may occur during the treatment.
         kind: adverse
-        ru: Моча может окраситься в жёлтый или красно-коричневый цвет — это безопасно
+        ru: Моча может окраситься в жёлтый или красно-коричневый цвет (зависит от pH) — клинического значения это не имеет
       - doc: monograph
         page: 7
         quote: The major symptoms of overdose/abuse are griping pain and severe diarrhoea with consequent losses of fluid and electrolytes. Treatment should be supportive with generous amounts of fluid. Electrolytes, especially potassium, should be monitored.
@@ -165,19 +166,19 @@ metadata:
       - doc: assessment-report
         page: 4
         quote: The active constituents are the anthranoids that are present in the leaf of the herbal substance as dianthrones
-        compound: sennosides A and B
-        compoundRu: сеннозиды A и B
-        classRu: антрагликозиды (диантроны)
-        effectRu: главные действующие вещества листа
+        compound: anthranoids
+        compoundRu: антраноиды
+        classRu: гидроксиантраценовые производные
+        effectRu: действующие вещества листа; в листе — в виде диантронов
         evidence: review
       - doc: assessment-report
         page: 34
         quote: Laxative effects of senna preparations are mainly mediated by rheinanthrone, a metabolite formed in the intestinal flora from dianthrones.
         compound: rheinanthrone
         compoundRu: реинантрон
-        classRu: метаболит сеннозидов
-        effectRu: слабительное — образуется из сеннозидов кишечными бактериями
-        evidence: in-vitro
+        classRu: метаболит диантронов
+        effectRu: в основном опосредует слабительное действие; образуется из диантронов кишечной флорой
+        evidence: review
     redBook: null
     safety:
       lines:

@@ -44,6 +44,8 @@ def _extraction(facts: list[dict[str, object]]) -> EmaExtraction:
 def test_normalize_joins_hyphen_breaks_and_dashes() -> None:
     assert normalize("anti-\ninflammatory  1.5–4 g") == "antiinflammatory 1.54 g"
     assert normalize("Quincke’s") == normalize("Quincke's")
+    # WHO volumes set «fl» as a ligature glyph followed by a space.
+    assert normalize("inﬂ ammatory") == "inflammatory"
 
 
 def test_quote_must_be_on_its_page_and_carry_every_number(tmp_path: Path) -> None:
@@ -141,6 +143,32 @@ def test_quote_runs_on_past_a_footnote_and_a_running_title(tmp_path: Path) -> No
         "If the symptoms persist longer than 2 weeks No case of overdose has been reported."
     )
     assert validate_ema_extraction(fact(skipped_body), {"monograph": pdf}) != []
+
+
+def test_quote_runs_on_past_a_page_number_and_running_title(tmp_path: Path) -> None:
+    # WHO volumes head each page with its number and the book or monograph title.
+    book = "WHO monographs on medicinal plants commonly used in the NIS"
+    pdf = _pdf(
+        tmp_path / "volume.pdf",
+        [
+            f"317\n{book}\nUsed externally for burns and inflammatory reactions of the",
+            f"318\n{book}\nskin; for repair of damaged tissue (5).",
+            f"319\n{book}\nOther text.",
+        ],
+    )
+    extraction = _extraction(
+        [
+            {
+                "kind": "indication",
+                "ru": "Наружно при ожогах и воспалении кожи",
+                "doc": "monograph",
+                "page": 1,
+                "quote": "Used externally for burns and inflammatory reactions of the skin; "
+                "for repair of damaged tissue (5).",
+            }
+        ]
+    )
+    assert validate_ema_extraction(extraction, {"monograph": pdf}) == []
 
 
 def _instruction(tmp_path: Path, lines: list[str]) -> Path:
@@ -397,6 +425,7 @@ def test_owner_pictures_and_red_book_rows_are_validated(tmp_path: Path) -> None:
         "part": {"ru": "корни", "la": "radix"},
         "ema": {"page": "https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix"},
     }
+    ema_page = {"page": "https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix"}
     (plant,) = load_plants(
         _plant_list(
             tmp_path,
@@ -424,6 +453,9 @@ def test_owner_pictures_and_red_book_rows_are_validated(tmp_path: Path) -> None:
         load_plants(
             _plant_list(tmp_path, [{**base, "redBook": {"number": 48, "page": 4, "category": 7}}])
         )
+    # A monograph on other species names them.
+    with pytest.raises(ValueError, match="otherSpecies needs"):
+        load_plants(_plant_list(tmp_path, [{**base, "ema": {**ema_page, "otherSpecies": True}}]))
 
 
 def test_who_facts_must_stay_inside_their_monograph(tmp_path: Path) -> None:

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/03/05/1527311/c0de673c-d4af-4169-91b2-106658755e5f.pdf
-source_checksum: sha256:fb7648a8fc8d7c060d9d5e197a21e3762385107ada3ad0f7aa1e1dd1f072f39b
+source_checksum: sha256:31f533a053e538731658e7ec163b6aafbed8ab11438cf9d8e91e825a599abd7e
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -71,6 +71,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/urticae-folium
       lastUpdated: 17/01/2011
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-urtica-dioica-l-urtica-urens-l-folium_en.pdf
@@ -79,14 +80,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-urtica-dioica-l-urtica-urens-l-folium_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product for relief of minor articular pain.
@@ -155,7 +156,7 @@ metadata:
         page: 5
         quote: Mild gastrointestinal complaints (e.g. nausea, vomiting, diarrhoea) and skin reactions (e.g. itching, exanthema, hives) may occur.
         kind: adverse
-        ru: Возможны лёгкие жалобы со стороны ЖКТ (тошнота, рвота, диарея) и кожные реакции (зуд, сыпь, крапивница)
+        ru: Возможны лёгкие жалобы со стороны ЖКТ (например, тошнота, рвота, диарея) и кожные реакции (например, зуд, сыпь, крапивница)
       - doc: monograph
         page: 5
         quote: No case of overdose has been reported.
@@ -189,8 +190,8 @@ metadata:
       lines:
       - source: lactmed
         kind: lactation
-        ru: Местное применение крапивы может вызвать крапивницу; нанесение на сосок одной матери вызвало аллергическую сыпь у её ребёнка на грудном вскармливании
-        quote: topical use can cause urticaria when applied topically, and application on one mother's nipple resulted in allergic skin rash in her breastfed infant.
+        ru: Крапива в целом хорошо переносится взрослыми, но местное применение может вызвать крапивницу; нанесение на сосок одной матери вызвало аллергическую сыпь у её ребёнка на грудном вскармливании
+        quote: Although stinging nettle is generally well tolerated in adults, topical use can cause urticaria when applied topically, and application on one mother's nipple resulted in allergic skin rash in her breastfed infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM869/
       - source: lactmed
         kind: lactation

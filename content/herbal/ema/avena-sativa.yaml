@@ -1,10 +1,10 @@
 # EMA/HMPC facts for Овёс посевной (Avena sativa L.), трава (надземная часть до цветения, сухая или
-# свежая). Draft artifact (status: proposed): Russian fields are a reader's rendering of the quoted
+# свежая). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a reader's rendering of the quoted
 # English sentence; quotes are checked against the PDF. The Community monograph (final, 4 September
 # 2008) is traditional use only, one indication. Its text layout is damaged in places (words broken
 # over lines) and the assessment report PDF is clipped, so only intact passages are quoted.
 plant: avena-sativa
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -78,11 +78,6 @@ facts:
     doc: monograph
     page: 4
     quote: Caution is advised when used in patients with coeliac disease because data on the protein content are not available.
-  - kind: warning
-    ru: Для жидких экстрактов с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
-    doc: monograph
-    page: 4
-    quote: For liquid extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -151,7 +146,7 @@ constituents:
     compoundRu: экстракты травы овса
     classRu: экстракты
     effectRu: по оценке отчёта, обе серии опытов открывают интересные перспективы для нейрогенной активности овса, но данные предварительные (хранятся в документации компании), и нужны дополнительные исследования механизмов действия
-    evidence: review
+    evidence: in-vitro
     doc: assessment-report
     page: 9
     quote: "Both series of experiments open interesting perspectives as a neurogenic activity of Avena sativa is concerned. As these preliminary data are on company file, more work has to be done in order to gain insight in the mechanisms of action exerted by Avena sativa extracts."

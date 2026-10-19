@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Тысячелистник обыкновенный. Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Тысячелистник обыкновенный. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: achillea-millefolium
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -116,7 +116,7 @@ constituents:
     compoundRu: дикофеилхинные кислоты, лютеолин-7-O-глюкуронид
     classRu: фенольные кислоты, флавоноиды
     effectRu: по мнению авторов, вероятно, действующие начала желчегонного эффекта традиционных форм
-    evidence: animal
+    evidence: in-vitro
     doc: assessment-report
     page: 21
     quote: The combined effect of DCCAs and luteolin-7-O-beta-D-glucuronide stimulated bile flow more effectively than the single compound cynarine. Due to their polar structure, these compounds are quantitatively extracted into teas and tinctures; hence, according to the authors, they seem to be the choleretic active principles in the traditional application forms of yarrow

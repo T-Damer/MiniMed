@@ -75,6 +75,23 @@ describe('herbal chapter metadata', () => {
     expect(plant?.brew.water).toBeNull();
     expect(plant?.plate?.credit).toBe('Köhler, 1887');
     expect(plant?.ema?.draft).toBe(true);
+    expect(plant?.ema?.otherSpecies).toBeNull();
+    const reviewed = readHerbalChapter({
+      ...chamomile,
+      metadata: {
+        herbal: {
+          ...chamomile.metadata.herbal,
+          ema: {
+            ...(chamomile.metadata.herbal['ema'] as Record<string, unknown>),
+            status: 'reviewed',
+            species: 'Thymus vulgaris L., Thymus zygis L.',
+            otherSpecies: true,
+          },
+        },
+      },
+    });
+    expect(reviewed?.ema?.draft).toBe(false);
+    expect(reviewed?.ema?.otherSpecies).toBe('Thymus vulgaris L., Thymus zygis L.');
     // The posology fact cites page 0 and is dropped.
     expect(plant?.ema?.facts.map((fact) => fact.kind)).toEqual([
       'overdose',

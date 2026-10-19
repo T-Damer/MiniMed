@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://iris.who.int/handle/10665/44059
-source_checksum: sha256:ace6575991d8df8fc8464b935559ce3f6ff1efbcbb951db81d29127dbf6e5e89
+source_checksum: sha256:5051790be0eea1e6986890ba4db6c3b615a24c1349d794a41468189005ab3223
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://iris.who.int/handle/10665/44059
       lastUpdated: '2010'
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
@@ -59,7 +60,7 @@ metadata:
       - 208
       mirror: e-lactancia.org (в WHO IRIS — только описание тома)
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -71,37 +72,37 @@ metadata:
         page: 200
         quote: Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для облегчения кашля с обильным отхождением мокроты'
+        ru: 'ВОЗ: описано в фармакопеях — плоды применяют для облегчения кашля с обильным отхождением мокроты'
       - doc: monograph
         page: 200
         quote: Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для улучшения пищеварения у людей с затяжным желудочно-кишечным транзитом и болью в животе'
+        ru: 'ВОЗ: описано в фармакопеях — плоды применяют для улучшения пищеварения у людей с затяжным желудочно-кишечным транзитом и болью в животе'
       - doc: monograph
         page: 200
         quote: Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для лечения аменореи'
+        ru: 'ВОЗ: описано в фармакопеях — плоды применяют для лечения аменореи'
       - doc: monograph
         page: 200
         quote: Fruit decoctions are used externally as a wash to treat traumatic swelling and cutaneous eruptions (21).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — отвары плодов применяют наружно в виде обмывания при травматическом отёке и кожных высыпаниях'
+        ru: 'ВОЗ: описано в фармакопеях — отвары плодов применяют наружно в виде обмывания при травматическом отёке и кожных высыпаниях'
       - doc: monograph
         page: 200
         quote: Uses described in traditional medicine In the Islamic Republic of Iran, ethanol extracts of Hippophaë fruits are used internally as an astringent and anthelminthic.
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — в Исламской Республике Иран этанольные экстракты плодов облепихи применяют внутрь как вяжущее и глистогонное средство'
+        ru: 'ВОЗ: описано в традиционной медицине — в Исламской Республике Иран этанольные экстракты плодов облепихи применяют внутрь как вяжущее и глистогонное средство'
       - doc: monograph
         page: 200
         quote: There are data on the use of dried fruits in patients with scurvy.
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — есть данные о применении сушёных плодов у больных цингой'
+        ru: 'ВОЗ: описано в традиционной медицине — есть данные о применении сушёных плодов у больных цингой'
       - doc: monograph
         page: 200
         quote: Hippophaë fruits have been used extensively in India and Tibet for the treatment of circulatory disorders, ischaemic heart disease and hepatic injury
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — в Индии и Тибете плоды облепихи широко применяли при нарушениях кровообращения, ишемической болезни сердца и поражении печени'
+        ru: 'ВОЗ: описано в традиционной медицине — в Индии и Тибете плоды облепихи широко применяли при нарушениях кровообращения, ишемической болезни сердца и поражении печени'
       - doc: monograph
         page: 204
         quote: Contraindications If signs of hypersensitivity reactions appear (rash, pruritus, urticaria, swelling of mouth and skin), Hippophaë fruits must not be used again.

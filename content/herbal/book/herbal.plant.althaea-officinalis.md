@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532404/32b1379e-45a5-43c5-b4e9-cc3e12fd0dad.pdf
-source_checksum: sha256:c9ec909d9bc6bfce6f85746e0f0c2e7955fc5f031590fd34d230b03a2568abab
+source_checksum: sha256:7e2a5f3717ea4f012fc11fba72d68978e066d22a6171a2b344148929422286c8
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/althaeae-radix
       lastUpdated: 02/12/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-althaea-officinalis-l-radix_en.pdf
@@ -84,14 +85,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/marshmallow-root-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used as a demulcent preparation for the symptomatic treatment of oral or pharyngeal irritation and associated dry cough.
@@ -338,16 +339,6 @@ metadata:
         ru: При ухудшении симптомов — к врачу или медработнику
       - doc: monograph
         page: 8
-        quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для экстрактов, содержащих этанол, на упаковке должно быть соответствующее указание об этаноле
-      - doc: monograph
-        page: 9
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: warning
-        ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-      - doc: monograph
-        page: 8
         quote: Absorption of concomitantly administered medicines may be delayed. As a precautionary measure, the product should not be taken ½ to 1 hour before or after intake of other medicinal products.
         kind: warning
         ru: Всасывание одновременно принимаемых лекарств может замедляться; в качестве меры предосторожности препарат не следует принимать за ½–1 час до или после других лекарств
@@ -361,11 +352,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 9
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
       - doc: monograph
         page: 9
         quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

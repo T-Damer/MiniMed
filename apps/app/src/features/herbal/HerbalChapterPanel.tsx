@@ -207,10 +207,7 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
     <Show when={safety()}>
       {(item) => (
         <>
-          <h2 class="herbal-chapter__heading">
-            Безопасность
-            <span class="herbal-chapter__tag herbal-chapter__tag--draft">черновик</span>
-          </h2>
+          <h2 class="herbal-chapter__heading">Безопасность</h2>
           <div class="herbal-chapter__cells">
             <Show when={item().supplements}>
               {(rule) => (
@@ -298,6 +295,14 @@ export function HerbalChapterPanel(props: { readonly chapter: HerbalChapter }): 
             <Show when={redBook().note}>
               {(note) => <span class="herbal-redbook__note">{note()}</span>}
             </Show>
+          </p>
+        )}
+      </Show>
+      <Show when={ema()?.otherSpecies}>
+        {(species) => (
+          <p class="herbal-chapter__species">
+            Данные {authorityLabel(ema())} — для других видов:{' '}
+            <em class="herbal-chapter__species-name">{species()}</em>
           </p>
         )}
       </Show>

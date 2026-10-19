@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529595/2bc8f33f-4ef5-4964-bfe7-a19645eb0a93.pdf
-source_checksum: sha256:f811a746406c6572be8178c65de89ce7e9c13806ff5031b58f94cf6fe64c5ba3
+source_checksum: sha256:10b9051dbed96c8911d3a641b41d56cc602bcda3c334f3fec539e42030d3a00f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -69,6 +69,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/melissae-folium
       lastUpdated: 16/06/2014
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-melissa-officinalis-l-folium_en.pdf
@@ -80,14 +81,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/melissa-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for relief of mild symptoms of mental stress and to aid sleep.
@@ -188,13 +189,13 @@ metadata:
       lines:
       - source: lactmed
         kind: lactation
-        ru: Данных о выделении компонентов мелиссы в грудное молоко, а также о безопасности и эффективности одной мелиссы у кормящих матерей и детей нет
+        ru: Данных о выделении компонентов мелиссы в грудное молоко, а также о безопасности и эффективности мелиссы без других трав у кормящих матерей и детей нет
         quote: No data exist on the excretion of any components of lemon balm into breastmilk or on the safety and efficacy of lemon balm alone in nursing mothers or infants.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM926/
       - source: lactmed
         kind: lactation
-        ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
-        quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
+        ru: Мелиссу безопасно и эффективно применяли вместе с другими травами у младенцев при коликах, диарее и других состояниях, поэтому ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+        quote: Lemon balm has been safely and effectively used with other herbs in infants for the treatment of colic, diarrhea, and other conditions,[ 1 , 2 ] so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM926/
       liver:
         score: E

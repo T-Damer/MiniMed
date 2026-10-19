@@ -95,7 +95,8 @@ them, how to brew and take a plant, who may take it; for self-education and situ
 hand. EMA limits and doses are Russian structured fields with the English quote on tap (owner choice «a»).
 Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-plan-2026-10-18.md).
 
-- **Modules** (2026.10.19, `minAppVersion` 0.6.61, preview, experimental + requires-review):
+- **Modules** (2026.10.19, `minAppVersion` 0.6.61, preview, experimental + requires-review; published since
+  2026-10-20, see «Review and release» below):
   `minimed.reference.herbal` «Травник» — 30 plant chapters (36 since the second wave) + ГФ XV «Настои и отвары», 495 chunks, 3.0 MB
   index, 1.0 MB gzip; `minimed.reference.herbal.plates` «Травник: иллюстрации» — 30 plates (≤1200 px JPEG
   q85) in one STORED source-assets ZIP, 7.0 MB, plus a 19 KB credits index. Both committed under
@@ -246,6 +247,26 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
   облепиха has no LactMed line. `fetch-herbal-sources` stores the NCCIH pages, the PDF and only the
   needed LactMed/LiverTox chapters (the ≈200 MB NCBI Literature Archive tarballs are read once and
   deleted; `data/raw/herbal/safety`, 12 MB). Text module `2026.10.19-w5`.
+- **Review and release** (2026-10-20, owner «check the draft and release it as non-draft», STATE
+  HERB1-REV): every Russian line of the 71 EMA/WHO files (1 639 facts, 293 constituents) and the 112
+  safety lines was read against its quote and the surrounding page by eight Sonnet reviewers; every
+  finding was checked on the page before it was applied (308 changes). Fixed: populations that dropped
+  «пожилые» (valerian, St John's wort, viola, chamomile, senna «старше 12 лет»), lines adding claims
+  (St John's wort interactions — no warfarin/HIV, serotonergic effects not «syndrome», contraceptives;
+  celandine HMPC wording; equisetum palustrin), quotes cut before their qualifier (hyperforin ≤ 1 mg,
+  overdose doses, reproductive toxicity «in animals», chamomile/lemon balm LactMed premises, thujone
+  stays cut), constituent evidence (isolated organs → in vitro, literature attributions → review),
+  the elder decoction (3–6 g a day in 2 doses, no «2 р/день» on the dose), WHO lines labelled by
+  their own heading («подтверждено клиническими данными», «описано в фармакопеях», «описано в
+  традиционной медицине» — the merged label is gone). Dropped as carrying no information: «no studies
+  on driving» (33), «no fertility data» (34), ethanol labelling rules (22); kept «may impair driving».
+  The thyme chapter says above the EMA facts that the monograph covers T. vulgaris/T. zygis
+  (`otherSpecies` in `plants.yaml`). The quote check bridges a WHO page break past the page number and
+  running title, and treats a ligature glyph followed by a space («inﬂ ammatory») as one word. All
+  files are `status: reviewed`: no «черновик» badge on «Кому нельзя» or «Безопасность»; the guide no
+  longer calls the lines a draft. Catalog: text `2026.10.20` and plates (unchanged `2026.10.19-w4`
+  files) are `published` without the `experimental` tag; the documents keep the shared
+  `requiresReview` reference-content flag. This is a source-fidelity review, not a clinician's review.
 
 ## Query model bundled in the Android APK — 2026-10-15 (STATE QM-BUNDLE)
 

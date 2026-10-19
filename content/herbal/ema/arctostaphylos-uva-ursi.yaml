@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Толокнянка обыкновенная (лист). Draft artifact (status: proposed): Russian
+# EMA/HMPC facts for Толокнянка обыкновенная (лист). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian
 # fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
 plant: arctostaphylos-uva-ursi
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
@@ -43,7 +43,7 @@ facts:
     page: 5
     quote: Hypersensitivity to the active substance. Kidney disorders
   - kind: warning
-    ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+    ru: При ухудшении симптомов или при лихорадке, болезненном мочеиспускании, спазмах, крови в моче — к врачу или медработнику
     doc: monograph
     page: 5
     quote: If the symptoms worsen or if complaints such as fever, dysuria, spasms, or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.

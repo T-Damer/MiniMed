@@ -1,21 +1,21 @@
-# WHO monograph facts for Укроп пахучий (плоды). Draft artifact (status: proposed): Russian fields
+# WHO monograph facts for Укроп пахучий (плоды). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: anethum-graveolens
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — лечение диспепсии, гастрита, метеоризма и боли в желудке"
+    ru: 'ВОЗ: описано в фармакопеях — лечение диспепсии, гастрита, метеоризма и боли в желудке'
     doc: monograph
     page: 44
     quote: Uses described in pharmacopoeias and well established documents Treatment of dyspepsia (25), gastritis and flatulence (1, 26), and stomach ache (27).
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — как афродизиак, обезболивающее, жаропонижающее, мочегонное, эмменагогное, галактагогное средство, стимулятор аппетита и вагинальный контрацептив"
+    ru: 'ВОЗ: описано в традиционной медицине — как афродизиак, обезболивающее, жаропонижающее, мочегонное, эмменагогное, галактагогное средство, стимулятор аппетита и вагинальный контрацептив'
     doc: monograph
     page: 44
     quote: Uses described in traditional medicine As an aphrodisiac, analgesic, antipyretic, diuretic, emmenagogue, galactagogue, appetite stimulant and vaginal contraceptive.
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — лечение диареи, астмы, невралгии, дизурии, дисменореи, заболеваний жёлчного пузыря, бессонницы, грыжи пищеводного отверстия диафрагмы и почечных камней"
+    ru: 'ВОЗ: описано в традиционной медицине — лечение диареи, астмы, невралгии, дизурии, дисменореи, заболеваний жёлчного пузыря, бессонницы, грыжи пищеводного отверстия диафрагмы и почечных камней'
     doc: monograph
     page: 44
     quote: Treatment of diarrhoea, asthma, neuralgia, dysuria, dysmenorrhoea, gallbladder disease, insomnia, hiatus hernia and kidney stones (9, 26–29).

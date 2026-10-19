@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528691/2585e030-9ba3-4fc1-af0d-45a265e37218.pdf
-source_checksum: sha256:6508bb3b63680018cd1fd82df397e651333765d172048c2f0e250b69af2cc5c3
+source_checksum: sha256:dfd249dd09fb5625cf2077e090a0a5e4f8ca8ab8262275ce3936372cdcb721ca
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/helichrysi-flos
       lastUpdated: 23/06/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-helichrysum-arenarium-l-moench-flos_en.pdf
@@ -84,7 +85,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/sandy-everlasting-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -174,16 +175,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 4
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 4
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 4
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

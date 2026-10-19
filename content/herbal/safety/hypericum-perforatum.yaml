@@ -12,11 +12,11 @@ trts:
 lines:
 - source: nccih
   kind: adverse
-  ru: В больших дозах внутрь или на коже возможны тяжёлые кожные реакции на солнце; также диарея, головокружение, бессонница, беспокойство, покалывание кожи
+  ru: 'При приёме внутрь в больших дозах или при нанесении на кожу возможны тяжёлые кожные реакции на солнце. Другие побочные эффекты: диарея, головокружение, нарушения сна, беспокойство, покалывание кожи'
   quote: If taken orally in large doses or applied to the skin, St. John’s wort might cause severe skin reactions after sun exposure. Other side effects can include diarrhea, dizziness, trouble sleeping, restlessness, and skin tingling.
 - source: nccih
   kind: interaction
-  ru: 'Может ослаблять действие многих лекарств: ряда антидепрессантов (амитриптилин, бупропион), оральных контрацептивов, циклоспорина, фенитоина, карбамазепина, дигоксина, ивабрадина, ряда препаратов от ВИЧ и рака, варфарина, симвастатина'
+  ru: Может ослаблять действие многих лекарств, в том числе некоторых антидепрессантов (например, амитриптилин, бупропион), оральных контрацептивов, циклоспорина, некоторых противосудорожных (фенитоин, карбамазепин), некоторых сердечных препаратов (дигоксин, ивабрадин), некоторых препаратов от ВИЧ и рака, варфарина, некоторых статинов (например, симвастатин)
   quote: 'St. John’s wort can weaken the effects of many medicines, including crucially important medicines such as: Some antidepressants, including amitriptyline and bupropion Birth control pills Cyclosporine, which prevents the body from rejecting transplanted organs Some drugs used to prevent seizures, including phenytoin and carbamazepine Some heart medications, including digoxin and ivabradine Some HIV drugs, including indinavir and nevirapine Some cancer medications, including irinotecan, imatinib, and docetaxel Warfarin, an anticoagulant (blood thinner) Certain statins, including simvastatin'
 - source: nccih
   kind: interaction
@@ -32,5 +32,5 @@ lines:
   quote: One study found a slightly increased frequency of colic, drowsiness and lethargy among breastfed infants whose mothers were taking St. John's wort, but none of the effects were severe or required treatment.
 - source: lactmed
   kind: lactation
-  ru: Опыта применения при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
+  ru: Опубликованного опыта применения зверобоя при грудном вскармливании мало; может быть предпочтителен другой препарат, особенно для новорождённого или недоношенного
   quote: Because there is little published experience with St. John's wort during breastfeeding, an alternate drug may be preferred, especially while nursing a newborn or preterm infant.

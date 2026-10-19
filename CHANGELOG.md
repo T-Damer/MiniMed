@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- «Травник» is released (owner 2026-10-20): every Russian line of the 71 plant chapters and the safety
+  block was read against its English source sentence and corrected where it said more or less than the
+  source (populations, interactions, cut qualifiers, evidence levels, WHO source headings); lines that
+  carried no information (no driving studies, no fertility data, ethanol labelling) are gone. The
+  «черновик» badges are removed, and the module is no longer Experimental. The thyme chapter notes
+  that EMA's data are for other Thymus species.
+
 ## [0.6.62] - 2026-10-19
 
 - «Травник» (owner 2026-10-18): a downloadable herbal book of 30 medicinal plants in «База знаний» → «Травник».

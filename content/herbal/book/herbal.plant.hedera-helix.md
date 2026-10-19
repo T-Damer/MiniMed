@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/hederae-helicis-folium
-source_checksum: sha256:ce1431bd8ea11bfbfcc5ded34eae6c0951ebe32bcdce3cdd09f5684a40e930d8
+source_checksum: sha256:65d94c9846e79929b727c1a3fb74b3dd087f0c979bb3865ad785793d9f1773ad
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/hederae-helicis-folium
       lastUpdated: 01/10/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-hedera-helix-l-folium-revision-2_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/ivy-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: well-established
       facts:
       - doc: monograph
@@ -266,11 +267,6 @@ metadata:
         ru: Пациентам с гастритом или язвой желудка рекомендуется осторожность
       - doc: monograph
         page: 6
-        quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для экстрактов, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
-      - doc: monograph
-        page: 6
         quote: Preparation d) should not be administered to children under 6 years of age because of the alcohol content.
         kind: warning
         ru: Препарат d) не следует давать детям младше 6 лет из-за содержания спирта
@@ -290,16 +286,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data are available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 6
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 6
         quote: Gastrointestinal reactions (nausea, vomiting, diarrhoea) have been reported. The frequency is not known.

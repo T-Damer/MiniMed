@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/20/1530033/852f4560-448e-4eee-a682-be2a4bc1275d.pdf
-source_checksum: sha256:9ee3ce19535b518244fbd52c230f236db14b9426a942075a45dc6a41660fd719
+source_checksum: sha256:0feb65183de22f316968fb7b6b8c820d84638c3da5a1f409e2ca59759a49184f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -67,6 +67,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/lini-semen
       lastUpdated: 03/02/2016
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-linum-usitatissimum-l-semen_en.pdf
@@ -78,7 +79,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/linseed-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -118,7 +119,7 @@ metadata:
         page: 4
         quote: 'The effect starts 12 - 24 hours later. Warning: not to be taken immediately prior to bedtime.'
         kind: posology
-        ru: Действует через 12–24 часа; не принимать прямо перед сном
+        ru: Действует через 12–24 часа; не принимать прямо перед сном (хорошо изученное применение)
       - doc: monograph
         page: 4
         quote: The use in children under 12 years of age is not recommended
@@ -141,17 +142,17 @@ metadata:
         page: 4
         quote: Linseed should not be used by patients with a sudden change in bowel habit that persists for more than 2 weeks, undiagnosed rectal bleeding and failure to defaecate following the use of a laxative.
         kind: contraindication
-        ru: Внезапное изменение стула дольше 2 недель, кровь из прямой кишки неясной причины, нет стула после слабительного
+        ru: Внезапное изменение стула дольше 2 недель, кровь из прямой кишки неясной причины, нет стула после слабительного (хорошо изученное применение)
       - doc: monograph
         page: 4
         quote: Linseed should also not be used by patients suffering from abnormal constrictions in the gastro-intestinal tract, with diseases of the oesophagus and cardia or existing intestinal blockage (ileus), paralysis (ileus) of the intestine or megacolon.
         kind: contraindication
-        ru: Сужения ЖКТ, болезни пищевода и кардии, непроходимость или паралич кишки, мегаколон
+        ru: Сужения ЖКТ, болезни пищевода и кардии, непроходимость или паралич кишки, мегаколон (хорошо изученное применение)
       - doc: monograph
         page: 5
         quote: This product should not be taken by patients, who have difficulty swallowing or any throat problems.
         kind: contraindication
-        ru: Трудности с глотанием или любые проблемы с горлом
+        ru: Трудности с глотанием или любые проблемы с горлом (традиционное применение)
       - doc: monograph
         page: 5
         quote: If abdominal pain occurs or in cases of any irregularity of frequency of faeces, the use of linseed should be discontinued and medical advice must be sought.
@@ -166,7 +167,7 @@ metadata:
         page: 5
         quote: If experiencing chest pain, vomiting, or difficulty in swallowing or breathing after taking this herbal substance, immediate medical attention should be sought.
         kind: warning
-        ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу
+        ru: Боль в груди, рвота, трудно глотать или дышать после приёма — срочно к врачу (хорошо изученное применение)
       - doc: monograph
         page: 5
         quote: The treatment of debilitated patients and elderly should be supervised.
@@ -186,7 +187,7 @@ metadata:
         page: 6
         quote: There are no reports of any harmful or deleterious effects during pregnancy and lactation. Investigations in healthy women suggest that linseed may have an oestrogenic effect. Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
-        ru: Сообщений о вреде нет, но безопасность не установлена, данных недостаточно — при беременности и кормлении не рекомендуется
+        ru: Сообщений о вреде при беременности и кормлении нет; исследования у здоровых женщин указывают на возможное эстрогенное действие льна. Безопасность не установлена, данных недостаточно — при беременности и кормлении не рекомендуется
       - doc: monograph
         page: 6
         quote: Meteorism, occurring with the use of the product, is common. Reactions of hypersensitivity including anaphylaxis-like reactions may occur very rarely.
@@ -204,7 +205,7 @@ metadata:
         compound: mucilage, dietary fibre
         compoundRu: слизи и пищевые волокна
         classRu: полисахариды
-        effectRu: около 25% семени — слизь 3-6% и пищевые волокна 4-7%
+        effectRu: около 25% семени — балластные вещества (слизь 3–6%, пищевые волокна 4–7%)
         evidence: review
       - doc: assessment-report
         page: 10

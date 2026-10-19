@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:64b55217d2c68f16a2e2dd6ff3badb9d26848fc923f6166575c91b9f19a5ca44
+source_checksum: sha256:72f9794ad2e61315db6cc2f9239ca58cda5cf9e88ddbaa568c5f33ac0a19e450
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/juniperi-galbulus-pseudo-fructus
       lastUpdated: 13/06/2023
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
@@ -81,14 +82,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-juniperus-communis-l-pseudo-fructus-galbulus-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 5
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 5
         quote: Traditional herbal medicinal product used to increase the amount of urine to achieve flushing of the urinary tract in minor urinary tract complaints.
@@ -149,7 +150,7 @@ metadata:
         page: 7
         quote: If complaints or symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted.
         kind: warning
-        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+        ru: При лихорадке, болезненном мочеиспускании, спазмах или крови в моче — к врачу или медработнику
       - doc: monograph
         page: 7
         quote: Because adequate fluid intake is required during treatment (see section 4.2. ‘Method of administration’), Juniperus communis L., galbulus is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
@@ -195,7 +196,7 @@ metadata:
         page: 19
         quote: Rats were mostly used as subjects. The p.o. way of administration corresponds to traditional use in humans. The extracts are mostly prepared from whole cone berries, but also the essential oil and terpinen-4-ol are used. The diuretic activity cannot be characterized as only aquaretic, i.e. increasing the volume of water excreted by the kidneys, as several authors found also an increased excretion of minerals components (mainly chloride).
         compound: cone berry infusion
-        compoundRu: настой шишкоягод
+        compoundRu: извлечения из шишкоягод
         effectRu: в опытах (в основном на крысах) мочегонное действие не только водное — усиливалось и выведение минеральных веществ, главным образом хлорида
         evidence: animal
       - doc: assessment-report
@@ -204,7 +205,7 @@ metadata:
         compound: essential oil, terpinen-4-ol
         compoundRu: эфирное масло, терпинен-4-ол
         classRu: эфирное масло (монотерпены)
-        effectRu: биохимические, патологические и гистологические исследования не показали нефротоксичности масла и терпинен-4-ола, которую раньше считали причиной мочегонного действия
+        effectRu: биохимические, патологические и гистологические исследования ставят под сомнение, что масло и терпинен-4-ол вызывают нефротоксическое действие, которое раньше считали причиной мочегонного эффекта
         evidence: review
     redBook: null
     safety: null

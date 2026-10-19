@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/menyanthidis-trifoliatae-folium
-source_checksum: sha256:8fbe4a9930b94f580b80f40fcd161dfe2f35ff45f460b04dd0d54c0989f2adc8
+source_checksum: sha256:944e090937ab628aad76895f202d9a012493d9aa80f3412188ff67a164594ac1
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/menyanthidis-trifoliatae-folium
       lastUpdated: 28/03/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-menyanthes-trifoliata-l-folium_en.pdf
@@ -56,7 +57,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-menyanthes-trifoliata-l-folium_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -229,16 +230,6 @@ metadata:
         kind: warning
         ru: Боль в суставах и мышцах — пациентам с болью в суставах, сопровождающейся отёком суставов, покраснением или лихорадкой, нужен осмотр врача
       - doc: monograph
-        page: 6
-        quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть соответствующее указание об этаноле
-      - doc: monograph
-        page: 7
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: warning
-        ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-      - doc: monograph
         page: 7
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
@@ -248,11 +239,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 7
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
       - doc: monograph
         page: 7
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:027f1bb4015c89fa64aaf300111577a2ddf3e5728c5d6f4f0e1854bd8d18200f
+source_checksum: sha256:15d8ad53ff8d31ade38d600437d7cb5e7dd0b669ee42e80e8150e318e80a3950
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/uvae-ursi-folium
       lastUpdated: 10/04/2018
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-arctostaphylos-uva-ursi-l-spreng-folium-revision-2_en.pdf
@@ -84,14 +85,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/bearberry-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used for relief of symptoms of mild recurrent lower urinary tract infections such as burning sensation during urination and/or frequent urination in women, after serious conditions have been excluded by a medical doctor.
@@ -135,7 +136,7 @@ metadata:
         page: 5
         quote: If the symptoms worsen or if complaints such as fever, dysuria, spasms, or blood in urine occur during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+        ru: При ухудшении симптомов или при лихорадке, болезненном мочеиспускании, спазмах, крови в моче — к врачу или медработнику
       - doc: monograph
         page: 5
         quote: Uvae ursi folium may cause a greenish-brown coloration of the urine.

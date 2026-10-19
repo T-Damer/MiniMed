@@ -1,8 +1,8 @@
-# EMA/HMPC facts for Горец птичий, спорыш (трава). Draft artifact (status: proposed): Russian
+# EMA/HMPC facts for Горец птичий, спорыш (трава). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian
 # fields are a reader's rendering of the quoted English sentence; quotes are checked against the PDF.
 # The monograph is traditional use only; its three indications are numbered 1)–3) in the source.
 plant: polygonum-aviculare
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -92,7 +92,7 @@ facts:
     doc: monograph
     page: 6
     quote: "Indication 3) If complaints of symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted."
-  - kind: posology
+  - kind: warning
     ru: Показание 3 — чтобы количество мочи увеличилось, во время лечения нужно достаточное питьё
     doc: monograph
     page: 6
@@ -107,16 +107,6 @@ facts:
     doc: monograph
     page: 6
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о влиянии на фертильность нет
-    doc: monograph
-    page: 6
-    quote: No fertility data available.
-  - kind: statement
-    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-    doc: monograph
-    page: 6
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
     doc: monograph

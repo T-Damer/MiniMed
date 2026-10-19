@@ -73,6 +73,15 @@ class GrlsLink(_Strict):
 class EmaLink(_Strict):
     page: str
     species: str | None = None
+    # The monograph covers other species than the plant (thyme: T. vulgaris/zygis, not
+    # T. serpyllum); the chapter then names them above the EMA facts.
+    other_species: bool = Field(default=False, alias="otherSpecies")
+
+    @model_validator(mode="after")
+    def _other_species_named(self) -> EmaLink:
+        if self.other_species and not self.species:
+            raise ValueError("otherSpecies needs the monograph's species")
+        return self
 
     @field_validator("page")
     @classmethod

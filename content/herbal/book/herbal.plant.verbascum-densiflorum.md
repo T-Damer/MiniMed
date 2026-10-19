@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/verbasci-flos
-source_checksum: sha256:59ea6d103589e52666a22aceef7017df2dd1ad340eb852da7721563695832c31
+source_checksum: sha256:17a30b498014c501f692d021d299f80bbce19451acb3043b9cf0d01d96cce759
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/verbasci-flos
       lastUpdated: 25/07/2018
       species: Verbascum thapsus L., V. densiflorum Bertol., V. phlomoides L.
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-verbascum-thapsus-l-v-densiflorum-bertol-v-thapsiforme-schrad-and-v-phlomoides-l-flos_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/mullein-flower-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -134,16 +135,6 @@ metadata:
         ru: При беременности и кормлении грудью безопасность не установлена; данных недостаточно, применение не рекомендуется
       - doc: monograph
         page: 5
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о влиянии на фертильность нет
-      - doc: monograph
-        page: 5
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-      - doc: monograph
-        page: 5
         quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
         kind: adverse
         ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
@@ -188,7 +179,7 @@ metadata:
         compound: verbascoside (acteoside)
         compoundRu: вербаскозид (актеозид)
         classRu: фенилэтаноидный гликозид
-        effectRu: в митоген-стимулированных лимфоцитах человека снижал жизнеспособность клеток и митотический индекс и вызывал достоверное, зависимое от концентрации увеличение хромосомных аберраций и обмена сестринских хроматид
+        effectRu: в митоген-стимулированных лимфоцитах человека снижал жизнеспособность клеток и митотический индекс; вызывал достоверное, зависимое от концентрации увеличение хромосомных аберраций, а также увеличение доли аберрантных клеток и обмена сестринских хроматид
         evidence: in-vitro
       - doc: assessment-report
         page: 14

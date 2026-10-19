@@ -107,7 +107,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
-| 2026-10-20 | claude-opus (HERB1-REV) | «Травник» review of the draft EMA/WHO facts and safety lines, then drop the «черновик» badge (owner 10-20) | `content/herbal/**`, `apps/app/src/features/herbal/**`, `tools/ingest/src/localmed_ingest/herbal_*.py`, herbal modules |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -179,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-20 claude-opus HERB1-REV: «Травник» released — 71 EMA/WHO files and 112 safety lines read line by line against their quotes (8 Sonnet reviewers, every finding checked on the page, 308 changes: populations, added claims, cut qualifiers, evidence levels, WHO headings; no-information lines on driving/fertility/ethanol dropped), all files `reviewed`, no «черновик» badge, thyme notes EMA's other species; text `2026.10.20` and plates `w4` published (not Experimental); `docs/CURRENT_STATE.md` «Herbal book»; not a clinician review, no phone run
 - 2026-10-19 claude-opus HERB1-SAFE: «Травник» «Безопасность» block for 37 plants — NCCIH and LactMed lines with English quotes (`check-herbal-safety`), LiverTox score by fixed table, ТР ТС 021/2011 annex 7 food-supplement rows checked on the PDF page; text `2026.10.19-w5`; `docs/CURRENT_STATE.md` «Herbal book»
 - 2026-10-19 claude-opus HERB1-W4: «Травник» 71 plants — only a monograph required (ГРЛС/ГФ/plate optional), +27 EMA-only plants, +5 WHO-monograph plants (`content/herbal/who`, `check-herbal-who`, NIS volume from a pinned mirror copy), owner-supplied ginseng picture, federal Red Book badge (order № 320: женьшень cat. 1, родиола cat. 3), preparation lists no longer shown as «Вывод»; text/plates `2026.10.19-w4`; `docs/CURRENT_STATE.md` «Herbal book»
 - 2026-10-19 claude-opus HERB1-W3: «Травник» 39 plants — бессмертник, бузина, тмин with ГРЛС instructions fetched by a targeted polite collector run (5/5, no CAPTCHA; no container needed for ГРЛС), run-in heading split, EMA footnote bridge; text/plates `2026.10.19-w3`; `docs/CURRENT_STATE.md` «Herbal book»

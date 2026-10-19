@@ -1,9 +1,9 @@
-# WHO monograph facts for Облепиха крушиновидная (плоды свежие). Draft artifact (status: proposed): Russian fields
+# WHO monograph facts for Облепиха крушиновидная (плоды свежие). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 # Source: WHO monographs on medicinal plants commonly used in the Newly Independent States (NIS), 2010,
 # «Fructus Hippophaës recens»; `page` is the 1-based PDF page of the volume.
 plant: hippophae-rhamnoides
-status: proposed
+status: reviewed
 useType: both
 facts:
   # Medicinal uses
@@ -13,37 +13,37 @@ facts:
     page: 200
     quote: "Uses supported by clinical data The fruits of Hippophaë rhamnoides are used in the treatment of cirrhosis of the liver (54)."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для облегчения кашля с обильным отхождением мокроты"
+    ru: 'ВОЗ: описано в фармакопеях — плоды применяют для облегчения кашля с обильным отхождением мокроты'
     doc: monograph
     page: 200
     quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для улучшения пищеварения у людей с затяжным желудочно-кишечным транзитом и болью в животе"
+    ru: 'ВОЗ: описано в фармакопеях — плоды применяют для улучшения пищеварения у людей с затяжным желудочно-кишечным транзитом и болью в животе'
     doc: monograph
     page: 200
     quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — плоды применяют для лечения аменореи"
+    ru: 'ВОЗ: описано в фармакопеях — плоды применяют для лечения аменореи'
     doc: monograph
     page: 200
     quote: "Uses described in pharmacopoeias and well established documents The fruits of Hippophaë rhamnoides are used to relieve cough with profuse expectoration, to promote digestion in people with prolonged gastrointestinal transit with abdominal pain, and for treatment of amenorrhoea (39)."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — отвары плодов применяют наружно в виде обмывания при травматическом отёке и кожных высыпаниях"
+    ru: 'ВОЗ: описано в фармакопеях — отвары плодов применяют наружно в виде обмывания при травматическом отёке и кожных высыпаниях'
     doc: monograph
     page: 200
     quote: "Fruit decoctions are used externally as a wash to treat traumatic swelling and cutaneous eruptions (21)."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — в Исламской Республике Иран этанольные экстракты плодов облепихи применяют внутрь как вяжущее и глистогонное средство"
+    ru: 'ВОЗ: описано в традиционной медицине — в Исламской Республике Иран этанольные экстракты плодов облепихи применяют внутрь как вяжущее и глистогонное средство'
     doc: monograph
     page: 200
     quote: "Uses described in traditional medicine In the Islamic Republic of Iran, ethanol extracts of Hippophaë fruits are used internally as an astringent and anthelminthic."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — есть данные о применении сушёных плодов у больных цингой"
+    ru: 'ВОЗ: описано в традиционной медицине — есть данные о применении сушёных плодов у больных цингой'
     doc: monograph
     page: 200
     quote: "There are data on the use of dried fruits in patients with scurvy."
   - kind: indication
-    ru: "ВОЗ: описано в фармакопеях и традиционной медицине — в Индии и Тибете плоды облепихи широко применяли при нарушениях кровообращения, ишемической болезни сердца и поражении печени"
+    ru: 'ВОЗ: описано в традиционной медицине — в Индии и Тибете плоды облепихи широко применяли при нарушениях кровообращения, ишемической болезни сердца и поражении печени'
     doc: monograph
     page: 200
     quote: "Hippophaë fruits have been used extensively in India and Tibet for the treatment of circulatory disorders, ischaemic heart disease and hepatic injury"

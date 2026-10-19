@@ -1,16 +1,16 @@
-# EMA/HMPC facts for Мята перечная. Draft artifact (status: proposed): Russian fields are a reader's
+# EMA/HMPC facts for Мята перечная. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a reader's
 # rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: mentha-piperita
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
   - kind: indication
-    ru: Расстройства пищеварения, например диспепсия и метеоризм
+    ru: Симптоматическое облегчение расстройств пищеварения, например диспепсии и метеоризма
     doc: monograph
     page: 3
     quote: Traditional herbal medicinal product for the symptomatic relief of digestive disorders such as dyspepsia and flatulence.

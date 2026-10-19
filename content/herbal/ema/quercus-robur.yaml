@@ -1,12 +1,12 @@
-# EMA/HMPC facts for Дуб черешчатый (кора). Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Дуб черешчатый (кора). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page (this
 # monograph's text spans are out of order, so its quotes are matched in reading position order).
 plant: quercus-robur
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -99,7 +99,7 @@ facts:
     page: 5
     quote: If recurrent diarrhoea or bloody stools occur, a doctor or a qualified health care practitioner should be consulted.
   - kind: warning
-    ru: Воспаление кожи и слизистой рта, геморрой — горячие ванны нельзя при лихорадочных или инфекционных болезнях, сердечной недостаточности и артериальной гипертензии
+    ru: Воспаление кожи и слизистой рта, геморрой — горячие ванны не следует применять при лихорадочных или инфекционных болезнях, сердечной недостаточности и артериальной гипертензии
     doc: monograph
     page: 5
     quote: Hot bathes should not be used in case of febrile or infectious illnesses, in heart insufficiency and hypertension.
@@ -140,7 +140,7 @@ constituents:
   - compound: oligomeric proanthocyanidins
     compoundRu: олигомерные проантоцианидины
     classRu: конденсированные танины
-    effectRu: вяжущее
+    effectRu: главным образом обусловливают вяжущее действие экстрактов коры
     evidence: review
     doc: assessment-report
     page: 11

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/02/1531646/9a8cd5b1-2e74-4a7d-b0f8-812c0ae707e0.pdf
-source_checksum: sha256:2b501aa590011081e7d3a683e1f41a3e19886159f87365f47f44ea65f8bad66d
+source_checksum: sha256:2c73cc373c48f29bb982fd3d24b28e951fbd5a8ccd86b775c56332a29795331a
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/taraxaci-officinalis-radix-0
       lastUpdated: null
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-taraxacum-officinale-fh-wigg-radix_en.pdf
@@ -80,14 +81,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-taraxacum-officinale-fh-wigg-radix_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used for the relief of symptoms related to mild digestive disorders (such as feeling of abdominal fullness, flatulence, and slow digestion).
@@ -151,7 +152,7 @@ metadata:
         page: 6
         quote: Because adequate fluid intake is required during treatment (see section 4.2. Posology and method of administration), dandelion root is not recommended for patients with conditions where reduced fluid intake is advised by a medical doctor.
         kind: warning
-        ru: Из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
+        ru: Для увеличения количества мочи — из-за необходимости достаточного питья не рекомендуется пациентам, которым врач советует ограничить потребление жидкости
       - doc: monograph
         page: 6
         quote: Interactions with other medicinal products and other forms of interaction None reported.

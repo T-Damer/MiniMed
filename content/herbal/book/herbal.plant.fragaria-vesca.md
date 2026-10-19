@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/fragariae-folium
-source_checksum: sha256:2c15a0847bd27aa4b769d225e6e7e438ceca4b966aa39953046b2492f152d7f8
+source_checksum: sha256:8635cc966ce0389d9a4263f84a7ee566674f9a6ced7556be7d3ff62ab88a479f
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/fragariae-folium
       lastUpdated: null
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-fragaria-vesca-l-fragaria-moschata-weston-fragaria-viridis-weston-fragaria-x-ananassa-weston-duchesne-ex-rozier-folium-revision-1_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/wild-strawberry-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -71,7 +72,7 @@ metadata:
         page: 4
         quote: Traditional herbal medicinal product used for the relief of symptoms associated with minor urinary tract complaints in addition to the general recommendation of a sufficient fluid intake to increase the amount of urine.
         kind: indication
-        ru: Облегчение симптомов небольших жалоб со стороны мочевых путей, дополнительно к общей рекомендации достаточно пить для увеличения количества мочи
+        ru: Облегчение симптомов небольших жалоб со стороны мочевых путей — наряду с общей рекомендацией пить достаточно жидкости для увеличения количества мочи
       - doc: monograph
         page: 4
         quote: Indication 2) Traditional herbal medicinal product for symptomatic treatment of mild diarrhoea.
@@ -168,11 +169,6 @@ metadata:
         ru: Показание 2 — если диарея возобновляется или появляется кровь в стуле, обратиться к врачу или медработнику
       - doc: monograph
         page: 6
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: warning
-        ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-      - doc: monograph
-        page: 6
         quote: No interaction studies have been performed.
         kind: interaction
         ru: Исследований взаимодействий не проводилось
@@ -181,11 +177,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: pregnancy
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
       - doc: monograph
         page: 6
         quote: None known If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

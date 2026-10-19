@@ -12,7 +12,7 @@ trts:
 lines:
 - source: nccih
   kind: use
-  ru: Приём женьшеня внутрь до 6 месяцев в рекомендуемых дозах, по-видимому, безопасен для большинства людей
+  ru: Кратковременный приём азиатского женьшеня внутрь (до 6 месяцев) в рекомендуемых количествах, по-видимому, безопасен для большинства людей
   quote: Short-term oral use (by mouth, up to 6 months) of Asian ginseng in recommended amounts appears to be safe for most people.
 - source: nccih
   kind: adverse
@@ -28,5 +28,5 @@ lines:
   quote: Some studies of Asian ginseng suggest it may be unsafe when taken orally during pregnancy. One of the chemicals in it has been found to cause birth defects in animals.
 - source: lactmed
   kind: lactation
-  ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при лактации
+  ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при грудном вскармливании (глава LactMed объединяет азиатский, американский и другие виды)
   quote: Because of its possible estrogenic activity and lack of information during breastfeeding, many sources recommend that ginseng not be used during lactation.

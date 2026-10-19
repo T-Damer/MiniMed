@@ -1,11 +1,11 @@
 # EMA/HMPC facts for Эвкалипт (лист). ГРЛС: эвкалипт прутовидный; EMA: Eucalyptus globulus. Draft
 # artifact (status: proposed): Russian fields are a reader's rendering of the quoted English sentence.
 plant: eucalyptus
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 3
     quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
@@ -19,13 +19,13 @@ facts:
     doc: monograph
     page: 3
     quote: "Herbal tea: 1.5 - 3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion, up to 4 times daily."
-    dose: { preparationRu: настой, amount: "1.5-3", unit: г, waterMl: "150", timesPerDay: "4", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: настой, amount: "1.5-3", unit: г, waterMl: "150", timesPerDay: "до 4", populationRu: "подростки, взрослые и пожилые" }
   - kind: posology
     ru: Ингаляция — залить лист кипятком
     doc: monograph
     page: 3
     quote: "Comminuted herbal substance for infusion preparation for inhalation: 3 g of the comminuted herbal substance in boiling water, up to 3 times daily."
-    dose: { preparationRu: настой для ингаляции, amount: "3", unit: г, timesPerDay: "3", populationRu: "подростки, взрослые и пожилые" }
+    dose: { preparationRu: настой для ингаляции, amount: "3", unit: г, timesPerDay: "до 3", populationRu: "подростки, взрослые и пожилые" }
   - kind: age
     ru: Детям младше 30 месяцев нельзя — риск ларингоспазма от препаратов с цинеолом
     doc: monograph
@@ -50,7 +50,7 @@ facts:
     page: 4
     quote: Hypersensitivity to the active substance.
   - kind: warning
-    ru: Одышка, температура или гнойная мокрота — к врачу
+    ru: При одышке, лихорадке или гнойной мокроте — к врачу или медработнику
     doc: monograph
     page: 4
     quote: When dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.

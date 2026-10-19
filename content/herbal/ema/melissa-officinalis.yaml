@@ -1,11 +1,11 @@
 # EMA/HMPC facts for Мелисса лекарственная (EMA: лист; ГРЛС: трава). Draft artifact (status:
 # proposed): Russian fields are a reader's rendering of the quoted English sentence.
 plant: melissa-officinalis
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.

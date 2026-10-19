@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Ромашка аптечная. Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Ромашка аптечная. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: matricaria-chamomilla
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте, а не на клинических исследованиях
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -30,11 +30,11 @@ facts:
     page: 4
     quote: Traditional herbal medicinal product used for the treatment of minor inflammation of the skin (sunburn), superficial wounds and small boils (furuncles).
   - kind: posology
-    ru: Чай (настой) внутрь — подростки и взрослые
+    ru: Чай (настой) внутрь — подростки, взрослые и пожилые
     doc: monograph
     page: 4
     quote: "Adolescents, adults and elderly Single dose: 1.5-4 g of the herbal substance or comminuted herbal substance in 150 ml of boiling water as a herbal infusion Daily dose: 3-4 times"
-    dose: { preparationRu: настой, amount: "1.5-4", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой, amount: "1.5-4", unit: г, waterMl: "150", timesPerDay: "3-4", populationRu: "подростки, взрослые и пожилые"}
   - kind: posology
     ru: Чай (настой) внутрь — дети 6–12 лет
     doc: monograph
@@ -54,19 +54,19 @@ facts:
     quote: "Children (6 months - 2 years) Single dose: 0.5-1.0 g Daily dose: 2-4 times"
     dose: { preparationRu: настой, amount: "0.5-1.0", unit: г, timesPerDay: "2-4", populationRu: дети от 6 месяцев до 2 лет }
   - kind: posology
-    ru: Полоскание рта и горла — подростки и взрослые
+    ru: Полоскание рта и горла — подростки, взрослые и пожилые
     doc: monograph
     page: 5
     quote: "1-5 g in 100 ml water, for rinsing and gargling"
-    dose: { preparationRu: настой для полосканий, amount: "1-5", unit: г, waterMl: "100", populationRu: подростки и взрослые }
+    dose: { preparationRu: настой для полосканий, amount: "1-5", unit: г, waterMl: "100", populationRu: "подростки, взрослые и пожилые"}
   - kind: age
-    ru: Чай внутрь детям младше 6 месяцев не обоснован — из-за особенностей питания и питья младенца
+    ru: 'Чай внутрь детям младше 6 месяцев: применение не установлено — по общим соображениям питания и приёма жидкости'
     doc: monograph
     page: 11
     quote: The oral use of the herbal tea for children below 6 months of age has not been established due to general considerations of nutrition and fluid intake.
     minAgeMonths: 6
   - kind: duration
-    ru: Если симптомы держатся больше недели — к врачу
+    ru: Если симптомы держатся больше недели — к врачу или медработнику
     doc: monograph
     page: 10
     quote: If the symptoms persist more than one week during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
@@ -82,12 +82,12 @@ facts:
     page: 12
     quote: "Preparation a) Safety during pregnancy and lactation has been established."
   - kind: pregnancy
-    ru: Экстракты и настойки — при беременности и кормлении не рекомендуются, безопасность не установлена
+    ru: 'Жидкие и сухие экстракты (препараты b–o) — при беременности и кормлении не рекомендуются: безопасность не установлена, данных недостаточно'
     doc: monograph
     page: 12
     quote: "Preparation b) to o) Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended."
   - kind: lactation
-    ru: Перед кормлением смыть с сосков средства с ромашкой, чтобы не вызвать у ребёнка аллергию
+    ru: При необходимости перед кормлением смыть с сосков средства с ромашкой для наружного применения, чтобы предотвратить сенсибилизацию ребёнка
     doc: monograph
     page: 12
     quote: If applicable before nursing the baby the nipples should be cleaned of matricaria containing products for cutaneous use to prevent a sensitization of the baby.
@@ -97,7 +97,7 @@ facts:
     page: 12
     quote: "Oral use: For patients after renal transplantation taking high dosages for longer periods (about two months) interactions based on effects on CYP450 have been reported."
   - kind: adverse
-    ru: Аллергия, включая тяжёлую (одышка, отёк Квинке, анафилаксия), при контакте слизистых с жидкими препаратами ромашки
+    ru: Сообщалось о реакциях гиперчувствительности, включая тяжёлые (одышка, отёк Квинке, сосудистый коллапс, анафилактический шок), при контакте слизистых с жидкими препаратами ромашки
     doc: monograph
     page: 12
     quote: Hypersensitivity reactions including severe allergic reaction (dyspnoea, Quincke’s disease, vascular collapse, anaphylactic shock) following mucosal contact with liquid chamomile preparations have been reported.
@@ -135,10 +135,10 @@ constituents:
     compoundRu: α-бисаболол
     classRu: эфирное масло (сесквитерпены)
     effectRu: спазмолитическое
-    evidence: animal
+    evidence: in-vitro
     doc: assessment-report
     page: 38
-    quote: Compared to papaverine, a smooth muscle relaxing drug α-bisabolol was 91% as effective on spasms induced with barium chloride
+    quote: The antispasmodic effects of different matricaria compounds have been examined in isolated guinea pig ileum. According to Achterrath-Tuckermann et al. (1980) compounds contained in both aqueous and oil extracts of the plant are effective antispasmodics in isolated guinea pig ileum. Compared to papaverine, a smooth muscle relaxing drug α-bisabolol was 91% as effective on spasms induced with barium chloride
   - compound: apigenin, α-bisabolol
     compoundRu: апигенин, α-бисаболол
     classRu: флавоноиды, эфирное масло
@@ -150,11 +150,11 @@ constituents:
   - compound: apigenin
     compoundRu: апигенин
     classRu: флавоноиды
-    effectRu: седативное в высоких дозах
+    effectRu: седативное в высоких дозах (у животных — при 25 и 50 мг/кг, но не при 12,5 мг/кг)
     evidence: animal
     doc: assessment-report
     page: 40
-    quote: indicating a sedative effect at higher doses similar to Viola et al. (1995).
+    quote: Open filed tests showed significant reductions in locomotor activities compared with controls at apigenin doses of 25 and 50 mg/kg but not at 12.5 mg/kg indicating a sedative effect at higher doses similar to Viola et al. (1995).
   - compound: herniarin, umbelliferone
     compoundRu: герниарин, умбеллиферон
     classRu: кумарины

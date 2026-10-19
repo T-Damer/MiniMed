@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532414/f1ff5f61-f933-48b2-a1f2-4dfdfaec5ae0.pdf
-source_checksum: sha256:308e2d4c1558b9e3ae0a7f2c0f3d46df10f9363e938b67afecbef9b02f2c8fd7
+source_checksum: sha256:f4d39e7b25c11c17a8ee67bdba34a4d14f82062a3b6ff67d341da310abcfbebe
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -70,6 +70,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/foeniculi-amari-fructus
       lastUpdated: 01/03/2024
       species: Foeniculum vulgare Mill. subsp. vulgare var. vulgare (горький фенхель)
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-foeniculum-vulgare-miller-subsp-vulgare-var-vulgare-fructus-revision-1_en.pdf
@@ -78,14 +79,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-foeniculum-vulgare-miller-subsp-vulgare-var-vulgare-foeniculum-vulgare-miller-subsp-vulgare-var-dulce-mill-batt-trab-fructus-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 5
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for symptomatic treatment of mild, spasmodic gastro- intestinal complaints including bloating and flatulence.
@@ -148,7 +149,7 @@ metadata:
         quote: Children between 4 and 12 years of age For short-term use in mild transitory symptoms only (less than one week).
         kind: duration
         ru: Детям 4–12 лет — кратковременно, только при лёгких преходящих симптомах (меньше недели)
-        maxDays: 7
+        maxDays: 6
       - doc: monograph
         page: 6
         quote: Hypersensitivity to the active substance or to Apiaceae (Umbelliferae) family (aniseed, caraway, celery, coriander and dill) or to anethole. Hypersensitivity to mugwort pollen, due to cross- reactivity with fennel.
@@ -191,7 +192,7 @@ metadata:
         compound: anethole, fenchone
         compoundRu: анетол, фенхон
         classRu: эфирное масло
-        effectRu: плоды горького фенхеля — эфирного масла не менее 40 мл/кг, в нём анетола не менее 60,0% и фенхона не менее 15,0%
+        effectRu: плоды горького фенхеля — эфирного масла не менее 40 мл на кг безводных плодов, в нём анетола не менее 60,0% и фенхона не менее 15,0%
         evidence: review
       - doc: assessment-report
         page: 21
@@ -219,7 +220,7 @@ metadata:
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/
       - source: lactmed
         kind: lactation
-        ru: Чрезмерное употребление матерью чая с фенхелем, анисом и другими травами, по-видимому, вызвало у 2 новорождённых на грудном вскармливании токсичность, как от анетола
+        ru: Чрезмерный приём матерью чая с фенхелем, анисом и другими травами, по-видимому, вызвал у двух новорождённых на грудном вскармливании токсичность, соответствующую действию анетола
         quote: Excessive maternal use of an herbal tea containing fennel, anise and other herbs appeared to cause toxicity in 2 breastfed newborns that was consistent with toxicity caused by anethole, which is found in fennel and anise.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM883/
       liver: null

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/09/1531902/5ecabf49-03de-4a6d-8736-6146b816389e.pdf
-source_checksum: sha256:8365a7cda94649be168a7273eed817d91ab84c3dcd451dfc57869a6c523f7496
+source_checksum: sha256:be90d2d97f942e571f5e65ea57e7074371375e66ec59eb422759cf62d88ac096
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -75,6 +75,7 @@ metadata:
       page: https://iris.who.int/handle/10665/44059
       lastUpdated: '2010'
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.e-lactancia.org/media/papers/0-Fitoterapia-Plantas-WHO-O5NIS_2010.pdf
@@ -86,34 +87,34 @@ metadata:
       - 306
       mirror: e-lactancia.org (в WHO IRIS — только описание тома)
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 298
         quote: Herba Origani is used to treat cough, colds and bronchial catarrh, and is used as an expectorant and diaphoretic (39–41).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют при кашле, простуде и бронхиальном катаре, как отхаркивающее и потогонное'
+        ru: 'ВОЗ: описано в традиционной медицине — траву душицы применяют при кашле, простуде и бронхиальном катаре, как отхаркивающее и потогонное'
       - doc: monograph
         page: 298
         quote: Other uses include the treatment of bloating, stimulation of bile secretion, of the appetite and of digestion, and as a sedative and antispasmodic agent (15, 42, 43).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — среди других применений: вздутие живота, стимуляция выделения жёлчи, аппетита и пищеварения, а также как седативное и спазмолитическое средство'
+        ru: 'ВОЗ: описано в традиционной медицине — среди других применений: вздутие живота, стимуляция выделения жёлчи, аппетита и пищеварения, а также как седативное и спазмолитическое средство'
       - doc: monograph
         page: 298
         quote: Herba Origani is also used as an emmenagogue in Unani medicine (44), and for treatment of algomenorrhoea and impotence (45).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — траву душицы применяют также как эмменагогное средство в унани и при альгодисменорее и импотенции'
+        ru: 'ВОЗ: описано в традиционной медицине — траву душицы применяют также как эмменагогное средство (в медицине унани) и при альгодисменорее и импотенции'
       - doc: monograph
         page: 298
         quote: The herb is used as a diuretic and as a treatment for kidney infections, kidney stones and poor renal function resulting from chronic nephritis (22).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — траву применяют как мочегонное и при инфекциях почек, почечных камнях и сниженной функции почек вследствие хронического нефрита'
+        ru: 'ВОЗ: описано в традиционной медицине — траву применяют как мочегонное и при инфекциях почек, почечных камнях и сниженной функции почек вследствие хронического нефрита'
       - doc: monograph
         page: 298
         quote: It is also used to treat inflammation, arthritis (46), hepatitis (47, 48), and externally for scrofula and wound healing (49).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — применяют при воспалении, артрите, гепатите, а наружно — при золотухе и для заживления ран'
+        ru: 'ВОЗ: описано в традиционной медицине — применяют при воспалении, артрите, гепатите, а наружно — при золотухе и для заживления ран'
       - doc: monograph
         page: 301
         quote: Comminuted herb for infusion.

@@ -4,9 +4,9 @@ livertox: LemonBalm
 lines:
 - source: lactmed
   kind: lactation
-  ru: Данных о выделении компонентов мелиссы в грудное молоко, а также о безопасности и эффективности одной мелиссы у кормящих матерей и детей нет
+  ru: Данных о выделении компонентов мелиссы в грудное молоко, а также о безопасности и эффективности мелиссы без других трав у кормящих матерей и детей нет
   quote: No data exist on the excretion of any components of lemon balm into breastmilk or on the safety and efficacy of lemon balm alone in nursing mothers or infants.
 - source: lactmed
   kind: lactation
-  ru: Ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
-  quote: so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.
+  ru: Мелиссу безопасно и эффективно применяли вместе с другими травами у младенцев при коликах, диарее и других состояниях, поэтому ожидаемые (но не доказанные) малые количества в грудном молоке, вероятно, не вредны при обычных дозах у матери
+  quote: Lemon balm has been safely and effectively used with other herbs in infants for the treatment of colic, diarrhea, and other conditions,[ 1 , 2 ] so the smaller amounts expected (but not demonstrated) in breastmilk are likely not to be harmful with usual maternal doses.

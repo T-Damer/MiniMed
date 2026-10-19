@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix
-source_checksum: sha256:b3451c6443abd69719e728235abc4a51d6fc3b1d37e13e194f1fa1041b0ceccc
+source_checksum: sha256:356c7c1e9f2b11832597b0f329fd032d68ffc3255e77220b66426ad48832c754
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix
       lastUpdated: 12/03/2026
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-panax-ginseng-camey-radix-revision-1_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/ginseng-root-assessment-report-summary-public-arsp_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -256,11 +257,6 @@ metadata:
         kind: warning
         ru: Если симптомы ухудшаются во время применения, обратиться к врачу или медработнику
       - doc: monograph
-        page: 7
-        quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
-        kind: warning
-        ru: Для экстрактов, содержащих этанол, должна быть указана соответствующая маркировка об этаноле из руководства по вспомогательным веществам на этикетке и в листке-вкладыше
-      - doc: monograph
         page: 8
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
@@ -275,16 +271,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 8
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 8
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 8
         quote: 'Gastrointestinal disorders: stomach discomfort, nausea, vomiting, diarrhoea, and constipation have been reported. The frequency is not known.'
@@ -368,7 +354,7 @@ metadata:
       lines:
       - source: nccih
         kind: use
-        ru: Приём женьшеня внутрь до 6 месяцев в рекомендуемых дозах, по-видимому, безопасен для большинства людей
+        ru: Кратковременный приём азиатского женьшеня внутрь (до 6 месяцев) в рекомендуемых количествах, по-видимому, безопасен для большинства людей
         quote: Short-term oral use (by mouth, up to 6 months) of Asian ginseng in recommended amounts appears to be safe for most people.
         url: https://www.nccih.nih.gov/health/asian-ginseng
       - source: nccih
@@ -388,7 +374,7 @@ metadata:
         url: https://www.nccih.nih.gov/health/asian-ginseng
       - source: lactmed
         kind: lactation
-        ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при лактации
+        ru: Из-за возможной эстрогенной активности и нехватки данных многие источники рекомендуют не использовать женьшень при грудном вскармливании (глава LactMed объединяет азиатский, американский и другие виды)
         quote: Because of its possible estrogenic activity and lack of information during breastfeeding, many sources recommend that ginseng not be used during lactation.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM901/
       liver:

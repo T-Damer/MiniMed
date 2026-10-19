@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/phaseoli-fructus-sine-semine
-source_checksum: sha256:8b3cc2d0adaa9e787e0b844273b6623ac3ac2059d45b956c66c4f2db358715de
+source_checksum: sha256:944aed2035d4d30a2ade922cfce5fe6896e4761d2d36dd341ad13986297068ca
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -41,6 +41,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/phaseoli-fructus-sine-semine
       lastUpdated: 17/01/2014
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-phaseolus-vulgaris-l-fructus-sine-semine_en.pdf
@@ -52,7 +53,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/green-bean-pods-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -135,16 +136,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 4
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 4
-        quote: Effects on ability to drive and use machines Well-established use Traditional use Not relevant.
-        kind: statement
-        ru: Влияние на способность управлять транспортом и механизмами — не имеет значения
       - doc: monograph
         page: 4
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

@@ -1,10 +1,10 @@
-# EMA/HMPC facts for Вахта трёхлистная (листья). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Вахта трёхлистная (листья). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 # The monograph is traditional use only; its three indications are numbered 1)-3) in the source:
 # 1) temporary loss of appetite, 2) mild digestive disorders (bloating, flatulence),
 # 3) minor articular and muscular pain.
 plant: menyanthes-trifoliata
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -138,16 +138,6 @@ facts:
     doc: monograph
     page: 6
     quote: Patients with articular pain accompanied by swelling of joints, redness or fever should be examined by a doctor.
-  - kind: warning
-    ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть соответствующее указание об этаноле
-    doc: monograph
-    page: 6
-    quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-  - kind: warning
-    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-    doc: monograph
-    page: 7
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -158,11 +148,6 @@ facts:
     doc: monograph
     page: 7
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о фертильности нет
-    doc: monograph
-    page: 7
-    quote: No fertility data available.
   - kind: adverse
     ru: Нежелательные эффекты не известны; при их появлении — к врачу или медработнику
     doc: monograph

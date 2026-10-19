@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/epilobii-herba
-source_checksum: sha256:fe8d8896899085fb947e904ca87f0aa8d17675f4c45b088ca9d185d5147c9d6f
+source_checksum: sha256:2cd611a3ff9d0f0613bc4aec69f91d6ea148a7672fe47d2e4bbe41349fea97c4
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/epilobii-herba
       lastUpdated: 10/02/2016
       species: Epilobium angustifolium L., Epilobium parviflorum Schreb.
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-epilobium-angustifolium-l-and-or-epilobium-parviflorum-schreb-herba_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/willow-herb-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -117,19 +118,9 @@ metadata:
         ru: Взаимодействий не описано
       - doc: monograph
         page: 4
-        quote: Data on fertility is not available.
-        kind: pregnancy
-        ru: Данных о влиянии на фертильность нет
-      - doc: monograph
-        page: 4
         quote: The use in pregnancy and lactation is not applicable due to the indication.
         kind: pregnancy
         ru: Применение при беременности и кормлении грудью неприменимо в связи с показанием
-      - doc: monograph
-        page: 4
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 4
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.

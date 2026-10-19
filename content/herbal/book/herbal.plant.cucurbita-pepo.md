@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/cucurbitae-semen
-source_checksum: sha256:8b811bf9139ba010cb2bc1657b7b5973bc00a05b42f24c035319dea182e80648
+source_checksum: sha256:aa6d22e43179a5fabd86df4e8ee36dbcee599dcaca339cfb1da93db7c048f075
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/cucurbitae-semen
       lastUpdated: 25/03/2013
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-cucurbita-pepo-l-semen_en.pdf
@@ -56,7 +57,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-cucurbita-pepo-l-semen_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -187,16 +188,6 @@ metadata:
         quote: No concern has arisen about any malformation in humans, following the consumption of pumpkin seeds and fatty oil. Can be used during pregnancy and lactation if clinically needed.
         kind: pregnancy
         ru: Опасений по поводу пороков развития у людей после употребления тыквенных семян и жирного масла не возникло; при клинической необходимости можно применять при беременности и кормлении грудью
-      - doc: monograph
-        page: 4
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о влиянии на фертильность нет
-      - doc: monograph
-        page: 4
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 5
         quote: Mild gastrointestinal complaints have been reported. The frequency is common (4%).

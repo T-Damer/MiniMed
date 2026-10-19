@@ -1,10 +1,10 @@
 # EMA/HMPC facts for Исландский мох (цетрария исландская, Cetraria islandica (L.) Acharius s.l.),
-# слоевище. Draft artifact (status: proposed): Russian fields are a reader's rendering of the quoted
+# слоевище. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a reader's rendering of the quoted
 # English sentence; quotes are checked against the PDF. The Community monograph (last revised
 # 24 November 2014) is traditional use only: indication 1) and 2); preparations are lettered
 # a) comminuted herbal substance, b) and c) soft extracts, d) tincture.
 plant: cetraria-islandica
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -151,11 +151,6 @@ facts:
     doc: monograph
     page: 6
     quote: "Indications 1) and 2) Absorption of concomitantly administered medicines may be delayed. As a precautionary measure, the product should not be taken ½ to 1 hour before or after intake of other medicinal products."
-  - kind: warning
-    ru: Для настоек с этанолом должна быть включена соответствующая маркировка об этаноле из руководства по вспомогательным веществам в маркировке и листке-вкладыше
-    doc: monograph
-    page: 6
-    quote: For tinctures containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -166,16 +161,6 @@ facts:
     doc: monograph
     page: 6
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о влиянии на фертильность нет
-    doc: monograph
-    page: 6
-    quote: No fertility data available.
-  - kind: statement
-    ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-    doc: monograph
-    page: 6
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Нежелательные эффекты не известны; если они возникают, нужно обратиться к врачу или квалифицированному медработнику
     doc: monograph
@@ -205,7 +190,7 @@ constituents:
   - compound: polysaccharides (lichenan)
     compoundRu: полисахариды (лихенан)
     classRu: полисахариды
-    effectRu: содержание 25–50%; лихенан (лихенин) — линейный β-D-глюкан, растворимый в горячей воде
+    effectRu: полисахариды — 25–50%; лихенан (лихенин) — линейный β-D-глюкан, растворимый в горячей воде
     evidence: review
     doc: assessment-report
     page: 4

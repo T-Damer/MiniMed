@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/30/1524942/3ff76436-6cd7-4ba9-a52c-c17733e37030.pdf
-source_checksum: sha256:022cfcb47fc50090e3b1675fe49a4c970441c7e2661484c4491f5821023099fd
+source_checksum: sha256:7bfbd35d064a3bf026a2c97970503e22d1c2b77e4eb8b8cccc36b26e26c9de1b
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba
       lastUpdated: 14/10/2016
       species: Thymus vulgaris L., Thymus zygis L.
+      otherSpecies: true
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-thymus-vulgaris-l-and-thymus-zygis-l-herba_en.pdf
@@ -83,14 +84,9 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/thyme-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
-      - doc: monograph
-        page: 3
-        quote: Thymus vulgaris L. and Thymus zygis L., or a mixture of both species, herba (thyme)
-        kind: statement
-        ru: Монография EMA охватывает траву Thymus vulgaris L. и Thymus zygis L. или смесь обоих видов (тимьян)
       - doc: assessment-report
         page: 4
         quote: there are at least 6 chemotypes of Thymus vulgaris (Thompson 2003) with different compositions of the essential oil; only the ‘thymol’-type with thymol as predominant compound complies with the definition in the European Pharmacopoeia.
@@ -100,7 +96,7 @@ metadata:
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product used in productive cough associated with cold.
@@ -318,11 +314,6 @@ metadata:
         ru: Если симптомы усиливаются во время применения — обратиться к врачу или квалифицированному медработнику
       - doc: monograph
         page: 6
-        quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для настоек и экстрактов, содержащих этанол, должна быть указана соответствующая маркировка по этанолу
-      - doc: monograph
-        page: 6
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
         ru: Взаимодействий не описано
@@ -336,16 +327,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно — применение при беременности и кормлении не рекомендуется
-      - doc: monograph
-        page: 6
-        quote: No fertility data available.
-        kind: statement
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 7
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: statement
-        ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
       - doc: monograph
         page: 7
         quote: Gastric disorders may occur. The frequency is not known.

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:c56ad01ca18da3da144e162c97a19bd228ca7efc44c06b4e1672848eceef8bf5
+source_checksum: sha256:f7453e913ea1e607600297e612e4fbbcb980692ba9a811e24ad84d63e2ef7106
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/liquiritiae-radix
       lastUpdated: 20/07/2026
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-glycyrrhiza-glabra-l-glycyrrhiza-inflata-bat-glycyrrhiza-uralensis-fisch-radix-revision-1_en.pdf
@@ -83,14 +84,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/final-assessment-report-glycyrrhiza-glabra-l-glycyrrhiza-inflata-bat-glycyrrhiza-uralensis-fisch-radix-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 4
         quote: Traditional herbal medicinal product for the relief of digestive symptoms including burning sensation and dyspepsia.
@@ -167,7 +168,7 @@ metadata:
         page: 6
         quote: Liquorice root preparations might affect the activity of CYP3A4. Clinical studies have shown that the oral intake of 300 mg/day of glycyrrhizin for 14 days can modestly decrease the systemic exposure to drugs metabolised by CYP 3A4 enzymes such as midazolam and omeprazole.
         kind: interaction
-        ru: Возможно влияние на активность CYP3A4; в клинических исследованиях приём 300 мг/сут глицирризина 14 дней умеренно снижал системное воздействие препаратов, метаболизируемых CYP3A4, например мидазолама и омепразола
+        ru: Возможно влияние на активность CYP3A4; в клинических исследованиях приём 300 мг/сут глицирризина 14 дней может умеренно снижать системное воздействие препаратов, метаболизируемых CYP3A4, например мидазолама и омепразола
       - doc: monograph
         page: 7
         quote: Studies in animals have shown reproductive toxicity (see section 5.3 'Preclinical safety data'). The use is not recommended during pregnancy and in women of childbearing potential not using contraception.

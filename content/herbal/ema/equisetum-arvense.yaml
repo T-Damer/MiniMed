@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Хвощ полевой (трава). Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Хвощ полевой (трава). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: equisetum-arvense
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -49,7 +49,7 @@ facts:
     page: 6
     quote: Hypersensitivity to the active substance. Indication 1 Conditions where a reduced fluid intake is recommended (e.g. severe cardiac or renal diseases).
   - kind: warning
-    ru: Показание 1 — при температуре, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу
+    ru: Показание 1 — при лихорадке, болезненном мочеиспускании, спазмах, крови в моче или ухудшении симптомов — к врачу или медработнику
     doc: monograph
     page: 7
     quote: Indication 1 If complaints or symptoms such as fever, dysuria, spasm or blood in urine occur or if the symptoms worsen during the use of the medicinal product, a doctor or a qualified health care practitioner should be consulted.
@@ -84,7 +84,7 @@ facts:
     page: 8
     quote: No case of overdose has been reported.
   - kind: lookalike
-    ru: Хвощ болотный похож на полевой и содержит потенциально ядовитый палюстрин
+    ru: Некоторые виды хвоща, например хвощ болотный, содержат потенциально ядовитый палюстрин
     doc: assessment-report
     page: 4
     quote: Some Equisetum species such as Equisetum palustre contains potentially toxic palustrin

@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Солодка голая (корень). Draft artifact (status: proposed): Russian fields are a
+# EMA/HMPC facts for Солодка голая (корень). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a
 # reader's rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: glycyrrhiza-glabra
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -70,7 +70,7 @@ facts:
     page: 6
     quote: Liquorice root may counteract antihypertensive action of prescribed medications. Not to be used concomitantly with diuretics, cardiac glycosides, corticosteroids, stimulant laxatives or other medications which may aggravate electrolyte imbalance
   - kind: interaction
-    ru: Возможно влияние на активность CYP3A4; в клинических исследованиях приём 300 мг/сут глицирризина 14 дней умеренно снижал системное воздействие препаратов, метаболизируемых CYP3A4, например мидазолама и омепразола
+    ru: Возможно влияние на активность CYP3A4; в клинических исследованиях приём 300 мг/сут глицирризина 14 дней может умеренно снижать системное воздействие препаратов, метаболизируемых CYP3A4, например мидазолама и омепразола
     doc: monograph
     page: 6
     quote: Liquorice root preparations might affect the activity of CYP3A4. Clinical studies have shown that the oral intake of 300 mg/day of glycyrrhizin for 14 days can modestly decrease the systemic exposure to drugs metabolised by CYP 3A4 enzymes such as midazolam and omeprazole.

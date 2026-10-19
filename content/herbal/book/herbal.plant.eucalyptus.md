@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530418/3b2a8029-6146-4e58-bfdb-25525f5bdd1d.pdf
-source_checksum: sha256:d5397ff7f38cef3f60cc709a48f63a3ae9147bc071729c32b6c8db18a5624a25
+source_checksum: sha256:6db880ec9f1a07d556cc4c455f7c40b125af8c729f75ffe9479049531cb9b6da
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -73,6 +73,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/eucalypti-folium
       lastUpdated: 16/06/2014
       species: Eucalyptus globulus Labill.
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-community-herbal-monograph-eucalyptus-globulus-labill-folium_en.pdf
@@ -84,14 +85,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/eucalyptus-leaf-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 3
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used for relief of cough associated with cold.
@@ -107,7 +108,7 @@ metadata:
           amount: 1.5-3
           unit: г
           waterMl: '150'
-          timesPerDay: '4'
+          timesPerDay: до 4
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 3
@@ -118,7 +119,7 @@ metadata:
           preparationRu: настой для ингаляции
           amount: '3'
           unit: г
-          timesPerDay: '3'
+          timesPerDay: до 3
           populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
@@ -147,7 +148,7 @@ metadata:
         page: 4
         quote: When dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
         kind: warning
-        ru: Одышка, температура или гнойная мокрота — к врачу
+        ru: При одышке, лихорадке или гнойной мокроте — к врачу или медработнику
       - doc: monograph
         page: 5
         quote: Interactions with other medicinal products and other forms of interaction None reported.

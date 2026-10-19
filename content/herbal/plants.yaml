@@ -337,7 +337,7 @@ plants:
     family: Lamiaceae
     part: { ru: трава, la: herba }
     grls: { inn: [тимьяна ползучего трава] }
-    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba, species: "Thymus vulgaris L., Thymus zygis L." }
+    ema: { page: https://www.ema.europa.eu/en/medicines/herbal/thymi-herba, species: "Thymus vulgaris L., Thymus zygis L.", otherSpecies: true }
     plate: { book: kohler, file: "File:Thymus serpyllum - Köhler–s Medizinal-Pflanzen-138.jpg" }
     gf: { edition: 14, path: /pharmacopoeia/izdanie-14/2/2-5/chabretsa-trava/ }
   - id: helichrysum-arenarium

@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Первоцвет весенний (корневища с корнями). Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Первоцвет весенний (корневища с корнями). Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: primula-veris
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
@@ -135,11 +135,6 @@ facts:
     doc: monograph
     page: 6
     quote: If dyspnoea, fever or purulent sputum occurs, a doctor or a qualified health care practitioner should be consulted.
-  - kind: warning
-    ru: Для настоек и экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
-    doc: monograph
-    page: 6
-    quote: For tinctures and extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
   - kind: interaction
     ru: Взаимодействий не описано
     doc: monograph
@@ -155,16 +150,6 @@ facts:
     doc: monograph
     page: 6
     quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
-  - kind: pregnancy
-    ru: Данных о фертильности нет
-    doc: monograph
-    page: 7
-    quote: No fertility data available.
-  - kind: warning
-    ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-    doc: monograph
-    page: 7
-    quote: No studies on the effect on the ability to drive and use machines have been performed.
   - kind: adverse
     ru: Нежелательные эффекты не известны; при их появлении — к врачу или квалифицированному медработнику
     doc: monograph

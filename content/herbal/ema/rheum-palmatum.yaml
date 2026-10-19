@@ -1,7 +1,7 @@
-# EMA/HMPC facts for Ревень дланевидный (корни); монография EMA охватывает Rheum palmatum и Rheum officinale. Draft artifact (status: proposed): Russian fields
+# EMA/HMPC facts for Ревень дланевидный (корни); монография EMA охватывает Rheum palmatum и Rheum officinale. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields
 # are a reader's rendering of the quoted English sentence; quotes are checked against the PDF pages.
 plant: rheum-palmatum
-status: proposed
+status: reviewed
 useType: both
 facts:
 - kind: statement
@@ -108,11 +108,6 @@ facts:
   doc: monograph
   page: 6
   quote: If the symptoms worsen during the use of the medicinal product, a doctor or a pharmacist should be consulted.
-- kind: warning
-  ru: Для жидких форм, содержащих этанол, на упаковке должна быть соответствующая маркировка об этаноле
-  doc: monograph
-  page: 6
-  quote: For liquid dosage forms containing ethanol the appropriate labelling for ethanol, taken from the 'Guideline on excipients in the label and package leaflet of medicinal products for human use', must be included.
 - kind: interaction
   ru: Гипокалиемия (при длительном злоупотреблении слабительными) усиливает действие сердечных гликозидов и взаимодействует с антиаритмическими средствами; одновременный приём с мочегонными, кортикостероидами и корнем солодки может усиливать потерю калия
   doc: monograph
@@ -128,16 +123,6 @@ facts:
   doc: monograph
   page: 6
   quote: Lactation The use during lactation is contraindicated because after administration of anthranoids, active metabolites, such as rhein, were excreted in breast milk in small amounts.
-- kind: pregnancy
-  ru: Данных о фертильности нет
-  doc: monograph
-  page: 7
-  quote: No fertility data are available (see section 5.3 preclinical safety data).
-- kind: statement
-  ru: Исследований влияния на способность управлять транспортом и механизмами не проводилось
-  doc: monograph
-  page: 7
-  quote: No studies on the effect on the ability to drive and use machines have been performed.
 - kind: adverse
   ru: Могут возникать реакции гиперчувствительности (зуд, крапивница, местная или генерализованная экзантема)
   doc: monograph

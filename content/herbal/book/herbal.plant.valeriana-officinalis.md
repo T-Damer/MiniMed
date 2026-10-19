@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528263/13738427-f952-43be-8300-2f7f1186ed35.pdf
-source_checksum: sha256:2e37159d012d26c63c96e883bec1faeb0646697788fb88bbab9d5ad300790927
+source_checksum: sha256:11eb30949da8f8586da86216320a5c787e215c6a8f5a3be15d1566816d915f93
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/valerianae-radix
       lastUpdated: 11/03/2026
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-valeriana-officinalis-l-radix_en.pdf
@@ -83,7 +84,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/valerian-root-assessment-report-summary-public-arsp_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -100,13 +101,13 @@ metadata:
         page: 5
         quote: 'Herbal tea: 0.3-3 g of the comminuted herbal substance in 150 ml of boiling water as a herbal infusion'
         kind: posology
-        ru: Чай (настой) — подростки и взрослые
+        ru: Чай (настой) — подростки, взрослые и пожилые
         dose:
           preparationRu: настой
           amount: 0.3-3
           unit: г
           waterMl: '150'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 4
         quote: 'single dose: 0.3-3 g For relief of mild symptoms of mental stress up to 3 times daily.'
@@ -117,7 +118,7 @@ metadata:
           amount: 0.3-3
           unit: г
           timesPerDay: '3'
-          populationRu: подростки и взрослые
+          populationRu: подростки, взрослые и пожилые
       - doc: monograph
         page: 5
         quote: To aid sleep, a single dose half to one hour before bedtime with an earlier dose during the evening if necessary.
@@ -125,7 +126,7 @@ metadata:
         ru: Для сна — за полчаса–час до сна, при необходимости ещё раз раньше вечером
       - doc: monograph
         page: 6
-        quote: 'a) single dose: 100 g for a full bath; up to 1 bath daily'
+        quote: 'a) single dose: 100 g for a full bath; up to 1 bath daily The use in children under 12 years of age is not recommended'
         kind: posology
         ru: Ванна — 100 г на полную ванну, до 1 ванны в день
         dose:
@@ -133,7 +134,7 @@ metadata:
           amount: '100'
           unit: г
           timesPerDay: '1'
-          populationRu: подростки и взрослые
+          populationRu: кроме детей до 12 лет
       - doc: monograph
         page: 5
         quote: The use in children under 12 years of age is not recommended
@@ -180,7 +181,7 @@ metadata:
         page: 8
         quote: Gastrointestinal symptoms (e.g. nausea, abdominal cramps) may occur after ingestion of valerian root preparations.
         kind: adverse
-        ru: Возможны желудочно-кишечные симптомы, например тошнота и спазмы в животе
+        ru: После приёма препаратов корня валерианы внутрь возможны желудочно-кишечные симптомы, например тошнота и спазмы в животе
       - doc: monograph
         page: 8
         quote: Valerian root at a dose of approximately 20 g caused symptoms such as fatigue, abdominal cramp, chest tightness, light-headedness, hand tremor and mydriasis, which disappeared within 24 hours.
@@ -244,7 +245,7 @@ metadata:
         url: https://www.nccih.nih.gov/health/valerian
       - source: lactmed
         kind: lactation
-        ru: Опыта применения при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно при кормлении новорождённого или недоношенного
+        ru: Опубликованного опыта применения валерианы при грудном вскармливании нет; может быть предпочтительна другая терапия, особенно при кормлении новорождённого или недоношенного
         quote: Because there is no published experience with valerian during breastfeeding, an alternate therapy may be preferred, especially while nursing a newborn or preterm infant.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM902/
       - source: lactmed

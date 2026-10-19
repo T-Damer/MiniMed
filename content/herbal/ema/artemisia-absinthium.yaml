@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Полынь горькая. Draft artifact (status: proposed): Russian fields are a reader's
+# EMA/HMPC facts for Полынь горькая. Read line by line against the quotes on 2026-10-20 (status: reviewed): Russian fields are a reader's
 # rendering of the quoted English sentence; quotes are checked against the PDF page.
 plant: artemisia-absinthium
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 4
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -26,7 +26,7 @@ facts:
     quote: "a) Single dose herbal tea 1-1.5 g comminuted herbal substance in 150 ml of boiling water as an infusion Single dose: 1-1.5 g Daily dose: 2-3 g"
     dose: { preparationRu: настой, amount: "1-1.5", unit: г, waterMl: "150", populationRu: взрослые и пожилые }
   - kind: posology
-    ru: Для аппетита — за 30 минут до еды; при несварении — после еды
+    ru: При потере аппетита — за 30 минут до еды; при лёгких расстройствах пищеварения — после еды
     doc: monograph
     page: 5
     quote: Indication 1) To be taken 30 minutes before meals. Indication 2) To be taken after meals.
@@ -81,7 +81,7 @@ constituents:
   - compound: bitters
     compoundRu: горечи
     classRu: горькие вещества
-    effectRu: препарат полыни увеличил слюноотделение более чем на 100% у всех 4 здоровых добровольцев; авторы связывают действие горечей скорее с секрецией желудочного сока
+    effectRu: препарат полыни увеличил слюноотделение более чем на 100% у всех 4 здоровых добровольцев, но такой же рост вызвало и рисовое блюдо без специй; авторы связывают действие горечей скорее с секрецией желудочного сока
     evidence: clinical
     doc: assessment-report
     page: 24

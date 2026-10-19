@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen
-source_checksum: sha256:af2087bb32471bdf0ecfafd02d496169e3ad2c651fc52263dae5082d57306604
+source_checksum: sha256:d7726c3614fd00cac4b79a612ace431e31c6d092b19c329621341d6f070c73bb
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/hippocastani-semen
       lastUpdated: 23/04/2020
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/european-union-herbal-monograph-aesculus-hippocastanum-l-semen-final-revision-1_en.pdf
@@ -59,7 +60,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-summary/horse-chestnut-seed-summary-public_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: both
       facts:
       - doc: monograph
@@ -351,16 +352,6 @@ metadata:
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
       - doc: monograph
         page: 8
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
-      - doc: monograph
-        page: 8
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: warning
-        ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
-      - doc: monograph
-        page: 8
         quote: Gastrointestinal complaints, headache, vertigo, itching and allergic reactions have been reported. The frequency is not known. If other adverse reactions not mentioned above occur, a doctor or a pharmacist should be consulted.
         kind: adverse
         ru: Сообщалось о нарушениях со стороны ЖКТ, головной боли, головокружении, зуде и аллергических реакциях; частота неизвестна. При других нежелательных реакциях — к врачу или фармацевту (хорошо изученное применение)
@@ -439,11 +430,11 @@ metadata:
         evidence: review
       - doc: assessment-report
         page: 38
-        quote: Anti-oedematous effects of HCSE (and aescin) have been observed in vivo after i.v. and i.p. administration.
+        quote: Anti-oedematous effects of HCSE (and aescin) have been observed in vivo after i.v. and i.p. administration. No effect was observed after oral administration.
         compound: horse chestnut seed extract (HCSE), aescin
         compoundRu: экстракт семян конского каштана (HCSE), эсцин
         classRu: извлечение из семян
-        effectRu: Противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения
+        effectRu: противоотёчное действие экстракта (и эсцина) наблюдалось in vivo после в/в и в/б введения; после приёма внутрь эффекта не отмечено
         evidence: animal
     redBook: null
     safety:

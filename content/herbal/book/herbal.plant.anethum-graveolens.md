@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/29/1530517/0a8dd910-ccd0-4056-a76a-7af082883644.pdf
-source_checksum: sha256:f5f16415aae787f56bcec270d2e87b5c6766566746e9552a255c8217528cbe01
+source_checksum: sha256:58f6f4136f852bc3ac8c0a4b011d0a15bc4e3d56ae5c697e3638e4d46ecf2787
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -72,6 +72,7 @@ metadata:
       page: https://iris.who.int/handle/10665/42052
       lastUpdated: '2007'
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://iris.who.int/server/api/core/bitstreams/f4e276e8-6a1a-4ea4-979f-776a7ddfe2d1/content
@@ -82,24 +83,24 @@ metadata:
       - 41
       - 49
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 44
         quote: Uses described in pharmacopoeias and well established documents Treatment of dyspepsia (25), gastritis and flatulence (1, 26), and stomach ache (27).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — лечение диспепсии, гастрита, метеоризма и боли в желудке'
+        ru: 'ВОЗ: описано в фармакопеях — лечение диспепсии, гастрита, метеоризма и боли в желудке'
       - doc: monograph
         page: 44
         quote: Uses described in traditional medicine As an aphrodisiac, analgesic, antipyretic, diuretic, emmenagogue, galactagogue, appetite stimulant and vaginal contraceptive.
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — как афродизиак, обезболивающее, жаропонижающее, мочегонное, эмменагогное, галактагогное средство, стимулятор аппетита и вагинальный контрацептив'
+        ru: 'ВОЗ: описано в традиционной медицине — как афродизиак, обезболивающее, жаропонижающее, мочегонное, эмменагогное, галактагогное средство, стимулятор аппетита и вагинальный контрацептив'
       - doc: monograph
         page: 44
         quote: Treatment of diarrhoea, asthma, neuralgia, dysuria, dysmenorrhoea, gallbladder disease, insomnia, hiatus hernia and kidney stones (9, 26–29).
         kind: indication
-        ru: 'ВОЗ: описано в фармакопеях и традиционной медицине — лечение диареи, астмы, невралгии, дизурии, дисменореи, заболеваний жёлчного пузыря, бессонницы, грыжи пищеводного отверстия диафрагмы и почечных камней'
+        ru: 'ВОЗ: описано в традиционной медицине — лечение диареи, астмы, невралгии, дизурии, дисменореи, заболеваний жёлчного пузыря, бессонницы, грыжи пищеводного отверстия диафрагмы и почечных камней'
       - doc: monograph
         page: 46
         quote: 'Average daily dose: Fructus Anethi 3 g; essential oil 0.1–0.3 g; or equivalent for other preparations (25).'
@@ -211,12 +212,12 @@ metadata:
       lines:
       - source: lactmed
         kind: lactation
-        ru: 'В двух исследованиях кормящим матерям давали d-карвон: побочных эффектов у матерей и детей не отмечено'
+        ru: 'В двух исследованиях кормящим матерям давали само вещество d-карвон (не укроп): побочных эффектов у матерей и детей не отмечено'
         quote: In two studies, nursing mothers were given d-carvone. No adverse effects were noted in the mothers or infants.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/
       - source: lactmed
         kind: adverse
-        ru: Укроп в целом хорошо переносится, но отмечались случайные аллергические кожные реакции, особенно после контакта со свежим укропом
+        ru: Укроп в целом хорошо переносится, но сообщалось о единичных аллергических кожных реакциях, особенно после контакта со свежим укропом
         quote: It is generally well tolerated, but occasional allergic skin reactions have been reported, especially after contact with fresh dill.
         url: https://www.ncbi.nlm.nih.gov/books/n/lactmed/LM959/
       liver: null

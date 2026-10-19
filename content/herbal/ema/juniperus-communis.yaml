@@ -1,11 +1,11 @@
-# EMA/HMPC facts for Можжевельник обыкновенный (шишкоягоды). Draft artifact (status: proposed):
+# EMA/HMPC facts for Можжевельник обыкновенный (шишкоягоды). Read line by line against the quotes on 2026-10-20 (status: reviewed):
 # Russian fields are a reader's rendering of the quoted English sentence.
 plant: juniperus-communis
-status: proposed
+status: reviewed
 useType: traditional
 facts:
   - kind: use-type
-    ru: Традиционное растительное средство — применение основано на длительном опыте
+    ru: Традиционное растительное средство — применение основано только на длительном опыте
     doc: monograph
     page: 5
     quote: The product is a traditional herbal medicinal product for use in specified indications exclusively based upon long-standing use.
@@ -54,7 +54,7 @@ facts:
     page: 7
     quote: Not recommended to be used in case of severe renal disease including infectious interstitial nephritis, pyelitis and pyelonephritis.
   - kind: warning
-    ru: При температуре, болезненном мочеиспускании, спазмах, крови в моче — к врачу
+    ru: При лихорадке, болезненном мочеиспускании, спазмах или крови в моче — к врачу или медработнику
     doc: monograph
     page: 7
     quote: If complaints or symptoms such as fever, dysuria, spasms or blood in the urine occur during the use of the medicinal product, a doctor or a qualified health care professional should be consulted.
@@ -100,7 +100,7 @@ facts:
     quote: Juniperus sabina L. (savine) has almost black fruits with a diameter of only 5-8 mm
 constituents:
   - compound: cone berry infusion
-    compoundRu: настой шишкоягод
+    compoundRu: извлечения из шишкоягод
     effectRu: в опытах (в основном на крысах) мочегонное действие не только водное — усиливалось и выведение минеральных веществ, главным образом хлорида
     evidence: animal
     doc: assessment-report
@@ -109,7 +109,7 @@ constituents:
   - compound: essential oil, terpinen-4-ol
     compoundRu: эфирное масло, терпинен-4-ол
     classRu: эфирное масло (монотерпены)
-    effectRu: биохимические, патологические и гистологические исследования не показали нефротоксичности масла и терпинен-4-ола, которую раньше считали причиной мочегонного действия
+    effectRu: биохимические, патологические и гистологические исследования ставят под сомнение, что масло и терпинен-4-ол вызывают нефротоксическое действие, которое раньше считали причиной мочегонного эффекта
     evidence: review
     doc: assessment-report
     page: 8

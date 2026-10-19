@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/03/1528273/f8aa0ed8-8fbf-4da0-98dc-7a1943f326f9.pdf
-source_checksum: sha256:1e92fbb54ebc6695864120213b32097ba80949af4cc72c2abd9e42ca80c2f50d
+source_checksum: sha256:79183b4d3cf7508bef46f8b2ef5c5cef981885b81903f144f64db29c501a0442
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -66,6 +66,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/maydis-stigma
       lastUpdated: null
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/draft-european-union-herbal-monograph-zea-mays-l-stigma_en.pdf
@@ -74,14 +75,14 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/draft-assessment-report-zea-mays-l-stigma_en.pdf
           draft: true
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
         page: 4
         quote: The product is a traditional herbal medicinal product for use in the specified indication exclusively based upon long-standing use.
         kind: use-type
-        ru: Традиционное растительное средство — применение основано на длительном опыте
+        ru: Традиционное растительное средство — применение основано только на длительном опыте
       - doc: monograph
         page: 3
         quote: Traditional herbal medicinal product used for the relief of symptoms associated with minor urinary tract complaints in addition to the general recommendation of a sufficient fluid intake to increase the amount of urine.
@@ -126,7 +127,7 @@ metadata:
         page: 4
         quote: If the symptoms persist longer than 2 weeks during the use of the medicinal product a doctor or a qualified health care practitioner should be consulted.
         kind: duration
-        ru: Если симптомы держатся дольше 2 недель — к врачу
+        ru: Если симптомы держатся дольше 2 недель — к врачу или медработнику
         maxDays: 14
       - doc: monograph
         page: 4
@@ -174,10 +175,10 @@ metadata:
         evidence: review
       - doc: assessment-report
         page: 10
-        quote: The authors concluded diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate and inhibition of sodium and chloride tubular reabsorption
+        quote: The authors concluded diuretic effect of 5% aqueous Maydis stigma extract is in accordance with the increase in glomerular filtration rate and inhibition of sodium and chloride tubular reabsorption (caused by an unidentified constituent/factor) but not the salt- loading effect.
         compound: aqueous extract
         compoundRu: водный экстракт
-        effectRu: по выводу авторов, мочегонный эффект согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов
+        effectRu: по выводу авторов, мочегонный эффект 5% водного экстракта рылец согласуется с ростом клубочковой фильтрации и угнетением канальцевой реабсорбции натрия и хлоридов (вызванным неустановленным компонентом)
         evidence: animal
     redBook: null
     safety: null

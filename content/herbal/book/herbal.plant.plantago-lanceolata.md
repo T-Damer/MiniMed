@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/plantaginis-lanceolatae-folium
-source_checksum: sha256:4a110a7a4e75cb2ac92b8beae3b155fe7438cb8fed3afbfd991db9cd4775ee45
+source_checksum: sha256:71b5d35a0f8c8bfc68cb83bbf58481329ef6a8ecec516c21e0b7f4eaf1370195
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -20,9 +20,9 @@ metadata:
   rightsBasis: 'ГРЛС: official instructions approved by the Ministry of Health of Russia; EMA/HMPC: «Reproduction is authorised provided the source is acknowledged»; WHO monographs: attributed (personal project); botanical plates: public domain (Wikimedia Commons licence checked at fetch time) or supplied by the owner; ГФ XV and the Red Book list: official publications'
   publicationState: experimental-preview
   publicationDecision:
-    decidedAt: '2026-10-18'
+    decidedAt: '2026-10-20'
     decidedBy: project owner
-    basis: Herbal book pilot of 30 plants (ГРЛС raw material, EMA/HMPC monographs, public-domain plates) as an experimental downloadable module for self-education; EMA limits and doses as Russian structured fields with the English quote on tap
+    basis: Herbal book (ГРЛС raw material, EMA/HMPC and WHO monographs, NCCIH, LactMed, LiverTox, ТР ТС 021/2011, public-domain plates) published as a downloadable module for self-education after a line-by-line review of the Russian fields against their English quotes (2026-10-20); the English quote stays on tap
   requiresReview: true
   calculationRequired: false
   clinicalContextRequired: true
@@ -48,6 +48,7 @@ metadata:
       page: https://www.ema.europa.eu/en/medicines/herbal/plantaginis-lanceolatae-folium
       lastUpdated: 20/10/2025
       species: null
+      otherSpecies: false
       documents:
         monograph:
           url: https://www.ema.europa.eu/en/documents/herbal-monograph/final-european-union-herbal-monograph-plantaginis-lanceolatae-folium-revision-1_en.pdf
@@ -56,7 +57,7 @@ metadata:
           url: https://www.ema.europa.eu/en/documents/herbal-report/final-assessment-report-plantaginis-lanceolatae-folium-revision-1_en.pdf
           draft: false
       extracted: true
-      status: proposed
+      status: reviewed
       useType: traditional
       facts:
       - doc: monograph
@@ -389,7 +390,7 @@ metadata:
         page: 8
         quote: 'Indication 2) Oral use Preparation j) Adolescents, adults and elderly Single dose: 0.4-1.26 g liquid extract Dosage frequency: 3-4 times daily Daily dose: 1.2-4.8 mg'
         kind: posology
-        ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день, суточная доза 1,2–4,8 мг'
+        ru: 'Показание 2, препарат j): жидкий экстракт — подростки, взрослые и пожилые, разовая доза 0,4–1,26 г жидкого экстракта, 3–4 раза в день; суточная доза в монографии — 1,2–4,8 мг (так в источнике)'
         dose:
           preparationRu: жидкий экстракт j)
           amount: 0.4-1.26
@@ -536,19 +537,9 @@ metadata:
         ru: При одышке, лихорадке или гнойной мокроте — обратиться к врачу или квалифицированному медработнику
       - doc: monograph
         page: 10
-        quote: For extracts containing ethanol, the appropriate labelling for ethanol, taken from the ‘Guideline on excipients in the label and package leaflet of medicinal products for human use’, must be included.
-        kind: warning
-        ru: Для экстрактов, содержащих этанол, на упаковке должно быть указание об этаноле
-      - doc: monograph
-        page: 10
         quote: Interactions with other medicinal products and other forms of interaction Well-established use Traditional use None reported.
         kind: interaction
         ru: Взаимодействий не описано
-      - doc: monograph
-        page: 10
-        quote: No fertility data available.
-        kind: pregnancy
-        ru: Данных о фертильности нет
       - doc: monograph
         page: 11
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
@@ -559,11 +550,6 @@ metadata:
         quote: Safety during pregnancy and lactation has not been established. In the absence of sufficient data, the use during pregnancy and lactation is not recommended.
         kind: lactation
         ru: Безопасность при беременности и кормлении грудью не установлена; данных недостаточно, применение не рекомендуется
-      - doc: monograph
-        page: 11
-        quote: No studies on the effect on the ability to drive and use machines have been performed.
-        kind: warning
-        ru: Исследований влияния на способность водить транспорт и управлять механизмами не проводилось
       - doc: monograph
         page: 11
         quote: None known. If adverse reactions occur, a doctor or a qualified health care practitioner should be consulted.
