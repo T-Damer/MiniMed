@@ -7,6 +7,7 @@ import type {
 import {
   correctWord,
   isCloseToken,
+  isLookupMetaToken,
   MEDICATION_SPELLING_LABEL,
   type NameVocabulary,
   nameQueryVariants,
@@ -132,6 +133,9 @@ export function spellingCorrection(
     // A short Latin word is a term, a code or a stray word of pasted code («alert», «script»), not a
     // slip of a name: one edit away from a rare Latin name («Apert») it would find nonsense.
     if (SHORT_LATIN_WORD.test(word)) continue;
+    // «инструкция», «официальная» name the kind of answer wanted; an ordinary word, not a slip
+    // («инструкция» is two edits from «деструкция»).
+    if (isLookupMetaToken(word)) continue;
     const found = correctWord(word, vocabulary);
     if (!found) continue;
     corrected += normalized.slice(cursor, match.index) + found.corrected;

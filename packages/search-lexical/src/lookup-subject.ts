@@ -1,7 +1,7 @@
 // Which typed words of a query name its subject and which only name a form, a strength, the
 // audience or the kind of answer wanted («таблетки», «ребёнка», «лекарство», «инструкция»).
 // Lookup ranking, the lookup title branch and group filtering share these definitions.
-import { lightStemRussian } from './normalize';
+import { lightStemRussian, normalizeSurfaceText, tokenize } from './normalize';
 
 const stemToken = lightStemRussian;
 
@@ -127,14 +127,42 @@ export const LOOKUP_META_STEMS = [
   'информац',
   'описан',
   'справк',
+  'официальн',
+  'аннотац',
 ];
+
+/** A typed word that only names the kind of answer wanted («инструкция», «официальная»). */
+export function isLookupMetaToken(token: string): boolean {
+  const stem = stemToken(token);
+  return LOOKUP_META_STEMS.some((meta) => stem.startsWith(meta));
+}
+
+/**
+ * Words that only dress up the kind of answer («официальная инструкция»): they say nothing about the
+ * subject and, being common in leaflet text, would pull in documents that merely mention them.
+ */
+const LOOKUP_DECORATIVE_STEMS = ['официальн'];
+
+/**
+ * The query without its decorative qualifier words, when a subject word remains
+ * («Ибупрофен: официальная инструкция» → «Ибупрофен: инструкция»); otherwise unchanged.
+ */
+export function withoutLookupDecorations(query: string): string {
+  const words = query.split(/\s+/u);
+  const kept = words.filter((word) => {
+    const stem = stemToken(normalizeSurfaceText(word).replace(/[^0-9a-zа-я-]/gu, ''));
+    return !LOOKUP_DECORATIVE_STEMS.some((decorative) => stem.startsWith(decorative));
+  });
+  if (kept.length === words.length) return query;
+  const rest = kept.join(' ');
+  return tokenize(normalizeSurfaceText(rest)).some(isLookupSubjectToken) ? rest : query;
+}
 
 /** A typed word of a lookup query that names its subject (not a form, strength, audience or meta word). */
 export function isLookupSubjectToken(token: string): boolean {
   if (token.length < 3 || /^\d/u.test(token)) return false;
   if (!isTitleQueryTerm(token) || isFormOrStrengthToken(token)) return false;
-  const stem = stemToken(token);
-  return !LOOKUP_META_STEMS.some((meta) => stem.startsWith(meta));
+  return !isLookupMetaToken(token);
 }
 
 const CHILD_AUDIENCE_TOKEN =

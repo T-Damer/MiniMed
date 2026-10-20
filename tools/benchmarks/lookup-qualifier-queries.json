@@ -1,0 +1,25 @@
+{
+  "description": "A drug name plus a qualifier of the kind of answer wanted («официальная инструкция», «инструкция»): the drug's own card must stay first, in «Все» and in «Препараты», through the app's lookup path. Regression: «Ибупрофен: официальная инструкция» returned unrelated documents (the qualifier pulled in aliases of «деструкция» and mismatched documents). Run by run-real-corpus.ts; any miss fails --check.",
+  "queries": [
+    {
+      "id": "qualifier.ibuprofen.official-instruction",
+      "query": "Ибупрофен: официальная инструкция",
+      "expectedDocumentIds": ["esklp.mnn.ибупрофен", "drug.allmed.11"]
+    },
+    {
+      "id": "qualifier.paracetamol.official-instruction",
+      "query": "Парацетамол: официальная инструкция",
+      "expectedDocumentIds": ["esklp.mnn.парацетамол", "drug.allmed.10"]
+    },
+    {
+      "id": "qualifier.ceftriaxone.official-instruction",
+      "query": "Цефтриаксон: официальная инструкция",
+      "expectedDocumentIds": ["esklp.mnn.цефтриаксон", "drug.allmed.525"]
+    },
+    {
+      "id": "qualifier.ibuprofen.instruction",
+      "query": "ибупрофен инструкция",
+      "expectedDocumentIds": ["esklp.mnn.ибупрофен", "drug.allmed.11"]
+    }
+  ]
+}

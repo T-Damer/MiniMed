@@ -75,6 +75,17 @@ const lookupQueries = [
   'tools/benchmarks/medication-lookup-queries.json',
   'tools/benchmarks/doctor-workflow-queries.json',
 ].flatMap((path) => read<readonly LookupQuery[]>(path));
+/**
+ * Drug name + qualifier of the kind of answer wanted, asked as the app asks a lookup in «Все» and
+ * «Препараты». Not part of the ratcheted figures: every miss fails `--check`.
+ */
+const qualifierQueries = read<{
+  readonly queries: readonly {
+    readonly id: string;
+    readonly query: string;
+    readonly expectedDocumentIds: readonly string[];
+  }[];
+}>('tools/benchmarks/lookup-qualifier-queries.json').queries;
 const demo = read<{
   queries: readonly DemoQuery[];
   cases: readonly DemoCase[];
@@ -207,6 +218,27 @@ for (const fixture of demo.queries.filter((item) => item.status !== 'excluded'))
   });
 }
 
+const qualifierRows = [];
+for (const fixture of qualifierQueries) {
+  for (const scope of ['all', 'medications'] as const) {
+    const response = await new ScopedMedicalCore(core, scope).search({
+      query: fixture.query,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 20,
+      includeSuggestions: false,
+    });
+    if (!response.ok) throw new Error(`${fixture.id}/${scope}: ${response.error.message}`);
+    const rank = rankOf(response.value.groups, new Set(fixture.expectedDocumentIds));
+    qualifierRows.push({
+      id: `${fixture.id}/${scope}`,
+      hitAt1: rank === 1,
+      top: response.value.groups.slice(0, 5).map((group) => group.title),
+    });
+  }
+}
+
 const caseRows = [];
 for (const fixture of demo.cases) {
   const analysis = await core.analyzeQuery({ query: fixture.query, includeSuggestions: true });
@@ -275,6 +307,10 @@ const summary = {
     targetInTop5Rate: mean(caseRows.map((row) => Number(row.checks.targetInTop5))),
     analysisPassRate: mean(caseRows.map((row) => Number(row.analysisPassed))),
   },
+  qualifier: {
+    queryCount: qualifierRows.length,
+    top1Rate: mean(qualifierRows.map((row) => Number(row.hitAt1))),
+  },
   search: {
     searchCount: searches.length,
     zeroResultRate: mean(searches.map((search) => Number(search.empty))),
@@ -288,9 +324,9 @@ const reportPath = resolve(REPOSITORY_ROOT, `data/build/real-corpus-benchmark-${
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(
   reportPath,
-  `${JSON.stringify({ summary, lookupRows, demoRows, caseRows }, null, 2)}\n`,
+  `${JSON.stringify({ summary, lookupRows, demoRows, qualifierRows, caseRows }, null, 2)}\n`,
 );
-console.log(JSON.stringify({ summary, lookupRows, demoRows, caseRows }, null, 2));
+console.log(JSON.stringify({ summary, lookupRows, demoRows, qualifierRows, caseRows }, null, 2));
 
 /** Gated metrics: higher is better, except the zero-result rate. */
 const gated: Record<string, number> = {
@@ -336,6 +372,15 @@ if (writeBaseline) {
   console.error(`Baseline ${baselineKey} written to ${baselinePath}.`);
 }
 if (check) {
+  const qualifierMisses = qualifierRows.filter((row) => !row.hitAt1);
+  if (qualifierMisses.length > 0) {
+    console.error(
+      `Qualifier lookups lost their drug card (${path}):\n- ${qualifierMisses
+        .map((row) => `${row.id}: ${row.top.slice(0, 3).join(' | ')}`)
+        .join('\n- ')}`,
+    );
+    process.exit(1);
+  }
   const recorded = baseline.baselines[baselineKey];
   if (!recorded) {
     console.error(`No baseline for ${baselineKey}; run with --write-baseline and commit it.`);

@@ -20,7 +20,7 @@ import type { AliasRecord } from '@localmed/domain';
 
 import { expandAliases, findNormalizedPhraseIndex } from './aliases';
 import { classifyMedicalQueryIntent } from './intent';
-import { audienceOfToken, isLookupSubjectToken } from './lookup-subject';
+import { audienceOfToken, isLookupSubjectToken, withoutLookupDecorations } from './lookup-subject';
 import {
   hasWordPrefix,
   isShortCyrillicTerm,
@@ -2355,7 +2355,7 @@ export function buildLookupQueryPlan(
     'original',
     'Поиск по источникам',
     query,
-    [query, ...strongTerms],
+    [withoutLookupDecorations(query), ...strongTerms],
     1,
     undefined,
     boundShortTerms,

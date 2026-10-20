@@ -91,3 +91,34 @@ describe('buildLookupQueryPlan diagnosis-alias dilution', () => {
     );
   });
 });
+
+describe('buildLookupQueryPlan qualifier words', () => {
+  // «инструкция» is two edits from «деструкция»; a qualifier is a real word, not a misspelling.
+  const aliases = [alias('a.1', 'Вирусные бородавки', 'Деструкция')];
+
+  it('does not expand an alias from a qualifier word two edits away', () => {
+    const plan = buildLookupQueryPlan('Ибупрофен: официальная инструкция', aliases);
+
+    expect(plan.aliasMatches).toEqual([]);
+    expect(plan.terms).not.toEqual(expect.arrayContaining(['вирусные', 'бородавки']));
+  });
+
+  it('still repairs a misspelt subject word through the same alias', () => {
+    const plan = buildLookupQueryPlan('деструкцыя', aliases);
+
+    expect(plan.aliasMatches).toEqual(['Деструкция → Вирусные бородавки']);
+  });
+
+  it('leaves the decorative «официальная» out of the search terms when a subject remains', () => {
+    const plan = buildLookupQueryPlan('Ибупрофен: официальная инструкция', []);
+
+    expect(plan.terms).toEqual(expect.arrayContaining(['ибупрофен', 'инструкция']));
+    expect(plan.terms.some((term) => term.startsWith('официальн'))).toBe(false);
+  });
+
+  it('keeps «официальная» when it is all the query says', () => {
+    const plan = buildLookupQueryPlan('официальная инструкция', []);
+
+    expect(plan.terms).toEqual(expect.arrayContaining(['официальная']));
+  });
+});

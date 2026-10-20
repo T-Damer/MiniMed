@@ -1,6 +1,7 @@
 import type { TextRange } from '@localmed/contracts';
 import type { AliasRecord } from '@localmed/domain';
 
+import { isLookupMetaToken } from './lookup-subject';
 import { isCloseToken, MIN_FUZZY_TOKEN_LENGTH, normalizeSurfaceText, tokenize } from './normalize';
 
 export type AliasMatchType = 'exact' | 'fuzzy';
@@ -169,8 +170,12 @@ function expandPreparedAliases(
   const queryTokens = tokenize(normalizedQuery);
   // Long vocabularies repeat tokens (e.g. синдром) in many phrases. Compare each pair once.
   const comparisons = new Map<string, Map<string, boolean>>();
+  // A word that names the kind of answer wanted («инструкция», «официальная») is a real word, not
+  // a misspelling: «инструкция» is two edits from «деструкция» and must not pull its aliases in.
+  const metaTokens = new Set(queryTokens.filter(isLookupMetaToken));
   const close = (left: string, right: string): boolean => {
     if (left === right) return true;
+    if (metaTokens.has(right)) return false;
     let compared = comparisons.get(right);
     if (!compared) {
       compared = new Map();
