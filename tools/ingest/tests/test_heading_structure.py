@@ -240,6 +240,26 @@ def test_a_bold_run_in_label_that_is_no_heading_keeps_its_block() -> None:
     assert block.text.startswith("Примечание Прекратите")
 
 
+def test_a_title_set_in_two_styles_stays_one_heading() -> None:
+    # Амлодипин Реневал (manufacturer site): «Амлодипин Реневал ИНСТРУКЦИЯ» in bold and «ПО
+    # МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА» in regular capitals are one title, not a
+    # heading over a body; split, they became two level-1 headings.
+    raw = _page_blocks(
+        [
+            [
+                _line("Амлодипин Реневал ИНСТРУКЦИЯ", BOLD, 100.0),
+                _line("ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА", REGULAR, 114.0),
+            ]
+        ]
+    )
+
+    (block,) = _classified(raw)
+
+    assert block.text == (
+        "Амлодипин Реневал ИНСТРУКЦИЯ ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА"
+    )
+
+
 # --- one long heading wrapped over several blocks ---------------------------------------------
 
 
@@ -322,6 +342,9 @@ def test_heading_number_reads_the_components_of_a_leading_number() -> None:
     assert heading_number("2.4.1. Название") == (2, 4, 1)
     assert heading_number("Приложение А1. Состав") is None
     assert heading_number("2020;3(2):105–111") is None
+    # 668_2, 507_3: no space after the number
+    assert heading_number("3.1.Особые ситуации") == (3, 1)
+    assert heading_number("3.3.Иное лечение") == (3, 3)
 
 
 def test_children_sit_one_level_below_their_numbered_parent() -> None:
@@ -342,6 +365,50 @@ def test_children_sit_one_level_below_their_numbered_parent() -> None:
     ]
 
     assert reconcile_heading_levels(headings) == [1, 2, 3, 3, 1, 2, 3, 2, 3, 4, 3]
+
+
+def test_a_repeated_number_with_a_deeper_source_level_is_a_sub_part() -> None:
+    # 16_4: «3.3 Подраздел 1» (h3) under «3.3 Иное лечение» (h2); as siblings the part was left
+    # empty and the reader hid its title.
+    headings = [
+        ("3. Лечение", 1),
+        ("3.2 Хирургическое лечение", 2),
+        ("3.3 Иное лечение", 2),
+        ("3.3 Подраздел 1 Наложение пневмоторакса", 3),
+        ("3.3 Подраздел 2 Патогенетическая терапия", 3),
+        ("3.4 Диетотерапия", 2),
+    ]
+
+    assert reconcile_heading_levels(headings) == [1, 2, 2, 3, 3, 2]
+
+
+def test_a_misnumbered_sub_part_keeps_its_source_distance() -> None:
+    # 26_4: «2.1.5 …» and «2.1.6 …» (h3) under «2.5 Иные исследования» (h2); 843_1: «1.1.1 …» under
+    # «1.2 …». Moved up by their numbers they left the part above them empty and hidden.
+    headings = [
+        ("2. Диагностика", 1),
+        ("2.4 Инструментальные исследования", 2),
+        ("2.5 Иные исследования", 2),
+        ("2.1.5. Иные диагностические исследования", 3),
+        ("2.1.6. Критерии установления диагноза", 3),
+        ("2.2. Обследование пациентов", 2),
+        ("3. Лечение", 1),
+    ]
+
+    assert reconcile_heading_levels(headings) == [1, 2, 2, 3, 3, 2, 1]
+
+
+def test_an_unnumbered_heading_moves_with_the_numbered_one_above_it() -> None:
+    # 571_2: «6.1 …» was an <h1> like «6. …»; the unnumbered <h2> labels under it stay below it.
+    headings = [
+        ("6. Организация оказания медицинской помощи", 1),
+        ("6.1 Показания к госпитализации и выписке пациентов", 1),
+        ("Показания для плановой госпитализации:", 2),
+        ("Показания для экстренной госпитализации:", 2),
+        ("Приложение А1. Состав рабочей группы", 1),
+    ]
+
+    assert reconcile_heading_levels(headings) == [1, 2, 3, 3, 1]
 
 
 def test_an_unnumbered_heading_closes_the_numbered_ones_below_its_level() -> None:

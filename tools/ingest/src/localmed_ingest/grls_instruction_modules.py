@@ -79,8 +79,8 @@ REVIEWED_OCR_DIR = REPO_ROOT / "content" / "grls-reviewed-ocr"
 MANIFEST_PATH = REPO_ROOT / "data" / "build" / "grls-instruction-text-manifest.jsonl"
 MODULE_PREFIX = "minimed.medications.instructions."
 MODULE_SUFFIX = ".ru"
-PACK_VERSION = "grls-2026.10.15"
-BUILT_AT = "2026-10-15T00:00:00Z"
+PACK_VERSION = "grls-2026.10.20"
+BUILT_AT = "2026-10-20T00:00:00Z"
 UNCLASSIFIED = "unclassified"
 
 KIND_TITLE_SUFFIX = {

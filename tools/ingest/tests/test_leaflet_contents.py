@@ -504,7 +504,12 @@ def test_shipped_structure_of_vermox_before_and_after(tmp_path: Path) -> None:
     )
     titles_before = [section.title for section in before.sections]
     # the defect: sections made from the contents list, lone list numbers as chunks
-    assert titles_before[1:4] == ["Прием препарата", "Хранение препарата", "Содержимое упаковки"]
+    assert titles_before[1:5] == [
+        "Прием препарата",
+        "4. Возможные нежелательные реакции.",
+        "Хранение препарата",
+        "Содержимое упаковки",
+    ]
     lone = [
         chunk.original_text
         for section in before.sections

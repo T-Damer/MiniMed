@@ -548,6 +548,11 @@ def _split_heading_block(
             cuts.append(index)
     if run == len(lines) and len(cuts) == 1:
         return [block]
+    rest = " ".join(line.text for line in lines[run:])
+    if len(cuts) == 1 and any(char.isalpha() for char in rest) and rest == rest.upper():
+        # «Амлодипин Реневал ИНСТРУКЦИЯ» (bold) + «ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ …» (regular): a title
+        # set in two styles, not a heading over its body text.
+        return [block]
     bounds = [*cuts, run]
     heading_parts = [lines[bounds[i] : bounds[i + 1]] for i in range(len(cuts))]
     first = _block_from_lines(block, heading_parts[0], 0, options)

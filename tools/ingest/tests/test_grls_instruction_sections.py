@@ -242,3 +242,53 @@ def test_registry_card_sections_are_all_registration_type(tmp_path: Path) -> Non
     document = parse_markdown_document(path, "2026-09-27T00:00:00Z")
     assert document.sections
     assert all(section.section_type == "registration" for section in document.sections)
+
+
+def test_inline_headings_of_another_part_are_siblings_of_the_pdf_heading() -> None:
+    # Амлодипин Реневал: the PDF made «Показания к применению» a heading of its own and left
+    # «Фармакотерапевтическая группа», «Противопоказания» and the caution part inside its text.
+    # They are parts of the instruction next to it, not under it; «Фармакокинетика» inside
+    # «Фармакологические свойства» stays a sub-section.
+    from localmed_ingest.markdown_parser import expand_grls_instruction_sections, parse_sections
+
+    body = (
+        "## Показания к применению\n\n"
+        "Артериальная гипертензия. Фармакотерапевтическая группа Блокатор кальциевых каналов. "
+        "Противопоказания Повышенная чувствительность. С осторожностью Печеночная "
+        "недостаточность.\n\n"
+        "## Фармакологические свойства\n\n"
+        "Фармакокинетика Абсорбция высокая.\n"
+    )
+    expanded = expand_grls_instruction_sections(parse_sections(body))
+
+    assert [(section.level, section.path) for section in expanded] == [
+        (2, ["Показания к применению"]),
+        (2, ["Фармакотерапевтическая группа"]),
+        (2, ["Противопоказания"]),
+        (2, ["С осторожностью"]),
+        (2, ["Фармакологические свойства"]),
+        (3, ["Фармакологические свойства", "Фармакокинетика"]),
+    ]
+    assert expanded[0].paragraphs[0].text.startswith("Артериальная гипертензия.")
+    assert expanded[-1].paragraphs[0].text.startswith("Фармакокинетика Абсорбция")
+
+
+def test_a_heading_whose_text_opens_with_another_heading_is_kept() -> None:
+    # Монтелукаст: the leaflet heading of part 2, whose text starts with the standard heading
+    # «Противопоказания», lost its own title.
+    from localmed_ingest.markdown_parser import expand_grls_instruction_sections, parse_sections
+
+    body = (
+        "Препарат для лечения астмы. Противопоказания Нет.\n\n"
+        "# 2. О чем следует знать перед приемом препарата Монтелукаст\n\n"
+        "Противопоказания Не принимайте препарат Монтелукаст при аллергии.\n"
+    )
+    expanded = expand_grls_instruction_sections(parse_sections(body))
+
+    assert [section.path for section in expanded] == [
+        ["Общая информация"],
+        ["Общая информация", "Противопоказания"],
+        ["2. О чем следует знать перед приемом препарата Монтелукаст"],
+        ["2. О чем следует знать перед приемом препарата Монтелукаст", "Противопоказания"],
+    ]
+    assert expanded[2].paragraphs == []

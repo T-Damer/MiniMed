@@ -138,8 +138,8 @@ def appendix_heading_depth(paragraph: str) -> int | None:
     return APPENDIX_DEPTH
 
 
-# The number a heading starts with: «3», «3.1», «3.2.1.», «1.2.3 Title».
-_LEADING_NUMBER = re.compile(r"^\s*(\d{1,2}(?:\.\d{1,2}){0,5})\.?(?:\s+\S|$)")
+# The number a heading starts with: «3», «3.1», «3.2.1.», «1.2.3 Title», «3.1.Title» (no space).
+_LEADING_NUMBER = re.compile(r"^\s*(\d{1,2}(?:\.\d{1,2}){0,5})(?:\.?(?:\s+\S|$)|\.(?=[А-ЯЁA-Z]))")
 
 
 def heading_number(text: str) -> tuple[int, ...] | None:
@@ -157,26 +157,49 @@ def reconcile_heading_levels(headings: list[tuple[str, int]]) -> list[int]:
     лечение» as ``h1`` too (and «3.1.1 …» as ``h2``), or a numbered title in a PDF as large as its
     parent. A numbered heading whose number extends the number of the nearest open heading
     above it («3.1» under «3», «3.1.2» under «3.1») sits exactly one level below it. Anything else
-    keeps its level: a heading without a number (it also closes every numbered heading at its
-    own level or deeper), a number that restarts inside an appendix, a number whose parent is
-    missing from the document.
+    keeps its level: a number that restarts inside an appendix, a number whose parent is missing
+    from the document. A heading that repeats the number of a part above it with a deeper source
+    level is a sub-part of it; a heading without a number keeps its distance to the numbered
+    heading above it (it also closes every numbered heading at its own source level or deeper).
 
     ``headings`` is ``(text, level)`` in document order; the result has the same length.
     """
-    stack: list[tuple[tuple[int, ...], int]] = []
+    # (number, reconciled level, source level) of the open numbered headings.
+    stack: list[tuple[tuple[int, ...], int, int]] = []
     result: list[int] = []
     for text, level in headings:
         number = heading_number(text)
         if number is None:
-            while stack and stack[-1][1] >= level:
+            # An unnumbered heading below a numbered one («Показания для плановой госпитализации:»
+            # under «6.1 …») moves with it, keeping its source distance; it closes the numbered
+            # headings at its own source level or deeper.
+            while stack and stack[-1][2] >= level:
                 stack.pop()
-            result.append(level)
+            result.append(min(6, stack[-1][1] + level - stack[-1][2]) if stack else level)
+            continue
+        source_parent = next((entry for entry in reversed(stack) if entry[2] < level), None)
+        if (
+            source_parent is not None
+            and number[: len(source_parent[0])] != source_parent[0]
+            and number[:-1] not in {entry[0] for entry in stack}
+        ):
+            # A misnumbered sub-part the source nests deeper («2.1.5 …» under «2.5 Иные
+            # исследования», «1.1.1 …» under «1.2 …»): its own parent number is not open, so it
+            # keeps its source distance instead of leaving the part above it empty and hidden.
+            while stack[-1] is not source_parent:
+                stack.pop()
+            new_level = min(6, source_parent[1] + level - source_parent[2])
+            stack.append((number, new_level, level))
+            result.append(new_level)
             continue
         while stack and not (
-            len(number) > len(stack[-1][0]) and number[: len(stack[-1][0])] == stack[-1][0]
+            (len(number) > len(stack[-1][0]) and number[: len(stack[-1][0])] == stack[-1][0])
+            # «3.3 Подраздел 1» (h3) under «3.3 Иное лечение» (h2): the source repeats the number
+            # of a part for its sub-parts; as a sibling it would leave the part empty and hidden.
+            or (number == stack[-1][0] and level > stack[-1][2])
         ):
             stack.pop()
         new_level = min(6, stack[-1][1] + 1) if stack else level
-        stack.append((number, new_level))
+        stack.append((number, new_level, level))
         result.append(new_level)
     return result

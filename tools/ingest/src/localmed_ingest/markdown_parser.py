@@ -156,6 +156,10 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
     return paragraphs
 
 
+#: The section `parse_sections` opens for text before the first heading (not a source heading).
+_PREAMBLE_TITLE = "Общая информация"
+
+
 def parse_sections(body: str) -> list[DraftSection]:
     sections: list[DraftSection] = []
     stack: list[tuple[int, str]] = []
@@ -172,7 +176,7 @@ def parse_sections(body: str) -> list[DraftSection]:
         match = HEADING_PATTERN.match(line)
         if not match:
             if current is None and line.strip():
-                current = DraftSection(title="Общая информация", level=1, path=["Общая информация"])
+                current = DraftSection(title=_PREAMBLE_TITLE, level=1, path=[_PREAMBLE_TITLE])
                 sections.append(current)
             content_lines.append(line)
             continue
@@ -221,14 +225,44 @@ def expand_grls_instruction_sections(draft_sections: list[DraftSection]) -> list
             expanded.append(original)
             continue
         current: DraftSection | None = None
+        # A standard heading found in the body of a section that is itself a standard heading
+        # («## Показания к применению» … «Противопоказания» …) is its sibling when it starts
+        # another part of the instruction, and its child only when it names a part of the same one
+        # («Фармакокинетика» under «Фармакологические свойства»). Nesting every inline heading under
+        # the PDF's own heading put «Передозировка» under «Побочное действие» and «Беременность»
+        # under «Противопоказания».
+        original_type = classify_grls_heading_title(original.title)
+        anchor: tuple[DraftSection, str] | None = (
+            (original, original_type) if original_type is not None else None
+        )
         for piece, source_spans, paragraph_metadata in pieces_with_spans:
             if piece.heading_title is not None:
+                if current is None and original.path != [_PREAMBLE_TITLE]:
+                    # The section's own heading when its text opens with another one (the leaflet's
+                    # part 2 heading followed by «Противопоказания»): it is source text, keep it.
+                    expanded.append(
+                        DraftSection(
+                            title=original.title,
+                            level=original.level,
+                            path=original.path,
+                            section_type=original_type or original.section_type,
+                        )
+                    )
+                if anchor is None:
+                    level, path = original.level + 1, [*original.path, piece.heading_title]
+                elif piece.section_type == anchor[1]:
+                    parent = anchor[0]
+                    level, path = parent.level + 1, [*parent.path, piece.heading_title]
+                else:
+                    level, path = original.level, [*original.path[:-1], piece.heading_title]
                 current = DraftSection(
                     title=piece.heading_title,
-                    level=original.level + 1,
-                    path=[*original.path, piece.heading_title],
+                    level=level,
+                    path=path,
                     section_type=piece.section_type,
                 )
+                if anchor is not None and level == original.level:
+                    anchor = (current, piece.section_type)
                 expanded.append(current)
             elif current is None:
                 # Leading text before the first recognized heading. In a

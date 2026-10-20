@@ -6,14 +6,14 @@
  *
  *   bun scripts/republish-clinical-modules.ts --decoded-dir DIR --out-dir DIR \
  *     --snapshot-id clinical-json-2026.10.07-<hash> --published-at 2026-10-07T15:40:00Z \
- *     [--catalog-version LABEL] [--build-artifacts artifacts.json …] [--write-catalog]
+ *     [--catalog-version LABEL] [--build-artifacts artifacts.json …] [--marker kd1] [--write-catalog]
  *
  * DIR holds `<official id>.db` (compacted modules with their final vectors). Each is framed as
  * zstd (`scripts/lib/zstd-module-archive.ts`: ≤64 MiB independent frames, decoded again with the
  * app's reader and checked against the SQLite's SHA-256) under
  * `clinical-<official id>-<snapshot id>.db.zst`. The module gets the version
- * `0.6.0-json.<12 hex of sha256("<snapshot id>")>.e5` (same rule as `package-snapshot`, plus the
- * `.e5` marker of modules that carry e5 vectors), a new index artifact id, URL, checksums and
+ * `0.6.0-json.<12 hex of sha256("<snapshot id>")>.<marker>` (same rule as `package-snapshot`, plus
+ * the marker of the vectors the modules carry: `e5` by default, `kd1` since KD1), a new index artifact id, URL, checksums and
  * sizes, and a source-set digest / document-table checksum recomputed from the database (they
  * change only when the raw source file itself changed). Nothing is uploaded here.
  */
@@ -43,6 +43,7 @@ const { values } = parseArgs({
     'catalog-version': { type: 'string' },
     'build-artifacts': { type: 'string', multiple: true },
     'catalog-out': { type: 'string' },
+    marker: { type: 'string', default: 'e5' },
     'write-catalog': { type: 'boolean', default: false },
   },
 });
@@ -56,10 +57,11 @@ if (
   !snapshotId ||
   !publishedAt ||
   !/^clinical-[a-z0-9][a-z0-9.-]+$/u.test(snapshotId) ||
-  !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/u.test(publishedAt)
+  !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/u.test(publishedAt) ||
+  !/^[a-z0-9]+$/u.test(values.marker ?? '')
 ) {
   throw new Error(
-    'Usage: bun scripts/republish-clinical-modules.ts --decoded-dir DIR --out-dir DIR --snapshot-id clinical-… --published-at YYYY-MM-DDTHH:MM:SSZ [--catalog-version L] [--write-catalog]',
+    'Usage: bun scripts/republish-clinical-modules.ts --decoded-dir DIR --out-dir DIR --snapshot-id clinical-… --published-at YYYY-MM-DDTHH:MM:SSZ [--catalog-version L] [--marker kd1] [--write-catalog]',
   );
 }
 
@@ -82,7 +84,7 @@ function canonicalChecksum(value: unknown): string {
 
 const snapshotHash = canonicalChecksum(snapshotId).slice('sha256:'.length, 'sha256:'.length + 12);
 const baseVersion = `0.6.0-json.${snapshotHash}`;
-const version = `${baseVersion}.e5`;
+const version = `${baseVersion}.${values.marker}`;
 
 // Image / table flags per official id from the `build-documents` reports, when given.
 const buildFlags = new Map<string, { structuredTables: boolean; images: boolean }>();
