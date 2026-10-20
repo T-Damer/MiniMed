@@ -15,6 +15,8 @@ from typing import Literal, cast
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .esklp_text import normalize_node
+
 CatalogFamily = Literal["clinical", "medication", "legal"]
 PointerFamily = CatalogFamily | Literal["reference"]
 
@@ -397,7 +399,9 @@ def _esklp_document(record: dict[str, object]) -> tuple[str, str, str, list[dict
     atc = _list(record.get("atcCodes"))
     dosage_forms = _list(record.get("dosageForms"))
     strengths = _list(record.get("strengths"))
-    smnn_nodes = _object_list(record.get("smnnNodes"))
+    # Dates and primary packages are written the way the registry means them (see `esklp_text`),
+    # whatever shape the ledger of an older build still holds.
+    smnn_nodes = [normalize_node(node) for node in _object_list(record.get("smnnNodes"))]
     status = _clean(record.get("status")) or "unknown"
     edition = _clean(record.get("sourceEdition")) or record_id
     source_url = _clean(record.get("sourceUrl"))

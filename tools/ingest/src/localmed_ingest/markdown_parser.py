@@ -16,6 +16,7 @@ from .grls_instruction_sections import (
 )
 from .models import PackChunk, PackDocument, PackSection, PackVersion, SourceMetadata
 from .normalization import normalize_for_index, normalize_surface_text
+from .private_use_glyphs import repair_markdown_body
 
 _GRLS_INSTRUCTION_SOURCE_TYPE = "official_drug_instruction"
 _GRLS_REGISTRY_CARD_SOURCE_TYPE = "official_registry_summary"
@@ -107,6 +108,11 @@ def split_paragraphs(lines: list[str]) -> list[DraftParagraph]:
         if not buffer:
             return
         is_list = all(line.lstrip().startswith(("- ", "* ", "+ ", "1. ")) for line in buffer)
+        # A lead-in line followed by list items («…содержит:» / «- лактоза» / «- крахмал») keeps
+        # its lines: joining them with spaces would turn the list into one run of text.
+        is_list = is_list or any(
+            line.lstrip().startswith(("- ", "* ", "+ ")) for line in buffer[1:]
+        )
         # A leaflet's contents list keeps one entry per line.
         is_list = is_list or bool(pending_metadata.get(CONTENTS_FLAG))
         separator = "\n" if is_list or all("|" in line for line in buffer) else " "
@@ -269,6 +275,39 @@ def infer_section_type(title: str) -> str:
     return next((section_type for marker, section_type in rules if marker in normalized), "other")
 
 
+def split_long_text(text: str, max_chars: int) -> list[tuple[int, str]]:
+    """``(offset, part)`` pieces of ``text``, none longer than ``max_chars``, cut at a boundary.
+
+    A paragraph over the limit used to be cut every ``max_chars`` characters wherever that fell,
+    which split words and labels in two (a label cut after its first letters in the ESKLP cards,
+    whose one long list is a single paragraph). The cut now falls on the last line break in the
+    window, else the last sentence end, else the last space, and only a window without any of
+    them (a run of text with no space) is cut hard. Every character is kept: the pieces differ
+    from ``text`` only by the whitespace at the cuts. ``offset`` is where the piece starts.
+    """
+    pieces: list[tuple[int, str]] = []
+    position = 0
+    length = len(text)
+    while position < length:
+        end = min(position + max_chars, length)
+        if end < length:
+            window = text[position:end]
+            floor = max_chars // 2
+            cut = window.rfind("\n")
+            if cut < floor:
+                sentence = max(window.rfind(". "), window.rfind("; "), window.rfind("? "))
+                cut = sentence + 1 if sentence >= floor else -1
+            if cut < floor:
+                cut = window.rfind(" ")
+            end = position + cut if cut >= floor else end
+        part = text[position:end]
+        stripped = part.strip()
+        if stripped:
+            pieces.append((position + len(part) - len(part.lstrip()), stripped))
+        position = end
+    return pieces
+
+
 def chunk_paragraphs(
     paragraphs: list[DraftParagraph], target_chars: int = 1800, max_chars: int = 3200
 ) -> list[DraftChunk]:
@@ -323,16 +362,14 @@ def chunk_paragraphs(
         if current and current_size + paragraph_size + 2 > target_chars:
             flush()
         if paragraph_size > max_chars:
-            for offset in range(0, paragraph_size, max_chars):
-                part = paragraph.text[offset : offset + max_chars].strip()
-                if part:
-                    chunks.append(
-                        DraftChunk(
-                            text=part,
-                            source_spans=[dict(span) for span in paragraph.source_spans],
-                            metadata={**paragraph.metadata, "sourcePartOffset": offset},
-                        )
+            for offset, part in split_long_text(paragraph.text, max_chars):
+                chunks.append(
+                    DraftChunk(
+                        text=part,
+                        source_spans=[dict(span) for span in paragraph.source_spans],
+                        metadata={**paragraph.metadata, "sourcePartOffset": offset},
                     )
+                )
             continue
         current.append(paragraph)
         current_size += paragraph_size + 2
@@ -355,7 +392,7 @@ def parse_markdown_document(path: Path, extracted_at: str) -> PackDocument:
     markdown_checksum = f"sha256:{hashlib.sha256(path.read_bytes()).hexdigest()}"
     source_checksum = metadata.source_checksum or markdown_checksum
     version_id = f"{metadata.id}@{metadata.version_label}"
-    draft_sections = parse_sections(body)
+    draft_sections = parse_sections(repair_markdown_body(body))
     if metadata.source_type == _GRLS_INSTRUCTION_SOURCE_TYPE:
         draft_sections = expand_grls_instruction_sections(draft_sections)
     elif metadata.source_type == _GRLS_REGISTRY_CARD_SOURCE_TYPE:

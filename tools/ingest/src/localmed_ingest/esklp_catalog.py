@@ -4,16 +4,17 @@ import hashlib
 import json
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import date
 from pathlib import Path
 from typing import Literal, cast
 from zipfile import BadZipFile, ZipFile
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SerializerFunctionWrapHandler, model_serializer
 
 from .catalog_module_builder import CamelModel, LedgerModule
 from .esklp_strength import is_unstated, registry_strength
+from .esklp_text import clean_package, lossy_date_raw, registry_date, without_empty_raw
 from .esklp_xlsx import read_esklp_xlsx
 from .medication_catalog import (  # pyright: ignore[reportPrivateUsage]
     _assign_modules,  # pyright: ignore[reportPrivateUsage]
@@ -312,6 +313,15 @@ class EsKlpPosition(CamelModel):
     changed_at: str | None = None
     price: str | None = None
     diagnostics: list[str] = Field(default_factory=list)
+    #: The registry's own string of a field the builder normalized (see `esklp_text`).
+    primary_package_raw: str | None = None
+    secondary_package_raw: str | None = None
+    validity_period_raw: str | None = None
+    changed_at_raw: str | None = None
+
+    @model_serializer(mode="wrap")
+    def dump_without_empty_raw(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        return without_empty_raw(cast(dict[str, object], handler(self)))
 
 
 class EsKlpSmnnNode(CamelModel):
@@ -333,6 +343,12 @@ class EsKlpSmnnNode(CamelModel):
     diagnostics: list[str] = Field(default_factory=list)
     trade_names: list[EsKlpTradeName] = Field(default_factory=list[EsKlpTradeName])
     klp_positions: list[EsKlpPosition] = Field(default_factory=list[EsKlpPosition])
+    validity_period_raw: str | None = None
+    changed_at_raw: str | None = None
+
+    @model_serializer(mode="wrap")
+    def dump_without_empty_raw(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        return without_empty_raw(cast(dict[str, object], handler(self)))
 
 
 class EsKlpCoverageRecord(CamelModel):
@@ -426,7 +442,26 @@ def _trade_name(row: Mapping[str, object]) -> EsKlpTradeName:
     )
 
 
+def _normalized(
+    value: object | None, rule: Callable[[object | None], str | None]
+) -> tuple[str | None, str | None]:
+    """The normalized text of a registry value and, when the rule changed it, the original."""
+    original = _clean(value)
+    normalized = rule(original)
+    return normalized, original if normalized != original else None
+
+
 def _klp_position(row: Mapping[str, object]) -> EsKlpPosition:
+    validity, validity_raw = _normalized(
+        _value(row, "validity_period", "validityPeriod"), registry_date
+    )
+    changed, changed_raw = _normalized(_value(row, "changed_at", "changedAt"), registry_date)
+    primary, primary_raw = _normalized(
+        _package_name(_value(row, "primary_package", "primaryPackage")), clean_package
+    )
+    secondary, secondary_raw = _normalized(
+        _package_name(_value(row, "secondary_package", "secondaryPackage")), clean_package
+    )
     return EsKlpPosition(
         klp_code=_required_text(row, "KLP code", "klp_code", "klpCode"),
         trade_name=_clean(_value(row, "trade_name", "tradeName")),
@@ -437,22 +472,30 @@ def _klp_position(row: Mapping[str, object]) -> EsKlpPosition:
         strength=_clean(_value(row, "strength", "dosage")),
         unit=_clean(_value(row, "unit", "drug_unit", "drugUnit")),
         unit_count=_number(_value(row, "unit_count", "unitCount")),
-        primary_package=_package_name(_value(row, "primary_package", "primaryPackage")),
-        secondary_package=_package_name(_value(row, "secondary_package", "secondaryPackage")),
+        primary_package=primary,
+        secondary_package=secondary,
         package_contents=_clean(_value(row, "package_contents", "packageContents")),
         holder=_clean(_value(row, "holder", "registration_holder", "registrationHolder")),
         manufacturer=_clean(_value(row, "manufacturer")),
         essential_drug=_boolean(_value(row, "essential_drug", "essentialDrug")),
         controlled_substance=_boolean(_value(row, "controlled_substance", "controlledSubstance")),
-        validity_period=_clean(_value(row, "validity_period", "validityPeriod")),
-        changed_at=_clean(_value(row, "changed_at", "changedAt")),
+        validity_period=validity,
+        changed_at=changed,
         price=_clean(_value(row, "price")),
         diagnostics=_diagnostics(_value(row, "diagnostics")),
+        primary_package_raw=primary_raw,
+        secondary_package_raw=secondary_raw,
+        validity_period_raw=lossy_date_raw(validity_raw),
+        changed_at_raw=lossy_date_raw(changed_raw),
     )
 
 
 def _smnn_node(row: Mapping[str, object]) -> EsKlpSmnnNode:
     atc_codes = _text_values(_value(row, "atc_codes", "atcCodes", "atc_code", "atcCode", "atc"))
+    validity, validity_raw = _normalized(
+        _value(row, "validity_period", "validityPeriod"), registry_date
+    )
+    changed, changed_raw = _normalized(_value(row, "changed_at", "changedAt"), registry_date)
     return EsKlpSmnnNode(
         smnn_code=_required_text(row, "SMNN code", "smnn_code", "smnnCode"),
         standardized_inn=_required_text(
@@ -481,8 +524,8 @@ def _smnn_node(row: Mapping[str, object]) -> EsKlpSmnnNode:
         controlled_substance=_boolean(
             _value(row, "controlled_substance", "controlledSubstance", "controlled")
         ),
-        validity_period=_clean(_value(row, "validity_period", "validityPeriod")),
-        changed_at=_clean(_value(row, "changed_at", "changedAt")),
+        validity_period=validity,
+        changed_at=changed,
         reference_prices=_unique(_text_values(_value(row, "reference_prices", "referencePrices"))),
         normalized_inns=_unique(_text_values(_value(row, "normalized_inns", "normalizedInns"))),
         normalized_forms_strengths=_unique(
@@ -490,6 +533,8 @@ def _smnn_node(row: Mapping[str, object]) -> EsKlpSmnnNode:
         ),
         klp_codes=_unique(_text_values(_value(row, "klp_codes", "klpCodes"))),
         diagnostics=_diagnostics(_value(row, "diagnostics")),
+        validity_period_raw=lossy_date_raw(validity_raw),
+        changed_at_raw=lossy_date_raw(changed_raw),
     )
 
 

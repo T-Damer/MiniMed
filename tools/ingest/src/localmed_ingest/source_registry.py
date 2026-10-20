@@ -25,7 +25,9 @@ from .models import (
     SourceRegistry,
 )
 from .normalization import normalize_surface_text
+from .numbered_headings import reconcile_heading_levels
 from .pdf_import import extract_pdf, sha256_file
+from .private_use_glyphs import repair_markdown_body
 from .text_import import extract_text
 
 
@@ -155,18 +157,25 @@ def _contents_marker(blocks: list[ExtractedBlock]) -> str:
     return _encode_marker(payload)
 
 
-def _normalize_heading_levels(blocks: list[ExtractedBlock]) -> dict[str, int]:
-    raw_levels = [block.heading_level for block in blocks if block.kind == "heading"]
-    valid_levels = [level for level in raw_levels if level is not None]
-    if not valid_levels:
+def _normalize_heading_levels(
+    blocks: list[ExtractedBlock], *, skip_ids: frozenset[str] = frozenset()
+) -> dict[str, int]:
+    headings = [
+        block
+        for block in blocks
+        if block.kind == "heading" and block.heading_level is not None and block.id not in skip_ids
+    ]
+    if not headings:
         return {}
-    minimum = min(valid_levels)
+    # The levels a source gives are not trusted against its own numbering («3.» and «3.1» both h1).
+    reconciled = reconcile_heading_levels(
+        [(block.text, cast(int, block.heading_level)) for block in headings]
+    )
+    minimum = min(reconciled)
     previous = 0
     result: dict[str, int] = {}
-    for block in blocks:
-        if block.kind != "heading" or block.heading_level is None:
-            continue
-        level = max(1, block.heading_level - minimum + 1)
+    for block, raw_level in zip(headings, reconciled, strict=True):
+        level = max(1, raw_level - minimum + 1)
         if previous and level > previous + 1:
             level = previous + 1
         result[block.id] = min(6, level)
@@ -315,10 +324,12 @@ def render_body(
     if not included:
         raise NoSearchableTextError(f"Source {source_id} produced no searchable text blocks.")
     contents = _ContentsLayout(find_contents_runs(included), included) if contents_lists else None
-    heading_levels = _normalize_heading_levels(
-        [block for block in included if contents is None or block.id not in contents.member_ids]
-    )
     contents_entry_ids = _contents_entry_ids(included)
+    heading_levels = _normalize_heading_levels(
+        [block for block in included if contents is None or block.id not in contents.member_ids],
+        # A table-of-contents entry is written as text, so its number must not open a section.
+        skip_ids=frozenset(contents_entry_ids),
+    )
     body: list[str] = []
     pending_marks: list[str] = []
     emitted = False
@@ -367,7 +378,8 @@ def render_body(
         if not emitted:
             emitted = True
             body.extend(pending_marks)
-    return "\n".join(body).rstrip() + "\n"
+    # Extractions made before `private_use_glyphs` (and reused) still hold Symbol/Wingdings glyphs.
+    return repair_markdown_body("\n".join(body)).rstrip() + "\n"
 
 
 def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource) -> str:

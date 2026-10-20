@@ -30,6 +30,7 @@ from zipfile import BadZipFile, ZipFile
 
 from .grls_collect import classify_state_record, load_merged_state
 from .official_grls_registry import read_instruction_plan
+from .private_use_glyphs import repair_text
 from .text_encoding import is_likely_garbled_russian_pdf_text
 
 USER_AGENT = (
@@ -615,6 +616,34 @@ class DocumentText:
     pages: int = 0
 
 
+_WORD_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+
+
+def _docx_paragraph_text(paragraph: ET.Element) -> str:
+    """The text of one paragraph in reading order: runs, tabs and Symbol/Wingdings glyphs.
+
+    A bullet typed from the Symbol font is a ``w:sym`` element (``w:char="F0B7"``), not text; a
+    list set up with Word's numbering has no character at all, only ``w:numPr``. Both become a
+    Markdown list item (``private_use_glyphs``) instead of vanishing.
+    """
+    parts: list[str] = []
+    for node in paragraph.iter():
+        if node.tag == f"{_WORD_NS}t":
+            parts.append(node.text or "")
+        elif node.tag == f"{_WORD_NS}tab":
+            parts.append(" ")
+        elif node.tag == f"{_WORD_NS}sym":
+            code = node.get(f"{_WORD_NS}char")
+            if code is not None and re.fullmatch(r"[0-9A-Fa-f]{4}", code):
+                parts.append(chr(int(code, 16)))
+    text = repair_text("".join(parts))
+    number_id = paragraph.find(f"{_WORD_NS}pPr/{_WORD_NS}numPr/{_WORD_NS}numId")
+    numbered = number_id is not None and number_id.get(f"{_WORD_NS}val") not in (None, "0")
+    if numbered and text.strip() and not re.match(r"^(?:-|\d{1,2}\.)\s", text):
+        return f"- {text.strip()}"
+    return text
+
+
 def docx_text(payload: bytes) -> str:
     from io import BytesIO
 
@@ -624,16 +653,7 @@ def docx_text(payload: bytes) -> str:
     except (BadZipFile, KeyError):
         return ""
     root = ET.fromstring(xml_bytes)
-    paragraphs: list[str] = []
-    for paragraph in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"):
-        runs = [
-            node.text or ""
-            for node in paragraph.iter(
-                "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t"
-            )
-        ]
-        paragraphs.append("".join(runs))
-    return "\n".join(paragraphs)
+    return "\n".join(_docx_paragraph_text(paragraph) for paragraph in root.iter(f"{_WORD_NS}p"))
 
 
 def extract_document_text(path: Path) -> DocumentText:

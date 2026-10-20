@@ -35,6 +35,7 @@ _STARTS_AS_QUOTED_TITLE = re.compile(rf"^[«\"(\[]+[{_UPPER}]")
 _UNIT_START = re.compile(r"^(?:Мг|Мл|Кг|Гр|МЕ|ЕД|Л|Г)(?![^\W\d_]|\d)")
 # Two sentences in one line: a body paragraph that merely begins with its number.
 _SENTENCE_BREAK = re.compile(rf"[.!?…][)\"»]?(?:\s+|(?=[{_UPPER}]))[{_UPPER}]")
+SENTENCE_BREAK = _SENTENCE_BREAK
 # Finite phrasing of a recommendation or an instruction, never of a title.
 _STATEMENT_VERB = re.compile(
     r"(?:^|\s)(?:рекомендуется|рекомендовано|рекомендуются|следует|необходимо|необходимы|должен|"
@@ -135,3 +136,47 @@ def appendix_heading_depth(paragraph: str) -> int | None:
     if len(title.split()) > APPENDIX_MAX_WORDS:
         return None
     return APPENDIX_DEPTH
+
+
+# The number a heading starts with: «3», «3.1», «3.2.1.», «1.2.3 Title».
+_LEADING_NUMBER = re.compile(r"^\s*(\d{1,2}(?:\.\d{1,2}){0,5})\.?(?:\s+\S|$)")
+
+
+def heading_number(text: str) -> tuple[int, ...] | None:
+    """The components of the number a heading starts with («3.1.2 Title» is ``(3, 1, 2)``)."""
+    match = _LEADING_NUMBER.match(text)
+    if match is None:
+        return None
+    return tuple(int(part) for part in match.group(1).split("."))
+
+
+def reconcile_heading_levels(headings: list[tuple[str, int]]) -> list[int]:
+    """Heading levels made consistent with the numbers in the headings.
+
+    Source documents mark levels inconsistently: «3. Лечение» as ``h1`` but «3.1 Консервативное
+    лечение» as ``h1`` too (and «3.1.1 …» as ``h2``), or a numbered title in a PDF as large as its
+    parent. A numbered heading whose number extends the number of the nearest open heading
+    above it («3.1» under «3», «3.1.2» under «3.1») sits exactly one level below it. Anything else
+    keeps its level: a heading without a number (it also closes every numbered heading at its
+    own level or deeper), a number that restarts inside an appendix, a number whose parent is
+    missing from the document.
+
+    ``headings`` is ``(text, level)`` in document order; the result has the same length.
+    """
+    stack: list[tuple[tuple[int, ...], int]] = []
+    result: list[int] = []
+    for text, level in headings:
+        number = heading_number(text)
+        if number is None:
+            while stack and stack[-1][1] >= level:
+                stack.pop()
+            result.append(level)
+            continue
+        while stack and not (
+            len(number) > len(stack[-1][0]) and number[: len(stack[-1][0])] == stack[-1][0]
+        ):
+            stack.pop()
+        new_level = min(6, stack[-1][1] + 1) if stack else level
+        stack.append((number, new_level))
+        result.append(new_level)
+    return result

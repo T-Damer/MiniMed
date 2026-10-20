@@ -12,6 +12,9 @@ built, deterministically and without the archive:
 * the card text (`chunks.original_text`): the same strings replaced where the generator wrote them,
   an unstated dosage written as «не указано в каталоге» like any other empty field, the registry's
   «(НЕ УКАЗАНО)» tail of a normalized form dropped;
+* the spreadsheet serial dates («46069.0») and the damaged primary-package quantities
+  («000 ФЛАКОН») of the klp rows and the card text, normalized by `esklp_text` (the original string
+  stays in `<field>Raw` of the position);
 * the search text of the changed chunks, rebuilt the way the released modules were indexed
   (`index_text`, checked against every unchanged chunk before anything is written).
 
@@ -28,6 +31,7 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 from .esklp_strength import has_glued_placeholder, is_unstated, repair_strength
+from .esklp_text import normalize_node, normalize_text, raw_residue
 from .normalization import light_stem_russian, normalize_surface_text, tokenize
 
 _KEY = re.compile(r"[^0-9a-zа-я]+", re.IGNORECASE)
@@ -86,15 +90,42 @@ class CardRepair:
     node_strengths: int = 0
     trade_strengths: int = 0
     strengths_list: bool = False
+    #: Nodes and klp positions whose dates or package text `esklp_text` normalized.
+    registry_nodes: int = 0
+    registry_positions: int = 0
     unresolved: list[str] = field(default_factory=lambda: list[str]())
 
     @property
     def changed(self) -> bool:
-        return bool(self.changes) or self.strengths_list
+        return (
+            bool(self.changes)
+            or self.strengths_list
+            or bool(self.registry_nodes)
+            or bool(self.registry_positions)
+        )
 
 
 def _text(value: object) -> str | None:
     return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def _repair_registry_fields(node: dict[str, Any], repair: CardRepair) -> None:
+    """Serial dates and damaged package quantities of one node and its klp rows, in place."""
+    fixed = normalize_node(node)
+    old_positions = cast(list[Any], node.get("klpPositions") or [])
+    new_positions = cast(list[Any], fixed.get("klpPositions") or [])
+    changed_positions = sum(
+        1 for before, after in zip(old_positions, new_positions, strict=True) if before != after
+    )
+    node_fields_changed = {key: value for key, value in fixed.items() if key != "klpPositions"} != {
+        key: value for key, value in node.items() if key != "klpPositions"
+    }
+    if node_fields_changed:
+        repair.registry_nodes += 1
+    repair.registry_positions += changed_positions
+    if node_fields_changed or changed_positions:
+        node.clear()
+        node.update(fixed)
 
 
 def repair_card_metadata(metadata: dict[str, Any]) -> CardRepair:
@@ -102,6 +133,7 @@ def repair_card_metadata(metadata: dict[str, Any]) -> CardRepair:
     repair = CardRepair()
     nodes = cast(list[dict[str, Any]], metadata.get("smnnNodes") or [])
     for node in nodes:
+        _repair_registry_fields(node, repair)
         trades = cast(list[dict[str, Any]], node.get("tradeNames") or [])
         evidence = [_text(trade.get("strength")) for trade in trades]
         old_node = _text(node.get("strength"))
@@ -202,7 +234,7 @@ def repair_chunk_text(text: str, changes: Mapping[str, str | None]) -> str:
     result = re.sub(r"\s*\(НЕ$", "", result)
     if result != text:
         result = _dedupe_dosage_lists(result)
-    return result
+    return normalize_text(result)
 
 
 def card_residue(metadata: Mapping[str, Any]) -> list[str]:
@@ -218,6 +250,7 @@ def card_residue(metadata: Mapping[str, Any]) -> list[str]:
         for value in candidates:
             if isinstance(value, str) and (GLUE_IN_TEXT.search(value) or is_unstated(value)):
                 found.append(value)
+        found.extend(raw_residue(node))
     return found
 
 

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 from statistics import median
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import pymupdf
 
@@ -24,6 +24,8 @@ from .models import (
     ExtractionOptions,
 )
 from .normalization import normalize_surface_text
+from .numbered_headings import SENTENCE_BREAK, numbered_heading_depth
+from .private_use_glyphs import repair_text, translate_span
 from .text_encoding import cyrillic_letter_ratio, is_likely_garbled_russian_pdf_text
 
 _MACOS_VISION_SCRIPT = Path(__file__).resolve().parents[2] / "macos_vision_ocr.swift"
@@ -100,6 +102,16 @@ class OcrSignal:
 
 
 @dataclass(frozen=True)
+class RawLine:
+    """One text line of a PDF block with what the heading rules need to know about it."""
+
+    text: str
+    bold: bool
+    font_size: float | None
+    bbox: tuple[float, float, float, float]
+
+
+@dataclass(frozen=True)
 class RawBlock:
     page: int
     page_width: float
@@ -113,6 +125,10 @@ class RawBlock:
     line_count: int
     columnar_lines: int
     confidence: float | None = None
+    #: The lines of a native text-layer block, in order (empty for OCR blocks).
+    lines: tuple[RawLine, ...] = ()
+    #: Which piece of a split block this is (0 for the first or an unsplit block).
+    part: int = 0
 
 
 def sha256_file(path: Path) -> str:
@@ -142,12 +158,12 @@ def _merge_spans(spans: list[dict[str, Any]]) -> tuple[str, float | None, str | 
     previous_size = 0.0
 
     for span in spans:
-        text = str(span.get("text", ""))
+        font = str(span.get("font", "")) or None
+        text = translate_span(str(span.get("text", "")), font)
         if not text:
             continue
         bbox = _coerce_bbox(span.get("bbox"))
         size = float(span.get("size", 0.0) or 0.0)
-        font = str(span.get("font", "")) or None
         flags = int(span.get("flags", 0) or 0)
         if parts and not parts[-1].endswith((" ", "\t", "\n")) and not text.startswith(" "):
             gap = bbox[0] - (previous_x1 or bbox[0])
@@ -174,14 +190,12 @@ def _merge_spans(spans: list[dict[str, Any]]) -> tuple[str, float | None, str | 
     )
 
 
-def _join_lines(lines: list[str], *, dehyphenate: bool) -> str:
-    if not lines:
-        return ""
-    if sum(1 for line in lines if LIST_PATTERN.match(line)) >= max(1, len(lines) // 2):
-        return "\n".join(line.strip() for line in lines if line.strip())
+_ITEM_LINE = re.compile(r"^- \S")
 
-    result = lines[0].strip()
-    for next_line in lines[1:]:
+
+def _join_wrapped(parts: list[str], *, dehyphenate: bool) -> str:
+    result = parts[0].strip()
+    for next_line in parts[1:]:
         candidate = next_line.strip()
         if not candidate:
             continue
@@ -195,6 +209,29 @@ def _join_lines(lines: list[str], *, dehyphenate: bool) -> str:
         else:
             result = f"{result} {candidate}"
     return re.sub(r"[ \t]+", " ", result).strip()
+
+
+def _join_lines(lines: list[str], *, dehyphenate: bool) -> str:
+    if not lines:
+        return ""
+    if any(_ITEM_LINE.match(line.strip()) for line in lines):
+        # A list item (a Symbol/Wingdings bullet read by `private_use_glyphs`) starts a new line;
+        # the wrapped lines after it belong to it, and a lead-in line before the first item stays
+        # a line of its own.
+        groups: list[list[str]] = []
+        for line in lines:
+            if _ITEM_LINE.match(line.strip()) or not groups:
+                groups.append([line])
+            else:
+                groups[-1].append(line)
+        return "\n".join(
+            _join_wrapped(group, dehyphenate=dehyphenate)
+            for group in groups
+            if any(part.strip() for part in group)
+        )
+    if sum(1 for line in lines if LIST_PATTERN.match(line)) >= max(1, len(lines) // 2):
+        return "\n".join(line.strip() for line in lines if line.strip())
+    return _join_wrapped(lines, dehyphenate=dehyphenate)
 
 
 def _extract_raw_blocks_from_payload(
@@ -216,6 +253,7 @@ def _extract_raw_blocks_from_payload(
         if not isinstance(raw_lines, list):
             continue
         line_texts: list[str] = []
+        line_records: list[RawLine] = []
         sizes: list[float] = []
         fonts: list[str] = []
         bold_lines = 0
@@ -230,13 +268,19 @@ def _extract_raw_blocks_from_payload(
             text, font_size, font_name, bold = _merge_spans(spans)
             if not text:
                 continue
-            line_texts.append(text)
+            line_bbox = _coerce_bbox(raw_line.get("bbox"))
+            # A Symbol/Wingdings bullet read in the middle of a line starts a new line of its own.
+            for piece in repair_text(text).split("\n"):
+                if not piece.strip():
+                    continue
+                line_texts.append(piece)
+                line_records.append(RawLine(piece, bold, font_size, line_bbox))
+                if bold:
+                    bold_lines += 1
             if font_size is not None:
                 sizes.extend([font_size] * max(1, min(len(text), 80)))
             if font_name:
                 fonts.append(font_name)
-            if bold:
-                bold_lines += 1
             if len(spans) >= 3:
                 x_positions = [_coerce_bbox(span.get("bbox"))[0] for span in spans]
                 gaps = [right - left for left, right in pairwise(x_positions)]
@@ -260,6 +304,7 @@ def _extract_raw_blocks_from_payload(
                 bold=bool(line_texts) and bold_lines / len(line_texts) >= 0.5,
                 line_count=len(line_texts),
                 columnar_lines=columnar_lines,
+                lines=tuple(line_records),
             )
         )
     return blocks
@@ -335,22 +380,88 @@ def _numbered_heading_depth(text: str) -> int | None:
     return min(6, match.group("number").count(".") + 1)
 
 
+# A line that opens a numbered heading: «3. Лечение», «2.4.1. Название» (a capital follows).
+_NEW_HEADING_LINE = re.compile(r"^\d{1,2}(?:\.\d{1,2}){0,5}[.)]?\s+[А-ЯЁA-Z«\"]")
+_DATE_LIKE = re.compile(r"^\d{1,2}\.\d{1,2}\.\d{2,4}")
+# A bibliography entry: an author list with initials, «et al», «doi», a year with volume.
+_BIBLIOGRAPHY = re.compile(
+    r"^[A-Z][a-z'’-]+,?\s+[A-Z]{1,3}(?:[.,]|\s[A-Z])|^[А-ЯЁ][а-яё'’-]+,?\s+[А-ЯЁ]\.\s?[А-ЯЁ]?\.?"
+    r"|\bet\s+al\b|\bdoi\b|//|\b(?:19|20)\d\d\s*[;.]\s*\d"
+)
+_CLOSING_FRAGMENT = re.compile(r"[)\]»\"”]\.?$")
+_MARKER_NUMBER_PREFIX = re.compile(r"^\d+(?:\.\d+)*[.)]?\s+")
+_NUMBERED_SENTENCE_WORDS = 14
+_NUMBERED_MAX_WORDS = 30
+_NUMBERED_SUBTITLE_WORDS = 12
+
+
+def _numbered_heading_is_title(text: str) -> bool:
+    """Whether a text that starts with a number reads as a title and not as a list item.
+
+    A bibliography entry («25. Croese J, …»), a date that opens a wrapped line («25.05.2019) …»),
+    a numbered sentence or two sentences in one line is body text, bold or not.
+    """
+    match = NUMBERED_HEADING_PATTERN.match(text)
+    if match is None or _DATE_LIKE.match(text):
+        return False
+    number = match.group("number")
+    rest = text[match.end("number") :].lstrip(".) \t")
+    if not rest or not (rest[0].isupper() or rest[0] in '«"(['):
+        return False
+    if _BIBLIOGRAPHY.search(rest):
+        return False
+    words = len(rest.split())
+    if words > _NUMBERED_MAX_WORDS or (rest.endswith(".") and words > _NUMBERED_SENTENCE_WORDS):
+        return False
+    sentence_break = SENTENCE_BREAK.search(rest)
+    if sentence_break is not None:
+        # «1.2.2. Токсикодинамика. Механизм действия» is a title with a subtitle; a numbered
+        # sentence followed by another one is body text.
+        first_sentence_words = len(rest[: sentence_break.start() + 1].split())
+        if first_sentence_words > 2 or words > _NUMBERED_SUBTITLE_WORDS:
+            return False
+        rest = (
+            f"{rest[: sentence_break.start() + 1].rstrip('.')}:{rest[sentence_break.start() + 1 :]}"
+        )
+    if "." in number:
+        return numbered_heading_depth(f"{number} {rest}") is not None
+    return True
+
+
+def _is_common_marker(text: str) -> bool:
+    """Whether ``text`` is a standard section title: a marker phrase, with at most a number or a
+    few words in front of it, never a sentence that merely ends in one.
+    """
+    if _CLOSING_FRAGMENT.search(text.strip()):
+        # «(см. раздел «Противопоказания»).» is the end of a sentence, not a section title.
+        return False
+    normalized = _MARKER_NUMBER_PREFIX.sub("", normalize_surface_text(text).rstrip(".:")).strip()
+    words = len(normalized.split())
+    if text.rstrip().endswith(".") and words > 12:
+        return False
+    return any(
+        normalized == marker
+        or (normalized.endswith(f" {marker}") and words <= len(marker.split()) + 4)
+        for marker in COMMON_HEADING_MARKERS
+    )
+
+
 def _looks_like_heading(
     block: RawBlock, body_font_size: float | None, options: ExtractionOptions
 ) -> int | None:
-    text = re.sub(r"\s+", " ", block.text).strip()
-    if not text or len(text) > options.max_heading_characters or "\n" in text:
+    lines = [line for line in block.text.split("\n") if line.strip()]
+    if sum(1 for line in lines if _NEW_HEADING_LINE.match(line.strip())) >= 2:
+        # Several numbered lines in one block are several headings (or a list), not one title.
         return None
-    if LIST_PATTERN.match(text) and _numbered_heading_depth(text) is None:
+    text = re.sub(r"\s+", " ", block.text).strip()
+    if not text or len(text) > options.max_heading_characters:
+        return None
+    numbered_depth = _numbered_heading_depth(text) if _numbered_heading_is_title(text) else None
+    if LIST_PATTERN.match(text) and numbered_depth is None:
         return None
     if text.endswith((";", ",")):
         return None
-    numbered_depth = _numbered_heading_depth(text)
-    normalized = normalize_surface_text(text).rstrip(".:")
-    common_marker = any(
-        normalized == marker or normalized.endswith(f" {marker}")
-        for marker in COMMON_HEADING_MARKERS
-    )
+    common_marker = _is_common_marker(text)
     ratio = (
         block.font_size / body_font_size
         if block.font_size is not None and body_font_size not in (None, 0)
@@ -383,9 +494,186 @@ def _looks_like_heading(
     return None
 
 
+def _block_from_lines(
+    template: RawBlock, lines: tuple[RawLine, ...], part: int, options: ExtractionOptions
+) -> RawBlock:
+    sizes = [line.font_size for line in lines if line.font_size]
+    boxes = [line.bbox for line in lines]
+    return RawBlock(
+        page=template.page,
+        page_width=template.page_width,
+        page_height=template.page_height,
+        order_index=template.order_index,
+        bbox=(
+            min(box[0] for box in boxes),
+            min(box[1] for box in boxes),
+            max(box[2] for box in boxes),
+            max(box[3] for box in boxes),
+        ),
+        text=_join_lines([line.text for line in lines], dehyphenate=options.join_hyphenated_lines),
+        font_size=median(sizes) if sizes else template.font_size,
+        font_name=template.font_name,
+        bold=sum(line.bold for line in lines) / len(lines) >= 0.5,
+        line_count=len(lines),
+        columnar_lines=template.columnar_lines if part else 0,
+        confidence=template.confidence,
+        lines=lines,
+        part=part,
+    )
+
+
+def _split_heading_block(
+    block: RawBlock, body_font_size: float | None, options: ExtractionOptions
+) -> list[RawBlock]:
+    """Split a block that holds a heading and the text under it, or several headings, by line.
+
+    The PDF text layer groups lines into blocks by distance, so «3. Прием препарата X» (bold) and
+    its first paragraph (regular) arrive as one block, and so do «2.4 Title» and «2.4.1 Subtitle».
+    The bold run that opens such a block is the heading (cut again before every line that opens
+    a numbered heading or is a standard section title); the rest is the body. A block whose bold
+    run is not a heading, or that is bold throughout and holds one title, is kept whole.
+    """
+    lines = block.lines
+    if len(lines) < 2 or not lines[0].bold:
+        return [block]
+    run = 1
+    while run < len(lines) and lines[run].bold:
+        run += 1
+    cuts = [0]
+    for index in range(1, run):
+        text = lines[index].text.strip()
+        if _NEW_HEADING_LINE.match(text) or (
+            normalize_surface_text(text).rstrip(".:") in COMMON_HEADING_MARKERS
+        ):
+            cuts.append(index)
+    if run == len(lines) and len(cuts) == 1:
+        return [block]
+    bounds = [*cuts, run]
+    heading_parts = [lines[bounds[i] : bounds[i + 1]] for i in range(len(cuts))]
+    first = _block_from_lines(block, heading_parts[0], 0, options)
+    if _looks_like_heading(first, body_font_size, options) is None:
+        return [block]
+    pieces = [first]
+    for part, part_lines in enumerate(heading_parts[1:], start=1):
+        pieces.append(_block_from_lines(block, part_lines, part, options))
+    if run < len(lines):
+        pieces.append(_block_from_lines(block, lines[run:], len(heading_parts), options))
+    return pieces
+
+
+_CONTINUATION_WORDS = frozenset(
+    {
+        "и",
+        "или",
+        "в",
+        "во",
+        "на",
+        "по",
+        "к",
+        "ко",
+        "с",
+        "со",
+        "от",
+        "до",
+        "для",
+        "при",
+        "об",
+        "о",
+        "за",
+        "из",
+        "у",
+        "не",
+        "а",
+        "но",
+        "также",
+        "включая",
+        "том",
+        "числе",
+        "под",
+        "над",
+        "без",
+        "про",
+        "через",
+        "между",
+    }
+)
+_TERMINAL = (".", ":", ";", "?", "!")
+
+
+def _continues_heading(previous: ExtractedBlock, current: ExtractedBlock) -> bool:
+    """Whether ``current`` is the next wrapped line of the heading ``previous``."""
+    if (
+        previous.kind != "heading"
+        or current.kind != "heading"
+        or previous.removed
+        or current.removed
+        or previous.page != current.page
+        or previous.bold != current.bold
+        or abs((previous.font_size or 0.0) - (current.font_size or 0.0)) > 0.3
+    ):
+        return False
+    before = previous.text.rstrip()
+    after = current.text.lstrip()
+    if not before or not after or before.endswith(_TERMINAL) or _NEW_HEADING_LINE.match(after):
+        return False
+    if previous.bbox is None or current.bbox is None:
+        return False
+    size = previous.font_size or 12.0
+    if not 0.0 <= current.bbox[1] - previous.bbox[3] <= size * 1.2:
+        return False
+    last_word = before.rstrip(",(").rsplit(" ", 1)[-1].lower().strip('«»"()')
+    if after[0].islower() or after[0] == "(":
+        return True
+    return before.endswith((",", "-", "(")) or last_word in _CONTINUATION_WORDS
+
+
+def _merge_wrapped_headings(blocks: list[ExtractedBlock]) -> list[ExtractedBlock]:
+    """Join the lines of one long heading that the text layer cut into blocks of their own.
+
+    «5. Профилактика и диспансерное наблюдение, медицинские» / «показания и противопоказания к
+    применению методов» / «профилактики» is one heading; as three blocks it was three headings
+    of different levels. The first block keeps its id and level; the wording is the lines joined
+    with a space (a hyphenated word is rejoined), and the ids of the others are recorded.
+    """
+    merged: list[ExtractedBlock] = []
+    for block in blocks:
+        if merged and _continues_heading(merged[-1], block):
+            previous = merged[-1]
+            text = previous.text.rstrip()
+            joined = (
+                text[:-1] + block.text.lstrip()
+                if text.endswith("-") and block.text.lstrip()[:1].islower()
+                else f"{text} {block.text.lstrip()}"
+            )
+            absorbed = [*cast(list[str], previous.metadata.get("blocks", [previous.id])), block.id]
+            first_box = previous.bbox or block.bbox or [0.0, 0.0, 0.0, 0.0]
+            last_box = block.bbox or first_box
+            merged[-1] = previous.model_copy(
+                update={
+                    "text": joined,
+                    "bbox": [
+                        min(first_box[0], last_box[0]),
+                        min(first_box[1], last_box[1]),
+                        max(first_box[2], last_box[2]),
+                        max(first_box[3], last_box[3]),
+                    ],
+                    "line_count": previous.line_count + block.line_count,
+                    "metadata": {**previous.metadata, "blocks": absorbed},
+                }
+            )
+            continue
+        merged.append(block)
+    return merged
+
+
 def _classify_blocks(
     raw_blocks: list[RawBlock], body_font_size: float | None, options: ExtractionOptions
 ) -> tuple[list[ExtractedPage], int]:
+    raw_blocks = [
+        piece
+        for block in raw_blocks
+        for piece in _split_heading_block(block, body_font_size, options)
+    ]
     canonical_page_keys: dict[str, set[int]] = defaultdict(set)
     exact_page_keys: dict[str, set[int]] = defaultdict(set)
     for block in raw_blocks:
@@ -443,7 +731,8 @@ def _classify_blocks(
             removed = False
         pages_by_number[block.page].append(
             ExtractedBlock(
-                id=f"p{block.page}-b{block.order_index + 1}",
+                id=f"p{block.page}-b{block.order_index + 1}"
+                + (f"s{block.part}" if block.part else ""),
                 page=block.page,
                 order_index=block.order_index,
                 kind=kind,
@@ -462,7 +751,9 @@ def _classify_blocks(
     extracted_pages: list[ExtractedPage] = []
     for page_number in sorted(pages_by_number):
         page_raw = next(block for block in raw_blocks if block.page == page_number)
-        blocks = sorted(pages_by_number[page_number], key=lambda item: item.order_index)
+        blocks = _merge_wrapped_headings(
+            sorted(pages_by_number[page_number], key=lambda item: item.order_index)
+        )
         character_count = sum(len(block.text) for block in blocks if not block.removed)
         extracted_pages.append(
             ExtractedPage(
