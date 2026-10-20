@@ -14,7 +14,7 @@ All notable changes are documented here. The project follows Semantic Versioning
   official instruction and the monograph disagree (age, course length, daily amount, indications,
   pregnancy and breastfeeding, interactions) — 98 items in 39 plants. About 110 missing safety facts
   added; dose cells show the monograph's daily total; regional Red Books (27 plants, from Plantarium)
-  open as a list of regions with the edition year.
+  open as a list of regions with the edition year («изд. 2019»).
 
 ## [0.6.62] - 2026-10-19
 

@@ -133,23 +133,7 @@ function RegionalRedBooks(props: { readonly regional: HerbalRegionalRedBooks }):
           {(region) => (
             <li class="herbal-regions__item">
               <span class="herbal-regions__name">{region.region}</span>
-              <Show
-                when={region.checked}
-                fallback={<span class="herbal-regions__year">{region.year}</span>}
-              >
-                {(checked) => (
-                  <a
-                    class="herbal-regions__act"
-                    href={checked().url}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={checked().act}
-                  >
-                    {checked().category ? `кат. ${checked().category} · ` : ''}
-                    {region.year}
-                  </a>
-                )}
-              </Show>
+              <span class="herbal-regions__year">изд. {region.year}</span>
             </li>
           )}
         </For>

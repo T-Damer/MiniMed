@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://iris.who.int/handle/10665/44059
-source_checksum: sha256:ce23fb24a7a4a0fe5f53899b9c6d1025edee5575219617c49f747a2e3173c345
+source_checksum: sha256:e672f6eb7cc2f71008dfc1acbb4f51aecc2dc57ad8bf2104dc1485fd7e53f175
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

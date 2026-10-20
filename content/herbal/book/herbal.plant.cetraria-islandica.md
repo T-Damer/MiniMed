@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lichen-islandicus
-source_checksum: sha256:41472bf351c6841f6f90c892d6cc43e9e467a952e179ee0543dab1c2536f340e
+source_checksum: sha256:26c915a867662629fd186a93750307a91907ae2a285a8ecb60824bab568ab9db
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

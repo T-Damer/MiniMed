@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/01/1531566/c7f49e1c-f38d-4c81-8202-a378825ec0b2.pdf
-source_checksum: sha256:a352a85e5813aa74e988f04151bd2e485171e029573919eeff91967a0c1d323a
+source_checksum: sha256:6002e6b497c21a1ca0eca367cd1149803a5820fbc0fbabce28eab6d9d161d60d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -214,10 +214,6 @@ metadata:
         year: 2015
       - region: Республика Коми
         year: 2019
-        checked:
-          act: Приказ Минприроды Республики Коми от 15.02.2024 № 306 (прил. к приказу от 27.03.2019 № 498), № 457
-          url: http://publication.pravo.gov.ru/document/1101202402210001
-          category: '3'
       - region: Томская область
         year: 2022
       - region: Тюменская область

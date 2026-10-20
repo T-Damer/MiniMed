@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/eleutherococci-radix
-source_checksum: sha256:9682f488451debb9b26888527a4a609d182b185e4b4e0a109d7281c45a53a584
+source_checksum: sha256:b4ef3f9f5df4b408805167d3abd1eee4d839a8a3b9c7904ed406c72b1bb98a41
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

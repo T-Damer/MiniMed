@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/epilobii-herba
-source_checksum: sha256:ccdac3a7044c9036eeecfe666fce7167bc597b98cfa0335ed114d0fdfaecb3fc
+source_checksum: sha256:80bdf07e0e8429364e440612237e4c94abcf7c3fa187bb464bef3edc2e428cce
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

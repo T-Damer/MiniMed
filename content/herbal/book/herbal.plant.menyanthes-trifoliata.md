@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/menyanthidis-trifoliatae-folium
-source_checksum: sha256:d96a1a52b33ee691c75889ef8c086790440e8df90b5983965ed695a344bdc820
+source_checksum: sha256:29e4857e0ba82ea3cdf2c96e903a7bff84674e23dfe4f6cfec56bc49bed9ee74
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

@@ -149,7 +149,7 @@ describe('herbal chapter metadata', () => {
     expect(plant?.conflicts).toHaveLength(1);
     expect(plant?.conflicts[0]?.url).toBeNull();
     expect(plant?.regionalRedBooks?.regions).toEqual([
-      { region: 'Мурманская область', year: 2025, checked: null },
+      { region: 'Мурманская область', year: 2025 },
     ]);
   });
 

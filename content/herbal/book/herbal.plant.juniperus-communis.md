@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/07/1529574/9b3b4527-ffd7-413d-933a-2086ebc97429.pdf
-source_checksum: sha256:8c059bc407be1fec0f88eab0bd7a1d72ec9729eda546b3696a215550e8465349
+source_checksum: sha256:90ed2ba360648d38f475d20131fb34fa35c7f5089e3cf7b6e3a982015e58b486
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -236,9 +236,6 @@ metadata:
         year: 2019
       - region: Томская область
         year: 2022
-        checked:
-          act: Распоряжение Администрации Томской области от 14.12.2022 № 793-ра
-          url: https://tomsk.gov.ru/files/front/download?id=375245
       - region: Тульская область
         year: 2020
       - region: Ульяновская область

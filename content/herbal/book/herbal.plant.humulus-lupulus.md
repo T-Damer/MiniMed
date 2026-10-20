@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/lupuli-flos
-source_checksum: sha256:2b8a6ab85b5eb85f3d25727441b2ea021724a9700099fbb6832715a90e586db3
+source_checksum: sha256:1e2caeba3fec9093c25e521c436a9f5678fa8b48ac16f0073a07752e0cdbcea0
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

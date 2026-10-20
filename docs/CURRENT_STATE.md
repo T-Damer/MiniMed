@@ -293,8 +293,12 @@ Plan and source survey: [herbal-pilot-plan-2026-10-18](research/herbal-pilot-pla
     taxon page; a region counts when its newest edition known to Plantarium lists the plant (87
     current regions; other countries, Soviet-era and merged regions left out). 27 plants, 170 rows
     (rhodiola 24 regions, helichrysum 19, uva-ursi 18, …). The chapter shows «Красные книги регионов —
-    N регионов» opening the list with edition years and the source. Rows checked against the
-    regional act carry `checked`. Raw pages: `data/raw/herbal/plantarium` (11 MB).
+    N регионов» opening the list with edition years («изд. 2019») and the source. Plantarium is the
+    only source (owner decision 2026-10-20): a spot check of 14 rows against the official acts found
+    no wrong listing, only newer amendments some regions passed after the edition (Коми 2024,
+    Хабаровский 2024, Ленобласть, Московская 2023, Краснодарский from 2027), so rows are not
+    verified one by one and categories are not shown; re-fetch about once a year. Text
+    `2026.10.20-c2`. Raw pages: `data/raw/herbal/plantarium` (11 MB).
   - Clinician review page (claude.ai artifact «Травник: проверка врачом»,
     https://claude.ai/artifact/1WmXzFQk2nVsDRznfn6voL): all 2 401 lines (facts, doses, constituents,
     safety, conflicts, brew cells) with «Верно»/«Ошибка» + comment, stored in the artifact's database

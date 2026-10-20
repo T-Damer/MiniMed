@@ -186,13 +186,8 @@ export interface HerbalConflict {
 
 export interface HerbalRegion {
   readonly region: string;
+  /** Edition year of the region's book as Plantarium lists it, not the date of later amendments. */
   readonly year: number;
-  /** The row compared with the region's own act: its category there and the act. */
-  readonly checked: {
-    readonly act: string;
-    readonly url: string;
-    readonly category: string | null;
-  } | null;
 }
 
 /** Regional Red Books that list the plant (newest edition of each region, per Plantarium). */
@@ -448,15 +443,7 @@ function readRegion(value: unknown): HerbalRegion | null {
   const region = text(item?.['region']);
   const year = item?.['year'];
   if (!region || typeof year !== 'number') return null;
-  const checked = record(item?.['checked']);
-  const act = text(checked?.['act']);
-  const url = text(checked?.['url']);
-  return {
-    region,
-    year,
-    checked:
-      act && url?.startsWith('http') ? { act, url, category: text(checked?.['category']) } : null,
-  };
+  return { region, year };
 }
 
 function readRegionalRedBooks(value: unknown): HerbalRegionalRedBooks | null {

@@ -776,18 +776,7 @@ def _safety_source_lines(safety: PlantSafety) -> list[str]:
 
 def _regions_metadata(book: RegionalRedBooks, plant: PlantRegions) -> dict[str, object]:
     return {
-        "regions": [
-            {
-                "region": row.region,
-                "year": row.year,
-                **(
-                    {"checked": row.checked.model_dump(exclude_none=True)}
-                    if row.checked is not None
-                    else {}
-                ),
-            }
-            for row in plant.regions
-        ],
+        "regions": [{"region": row.region, "year": row.year} for row in plant.regions],
         "sourceLabel": f"Плантариум, перечни региональных Красных книг ({book.fetched})",
         "url": f"{PLANTARIUM}/page/view/item/{plant.taxon}.html",
     }

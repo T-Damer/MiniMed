@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/21/1532494/9f5aaa81-9a14-4e63-9afb-7284a077a778.pdf
-source_checksum: sha256:f8d0ca45ab3f90678712dac83dbd86f86818955b20d8e713ff8f6e84dc42280f
+source_checksum: sha256:9326f3e573fdd17ee0809ed5d6866d6dc43b309ecf2204cc6f64b3f206038b67
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -292,10 +292,6 @@ metadata:
         year: 2025
       - region: Самарская область
         year: 2017
-        checked:
-          act: Красная книга Самарской области, 2017 (официальное издание; приказы 109/2016 и 552/2017)
-          url: https://shipunov.depo.msu.ru/shipunov/school/books/kr_kn_samarskoj_oblasti_2017_1.pdf
-          category: '3'
       sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
       url: https://www.plantarium.ru/page/view/item/17684.html
     conflicts:

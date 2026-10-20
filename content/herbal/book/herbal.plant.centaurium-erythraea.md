@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/05/27/1530382/cc0903a7-f936-4ebb-b78b-f00f686dac55.pdf
-source_checksum: sha256:6e185b4a2117305ba396ebe254c62daceab6e90082539a4364ba9b21a6ed09eb
+source_checksum: sha256:0ecee58a36f23f127463b139d8b9fc094ff17c6ddb2ef7b9d75e30e19483a823
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -172,10 +172,6 @@ metadata:
         year: 2019
       - region: Ленинградская область
         year: 2017
-        checked:
-          act: Приказ Леноблкомприроды от 11.03.2015 № 21 (ред. 17.10.2018), № 92
-          url: https://base.garant.ru/22923362/
-          category: '1'
       - region: Новгородская область
         year: 2015
       - region: Республика Татарстан

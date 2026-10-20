@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/violae-herba-cum-flore
-source_checksum: sha256:23e42187437e89a1b0f7507cc208306f9798ba1d3e978924a396d326e8c4d0c5
+source_checksum: sha256:22471d1a075e2fb451b34b1c6c63e52ca4335d6f34797365a8d41dbc6a464900
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

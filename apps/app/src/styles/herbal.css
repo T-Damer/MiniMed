@@ -337,11 +337,6 @@
 .herbal-regions__year {
   color: var(--theme-text-muted);
   font-variant-numeric: tabular-nums;
-}
-
-.herbal-regions__act {
-  color: var(--theme-accent, var(--theme-text));
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 

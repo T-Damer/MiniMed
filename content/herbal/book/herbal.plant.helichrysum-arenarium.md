@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/04/15/1528691/2585e030-9ba3-4fc1-af0d-45a265e37218.pdf
-source_checksum: sha256:6febcaeb9d1b5d6f9bc4dfbabe5d98fdee9f6543876a969486918bdfa9b7784a
+source_checksum: sha256:92f4dd7e055b7ac4a01f7046d1e9e7c1b558f11d085ff1998c4b8cf1d6e0f49d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -240,10 +240,6 @@ metadata:
         year: 2019
       - region: Краснодарский край
         year: 2017
-        checked:
-          act: Постановление главы администрации Краснодарского края от 22.12.2017 № 1028 (ред. 27.11.2024), № 260
-          url: https://base.garant.ru/43678500/53f89421bbdaf741eb2d1ecc4ddb4c33/
-          category: '3'
       - region: Красноярский край
         year: 2022
       - region: Ленинградская область

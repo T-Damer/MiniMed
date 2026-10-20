@@ -97,6 +97,7 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   await expect(page.locator('.herbal-regions')).toContainText('3 региона');
   await page.locator('.herbal-regions').click();
   await expect(page.locator('.herbal-regions__item').first()).toBeVisible();
+  await expect(page.locator('.herbal-regions__year').first()).toContainText('изд.');
   await page.goBack();
 
   // Where the ГРЛС instruction and EMA disagree, both sentences are shown.

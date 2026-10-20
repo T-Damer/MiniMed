@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/verbasci-flos
-source_checksum: sha256:c1182b0bdf94c2c9cd0c5ae2d5111d1d3ba25c98a7cd39fbd6e71ff28f320c7f
+source_checksum: sha256:ce47e9a7470e6e1b82aa44a879750ac80ec906dee796ed327cbd81d1f8b61eff
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

@@ -1,6 +1,6 @@
 # Regional Red Books: newest edition of each Russian region that lists the plant, from
-# Plantarium; rows with `checked` were compared with the region's own act. Rebuilt by
-# `medbase fetch-regional-red-books`; do not edit rows by hand except `checked`.
+# Plantarium (year = edition year). Rebuilt by `medbase fetch-regional-red-books`;
+# do not edit by hand.
 source: 'Плантариум: перечни видов региональных Красных книг'
 url: https://www.plantarium.ru/page/redbooks.html
 fetched: '2026-10-20'
@@ -29,11 +29,6 @@ plants:
     - region: Республика Коми
       year: 2019
       book: 294
-      checked:
-        act: Приказ Минприроды Республики Коми от 15.02.2024 № 306 (прил. к приказу от 27.03.2019 № 498),
-          № 457
-        url: http://publication.pravo.gov.ru/document/1101202402210001
-        category: '3'
     - region: Томская область
       year: 2022
       book: 325
@@ -70,10 +65,6 @@ plants:
     - region: Самарская область
       year: 2017
       book: 272
-      checked:
-        act: Красная книга Самарской области, 2017 (официальное издание; приказы 109/2016 и 552/2017)
-        url: https://shipunov.depo.msu.ru/shipunov/school/books/kr_kn_samarskoj_oblasti_2017_1.pdf
-        category: '3'
   centaurium-erythraea:
     taxon: 9625
     regions:
@@ -89,10 +80,6 @@ plants:
     - region: Ленинградская область
       year: 2017
       book: 309
-      checked:
-        act: Приказ Леноблкомприроды от 11.03.2015 № 21 (ред. 17.10.2018), № 92
-        url: https://base.garant.ru/22923362/
-        category: '1'
     - region: Новгородская область
       year: 2015
       book: 246
@@ -144,9 +131,6 @@ plants:
     - region: Томская область
       year: 2022
       book: 325
-      checked:
-        act: Распоряжение Администрации Томской области от 14.12.2022 № 793-ра
-        url: https://tomsk.gov.ru/files/front/download?id=375245
     - region: Тульская область
       year: 2020
       book: 299
@@ -219,10 +203,6 @@ plants:
     - region: Московская область
       year: 2018
       book: 277
-      checked:
-        act: Распоряжение Минэкологии Московской обл. от 20.03.2018 № 103-РМ
-        url: https://verhovye.ru/wp-content/uploads/2019/09/Elektronnaya_versiya_KKMO_2018-s-sajta-ME-MO.pdf
-        category: '1'
     - region: Пензенская область
       year: 2013
       book: 119
@@ -304,11 +284,6 @@ plants:
     - region: Владимирская область
       year: 2018
       book: 308
-      checked:
-        act: Постановление администрации Владимирской области от 22.08.2017 № 707 (ред. 20.12.2018), №
-          142
-        url: https://onlineecology.com/doc/2ea53442-c84d-49e0-817f-bf515afc2e44
-        category: '3'
     - region: Ивановская область
       year: 2010
       book: 103
@@ -342,11 +317,6 @@ plants:
     - region: Краснодарский край
       year: 2017
       book: 278
-      checked:
-        act: Постановление главы администрации Краснодарского края от 22.12.2017 № 1028 (ред. 27.11.2024),
-          № 260
-        url: https://base.garant.ru/43678500/53f89421bbdaf741eb2d1ecc4ddb4c33/
-        category: '3'
     - region: Красноярский край
       year: 2022
       book: 321
@@ -428,18 +398,9 @@ plants:
     - region: Приморский край
       year: 2008
       book: 111
-      checked:
-        act: Постановление Губернатора Приморского края от 14.05.2002 № 272
-        url: https://base.garant.ru/30159395/
-        category: CR
     - region: Хабаровский край
       year: 2008
       book: 40
-      checked:
-        act: Постановление Правительства Хабаровского края от 27.10.2006 № 163-пр (ред. 08.05.2024), №
-          56
-        url: https://mpr.khabkrai.ru/?menu=getfile&id=13693
-        category: '1'
   humulus-lupulus:
     taxon: 20316
     regions:
@@ -458,10 +419,6 @@ plants:
     - region: Город Москва
       year: 2022
       book: 324
-      checked:
-        act: Постановление Правительства Москвы от 02.07.2019 № 745-ПП, прил. 2
-        url: https://www.mos.ru/upload/documents/docs/745-PP(2).pdf
-        category: '3'
     - region: Ивановская область
       year: 2010
       book: 103
@@ -525,10 +482,6 @@ plants:
     - region: Мурманская область
       year: 2025
       book: 334
-      checked:
-        act: 'Красная книга Мурманской области, кн. 1: списки видов (Минприроды Мурманской обл.), № 262'
-        url: https://mpr.gov-murman.ru/files/kniga_1_spiski_vidov_tekst.pdf
-        category: '4'
     - region: Ненецкий автономный округ
       year: 2020
       book: 313
@@ -547,10 +500,6 @@ plants:
     - region: Республика Карелия
       year: 2020
       book: 311
-      checked:
-        act: Приказ Минприроды Республики Карелия от 14.09.2020 № 1590 (ред. 24.12.2020), № 95
-        url: http://kodeks.karelia.ru/api/show/407085578
-        category: '3'
     - region: Республика Коми
       year: 2019
       book: 294

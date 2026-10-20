@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/agrimoniae-herba
-source_checksum: sha256:1c4d789064b8352a475ba84548a210b789b2060cf3dfc2bf6e932695b3dbb627
+source_checksum: sha256:be946ca09611c1c98574b504c2367d2728e2d64cedc13951159e02a1061258f2
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

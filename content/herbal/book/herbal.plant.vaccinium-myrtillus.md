@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/myrtilli-fructus-siccus
-source_checksum: sha256:fd7134bdbc6ef51b21ec8adfe8d86d69143a1ce9e66539c3ca105bdb36913901
+source_checksum: sha256:d8ff26a0522ec7acb36a8403401bc8db2b72b3996191cc669b91a50b81453989
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

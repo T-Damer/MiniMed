@@ -4,8 +4,10 @@ Each subject of the Russian Federation keeps its own Red Book; there is no feder
 Plantarium (plantarium.ru) keeps the plant lists of the regional books with their edition year and
 the act that approved them. For every plant we read its Plantarium taxon page (which lists every red
 book naming the taxon, synonyms included) and keep the regions whose NEWEST edition known to
-Plantarium names it. The result is a reviewed content file: the source and the fetch date are named
-in it and in the chapter, and rows checked against the official regional act carry that act.
+Plantarium names it. The source and the fetch date are named in the file and in the chapter; the
+year is the book's edition year, so later amendments of a region's list are not reflected. A spot
+check of 14 rows against the official acts (2026-10-20) found no listing Plantarium got wrong, so
+rows are not verified one by one.
 """
 
 from __future__ import annotations
@@ -40,20 +42,11 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
 
-class OfficialCheck(_Strict):
-    """The row checked against the region's own act or book."""
-
-    act: str
-    url: str
-    category: str | None = None
-
-
 class RegionRow(_Strict):
     region: str
     year: int = Field(ge=1950)
     book: int = Field(ge=1)
     listed_as: str | None = Field(default=None, alias="as")
-    checked: OfficialCheck | None = None
 
 
 class PlantRegions(_Strict):
@@ -170,13 +163,11 @@ def fetch_regional_red_books(
     plants: list[tuple[str, str]], raw_dir: Path, output: Path, fetched: str
 ) -> dict[str, int]:
     """Fetch the index and each plant's taxon page into ``raw_dir``, write the content file.
-    ``plants`` are (plant id, Latin name). Keeps rows checked earlier (``checked``) when the region
-    and edition are unchanged. Returns the number of regions per plant."""
+    ``plants`` are (plant id, Latin name). Returns the number of regions per plant."""
     raw_dir.mkdir(parents=True, exist_ok=True)
     index = _get(INDEX_URL)
     (raw_dir / "redbooks.html").write_text(index, encoding="utf-8")
     latest = latest_editions(parse_index(index))
-    previous = load_regional_red_books(output) if output.is_file() else None
     result: dict[str, dict[str, object]] = {}
     counts: dict[str, int] = {}
     for plant_id, latin in plants:
@@ -190,14 +181,6 @@ def fetch_regional_red_books(
             continue
         page = _get(f"{PLANTARIUM}/page/view/item/{taxon}.html")
         (raw_dir / f"taxon-{plant_id}.html").write_text(page, encoding="utf-8")
-        old = {
-            row.region: row
-            for row in (
-                previous.plants[plant_id].regions
-                if previous and plant_id in previous.plants
-                else ()
-            )
-        }
         rows: list[dict[str, object]] = []
         for entry in current_rows(parse_taxon(page), latest):
             row: dict[str, object] = {
@@ -207,9 +190,6 @@ def fetch_regional_red_books(
             }
             if entry.listed_as:
                 row["as"] = entry.listed_as
-            kept = old.get(entry.region)
-            if kept is not None and kept.year == entry.year and kept.checked is not None:
-                row["checked"] = kept.checked.model_dump(exclude_none=True)
             rows.append(row)
         counts[plant_id] = len(rows)
         if rows:
@@ -222,8 +202,8 @@ def fetch_regional_red_books(
     }
     output.write_text(
         "# Regional Red Books: newest edition of each Russian region that lists the plant, from\n"
-        "# Plantarium; rows with `checked` were compared with the region's own act. Rebuilt by\n"
-        "# `medbase fetch-regional-red-books`; do not edit rows by hand except `checked`.\n"
+        "# Plantarium (year = edition year). Rebuilt by `medbase fetch-regional-red-books`;\n"
+        "# do not edit by hand.\n"
         + yaml.safe_dump(document, allow_unicode=True, sort_keys=False, width=100),
         encoding="utf-8",
     )

@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/rhodiolae-roseae-rhizoma-et-radix
-source_checksum: sha256:d09b95180ef3d9c16e19425b265364920fd8a142c2e5cf08f7bd9db1c37898dc
+source_checksum: sha256:709da8a0d618bc53c997dddebe0b850293a39bafb7f3fcb7889b52380ce6a733
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -291,10 +291,6 @@ metadata:
         year: 2022
       - region: Мурманская область
         year: 2025
-        checked:
-          act: 'Красная книга Мурманской области, кн. 1: списки видов (Минприроды Мурманской обл.), № 262'
-          url: https://mpr.gov-murman.ru/files/kniga_1_spiski_vidov_tekst.pdf
-          category: '4'
       - region: Ненецкий автономный округ
         year: 2020
       - region: Пермский край
@@ -307,10 +303,6 @@ metadata:
         year: 2023
       - region: Республика Карелия
         year: 2020
-        checked:
-          act: Приказ Минприроды Республики Карелия от 14.09.2020 № 1590 (ред. 24.12.2020), № 95
-          url: http://kodeks.karelia.ru/api/show/407085578
-          category: '3'
       - region: Республика Коми
         year: 2019
       - region: Республика Саха (Якутия)

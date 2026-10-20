@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/09/1531902/5ecabf49-03de-4a6d-8736-6146b816389e.pdf
-source_checksum: sha256:b436b6a2b610eb94a266e1fb4aea534150b781e5ab8c5f2c04400ad7225aaa04
+source_checksum: sha256:203638bf03b347765e914f91ab2be0704ff8e71c2e6ef55d971208bfa4298bfc
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act

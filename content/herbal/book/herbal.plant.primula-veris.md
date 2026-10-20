@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/primulae-radix
-source_checksum: sha256:328aa2c117b889929ba5398f34178c746489ee358a2c1fb411426ca79e1c9457
+source_checksum: sha256:a3e00c765057f06c6425f78887504fababe738db1134dc688db30e76cea68f31
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -321,10 +321,6 @@ metadata:
         year: 2015
       - region: Город Москва
         year: 2022
-        checked:
-          act: Постановление Правительства Москвы от 02.07.2019 № 745-ПП, прил. 2
-          url: https://www.mos.ru/upload/documents/docs/745-PP(2).pdf
-          category: '3'
       - region: Ивановская область
         year: 2010
       - region: Костромская область

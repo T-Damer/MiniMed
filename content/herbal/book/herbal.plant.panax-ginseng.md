@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://www.ema.europa.eu/en/medicines/herbal/ginseng-radix
-source_checksum: sha256:70c317105e5db58c16bf776a435d948d77680627ef25ed90f484604ed39d5a6e
+source_checksum: sha256:e4ec6e4e4de10a9022453c30112091737a34c3a288c5084df1e2ada1a59b58f7
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -403,16 +403,8 @@ metadata:
         year: 2019
       - region: Приморский край
         year: 2008
-        checked:
-          act: Постановление Губернатора Приморского края от 14.05.2002 № 272
-          url: https://base.garant.ru/30159395/
-          category: CR
       - region: Хабаровский край
         year: 2008
-        checked:
-          act: Постановление Правительства Хабаровского края от 27.10.2006 № 163-пр (ред. 08.05.2024), № 56
-          url: https://mpr.khabkrai.ru/?menu=getfile&id=13693
-          category: '1'
       sourceLabel: Плантариум, перечни региональных Красных книг (2026-10-20)
       url: https://www.plantarium.ru/page/view/item/26683.html
     conflicts: null

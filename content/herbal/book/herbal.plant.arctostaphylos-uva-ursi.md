@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2026/07/10/1531924/4f8b2bb1-994e-4732-924b-dd3094a53f5b.pdf
-source_checksum: sha256:6040c3c93eb1e46f69afa75a681b15fc0b0b6a605104dc56ec81c2e5fb41f3ed
+source_checksum: sha256:a60981b4785ef4be596204981de314c96e4cb923f75717ebe263894942d0e35d
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -268,10 +268,6 @@ metadata:
         year: 2014
       - region: Московская область
         year: 2018
-        checked:
-          act: Распоряжение Минэкологии Московской обл. от 20.03.2018 № 103-РМ
-          url: https://verhovye.ru/wp-content/uploads/2019/09/Elektronnaya_versiya_KKMO_2018-s-sajta-ME-MO.pdf
-          category: '1'
       - region: Пензенская область
         year: 2013
       - region: Республика Мордовия

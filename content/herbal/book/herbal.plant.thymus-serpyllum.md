@@ -9,7 +9,7 @@ specialties:
 - phytotherapy
 age_groups: []
 source_file: https://grls.rosminzdrav.ru/InstrImg/2025/12/30/1524942/3ff76436-6cd7-4ba9-a52c-c17733e37030.pdf
-source_checksum: sha256:a70fdaf064b1d12434bb2f48675c335c266bca9a8c3761173b9659a146e79ea8
+source_checksum: sha256:753101ee00c8c23f9c97beb7c5d46424465f36f9fdfa89ef8471adf6380c4280
 synthetic_fixture: false
 metadata:
   authorityTier: official-regulatory-act
@@ -394,10 +394,6 @@ metadata:
       regions:
       - region: Владимирская область
         year: 2018
-        checked:
-          act: Постановление администрации Владимирской области от 22.08.2017 № 707 (ред. 20.12.2018), № 142
-          url: https://onlineecology.com/doc/2ea53442-c84d-49e0-817f-bf515afc2e44
-          category: '3'
       - region: Ивановская область
         year: 2010
       - region: Калужская область
