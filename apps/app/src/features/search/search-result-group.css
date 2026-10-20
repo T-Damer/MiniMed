@@ -1,15 +1,4 @@
-/* The footer line of a result card: «Ещё N фрагментов» on the left, the download offer (or its
-   «same pack» note) on the right. A card with one fragment shows the offer alone. */
-.result-group__more {
-  --ui-disclosure-header-height: 2.75rem;
-  --ui-disclosure-header-padding: 0.375rem 0.75rem;
-  --ui-disclosure-header-inset: 0px;
-  --ui-disclosure-content-padding: 0;
-  --ui-disclosure-title-size: 0.8125rem;
-  border-top: 1px solid var(--theme-border);
-  background: var(--theme-surface);
-}
-
+/* The footer line of a result card: the download offer (or its «same pack» note). */
 .result-group__foot {
   display: flex;
   min-height: 2.75rem;

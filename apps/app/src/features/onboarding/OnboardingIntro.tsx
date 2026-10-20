@@ -84,7 +84,7 @@ export function OnboardingIntro(props: {
   );
   window.addEventListener('resize', placeArrow, { passive: true });
   onCleanup(() => window.removeEventListener('resize', placeArrow));
-  // The label grows and shrinks with its text («37 % · 4,2 МБ/с»): keep the arrow on it.
+  // The label grows and shrinks with its text («37 %»): keep the arrow on it.
   const labelWatcher = new ResizeObserver(() => placeArrow());
   createEffect(() => {
     if (!arrow()) return;
@@ -106,7 +106,7 @@ export function OnboardingIntro(props: {
     // Say what is true: until the person chooses (or the app resumed an earlier download) nothing
     // is being fetched, and the choice itself appears once the app knows the base is missing.
     if (props.coreDownloading || props.chosen !== undefined) {
-      return `Скачиваем в фоне — прогресс внизу. Остановить можно в «Настройки → Загрузки»`;
+      return 'Продолжаем настройку приложения в фоне. Давайте посмотрим возможности!';
     }
     return 'Проверяем, что уже есть на устройстве…';
   };
@@ -116,7 +116,8 @@ export function OnboardingIntro(props: {
     if (!props.coreDownloading && props.chosen === undefined) {
       return 'Нажмите «Далее», чтобы продолжить знакомство';
     }
-    return 'Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка';
+    // The headline already says the setup continues in the background: one line is enough.
+    return '';
   };
   const footerShown = () => props.phase !== 'wait';
 
@@ -212,7 +213,9 @@ export function OnboardingIntro(props: {
                   </Button>
                 </div>
               </Show>
-              <p class="onboarding-intro__hint">{nextHint()}</p>
+              <Show when={nextHint()}>
+                {(hint) => <p class="onboarding-intro__hint">{hint()}</p>}
+              </Show>
             </div>
           </section>
         </div>

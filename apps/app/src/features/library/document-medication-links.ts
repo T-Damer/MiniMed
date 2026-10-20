@@ -216,11 +216,32 @@ export interface DocumentLinkMatcher {
 
 const WORD_CHAR = /[\p{L}\p{M}\p{N}_]/u;
 
+/** The scan asks this of every character of every paragraph: ASCII and Cyrillic skip the regexp. */
 function isBoundaryChar(ch: string | undefined): boolean {
-  return ch === undefined || !WORD_CHAR.test(ch);
+  if (ch === undefined) return true;
+  const code = ch.charCodeAt(0);
+  if (ch.length === 1) {
+    if (code < 0x80) {
+      return !(
+        (code >= 0x61 && code <= 0x7a) ||
+        (code >= 0x41 && code <= 0x5a) ||
+        (code >= 0x30 && code <= 0x39) ||
+        code === 0x5f
+      );
+    }
+    if ((code >= 0x410 && code <= 0x44f) || code === 0x401 || code === 0x451) return false;
+  }
+  return !WORD_CHAR.test(ch);
 }
 
 function foldChar(ch: string): string {
+  if (ch.length === 1) {
+    const code = ch.charCodeAt(0);
+    if (code < 0x80) return code >= 0x41 && code <= 0x5a ? String.fromCharCode(code + 0x20) : ch;
+    if (code >= 0x430 && code <= 0x44f) return ch;
+    if (code >= 0x410 && code <= 0x42f) return String.fromCharCode(code + 0x20);
+    if (code === 0x401 || code === 0x451) return 'е';
+  }
   const lower = ch.toLowerCase();
   return lower === 'ё' ? 'е' : lower;
 }
@@ -468,9 +489,17 @@ export function documentLinkMatcherFor(
     matcher = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents));
     matchersByDocuments.set(documents, matcher);
   }
-  return currentDocumentId
-    ? matcher.excluding((documentId) => isSameDocumentFamily(documentId, currentDocumentId))
-    : matcher;
+  if (!currentDocumentId) return matcher;
+  // The matcher asks about the same few thousand candidate ids in every paragraph: one answer each.
+  const sameFamily = new Map<string, boolean>();
+  return matcher.excluding((documentId) => {
+    let same = sameFamily.get(documentId);
+    if (same === undefined) {
+      same = isSameDocumentFamily(documentId, currentDocumentId);
+      sameFamily.set(documentId, same);
+    }
+    return same;
+  });
 }
 
 export function buildMedicationLinkPhrases(

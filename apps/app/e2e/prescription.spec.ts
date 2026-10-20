@@ -100,8 +100,10 @@ test('a 20 kg child: amoxicillin and metronidazole are quoted while computed dos
   await expect(metronidazole).toContainText('Метронидазол', { timeout: 90_000 });
   await pickProduct(metronidazole, /таблетки/u);
   const quoted = metronidazole.getByTestId('prescription-no-rule');
-  await expect(quoted).toContainText('Расчёт доз в этой версии выключен', { timeout: 120_000 });
-  await expect(quoted.getByTestId('prescription-quote').first()).toContainText(/мг/u);
+  await expect(quoted.getByTestId('prescription-quote').first()).toContainText(/мг/u, {
+    timeout: 120_000,
+  });
+  await expect(quoted).not.toContainText('в этой версии');
   await expect(metronidazole.getByTestId('prescription-result')).toHaveCount(0);
   await shoot(page, 'result');
 
@@ -198,6 +200,8 @@ test('the drug screen has the recipe icon', async ({ page }) => {
   await installMedicationModule(page);
   await expect(page.locator('.drug-header__title')).toBeVisible({ timeout: 60_000 });
   await shoot(page, 'drug-screen');
+  // «Рецепт» is an item of the reader's «⋯» menu (owner 2026-10-20).
+  await page.getByRole('button', { name: 'Меню действий' }).click();
   await page.getByTestId('drug-recipe-button').click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();

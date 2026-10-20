@@ -12,6 +12,9 @@
   --z-medication-mid: 17;
   --z-medication-front: 18;
   --z-sticky-chrome: 20;
+  /* The page-colour strip over the status bar while the reader hides its chrome: above every sticky
+     line of the text, below the chrome. */
+  --z-reader-status-fill: 19;
   --z-float: 30;
   --z-search-tools: 40;
   --z-scroll-top: 45;

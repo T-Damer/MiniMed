@@ -1086,7 +1086,19 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           <Show when={meta()}>
             <ReaderActionsMenu
               actions={readerMenuActions()}
-              {...(isMedicalImage() ? {} : { bookmark })}
+              {...(isMedicalImage()
+                ? {}
+                : {
+                    bookmark,
+                    bookmarkItem: meta()
+                      ? {
+                          kind: 'document' as const,
+                          id: (meta() as { id: string }).id,
+                          title: (meta() as { title: string }).title,
+                          documentKind: 'user',
+                        }
+                      : undefined,
+                  })}
             />
           </Show>
         }
@@ -1195,15 +1207,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             <Show when={meta()}>
               {(current) => (
                 <Show when={!isMedicalImage()}>
-                  <ReaderTitleRow
-                    item={{
-                      kind: 'document',
-                      id: current().id,
-                      title: current().title,
-                      documentKind: 'user',
-                    }}
-                    bookmark={bookmark}
-                  >
+                  <ReaderTitleRow>
                     <h1
                       class="document-overlay-paper__title"
                       classList={{

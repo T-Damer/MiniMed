@@ -26,14 +26,9 @@ test('the age and weight fields hold hints, not example values, and the group fi
   }));
   expect(colours.hint).not.toBe(colours.typed);
 
-  // «Ребёнок / Взрослый» is one control across the row; the states below share one even row.
-  const group = page
-    .getByRole('radiogroup', { name: 'Возрастная группа' })
-    .or(page.locator('.prescription__group'));
-  await expect(group.getByText('Ребёнок')).toBeVisible();
-  await expect(group.getByText('Взрослый')).toBeVisible();
-  const groupBox = await group.first().boundingBox();
-  expect(groupBox?.width ?? 0).toBeGreaterThan(300);
+  // No «Ребёнок / Взрослый» switch: the group follows from the age or the mass (owner 2026-10-20).
+  await expect(page.getByRole('radiogroup', { name: 'Возрастная группа' })).toHaveCount(0);
+  // The states share one even row.
   const chips = page.locator('.prescription__states .choice-chip');
   await expect(chips).toHaveCount(2);
   const [first, second] = await Promise.all([
@@ -44,13 +39,6 @@ test('the age and weight fields hold hints, not example values, and the group fi
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-
-  // Choosing an age group clears nothing else and selects exactly one.
-  await group.getByText('Ребёнок').click();
-  await expect(group.getByRole('radio', { name: 'Ребёнок' })).toBeChecked();
-  await group.getByText('Взрослый').click();
-  await expect(group.getByRole('radio', { name: 'Взрослый' })).toBeChecked();
-  await expect(group.getByRole('radio', { name: 'Ребёнок' })).not.toBeChecked();
 });
 
 test('the recipe sheet names what is missing and keeps its tools in view', async ({ page }) => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
+import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 import {
   collectionIdsContaining,
   collectionNameError,
@@ -11,6 +11,7 @@ import {
   loadItemCollections,
   parseItemCollections,
   renameCollection,
+  STARTER_TOOL_IDS,
   saveItemCollections,
   setItemInCollection,
   toggleFavoriteItem,
@@ -131,6 +132,19 @@ describe('item collections', () => {
     expect(loadItemCollections(storage, () => AT).favorites.map((item) => item.id)).toEqual([
       'assessment.phq9',
     ]);
+  });
+
+  it('pins a few real tools on a first run and nothing once the list was ever saved', () => {
+    const fresh = loadItemCollections(memoryStorage(), () => AT);
+    expect(fresh.favorites.map((item) => item.id)).toEqual([...STARTER_TOOL_IDS]);
+    const storage = memoryStorage();
+    saveItemCollections(EMPTY_ITEM_COLLECTIONS, storage);
+    expect(loadItemCollections(storage, () => AT).favorites).toEqual([]);
+  });
+
+  it('starter pins are tools of the bundled catalog', () => {
+    const ids = new Set(TOOL_CATALOG.map((entry) => entry.id));
+    expect(STARTER_TOOL_IDS.filter((id) => !ids.has(id))).toEqual([]);
   });
 
   it('reports unreadable stored JSON without its content and starts empty', () => {

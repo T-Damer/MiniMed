@@ -23,7 +23,8 @@
   padding: 0;
 }
 
-.document-page__chrome {
+.document-page__chrome,
+.page-skeleton__chrome {
   position: sticky;
   z-index: var(--z-sticky-chrome);
   top: 0;
@@ -36,12 +37,14 @@
   background: var(--paper-surface, var(--theme-surface-raised));
 }
 
-.document-page__chrome > * {
+.document-page__chrome > *,
+.page-skeleton__chrome > * {
   position: relative;
   z-index: var(--z-raised);
 }
 
-.ui-button.document-page__back {
+.ui-button.document-page__back,
+.ui-button.page-skeleton__back {
   display: grid;
   flex: none;
   justify-self: start;
@@ -53,13 +56,16 @@
   line-height: 0;
 }
 
-.document-page__back-icon.app-glyph {
+.document-page__back-icon.app-glyph,
+.page-skeleton__back-icon.app-glyph {
   display: block;
   width: 1.05rem;
   height: 1.05rem;
 }
 
 .document-page__error {
+  display: flex;
+  min-height: calc(100dvh - 10rem);
   padding: 1rem var(--page-inline-padding, 1rem);
   color: var(--theme-text, var(--ink));
 }
@@ -649,28 +655,8 @@
   display: none;
 }
 
-/* The floating tab bar stands over the text: a fade in the paper colour keeps the lines under it
-   from showing through, so the bar and the page counter read as one clean strip. It leaves with
-   the bar when the reader hides its chrome. */
-@media (max-width: 760px) {
-  .app-view--document-read::after {
-    content: "";
-    position: fixed;
-    z-index: calc(var(--z-float) - 1);
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: calc(var(--bottom-nav-clearance, 4.75rem) + 1rem);
-    background: linear-gradient(to top, var(--paper-light) 55%, transparent);
-    pointer-events: none;
-    transition: opacity var(--motion-base) var(--motion-ease-out);
-  }
-
-  html.app-chrome-hidden .app-view--document-read::after {
-    opacity: 0;
-  }
-}
-
+/* No fade behind the floating tab bar (owner 2026-10-20: a big white/dark gradient at the bottom):
+   the bar is a solid capsule and reads on the text without it. */
 @media (max-width: 760px) {
   .document-page.page-grain:has(.document-overlay-outline--open) {
     z-index: var(--z-reader-outline-host);

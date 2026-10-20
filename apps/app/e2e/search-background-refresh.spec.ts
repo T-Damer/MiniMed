@@ -22,7 +22,7 @@ async function watchSearchPane(page: Page): Promise<void> {
     const pane = document.querySelector('.search-home')?.closest('.app-view');
     if (!pane) throw new Error('The search pane is missing.');
     const sample = (): void => {
-      const loader = pane.querySelector('.app-view__loading');
+      const loader = pane.querySelector('.page-skeleton');
       samples.push({
         at: Math.round(performance.now()),
         loader: loader !== null && getComputedStyle(loader).display !== 'none',

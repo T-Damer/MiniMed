@@ -1,6 +1,14 @@
-/* Below the route header row (back button, title, tools): a notice never covers the way back. */
+/* Notices sit at the very top, where the eye already is, level with the route controls (owner
+   2026-10-20: they were too low). Because they cover the header for a few seconds, a touch goes
+   through the card to the control beneath (only its close button and action take taps). The
+   recorder bar, which owns this edge while a conversation is recorded, keeps its place and the
+   notices drop beneath it. */
 [data-sonner-toaster].app-notification-host[data-y-position="top"] {
-  top: calc(var(--safe-top, 0px) + 4.5rem) !important;
+  top: calc(var(--safe-top, 0px) + 0.5rem) !important;
+}
+
+html:has(.conversation-bar) [data-sonner-toaster].app-notification-host[data-y-position="top"] {
+  top: calc(var(--safe-top, 0px) + 4rem) !important;
 }
 
 [data-sonner-toaster].app-notification-host {
@@ -16,13 +24,52 @@
   --error-text: var(--theme-text);
 }
 
-[data-sonner-toast].app-notification {
+/* The paper card of the rest of the app (`.paper-card`: raised paper, ruled lines, paper edge and
+   shadow tokens), rounder than a panel and with a close shadow added so the text stays readable over
+   any page behind it. The type tints the paper a little. */
+[data-sonner-toast][data-styled="true"].app-notification {
+  --app-notification-paper: var(--paper-light);
   min-width: min(24rem, calc(100vw - 2rem));
   max-width: min(34rem, calc(100vw - 2rem));
   padding: var(--theme-space-3) var(--theme-space-4);
-  border-radius: var(--theme-radius-panel);
-  box-shadow: var(--theme-card-hover-shadow);
+  border: 1px solid var(--paper-line);
+  border-radius: 1.25rem;
+  color: var(--ink);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 1.8125rem,
+      rgb(74 83 82 / 8%) 1.875rem
+    ),
+    var(--app-notification-paper);
+  box-shadow:
+    var(--shadow-paper),
+    0 0.125rem 0.5rem rgb(34 31 25 / 30%);
   font-family: var(--font-sans);
+  pointer-events: none;
+  /* Slide in from the top edge and fade (the iOS banner): sonner's own 400 ms is longer than the
+     motion tokens allow, and it unmounts a removed notice after 200 ms. */
+  transition:
+    transform var(--motion-base) var(--motion-ease-out),
+    opacity var(--motion-base) var(--motion-ease-out),
+    height var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+[data-sonner-toast][data-styled="true"].app-notification [data-close-button],
+[data-sonner-toast][data-styled="true"].app-notification .app-notification__action {
+  pointer-events: auto;
+}
+
+[data-sonner-toast][data-styled="true"].app-notification[data-type="success"] {
+  --app-notification-paper: color-mix(in srgb, var(--theme-accent) 9%, var(--paper-light));
+  border-color: var(--success-border);
+}
+
+[data-sonner-toast][data-styled="true"].app-notification[data-type="error"] {
+  --app-notification-paper: color-mix(in srgb, var(--theme-danger) 10%, var(--paper-light));
+  border-color: var(--error-border);
 }
 
 /* sonner's default close button sits at the toast's top-left (--toast-close-button-start: 0). Move it

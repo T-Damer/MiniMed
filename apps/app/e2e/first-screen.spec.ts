@@ -66,9 +66,11 @@ test('an opened clinical recommendation starts its text on the first screen unde
   await page.locator('.document-overlay-section__title').first().waitFor();
 
   await expectTextOnFirstScreen(page, '.document-text-chunk', 300);
-  // Kind, edition and audience on one line; never the internal edition id.
+  // Kind and audience on one line; the edition is under «⋯» → «Информация» (owner 2026-10-20) and
+  // the internal edition id is never shown.
   const meta = page.locator('.document-overlay-paper__meta');
-  await expect(meta).toHaveText(/^Клинические рекомендации · ред\. \d+/u);
+  await expect(meta).toHaveText(/^Клинические рекомендации/u);
+  await expect(meta).not.toContainText('ред.');
   await expect(meta).not.toContainText('1006_1');
   expect(await meta.evaluate((node) => node.getBoundingClientRect().height)).toBeLessThan(30);
 
@@ -271,7 +273,10 @@ test('switching a drug page to its instruction text does not scroll it by itself
   }
   await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeEnabled({ timeout: 180_000 });
   await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
-  await expect(page.locator('.document-instruction-source')).toBeVisible({ timeout: 60_000 });
+  // The instruction's source rows are under «⋯» → «Информация» (owner 2026-10-20): wait for its text.
+  await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible({
+    timeout: 60_000,
+  });
   await page.waitForTimeout(3_000);
   expect(
     await page.evaluate(() => (window as unknown as { __scrolls: number[] }).__scrolls),

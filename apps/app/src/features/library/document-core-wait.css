@@ -1,15 +1,14 @@
-/* The document route while the core opens: the status sits where the document will start. */
+/* The document route while the core opens: the header row and bars of a loading page, with the
+   status just under the header, where the document will start. */
 .document-core-wait {
-  display: grid;
-  align-content: start;
-  justify-items: center;
+  display: block;
 }
 
 .document-core-wait__note {
   display: grid;
   width: min(100%, 36rem);
   gap: 0.25rem;
-  margin-top: clamp(2rem, 12dvh, 6rem);
+  margin-inline: auto;
 }
 
 .document-core-wait__title {

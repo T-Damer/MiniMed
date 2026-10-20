@@ -1,3 +1,5 @@
+import { watchSoftKeyboard } from '@/app/soft-keyboard';
+
 const NAV_SAFE_BOTTOM_VAR = '--nav-safe-bottom';
 
 export function nextLockedInsetFloor(floorPx: number, observedPx: number): number {
@@ -17,7 +19,10 @@ function readSafeBottomPx(root: HTMLElement): number {
   );
 }
 
-/** Keep the bottom nav from dropping when Capacitor briefly reports a 0 inset during navigation. */
+/**
+ * Keep the bottom nav from dropping when Capacitor briefly reports a 0 inset during navigation, and
+ * from riding up above the on-screen keyboard (it steps aside while one types: `soft-keyboard.ts`).
+ */
 export function lockNativeSafeBottom(root: HTMLElement = document.documentElement): () => void {
   let floorPx = 0;
   const sync = (): void => {
@@ -27,11 +32,13 @@ export function lockNativeSafeBottom(root: HTMLElement = document.documentElemen
     root.style.setProperty(NAV_SAFE_BOTTOM_VAR, `${floorPx}px`);
   };
   sync();
+  const stopKeyboard = watchSoftKeyboard(root);
   const observer = new MutationObserver(sync);
   observer.observe(root, { attributes: true, attributeFilter: ['style'] });
   window.visualViewport?.addEventListener('resize', sync);
   document.addEventListener('visibilitychange', sync);
   return () => {
+    stopKeyboard();
     observer.disconnect();
     window.visualViewport?.removeEventListener('resize', sync);
     document.removeEventListener('visibilitychange', sync);

@@ -327,11 +327,22 @@ for (const safeTop of [0, 24, 47]) {
 
     const safeFill = await page.locator('.document-overlay-paper').evaluate((paper) => {
       const styles = getComputedStyle(paper, '::before');
-      return { background: styles.backgroundColor, height: styles.height, opacity: styles.opacity };
+      return {
+        background: styles.backgroundColor,
+        height: styles.height,
+        opacity: styles.opacity,
+        zIndex: styles.zIndex,
+      };
     });
     expect(safeFill.height).toBe(`${safeTop}px`);
     expect(safeFill.background).not.toBe('rgba(0, 0, 0, 0)');
     expect(safeFill.opacity).toBe('1');
+    // The strip must be a real layer above the sticky section line and the text, not `z-index:
+    // auto` (an undeclared token once dropped it under the paragraphs, so text showed through).
+    expect(safeFill.zIndex).not.toBe('auto');
+    expect(Number(safeFill.zIndex)).toBeGreaterThan(
+      Number(await heading.evaluate((element) => getComputedStyle(element).zIndex)),
+    );
 
     await page.evaluate(() => window.scrollTo(0, 300));
     await expect

@@ -31,7 +31,10 @@ async function openInstruction(page: Page, name: string): Promise<void> {
   }
   await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeEnabled({ timeout: 180_000 });
   await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
-  await expect(page.locator('.document-instruction-source')).toBeVisible({ timeout: 60_000 });
+  // The instruction's source rows are under «⋯» → «Информация» (owner 2026-10-20): wait for its text.
+  await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible({
+    timeout: 60_000,
+  });
 }
 
 /** Top of the first body paragraph and top of the bottom navigation, in viewport pixels. */
@@ -96,17 +99,16 @@ for (const viewport of VIEWPORTS) {
       // The hit area is at least 44 px tall although the text line is not.
       expect(link.height).toBeGreaterThanOrEqual(43);
     }
-    for (const selector of ['.drug-header__bookmark', '.drug-recipe__button']) {
-      const border = await page
-        .locator(selector)
-        .evaluate((node) => getComputedStyle(node).borderTopWidth);
-      expect(border).toBe('0px');
-    }
+    // Nothing but the name on the title row (owner 2026-10-20): no bookmark, no recipe icon.
+    await expect(page.locator('.drug-header .item-bookmark, .drug-recipe__button')).toHaveCount(0);
     // Compare and share are items of the «⋯» menu, not buttons beside the title.
     await expect(page.locator('.drug-header__tool')).toHaveCount(0);
     await page.getByRole('button', { name: 'Меню действий' }).click();
     await expect(page.getByTestId('drug-compare-link')).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'Поделиться' })).toBeVisible();
+    await expect(page.getByTestId('drug-recipe-button')).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Сохранить в коллекцию' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Информация' })).toBeVisible();
     await page.keyboard.press('Escape');
     // The header is one compact block: title, tools and the chip rows end well above the text.
     const title = await page.locator('.drug-header__title').boundingBox();

@@ -15,8 +15,7 @@
 .calculators-page,
 .model-status-view,
 .patient-notes-view,
-.case-folder,
-.document-page__loading {
+.case-folder {
   --theme-text-muted: var(--theme-desk-text-muted);
   --theme-text-faint: var(--theme-desk-text-faint);
   --ink-soft: var(--theme-desk-text-muted);

@@ -145,13 +145,8 @@ for (const width of [360, 390, 1280]) {
     expect(box.y).toBeGreaterThanOrEqual(header.y + header.height);
     expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width);
     expect(box.y + box.height).toBeLessThanOrEqual(card.y + card.height);
-    // «Ещё N фрагментов» shares that line when the card has more fragments.
-    const more = group.locator('.ui-disclosure__header');
-    if ((await more.count()) > 0) {
-      const toggle = await more.boundingBox();
-      if (!toggle) throw new Error('The fragments toggle has no box.');
-      expect(Math.abs(toggle.y + toggle.height / 2 - (box.y + box.height / 2))).toBeLessThan(12);
-    }
+    // One finding per card: no fragments toggle on that line (owner 2026-10-20).
+    await expect(group.locator('.ui-disclosure__header')).toHaveCount(0);
     await group.screenshot({ path: testInfo.outputPath(`source-card-${width}.png`) });
   });
 }

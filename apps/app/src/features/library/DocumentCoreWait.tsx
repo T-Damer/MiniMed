@@ -1,5 +1,6 @@
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
 
+import { PageSkeleton } from '@/components/PageSkeleton';
 import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import {
   SEARCH_CORE_NOTE_DELAY_MS,
@@ -27,19 +28,24 @@ export function DocumentCoreWait(props: {
       ? props.status
       : undefined;
   return (
-    <div class="document-core-wait page-surface page-grain" aria-busy="true">
-      <Show when={visibleStatus()}>
-        {(status) => (
-          <div class="document-core-wait__note">
-            <p class="document-core-wait__title">Документ откроется, когда база будет готова</p>
-            <SearchCoreStatusNote
-              status={status()}
-              onRetry={props.onRetry}
-              onDownload={props.onDownload}
-            />
-          </div>
-        )}
-      </Show>
+    <div class="document-core-wait" aria-busy="true">
+      <PageSkeleton
+        fallbackHash="#/search"
+        notice={
+          <Show when={visibleStatus()}>
+            {(status) => (
+              <div class="document-core-wait__note">
+                <p class="document-core-wait__title">Документ откроется, когда база будет готова</p>
+                <SearchCoreStatusNote
+                  status={status()}
+                  onRetry={props.onRetry}
+                  onDownload={props.onDownload}
+                />
+              </div>
+            )}
+          </Show>
+        }
+      />
     </div>
   );
 }

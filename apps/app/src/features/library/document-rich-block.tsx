@@ -448,6 +448,29 @@ export function PreviewableImage(props: {
   );
 }
 
+const pendingWideMeasures = new Map<HTMLElement, (wide: boolean) => void>();
+let wideMeasureFrame: number | undefined;
+
+/**
+ * Whether tables are wider than their box is read for every pending table first and applied after:
+ * a table that turns «wide» changes its class, and measuring the next table right after would
+ * force a layout of the whole page again, once per table.
+ */
+function requestWideMeasure(scroller: HTMLElement, apply: (wide: boolean) => void): void {
+  pendingWideMeasures.set(scroller, apply);
+  if (wideMeasureFrame !== undefined) return;
+  wideMeasureFrame = requestAnimationFrame(() => {
+    wideMeasureFrame = undefined;
+    const batch = [...pendingWideMeasures];
+    pendingWideMeasures.clear();
+    const measured = batch.map(
+      ([element, setter]) =>
+        [setter, element.isConnected && element.scrollWidth > element.clientWidth + 1] as const,
+    );
+    for (const [setter, wide] of measured) setter(wide);
+  });
+}
+
 function ZoomableTable(props: {
   readonly block: DocumentTableBlock;
   readonly highlight?: RichBlockHighlightProps | undefined;
@@ -458,12 +481,10 @@ function ZoomableTable(props: {
   const [wide, setWide] = createSignal(false);
   const title = () => props.block.caption || 'Таблица из документа';
   const watchWidth = (scroller: HTMLElement): void => {
-    const measure = (): void => {
-      setWide(scroller.scrollWidth > scroller.clientWidth + 1);
-    };
-    measure();
-    // A table in a section the browser has not rendered yet (`content-visibility`) has no size to
-    // observe: it is measured again when it comes near the screen.
+    const measure = (): void => requestWideMeasure(scroller, setWide);
+    // Not measured here: the element is not in the page yet, and a table in a section the browser has
+    // not rendered (`content-visibility`) has no size to observe. Both observers report after their
+    // first layout, and a table that comes near the screen is measured then.
     const resize = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
     resize?.observe(scroller);
     for (const child of Array.from(scroller.children)) resize?.observe(child);
@@ -472,9 +493,11 @@ function ZoomableTable(props: {
         ? undefined
         : new IntersectionObserver(measure, { rootMargin: '200px' });
     near?.observe(scroller);
+    if (!resize && !near) measure();
     onCleanup(() => {
       resize?.disconnect();
       near?.disconnect();
+      pendingWideMeasures.delete(scroller);
     });
   };
 

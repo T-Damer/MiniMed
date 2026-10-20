@@ -12,7 +12,7 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 const SAMPLER = `(() => {
   const states = [];
   const sample = () => {
-    const loading = document.querySelector('.document-page__loading');
+    const loading = document.querySelector('.document-page__loading, .page-skeleton');
     const pointer = document.querySelector('.document-module-pointer');
     const content = document.querySelector('.document-overlay-section__title');
     const state = content ? 'content' : pointer ? 'pointer' : loading ? 'loading' : 'blank';

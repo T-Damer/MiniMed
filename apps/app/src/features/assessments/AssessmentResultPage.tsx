@@ -204,9 +204,6 @@ export function AssessmentResultPage(props: {
           <section class="assessment-result-summary paper-card">
             <h2 class="assessment-result-summary__heading">Результат внесён вручную</h2>
             <pre class="assessment-result-summary__manual-text">{manualText()}</pre>
-            <p class="assessment-result-summary__text">
-              Баллы не пересчитывались, версия бланка не проверялась.
-            </p>
           </section>
         }
       >

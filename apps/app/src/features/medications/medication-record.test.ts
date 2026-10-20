@@ -156,7 +156,11 @@ describe('parseMedicationProduct', () => {
       note: 'Официальной инструкции для этого препарата нет в установленных базах.',
     });
     const withInstruction = { ...product, instructionDocumentId: 'drug.instruction.miramistin' };
-    expect(medicationReadingChoices(withInstruction, 'drug.allmed.12').note).toBeNull();
+    expect(medicationReadingChoices(withInstruction, 'drug.allmed.12')).toMatchObject({
+      note: null,
+      // The reference text leads: the owner prefers Allmed's short version to the long leaflet.
+      initialMode: 'short',
+    });
     expect(medicationReadingChoices(withInstruction, 'drug.instruction.miramistin')).toMatchObject({
       initialMode: 'instruction',
       note: 'Для этого препарата есть только официальная инструкция.',
@@ -711,8 +715,9 @@ describe('readableMedicationDocumentId', () => {
     );
     if (!product) throw new Error('expected registry product');
     expect(readableMedicationDocumentId(product)).toBe('drug.registry');
+    // A bare registry card is not read first when the instruction is there (owner 2026-10-20).
     expect(medicationReadingChoices(product, 'drug.registry')).toMatchObject({
-      initialMode: 'short',
+      initialMode: 'instruction',
       note: null,
       options: [
         { value: 'short', label: 'Кратко', disabled: false },

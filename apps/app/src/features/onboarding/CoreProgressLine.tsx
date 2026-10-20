@@ -1,11 +1,10 @@
-import { createEffect, createMemo, createSignal, type JSX, on, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { motionMs } from '@/state/motion';
 import { type CoreLineInput, coreLineState } from './core-line-state';
-import { currentSpeed, nextSpeed, startSpeed } from './download-speed';
 
-export type CoreProgressLineProps = Omit<CoreLineInput, 'speed'> & {
+export type CoreProgressLineProps = CoreLineInput & {
   readonly onDownload: () => void;
   /** The download has not been allowed to begin yet (the app is still being introduced): hidden. */
   readonly waiting?: boolean;
@@ -20,31 +19,14 @@ export type CoreProgressLineProps = Omit<CoreLineInput, 'speed'> & {
 
 /** How long the completed line stays before it fades. */
 const READY_HOLD_MS = 900;
-/** The speed text is recomputed this often even when no bytes arrive, so a stall clears it. */
-const SPEED_REFRESH_MS = 1_000;
 
 /**
  * The thin line along the bottom edge that follows the core download. It lives above the tour's
  * blur and outlives the tour; once the core is installed it fills, holds a moment and fades.
  */
 export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
-  const [speedState, setSpeedState] = createSignal(startSpeed(performance.now(), 0));
-  const [now, setNow] = createSignal(performance.now());
   const [leaving, setLeaving] = createSignal(false);
   const [gone, setGone] = createSignal(false);
-
-  createEffect(
-    on(
-      () => props.progress?.loaded,
-      (loaded) => {
-        if (loaded === undefined) return;
-        setSpeedState((state) => nextSpeed(state, performance.now(), loaded));
-        setNow(performance.now());
-      },
-    ),
-  );
-  const refresh = setInterval(() => setNow(performance.now()), SPEED_REFRESH_MS);
-  onCleanup(() => clearInterval(refresh));
 
   const state = createMemo(() =>
     coreLineState({
@@ -53,10 +35,6 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
       deferred: props.deferred,
       error: props.error,
       progress: props.progress,
-      speed:
-        props.progress?.phase === undefined || props.progress.phase === 'downloading'
-          ? currentSpeed(speedState(), now())
-          : undefined,
     }),
   );
 

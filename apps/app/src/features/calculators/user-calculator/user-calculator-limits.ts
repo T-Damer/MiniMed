@@ -19,5 +19,4 @@ export const USER_CALCULATOR_LIMITS = {
   fileBytes: 1_000_000,
 } as const;
 
-export const USER_CALCULATOR_DEFAULT_DISCLAIMER =
-  'Авторский калькулятор. Результат не заменяет клиническую оценку.';
+export const USER_CALCULATOR_DEFAULT_DISCLAIMER = 'Авторский калькулятор.';

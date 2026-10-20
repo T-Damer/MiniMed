@@ -84,7 +84,7 @@ describe('model → schema', () => {
       category: 'custom',
       clinical: false,
       formulaDisplay: 'масса / (рост / 100) ^ 2',
-      limitations: ['Авторский калькулятор. Результат не заменяет клиническую оценку.'],
+      limitations: ['Авторский калькулятор.'],
       evaluation: { status: 'not-applicable', rules: [], missingContext: [] },
       observationMappings: [],
     });

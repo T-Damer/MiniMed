@@ -182,13 +182,30 @@ export function DrugQuickLinks(props: {
     setAtcOpen(true);
   };
   const metas = (): readonly MetaLink[] => metaLinks(props.links);
-  const empty = (): boolean => metas().length === 0 && props.links.related.length === 0;
+  const empty = (): boolean =>
+    metas().length === 0 && props.links.related.length === 0 && props.links.forms.length === 0;
   const relatedLimit = (): number =>
     props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : DRUG_LINK_LIMIT;
 
   return (
     <Show when={!empty()}>
       <nav class="drug-links" aria-label="Связанные сведения о препарате">
+        <Show when={props.links.forms.length > 0}>
+          <section
+            class="drug-links__group drug-links__forms"
+            aria-label="Формы выпуска"
+            data-testid="drug-forms"
+          >
+            <FoldedLinks
+              items={props.links.forms}
+              limit={DRUG_LINK_LIMIT}
+              separator="dot"
+              lead="Формы"
+            >
+              {(form: string) => <span class="drug-links__form">{form}</span>}
+            </FoldedLinks>
+          </section>
+        </Show>
         <Show when={metas().length > 0}>
           <section class="drug-links__group" aria-label="Вещество, группа и код АТХ">
             <FoldedLinks items={metas()} limit={DRUG_LINK_LIMIT} separator="dot">

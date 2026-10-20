@@ -16,9 +16,12 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     ndkVersion "27.3.13750724"
     defaultConfig {
-        // Released id stays dev.localmed.search (renaming loses user data). Local measurements may
-        // install beside it with -PlocalmedApplicationId=… (e.g. org.med.web on the emulator).
-        applicationId findProperty('localmedApplicationId') ?: "dev.localmed.search"
+        // HyperOS remembers a 60 Hz cap per package: dev.localmed.search is capped on the owner's
+        // phone while the same app as org.med.web runs at 120 Hz (docs/research/native-vs-webview-
+        // 2026-10-01.md). The owner asked for the 120 Hz id (2026-10-20, sole user, data loss
+        // accepted). The Java namespace stays dev.localmed.search; -PlocalmedApplicationId=… still
+        // installs a measurement build beside it.
+        applicationId findProperty('localmedApplicationId') ?: "org.med.web"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode releaseMetadata.androidVersionCode

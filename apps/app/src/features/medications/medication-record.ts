@@ -734,8 +734,8 @@ export function medicationDocumentRegistration(document: MedicalDocument): strin
 }
 
 /**
- * The product card opens on its short version (the MNN or registration card); the official
- * instruction is one switch away in the card, see {@link medicationReadingChoices}.
+ * The document a product card opens on (the MNN or registration card); the body it shows first is
+ * chosen by {@link medicationReadingChoices}.
  */
 export function readableMedicationDocumentId(product: MedicationProduct): string | null {
   return product.mnnDocumentId ?? product.registrationDocumentId ?? product.instructionDocumentId;
@@ -759,7 +759,8 @@ export interface MedicationReadingChoices {
 
 /**
  * The product card reads either the short version (the opened card with its Allmed text) or the
- * official instruction. The short version comes first; an option without a document is disabled.
+ * official instruction. A reference text opens first, else the instruction; an option without a
+ * document is disabled.
  */
 export function medicationReadingChoices(
   product: MedicationProduct,
@@ -781,7 +782,9 @@ export function medicationReadingChoices(
       },
       { value: 'instruction', label: 'Инструкция', disabled: !hasInstruction },
     ],
-    initialMode: hasShort ? 'short' : 'instruction',
+    // The short version leads only when it is a reference text (Allmed, Видаль) or nothing else
+    // exists: a bare registry card is never the first thing a doctor reads (owner 2026-10-20).
+    initialMode: hasShort && (hasReference || !hasInstruction) ? 'short' : 'instruction',
     note: !hasInstruction
       ? 'Официальной инструкции для этого препарата нет в установленных базах.'
       : product.instructionFallback

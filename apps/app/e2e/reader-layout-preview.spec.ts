@@ -41,13 +41,14 @@ for (const viewport of COLUMN_VIEWPORTS) {
     await mountClinicalReader(page, viewport);
     const column = page.locator('.document-overlay-outline--open');
     await expect(column).toBeVisible();
-    const footer = column.locator('.doctor-technical-details');
+    // The column's last entry: source details moved to «⋯» → «Информация» (owner 2026-10-20).
+    const footer = column.locator('.document-overlay-outline-nav-scroll');
     await expect(footer).toBeVisible();
 
     const result = await page.evaluate(() => {
       const bar = document.querySelector<HTMLElement>('.app-bottom-nav');
       const footerElement = document.querySelector<HTMLElement>(
-        '.document-overlay-outline--open .doctor-technical-details',
+        '.document-overlay-outline--open .document-overlay-outline-nav-scroll',
       );
       const nav = document.querySelector<HTMLElement>('.document-overlay-outline-nav-scroll');
       if (!bar || !footerElement || !nav) throw new Error('reader chrome is missing');

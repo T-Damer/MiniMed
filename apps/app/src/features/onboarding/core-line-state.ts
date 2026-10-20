@@ -1,7 +1,6 @@
 import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { downloadPercent } from '@/features/setup/setup-state';
-import { formatSpeed } from './download-speed';
 
 export interface CoreLineInput {
   readonly ready: boolean;
@@ -16,8 +15,6 @@ export interface CoreLineInput {
         readonly phase?: 'downloading' | 'verifying' | 'installing';
       }
     | undefined;
-  /** Smoothed bytes per second, when known. */
-  readonly speed: number | undefined;
 }
 
 export type CoreLineKind =
@@ -34,7 +31,7 @@ export interface CoreLineState {
   readonly kind: CoreLineKind;
   /** 0..1 for a determinate line; undefined for an indeterminate one. */
   readonly fraction: number | undefined;
-  /** The small text under the line, e.g. «37 % · 4,2 МБ/с». */
+  /** The small text under the line, e.g. «37 %» (no speed: owner 2026-10-20). */
   readonly label: string;
   /**
    * A short form of the label for places where a long message would cover something (the
@@ -78,9 +75,8 @@ export function coreLineState(input: CoreLineInput): CoreLineState {
   }
   if (loaded <= 0) return plain('connecting', undefined, 'Начинаем загрузку…');
   const percent = downloadPercent(loaded, input.progress?.total);
-  const speed = input.speed === undefined ? '' : ` · ${formatSpeed(input.speed)}`;
   if (percent === undefined) {
-    return plain('downloading', undefined, `${formatModuleBytes(loaded)}${speed}`);
+    return plain('downloading', undefined, formatModuleBytes(loaded));
   }
-  return plain('downloading', percent / 100, `${Math.floor(percent)} %${speed}`);
+  return plain('downloading', percent / 100, `${Math.floor(percent)} %`);
 }

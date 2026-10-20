@@ -1,0 +1,11 @@
+/* While a text field has the on-screen keyboard (`soft-keyboard.ts`), the floating navigation steps
+   below the viewport edge instead of riding up above the keyboard. The slide is the one the reader
+   chrome uses; the bar is also taken out of reach, so Tab and taps cannot land on it while hidden. */
+html.app-keyboard-open .app-bottom-nav {
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(100% + var(--nav-safe-bottom) + 1rem));
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    visibility 0s linear var(--motion-base);
+}

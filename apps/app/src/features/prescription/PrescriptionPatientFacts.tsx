@@ -3,7 +3,6 @@ import { createEffect, createSignal, type JSX, on, Show } from 'solid-js';
 
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
 import { createDebouncer } from '@/components/debounced-value';
-import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextField } from '@/components/TextField';
 import { agePatchOf, restoredAgeText } from './prescription-age';
 import type { PatientCardFacts } from './prescription-facts';
@@ -18,10 +17,10 @@ export function parseWeightInput(text: string): number | null {
   return Number.isFinite(value) && value >= 0.4 && value <= 400 ? value : null;
 }
 
-type PatientGroupChoice = '' | 'child' | 'adult';
-
 /**
- * Age, weight and state of the patient, as one compact row. The card of a chosen patient fills what
+ * Age, weight and state of the patient, as one compact row. There is no «Ребёнок / Взрослый»
+ * switch (owner 2026-10-20): the group follows from the age, or without one from the body mass
+ * (`assumedGroup`). The card of a chosen patient fills what
  * it knows; the doctor's own entries win over the card. Only the fields the arithmetic can use are
  * offered: height appears when a dose per body surface needs it, pregnancy and breastfeeding only
  * where they can apply.
@@ -73,14 +72,12 @@ export function PrescriptionPatientFacts(props: {
     props.card.ageDays === null ? undefined : ageText(props.card.ageDays);
   const cardWeight = (): string | undefined =>
     props.card.weightKg === null ? undefined : String(props.card.weightKg);
-  const ageKnown = (): boolean => props.patient.ageDays !== null || props.card.ageDays !== null;
   const mayBePregnant = (): boolean => {
     if (props.card.sex === 'male') return false;
     const days = props.patient.ageDays ?? props.card.ageDays;
     return days === null || (days >= 12 * YEAR_DAYS && days < 60 * YEAR_DAYS);
   };
 
-  const group = (): PatientGroupChoice => props.patient.group ?? '';
   const ageFromCard = (): boolean => age() === '' && cardAge() !== undefined;
   const weightFromCard = (): boolean => weight() === '' && cardWeight() !== undefined;
 
@@ -136,19 +133,6 @@ export function PrescriptionPatientFacts(props: {
           />
         </Show>
       </div>
-      <Show when={!ageKnown()}>
-        <SegmentedControl<PatientGroupChoice>
-          label="Возрастная группа"
-          class="prescription__group"
-          stretch
-          value={group()}
-          options={[
-            { value: 'child', label: 'Ребёнок' },
-            { value: 'adult', label: 'Взрослый' },
-          ]}
-          onChange={(next) => props.onChange({ group: next === '' ? null : next })}
-        />
-      </Show>
       <Show when={mayBePregnant()}>
         <ChoiceChipList label="Состояние пациента" class="prescription__states">
           <ChoiceChip

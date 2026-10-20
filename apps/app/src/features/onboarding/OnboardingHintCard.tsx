@@ -166,12 +166,12 @@ export function OnboardingHintCard(props: {
       <footer class="onboarding-hint__actions">
         <Button
           class="onboarding-hint__back"
-          variant="quiet"
+          variant="icon"
+          aria-label="Назад"
           disabled={!props.canGoBack}
           onClick={props.onBack}
-        >
-          Назад
-        </Button>
+          icon={<AppGlyph name="arrow-left" />}
+        />
         <Button
           class="onboarding-hint__next"
           classList={{

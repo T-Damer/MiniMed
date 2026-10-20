@@ -90,7 +90,7 @@ describe('registering the doctor’s calculators', () => {
       version: '2026-10-05T10:00:00.000Z',
       formula: 'масса / (рост / 100) ^ 2',
       population: 'Дети от 2 лет. Указано автором калькулятора.',
-      limitations: ['Авторский калькулятор. Результат не заменяет клиническую оценку.'],
+      limitations: ['Авторский калькулятор.'],
       inputs: [
         { input: 'x1', unit: 'кг', minimum: 3, maximum: 200, required: true },
         { input: 'x2', unit: 'см', minimum: 40, maximum: 220, required: true },

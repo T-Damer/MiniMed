@@ -375,22 +375,6 @@ body {
   padding-inline: clamp(0.75rem, 4vw, 1.125rem);
 }
 
-.app-view__loading {
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
-  color: var(--ink-muted);
-}
-
-.app-view__spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 0.1875rem solid var(--theme-accent);
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 700ms linear infinite;
-}
-
 .page-surface {
   min-height: 100dvh;
   padding: clamp(1.75rem, 5vw, 4rem) clamp(1rem, 5vw, 4.5rem) calc(2.25rem + var(--safe-bottom));

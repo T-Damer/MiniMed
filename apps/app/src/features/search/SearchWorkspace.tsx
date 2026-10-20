@@ -7,7 +7,6 @@ import type {
   QueryFact,
   SearchFilters,
   SearchResponse,
-  SearchResult,
   SearchResultGroup,
   SearchSuggestion,
 } from '@localmed/contracts';
@@ -53,7 +52,6 @@ import { parseComparisonQuery } from '@/features/drug-comparison/comparison-quer
 import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
 import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
-import { resolveReadableDocumentId } from '@/features/library/document-display';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
@@ -342,7 +340,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
   const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
-  const [contextLoading, setContextLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
   const [focused, setFocused] = createSignal(false);
   const [toolPickerOpen, setToolPickerOpen] = createSignal(false);
@@ -984,35 +981,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     if (available.ok) setContextDocuments(available.value);
     else setError(available.error.message);
-  }
-
-  async function openResult(result: SearchResult): Promise<void> {
-    // Results only exist once a core has answered a search.
-    const core = props.core;
-    if (!core) return;
-    setContextLoading(true);
-    setError(undefined);
-    const [resolved, available] = await Promise.all([
-      core.getSearchResultContext(result, 3),
-      core.listNavigationDocuments?.() ?? core.listDocuments(),
-    ]);
-    setContextDocuments(available.ok ? available.value : []);
-    if (!available.ok) setError(available.error.message);
-    setContextLoading(false);
-    if (!resolved.ok) {
-      const documents = await (core.listNavigationDocuments?.() ?? core.listDocuments());
-      const documentId =
-        documents.ok && documents.value.length > 0
-          ? resolveReadableDocumentId(
-              result.documentId,
-              new Set(documents.value.map((document) => document.id)),
-            )
-          : result.documentId;
-      openDocumentInArchive(documentId, result.anchor);
-      setError(resolved.error.message);
-      return;
-    }
-    setContext(resolved.value);
   }
 
   function insertSuggestion(suggestion: SearchSuggestion): void {
@@ -1684,7 +1652,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                             action={props.groupAction?.(group)}
                             qualifier={qualifierOf(group)}
                             onOpenDocument={openDocumentInArchive}
-                            onOpenResult={(result) => void openResult(result)}
                           />
                         );
                       }}
@@ -1734,7 +1701,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         {props.catalogAfterResults}
       </div>
 
-      <Show when={context() || contextLoading()}>
+      <Show when={context()}>
         <Portal>
           <aside
             class="reader-column source-folder open"

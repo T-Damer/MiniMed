@@ -193,26 +193,21 @@
   list-style: none;
 }
 
-.downloads-empty,
-.downloads-footnote {
+.downloads-empty {
   margin: 0;
-  padding-inline: 0.25rem;
-  color: var(--theme-text-muted);
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--paper-line);
+  border-radius: var(--theme-radius-panel);
+  /* On the paper, not on the page's tinted backdrop: the grey text needs the light surface. */
+  background: var(--paper-light);
+  color: var(--ink);
   font-size: 0.875rem;
   line-height: 1.45;
-}
-
-.downloads-empty {
-  padding: 1.5rem 1rem;
-  border: 1px dashed var(--theme-border);
-  border-radius: var(--theme-radius-panel);
   text-align: center;
 }
 
-.downloads-footnote {
-  /* Keeps the last line clear of the floating bottom navigation. */
-  padding-bottom: calc(5rem + var(--safe-bottom, 0px));
-  font-size: 0.8125rem;
+.downloads-end {
+  height: calc(5rem + var(--safe-bottom, 0px));
 }
 
 .downloads-glyph {

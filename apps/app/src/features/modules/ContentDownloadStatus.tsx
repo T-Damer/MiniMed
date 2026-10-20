@@ -122,9 +122,8 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
       const total = withSize.reduce((sum, task) => sum + (task.totalBytes ?? 0), 0);
       parts.push(`${formatDownloadBytes(done)} из ${formatDownloadBytes(total)}`);
     }
-    return parts.length > 0
-      ? parts.join(' · ')
-      : 'Ядро, наборы документов, изображения и модели скачиваются через одну очередь.';
+    // Nothing in flight: the title says it all (owner 2026-10-20: less text).
+    return parts.join(' · ');
   };
   const summary = () =>
     !online()
@@ -179,7 +178,9 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
               </span>
               <div class="downloads-overview__copy">
                 <h2 class="downloads-overview__title">{overviewTitle()}</h2>
-                <p class="downloads-overview__meta">{overviewMeta()}</p>
+                <Show when={overviewMeta()}>
+                  {(meta) => <p class="downloads-overview__meta">{meta()}</p>}
+                </Show>
               </div>
               <Show when={pause.available()}>
                 <DownloadsPauseButton pause={pause} class="downloads-overview__pause" />
@@ -270,10 +271,8 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
                 </For>
               </Show>
             </Show>
-            <p class="downloads-footnote">
-              Одновременно идёт до трёх загрузок. Их можно не ждать: переход в другие разделы
-              загрузку не прерывает.
-            </p>
+            {/* Keeps the last row clear of the floating bottom navigation. */}
+            <div class="downloads-end" aria-hidden="true" />
           </>
         }
       >

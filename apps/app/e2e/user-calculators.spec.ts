@@ -206,9 +206,7 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await expect(result).toContainText('ИМТ');
   await expect(result).toContainText('17 кг/м²');
   await expect(result).toContainText('Дефицит. ИМТ ниже нормы.');
-  await expect(result).toContainText(
-    'Авторский калькулятор. Результат не заменяет клиническую оценку.',
-  );
+  await expect(result).toContainText('Авторский калькулятор.');
   await page.screenshot({ path: testInfo.outputPath('user-calculator-result.png') });
 
   // The ordinary print: inputs, formula, result, interpretation and the author's disclaimer.
@@ -223,7 +221,7 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   expect(printed).toContain('Формула: масса / (рост / 100) ^ 2');
   expect(printed).toContain('ИМТ: 17 кг/м²');
   expect(printed).toContain('Интерпретация:\nДефицит. ИМТ ниже нормы.');
-  expect(printed).toContain('Авторский калькулятор. Результат не заменяет клиническую оценку.');
+  expect(printed).toContain('Авторский калькулятор.');
 
   // Edit: rename, change the formula, and the result changes.
   await page.getByTestId('calculator-edit-own').click();

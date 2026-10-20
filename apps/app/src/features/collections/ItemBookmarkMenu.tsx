@@ -34,6 +34,11 @@ export function ItemBookmarkMenu(props: {
   /** Controlled panel, for a second way in (a reader's header menu); otherwise self-managed. */
   readonly open?: boolean;
   readonly onOpenChange?: (open: boolean) => void;
+  /**
+   * The panel opens only from another control (a reader's «⋯» menu): the trigger stays as the
+   * panel's anchor but is neither seen nor focused.
+   */
+  readonly hiddenTrigger?: boolean;
 }): JSX.Element {
   const [ownOpen, setOwnOpen] = createSignal(false);
   const open = (): boolean => props.open ?? ownOpen();
@@ -64,7 +69,17 @@ export function ItemBookmarkMenu(props: {
       onOpenChange={setOpen}
       title={`Сохранить: ${title()}`}
       placement="bottom-end"
-      triggerClass={`item-bookmark ${props.class ?? ''}`.trim()}
+      triggerClass={`item-bookmark ${props.hiddenTrigger ? 'item-bookmark--anchor-only' : ''} ${props.class ?? ''}`
+        .replace(/\s+/gu, ' ')
+        .trim()}
+      {...(props.hiddenTrigger
+        ? {
+            triggerRef: (element: HTMLButtonElement) => {
+              element.tabIndex = -1;
+              element.setAttribute('aria-hidden', 'true');
+            },
+          }
+        : {})}
       triggerClassList={{ 'item-bookmark--saved': saved() }}
       triggerLabel={saved() ? `Сохранено: «${title()}»` : `Сохранить «${title()}»`}
       triggerTitle={saved() ? 'Сохранено — изменить' : 'Сохранить'}

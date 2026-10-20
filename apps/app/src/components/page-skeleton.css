@@ -1,0 +1,99 @@
+/*
+ * Loading placeholder of a screen or of a document: the reader's header row and paper with quiet bars
+ * where the text will be. It is drawn with the reader's own classes (chrome, back button, paper), so
+ * the real page takes its place without moving; only the bars are its own.
+ */
+.page-skeleton {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.page-skeleton--headless {
+  padding: clamp(0.75rem, 4vw, 1.125rem) clamp(0.75rem, 4vw, 1.125rem) 6rem;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%), var(--route-desk-gradient);
+}
+
+.page-skeleton__notice {
+  margin-bottom: 1.25rem;
+}
+
+.page-skeleton__paper {
+  flex: 1 0 auto;
+  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+  pointer-events: none;
+}
+
+.page-skeleton__paper--card {
+  flex: 0 0 auto;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.75rem;
+}
+
+.page-skeleton__bar {
+  --skeleton-bar: color-mix(in srgb, var(--theme-text-faint) 24%, transparent);
+  --skeleton-sweep: color-mix(in srgb, var(--paper-light) 70%, transparent);
+  position: relative;
+  display: block;
+  height: 0.875rem;
+  overflow: hidden;
+  border-radius: 0.4375rem;
+  background: var(--skeleton-bar);
+}
+
+/* One soft highlight sweeps over each bar; it is a transform, so it costs no layout. */
+.page-skeleton__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 35%, var(--skeleton-sweep) 50%, transparent 65%);
+  animation: page-skeleton-sweep 1.8s ease-in-out infinite;
+  transform: translateX(-100%);
+}
+
+.page-skeleton__bar--crumb {
+  width: min(11rem, 60%);
+  height: 0.75rem;
+}
+
+.page-skeleton__bar--title {
+  width: min(70%, 22rem);
+  height: 1.75rem;
+  margin-block: 0.35rem 0.75rem;
+}
+
+.page-skeleton__bar--meta {
+  width: min(38%, 11rem);
+  height: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.page-skeleton__lines {
+  display: grid;
+  gap: 0.9375rem;
+}
+
+@keyframes page-skeleton-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-skeleton__bar::after {
+    animation: none;
+  }
+}

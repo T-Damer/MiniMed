@@ -52,6 +52,9 @@ test('pause holds a module download, survives a reload, and resume completes it'
   await expect(toggle).toHaveAccessibleName('Продолжить загрузки');
   await expect(downloads.locator('.download-task[data-download-state="paused"]')).toHaveCount(1);
   await expect(downloads.locator('.downloads-overview__title')).toHaveText('Загрузки на паузе');
+  // Regression (owner 2026-10-19, again 10-20): no pause/play control floats above «Настройки».
+  await expect(page.getByTestId('content-download-nav-toggle')).toHaveCount(0);
+  await expect(page.locator('.app-bottom-nav button:not(.app-nav-button)')).toHaveCount(0);
 
   // A reload keeps it paused and sends no request for the module's bytes.
   await page.reload();

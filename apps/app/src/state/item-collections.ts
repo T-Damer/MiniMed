@@ -53,6 +53,25 @@ export const EMPTY_ITEM_COLLECTIONS: ItemCollectionsState = {
   collections: [],
 };
 
+/**
+ * Catalog tools pinned on a first run: common bedside calculators and questionnaires that ship in
+ * the bundled tool catalog. The doctor unpins them like any other star.
+ */
+export const STARTER_TOOL_IDS: readonly string[] = [
+  'adult-egfr-ckd-epi-2021',
+  'minimed.calculator.cha2ds2-vasc',
+  'minimed.calculator.curb-65',
+  'minimed.assessment.glasgow-coma-scale',
+  'minimed.assessment.phq-9',
+];
+
+export function starterItemCollections(addedAt: string): ItemCollectionsState {
+  return {
+    ...EMPTY_ITEM_COLLECTIONS,
+    favorites: STARTER_TOOL_IDS.map((id) => ({ kind: 'tool', id, addedAt })),
+  };
+}
+
 function isId(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= MAX_ID_LENGTH;
 }
@@ -299,6 +318,14 @@ export function loadItemCollections(
   now: () => string = () => new Date().toISOString(),
 ): ItemCollectionsState {
   if (!storage) return EMPTY_ITEM_COLLECTIONS;
+  // A first run starts with a few real tools in the row under the search field (owner 2026-10-20:
+  // the tour shows «Опросники и калькуляторы», so the row must not be a lone button).
+  if (
+    storage.getItem(ITEM_COLLECTIONS_KEY) === null &&
+    storage.getItem(TOOL_COLLECTIONS_KEY) === null
+  ) {
+    return starterItemCollections(now());
+  }
   const current = readStored(storage, ITEM_COLLECTIONS_KEY);
   if (current !== undefined) return parseItemCollections(current, now());
   const legacy = readStored(storage, TOOL_COLLECTIONS_KEY);

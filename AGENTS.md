@@ -196,10 +196,17 @@ reported.
 - **Less text.** Every visible sentence must earn its place; prefer icons, visuals and state to
   explanations. Icon-only buttons (printer, share, add, delete) where the icon is obvious, with an
   `aria-label`. No captions that restate a button («Предпросмотр бланка» next to a print icon).
-- **Reference data last.** Orders, editions, validity dates and «official publication» links are
-  small plain text at the bottom of the page — no card, no block at the top. The only legal detail
+- **Reference data under «Информация».** Orders, editions, statuses, validity and fetch dates,
+  sources and registrations are not page content: they live in the reader's «⋯» → «Информация»
+  dialog (owner 2026-10-20) — no card, no block, no footer on the page. The only legal detail
   doctors need up front is a document/form number (№1122н, 070/у): show the number, not the legal
   wording. Avoid law/legal language in UI copy.
+- **No disclaimers at all (owner 2026-10-20).** Never show «Данные не проверены», «Решение за
+  врачом», «не заменяет врача», «а не диагноз» or similar notes anywhere; state facts and method
+  limits plainly instead.
+- **Drug cards lead with clinical content.** One tap from search lands on forms, doses, usage and
+  analogues (instruction or reference text); registry listings (packages, prices, barcodes) are never
+  the body.
 - **No validation disclaimers on official documents.** Government documents (orders, official
   forms, calendars) are already validated; do not add «врач не проверял» notes to them. Draft or
   machine-extracted content may carry one short status badge, not a stack of warnings.

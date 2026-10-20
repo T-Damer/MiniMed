@@ -1,4 +1,11 @@
-/* «Меню действий» in a reader header: same footprint as the header's other round controls. */
+/* «Меню действий» in a reader header: same footprint as the header's other round controls. The
+   host also anchors the collections panel, which has no button of its own. */
+.reader-actions-host {
+  position: relative;
+  display: grid;
+  justify-self: end;
+}
+
 .reader-actions {
   position: relative;
   display: grid;
@@ -20,18 +27,11 @@
   opacity: 1;
 }
 
-/* Bookmark in front of the document title, centred on it. */
+/* The document title row. */
 .reader-title-row {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.625rem;
-}
-
-.reader-title-row__bookmark {
-  flex: none;
-  /* Inside a reader hero the title lets taps through to the picture; the bookmark still takes them. */
-  pointer-events: auto;
 }
 
 .reader-title-row__title {

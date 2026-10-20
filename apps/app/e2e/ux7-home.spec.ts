@@ -32,8 +32,9 @@ for (const width of [390, 1280]) {
         return settled;
       })
       .toBe(true);
-    const next = page.locator('.horizontal-scroll-control.next');
-    const previous = page.locator('.horizontal-scroll-control.previous');
+    // The tool row above has arrows of its own since a first run pins tools: scope to the examples.
+    const next = row.locator('.horizontal-scroll-control.next');
+    const previous = row.locator('.horizontal-scroll-control.previous');
     // Wide screens fit every chip, so there is nothing to scroll and no arrow to measure.
     if ((await next.or(previous).count()) === 0) {
       await row.screenshot({ path: testInfo.outputPath(`examples-${width}.png`) });
@@ -131,9 +132,9 @@ test('clinical analysis shows one line above the results, explains itself behind
   const note = page.getByRole('complementary', { name: 'О клиническом разборе' });
   await expect(note).toBeVisible();
   // The explanation is not body copy: it opens from the «?» button.
-  await expect(note).not.toContainText('источники, а не диагноз');
+  await expect(note).not.toContainText('исходные документы');
   await note.getByRole('button', { name: 'О клиническом разборе' }).click();
-  await expect(page.getByText('источники, а не диагноз')).toBeVisible();
+  await expect(page.getByText('исходные документы')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(field).toHaveAttribute('placeholder', /Опишите случай: жалобы/u);
   await page.getByRole('button', { name: 'Клинический разбор' }).click();

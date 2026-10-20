@@ -266,13 +266,14 @@ export function PrescriptionItemCard(props: {
               when={analysis().chosen}
               fallback={
                 <div class="prescription__none" data-testid="prescription-no-rule">
-                  <p class="prescription__status">
-                    {analysis().numbersOff
-                      ? 'Расчёт доз в этой версии выключен: предложения приведены как напечатано.'
-                      : analysis().quoted.length > 0
+                  {/* With the arithmetic off the quotes speak for themselves: no status line. */}
+                  <Show when={!analysis().numbersOff}>
+                    <p class="prescription__status">
+                      {analysis().quoted.length > 0
                         ? 'Число по инструкции не посчитано: предложение приведено как напечатано.'
                         : 'В инструкции нет дозы для этого пациента, которую можно рассчитать.'}
-                  </p>
+                    </p>
+                  </Show>
                   <Show when={analysis().quoted[0]}>
                     {(lead) => (
                       <RuleQuote

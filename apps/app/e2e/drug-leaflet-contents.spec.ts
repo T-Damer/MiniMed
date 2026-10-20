@@ -33,7 +33,10 @@ async function openInstruction(page: Page, name: string): Promise<void> {
   }
   await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeEnabled({ timeout: 180_000 });
   await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
-  await expect(page.locator('.document-instruction-source')).toBeVisible({ timeout: 60_000 });
+  // The instruction's source rows are under «⋯» → «Информация» (owner 2026-10-20): wait for its text.
+  await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible({
+    timeout: 60_000,
+  });
   await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible();
 }
 

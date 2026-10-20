@@ -32,7 +32,7 @@ import {
 } from '@/state/user-questionnaire-rules';
 
 export const USER_QUESTIONNAIRE_FORMAT = 'minimed-questionnaire';
-const DEFAULT_DISCLAIMER = 'Локальный авторский опросник. Его результат не является диагнозом.';
+const DEFAULT_DISCLAIMER = 'Локальный авторский опросник.';
 /** Written files are version 2; version 1 files (no sections, bands or population) still open. */
 export const USER_QUESTIONNAIRE_VERSION = 2;
 
@@ -453,7 +453,7 @@ function whooleySample(): UserQuestionnaire {
     description:
       'Два вопроса Whooley для быстрого первичного скрининга настроения. Опросник можно изменить под себя.',
     disclaimer:
-      'Это сверхкороткий скрининг, а не диагноз. Положительный ответ — повод для более подробного разговора со специалистом.',
+      'Сверхкороткий скрининг: положительный ответ — повод для более подробного разговора со специалистом.',
     images: [],
     population: { group: 'adults' },
     sections: [],
@@ -694,8 +694,7 @@ export function withQuestionnaireImportDefaults(value: unknown): unknown {
   return {
     ...value,
     description: value.description ?? '',
-    disclaimer:
-      value.disclaimer ?? 'Локальный авторский опросник. Его результат не является диагнозом.',
+    disclaimer: value.disclaimer ?? DEFAULT_DISCLAIMER,
     createdAt: value.createdAt ?? now,
     updatedAt: value.updatedAt ?? now,
     questions: Array.isArray(value.questions)

@@ -4,11 +4,9 @@ import {
   createSignal,
   For,
   type JSX,
-  Match,
   onCleanup,
   onMount,
   Show,
-  Switch,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 
@@ -16,6 +14,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Page } from '@/components/Page';
 import { NewsAvatar } from '@/features/news/NewsAvatar';
 import { NewsItemRow } from '@/features/news/NewsItemRow';
+import { NewsSourceGrid } from '@/features/news/NewsSourceGrid';
 import { NewsSourceRail } from '@/features/news/NewsSourceRail';
 import { NewsSourceSheet, type SourceTarget } from '@/features/news/NewsSourceSheet';
 import { avatarLookOf } from '@/features/news/news-avatar';
@@ -28,11 +27,11 @@ import { NEWS_PUBMED_HASH, NEWS_SOURCES_HASH, newsSiteHash } from '@/features/ne
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel, pluralRu, sortNewestFirst } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import { BROWSER_FEEDS_MESSAGE, feedsNeedNativeApp } from '@/features/news/news-transport';
+import { feedsNeedNativeApp } from '@/features/news/news-transport';
 import { hasItems, type Subscription } from '@/features/news/news-types';
 import { openThroughAvatarTransition } from '@/features/news/news-view-transition';
 import { hostLabel } from '@/features/news/source-url';
-import { ANDROID_APK_URL } from '../../../../../release';
+import type { SuggestedFeed } from '@/features/news/suggested-feeds';
 
 /** Entries drawn at first, and added each time the end of the list comes near. */
 const PAGE_SIZE = 60;
@@ -135,6 +134,24 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
   const openSource = (feed: SourceTarget & { kind: 'suggested' }, avatar?: HTMLElement): void => {
     openThroughAvatarTransition(avatar, () => setSheetTarget(feed));
   };
+
+  /** The «+» on a tile: subscribes now, from the bundled data of that source (the user's own tap). */
+  const subscribeSuggested = async (feed: SuggestedFeed): Promise<void> => {
+    try {
+      const subscription = await service.subscribeFeed(feed.url, {
+        title: feed.title,
+        language: feed.language,
+        suggestedId: feed.id,
+        ...(feed.carriesImages ? { images: true } : {}),
+      });
+      toast.success(`Источник добавлен: ${subscription.title}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось добавить источник.');
+    }
+  };
+  /** The browser build reads only the feeds whose hosts allow it; the app reads them all. */
+  const canSubscribeHere = (feed: SuggestedFeed): boolean =>
+    !feedsNeedNativeApp() || feed.webReadable;
 
   const sourceCount = () => subscriptions().length;
   return (
@@ -239,82 +256,82 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
           Выберите источник — новое будет появляться здесь.
         </p>
       </Show>
-      <NewsSourceRail
-        subscriptions={subscriptions()}
-        icons={icons()}
-        onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
-      />
+      <Show
+        when={feeds().length === 0}
+        fallback={
+          <NewsSourceRail
+            subscriptions={subscriptions()}
+            icons={icons()}
+            onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
+          />
+        }
+      >
+        {/* The browser build lists only the sources a browser can read (owner 2026-10-20: no
+            banner). A later «all sources in the Android app» hint could link ANDROID_APK_URL from
+            release.ts; for now the web version is simply limited. */}
+        <NewsSourceGrid
+          subscriptions={subscriptions()}
+          icons={icons()}
+          onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
+          onSubscribe={subscribeSuggested}
+          canSubscribe={canSubscribeHere}
+          shows={canSubscribeHere}
+        />
+      </Show>
 
-      <Switch>
-        <Match when={subscriptions().length === 0}>
-          <Show when={feedsNeedNativeApp()}>
-            <p class="news-page__banner" role="status" data-testid="news-web-hint">
-              <AppGlyph name="info" class="news-page__banner-icon" />
-              <span class="news-page__banner-copy">{BROWSER_FEEDS_MESSAGE}</span>
-              <a class="news-page__banner-link" href={ANDROID_APK_URL}>
-                Скачать APK
-              </a>
-            </p>
-          </Show>
-        </Match>
-        <Match when={true}>
-          <Show when={sites().length > 0}>
-            <ul class="news-sites" aria-label="Сайты">
-              <For each={sites()}>
-                {(site) => (
-                  <li class="news-sites__item">
-                    <a
-                      class="news-sites__link"
-                      href={newsSiteHash(site.id)}
-                      data-news-site={site.id}
-                    >
-                      <NewsAvatar size="sm" look={avatarLookOf(site, icons())} />
-                      <span class="news-sites__copy">
-                        <span class="news-sites__title">{site.title}</span>
-                        <span class="news-sites__host">{hostLabel(site.url)}</span>
-                      </span>
-                      <AppGlyph name="caret-right" class="news-sites__chevron" />
-                    </a>
-                  </li>
+      <Show when={subscriptions().length > 0}>
+        <Show when={sites().length > 0}>
+          <ul class="news-sites" aria-label="Сайты">
+            <For each={sites()}>
+              {(site) => (
+                <li class="news-sites__item">
+                  <a class="news-sites__link" href={newsSiteHash(site.id)} data-news-site={site.id}>
+                    <NewsAvatar size="sm" look={avatarLookOf(site, icons())} />
+                    <span class="news-sites__copy">
+                      <span class="news-sites__title">{site.title}</span>
+                      <span class="news-sites__host">{hostLabel(site.url)}</span>
+                    </span>
+                    <AppGlyph name="caret-right" class="news-sites__chevron" />
+                  </a>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+        <Show when={feeds().length > 0}>
+          <Show
+            when={visibleItems().length > 0}
+            fallback={
+              <p class="news-page__empty" role="status">
+                {refreshing()
+                  ? 'Загружаем записи…'
+                  : 'Записей пока нет. Нажмите «Обновить», когда появится сеть.'}
+              </p>
+            }
+          >
+            <ul class="news-feed" data-testid="news-feed">
+              <For each={visibleItems()}>
+                {(item) => (
+                  <NewsItemRow
+                    item={item}
+                    subscription={subscriptionById().get(item.feedId)}
+                    icons={icons()}
+                    now={now()}
+                    onUnreadRow={(element, id) => passed?.observe(element, id)}
+                  />
                 )}
               </For>
             </ul>
-          </Show>
-          <Show when={feeds().length > 0}>
-            <Show
-              when={visibleItems().length > 0}
-              fallback={
-                <p class="news-page__empty" role="status">
-                  {refreshing()
-                    ? 'Загружаем записи…'
-                    : 'Записей пока нет. Нажмите «Обновить», когда появится сеть.'}
-                </p>
-              }
-            >
-              <ul class="news-feed" data-testid="news-feed">
-                <For each={visibleItems()}>
-                  {(item) => (
-                    <NewsItemRow
-                      item={item}
-                      subscription={subscriptionById().get(item.feedId)}
-                      icons={icons()}
-                      now={now()}
-                      onUnreadRow={(element, id) => passed?.observe(element, id)}
-                    />
-                  )}
-                </For>
-              </ul>
-              <Show when={renderLimit() < items().length}>
-                <div
-                  class="news-feed__more"
-                  aria-hidden="true"
-                  ref={(element) => more?.observe(element)}
-                />
-              </Show>
+            <Show when={renderLimit() < items().length}>
+              <div
+                class="news-feed__more"
+                aria-hidden="true"
+                ref={(element) => more?.observe(element)}
+              />
             </Show>
           </Show>
-        </Match>
-      </Switch>
+        </Show>
+      </Show>
 
       <NewsSourceSheet
         target={sheetTarget()}

@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 19 October 2026
+> Updated: 20 October 2026
 > Released version: `0.6.62` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -21,6 +21,12 @@ Detailed history, moved verbatim on 2026-09-24:
   measured or rejected model/engine candidate.
 
 ## Next after 0.6.60 (ordered) — 2026-10-15
+
+**Added 2026-10-20 (PHONE-QA), first:** rebuild and publish the modules so the phone shows the ingest fixes —
+the 15 ГРЛС instruction modules (re-prepare without `--reuse-from` for headings, then build/compact/package,
+≈ 1 h, ≈ 230 MB), the manufacturer-site module, the JSON КР modules with changed heading levels, and the 15
+ЕСКЛП modules (repair flow `esklp-2026-08-28-str2` for dates/packages; mid-word chunk cuts need the registry
+archive or a re-chunk repair); then a release so `org.med.web` and the drug-screen rework reach the phone.
 
 Release 0.6.60 shipped after two QA passes (docs/research/qa-release-0660-2026-10-15.md; re-check: 11 of 15
 fixed, 3 partly, 1 not, 2 new low). Ordered next work:
@@ -60,6 +66,135 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     its limitations; Silverman–Andersen bands 0 / 1–3 / 4–6 / 7–10 (Hedstrom 2018: thresholds not validated);
     CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
     be added later). Still no clinician sign-off.
+
+## Owner phone QA — 2026-10-20 (STATE PHONE-QA)
+
+The owner tested 0.6.62 on a Xiaomi/HyperOS phone (21 items + three extras). What changed:
+
+- **Drug card leads with clinical content (items 10, 21).** The ЕСКЛП card never shows its registry
+  sections as the body (`substance-reading.ts` `withoutRegistrySections`: «Торговые наименования» — 111
+  chunks / 344 KB for propranolol, the «144 pages» —, «Формы и дозировки», «Сведения о
+  стандартизированном МНН», «Ограничения данных»). One tap from search on a substance lands on: name,
+  a folded «Формы:» line (`substanceForms`: «Таблетки 10 мг, 40 мг · Раствор для приема внутрь 3,75
+  мг/мл»), class/ATC, trade names, then the official instruction of the best-fitting trade name
+  (`representativeInstructionProduct`: own text, ГРЛС before a holder's site, tablets/capsules, adult
+  before children's forms, the INN-named trade name, most presentations) with a small «Инструкция:
+  Ибупрофен · ЗАО МЕДИСОРБ» line that opens that trade name. While it is looked up a small loader sits
+  under the header. A trade name opens on its reference text (Allmed/Видаль) when there is one, else on
+  the instruction (`medicationReadingChoices`), never on the bare registry card.
+- **«Информация» (items 10, 19).** Every official reader has «⋯» → «Информация»
+  (`DocumentInfoDialog`): kind, edition, status, audience, sources, the instruction's kind/edition/source
+  link/fetch date and, on a drug card, the registrations one line each (`registrationRows`: name, forms,
+  holder, number; packages, prices and barcodes left out). The title line shows only kind and audience
+  (`readerMetaParts`); the drug footer, the outline's «Сведения об источнике» (which printed raw
+  `sourceType`) and the instruction panel's edition/source/date rows are gone from the page.
+- **One download (item 16).** Installing a drug group's ЕСКЛП module queues the same group's ГРЛС
+  instruction module in the same step (`module-companions.ts`, called from
+  `BrowserContentModuleRuntime.install`, so pointer, ATC group, section and «Скачать всё» paths all
+  get it); the pointer's size includes it (`companionBytes`), and a drug card whose instructions are
+  already downloading follows that task («Скачиваем инструкции · N %») and opens the text when done.
+  Verified in the dev app with ибупрофен (19 МБ → card → instruction). Groups installed before this
+  change still show the one-tap offer.
+- **Header tools (items 15, 20).** No bookmark and no recipe icon beside any title
+  (`ReaderTitleRow`, `DrugScreenHeader`): «Рецепт» (drug cards) and «Сохранить в коллекцию» are «⋯»
+  items; the collections panel anchors on the menu (`ItemBookmarkMenu hiddenTrigger`). Drug titles are
+  smaller and balanced. The recipe sheet has no «Ребёнок / Взрослый» switch (the group follows from age,
+  or mass via `assumedGroup`), and «Расчёт доз в этой версии выключен» is gone. The patient row's button
+  is a chooser chevron, not the avatar's people glyph.
+- **Search (item 17).** A result card shows one fragment; tapping it or the title opens the document at
+  that fragment. «Ещё N фрагментов» and the in-search context card are gone.
+- **Onboarding (items 2–4).** One line while the base downloads («Продолжаем настройку приложения в
+  фоне. Давайте посмотрим возможности!»), no download speed anywhere (`download-speed.ts` deleted),
+  back is an arrow icon, and a first run pins five catalog tools under the search field
+  (`STARTER_TOOL_IDS`: CKD-EPI 2021, CHA₂DS₂-VASc, CURB-65, GCS, PHQ-9; a test keeps them in the
+  bundled catalog).
+- **Disclaimers (owner rule).** Removed: the ECG tour notice (item 5), «Решение за врачом» on the safety
+  card, «не заменяет…» lines (search help, herbal book, ECG report, user calculators), «не является
+  диагнозом» of user questionnaires, «версия бланка не проверялась», «требует проверки специалистом» in
+  the ECG calculator, the ЕСКЛП «Ограничения данных» block. AGENTS.md «Interface rules» now says so.
+- **Pause badge (item 1).** Already removed in main by 472f3808 (after the 0.6.62 build the owner
+  has); `download-pause.spec.ts` now asserts nothing floats above «Настройки».
+- **120 Hz (item 18).** The Android application id is `org.med.web` (HyperOS keeps a per-package 60 Hz
+  cap on `dev.localmed.search`; the same app as `org.med.web` ran at 120 Hz on the owner's phone,
+  docs/research/native-vs-webview-2026-10-01.md). The Java namespace stays `dev.localmed.search`. The new
+  id installs as a separate app: the old app's local data (patients, notes, downloads) does not move; a
+  debug-signed `org.med.web` from the 10-01 measurement must be uninstalled first.
+- **Downloads page / not found (owner, same session).** The downloads footnote («Одновременно идёт до
+  трёх…») and the idle «через одну очередь» line are gone; the empty state sits on paper for contrast.
+  «Документ не найден» (damaged address and in-reader) is a centred state with a mark, one line and
+  «Искать в базе».
+- **Smaller.** «Тесты и опросники» cards lost the repeated «Раздел тестов» kicker and are compact.
+- **Toasts (item 7).** At the top edge (safe-top + 0.5 rem; below the recorder bar while recording), on the
+  `.paper-card` surface with `--shadow-paper` and a close shadow, radius 1.25 rem, slide + fade on the motion
+  tokens; the card lets taps through except its close button and action (`styles/notifications.css`, e2e
+  `notification-style.spec.ts`).
+- **Feed (item 8).** With no subscription the suggested sources are a two-column grid of tiles
+  (`NewsSourceGrid`): a tap opens the source sheet (preview only then), a «+» subscribes in one tap; nothing is
+  requested before a tap (ADR-0024). The web build lists only the four sources a browser can read and has no
+  APK banner (owner, same day).
+- **Keyboard (item 6).** Capacitor `SystemBars` pads the WebView by the IME height, so the fixed bar rode up.
+  While a text field is focused (from focus on touch devices, before the resize) `html.app-keyboard-open`
+  slides the bar below the edge, with a 700 ms grace while the keyboard closes; the focused field is scrolled
+  into view (`app/soft-keyboard.ts`, e2e `soft-keyboard.spec.ts`). Other bottom-fixed controls (reader dock,
+  history button) still ride up.
+- **Ibuprofen ranking.** «Ибупрофен: официальная инструкция» put a qualifier-only document first: «инструкция»
+  is two edits from the alias «деструкция» (its terms «вирусные бородавки» joined the query and the speller
+  rewrote the query), and «официальная» counted as a subject word. Meta words never fuzzy-match an alias, the
+  speller skips them, «официальн»/«аннотац» are meta stems (`packages/search-lexical` `lookup-subject.ts`,
+  `aliases.ts`, `analysis.ts`; `packages/core` `name-variant-fallback.ts`). Now: ibuprofen instruction, then the
+  ИБУПРОФЕН card. New `tools/benchmarks/lookup-qualifier-queries.json` (4 queries × «Все»/«Препараты») is part
+  of `benchmark:all` (core 0/8 → 8/8, release 4/8 → 8/8); every other benchmark unchanged.
+- **Source text (items 12, 14, headings) — fixed in `tools/ingest`, NOT yet in the published modules.**
+  Symbol/Wingdings private-use glyphs (U+F0B7 ×76 523, U+F02D ×13 536 …; 2 295 of 8 947 ГРЛС instructions)
+  become Markdown list items or the real character (`private_use_glyphs.py`, applied at PDF extraction, Markdown
+  rendering and module build); ЕСКЛП Excel serial dates become dd.mm.yyyy (`esklp_text.py`; 46069 = 16.02.2026);
+  long paragraphs are no longer cut mid-word at 3 200 characters (`split_long_text`; the source of «у мл / паковка»
+  and «Период действи | я»); heading levels follow the numbering in JSON КР (`reconcile_heading_levels`, 419 of
+  1 259 КР change) and the PDF heading rule no longer promotes sentences, references, dates or contents lines and
+  joins wrapped titles (230-PDF audit: anomalies 18 → 1). On screen today the ЕСКЛП listings are simply not the
+  body any more; the tofu bullets and heading mistakes stay until the modules are rebuilt (next ordered step).
+- **Checks.** `bun run check`, `typecheck`, `test` (unit 13 930 + Python 1 976), `build`, `python:check`,
+  `benchmark:all`, `native:source:check` pass. E2E run on the build (port 4397): search, first-screen,
+  drug-screen-first-screen, prescription(-facts), medication-instruction-fallback, medication-safety,
+  user-calculators, ux7/ux8, reader-layout-preview, download-pause, news-feed, notification-style,
+  soft-keyboard, native-chrome, reader-open-once, offline-shell, module-lifecycle all pass; specs were updated
+  for the intended changes (starter pins, no search context card, edition in «Информация», drug cards opening
+  on the instruction, companion download). The search «Разделы» count test had been failing since the
+  «Травник» shortcut (HERB1) and now counts section buttons only. A trade name whose instruction is found
+  after it opened (another registration's text, or instructions that just arrived) moves to it unless the
+  doctor chose a tab (`adoptResolvedProduct`).
+- **Not tested on a phone:** 120 Hz under `org.med.web`, keyboard/IME and nav behaviour with 3-button navigation,
+  the status-bar strip under a real inset, toasts on device. Checked in Chromium at 375×812 and by the specs above.
+
+### Reader opening, status-bar strip and loading skeletons (items 9, 11, 13)
+
+Owner (0.6.62 on HyperOS): a gradient at the bottom while a document loads, a see-through strip under the
+status bar while reading, spinner-only loading screens without a back button.
+
+- **Opening (generic reader).** Measured on the production build, 375×812 Chromium, CPU throttled 4×, КР
+  «Гастрит и дуоденит у детей» (41 sections), warm app: first section painted 2.0–2.4 s → 0.85–1.05 s, longest
+  main-thread task 1.0–1.2 s → 0.32 s, every section mounted 3.9 s → 2.4 s. Causes, in order of cost: the tool-link
+  matcher ran one alternation of ~700 phrases at every position of every paragraph (now a first-word hash scan and
+  a per-word phrase check, `tool-link-matcher.ts`; cold 250 → 14 ms per 220 k characters at 1×) and re-read both
+  registries per paragraph (`document-tool-links.ts` rechecks at most every 750 ms); every embedded picture's data
+  URL was validated by a regexp three times (`readDocumentRenderBlock` is now kept per metadata object); the
+  «same document family» exclusion of the link matcher was recomputed per candidate (memoised); table width was
+  read per table (batched read-then-write in `document-rich-block.tsx`). Sections are mounted by text weight, not
+  by count: the first slice is about one screen (2 400 characters), later idle slices about two pages
+  (`document-reader-batches.ts`); the bottom spinner while the rest mounts is unchanged. Not changed: the drug
+  screen (propranolol card: header at 0.2 s, first section 2.6 s behind the drug panels — the coordinator's area).
+- **Status-bar strip.** `.document-overlay-paper::before` named `--z-heading-h6`, which 33a8269f removed with the
+  stacked headings, so the strip had `z-index: auto` and paragraphs painted over it. It now uses
+  `--z-reader-status-fill` (19, above the section path, below the chrome). Guards: `styles/z-index-tokens.test.ts`
+  (every `var(--z-…)` in a `z-index` must be declared; the fullscreen note editor's `--z-modal` is a known open
+  finding) and the `native-chrome.spec.ts` section-path test (z-index not `auto`, above the section line).
+- **Loading skeletons.** `components/PageSkeleton.tsx`: header row (working back through `navigateBack`, held
+  contents button, breadcrumb bar) and a paper with title/meta/line bars. Used by both Suspense fallbacks in
+  `App.tsx` (root tabs without the header), `DocumentCoreWait` (status inside the paper) and, as `PageSkeletonBody`,
+  the reader's own loading body (`.document-page__loading`). The spinner CSS (`app-view__loading`,
+  `document-page__loading-spinner`) is gone. The bottom paper fade over the reader is removed (coordinator).
+- **Not verified:** a real phone (HyperOS compositing, status-bar inset, 60 Hz), WebKit, the drug screen opening,
+  documents with a very large single section (a section is still mounted whole).
 
 ## PHQ-9 and GAD-7 — 2026-10-20 (STATE PSY-PHQ)
 

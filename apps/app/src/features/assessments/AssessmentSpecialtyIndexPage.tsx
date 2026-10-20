@@ -225,7 +225,6 @@ export function AssessmentSpecialtyIndexPage(props: {
                     data-testid={`assessment-specialty-${specialty.id}`}
                     onClick={() => props.onOpenSpecialty(specialty.id)}
                   >
-                    <p class="archive-kicker assessment-specialty-card__kicker">Раздел тестов</p>
                     <h2 class="assessment-specialty-card__title">{specialty.title}</h2>
                     <p class="assessment-specialty-card__description">{specialty.description}</p>
                     <small class="assessment-specialty-card__meta">

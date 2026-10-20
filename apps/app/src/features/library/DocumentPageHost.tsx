@@ -6,7 +6,15 @@ import {
   ok,
 } from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
-import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { toast } from 'solid-sonner';
 import { DocumentNotFound } from '@/features/library/DocumentNotFound';
 import {
@@ -63,6 +71,10 @@ import {
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { loadSubstanceFallback } from '@/features/medications/substance-fallback';
+import {
+  representativeInstructionProduct,
+  withoutRegistrySections,
+} from '@/features/medications/substance-reading';
 import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
@@ -217,6 +229,33 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [medicationReadingMode, setMedicationReadingMode] =
     createSignal<MedicationReadingMode>('short');
   const [instructionDocument, setInstructionDocument] = createSignal<MedicalDocument>();
+  /**
+   * The substance card's body (owner 2026-10-20): the official instruction of the trade name that
+   * fits best, so one tap from search lands on doses and indications, not on the registry.
+   */
+  const [substanceInstruction, setSubstanceInstruction] = createSignal<{
+    readonly product: MedicationProduct;
+    readonly document: MedicalDocument;
+  }>();
+  let substanceInstructionGeneration = 0;
+  /** The doctor picked «Кратко» or «Инструкция» on this card: a late lookup never overrides it. */
+  let readingModeChosen = false;
+  /**
+   * A trade name whose instruction was found only after it opened (another registration's text, or
+   * the group's instructions finished downloading) moves to it, unless the doctor chose a tab.
+   */
+  const adoptResolvedProduct = (
+    previous: MedicationProduct,
+    resolved: MedicationProduct,
+    openedDocumentId: string,
+  ): void => {
+    setMedicationProduct(resolved);
+    if (readingModeChosen || previous.instructionDocumentId || !resolved.instructionDocumentId) {
+      return;
+    }
+    setMedicationReadingMode(medicationReadingChoices(resolved, openedDocumentId).initialMode);
+  };
+  const [substanceInstructionPending, setSubstanceInstructionPending] = createSignal(false);
   const [instructionOffer, setInstructionOffer] = createSignal<InstructionModuleOffer | null>(null);
   const [instructionOfferPending, setInstructionOfferPending] = createSignal(false);
   const [instructionOfferProgress, setInstructionOfferProgress] = createSignal<number | null>(null);
@@ -355,6 +394,56 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     return sameInstructionSlot(resolved, product) ? product : resolved;
   };
 
+  /** Reads the substance card's representative instruction; nothing when none is installed. */
+  const loadSubstanceInstruction = async (
+    core: MedicalCore,
+    source: MedicalDocument,
+    listed: readonly MedicalDocumentSummary[],
+  ): Promise<void> => {
+    const generation = ++substanceInstructionGeneration;
+    if (!isEsklpSubstanceDocument(source)) {
+      setSubstanceInstruction(undefined);
+      return;
+    }
+    setSubstanceInstructionPending(true);
+    try {
+      await readSubstanceInstruction(core, source, listed, generation);
+    } finally {
+      if (generation === substanceInstructionGeneration) setSubstanceInstructionPending(false);
+    }
+  };
+  const readSubstanceInstruction = async (
+    core: MedicalCore,
+    source: MedicalDocument,
+    listed: readonly MedicalDocumentSummary[],
+    generation: number,
+  ): Promise<void> => {
+    const chosen = representativeInstructionProduct(
+      parseEsklpMedicationProducts(
+        source,
+        instructionIndexFromSummaries(listed),
+        instructionSourceClassIndexFromSummaries(listed),
+      ),
+      typeof source.metadata['standardizedInn'] === 'string'
+        ? source.metadata['standardizedInn']
+        : source.title,
+    );
+    const instructionId = chosen?.instructionDocumentId;
+    if (!chosen || !instructionId) {
+      setSubstanceInstruction(undefined);
+      return;
+    }
+    if (substanceInstruction()?.document.id === instructionId) return;
+    const read = await core.getDocument(instructionId);
+    if (generation !== substanceInstructionGeneration || document()?.id !== source.id) return;
+    if (!read.ok) {
+      console.warn('Инструкция карточки вещества не открылась.', read.error.message);
+      setSubstanceInstruction(undefined);
+      return;
+    }
+    setSubstanceInstruction({ product: chosen, document: read.value });
+  };
+
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
     const documentId = parsed.documentId;
     const expectedIdentity = parsed.expectedIdentity;
@@ -365,6 +454,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       queuedMedicationProduct ??
       medicationProductFromHistory(window.history.state, documentId) ??
       undefined;
+    readingModeChosen = false;
     setMedicationProduct(selectedMedicationProduct);
     setMedicationReadingMode(
       selectedMedicationProduct
@@ -372,6 +462,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         : 'short',
     );
     setInstructionDocument(undefined);
+    if (substanceInstruction()?.product.mnnDocumentId !== documentId) {
+      substanceInstructionGeneration += 1;
+      setSubstanceInstruction(undefined);
+    }
     setInitialAnchor(parsed.section ?? null);
 
     if (
@@ -599,6 +693,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         );
         if (!current()) return;
         setSupplementalPanels(supplements);
+        if (!selectedMedicationProduct) {
+          await loadSubstanceInstruction(core, result.value, listed);
+          if (!current()) return;
+        }
         if (selectedMedicationProduct) {
           const resolved = await resolveProductInstruction(
             selectedMedicationProduct,
@@ -612,7 +710,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
             shown?.registrationNumber === resolved.registrationNumber &&
             shown.tradeName === resolved.tradeName
           ) {
-            setMedicationProduct(resolved);
+            adoptResolvedProduct(shown, resolved, result.value.id);
             rememberMedicationProduct(result.value.id, resolved);
           }
         }
@@ -671,6 +769,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const source = document();
     if (!source) return;
     const generation = ++productSwitchGeneration;
+    readingModeChosen = false;
     setMedicationProduct(next);
     setMedicationReadingMode(
       next ? medicationReadingChoices(next, source.id).initialMode : 'short',
@@ -681,6 +780,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const core = props.getCore();
     if (!core || !isEsklpSubstanceDocument(source)) return;
+    if (!next && !substanceInstruction()) {
+      void loadSubstanceInstruction(core, source, availableDocuments());
+    }
     try {
       let shown = next;
       if (next) {
@@ -688,7 +790,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         if (generation !== productSwitchGeneration || document()?.id !== source.id) return;
         if (resolved !== next) {
           shown = resolved;
-          setMedicationProduct(resolved);
+          adoptResolvedProduct(next, resolved, source.id);
           rememberMedicationProduct(source.id, resolved);
         }
       }
@@ -724,9 +826,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   ): Promise<void> => {
     const generation = ++instructionOfferGeneration;
     const primaryModuleId = source?.metadata['primaryModuleId'];
+    // A trade name without its text, or the substance card: offered only while the group's
+    // instruction module is missing (`instructionModuleOffer` is null once it is installed).
     if (
-      !product ||
-      product.instructionDocumentId ||
+      product?.instructionDocumentId ||
       !source ||
       !isEsklpSubstanceDocument(source) ||
       typeof primaryModuleId !== 'string'
@@ -738,14 +841,26 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const runtime =
         peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
       if (generation !== instructionOfferGeneration) return;
-      setInstructionOffer(
-        instructionModuleOffer({
-          substanceModuleId: primaryModuleId,
-          catalogModules: runtime.getCatalog().modules,
-          installedModuleIds: new Set(runtime.listInstalled().map((module) => module.moduleId)),
-          isReleased: isModuleReleased,
-        }),
-      );
+      const offer = instructionModuleOffer({
+        substanceModuleId: primaryModuleId,
+        catalogModules: runtime.getCatalog().modules,
+        installedModuleIds: new Set(runtime.listInstalled().map((module) => module.moduleId)),
+        isReleased: isModuleReleased,
+      });
+      setInstructionOffer(offer);
+      const running = offer
+        ? runtime
+            .listTasks()
+            .find(
+              (task) =>
+                task.moduleId === offer.moduleId &&
+                (task.state === 'queued' ||
+                  task.state === 'downloading' ||
+                  task.state === 'verifying' ||
+                  task.state === 'installing'),
+            )
+        : undefined;
+      if (running) void installInstructionModule(running);
     } catch (cause) {
       if (generation !== instructionOfferGeneration) return;
       console.warn('Набор инструкций не удалось проверить.', cause);
@@ -763,11 +878,16 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   });
 
   /** Downloads the group's instruction module, reconnects the core and opens the new text. */
-  const installInstructionModule = async (): Promise<void> => {
+  /**
+   * Downloads the group's instruction module, reconnects the core and opens the new text. With
+   * `running`, follows a download already on its way (the drug group's companion, queued together
+   * with the drug module) instead of starting one: the doctor never presses «Скачать» twice.
+   */
+  const installInstructionModule = async (running?: ContentModuleDownloadTask): Promise<void> => {
     const offer = instructionOffer();
     const product = medicationProduct();
     const source = document();
-    if (!offer || !product || !source || instructionOfferPending()) return;
+    if (!offer || !source || instructionOfferPending()) return;
     setInstructionOfferPending(true);
     setInstructionOfferProgress(null);
     setInstructionOfferError(null);
@@ -776,7 +896,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
       const module = runtime.getCatalog().modules.find((entry) => entry.id === offer.moduleId);
       if (!module) throw new Error('Набор инструкций не найден в каталоге.');
-      const task = runtime.install(module);
+      const task = running ?? runtime.install(module);
       setInstructionOfferProgress(contentModuleTaskProgress(task));
       const unsubscribe = runtime.subscribe((nextTask) => {
         if (nextTask.id === task.id)
@@ -800,6 +920,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const list = await core.listDocuments();
       if (!list.ok) throw new Error(list.error.message);
       setAvailableDocuments(list.value);
+      if (!product) {
+        setInstructionOffer(null);
+        await loadSubstanceInstruction(core, source, list.value);
+        return;
+      }
       let next = await resolveProductInstruction(product, source, list.value);
       if (!next.instructionDocumentId) {
         const own = instructionIndexFromSummaries(list.value).get(product.registrationNumber);
@@ -821,6 +946,20 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       setInstructionOfferPending(false);
     }
   };
+  // A card that opens on its instruction (`medicationReadingChoices().initialMode`) reads it here;
+  // a switch by the user goes through `changeMedicationReadingMode` directly.
+  let requestedInstructionId: string | undefined;
+  createEffect(() => {
+    const opened = document();
+    const instructionId = medicationProduct()?.instructionDocumentId;
+    if (medicationReadingMode() !== 'instruction' || !opened || !instructionId) return;
+    if (instructionId === opened.id || instructionDocument()?.id === instructionId) return;
+    if (requestedInstructionId === instructionId) return;
+    requestedInstructionId = instructionId;
+    void changeMedicationReadingMode('instruction').finally(() => {
+      if (requestedInstructionId === instructionId) requestedInstructionId = undefined;
+    });
+  });
   const showsInstruction = (): boolean => {
     const instructionId = medicationProduct()?.instructionDocumentId;
     return (
@@ -829,8 +968,21 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       instructionId !== document()?.id
     );
   };
+  /** The substance card reads its representative instruction while no trade name is chosen. */
+  const shownSubstanceInstruction = () =>
+    medicationProduct() ? undefined : substanceInstruction();
+  const showsInstructionBody = (): boolean =>
+    showsInstruction() || shownSubstanceInstruction() !== undefined;
+  // The ЕСКЛП card never shows its registry sections as the body (owner 2026-10-20); they are
+  // listed compactly under «⋯» → «Информация».
+  const registryFreeDocument = createMemo(() => {
+    const current = document();
+    return current ? withoutRegistrySections(current) : undefined;
+  });
   const readerDocument = (): MedicalDocument | undefined =>
-    showsInstruction() ? instructionDocument() : document();
+    showsInstruction()
+      ? instructionDocument()
+      : (shownSubstanceInstruction()?.document ?? registryFreeDocument());
   const readerPendingTitle = (): string | undefined =>
     showsInstruction() && !instructionDocument() ? 'Открываем инструкцию' : pendingTitle();
 
@@ -1173,8 +1325,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 ? {
                     medicationProduct: medicationProduct() as MedicationProduct,
                     medicationReadingMode: medicationReadingMode(),
-                    onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
-                      void changeMedicationReadingMode(mode),
+                    onMedicationReadingModeChange: (mode: MedicationReadingMode) => {
+                      readingModeChosen = true;
+                      void changeMedicationReadingMode(mode);
+                    },
                   }
                 : {})}
               {...(document()
@@ -1185,7 +1339,17 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
               instructionOfferProgress={instructionOfferProgress()}
               instructionOfferError={instructionOfferError()}
               onInstallInstructionModule={() => void installInstructionModule()}
-              supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
+              supplementalPanels={showsInstructionBody() ? [] : supplementalPanels()}
+              substanceInstructionPending={
+                !medicationProduct() && substanceInstructionPending() && !substanceInstruction()
+              }
+              {...(shownSubstanceInstruction()
+                ? {
+                    substanceInstructionProduct: (
+                      shownSubstanceInstruction() as { product: MedicationProduct }
+                    ).product,
+                  }
+                : {})}
               drugSupplements={supplementalPanels()}
               {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
               onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}

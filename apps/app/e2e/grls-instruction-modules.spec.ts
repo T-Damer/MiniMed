@@ -42,21 +42,23 @@ test('a drug without an official text offers the group instructions, then shows 
     await expect(page.getByRole('radio', { name: 'Инструкция' })).toBeAttached({ timeout: 1_000 });
   }).toPass({ timeout: 90_000 });
 
-  // No instruction module is installed: the switch is disabled and the group is offered.
+  // The ЕСКЛП group brought its instructions in the same download (owner 2026-10-20); the offer
+  // shows only while they are still missing.
   const offer = page.locator('.document-medication-product__offer-button');
-  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
-  await expect(page.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
-  if (SHOTS) await page.screenshot({ path: `${SHOTS}/offer.png` });
-  await offer.click({ force: true });
-
-  const source = page.locator('.document-instruction-source');
-  await expect(source).toBeVisible({ timeout: 240_000 });
-  await expect(source).toContainText('Редакция');
+  if (await offer.isVisible({ timeout: 20_000 }).catch(() => false)) {
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/offer.png` });
+    await offer.click({ force: true });
+  }
+  await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible({
+    timeout: 240_000,
+  });
+  // Kind, edition and the ГРЛС link are under «⋯» → «Информация».
+  await page.getByRole('button', { name: 'Меню действий' }).click();
+  await page.getByTestId('document-info').click();
+  const source = page.locator('.document-info .drug-reference');
   await expect(source).toContainText('ГРЛС');
-  await expect(source.locator('.document-instruction-source__kind')).toHaveText(
-    /Инструкция по медицинскому применению|Листок-вкладыш|ОХЛП/u,
-  );
-  await expect(source.locator('.document-instruction-source__link')).toHaveAttribute(
+  await expect(source).toContainText(/Инструкция по медицинскому применению|Листок-вкладыш|ОХЛП/u);
+  await expect(source.locator('.drug-reference__link')).toHaveAttribute(
     'href',
     /^https:\/\/grls\.rosminzdrav\.ru\//u,
   );

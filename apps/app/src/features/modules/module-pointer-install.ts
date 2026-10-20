@@ -6,8 +6,8 @@ import type {
   InstalledContentModule,
   MedicalDocumentSummary,
 } from '@localmed/contracts';
-
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import { companionModulesToInstall } from '@/features/modules/module-companions';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 
 export interface ModulePointerDescriptor {
@@ -30,6 +30,8 @@ export type ModulePointerResolution =
       readonly pointer: ModulePointerDescriptor;
       readonly module: ContentModuleCatalogEntry;
       readonly message: null;
+      /** Bytes of the modules that install with it (a drug group's instructions), not yet here. */
+      readonly companionBytes?: number;
     }
   | {
       readonly state: 'installed';
@@ -236,7 +238,20 @@ export function resolveModulePointer(
   if (installedModuleVersion(module, installed)) {
     return { state: 'installed', pointer, module, message: null };
   }
-  return { state: 'available', pointer, module, message: null };
+  const companionBytes = companionModulesToInstall({
+    moduleId: module.id,
+    catalogModules: catalog.modules,
+    installedModuleIds: new Set(installed.map((entry) => entry.moduleId)),
+    tasks: [],
+    isReleased: isModuleReleased,
+  }).reduce((sum, companion) => sum + (companion.sizes.downloadBytes ?? 0), 0);
+  return {
+    state: 'available',
+    pointer,
+    module,
+    message: null,
+    ...(companionBytes > 0 ? { companionBytes } : {}),
+  };
 }
 
 /** Exact source identity must belong to the declared release and its verified index. */

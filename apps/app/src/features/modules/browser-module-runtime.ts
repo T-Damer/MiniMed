@@ -66,6 +66,7 @@ import {
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
 import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog-shell';
+import { companionModulesToInstall } from '@/features/modules/module-companions';
 import { describeModuleFailure } from '@/features/modules/module-failure-message';
 import {
   assertBundleCanInstall,
@@ -1629,8 +1630,9 @@ export class BrowserContentModuleRuntime {
       (artifact) => artifact.kind === 'source-assets',
     );
     enqueuePendingModuleInstall(module.id, module.version, includeSourceAssets);
+    let task: ContentModuleDownloadTask;
     try {
-      return this.installer.install({
+      task = this.installer.install({
         moduleId: module.id,
         version: module.version,
         includeSourceAssets,
@@ -1640,6 +1642,27 @@ export class BrowserContentModuleRuntime {
       // durable entry that the installer never accepted.
       discardPendingModuleInstall(module.id, module.version);
       throw cause;
+    }
+    this.installCompanions(module.id);
+    return task;
+  }
+
+  /** One download for the doctor: a drug group's registry module brings its instructions. */
+  private installCompanions(moduleId: string): void {
+    const companions = companionModulesToInstall({
+      moduleId,
+      catalogModules: this.catalog.modules,
+      installedModuleIds: new Set(this.listInstalled().map((installed) => installed.moduleId)),
+      tasks: this.installer.listTasks(),
+      isReleased: isModuleReleased,
+    });
+    for (const companion of companions) {
+      try {
+        this.install(companion);
+      } catch (cause) {
+        // The requested module still installs; the drug screen offers the instructions again.
+        console.warn(`Не удалось поставить в очередь ${companion.id}.`, cause);
+      }
     }
   }
 

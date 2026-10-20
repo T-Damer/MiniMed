@@ -22,20 +22,36 @@ function audience(metadata: Readonly<Record<string, unknown>>): string | undefin
   return words.length > 0 ? [...new Set(words)].join(', ') : undefined;
 }
 
+/** The document's edition as a short line («ред. 3», an act's amendment line), when it has one. */
+export function readerEdition(
+  document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'>,
+): string | undefined {
+  const metadata = (document.metadata ?? {}) as Readonly<Record<string, unknown>>;
+  return (
+    text(metadata['edition']) ??
+    (searchResultDocumentType(document) === 'clinical-recommendation'
+      ? documentVersionLabel(document.versionLabel)
+      : undefined)
+  );
+}
+
+/** Whom the document is for, as words; undefined when the source does not say it in Russian. */
+export function readerAudience(
+  document: Pick<MedicalDocumentSummary, 'metadata'>,
+): string | undefined {
+  return audience((document.metadata ?? {}) as Readonly<Record<string, unknown>>);
+}
+
 /**
- * The one meta line under a document's title: what kind of document it is, its edition and whom it
- * is for. Everything else about the source (verification, publication links, catalogue fields) is
- * reference data and stays at the bottom of the document.
+ * The one meta line under a document's title: what kind of document it is and whom it is for.
+ * Editions, dates and sources are not the subject (owner 2026-10-20): they are under «⋯» →
+ * «Информация».
  */
 export function readerMetaParts(
   document: Pick<MedicalDocumentSummary, 'sourceType' | 'metadata' | 'versionLabel'>,
 ): readonly string[] {
-  const metadata = (document.metadata ?? {}) as Readonly<Record<string, unknown>>;
   const type = searchResultDocumentType(document);
-  const edition =
-    text(metadata['edition']) ??
-    (type === 'clinical-recommendation' ? documentVersionLabel(document.versionLabel) : undefined);
-  return [RESULT_TYPE_VISUALS[type].label, edition, audience(metadata)].filter(
+  return [RESULT_TYPE_VISUALS[type].label, readerAudience(document)].filter(
     (part): part is string => part !== undefined,
   );
 }

@@ -245,9 +245,7 @@ describe('the .minimed-calculator file', () => {
     );
     expect(parsed.inputs.map((input) => input.id)).toEqual(['x1', 'x2']);
     expect(parsed.id).toMatch(/^uc-[a-z0-9]{12}$/u);
-    expect(parsed.disclaimer).toBe(
-      'Авторский калькулятор. Результат не заменяет клиническую оценку.',
-    );
+    expect(parsed.disclaimer).toBe('Авторский калькулятор.');
     expect(parsed.result).toEqual({ label: 'Сумма', unit: '', decimals: 1 });
     expect(parsed.population).toBeUndefined();
     expect(parsed.bands).toEqual([]);

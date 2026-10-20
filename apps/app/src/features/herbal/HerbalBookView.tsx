@@ -53,9 +53,7 @@ function herbalScore(query: string, values: readonly string[]): number {
 function HerbalHelp(): JSX.Element {
   return (
     <div class="herbal-help">
-      <p class="herbal-help__text">
-        Для самообразования и случаев, когда под рукой только травы. Не заменяет врача.
-      </p>
+      <p class="herbal-help__text">Для самообразования и случаев, когда под рукой только травы.</p>
       <p class="herbal-help__text">
         Способ приготовления, показания и противопоказания — из инструкций ГРЛС на лекарственное
         растительное сырьё, если оно зарегистрировано. Ограничения, дозы и действующие вещества — из

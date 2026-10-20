@@ -28,7 +28,7 @@ export function ClinicalAnalysisNote(): JSX.Element {
       >
         <p class="clinical-analysis-note__text">
           Читает случай, описанный свободным текстом: выделяет симптомы, факты и отрицания и ищет
-          рекомендации по смыслу. В выдаче источники, а не диагноз.
+          рекомендации по смыслу. В выдаче — исходные документы.
         </p>
       </SheetPopover>
     </aside>

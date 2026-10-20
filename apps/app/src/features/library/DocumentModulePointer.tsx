@@ -40,6 +40,12 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
     <Show when={props.modulePointer}>
       {(resolution) => {
         const module = () => resolution().module;
+        // What the button downloads: the set and the modules that come with it.
+        const downloadBytes = () =>
+          (module()?.sizes.downloadBytes ?? 0) +
+          (resolution().state === 'available'
+            ? ((resolution() as { companionBytes?: number }).companionBytes ?? 0)
+            : 0);
         const canInstall = () =>
           resolution().state === 'available' && Boolean(props.onInstallModulePointer);
         return (
@@ -90,9 +96,7 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                         ? 'Устанавливаем набор'
                         : `Загружаем набор${progressPercent() === null ? '' : `: ${progressPercent()}%`}`
                       : `Скачать набор ${quotedTitle(module()?.title ?? '')}${
-                          module()
-                            ? ` · ${formatModuleBytes(module()?.sizes.downloadBytes ?? 0)}`
-                            : ''
+                          module() ? ` · ${formatModuleBytes(downloadBytes())}` : ''
                         }`
                   }
                   disabled={props.modulePointerPending}
@@ -115,7 +119,7 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                         : props.modulePointerPending
                           ? '…'
                           : module()
-                            ? formatModuleBytes(module()?.sizes.downloadBytes ?? 0)
+                            ? formatModuleBytes(downloadBytes())
                             : 'Скачать'}
                   </span>
                 </button>

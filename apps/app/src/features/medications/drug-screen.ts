@@ -98,6 +98,49 @@ export function displayStrength(strength: string): string {
     .replace(/\s+/gu, ' ');
 }
 
+/** «3.75мг/мл» → «3,75 мг/мл»: a strength as Russian text reads it (decimal comma, spaced unit). */
+export function readableStrength(strength: string): string {
+  return displayStrength(strength)
+    .replace(/(\d)\.(\d)/gu, '$1,$2')
+    .replace(/(\d)(?=\p{L})/gu, '$1 ')
+    .trim();
+}
+
+/**
+ * The forms of a substance as short lines, one per dosage form with its strengths in increasing
+ * order: «Таблетки 10 мг, 40 мг», «Раствор для приема внутрь 3,75 мг/мл». What a doctor reads first
+ * on the substance card, instead of the registry's package list.
+ */
+export function substanceForms(products: readonly MedicationProduct[]): readonly string[] {
+  const forms = new Map<string, { label: string; strengths: Map<string, string> }>();
+  for (const product of products) {
+    for (const presentation of product.presentations) {
+      const raw = presentation.dosageForm.trim().replace(/\s+/gu, ' ');
+      if (!raw || raw.length > LONG_FORM_LENGTH) continue;
+      const key = drugNameKey(raw);
+      const form = forms.get(key) ?? {
+        label: sentenceCase(raw.toLocaleLowerCase('ru-RU')),
+        strengths: new Map<string, string>(),
+      };
+      const strength =
+        presentation.strength && !isUnstatedValue(presentation.strength)
+          ? readableStrength(presentation.strength)
+          : '';
+      if (strength) form.strengths.set(strengthKey(presentation.strength), strength);
+      forms.set(key, form);
+    }
+  }
+  const amount = (text: string): number => Number.parseFloat(text.replace(',', '.')) || 0;
+  return [...forms.values()].map(({ label, strengths }) =>
+    [
+      label,
+      [...strengths.values()].toSorted((left, right) => amount(left) - amount(right)).join(', '),
+    ]
+      .filter(Boolean)
+      .join(' '),
+  );
+}
+
 /** «100.0мг» and «100 мг» are one strength: the registry prints the same dose in several ways. */
 function strengthKey(strength: string | null): string {
   return drugNameKey(displayStrength(strength ?? ''))
@@ -579,6 +622,8 @@ export interface DrugHeaderModel {
 export const DRUG_ACCORDION_VISIBLE = 2;
 
 export interface DrugQuickLinksModel {
+  /** The substance card's forms with strengths («Таблетки 10 мг, 40 мг»); empty on a trade name. */
+  readonly forms: readonly string[];
   readonly substance: DrugSubstanceLink | null;
   readonly groups: readonly DrugGroupLink[];
   /** «Аналоги (дженерики, синонимы)» next to a trade name, «Торговые наименования» on the substance card. */
@@ -751,6 +796,7 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
       formInMeta: form !== null && uniquePresentations(product?.presentations ?? []).length === 1,
     },
     links: {
+      forms: product ? [] : substanceForms(input.sourceProducts),
       substance: substanceLinkOf(input, product),
       groups: drugGroupLinks(groupTexts),
       relatedTitle: product ? 'Аналоги (дженерики, синонимы)' : 'Торговые наименования',

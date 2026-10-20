@@ -7,27 +7,20 @@ const base: CoreLineInput = {
   deferred: false,
   error: undefined,
   progress: undefined,
-  speed: undefined,
 };
 
 describe('coreLineState', () => {
-  it('shows percent and speed while bytes arrive', () => {
+  it('shows the percent and never a download speed while bytes arrive', () => {
     const state = coreLineState({
       ...base,
       progress: { loaded: 37, total: 100, phase: 'downloading' },
-      speed: 4.2 * 1024 * 1024,
     });
     expect(state).toEqual({
       kind: 'downloading',
       fraction: 0.37,
-      label: '37 % · 4,2 МБ/с',
-      compactLabel: '37 % · 4,2 МБ/с',
+      label: '37 %',
+      compactLabel: '37 %',
     });
-  });
-
-  it('leaves the speed out until it is known', () => {
-    const state = coreLineState({ ...base, progress: { loaded: 50, total: 100 } });
-    expect(state.label).toBe('50 %');
   });
 
   it('counts bytes when the total is unknown', () => {

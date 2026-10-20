@@ -24,6 +24,7 @@ import { Disclosure } from '@/components/Disclosure';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
+import { PageSkeletonBody } from '@/components/PageSkeleton';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import {
   createReaderBookmark,
@@ -39,7 +40,9 @@ import { isIcd11Document } from '@/features/icd11/icd11-document';
 import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNotice';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { DocumentHighlightsSheet } from '@/features/library/DocumentHighlightsSheet';
+import { DocumentInfoDialog } from '@/features/library/DocumentInfoDialog';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
+import { NotFoundState } from '@/features/library/DocumentNotFound';
 import {
   type DocumentSectionTree,
   displayDocumentSubtitle,
@@ -55,6 +58,7 @@ import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/doc
 import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import { documentLinkMatcherFor } from '@/features/library/document-medication-links';
 import { printDocument, shareDocument, shareText } from '@/features/library/document-print';
+import { firstSliceCount, nextSliceCount } from '@/features/library/document-reader-batches';
 import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
@@ -70,7 +74,6 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
-import { documentEditionValue } from '@/features/library/document-version-label';
 import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
 import { PrintedContentsBlock } from '@/features/library/PrintedContentsBlock';
@@ -97,11 +100,11 @@ import { DrugSafetyBlock } from '@/features/medication-safety/DrugSafetyBlock';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
 import { DrugIndexAtc, esklpCardSlug } from '@/features/medications/DrugIndexAtc';
 import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
-import { DrugReferenceFooter } from '@/features/medications/DrugReferenceFooter';
 import { DrugScreenHeader } from '@/features/medications/DrugScreenHeader';
 import { DrugSectionIndex } from '@/features/medications/DrugSectionIndex';
 import {
   buildDrugScreen,
+  displayDrugName,
   drugSectionIndex,
   drugShareText,
   instructionIndexFromSummaries,
@@ -122,7 +125,6 @@ import {
 import {
   type InstructionSourceInfo,
   instructionSourceInfo,
-  instructionSourceName,
 } from '@/features/medications/instruction-source';
 import { openMedicationCatalogSearch } from '@/features/medications/medication-navigation';
 import {
@@ -139,6 +141,7 @@ import {
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { PackagingImageSource } from '@/features/medications/PackagingImageSource';
+import { registrationRows } from '@/features/medications/substance-reading';
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import { useSubstanceFallback } from '@/features/medications/use-substance-fallback';
 import type {
@@ -151,7 +154,7 @@ import {
   parseModulePointerMetadata,
 } from '@/features/modules/module-pointer-install';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
-import { DrugRecipeButton } from '@/features/prescription/DrugRecipeButton';
+import { DrugRecipeSheet } from '@/features/prescription/DrugRecipeSheet';
 import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
@@ -175,6 +178,13 @@ interface OfficialDocumentReaderProps {
   readonly pendingTitle?: string;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
   readonly medicationProduct?: MedicationProduct;
+  /**
+   * On the substance card: the trade name whose official instruction is the body (`document`).
+   * A tap on its name opens that trade name's own card.
+   */
+  readonly substanceInstructionProduct?: MedicationProduct;
+  /** The substance card is still looking up the instruction it will read. */
+  readonly substanceInstructionPending?: boolean;
   /** The substance card (ЕСКЛП) the trade name belongs to; `document` is the instruction while it is open. */
   readonly medicationSource?: MedicalDocument;
   /** Picks another trade name of the same substance; `undefined` shows the substance card itself. */
@@ -215,13 +225,6 @@ interface OfficialDocumentReaderProps {
   ) => Promise<void>;
 }
 
-function statusLabel(status: string): string {
-  if (status === 'active' || status === 'current') return 'Действующая редакция';
-  if (status === 'superseded') return 'Заменённая редакция';
-  if (status === 'historical') return 'Исторический документ';
-  return status;
-}
-
 const emptyFindState: DocumentFindResultState = {
   query: '',
   mode: 'exact',
@@ -231,8 +234,6 @@ const emptyFindState: DocumentFindResultState = {
 };
 
 const NO_DOCUMENTS: readonly MedicalDocumentSummary[] = [];
-const INITIAL_SECTION_BATCH = 4;
-const SECTION_BATCH_SIZE = 3;
 
 function sectionIndexForAnchor(
   sections: ReturnType<typeof visibleReaderSections>,
@@ -361,83 +362,44 @@ function supplementNotice(supplements: readonly TradeNameSupplement[]): string {
 
 function InstructionSourcePanel(props: {
   readonly info: InstructionSourceInfo;
-  /** On a drug screen: the kind and the notes only; edition, source and date go to the footer. */
+  /** On a drug screen (spacing only): the panel holds the notes about the text in any case. */
   readonly compact?: boolean;
 }): JSX.Element {
-  const sourceName = () => instructionSourceName(props.info);
   return (
-    <section
-      class="document-instruction-source"
-      classList={{
-        'document-instruction-source--manufacturer': props.info.sourceClass === 'manufacturer-site',
-        'document-instruction-source--compact': props.compact ?? false,
-      }}
-      aria-label="Источник официального текста"
-    >
-      <p
-        class="document-instruction-source__kind"
-        classList={{ 'document-instruction-source__kind--compact': props.compact ?? false }}
+    <Show when={props.info.matchNote || props.info.qualityNote}>
+      <section
+        class="document-instruction-source"
+        classList={{
+          'document-instruction-source--manufacturer':
+            props.info.sourceClass === 'manufacturer-site',
+          'document-instruction-source--compact': props.compact ?? false,
+        }}
+        aria-label="Источник официального текста"
       >
-        {props.info.kindLabel}
-      </p>
-      <Show when={!props.compact}>
-        <dl class="document-instruction-source__facts">
-          <Show when={props.info.edition}>
-            {(edition) => (
-              <div class="document-instruction-source__fact">
-                <dt class="document-instruction-source__term">Редакция</dt>
-                <dd class="document-instruction-source__value">{edition()}</dd>
-              </div>
-            )}
-          </Show>
-          <div class="document-instruction-source__fact">
-            <dt class="document-instruction-source__term">Источник</dt>
-            <dd class="document-instruction-source__value">
-              <Show when={props.info.sourceUrl} fallback={sourceName()}>
-                {(url) => (
-                  <a
-                    class="document-instruction-source__link"
-                    href={url()}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {sourceName()}
-                  </a>
-                )}
-              </Show>
-            </dd>
-          </div>
-          <Show when={props.info.fetchedOn}>
-            {(date) => (
-              <div class="document-instruction-source__fact">
-                <dt class="document-instruction-source__term">Получено</dt>
-                <dd class="document-instruction-source__value">{date()}</dd>
-              </div>
-            )}
-          </Show>
-        </dl>
-      </Show>
-      <Show when={props.info.matchNote}>
-        {(note) => (
-          <p class="document-instruction-source__match" role="note">
-            {note()}
-          </p>
-        )}
-      </Show>
-      <Show when={props.info.qualityNote}>
-        {(note) => (
-          <p
-            class="document-instruction-source__note"
-            classList={{
-              'document-instruction-source__note--low': props.info.quality === 'ocr-low',
-            }}
-            role="note"
-          >
-            {note()}
-          </p>
-        )}
-      </Show>
-    </section>
+        {/* Kind, edition, source and fetch date are under «⋯» → «Информация» (owner 2026-10-20);
+          only notes about the text itself stay on the page. */}
+        <Show when={props.info.matchNote}>
+          {(note) => (
+            <p class="document-instruction-source__match" role="note">
+              {note()}
+            </p>
+          )}
+        </Show>
+        <Show when={props.info.qualityNote}>
+          {(note) => (
+            <p
+              class="document-instruction-source__note"
+              classList={{
+                'document-instruction-source__note--low': props.info.quality === 'ocr-low',
+              }}
+              role="note"
+            >
+              {note()}
+            </p>
+          )}
+        </Show>
+      </section>
+    </Show>
   );
 }
 
@@ -491,6 +453,41 @@ function productSourceNames(product: MedicationProduct): readonly string[] {
       ? (product.supplementalSourceNames ?? [DEFAULT_REFERENCE_SOURCE_NAME])
       : []),
   ];
+}
+
+/** «Скачать · 24 МБ» for the group's instruction module, with its progress and error in place. */
+function InstructionOfferRow(props: {
+  readonly offer: InstructionModuleOffer;
+  readonly pending?: boolean | undefined;
+  readonly progress?: number | null | undefined;
+  readonly error?: string | null | undefined;
+  readonly onInstall?: (() => void) | undefined;
+}): JSX.Element {
+  return (
+    <div class="document-medication-product__offer">
+      <Button
+        type="button"
+        variant="secondary"
+        class="document-medication-product__offer-button"
+        disabled={props.pending ?? false}
+        onClick={() => props.onInstall?.()}
+      >
+        {props.pending
+          ? props.progress === null || props.progress === undefined
+            ? 'Скачиваем инструкции…'
+            : `Скачиваем инструкции · ${Math.floor(props.progress * 100)} %`
+          : instructionOfferLabel(props.offer)}
+      </Button>
+      <span class="module-offer__subtitle">{instructionOfferSubtitle(props.offer)}</span>
+      <Show when={props.error}>
+        {(message) => (
+          <p class="document-medication-product__offer-error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
+    </div>
+  );
 }
 
 function MedicationProductPanel(props: {
@@ -554,30 +551,13 @@ function MedicationProductPanel(props: {
         </Show>
         <Show when={props.instructionOffer}>
           {(offer) => (
-            <div class="document-medication-product__offer">
-              <Button
-                type="button"
-                variant="secondary"
-                class="document-medication-product__offer-button"
-                disabled={props.instructionOfferPending ?? false}
-                onClick={() => props.onInstallInstructionModule?.()}
-              >
-                {props.instructionOfferPending
-                  ? props.instructionOfferProgress === null ||
-                    props.instructionOfferProgress === undefined
-                    ? 'Скачиваем инструкции…'
-                    : `Скачиваем инструкции · ${Math.floor(props.instructionOfferProgress * 100)} %`
-                  : instructionOfferLabel(offer())}
-              </Button>
-              <span class="module-offer__subtitle">{instructionOfferSubtitle(offer())}</span>
-              <Show when={props.instructionOfferError}>
-                {(message) => (
-                  <p class="document-medication-product__offer-error" role="alert">
-                    {message()}
-                  </p>
-                )}
-              </Show>
-            </div>
+            <InstructionOfferRow
+              offer={offer()}
+              pending={props.instructionOfferPending}
+              progress={props.instructionOfferProgress}
+              error={props.instructionOfferError}
+              onInstall={props.onInstallInstructionModule}
+            />
           )}
         </Show>
       </div>
@@ -720,12 +700,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   );
 
   /** Pages of the text the document carries (known before any section renders): bubble, jumps, contents. */
+  const sectionWeights = createMemo(() => orderedSections().map(readerSectionWeight));
   const pageModel = createMemo(() =>
     props.document && !props.openError
       ? buildReaderPageModel(
-          orderedSections().map((section) => ({
+          orderedSections().map((section, index) => ({
             anchor: section.anchor,
-            weight: readerSectionWeight(section),
+            weight: sectionWeights()[index] ?? 0,
           })),
         )
       : null,
@@ -759,10 +740,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       sections,
       restoredPosition()?.anchor ?? props.initialAnchor,
     );
-    const initialCount =
-      anchorIndex >= 0
-        ? Math.min(sections.length, Math.max(INITIAL_SECTION_BATCH, anchorIndex + 1))
-        : Math.min(INITIAL_SECTION_BATCH, sections.length);
+    // The first slice is about one screen of text (the place the reader opens at included), so the
+    // title and the first paragraphs paint at once; the rest follows in idle slices of a few pages.
+    const weights = sectionWeights();
+    const initialCount = firstSliceCount(weights, anchorIndex);
     setMountedSectionCount(initialCount);
 
     if (initialCount >= sections.length) return;
@@ -773,10 +754,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
 
     const appendBatch = (): void => {
       if (cancelled) return;
-      count = Math.min(
-        sections.length,
-        Math.max(count, mountedSectionCount()) + SECTION_BATCH_SIZE,
-      );
+      count = nextSliceCount(weights, Math.max(count, mountedSectionCount()));
       setMountedSectionCount(count);
       if (count < sections.length) {
         idleHandle = scheduleIdleWork(appendBatch);
@@ -1209,13 +1187,23 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       });
   };
 
-  // A drug card's own actions live in the header's «⋯» menu next to print; the bookmark and the
-  // recipe stay on the title row.
+  // A drug card's own actions live in the header's «⋯» menu next to print, the recipe first
+  // (owner 2026-10-20: nothing but the name on the title row).
+  const [recipeOpen, setRecipeOpen] = createSignal(false);
+  const [infoOpen, setInfoOpen] = createSignal(false);
   const drugMenuActions = (): readonly AppContextMenuAction[] => {
     const screen = drugScreen();
     if (!screen) return [];
     const compare = screen.links.compare;
     return [
+      {
+        id: 'drug-recipe',
+        label: 'Рецепт',
+        icon: 'prescription' as const,
+        testId: 'drug-recipe-button',
+        // After the menu has closed and returned focus, or the sheet would close with it.
+        onSelect: () => window.setTimeout(() => setRecipeOpen(true), 0),
+      },
       ...(compare
         ? [
             {
@@ -1296,6 +1284,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
             <div class="document-page__reader-actions">
               <ReaderActionsMenu
                 bookmark={bookmark}
+                bookmarkItem={bookmarkItem(documentValue())}
                 actions={[
                   ...drugMenuActions(),
                   {
@@ -1307,6 +1296,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         toast.error('Не удалось открыть окно печати.');
                       }
                     },
+                  },
+                  {
+                    id: 'info',
+                    label: 'Информация',
+                    icon: 'info',
+                    testId: 'document-info',
+                    onSelect: () => window.setTimeout(() => setInfoOpen(true), 0),
                   },
                   ...(isClinicalRecommendationSource(documentValue().sourceType)
                     ? [
@@ -1327,8 +1323,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       bodyError={
         <Show when={props.openError}>
           {(message) => (
-            <div class="document-page__error" role="alert">
-              <p>{message()}</p>
+            <div class="document-page__error">
+              <NotFoundState
+                title={
+                  message() === 'Документ не найден.'
+                    ? 'Документ не найден'
+                    : 'Документ не открылся'
+                }
+                text={
+                  message() === 'Документ не найден.'
+                    ? 'Ссылка повреждена или документа нет на этом устройстве.'
+                    : message()
+                }
+                onSearch={() => props.onNavigate('#/search')}
+              />
             </div>
           )}
         </Show>
@@ -1351,7 +1359,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
               aria-live="polite"
               aria-label="Загрузка страницы"
             >
-              <span class="document-page__loading-spinner" aria-hidden="true" />
+              <PageSkeletonBody />
             </div>
           </Show>
         </>
@@ -1398,40 +1406,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           }}
         </For>
       }
-      outlineFooter={
-        <Show when={props.document}>
-          {(documentValue) => (
-            <Disclosure
-              variant="inline"
-              class="doctor-technical-details"
-              title="Сведения об источнике"
-            >
-              <dl class="doctor-technical-details__list">
-                <Show when={documentEditionValue(documentValue().versionLabel)}>
-                  {(edition) => (
-                    <div class="doctor-technical-details__row">
-                      <dt class="doctor-technical-details__term">Редакция</dt>
-                      <dd class="doctor-technical-details__value">{edition()}</dd>
-                    </div>
-                  )}
-                </Show>
-                <div class="doctor-technical-details__row">
-                  <dt class="doctor-technical-details__term">Статус</dt>
-                  <dd class="doctor-technical-details__value">
-                    {statusLabel(documentValue().status)}
-                  </dd>
-                </div>
-                <div class="doctor-technical-details__row">
-                  <dt class="doctor-technical-details__term">Тип</dt>
-                  <dd class="doctor-technical-details__value">
-                    {documentValue().sourceType.replaceAll('_', ' ')}
-                  </dd>
-                </div>
-              </dl>
-            </Disclosure>
-          )}
-        </Show>
-      }
       content={
         <article ref={chrome.setPaper} class="document-overlay-paper">
           <Show when={props.document}>
@@ -1469,7 +1443,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   fallback={
                     <>
                       <ReaderHero picture={heroPicture()} onSource={setHeroImageSource}>
-                        <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
+                        <ReaderTitleRow>
                           <h1
                             class="document-overlay-paper__title"
                             classList={{
@@ -1625,11 +1599,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     <>
                       <DrugScreenHeader
                         header={screen().header}
-                        bookmarkItem={bookmarkItem(documentValue())}
-                        bookmark={bookmark}
-                        tools={
-                          <DrugRecipeButton core={props.core} documentId={documentValue().id} />
-                        }
                         title={
                           <QueryHighlightedText
                             text={screen().header.title}
@@ -1664,6 +1633,51 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           });
                         }}
                         onOpenGroup={(group) => openMedicationCatalogSearch(group.query)}
+                      />
+                      <Show when={!props.medicationProduct && props.substanceInstructionProduct}>
+                        {(product) => (
+                          <p class="drug-instruction-of" data-testid="drug-instruction-of">
+                            Инструкция:{' '}
+                            <button
+                              type="button"
+                              class="drug-link"
+                              onClick={() => props.onSelectMedicationProduct?.(product())}
+                            >
+                              {displayDrugName(product().tradeName)}
+                            </button>
+                            <Show when={product().holder ?? product().manufacturer}>
+                              {(holder) => (
+                                <span class="drug-instruction-of__holder"> · {holder()}</span>
+                              )}
+                            </Show>
+                          </p>
+                        )}
+                      </Show>
+                      <Show when={props.substanceInstructionPending}>
+                        <div
+                          class="document-overlay-paper__pending"
+                          role="status"
+                          aria-label="Открываем инструкцию"
+                        >
+                          <span class="document-overlay-spinner" aria-hidden="true" />
+                        </div>
+                      </Show>
+                      <Show when={!props.medicationProduct && props.instructionOffer}>
+                        {(offer) => (
+                          <InstructionOfferRow
+                            offer={offer()}
+                            pending={props.instructionOfferPending}
+                            progress={props.instructionOfferProgress}
+                            error={props.instructionOfferError}
+                            onInstall={props.onInstallInstructionModule}
+                          />
+                        )}
+                      </Show>
+                      <DrugRecipeSheet
+                        core={props.core}
+                        documentId={documentValue().id}
+                        open={recipeOpen()}
+                        onClose={() => setRecipeOpen(false)}
                       />
                     </>
                   )}
@@ -1945,6 +1959,25 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     return renderSection(node);
                   }}
                 </For>
+                <DocumentInfoDialog
+                  open={infoOpen()}
+                  onClose={() => setInfoOpen(false)}
+                  document={documentValue()}
+                  instruction={instructionSourceInfo(
+                    documentValue(),
+                    props.medicationProduct?.instructionFallback?.registrationNumber ??
+                      props.medicationProduct?.registrationNumber ??
+                      props.substanceInstructionProduct?.registrationNumber,
+                  )}
+                  {...(drugScreen()
+                    ? {
+                        drugSources: props.medicationProduct
+                          ? productSourceNames(props.medicationProduct)
+                          : [],
+                        registrations: registrationRows(drugSourceProducts()),
+                      }
+                    : {})}
+                />
                 <Show when={sectionsPending()}>
                   <div
                     class="document-overlay-paper__pending"
@@ -1953,18 +1986,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   >
                     <span class="document-overlay-spinner" aria-hidden="true" />
                   </div>
-                </Show>
-                <Show when={drugScreen()}>
-                  <DrugReferenceFooter
-                    sources={
-                      props.medicationProduct ? productSourceNames(props.medicationProduct) : []
-                    }
-                    instruction={instructionSourceInfo(
-                      documentValue(),
-                      props.medicationProduct?.instructionFallback?.registrationNumber ??
-                        props.medicationProduct?.registrationNumber,
-                    )}
-                  />
                 </Show>
               </>
             )}

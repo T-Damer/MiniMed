@@ -53,10 +53,12 @@ test('a product without its own text shows another registration’s text with a 
 
   // Level 1: Албендазол-Эдвансд has no text of its own; same МНН, form and strength exist.
   await openCatalogProduct(page, 'Албендазол-Эдвансд');
+  // The drug module brought the group's instructions in the same step (owner 2026-10-20); the
+  // offer appears only while they are still missing.
   const offer = page.locator('.document-medication-product__offer-button');
-  await expect(offer).toContainText(/^Скачать · \d/u, { timeout: 60_000 });
-  await expect(page.locator('.module-offer__subtitle')).toContainText('Инструкции группы');
-  await offer.click({ force: true });
+  if (await offer.isVisible({ timeout: 20_000 }).catch(() => false)) {
+    await offer.click({ force: true });
+  }
 
   const fallback = page.locator('.document-instruction-fallback');
   await expect(fallback).toBeVisible({ timeout: 180_000 });
@@ -67,10 +69,12 @@ test('a product without its own text shows another registration’s text with a 
   await expect(fallback).toContainText('Препарат-источник');
   await expect(fallback).toContainText('Регистрация');
   await expect(fallback).toContainText('Это не инструкция выбранного препарата');
-  // The donor's own provenance stays below the label.
-  await expect(page.locator('.document-instruction-source')).toBeVisible();
-  // The product's own source line never claims a ГРЛС text for it.
+  // The donor's own provenance is under «⋯» → «Информация» (owner 2026-10-20).
+  // The product's own source line («⋯» → «Информация») never claims a ГРЛС text for it.
+  await page.getByRole('button', { name: 'Меню действий' }).click();
+  await page.getByTestId('document-info').click();
   await expect(page.getByTestId('drug-reference-sources')).not.toContainText('ГРЛС');
+  await page.keyboard.press('Escape');
   await shoot(page, 'level1');
 
   // The «Кратко» side stays the product's own card; the tab note names the fallback.
@@ -94,6 +98,9 @@ test('a product without its own text shows another registration’s text with a 
   // A product with an own text shows no fallback.
   await openCatalogProduct(page, 'Вермокс');
   await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
-  await expect(page.locator('.document-instruction-source')).toBeVisible({ timeout: 60_000 });
+  // The instruction's source rows are under «⋯» → «Информация» (owner 2026-10-20): wait for its text.
+  await expect(page.locator('.document-overlay-section__paragraph').first()).toBeVisible({
+    timeout: 60_000,
+  });
   await expect(page.locator('.document-instruction-fallback')).toHaveCount(0);
 });

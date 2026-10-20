@@ -129,14 +129,27 @@ function readTable(value: Readonly<Record<string, unknown>>): DocumentTableBlock
   };
 }
 
+/**
+ * A chunk's block is read by the section split, by every render of its section and by the find
+ * units; reading checks each embedded picture's whole data URL (megabytes of base64 in a table of
+ * figures) against `SAFE_IMAGE`, so the result is kept per metadata object.
+ */
+const blocksByMetadata = new WeakMap<object, DocumentRenderBlock | null>();
+
 export function readDocumentRenderBlock(
   metadata: Readonly<Record<string, unknown>> | undefined,
 ): DocumentRenderBlock | null {
-  const value = metadata === undefined ? undefined : recordValue(metadata, 'renderBlock');
-  if (!value || typeof value !== 'object') return null;
-  const block = value as Readonly<Record<string, unknown>>;
-  if (recordValue(block, 'kind') === 'table') return readTable(block);
-  return readImage(block);
+  if (metadata === undefined) return null;
+  const known = blocksByMetadata.get(metadata);
+  if (known !== undefined) return known;
+  const value = recordValue(metadata, 'renderBlock');
+  let block: DocumentRenderBlock | null = null;
+  if (value && typeof value === 'object') {
+    const record = value as Readonly<Record<string, unknown>>;
+    block = recordValue(record, 'kind') === 'table' ? readTable(record) : readImage(record);
+  }
+  blocksByMetadata.set(metadata, block);
+  return block;
 }
 
 function blockNeedsCaption(block: DocumentRenderBlock): boolean {

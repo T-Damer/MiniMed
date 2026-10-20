@@ -240,7 +240,7 @@ test.describe('a lazy screen that cannot load', () => {
     await openCalculators(page);
 
     await expect(page.getByTestId('lazy-load-error')).toBeVisible({ timeout: 120_000 });
-    await expect(page.locator('.app-view__spinner')).toHaveCount(0);
+    await expect(page.locator('.page-skeleton')).toHaveCount(0);
     await page.waitForTimeout(3_000);
     expect(loads).toBe(2);
   });
@@ -272,7 +272,7 @@ test.describe('a lazy screen that cannot load', () => {
 
     await expect(page.getByTestId('lazy-load-error')).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId('lazy-load-error')).toContainText('Нет сети');
-    await expect(page.locator('.app-view__spinner')).toHaveCount(0);
+    await expect(page.locator('.page-skeleton')).toHaveCount(0);
     await page.waitForTimeout(2_000);
     expect(loads).toBe(1);
   });

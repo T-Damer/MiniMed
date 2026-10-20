@@ -105,7 +105,9 @@ test('the tool row holds «Все инструменты» and only the tools th
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const row = page.locator('.search-quick-access');
-  await expect(row.locator('.search-quick-access__chip')).toHaveCount(0);
+  // A first run starts with five real tools pinned (owner 2026-10-20), never an empty row.
+  await expect(row.locator('.search-quick-access__chip')).toHaveCount(5);
+  await expect(row.getByRole('button', { name: 'CHA₂DS₂-VASc', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
   const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
   for (const group of ['Приём', 'Расчёты', 'Справочное', 'Файлы']) {
@@ -152,7 +154,7 @@ test('the tool row stays under the field while results show; «Все инстр
   expect(strip.y - (field.y + field.height)).toBeLessThan(40);
 });
 
-test('a found part shows three lines, unrolls in place, and the rest are «Ещё N фрагментов»', async ({
+test('a found part shows three lines, unrolls in place, and is the only fragment of its card', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
@@ -179,9 +181,12 @@ test('a found part shows three lines, unrolls in place, and the rest are «Ещ�
   await open.click();
   await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
 
-  const more = page.getByRole('button', { name: /^Ещё \d+ фрагмент(а|ов)?$/u }).first();
-  await expect(more).toBeVisible();
+  // One finding per result (owner 2026-10-20): no «Ещё N фрагментов», no «Найдено ещё в».
+  await expect(page.getByRole('button', { name: /^Ещё \d+ фрагмент/u })).toHaveCount(0);
   await expect(page.getByText(/Найдено ещё в/u)).toHaveCount(0);
+  // A tap on the text opens the document itself, not a card inside the search.
+  await fragment.getByTestId('search-result').click();
+  await expect(page).toHaveURL(/#\/modules\/documents\//u);
 });
 
 /** The active position dot names the slide in view: «Функция 2 из 4» → 2. */
@@ -443,7 +448,8 @@ for (const width of [375, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     await waitForHomeSections(page);
-    const rows = page.locator('.search-sections__row');
+    // Search sections are buttons; shortcuts such as «Травник» (HERB1) are links after them.
+    const rows = page.locator('button.search-sections__row');
     await expect(rows).toHaveCount(Object.keys(SECTION_NOUNS).length);
     // No endless all-sources catalog under the empty field.
     await expect(page.locator('.unified-catalog')).toHaveCount(0);
@@ -616,7 +622,7 @@ test('opens a document tool in a route-owned window even when mini-windows are d
   );
 });
 
-test('finds a recommendation section and opens local context', async ({ page }) => {
+test('finds a recommendation section and opens the document at it', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await expect(page.getByTestId('search-input')).toBeVisible();
   await page.getByTestId('search-input').fill(query);
@@ -624,19 +630,16 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   // Lookup is lexical only (no vector mode label); a recommendation is among the first groups.
   await expect(clinicalRecommendationResult(page)).toBeVisible();
-  await expect(page.getByTestId('reader-context')).toHaveCount(0);
+  // One tap opens the document itself, no context card in the search (owner 2026-10-20).
   await clinicalRecommendationResult(page).click();
-  await expect(page.getByTestId('reader-context')).toContainText('Пневмония');
-  await expect(page.getByTestId('reader-context').locator('.archive-kicker')).toHaveText(
-    'В клинических рекомендациях',
-  );
-  // The card's own definition is its first fragment; its catalogue details come after it.
-  await expect(page.getByTestId('reader-context')).toContainText(
-    'Источник определения: клиническая рекомендация',
-  );
+  await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
+  await expect(page.getByRole('heading', { name: /Пневмония/u, level: 1 })).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByTestId('reader-context')).toHaveCount(0);
 });
 
-test('the source overlay names a medication card and drops its storage note', async ({ page }) => {
+test('a medication result opens its page without the storage note', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await waitForSearchEditable(page);
   await page.getByTestId('search-input').fill('парацетамол');
@@ -648,10 +651,12 @@ test('the source overlay names a medication card and drops its storage note', as
     .first();
   await expect(group).toBeVisible({ timeout: 60_000 });
   await group.getByTestId('search-result').first().click();
-  const overlay = page.getByTestId('reader-context');
-  await expect(overlay.locator('.archive-kicker')).toHaveText(/^В (инструкции|справочнике)/u);
-  await expect(overlay).not.toContainText('Полные данные находятся');
-  await expect(overlay).not.toContainText('не дублируются в ядре');
+  // The drug opens on its own page; its storage note is never shown.
+  await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
+  const page_ = page.locator('.document-page');
+  await expect(page_).toBeVisible({ timeout: 60_000 });
+  await expect(page_).not.toContainText('Полные данные находятся');
+  await expect(page_).not.toContainText('не дублируются в ядре');
 });
 
 test('an abbreviation does not surface tools that only contain its letters', async ({ page }) => {
@@ -766,8 +771,6 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await clinicalRecommendationResult(page).click();
-  await expect(page.getByTestId('reader-context')).toBeVisible();
-  await page.getByRole('button', { name: 'Открыть полный документ' }).click();
 
   const overlay = page.locator('.document-overlay');
   const outline = overlay.locator('.document-overlay-outline');
@@ -824,18 +827,11 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
   const groups = page.locator('.result-group');
   await expect.poll(() => groups.count(), { timeout: 60_000 }).toBeGreaterThan(0);
   await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
-  const expandable = groups.filter({ has: page.locator('.result-group__more') }).first();
+  // One finding per result card (owner 2026-10-20).
+  const expandable = groups.first();
   await expect(expandable).toBeVisible();
-  const excerpts = expandable.getByTestId('search-result').filter({ visible: true });
-  await expect(excerpts).toHaveCount(1);
-  const toggle = expandable.getByRole('button', { name: /^Ещё \d+ фрагмент/u });
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect.poll(() => excerpts.count()).toBeGreaterThan(1);
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(expandable.locator('.ui-disclosure__panel')).toHaveAttribute('inert', '');
+  await expect(expandable.getByTestId('search-result')).toHaveCount(1);
+  await expect(expandable.locator('.ui-disclosure')).toHaveCount(0);
   const kind = expandable.locator('.result-group-header__kind');
   await expect(kind).toHaveCSS('opacity', '1');
   await expect(kind).toHaveCSS('position', 'static');
@@ -850,7 +846,7 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
         .poll(async () =>
           page
             .locator(
-              '.result-group-header__title, .result-group-header__kind, .result-group-header__content-kind, .result-group-header__note, .result-snippet, .result-group__more .ui-disclosure__title, .choice-chip__label, .choice-chip__detail, .highlighted-text__match',
+              '.result-group-header__title, .result-group-header__kind, .result-group-header__content-kind, .result-group-header__note, .result-snippet, .choice-chip__label, .choice-chip__detail, .highlighted-text__match',
             )
             .evaluateAll((nodes) => {
               const canvas = new OffscreenCanvas(1, 1);
@@ -1170,15 +1166,14 @@ test('filters the document library and opens a document with one click', async (
   await expect(page.getByRole('button', { name: 'Поиск в документе' })).toBeVisible();
 });
 
-test('opens only the exact fragment without surrounding source context', async ({ page }) => {
+test('a found fragment opens the document, not a fragment card', async ({ page }) => {
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
   await page.getByTestId('search-results').getByTestId('search-result').first().click();
-  await expect(page.locator('.source-paragraph')).toHaveCount(1);
-  await expect(page.getByRole('button', { name: 'Показать текст вокруг' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Открыть полный документ' })).toBeVisible();
-  await expect(page.locator('.reader-toolbar')).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
+  await expect(page.locator('.source-paragraph')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Открыть полный документ' })).toHaveCount(0);
 });
 
 test('opens a random record of the current section', async ({ page }) => {

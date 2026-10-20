@@ -218,14 +218,8 @@ test.describe('news feed tab', () => {
     await nav.getByRole('button', { name: 'Лента', exact: true }).click();
     await expect(page).toHaveURL(/#\/news$/u);
     await expect(page.getByTestId('news-empty')).toBeVisible();
-    // The web build says once that feeds load in the Android app; nothing is preselected.
-    await expect(page.getByTestId('news-web-hint')).toContainText(
-      'Ленты загружаются в приложении для Android.',
-    );
-    await expect(page.getByTestId('news-web-hint').getByRole('link')).toHaveAttribute(
-      'href',
-      /\.apk$/u,
-    );
+    // The web build has no APK banner (owner 2026-10-20); nothing is preselected.
+    await expect(page.getByTestId('news-web-hint')).toHaveCount(0);
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
 
     // Header: «<icon> Лента», PubMed and settings on the right, and a «?»; no refresh before a source exists.
@@ -235,18 +229,23 @@ test.describe('news feed tab', () => {
     await expect(page.getByRole('button', { name: 'Обновить ленту' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Как это работает' })).toBeVisible();
 
-    // The rail: «+» first, then the suggested sources. Opening one is a tap on its card, never a subscription.
-    const rail = page.getByTestId('news-rail');
+    // The grid: «+» first, then the suggested sources, two tiles to a row. Opening one is a tap on its
+    // tile, never a subscription.
+    const rail = page.getByTestId('news-source-grid');
+    await expect(page.getByTestId('news-rail')).toHaveCount(0);
     await expect(rail.getByTestId('news-add-entry')).toHaveAccessibleName('Добавить свой источник');
     await expect(rail.locator('[data-suggested]').first()).toBeVisible();
-    expect(await rail.locator('[data-suggested]').count()).toBeGreaterThanOrEqual(12);
+    // Only the sources a browser can read get a tile in the web build.
+    expect(await rail.locator('[data-suggested]').count()).toBeGreaterThanOrEqual(4);
+    await expect(rail.locator('[data-suggested="nejm-current"]')).toHaveCount(0);
+    const columns = await rail.evaluate(
+      (element) => getComputedStyle(element).gridTemplateColumns.split(' ').length,
+    );
+    expect(columns).toBe(2);
     // Avatars are bundled: a logo where we have one, a coloured monogram where the site refuses clients.
     await expect(rail.locator('[data-suggested="who-news-ru"] img.news-avatar__image')).toHaveCount(
       1,
     );
-    await expect(
-      rail.locator('[data-suggested="nejm-current"] .news-avatar__mark'),
-    ).not.toBeEmpty();
     await page.waitForTimeout(500);
     expect(external).toEqual([]);
     await page.screenshot({ path: test.info().outputPath('news-empty-phone.png') });
@@ -693,7 +692,10 @@ test.describe('news feed tab', () => {
     await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
     await openNews(page);
     expect(suggestedHosts).toEqual([]);
-    await page.getByTestId('news-rail').locator('[data-suggested="medportal-news"] button').click();
+    await page
+      .getByTestId('news-source-grid')
+      .locator('[data-suggested="medportal-news"] .news-grid__tile')
+      .click();
     const sheet = page.locator('.news-sheet');
     await expect(sheet).toBeVisible();
     await expect(sheet).toContainText('MedPortal');
@@ -706,16 +708,20 @@ test.describe('news feed tab', () => {
     await page.screenshot({ path: test.info().outputPath('news-suggested-sheet-phone.png') });
     await sheet.getByRole('button', { name: 'Подписаться', exact: true }).click();
     await expect(page.locator('[data-news-item]')).toHaveCount(3);
-    // The card left the rail; MedPortal's feed carries no pictures, so its images stay off.
+    // The tile left the suggestions (the empty grid gave way to the rail); MedPortal's feed carries no
+    // pictures, so its images stay off.
+    await expect(page.getByTestId('news-source-grid')).toHaveCount(0);
     await expect(
       page.getByTestId('news-rail').locator('[data-suggested="medportal-news"]'),
     ).toHaveCount(0);
+    // The «Источник добавлен» notice covers the header for a moment; wait for it to leave.
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
     await page.getByRole('link', { name: 'Управление источниками' }).click();
     await expect(page.getByRole('switch', { name: /Показывать изображения/u })).not.toBeChecked();
   });
 
   test('starts a suggested source that carries pictures with its images on', async ({ page }) => {
-    await page.route('https://medicalxpress.com/**', async (route) => {
+    await page.route('https://doctorpiter.ru/**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/rss+xml',
@@ -725,7 +731,10 @@ test.describe('news feed tab', () => {
     });
     await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
     await openNews(page);
-    await page.getByTestId('news-rail').locator('[data-suggested="medical-xpress"] button').click();
+    await page
+      .getByTestId('news-source-grid')
+      .locator('[data-suggested="doctorpiter-news"] .news-grid__tile')
+      .click();
     await page
       .getByTestId('news-source-sheet')
       .getByRole('button', { name: 'Подписаться', exact: true })
@@ -733,6 +742,38 @@ test.describe('news feed tab', () => {
     await expect(page.locator('[data-news-item]')).toHaveCount(3);
     await page.getByRole('link', { name: 'Управление источниками' }).click();
     await expect(page.getByRole('switch', { name: /Показывать изображения/u })).toBeChecked();
+  });
+
+  test('subscribes in one tap from the «+» of a tile, which only the sources a browser can read carry', async ({
+    page,
+  }) => {
+    const hosts: string[] = [];
+    await page.route('https://medportal.ru/**', async (route) => {
+      hosts.push(route.request().url());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/rss+xml',
+        headers: CORS_HEADERS,
+        body: feedXml(),
+      });
+    });
+    await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
+    await openNews(page);
+    const grid = page.getByTestId('news-source-grid');
+    // Росздравнадзор refuses browser reads (measured): the web build shows no tile for it.
+    await expect(grid.locator('[data-suggested="roszdravnadzor-news"]')).toHaveCount(0);
+    // Looking at the tiles, and even at their «+», subscribes nothing and asks nobody.
+    const quick = grid
+      .locator('[data-suggested="medportal-news"]')
+      .getByRole('button', { name: /^Подписаться: MedPortal/u });
+    await expect(quick).toBeVisible();
+    expect(hosts).toEqual([]);
+    await page.screenshot({ path: test.info().outputPath('news-grid-phone.png') });
+    await quick.click();
+    await expect(page.locator('[data-news-item]')).toHaveCount(3);
+    expect(hosts).toHaveLength(1);
+    await expect(page.getByTestId('news-source-grid')).toHaveCount(0);
+    await expect(page.getByTestId('news-rail')).toBeVisible();
   });
 
   test('searches PubMed on request, saves the search and refreshes it with the other sources', async ({

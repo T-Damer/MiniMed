@@ -10,6 +10,14 @@ export type DocumentToolTextSegment = ToolLinkSegment<DocumentToolKind>;
 
 let cachedMatcher: ReturnType<typeof buildMatcher> | undefined;
 let cachedCatalogSignature = '';
+let catalogCheckedAt = Number.NEGATIVE_INFINITY;
+
+/**
+ * The registries hand out a fresh array on every call (a few hundred entries merged and sorted), and
+ * a reader asks for the matcher once per paragraph: the signature is re-read at most this often, so a
+ * tool installed while a document is open is linked from the next render a moment later.
+ */
+const CATALOG_RECHECK_MS = 750;
 
 function catalogSignature(): string {
   const assessments = getAssessmentCatalog()
@@ -46,6 +54,9 @@ function buildMatcher() {
 }
 
 function getMatcher() {
+  const now = performance.now();
+  if (cachedMatcher && now - catalogCheckedAt < CATALOG_RECHECK_MS) return cachedMatcher;
+  catalogCheckedAt = now;
   const signature = catalogSignature();
   if (cachedMatcher && cachedCatalogSignature === signature) return cachedMatcher;
   cachedMatcher = buildMatcher();

@@ -1,7 +1,6 @@
 import type { MedicalCore } from '@localmed/contracts';
-import { createMemo, createSignal, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { cardSlugOfDocumentId } from '@/features/drug-interactions/drug-candidates';
 import { notesPrescriptionPath } from '@/features/notes/notes-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
@@ -77,17 +76,22 @@ function RecipeSheet(props: {
 }
 
 /**
- * The recipe icon of the drug screen: opens «Рецепт» for this drug. Age and weight are asked in the
- * sheet, the dose sentence of the instruction that fits is quoted, and the text of the recipe is
- * ready to copy, share or print. The drug's own instruction is not read until the sheet opens.
+ * «Рецепт» for the drug on screen, opened from the drug card's «⋯» menu: age and weight are asked
+ * in the sheet, the dose sentence of the instruction that fits is quoted, and the text of the recipe
+ * is ready to copy, share or print. The dose index and the drug's own instruction are not read until
+ * the sheet first opens.
  */
-export function DrugRecipeButton(props: {
+export function DrugRecipeSheet(props: {
   readonly core: MedicalCore | undefined;
   readonly documentId: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
   readonly onContentChanged?: (() => Promise<void>) | undefined;
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
   const [opened, setOpened] = createSignal(false);
+  createEffect(() => {
+    if (props.open) setOpened(true);
+  });
   const onContentChanged =
     props.onContentChanged ??
     (async () => {
@@ -102,45 +106,30 @@ export function DrugRecipeButton(props: {
     return loaded ? cardSlugOfDrugDocument(loaded, props.documentId) : undefined;
   });
   return (
-    <>
-      <button
-        type="button"
-        class="drug-recipe__button"
-        aria-label="Рецепт"
-        title="Рецепт"
-        data-testid="drug-recipe-button"
-        onClick={() => {
-          setOpened(true);
-          setOpen(true);
-        }}
-      >
-        <AppGlyph name="prescription" class="drug-recipe__icon" />
-      </button>
-      <Show
-        when={slug()}
-        fallback={
-          <RecipeDialog
-            open={open()}
-            text=""
-            onClose={() => setOpen(false)}
-            empty={
-              index.value() === undefined
-                ? 'Загружаем указатель доз…'
-                : 'Для этого препарата в указателе доз нет карточки: назначение по нему не рассчитывается.'
-            }
-          />
-        }
-      >
-        {(found) => (
-          <RecipeSheet
-            open={open()}
-            core={props.core}
-            slug={found()}
-            onClose={() => setOpen(false)}
-            onContentChanged={onContentChanged}
-          />
-        )}
-      </Show>
-    </>
+    <Show
+      when={slug()}
+      fallback={
+        <RecipeDialog
+          open={props.open}
+          text=""
+          onClose={props.onClose}
+          empty={
+            index.value() === undefined
+              ? 'Загружаем указатель доз…'
+              : 'Для этого препарата в указателе доз нет карточки: назначение по нему не рассчитывается.'
+          }
+        />
+      }
+    >
+      {(found) => (
+        <RecipeSheet
+          open={props.open}
+          core={props.core}
+          slug={found()}
+          onClose={props.onClose}
+          onContentChanged={onContentChanged}
+        />
+      )}
+    </Show>
   );
 }

@@ -32,6 +32,7 @@ import { useNativeBack } from '@/app/use-native-back';
 import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
+import { PageSkeleton } from '@/components/PageSkeleton';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
@@ -380,18 +381,7 @@ export function App(): JSX.Element {
           preserve composer drafts, scroll position, and per-view state. */}
       <Show when={navigation.hasMountedView(id)}>
         <LazyBoundary>
-          <Suspense
-            fallback={
-              <div
-                class="app-view__loading page-surface page-grain"
-                role="status"
-                aria-live="polite"
-                aria-label="Загрузка страницы"
-              >
-                <span class="app-view__spinner" aria-hidden="true" />
-              </div>
-            }
-          >
+          <Suspense fallback={<PageSkeleton headless />}>
             <Dynamic component={content} />
           </Suspense>
         </LazyBoundary>
@@ -528,18 +518,7 @@ export function App(): JSX.Element {
         >
           <section class="app-view app-view--document-read active" aria-hidden={false}>
             <LazyBoundary>
-              <Suspense
-                fallback={
-                  <div
-                    class="app-view__loading page-surface page-grain"
-                    role="status"
-                    aria-live="polite"
-                    aria-label="Загрузка страницы"
-                  >
-                    <span class="app-view__spinner" aria-hidden="true" />
-                  </div>
-                }
-              >
+              <Suspense fallback={<PageSkeleton fallbackHash="#/search" />}>
                 <DocumentPageHost
                   getCore={() => session.ready()?.core}
                   reconnectContent={session.connectInstalledModules}

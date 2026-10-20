@@ -1,7 +1,6 @@
 import type { SearchResult, SearchResultGroup } from '@localmed/contracts';
-import { children, For, type JSX, Show } from 'solid-js';
+import { children, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { Disclosure } from '@/components/Disclosure';
 import { IcdText } from '@/components/IcdText';
 import { isIcd11DocumentId } from '@/features/icd11/icd11-document';
 import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
@@ -12,7 +11,6 @@ import {
   splitResultTitle,
 } from '@/features/search/search-result-presentation';
 import { RESULT_TYPE_VISUALS, resultTypeVisual } from '@/features/search/searchResultKindVisuals';
-import { pluralRu } from '@/i18n/labels';
 import '@/features/search/search-result-group.css';
 
 export function SearchResultGroupCard(props: {
@@ -24,7 +22,6 @@ export function SearchResultGroupCard(props: {
   readonly qualifier?: string | undefined;
   /** `anchor` is the place of the best match: the reader opens there, not at the top. */
   readonly onOpenDocument: (documentId: string, anchor?: string | null) => void;
-  readonly onOpenResult: (result: SearchResult) => void;
 }): JSX.Element {
   // Resolved once: the first line of the header gives up room to the action only when it shows.
   const action = children(() => props.action);
@@ -46,31 +43,18 @@ export function SearchResultGroupCard(props: {
     contentLabel() !== undefined ||
     props.group.atcMatch !== undefined ||
     props.qualifier !== undefined;
-  const results = () => {
-    const ordered = orderResultsForDisplay(props.group.results);
-    return props.group.documentKind === 'medication' ? ordered.slice(0, 3) : ordered;
-  };
-  const renderExcerpt = (result: SearchResult): JSX.Element => (
-    <SearchResultFragment
-      result={result}
-      selected={props.selectedChunkId === result.chunkId}
-      onOpen={() => props.onOpenResult(result)}
-    />
-  );
+  // One finding per result (owner 2026-10-20): the best fragment, and a tap opens the document.
+  const best = (): SearchResult | undefined => orderResultsForDisplay(props.group.results)[0];
   // A drug opens on its own screen and a catalogue pointer holds no text of the document (its
   // anchors are the pointer's); every other document opens at the fragment that was found.
   const openingAnchor = (): string | null =>
     props.group.documentKind === 'medication' || props.group.contentKind === 'pointer'
       ? null
-      : (results()[0]?.anchor ?? null);
-  const moreCount = () => results().length - 1;
+      : (best()?.anchor ?? null);
+  const open = (): void => props.onOpenDocument(props.group.documentId, openingAnchor());
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
-      <button
-        type="button"
-        class="result-group-header"
-        onClick={() => props.onOpenDocument(props.group.documentId, openingAnchor())}
-      >
+      <button type="button" class="result-group-header" onClick={open}>
         <span class="result-group-header__index" aria-hidden="true">
           {String(props.index + 1).padStart(2, '0')}
         </span>
@@ -101,25 +85,19 @@ export function SearchResultGroupCard(props: {
           </Show>
         </span>
       </button>
-      <div class="result-group__snippets">
-        <For each={results().slice(0, 1)}>{renderExcerpt}</For>
-      </div>
-      <Show
-        when={moreCount() > 0}
-        fallback={
-          <Show when={action() !== undefined}>
-            <div class="result-group__foot">{action()}</div>
-          </Show>
-        }
-      >
-        <Disclosure
-          variant="inline"
-          class="result-group__more"
-          action={action()}
-          title={`Ещё ${moreCount()} ${pluralRu(moreCount(), 'фрагмент', 'фрагмента', 'фрагментов')}`}
-        >
-          <For each={results().slice(1)}>{renderExcerpt}</For>
-        </Disclosure>
+      <Show when={best()}>
+        {(result) => (
+          <div class="result-group__snippets">
+            <SearchResultFragment
+              result={result()}
+              selected={props.selectedChunkId === result().chunkId}
+              onOpen={open}
+            />
+          </div>
+        )}
+      </Show>
+      <Show when={action() !== undefined}>
+        <div class="result-group__foot">{action()}</div>
       </Show>
     </section>
   );
