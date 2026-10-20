@@ -4,6 +4,30 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.63] - 2026-10-21
+
+- Android application id is now `org.med.web` (owner phone QA 2026-10-20): HyperOS kept the old package at 60 Hz,
+  the new one runs at 120 Hz. It installs as a separate app — the old app's patients, notes and downloads do not
+  move over (export a notes backup first), and a debug `org.med.web` from earlier tests must be uninstalled first.
+- Drug cards lead with clinical text: a substance opens on its forms, class, analogues and the official
+  instruction of the best-fitting trade name; the ЕСКЛП registry listings are never the body. Registrations,
+  editions, sources and dates are in «⋯» → «Информация» on every official reader. «Рецепт» and «Сохранить в
+  коллекцию» are in «⋯»; no bookmark beside titles; the recipe sheet has no «Ребёнок / Взрослый» switch.
+- Downloading a drug group brings its official instructions in the same step; a trade name picked while they
+  are still downloading opens its text when they land.
+- Search shows one fragment per result and opens the document there; «Ибупрофен: официальная инструкция» finds
+  the ibuprofen instruction first.
+- Reader: the first section appears about twice as fast, the strip under the status bar is solid again, the
+  bottom gradient is gone, loading screens are skeletons with a working back button; «Документ не найден» is a
+  centred state.
+- Onboarding: one line while setting up in the background, no download speed, a back arrow, five tools pinned
+  under search on first run. Toasts sit at the top on paper. The empty feed shows its sources as a grid. The
+  bottom bar hides while the keyboard is open. No disclaimers anywhere.
+- Content (published 2026-10-20, reaches installed apps through the catalog): ГРЛС and manufacturer-site
+  instructions without «» boxes (list bullets and symbols restored in 2 295 documents) and without words cut
+  in half; PDF headings re-extracted; ЕСКЛП dates as dd.mm.yyyy; 358 clinical recommendations with heading
+  levels that follow their numbering.
+
 - Questionnaires PHQ-9 (depression) and GAD-7 (anxiety) in «Психиатрия» → «Депрессия и тревога», in the
   official Russian translation with the original scoring and bands. PHQ-9 shows how much the symptoms get in
   the way of daily life on its own track and always raises a prominent notice when item 9 (thoughts of death
