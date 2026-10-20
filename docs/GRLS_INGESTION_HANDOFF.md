@@ -275,6 +275,21 @@ re-renders only the bodies of the documents that have one into a new workspace
 `build_grls_instruction_modules.py` (the manufacturer workspace: `manufacturer`, which writes `prepared-contents`).
 Measurements and the modules rebuilt from it: `CURRENT_STATE.md` «LEAF1».
 
+## Re-extracting the text-layer PDFs (MOD-REBUILD, 2026-10-20)
+
+A change to the PDF extraction (heading rule, private-use glyphs) reaches the modules only through a new `medbase
+prepare` of the workspaces. Without re-running OCR: hardlink the extraction JSON of every non-text-layer document
+(`diagnostics.textExtractionMode != "pdf_text_layer"`) of `grls-full-final`, `grls-g1-additions` and
+`grls-g1-additions-2` into one reuse workspace (`<dir>/.localmed/extractions/`), prepare each workspace with
+`--workers 8 --reuse-from <dir>` into a new directory (registries: `data/build/grls-instructions-full-registry.json`,
+`data/intermediate/grls-g1-additions(-2).registry.yaml`; source root `data/raw/grls-instructions-active`; ≈ 55 min on
+a busy machine), swap it in, refresh `textSha256` of the changed manifest rows (the digest of
+`grls_text_manifest._text_digest`), then `grls_contents_lists.py apply`. The preparer writes the leaflet contents
+list itself since LEAF1, so `apply` re-renders only the OCR-cleaned leaflets and reports the rest as `notReproduced`
+(already re-rendered). A render-only change (heading levels, `render_body`) needs the same prepare with
+`--reuse-from <the workspace itself>` (no extraction, minutes). Bump `PACK_VERSION` before the build, or installed
+copies keep the old module. Numbers and the procedure for the other families: `CURRENT_STATE.md` «MOD-REBUILD».
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

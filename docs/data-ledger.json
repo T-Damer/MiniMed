@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13439494983,
-      "modified": "2026-10-18"
+      "bytes": 13447034220,
+      "modified": "2026-10-19"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -108,8 +108,8 @@
       "consumers": ["tools/ingest/scripts/build_grls_atc_modules.py"],
       "rebuild": "Re-run the GRLS prepare; without its .localmed extraction cache this is hours of OCR.",
       "note": "Contains every batch workspace below (8 868 reused extractions).",
-      "bytes": 2337081373,
-      "modified": "2026-09-27"
+      "bytes": 2232087806,
+      "modified": "2026-10-20"
     },
     {
       "path": "data/intermediate/grls-instructions-current-189-v2",
@@ -361,9 +361,7 @@
       "producer": "release staging",
       "consumers": [],
       "release": "v0.6.34 (26 of 28 assets; knowledge-packages.tar.gz and reference-images.tar.gz not re-downloaded)",
-      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2). Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The two large tarballs (1.4 GB) stay on GitHub only.",
-      "bytes": 905077485,
-      "modified": "2026-10-14"
+      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2). Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The two large tarballs (1.4 GB) stay on GitHub only."
     },
     {
       "path": "output/release-0.6.35",
@@ -371,9 +369,7 @@
       "producer": "release staging and CI evidence",
       "consumers": [],
       "release": "v0.6.35 (assets)",
-      "note": "Kept by the AGENTS.md rule. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 921419274,
-      "modified": "2026-10-14"
+      "note": "Kept by the AGENTS.md rule. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2)."
     },
     {
       "path": "apps/app/public/content/core.db",
@@ -746,7 +742,7 @@
       ],
       "release": "branch datasets/esklp-2026-08-28-str1",
       "rebuild": "decode the catalog's previous 15 ЕСКЛП artifacts (output/module-zstd-esklp-atc3-2026-10-14, output/module-zstd-esklp-atc2-2026-10-13, output/module-zstd-2026-10-01/esklp-compacted for antiparasitic) into data/build/esklp-str1/base; uv run --project tools/ingest python tools/ingest/scripts/repair_esklp_strengths.py apply --original data/build/release-esklp --published data/build/esklp-str1/base --work data/build/esklp-str1/work --out data/build/esklp-str1/out --report data/build/esklp-str1/report.json; bun scripts/reframe-modules.ts --marker str1 --family esklp --decoded-dir data/build/esklp-str1/out --out-dir output/module-zstd-esklp-str1-2026-10-15",
-      "note": "All 15 ЕСКЛП modules with the registry's «1.0» placeholder removed from dosages (1 839 cards, 20 602 chunks) and no literal «НЕ УКАЗАНО» in the card text; the ATC2/ATC3 fill is carried over. The atc3, atc2 and esklp-compacted copies stay as the previous release (rollback; older fixtures read esklp-compacted). The decoded base/work/out copies (about 1.9 GB) and the probe decodes were deleted after verification.",
+      "note": "All 15 ЕСКЛП modules with the registry's «1.0» placeholder removed from dosages (1 839 cards, 20 602 chunks) and no literal «НЕ УКАЗАНО» in the card text; the ATC2/ATC3 fill is carried over. The atc3, atc2 and esklp-compacted copies stay as the previous release (rollback; older fixtures read esklp-compacted). The decoded base/work/out copies (about 1.9 GB) and the probe decodes were deleted after verification. Since 2026-10-20 the rollback copy of MOD-REBUILD (the catalog and the index builders read the 2026-10-20 copies).",
       "bytes": 68698171,
       "modified": "2026-10-15"
     },
@@ -824,8 +820,8 @@
       ],
       "rebuild": "build_manufacturer_instruction_module.py registry, the two medbase prepare commands it prints, grls_ocr_vision_cache.py --manufacturer, grls_ocr_requality.py manufacturer (minutes)",
       "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1. LEAF1: prepared-contents holds the 91 documents whose leaflet contents list was re-rendered (grls_contents_lists.py manufacturer).",
-      "bytes": 86637244,
-      "modified": "2026-10-14"
+      "bytes": 80109717,
+      "modified": "2026-10-20"
     },
     {
       "path": "data/build/marker-eval/venv",
@@ -904,8 +900,8 @@
       ],
       "rebuild": "uv run python scripts/grls_contents_lists.py apply --out ../../data/intermediate/grls-contents-lists --overlay ../../data/build/grls-contents-lists.jsonl (about 1 minute; MINIMED_DATA_ROOT from a worktree); the extraction JSON in the old workspaces is the input",
       "note": "3 787 re-rendered GRLS leaflets (Markdown only; the extraction stays in grls-full-final / grls-ocr-cleaned), the current build input of the 15 ГРЛС instruction modules for those documents.",
-      "bytes": 267339261,
-      "modified": "2026-10-14"
+      "bytes": 14830027,
+      "modified": "2026-10-20"
     },
     {
       "path": "output/module-zstd-grls-leaf1-2026-10-15",
@@ -917,9 +913,52 @@
       ],
       "release": "branch datasets/grls-instructions-2026.10.15-36a501e7f136-kd1 (15 .db.zst)",
       "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-contents-lists and the old workspaces",
-      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The superseded first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 was deleted on 2026-10-15.",
+      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The superseded first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 was deleted on 2026-10-15. Since 2026-10-20 the rollback copy of MOD-REBUILD (the catalog and the index builders read the 2026-10-20 copies).",
       "bytes": 222521672,
       "modified": "2026-10-14"
+    },
+    {
+      "path": "output/module-zstd-json-2026-10-20",
+      "class": "RELEASED",
+      "producer": "STATE MOD-REBUILD: build-documents (July and 10-02 plans, heading levels reconciled with the numbering) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules.py --family clinical --from-dir --reuse-from -> scripts/republish-clinical-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json minimed.clinical.recommendation.* of the 358 rebuilt modules (tag clinical-json-2026.10.20-23375280029c)",
+        "apps/app/e2e/module-pointer.spec.ts, kr-appendix-heading-modules.spec.ts, many-modules-reload.spec.ts"
+      ],
+      "release": "branch datasets/clinical-json-2026.10.20-23375280029c (358 .db.zst)",
+      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plans data/build/official-clinical-source-plan and data/build/official-clinical-2026-10-02/source-plan, source data/raw/official-clinical-documents) -> medbase compact-module-search over the modules of data/build/official-clinical-2026-10-20/republish-ids.txt -> uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family clinical --from-dir <compacted> --reuse-from <decoded published> --out <kd1/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <kd1/decoded> --out-dir output/module-zstd-json-2026-10-20 --snapshot-id clinical-json-2026.10.20-23375280029c --published-at 2026-10-20T19:00:00Z --marker kd1 --write-catalog (~40 min)",
+      "note": "Local release copy of the 358 КР modules whose structure the 2026-10-20 ingest fixes changed (heading levels follow the numbering; private-use glyphs in 15). The other 416 stay in output/module-zstd-kd1-2026-10-11, which is also the rollback copy of these. Control/final builds, decoded copies and encoder shards were deleted after verification.",
+      "bytes": 370233744,
+      "modified": "2026-10-20"
+    },
+    {
+      "path": "output/module-zstd-grls-h2-2026-10-20",
+      "class": "RELEASED",
+      "producer": "STATE MOD-REBUILD: medbase prepare (text-layer PDFs extracted again, OCR reused) -> grls_contents_lists.py apply -> build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir --reuse-from -> reframe-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.20.kd1)",
+        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts, diff-interaction-atc.ts (MODULE_DIRECTORIES), apps/app/e2e/medication-module-fixture.ts"
+      ],
+      "release": "branch datasets/grls-instructions-2026.10.20-4b6befe857de-kd1 (15 .db.zst)",
+      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-full-final, grls-g1-additions(-2), grls-ocr-cleaned and grls-contents-lists",
+      "note": "Local copy of the instruction modules without private-use bullet glyphs and mid-word chunk cuts (221.3 MB). The LEAF1 copy output/module-zstd-grls-leaf1-2026-10-15 stays as the rollback one.",
+      "bytes": 221294776,
+      "modified": "2026-10-20"
+    },
+    {
+      "path": "output/module-zstd-esklp-str2-2026-10-20",
+      "class": "RELEASED",
+      "producer": "STATE MOD-REBUILD: tools/ingest/scripts/repair_esklp_strengths.py apply (STR1 dosage repair + esklp_text dates/packages) over the pre-str1 published copies and the non-compacted release-esklp build, then scripts/reframe-modules.ts --marker str2 --family esklp",
+      "consumers": [
+        "catalog.preview.json 15 ЕСКЛП group modules (tag esklp-2026-08-28-str2, version 2026-08-28.str2)",
+        "scripts/lib/published-esklp.ts (index builders find the published modules here by SHA-256)",
+        "apps/app/e2e/medication-module-fixture.ts, module-pointer.spec.ts"
+      ],
+      "release": "branch datasets/esklp-2026-08-28-str2",
+      "rebuild": "decode output/module-zstd-esklp-atc3-2026-10-14 (9 groups), output/module-zstd-esklp-atc2-2026-10-13 (5) and output/module-zstd-2026-10-01/esklp-compacted (antiparasitic) into <base>; uv run --project tools/ingest python tools/ingest/scripts/repair_esklp_strengths.py apply --original data/build/release-esklp --published <base> --work <work> --out <out> --report <report>; bun scripts/reframe-modules.ts --marker str2 --family esklp --decoded-dir <out> --out-dir output/module-zstd-esklp-str2-2026-10-20 (~40 min)",
+      "note": "All 15 ЕСКЛП modules with Excel serial dates as dd.mm.yyyy (112 583 chunks, 3 324 cards) and damaged primary-package quantity tails dropped, on top of the STR1 dosage repair. The str1 copy stays as the rollback one; the decoded base/work/out copies (4 GB) were deleted.",
+      "bytes": 69048312,
+      "modified": "2026-10-20"
     },
     {
       "path": "apps/app/public/content/modules",
@@ -930,8 +969,8 @@
       ],
       "release": "tracked in Git on main",
       "note": "Small optional module packs committed to the repository; each file is the published artifact of its catalog entry. Remove only together with its catalog entry.",
-      "bytes": 56974803,
-      "modified": "2026-10-19"
+      "bytes": 76124144,
+      "modified": "2026-10-20"
     },
     {
       "path": "data/raw/herbal",
@@ -943,7 +982,7 @@
         "medbase package-herbal-plates"
       ],
       "note": "EMA/HMPC PDFs, Wikimedia Commons plates, the ГФ XV article page; re-downloadable, but the reviewed EMA quotes are checked against these exact bytes (MANIFEST.json SHA-256).",
-      "bytes": 51861847,
+      "bytes": 165866179,
       "modified": "2026-10-19"
     }
   ]

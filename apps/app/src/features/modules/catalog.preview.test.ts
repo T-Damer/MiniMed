@@ -108,9 +108,10 @@ describe('catalog.preview.json', () => {
       expect(module.previewDocumentCount).toBeGreaterThan(0);
       expect(module.artifacts).toHaveLength(1);
       // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS. All 15
-      // groups come from the `-str1` mirror tag: the ATC fills (ATC2, ATC3) were carried into it and
-      // the glued «1.0» placeholder and the «НЕ УКАЗАНО» dosages were repaired (DOSE1).
-      const tag = 'esklp-2026-08-28-str1';
+      // groups come from the `-str2` mirror tag: the ATC fills (ATC2, ATC3) were carried into it, the
+      // glued «1.0» placeholder and the «НЕ УКАЗАНО» dosages were repaired (DOSE1) and the registry's
+      // Excel serial dates are dd.mm.yyyy (MOD-REBUILD).
+      const tag = 'esklp-2026-08-28-str2';
       expect(module.artifacts[0]).toMatchObject({
         kind: 'index',
         compression: 'zstd',
@@ -145,7 +146,7 @@ describe('catalog.preview.json', () => {
         compression: 'zstd',
         url: expect.stringMatching(
           new RegExp(
-            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.15-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.20-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
             'u',
           ),
         ),
@@ -195,7 +196,7 @@ describe('catalog.preview.json', () => {
       (entry) => entry.id === 'minimed.medications.instructions.manufacturer-site.ru',
     );
     expect(module).toMatchObject({
-      version: 'manufacturer-2026.10.15',
+      version: 'manufacturer-2026.10.20',
       kind: 'medication',
       // Not `grls-instructions`: the sections feature maps that collection to the per-ATC groups.
       collection: 'manufacturer-instructions',
@@ -215,7 +216,7 @@ describe('catalog.preview.json', () => {
       kind: 'index',
       compression: 'zstd',
       url: expect.stringMatching(
-        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.15-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
+        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.20-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
       ),
     });
     expect(module?.sizes.downloadBytes).toBe(module?.artifacts[0]?.sizeBytes);

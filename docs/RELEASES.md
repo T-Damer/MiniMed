@@ -146,7 +146,9 @@ leaflets' table of contents as one list, overlay `data/build/grls-contents-lists
 two steps: `package-instruction-modules.ts` under the new source tag, then `embed_modules.py --family medications
 --from-dir <compacted> [--reuse-from <decoded previous release>]` (vectors of unchanged chunks are copied byte for byte) and
 `reframe-modules.ts --marker kd1`; only the `…-kd1` mirror branch is published and the catalog
-points at it. After a republish rebuild every index derived from the instruction modules, in this order:
+points at it. Rebuilt КР modules carry KD1 vectors too: `embed_modules.py --family clinical --from-dir <compacted>
+--reuse-from <decoded published>` and `republish-clinical-modules.ts --marker kd1` (the default marker `e5` is the
+pre-KD1 label). After a republish rebuild every index derived from the instruction modules, in this order:
 `bun run content:drug-interactions`, `bun run content:medication-safety`, `bun run content:drug-comparison`, then
 `bun run content:substance-fallback` (their `MODULE_DIRECTORIES` name the local copy of the published modules).
 After such a module refresh, rebuild the same-substance fallback asset (`bun run content:substance-fallback`, ADR-0023) so

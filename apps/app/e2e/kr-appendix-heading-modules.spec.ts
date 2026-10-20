@@ -8,9 +8,12 @@ import { LOCAL_DATA_ROOT } from './local-data';
 import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
-// Local copy of the KD1 republish that carries every КР module since 2026-10-11 (the KR4/KR5
-// headings included; docs/data-ledger.json): the tests serve exactly the published bytes.
-const REBUILT_DIRECTORY = 'output/module-zstd-kd1-2026-10-11';
+// Local copies of the КР republishes (KD1 2026-10-11 with the KR4/KR5 headings, MOD-REBUILD 2026-10-20 for
+// the modules whose heading levels changed; docs/data-ledger.json): the tests serve exactly the published bytes.
+const REBUILT_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-20',
+  'output/module-zstd-kd1-2026-10-11',
+];
 
 interface RebuiltModule {
   readonly officialId: string;
@@ -71,7 +74,10 @@ for (const module of MODULES) {
       ?.artifacts.find((item) => item.kind === 'index');
     if (!artifact?.url) throw new Error(`Missing ${module.officialId} artifact`);
     const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
-    const localPath = resolve(LOCAL_DATA_ROOT, REBUILT_DIRECTORY, fileName);
+    const localPath =
+      REBUILT_DIRECTORIES.map((directory) => resolve(LOCAL_DATA_ROOT, directory, fileName)).find(
+        (path) => existsSync(path),
+      ) ?? resolve(LOCAL_DATA_ROOT, REBUILT_DIRECTORIES[0] ?? '', fileName);
     test.skip(!existsSync(localPath), `The rebuilt module file ${fileName} is local-only.`);
     const bytes = await readFile(localPath);
     expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

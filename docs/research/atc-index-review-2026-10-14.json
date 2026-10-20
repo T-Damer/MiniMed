@@ -1238,7 +1238,7 @@
       ],
       "span": [
         0,
-        345,
+        1313,
         1416
       ],
       "section": "контрпоказания/особые указания",
@@ -1249,10 +1249,11 @@
         "Антагонисты рецепторов ангиотензина II в комбинации с другими средствами"
       ],
       "sentenceKept": true,
-      "text": "Не начинайте прием препарата Валсуперио® раньше, чем через 36 часов после приема последней дозы препаратов этой группы.  Если у Вас когда-либо раньше был ангионевротический отек (отек лица, губ, языка и/или горла, затрудненное дыхание) при",
+      "text": "- Если Вы одновременно принимаете другие препараты, содержащие антагонисты рецепторов ангиотензина II.",
       "verdict": "plausible",
       "action": "ship",
-      "reason": "Own-class rule as for every ARB label already in the index: a contraindication or warning of sacubitril/valsartan that names ACE inhibitors or ARBs no longer counts for the «ARB combination» group because the drug now belongs to C09D itself. The sentence stays for the single-ARB group (C09C) and in the interaction section nothing is suppressed. Design limit: another ARB combination loses this one sentence from the sacubitril/valsartan side."
+      "reason": "Own-class rule as for every ARB label already in the index: a contraindication or warning of sacubitril/valsartan that names ACE inhibitors or ARBs no longer counts for the «ARB combination» group because the drug now belongs to C09D itself. The sentence stays for the single-ARB group (C09C) and in the interaction section nothing is suppressed. Design limit: another ARB combination loses this one sentence from the sacubitril/valsartan side.",
+      "remeasured": "2026-10-20 (MOD-REBUILD): the span was [0, 345, 1416], one sentence of a list glued by private-use bullet glyphs; the rebuilt module keeps the list items apart and the ARB item is this sentence (it names c:C09C, not c:C09D)."
     },
     {
       "id": "S05",
@@ -1265,7 +1266,7 @@
       "span": [
         2,
         422,
-        1505
+        730
       ],
       "section": "листок-вкладыш",
       "lostTargets": [
@@ -1278,7 +1279,8 @@
       "text": "Обязательно сообщите лечащему врачу, если Вы принимали, принимаете или собираетесь принимать какие-либо препараты из перечисленных ниже:  Препараты, применяемые для лечения высокого артериального давления (ингибиторы ангиотензинпревращающе",
       "verdict": "plausible",
       "action": "ship",
-      "reason": "Own-class rule as for every ARB label already in the index: a contraindication or warning of sacubitril/valsartan that names ACE inhibitors or ARBs no longer counts for the «ARB combination» group because the drug now belongs to C09D itself. The sentence stays for the single-ARB group (C09C) and in the interaction section nothing is suppressed. Design limit: another ARB combination loses this one sentence from the sacubitril/valsartan side."
+      "reason": "Own-class rule as for every ARB label already in the index: a contraindication or warning of sacubitril/valsartan that names ACE inhibitors or ARBs no longer counts for the «ARB combination» group because the drug now belongs to C09D itself. The sentence stays for the single-ARB group (C09C) and in the interaction section nothing is suppressed. Design limit: another ARB combination loses this one sentence from the sacubitril/valsartan side.",
+      "remeasured": "2026-10-20 (MOD-REBUILD): the span was [2, 422, 1505], a sentence that ran through a list glued by private-use bullet glyphs; the rebuilt module ends it after the first list item, which still names ACE inhibitors and ARBs (c:C09A, c:C09C), not c:C09D."
     }
   ],
   "ownerDecisions": [
@@ -6270,11 +6272,11 @@
             "quote": "Фенобарбитал обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения центральной нервной системы (ЦНС) и облегчает наступление сна, усиливает седативное влияние других компонентов."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 544,
-            "documentsNamingTheClassAfter": 831,
+            "documentsNamingTheClassBefore": 531,
+            "documentsNamingTheClassAfter": 816,
             "documentPairsGained": 287,
-            "sentencesBefore": 671,
-            "sentencesAfter": 1149,
+            "sentencesBefore": 658,
+            "sentencesAfter": 1130,
             "sentencePairsGained": 478
           }
         },
@@ -6294,11 +6296,11 @@
             "quote": "Фенобарбитал Усиливает седативное влияние других компонентов препарата, способствует снижению возбуждения центральной нервной системы и облегчает наступление сна."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 381,
-            "documentsNamingTheClassAfter": 834,
+            "documentsNamingTheClassBefore": 369,
+            "documentsNamingTheClassAfter": 819,
             "documentPairsGained": 453,
-            "sentencesBefore": 450,
-            "sentencesAfter": 1152,
+            "sentencesBefore": 437,
+            "sentencesAfter": 1133,
             "sentencePairsGained": 702
           }
         },
@@ -6318,11 +6320,11 @@
             "quote": "Фенобарбитал Обладает седативным (в малых дозах), снотворным, миорелаксирующим и спазмолитическим действием, способствует снижению возбуждения ЦНС и облегчает наступление сна."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 585,
-            "documentsNamingTheClassAfter": 951,
+            "documentsNamingTheClassBefore": 575,
+            "documentsNamingTheClassAfter": 940,
             "documentPairsGained": 366,
-            "sentencesBefore": 726,
-            "sentencesAfter": 1376,
+            "sentencesBefore": 718,
+            "sentencesAfter": 1366,
             "sentencePairsGained": 650
           }
         },
@@ -6342,11 +6344,11 @@
             "quote": "Фенобарбитал – производное барбитуровой кислоты."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 475,
-            "documentsNamingTheClassAfter": 875,
+            "documentsNamingTheClassBefore": 462,
+            "documentsNamingTheClassAfter": 861,
             "documentPairsGained": 400,
-            "sentencesBefore": 572,
-            "sentencesAfter": 1232,
+            "sentencesBefore": 558,
+            "sentencesAfter": 1214,
             "sentencePairsGained": 660
           }
         },
@@ -6366,11 +6368,11 @@
             "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 643,
-            "documentsNamingTheClassAfter": 994,
+            "documentsNamingTheClassBefore": 631,
+            "documentsNamingTheClassAfter": 983,
             "documentPairsGained": 351,
-            "sentencesBefore": 834,
-            "sentencesAfter": 1483,
+            "sentencesBefore": 828,
+            "sentencesAfter": 1476,
             "sentencePairsGained": 649
           }
         }
@@ -6497,7 +6499,8 @@
         ],
         "verdict": "better in every changed row: each added sentence is a statement about barbiturates or hypnotics that holds for a drug containing phenobarbital. Nothing got worse; the added quotes are marked «через фенобарбитал (барбитурат, снотворное)» so a doctor sees they come through the component."
       },
-      "ui": "Interaction checker, prescription tool and drug comparison (they share InteractionPairs): a quote reached only through a secondary class shows a small italic «через фенобарбитал (барбитурат, снотворное)» beside the section label; print and share text carry the same words. The drug screen and the ATC sheet are DRUG-UI1’s; the secondary class is available as card element 4 of the interaction index (the screen reads ATC codes from the comparison index), so a «также: снотворное» line there needs that agent to decide where it reads it from."
+      "ui": "Interaction checker, prescription tool and drug comparison (they share InteractionPairs): a quote reached only through a secondary class shows a small italic «через фенобарбитал (барбитурат, снотворное)» beside the section label; print and share text carry the same words. The drug screen and the ATC sheet are DRUG-UI1’s; the secondary class is available as card element 4 of the interaction index (the screen reads ATC codes from the comparison index), so a «также: снотворное» line there needs that agent to decide where it reads it from.",
+      "remeasured": "2026-10-20 (MOD-REBUILD): effect counts and the scenario rows' «after» re-read on the interaction index rebuilt from the republished ГРЛС/manufacturer modules (grls-2026.10.20); the decisions and the 690-pair totals are the measurement of 2026-10-15."
     },
     {
       "id": "OD7",
@@ -6581,12 +6584,12 @@
             "quote": "Хлорфенамина малеат оказывает противоаллергическое действие: устраняет слезотечение, зуд в глазах и носу."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 136,
-            "documentsNamingTheClassAfter": 315,
-            "documentPairsGained": 179,
+            "documentsNamingTheClassBefore": 135,
+            "documentsNamingTheClassAfter": 306,
+            "documentPairsGained": 171,
             "sentencesBefore": 140,
-            "sentencesAfter": 373,
-            "sentencePairsGained": 233
+            "sentencesAfter": 365,
+            "sentencePairsGained": 225
           }
         },
         {
@@ -6608,12 +6611,12 @@
             "quote": "Фенилэфрина гидрохлорид оказывает сосудосуживающее действие, уменьшает отечность и покраснение (гиперемию) слизистых оболочек верхних отделов дыхательных путей и придаточных пазух носа."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 136,
+            "documentsNamingTheClassBefore": 135,
             "documentsNamingTheClassAfter": 257,
-            "documentPairsGained": 121,
+            "documentPairsGained": 122,
             "sentencesBefore": 140,
-            "sentencesAfter": 304,
-            "sentencePairsGained": 164
+            "sentencesAfter": 305,
+            "sentencePairsGained": 165
           }
         },
         {
@@ -6638,8 +6641,8 @@
             "documentsNamingTheClassBefore": 212,
             "documentsNamingTheClassAfter": 269,
             "documentPairsGained": 57,
-            "sentencesBefore": 266,
-            "sentencesAfter": 345,
+            "sentencesBefore": 272,
+            "sentencesAfter": 351,
             "sentencePairsGained": 79
           }
         },
@@ -6663,11 +6666,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 212,
-            "documentsNamingTheClassAfter": 292,
-            "documentPairsGained": 80,
-            "sentencesBefore": 266,
-            "sentencesAfter": 358,
-            "sentencePairsGained": 92
+            "documentsNamingTheClassAfter": 290,
+            "documentPairsGained": 78,
+            "sentencesBefore": 272,
+            "sentencesAfter": 363,
+            "sentencePairsGained": 91
           }
         },
         {
@@ -6689,12 +6692,12 @@
             "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 138,
-            "documentsNamingTheClassAfter": 217,
-            "documentPairsGained": 79,
-            "sentencesBefore": 180,
+            "documentsNamingTheClassBefore": 135,
+            "documentsNamingTheClassAfter": 212,
+            "documentPairsGained": 77,
+            "sentencesBefore": 181,
             "sentencesAfter": 272,
-            "sentencePairsGained": 92
+            "sentencePairsGained": 91
           }
         },
         {
@@ -6716,12 +6719,12 @@
             "quote": "Фенирамин является противоаллергическим средством, снижает чувство заложенности носа, чихание, слезотечение, зуд и покраснение глаз."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 256,
-            "documentsNamingTheClassAfter": 417,
-            "documentPairsGained": 161,
-            "sentencesBefore": 306,
-            "sentencesAfter": 532,
-            "sentencePairsGained": 226
+            "documentsNamingTheClassBefore": 252,
+            "documentsNamingTheClassAfter": 405,
+            "documentPairsGained": 153,
+            "sentencesBefore": 307,
+            "sentencesAfter": 526,
+            "sentencePairsGained": 219
           }
         },
         {
@@ -6743,12 +6746,12 @@
             "quote": "Фенилэфрин уменьшает отек слизистой оболочки полости носа, восстанавливает носовое дыхание."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 256,
-            "documentsNamingTheClassAfter": 371,
-            "documentPairsGained": 115,
-            "sentencesBefore": 306,
-            "sentencesAfter": 470,
-            "sentencePairsGained": 164
+            "documentsNamingTheClassBefore": 252,
+            "documentsNamingTheClassAfter": 368,
+            "documentPairsGained": 116,
+            "sentencesBefore": 307,
+            "sentencesAfter": 472,
+            "sentencePairsGained": 165
           }
         },
         {
@@ -6770,12 +6773,12 @@
             "quote": "Парацетамол Ненаркотический анальгетик, блокирует структурный фермент циклооксигеназу-1"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 169,
-            "documentsNamingTheClassAfter": 250,
-            "documentPairsGained": 81,
-            "sentencesBefore": 209,
-            "sentencesAfter": 300,
-            "sentencePairsGained": 91
+            "documentsNamingTheClassBefore": 167,
+            "documentsNamingTheClassAfter": 246,
+            "documentPairsGained": 79,
+            "sentencesBefore": 211,
+            "sentencesAfter": 301,
+            "sentencePairsGained": 90
           }
         },
         {
@@ -6797,11 +6800,11 @@
             "quote": "стимулирует постсинаптические альфа-адренорецепторы, обладает умеренным сосудосуживающим действием, уменьшает отек и гиперемию слизистой оболочки носа"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 169,
-            "documentsNamingTheClassAfter": 297,
+            "documentsNamingTheClassBefore": 167,
+            "documentsNamingTheClassAfter": 295,
             "documentPairsGained": 128,
-            "sentencesBefore": 209,
-            "sentencesAfter": 374,
+            "sentencesBefore": 211,
+            "sentencesAfter": 376,
             "sentencePairsGained": 165
           }
         },
@@ -6824,12 +6827,12 @@
             "quote": "За счет присутствия в составе препарата парацетамола Теофедрин-Н® обладает жаропонижающим и обезболивающим действием."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 742,
-            "documentsNamingTheClassAfter": 796,
+            "documentsNamingTheClassBefore": 728,
+            "documentsNamingTheClassAfter": 782,
             "documentPairsGained": 54,
-            "sentencesBefore": 1074,
-            "sentencesAfter": 1166,
-            "sentencePairsGained": 92
+            "sentencesBefore": 1068,
+            "sentencesAfter": 1159,
+            "sentencePairsGained": 91
           }
         },
         {
@@ -6851,12 +6854,12 @@
             "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1-го типа"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 135,
-            "documentsNamingTheClassAfter": 217,
-            "documentPairsGained": 82,
-            "sentencesBefore": 178,
+            "documentsNamingTheClassBefore": 132,
+            "documentsNamingTheClassAfter": 212,
+            "documentPairsGained": 80,
+            "sentencesBefore": 179,
             "sentencesAfter": 270,
-            "sentencePairsGained": 92
+            "sentencePairsGained": 91
           }
         },
         {
@@ -6878,12 +6881,12 @@
             "quote": "Фенилэфрин представляет собой сосудосуживающее средство, которое устраняет отечность слизистой оболочки полости носа"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
-            "documentsNamingTheClassAfter": 328,
-            "documentPairsGained": 117,
-            "sentencesBefore": 256,
-            "sentencesAfter": 419,
-            "sentencePairsGained": 163
+            "documentsNamingTheClassBefore": 208,
+            "documentsNamingTheClassAfter": 326,
+            "documentPairsGained": 118,
+            "sentencesBefore": 258,
+            "sentencesAfter": 422,
+            "sentencePairsGained": 164
           }
         },
         {
@@ -6905,12 +6908,12 @@
             "quote": "Парацетамол обладает обезболивающим и жаропонижающим действием."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 188,
-            "documentsNamingTheClassAfter": 264,
-            "documentPairsGained": 76,
-            "sentencesBefore": 252,
-            "sentencesAfter": 339,
-            "sentencePairsGained": 87
+            "documentsNamingTheClassBefore": 187,
+            "documentsNamingTheClassAfter": 261,
+            "documentPairsGained": 74,
+            "sentencesBefore": 256,
+            "sentencesAfter": 342,
+            "sentencePairsGained": 86
           }
         },
         {
@@ -6932,11 +6935,11 @@
             "quote": "Псевдоэфедрин уменьшает заложенность носа и улучшает проходимость дыхательных путей."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 188,
-            "documentsNamingTheClassAfter": 308,
+            "documentsNamingTheClassBefore": 187,
+            "documentsNamingTheClassAfter": 307,
             "documentPairsGained": 120,
-            "sentencesBefore": 252,
-            "sentencesAfter": 406,
+            "sentencesBefore": 256,
+            "sentencesAfter": 410,
             "sentencePairsGained": 154
           }
         },
@@ -6959,12 +6962,12 @@
             "quote": "Парацетамол - ненаркотический анальгетик, блокирует фермент циклооксигеназу 1 -го типа"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 154,
-            "documentsNamingTheClassAfter": 236,
-            "documentPairsGained": 82,
-            "sentencesBefore": 193,
-            "sentencesAfter": 285,
-            "sentencePairsGained": 92
+            "documentsNamingTheClassBefore": 153,
+            "documentsNamingTheClassAfter": 233,
+            "documentPairsGained": 80,
+            "sentencesBefore": 198,
+            "sentencesAfter": 289,
+            "sentencePairsGained": 91
           }
         },
         {
@@ -6987,11 +6990,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 279,
-            "documentsNamingTheClassAfter": 443,
-            "documentPairsGained": 164,
-            "sentencesBefore": 375,
-            "sentencesAfter": 601,
-            "sentencePairsGained": 226
+            "documentsNamingTheClassAfter": 434,
+            "documentPairsGained": 155,
+            "sentencesBefore": 383,
+            "sentencesAfter": 602,
+            "sentencePairsGained": 219
           }
         },
         {
@@ -7013,12 +7016,12 @@
             "quote": "Кофеин является стимулятором и обеспечивает более быстрое наступление и увеличение продолжительности обезболивающего действия"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 634,
-            "documentsNamingTheClassAfter": 679,
+            "documentsNamingTheClassBefore": 639,
+            "documentsNamingTheClassAfter": 684,
             "documentPairsGained": 45,
-            "sentencesBefore": 1211,
-            "sentencesAfter": 1284,
-            "sentencePairsGained": 73
+            "sentencesBefore": 1262,
+            "sentencesAfter": 1337,
+            "sentencePairsGained": 75
           }
         },
         {
@@ -7040,11 +7043,11 @@
             "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 643,
-            "documentsNamingTheClassAfter": 688,
-            "documentPairsGained": 45,
-            "sentencesBefore": 834,
-            "sentencesAfter": 910,
+            "documentsNamingTheClassBefore": 631,
+            "documentsNamingTheClassAfter": 675,
+            "documentPairsGained": 44,
+            "sentencesBefore": 828,
+            "sentencesAfter": 904,
             "sentencePairsGained": 76
           }
         },
@@ -7067,11 +7070,11 @@
             "quote": "Анальгезирующее средство (анальгезирующее опиоидное средство + НПВП + анальгезирующее ненаркотическое средство + психостимулирующее средство + барбитурат)."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 643,
-            "documentsNamingTheClassAfter": 784,
-            "documentPairsGained": 141,
-            "sentencesBefore": 834,
-            "sentencesAfter": 1157,
+            "documentsNamingTheClassBefore": 631,
+            "documentsNamingTheClassAfter": 769,
+            "documentPairsGained": 138,
+            "sentencesBefore": 828,
+            "sentencesAfter": 1151,
             "sentencePairsGained": 323
           }
         },
@@ -7094,11 +7097,11 @@
             "quote": "Кофеин Оказывает общетонизирующее действие на центральную нервную систему (ЦНС): уменьшает сонливость и чувство усталости, повышает умственную и физическую работоспособность"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 585,
-            "documentsNamingTheClassAfter": 632,
-            "documentPairsGained": 47,
-            "sentencesBefore": 726,
-            "sentencesAfter": 804,
+            "documentsNamingTheClassBefore": 575,
+            "documentsNamingTheClassAfter": 621,
+            "documentPairsGained": 46,
+            "sentencesBefore": 718,
+            "sentencesAfter": 796,
             "sentencePairsGained": 78
           }
         },
@@ -7121,11 +7124,11 @@
             "quote": "Кодеин Анальгезирующее опиоидное средство из группы агонистов опиатных рецепторов, производное фенантрена."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 585,
-            "documentsNamingTheClassAfter": 732,
-            "documentPairsGained": 147,
-            "sentencesBefore": 726,
-            "sentencesAfter": 1050,
+            "documentsNamingTheClassBefore": 575,
+            "documentsNamingTheClassAfter": 719,
+            "documentPairsGained": 144,
+            "sentencesBefore": 718,
+            "sentencesAfter": 1042,
             "sentencePairsGained": 324
           }
         },
@@ -7148,11 +7151,11 @@
             "quote": "Также кофеин стимулирует психомоторные центры головного мозга, оказывает аналептическое действие"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 246,
-            "documentsNamingTheClassAfter": 302,
+            "documentsNamingTheClassBefore": 245,
+            "documentsNamingTheClassAfter": 301,
             "documentPairsGained": 56,
-            "sentencesBefore": 307,
-            "sentencesAfter": 385,
+            "sentencesBefore": 313,
+            "sentencesAfter": 391,
             "sentencePairsGained": 78
           }
         },
@@ -7176,11 +7179,11 @@
             "quote": "а также психостимулятор кофеин."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 262,
-            "documentsNamingTheClassAfter": 314,
-            "documentPairsGained": 52,
-            "sentencesBefore": 326,
-            "sentencesAfter": 401,
+            "documentsNamingTheClassBefore": 260,
+            "documentsNamingTheClassAfter": 313,
+            "documentPairsGained": 53,
+            "sentencesBefore": 331,
+            "sentencesAfter": 406,
             "sentencePairsGained": 75
           }
         },
@@ -7206,8 +7209,8 @@
             "documentsNamingTheClassBefore": 291,
             "documentsNamingTheClassAfter": 347,
             "documentPairsGained": 56,
-            "sentencesBefore": 354,
-            "sentencesAfter": 432,
+            "sentencesBefore": 361,
+            "sentencesAfter": 439,
             "sentencePairsGained": 78
           }
         },
@@ -7231,11 +7234,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 291,
-            "documentsNamingTheClassAfter": 450,
-            "documentPairsGained": 159,
-            "sentencesBefore": 354,
+            "documentsNamingTheClassAfter": 442,
+            "documentPairsGained": 151,
+            "sentencesBefore": 361,
             "sentencesAfter": 581,
-            "sentencePairsGained": 227
+            "sentencePairsGained": 220
           }
         },
         {
@@ -7258,11 +7261,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 291,
-            "documentsNamingTheClassAfter": 405,
-            "documentPairsGained": 114,
-            "sentencesBefore": 354,
-            "sentencesAfter": 518,
-            "sentencePairsGained": 164
+            "documentsNamingTheClassAfter": 406,
+            "documentPairsGained": 115,
+            "sentencesBefore": 361,
+            "sentencesAfter": 526,
+            "sentencePairsGained": 165
           }
         },
         {
@@ -7284,11 +7287,11 @@
             "quote": "Кофеин стимулирует нервную систему, парацетамол оказывает жаропонижающее и обезболивающее действие, фенилэфрин сужает сосуды, что подавляет возникновение насморка, фенирамин оказывает противоаллергическое действие"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 330,
-            "documentsNamingTheClassAfter": 386,
+            "documentsNamingTheClassBefore": 329,
+            "documentsNamingTheClassAfter": 385,
             "documentPairsGained": 56,
-            "sentencesBefore": 398,
-            "sentencesAfter": 476,
+            "sentencesBefore": 404,
+            "sentencesAfter": 482,
             "sentencePairsGained": 78
           }
         },
@@ -7311,12 +7314,12 @@
             "quote": "Фенирамин оказывает противоаллергическое действие: устраняет зуд глаз, носа и горла"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 330,
-            "documentsNamingTheClassAfter": 483,
-            "documentPairsGained": 153,
-            "sentencesBefore": 398,
-            "sentencesAfter": 621,
-            "sentencePairsGained": 223
+            "documentsNamingTheClassBefore": 329,
+            "documentsNamingTheClassAfter": 474,
+            "documentPairsGained": 145,
+            "sentencesBefore": 404,
+            "sentencesAfter": 620,
+            "sentencePairsGained": 216
           }
         },
         {
@@ -7338,12 +7341,12 @@
             "quote": "Фенилэфрин оказывает сосудосуживающее действие – уменьшает отек и гиперемию слизистых оболочек верхних отделов дыхательных путей и придаточных пазух."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 330,
+            "documentsNamingTheClassBefore": 329,
             "documentsNamingTheClassAfter": 441,
-            "documentPairsGained": 111,
-            "sentencesBefore": 398,
-            "sentencesAfter": 562,
-            "sentencePairsGained": 164
+            "documentPairsGained": 112,
+            "sentencesBefore": 404,
+            "sentencesAfter": 569,
+            "sentencePairsGained": 165
           }
         },
         {
@@ -7366,11 +7369,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 291,
-            "documentsNamingTheClassAfter": 450,
-            "documentPairsGained": 159,
-            "sentencesBefore": 354,
+            "documentsNamingTheClassAfter": 442,
+            "documentPairsGained": 151,
+            "sentencesBefore": 361,
             "sentencesAfter": 581,
-            "sentencePairsGained": 227
+            "sentencePairsGained": 220
           }
         },
         {
@@ -7393,11 +7396,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 291,
-            "documentsNamingTheClassAfter": 404,
-            "documentPairsGained": 113,
-            "sentencesBefore": 354,
-            "sentencesAfter": 517,
-            "sentencePairsGained": 163
+            "documentsNamingTheClassAfter": 405,
+            "documentPairsGained": 114,
+            "sentencesBefore": 361,
+            "sentencesAfter": 525,
+            "sentencePairsGained": 164
           }
         },
         {
@@ -7419,12 +7422,12 @@
             "quote": "Хлорфенамин Блокатор Н1-гистаминовых рецепторов."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
-            "documentsNamingTheClassAfter": 392,
-            "documentPairsGained": 181,
-            "sentencesBefore": 263,
-            "sentencesAfter": 495,
-            "sentencePairsGained": 232
+            "documentsNamingTheClassBefore": 213,
+            "documentsNamingTheClassAfter": 386,
+            "documentPairsGained": 173,
+            "sentencesBefore": 271,
+            "sentencesAfter": 496,
+            "sentencePairsGained": 225
           }
         },
         {
@@ -7446,12 +7449,12 @@
             "quote": "Парацетамол Ненаркотический анальгетик, обладает обезболивающим, жаропонижающим действием."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
+            "documentsNamingTheClassBefore": 213,
             "documentsNamingTheClassAfter": 292,
-            "documentPairsGained": 81,
-            "sentencesBefore": 263,
-            "sentencesAfter": 355,
-            "sentencePairsGained": 92
+            "documentPairsGained": 79,
+            "sentencesBefore": 271,
+            "sentencesAfter": 362,
+            "sentencePairsGained": 91
           }
         },
         {
@@ -7473,11 +7476,11 @@
             "quote": "Фенилэфрин Сосудосуживающее, альфа-адреномиметическое средство, действие которого направлено на стимуляцию постсинаптических альфа-адренорецепторов, с умеренным сосудосуживающим действием."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
-            "documentsNamingTheClassAfter": 338,
+            "documentsNamingTheClassBefore": 213,
+            "documentsNamingTheClassAfter": 340,
             "documentPairsGained": 127,
-            "sentencesBefore": 263,
-            "sentencesAfter": 429,
+            "sentencesBefore": 271,
+            "sentencesAfter": 437,
             "sentencePairsGained": 166
           }
         },
@@ -7501,11 +7504,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 46,
-            "documentsNamingTheClassAfter": 125,
-            "documentPairsGained": 79,
+            "documentsNamingTheClassAfter": 124,
+            "documentPairsGained": 78,
             "sentencesBefore": 52,
-            "sentencesAfter": 150,
-            "sentencePairsGained": 98
+            "sentencesAfter": 149,
+            "sentencePairsGained": 97
           }
         },
         {
@@ -7528,11 +7531,11 @@
           },
           "effect": {
             "documentsNamingTheClassBefore": 17,
-            "documentsNamingTheClassAfter": 105,
-            "documentPairsGained": 88,
+            "documentsNamingTheClassAfter": 103,
+            "documentPairsGained": 86,
             "sentencesBefore": 20,
-            "sentencesAfter": 113,
-            "sentencePairsGained": 93
+            "sentencesAfter": 112,
+            "sentencePairsGained": 92
           }
         },
         {
@@ -7554,12 +7557,12 @@
             "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, действие которого направлено на стимуляцию адренорецепторов (преимущественно α-адренорецепторов), что приводит к уменьшению отека слизистой оболочки носа и облегчению носового дыхания."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 251,
-            "documentsNamingTheClassAfter": 364,
-            "documentPairsGained": 113,
-            "sentencesBefore": 301,
-            "sentencesAfter": 463,
-            "sentencePairsGained": 162
+            "documentsNamingTheClassBefore": 247,
+            "documentsNamingTheClassAfter": 361,
+            "documentPairsGained": 114,
+            "sentencesBefore": 302,
+            "sentencesAfter": 465,
+            "sentencePairsGained": 163
           }
         },
         {
@@ -7581,12 +7584,12 @@
             "quote": "Фенирамина малеат является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
-            "documentsNamingTheClassAfter": 376,
-            "documentPairsGained": 165,
-            "sentencesBefore": 256,
-            "sentencesAfter": 484,
-            "sentencePairsGained": 228
+            "documentsNamingTheClassBefore": 208,
+            "documentsNamingTheClassAfter": 365,
+            "documentPairsGained": 157,
+            "sentencesBefore": 258,
+            "sentencesAfter": 479,
+            "sentencePairsGained": 221
           }
         },
         {
@@ -7608,12 +7611,12 @@
             "quote": "Фенилэфрина гидрохлорид – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1- адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 211,
-            "documentsNamingTheClassAfter": 328,
-            "documentPairsGained": 117,
-            "sentencesBefore": 256,
-            "sentencesAfter": 418,
-            "sentencePairsGained": 162
+            "documentsNamingTheClassBefore": 208,
+            "documentsNamingTheClassAfter": 326,
+            "documentPairsGained": 118,
+            "sentencesBefore": 258,
+            "sentencesAfter": 421,
+            "sentencePairsGained": 163
           }
         },
         {
@@ -7635,12 +7638,12 @@
             "quote": "Фенирамин является противоаллергическим средством – блокатором Н1- гистаминовых рецепторов."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 251,
-            "documentsNamingTheClassAfter": 410,
-            "documentPairsGained": 159,
-            "sentencesBefore": 301,
-            "sentencesAfter": 525,
-            "sentencePairsGained": 224
+            "documentsNamingTheClassBefore": 247,
+            "documentsNamingTheClassAfter": 398,
+            "documentPairsGained": 151,
+            "sentencesBefore": 302,
+            "sentencesAfter": 519,
+            "sentencePairsGained": 217
           }
         },
         {
@@ -7662,12 +7665,12 @@
             "quote": "Фенилэфрин – симпатомиметическое средство, при приеме внутрь оказывает умеренное сосудосуживающее действие (за счет стимуляции альфа1-адренорецепторов), уменьшает отек и гиперемию слизистой оболочки полости носа."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 251,
-            "documentsNamingTheClassAfter": 365,
-            "documentPairsGained": 114,
-            "sentencesBefore": 301,
-            "sentencesAfter": 463,
-            "sentencePairsGained": 162
+            "documentsNamingTheClassBefore": 247,
+            "documentsNamingTheClassAfter": 362,
+            "documentPairsGained": 115,
+            "sentencesBefore": 302,
+            "sentencesAfter": 465,
+            "sentencePairsGained": 163
           }
         },
         {
@@ -7689,12 +7692,12 @@
             "quote": "Хлорфенамина малеат – блокатор Н1-гистаминовых рецепторов – оказывает противоаллергическое действие"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 252,
-            "documentsNamingTheClassAfter": 413,
-            "documentPairsGained": 161,
-            "sentencesBefore": 302,
-            "sentencesAfter": 528,
-            "sentencePairsGained": 226
+            "documentsNamingTheClassBefore": 248,
+            "documentsNamingTheClassAfter": 401,
+            "documentPairsGained": 153,
+            "sentencesBefore": 303,
+            "sentencesAfter": 522,
+            "sentencePairsGained": 219
           }
         },
         {
@@ -7716,12 +7719,12 @@
             "quote": "Фенилэфрина гидрохлорид – альфа-адреномиметик – оказывает сосудосуживающее действие, уменьшает отечность и гиперемию слизистой оболочки носа и придаточных пазух."
           },
           "effect": {
-            "documentsNamingTheClassBefore": 252,
-            "documentsNamingTheClassAfter": 366,
-            "documentPairsGained": 114,
-            "sentencesBefore": 302,
-            "sentencesAfter": 465,
-            "sentencePairsGained": 163
+            "documentsNamingTheClassBefore": 248,
+            "documentsNamingTheClassAfter": 363,
+            "documentPairsGained": 115,
+            "sentencesBefore": 303,
+            "sentencesAfter": 467,
+            "sentencePairsGained": 164
           }
         },
         {
@@ -7743,12 +7746,12 @@
             "quote": "Фенирамин – блокатор H1-гистаминовых рецепторов, снижает ринорею и слезотечение"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 206,
-            "documentsNamingTheClassAfter": 373,
-            "documentPairsGained": 167,
+            "documentsNamingTheClassBefore": 201,
+            "documentsNamingTheClassAfter": 359,
+            "documentPairsGained": 158,
             "sentencesBefore": 254,
-            "sentencesAfter": 473,
-            "sentencePairsGained": 219
+            "sentencesAfter": 466,
+            "sentencePairsGained": 212
           }
         },
         {
@@ -7770,12 +7773,12 @@
             "quote": "Ингибиторы моноаминоксидазы (МАО) нельзя принимать в сочетании с антигистаминными препаратами (например, хлорфенамина малеат)"
           },
           "effect": {
-            "documentsNamingTheClassBefore": 209,
-            "documentsNamingTheClassAfter": 374,
-            "documentPairsGained": 165,
+            "documentsNamingTheClassBefore": 204,
+            "documentsNamingTheClassAfter": 360,
+            "documentPairsGained": 156,
             "sentencesBefore": 257,
-            "sentencesAfter": 479,
-            "sentencePairsGained": 222
+            "sentencesAfter": 472,
+            "sentencePairsGained": 215
           }
         }
       ],
@@ -8037,7 +8040,7 @@
             "b": "леводопа-карбидопа",
             "situation": "cold remedy + antiparkinsonian",
             "before": 0,
-            "after": 2,
+            "after": 3,
             "gained": [
               {
                 "from": "леводопа-карбидопа",
@@ -8057,7 +8060,7 @@
             "b": "трамадол",
             "situation": "cold remedy + opioid",
             "before": 0,
-            "after": 1,
+            "after": 0,
             "gained": [
               {
                 "from": "трамадол",
@@ -8065,7 +8068,8 @@
                 "sentence": " Гиперчувствительность к трамадолу и/или другим компонентам препарата.  Острая интоксикация алкоголем, снотворными препаратами, анальгетиками, опиоидами или другими психотропными средствами.  Противопоказано совместное применение трамадо"
               }
             ],
-            "verdict": "neutral"
+            "verdict": "neutral",
+            "remeasured": "2026-10-20: the gained neutral sentence is not found in the rebuilt index (after 1 → 0, as before the decision)."
           },
           {
             "a": "декстрометорфан-парацетамол-псевдоэфедрин-аскорбиновая-кислота",
@@ -8285,7 +8289,8 @@
         "reading": "Better: the drug screen of a combination product gets one small «также: …» line (opioid, psychostimulant, decongestant, analgesic, antihistamine through the component) from a few-kB file; the interaction checker, the prescription tool and the comparison mark a quote reached only through a secondary class «через <component> (<class>)».",
         "comparing": "Not affected: the drug comparison has its own index with the ATC codes."
       },
-      "ui": "The drug screen and the screen of a drug whose module is not installed show a small plain line «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)» under the code, read from `secondary-classes.json`. The ATC sheet explains one code and is not changed: a secondary class is not the card’s code."
+      "ui": "The drug screen and the screen of a drug whose module is not installed show a small plain line «также: психостимулятор (через кофеин); деконгестант (через фенилэфрин)» under the code, read from `secondary-classes.json`. The ATC sheet explains one code and is not changed: a secondary class is not the card’s code.",
+      "remeasured": "2026-10-20 (MOD-REBUILD): effect counts and the scenario rows' «after» re-read on the interaction index rebuilt from the republished ГРЛС/manufacturer modules (grls-2026.10.20); the decisions and the 690-pair totals are the measurement of 2026-10-15."
     },
     {
       "id": "OD8",

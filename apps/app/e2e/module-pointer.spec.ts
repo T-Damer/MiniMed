@@ -11,8 +11,9 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copies of the published zstd module indexes (docs/data-ledger.json keeps them as release
 // copies); the tests serve exactly those bytes instead of the network mirror.
 const PUBLISHED_ARTIFACT_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-20',
   'output/module-zstd-kd1-2026-10-11',
-  'output/module-zstd-esklp-str1-2026-10-15/esklp-2026-08-28-str1',
+  'output/module-zstd-esklp-str2-2026-10-20/esklp-2026-08-28-str2',
   'data/build/official-clinical-2026-10-02/zst',
 ];
 

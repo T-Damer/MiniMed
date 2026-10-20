@@ -22,7 +22,17 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-
  */
 const run = promisify(execFile);
 const ROOT = resolve(import.meta.dirname, '../../..');
-const DIRECTORY = resolve(LOCAL_DATA_ROOT, 'output/module-zstd-kd1-2026-10-11');
+// The KD1 republish holds every КР module; MOD-REBUILD (2026-10-20) replaced 358 of them.
+const DIRECTORIES = ['output/module-zstd-json-2026-10-20', 'output/module-zstd-kd1-2026-10-11'].map(
+  (directory) => resolve(LOCAL_DATA_ROOT, directory),
+);
+const DIRECTORY = DIRECTORIES.at(-1) ?? '';
+/** Where each local module file lies, the newer copy first. */
+const located = new Map<string, string>();
+for (const directory of DIRECTORIES.toReversed()) {
+  if (!existsSync(directory)) continue;
+  for (const file of readdirSync(directory)) located.set(file, resolve(directory, file));
+}
 const COUNT = Number(process.env['MEM1_MODULES'] ?? 120);
 
 interface Seed {
@@ -37,12 +47,11 @@ async function seeds(): Promise<readonly Seed[]> {
       await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
     ),
   );
-  const present = new Set(readdirSync(DIRECTORY));
   const result: Seed[] = [];
   for (const module of catalog.modules) {
     const artifact = module.artifacts.find((item) => item.kind === 'index');
     const file = artifact?.url ? new URL(artifact.url).pathname.split('/').at(-1) : undefined;
-    if (module.kind === 'clinical' && file && present.has(file)) {
+    if (module.kind === 'clinical' && file && located.has(file)) {
       result.push({ moduleId: module.id, version: module.version, file });
     }
   }
@@ -122,7 +131,7 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
       const file = decodeURIComponent(
         new URL(route.request().url()).pathname.split('/').at(-1) ?? '',
       );
-      const { stdout } = await run('zstd', ['-dc', resolve(DIRECTORY, file)], {
+      const { stdout } = await run('zstd', ['-dc', located.get(file) ?? resolve(DIRECTORY, file)], {
         encoding: 'buffer',
         maxBuffer: 256 * 1024 * 1024,
       });

@@ -41,8 +41,8 @@ const OUTPUT = join(ROOT, 'apps/app/src/features/prescription/data/dose-rules-in
 const REPORT = join(ROOT, 'data/build/dose-rules/report.json');
 /** Where the published instruction-module bytes are kept locally (the release copies). */
 const MODULE_DIRECTORIES = [
-  'output/module-zstd-grls-leaf1-2026-10-15/grls-instructions-2026.10.15-36a501e7f136-kd1',
-  'output/module-zstd-manufacturer-leaf1-2026-10-15/manufacturer-instructions-2026.10.15-4054ceb93a8a',
+  'output/module-zstd-grls-h2-2026-10-20/grls-instructions-2026.10.20-4b6befe857de-kd1',
+  'output/module-zstd-manufacturer-h2-2026-10-20/manufacturer-instructions-2026.10.20-cb9d2ece8ef5',
 ].map((directory) => join(MAIN, directory));
 /** Already decompressed modules (a directory of `<module id>.db`), to skip the zstd step. */
 const DECODED_DIRECTORY = process.env['RX1_DECODED_DIR'];

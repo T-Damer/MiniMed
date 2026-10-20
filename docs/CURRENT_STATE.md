@@ -22,11 +22,9 @@ Detailed history, moved verbatim on 2026-09-24:
 
 ## Next after 0.6.60 (ordered) — 2026-10-15
 
-**Added 2026-10-20 (PHONE-QA), first:** rebuild and publish the modules so the phone shows the ingest fixes —
-the 15 ГРЛС instruction modules (re-prepare without `--reuse-from` for headings, then build/compact/package,
-≈ 1 h, ≈ 230 MB), the manufacturer-site module, the JSON КР modules with changed heading levels, and the 15
-ЕСКЛП modules (repair flow `esklp-2026-08-28-str2` for dates/packages; mid-word chunk cuts need the registry
-archive or a re-chunk repair); then a release so `org.med.web` and the drug-screen rework reach the phone.
+**Added 2026-10-20 (PHONE-QA), first:** a release so `org.med.web` and the drug-screen rework reach the phone. The
+modules with the ingest fixes are already published (MOD-REBUILD below); the catalog reaches an installed app by
+itself (`publishedAt` 2026-10-20T19:00Z, `minAppVersion` unchanged).
 
 Release 0.6.60 shipped after two QA passes (docs/research/qa-release-0660-2026-10-15.md; re-check: 11 of 15
 fixed, 3 partly, 1 not, 2 new low). Ordered next work:
@@ -66,6 +64,88 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     its limitations; Silverman–Andersen bands 0 / 1–3 / 4–6 / 7–10 (Hedstrom 2018: thresholds not validated);
     CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
     be added later). Still no clinician sign-off.
+
+## Modules rebuilt with the 2026-10-20 ingest fixes — 2026-10-20 (STATE MOD-REBUILD)
+
+The PHONE-QA ingest fixes (private-use bullet glyphs, Excel dates, mid-word chunk cuts, heading levels) reach the
+phone through four new additive mirror branches; nothing published earlier was touched. Catalog `publishedAt`
+2026-10-20T19:00Z, `catalogVersion` `mod-rebuild.2026.10.20`; 389 entries changed (only `version`, `artifacts`,
+`sizes`, КР `documentTable`, the manufacturer `sourceSetDigest`), `minAppVersion` unchanged (0.6.46 КР, 0.6.48 drugs).
+
+| family | branch (version) | modules | download | installed |
+| --- | --- | ---: | --- | --- |
+| ГРЛС instructions | `datasets/grls-instructions-2026.10.20-4b6befe857de-kd1` (`grls-2026.10.20.kd1`) | 15 | 222.5 → 221.3 MB | 1 306.3 → 1 293.5 MB |
+| manufacturer site | `datasets/manufacturer-instructions-2026.10.20-cb9d2ece8ef5` (`manufacturer-2026.10.20`) | 1 | 7.2 → 7.1 MB | 45.2 → 44.7 MB |
+| ЕСКЛП | `datasets/esklp-2026-08-28-str2` (`2026-08-28.str2`) | 15 | 68.7 → 69.0 MB | 1 429.7 → 1 438.5 MB |
+| JSON КР | `datasets/clinical-json-2026.10.20-23375280029c` (`0.6.0-json.f6fc344ca9b8.kd1`) | 358 | 370.0 → 370.0 MB | 912.5 → 914.5 MB |
+
+- **ГРЛС** (8 946 documents): the 6 663 text-layer PDFs were extracted again (`medbase prepare`, the 2 302 OCR
+  extractions reused from a hardlinked reuse workspace), the workspaces `grls-full-final`, `grls-g1-additions(-2)`
+  replaced, `textSha256` of the text manifest refreshed for the changed bodies. The preparer now writes the leaflet
+  contents list itself (`contents_lists` for official instructions), so `grls_contents_lists.py apply` re-renders only
+  the 196 OCR-cleaned leaflets (3 592 others already hold the list; 3 788 in all, LEAF1 had 3 787). Private-use glyphs
+  in chunks: **94 411 in 12 507 chunks of 2 295 documents → 0**; chunks cut mid-word 175 → 0; sections 197 336 → 199 415,
+  chunks 229 370 → 227 984. KD1: 2 512 indication passages encoded, 6 924 vectors reused byte for byte.
+  Spot checks: Анаприлин Реневал «Показания к применению» is a list («- при артериальной гипертензии;» where the
+  published module had a tofu box); Ибупрофен opens with registration, composition, pharmacology, then indications.
+- **Manufacturer site** (271 documents): the 251 PDFs re-extracted (16 OCR reused); the 21 DOCX texts regenerated
+  from the raw files with the new `docx_text` (19 changed: Word tabs are spaces now, «сахароза (сахар)42,2 мг» →
+  «… 42,2 мг»; symbol bullets and numbered lists kept). Private-use glyphs 220 chunks / 67 documents → 0, mid-word
+  cuts 27 → 1. The workspace is `data/intermediate/manufacturer-instructions-m1` (rebuilt in place).
+- **ЕСКЛП**: `repair_esklp_strengths.py apply` from the pre-str1 published copies (9 groups ATC3, 5 ATC2, antiparasitic
+  the original compacted build; the str1 modules themselves are refused because their card text is already repaired),
+  so str2 = the STR1 dosage repair + `esklp_text`: Excel serial dates in **112 583 chunks and all 3 324 cards → 0**
+  («Период действия: 45674.0» → «17.01.2025»), damaged primary-package quantity tails dropped from the text of 10 129
+  chunks (the raw value stays in `primaryPackageRaw`). Chunk ids, sections and anchors unchanged.
+- **JSON КР**: all 774 current КР built from the raw JSON (`build-documents`, committed July + 2026-10-02 plans) with
+  this code and, as the control, with the code before the PHONE-QA fixes (worktree at `42330703`):
+  **360 modules changed** by the fixes, 414 identical. 694_2 and 713_2 are among them but stay as published (their
+  importer drift hides three appendix titles, as in KR5), so 358 were republished. Their chunk text is unchanged
+  except the private-use glyphs of 15 modules (bullets → «-», «≤», «λ», «[160, 161]», Wingdings checkboxes → «☐»; in
+  845_1/846_1/847_1 two marks after a fill-in line became «χ», a guess of the Symbol font). No section title that was
+  visible in the published module is hidden in the rebuild (checked on all 358); 7 483 of 51 766 chunk ids changed,
+  34 section ids. KD1: 7 575 passages encoded, 44 191 reused.
+- **Fixed while rebuilding** (`tools/ingest`, tests added):
+  - `markdown_parser.expand_grls_instruction_sections`: a standard heading found inline in the text of a section
+    that is itself a standard heading becomes its sibling unless it names a part of the same kind («Передозировка»
+    was under «Побочное действие», «Беременность» under «Противопоказания»; wrong canonical nesting in a 1 500-document
+    sample 6 972 → 3 582, the old text with the same rule 3 337); a section whose text opens with another standard
+    heading keeps its own title (the leaflet's «2. О чем следует знать перед приемом препарата …» was dropped).
+  - `pdf_import._split_heading_block`: a bold run followed by an all-capitals rest is one title set in two styles
+    («Амлодипин Реневал ИНСТРУКЦИЯ» + «ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ …» became two level-1 headings; 5 ГРЛС PDFs).
+  - `numbered_headings.reconcile_heading_levels`: a sub-part that repeats its part's number («3.3 Подраздел 1» under
+    «3.3 Иное лечение»), a misnumbered sub-part («2.1.5 …» under «2.5 Иные исследования») and unnumbered labels under a
+    moved numbered heading («Показания для плановой госпитализации:» under «6.1 …») keep their place; «3.1.Особые …»
+    (no space) is read as a number. The first rebuild had hidden a visible title in 13 КР; now in none.
+  - `scripts/republish-clinical-modules.ts --marker kd1` (the version suffix was fixed to `.e5`).
+  - Module versions: `grls-2026.10.20`, `manufacturer-2026.10.20` (a same-version rebuild would not reach installed copies).
+- **Derived data rebuilt** from the new local copies (`MODULE_DIRECTORIES` of the five builders and
+  `content:substance-fallback` point at them): interaction, safety, comparison (`CMP1_ESKLP_DIR` = the str2 modules)
+  and dose-rule indexes; the substance fallback is identical. Dose rules: cards with a rule 2 231 → 2 242 (1 lost, 12
+  gained), 2 804 documents with identical values, 121 changed (80 gained rules from text that is no longer glued or
+  boxed), 66 documents added and 51 dropped (their cards are covered by another document of the same registration).
+- **Verified:** every new mirror URL (31 drug modules, 358 КР) returns the catalog's size and SHA-256 and decodes to its
+  decoded checksum (`verify-module-artifact.ts --url`), `access-control-allow-origin: *`; per document, no word of the
+  published chunk text is missing from the rebuild except rejoined hyphenated fragments («заболеван|иями»), the
+  re-segmenter's own canonical titles where the PDF now gives the real heading («Хранение препарата» →
+  «5. Хранение препарата Кладрибин-Промомед») and headings glued to their first sentence that are now split.
+- **ЕСКЛП mid-word cuts — re-chunk repair not worth doing now:** of the 112 727 continuation chunks
+  (`sourcePartOffset` > 0) of the 15 modules, 112 707 are in «Торговые наименования» and 18 in «Формы и дозировки»,
+  the two registry sections the drug screen no longer shows (PHONE-QA); a repair would change ≈ 113 000 chunk ids for
+  text no reader shows. The next ЕСКЛП refresh from the registry archive builds them with `split_long_text`.
+- **Local copies:** `output/module-zstd-{grls,manufacturer}-h2-2026-10-20`, `output/module-zstd-esklp-str2-2026-10-20`,
+  `output/module-zstd-json-2026-10-20` (the LEAF1/STR1/KD1 copies stay as rollback). Build intermediates deleted.
+- **In the app** (Chromium, production build, `E2E_PORT=4398`, the local copies of the published bytes): 10 of 10 e2e
+  pass — `drug-leaflet-contents` (Вермокс, Декарис, Гелмодол, Празиквантел: one contents list of six entries),
+  `medication-instruction-fallback`, `module-pointer` (5, ЕСКЛП str2 + КР), `kr-appendix-heading-modules` (655_2 and the
+  rebuilt 283_2, 739_2). The e2e fixtures (`medication-module-fixture.ts`, `module-pointer`, `kr-appendix-heading-modules`,
+  `many-modules-reload`) read the 2026-10-20 copies. The mirror-download spec (`GI1_MIRROR_E2E=1
+  grls-instruction-modules.spec.ts`) downloaded the ЕСКЛП group and its instructions from the new branches and showed the
+  text once, then failed at the «Информация» source link; on two more runs Мефлохин (whose only document is an
+  amendment sheet, unchanged by this rebuild) stayed «Официальной инструкции … нет» — a drug-screen flow left from
+  PHONE-QA, not the data.
+- **Not verified:** a phone; the e5/KD1 search quality on the changed indications (benchmarks run on the core and the
+  older local КР set only); a physician review of any text.
 
 ## Owner phone QA — 2026-10-20 (STATE PHONE-QA)
 
@@ -152,7 +232,7 @@ The owner tested 0.6.62 on a Xiaomi/HyperOS phone (21 items + three extras). Wha
   and «Период действи | я»); heading levels follow the numbering in JSON КР (`reconcile_heading_levels`, 419 of
   1 259 КР change) and the PDF heading rule no longer promotes sentences, references, dates or contents lines and
   joins wrapped titles (230-PDF audit: anomalies 18 → 1). On screen today the ЕСКЛП listings are simply not the
-  body any more; the tofu bullets and heading mistakes stay until the modules are rebuilt (next ordered step).
+  body any more; the modules were rebuilt and published the same day (MOD-REBUILD, the section above this one).
 - **Checks.** `bun run check`, `typecheck`, `test` (unit 13 930 + Python 1 976), `build`, `python:check`,
   `benchmark:all`, `native:source:check` pass. E2E run on the build (port 4397): search, first-screen,
   drug-screen-first-screen, prescription(-facts), medication-instruction-fallback, medication-safety,
