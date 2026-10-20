@@ -140,10 +140,20 @@ phone through four new additive mirror branches; nothing published earlier was t
   `medication-instruction-fallback`, `module-pointer` (5, ЕСКЛП str2 + КР), `kr-appendix-heading-modules` (655_2 and the
   rebuilt 283_2, 739_2). The e2e fixtures (`medication-module-fixture.ts`, `module-pointer`, `kr-appendix-heading-modules`,
   `many-modules-reload`) read the 2026-10-20 copies. The mirror-download spec (`GI1_MIRROR_E2E=1
-  grls-instruction-modules.spec.ts`) downloaded the ЕСКЛП group and its instructions from the new branches and showed the
-  text once, then failed at the «Информация» source link; on two more runs Мефлохин (whose only document is an
-  amendment sheet, unchanged by this rebuild) stayed «Официальной инструкции … нет» — a drug-screen flow left from
-  PHONE-QA, not the data.
+  grls-instruction-modules.spec.ts`) passes against the new branches since GI1-E2E (below).
+- **GI1-E2E (drug screen during a group download).** The mirror spec failed in two ways, neither from the data:
+  (1) the drug screen opened while the group's instructions were still downloading and the doctor picked a trade
+  name (Мефлохин): the substance card's call that follows the download had captured the card it started on, the
+  pick's own call returned early while it was pending, so on completion only the substance card was resolved and
+  Мефлохин stayed «Официальной инструкции … нет в установленных базах»; `installInstructionModule` now resolves
+  the product and document shown when the download completes. (2) A card opened after the module was installed but
+  before the core reconnected was resolved against the old listing and never again: `DocumentPageHost` now listens
+  for `CONTENT_CHANGED_EVENT` and re-resolves the open ЕСКЛП card (own text, fallback, substance instruction, offer;
+  the mode follows a late-found text unless the doctor chose a tab). The spec delays the instruction module by 20 s
+  so case (1) is deterministic, and accepts «Лист изменений к инструкции» (Мефлохин's only ГРЛС file is an
+  amendment sheet). Mirror spec 2/2 with the delay and 3/3 without it; drug-leaflet-contents,
+  medication-instruction-fallback, module-pointer, drug-screen-first-screen, drug-secondary-classes,
+  medication-reload 12/12.
 - **Not verified:** a phone; the e5/KD1 search quality on the changed indications (benchmarks run on the core and the
   older local КР set only); a physician review of any text.
 

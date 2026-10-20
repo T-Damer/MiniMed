@@ -14,6 +14,13 @@ test('a drug without an official text offers the group instructions, then shows 
 }) => {
   test.skip(!MIRROR, 'Downloads modules from the dataset mirror; set GI1_MIRROR_E2E=1.');
   test.setTimeout(600_000);
+  // The group's instructions arrive 20 s after its drug module, so the drug screen opens while they
+  // are still downloading: a trade name picked meanwhile is resolved once they land (the substance
+  // card's call that follows the download used to resolve only the card it started on).
+  await page.route(/instructions\.antiparasitic\.ru\.db\.zst/u, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    await route.continue();
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, {
     skipLargeCompanionPacks: true,
@@ -57,7 +64,10 @@ test('a drug without an official text offers the group instructions, then shows 
   await page.getByTestId('document-info').click();
   const source = page.locator('.document-info .drug-reference');
   await expect(source).toContainText('ГРЛС');
-  await expect(source).toContainText(/Инструкция по медицинскому применению|Листок-вкладыш|ОХЛП/u);
+  // Мефлохин's only ГРЛС file is a sheet of amendments; the dialog names whatever kind the text is.
+  await expect(source).toContainText(
+    /Инструкция по медицинскому применению|Листок-вкладыш|ОХЛП|Лист изменений к инструкции/u,
+  );
   await expect(source.locator('.drug-reference__link')).toHaveAttribute(
     'href',
     /^https:\/\/grls\.rosminzdrav\.ru\//u,

@@ -101,6 +101,7 @@ import {
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 import { canStepBack } from '@/state/app-back';
+import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { canonicalDocumentId, isSameDocumentIdentity } from '@/state/document-identity';
 import {
   consumePreferSummaryDocumentId,
@@ -870,6 +871,45 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   createEffect(() => {
     void refreshInstructionOffer(medicationProduct(), document());
   });
+  /**
+   * Every install ends with a rebuilt core (`CONTENT_CHANGED_EVENT`). A drug card opened in between
+   * (its group's instructions already installed, the core not yet reconnected) was resolved against
+   * the previous listing: resolve it again, so its text appears without reopening the card.
+   */
+  const refreshAfterContentChange = async (): Promise<void> => {
+    const source = document();
+    const core = props.getCore();
+    if (!source || !core || !isEsklpSubstanceDocument(source)) return;
+    const listed = await listDocuments(core);
+    if (document()?.id !== source.id) return;
+    setAvailableDocuments(listed);
+    const product = medicationProduct();
+    if (!product) {
+      await loadSubstanceInstruction(core, source, listed);
+    } else {
+      const resolved = await resolveProductInstruction(product, source, listed);
+      const shown = medicationProduct();
+      if (
+        document()?.id === source.id &&
+        shown?.registrationNumber === resolved.registrationNumber &&
+        shown.tradeName === resolved.tradeName &&
+        !sameInstructionSlot(resolved, shown)
+      ) {
+        adoptResolvedProduct(shown, resolved, source.id);
+        rememberMedicationProduct(source.id, resolved);
+      }
+    }
+    void refreshInstructionOffer(medicationProduct(), source);
+  };
+  onMount(() => {
+    const onContentChanged = (): void => {
+      void refreshAfterContentChange().catch((cause: unknown) => {
+        console.warn('Карточка препарата не обновилась после загрузки.', cause);
+      });
+    };
+    window.addEventListener(CONTENT_CHANGED_EVENT, onContentChanged);
+    onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, onContentChanged));
+  });
   createEffect(() => {
     const shown = document()?.id;
     if (shown === undefined) return;
@@ -885,9 +925,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
    */
   const installInstructionModule = async (running?: ContentModuleDownloadTask): Promise<void> => {
     const offer = instructionOffer();
-    const product = medicationProduct();
-    const source = document();
-    if (!offer || !source || instructionOfferPending()) return;
+    if (!offer || !document() || instructionOfferPending()) return;
     setInstructionOfferPending(true);
     setInstructionOfferProgress(null);
     setInstructionOfferError(null);
@@ -920,6 +958,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const list = await core.listDocuments();
       if (!list.ok) throw new Error(list.error.message);
       setAvailableDocuments(list.value);
+      // Resolve for what is on screen now, not what was open when the download started: the
+      // substance card follows its group's download, and the doctor may pick a trade name meanwhile
+      // (that pick's own call returned early while this one was pending).
+      const product = medicationProduct();
+      const source = document();
+      if (!source) return;
       if (!product) {
         setInstructionOffer(null);
         await loadSubstanceInstruction(core, source, list.value);
