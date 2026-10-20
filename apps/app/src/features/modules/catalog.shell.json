@@ -7965,6 +7965,66 @@
     {
       "moduleId": "minimed.tools.psychology.ru",
       "tool": {
+        "id": "minimed.assessment.phq-9",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "phq-9",
+        "title": "Опросник по состоянию здоровья PHQ-9",
+        "shortTitle": "PHQ-9",
+        "aliases": [
+          "PHQ-9",
+          "PHQ9",
+          "Patient Health Questionnaire-9",
+          "Опросник по состоянию здоровья-9",
+          "опросник PHQ-9",
+          "шкала депрессии PHQ-9",
+          "скрининг депрессии"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "depression-anxiety",
+        "description": "Девять вопросов о симптомах депрессии за последние 2 недели (0–27 баллов) и вопрос о том, насколько они мешают жить.",
+        "estimatedMinutes": 3,
+        "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.gad-7",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "gad-7",
+        "title": "Шкала генерализованного тревожного расстройства GAD-7 (ГТР-7)",
+        "shortTitle": "GAD-7",
+        "aliases": [
+          "GAD-7",
+          "GAD7",
+          "Generalized Anxiety Disorder-7",
+          "ГТР-7",
+          "Скрининговый опросник ГТР-7",
+          "шкала тревоги GAD-7",
+          "скрининг тревоги"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "depression-anxiety",
+        "description": "Семь вопросов о тревоге за последние 2 недели (0–21 балл) для скрининга и оценки её выраженности.",
+        "estimatedMinutes": 2,
+        "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
         "id": "minimed.assessment.zung-sds",
         "kind": "assessment",
         "version": "1.0.0",

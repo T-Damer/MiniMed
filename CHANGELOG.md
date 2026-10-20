@@ -4,6 +4,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Questionnaires PHQ-9 (depression) and GAD-7 (anxiety) in «Психиатрия» → «Депрессия и тревога», in the
+  official Russian translation with the original scoring and bands. PHQ-9 shows how much the symptoms get in
+  the way of daily life on its own track and always raises a prominent notice when item 9 (thoughts of death
+  or self-harm) is above zero. GAD-7 links the КР «Генерализованное тревожное расстройство» (2024).
 - «Травник» is released (owner 2026-10-20): every Russian line of the 71 plant chapters and the safety
   block was read against its English source sentence and corrected where it said more or less than the
   source (populations, interactions, cut qualifiers, evidence levels, WHO source headings); lines that

@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-10-20 | claude-opus (PSY-PHQ) | PHQ-9 and GAD-7 assessments in the psychology tool module | `content/tool-modules/psychology.json`, its built module output |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
@@ -179,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-20 claude-opus PSY-PHQ: PHQ-9 and GAD-7 in the psychology module (0.1.0-preview.8, 253 tools): official Pfizer Russian texts, original bands, PHQ-9 difficulty item as its own track, item-9 alert; GAD-7 cites КР 457_3 Г2; `docs/CURRENT_STATE.md` «PHQ-9 and GAD-7»; no device run
 - 2026-10-20 claude-opus HERB1-ACTS: cancelled by the owner — regional Red Books keep Plantarium as the only source (no per-row act checks; spot check of 14 rows found no wrong listing); `checked` rows and categories dropped, year shown as «изд. YYYY»; text `2026.10.20-c2`
 - 2026-10-20 claude-opus HERB1-CLIN: «Травник» doctor's-eye pass (7 Sonnet physician-reviewers, ≈340 findings, applied per plant and read here): «ГРЛС и EMA расходятся» block (98 checked conflicts in 39 chapters, `content/herbal/conflicts`, `herbal_conflicts.py`), ≈110 new safety facts, daily totals on dose cells, oregano dose fixed, statements after contraindications, draft-monograph tag; regional Red Books from Plantarium (27 plants, 170 rows, 12 checked against regional acts; `medbase fetch-regional-red-books`); clinician review page https://claude.ai/artifact/1WmXzFQk2nVsDRznfn6voL (2 401 lines, marks in its database); text `2026.10.20-c1`; not a clinician's review yet, no phone run
 - 2026-10-20 claude-opus HERB1-REV: «Травник» released — 71 EMA/WHO files and 112 safety lines read line by line against their quotes (8 Sonnet reviewers, every finding checked on the page, 308 changes: populations, added claims, cut qualifiers, evidence levels, WHO headings; no-information lines on driving/fertility/ethanol dropped), all files `reviewed`, no «черновик» badge, thyme notes EMA's other species; text `2026.10.20` and plates `w4` published (not Experimental); `docs/CURRENT_STATE.md` «Herbal book»; not a clinician review, no phone run

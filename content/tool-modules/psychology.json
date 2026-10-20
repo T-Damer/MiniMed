@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.7",
+  "version": "0.1.0-preview.8",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-10-12T00:00:00Z",
+  "builtAt": "2026-10-20T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.braverman-behavioral",
@@ -2061,6 +2061,682 @@
           "documentId": null,
           "url": "https://psytests.org/depr/shas.html",
           "reviewedAt": "2026-09-02"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.phq-9",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "phq-9",
+      "title": "Опросник по состоянию здоровья PHQ-9",
+      "shortTitle": "PHQ-9",
+      "aliases": [
+        "PHQ-9",
+        "PHQ9",
+        "Patient Health Questionnaire-9",
+        "Опросник по состоянию здоровья-9",
+        "опросник PHQ-9",
+        "шкала депрессии PHQ-9",
+        "скрининг депрессии"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "depression-anxiety",
+      "description": "Девять вопросов о симптомах депрессии за последние 2 недели (0–27 баллов) и вопрос о том, насколько они мешают жить.",
+      "estimatedMinutes": 3,
+      "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+      "definition": {
+        "id": "minimed.assessment.phq-9",
+        "slug": "phq-9",
+        "title": "Опросник по состоянию здоровья PHQ-9",
+        "shortTitle": "PHQ-9",
+        "aliases": [
+          "PHQ-9",
+          "PHQ9",
+          "Patient Health Questionnaire-9",
+          "Опросник по состоянию здоровья-9",
+          "опросник PHQ-9",
+          "шкала депрессии PHQ-9",
+          "скрининг депрессии"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "depression-anxiety",
+        "description": "Девять вопросов о симптомах депрессии за последние 2 недели (0–27 баллов) и вопрос о том, насколько они мешают жить.",
+        "estimatedMinutes": 3,
+        "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Ни разу"
+          },
+          {
+            "value": 1,
+            "label": "Несколько дней"
+          },
+          {
+            "value": 2,
+            "label": "Более недели"
+          },
+          {
+            "value": 3,
+            "label": "Почти каждый день"
+          }
+        ],
+        "scales": [
+          {
+            "id": "phq9-total",
+            "label": "Сумма баллов PHQ-9",
+            "shortLabel": "PHQ-9",
+            "description": "Сумма 9 пунктов по 0–3 балла (0–27). 5, 10, 15 и 20 баллов — нижние границы лёгкой, умеренной, умеренно тяжёлой и тяжёлой выраженности депрессивных симптомов. При 10 баллах и выше вероятен большой депрессивный эпизод: в исходном исследовании чувствительность и специфичность — по 88 %."
+          },
+          {
+            "id": "phq9-difficulty",
+            "label": "Насколько проблемы мешают работать, вести дом и общаться",
+            "shortLabel": "Затруднения",
+            "description": "Последний вопрос в сумму не входит: 0 — совсем не трудно, 3 — чрезвычайно трудно. Показывает, насколько симптомы нарушают повседневную жизнь, и помогает следить за этим в динамике."
+          }
+        ],
+        "questions": [
+          {
+            "id": "phq9-01",
+            "prompt": "Вам не хотелось ничего делать",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-02",
+            "prompt": "У Вас было плохое настроение, Вы были подавлены или испытывали чувство безысходности",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-03",
+            "prompt": "Вам было трудно заснуть, у Вас был прерывистый сон, или Вы слишком много спали",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-04",
+            "prompt": "Вы были утомлены, или у Вас было мало сил",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-05",
+            "prompt": "У Вас был плохой аппетит, или Вы переедали",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-06",
+            "prompt": "Вы плохо о себе думали: считали себя неудачником (неудачницей), или были в себе разочарованы, или считали, что подвели свою семью",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-07",
+            "prompt": "Вам было трудно сосредоточиться (например, на чтении газеты или на просмотре телепередач)",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-08",
+            "prompt": "Вы двигались или говорили настолько медленно, что окружающие это замечали? Или, наоборот, Вы были настолько суетливы или взбудоражены, что двигались гораздо больше обычного",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-09",
+            "prompt": "Вас посещали мысли о том, что Вам лучше было бы умереть, или о том, чтобы причинить себе какой-нибудь вред",
+            "scaleId": "phq9-total"
+          },
+          {
+            "id": "phq9-difficulty",
+            "prompt": "Если Вы положительно ответили на какие-нибудь пункты, то оцените, насколько трудно Вам было работать, заниматься домашними делами или общаться с людьми из-за этих проблем?",
+            "scaleId": "phq9-difficulty",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Совсем не трудно"
+              },
+              {
+                "value": 1,
+                "label": "Немного трудно"
+              },
+              {
+                "value": 2,
+                "label": "Очень трудно"
+              },
+              {
+                "value": 3,
+                "label": "Чрезвычайно трудно"
+              }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 4,
+            "scaleId": "phq9-total",
+            "headline": "Минимальные симптомы депрессии",
+            "message": "0–4 балла: депрессивных симптомов нет или они минимальны."
+          },
+          {
+            "minScore": 5,
+            "maxScore": 9,
+            "scaleId": "phq9-total",
+            "headline": "Лёгкие симптомы депрессии",
+            "message": "5–9 баллов: лёгкие симптомы; повторите опросник при следующем визите и следите за динамикой."
+          },
+          {
+            "minScore": 10,
+            "maxScore": 14,
+            "scaleId": "phq9-total",
+            "headline": "Умеренные симптомы депрессии",
+            "message": "10–14 баллов: умеренные симптомы; с 10 баллов нужна клиническая оценка депрессии врачом."
+          },
+          {
+            "minScore": 15,
+            "maxScore": 19,
+            "scaleId": "phq9-total",
+            "headline": "Умеренно тяжёлые симптомы депрессии",
+            "message": "15–19 баллов: умеренно тяжёлые симптомы; нужна очная консультация врача для диагностики и решения о лечении."
+          },
+          {
+            "minScore": 20,
+            "maxScore": 27,
+            "scaleId": "phq9-total",
+            "headline": "Тяжёлые симптомы депрессии",
+            "message": "20–27 баллов: тяжёлые симптомы; нужна безотлагательная очная консультация врача-психиатра."
+          }
+        ],
+        "alerts": [
+          {
+            "id": "phq9-item-9",
+            "when": "answer_phq9_09 > 0",
+            "title": "Пункт 9: мысли о смерти или самоповреждении",
+            "message": "Любой ответ, кроме «Ни разу», требует оценки суицидального риска врачом в тот же день, независимо от суммы баллов. При непосредственной опасности немедленно вызовите скорую помощь (112)."
+          }
+        ],
+        "disclaimer": "PHQ-9 — скрининговый опросник, он не устанавливает диагноз: результат подтверждают клинической беседой. Любой ответ выше нуля на пункт 9 требует оценки суицидального риска независимо от суммы баллов.",
+        "evidenceNote": "Опросник разработан R. L. Spitzer, J. B. W. Williams, K. Kroenke и коллегами; проверен Kroenke, Spitzer, Williams (2001): 9 критериев депрессии DSM-IV, каждый по 0–3 балла за последние 2 недели, сумма 0–27; границы 5, 10, 15 и 20 баллов — лёгкая, умеренная, умеренно тяжёлая и тяжёлая выраженность. При сумме 10 и выше чувствительность и специфичность для большого депрессивного расстройства — 88 %. Действия по градациям (наблюдение при 5–9, план лечения с 10, активное лечение с 15) — по Kroenke, Spitzer (2002). Вопрос о затруднениях в сумму не входит. Русский текст — официальный перевод «Russian for Russia» с phqscreeners.com.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "PHQ-9: R. L. Spitzer, J. B. W. Williams, K. Kroenke и коллеги, образовательный грант Pfizer Inc.; правообладатель разрешает воспроизведение, перевод, показ и распространение. Русский текст — официальный перевод для России (phqscreeners.com), приведён без изменений.",
+          "sourceUrl": "https://www.phqscreeners.com/images/sites/g/files/g10060481/f/201412/PHQ9_Russian%20for%20Russia.pdf"
+        },
+        "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_phq9_total",
+            "valueId": "phq9-total",
+            "label": "Сумма PHQ-9",
+            "minimum": 0,
+            "maximum": 27,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Минимальные",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Лёгкие",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "label": "Умеренные",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 15,
+                "label": "Умеренно тяжёлые",
+                "attentionLevel": "high",
+                "interpretation": 3
+              },
+              {
+                "from": 20,
+                "label": "Тяжёлые",
+                "attentionLevel": "high",
+                "interpretation": 4
+              }
+            ]
+          },
+          {
+            "id": "scale_phq9_difficulty",
+            "valueId": "phq9-difficulty",
+            "label": "Затруднения в жизни",
+            "minimum": 0,
+            "maximum": 3,
+            "step": 1,
+            "layout": "equal",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Нет",
+                "attentionLevel": "none"
+              },
+              {
+                "from": 1,
+                "label": "Немного",
+                "attentionLevel": "low"
+              },
+              {
+                "from": 2,
+                "label": "Очень",
+                "attentionLevel": "moderate"
+              },
+              {
+                "from": 3,
+                "label": "Чрезвычайно",
+                "attentionLevel": "high"
+              }
+            ]
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_phq9_total <= 4",
+              "verdict": {
+                "rangeId": "minimal",
+                "title": "Минимальные симптомы депрессии",
+                "explanation": "0–4 балла: депрессивных симптомов нет или они минимальны.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 4,
+                "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+              }
+            },
+            {
+              "when": "score_phq9_total <= 9",
+              "verdict": {
+                "rangeId": "mild",
+                "title": "Лёгкие симптомы депрессии",
+                "explanation": "5–9 баллов: лёгкие симптомы; повторите опросник при следующем визите и следите за динамикой.",
+                "attentionLevel": "low",
+                "lowerBound": 5,
+                "upperBound": 9,
+                "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+              }
+            },
+            {
+              "when": "score_phq9_total <= 14",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренные симптомы депрессии",
+                "explanation": "10–14 баллов: умеренные симптомы; с 10 баллов нужна клиническая оценка депрессии врачом.",
+                "attentionLevel": "moderate",
+                "lowerBound": 10,
+                "upperBound": 14,
+                "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+              }
+            },
+            {
+              "when": "score_phq9_total <= 19",
+              "verdict": {
+                "rangeId": "moderately-severe",
+                "title": "Умеренно тяжёлые симптомы депрессии",
+                "explanation": "15–19 баллов: умеренно тяжёлые симптомы; нужна очная консультация врача для диагностики и решения о лечении.",
+                "attentionLevel": "high",
+                "lowerBound": 15,
+                "upperBound": 19,
+                "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+              }
+            },
+            {
+              "when": "score_phq9_total >= 20",
+              "verdict": {
+                "rangeId": "severe",
+                "title": "Тяжёлые симптомы депрессии",
+                "explanation": "20–27 баллов: тяжёлые симптомы; нужна безотлагательная очная консультация врача-психиатра.",
+                "attentionLevel": "high",
+                "lowerBound": 20,
+                "upperBound": 27,
+                "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["phq9-kroenke-2001", "phq9-kroenke-spitzer-2002"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.phq-9.phq9-total",
+            "label": "Сумма баллов PHQ-9",
+            "unit": "баллы",
+            "scaleId": "phq9-total",
+            "method": "assessment:minimed.assessment.phq-9"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "phq9-kroenke-2001",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11556941/",
+          "reviewedAt": "2026-10-20"
+        },
+        {
+          "id": "phq9-kroenke-spitzer-2002",
+          "kind": "literature",
+          "relation": "interpretation",
+          "title": "Kroenke K, Spitzer RL. The PHQ-9: a new depression diagnostic and severity measure. Psychiatr Ann. 2002;32(9):509-515 (градации и действия)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://doi.org/10.3928/0048-5713-20020901-06",
+          "reviewedAt": "2026-10-20"
+        },
+        {
+          "id": "phq9-pfizer-russian",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Pfizer. Опросник по состоянию здоровья-9 (PHQ-9), официальный перевод для России",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.phqscreeners.com/images/sites/g/files/g10060481/f/201412/PHQ9_Russian%20for%20Russia.pdf",
+          "reviewedAt": "2026-10-20"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.gad-7",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "gad-7",
+      "title": "Шкала генерализованного тревожного расстройства GAD-7 (ГТР-7)",
+      "shortTitle": "GAD-7",
+      "aliases": [
+        "GAD-7",
+        "GAD7",
+        "Generalized Anxiety Disorder-7",
+        "ГТР-7",
+        "Скрининговый опросник ГТР-7",
+        "шкала тревоги GAD-7",
+        "скрининг тревоги"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "depression-anxiety",
+      "description": "Семь вопросов о тревоге за последние 2 недели (0–21 балл) для скрининга и оценки её выраженности.",
+      "estimatedMinutes": 2,
+      "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+      "definition": {
+        "id": "minimed.assessment.gad-7",
+        "slug": "gad-7",
+        "title": "Шкала генерализованного тревожного расстройства GAD-7 (ГТР-7)",
+        "shortTitle": "GAD-7",
+        "aliases": [
+          "GAD-7",
+          "GAD7",
+          "Generalized Anxiety Disorder-7",
+          "ГТР-7",
+          "Скрининговый опросник ГТР-7",
+          "шкала тревоги GAD-7",
+          "скрининг тревоги"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "depression-anxiety",
+        "description": "Семь вопросов о тревоге за последние 2 недели (0–21 балл) для скрининга и оценки её выраженности.",
+        "estimatedMinutes": 2,
+        "audience": "Взрослые; заполняет пациент; скрининг и динамика, не диагноз",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Ни разу"
+          },
+          {
+            "value": 1,
+            "label": "Несколько дней"
+          },
+          {
+            "value": 2,
+            "label": "Более недели"
+          },
+          {
+            "value": 3,
+            "label": "Почти каждый день"
+          }
+        ],
+        "scales": [
+          {
+            "id": "gad7-total",
+            "label": "Сумма баллов GAD-7",
+            "shortLabel": "GAD-7",
+            "description": "Сумма 7 пунктов по 0–3 балла (0–21). 5, 10 и 15 баллов — нижние границы лёгкой, умеренной и выраженной тревоги. При 10 баллах и выше вероятно генерализованное тревожное расстройство: в исходном исследовании чувствительность 89 %, специфичность 82 %."
+          }
+        ],
+        "questions": [
+          {
+            "id": "gad7-01",
+            "prompt": "Вы нервничали, тревожились или испытывали сильный стресс",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-02",
+            "prompt": "Вы были неспособны успокоиться или контролировать свое волнение",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-03",
+            "prompt": "Вы слишком сильно волновались по различным поводам",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-04",
+            "prompt": "Вам было трудно расслабиться",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-05",
+            "prompt": "Вы были настолько суетливы, что Вам было тяжело усидеть на месте",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-06",
+            "prompt": "Вы легко злились или раздражались",
+            "scaleId": "gad7-total"
+          },
+          {
+            "id": "gad7-07",
+            "prompt": "Вы испытывали страх, словно должно произойти нечто ужасное",
+            "scaleId": "gad7-total"
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 0,
+            "maxScore": 4,
+            "scaleId": "gad7-total",
+            "headline": "Минимальная тревога",
+            "message": "0–4 балла: симптомов тревоги нет или они минимальны."
+          },
+          {
+            "minScore": 5,
+            "maxScore": 9,
+            "scaleId": "gad7-total",
+            "headline": "Лёгкая тревога",
+            "message": "5–9 баллов: лёгкая тревога; повторите опросник при следующем визите и следите за динамикой."
+          },
+          {
+            "minScore": 10,
+            "maxScore": 14,
+            "scaleId": "gad7-total",
+            "headline": "Умеренная тревога",
+            "message": "10–14 баллов: умеренная тревога; с 10 баллов вероятно тревожное расстройство — нужна клиническая оценка врачом."
+          },
+          {
+            "minScore": 15,
+            "maxScore": 21,
+            "scaleId": "gad7-total",
+            "headline": "Выраженная тревога",
+            "message": "15–21 балл: выраженная тревога; нужна очная консультация врача для диагностики и решения о лечении."
+          }
+        ],
+        "disclaimer": "GAD-7 — скрининговый опросник, он не устанавливает диагноз: при 10 баллах и выше нужна клиническая диагностика.",
+        "evidenceNote": "Опросник разработан R. L. Spitzer, K. Kroenke, J. B. W. Williams и B. Löwe (2006): 7 пунктов по 0–3 балла за последние 2 недели, сумма 0–21; границы 5, 10 и 15 баллов — лёгкая, умеренная и выраженная тревога. При сумме 10 и выше чувствительность 89 % и специфичность 82 % для генерализованного тревожного расстройства; тот же порог указывает и на паническое, социальное тревожное и посттравматическое стрессовое расстройства (Kroenke и соавт., 2007). Клинические рекомендации «Генерализованное тревожное расстройство» (Минздрав РФ, 2024, приложение Г2) рекомендуют GAD-7 для скрининга с теми же границами (уровни «минимальный», «умеренный», «средний», «высокий»), в адаптации А. А. Золотаревой (2023). Здесь — официальный русский перевод «Russian for Russia» с phqscreeners.com; формулировки пунктов в нём отличаются от приложения Г2.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "GAD-7: R. L. Spitzer, J. B. W. Williams, K. Kroenke и коллеги, образовательный грант Pfizer Inc.; правообладатель разрешает воспроизведение, перевод, показ и распространение. Русский текст — официальный перевод для России (phqscreeners.com), приведён без изменений.",
+          "sourceUrl": "https://www.phqscreeners.com/images/sites/g/files/g10060481/f/201412/GAD7_Russian%20for%20Russia.pdf"
+        },
+        "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_gad7_total",
+            "valueId": "gad7-total",
+            "minimum": 0,
+            "maximum": 21,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0,
+                "label": "Минимальная",
+                "attentionLevel": "none",
+                "interpretation": 0
+              },
+              {
+                "from": 5,
+                "label": "Лёгкая",
+                "attentionLevel": "low",
+                "interpretation": 1
+              },
+              {
+                "from": 10,
+                "label": "Умеренная",
+                "attentionLevel": "moderate",
+                "interpretation": 2
+              },
+              {
+                "from": 15,
+                "label": "Выраженная",
+                "attentionLevel": "high",
+                "interpretation": 3
+              }
+            ]
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_gad7_total <= 4",
+              "verdict": {
+                "rangeId": "minimal",
+                "title": "Минимальная тревога",
+                "explanation": "0–4 балла: симптомов тревоги нет или они минимальны.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "upperBound": 4,
+                "sourceIds": ["gad7-spitzer-2006", "gad7-kr-457"]
+              }
+            },
+            {
+              "when": "score_gad7_total <= 9",
+              "verdict": {
+                "rangeId": "mild",
+                "title": "Лёгкая тревога",
+                "explanation": "5–9 баллов: лёгкая тревога; повторите опросник при следующем визите и следите за динамикой.",
+                "attentionLevel": "low",
+                "lowerBound": 5,
+                "upperBound": 9,
+                "sourceIds": ["gad7-spitzer-2006", "gad7-kr-457"]
+              }
+            },
+            {
+              "when": "score_gad7_total <= 14",
+              "verdict": {
+                "rangeId": "moderate",
+                "title": "Умеренная тревога",
+                "explanation": "10–14 баллов: умеренная тревога; с 10 баллов вероятно тревожное расстройство — нужна клиническая оценка врачом.",
+                "attentionLevel": "moderate",
+                "lowerBound": 10,
+                "upperBound": 14,
+                "sourceIds": ["gad7-spitzer-2006", "gad7-kr-457"]
+              }
+            },
+            {
+              "when": "score_gad7_total >= 15",
+              "verdict": {
+                "rangeId": "severe",
+                "title": "Выраженная тревога",
+                "explanation": "15–21 балл: выраженная тревога; нужна очная консультация врача для диагностики и решения о лечении.",
+                "attentionLevel": "high",
+                "lowerBound": 15,
+                "upperBound": 21,
+                "sourceIds": ["gad7-spitzer-2006", "gad7-kr-457"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["gad7-spitzer-2006", "gad7-kr-457"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.gad-7.gad7-total",
+            "label": "Сумма баллов GAD-7",
+            "unit": "баллы",
+            "scaleId": "gad7-total",
+            "method": "assessment:minimed.assessment.gad-7"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "gad7-spitzer-2006",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Spitzer RL, Kroenke K, Williams JBW, Löwe B. A brief measure for assessing generalized anxiety disorder: the GAD-7. Arch Intern Med. 2006;166(10):1092-1097",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16717171/",
+          "reviewedAt": "2026-10-20"
+        },
+        {
+          "id": "gad7-kr-457",
+          "kind": "clinical-recommendation",
+          "relation": "clinical-context",
+          "title": "Клинические рекомендации «Генерализованное тревожное расстройство» (2024, КР 457_3), раздел 2.5 и приложение Г2",
+          "moduleId": "minimed.clinical.recommendation.457_3",
+          "documentId": "kr.rf.457_3",
+          "url": "https://cr.minzdrav.gov.ru/view-cr/457_3",
+          "reviewedAt": "2026-10-20"
+        },
+        {
+          "id": "gad7-kroenke-2007",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Kroenke K, Spitzer RL, Williams JBW, Monahan PO, Löwe B. Anxiety disorders in primary care: prevalence, impairment, comorbidity, and detection. Ann Intern Med. 2007;146(5):317-325",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pubmed.ncbi.nlm.nih.gov/17339617/",
+          "reviewedAt": "2026-10-20"
+        },
+        {
+          "id": "gad7-pfizer-russian",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Pfizer. GAD-7, официальный перевод для России",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.phqscreeners.com/images/sites/g/files/g10060481/f/201412/GAD7_Russian%20for%20Russia.pdf",
+          "reviewedAt": "2026-10-20"
         }
       ]
     },

@@ -426,7 +426,8 @@
 
 - документы: психический статус, суицидальный риск, депрессия, тревога, алкоголь и ПАВ,
   детская психиатрия;
-- инструменты: PHQ-9, GAD-7, HADS, AUDIT-C/AUDIT, DAST-10, C-SSRS, ASRS-v1.1, MDQ, OCI-R;
+- инструменты: HADS, AUDIT-C/AUDIT, DAST-10, C-SSRS, ASRS-v1.1, MDQ, OCI-R (PHQ-9 и GAD-7 готовы
+  2026-10-20, модуль психологии 0.1.0-preview.8);
 - отдельная проверка валидированного русского перевода и права на распространение обязательна.
 - source-backed extraction 2026-09-19: в КР «Шизофрения» (2024, ID 451) подтверждены PANSS,
   BNSS, Calgary Depression Scale for Schizophrenia, PSP, SAD PERSONS, C-SSRS, Simpson–Angus и

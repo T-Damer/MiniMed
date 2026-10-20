@@ -155,14 +155,23 @@ describe('score scales across the tool catalog', () => {
     ),
   )('%s: the scale agrees with the score bands', (_id, definition, scale) => {
     expect(definition.scales.some((candidate) => candidate.id === scale.valueId)).toBe(true);
-    const bands = (definition.interpretations ?? []).filter(
+    // A band names the scale it reads; one without a scale reads the first one.
+    const readsScale = (band: { readonly scaleId?: string | undefined }) =>
+      (band.scaleId ?? definition.scales[0]?.id) === scale.valueId;
+    const ranged = (definition.interpretations ?? []).filter(
       (band) => band.minScore !== undefined && band.maxScore !== undefined,
     );
-    if (bands.length === 0) return;
+    if (ranged.length === 0) return;
+    // A track of its own (the PHQ-9 difficulty item) has no interpretation to agree with.
+    if (!ranged.some(readsScale)) {
+      expect(scale.bands.every((band) => band.interpretation === undefined)).toBe(true);
+      return;
+    }
     for (const { band, values } of samples(scale)) {
       for (const sample of values) {
         const matched = (definition.interpretations ?? []).findIndex(
           (candidate) =>
+            readsScale(candidate) &&
             candidate.minScore !== undefined &&
             candidate.maxScore !== undefined &&
             sample >= candidate.minScore &&

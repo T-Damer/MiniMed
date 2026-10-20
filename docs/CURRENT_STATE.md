@@ -61,6 +61,28 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
     be added later). Still no clinician sign-off.
 
+## PHQ-9 and GAD-7 — 2026-10-20 (STATE PSY-PHQ)
+
+Owner question: iOS Health offers PHQ-9 and GAD-7, MiniMed did not. Both are now questionnaires in the
+psychology module (`minimed.tools.psychology.ru` 0.1.0-preview.8, «Психиатрия» → «Депрессия и тревога», next to
+Zung SDS/SAS and HAM-D), 253 tools in all.
+
+- **Text:** the official Pfizer Russian forms «Russian for Russia» from phqscreeners.com, word for word (free to
+  reproduce, translate and distribute). Original scoring: 0–3 per item over the last 2 weeks.
+- **PHQ-9** (Kroenke, Spitzer, Williams 2001): sum 0–27, bands 0–4 / 5–9 / 10–14 / 15–19 / 20–27, actions per band
+  from Kroenke & Spitzer 2002. The difficulty question is its own scale and track (0–3) and stays out of the sum.
+  Item 9 > 0 raises the declared alert (`answer_phq9_09 > 0`) above the result whatever the total.
+- **GAD-7** (Spitzer et al. 2006): sum 0–21, bands 0–4 / 5–9 / 10–14 / 15–21; source link to КР «Генерализованное
+  тревожное расстройство» (2024, `457_3`, section 2.5 and appendix Г2, which recommends GAD-7 for screening, uses
+  the same cut-points and quotes Zolotareva's 2023 adaptation, whose wording differs).
+- Method notes, attribution and sources sit in the shared «Информация» dialog; nothing in the UI names these tools.
+- Search: the PHQ-9 title is the official name without «(депрессия)», and GAD-7 has no disease-name alias, so a
+  bare «Депрессия» or «Генерализованное тревожное расстройство» still shows the article before the tools. The
+  catalog-wide score-scale test now matches each interpretation against the scale it names.
+- Checked: unit tests for every band boundary, the item-9 alert and the required difficulty answer; both scales
+  filled in the browser at 375 px (127.0.0.1). Not tested: Android/device, print; no Russian validation study of
+  the Pfizer PHQ-9 text was reviewed.
+
 ## Settings and download queue UI — 2026-10-19 (owner screenshots)
 
 - **«Профиль врача»** (Settings → Основные): the «?» sits inline after the label, the specialties

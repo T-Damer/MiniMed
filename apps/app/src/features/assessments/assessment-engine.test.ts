@@ -206,6 +206,93 @@ describe('assessment scoring', () => {
     expect(scoreAssessment(definition, {}).ok).toBe(false);
   });
 
+  it('scores PHQ-9 at every band boundary with its difficulty item apart and the item-9 alert', async () => {
+    const definition = await loadAssessmentDefinition('phq-9');
+    expect(definition.questions).toHaveLength(10);
+    expect(definition.questions[0]?.prompt).toBe('Вам не хотелось ничего делать');
+    const items = definition.questions.filter((question) => question.scaleId === 'phq9-total');
+    expect(items).toHaveLength(9);
+    // Kroenke, Spitzer, Williams 2001: 0–4, 5–9, 10–14, 15–19, 20–27.
+    const bands: Array<[number, string]> = [
+      [0, 'minimal'],
+      [4, 'minimal'],
+      [5, 'mild'],
+      [9, 'mild'],
+      [10, 'moderate'],
+      [14, 'moderate'],
+      [15, 'moderately-severe'],
+      [19, 'moderately-severe'],
+      [20, 'severe'],
+      [27, 'severe'],
+    ];
+    for (const [total, rangeId] of bands) {
+      // Item 9 stays 0 so only the total decides the band.
+      const answers: Record<string, number> = { 'phq9-difficulty': 3, 'phq9-09': 0 };
+      let left = total;
+      for (const question of items.slice(0, 8)) {
+        answers[question.id] = Math.min(3, left);
+        left -= answers[question.id] ?? 0;
+      }
+      if (left > 0) answers['phq9-09'] = left;
+      const result = scoreAssessment(definition, answers);
+      if (!result.ok) throw new Error(result.error);
+      const score = result.value.scores.find((candidate) => candidate.scaleId === 'phq9-total');
+      expect(score).toMatchObject({ rawScore: total, minimumScore: 0, maximumScore: 27 });
+      expect(result.value.evaluation?.verdict?.rangeId).toBe(rangeId);
+      expect(result.value.evaluation?.verdict?.title).toBe(result.value.headline);
+    }
+    for (const safetyAnswer of [0, 1, 2, 3]) {
+      const answers = Object.fromEntries(definition.questions.map((question) => [question.id, 0]));
+      answers['phq9-09'] = safetyAnswer;
+      const result = scoreAssessment(definition, answers);
+      if (!result.ok) throw new Error(result.error);
+      // Item 9 raises its alert whatever the total, even inside the minimal band.
+      expect(result.value.alerts?.map((alert) => alert.id) ?? []).toEqual(
+        safetyAnswer > 0 ? ['phq9-item-9'] : [],
+      );
+      expect(result.value.evaluation?.verdict?.rangeId).toBe('minimal');
+    }
+    const withoutDifficulty = Object.fromEntries(items.map((question) => [question.id, 1]));
+    expect(scoreAssessment(definition, withoutDifficulty).ok).toBe(false);
+  });
+
+  it('scores GAD-7 at every band boundary', async () => {
+    const definition = await loadAssessmentDefinition('gad-7');
+    expect(definition.questions).toHaveLength(7);
+    expect(definition.questions[0]?.prompt).toBe(
+      'Вы нервничали, тревожились или испытывали сильный стресс',
+    );
+    expect(definition.alerts ?? []).toEqual([]);
+    // Spitzer et al. 2006: 0–4, 5–9, 10–14, 15–21.
+    const bands: Array<[number, string]> = [
+      [0, 'minimal'],
+      [4, 'minimal'],
+      [5, 'mild'],
+      [9, 'mild'],
+      [10, 'moderate'],
+      [14, 'moderate'],
+      [15, 'severe'],
+      [21, 'severe'],
+    ];
+    for (const [total, rangeId] of bands) {
+      const answers: Record<string, number> = {};
+      let left = total;
+      for (const question of definition.questions) {
+        answers[question.id] = Math.min(3, left);
+        left -= answers[question.id] ?? 0;
+      }
+      const result = scoreAssessment(definition, answers);
+      if (!result.ok) throw new Error(result.error);
+      expect(result.value.scores[0]).toMatchObject({
+        rawScore: total,
+        minimumScore: 0,
+        maximumScore: 21,
+      });
+      expect(result.value.evaluation?.verdict?.rangeId).toBe(rangeId);
+      expect(result.value.evaluation?.verdict?.title).toBe(result.value.headline);
+    }
+  });
+
   it('scores the published SHAS form at every band boundary and rejects incomplete answers', async () => {
     const { definition, answers } = await uniformAnswers('asthenic-state-shas', 1);
     expect(definition.questions).toHaveLength(30);

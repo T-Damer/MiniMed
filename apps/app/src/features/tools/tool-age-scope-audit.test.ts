@@ -22,7 +22,7 @@ const sourceTools = moduleFiles.flatMap((file) => {
 
 describe('every tool declares who it is for', () => {
   it('requires an age scope in every authored calculator and questionnaire definition', () => {
-    expect(sourceTools).toHaveLength(251);
+    expect(sourceTools).toHaveLength(253);
     for (const record of sourceTools) {
       const schema =
         record.kind === 'calculator' ? CalculatorSchemaSchema : AssessmentDefinitionSchema;
@@ -47,7 +47,7 @@ describe('every tool declares who it is for', () => {
       const entry = TOOL_CATALOG.find((candidate) => candidate.id === record.id);
       expect(entry?.ageScope, record.id).toEqual(record.definition['ageScope']);
     }
-    expect(MODULE_CATALOG.modules.flatMap((module) => module.tools ?? [])).toHaveLength(251);
+    expect(MODULE_CATALOG.modules.flatMap((module) => module.tools ?? [])).toHaveLength(253);
   });
 
   it('states a basis for every declaration, never an empty guess', () => {

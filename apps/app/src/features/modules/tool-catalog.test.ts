@@ -51,7 +51,7 @@ afterEach(() => {
 
 describe('core tool discovery', () => {
   it('indexes every authored tool and its exact download pack without executable definitions', () => {
-    expect(TOOL_CATALOG).toHaveLength(251);
+    expect(TOOL_CATALOG).toHaveLength(253);
     for (const source of modules) {
       const catalog = MODULE_CATALOG.modules.find((entry) => entry.id === source.id);
       expect(catalog?.tools).toEqual(
@@ -82,7 +82,7 @@ describe('core tool discovery', () => {
     clearDownloadedCalculators();
     clearDownloadedAssessments();
     expect(getCalculatorRegistry()).toHaveLength(229);
-    expect(getAssessmentCatalog()).toHaveLength(24);
+    expect(getAssessmentCatalog()).toHaveLength(26);
     expect(searchCalculators('Шварца')).not.toHaveLength(0);
     expect(searchAssessments('FLACC')).not.toHaveLength(0);
     const calculatorState = loadCalculatorInstallationState(getCalculatorRegistry());
@@ -138,6 +138,6 @@ describe('core tool discovery', () => {
     clearDownloadedCalculators();
     clearDownloadedAssessments();
     expect(getCalculatorRegistry()).toHaveLength(229);
-    expect(getAssessmentCatalog()).toHaveLength(24);
+    expect(getAssessmentCatalog()).toHaveLength(26);
   });
 });
