@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 20 October 2026
-> Released version: `0.6.62` (public prerelease toward `1.0`)
+> Updated: 21 October 2026
+> Released version: `0.6.63` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -22,9 +22,13 @@ Detailed history, moved verbatim on 2026-09-24:
 
 ## Next after 0.6.60 (ordered) — 2026-10-15
 
-**Added 2026-10-20 (PHONE-QA), first:** a release so `org.med.web` and the drug-screen rework reach the phone. The
-modules with the ingest fixes are already published (MOD-REBUILD below); the catalog reaches an installed app by
-itself (`publishedAt` 2026-10-20T19:00Z, `minAppVersion` unchanged).
+**Released 2026-10-21 as 0.6.63** (tag `v0.6.63`, APK `org.med.web` versionCode 76, 228.8 MB): the PHONE-QA,
+MOD-REBUILD and GI1-E2E work. Before the release: `bun run verify`, `benchmark:real:release`, `python:check`,
+`native:source:check`, the CI-only query/regulatory benchmarks, `forms:check-updates` (7 unchanged) and
+`regulatory:verify` (25 ok, 5 not checked as at 0.6.62) passed; a local debug APK and then the published APK were
+installed on the Android 16 emulator after uninstalling an old `org.med.web` test build (fresh install → onboarding
+with the one-line setup message → 76 MB core from the mirror → home with 57 333 sources and the pinned starter
+tools). Not run on the owner's phone: 120 Hz, keyboard with 3-button navigation, status-bar strip, toasts.
 
 Release 0.6.60 shipped after two QA passes (docs/research/qa-release-0660-2026-10-15.md; re-check: 11 of 15
 fixed, 3 partly, 1 not, 2 new low). Ordered next work:
