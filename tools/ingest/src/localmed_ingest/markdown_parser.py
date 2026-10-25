@@ -23,6 +23,8 @@ _GRLS_REGISTRY_CARD_SOURCE_TYPE = "official_registry_summary"
 _YAML_SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
 HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
+#: A body line that opens with «# » is written escaped (``source_registry.escape_heading_lines``).
+ESCAPED_HEADING_PATTERN = re.compile(r"^\\(#{1,6})(?=\s)")
 SOURCE_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:source\s+(.+?)\s*-->$")
 PAGE_MARK_PATTERN = re.compile(r"^<!--\s*localmed:page-mark\s+.+?-->$")
 REVIEW_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:review\s+(.+?)\s*-->$")
@@ -178,7 +180,7 @@ def parse_sections(body: str) -> list[DraftSection]:
             if current is None and line.strip():
                 current = DraftSection(title=_PREAMBLE_TITLE, level=1, path=[_PREAMBLE_TITLE])
                 sections.append(current)
-            content_lines.append(line)
+            content_lines.append(ESCAPED_HEADING_PATTERN.sub(r"\1", line))
             continue
 
         flush_current()

@@ -26,7 +26,10 @@ from .numbered_headings import appendix_heading_depth, numbered_heading_depth
 # 3: a numbered paragraph stays a paragraph where promoting it would leave a heading hidden.
 # 4: appendix sub-titles («Приложение Б1. …») promoted to headings.
 # 5: bold standalone lines that are known labels of the official template promoted to headings.
-EXTRACTOR_REVISION = 5
+# 6: <sup>/<sub> kept as Unicode super/subscripts (degree sign before C), paragraph and list breaks
+#    kept inside table cells, text after an inline image kept, list items keep their marker
+#    (<li><p>) and ordered lists their numbers.
+EXTRACTOR_REVISION = 6
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -37,6 +40,21 @@ _IMAGE_DATA_URL_PATTERN = re.compile(
 _IGNORED_TAGS = {"script", "style", "noscript", "svg", "nav", "footer", "form", "button"}
 _BLOCK_TAGS = {"p", "li", "figcaption", "h1", "h2", "h3", "h4", "h5", "h6"}
 _BOLD_TAGS = {"strong", "b"}
+_LIST_TAGS = {"ol", "ul"}
+_SCRIPT_TAGS = {"sup", "sub"}
+# Inside a table cell these start a new line of the cell's text.
+_CELL_BREAK_TAGS = {"p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6"}
+_SUPERSCRIPT = str.maketrans("0123456789+-−–=()ni", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁻⁻⁼⁽⁾ⁿⁱ")
+_SUBSCRIPT = str.maketrans(
+    "0123456789+-−–=()aeoxhklmnpstiruvj", "₀₁₂₃₄₅₆₇₈₉₊₋₋₋₌₍₎ₐₑₒₓₕₖₗₘₙₚₛₜᵢᵣᵤᵥⱼ"
+)
+# A superscript «0»/«o» right after a number and before C/F is a degree sign («30<sup>0</sup>C»).
+_DEGREE_PATTERN = re.compile(r"(\d)\s?[⁰ᵒ](?=\s?[CСF](?![A-Za-zА-Яа-яЁё]))")
+_SUPERSCRIPT_LETTER_O = {"o", "о", "O", "О"}
+_OWN_NUMBER = re.compile(r"^\d+[.)]\s")
+_LIST_MARKER = re.compile(r"^(?:- |\d+\. )")
+_OWN_DASH = re.compile(r"^[-–—•·*]\s+")
+_BARE_CELL_MARKER = re.compile(r"^(?:•|\d+\.)$")
 _FILENAME_LABEL = re.compile(
     r"^(?:[a-z0-9][a-z0-9._-]*)\.(?:png|jpe?g|gif|webp|bmp|svg)$",
     re.IGNORECASE,
@@ -48,7 +66,39 @@ _FIGURE_CAPTION = re.compile(
 
 
 def _clean_text(value: str) -> str:
-    return _SPACE_PATTERN.sub(" ", value.replace("\xa0", " ")).strip()
+    return _DEGREE_PATTERN.sub(r"\1°", _SPACE_PATTERN.sub(" ", value.replace("\xa0", " ")).strip())
+
+
+def _clean_cell_text(value: str) -> str:
+    """Cell text with its line breaks: each line cleaned, empty lines dropped."""
+    lines = [cleaned for line in value.split("\n") if (cleaned := _clean_text(line))]
+    merged: list[str] = []
+    for line in lines:
+        # «<li><p>…</p></li>» in a cell: the marker and its text are one line.
+        if merged and _BARE_CELL_MARKER.fullmatch(merged[-1]):
+            merged[-1] = f"{merged[-1]} {line}"
+        else:
+            merged.append(line)
+    return "\n".join(merged)
+
+
+def _script_text(data: str, *, superscript: bool) -> str:
+    """<sup>/<sub> text as Unicode super/subscripts, so «500<sup>1</sup>» never reads «5001».
+
+    Text with characters that have no super/subscript form (words, «®», «*») stays as it is; a
+    superscript «o» is the degree sign. Search folds these forms back to plain digits (NFKC).
+    """
+    stripped = data.strip()
+    if superscript and stripped in _SUPERSCRIPT_LETTER_O:
+        return data.replace(stripped, "°")
+    table = _SUPERSCRIPT if superscript else _SUBSCRIPT
+    converted = data.translate(table)
+    # Separators between footnote numbers («1,2», «1-3») stay as they are.
+    if all(
+        not char.isalnum() or char != plain for char, plain in zip(converted, data, strict=True)
+    ):
+        return converted
+    return data
 
 
 def _usable_image_label(value: str) -> str:
@@ -115,6 +165,21 @@ def _attribute(attrs: list[tuple[str, str | None]], name: str) -> str:
     return next((value or "" for key, value in attrs if key.lower() == name), "")
 
 
+def _list_start(attrs: list[tuple[str, str | None]]) -> int:
+    try:
+        return max(1, int(_attribute(attrs, "start") or "1"))
+    except ValueError:
+        return 1
+
+
+def _next_marker(lists: list[list[int]], *, bullet: str) -> str:
+    """Marker of the next item of the innermost open list: «3. » when ordered, else ``bullet``."""
+    if not lists or not lists[-1][0]:
+        return bullet
+    lists[-1][1] += 1
+    return f"{lists[-1][1]}. "
+
+
 def _span(value: str) -> int:
     try:
         return min(100, max(1, int(value)))
@@ -170,6 +235,13 @@ class _StructuredHtmlParser(HTMLParser):
         self._table_cell: dict[str, object] | None = None
         self._table_cell_parts: list[str] | None = None
         self._table_caption_parts: list[str] | None = None
+        self._script_stack: list[bool] = []
+        # One entry per open <ol>/<ul>: whether it is ordered and the number of its last item.
+        self._lists: list[list[int]] = []
+        self._cell_lists: list[list[int]] = []
+        self._current_marker = ""
+        # A block reopened after an inline image: its rest is a plain paragraph, never a list item.
+        self._continuation = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         lowered = tag.lower()
@@ -177,6 +249,9 @@ class _StructuredHtmlParser(HTMLParser):
             self._ignored_depth += 1
             return
         if self._ignored_depth:
+            return
+        if lowered in _SCRIPT_TAGS:
+            self._script_stack.append(lowered == "sup")
             return
         if lowered == "table":
             self._flush_block()
@@ -200,6 +275,13 @@ class _StructuredHtmlParser(HTMLParser):
                 self._table_cell_parts = []
             elif lowered == "br" and self._table_cell_parts is not None:
                 self._table_cell_parts.append("\n")
+            elif lowered in _LIST_TAGS and self._table_cell_parts is not None:
+                self._cell_lists.append([int(lowered == "ol"), _list_start(attrs) - 1])
+            elif lowered in _CELL_BREAK_TAGS and self._table_cell_parts is not None:
+                # Two <p> in one cell are two lines («40-80 mg» / «25-50 mg»), never glued.
+                self._table_cell_parts.append("\n")
+                if lowered == "li":
+                    self._table_cell_parts.append(_next_marker(self._cell_lists, bullet="• "))
             elif (
                 lowered == "img"
                 and self._table_cell is not None
@@ -215,19 +297,41 @@ class _StructuredHtmlParser(HTMLParser):
                     )
             return
         if lowered == "img":
+            reopen = self._current_tag
             self._flush_block()
             self._append_image(attrs)
+            if reopen is not None:
+                # The text after an image in the same paragraph is the paragraph's rest.
+                self._open_block(reopen)
+                self._continuation = True
+            return
+        if lowered in _LIST_TAGS:
+            self._lists.append([int(lowered == "ol"), _list_start(attrs) - 1])
             return
         if lowered in _BLOCK_TAGS:
+            if (
+                self._current_tag == "li"
+                and not self._continuation
+                and not "".join(self._current_parts).strip()
+            ):
+                # «<li><p>…</p></li>»: the paragraph is the item's text, the item keeps its marker.
+                return
             self._flush_block()
-            self._current_tag = lowered
-            self._current_parts = []
-            self._bold_depth = 0
-            self._current_has_plain_text = False
+            self._open_block(lowered)
+            if lowered == "li":
+                self._current_marker = _next_marker(self._lists, bullet="- ")
         elif lowered in _BOLD_TAGS and self._current_tag is not None:
             self._bold_depth += 1
         elif lowered == "br" and self._current_tag is not None:
             self._current_parts.append("\n")
+
+    def _open_block(self, tag: str) -> None:
+        self._current_tag = tag
+        self._current_parts = []
+        self._bold_depth = 0
+        self._current_has_plain_text = False
+        self._current_marker = ""
+        self._continuation = False
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.handle_starttag(tag, attrs)
@@ -242,12 +346,24 @@ class _StructuredHtmlParser(HTMLParser):
             return
         if self._ignored_depth:
             return
+        if lowered in _SCRIPT_TAGS:
+            if self._script_stack:
+                self._script_stack.pop()
+            return
+        if lowered in _LIST_TAGS:
+            stack = self._cell_lists if self._table_depth else self._lists
+            if stack:
+                stack.pop()
+            if not self._table_depth and self._current_tag == "li":
+                self._flush_block()
+            return
         if self._table_depth:
             if lowered in {"td", "th"} and self._table_cell is not None:
                 cell = {
                     **self._table_cell,
-                    "text": _clean_text("".join(self._table_cell_parts or [])),
+                    "text": _clean_cell_text("".join(self._table_cell_parts or [])),
                 }
+                self._cell_lists = []
                 if self._table_row is not None:
                     self._table_row.append(cell)
                 self._table_cell = None
@@ -270,6 +386,8 @@ class _StructuredHtmlParser(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self._ignored_depth:
             return
+        if self._script_stack:
+            data = _script_text(data, superscript=self._script_stack[-1])
         if self._table_depth:
             if self._table_cell_parts is not None:
                 self._table_cell_parts.append(data)
@@ -334,7 +452,7 @@ class _StructuredHtmlParser(HTMLParser):
         self._table_caption_parts = None
         text_rows = [
             " | ".join(
-                cast(str, cell.get("text", ""))
+                cast(str, cell.get("text", "")).replace("\n", " ")
                 for cell in cast(list[dict[str, object]], row["cells"])
             )
             for row in rows
@@ -362,8 +480,12 @@ class _StructuredHtmlParser(HTMLParser):
             return
         text = _clean_text("".join(self._current_parts))
         tag = self._current_tag
+        marker = self._current_marker
+        continuation = self._continuation
         self._current_tag = None
         self._current_parts = []
+        self._current_marker = ""
+        self._continuation = False
         if not text:
             return
         if tag.startswith("h") and tag[1:].isdigit():
@@ -374,8 +496,12 @@ class _StructuredHtmlParser(HTMLParser):
                     text=text,
                 )
             )
-        elif tag == "li":
-            self.blocks.append(_ParsedBlock(kind="list", text=f"- {text}"))
+        elif tag == "li" and not continuation:
+            # An item that opens with its own number keeps it; its own dash becomes the list dash.
+            item = text if _OWN_NUMBER.match(text) else f"{marker or '- '}{_OWN_DASH.sub('', text)}"
+            self.blocks.append(
+                _ParsedBlock(kind="list", text=item, bold=not self._current_has_plain_text)
+            )
         else:
             self.blocks.append(
                 _ParsedBlock(kind="paragraph", text=text, bold=not self._current_has_plain_text)
@@ -461,11 +587,16 @@ def _demote_hidden_promoted_headings(blocks: list[ExtractedBlock]) -> int:
         kept -= dropped
     for index in sorted(promoted - kept):
         block = blocks[index]
+        list_text = block.metadata.get("listText")
         blocks[index] = block.model_copy(
             update={
-                "kind": "paragraph",
+                # A label that came from a list item goes back to being that item, marker and all.
+                "kind": "list" if isinstance(list_text, str) else "paragraph",
+                "text": list_text if isinstance(list_text, str) else block.text,
                 "heading_level": None,
-                "metadata": {k: v for k, v in block.metadata.items() if k != "promotedFrom"},
+                "metadata": {
+                    k: v for k, v in block.metadata.items() if k not in {"promotedFrom", "listText"}
+                },
             }
         )
     return len(promoted - kept)
@@ -531,6 +662,7 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
         warnings.extend(f"{section.id}: {warning}" for warning in parser.warnings)
         for parsed in _attach_adjacent_figure_captions(parser.blocks):
             kind: BlockKind = parsed.kind
+            text = parsed.text
             heading_level = parsed.heading_level
             promoted_metadata: dict[str, object] = {}
             if parsed.kind == "paragraph":
@@ -553,6 +685,18 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
                     heading_level = 2
                     promoted_metadata = {"promotedFrom": "template-label"}
                     promoted_headings += 1
+            elif (
+                parsed.kind == "list"
+                and parsed.bold
+                and is_template_label(_LIST_MARKER.sub("", parsed.text), title)
+            ):
+                # A template label the source wrote as a bold list item stays a heading, as its
+                # siblings written as bold paragraphs are; its marker is not part of the title.
+                kind = "heading"
+                text = _LIST_MARKER.sub("", parsed.text)
+                heading_level = 2
+                promoted_metadata = {"promotedFrom": "template-label", "listText": parsed.text}
+                promoted_headings += 1
             render = parsed.metadata.get("renderBlock")
             if (
                 isinstance(render, dict)
@@ -568,9 +712,9 @@ def extract_clinical_json(source: Path) -> ExtractedSource:
                     page=None,
                     order_index=order,
                     kind=kind,
-                    text=parsed.text,
+                    text=text,
                     heading_level=heading_level,
-                    line_count=max(1, parsed.text.count("\n") + 1),
+                    line_count=max(1, text.count("\n") + 1),
                     metadata={
                         "sourceSectionId": section.id,
                         "sourceSectionOrder": section_index,

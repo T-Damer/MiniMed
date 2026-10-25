@@ -84,7 +84,7 @@ def test_numbered_paragraphs_are_extracted_as_sub_headings(tmp_path: Path) -> No
     blocks = extracted.pages[0].blocks
     promoted = [block for block in blocks if block.metadata.get("promotedFrom")]
 
-    assert extracted.extractor_revision == 5
+    assert extracted.extractor_revision == 6
     assert extracted.diagnostics.promoted_headings == 2
     assert [(block.text, block.kind, block.heading_level) for block in promoted] == [
         ("3.1 Консервативное лечение", "heading", 2),

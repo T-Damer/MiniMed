@@ -175,7 +175,7 @@ def test_template_labels_become_headings_one_level_under_their_section(tmp_path:
     extracted = extract_clinical_json(source)
     blocks = {block.text: block for block in extracted.pages[0].blocks}
 
-    assert extracted.extractor_revision == 5
+    assert extracted.extractor_revision == 6
     labels = [
         block
         for block in extracted.pages[0].blocks

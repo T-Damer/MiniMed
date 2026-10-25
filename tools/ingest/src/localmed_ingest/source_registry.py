@@ -297,13 +297,24 @@ class _ContentsLayout:
         return block.text[: run.head[1]].strip()
 
 
+_HEADING_LIKE_LINE = re.compile(r"^(#{1,6})(?=\s)", re.MULTILINE)
+
+
+def escape_heading_lines(text: str) -> str:
+    """Body text whose line opens with «# » (the KR off-label mark) must not become a heading.
+
+    ``markdown_parser`` turns «\\# …» back into «# …», so the stored text is the source's.
+    """
+    return _HEADING_LIKE_LINE.sub(r"\\\1", text)
+
+
 def _plain_part(block: ExtractedBlock, text: str, *, offset: int | None = None) -> list[str]:
     """Markdown lines of part of a block: its source marker, review marker and the text."""
     lines = [_source_marker(block, offset=offset)]
     review = _review_reasons(block)
     if review:
         lines.append(f"<!-- localmed:review {' '.join(review)} -->")
-    return [*lines, text, ""]
+    return [*lines, escape_heading_lines(text), ""]
 
 
 def render_body(
@@ -374,7 +385,7 @@ def render_body(
             review.insert(0, "table-candidate")
         if review:
             body.append(f"<!-- localmed:review {' '.join(review)} -->")
-        body.extend([text, ""])
+        body.extend([escape_heading_lines(text), ""])
         if not emitted:
             emitted = True
             body.extend(pending_marks)
