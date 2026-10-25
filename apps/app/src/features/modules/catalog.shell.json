@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "mod-rebuild.2026.10.20",
-  "publishedAt": "2026-10-20T19:00:00Z",
+  "catalogVersion": "kr-parse.2026.10.25",
+  "publishedAt": "2026-10-25T14:00:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

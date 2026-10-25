@@ -281,3 +281,24 @@ def test_batch_is_parallel_and_resumable(tmp_path: Path) -> None:
     )
     assert refreshed.candidate_relations == 6
     assert refreshed.reused == 1
+
+
+def test_a_recommendation_ending_with_a_colon_reaches_the_drug_line_below() -> None:
+    from localmed_ingest.clinical_medication_relations import _evidence_blocks
+
+    text = (
+        "- Рекомендовано для лечения беременных назначать перорально:\n\n"
+        "азитромицин** 1,0 г однократно [30]\n\n"
+        "Уровень убедительности рекомендаций А"
+    )
+    blocks = _evidence_blocks(text)
+
+    assert blocks == [
+        "- Рекомендовано для лечения беременных назначать перорально:\n\n"
+        "азитромицин** 1,0 г однократно [30]",
+        "Уровень убедительности рекомендаций А",
+    ]
+    assert all(block in text for block in blocks)
+    # A negative recommendation is not carried into the next line.
+    negative = "Не рекомендовано назначать:\n\nазитромицин**"
+    assert _evidence_blocks(negative) == ["Не рекомендовано назначать:", "азитромицин**"]

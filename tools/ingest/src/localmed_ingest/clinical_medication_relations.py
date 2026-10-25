@@ -245,7 +245,31 @@ def _service_section(section: _Section) -> bool:
 
 
 def _evidence_blocks(text: str) -> list[str]:
-    return [match.group(0) for match in _EVIDENCE_BLOCK.finditer(text)] or ([text] if text else [])
+    """Paragraph blocks of a chunk; a recommendation that ends with «:» runs into the next block.
+
+    Clinical guidelines write the recommendation («... назначать перорально:») as one paragraph,
+    often a list item, and the drug line with its dose as the next one. The merged quote is the
+    exact source slice from the first block to the end of the second.
+    """
+    spans = [(match.start(), match.end()) for match in _EVIDENCE_BLOCK.finditer(text)]
+    if not spans:
+        return [text] if text else []
+    blocks: list[str] = []
+    index = 0
+    while index < len(spans):
+        start, end = spans[index]
+        block = text[start:end]
+        if (
+            index + 1 < len(spans)
+            and block.endswith(":")
+            and _POSITIVE_RECOMMENDATION.search(block)
+            and not _NEGATIVE_RECOMMENDATION.search(block)
+        ):
+            end = spans[index + 1][1]
+            index += 1
+        blocks.append(text[start:end])
+        index += 1
+    return blocks
 
 
 def _local_sentence(text: str, start: int, end: int) -> str:

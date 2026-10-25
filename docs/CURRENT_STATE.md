@@ -41,7 +41,7 @@ The doctor-flow QA (`docs/research/qa-doctor-flows-2026-10-25.md`) found the К�
 - A body line starting with «# » (the off-label mark) is written to the prepared Markdown as «\#» and
   read back as text (`source_registry.escape_heading_lines`, `markdown_parser.ESCAPED_HEADING_PATTERN`).
 
-**Rebuild (local, not published).** All 774 КР built from the raw JSON with the old and the new code
+**Rebuild and publish (owner OK 2026-10-25).** All 774 КР built from the raw JSON with the old and the new code
 (`data/build/official-clinical-2026-10-25`, `compare-control-vs-final.json`): every module changed;
 list-item lines 46 034 → 250 914, superscripts 462 → 13 339, subscripts 47 → 3 545, degree signs
 1 469 → 1 682, cells with line breaks 0 → 14 570, «#»/table-row pseudo-headings 163 → 0, sections
@@ -55,11 +55,28 @@ vectors reused. Framed as `clinical-json-2026.10.25-68d6f3a19cc9` (`0.6.0-json.1
 `kr-parse-modules` (309_2 «500¹-1000²», 678_2 «30°C», 283_2 cell lines, 1028_1 no «Рифампицин»
 heading), `kr-appendix-heading-modules`, `module-pointer`, `many-modules-reload` pass.
 
-**To publish (owner OK first):** copy the candidate catalog over `catalog.preview.json`, `bun run
-catalog:shell`, `scripts/publish-module-zstd-mirror.sh --family clinical --tag
-clinical-json-2026.10.25-68d6f3a19cc9 --source-dir output/module-zstd-json-2026-10-25 --create`,
-verify the URLs (`scripts/verify-module-artifact.ts --url`), commit. Then derived indexes that read КР
-text (dose rules, clinical–medication relations) should be regenerated from the new copies.
+**Published** to the additive mirror branch `datasets/clinical-json-2026.10.25-68d6f3a19cc9`
+(`scripts/publish-module-zstd-mirror.sh --family clinical --create`); all 774 URLs on
+raw.githubusercontent.com return the catalog's transport and decoded SHA-256 and size through the app's
+decoder (`scripts/verify-module-artifact.ts --url`, `access-control-allow-origin: *`). Catalog
+`kr-parse.2026.10.25`, `publishedAt` 2026-10-25T14:00Z, only the 774 КР entries changed (`minAppVersion`
+unchanged); an installed КР is re-downloaded once. Chunk anchors changed with the new list/cell text, so
+a KR highlight or remembered reading position falls back to the document top (bookmarks survive).
+
+**Derived data regenerated.**
+- `data/build/clinical-medication-relations` (774 files, was 753 from 2026-10-02) from the new modules
+  and the bundled core's ЕСКЛП identities. The extractor now carries a positive recommendation that ends
+  with «:» into the next block (`clinical_medication_relations._evidence_blocks`; the quote stays an exact
+  source slice): КР write «Рекомендовано … назначать перорально:» and the drug line as two paragraphs, so
+  the importer changes since July had already lost those links (the modules published before this fix
+  give none for 194_2). Distinct КР → МНН links 794 → 3 046 (+2 094, −42; the lost ones are loose old
+  matches: a table footnote «б- метопролола сукцинат, бисопролол…», the alternative after «или»).
+- `section-manifest.json` (`bun run content:sections:manifest`, `--check` current): sections now name
+  more drug groups (e.g. Кардиология 8 → 11, Стоматология 0 → 7), so a section download includes more
+  ГРЛС groups than before.
+- Not affected: dose rules, interaction, safety and comparison indexes (drug modules only). Not rebuilt:
+  the bundled core — its КР definition cards and aliases (`clinical-aliases`) still come from the
+  older text; that waits for the next core release.
 
 Not fixed here: drug-instruction PDF tables and merged leaflets, NFD «й» in the source JSON, inline
 abbreviations, definition cards (see the QA report). Not verified: a phone.
