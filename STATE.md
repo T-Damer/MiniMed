@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-25 12:40 | claude-opus (KR-PARSE) | КР JSON parser: keep sup/sub, paragraph/list breaks inside table cells, text after images, «#» off-label rows/paragraphs, list markers; rebuild the 774 КР modules locally (publish only on owner word) | `tools/ingest/src/localmed_ingest/clinical_json_import.py`, `tools/ingest/src/localmed_ingest/source_registry.py` (block escaping), `tools/ingest/tests/test_clinical_json*`, КР module build outputs |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
