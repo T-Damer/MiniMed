@@ -4,6 +4,24 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.64] - 2026-10-25
+
+- Discovery core 0.6.64 (downloaded once after the update, 77 MB): clinical recommendations name the drugs
+  they recommend far more often (1 206 → 4 356 links), their definitions keep the source superscripts («мм²»,
+  «10⁹/л»), and drug cards no longer show «(НЕ УКАЗАНО)» for an unstated dosage.
+- Clinical recommendations (published 2026-10-25, reach installed apps through the catalog; an installed КР
+  downloads once again): footnote and power superscripts stay apart from the numbers («500¹-1000² мг», «30°C»),
+  lines inside a table cell stay separate, text after a picture is kept, lists keep their bullets and
+  numbers, and an off-label row «# Рифампицин» is a table row, not a heading. KR highlights and reading
+  positions fall back to the document top; bookmarks are kept.
+- Cleaner hover states (no shadows, no see-through cards), «Скачать всё» in the «База знаний» header, a small
+  «Раздел ›» link above inner pages (news sources, PubMed, the article viewer, settings pages); search no longer
+  filters tools by «Дети / Взрослые».
+- Search history: the clear button sits at the bottom and asks «Очистить историю? ✕ ✓» inline; the drawer shows
+  the app version and a GitHub link.
+- Справочник: «Сенсомоторный психосинтез (СМПС)» from psihosintez.ru; «⋯» → «Информация» names the source and
+  fetch date of every non-drug document.
+
 ## [0.6.63] - 2026-10-21
 
 - Android application id is now `org.med.web` (owner phone QA 2026-10-20): HyperOS kept the old package at 60 Hz,
