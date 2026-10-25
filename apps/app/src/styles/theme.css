@@ -53,6 +53,8 @@
   --theme-scrollbar-thumb-hover: color-mix(in srgb, var(--theme-text) 58%, transparent);
   --theme-accent-contrast: #f8f0dd;
   --theme-accent-soft: rgb(64 91 78 / 12%);
+  /* Hover fill: opaque, so a card or row never turns see-through over the page on hover. */
+  --theme-hover-surface: color-mix(in srgb, var(--theme-surface-raised) 88%, var(--theme-accent));
   --theme-link: #355b49;
   --theme-search-surface: #f7edcf;
   --theme-search-surface-muted: #eadfbe;

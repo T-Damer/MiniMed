@@ -74,7 +74,7 @@
 @media (hover: hover) and (pointer: fine) {
   .news-icon-button:hover:not(:disabled) {
     color: var(--theme-text);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -364,7 +364,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .news-rail__card:hover {
-    background: var(--theme-accent-soft);
+    border-color: color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -459,7 +460,12 @@
 
 @media (hover: hover) and (pointer: fine) {
   .news-grid__tile:hover {
-    background: var(--theme-accent-soft);
+    border-color: color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+
+  .news-grid__subscribe:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-accent) 86%, white);
   }
 }
 
@@ -523,7 +529,9 @@
   background: var(--theme-accent);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform var(--motion-fast) var(--motion-ease);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
 .news-grid__subscribe::after {
@@ -608,7 +616,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .news-item__link:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -1306,7 +1314,7 @@ html.news-vt::view-transition-new(news-sheet) {
 
 @media (hover: hover) and (pointer: fine) {
   .news-pubmed__link:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

@@ -97,6 +97,33 @@
   min-width: 0;
 }
 
+/* The owning section above an inner page's title: small, one line, a way up. */
+.page__parent {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.125rem;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+.page__parent-icon.app-glyph {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page__parent:hover {
+    color: var(--theme-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.15rem;
+  }
+}
+
 .page__description {
   margin: 0;
   color: var(--theme-text-muted);
@@ -143,7 +170,7 @@
 @media (hover: hover) and (pointer: fine) {
   .page__help-button:hover {
     color: var(--theme-text);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -389,7 +416,7 @@
 @media (hover: hover) and (pointer: fine) {
   .assessment-card-icon-button:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 
   .assessment-card-icon-button--download:hover {

@@ -81,7 +81,7 @@
 }
 
 .reference-panel__hit-button:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .reference-panel__hit-button:active:not(:disabled) {

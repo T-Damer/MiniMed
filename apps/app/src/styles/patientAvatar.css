@@ -133,7 +133,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .patient-avatar-picker__option:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 .patient-emoji-picker {

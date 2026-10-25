@@ -88,7 +88,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .results-more:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

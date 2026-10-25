@@ -121,7 +121,7 @@
 
   .user-library-card__icon-action:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -618,7 +618,7 @@
     transform: none;
     border-color: var(--theme-accent);
     color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

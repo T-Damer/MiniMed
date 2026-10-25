@@ -113,7 +113,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .settings-list__row:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

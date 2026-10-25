@@ -20,6 +20,34 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Hover, header and navigation polish — 2026-10-25 (STATE UI-HOVER)
+
+Owner screenshots 2026-10-25: hovers looked dirty, headers took rows, sub-routes did not say where
+the doctor was.
+
+- **Hover fill.** `--theme-hover-surface` (opaque: surface-raised mixed with the accent; light and
+  dark themes) replaces `--theme-accent-soft` in every `:hover` background (63 rules). The old
+  translucent tint turned opaque cards see-through over the tan page. The dark image viewers keep
+  the translucent tint (`dicom-viewer.css`, `.media-viewer__toolbar--image`).
+- **No blanket hover shadow.** The global `button:not(…):hover { box-shadow }` rule is gone; a
+  secondary or icon `Button` brightens its face instead, the primary keeps its lift. Section-picker
+  rows answer hover with the accent colour and an underline (no box).
+- **Favourites ✕** is a round button with a surface and a red hover; news tiles get an accent border.
+- **«Скачать всё»** sits in the «База знаний» header row (`Page` `actions`); below 30rem it shows
+  only the icon and the size, the aria-label keeps the full wording.
+- **Search history drawer.** Footer row «v<version> · GitHub» + trash; the trash asks inline
+  «Очистить историю? ✕ ✓» before clearing.
+- **No «Дети / Взрослые / Все» in search.** The search catalogs and the «Все инструменты» sheet list
+  every tool with its age tag and ignore the remembered `toolAgeFilter`; the calculator sections,
+  assessment specialty pages and «Мои калькуляторы» keep the filter. Tool cards fill their grid row
+  and the age tag sits at the start.
+- **Section crumb.** `Page` `parent` renders a small «Раздел ›» link above an inner page's title
+  (news «Источники», PubMed, the article viewer; settings sub-pages), so returning to a tab that
+  restores an inner page shows where the doctor is. Tapping the active tab already returns to its
+  root. Other inner pages (knowledge-base sub-routes, notes, «Избранное») do not have the crumb yet.
+
+Not done: dark-theme screenshots of the new hovers; no phone run.
+
 ## Next after 0.6.60 (ordered) — 2026-10-15
 
 **Released 2026-10-21 as 0.6.63** (tag `v0.6.63`, APK `org.med.web` versionCode 76, 228.8 MB): the PHONE-QA,

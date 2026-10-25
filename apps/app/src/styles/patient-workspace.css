@@ -413,7 +413,7 @@
   .patient-workspace__quick-action.ui-button:hover,
   .patient-workspace__event-action.ui-button:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

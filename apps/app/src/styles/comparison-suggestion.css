@@ -9,7 +9,7 @@
 }
 
 .comparison-suggestion:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .comparison-suggestion__icon,

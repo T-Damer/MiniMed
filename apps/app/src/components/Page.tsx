@@ -2,6 +2,7 @@ import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { SheetPopover } from '@/components/SheetPopover';
+import { visitRoute } from '@/state/app-back';
 
 export interface PageProps {
   readonly class?: string;
@@ -10,6 +11,11 @@ export interface PageProps {
   readonly breadcrumbs?: JSX.Element;
   readonly icon?: JSX.Element;
   readonly title?: JSX.Element;
+  /**
+   * The section this page belongs to, as a small link above the title: a doctor who returns to a
+   * tab and lands on one of its inner pages sees where they are («Лента › Источники»).
+   */
+  readonly parent?: { readonly label: string; readonly href: string } | undefined;
   readonly description?: JSX.Element;
   readonly actions?: JSX.Element;
   /** «Как это работает» and other explanations: a round «?» in the header opens it. */
@@ -36,7 +42,25 @@ export function Page(props: PageProps): JSX.Element {
       <Show when={props.icon !== undefined && !inline()}>
         <div class="page__icon">{props.icon}</div>
       </Show>
-      <div class="page__title">{props.title}</div>
+      <div class="page__title">
+        <Show when={props.parent}>
+          {(parent) => (
+            <a
+              class="page__parent"
+              href={parent().href}
+              onClick={(event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+                event.preventDefault();
+                visitRoute(parent().href);
+              }}
+            >
+              {parent().label}
+              <AppGlyph name="caret-right" class="page__parent-icon" />
+            </a>
+          )}
+        </Show>
+        {props.title}
+      </div>
     </div>
   );
 

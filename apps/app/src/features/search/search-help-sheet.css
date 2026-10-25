@@ -36,7 +36,7 @@
 }
 
 .search-help-sheet__item:hover:not(:disabled) {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .search-help-sheet__item:disabled {

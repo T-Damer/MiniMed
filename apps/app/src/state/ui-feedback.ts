@@ -7,7 +7,7 @@ const CARD_SELECTOR =
   'article, .paper-card, .module-card, .content-module-card, .assessment-card, .calculator-card, .document-library-card, .recommendation-section-card, .result-group';
 
 const DELETE_SELECTOR =
-  '[aria-label^="Удалить"], .danger, .search-history-panel-remove, .search-history-panel-clear, [aria-label="Очистить историю"], .module-remove-button';
+  '[aria-label^="Удалить"], .danger, .search-history-panel-remove, .search-history-panel-clear, [aria-label="Очистить историю"], [aria-label="Да, очистить"], .module-remove-button';
 
 const PRINT_SELECTOR = '.assessment-print-button, [aria-label^="Распечатать"]';
 const SHARE_SELECTOR = '[aria-label^="Поделиться"]';

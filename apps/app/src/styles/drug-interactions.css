@@ -111,7 +111,7 @@
 }
 
 .drug-interactions__candidate:hover:not(:disabled) {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .drug-interactions__candidate:disabled {
@@ -195,7 +195,7 @@
 }
 
 .drug-interactions__item-remove:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
   color: var(--theme-text);
 }
 
@@ -524,7 +524,7 @@
 }
 
 .drug-interactions__compare:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .drug-interactions__compare-icon {

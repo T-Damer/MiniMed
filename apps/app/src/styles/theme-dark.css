@@ -21,6 +21,7 @@
     --theme-desk-kicker: var(--theme-kicker);
     --theme-accent-contrast: #1c1712;
     --theme-accent-soft: rgb(130 168 141 / 15%);
+    --theme-hover-surface: color-mix(in srgb, var(--theme-surface-raised) 84%, var(--theme-accent));
     --theme-link: #9bc7a7;
     --theme-search-surface: #243029;
     --theme-search-surface-muted: #2c3a31;
@@ -193,7 +194,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     .search-mode-help:hover {
-      background: var(--theme-accent-soft);
+      background: var(--theme-hover-surface);
     }
   }
 
@@ -390,7 +391,7 @@
   @media (hover: hover) and (pointer: fine) {
     .suggestion-strip__button:hover {
       border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
-      background: var(--theme-accent-soft);
+      background: var(--theme-hover-surface);
     }
   }
 
@@ -660,7 +661,7 @@
   @media (hover: hover) and (pointer: fine) {
     .example-scroll-content__chip:hover {
       border-color: var(--theme-accent);
-      background: var(--theme-accent-soft);
+      background: var(--theme-hover-surface);
     }
   }
 

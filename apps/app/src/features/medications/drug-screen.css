@@ -394,7 +394,7 @@
 }
 
 .atc-sheet__step--link:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .atc-sheet__step-chevron {

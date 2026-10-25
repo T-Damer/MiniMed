@@ -282,7 +282,7 @@
 @media (hover: hover) and (pointer: fine) {
   .form-field__rule-button:hover {
     color: var(--theme-text);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

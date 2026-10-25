@@ -84,7 +84,7 @@
 }
 
 .ui-disclosure__header:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .ui-disclosure__header:focus-visible {

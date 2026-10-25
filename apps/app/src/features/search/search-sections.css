@@ -95,7 +95,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .search-sections__row:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

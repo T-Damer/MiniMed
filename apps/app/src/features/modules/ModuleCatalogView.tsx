@@ -1015,28 +1015,42 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>База знаний</Heading>}
           description="Скачайте разделы — они работают без сети."
+          actions={
+            <Show when={pendingDownloadCount() > 0}>
+              <Button
+                class="module-page__download-all"
+                aria-label={
+                  installingAll()
+                    ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
+                    : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
+                }
+                disabled={installingAll()}
+                icon={
+                  <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
+                    <AppGlyph name="download" />
+                  </Show>
+                }
+                onClick={openBulkDownload}
+              >
+                <Show
+                  when={!installingAll()}
+                  fallback={
+                    <>
+                      <span class="module-page__download-all-label">Скачиваем </span>
+                      {bulkDownloadPercent()}%
+                    </>
+                  }
+                >
+                  <span class="module-page__download-all-label">Скачать всё</span>
+                  <Show when={bulkDownloadSizeLabel() !== ''}>
+                    <span class="module-page__download-all-label">{' · '}</span>
+                    {bulkDownloadSizeLabel().replace(/^ · /u, '')}
+                  </Show>
+                </Show>
+              </Button>
+            </Show>
+          }
         />
-        <Show when={pendingDownloadCount() > 0}>
-          <Button
-            class="module-page__download-all"
-            aria-label={
-              installingAll()
-                ? `${bulkDownloadLabel()}: ${bulkDownloadPercent()}%`
-                : `${bulkDownloadLabel()}: ${pendingDownloadCount()}${bulkDownloadSizeLabel()}`
-            }
-            disabled={installingAll()}
-            icon={
-              <Show when={!installingAll()} fallback={<span class="module-action-spinner" />}>
-                <AppGlyph name="download" />
-              </Show>
-            }
-            onClick={openBulkDownload}
-          >
-            {installingAll()
-              ? `Скачиваем ${bulkDownloadPercent()}%`
-              : `Скачать всё${bulkDownloadSizeLabel()}`}
-          </Button>
-        </Show>
       </Show>
       <Show
         when={

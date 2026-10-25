@@ -100,7 +100,6 @@ import { hideUsefulFeatures, USEFUL_FEATURES_NOTICE_ID } from '@/features/search
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { settingsPageHash } from '@/features/settings/settings-routing';
 import { FeatureTour } from '@/features/setup/FeatureTour';
-import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -262,15 +261,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       group.count > 0
     );
   });
-  const [toolAgeFilter, setToolAgeFilter] = createToolAgeFilter();
+  // Search lists every tool; each card's age badge says whom it is for (owner 2026-10-25: no
+  // «Дети / Взрослые / Все» filter inside search).
   const visibleTools = createMemo(() =>
-    matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery(), toolAgeFilter()),
-  );
-  /** Tools the age choice hides from the current list: a short list is not a short catalog. */
-  const hiddenByAge = createMemo(
-    () =>
-      matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery()).length -
-      visibleTools().length,
+    matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery()),
   );
   const visibleDocuments = createMemo(() =>
     documents().filter(
@@ -320,9 +314,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             hideDocuments={scope() === 'diagnosis' || icd11Missing()}
             documents={catalogDocuments()}
             tools={visibleTools()}
-            ageFilter={toolAgeFilter()}
-            onAgeFilter={setToolAgeFilter}
-            hiddenByAge={hiddenByAge()}
             onOpenTool={() => {
               if (catalogQuery().trim())
                 appendSearchHistory(catalogQuery(), scope(), visibleTools().length, specialty());

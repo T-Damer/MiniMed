@@ -5,11 +5,14 @@ import { toolAgeBadge } from '@/features/tools/tool-age-scope';
 import '@/features/tools/tool-age.css';
 
 /** Who the tool is for, in a few words; the full statement it rests on is the tooltip. */
-export function ToolAgeBadge(props: { readonly scope: ToolAgeScope }): JSX.Element {
+export function ToolAgeBadge(props: {
+  readonly scope: ToolAgeScope;
+  readonly class?: string;
+}): JSX.Element {
   const badge = () => toolAgeBadge(props.scope);
   return (
     <span
-      class={`tool-age-badge tool-age-badge--${badge().tone}`}
+      class={`tool-age-badge tool-age-badge--${badge().tone}${props.class ? ` ${props.class}` : ''}`}
       title={props.scope.basis}
       data-age-tone={badge().tone}
     >

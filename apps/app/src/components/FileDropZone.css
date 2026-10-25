@@ -17,7 +17,7 @@
 }
 
 .ui-file-drop-zone:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .ui-file-drop-zone:focus-within {

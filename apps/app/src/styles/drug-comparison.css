@@ -68,7 +68,7 @@
 }
 
 .drug-comparison__candidate:hover:not(:disabled) {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .drug-comparison__candidate:disabled {
@@ -146,7 +146,7 @@
 
 .drug-comparison__item-remove:hover,
 .drug-comparison__remove:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
   color: var(--theme-text);
 }
 

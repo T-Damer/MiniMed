@@ -37,7 +37,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .item-bookmark:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

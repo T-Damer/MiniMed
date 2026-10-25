@@ -42,6 +42,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
             />
           </Show>
         }
+        parent={props.showBack ? { label: 'Настройки', href: props.backHash } : undefined}
         icon={
           <span class={`settings-tile settings-tile--small settings-tile--${props.tone}`}>
             <AppGlyph name={props.icon} class="settings-tile__glyph" />

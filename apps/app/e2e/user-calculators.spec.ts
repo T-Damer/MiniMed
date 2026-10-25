@@ -330,12 +330,8 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await expect(
     catalog.filter({ hasText: 'Индекс массы (копия)' }).locator('.tool-age-badge'),
   ).toHaveText('Дети от 2 лет');
-  await ageFilter(page, 'Взрослые');
-  await expect(catalog.filter({ hasText: 'Индекс массы (копия)' })).toHaveCount(0);
   await page.getByTestId('search-input').fill('');
-  // The create card is an action: no age choice hides it.
   await expect(catalog.filter({ hasText: 'Создать свой калькулятор' })).toBeVisible();
-  await ageFilter(page, 'Все');
 
   // Delete asks first; cancelling keeps it.
   await goTo(page, '#/calculators/mine');

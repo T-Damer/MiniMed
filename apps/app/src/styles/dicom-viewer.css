@@ -12,6 +12,7 @@
   --theme-accent: #82a88d;
   --theme-accent-contrast: #111713;
   --theme-accent-soft: rgb(130 168 141 / 16%);
+  --theme-hover-surface: var(--theme-accent-soft);
   position: relative;
   display: grid;
   width: 100%;

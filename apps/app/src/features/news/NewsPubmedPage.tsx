@@ -148,6 +148,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
             }}
           />
         }
+        parent={{ label: 'Лента', href: NEWS_ROOT_HASH }}
         title={<h1 class="news-pubmed__page-title">Поиск в PubMed</h1>}
         help={
           <>

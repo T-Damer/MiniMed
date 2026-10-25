@@ -254,7 +254,7 @@
   .document-overlay-outline-section-button--active:hover {
     transform: none;
     color: var(--theme-link);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
     border-color: var(--theme-accent);
     box-shadow: none;
   }
@@ -933,6 +933,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
   --theme-border: rgb(255 255 255 / 22%);
   --theme-accent: #f1ece0;
   --theme-accent-soft: rgb(255 255 255 / 24%);
+  --theme-hover-surface: var(--theme-accent-soft);
   border-bottom-color: rgb(255 255 255 / 10%);
   background: transparent;
 }

@@ -105,9 +105,15 @@
     box-shadow: var(--theme-primary-hover-shadow);
   }
 
+  /* Secondary and icon buttons brighten their own face; no shadow. */
+  .ui-button--secondary:hover:not(:disabled),
+  .ui-button--icon:hover:not(:disabled) {
+    background: var(--theme-hover-surface);
+  }
+
   /* A quiet button has no surface, so hover shows a soft one instead of a lift and shadow. */
   .ui-button--quiet:hover:not(:disabled) {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 
   .ui-button--danger:hover {

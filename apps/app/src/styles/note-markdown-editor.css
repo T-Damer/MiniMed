@@ -166,7 +166,7 @@ body:has(.note-markdown-editor--fullscreen) {
 
 @media (hover: hover) and (pointer: fine) {
   .note-markdown-editor__mention:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
     box-shadow: none;
     transform: none;
   }
@@ -718,7 +718,7 @@ body:has(.note-markdown-editor--fullscreen) {
 
 @media (hover: hover) and (pointer: fine) {
   .note-markdown-editor__slash-command:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
     box-shadow: none;
     transform: none;
   }
@@ -726,7 +726,7 @@ body:has(.note-markdown-editor--fullscreen) {
 
 @media (hover: hover) and (pointer: fine) {
   .note-markdown-editor__mention:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

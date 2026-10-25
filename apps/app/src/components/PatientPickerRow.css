@@ -97,7 +97,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .patient-picker-dialog__option:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

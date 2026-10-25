@@ -296,7 +296,7 @@
 @media (hover: hover) and (pointer: fine) {
   .patient-notes-templates:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -1372,7 +1372,7 @@
 @media (hover: hover) and (pointer: fine) {
   .note-file-block:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
     transform: none;
     box-shadow: none;
   }

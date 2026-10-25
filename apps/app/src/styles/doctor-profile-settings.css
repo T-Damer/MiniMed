@@ -28,7 +28,7 @@
 @media (hover: hover) and (pointer: fine) {
   .doctor-profile-settings__help-button:hover {
     color: var(--theme-text);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

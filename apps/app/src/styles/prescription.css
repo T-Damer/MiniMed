@@ -109,7 +109,7 @@
 }
 
 .prescription__candidate:hover:not(:disabled) {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .prescription__candidate:disabled {

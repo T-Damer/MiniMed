@@ -59,6 +59,8 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
   const [entries, setEntries] = createSignal<readonly SearchHistoryEntry[]>([]);
   const [open, setOpen] = createSignal(false);
   const [closing, setClosing] = createSignal(false);
+  // «Очистить историю?» replaces the footer row until the doctor confirms or cancels.
+  const [confirmClear, setConfirmClear] = createSignal(false);
   const swipe = createHorizontalGestureManager({
     thresholdPx: 64,
     axisLockPx: 9,
@@ -76,6 +78,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
     closeTimer = setTimeout(() => {
       setOpen(false);
       setClosing(false);
+      setConfirmClear(false);
     }, CLOSE_DURATION_MS);
   };
   const handleKeyDown = (event: KeyboardEvent): void => {
@@ -241,32 +244,67 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                 </Show>
               </div>
 
-              <footer class="search-history-panel-footer">
-                <p class="search-history-panel-footer__meta">
-                  <span class="search-history-panel-footer__version">v{RELEASE_VERSION}</span>
-                  <span aria-hidden="true">·</span>
-                  <a
-                    class="search-history-panel-footer__link"
-                    href={GITHUB_REPOSITORY_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    GitHub
-                  </a>
-                </p>
-                <Show when={entries().length > 0}>
-                  <button
-                    type="button"
-                    class="search-history-panel-footer__clear"
-                    aria-label="Очистить историю"
-                    title="Очистить историю"
-                    onClick={() => {
-                      clearSearchHistory();
-                      setEntries([]);
-                    }}
-                  >
-                    <AppGlyph name="trash" class="search-history-panel-footer__clear-icon" />
-                  </button>
+              <footer
+                class="search-history-panel-footer"
+                classList={{ 'search-history-panel-footer--confirm': confirmClear() }}
+              >
+                <Show
+                  when={confirmClear()}
+                  fallback={
+                    <>
+                      <p class="search-history-panel-footer__meta">
+                        <span class="search-history-panel-footer__version">v{RELEASE_VERSION}</span>
+                        <span aria-hidden="true">·</span>
+                        <a
+                          class="search-history-panel-footer__link"
+                          href={GITHUB_REPOSITORY_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          GitHub
+                        </a>
+                      </p>
+                      <Show when={entries().length > 0}>
+                        <button
+                          type="button"
+                          class="search-history-panel-footer__button search-history-panel-footer__button--clear"
+                          aria-label="Очистить историю"
+                          title="Очистить историю"
+                          onClick={() => setConfirmClear(true)}
+                        >
+                          <AppGlyph name="trash" class="search-history-panel-footer__icon" />
+                        </button>
+                      </Show>
+                    </>
+                  }
+                >
+                  <p class="search-history-panel-footer__question" role="status">
+                    Очистить историю?
+                  </p>
+                  <div class="search-history-panel-footer__actions">
+                    <button
+                      type="button"
+                      class="search-history-panel-footer__button"
+                      aria-label="Не очищать"
+                      title="Не очищать"
+                      onClick={() => setConfirmClear(false)}
+                    >
+                      <AppGlyph name="close" class="search-history-panel-footer__icon" />
+                    </button>
+                    <button
+                      type="button"
+                      class="search-history-panel-footer__button search-history-panel-footer__button--confirm"
+                      aria-label="Да, очистить"
+                      title="Да, очистить"
+                      onClick={() => {
+                        clearSearchHistory();
+                        setEntries([]);
+                        setConfirmClear(false);
+                      }}
+                    >
+                      <AppGlyph name="check" class="search-history-panel-footer__icon" />
+                    </button>
+                  </div>
                 </Show>
               </footer>
             </aside>

@@ -638,7 +638,7 @@
 
   button.document-overlay-outline-item--active:hover {
     color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

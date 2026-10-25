@@ -9,7 +9,7 @@
 }
 
 .interaction-suggestion:hover {
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .interaction-suggestion__icon,

@@ -129,7 +129,7 @@
 @media (hover: hover) and (pointer: fine) {
   .knowledge-subroute-links a:hover {
     border-color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -1400,6 +1400,12 @@
 }
 
 .module-page__download-all {
-  align-self: flex-start;
-  margin: 0 0 0.875rem;
+  white-space: nowrap;
+}
+
+/* On a phone the header row keeps only the icon and the size; the words come back when it fits. */
+@media (max-width: 30rem) {
+  .module-page__download-all-label {
+    display: none;
+  }
 }

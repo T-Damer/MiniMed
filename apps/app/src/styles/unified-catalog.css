@@ -92,7 +92,13 @@
   background: transparent;
   text-align: left;
   font-size: 0.875rem;
+  text-decoration: underline transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2rem;
   cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    text-decoration-color var(--motion-fast) var(--motion-ease);
 }
 .search-section-menu__option--child {
   padding-inline-start: 0.75rem;
@@ -149,10 +155,11 @@
   outline: 0.125rem solid var(--stamp);
   outline-offset: -0.125rem;
 }
+/* Rows answer hover with ink, not a box: the label takes the accent colour and an underline. */
 @media (hover: hover) and (pointer: fine) {
-  .search-section-menu__row:hover,
-  .search-section-menu__expand:hover {
-    background: var(--theme-accent-soft);
+  .search-section-menu__option:hover {
+    color: var(--theme-accent);
+    text-decoration-color: currentColor;
   }
 }
 
@@ -180,11 +187,15 @@
   outline-offset: 2px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .search-source-picker:hover,
-  .search-section-menu__expand:hover {
+  .search-source-picker:hover {
     color: var(--theme-accent-contrast);
     background: var(--theme-accent);
     border-color: var(--theme-accent);
+  }
+
+  .search-section-menu__expand:hover {
+    color: var(--theme-accent);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -270,7 +281,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .search-section-download:hover:enabled {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -335,7 +346,15 @@
 
 .unified-catalog__tool-shell {
   position: relative;
+  /* A grid of one, so the card fills the row's height and neighbours line up. */
+  display: grid;
   min-width: 0;
+}
+
+/* The age tag sits with the text at the card's start, at the bottom of a taller neighbour's row. */
+.tool-age-badge.unified-catalog__age-badge {
+  align-self: flex-start;
+  margin-top: auto;
 }
 
 .unified-catalog__tool-pins {
@@ -346,5 +365,4 @@
   display: flex;
   gap: 0.1rem;
   border-radius: var(--theme-radius-control);
-  background: color-mix(in srgb, var(--theme-surface-raised) 85%, transparent);
 }

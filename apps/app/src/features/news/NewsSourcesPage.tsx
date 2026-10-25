@@ -163,6 +163,7 @@ export function NewsSourcesPage(props: {
             }}
           />
         }
+        parent={{ label: 'Лента', href: NEWS_ROOT_HASH }}
         title={<h1 class="news-sources__title">Источники</h1>}
         help={
           <>

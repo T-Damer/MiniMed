@@ -375,7 +375,7 @@ html.calculator-route-open body {
 
 .calculator-section-back:hover {
   border-color: var(--theme-accent);
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .calculator-section-back-icon {

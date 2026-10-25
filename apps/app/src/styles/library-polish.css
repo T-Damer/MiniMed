@@ -127,7 +127,7 @@
     .user-library-view-toggle__button--on
   ):hover {
     color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 
@@ -266,7 +266,7 @@
 
   .user-library-breadcrumbs__button:hover {
     color: var(--theme-accent);
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 
   .user-library-folder-card__open:hover {

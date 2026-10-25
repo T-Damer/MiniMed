@@ -458,7 +458,7 @@
   .tool-pin__star:hover,
   .tool-pin__collections:hover,
   .tool-collection-menu__option:hover {
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

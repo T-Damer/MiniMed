@@ -153,7 +153,7 @@
 
 .assessment-specialty-card:hover:not(:disabled) {
   border-color: var(--theme-accent);
-  background: var(--theme-accent-soft);
+  background: var(--theme-hover-surface);
 }
 
 .assessment-specialty-card:disabled,
@@ -547,7 +547,7 @@
   .assessment-back-chooser__card:hover {
     transform: none;
     border-color: color-mix(in srgb, var(--theme-link) 35%, var(--theme-border));
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
     box-shadow: none;
   }
 }
@@ -873,7 +873,7 @@
 @media (hover: hover) and (pointer: fine) {
   .assessment-response-options__option:not(.assessment-response-options__option--selected):hover {
     border-color: color-mix(in srgb, var(--theme-accent) 35%, var(--theme-border));
-    background: var(--theme-accent-soft);
+    background: var(--theme-hover-surface);
   }
 }
 

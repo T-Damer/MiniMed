@@ -47,7 +47,8 @@ function matchesDeleteSelector(node: MockNode): boolean {
     node.className === 'search-history-panel-clear' ||
     node.className === 'module-remove-button' ||
     node.ariaLabel?.startsWith('Удалить') === true ||
-    node.ariaLabel === 'Очистить историю'
+    node.ariaLabel === 'Очистить историю' ||
+    node.ariaLabel === 'Да, очистить'
   );
 }
 
@@ -170,6 +171,7 @@ function nodeMatchesSelector(node: MockNode, selector: string): boolean {
   if (selector === '.note-reminder-fields__control')
     return node.className === 'note-reminder-fields__control';
   if (selector === '[aria-label="Очистить историю"]') return node.ariaLabel === 'Очистить историю';
+  if (selector === '[aria-label="Да, очистить"]') return node.ariaLabel === 'Да, очистить';
   if (selector === '[aria-label="Закрыть историю"]') return node.ariaLabel === 'Закрыть историю';
   if (selector === '[aria-label="Закрыть источник"]') return node.ariaLabel === 'Закрыть источник';
   if (selector.startsWith('[aria-label^="Удалить"]'))

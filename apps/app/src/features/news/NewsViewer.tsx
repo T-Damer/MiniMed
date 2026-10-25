@@ -411,6 +411,7 @@ export function NewsViewer(props: {
             }}
           />
         }
+        parent={{ label: 'Лента', href: NEWS_ROOT_HASH }}
         title={
           <span class="news-viewer__source">
             <NewsAvatar size="xs" look={look()} glyph={isPubmed() ? 'search' : undefined} />
