@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13447034220,
-      "modified": "2026-10-19"
+      "bytes": 13496556237,
+      "modified": "2026-10-24"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -178,7 +178,7 @@
       "class": "RELEASED",
       "producer": "released clinical-json snapshot databases",
       "consumers": [
-        "bun run content:core:build (scripts/build-core.mjs) (clinical-source-snapshot primary)"
+        "Earlier cores up to 0.6.57 (clinical-source-snapshot primary); core 0.6.64 reads the published modules instead"
       ],
       "release": "clinical-json-2026.07.27-13991c1feee5 (744/744) + branch datasets/clinical-json-2026.07.27-13991c1feee5",
       "bytes": 2072457216,
@@ -189,7 +189,7 @@
       "class": "REBUILDABLE",
       "producer": "bun run content:build:clinical:documents",
       "consumers": [
-        "bun run content:core:build (scripts/build-core.mjs) (clinical-medication-relations, snapshot fallback)"
+        "bun run content:core:build (scripts/build-core.mjs) (clinical-source-snapshot keyword fallback: 940_1, 1016_1, 406_3, 801_1)"
       ],
       "rebuild": "bun run content:build:clinical:documents -- --all --allow-partial --force (hours, from data/raw/official-clinical-documents)",
       "bytes": 3054238099,
@@ -202,7 +202,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 91705612,
-      "modified": "2026-10-08"
+      "modified": "2026-10-25"
     },
     {
       "path": "data/build/core-pointers-base.db",
@@ -211,7 +211,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 267624448,
-      "modified": "2026-10-08"
+      "modified": "2026-10-25"
     },
     {
       "path": "data/build/core-medication-pointers-pinned.db",
@@ -219,8 +219,8 @@
       "producer": "tools/ingest/scripts/pin_medication_pointers.py",
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~14 s)",
-      "bytes": 65372160,
-      "modified": "2026-10-08"
+      "bytes": 65306624,
+      "modified": "2026-10-25"
     },
     {
       "path": "data/build/diseases.db",
@@ -378,8 +378,8 @@
       "consumers": ["app DEV/build", ".github/workflows/*"],
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
-      "bytes": 445677568,
-      "modified": "2026-10-08"
+      "bytes": 450084864,
+      "modified": "2026-10-25"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -462,10 +462,10 @@
       "class": "REBUILDABLE",
       "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
       "consumers": ["Core rebuild and release qualification"],
-      "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
-      "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
-      "bytes": 2144260096,
-      "modified": "2026-10-02"
+      "rebuild": "CORE_BUILD_VERSION=0.6.64 CORE_BUILT_AT=2026-10-25T12:00:00Z bun run content:core:build",
+      "note": "Build input of core 0.6.64: the 774 published KR-PARSE module databases, 4 of them (940_1, 1016_1, 406_3, 801_1) from the older parse for their keywords.",
+      "bytes": 1737990144,
+      "modified": "2026-10-25"
     },
     {
       "path": "output/module-zstd-2026-10-01",
@@ -587,17 +587,6 @@
       "modified": "2026-10-02"
     },
     {
-      "path": "output/release-core-0.6.47",
-      "class": "RELEASED",
-      "producer": "scripts/build-core.mjs finalize, gzip -9 -n, scripts/write-core-report.mjs",
-      "consumers": ["Offline rollback to 0.6.47 (the 0.6.45 copy was removed 2026-10-08)"],
-      "rebuild": "gh release download core-0.6.47",
-      "note": "Previous core, kept for rollback while 0.6.57 is the current core. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 525375692,
-      "modified": "2026-10-14",
-      "release": "core-0.6.47"
-    },
-    {
       "path": "data/build/core.0.6.47.db",
       "class": "REBUILDABLE",
       "producer": "scripts/build-core.mjs stage finalize",
@@ -609,18 +598,6 @@
       "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
       "note": "Build output of the published core 0.6.47 (same bytes as the release asset).",
       "bytes": 441597952,
-      "modified": "2026-10-02"
-    },
-    {
-      "path": "data/build/core-clinical-new-editions",
-      "class": "REBUILDABLE",
-      "producer": "scripts/build-core.mjs stage clinical-new-edition-sources (decodes data/build/official-clinical-2026-10-02/zst)",
-      "consumers": [
-        "scripts/build-core.mjs (clinical-source-snapshot, clinical-medication-relations)"
-      ],
-      "rebuild": "bun run content:core:build -- --stage=clinical-new-edition-sources",
-      "note": "Decoded databases of the 30 editions published after 2026-07-27.",
-      "bytes": 75894784,
       "modified": "2026-10-02"
     },
     {
@@ -654,13 +631,9 @@
       "path": "output/release-core-0.6.57",
       "class": "RELEASED",
       "producer": "scripts/build-core.mjs finalize, scripts/compress-module-index.mjs (gzip -9), scripts/write-core-report.mjs",
-      "consumers": [
-        "Browser bundled core (content/bundled/core.db.gz)",
-        "Android first-launch download (core.db.gz)",
-        "Offline rollback to 0.6.47 is output/release-core-0.6.47"
-      ],
+      "consumers": ["Offline rollback to core 0.6.57 while 0.6.64 is the current core"],
       "rebuild": "gh release download core-0.6.57",
-      "note": "Current core: documents identical to 0.6.47, identity index points at dictionary 2026.10.08. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
+      "note": "Previous core, kept for rollback (output/release-core-0.6.47 removed 2026-10-25; the release stays on GitHub). Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 529122413,
       "modified": "2026-10-14",
       "release": "core-0.6.57"
@@ -678,6 +651,35 @@
       "note": "Build output of the published core 0.6.57 (same bytes as the release asset).",
       "bytes": 445677568,
       "modified": "2026-10-08"
+    },
+    {
+      "path": "output/release-core-0.6.64",
+      "class": "RELEASED",
+      "producer": "scripts/build-core.mjs, Node zlib gzip level 9, scripts/write-core-report.mjs",
+      "consumers": [
+        "Browser bundled core (content/bundled/core.db.gz)",
+        "Android first-launch download (core.db.gz)",
+        "Offline rollback to 0.6.57 is output/release-core-0.6.57"
+      ],
+      "rebuild": "gh release download core-0.6.64",
+      "note": "Current core (CORE3): КР keywords/aliases/definitions/medication links from the published KR-PARSE modules, ЕСКЛП dosage repair (DOSE1).",
+      "bytes": 535047818,
+      "modified": "2026-10-25",
+      "release": "core-0.6.64"
+    },
+    {
+      "path": "data/build/core.0.6.64.db",
+      "class": "REBUILDABLE",
+      "producer": "scripts/build-core.mjs stage finalize",
+      "consumers": [
+        "output/release-core-0.6.64",
+        "benchmark:real:release --core=",
+        "apps/app/public/content/core.db"
+      ],
+      "rebuild": "CORE_BUILD_VERSION=0.6.64 CORE_BUILT_AT=2026-10-25T12:00:00Z bun run content:core:build",
+      "note": "Build output of the published core 0.6.64 (same bytes as the release asset).",
+      "bytes": 450084864,
+      "modified": "2026-10-25"
     },
     {
       "path": "output/module-zstd-kd1-2026-10-11",

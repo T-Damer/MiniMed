@@ -192,7 +192,8 @@ def _safe_alias(value: str) -> str | None:
 
 
 def _safe_keyword(value: str) -> str | None:
-    cleaned = re.sub(r"^(?:[•●▪◦]|o)\s+", "", _clean(value), flags=re.IGNORECASE)
+    # A bullet or the number of an ordered list item («1. дети») is markup, not the keyword.
+    cleaned = re.sub(r"^(?:[•●▪◦]|o|\d{1,3}[.)])\s+", "", _clean(value), flags=re.IGNORECASE)
     cleaned = cleaned.lstrip("-–—•●▪◦* ").strip(" ,;:–—-")
     if not cleaned or len(cleaned) > _MAX_KEYWORD_LENGTH:
         return None

@@ -171,6 +171,7 @@ def test_extracts_keyword_lists_without_toc_or_abbreviation_leakage(tmp_path: Pa
         _record("32_2", "Синдром отмены психоактивных веществ"),
         _record("238_2", "Саркома Капоши"),
         _record("484_2", "Системная красная волчанка"),
+        _record("543_3", "Серповидно-клеточные нарушения"),
     ]
     ledger_path.write_text(
         json.dumps(
@@ -243,6 +244,17 @@ def test_extracts_keyword_lists_without_toc_or_abbreviation_leakage(tmp_path: Pa
             )
         ],
     )
+    _write_database(
+        databases / "clinical-543_3-clinical-fixture.db",
+        official_id="543_3",
+        sections=[
+            (
+                "section.keywords",
+                "Ключевые слова",
+                "1. дети\n\n2. серповидно-клеточная анемия\n\n3. болевой криз",
+            )
+        ],
+    )
 
     output = tmp_path / "enriched.json"
     report_path = tmp_path / "aliases-report.json"
@@ -263,6 +275,7 @@ def test_extracts_keyword_lists_without_toc_or_abbreviation_leakage(tmp_path: Pa
         "цитостатиками и иммунодепрессантами)",
     ]
     assert by_id["484_2"]["keywords"] == []
+    assert by_id["543_3"]["keywords"] == ["дети", "серповидно-клеточная анемия", "болевой криз"]
 
     saved_report = json.loads(report_path.read_text(encoding="utf-8"))
     source_keyword = next(

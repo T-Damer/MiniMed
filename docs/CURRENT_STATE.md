@@ -20,6 +20,47 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Discovery core 0.6.64 — 2026-10-25 (STATE CORE3)
+
+Published as the prerelease `core-0.6.64` (`core.db.gz`, `MiniMed-0.6.64-core.db`, `core-report.json`,
+`core.manifest.json`; `core-0.6.57` stays for rollback). Built with `CORE_BUILD_VERSION=0.6.64
+CORE_BUILT_AT=2026-10-25T12:00:00Z bun run content:core:build`. `content/bundled/core.db.gz`,
+`apps/app/public/content/core-report.json` and `ANDROID_CORE_DOWNLOAD` point at it; db sha256 `1e25041f…`,
+archive `9e657009…` (77 454 008 B, Node gzip level 9), 450 084 864 B, 16 KiB pages, integrity ok, 0 FK violations.
+
+- **КР pointers read the published modules.** `scripts/build-core.mjs` stage `clinical-module-sources` decodes the
+  774 КР modules of the catalog (`kr-parse.2026.10.25`, local copy `output/module-zstd-json-2026-10-25`) and checks
+  every file on disk against the catalog's decoded checksum; keywords, aliases, definitions and medication
+  relations come from that text instead of the 2026-07-27 parse. The four КР that yield no keywords from the
+  module (940_1, 1016_1, 406_3, 801_1, as in the July parse) take theirs from the older
+  `official-clinical-documents/databases` (reported by the snapshot). The stages `clinical-new-edition-sources`
+  and the 2026-07-27 checksum gate are gone.
+- **Result against 0.6.57.** Same 20 002 documents, 57 264 sections, 57 276 chunks. КР → ЕСКЛП МНН links
+  1 206 → 4 356 on 291 → 537 recommendations (the KR-PARSE relations extractor); keywords unchanged (1 256 on
+  166); 15 definitions follow the source text («мм²», «10⁹/л», «37⁰-41⁶ недели» instead of «370-416»); declared
+  aliases of 497_2, 516_3 gained the abbreviation pairs (МП, МБ, ХВГС), 944_1 lost «Кандидоз»; aliases
+  62 960 → 62 965. The DOSE1 dosage repair reaches the pointers: «(НЕ УКАЗАНО)» left 1 872 medication chunks
+  (one alias of ИНДИЯ [111IN] ХЛОРИД still carries it). The identity index has 44 265 names / 38 590 targets
+  (was 44 269 / 38 592): it lists a bundled-pack document only when its checksum matches the catalog module,
+  and the reference/regulatory packs were rebuilt after 10-08, so WHO growth, CKD-EPI 2021, 192н/302н left it
+  and 323-ФЗ and the pediatric orders list joined (search still finds all of them in the bundled packs).
+- **Fix on the way:** ordered-list numbers no longer become keywords («1. дети» in 543_3 after KR-PARSE
+  numbered the lists; `clinical_aliases._safe_keyword`, test). The first decode wrote Bun's stdout buffer
+  with `writeFile` and 7 of 774 files got a damaged SQLite header although the buffer's checksum passed, so
+  `zstd` now writes the file and the file is checked.
+- **Benchmarks.** `benchmark:all` within tolerance. `benchmark:real:release` within tolerance, baseline
+  unchanged: lookup R@1 0.803 → 0.787, MRR 0.855 → 0.848, R@5 0.934 unchanged — one query, «Амоксициллин
+  таблетки 500 мг регистрационное удостоверение», now ranks the amoxicillin + clavulanic acid card above the
+  amoxicillin card (2nd); the amoxicillin pointers are unchanged apart from two «(НЕ УКАЗАНО)» kit rows, so the
+  shift is a near tie (measured against 0.6.57 on the same packs and modules). Demo and cases unchanged.
+  `packages/test-fixtures` core slice regenerated.
+- **Published and checked:** the release asset `core.db.gz` downloaded from GitHub has the recorded transfer
+  checksum and decodes to the recorded database checksum; `content:restore:core` restores it.
+
+**The app release** (0.6.64) carries the new `ANDROID_CORE_DOWNLOAD`; until then Android installs keep 0.6.57
+and the Pages build serves the new bundled core after the push. **Not verified:** an Android download and
+install of the new core on a device or emulator, a physician review of any text.
+
 ## КР parser: superscripts, cell lines, text after images, list markers — 2026-10-25 (STATE KR-PARSE)
 
 The doctor-flow QA (`docs/research/qa-doctor-flows-2026-10-25.md`) found the КР JSON parser
@@ -74,9 +115,8 @@ a KR highlight or remembered reading position falls back to the document top (bo
 - `section-manifest.json` (`bun run content:sections:manifest`, `--check` current): sections now name
   more drug groups (e.g. Кардиология 8 → 11, Стоматология 0 → 7), so a section download includes more
   ГРЛС groups than before.
-- Not affected: dose rules, interaction, safety and comparison indexes (drug modules only). Not rebuilt:
-  the bundled core — its КР definition cards and aliases (`clinical-aliases`) still come from the
-  older text; that waits for the next core release.
+- Not affected: dose rules, interaction, safety and comparison indexes (drug modules only). The bundled
+  core took the new text in core 0.6.64 (see «Discovery core 0.6.64»).
 
 Not fixed here: drug-instruction PDF tables and merged leaflets, NFD «й» in the source JSON, inline
 abbreviations, definition cards (see the QA report). Not verified: a phone.
@@ -137,8 +177,8 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
    «передач: 4 из 3»; the downloads page fetches the sqlite wasm ~30× in 12 s.
 5. **Interaction checker**: no suggestions and no loading line for 14–30 s while its index loads.
 6. **Drug card**: mixed decimal separators («0.58 мг» vs «0,58 мг») in «Доступные дозировки».
-7. **Core rebuild** (`content:core:build`) to pick up DOSE1's pointer repair (2 815 titles, «(НЕ УКАЗАНО)» in
-   1 872 chunks); the app hides them meanwhile. Refresh `packages/test-fixtures` core-slice titles.
+7. ~~**Core rebuild** to pick up DOSE1's pointer repair~~ — done in core 0.6.64 (2026-10-25), core slice
+   refreshed.
 8. **ЕСКЛП source**: the str1 modules were repaired from the published packs (source archive not on this
    machine); the next ЕСКЛП refresh rebuilds them from source with the fixed builder.
 9. **Owner decisions (2026-10-15)**: МКБ-11 gets its own search section (expected to come into use in Russia

@@ -60,8 +60,8 @@
 // Clinical editions (2026-10-02 registry refresh): the clinical track covers every current
 // edition of the registry plus the earlier editions the core already pointed to. `--previous-source`
 // keeps an edition that left the current catalog as a `superseded` pointer linked to its
-// successor (`supersededByDocumentId`), and the successor lists the codes it replaces. The 30 new
-// editions' databases are decoded from their published zstd modules (checksum-verified) because
+// successor (`supersededByDocumentId`), and the successor lists the codes it replaces. Since core
+// 0.6.64 every КР database is decoded from its published zstd module (checksum-verified), because
 // the clinical keywords/aliases/definitions/medication links are read from the databases.
 //
 // Every stage is hashed (inputs) and skipped when its recorded input hash and output file are
@@ -338,66 +338,17 @@ const STRENGTH_REPAIRS = resolve(
   root,
   'tools/ingest/scripts/esklp-strength-repairs-2026-08-28.json',
 );
-const CLINICAL_SOURCE_MANIFEST = resolve(
-  root,
-  'tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json',
-);
-const CLINICAL_SOURCE_DIR = resolve(
-  root,
-  'data/build/official-clinical-documents-2026-07-27/databases',
-);
-
-// Verifies data/build/official-clinical-documents-2026-07-27/databases against the committed
-// per-file sha256 manifest before every 'clinical-ledger-enriched' run, so a missing directory,
-// a partial copy, or a silently-swapped file fails loudly with a clear remediation message
-// instead of quietly reproducing the "163 vs 6 keywords" regression this stage exists to fix
-// (see the long comment on that stage and released-clinical-source-databases-2026-07-27.json's
-// own "description" field for the full trace).
-async function verifyClinicalSourceDatabases() {
-  const manifest = JSON.parse(await readFile(CLINICAL_SOURCE_MANIFEST, 'utf8'));
-  const expected = manifest.checksums;
-  const expectedCount = Object.keys(expected).length;
-  if (!existsSync(CLINICAL_SOURCE_DIR)) {
-    throw new Error(
-      `clinical-ledger-enriched: missing ${CLINICAL_SOURCE_DIR}. Restore the ${expectedCount} ` +
-        `files listed in ${CLINICAL_SOURCE_MANIFEST} (sourcePath: ${manifest.sourcePath}) before ` +
-        "re-running -- this directory backs the released core.db's clinical keywords/aliases " +
-        'and is not derivable from data/build/official-clinical-documents/databases.',
-    );
-  }
-  const present = new Set(
-    readdirSync(CLINICAL_SOURCE_DIR)
-      .filter((name) => name.endsWith('.db'))
-      .map((name) => name.replace(/\.db$/, '')),
-  );
-  const missing = [];
-  const mismatched = [];
-  for (const [officialId, expectedHash] of Object.entries(expected)) {
-    const fileName = `clinical-${officialId}-clinical-json-${manifest.sourceDateSuffix}.db`;
-    const filePath = resolve(CLINICAL_SOURCE_DIR, fileName);
-    if (!existsSync(filePath)) {
-      missing.push(officialId);
-      continue;
-    }
-    const actualHash = sha256(await readFile(filePath));
-    if (actualHash !== expectedHash) mismatched.push(officialId);
-  }
-  if (missing.length || mismatched.length) {
-    throw new Error(
-      `clinical-ledger-enriched: ${CLINICAL_SOURCE_DIR} does not match ` +
-        `${CLINICAL_SOURCE_MANIFEST} -- ${missing.length} missing, ${mismatched.length} ` +
-        `checksum mismatches (e.g. ${[...missing, ...mismatched].slice(0, 5).join(', ')}). ` +
-        'Restore the exact committed batch rather than continuing with unverified input.',
-    );
-  }
-  if (present.size !== expectedCount) {
-    throw new Error(
-      `clinical-ledger-enriched: ${CLINICAL_SOURCE_DIR} has ${present.size} .db files, expected ` +
-        `${expectedCount} from ${CLINICAL_SOURCE_MANIFEST}. Remove any extra/stale files before ` +
-        're-running.',
-    );
-  }
-}
+// The published КР modules (catalog `kr-parse.2026.10.25`) are the clinical source: the enrichment
+// reads keywords, aliases, definitions and medication relations from the same text the reader
+// shows. Their local copy (docs/data-ledger.json) is decoded and checked against the catalog's
+// decoded checksums. Until core 0.6.57 the source was a 2026-07-27 parse
+// (`released-clinical-source-databases-2026-07-27.json`), kept for that history only.
+const CLINICAL_MODULE_PREFIX = 'minimed.clinical.recommendation.';
+const CLINICAL_MODULE_ZST_DIRECTORY = resolve(root, 'output/module-zstd-json-2026-10-25');
+const CLINICAL_MODULE_DATABASES = resolve(buildDir, 'core-clinical-modules/databases');
+// An older parse of the same editions; the snapshot takes a document from it only where the
+// module yields no keywords and this file does (940_1, 1016_1, 406_3, 801_1).
+const CLINICAL_KEYWORD_FALLBACK = resolve(buildDir, 'official-clinical-documents/databases');
 
 // Registry catalogs: the 2026-10-02 snapshot lists every current edition; the earlier catalog
 // (2026-07-27, 744 editions) lists the 11 editions the registry has since replaced, which the core
@@ -407,8 +358,6 @@ const CLINICAL_CATALOG = resolve(
   'data/raw/official-clinical-registry/2026-10-02/catalog.json',
 );
 const CLINICAL_PREVIOUS_CATALOG = resolve(root, 'data/raw/official-clinical-registry/catalog.json');
-const NEW_EDITION_ZST_DIRECTORY = resolve(buildDir, 'official-clinical-2026-10-02/zst');
-const NEW_EDITION_DATABASES = resolve(buildDir, 'core-clinical-new-editions/databases');
 
 const stages = [
   {
@@ -515,133 +464,103 @@ const stages = [
     },
   },
   {
-    // The 30 editions published after the 2026-07-27 batch exist on this machine only as their
-    // published zstd modules (the built databases were removed after packaging). The clinical
-    // enrichment reads keywords, aliases, definitions and medication relations from per-
-    // recommendation databases, so decode them (every output is checked against the decoded
-    // checksum recorded when the modules were published) into a scratch directory named like
-    // the earlier batches.
-    name: 'clinical-new-edition-sources',
+    name: 'clinical-module-sources',
     deps: [],
     async inputs() {
-      return { zstDirectory: NEW_EDITION_ZST_DIRECTORY };
+      return {
+        catalog: resolve(root, 'apps/app/src/features/modules/catalog.preview.json'),
+        zstDirectory: CLINICAL_MODULE_ZST_DIRECTORY,
+      };
     },
     async outputs() {
-      return [NEW_EDITION_DATABASES];
+      return [CLINICAL_MODULE_DATABASES];
     },
     async execute() {
       const startedAt = Date.now();
-      const report = JSON.parse(
-        await readFile(resolve(NEW_EDITION_ZST_DIRECTORY, 'repack-report.json'), 'utf8'),
+      const catalog = JSON.parse(
+        await readFile(resolve(root, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
       );
-      await rm(NEW_EDITION_DATABASES, { recursive: true, force: true });
-      await mkdir(NEW_EDITION_DATABASES, { recursive: true });
-      for (const file of report.files) {
-        const decoded = spawnSync(
-          'zstd',
-          ['-d', '-c', '--long=26', resolve(NEW_EDITION_ZST_DIRECTORY, file.file)],
-          { maxBuffer: 1 << 30 },
-        );
-        if (decoded.status !== 0) throw new Error(`zstd failed for ${file.file}`);
-        if (sha256(decoded.stdout) !== file.decodedSha256) {
-          throw new Error(`${file.file}: decoded checksum differs from the published module.`);
+      await rm(CLINICAL_MODULE_DATABASES, { recursive: true, force: true });
+      await mkdir(CLINICAL_MODULE_DATABASES, { recursive: true });
+      for (const module of catalog.modules) {
+        if (!module.id.startsWith(CLINICAL_MODULE_PREFIX)) continue;
+        const artifact = module.artifacts.find((item) => item.kind === 'index');
+        const fileName = new URL(artifact.url).pathname.split('/').at(-1);
+        // zstd writes the file itself and the file on disk is checked: a decoded stdout buffer
+        // written with writeFile came out with a damaged header for 7 of 774 modules (Bun 1.2.3).
+        const target = resolve(CLINICAL_MODULE_DATABASES, fileName.replace(/\.zst$/, ''));
+        const decoded = spawnSync('zstd', [
+          '-d',
+          '-q',
+          '--long=27',
+          resolve(CLINICAL_MODULE_ZST_DIRECTORY, fileName),
+          '-o',
+          target,
+        ]);
+        if (decoded.status !== 0) throw new Error(`zstd failed for ${fileName}`);
+        if (sha256(await readFile(target)) !== artifact.decodedSha256) {
+          throw new Error(`${fileName}: decoded checksum differs from the catalog.`);
         }
-        await writeFile(
-          resolve(NEW_EDITION_DATABASES, file.file.replace(/\.zst$/, '')),
-          decoded.stdout,
-        );
       }
       return Date.now() - startedAt;
     },
   },
   {
     name: 'clinical-medication-relations',
-    deps: ['medication-pointers-pinned', 'clinical-new-edition-sources'],
+    deps: ['medication-pointers-pinned', 'clinical-module-sources'],
     async inputs() {
       return {
-        databases: resolve(root, 'data/build/official-clinical-documents/databases'),
-        newEditionDatabases: NEW_EDITION_DATABASES,
+        databases: CLINICAL_MODULE_DATABASES,
         medicationIndex: resolve(buildDir, 'core-medication-pointers-pinned.db'),
+        extractor: resolve(
+          root,
+          'tools/ingest/src/localmed_ingest/clinical_medication_relations.py',
+        ),
       };
     },
     async outputs() {
       return [resolve(buildDir, 'clinical-medication-relations')];
     },
     async execute() {
-      // `--resume` reuses a candidate whose database and medication index are unchanged, so a
-      // new edition only adds its own file next to the earlier 723.
-      const batch = (clinicalDirectory) =>
-        run(
-          'uv',
-          [
-            'run',
-            '--project',
-            'tools/ingest',
-            'medbase-regulated-catalog',
-            'clinical-medication-relations-batch',
-            '--clinical-dir',
-            clinicalDirectory,
-            '--medication-index',
-            'data/build/core-medication-pointers-pinned.db',
-            '--output-dir',
-            'data/build/clinical-medication-relations',
-            '--workers',
-            '4',
-            '--resume',
-          ],
-          {
-            label:
-              'extract clinical-recommendation -> ESKLP MNN relation candidates (deterministic, no LLM/network)',
-          },
-        );
-      return (
-        batch('data/build/official-clinical-documents/databases') +
-        batch(relative(root, NEW_EDITION_DATABASES))
+      // `--resume` reuses a candidate whose database and medication index are unchanged.
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'medbase-regulated-catalog',
+          'clinical-medication-relations-batch',
+          '--clinical-dir',
+          relative(root, CLINICAL_MODULE_DATABASES),
+          '--medication-index',
+          'data/build/core-medication-pointers-pinned.db',
+          '--output-dir',
+          'data/build/clinical-medication-relations',
+          '--workers',
+          '4',
+          '--resume',
+        ],
+        {
+          label:
+            'extract clinical-recommendation -> ESKLP MNN relation candidates (deterministic, no LLM/network)',
+        },
       );
     },
   },
   {
-    // keywords/aliases source, restored (docs/research/core-build-reconstruction-2026-09-27.md,
-    // "keywords (163 vs 6)... traced, not fixed" -> traced further and fixed here): the released
-    // core.db's 163 keyword-bearing / 10,124 clinical-recommendation-alias clinical pointers were
-    // built from a CLEANER, EARLIER parse of the same 744 source PDFs than
-    // `data/build/official-clinical-documents/databases` (723 files) currently on disk. In that
-    // directory, only 7/723 databases have a section titled exactly "Ключевые слова" --
-    // everywhere else the heading was later re-parsed merged with the next one (e.g. "Ключевые
-    // слова Список сокращений"), which `_KEYWORD_SECTION_PATTERN` correctly refuses to treat as a
-    // keyword list (a deliberately conservative choice -- widening the match would misclassify
-    // abbreviation-expansion pairs like "АДС - анатоксин..." as keywords, confirmed by inspecting
-    // 79_2.db). The still-available, byte-identical 2026-07-27 batch that WAS cleanly parsed
-    // (filename suffix 13991c1feee5) survives, uncommitted, under
-    // output/release-0.6.33/packages/clinical-<officialId>-clinical-json-2026.07.27-
-    // 13991c1feee5.db -- confirmed by direct inspection: all 744 files parse with a standalone
-    // "Ключевые слова" section title (vs 7/723 in the current directory), all 744 official ids
-    // match the ledger's 744 records exactly (0 missing/extra, vs 21 unmatched today), and
-    // kr.rf.107_2's "Ключевые слова" chunk text in this batch is a byte-exact match for that
-    // record's `keywords` array in the released core.db. `output/` is gitignored (ephemeral
-    // release output), so this batch is copied to
-    // `data/build/official-clinical-documents-2026-07-27/databases` (gitignored too -- a local
-    // build cache like every other data/build/* input) with a committed checksum manifest,
-    // `tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json` (744 sha256
-    // entries keyed by officialId), verified below before every run so a silently-swapped or
-    // partial copy fails loudly instead of quietly regressing keywords/aliases again.
-    //
-    // Neither snapshot alone is complete: 4/744 ids (940_1, 1016_1, 406_3, 801_1) have a
-    // correctly-titled "Ключевые слова" section in the 2026-07-27 batch with ZERO chunks under it
-    // (an OCR/parse gap specific to that run for those four PDFs), while the current, messier
-    // `official-clinical-documents/databases` directory happens to carry real, non-empty, byte-
-    // identical-to-released content for exactly those four. `clinical-source-snapshot` below
-    // merges the two, deterministically, using the real extraction code (not a guess) to decide
-    // per id -- see tools/ingest/scripts/build_clinical_source_snapshot.py's module docstring.
+    // Keywords, aliases and definitions come from the published modules. A merged heading such as
+    // «Ключевые слова Список сокращений» is not read as a keyword list (`_KEYWORD_SECTION_PATTERN`
+    // is conservative on purpose), so a module that yields no keywords takes its database from the
+    // older parse when that one does; every such fallback is listed in the report.
+    // History: docs/research/core-build-reconstruction-2026-09-27.md.
     name: 'clinical-source-snapshot',
-    deps: ['clinical-ledger-base', 'clinical-new-edition-sources'],
+    deps: ['clinical-ledger-base', 'clinical-module-sources'],
     async inputs() {
       return {
         ledger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
-        primary: resolve(root, 'data/build/official-clinical-documents-2026-07-27/databases'),
-        primaryManifest: CLINICAL_SOURCE_MANIFEST,
-        fallback: resolve(root, 'data/build/official-clinical-documents/databases'),
-        supplement: NEW_EDITION_DATABASES,
+        primary: CLINICAL_MODULE_DATABASES,
+        fallback: CLINICAL_KEYWORD_FALLBACK,
         snapshotBuilder: resolve(root, 'tools/ingest/scripts/build_clinical_source_snapshot.py'),
       };
     },
@@ -649,7 +568,6 @@ const stages = [
       return [resolve(buildDir, 'official-clinical-documents-merged/databases')];
     },
     async execute() {
-      await verifyClinicalSourceDatabases();
       return run(
         'uv',
         [
@@ -661,11 +579,9 @@ const stages = [
           '--ledger',
           'data/build/official-clinical-coverage-ledger.json',
           '--primary',
-          'data/build/official-clinical-documents-2026-07-27/databases',
+          relative(root, CLINICAL_MODULE_DATABASES),
           '--fallback',
-          'data/build/official-clinical-documents/databases',
-          '--supplement',
-          relative(root, NEW_EDITION_DATABASES),
+          relative(root, CLINICAL_KEYWORD_FALLBACK),
           '--output',
           'data/build/official-clinical-documents-merged/databases',
           '--report',
@@ -673,7 +589,7 @@ const stages = [
         ],
         {
           label:
-            'merge the released-parse clinical databases with the current re-parse, preferring whichever yields real keywords per id',
+            'take each КР database from its published module, an older parse only where that alone yields keywords',
         },
       );
     },
@@ -714,7 +630,7 @@ const stages = [
         ],
         {
           label:
-            'enrich the clinical ledger with traceable aliases, keywords, definitions, medication links (released-parse source, merged)',
+            'enrich the clinical ledger with traceable aliases, keywords, definitions, medication links (published modules, merged)',
         },
       );
     },
