@@ -11,6 +11,7 @@ import {
   SEARCH_HISTORY_EVENT,
   type SearchHistoryEntry,
 } from '@/state/search-history';
+import { GITHUB_REPOSITORY_URL, RELEASE_VERSION } from '../../../../../release';
 
 const HISTORY_LIMIT = 12;
 const CLOSE_DURATION_MS = 180;
@@ -184,31 +185,15 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </span>
                   <small>{entries().length}</small>
                 </div>
-                <div class="search-history-panel-header__actions">
-                  <Show when={entries().length > 0}>
-                    <button
-                      type="button"
-                      class="search-history-panel-header__close"
-                      aria-label="Очистить историю"
-                      title="Очистить историю"
-                      onClick={() => {
-                        clearSearchHistory();
-                        setEntries([]);
-                      }}
-                    >
-                      <AppGlyph name="trash" class="search-history-panel-header__close-icon" />
-                    </button>
-                  </Show>
-                  <button
-                    type="button"
-                    class="search-history-panel-header__close"
-                    aria-label="Закрыть историю"
-                    title="Закрыть историю"
-                    onClick={close}
-                  >
-                    <AppGlyph name="close" class="search-history-panel-header__close-icon" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  class="search-history-panel-header__close"
+                  aria-label="Закрыть историю"
+                  title="Закрыть историю"
+                  onClick={close}
+                >
+                  <AppGlyph name="close" class="search-history-panel-header__close-icon" />
+                </button>
               </header>
 
               <div class="search-history-panel-body">
@@ -255,6 +240,35 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   </ol>
                 </Show>
               </div>
+
+              <footer class="search-history-panel-footer">
+                <p class="search-history-panel-footer__meta">
+                  <span class="search-history-panel-footer__version">v{RELEASE_VERSION}</span>
+                  <span aria-hidden="true">·</span>
+                  <a
+                    class="search-history-panel-footer__link"
+                    href={GITHUB_REPOSITORY_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    GitHub
+                  </a>
+                </p>
+                <Show when={entries().length > 0}>
+                  <button
+                    type="button"
+                    class="search-history-panel-footer__clear"
+                    aria-label="Очистить историю"
+                    title="Очистить историю"
+                    onClick={() => {
+                      clearSearchHistory();
+                      setEntries([]);
+                    }}
+                  >
+                    <AppGlyph name="trash" class="search-history-panel-footer__clear-icon" />
+                  </button>
+                </Show>
+              </footer>
             </aside>
           </div>
         </Portal>
