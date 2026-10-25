@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Search results: the download button of a source card sits in the card header, right of the type, instead of a
+  footer line of its own.
+
 ## [0.6.64] - 2026-10-25
 
 - Discovery core 0.6.64 (downloaded once after the update, 77 MB): clinical recommendations name the drugs

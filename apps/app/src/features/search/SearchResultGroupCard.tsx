@@ -23,7 +23,7 @@ export function SearchResultGroupCard(props: {
   /** `anchor` is the place of the best match: the reader opens there, not at the top. */
   readonly onOpenDocument: (documentId: string, anchor?: string | null) => void;
 }): JSX.Element {
-  // Resolved once: the first line of the header gives up room to the action only when it shows.
+  // Resolved once: the header row gives up room to the action only when it shows.
   const action = children(() => props.action);
   const kind = () =>
     isIcd11DocumentId(props.group.documentId)
@@ -52,39 +52,54 @@ export function SearchResultGroupCard(props: {
       ? null
       : (best()?.anchor ?? null);
   const open = (): void => props.onOpenDocument(props.group.documentId, openingAnchor());
+  const hasAction = () => action() !== undefined;
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
-      <button type="button" class="result-group-header" onClick={open}>
-        <span class="result-group-header__index" aria-hidden="true">
-          {String(props.index + 1).padStart(2, '0')}
-        </span>
-
-        <span class="result-group-header__body">
-          <span class="result-group-header__kind">
-            <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
-            <span class="result-group-header__kind-label">{kind().label}</span>
+      {/* The download offer sits in the header row, beside the button that opens the document. */}
+      <div class="result-group__head">
+        <button
+          type="button"
+          class="result-group-header result-group-header--in-head"
+          onClick={open}
+        >
+          <span
+            class="result-group-header__index"
+            classList={{ 'result-group-header__index--under-action': hasAction() }}
+            aria-hidden="true"
+          >
+            {String(props.index + 1).padStart(2, '0')}
           </span>
-          <strong class="result-group-header__title">
-            <IcdText text={softBreakPluses(title().title)} />
-          </strong>
-          <Show when={hasMeta()}>
-            <span class="result-group-header__meta">
-              <Show when={title().meta}>
-                {(meta) => <span class="result-group-header__meta-item">{meta()}</span>}
-              </Show>
-              <Show when={contentLabel()}>
-                {(label) => <span class="result-group-header__meta-item">{label()}</span>}
-              </Show>
-              <Show when={props.qualifier}>
-                {(qualifier) => <span class="result-group-header__meta-item">{qualifier()}</span>}
-              </Show>
-              <Show when={props.group.atcMatch}>
-                {(match) => <AtcMatchBadge class="result-group-header__atc" match={match()} />}
-              </Show>
+
+          <span class="result-group-header__body">
+            <span class="result-group-header__kind">
+              <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
+              <span class="result-group-header__kind-label">{kind().label}</span>
             </span>
-          </Show>
-        </span>
-      </button>
+            <strong class="result-group-header__title">
+              <IcdText text={softBreakPluses(title().title)} />
+            </strong>
+            <Show when={hasMeta()}>
+              <span class="result-group-header__meta">
+                <Show when={title().meta}>
+                  {(meta) => <span class="result-group-header__meta-item">{meta()}</span>}
+                </Show>
+                <Show when={contentLabel()}>
+                  {(label) => <span class="result-group-header__meta-item">{label()}</span>}
+                </Show>
+                <Show when={props.qualifier}>
+                  {(qualifier) => <span class="result-group-header__meta-item">{qualifier()}</span>}
+                </Show>
+                <Show when={props.group.atcMatch}>
+                  {(match) => <AtcMatchBadge class="result-group-header__atc" match={match()} />}
+                </Show>
+              </span>
+            </Show>
+          </span>
+        </button>
+        <Show when={hasAction()}>
+          <div class="result-group__head-action">{action()}</div>
+        </Show>
+      </div>
       <Show when={best()}>
         {(result) => (
           <div class="result-group__snippets">
@@ -95,9 +110,6 @@ export function SearchResultGroupCard(props: {
             />
           </div>
         )}
-      </Show>
-      <Show when={action() !== undefined}>
-        <div class="result-group__foot">{action()}</div>
       </Show>
     </section>
   );

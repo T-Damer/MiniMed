@@ -116,7 +116,7 @@ test('the first run shows no status line while the download waits for the greeti
 });
 
 for (const width of [360, 390, 1280]) {
-  test(`the source card puts a compact download button on its footer line at ${width}px`, async ({
+  test(`the source card puts a compact download button in its header row at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
@@ -133,18 +133,22 @@ for (const width of [360, 390, 1280]) {
     // The sentence stays in the accessible name; only the size is printed.
     await expect(chip).toHaveAccessibleName(/^Скачать полный текст · .+ · [\d.,\s]+(КБ|МБ|ГБ)$/u);
     await expect(chip).toHaveText(/^[\d.,\s]+(КБ|МБ|ГБ)$/u);
-    const [header, box, card] = await Promise.all([
+    const [head, header, box, card] = await Promise.all([
+      group.locator('.result-group__head').boundingBox(),
       group.locator('.result-group-header').boundingBox(),
       chip.boundingBox(),
       group.boundingBox(),
     ]);
-    if (!header || !box || !card) throw new Error('The card, its header or the button has no box.');
+    if (!head || !header || !box || !card) {
+      throw new Error('The card, its header or the button has no box.');
+    }
     expect(box.height).toBeLessThanOrEqual(40);
     expect(box.width).toBeLessThanOrEqual(140);
-    // One footer line under the text, inside the card: neither over the title nor a block of its own.
-    expect(box.y).toBeGreaterThanOrEqual(header.y + header.height);
+    // In the header row, right of the title (owner 2026-10-25): never over the title, no line of its own.
+    expect(box.x).toBeGreaterThanOrEqual(header.x + header.width - 1);
+    expect(box.y).toBeGreaterThanOrEqual(head.y);
+    expect(box.y + box.height).toBeLessThanOrEqual(head.y + head.height);
     expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width);
-    expect(box.y + box.height).toBeLessThanOrEqual(card.y + card.height);
     // One finding per card: no fragments toggle on that line (owner 2026-10-20).
     await expect(group.locator('.ui-disclosure__header')).toHaveCount(0);
     await group.screenshot({ path: testInfo.outputPath(`source-card-${width}.png`) });

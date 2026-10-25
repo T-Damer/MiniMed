@@ -141,6 +141,9 @@ the doctor was.
   secondary or icon `Button` brightens its face instead, the primary keeps its lift. Section-picker
   rows answer hover with the accent colour and an underline (no box).
 - **Favourites ✕** is a round button with a surface and a red hover; news tiles get an accent border.
+- **Result-card download in the header** (owner 2026-10-25, after the release): the chip «⤓ 432 КБ» (or «В том же
+  наборе») sits in the card's header row beside the open button (`result-group__head`), the ghost index hides
+  under it, and the footer line is gone; `ux8-search-header.spec.ts` checks it at 360/390/1280 px.
 - **«Скачать всё»** sits in the «База знаний» header row (`Page` `actions`); below 30rem it shows
   only the icon and the size, the aria-label keeps the full wording.
 - **Search history drawer.** Footer row «v<version> · GitHub» + trash; the trash asks inline

@@ -1311,8 +1311,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
   border-top: 1px dashed var(--theme-border);
 }
 
-/* The download chip (or its «same pack» note) shares the card's footer line with «Ещё N фрагментов»;
-   a card with a single fragment shows it alone on that line. */
+/* The download chip (or its «same pack» note) in the result card's header row. */
 .result-group__action {
   display: flex;
   flex: none;
