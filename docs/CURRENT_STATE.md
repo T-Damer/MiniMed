@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 21 October 2026
-> Released version: `0.6.63` (public prerelease toward `1.0`)
+> Updated: 25 October 2026
+> Released version: `0.6.64` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -57,9 +57,16 @@ archive `9e657009…` (77 454 008 B, Node gzip level 9), 450 084 864 B, 16 KiB p
 - **Published and checked:** the release asset `core.db.gz` downloaded from GitHub has the recorded transfer
   checksum and decodes to the recorded database checksum; `content:restore:core` restores it.
 
-**The app release** (0.6.64) carries the new `ANDROID_CORE_DOWNLOAD`; until then Android installs keep 0.6.57
-and the Pages build serves the new bundled core after the push. **Not verified:** an Android download and
-install of the new core on a device or emulator, a physician review of any text.
+**Released 2026-10-25 as 0.6.64** (tag `v0.6.64`, APK `org.med.web` versionCode 77, 228.8 MB, sha256 `4cb83cb0…`) with
+this core and the KR-PARSE, UI-HOVER, history-drawer and SMPS work. Before the release: `bun run verify` (its
+native-contract phase first failed: `DesignTokens.kt` was stale since the UI-HOVER theme token, regenerated with
+`native:tokens`; CI had failed on it since `ae59c13a`), `benchmark:real:release` (above), `forms:check-updates`
+(7 unchanged), `regulatory:verify` (25 ok, 5 not checked as at 0.6.63). The published APK on the Android 16
+emulator (fresh install; the earlier 0.6.63 install did not survive the emulator restart, so the update path was
+not exercised): onboarding offers «Только основа · 77 МБ», the core downloads from `core-0.6.64` and is installed
+with sha256 `1e25041f…` (450 084 864 B), home shows 57 333 sources, «Внебольничная пневмония у детей» ranks the КР
+«Пневмония (внебольничная)» first. **Not verified:** the 0.6.63 → 0.6.64 update on a phone (the app should ask for
+the 77 MB core once: the installed checksum no longer matches), a physician review of any text.
 
 ## КР parser: superscripts, cell lines, text after images, list markers — 2026-10-25 (STATE KR-PARSE)
 
