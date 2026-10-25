@@ -23,9 +23,11 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-
 const run = promisify(execFile);
 const ROOT = resolve(import.meta.dirname, '../../..');
 // The KD1 republish holds every КР module; MOD-REBUILD (2026-10-20) replaced 358 of them.
-const DIRECTORIES = ['output/module-zstd-json-2026-10-20', 'output/module-zstd-kd1-2026-10-11'].map(
-  (directory) => resolve(LOCAL_DATA_ROOT, directory),
-);
+const DIRECTORIES = [
+  'output/module-zstd-json-2026-10-25',
+  'output/module-zstd-json-2026-10-20',
+  'output/module-zstd-kd1-2026-10-11',
+].map((directory) => resolve(LOCAL_DATA_ROOT, directory));
 const DIRECTORY = DIRECTORIES.at(-1) ?? '';
 /** Where each local module file lies, the newer copy first. */
 const located = new Map<string, string>();

@@ -11,6 +11,7 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copies of the КР republishes (KD1 2026-10-11 with the KR4/KR5 headings, MOD-REBUILD 2026-10-20 for
 // the modules whose heading levels changed; docs/data-ledger.json): the tests serve exactly the published bytes.
 const REBUILT_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-25',
   'output/module-zstd-json-2026-10-20',
   'output/module-zstd-kd1-2026-10-11',
 ];

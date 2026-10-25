@@ -20,6 +20,50 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## КР parser: superscripts, cell lines, text after images, list markers — 2026-10-25 (STATE KR-PARSE)
+
+The doctor-flow QA (`docs/research/qa-doctor-flows-2026-10-25.md`) found the КР JSON parser
+(`clinical_json_import._StructuredHtmlParser`, now `EXTRACTOR_REVISION` 6) flattening meaning. Fixed in
+`1d45d2b5`, tests in `tools/ingest/tests/test_clinical_json_markup.py`:
+
+- `<sup>`/`<sub>` → Unicode super/subscripts (`500¹-1000²`, `10⁹/л`, `SpO₂`, `Cₘₐₓ`); a superscript
+  «0/o/о» after a number and before C/F is «°» («ниже 300C» → «ниже 30°C»). Text with no
+  super/subscript form («®», words, «А») stays as written. Search is unchanged: index and query fold the
+  forms back to digits (NFKC).
+- Paragraphs, `<br>` and list items inside one table cell are separate lines of the cell (`• `,
+  `N. ` for ordered lists); the reader shows them (`white-space: pre-wrap`); the plain table text keeps
+  one line per row.
+- Text after an inline image in the same `<p>`/`<h*>`/`<li>` is a block of its own (it was dropped:
+  legends, a parenteral-nutrition paragraph, «Приложение Г2. …» titles written as `<h1><img>…`).
+- `<li><p>…</p></li>` keeps its marker; `<ol>` items are «1. », «2. » (with `start`); an item's own
+  number stays, its own dash becomes the list dash; a bold list item that is a known template label
+  is still a heading (demoted back to the item if it would hide a heading).
+- A body line starting with «# » (the off-label mark) is written to the prepared Markdown as «\#» and
+  read back as text (`source_registry.escape_heading_lines`, `markdown_parser.ESCAPED_HEADING_PATTERN`).
+
+**Rebuild (local, not published).** All 774 КР built from the raw JSON with the old and the new code
+(`data/build/official-clinical-2026-10-25`, `compare-control-vs-final.json`): every module changed;
+list-item lines 46 034 → 250 914, superscripts 462 → 13 339, subscripts 47 → 3 545, degree signs
+1 469 → 1 682, cells with line breaks 0 → 14 570, «#»/table-row pseudo-headings 163 → 0, sections
+39 745 → 39 618, text +817 k characters. No word is lost: every token missing from the new text is a
+fused word now split («требуютсяпри»), a degree sign or a superscript (checked by squashing the new
+text). 48 modules regain titles that were dropped after images. KD1: 52 243 chunks encoded, 44 333
+vectors reused. Framed as `clinical-json-2026.10.25-68d6f3a19cc9` (`0.6.0-json.1cec87f7f6e3.kd1`),
+692.6 MB download (was 691.1 MB), local copy `output/module-zstd-json-2026-10-25`, candidate catalog
+`data/build/official-clinical-2026-10-25/catalog.candidate.json` (only the 774 КР entries change,
+`catalogVersion` `kr-parse.2026.10.25`). With the candidate catalog in the build: e2e
+`kr-parse-modules` (309_2 «500¹-1000²», 678_2 «30°C», 283_2 cell lines, 1028_1 no «Рифампицин»
+heading), `kr-appendix-heading-modules`, `module-pointer`, `many-modules-reload` pass.
+
+**To publish (owner OK first):** copy the candidate catalog over `catalog.preview.json`, `bun run
+catalog:shell`, `scripts/publish-module-zstd-mirror.sh --family clinical --tag
+clinical-json-2026.10.25-68d6f3a19cc9 --source-dir output/module-zstd-json-2026-10-25 --create`,
+verify the URLs (`scripts/verify-module-artifact.ts --url`), commit. Then derived indexes that read КР
+text (dose rules, clinical–medication relations) should be regenerated from the new copies.
+
+Not fixed here: drug-instruction PDF tables and merged leaflets, NFD «й» in the source JSON, inline
+abbreviations, definition cards (see the QA report). Not verified: a phone.
+
 ## Hover, header and navigation polish — 2026-10-25 (STATE UI-HOVER)
 
 Owner screenshots 2026-10-25: hovers looked dirty, headers took rows, sub-routes did not say where

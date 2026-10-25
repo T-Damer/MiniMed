@@ -984,6 +984,19 @@
       "note": "EMA/HMPC PDFs, Wikimedia Commons plates, the ГФ XV article page; re-downloadable, but the reviewed EMA quotes are checked against these exact bytes (MANIFEST.json SHA-256).",
       "bytes": 165866179,
       "modified": "2026-10-19"
+    },
+    {
+      "path": "output/module-zstd-json-2026-10-25",
+      "class": "REBUILDABLE",
+      "producer": "KR-PARSE (STATE): medbase-clinical-catalog build-documents (both source plans) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules.py --reuse-from (KD1) -> scripts/republish-clinical-modules.ts --marker kd1",
+      "consumers": [
+        "e2e kr-parse-modules, kr-appendix-heading-modules, module-pointer, many-modules-reload (local copies of the published bytes)",
+        "candidate catalog data/build/official-clinical-2026-10-25/catalog.candidate.json"
+      ],
+      "rebuild": "see docs/CURRENT_STATE.md «КР parser: superscripts, cell lines, text after images, list markers»; ~1 h (KD1 encoding 34 min on mps)",
+      "note": "All 774 КР as clinical-json-2026.10.25-68d6f3a19cc9 (0.6.0-json.1cec87f7f6e3.kd1). Not published until the owner agrees; then this is the local release copy and module-zstd-json-2026-10-20 becomes the rollback.",
+      "bytes": 693079180,
+      "modified": "2026-10-25"
     }
   ]
 }
