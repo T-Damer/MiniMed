@@ -69,6 +69,35 @@ fixed, 3 partly, 1 not, 2 new low). Ordered next work:
     CPR and UtA-PI stay unbanded (Ciobanu 2019 is not open; INTERGROWTH-21st UA-PI equations are CC BY and could
     be added later). Still no clinician sign-off.
 
+## «Сенсомоторный психосинтез (СМПС)» in the bundled reference pack — 2026-10-25 (STATE SMPS)
+
+Owner request 2026-10-25: an article from https://psihosintez.ru/sensomotorniy-psihosintez/ with their
+etymology sentence. Owner decision for a personal project; site rights not reviewed, not clinically reviewed.
+
+- **Raw**: `data/raw/web-articles/psihosintez-sensomotorniy-psihosintez/` (page fetched 2026-10-25T09:00:23Z,
+  79 358 B, sha256 `ddfa13db…`, `SOURCE.json` with URL, dates, publisher; the page names no author).
+- **Article** `content/reference-rf-pilot/sensomotor-psychosynthesis.md` (id
+  `reference.psihosintez.sensomotor-psychosynthesis`), written by `tools/ingest/scripts/prepare_smps_article.py`
+  from the raw file (checksum checked; output reproducible): every block verbatim with a `localmed:source`
+  marker (URL, raw path, sha256, `.entry-content:block-N` selector), headings, the table and its caption,
+  lists. First section «Происхождение термина» holds the owner's sentence verbatim; it equals the page's own
+  first paragraph after whitespace folding (the script refuses to run if they differ), so the page heading
+  «Метод СМПС» follows it rather than preceding it. No audience (the page names none). Alias «СМПС» →
+  «Сенсомоторный психосинтез» in `aliases.yaml`; `navigationAliases` carry both names.
+- **Pack**: `apps/app/public/content/reference.db` rebuilt with `medbase build --input content/reference-rf-pilot`
+  (19 documents, 103 sections, 108 chunks, 30 aliases; integrity ok, 0 FK violations, same 6 diet-table
+  warnings). The other 18 documents keep their ids and anchors; 6 diet-table chunks now keep their source line
+  breaks (the PHONE-QA importer, first rebuild since). All 65 page blocks found verbatim in the pack.
+- **«Информация» shows the source** of every non-drug document now (`reader-document-source.ts`): «Источник»
+  (publisher, or the page host, linked when https) and «Получено» (`fetchedAt`). Before, only drug cards named a
+  source there. Drug cards keep `DrugReferenceFooter`.
+- **Checked** in the dev app at 375×812: «СМПС» and «сенсомоторный психосинтез» both rank the article first
+  («Справочник»); the reader opens with «Происхождение термина», then the text and table; «⋯» → «Информация»:
+  Вид, Статус, Источник psihosintez.ru, Получено 25.10.2026. No disclaimer on the page or card.
+- **Not done**: the definitions dictionary (`minimed.definition.reference.ru`) has no СМПС entry, so
+  «Найти в словаре» shows no «Происхождение» for it; that needs a new dictionary edition with an etymology
+  annotation plus a core rebuild (the core pins the edition id). Not tested on Android.
+
 ## Modules rebuilt with the 2026-10-20 ingest fixes — 2026-10-20 (STATE MOD-REBUILD)
 
 The PHONE-QA ingest fixes (private-use bullet glyphs, Excel dates, mid-word chunk cuts, heading levels) reach the

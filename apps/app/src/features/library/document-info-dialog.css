@@ -22,6 +22,12 @@
   overflow-wrap: break-word;
 }
 
+.document-info__link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .document-info__registrations {
   display: grid;
   gap: 0.5rem;

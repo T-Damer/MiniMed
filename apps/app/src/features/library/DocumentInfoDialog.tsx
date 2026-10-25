@@ -3,6 +3,7 @@ import { For, type JSX, Show } from 'solid-js';
 
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { documentEditionValue } from '@/features/library/document-version-label';
+import { readerDocumentSource } from '@/features/library/reader-document-source';
 import { readerAudience, readerMetaParts } from '@/features/library/reader-meta-line';
 import { DrugReferenceFooter } from '@/features/medications/DrugReferenceFooter';
 import type { InstructionSourceInfo } from '@/features/medications/instruction-source';
@@ -43,6 +44,11 @@ export function DocumentInfoDialog(props: {
       ...(audience ? [['Для кого', audience] as const] : []),
     ];
   };
+  // A drug card names its sources in DrugReferenceFooter; every other document gets one row here.
+  const source = () =>
+    (props.drugSources?.length ?? 0) > 0 || props.instruction
+      ? null
+      : readerDocumentSource(props.document);
   const registrations = () => props.registrations ?? [];
   return (
     <OverlayDialog
@@ -60,6 +66,32 @@ export function DocumentInfoDialog(props: {
             </div>
           )}
         </For>
+        <Show when={source()}>
+          {(value) => (
+            <>
+              <div class="document-info__row">
+                <dt class="document-info__term">Источник</dt>
+                <dd class="document-info__value">
+                  <Show when={value().url} fallback={value().name}>
+                    {(url) => (
+                      <a class="document-info__link" href={url()} rel="noreferrer" target="_blank">
+                        {value().name}
+                      </a>
+                    )}
+                  </Show>
+                </dd>
+              </div>
+              <Show when={value().fetchedOn}>
+                {(date) => (
+                  <div class="document-info__row">
+                    <dt class="document-info__term">Получено</dt>
+                    <dd class="document-info__value">{date()}</dd>
+                  </div>
+                )}
+              </Show>
+            </>
+          )}
+        </Show>
       </dl>
       <DrugReferenceFooter
         sources={props.drugSources ?? []}

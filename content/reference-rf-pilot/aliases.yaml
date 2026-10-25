@@ -144,3 +144,8 @@ aliases:
     alias: ОВД диета
     category: reference
     weight: 1.2
+  - id: sensomotor-psychosynthesis-abbreviation
+    canonicalTerm: Сенсомоторный психосинтез
+    alias: СМПС
+    category: reference
+    weight: 1.5

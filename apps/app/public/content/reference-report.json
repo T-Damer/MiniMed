@@ -1,10 +1,10 @@
 {
-  "documents": 18,
-  "sections": 94,
-  "chunks": 94,
-  "aliases": 29,
+  "documents": 19,
+  "sections": 103,
+  "chunks": 108,
+  "aliases": 30,
   "embeddingProfiles": 1,
-  "embeddings": 94,
+  "embeddings": 108,
   "warnings": [
     "reference.pevzner.diet-table-1: imported document has no chunk source spans",
     "reference.pevzner.diet-table-15: imported document has no chunk source spans",
@@ -14,7 +14,7 @@
     "reference.pevzner.diet-table-9: imported document has no chunk source spans"
   ],
   "errors": [],
-  "outputChecksum": "sha256:5b3e1a0e759e7d3f43b373b383d3af44cf81cbfda809ce3a9d2fb09fa3b5f1e4",
+  "outputChecksum": "sha256:43b2c0ac2f6b9d205ecc3b95c9a1346674c0a9c16be5b3493c50df976a753ab2",
   "sqliteIntegrity": "ok",
   "foreignKeyViolations": 0
 }
