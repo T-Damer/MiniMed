@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 25 October 2026
-> Released version: `0.6.64` (public prerelease toward `1.0`)
+> Updated: 26 October 2026
+> Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -67,6 +67,13 @@ not exercised): onboarding offers «Только основа · 77 МБ», the 
 with sha256 `1e25041f…` (450 084 864 B), home shows 57 333 sources, «Внебольничная пневмония у детей» ranks the КР
 «Пневмония (внебольничная)» first. **Not verified:** the 0.6.63 → 0.6.64 update on a phone (the app should ask for
 the 77 MB core once: the installed checksum no longer matches), a physician review of any text.
+
+**Released 2026-10-26 as 0.6.65** (tag `v0.6.65`, versionCode 78, 228.8 MB, sha256 `52b6769d…`): app-only, the same
+core 0.6.64; the source-card download button moved into the result-card header. Checks: `bun run verify`,
+`benchmark:real:release` (within tolerance), `forms:check-updates` (7 unchanged), `regulatory:verify` (25 ok, 5 not
+checked). On the Android 16 emulator the published APK installed over 0.6.64 (the update path): the installed core
+was kept (no download, checksum unchanged), and «Пневмония внебольничная» shows «432 КБ» / «2,5 МБ» / «96 МБ» in the
+card headers, no footer line.
 
 ## КР parser: superscripts, cell lines, text after images, list markers — 2026-10-25 (STATE KR-PARSE)
 
