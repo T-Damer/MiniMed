@@ -33,7 +33,10 @@ function atMost(left: string, right: string): boolean {
 }
 
 /** Modules the catalog lists for the next app release (their reader code is in the same unreleased range). */
-const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map<string, string>([]);
+const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map<string, string>([
+  // EA1: the app learns the `eaeu-sister-register` source class (country, ranking) in 0.6.66.
+  ['minimed.medications.instructions.eaeu-sister-register.ru', '0.6.66'],
+]);
 
 describe('module catalog structure', () => {
   const modules = catalog.modules;

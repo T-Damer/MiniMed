@@ -1,16 +1,21 @@
 import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
 
-import { instructionModuleIdForSubstanceModule } from '@/features/medications/instruction-source';
+import {
+  EAEU_INSTRUCTION_MODULE_ID,
+  instructionModuleIdForSubstanceModule,
+} from '@/features/medications/instruction-source';
 
 /**
  * Modules that install together with a requested one, so a doctor downloads once (owner 2026-10-20:
  * «open a drug → install its module → then install its instructions separately» is an
  * antipattern). A drug group's registry module (ЕСКЛП) brings the same group's official
- * instructions: the drug screen and the prescription read doses only from them.
+ * instructions: the drug screen and the prescription read doses only from them. It also brings the
+ * EAEU texts from the Belarus and Kazakhstan registers (one module for every group, installed once):
+ * they fill registrations whose ГРЛС file is missing.
  */
 export function companionModuleIds(moduleId: string): readonly string[] {
   const instructions = instructionModuleIdForSubstanceModule(moduleId);
-  return instructions ? [instructions] : [];
+  return instructions ? [instructions, EAEU_INSTRUCTION_MODULE_ID] : [];
 }
 
 const ACTIVE_STATES: ReadonlySet<ContentModuleDownloadTask['state']> = new Set([

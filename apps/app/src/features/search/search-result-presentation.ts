@@ -5,7 +5,10 @@ import {
   TECHNICAL_SECTION_TITLES,
 } from '@/features/library/document-display';
 import { documentVersionLabel } from '@/features/library/document-version-label';
-import { instructionSourceInfo } from '@/features/medications/instruction-source';
+import {
+  instructionSourceInfo,
+  instructionSourceQualifier,
+} from '@/features/medications/instruction-source';
 import {
   presentFormStrengths,
   presentRegistryLine,
@@ -378,8 +381,8 @@ export function resultQualifier(
     metadata: document.metadata,
   });
   if (instruction) {
-    const parts = [instruction.publisher, instruction.edition].filter((part): part is string =>
-      Boolean(part),
+    const parts = [instructionSourceQualifier(instruction), instruction.edition].filter(
+      (part): part is string => Boolean(part),
     );
     return parts.length > 0 ? parts.join(' · ') : instruction.kindLabel;
   }

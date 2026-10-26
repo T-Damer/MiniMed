@@ -127,12 +127,15 @@ bun scripts/repack-module-indexes-zstd.ts --family esklp|clinical --source-dir D
 ```
 
 New modules that have no catalog artifact yet (the ГРЛС instruction groups, Allmed, the manufacturer-site
-instructions) go through
-`bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR --tag TAG
+instructions, the EAEU sister-register instructions) go through
+`bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer|eaeu --source-dir DIR --out-dir DIR --tag TAG
 --catalog-in FILE --catalog-out FILE`, which creates or completes their catalog entries (the tags
-`grls-instructions-…`, `allmed-…` and `manufacturer-instructions-…` resolve to `datasets/<tag>/modules/`, like
-`esklp-…`). `--family grls` leaves `minimed.medications.instructions.manufacturer-site.ru` alone: that module is its
-own family and collection (`manufacturer-instructions`). A blob must stay below 100 MB.
+`grls-instructions-…`, `allmed-…`, `manufacturer-instructions-…` and `eaeu-instructions-…` resolve to
+`datasets/<tag>/modules/`, like `esklp-…`). `--family grls` leaves `minimed.medications.instructions.manufacturer-site.ru`
+and `minimed.medications.instructions.eaeu-sister-register.ru` alone: each is its own family and collection
+(`manufacturer-instructions`, `eaeu-instructions`). A blob must stay below 100 MB. The EAEU module is built by
+`tools/ingest/scripts/build_eaeu_sister_instruction_module.py plan|registry|build` from the collector's manifest
+(`medbase-eaeu-sister-registers manifest --text-layer-only`; scans are OCRed once, by `medbase prepare`).
 `--family ddinter` packages the optional DDInter severity-label module (INT2, tag `ddinter-severity-…`, built by
 `tools/ingest/scripts/build_ddinter_severity_module.py build`; CC BY-NC-SA 4.0, see `docs/research/drug-interactions-2026-10-06.md` §6).
 After a ЕСКЛП or instruction-module refresh rebuild it as well as the interaction index (`bun run content:drug-interactions`).

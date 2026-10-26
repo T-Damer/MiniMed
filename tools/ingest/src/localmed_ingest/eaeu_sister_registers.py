@@ -592,6 +592,8 @@ def _is_essential(targets: list[Target], number: str) -> bool:
 class CollectOptions:
     raw_root: Path
     max_documents: int = 50
+    only_failed: bool = False  # retry each URL whose last outcome failed, once, and nothing else
+    max_record_failures: int = _MAX_RECORD_FAILURES
 
     @property
     def state_path(self) -> Path:
@@ -632,11 +634,12 @@ def collect(
     options: CollectOptions,
 ) -> dict[str, int]:
     """Fetch the documents of the candidates (resumable; one ledger line per URL)."""
-    done = {
-        str(record["url"])
-        for record in read_jsonl(options.state_path)
-        if record.get("outcome") in ("stored", "no-document", "not-pdf")
+    last_outcome = {
+        str(record["url"]): record.get("outcome") for record in read_jsonl(options.state_path)
     }
+    done = {url for url, outcome in last_outcome.items() if outcome != "failed"}
+    if options.only_failed:
+        done |= {url for url in _all_urls(candidates) if url not in last_outcome}
     counters: Counter[str] = Counter()
     failures = 0
     record_failures = 0
@@ -697,24 +700,33 @@ def collect(
                 else:
                     record_failures += 1
             _append(options.state_path, record)
-            if failures >= _MAX_FAILURES or record_failures >= _MAX_RECORD_FAILURES:
+            if failures >= _MAX_FAILURES or record_failures >= options.max_record_failures:
                 counters["stopped-after-failures"] += 1
                 return dict(counters)
     return dict(counters)
 
 
+def _all_urls(candidates: list[Candidate]) -> set[str]:
+    return {url for candidate in candidates for url in candidate.entry.documents.values()}
+
+
 def check_text(text: str, target: Target) -> TextCheck:
     """Does the document talk about this registration's drug? (dossier number is the key; this
     only guards against a wrong file, it does not widen the match)."""
+    return check_text_names(text, target.trade_name, target.inn)
+
+
+def check_text_names(text: str, trade_name: str, inn: str) -> TextCheck:
+    """`check_text` on the names alone (the module builder re-checks OCR text this way)."""
     if len(text.strip()) < _MIN_TEXT_CHARS:
         return "no-text-layer"
     tokens = _tokens(text)
-    name = _tokens(target.trade_name)
+    name = _tokens(trade_name)
     if name and _contains_name(tokens, name):
         return "trade-name"
     stems = {
         token[:6]
-        for part in re.split(r"[,;+/()]", target.inn.casefold().replace("ё", "е"))
+        for part in re.split(r"[,;+/()]", inn.casefold().replace("ё", "е"))
         for token in _tokens(part)
         if len(token) >= 6
     }

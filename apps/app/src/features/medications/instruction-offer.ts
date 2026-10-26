@@ -1,6 +1,9 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
 
-import { instructionModuleIdForSubstanceModule } from '@/features/medications/instruction-source';
+import {
+  EAEU_INSTRUCTION_MODULE_ID,
+  instructionModuleIdForSubstanceModule,
+} from '@/features/medications/instruction-source';
 import { formatModuleBytes } from '@/features/modules/module-display';
 
 /** The download that would add the official instruction of a drug the app shows without one. */
@@ -9,15 +12,19 @@ export interface InstructionModuleOffer {
   /** «Нервная система», the group the module covers. */
   readonly groupTitle: string;
   readonly downloadBytes: number | null;
+  /** The line under the button when the module is not a group's («Инструкции ЕАЭС …»). */
+  readonly subtitle?: string;
 }
+
+const EAEU_OFFER_SUBTITLE = 'Инструкции ЕАЭС из реестров Беларуси и Казахстана';
 
 const MODULE_TITLE_PREFIX = 'Инструкции ГРЛС — ';
 
 /**
  * The instruction module of the substance's ATC group, when the catalog lists it, the app may
- * install it now and it is not installed. Null otherwise: nothing to offer, either because the
- * group's instructions are already installed (this registration then simply has no official text
- * there) or because no such module is available.
+ * install it now and it is not installed. Once the group's module is installed and the text is
+ * still missing, the EAEU module of the Belarus and Kazakhstan registers (when not installed). Null
+ * otherwise: nothing to offer (this registration then simply has no official text on the device).
  */
 export function instructionModuleOffer(input: {
   readonly substanceModuleId: string | null;
@@ -33,7 +40,18 @@ export function instructionModuleOffer(input: {
   const moduleId = input.substanceModuleId
     ? instructionModuleIdForSubstanceModule(input.substanceModuleId)
     : null;
-  if (!moduleId || input.installedModuleIds.has(moduleId)) return null;
+  if (!moduleId) return null;
+  if (input.installedModuleIds.has(moduleId)) {
+    if (input.installedModuleIds.has(EAEU_INSTRUCTION_MODULE_ID)) return null;
+    const eaeu = input.catalogModules.find((entry) => entry.id === EAEU_INSTRUCTION_MODULE_ID);
+    if (!eaeu || !input.isReleased(eaeu)) return null;
+    return {
+      moduleId: EAEU_INSTRUCTION_MODULE_ID,
+      groupTitle: eaeu.title,
+      downloadBytes: eaeu.sizes.downloadBytes,
+      subtitle: EAEU_OFFER_SUBTITLE,
+    };
+  }
   const module = input.catalogModules.find((entry) => entry.id === moduleId);
   if (!module || !input.isReleased(module)) return null;
   return {
@@ -51,9 +69,9 @@ export function instructionOfferLabel(offer: InstructionModuleOffer): string {
 
 /** The small line under the button: «Инструкции группы «Нервная система»». */
 export function instructionOfferSubtitle(
-  offer: Pick<InstructionModuleOffer, 'groupTitle'>,
+  offer: Pick<InstructionModuleOffer, 'groupTitle' | 'subtitle'>,
 ): string {
-  return `Инструкции группы «${offer.groupTitle}»`;
+  return offer.subtitle ?? `Инструкции группы «${offer.groupTitle}»`;
 }
 
 /** The group a module of the instruction catalog covers, without the «Инструкции ГРЛС — » prefix. */

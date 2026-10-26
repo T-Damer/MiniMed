@@ -340,6 +340,13 @@ function addEsklpKlpPosition(variant: EsklpVariant, position: MedicationRecord):
   }
 }
 
+/** A product records its instruction's source only when it is not a ГРЛС file (the default). */
+function nonGrlsSourceClass(sourceClass: InstructionSourceClass | undefined): {
+  readonly instructionSourceClass?: InstructionSourceClass;
+} {
+  return sourceClass && sourceClass !== 'grls' ? { instructionSourceClass: sourceClass } : {};
+}
+
 export function parseEsklpMedicationProducts(
   document: MedicalDocument,
   instructions: ReadonlyMap<string, string> = new Map(),
@@ -427,10 +434,11 @@ export function parseEsklpMedicationProducts(
     registrationDocumentId: document.id,
     grlsRegistrationDocumentId: null,
     instructionDocumentId: variant.instructionDocumentId,
-    ...(variant.instructionDocumentId &&
-    instructionSourceClasses.get(variant.registrationNumber) === 'manufacturer-site'
-      ? { instructionSourceClass: 'manufacturer-site' as const }
-      : {}),
+    ...nonGrlsSourceClass(
+      variant.instructionDocumentId
+        ? instructionSourceClasses.get(variant.registrationNumber)
+        : undefined,
+    ),
     mnnDocumentId: document.id,
     linkedMnnDocumentId: null,
     smnnCode: variant.smnnCode,

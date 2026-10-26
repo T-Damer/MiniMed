@@ -7,7 +7,7 @@ const GITHUB_RELEASE_PATTERN =
 
 /** Dataset tags whose `.db.zst` modules live as plain git blobs on `datasets/<tag>` (modules/…). */
 const MEDICATION_MIRROR_TAG =
-  /^(?:esklp|grls-instructions|allmed|manufacturer-instructions|ddinter-severity)-/u;
+  /^(?:esklp|grls-instructions|allmed|manufacturer-instructions|eaeu-instructions|ddinter-severity)-/u;
 
 /** Module files of the mirrored medication tags: drug modules and the DDInter severity labels. */
 const MEDICATION_MIRROR_FILE = /^minimed\.(?:medications\.|reference\.ddinter-)/u;

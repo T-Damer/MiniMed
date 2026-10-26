@@ -1,6 +1,7 @@
 /**
  * What the app knows about an official instruction document, read from its stored metadata only:
- * the source class (ГРЛС file or a holder's own site), the kind of document, the edition label, the
+ * the source class (ГРЛС file, a holder's own site, or the Belarus/Kazakhstan register of the same
+ * EAEU dossier), the kind of document, the edition label, the
  * source and fetch date, how the text was matched to the registration and how it was obtained
  * (native text layer or OCR). Nothing here is inferred from the text.
  */
@@ -15,8 +16,25 @@ export type InstructionKind =
   /** A scan that is none of the above (OCR1 content classification). */
   | 'other';
 
-/** Where the document comes from: a file of the ГРЛС, or the holder's own site (M1, ADR-0023). */
-export type InstructionSourceClass = 'grls' | 'manufacturer-site';
+/**
+ * Where the document comes from: a file of the ГРЛС, the holder's own site (M1, ADR-0023), or the
+ * register of Belarus or Kazakhstan publishing the same EAEU dossier (owner 2026-10-26: shown for
+ * the Russian registration with the country named).
+ */
+export type InstructionSourceClass = 'grls' | 'manufacturer-site' | 'eaeu-sister-register';
+
+/** The member state whose register published an `eaeu-sister-register` text. */
+export type InstructionCountry = 'BY' | 'KZ';
+
+const COUNTRY_NAMES: Readonly<Record<InstructionCountry, string>> = {
+  BY: 'Республика Беларусь',
+  KZ: 'Республика Казахстан',
+};
+
+const COUNTRY_SHORT_NAMES: Readonly<Record<InstructionCountry, string>> = {
+  BY: 'Беларусь',
+  KZ: 'Казахстан',
+};
 
 /** How a manufacturer-site document was tied to the registration, strongest first. */
 export type InstructionMatchLevel = 'text-number' | 'page-number' | 'label-unique';
@@ -33,7 +51,9 @@ const KIND_LABELS: Readonly<Record<InstructionKind, string>> = {
 /** A professional text outranks the patient leaflet when one registration has several documents. */
 const SOURCE_RANK: Readonly<Record<InstructionSourceClass, number>> = {
   grls: 0,
-  'manufacturer-site': 1,
+  // The regulator-approved dossier text of another member state before a holder's own copy.
+  'eaeu-sister-register': 1,
+  'manufacturer-site': 2,
 };
 
 const KIND_RANK: Readonly<Record<InstructionKind, number>> = {
@@ -53,7 +73,38 @@ function isAuxiliary(kind: InstructionKind): boolean {
 type Metadata = Readonly<Record<string, unknown>> | undefined;
 
 export function instructionSourceClassOf(metadata: Metadata): InstructionSourceClass {
-  return metadata?.['sourceClass'] === 'manufacturer-site' ? 'manufacturer-site' : 'grls';
+  const sourceClass = metadata?.['sourceClass'];
+  return sourceClass === 'manufacturer-site' || sourceClass === 'eaeu-sister-register'
+    ? sourceClass
+    : 'grls';
+}
+
+export function instructionCountryOf(metadata: Metadata): InstructionCountry | null {
+  const country = metadata?.['country'];
+  return instructionSourceClassOf(metadata) === 'eaeu-sister-register' &&
+    (country === 'BY' || country === 'KZ')
+    ? country
+    : null;
+}
+
+/** Trade names compared as a reader would: no ®/™, case or punctuation. */
+function tradeNameKey(value: string): string {
+  return value.toLocaleLowerCase('ru-RU').replace(/[^\p{L}\p{N}]+/gu, '');
+}
+
+/**
+ * «Текст из реестра лекарственных средств: Республика Беларусь (общее досье ЕАЭС).» The country
+ * stays on the page, and so does the trade name the text uses there when it is not the Russian one.
+ */
+export function instructionCountryNote(metadata: Metadata): string | null {
+  const country = instructionCountryOf(metadata);
+  if (!country) return null;
+  const note = `Текст из реестра лекарственных средств: ${COUNTRY_NAMES[country]} (общее досье ЕАЭС).`;
+  const local = text(metadata?.['sisterTradeName']);
+  const russian = text(metadata?.['tradeName']);
+  return local && russian && tradeNameKey(local) !== tradeNameKey(russian)
+    ? `${note} Торговое наименование там: ${local}.`
+    : note;
 }
 
 function matchLevelOf(value: unknown): InstructionMatchLevel | null {
@@ -206,6 +257,8 @@ export type InstructionTextQuality = 'native' | 'ocr' | 'ocr-low' | 'ocr-reviewe
 
 export interface InstructionSourceInfo {
   readonly sourceClass: InstructionSourceClass;
+  /** The member state of an `eaeu-sister-register` text; null otherwise. */
+  readonly country: InstructionCountry | null;
   /** The holder named by a manufacturer-site document. */
   readonly publisher: string | null;
   /** How a manufacturer-site document was matched to the registration; null for a ГРЛС file. */
@@ -225,9 +278,18 @@ export interface InstructionSourceInfo {
 
 /** Who published the text, as the source line says it. */
 export function instructionSourceName(info: InstructionSourceInfo): string {
-  return info.sourceClass === 'manufacturer-site'
-    ? `Сайт производителя${info.publisher ? `: ${info.publisher}` : ''}`
-    : 'ГРЛС (Минздрав России)';
+  if (info.sourceClass === 'manufacturer-site') {
+    return `Сайт производителя${info.publisher ? `: ${info.publisher}` : ''}`;
+  }
+  if (info.sourceClass === 'eaeu-sister-register') {
+    return `Реестр ЛС: ${info.country ? COUNTRY_NAMES[info.country] : 'страна ЕАЭС'}`;
+  }
+  return 'ГРЛС (Минздрав России)';
+}
+
+/** «Беларусь» for a sister-register text, the holder for a manufacturer's one; else null. */
+export function instructionSourceQualifier(info: InstructionSourceInfo): string | null {
+  return info.country ? COUNTRY_SHORT_NAMES[info.country] : info.publisher;
 }
 
 /** OCR text with more unknown words than this is flagged as low quality. */
@@ -254,6 +316,17 @@ export function instructionTextQuality(metadata: Metadata): InstructionTextQuali
   return unknownWords > LOW_QUALITY_UNKNOWN_WORD_RATIO || lowConfidence > LOW_QUALITY_OCR_RATIO
     ? 'ocr-low'
     : 'ocr';
+}
+
+/** Where a doubtful OCR reading is checked: the ГРЛС file, or the register the scan came from. */
+function qualityNote(
+  quality: InstructionTextQuality,
+  sourceClass: InstructionSourceClass,
+): string | null {
+  const note = QUALITY_NOTES[quality];
+  return note && sourceClass === 'eaeu-sister-register'
+    ? note.replace('оригиналом ГРЛС', 'оригиналом в реестре').replace('оригиналу ГРЛС', 'оригиналу')
+    : note;
 }
 
 const QUALITY_NOTES: Readonly<Record<InstructionTextQuality, string | null>> = {
@@ -303,11 +376,13 @@ export function instructionSourceInfo(
     sourceClass === 'manufacturer-site'
       ? instructionMatchLevel(document.metadata, registrationNumber)
       : null;
+  const country = instructionCountryOf(document.metadata);
   return {
     sourceClass,
+    country,
     publisher: sourceClass === 'manufacturer-site' ? text(document.metadata?.['publisher']) : null,
     matchLevel,
-    matchNote: instructionMatchNote(matchLevel),
+    matchNote: instructionMatchNote(matchLevel) ?? instructionCountryNote(document.metadata),
     kind,
     kindLabel:
       sourceClass === 'manufacturer-site' && kind === 'unknown'
@@ -321,13 +396,19 @@ export function instructionSourceInfo(
     qualityNote:
       quality === 'ocr' && typeof document.metadata?.['ocrQuality'] === 'string'
         ? null
-        : QUALITY_NOTES[quality],
+        : qualityNote(quality, sourceClass),
   };
 }
+
+/** The one module of `eaeu-sister-register` texts; it serves every drug group. */
+export const EAEU_INSTRUCTION_MODULE_ID =
+  'minimed.medications.instructions.eaeu-sister-register.ru';
 
 /** `minimed.medications.<group>.ru` → the module of that group's official instructions. */
 export function instructionModuleIdForSubstanceModule(substanceModuleId: string): string | null {
   const match = /^minimed\.medications\.([a-z-]+)\.ru$/u.exec(substanceModuleId);
   const group = match?.[1];
-  return group && group !== 'instructions' ? `minimed.medications.instructions.${group}.ru` : null;
+  return group && group !== 'instructions' && group !== 'packaging-images'
+    ? `minimed.medications.instructions.${group}.ru`
+    : null;
 }

@@ -123,6 +123,7 @@ import {
   instructionUnavailableNotice,
 } from '@/features/medications/instruction-offer';
 import {
+  EAEU_INSTRUCTION_MODULE_ID,
   type InstructionSourceInfo,
   instructionSourceInfo,
 } from '@/features/medications/instruction-source';
@@ -347,6 +348,12 @@ function supplementSourceLabel(supplements: readonly TradeNameSupplement[]): str
 
 const OFFER_NOTE =
   'Официальной инструкции для этого препарата нет на устройстве: она может быть в наборе инструкций его группы.';
+const EAEU_OFFER_NOTE =
+  'Инструкции ГРЛС для этого препарата нет: текст того же досье ЕАЭС может быть в реестрах Беларуси или Казахстана.';
+
+function offerNote(offer: InstructionModuleOffer): string {
+  return offer.moduleId === EAEU_INSTRUCTION_MODULE_ID ? EAEU_OFFER_NOTE : OFFER_NOTE;
+}
 
 /** The notice the reference entries carry; one per distinct text is enough for the section. */
 function supplementNotice(supplements: readonly TradeNameSupplement[]): string {
@@ -372,6 +379,7 @@ function InstructionSourcePanel(props: {
         classList={{
           'document-instruction-source--manufacturer':
             props.info.sourceClass === 'manufacturer-site',
+          'document-instruction-source--eaeu': props.info.sourceClass === 'eaeu-sister-register',
           'document-instruction-source--compact': props.compact ?? false,
         }}
         aria-label="Источник официального текста"
@@ -443,11 +451,14 @@ function productSourceNames(product: MedicationProduct): readonly string[] {
     ...(product.grlsRegistrationDocumentId ||
     (product.instructionDocumentId &&
       !product.instructionFallback &&
-      product.instructionSourceClass !== 'manufacturer-site')
+      (product.instructionSourceClass ?? 'grls') === 'grls')
       ? ['ГРЛС']
       : []),
     ...(product.instructionSourceClass === 'manufacturer-site' && !product.instructionFallback
       ? ['Сайт производителя']
+      : []),
+    ...(product.instructionSourceClass === 'eaeu-sister-register' && !product.instructionFallback
+      ? ['Реестр ЕАЭС']
       : []),
     ...(product.supplementalDescription || product.imageReference
       ? (product.supplementalSourceNames ?? [DEFAULT_REFERENCE_SOURCE_NAME])
@@ -546,7 +557,7 @@ function MedicationProductPanel(props: {
           />
           {props.trailing}
         </div>
-        <Show when={props.instructionOffer ? OFFER_NOTE : choices().note}>
+        <Show when={props.instructionOffer ? offerNote(props.instructionOffer) : choices().note}>
           {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
         </Show>
         <Show when={props.instructionOffer}>

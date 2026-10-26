@@ -117,7 +117,9 @@ for another state's stamped text are an owner decision, so no pack, catalog or r
    representative change applies.
 2. Run `manifest` over the 950 files (OCR for the scans), then add a module builder next to
    `manufacturer_instruction_modules.py` (source class `eaeu-sister-register`, country visible, ОХЛП shown as such). Owner
-   decision needed on showing a Belarus/Kazakhstan-stamped text for a Russian registration.
+   decision needed on showing a Belarus/Kazakhstan-stamped text for a Russian registration. **Done 2026-10-26 (EA1, owner
+   approved): module `minimed.medications.instructions.eaeu-sister-register.ru`, 674 documents for 338 registrations, see
+   `CURRENT_STATE.md` «EAEU sister-register instruction module».**
 3. Ask НЦЭСМП for the ОХЛП/ЛВ of the ~6 300 EAEU registrations (the only scaling path); the CSV exists (plan 02.10.2026).
 4. Optional: apply for the Kazakh partner API (metadata only), add the three manufacturer adapters.
 

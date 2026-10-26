@@ -11,6 +11,8 @@ import {
   instructionSourceClassIndex,
   instructionSourceClassOf,
   instructionSourceInfo,
+  instructionSourceName,
+  instructionSourceQualifier,
   instructionTextQuality,
   presentInstructionEdition,
 } from './instruction-source';
@@ -354,6 +356,94 @@ describe('manufacturer-site documents (M1, ADR-0023)', () => {
   });
 });
 
+describe('EAEU sister-register documents (owner 2026-10-26)', () => {
+  const belarus = {
+    sourceClass: 'eaeu-sister-register',
+    country: 'BY',
+    documentKind: 'ohlp',
+    registrationNumber: 'ЛП-№(002280)-(РГ-RU)',
+    officialSourceUrl: 'https://www.rceth.by/NDfiles/pdfeaec/002280/OHLP.pdf',
+    fetchedAt: '2026-10-13T20:13:55Z',
+    matchMethod: 'shared-dossier-number',
+  };
+
+  it('names the country on the page and the register as the source', () => {
+    const info = instructionSourceInfo({ sourceType: INSTRUCTION, metadata: belarus });
+    expect(info).toMatchObject({
+      sourceClass: 'eaeu-sister-register',
+      country: 'BY',
+      publisher: null,
+      matchLevel: null,
+      kindLabel: 'ОХЛП (общая характеристика лекарственного препарата)',
+      sourceUrl: 'https://www.rceth.by/NDfiles/pdfeaec/002280/OHLP.pdf',
+      fetchedOn: '13.10.2026',
+    });
+    expect(info?.matchNote).toBe(
+      'Текст из реестра лекарственных средств: Республика Беларусь (общее досье ЕАЭС).',
+    );
+    if (!info) throw new Error('no source info');
+    expect(instructionSourceName(info)).toBe('Реестр ЛС: Республика Беларусь');
+    expect(instructionSourceQualifier(info)).toBe('Беларусь');
+  });
+
+  it('points a doubtful OCR reading at the register, not at the ГРЛС', () => {
+    const info = instructionSourceInfo({
+      sourceType: INSTRUCTION,
+      metadata: { ...belarus, country: 'KZ', ocr: true, ocrLowConfidenceRatio: 0.5 },
+    });
+    expect(info?.country).toBe('KZ');
+    expect(info?.qualityNote).toContain('по оригиналу');
+    expect(info?.qualityNote).not.toContain('ГРЛС');
+  });
+
+  it('ranks after a ГРЛС file and before a holder site for the same registration', () => {
+    const documents = [
+      {
+        id: 'site',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-1', sourceClass: 'manufacturer-site' },
+      },
+      { id: 'by', sourceType: INSTRUCTION, metadata: { ...belarus, registrationNumber: 'ЛП-1' } },
+      { id: 'by.2', sourceType: INSTRUCTION, metadata: { ...belarus, registrationNumber: 'ЛП-2' } },
+      {
+        id: 'grls',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-2', documentKind: 'leaflet' },
+      },
+    ];
+    const index = instructionIndexFromDocuments(documents);
+    expect(index.get('ЛП-1')).toBe('by');
+    expect(index.get('ЛП-2')).toBe('grls');
+    expect(instructionSourceClassIndex(documents).get('ЛП-1')).toBe('eaeu-sister-register');
+  });
+
+  it('names the trade name the text uses in that country when it differs', () => {
+    const info = instructionSourceInfo({
+      sourceType: INSTRUCTION,
+      metadata: {
+        ...belarus,
+        country: 'KZ',
+        tradeName: 'Дорзокулин®',
+        sisterTradeName: 'Глаумакс®',
+      },
+    });
+    expect(info?.matchNote).toBe(
+      'Текст из реестра лекарственных средств: Республика Казахстан (общее досье ЕАЭС). Торговое наименование там: Глаумакс®.',
+    );
+    const same = instructionSourceInfo({
+      sourceType: INSTRUCTION,
+      metadata: { ...belarus, tradeName: 'Тизоптан®', sisterTradeName: 'ТИЗОПТАН' },
+    });
+    expect(same?.matchNote).not.toContain('Торговое наименование');
+  });
+
+  it('ignores a country on any other source class', () => {
+    expect(
+      instructionSourceInfo({ sourceType: INSTRUCTION, metadata: { country: 'BY' } })?.country,
+    ).toBeNull();
+  });
+});
+
 describe('formatFetchDate', () => {
   it('formats ISO dates and rejects anything else', () => {
     expect(formatFetchDate('2026-10-02T05:09:00Z')).toBe('02.10.2026');
@@ -380,6 +470,10 @@ describe('instructionModuleIdForSubstanceModule', () => {
       instructionModuleIdForSubstanceModule('minimed.medications.instructions.blood.ru'),
     ).toBeNull();
     expect(instructionModuleIdForSubstanceModule('minimed.clinical.x')).toBeNull();
+    // The Allmed packaging photos share the prefix but are no drug group.
+    expect(
+      instructionModuleIdForSubstanceModule('minimed.medications.packaging-images.ru'),
+    ).toBeNull();
   });
 });
 

@@ -11,6 +11,7 @@ import { displayDrugName } from '@/features/medications/drug-screen';
 import {
   type InstructionSourceInfo,
   instructionSourceInfo,
+  instructionSourceName,
 } from '@/features/medications/instruction-source';
 import { pluralRu } from '@/i18n/labels';
 import {
@@ -298,7 +299,13 @@ export function columnSourceLine(column: ColumnView): string {
   if (column.source) {
     parts.push(column.source.kindLabel);
     if (column.source.edition) parts.push(column.source.edition);
-    parts.push(column.source.publisher ? `сайт производителя: ${column.source.publisher}` : 'ГРЛС');
+    parts.push(
+      column.source.sourceClass === 'eaeu-sister-register'
+        ? instructionSourceName(column.source).replace('Реестр', 'реестр')
+        : column.source.publisher
+          ? `сайт производителя: ${column.source.publisher}`
+          : 'ГРЛС',
+    );
     if (column.source.fetchedOn) parts.push(`получена ${column.source.fetchedOn}`);
   }
   const text = parts.join(' · ');

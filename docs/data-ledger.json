@@ -613,10 +613,12 @@
       "path": "data/raw/eaeu-sister-registers",
       "class": "SOURCE",
       "producer": "medbase-eaeu-sister-registers lists/collect/manifest (G2, 2026-10-13; docs/research/drug-sources-2026-10-13.md): leaflets and ОХЛП of EAEU dossiers from rceth.by (Belarus) and register.ndda.kz (Kazakhstan), source class eaeu-sister-register",
-      "consumers": [],
-      "note": "entries-BY/KZ.jsonl (listing snapshots with checksum and fetch time), files/<country>/<sha256>.pdf|docx (950 files), state.jsonl (fetch ledger), manifest.jsonl (derived by manifest; pilot rows only). Never mixed with data/raw/grls-instructions-active.",
-      "bytes": 712566428,
-      "modified": "2026-10-13"
+      "consumers": [
+        "tools/ingest/scripts/build_eaeu_sister_instruction_module.py (EA1 module minimed.medications.instructions.eaeu-sister-register.ru)"
+      ],
+      "note": "entries-BY/KZ.jsonl (listing snapshots with checksum and fetch time), files/<country>/<sha256>.pdf|docx (950 files), state.jsonl (fetch ledger; one polite retry of the failed URLs on 2026-10-26 stored nothing new), manifest.jsonl (derived by `manifest --text-layer-only`, 898 rows on 2026-10-26). Never mixed with data/raw/grls-instructions-active.",
+      "bytes": 713267229,
+      "modified": "2026-10-26"
     },
     {
       "path": "data/build/icd11-module",
@@ -824,6 +826,18 @@
       "note": "Prepared Markdown of the 272 holder-site documents; the 16 scans are re-prepared in prepared-pdf-ocr1. LEAF1: prepared-contents holds the 91 documents whose leaflet contents list was re-rendered (grls_contents_lists.py manufacturer).",
       "bytes": 80109717,
       "modified": "2026-10-20"
+    },
+    {
+      "path": "data/intermediate/eaeu-sister-instructions",
+      "class": "REBUILDABLE",
+      "producer": "STATE EA1: build_eaeu_sister_instruction_module.py registry, medbase prepare (PDF with the Vision OCR fallback, DOCX text)",
+      "consumers": [
+        "tools/ingest/scripts/build_eaeu_sister_instruction_module.py build (prepared-pdf, prepared-text)"
+      ],
+      "rebuild": "build_eaeu_sister_instruction_module.py registry, then the two medbase prepare commands it prints (~30 min, 147 OCR documents)",
+      "note": "Prepared Markdown of the 678 chosen sister-register documents (646 PDF, 32 DOCX text) and the registries; the published module is on datasets/eaeu-instructions-2026.10.26-bb27176ae521, local copy output/module-zstd-eaeu-2026-10-26.",
+      "bytes": 273121952,
+      "modified": "2026-10-26"
     },
     {
       "path": "data/build/marker-eval/venv",

@@ -827,8 +827,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   ): Promise<void> => {
     const generation = ++instructionOfferGeneration;
     const primaryModuleId = source?.metadata['primaryModuleId'];
-    // A trade name without its text, or the substance card: offered only while the group's
-    // instruction module is missing (`instructionModuleOffer` is null once it is installed).
+    // A trade name without its text, or the substance card: the group's instruction module while
+    // it is missing, then the EAEU module (`instructionModuleOffer` is null once both are installed).
     if (
       product?.instructionDocumentId ||
       !source ||

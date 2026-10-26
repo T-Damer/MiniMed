@@ -375,3 +375,26 @@ def test_build_manifest_records_provenance_and_rejects_mismatches(tmp_path: Path
     assert str(good["url"]).startswith("https://sister.example/BY/000554/")
     assert len(str(good["sha256"])) == 64 and str(good["fetchedAt"]).endswith("Z")
     assert rows["ЛП-№(000022)-(РГ-RU)"]["accepted"] is False
+
+
+def test_collect_only_failed_retries_each_failed_url_once(tmp_path: Path) -> None:
+    candidates = [
+        Candidate(target(f"ЛП-№(00055{n})-(РГ-RU)", "X"), entry("KZ", f"00055{n}", ("leaflet",)))
+        for n in range(3)
+    ]
+    urls = [c.entry.documents["leaflet"] for c in candidates]
+    first = FakeHttp(
+        gets={
+            urls[0]: ok(urls[0], PDF, "application/pdf"),
+            urls[1]: Fetched(urls[1], urls[1], 500, {}, b""),
+        }
+    )
+    options = CollectOptions(tmp_path, max_documents=1)
+    assert collect(candidates, first, options) == {"stored": 1}
+    first.gets[urls[1]] = Fetched(urls[1], urls[1], 500, {}, b"")
+    assert collect(candidates[1:2], first, options) == {"failed": 1}
+    # the retry asks only for the failed URL (not the never-tried third one), once
+    retry = FakeHttp(gets={urls[1]: ok(urls[1], PDF + b"1", "application/pdf")})
+    retry_options = CollectOptions(tmp_path, only_failed=True, max_record_failures=100)
+    assert collect(candidates, retry, retry_options) == {"stored": 1}
+    assert retry.get_log == [urls[1]]

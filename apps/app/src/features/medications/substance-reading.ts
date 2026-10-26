@@ -58,6 +58,12 @@ function ownInstruction(product: MedicationProduct): boolean {
   return product.instructionDocumentId !== null && !product.instructionFallback;
 }
 
+const SOURCE_ORDER = ['grls', 'eaeu-sister-register', 'manufacturer-site'] as const;
+
+function sourceRank(product: MedicationProduct): number {
+  return SOURCE_ORDER.indexOf(product.instructionSourceClass ?? 'grls');
+}
+
 /**
  * The trade name whose official instruction the substance card shows: its own text before another
  * registration's, a ГРЛС file before a holder's site, tablets or capsules before other forms, an
@@ -74,8 +80,8 @@ export function representativeInstructionProduct(
   const ranked = withText.toSorted(
     (left, right) =>
       Number(ownInstruction(right)) - Number(ownInstruction(left)) ||
-      Number(left.instructionSourceClass === 'manufacturer-site') -
-        Number(right.instructionSourceClass === 'manufacturer-site') ||
+      // A ГРЛС file first, then another member state's register, then a holder's site.
+      sourceRank(left) - sourceRank(right) ||
       // The everyday form first: tablets or capsules for adults, not children's suppositories.
       Number(isEverydayForm(right)) - Number(isEverydayForm(left)) ||
       Number(isForChildren(left)) - Number(isForChildren(right)) ||

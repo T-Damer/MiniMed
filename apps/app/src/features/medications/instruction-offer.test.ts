@@ -41,6 +41,46 @@ const MODULES = [
   catalogModule('minimed.medications.instructions.blood.ru', 'Инструкции ГРЛС — Кровь', null),
 ];
 
+describe('instructionModuleOffer: the EAEU texts after the group', () => {
+  const EAEU = 'minimed.medications.instructions.eaeu-sister-register.ru';
+  const withEaeu = [
+    ...MODULES,
+    catalogModule(EAEU, 'Инструкции ЕАЭС из реестров Беларуси и Казахстана', 10 * 1024 * 1024),
+  ];
+  const groupInstalled = new Set(['minimed.medications.instructions.nervous-system.ru']);
+
+  it('offers the EAEU module once the group module is installed and the text is still missing', () => {
+    const offer = instructionModuleOffer({
+      catalogModules: withEaeu,
+      installedModuleIds: groupInstalled,
+      isReleased: () => true,
+      substanceModuleId: 'minimed.medications.nervous-system.ru',
+    });
+    expect(offer?.moduleId).toBe(EAEU);
+    expect(offer && instructionOfferLabel(offer)).toBe('Скачать · 10 МБ');
+    expect(offer && instructionOfferSubtitle(offer)).toBe(
+      'Инструкции ЕАЭС из реестров Беларуси и Казахстана',
+    );
+  });
+
+  it('offers the group first and nothing once both are installed', () => {
+    const base = {
+      catalogModules: withEaeu,
+      isReleased: () => true,
+      substanceModuleId: 'minimed.medications.nervous-system.ru',
+    };
+    expect(instructionModuleOffer({ ...base, installedModuleIds: new Set() })?.moduleId).toBe(
+      'minimed.medications.instructions.nervous-system.ru',
+    );
+    expect(
+      instructionModuleOffer({
+        ...base,
+        installedModuleIds: new Set([...groupInstalled, EAEU]),
+      }),
+    ).toBeNull();
+  });
+});
+
 describe('instructionModuleOffer', () => {
   const base = {
     catalogModules: MODULES,

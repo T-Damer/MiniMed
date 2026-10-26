@@ -20,6 +20,51 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## EAEU sister-register instruction module — 2026-10-26 (STATE EA1)
+
+Owner decision 2026-10-26: a leaflet or ОХЛП that the registers of Belarus (rceth.by) or Kazakhstan (register.ndda.kz)
+publish for an EAEU dossier may be shown for the Russian registration of the same dossier, with the country and the register
+visible. Recommendation 2 of [research/drug-sources-2026-10-13.md](research/drug-sources-2026-10-13.md) §4 is done.
+
+- **Collection.** One polite retry of the failed fetches (`collect --only-failed`, the collector's 4–6 s pacing, robots and
+  refusal stops; `--max-record-failures` only lets known per-record HTTP 500s not end the run): 60 URLs still in the
+  candidate set, 0 stored (58 Kazakh ids answer HTTP 500 again, 2 TLS errors). `manifest --text-layer-only` over all files:
+  **898 rows, 340 registrations** (the ГРЛС loop covered ~30 of the 2026-10-13 set since), 38 Belarus scans recorded
+  `no-text-layer` and re-checked on the OCR text by the builder (all passed). **6 rows rejected by the text guard:** the
+  Kazakh register served the files of another drug for Ренни® (Скинорен®) and Тизоптан® (Фарматекс®), and Экулизумаб's
+  Belarus files have a text layer without Cyrillic.
+- **Builder** `tools/ingest/src/localmed_ingest/eaeu_sister_instruction_modules.py`, CLI
+  `tools/ingest/scripts/build_eaeu_sister_instruction_module.py plan|registry|build`, tests
+  `tests/test_eaeu_sister_instruction_modules.py`. Per (registration, kind) one file: Belarus before Kazakhstan (the Kazakh
+  files hold the Russian and the Kazakh text); the 214 rows not chosen are listed in the report. Kind = the register's own
+  link (ЛВ → `leaflet`, ОХЛП → `ohlp`), never re-classified. PDFs through `medbase prepare` (147 with Vision OCR), DOCX text
+  as `format: text`; no summarising or repair. Metadata per document: `sourceClass` `eaeu-sister-register`, `country`,
+  `countryName`, `register`, `publisher`, `documentKind`, `tradeName`, `sisterTradeName`, `sisterCertificate`, `dossier`,
+  `registrationNumber(s)`, `matchMethod` `shared-dossier-number`, `textCheck`, `officialSourceUrl`, `fetchedAt`,
+  `httpLastModified`, `pdfSha256`, `rawPath`, OCR facts.
+- **Module** `minimed.medications.instructions.eaeu-sister-register.ru` «Инструкции ЕАЭС из реестров Беларуси и Казахстана»,
+  version `eaeu-sister-2026.10.26`: **674 documents (515 BY, 159 KZ; 337 leaflets, 337 ОХЛП) for 338 registrations (ЖНВЛП
+  160)**, 4 files without extractable text left out; 21 910 sections, 24 889 chunks, lexical only, search-compacted.
+  **28.6 MB download, 164.1 MB installed.** Branch `datasets/eaeu-instructions-2026.10.26-bb27176ae521` (`modules/…db.zst`,
+  SHA-256 `eeab965f…cd5d660`, raw.githubusercontent.com serves size, checksum and CORS), local copy
+  `output/module-zstd-eaeu-2026-10-26`. Catalog `eaeu1.2026.10.26` (845 modules, +1), collection `eaeu-instructions`,
+  `releaseState: preview`, **`minAppVersion` 0.6.66** (older apps would read the class as ГРЛС), so
+  `PENDING_RELEASE_MODULES` in `catalog.data.test.ts` lists it until `release.json` reaches 0.6.66.
+- **App.** `instruction-source.ts`: source class `eaeu-sister-register` with the country; ranking ГРЛС → EAEU register →
+  holder site (also for the substance card's representative). The drug card keeps one line above the text: «Текст из
+  реестра лекарственных средств: Республика Казахстан (общее досье ЕАЭС).», plus «Торговое наименование там: …» when the
+  text uses another trade name (e.g. Дорзокулин® = Глаумакс® in Kazakhstan); «Информация» names «Реестр ЛС: Республика …»
+  with the file link, kind and fetch date; the product's source line says «Реестр ЕАЭС»; an OCR note points at the register's
+  original, not at the ГРЛС. A drug group download brings the EAEU module along (`module-companions.ts`); a card still without
+  text after its group is installed offers it.
+- **Verified:** `python:check` (1 978 passed), app unit tests, `bun run verify`, e2e
+  `apps/app/e2e/eaeu-instruction-module.spec.ts` (`EA1_E2E=1`, a build stamped 0.6.66 because the module needs it): the
+  ЕСКЛП group «Органы чувств» from the mirror brings its ГРЛС instructions and the EAEU module; Бримтим opens the Kazakh
+  ОХЛП with «Республика Казахстан» on the page, Брипрессия Плюс the Belarus one, «Информация» names the register and links
+  the file. The Kazakh scans carry the existing low-quality OCR note (ungraded OCR, see below). **Not done:** the instruction-derived indexes (interactions,
+  safety, comparison, doses, substance fallback) do not read the module yet and their builders know only `grls` /
+  `manufacturer-site`; no KD1 vectors; no OCR1 second-opinion pass over the 147 OCR texts; Android not tested.
+
 ## Discovery core 0.6.64 — 2026-10-25 (STATE CORE3)
 
 Published as the prerelease `core-0.6.64` (`core.db.gz`, `MiniMed-0.6.64-core.db`, `core-report.json`,

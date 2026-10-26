@@ -216,6 +216,13 @@ describe('resolveContentModuleArtifactUrl', () => {
     );
     expect(
       resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/eaeu-instructions-2026.10.26-abc123/minimed.medications.instructions.eaeu-sister-register.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/eaeu-instructions-2026.10.26-abc123/modules/minimed.medications.instructions.eaeu-sister-register.ru.db.zst',
+    );
+    expect(
+      resolveContentModuleArtifactUrl(
         'https://github.com/T-Damer/MiniMed/releases/download/ddinter-severity-2026.10.06-abc123/minimed.reference.ddinter-severity.ru.db.zst',
       ),
     ).toBe(

@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "kr-parse.2026.10.25",
-  "publishedAt": "2026-10-25T14:00:00Z",
+  "catalogVersion": "eaeu1.2026.10.26",
+  "publishedAt": "2026-10-26T08:00:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

@@ -24,6 +24,8 @@ from .eaeu_sister_registers import (
     write_entries,
 )
 from .manufacturer_instructions import extract_document_text, load_targets
+from .models import ExtractionOptions
+from .pdf_import import extract_pdf
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -108,6 +110,10 @@ def collect_command(
     raw_root: _ROOT = _DEFAULT_ROOT,
     max_documents: Annotated[int, typer.Option("--max-documents", min=1)] = 50,
     delay: Annotated[float, typer.Option("--delay", min=2.0)] = 4.0,
+    only_failed: Annotated[
+        bool, typer.Option("--only-failed", help="Retry each previously failed URL once.")
+    ] = False,
+    max_record_failures: Annotated[int, typer.Option("--max-record-failures", min=1)] = 12,
 ) -> None:
     """Resumable download of the dossier PDFs (one request at a time per host)."""
     targets = load_targets(plan, grls_state, grls_raw_root, catalog)
@@ -115,7 +121,8 @@ def collect_command(
         entry for code in country for entry in read_entries(raw_root / f"entries-{code}.jsonl")
     ]
     candidates = candidates_for(targets, entries)
-    summary = collect(candidates, _http(delay), CollectOptions(raw_root, max_documents))
+    options = CollectOptions(raw_root, max_documents, only_failed, max_record_failures)
+    summary = collect(candidates, _http(delay), options)
     typer.echo(json.dumps({"candidates": len(candidates), **summary}, ensure_ascii=False))
 
 
@@ -126,6 +133,14 @@ def manifest_command(
     catalog: _CATALOG,
     grls_raw_root: _GRLS_RAW,
     raw_root: _ROOT = _DEFAULT_ROOT,
+    text_layer_only: Annotated[
+        bool,
+        typer.Option(
+            "--text-layer-only",
+            help="No OCR: a scan is recorded as no-text-layer and re-checked by the module "
+            "builder on the preparer's OCR text (scans are OCRed once, not twice).",
+        ),
+    ] = False,
 ) -> None:
     """Offline: extract text, check it against the target and write manifest.jsonl."""
     targets = load_targets(plan, grls_state, grls_raw_root, catalog)
@@ -135,6 +150,11 @@ def manifest_command(
     candidates = candidates_for(targets, entries)
 
     def extract(path: Path) -> str:
+        if text_layer_only and path.suffix.casefold() == ".pdf":
+            extracted = extract_pdf(path, ExtractionOptions(ocr_fallback=False))
+            return "\n".join(
+                block.text for page in extracted.pages for block in page.blocks if not block.removed
+            )
         return extract_document_text(path).text
 
     summary = build_manifest(candidates, CollectOptions(raw_root), extract)

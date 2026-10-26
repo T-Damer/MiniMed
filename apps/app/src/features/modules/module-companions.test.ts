@@ -6,11 +6,13 @@ import { companionModuleIds, companionModulesToInstall } from './module-companio
 const entry = (id: string): ContentModuleCatalogEntry => ({ id }) as ContentModuleCatalogEntry;
 const CARDIO = 'minimed.medications.cardiovascular.ru';
 const CARDIO_TEXT = 'minimed.medications.instructions.cardiovascular.ru';
+const EAEU = 'minimed.medications.instructions.eaeu-sister-register.ru';
 
 describe('modules installed together', () => {
-  it('a drug group brings its official instructions, nothing else does', () => {
-    expect(companionModuleIds(CARDIO)).toEqual([CARDIO_TEXT]);
+  it('a drug group brings its official instructions and the EAEU texts, nothing else does', () => {
+    expect(companionModuleIds(CARDIO)).toEqual([CARDIO_TEXT, EAEU]);
     expect(companionModuleIds(CARDIO_TEXT)).toEqual([]);
+    expect(companionModuleIds(EAEU)).toEqual([]);
     expect(companionModuleIds('minimed.clinical.cardiology.ru')).toEqual([]);
   });
 
@@ -23,6 +25,13 @@ describe('modules installed together', () => {
       isReleased: () => true,
     };
     expect(companionModulesToInstall(base).map((module) => module.id)).toEqual([CARDIO_TEXT]);
+    expect(
+      companionModulesToInstall({
+        ...base,
+        catalogModules: [entry(CARDIO), entry(CARDIO_TEXT), entry(EAEU)],
+        installedModuleIds: new Set([EAEU]),
+      }).map((module) => module.id),
+    ).toEqual([CARDIO_TEXT]);
     expect(
       companionModulesToInstall({ ...base, installedModuleIds: new Set([CARDIO_TEXT]) }),
     ).toEqual([]);
