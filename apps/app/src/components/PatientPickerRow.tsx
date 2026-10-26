@@ -122,9 +122,9 @@ export function PatientPickerRow(props: PatientPickerRowProps): JSX.Element {
         aria-label={buttonLabel()}
         title={buttonLabel()}
         aria-haspopup="dialog"
-        // The avatar already shows the people glyph: the button is a chooser (owner 2026-10-20:
-        // one icon must not stand for two things on a row).
-        icon={<AppGlyph name="caret-down" />}
+        // The avatar already shows the people glyph, so the button is an arrow that opens the
+        // patient list (owner 2026-10-26: no two equal icons in one row).
+        icon={<AppGlyph name="caret-right" />}
         onClick={() => setOpen(true)}
       />
 

@@ -133,7 +133,7 @@ export function PrescriptionWorkspace(props: PrescriptionWorkspaceProps): JSX.El
             <Button
               type="button"
               variant="icon"
-              class="prescription__recipe-button"
+              class="knowledge-back-button prescription__recipe-button"
               aria-label="Рецепт"
               title="Рецепт"
               data-testid="prescription-recipe-button"
