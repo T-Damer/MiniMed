@@ -23,20 +23,16 @@ async function mockPrintPopup(page: Page): Promise<void> {
   });
 }
 
-async function expectBookmarkBeforeTitle(page: Page): Promise<void> {
-  const row = page.locator('.reader-title-row').first();
-  const bookmark = row.locator('.item-bookmark');
-  const title = row.getByRole('heading', { level: 1 });
-  await expect(bookmark).toBeVisible();
-  const [mark, heading] = await Promise.all([bookmark.boundingBox(), title.boundingBox()]);
-  if (!mark || !heading) throw new Error('Title row geometry is unavailable.');
-  // In front of the title, on its line, centred on it.
-  expect(mark.x + mark.width).toBeLessThanOrEqual(heading.x);
-  expect(Math.abs(mark.y + mark.height / 2 - (heading.y + heading.height / 2))).toBeLessThan(4);
+/** No bookmark beside the title (owner 2026-10-20): saving lives in «⋯» → «Сохранить в коллекцию». */
+async function expectNoBookmarkOnTitleRow(page: Page): Promise<void> {
+  await expect(
+    page.locator('.reader-title-row').first().getByRole('heading', { level: 1 }),
+  ).toBeVisible();
+  await expect(page.locator('.reader-title-row .item-bookmark:visible')).toHaveCount(0);
 }
 
 for (const width of [375, 1280]) {
-  test(`a medication card's header menu prints and saves; the bookmark sits on the title row at ${width}px`, async ({
+  test(`a medication card's header menu prints and saves; saving is in «⋯», not on the title row at ${width}px`, async ({
     page,
   }, testInfo) => {
     test.setTimeout(180_000);
@@ -47,18 +43,12 @@ for (const width of [375, 1280]) {
     await installMedicationModule(page);
     const title = await openFirstMedicationCard(page);
 
-    // The drug screen has its own header: the bookmark and the recipe sit on the title row.
+    // The drug screen has its own header: only the title, no bookmark or recipe icon beside it
+    // (owner 2026-10-20); both are items of «⋯».
     const header = page.locator('.drug-header');
-    const bookmark = header.getByRole('button', { name: /^Сохранить «/u });
     const heading = header.getByRole('heading', { level: 1 });
-    await expect(bookmark).toBeVisible();
     await expect(heading).toHaveText(title);
-    // Borderless icon on the title row, after the title (the recipe icon sits beside it).
-    const [mark, headingBox] = await Promise.all([bookmark.boundingBox(), heading.boundingBox()]);
-    if (!mark || !headingBox) throw new Error('Drug header geometry is unavailable.');
-    expect(mark.x).toBeGreaterThanOrEqual(headingBox.x);
-    expect(mark.y).toBeLessThan(headingBox.y + headingBox.height);
-    // Nothing is left of the old lonely bookmark under the card.
+    await expect(header.getByRole('button', { name: /^Сохранить «/u })).toBeHidden();
     await expect(page.locator('.document-overlay-paper__actions .item-bookmark')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath(`reader-${width}.png`) });
 
@@ -88,11 +78,12 @@ for (const width of [375, 1280]) {
     await expect(panel.getByText('Сохранить в')).toBeVisible();
     await panel.getByRole('checkbox', { name: /Избранные/u }).check();
     await page.keyboard.press('Escape');
-    await expect(header.getByRole('button', { name: /^Сохранено:/u })).toBeVisible();
+    // The menu's anchor now names the saved state.
+    await expect(page.locator('.item-bookmark[aria-label^="Сохранено:"]')).toHaveCount(1);
   });
 }
 
-test('a personal file uses the same header menu and title bookmark', async ({ page }) => {
+test('a personal file uses the same header menu, saving from «⋯»', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 844 });
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   await page.getByRole('button', { name: 'Мои файлы', exact: true }).click();
@@ -104,7 +95,7 @@ test('a personal file uses the same header menu and title bookmark', async ({ pa
   await page.locator('.user-library-card').filter({ hasText: 'план' }).click();
   await expect(page.locator('.user-document-reader')).toContainText('План обследования.');
 
-  await expectBookmarkBeforeTitle(page);
+  await expectNoBookmarkOnTitleRow(page);
   await page.getByRole('button', { name: 'Меню действий' }).click();
   await expect(page.getByRole('menuitem', { name: 'Печать' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Сохранить в коллекцию' }).click();

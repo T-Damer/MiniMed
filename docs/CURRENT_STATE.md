@@ -64,6 +64,46 @@ visible. Recommendation 2 of [research/drug-sources-2026-10-13.md](research/drug
   the file. The Kazakh scans carry the existing low-quality OCR note (ungraded OCR, see below). **Not done:** the instruction-derived indexes (interactions,
   safety, comparison, doses, substance fallback) do not read the module yet and their builders know only `grls` /
   `manufacturer-site`; no KD1 vectors; no OCR1 second-opinion pass over the 147 OCR texts; Android not tested.
+## No lone spinners: chrome and skeletons while loading — 2026-10-26 (STATE SKEL1)
+
+Owner (phone, QA item 13 follow-up): opening propranolol from the drug page showed a full-screen page colour,
+a centred ring and the «↑» button — no header, no back, no bottom bar. Cause: the shell hides the header and
+the bottom bar while a document is read downwards and brought them back only when the reader was left; moving
+from one document to another (a drug card to its trade name or instruction, a link) kept them hidden, and the
+reader reset its scroll only after the new text's first sections had mounted, so the previous page's scroll
+showed only the new page's loader.
+
+- **Chrome first.** Every route change shows the controls again (`use-root-navigation.ts`), and the reader holds
+  them in view and starts at the top as soon as a new document arrives, before its sections mount
+  (`OfficialDocumentReader`; an anchor or a restored position still jumps once the text is there).
+- **One shared component.** `components/PageSkeleton.tsx`: `PageSkeleton` (header row with a working ‹ back +
+  paper with bars) for whole screens, `SkeletonLines` (ragged text bars, `role=status` with a label) for text
+  still arriving inside a page. The reader's two ring boxes («Открываем инструкцию», «Загружаем остальные
+  разделы» at the bottom) are skeleton lines; the `.document-overlay-spinner` ring is gone. The notes tools
+  (календарь прививок, назначение, сравнение, взаимодействие) load under `PageSkeleton` with their «Открываем …»
+  line and back to the notes; the feed's page viewer loads as skeleton lines. Small busy marks inside buttons
+  and rows (download, find) stay.
+- **Guards.** `e2e/no-bare-loader.spec.ts` samples every animation frame (4× slower CPU) over the root tabs, a
+  long КР read down until the controls hide, then the drug catalog → a card → a trade name's instruction, and a
+  tool route: any frame with a spinner or skeleton and no «Назад»/«Закрыть» control and no bottom bar fails (a
+  self-check proves the sampler sees a bare loader). With the two chrome fixes removed it fails on the drug card
+  route; with them it passes. `components/page-skeleton.test.ts`: every screen-level `Suspense` fallback in
+  `App.tsx` and `NotesView.tsx` is a `PageSkeleton`, the old ring class is gone, the reader's pending blocks are
+  `SkeletonLines`. AGENTS.md «Interface rules» has the rule.
+- **Found on the way: three «Сохранить» panels at once.** The reader header read its `printButton` slot three
+  times (a class check, a `Show`, the content); each read built the «⋯» menu anew, and each copy mounted the
+  collections panel, so «⋯» → «Сохранить в коллекцию» opened three dialogs (since PHONE-QA moved the bookmark
+  into the menu). `document-reader-chrome.tsx` resolves `printButton` and `headerSearchSlot` once
+  (`children()`); `reader-actions.spec.ts` checks the menu path instead of the removed title bookmark.
+- **E2E fixture.** `clinical-module-fixture.ts` now also looks in `output/module-zstd-json-2026-10-25` and
+  `…-2026-10-20`: KR-PARSE republished 1006_1, so every spec using the fixture had been skipping since 10-25.
+  Still pointing only at older copies (they skip): `module-pointer`, `kr-numbered-heading-modules`,
+  `kr-template-label-modules`, `kr-appendix-heading-modules`, `many-modules-reload`.
+- **Checks.** `check`, `typecheck`, unit 18 816 pass; e2e (production build, 390×844) over every `reader-*` spec,
+  `native-chrome`, `no-bare-loader`, `document-core-wait`, `drug-screen-first-screen`, `news-feed`: 87 of 88 pass —
+  `reader-lookups` («search source context uses the same inline medication lookup») fails the same way on the
+  unchanged main; `medication-reload` and `medication-instruction-fallback` pass on their own.
+- **Not verified:** a phone (HyperOS); WebKit. Pushed to main only — no new build released.
 
 ## Discovery core 0.6.64 — 2026-10-25 (STATE CORE3)
 

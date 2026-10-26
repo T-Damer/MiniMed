@@ -230,6 +230,11 @@ reported.
 - **Loading is one state.** A screen shows one loading state, then the finished content — no
   loading → partial → loading → full flicker; background data refreshes never replace visible
   content with a loader.
+- **Never a lone spinner (owner 2026-10-26).** A loading screen keeps its chrome (‹ back, title when
+  known, bottom bar) and shows a skeleton shaped like the coming page: `PageSkeleton` for a whole
+  screen, `SkeletonLines` for text still arriving inside a page (`components/PageSkeleton.tsx`). A
+  reader shows its first page as soon as it is ready, with skeleton lines only at the bottom.
+  `e2e/no-bare-loader.spec.ts` fails on any frame with a loader and no way out.
 
 ## Navigation (user decision, 2026-10-14)
 

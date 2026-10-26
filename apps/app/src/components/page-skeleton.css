@@ -74,6 +74,15 @@
   gap: 0.9375rem;
 }
 
+/* Text still loading inside a page that shows (`SkeletonLines`): the same bars, no title. */
+.skeleton-lines {
+  display: grid;
+  gap: 0.9375rem;
+  padding-block: 0.75rem;
+  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+  pointer-events: none;
+}
+
 @keyframes page-skeleton-reveal {
   from {
     opacity: 0;

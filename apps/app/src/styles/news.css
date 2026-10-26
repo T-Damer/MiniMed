@@ -1040,6 +1040,10 @@ html.news-vt::view-transition-new(news-sheet) {
   white-space: nowrap;
 }
 
+.news-viewer__page-loading {
+  padding: 1rem;
+}
+
 .news-viewer__spinner {
   display: inline-grid;
   width: 1rem;

@@ -28,6 +28,7 @@ import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
+import { PageSkeleton } from '@/components/PageSkeleton';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
@@ -1302,9 +1303,10 @@ export function NotesView(props: {
         {(current) => (
           <Suspense
             fallback={
-              <p class="vax-loading" role="status">
-                Открываем календарь прививок…
-              </p>
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем календарь прививок…</p>}
+              />
             }
           >
             <VaccinationWorkspace
@@ -1318,9 +1320,10 @@ export function NotesView(props: {
         {(current) => (
           <Suspense
             fallback={
-              <p class="vax-loading" role="status">
-                Открываем «Сравнение препаратов»…
-              </p>
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем «Сравнение препаратов»…</p>}
+              />
             }
           >
             <DrugComparisonWorkspace
@@ -1337,9 +1340,10 @@ export function NotesView(props: {
         {(current) => (
           <Suspense
             fallback={
-              <p class="vax-loading" role="status">
-                Открываем «Назначение»…
-              </p>
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем «Назначение»…</p>}
+              />
             }
           >
             <PrescriptionWorkspace
@@ -1369,9 +1373,10 @@ export function NotesView(props: {
         {(current) => (
           <Suspense
             fallback={
-              <p class="vax-loading" role="status">
-                Открываем «Взаимодействие препаратов»…
-              </p>
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем «Взаимодействие препаратов»…</p>}
+              />
             }
           >
             <DrugInteractionWorkspace

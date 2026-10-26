@@ -10,9 +10,13 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
 const ROOT = resolve(import.meta.dirname, '../../..');
 // The local release copies stay in the main checkout; an agent worktree (`<main>/.claude/worktrees/…`) reads them there.
 const DATA_ROOT = LOCAL_DATA_ROOT;
-// Local copy of the published zstd indexes (docs/data-ledger.json keeps it as the release copy):
-// every КР module since the KD1 republish of 2026-10-11.
-const PUBLISHED_DIRECTORIES = ['output/module-zstd-kd1-2026-10-11'];
+// Local copies of the published zstd indexes (docs/data-ledger.json keeps them as release copies).
+// Newest copy first: KR-PARSE republished all 774 КР on 2026-10-25, MOD-REBUILD 358 on 2026-10-20.
+const PUBLISHED_DIRECTORIES = [
+  'output/module-zstd-json-2026-10-25',
+  'output/module-zstd-json-2026-10-20',
+  'output/module-zstd-kd1-2026-10-11',
+];
 const MODULE_ID = 'minimed.clinical.recommendation.1006_1';
 export const CLINICAL_POINTER_ID = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 

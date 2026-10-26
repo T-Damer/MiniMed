@@ -14,6 +14,7 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-sonner';
@@ -24,7 +25,7 @@ import { Disclosure } from '@/components/Disclosure';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
-import { PageSkeletonBody } from '@/components/PageSkeleton';
+import { PageSkeletonBody, SkeletonLines } from '@/components/PageSkeleton';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import {
   createReaderBookmark,
@@ -170,6 +171,7 @@ import {
   saveReaderPosition,
 } from '@/state/history-entries';
 import type { ItemRefInput } from '@/state/item-collections';
+import { holdReaderChrome } from '@/state/reader-chrome-hold';
 
 import '@/features/modules/module-download-offer.css';
 
@@ -1026,6 +1028,24 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     if (document) noteRecommendationOpened(document, specialtyLabel);
   });
 
+  // A new text in the same reader (a drug card switching to its instruction, another document) shows
+  // the header and the bottom bar right away, from its top: waiting for its first sections kept the
+  // previous page's scroll with the controls hidden, so only the loader was left on screen
+  // (owner 2026-10-26). An anchor or a restored position is handled below, once sections mount.
+  let shownDocumentId: string | undefined;
+  createEffect(() => {
+    const id = props.document?.id;
+    if (!id || id === shownDocumentId) return;
+    shownDocumentId = id;
+    // Shows the controls now; the reader's next scroll down may hide them again as usual.
+    holdReaderChrome(0);
+    if (untrack(() => props.initialAnchor ?? restoredPosition())) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    globalThis.document
+      .querySelector<HTMLElement>('.document-overlay-paper')
+      ?.scrollTo({ top: 0, behavior: 'instant' });
+  });
+
   let initialScrollKey: string | undefined;
   let cancelRestoreJump: (() => void) | undefined;
   onCleanup(() => cancelRestoreJump?.());
@@ -1665,13 +1685,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         )}
                       </Show>
                       <Show when={props.substanceInstructionPending}>
-                        <div
+                        <SkeletonLines
                           class="document-overlay-paper__pending"
-                          role="status"
-                          aria-label="Открываем инструкцию"
-                        >
-                          <span class="document-overlay-spinner" aria-hidden="true" />
-                        </div>
+                          label="Открываем инструкцию"
+                          lines={6}
+                        />
                       </Show>
                       <Show when={!props.medicationProduct && props.instructionOffer}>
                         {(offer) => (
@@ -1990,13 +2008,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     : {})}
                 />
                 <Show when={sectionsPending()}>
-                  <div
+                  <SkeletonLines
                     class="document-overlay-paper__pending"
-                    role="status"
-                    aria-label="Загружаем остальные разделы"
-                  >
-                    <span class="document-overlay-spinner" aria-hidden="true" />
-                  </div>
+                    label="Загружаем остальные разделы"
+                    lines={3}
+                  />
                 </Show>
               </>
             )}

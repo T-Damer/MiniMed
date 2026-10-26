@@ -15,6 +15,7 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
+import { SkeletonLines } from '@/components/PageSkeleton';
 import {
   firstImageOf,
   type SafeNode,
@@ -175,7 +176,7 @@ function NewsRawPage(props: { readonly url: string; readonly title: string }): J
   return (
     <Switch>
       <Match when={state().kind === 'loading'}>
-        <Spinner label="Загружаем страницу" />
+        <SkeletonLines class="news-viewer__page-loading" label="Загружаем страницу" lines={8} />
       </Match>
       <Match when={state().kind === 'ready'}>
         <iframe

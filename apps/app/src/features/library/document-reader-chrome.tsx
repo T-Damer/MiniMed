@@ -3,6 +3,7 @@ import {
   type OverlayScrollbarsComponentRef,
 } from 'overlayscrollbars-solid';
 import {
+  children,
   createEffect,
   createMemo,
   createSignal,
@@ -503,6 +504,11 @@ export interface DocumentReaderChromeShellProps {
 export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps): JSX.Element {
   const chrome = props.chrome;
   const searchOpen = (): boolean => props.searchOpen?.() ?? false;
+  // Each read of a JSX prop builds it anew: resolved once, a slot read for a class and for the
+  // header is one element (the «⋯» menu's collections panel was mounted three times and opened
+  // three dialogs at once).
+  const printButton = children(() => props.printButton);
+  const headerSearchSlot = children(() => props.headerSearchSlot);
   const outlineSwipe = useDocumentOutlineSwipe({
     outlineOpen: chrome.outlineOpen,
     openOutline: () => chrome.setOutlineOpen(true),
@@ -672,8 +678,8 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
               }
               classList={{
-                'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
-                'document-page__chrome--with-print': Boolean(props.printButton),
+                'document-page__chrome--with-search': Boolean(headerSearchSlot()),
+                'document-page__chrome--with-print': Boolean(printButton()),
                 ...props.chromeClassList,
               }}
             >
@@ -701,8 +707,8 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 </button>
               </Show>
               <div class="document-page__trail">{props.breadcrumbs}</div>
-              {props.headerSearchSlot}
-              <Show when={props.printButton}>{props.printButton}</Show>
+              {headerSearchSlot()}
+              {printButton()}
             </header>
             <div class="document-page__body document-overlay__body" classList={props.bodyClassList}>
               {props.bodyError}

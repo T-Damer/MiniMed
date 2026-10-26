@@ -287,6 +287,10 @@ export function useRootNavigation() {
     }
     redirectLegacySettingsRoutes();
     applyDocumentReadState();
+    // A new place starts with its controls in view. Moving from one document to another kept the
+    // header and the bottom bar hidden from the previous page's scroll, so a page that was still
+    // loading showed only its loader (owner 2026-10-26).
+    if (chromeHidden()) setChromeHidden(false);
     const next = viewFromLocation();
     if (next === view()) return;
     transitionToRootView(next, () => {

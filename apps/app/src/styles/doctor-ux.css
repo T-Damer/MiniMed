@@ -143,15 +143,6 @@
   flex-direction: column;
 }
 
-.document-overlay-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 0.1875rem solid var(--ink-faint);
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 700ms linear infinite;
-}
-
 .document-overlay-layout {
   display: grid;
   min-height: 100dvh;
@@ -1051,16 +1042,9 @@ html.app-chrome-hidden .document-overlay-paper::before {
   margin-top: 0.75rem;
 }
 
+/* Text still loading below what the reader already shows: skeleton lines (SkeletonLines), no ring. */
 .document-overlay-paper__pending {
-  display: grid;
-  min-height: 8rem;
-  margin: 1.5rem 0 0;
-  place-items: center;
-  align-content: center;
-  padding: 1.5rem;
-  border: 1px solid var(--paper-line);
-  border-radius: var(--theme-radius-panel);
-  background: color-mix(in srgb, var(--theme-surface-muted) 82%, var(--document-paper-fill));
+  margin-top: 1rem;
 }
 
 .document-overlay-action-button {
