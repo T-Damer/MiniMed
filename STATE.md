@@ -107,6 +107,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
+| 2026-10-26 | claude-opus (EA1) | EAEU sister-register instruction module (owner 10-26: BY/KZ ЛВ/ОХЛП may be shown for the Russian registration, country and register visible): retry failed fetches, manifest + OCR, module builder `eaeu-sister-register`, `datasets/…` mirror, catalog, drug-screen source block | `tools/ingest/src/localmed_ingest/eaeu_sister_*.py`, `tools/ingest/tests/test_eaeu_sister_*`, catalog entries for the new module, drug-screen source-label code for this class |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
