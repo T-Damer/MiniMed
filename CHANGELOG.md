@@ -4,6 +4,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.65] - 2026-10-26
+
 - Search results: the download button of a source card sits in the card header, right of the type, instead of a
   footer line of its own.
 
