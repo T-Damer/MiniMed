@@ -171,7 +171,8 @@ export function DiaryDashboard(props: {
               <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
             )
           }
-          title={<Heading depth={1}>Дневники пациентов</Heading>}
+          // Signed out, the centred sign-in card carries the page; the header keeps only its tools.
+          title={session() ? <Heading depth={1}>Дневники пациентов</Heading> : undefined}
           actions={
             <Show when={session()}>
               <Button

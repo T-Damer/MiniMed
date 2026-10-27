@@ -52,31 +52,393 @@
   color: var(--theme-text-muted);
 }
 
-/* Sign-in ----------------------------------------------------------------------------------- */
+/* Sign-in: a centred card in a small garden ---------------------------------------------------- */
 .diary-signin {
+  position: relative;
   display: grid;
-  gap: 0.85rem;
-  max-width: 28rem;
+  /* Centred while it fits; on a short window it starts at the top and the page scrolls. */
+  align-items: safe center;
+  justify-items: center;
+  min-height: calc(100dvh - 6rem);
+  padding: 1rem 1rem 2rem;
+  isolation: isolate;
+}
+
+.diary-signin__stage {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 15% 85%,
+      color-mix(in srgb, var(--theme-accent) 16%, transparent),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      color-mix(in srgb, var(--theme-accent) 12%, transparent),
+      transparent 40%
+    );
+}
+
+/* Garden (SignInGarden) */
+.diary-garden {
+  --garden-young: color-mix(in srgb, var(--theme-accent) 55%, #9cc79a);
+  --garden-deep: var(--theme-accent);
+  --garden-warm: color-mix(in srgb, var(--theme-warning) 70%, #d9b45a);
+  --garden-stem: color-mix(in srgb, var(--theme-accent) 70%, var(--theme-text-muted));
+  position: absolute;
+  inset: 0;
+}
+
+.diary-garden__vine {
+  position: absolute;
+  width: min(15rem, 34vw);
+  height: auto;
+  overflow: visible;
+}
+
+.diary-garden__vine--start {
+  bottom: -0.5rem;
+  left: -0.5rem;
+}
+
+.diary-garden__vine--end {
+  top: -0.5rem;
+  right: -0.5rem;
+  transform: rotate(180deg);
+}
+
+.diary-garden__stem {
+  fill: none;
+  stroke: var(--garden-stem);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: diary-garden-grow 1.4s var(--motion-ease-out, ease-out) 0.15s forwards;
+}
+
+@keyframes diary-garden-grow {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.diary-garden__leaf {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: scale(0);
+  animation:
+    diary-garden-unfold 0.5s var(--motion-ease-out, ease-out)
+    calc(0.35s + var(--leaf-index) * 0.12s) forwards,
+    diary-garden-sway 4.5s ease-in-out calc(1.6s + var(--leaf-index) * 0.3s) infinite alternate;
+}
+
+@keyframes diary-garden-unfold {
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes diary-garden-sway {
+  from {
+    transform: scale(1) rotate(-6deg);
+  }
+  to {
+    transform: scale(1) rotate(7deg);
+  }
+}
+
+.diary-garden__blade {
+  stroke: none;
+}
+
+.diary-garden__blade--young {
+  fill: var(--garden-young);
+}
+
+.diary-garden__blade--deep {
+  fill: var(--garden-deep);
+}
+
+.diary-garden__blade--warm {
+  fill: var(--garden-warm);
+}
+
+.diary-garden__rib {
+  fill: none;
+  stroke: color-mix(in srgb, white 55%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.diary-garden__drift {
+  position: absolute;
+  top: -3rem;
+  width: 1.6rem;
+  opacity: 0.4;
+  animation: diary-garden-fall 22s linear infinite;
+}
+
+.diary-garden__drift--lane-1 {
+  left: 18%;
+  animation-delay: -3s;
+}
+
+.diary-garden__drift--lane-2 {
+  left: 42%;
+  width: 1.2rem;
+  animation-duration: 27s;
+  animation-delay: -14s;
+}
+
+.diary-garden__drift--lane-3 {
+  left: 64%;
+  width: 1.9rem;
+  animation-duration: 25s;
+  animation-delay: -8s;
+}
+
+.diary-garden__drift--lane-4 {
+  left: 82%;
+  width: 1.3rem;
+  animation-duration: 30s;
+  animation-delay: -20s;
+}
+
+.diary-garden__drift--lane-5 {
+  left: 6%;
+  width: 1.1rem;
+  animation-duration: 26s;
+  animation-delay: -11s;
+}
+
+@keyframes diary-garden-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(2.5rem, 25vh) rotate(80deg);
+  }
+  50% {
+    transform: translate(-1.5rem, 50vh) rotate(170deg);
+  }
+  75% {
+    transform: translate(2rem, 75vh) rotate(250deg);
+  }
+  100% {
+    transform: translate(0, calc(100vh + 4rem)) rotate(340deg);
+  }
+}
+
+.diary-signin__card {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: min(100%, 25rem);
+  padding: 1.25rem 1.5rem 1.1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--theme-surface-raised) 92%, transparent);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 14%);
+  backdrop-filter: blur(10px);
+  animation: diary-signin-rise var(--motion-slow, 240ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes diary-signin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+}
+
+.diary-signin__logo {
+  width: 3.5rem;
+  height: 3.5rem;
+  animation: diary-signin-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes diary-signin-bob {
+  50% {
+    transform: translateY(-0.25rem) rotate(-3deg);
+  }
+}
+
+.diary-signin__pulse {
+  width: 9rem;
+  height: 1.4rem;
+  overflow: visible;
+}
+
+.diary-signin__pulse-line {
+  fill: none;
+  stroke: var(--theme-danger);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: diary-signin-trace 2.4s linear infinite;
+}
+
+@keyframes diary-signin-trace {
+  60% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.diary-signin__form {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.diary-signin__headline {
+  display: grid;
+  gap: 0.2rem;
+  text-align: center;
+  animation: diary-signin-swap var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes diary-signin-swap {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+.diary-signin__title {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.2;
 }
 
 .diary-signin__lead {
   margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.diary-signin__key {
+  display: inline-block;
+  animation: diary-signin-bob 2.4s ease-in-out infinite;
 }
 
 .diary-signin__code {
   margin: 0;
   padding: 0.85rem 1rem;
-  border: 1px dashed var(--theme-border);
+  border: 1px dashed var(--theme-accent);
   border-radius: var(--theme-radius-panel);
+  background: var(--theme-accent-soft);
   font-family: ui-monospace, monospace;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   letter-spacing: 0.06em;
   text-align: center;
+  word-break: break-all;
 }
 
 .diary-signin__error {
   margin: 0;
   color: var(--theme-danger);
+  text-align: center;
+  animation: diary-signin-shake var(--motion-slow, 240ms) var(--motion-ease, ease);
+}
+
+@keyframes diary-signin-shake {
+  25% {
+    transform: translateX(-0.35rem);
+  }
+  75% {
+    transform: translateX(0.35rem);
+  }
+}
+
+.diary-signin__submit {
+  width: 100%;
+}
+
+.diary-signin__switch {
+  justify-self: center;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--theme-accent-text);
+  background: transparent;
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast, 120ms) var(--motion-ease, ease),
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.diary-signin__switch:hover {
+  background: var(--theme-accent-soft);
+}
+
+.diary-signin__switch:active {
+  transform: scale(0.96);
+}
+
+.diary-signin__switch:focus-visible {
+  outline: 0.19rem solid var(--theme-accent);
+  outline-offset: 0.12rem;
+}
+
+@media (max-width: 30rem) {
+  .diary-signin {
+    padding-inline: 0.5rem;
+  }
+
+  .diary-signin__card {
+    padding: 1.25rem 1rem 1rem;
+  }
+}
+
+.diary-signin__submit--busy {
+  animation: diary-signin-breathe 1.2s ease-in-out infinite;
+}
+
+@keyframes diary-signin-breathe {
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-garden__stem,
+  .diary-garden__leaf,
+  .diary-garden__drift,
+  .diary-signin__card,
+  .diary-signin__logo,
+  .diary-signin__pulse-line,
+  .diary-signin__headline,
+  .diary-signin__key,
+  .diary-signin__error,
+  .diary-signin__submit--busy {
+    animation: none;
+  }
+
+  .diary-signin__pulse-line,
+  .diary-garden__stem {
+    stroke-dashoffset: 0;
+  }
+
+  .diary-garden__leaf {
+    transform: none;
+  }
+
+  .diary-garden__drift {
+    display: none;
+  }
 }
 
 /* List -------------------------------------------------------------------------------------- */

@@ -23,6 +23,7 @@ import {
   isCoreStartHeld,
   whenCoreStartReleased,
 } from '@/features/setup/setup-state';
+import { activeProfile } from '@/state/app-profile';
 import {
   APP_UPDATE_READY_EVENT,
   type AppUpdateProgress,
@@ -158,7 +159,9 @@ export function useAppSession() {
     announcedUpdateWorker = worker;
     toast('Доступно обновление', {
       id: 'app-update-ready',
-      duration: 12_000,
+      // Without the bottom bar (a narrowed app profile) there is no lasting update badge: the
+      // notice stays until it is tapped.
+      duration: activeProfile()?.hideNavigation ? Number.POSITIVE_INFINITY : 12_000,
       action: { label: 'Обновить', onClick: () => activateAnnouncedUpdate() },
     });
   };
