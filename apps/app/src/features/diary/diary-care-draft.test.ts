@@ -55,7 +55,9 @@ describe('care diary editor', () => {
       'vitals',
       'q-phq-9',
     ]);
-    expect(invitation.tips).toEqual([{ id: 't-p1', target: 'p1', text: 'Вечером, после ужина' }]);
+    expect(invitation.tips).toEqual([
+      { id: expect.stringMatching(/^t-p1-/u), target: 'p1', text: 'Вечером, после ужина' },
+    ]);
     expect(invitation.contacts).toEqual([{ kind: 'phone', value: '+7 900 000-00-00' }]);
     expect(invitation.crisis).toEqual(['Телефон клиники']);
   });
@@ -104,6 +106,6 @@ describe('care diary editor', () => {
       ['p3', 'В', false],
       ['p1', 'А', true],
     ]);
-    expect(second.checkpoints?.some((checkpoint) => checkpoint.id === 'vitals')).toBe(false);
+    expect(second.checkpoints?.find((checkpoint) => checkpoint.id === 'vitals')?.ended).toBe(true);
   });
 });

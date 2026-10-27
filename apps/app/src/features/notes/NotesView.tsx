@@ -56,6 +56,7 @@ import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
 import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
 import { flushNoteEditors } from '@/features/notes/note-editor-flush';
 import {
+  diariesPath,
   notesFormsPath,
   notesNewPatientPath,
   notesPath,
@@ -124,7 +125,7 @@ import {
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
 import '@/styles/notes-root.css';
-import { navigateBack } from '@/state/app-back';
+import { navigateBack, pushRoute } from '@/state/app-back';
 
 type DeleteTarget =
   | {
@@ -435,6 +436,11 @@ const PrescriptionWorkspace = lazy(() =>
 const DrugInteractionWorkspace = lazy(() =>
   import('@/features/drug-interactions/DrugInteractionWorkspace').then((module) => ({
     default: module.DrugInteractionWorkspace,
+  })),
+);
+const DiaryDashboard = lazy(() =>
+  import('@/features/diary/dashboard/DiaryDashboard').then((module) => ({
+    default: module.DiaryDashboard,
   })),
 );
 const VaccinationWorkspace = lazy(() =>
@@ -960,6 +966,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'forms' || current.kind === 'form' ? current : null;
   });
+  const diariesRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'diaries' ? current : null;
+  });
   const vaccinationRoute = createMemo(() => {
     const current = route();
     return current.kind === 'vaccination' ? current : null;
@@ -1299,6 +1309,25 @@ export function NotesView(props: {
           onBack={() => navigateBack(notesPath())}
         />
       </Show>
+      <Show when={props.active && diariesRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем дневники пациентов…</p>}
+              />
+            }
+          >
+            <DiaryDashboard
+              patientId={current().patientId}
+              onBack={() => navigateBack(notesPath())}
+              onList={() => navigateBack(diariesPath())}
+              onOpenPatient={(id) => pushRoute(diariesPath(id))}
+            />
+          </Suspense>
+        )}
+      </Show>
       <Show when={props.active && vaccinationRoute()}>
         {(current) => (
           <Suspense
@@ -1441,6 +1470,22 @@ export function NotesView(props: {
                 <span class="patient-card-title">Пациенты</span>
                 <span class="notes-section-card__description">
                   Карточки пациентов, визиты и показатели в динамике
+                </span>
+              </span>
+              <AppGlyph name="caret-right" class="notes-section-card__chevron" />
+            </button>
+          </article>
+          <article class="patient-notes-diaries-card paper-card">
+            <button
+              type="button"
+              class="patient-card-open notes-section-card"
+              onClick={() => navigate(diariesPath())}
+            >
+              <AppGlyph name="heartbeat" class="notes-section-card__icon" />
+              <span class="notes-section-card__text">
+                <span class="patient-card-title">Дневники пациентов</span>
+                <span class="notes-section-card__description">
+                  Лечение и самочувствие пациентов между визитами, в реальном времени
                 </span>
               </span>
               <AppGlyph name="caret-right" class="notes-section-card__chevron" />

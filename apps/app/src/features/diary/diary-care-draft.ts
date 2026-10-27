@@ -5,6 +5,7 @@
  */
 import {
   CARE_CHECKPOINTS,
+  DIARY_FORMAT_VERSION,
   type DiaryCheckpoint,
   type DiaryContact,
   type DiaryContactKind,
@@ -12,6 +13,8 @@ import {
   type DiaryMeal,
   type DiaryPlanItem,
   type DiaryTip,
+  diaryTemplate,
+  parseDiaryInvitation,
 } from '@/features/diary/diary-model';
 import {
   diaryQuestionnaire,
@@ -96,7 +99,9 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
   const tipOf = (target: string): string =>
     invitation.tips?.find((tip) => tip.target === target)?.text ?? '';
   const check = (id: CareCheckId): CareCheckDraft => {
-    const found = invitation.checkpoints?.find((checkpoint) => checkpoint.id === id);
+    const found = invitation.checkpoints?.find(
+      (checkpoint) => checkpoint.id === id && !checkpoint.ended,
+    );
     return { on: Boolean(found), time: found?.times?.[0] ?? presetTime(id) };
   };
   const items = (invitation.plan ?? [])
@@ -115,7 +120,7 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
     items: items.length ? items : [EMPTY_CARE_ITEM],
     checks: { am: check('am'), pm: check('pm'), vitals: check('vitals') },
     quizzes: (invitation.checkpoints ?? []).flatMap((checkpoint) =>
-      checkpoint.kind === 'questionnaire' && checkpoint.questionnaire
+      checkpoint.kind === 'questionnaire' && checkpoint.questionnaire && !checkpoint.ended
         ? [{ slug: checkpoint.questionnaire, everyDays: checkpoint.everyDays ?? 7 }]
         : [],
     ),
@@ -193,9 +198,20 @@ export function careInvitationParts(
     });
   }
 
+  const active = new Set(checkpoints.map((checkpoint) => checkpoint.id));
+  for (const checkpoint of previous?.checkpoints ?? []) {
+    if (!active.has(checkpoint.id)) checkpoints.push({ ...checkpoint, ended: true });
+  }
+
   const tips: DiaryTip[] = filled.flatMap((item, index) => {
     const id = plan[index]?.id;
-    return item.tip.trim() && id ? [{ id: `t-${id}`, target: id, text: item.tip.trim() }] : [];
+    const text = item.tip.trim();
+    if (!text || !id) return [];
+    // The same text keeps its id, so a tip the patient has read does not show «?» again.
+    const same = previous?.tips?.find((tip) => tip.target === id && tip.text === text);
+    return [
+      { id: same?.id ?? `t-${id}-${Date.now().toString(36)}`.slice(0, 24), target: id, text },
+    ];
   });
 
   return {
@@ -214,4 +230,47 @@ export function careInvitationParts(
       .map((line) => line.trim())
       .filter(Boolean),
   };
+}
+
+/**
+ * A complete care diary invitation from the editor: a new one (id given) or the next version of
+ * an issued one, which keeps its id, title and fields and sorts after it.
+ */
+export function careInvitation(input: {
+  readonly id: string;
+  readonly draft: CareDraft;
+  readonly doctor: string;
+  readonly note: string;
+  readonly previous?: DiaryInvitation | undefined;
+  /** Tips edited outside the medicine rows (checkpoints); medicine tips come from the draft. */
+  readonly extraTips?: readonly DiaryTip[];
+}): DiaryInvitation {
+  const template = diaryTemplate('care');
+  const parts = careInvitationParts(input.draft, input.previous);
+  if (!parts.plan.some((item) => !item.ended)) throw new Error('Добавьте хотя бы один препарат.');
+  const issuedAt = input.previous
+    ? new Date(Math.max(Date.now(), Date.parse(input.previous.issuedAt) + 1000)).toISOString()
+    : new Date().toISOString();
+  const tipTargets = new Set(parts.tips.map((tip) => tip.target));
+  const tips = [
+    ...parts.tips,
+    ...(input.extraTips ?? []).filter((tip) => !tipTargets.has(tip.target) && tip.text.trim()),
+  ];
+  return parseDiaryInvitation({
+    v: DIARY_FORMAT_VERSION,
+    id: input.id,
+    template: 'care',
+    title: input.previous?.title ?? template?.title ?? 'Дневник лечения',
+    issuedAt,
+    fields: input.previous?.fields ?? template?.fields ?? [],
+    plan: parts.plan,
+    planTitle: 'Лекарства',
+    ...(parts.checkpoints.length ? { checkpoints: parts.checkpoints } : {}),
+    ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
+    ...(tips.length ? { tips } : {}),
+    ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
+    consent: true,
+    ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),
+    ...(input.note.trim() ? { note: input.note.trim() } : {}),
+  });
 }

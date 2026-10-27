@@ -48,12 +48,13 @@ import {
 import { ReaderDictionaryHost } from '@/features/reader-dictionary/ReaderDictionaryHost';
 import { searchCoreStatus } from '@/features/search/search-core-status';
 import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
-import { visitRoute } from '@/state/app-back';
+import { replaceRoute, visitRoute } from '@/state/app-back';
 import {
   getFloatingWindowsEnabled,
   getSplitNavigation,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
+import { activeProfile, profileAllows } from '@/state/app-profile';
 import { parseDocumentReadRoute } from '@/state/document-route';
 import { createFloatingWindows } from '@/state/floating-windows';
 import {
@@ -213,6 +214,12 @@ export function App(): JSX.Element {
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
+      // A narrowed app (`?profile=`) keeps to its routes: anything else returns to its home.
+      const profile = activeProfile();
+      if (profile && !profileAllows(hash, profile)) {
+        replaceRoute(profile.home);
+        return;
+      }
       setHerbalOrigin((origin) => herbalBookOrigin(currentHash(), hash, origin));
       setCurrentHash(hash);
       if (hash.startsWith('#/notes') || hash.startsWith(USER_LIBRARY_CATALOG_HASH))
@@ -566,7 +573,8 @@ export function App(): JSX.Element {
           shellReady() &&
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
-          !floatingWindows.fullscreenWindowId()
+          !floatingWindows.fullscreenWindowId() &&
+          !activeProfile()?.hideNavigation
         }
       >
         <Portal>

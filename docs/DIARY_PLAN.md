@@ -1,8 +1,12 @@
 # Connected patient diary — plan
 
-- Status: **D1 patient day page implemented (offline, 2026-10-27, `docs/CURRENT_STATE.md` «Care diary»); D0, D2–D4
-  not started**. Owner request 2026-10-27 (a psychiatric faculty asked for a
-  «separate diary program»: doctors now follow patients through messengers).
+- Status: **D1–D3 implemented, D4 partly** (2026-10-27): offline day page (DIARY5), the
+  end-to-end encrypted sync service, doctor accounts, live sync, the doctor dashboard with charts,
+  curators and key rotation, urgent alerts, content-free push, export, `?profile=diaries`
+  (DIARY6). Not done: deployment (VM, DNS), dose reminders by push, faculty self-host package,
+  ЕСИА/МИС route. Running and deploying: [DIARY_SERVICE.md](DIARY_SERVICE.md).
+  Owner request 2026-10-27 (a psychiatric faculty asked for a «separate diary program»: doctors now
+  follow patients through messengers).
 - Architecture decision: [ADR-0026](adr/0026-connected-diary-service.md) (proposed).
 - Consent drafts for the faculty lawyer: [diary-consent/](diary-consent/).
 - What exists today: the serverless patient diary (`apps/app/diary/`, `apps/app/src/diary/`,

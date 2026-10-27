@@ -47,6 +47,7 @@
     "@kobalte/core": "0.13.13",
     "@localmed/contracts": "workspace:*",
     "@localmed/core": "workspace:*",
+    "@localmed/diary-sync": "workspace:*",
     "@localmed/search-lexical": "workspace:*",
     "@localmed/search-semantic": "workspace:*",
     "@localmed/storage": "workspace:*",

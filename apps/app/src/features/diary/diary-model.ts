@@ -114,6 +114,8 @@ export interface DiaryCheckpoint {
   readonly questionnaire?: string;
   /** Questionnaire: repeat every N days. */
   readonly everyDays?: number;
+  /** Switched off by the doctor; kept so earlier entries still resolve. */
+  readonly ended?: true;
 }
 
 export type DiaryContactKind = 'phone' | 'telegram' | 'link' | 'email';
@@ -175,6 +177,8 @@ export interface DiaryEntry {
   readonly check?: string;
   /** Questionnaire answers by question id; scored on display from the questionnaire schema. */
   readonly answers?: Readonly<Record<string, number>>;
+  /** The doctor corrected this entry (connected diary); the patient sees it marked. */
+  readonly corrected?: true;
 }
 
 /** What the patient shows back. The invitation is repeated so the doctor sees the context. */
@@ -465,6 +469,7 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
       ...(kind !== 'questionnaire' ? { fields: fieldIds as string[] } : {}),
       ...(kind === 'questionnaire' ? { questionnaire: questionnaire as string } : {}),
       ...(everyDays === undefined ? {} : { everyDays }),
+      ...(source['ended'] === true ? { ended: true as const } : {}),
     };
   });
   if (new Set(checkpoints.map((checkpoint) => checkpoint.id)).size !== checkpoints.length) {
@@ -813,6 +818,7 @@ export function parseDiaryEntry(
     ...(note ? { note } : {}),
     ...(typeof check === 'string' ? { check } : {}),
     ...(answers ? { answers } : {}),
+    ...(source['corrected'] === true ? { corrected: true as const } : {}),
   };
 }
 

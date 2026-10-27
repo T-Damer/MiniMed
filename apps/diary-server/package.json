@@ -1,0 +1,20 @@
+{
+  "name": "@localmed/diary-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/main.ts",
+    "dev": "DIARY_SIGNUP=open DIARY_DB=../../data/diary-server/dev.db bun --watch src/main.ts",
+    "invite": "bun src/cli.ts invite",
+    "test": "bun test src",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@localmed/contracts": "workspace:*",
+    "@localmed/diary-sync": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.3"
+  }
+}

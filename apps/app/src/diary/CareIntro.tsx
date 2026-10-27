@@ -15,12 +15,18 @@ const MONITORING_POINTS = [
   'Отказаться можно в любой момент — на лечение это не влияет.',
 ];
 
-// The offline diary: entries stay on the phone until the patient sends them. The connected mode
-// (ADR-0026) replaces the second line with the encrypted sync wording.
+// The offline diary: entries stay on the phone until the patient sends them.
 const DATA_POINTS = [
   'В дневнике нет вашего имени: кто вы, знает только врач.',
   'Записи хранятся на вашем телефоне и уходят врачу, когда вы их отправите.',
   'Удалить дневник можно в любой момент вместе со всеми записями.',
+];
+
+// The connected diary (ADR-0026): encrypted on the phone, kept on a server in Russia.
+const CONNECTED_DATA_POINTS = [
+  'В дневнике нет вашего имени: кто вы, знает только врач.',
+  'Записи шифруются на телефоне и уходят врачу сами; сервер хранит только шифр и прочитать его не может.',
+  'Данные хранятся в России. Отозвать согласие можно в «Ещё» — записи удалятся с сервера.',
 ];
 
 type Step = 'monitoring' | 'data' | 'crisis';
@@ -36,6 +42,8 @@ function Points(props: { readonly points: readonly string[] }): JSX.Element {
 /** Before the first entry: two consent summaries and where to turn when it is very bad. */
 export function CareIntro(props: {
   readonly invitation: DiaryInvitation;
+  /** The diary syncs through the service rather than being sent by hand. */
+  readonly connected?: boolean;
   readonly onDone: () => void;
 }): JSX.Element {
   const [step, setStep] = createSignal<Step>('monitoring');
@@ -74,7 +82,7 @@ export function CareIntro(props: {
           <h1 class="diary-intro__title" tabindex="-1" ref={heading}>
             Согласие на обработку данных
           </h1>
-          <Points points={DATA_POINTS} />
+          <Points points={props.connected ? CONNECTED_DATA_POINTS : DATA_POINTS} />
           <Button
             class="diary-button diary-intro__next"
             variant="primary"

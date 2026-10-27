@@ -1,5 +1,5 @@
 // Diary page cache: keeps the page usable offline after the first visit. Scope: diary/ only.
-const CACHE_NAME = 'minimed-diary-v3';
+const CACHE_NAME = 'minimed-diary-v4';
 const STATIC_DESTINATIONS = new Set([
   'document',
   'script',
@@ -90,5 +90,26 @@ self.addEventListener('fetch', (event) => {
               cached ?? (request.mode === 'navigate' ? caches.match(BASE.href) : Response.error()),
           ),
       ),
+  );
+});
+
+// Connected diary: a content-free push from the doctor's side (a new plan or tip).
+self.addEventListener('push', (event) => {
+  event.waitUntil(
+    self.registration.showNotification('Дневник', {
+      body: 'Врач обновил дневник. Откройте, чтобы посмотреть.',
+      tag: 'minimed-diary-patient',
+      icon: '../apple-touch-icon.png',
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => client.url.startsWith(BASE.href));
+      return open ? open.focus() : self.clients.openWindow(BASE.href);
+    }),
   );
 });

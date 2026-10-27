@@ -20,6 +20,50 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Connected diary: live, end-to-end encrypted — 2026-10-27 (STATE DIARY6)
+
+Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the accepted
+[ADR-0026](adr/0026-connected-diary-service.md); running and deploying: [DIARY_SERVICE.md](DIARY_SERVICE.md).
+**The first backend in the project, for the diary only**; search, documents and the patient vault
+stay serverless. Not deployed yet (no VM, no DNS record).
+
+- **Crypto** (`packages/diary-sync`, Web Crypto only): password → PBKDF2 (600 000) → HKDF auth key
+  (server stores its argon2id hash) and wrap key (never leaves the device); ECDH + ECDSA P-256 identity
+  per doctor and per patient phone; AES-256-GCM data key per patient and epoch, ECIES-wrapped for each
+  member; records bound to patient/id/revision/epoch/author and signed; recovery code shown once.
+- **Service** (`apps/diary-server`, Bun + `bun:sqlite`, migration 1): sign-up (open or invite codes),
+  login with a decoy salt for unknown e-mails, rate limits, patients, one-time pairing (the QR holds
+  only the patient id and a secret; keys travel sealed with it and are deleted on pairing), records
+  with server sequence and author/role/epoch checks, curators (owner / editor / reader, invite →
+  accept, role change, removal, hand-over), epoch rotation that must cover every remaining member and
+  phone, urgent alerts, consent withdrawal (deletes records, keys, phones), content-free Web Push
+  (VAPID, no payload), server-sent events for doctors and phones, static app with isolation
+  headers, allow-listed CORS. Logs: route template, status, time.
+- **Patient** (`apps/app/src/diary`): `#c=<patient>.<secret>` pairs the phone, then the diary syncs by
+  itself — after each mark (debounced), on reconnect, when shown, every minute and live from the
+  stream; local edits not yet sent win over the server copy; doctor corrections show «исправлено
+  врачом»; a PHQ-9 item-9 answer posts the urgent signal (queued offline); the bar shows «У врача ·
+  20:08» / «Нет сети · 3»; «Ещё» → notifications and «Отозвать согласие»; consent text says the
+  records are encrypted and kept in Russia.
+- **Doctor** (`#/notes/diaries`, card in «Заметки»): sign-in / registration / recovery, «Мой компьютер»
+  keeps the unlocked keys under a non-extractable IndexedDB key; patient list (emoji + pseudonym, last
+  record, 7-day share of plan, urgent marks first); new patient with the care editor and the pairing QR;
+  patient page: urgent marks, share of plan, year heatmap, adherence per medicine, charts (wellbeing
+  morning/evening, pressure and pulse, SpO₂, questionnaire totals scored by their schemas with band and
+  alert), the day's entries with corrections and deletion, plan editing, tips with read state, curators
+  sheet with phones, CSV/XLSX export; live updates over SSE; push opt-in.
+- **`?profile=diaries`** (`state/app-profile.ts`, declared data): only the diaries route, no bottom
+  bar, no back button; remembered on the device, `?profile=off` undoes it.
+- **Checked:** `bun test` server flow (whole life, no plaintext in the database or logs), vitest for
+  crypto, replica, draft, insights, profile; in the browser with the dev server and the service: sign-up,
+  new patient, QR → phone pairing, marks → doctor live, correction and tip → phone live, PHQ-9 alert,
+  curator invite / accept / read-only refusal / removal → epoch 2 → phone re-keys itself and keeps
+  syncing, plan edit live, profile mode, static serving with headers.
+- **Not checked / not done:** real push delivery (needs the deployed origin and a real browser
+  push service), a real phone, deployment, dose reminders by push, the faculty self-host package,
+  ЕСИА/МИС (order 193н), signature check of a record's author role at write time on clients (the
+  server enforces roles), doctor private notes.
+
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 
 First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through

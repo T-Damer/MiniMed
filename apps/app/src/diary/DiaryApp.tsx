@@ -5,6 +5,11 @@ import { DiaryList } from '@/diary/DiaryList';
 import { type DiaryScreen, DiaryView } from '@/diary/DiaryView';
 import { entriesLabel } from '@/diary/diary-format';
 import { isStandaloneApp } from '@/diary/install-state';
+import {
+  isConnectedDiary,
+  PatientConnection,
+  readPairingFragment,
+} from '@/features/diary/connected/patient-connection';
 import { diaryInvitationLink, readInvitationFragment } from '@/features/diary/diary-codec';
 import type { InvitationMergeOutcome } from '@/features/diary/diary-merge';
 import type { DiaryResults } from '@/features/diary/diary-model';
@@ -106,7 +111,10 @@ export function DiaryApp(): JSX.Element {
     screen?: DiaryScreen,
   ): void => {
     setState({ kind: 'diary', store, results, notice, screen });
-    syncAddress(results);
+    // A connected diary lives on the server: its address carries nothing (the pairing code works
+    // once and the plan is not in the link), so the home-screen icon opens the stored diary.
+    if (isConnectedDiary(window.localStorage, results.invitation.id)) clearAddress();
+    else syncAddress(results);
   };
 
   const openFromList = (store: DiaryStore, id: string, screen?: DiaryScreen): void => {
@@ -141,6 +149,19 @@ export function DiaryApp(): JSX.Element {
     const ticket = ++latestOpen;
     try {
       store = createDiaryStore(openStorage());
+      const pairing = readPairingFragment(window.location.hash);
+      if (pairing) {
+        const connection = await PatientConnection.pair(window.localStorage, store, pairing);
+        const results = store.read(connection.patientId);
+        if (ticket === latestOpen && results) {
+          showDiary(
+            store,
+            results,
+            'Дневник подключён: записи будут уходить врачу сами, когда есть интернет.',
+          );
+        }
+        return;
+      }
       const invitation = await readInvitationFragment(window.location.hash);
       if (invitation) {
         // The link is stored even when a later one has already taken over the screen.

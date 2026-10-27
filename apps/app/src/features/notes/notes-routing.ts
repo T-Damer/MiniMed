@@ -12,6 +12,8 @@ export type NotesRoute =
       readonly episodeId?: string;
     }
   | { readonly kind: 'saved' }
+  /** Connected patient diaries (ADR-0026): the list, or one patient. */
+  | { readonly kind: 'diaries'; readonly patientId?: string }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | {
       readonly kind: 'drug-interactions';
@@ -100,6 +102,12 @@ export function readNotesRoute(
     return { kind: 'form', formId, ...context };
   }
   if (parts[1] === 'saved') return { kind: 'saved' };
+  if (parts[1] === 'diaries') {
+    const patientId = parts[2];
+    return patientId && /^[a-z0-9]{12,32}$/u.test(patientId) && parts.length === 3
+      ? { kind: 'diaries', patientId }
+      : { kind: 'diaries' };
+  }
   if (parts[1] === 'vaccination') {
     const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
@@ -285,4 +293,9 @@ export function withNotesFullscreen(hash: string, fullscreen: boolean): string {
   else params.delete(FULLSCREEN_QUERY_KEY);
   const nextQuery = params.toString();
   return nextQuery ? `${path}?${nextQuery}` : path;
+}
+
+/** `#/notes/diaries` lists connected diaries; `#/notes/diaries/<id>` opens one patient. */
+export function diariesPath(patientId?: string): string {
+  return patientId ? `#/notes/diaries/${patientId}` : '#/notes/diaries';
 }

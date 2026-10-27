@@ -57,6 +57,13 @@
         "--strictPort"
       ],
       "port": 5193
+    },
+    {
+      "name": "diary-server",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "apps/diary-server", "dev"],
+      "port": 8790,
+      "autoPort": false
     }
   ]
 }

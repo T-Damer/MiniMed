@@ -7,6 +7,7 @@ import { type CareSave, DoseSheet, NoteSheet, ScoreSheet, VitalsSheet } from '@/
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { formatTime, pluralize } from '@/diary/diary-format';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import {
   addDays,
   atTime,
@@ -75,13 +76,17 @@ const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
   missed: 'Не отмечено',
 };
 
+function correctedMark(entry: DiaryEntry | undefined): string {
+  return entry?.corrected ? ' · исправлено врачом' : '';
+}
+
 function doseStatus(task: DoseTask): string {
   const value = task.entry?.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
   if (task.entry && value?.done === false) return 'Пропущено';
   if (task.entry) {
     const after = task.entry.values['after'];
     const effects = Array.isArray(after) && after.length ? ` · ${after.join(', ')}` : '';
-    return `Принято в ${formatTime(task.entry.at)}${effects}`;
+    return `Принято в ${formatTime(task.entry.at)}${effects}${correctedMark(task.entry)}`;
   }
   return STATE_WORD[task.state] ?? '';
 }
@@ -93,7 +98,9 @@ function checkStatus(task: CheckTask): string {
   if (task.checkpoint.kind === 'score') {
     const field = task.checkpoint.fields?.[0];
     const value = field ? values[field] : undefined;
-    return typeof value === 'number' ? `${value} из 10 · ${formatTime(entry.at)}` : '';
+    return typeof value === 'number'
+      ? `${value} из 10 · ${formatTime(entry.at)}${correctedMark(entry)}`
+      : '';
   }
   const parts: string[] = [];
   if (typeof values['systolic'] === 'number' && typeof values['diastolic'] === 'number') {
@@ -101,7 +108,7 @@ function checkStatus(task: CheckTask): string {
   }
   if (typeof values['pulse'] === 'number') parts.push(`пульс ${values['pulse']}`);
   if (typeof values['spo2'] === 'number') parts.push(`SpO₂ ${values['spo2']} %`);
-  return parts.join(', ') || 'Заполнено';
+  return `${parts.join(', ') || 'Заполнено'}${correctedMark(entry)}`;
 }
 
 function quizStatus(task: QuestionnaireTask, today: string): string {
@@ -113,6 +120,23 @@ function quizStatus(task: QuestionnaireTask, today: string): string {
     month: 'long',
   });
   return task.nextDay <= today ? 'Пора заполнить' : `Следующий раз ${next}`;
+}
+
+/** Where sending to the doctor stands, in two or three words. */
+function syncWords(sync: SyncStatus): string {
+  switch (sync.phase) {
+    case 'syncing':
+      return 'Отправка…';
+    case 'offline':
+      return sync.pending ? `Нет сети · ${sync.pending}` : 'Нет сети';
+    case 'error':
+      return 'Не отправлено';
+    case 'ended':
+      return 'Наблюдение завершено';
+    case 'idle':
+      if (sync.pending) return `Ждут отправки: ${sync.pending}`;
+      return sync.lastSyncAt ? `У врача · ${formatTime(sync.lastSyncAt)}` : 'У врача';
+  }
 }
 
 /** One line of the day: a round check on the left, the text opening its sheet. */
@@ -195,6 +219,13 @@ export function DiaryToday(props: {
   readonly onSend: () => void;
   readonly onMore: () => void;
   readonly onList: () => void;
+  /** Connected diary: where sending to the doctor stands; absent for a QR diary. */
+  readonly sync?: SyncStatus | undefined;
+  readonly notice?: string | undefined;
+  readonly onDismissNotice?: () => void;
+  readonly onSyncNow?: () => void;
+  /** An answer raised a schema alert (PHQ-9 item 9): tell the doctor. */
+  readonly onUrgent?: () => void;
 }): JSX.Element {
   const invitation = () => props.results.invitation;
   const [now, setNow] = createSignal(new Date());
@@ -295,7 +326,13 @@ export function DiaryToday(props: {
   return (
     <Show
       when={!invitation().consent || props.consentAt}
-      fallback={<CareIntro invitation={invitation()} onDone={props.onConsent} />}
+      fallback={
+        <CareIntro
+          invitation={invitation()}
+          connected={props.sync !== undefined}
+          onDone={props.onConsent}
+        />
+      }
     >
       <main class="diary-page diary-page--care diary-today">
         <header class="diary-today__header">
@@ -362,6 +399,20 @@ export function DiaryToday(props: {
             <AppGlyph name="caret-right" class="diary-today__step-icon" />
           </button>
         </nav>
+
+        <Show when={props.notice}>
+          <p class="diary-today__notice" role="status">
+            <span class="diary-today__notice-text">{props.notice}</span>
+            <button
+              type="button"
+              class="diary-today__notice-close"
+              aria-label="Понятно"
+              onClick={() => props.onDismissNotice?.()}
+            >
+              <AppGlyph name="close" class="diary-today__icon-glyph" />
+            </button>
+          </p>
+        </Show>
 
         <Show when={invitation().note}>
           <p class="diary-today__note">{invitation().note}</p>
@@ -547,17 +598,42 @@ export function DiaryToday(props: {
             <AppGlyph name="list" class="diary-today__bar-icon" />
             <span class="diary-today__bar-text">Записи</span>
           </button>
-          <button
-            type="button"
-            class="diary-today__bar-button"
-            classList={{ 'diary-today__bar-button--pending': props.status.unsent > 0 }}
-            onClick={() => props.onSend()}
+          <Show
+            when={props.sync}
+            fallback={
+              <button
+                type="button"
+                class="diary-today__bar-button"
+                classList={{ 'diary-today__bar-button--pending': props.status.unsent > 0 }}
+                onClick={() => props.onSend()}
+              >
+                <AppGlyph name="share" class="diary-today__bar-icon" />
+                <span class="diary-today__bar-text">
+                  {props.status.unsent > 0 ? `Отправить (${props.status.unsent})` : 'Отправить'}
+                </span>
+              </button>
+            }
           >
-            <AppGlyph name="share" class="diary-today__bar-icon" />
-            <span class="diary-today__bar-text">
-              {props.status.unsent > 0 ? `Отправить (${props.status.unsent})` : 'Отправить'}
-            </span>
-          </button>
+            {(sync) => (
+              <button
+                type="button"
+                class="diary-today__bar-button"
+                classList={{
+                  'diary-today__bar-button--pending':
+                    sync().pending > 0 || sync().phase === 'offline' || sync().phase === 'error',
+                  'diary-today__bar-button--busy': sync().phase === 'syncing',
+                }}
+                aria-label={`Отправка врачу: ${syncWords(sync())}. Отправить сейчас`}
+                onClick={() => props.onSyncNow?.()}
+              >
+                <AppGlyph
+                  name={sync().phase === 'idle' && sync().pending === 0 ? 'check' : 'refresh'}
+                  class="diary-today__bar-icon"
+                />
+                <span class="diary-today__bar-text">{syncWords(sync())}</span>
+              </button>
+            )}
+          </Show>
           <button type="button" class="diary-today__bar-button" onClick={() => props.onMore()}>
             <AppGlyph name="dots-three" class="diary-today__bar-icon" />
             <span class="diary-today__bar-text">Ещё</span>
@@ -627,7 +703,10 @@ export function DiaryToday(props: {
               checkpoint={current().task.checkpoint}
               entry={current().task.entry}
               onSave={save}
-              onAlert={() => afterHistoryStep(() => setSheet({ kind: 'crisis', raised: true }))}
+              onAlert={() => {
+                props.onUrgent?.();
+                afterHistoryStep(() => setSheet({ kind: 'crisis', raised: true }));
+              }}
               onClose={close}
             />
           )}

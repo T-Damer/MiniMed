@@ -8,6 +8,11 @@ import { DiarySend } from '@/diary/DiarySend';
 import { DiaryToday } from '@/diary/DiaryToday';
 import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
+import {
+  isConnectedDiary,
+  PatientConnection,
+  type SyncStatus,
+} from '@/features/diary/connected/patient-connection';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import { markAllSent, shareStatus } from '@/features/diary/diary-merge';
 import {
@@ -24,6 +29,9 @@ import {
   withEntry,
   withoutEntry,
 } from '@/features/diary/diary-storage';
+
+const SYNC_DELAY_MS = 800;
+const SYNC_INTERVAL_MS = 60_000;
 
 /** The steps of one diary. «home» is the page the patient lands on; the others are one tap away. */
 export type DiaryScreen = 'home' | 'entry' | 'records' | 'send' | 'more';
@@ -120,6 +128,65 @@ export function DiaryView(props: {
   // A step was added to the browser's history by this page: going home pops it again.
   let pushed = false;
 
+  // Connected diary (ADR-0026): marks go to the doctor by themselves whenever there is a network.
+  const [connection, setConnection] = createSignal<PatientConnection | undefined>(undefined);
+  const [sync, setSync] = createSignal<SyncStatus | undefined>(
+    isConnectedDiary(window.localStorage, props.initial.invitation.id)
+      ? { phase: 'syncing', lastSyncAt: undefined, pending: 0 }
+      : undefined,
+  );
+  let syncTimer: number | undefined;
+  let stopListening: (() => void) | undefined;
+  const reload = (): void => {
+    const fresh = props.store.read(invitation().id);
+    if (fresh) setResults(fresh);
+    setMeta(props.store.meta(invitation().id));
+  };
+  const runSync = async (): Promise<void> => {
+    const current = connection();
+    if (!current) return;
+    setSync({ ...current.status(), phase: 'syncing' });
+    const status = await current.sync();
+    setSync(status);
+    reload();
+  };
+  const scheduleSync = (): void => {
+    if (!connection()) return;
+    window.clearTimeout(syncTimer);
+    syncTimer = window.setTimeout(() => void runSync(), SYNC_DELAY_MS);
+  };
+  onMount(() => {
+    if (!isConnectedDiary(window.localStorage, props.initial.invitation.id)) return;
+    void PatientConnection.open(window.localStorage, props.store, props.initial.invitation.id).then(
+      (opened) => {
+        if (!opened) return;
+        setConnection(opened);
+        setSync(opened.status());
+        void runSync();
+        stopListening = opened.listen((status) => {
+          setSync(status);
+          reload();
+        });
+      },
+    );
+    const onOnline = (): void => void runSync();
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') void runSync();
+    };
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void runSync();
+    }, SYNC_INTERVAL_MS);
+    window.addEventListener('online', onOnline);
+    document.addEventListener('visibilitychange', onVisible);
+    onCleanup(() => {
+      stopListening?.();
+      window.clearTimeout(syncTimer);
+      window.clearInterval(interval);
+      window.removeEventListener('online', onOnline);
+      document.removeEventListener('visibilitychange', onVisible);
+    });
+  });
+
   const navigate = (next: DiaryScreen): void => {
     setError('');
     if (next === 'home') {
@@ -163,6 +230,7 @@ export function DiaryView(props: {
     props.store.save(next);
     setResults(next);
     requestPersistentStorage();
+    scheduleSync();
   };
 
   const status = () => shareStatus(results().entries, sent());
@@ -210,6 +278,7 @@ export function DiaryView(props: {
   const updateMeta = (patch: Parameters<DiaryStore['setMeta']>[1]): void => {
     props.store.setMeta(invitation().id, patch);
     setMeta(props.store.meta(invitation().id));
+    scheduleSync();
   };
 
   const remove = (entry: DiaryEntry): void => {
@@ -276,6 +345,17 @@ export function DiaryView(props: {
           }}
           onOpened={props.onOpened}
           onList={props.onBack}
+          onEnablePush={
+            connection() ? () => (connection() as PatientConnection).enablePush() : undefined
+          }
+          onWithdraw={
+            connection()
+              ? async () => {
+                  await connection()?.withdraw();
+                  props.onBack();
+                }
+              : undefined
+          }
         />
       </Match>
       <Match when={screen() === 'home' && isCareDiary(invitation())}>
@@ -296,6 +376,14 @@ export function DiaryView(props: {
           onSend={() => navigate('send')}
           onMore={() => navigate('more')}
           onList={props.onBack}
+          sync={sync()}
+          notice={notice()}
+          onDismissNotice={() => setNotice(undefined)}
+          onSyncNow={() => void runSync()}
+          onUrgent={() => {
+            const current = connection();
+            if (current) void current.raiseAlert().then(setSync);
+          }}
         />
       </Match>
       <Match when={screen() === 'home'}>

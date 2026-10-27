@@ -1,6 +1,7 @@
 # ADR-0026: Connected patient diary with an end-to-end encrypted sync server
 
-- Status: proposed (2026-10-27).
+- Status: accepted (owner, 2026-10-27: «keep end-to-end», live monitoring); implemented in DIARY6
+  (`apps/diary-server`, `packages/diary-sync`, [DIARY_SERVICE.md](../DIARY_SERVICE.md)).
 - Decision: project owner, 2026-10-27 (a psychiatric faculty needs live remote follow-up instead of messengers;
   «keep end-to-end»).
 - Amends: [ADR-0004](0004-no-backend-before-1.0.md) and the «hosted backend» non-goal of
@@ -36,9 +37,12 @@ medical secrecy; the developer hosting the server should not be able to read it.
    - Each patient **device** generates its own key pairs at pairing. The pairing QR (link fragment, never sent to the
      server) carries the server origin, the patient id, a one-time pairing secret and the current data key; the
      pairing secret is single-use and the device then receives epoch keys wrapped to its own key.
+   As built: the QR carries only the patient id and the secret (84-character link); the epoch keys
+   travel sealed with a key derived from the secret, uploaded by the doctor with the pairing and
+   deleted by the server when the phone pairs.
    - Every member (curator or device) receives each epoch key **wrapped to its public key**. That is how a doctor on any
      device decrypts: login → unlock the private keys → unwrap the patient keys → decrypt records → build charts locally.
-4. **Records.** Append-only envelopes `{patient, id, rev, epoch, author, iv, ciphertext, signature}` with a server
+4. **Records.** Append-only envelopes `{patient, id, rev, epoch, author, body (iv.ciphertext), sig}` with a server
    sequence number; clients pull everything after their cursor. A correction is a new revision signed by its author.
    Plan versions, tips, consent records and records all use the same envelope. Kind and content are inside the
    ciphertext.

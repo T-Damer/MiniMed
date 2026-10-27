@@ -397,6 +397,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/content/releases': releaseProxy,
+      // The connected diary's service (apps/diary-server) answers on the app's own origin in
+      // production; in development it runs next to Vite.
+      '/api': process.env['DIARY_SERVER_URL'] ?? 'http://127.0.0.1:8790',
     },
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
@@ -407,6 +410,9 @@ export default defineConfig({
     host: '127.0.0.1',
     proxy: {
       '/content/releases': releaseProxy,
+      // The connected diary's service (apps/diary-server) answers on the app's own origin in
+      // production; in development it runs next to Vite.
+      '/api': process.env['DIARY_SERVER_URL'] ?? 'http://127.0.0.1:8790',
     },
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',

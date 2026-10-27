@@ -208,6 +208,7 @@ export function dayPlan(
   const checks: CheckTask[] = [];
   const questionnaires: QuestionnaireTask[] = [];
   for (const checkpoint of invitation.checkpoints ?? []) {
+    if (checkpoint.ended) continue;
     if (checkpoint.kind === 'questionnaire') {
       questionnaires.push(questionnaireTask(checkpoint, entries, day));
       continue;

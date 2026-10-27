@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -45,7 +45,14 @@ export function DiaryMore(props: {
   readonly onRestored: (diaryId: string) => void;
   readonly onOpened: (opened: DiaryOpenResult) => void;
   readonly onList: () => void;
+  /** Connected diary: stop the observation and delete the records on the server. */
+  readonly onWithdraw?: (() => Promise<void>) | undefined;
+  /** Connected diary: notifications when the doctor changes something. */
+  readonly onEnablePush?: (() => Promise<'on' | 'unsupported' | 'denied'>) | undefined;
 }): JSX.Element {
+  const [push, setPush] = createSignal<'off' | 'on' | 'unsupported' | 'denied'>('off');
+  const [confirming, setConfirming] = createSignal(false);
+  const [withdrawError, setWithdrawError] = createSignal('');
   return (
     <main class="diary-page diary-page--more">
       <ScreenHeader title="Ещё" subtitle="Печать, копия, справка" onBack={props.onBack} />
@@ -87,6 +94,75 @@ export function DiaryMore(props: {
           к врачу.
         </p>
       </section>
+      <Show when={props.onEnablePush}>
+        {(enable) => (
+          <section class="diary-more__group" aria-label="Уведомления">
+            <MoreAction
+              icon="vibrate"
+              title={
+                push() === 'on' ? 'Уведомления включены' : 'Уведомлять, когда врач что-то изменит'
+              }
+              text={
+                push() === 'unsupported'
+                  ? 'Этот браузер не умеет. На iPhone сначала добавьте дневник на экран «Домой».'
+                  : push() === 'denied'
+                    ? 'Уведомления запрещены в настройках телефона.'
+                    : 'Новая рекомендация или изменение лечения. Текст уведомления без подробностей.'
+              }
+              disabled={push() === 'on'}
+              onClick={() => {
+                void enable()().then(setPush, () => setPush('unsupported'));
+              }}
+            />
+          </section>
+        )}
+      </Show>
+      <Show when={props.onWithdraw}>
+        {(withdraw) => (
+          <section class="diary-card" aria-label="Согласие на наблюдение">
+            <h2 class="diary-card__title">Отозвать согласие</h2>
+            <p class="diary-card__text">
+              Наблюдение прекратится, записи удалятся с сервера и с этого телефона. Врач увидит, что
+              вы отозвали согласие.
+            </p>
+            <Show
+              when={confirming()}
+              fallback={
+                <Button
+                  class="diary-button diary-button--danger"
+                  type="button"
+                  onClick={() => setConfirming(true)}
+                >
+                  Отозвать согласие
+                </Button>
+              }
+            >
+              <Button
+                class="diary-button diary-button--danger"
+                type="button"
+                onClick={() => {
+                  setWithdrawError('');
+                  withdraw()().catch((cause: unknown) =>
+                    setWithdrawError(
+                      cause instanceof Error ? cause.message : 'Не удалось отозвать согласие.',
+                    ),
+                  );
+                }}
+              >
+                Да, отозвать и удалить записи
+              </Button>
+              <Button class="diary-button" type="button" onClick={() => setConfirming(false)}>
+                Отмена
+              </Button>
+            </Show>
+            <Show when={withdrawError()}>
+              <p class="diary-error" role="alert">
+                {withdrawError()}
+              </p>
+            </Show>
+          </section>
+        )}
+      </Show>
       <Button class="diary-button" type="button" onClick={props.onList}>
         Мои дневники
       </Button>

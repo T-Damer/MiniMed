@@ -9,6 +9,7 @@ import { InstallCard, MessengerWarning } from '@/diary/InstallCard';
 import { isStandaloneApp } from '@/diary/install-state';
 import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
+import { isConnectedDiary } from '@/features/diary/connected/patient-connection';
 import type { DiaryOpenResult, DiaryStore, DiarySummary } from '@/features/diary/diary-storage';
 
 function errorMessage(cause: unknown, fallback: string): string {
@@ -57,6 +58,9 @@ export function DiaryList(props: {
       setError(errorMessage(cause, 'Не удалось удалить дневник.'));
     }
   };
+
+  const connected = (diary: DiarySummary): boolean =>
+    isConnectedDiary(window.localStorage, diary.invitation.id);
 
   const send = (diary: DiarySummary) =>
     sendSummary({
@@ -119,7 +123,12 @@ export function DiaryList(props: {
                   </span>
                   <AppGlyph name="caret-right" class="diary-list__chevron" />
                 </button>
-                <Show when={send(diary).tone !== 'empty'}>
+                <Show when={connected(diary)}>
+                  <p class="diary-list__status diary-list__status--done">
+                    Подключён к врачу: записи уходят сами
+                  </p>
+                </Show>
+                <Show when={!connected(diary) && send(diary).tone !== 'empty'}>
                   <p
                     class="diary-list__status"
                     classList={{
@@ -150,15 +159,17 @@ export function DiaryList(props: {
                   >
                     Мои записи ({diary.entries})
                   </Button>
-                  <Button
-                    class="diary-button"
-                    type="button"
-                    icon={<AppGlyph name="envelope-simple" class="diary-list__icon" />}
-                    aria-label={`Отправить врачу: ${diary.invitation.title}`}
-                    onClick={() => props.onOpen(diary.invitation.id, 'send')}
-                  >
-                    Отправить врачу
-                  </Button>
+                  <Show when={!connected(diary)}>
+                    <Button
+                      class="diary-button"
+                      type="button"
+                      icon={<AppGlyph name="envelope-simple" class="diary-list__icon" />}
+                      aria-label={`Отправить врачу: ${diary.invitation.title}`}
+                      onClick={() => props.onOpen(diary.invitation.id, 'send')}
+                    >
+                      Отправить врачу
+                    </Button>
+                  </Show>
                 </div>
                 <Show
                   when={confirming() === diary.invitation.id}

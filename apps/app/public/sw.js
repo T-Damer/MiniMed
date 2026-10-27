@@ -165,3 +165,31 @@ self.addEventListener('fetch', (event) => {
   if (precacheUrls.has(key)) event.respondWith(serveFromShell(key, request));
   else if (isOptional(key)) event.respondWith(serveRuntime(event, key, request));
 });
+
+// Connected diary (ADR-0026): pushes carry no content; the text is fixed here so nothing about a
+// patient passes through the push service. A tap opens the doctor's diaries.
+self.addEventListener('push', (event) => {
+  event.waitUntil(
+    self.registration.showNotification('Дневники пациентов', {
+      body: 'Срочная отметка или новое приглашение. Откройте, чтобы посмотреть.',
+      tag: 'minimed-diary',
+      renotify: true,
+      icon: 'apple-touch-icon.png',
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL('./#/notes/diaries', self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => client.url.startsWith(self.registration.scope));
+      if (open) {
+        open.navigate(target);
+        return open.focus();
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});

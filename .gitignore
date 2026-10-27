@@ -37,6 +37,8 @@ data/synced/*
 !data/synced/.gitkeep
 data/build/*
 !data/build/.gitkeep
+# Connected diary service database (ciphertext, still never committed).
+data/diary-server/
 release-clinical/
 model-mirror/
 apps/app/android/.gradle/

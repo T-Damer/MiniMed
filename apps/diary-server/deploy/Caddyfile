@@ -1,0 +1,26 @@
+# /etc/caddy/Caddyfile — TLS for the diary service; Let's Encrypt certificates are automatic.
+# DNS: an A record med.1damer.com → this VM, «DNS only» (grey cloud) at Cloudflare: no proxy
+# in front of patients (ADR-0026 §8).
+med.1damer.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8790 {
+		# Live updates (server-sent events) must not be buffered.
+		flush_interval -1
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	log {
+		# Paths only; Caddy does not log bodies. Query strings may hold the live-stream token.
+		format filter {
+			wrap console
+			fields {
+				request>uri query {
+					delete token
+				}
+				request>headers>Authorization delete
+			}
+		}
+	}
+}

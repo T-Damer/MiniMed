@@ -6,6 +6,7 @@ export * from './content-modules';
 export * from './content-pack';
 export * from './core';
 export * from './definition-reference-api';
+export * from './diary-sync';
 export * from './documents';
 export * from './dose-rules';
 export * from './errors';

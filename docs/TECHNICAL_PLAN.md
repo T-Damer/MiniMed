@@ -303,7 +303,9 @@ source navigation, provenance, errors, offline fallback, and rollback behavior.
 
 - a Rust runtime migration before the 1.1 evaluation;
 - Tauri, Postgres, Docker, telemetry, accounts, cloud sync, or a hosted backend (local
-  device-to-device sync per ADR-0019 is not cloud sync);
+  device-to-device sync per ADR-0019 is not cloud sync). One scoped exception: the connected patient
+  diary's end-to-end encrypted service with doctor accounts ([ADR-0026](adr/0026-connected-diary-service.md));
+  nothing else may depend on it;
 - Android/iOS parity during the browser-first phase;
 - autonomous diagnosis or prescribing;
 - generated prose replacing original medical sources;
