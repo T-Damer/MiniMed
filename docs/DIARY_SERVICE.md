@@ -72,10 +72,9 @@ describe the same setup by hand.
 say; logs are next to the database. Nothing is installed as a system service: after a reboot run
 `start` again (`SKIP_BUILD=1` reuses the last build).
 
-DNS: `med-dev` CNAME `430e0d52-af51-4ec5-a7af-5cf7cbb23f96.cfargotunnel.com`, proxied. The local
-`cert.pem` token could not create it (Cloudflare error 10000, 2026-10-27); either add the record in
-the dashboard or renew the login (`cloudflared tunnel login`, choose `1damer.com`) and run
-`cloudflared tunnel route dns minimed-dev med-dev.1damer.com`.
+DNS: `med-dev` CNAME `430e0d52-af51-4ec5-a7af-5cf7cbb23f96.cfargotunnel.com`, proxied — added in the
+dashboard on 2026-10-27 (the local `cert.pem` token is refused for DNS changes, Cloudflare error
+10000; renew it with `cloudflared tunnel login` only if command-line routing is needed again).
 
 Cloudflare ends TLS for this tunnel, so it is for demos only; Russian networks may also cut proxied
 connections. Pilot patients use the VM above.

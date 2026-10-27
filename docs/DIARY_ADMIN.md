@@ -11,7 +11,8 @@ owner's Mac. Details and the reasons behind them: [DIARY_SERVICE.md](DIARY_SERVI
 | Service | systemd `minimed-diary` (Bun, port 8790 on localhost) behind Caddy (HTTPS, automatic certificate) |
 | Data | `/var/lib/minimed-diary/diary.db` — ciphertext of the diaries plus doctors' e-mails, names and password hashes |
 | Backups | nightly 03:30 UTC to `/var/lib/minimed-diary/backups/` (14 kept) |
-| DNS | Cloudflare, `A med.1damer.com → 51.250.93.197`, **DNS only** (grey cloud) |
+| DNS | Cloudflare, `A med.1damer.com → 51.250.93.197`, **DNS only** (grey cloud), added 2026-10-27; a new record took ~5 min to appear on Cloudflare's nameservers |
+| Demo | `med-dev.1damer.com` CNAME → tunnel `minimed-dev` (proxied), served only while `scripts/diary-demo.sh start` runs on the Mac |
 
 ## Everyday commands
 

@@ -28,7 +28,8 @@ Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the acce
 stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51.250.93.197`,
 `ru-central1-a`; bundled service + Caddy + nightly backups; management:
 [DIARY_ADMIN.md](DIARY_ADMIN.md), doctors' guide: [diary-doctor-guide.ru.md](diary-doctor-guide.ru.md)).
-`?profile=diaries` skips the app's onboarding. Waiting for the DNS record `med.1damer.com`.
+`?profile=diaries` skips the app's onboarding. Live at `https://med.1damer.com` since 2026-10-27
+(Cloudflare DNS only, Let's Encrypt certificate by Caddy); `med-dev.1damer.com` points at the Mac demo tunnel.
 
 - **Crypto** (`packages/diary-sync`, Web Crypto only): password → PBKDF2 (600 000) → HKDF auth key
   (server stores its argon2id hash) and wrap key (never leaves the device); ECDH + ECDSA P-256 identity
