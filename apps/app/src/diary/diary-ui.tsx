@@ -1,4 +1,4 @@
-import { createUniqueId, type JSX, onMount, Show } from 'solid-js';
+import { createUniqueId, For, type JSX, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -111,5 +111,23 @@ export function SavedBanner(props: {
         </Show>
       </div>
     </section>
+  );
+}
+
+const SKELETON_WIDTHS = [92, 78, 86, 64, 88, 72, 80, 58];
+
+/**
+ * Lines where text is still arriving inside a diary sheet. The diary bundle does not load the
+ * app's shell, so this is its own small version of `SkeletonLines`.
+ */
+export function DiarySkeleton(props: { readonly label: string; readonly lines?: number }) {
+  return (
+    <div class="diary-skeleton" role="status" aria-busy="true" aria-label={props.label}>
+      <For each={SKELETON_WIDTHS.slice(0, props.lines ?? 4)}>
+        {(width) => (
+          <span class="diary-skeleton__bar" style={{ width: `${width}%` }} aria-hidden="true" />
+        )}
+      </For>
+    </div>
   );
 }

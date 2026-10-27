@@ -9,7 +9,12 @@ import type { SearchResultGroup } from '@localmed/contracts';
 
 import { loadComparisonIndex } from '@/features/drug-comparison/comparison-load';
 import { cardSlugOfDocumentId } from './card-id';
-import { type DrugNameEntry, drugNameEntries, matchDrugNames } from './drug-name-match';
+import {
+  type DrugNameEntry,
+  type DrugNameMatch,
+  drugNameEntries,
+  matchDrugNames,
+} from './drug-name-match';
 
 const CARD_PREFIX = 'esklp.mnn.';
 const DEFAULT_DIRECTORY_GROUPS = 8;
@@ -86,4 +91,12 @@ export function checkedWithDirectory(
   checked: number,
 ): readonly SearchResultGroup[] {
   return [...searched.slice(0, checked), ...directoryExtras(searched, directory)];
+}
+
+/** Drug names for a typed text by the shared rule (the diary's plan editor); empty when unavailable. */
+export async function suggestDrugNames(
+  query: string,
+  limit = 6,
+): Promise<readonly DrugNameMatch[]> {
+  return matchDrugNames(await loadEntries(), query, limit);
 }

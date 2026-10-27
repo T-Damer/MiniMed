@@ -11,6 +11,13 @@ import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { captureStartErrorMessage } from '@/features/conversations/recording-errors';
+import { DiaryCareEditor } from '@/features/diary/DiaryCareEditor';
+import {
+  type CareDraft,
+  careDraftFrom,
+  careInvitationParts,
+  emptyCareDraft,
+} from '@/features/diary/diary-care-draft';
 import {
   DiaryPartCollector,
   decodeDiaryResultsText,
@@ -46,6 +53,7 @@ import {
   type DiaryResults,
   describeDiaryEntry,
   diaryTemplate,
+  isCareDiary,
   MAX_DIARY_FIELDS,
   MAX_DIARY_PLAN_ITEMS,
   parseDiaryInvitation,
@@ -221,9 +229,30 @@ function IssueDiaryDialog(props: {
   );
   const [issued, setIssued] = createSignal<DiaryInvitation | null>(null);
   const [error, setError] = createSignal('');
+  const [care, setCare] = createSignal<CareDraft>(
+    editing && isCareDiary(editing) ? careDraftFrom(editing) : emptyCareDraft(),
+  );
 
   const template = () => diaryTemplate(templateId());
   const custom = () => templateId() === CUSTOM;
+  /** A day-plan diary: its own editor replaces the plain plan list. */
+  const isCare = () => (editing ? isCareDiary(editing) : template()?.care === true);
+  /** Plan, checkpoints, contacts, tips and help lines of a care diary. */
+  const careParts = () => {
+    const parts = careInvitationParts(care(), editing);
+    if (!parts.plan.some((item) => !item.ended)) {
+      throw new Error('Добавьте хотя бы один препарат.');
+    }
+    return {
+      plan: parts.plan,
+      planTitle: 'Лекарства',
+      ...(parts.checkpoints.length ? { checkpoints: parts.checkpoints } : {}),
+      ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
+      ...(parts.tips.length ? { tips: parts.tips } : {}),
+      ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
+      consent: true,
+    };
+  };
   const hasPlan = () =>
     editing
       ? Boolean(editing.planTitle || editing.plan?.length)
@@ -265,6 +294,36 @@ function IssueDiaryDialog(props: {
     const items = planItems();
     if (!editing && !custom() && template()?.planRequired && items.length === 0) {
       throw new Error('Добавьте хотя бы один пункт назначения.');
+    }
+    if (editing && isCareDiary(editing)) {
+      const issuedAt = new Date(
+        Math.max(Date.now(), Date.parse(editing.issuedAt) + 1000),
+      ).toISOString();
+      return parseDiaryInvitation({
+        v: DIARY_FORMAT_VERSION,
+        id: editing.id,
+        template: editing.template,
+        title: editing.title,
+        issuedAt,
+        fields: editing.fields,
+        ...careParts(),
+        ...(doctor().trim() ? { doctor: doctor() } : {}),
+        ...(note().trim() ? { note: note() } : {}),
+      });
+    }
+    if (!editing && isCare()) {
+      const base = template();
+      return parseDiaryInvitation({
+        v: DIARY_FORMAT_VERSION,
+        id: createDiaryId(),
+        template: templateId(),
+        title: base?.title ?? '',
+        issuedAt: new Date().toISOString(),
+        fields: base?.fields ?? [],
+        ...careParts(),
+        ...(doctor().trim() ? { doctor: doctor() } : {}),
+        ...(note().trim() ? { note: note() } : {}),
+      });
     }
     if (editing) {
       if (editing.template === 'medication' && items.length === 0) {
@@ -458,7 +517,10 @@ function IssueDiaryDialog(props: {
               </Button>
             </div>
           </Show>
-          <Show when={hasPlan()}>
+          <Show when={isCare()}>
+            <DiaryCareEditor draft={care()} onChange={setCare} />
+          </Show>
+          <Show when={hasPlan() && !isCare()}>
             <div class="patient-diary__medications">
               <Heading depth={3}>
                 {editing

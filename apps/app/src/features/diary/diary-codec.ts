@@ -163,7 +163,12 @@ export async function readInvitationText(
 // --- Results as QR parts ---------------------------------------------------------------------
 
 type WireValue = number | string | null | readonly (number | string)[];
-type WireEntry = readonly [string, number, readonly WireValue[], ...string[]];
+/** Checkpoint and questionnaire answers of a care diary entry. */
+interface WireExtra {
+  readonly c?: string;
+  readonly a?: Readonly<Record<string, number>>;
+}
+type WireEntry = readonly [string, number, readonly WireValue[], string?, WireExtra?];
 
 function minutes(iso: string): number {
   return Math.round(Date.parse(iso) / 60_000);
@@ -192,7 +197,8 @@ function valueToWire(
     plan.item === undefined
       ? -1
       : (invitation.plan ?? []).findIndex((item) => item.id === plan.item);
-  return [index, plan.other ?? '', plan.done === undefined ? -1 : plan.done ? 1 : 0];
+  const wire = [index, plan.other ?? '', plan.done === undefined ? -1 : plan.done ? 1 : 0];
+  return plan.slot ? [...wire, plan.slot] : wire;
 }
 
 function valueFromWire(invitation: DiaryInvitation, field: DiaryField, wire: unknown): unknown {
@@ -211,33 +217,44 @@ function valueFromWire(invitation: DiaryInvitation, field: DiaryField, wire: unk
         ? wire.map((index) => (typeof index === 'number' ? field.options?.[index] : index))
         : wire;
     case 'plan': {
-      if (!Array.isArray(wire) || wire.length !== 3) return wire;
-      const [index, other, done] = wire as unknown[];
+      if (!Array.isArray(wire) || wire.length < 3 || wire.length > 4) return wire;
+      const [index, other, done, slot] = wire as unknown[];
       const item =
         typeof index === 'number' && index >= 0 ? invitation.plan?.[index]?.id : undefined;
       return {
         ...(item ? { item } : {}),
         ...(typeof other === 'string' && other ? { other } : {}),
         ...(done === 1 ? { done: true } : done === 0 ? { done: false } : {}),
+        ...(slot === undefined ? {} : { slot }),
       };
     }
   }
 }
 
 function entryToWire(invitation: DiaryInvitation, entry: DiaryEntry): WireEntry {
-  return [
-    entry.id,
-    minutes(entry.at),
-    invitation.fields.map((field) => valueToWire(invitation, field, entry.values[field.id])),
-    ...(entry.note ? [entry.note] : []),
-  ];
+  const values = invitation.fields.map((field) =>
+    valueToWire(invitation, field, entry.values[field.id]),
+  );
+  if (entry.check || entry.answers) {
+    const extra: WireExtra = {
+      ...(entry.check ? { c: entry.check } : {}),
+      ...(entry.answers ? { a: entry.answers } : {}),
+    };
+    return [entry.id, minutes(entry.at), values, entry.note ?? '', extra];
+  }
+  return entry.note
+    ? [entry.id, minutes(entry.at), values, entry.note]
+    : [entry.id, minutes(entry.at), values];
 }
 
 function entryFromWire(invitation: DiaryInvitation, wire: unknown): unknown {
-  if (!Array.isArray(wire) || wire.length < 3 || wire.length > 4 || !Array.isArray(wire[2])) {
+  if (!Array.isArray(wire) || wire.length < 3 || wire.length > 5 || !Array.isArray(wire[2])) {
     throw new DiaryFormatError('Повреждённая запись дневника.');
   }
-  const [id, at, values, note] = wire as [unknown, unknown, unknown[], unknown];
+  const [id, at, values, rawNote, extra] = wire as [unknown, unknown, unknown[], unknown, unknown];
+  const note = rawNote === '' ? undefined : rawNote;
+  const { c: check, a: answers } =
+    typeof extra === 'object' && extra !== null ? (extra as Record<string, unknown>) : {};
   if (values.length !== invitation.fields.length) {
     throw new DiaryFormatError('Повреждённая запись дневника.');
   }
@@ -246,7 +263,14 @@ function entryFromWire(invitation: DiaryInvitation, wire: unknown): unknown {
     const value = valueFromWire(invitation, field, values[index]);
     if (value !== undefined) decoded[field.id] = value;
   });
-  return { id, at: fromMinutes(at), values: decoded, ...(note === undefined ? {} : { note }) };
+  return {
+    id,
+    at: fromMinutes(at),
+    values: decoded,
+    ...(note === undefined ? {} : { note }),
+    ...(check === undefined ? {} : { check }),
+    ...(answers === undefined ? {} : { answers }),
+  };
 }
 
 const V1_GLUCOSE_CONTEXTS = ['fasting', 'before-meal', 'after-meal', 'bedtime', 'other'] as const;

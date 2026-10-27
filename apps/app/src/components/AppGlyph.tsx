@@ -31,6 +31,7 @@ import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?
 import caretLeftBold from '@phosphor-icons/core/assets/bold/caret-left-bold.svg?raw';
 import caretRightBold from '@phosphor-icons/core/assets/bold/caret-right-bold.svg?raw';
 import caretUpBold from '@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw';
+import chatCircleBold from '@phosphor-icons/core/assets/bold/chat-circle-bold.svg?raw';
 import checkBold from '@phosphor-icons/core/assets/bold/check-bold.svg?raw';
 import circleBold from '@phosphor-icons/core/assets/bold/circle-bold.svg?raw';
 import circleHalfBold from '@phosphor-icons/core/assets/bold/circle-half-bold.svg?raw';
@@ -72,6 +73,7 @@ import houseBold from '@phosphor-icons/core/assets/bold/house-bold.svg?raw';
 import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.svg?raw';
 import infoBold from '@phosphor-icons/core/assets/bold/info-bold.svg?raw';
 import leafBold from '@phosphor-icons/core/assets/bold/leaf-bold.svg?raw';
+import lifebuoyBold from '@phosphor-icons/core/assets/bold/lifebuoy-bold.svg?raw';
 import lightbulbBold from '@phosphor-icons/core/assets/bold/lightbulb-bold.svg?raw';
 import lightningBold from '@phosphor-icons/core/assets/bold/lightning-bold.svg?raw';
 import listBold from '@phosphor-icons/core/assets/bold/list-bold.svg?raw';
@@ -90,10 +92,12 @@ import musicNotesBold from '@phosphor-icons/core/assets/bold/music-notes-bold.sv
 import newspaperBold from '@phosphor-icons/core/assets/bold/newspaper-bold.svg?raw';
 import notchesBold from '@phosphor-icons/core/assets/bold/notches-bold.svg?raw';
 import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
+import notePencilBold from '@phosphor-icons/core/assets/bold/note-pencil-bold.svg?raw';
 import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
 import paletteBold from '@phosphor-icons/core/assets/bold/palette-bold.svg?raw';
 import pauseBold from '@phosphor-icons/core/assets/bold/pause-bold.svg?raw';
 import pencilSimpleBold from '@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw';
+import phoneBold from '@phosphor-icons/core/assets/bold/phone-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
 import playBold from '@phosphor-icons/core/assets/bold/play-bold.svg?raw';
 import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
@@ -106,6 +110,7 @@ import scalesBold from '@phosphor-icons/core/assets/bold/scales-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
 import slidersHorizontalBold from '@phosphor-icons/core/assets/bold/sliders-horizontal-bold.svg?raw';
+import smileyBold from '@phosphor-icons/core/assets/bold/smiley-bold.svg?raw';
 import speakerHighBold from '@phosphor-icons/core/assets/bold/speaker-high-bold.svg?raw';
 import sphereBold from '@phosphor-icons/core/assets/bold/sphere-bold.svg?raw';
 import squaresFourBold from '@phosphor-icons/core/assets/bold/squares-four-bold.svg?raw';
@@ -231,6 +236,11 @@ export type AppGlyphName =
   | 'at'
   | 'speaker-high'
   | 'pill'
+  | 'phone'
+  | 'chat'
+  | 'lifebuoy'
+  | 'note-pencil'
+  | 'smiley'
   | 'palette'
   | 'text-columns'
   | 'squares-four'
@@ -380,6 +390,11 @@ const glyphBodies: Record<AppGlyphName, string> = {
   highlighter: svgBody(highlighterBold),
   calendar: svgBody(calendarBlankBold),
   pill: svgBody(pillBold),
+  phone: svgBody(phoneBold),
+  chat: svgBody(chatCircleBold),
+  lifebuoy: svgBody(lifebuoyBold),
+  'note-pencil': svgBody(notePencilBold),
+  smiley: svgBody(smileyBold),
   palette: svgBody(paletteBold),
   'text-columns': svgBody(textColumnsBold),
   'squares-four': svgBody(squaresFourBold),

@@ -5,6 +5,7 @@ import { listenForInstallPrompt } from '@/diary/install-state';
 import '@/styles/theme.css';
 import '@/styles/theme-dark-diary.css';
 import '@/diary/diary-page.css';
+import '@/diary/diary-care.css';
 
 // Chrome offers its install prompt once, early: listen before anything renders.
 listenForInstallPrompt();

@@ -29,6 +29,10 @@ const UI_KEY = 'minimed.diary.ui.v1';
 export interface DiaryMeta {
   readonly lastOpenedAt?: string;
   readonly sent?: DiarySent;
+  /** When the patient confirmed the consent summaries of a care diary. */
+  readonly consentAt?: string;
+  /** Doctor's tips the patient has opened (their «?» is gone). */
+  readonly tipsRead?: readonly string[];
 }
 
 /** Page-level state that is not tied to one diary. */
@@ -146,6 +150,12 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
           ? { lastOpenedAt: value['lastOpenedAt'] }
           : {}),
         ...(sent ? { sent } : {}),
+        ...(typeof value['consentAt'] === 'string' ? { consentAt: value['consentAt'] } : {}),
+        ...(Array.isArray(value['tipsRead'])
+          ? {
+              tipsRead: value['tipsRead'].filter((tip): tip is string => typeof tip === 'string'),
+            }
+          : {}),
       };
     } catch {
       return {};

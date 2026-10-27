@@ -63,16 +63,73 @@ export interface DiaryField {
   readonly metric?: DiaryFieldMetric;
 }
 
+export type DiaryMeal = 'before' | 'with' | 'after';
+
+export const DIARY_MEAL_LABEL: Readonly<Record<DiaryMeal, string>> = {
+  before: 'до еды',
+  with: 'во время еды',
+  after: 'после еды',
+};
+
+/** One intake of a planned item at a time of day; the patient ticks it off in the day's checklist. */
+export interface DiaryDoseTime {
+  /** Local time `HH:MM`. */
+  readonly time: string;
+  readonly meal?: DiaryMeal;
+  /** Dose for this intake when it differs from the item's dose. */
+  readonly dose?: string;
+}
+
 export interface DiaryPlanItem {
   readonly id: string;
   readonly name: string;
   readonly dose?: string;
   readonly schedule?: string;
+  /** Daily intakes; absent for an item taken when needed or described only in words. */
+  readonly times?: readonly DiaryDoseTime[];
+  /** Taken when needed: offered as «Принять сейчас», not as a timed check. */
+  readonly asNeeded?: boolean;
   /**
    * The doctor removed this item from the plan in a newer link. Entries already made for it keep
    * resolving, but the patient is no longer offered it.
    */
   readonly ended?: boolean;
+}
+
+/**
+ * Something the doctor asks the patient to fill at set times: a score (wellbeing 0–10), a group of
+ * measurements, or a questionnaire every few days.
+ */
+export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire';
+
+export interface DiaryCheckpoint {
+  readonly id: string;
+  readonly kind: DiaryCheckpointKind;
+  readonly label: string;
+  /** Daily times `HH:MM` (score and vitals). Empty: once a day at any time. */
+  readonly times?: readonly string[];
+  /** Fields this checkpoint fills (score: one number field; vitals: several). */
+  readonly fields?: readonly string[];
+  /** Questionnaire slug (`phq-9`) for a questionnaire checkpoint. */
+  readonly questionnaire?: string;
+  /** Questionnaire: repeat every N days. */
+  readonly everyDays?: number;
+}
+
+export type DiaryContactKind = 'phone' | 'telegram' | 'link' | 'email';
+
+export interface DiaryContact {
+  readonly kind: DiaryContactKind;
+  readonly value: string;
+  readonly label?: string;
+}
+
+/** The doctor's hint on one field, plan item or checkpoint; the patient sees a «?» until read. */
+export interface DiaryTip {
+  readonly id: string;
+  /** Field id, plan item id or checkpoint id. */
+  readonly target: string;
+  readonly text: string;
 }
 
 /** What the doctor gives the patient. Contains no patient identity. */
@@ -88,6 +145,13 @@ export interface DiaryInvitation {
   readonly planTitle?: string;
   readonly doctor?: string;
   readonly note?: string;
+  readonly checkpoints?: readonly DiaryCheckpoint[];
+  readonly contacts?: readonly DiaryContact[];
+  readonly tips?: readonly DiaryTip[];
+  /** Where to turn in a crisis, besides the doctor's contacts and 112 (one line each). */
+  readonly crisis?: readonly string[];
+  /** The patient confirms the consent summaries before the first entry. */
+  readonly consent?: boolean;
 }
 
 export interface DiaryPlanValue {
@@ -95,6 +159,8 @@ export interface DiaryPlanValue {
   readonly item?: string;
   readonly other?: string;
   readonly done?: boolean;
+  /** The scheduled intake `HH:MM` this mark answers; absent for an unscheduled intake. */
+  readonly slot?: string;
 }
 
 export type DiaryValue = number | string | boolean | readonly string[] | DiaryPlanValue;
@@ -105,6 +171,10 @@ export interface DiaryEntry {
   readonly at: string;
   readonly values: Readonly<Record<string, DiaryValue>>;
   readonly note?: string;
+  /** Checkpoint this entry answers (morning wellbeing, a questionnaire…). */
+  readonly check?: string;
+  /** Questionnaire answers by question id; scored on display from the questionnaire schema. */
+  readonly answers?: Readonly<Record<string, number>>;
 }
 
 /** What the patient shows back. The invitation is repeated so the doctor sees the context. */
@@ -125,7 +195,16 @@ export const MAX_DIARY_ENTRIES = 1500;
 export const MAX_DIARY_FIELDS = 16;
 export const MAX_DIARY_OPTIONS = 16;
 export const MAX_DIARY_PLAN_ITEMS = 30;
+export const MAX_DIARY_CHECKPOINTS = 12;
+export const MAX_DIARY_CONTACTS = 6;
+export const MAX_DIARY_TIPS = 40;
+export const MAX_DIARY_DOSE_TIMES = 8;
+/** Free text the patient writes about their state, and the doctor's tips. */
+export const MAX_DIARY_NOTE = 4000;
 const MAX_TEXT = 200;
+const MAX_ANSWERS = 80;
+const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/u;
+const ANSWER_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,31}$/u;
 const ID_PATTERN = /^[a-z0-9]{6,24}$/u;
 const FIELD_ID_PATTERN = /^[a-z][a-z0-9-]{0,23}$/u;
 const PLAN_ID_PATTERN = /^[a-z0-9-]{1,24}$/u;
@@ -139,11 +218,36 @@ function record(value: unknown, label: string): Readonly<Record<string, unknown>
   return value as Readonly<Record<string, unknown>>;
 }
 
-function hasControlCharacter(value: string): boolean {
+function hasControlCharacter(value: string, allowLineBreaks = false): boolean {
   for (let index = 0; index < value.length; index += 1) {
-    if (value.charCodeAt(index) < 0x20) return true;
+    const code = value.charCodeAt(index);
+    if (code < 0x20 && !(allowLineBreaks && code === 0x0a)) return true;
   }
   return false;
+}
+
+/** Multi-line patient or doctor text: line breaks kept, other control characters refused. */
+function longText(value: unknown, label: string, optional: true): string | undefined;
+function longText(value: unknown, label: string, optional?: false): string;
+function longText(value: unknown, label: string, optional = false): string | undefined {
+  if (value === undefined && optional) return undefined;
+  if (
+    typeof value !== 'string' ||
+    value.length > MAX_DIARY_NOTE ||
+    hasControlCharacter(value, true)
+  ) {
+    throw new DiaryFormatError(`${label}: некорректный текст.`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed && !optional) throw new DiaryFormatError(`${label}: значение обязательно.`);
+  return trimmed || undefined;
+}
+
+function clockTime(value: unknown, label: string): string {
+  if (typeof value !== 'string' || !TIME_PATTERN.test(value)) {
+    throw new DiaryFormatError(`${label}: время в формате ЧЧ:ММ.`);
+  }
+  return value;
 }
 
 function text(value: unknown, label: string, optional: true): string | undefined;
@@ -269,6 +373,153 @@ function parseField(value: unknown, index: number): DiaryField {
   };
 }
 
+const MEALS: readonly DiaryMeal[] = ['before', 'with', 'after'];
+
+function parseDoseTimes(value: unknown, index: number): DiaryDoseTime[] | undefined {
+  if (value === undefined) return undefined;
+  const label = `Пункт назначения ${index + 1}`;
+  if (!Array.isArray(value) || value.length > MAX_DIARY_DOSE_TIMES) {
+    throw new DiaryFormatError(`${label}: некорректное время приёма.`);
+  }
+  const times = value.map((item) => {
+    const source = record(item, label);
+    const meal = source['meal'];
+    if (meal !== undefined && !MEALS.includes(meal as DiaryMeal)) {
+      throw new DiaryFormatError(`${label}: неизвестная связь с едой.`);
+    }
+    const dose = text(source['dose'], 'Доза', true);
+    return {
+      time: clockTime(source['time'], label),
+      ...(meal === undefined ? {} : { meal: meal as DiaryMeal }),
+      ...(dose ? { dose } : {}),
+    };
+  });
+  if (new Set(times.map((time) => time.time)).size !== times.length) {
+    throw new DiaryFormatError(`${label}: время приёма повторяется.`);
+  }
+  return times.toSorted((left, right) => left.time.localeCompare(right.time));
+}
+
+const CHECKPOINT_KINDS: readonly DiaryCheckpointKind[] = ['score', 'vitals', 'questionnaire'];
+const CONTACT_KINDS: readonly DiaryContactKind[] = ['phone', 'telegram', 'link', 'email'];
+
+function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryCheckpoint[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_CHECKPOINTS) {
+    throw new DiaryFormatError('Отметки дневника некорректны.');
+  }
+  const checkpoints = value.map((item, index) => {
+    const source = record(item, `Отметка ${index + 1}`);
+    const id = source['id'];
+    if (typeof id !== 'string' || !FIELD_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Отметка ${index + 1}: некорректный идентификатор.`);
+    }
+    const kind = source['kind'];
+    if (!CHECKPOINT_KINDS.includes(kind as DiaryCheckpointKind)) {
+      throw new DiaryFormatError(`Отметка ${index + 1}: неизвестный вид.`);
+    }
+    const label = text(source['label'], `Отметка ${index + 1}`);
+    const timesValue = source['times'];
+    if (
+      timesValue !== undefined &&
+      (!Array.isArray(timesValue) || timesValue.length > MAX_DIARY_DOSE_TIMES)
+    ) {
+      throw new DiaryFormatError(`«${label}»: некорректное время.`);
+    }
+    const times = (timesValue as unknown[] | undefined)
+      ?.map((time) => clockTime(time, label))
+      .toSorted();
+    const fieldIds = source['fields'];
+    if (
+      fieldIds !== undefined &&
+      (!Array.isArray(fieldIds) ||
+        fieldIds.some(
+          (fieldId) => typeof fieldId !== 'string' || !fields.some((field) => field.id === fieldId),
+        ))
+    ) {
+      throw new DiaryFormatError(`«${label}»: ссылается на неизвестное поле.`);
+    }
+    if (kind !== 'questionnaire' && !(fieldIds as unknown[] | undefined)?.length) {
+      throw new DiaryFormatError(`«${label}»: не указаны поля.`);
+    }
+    const questionnaire = source['questionnaire'];
+    if (
+      kind === 'questionnaire' &&
+      (typeof questionnaire !== 'string' || !/^[a-z0-9][a-z0-9-]{0,47}$/u.test(questionnaire))
+    ) {
+      throw new DiaryFormatError(`«${label}»: не указан опросник.`);
+    }
+    const everyDays =
+      source['everyDays'] === undefined ? undefined : finite(source['everyDays'], 'Период');
+    if (
+      everyDays !== undefined &&
+      (!Number.isInteger(everyDays) || everyDays < 1 || everyDays > 90)
+    ) {
+      throw new DiaryFormatError(`«${label}»: период от 1 до 90 дней.`);
+    }
+    return {
+      id,
+      kind: kind as DiaryCheckpointKind,
+      label,
+      ...(times?.length ? { times } : {}),
+      ...(kind !== 'questionnaire' ? { fields: fieldIds as string[] } : {}),
+      ...(kind === 'questionnaire' ? { questionnaire: questionnaire as string } : {}),
+      ...(everyDays === undefined ? {} : { everyDays }),
+    };
+  });
+  if (new Set(checkpoints.map((checkpoint) => checkpoint.id)).size !== checkpoints.length) {
+    throw new DiaryFormatError('Отметки дневника повторяются.');
+  }
+  return checkpoints;
+}
+
+function parseContacts(value: unknown): DiaryContact[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_CONTACTS) {
+    throw new DiaryFormatError('Контакты врача некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Контакт ${index + 1}`);
+    const kind = source['kind'];
+    if (!CONTACT_KINDS.includes(kind as DiaryContactKind)) {
+      throw new DiaryFormatError(`Контакт ${index + 1}: неизвестный вид.`);
+    }
+    const contact = text(source['value'], `Контакт ${index + 1}`);
+    if (kind === 'link' && !/^https:\/\/[^\s]+$/u.test(contact)) {
+      throw new DiaryFormatError(`Контакт ${index + 1}: ссылка должна начинаться с https://.`);
+    }
+    const label = text(source['label'], 'Подпись контакта', true);
+    return { kind: kind as DiaryContactKind, value: contact, ...(label ? { label } : {}) };
+  });
+}
+
+function parseTips(value: unknown): DiaryTip[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_TIPS) {
+    throw new DiaryFormatError('Подсказки врача некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Подсказка ${index + 1}`);
+    const id = source['id'];
+    const target = source['target'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Подсказка ${index + 1}: некорректный идентификатор.`);
+    }
+    if (typeof target !== 'string' || !PLAN_ID_PATTERN.test(target)) {
+      throw new DiaryFormatError(`Подсказка ${index + 1}: не указано, к чему она.`);
+    }
+    return { id, target, text: longText(source['text'], `Подсказка ${index + 1}`) };
+  });
+}
+
+function parseCrisis(value: unknown): string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_CONTACTS) {
+    throw new DiaryFormatError('Экстренные контакты некорректны.');
+  }
+  return value.map((line, index) => text(line, `Экстренный контакт ${index + 1}`));
+}
+
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.length > MAX_DIARY_PLAN_ITEMS) {
@@ -282,11 +533,14 @@ function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
     }
     const dose = text(source['dose'], 'Доза', true);
     const schedule = text(source['schedule'], 'Когда', true);
+    const times = parseDoseTimes(source['times'], index);
     return {
       id,
       name: text(source['name'], `Пункт назначения ${index + 1}`),
       ...(dose ? { dose } : {}),
       ...(schedule ? { schedule } : {}),
+      ...(times?.length ? { times } : {}),
+      ...(source['asNeeded'] === true ? { asNeeded: true } : {}),
       ...(source['ended'] === true ? { ended: true } : {}),
     };
   });
@@ -326,6 +580,10 @@ function parseInvitationV2(
   const planTitle = text(source['planTitle'], 'Название назначения', true);
   const doctor = text(source['doctor'], 'Врач', true);
   const note = text(source['note'], 'Комментарий врача', true);
+  const checkpoints = parseCheckpoints(source['checkpoints'], fields);
+  const contacts = parseContacts(source['contacts']);
+  const tips = parseTips(source['tips']);
+  const crisis = parseCrisis(source['crisis']);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -337,6 +595,11 @@ function parseInvitationV2(
     ...(planTitle ? { planTitle } : {}),
     ...(doctor ? { doctor } : {}),
     ...(note ? { note } : {}),
+    ...(checkpoints.length ? { checkpoints } : {}),
+    ...(contacts.length ? { contacts } : {}),
+    ...(tips.length ? { tips } : {}),
+    ...(crisis.length ? { crisis } : {}),
+    ...(source['consent'] === true ? { consent: true } : {}),
   };
 }
 
@@ -465,7 +728,7 @@ function parseValue(field: DiaryField, value: unknown, invitation: DiaryInvitati
       return value;
     }
     case 'text':
-      return text(value, field.label);
+      return longText(value, field.label);
     case 'plan': {
       const source = record(value, field.label);
       const item = source['item'];
@@ -482,10 +745,13 @@ function parseValue(field: DiaryField, value: unknown, invitation: DiaryInvitati
       if (done !== undefined && typeof done !== 'boolean') {
         throw new DiaryFormatError(`«${field.label}»: не указано, выполнено ли.`);
       }
+      const slot =
+        source['slot'] === undefined ? undefined : clockTime(source['slot'], field.label);
       return {
         ...(typeof item === 'string' ? { item } : {}),
         ...(other && item === undefined ? { other } : {}),
         ...(typeof done === 'boolean' ? { done } : {}),
+        ...(slot ? { slot } : {}),
       };
     }
   }
@@ -498,7 +764,15 @@ export function parseDiaryEntry(
 ): DiaryEntry {
   let source = record(value, 'Запись');
   if (source['values'] === undefined) source = record(v1Entry(invitation, source), 'Запись');
-  const note = text(source['note'], 'Комментарий', true);
+  const note = longText(source['note'], 'Комментарий', true);
+  const check = source['check'];
+  if (
+    check !== undefined &&
+    !invitation.checkpoints?.some((checkpoint) => checkpoint.id === check)
+  ) {
+    throw new DiaryFormatError('Запись ссылается на неизвестную отметку.');
+  }
+  const answers = parseAnswers(source['answers']);
   const raw = record(source['values'], 'Значения записи');
   const values: Record<string, DiaryValue> = {};
   for (const field of invitation.fields) {
@@ -529,7 +803,7 @@ export function parseDiaryEntry(
       );
     }
   }
-  if (Object.keys(values).length === 0 && !note) {
+  if (Object.keys(values).length === 0 && !note && !answers) {
     throw new DiaryFormatError('Заполните хотя бы одно поле.');
   }
   return {
@@ -537,7 +811,33 @@ export function parseDiaryEntry(
     at: timestamp(source['at'], 'Дата записи', now),
     values,
     ...(note ? { note } : {}),
+    ...(typeof check === 'string' ? { check } : {}),
+    ...(answers ? { answers } : {}),
   };
+}
+
+function parseAnswers(value: unknown): Record<string, number> | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Ответы опросника');
+  const keys = Object.keys(source);
+  if (keys.length === 0 || keys.length > MAX_ANSWERS) {
+    throw new DiaryFormatError('Ответы опросника некорректны.');
+  }
+  const answers: Record<string, number> = {};
+  for (const key of keys) {
+    const answer = source[key];
+    if (
+      !ANSWER_ID_PATTERN.test(key) ||
+      typeof answer !== 'number' ||
+      !Number.isInteger(answer) ||
+      answer < -10 ||
+      answer > 100
+    ) {
+      throw new DiaryFormatError('Ответы опросника некорректны.');
+    }
+    answers[key] = answer;
+  }
+  return answers;
 }
 
 export function parseDiaryResults(value: unknown, now = Date.now()): DiaryResults {
@@ -613,7 +913,20 @@ export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntr
       ? []
       : [describeDiaryValue(invitation, byId.get(field.id) ?? field, value)];
   });
-  return [pressure, ...parts].filter(Boolean).join(' · ');
+  const checkpoint = entry.check
+    ? invitation.checkpoints?.find((candidate) => candidate.id === entry.check)
+    : undefined;
+  const answers = entry.answers ? Object.keys(entry.answers).length : 0;
+  const plan = entry.values['medication'] as DiaryPlanValue | undefined;
+  return [
+    checkpoint?.kind === 'vitals' ? undefined : checkpoint?.label,
+    answers ? `ответы на ${answers} вопр.` : undefined,
+    pressure,
+    ...parts,
+    plan?.slot ? `по плану ${plan.slot}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 // --- Templates -------------------------------------------------------------------------------
@@ -623,6 +936,12 @@ export interface DiaryTemplate {
   readonly title: string;
   readonly summary: string;
   readonly fields: readonly DiaryField[];
+  /**
+   * A day plan: timed intakes, checkpoints, questionnaires and contacts edited by the doctor; the
+   * patient's page is the day's checklist instead of a single entry form.
+   */
+  readonly care?: true;
+  readonly checkpoints?: readonly DiaryCheckpoint[];
   /** Label for the doctor's plan editor; absent when the diary has no plan. */
   readonly planTitle?: string;
   readonly planHint?: string;
@@ -636,7 +955,118 @@ const MEDICATION_FIELD: DiaryField = {
   trackDone: true,
 };
 
+/** Vitals and wellbeing preset of the care diary (the doctor can switch checkpoints off). */
+export const CARE_CHECKPOINTS: readonly DiaryCheckpoint[] = [
+  {
+    id: 'am',
+    kind: 'score',
+    label: 'Самочувствие утром',
+    times: ['09:00'],
+    fields: ['wellbeing'],
+  },
+  {
+    id: 'pm',
+    kind: 'score',
+    label: 'Самочувствие вечером',
+    times: ['21:00'],
+    fields: ['wellbeing'],
+  },
+  {
+    id: 'vitals',
+    kind: 'vitals',
+    label: 'Пульс, давление, сатурация',
+    times: ['09:00'],
+    fields: ['pulse', 'systolic', 'diastolic', 'spo2'],
+  },
+];
+
 export const DIARY_TEMPLATES: readonly DiaryTemplate[] = [
+  {
+    id: 'care',
+    title: 'Дневник лечения',
+    summary:
+      'Приём лекарств по времени, самочувствие утром и вечером, пульс, давление, сатурация, опросники.',
+    planTitle: 'Лекарства',
+    planHint: 'Пациент отмечает каждый приём в списке дня и может описать самочувствие после него.',
+    care: true,
+    checkpoints: CARE_CHECKPOINTS,
+    fields: [
+      MEDICATION_FIELD,
+      {
+        id: 'after',
+        type: 'multi',
+        label: 'После приёма',
+        options: [
+          'стало лучше',
+          'без изменений',
+          'стало хуже',
+          'сонливость',
+          'тревога',
+          'тошнота',
+          'головная боль',
+          'головокружение',
+          'другое',
+        ],
+      },
+      {
+        id: 'wellbeing',
+        type: 'number',
+        label: 'Самочувствие',
+        unit: 'из 10',
+        min: 0,
+        max: 10,
+        step: 1,
+      },
+      {
+        id: 'pulse',
+        type: 'number',
+        label: 'Пульс',
+        unit: 'уд/мин',
+        min: 25,
+        max: 250,
+        metric: { metricId: 'pulse', label: 'Пульс', loinc: '8867-4', ucum: '/min' },
+      },
+      {
+        id: 'systolic',
+        type: 'number',
+        label: 'Давление верхнее',
+        unit: 'мм рт. ст.',
+        min: 50,
+        max: 300,
+        metric: {
+          metricId: 'blood-pressure-systolic',
+          label: 'Давление: систолическое',
+          loinc: '8480-6',
+          ucum: 'mm[Hg]',
+        },
+      },
+      {
+        id: 'diastolic',
+        type: 'number',
+        label: 'Давление нижнее',
+        unit: 'мм рт. ст.',
+        min: 30,
+        max: 200,
+        lessThan: 'systolic',
+        metric: {
+          metricId: 'blood-pressure-diastolic',
+          label: 'Давление: диастолическое',
+          loinc: '8462-4',
+          ucum: 'mm[Hg]',
+        },
+      },
+      {
+        id: 'spo2',
+        type: 'number',
+        label: 'Сатурация',
+        unit: '%',
+        min: 50,
+        max: 100,
+        metric: { metricId: 'oxygen-saturation', label: 'SpO₂', loinc: '59408-5', ucum: '%' },
+      },
+      { id: 'state', type: 'text', label: 'Описание состояния' },
+    ],
+  },
   {
     id: 'blood-pressure',
     title: 'Дневник артериального давления',
@@ -815,4 +1245,9 @@ export const DIARY_TEMPLATES: readonly DiaryTemplate[] = [
 
 export function diaryTemplate(id: string): DiaryTemplate | undefined {
   return DIARY_TEMPLATES.find((template) => template.id === id);
+}
+
+/** The diary is a day plan (checklist page) rather than a single entry form. */
+export function isCareDiary(invitation: DiaryInvitation): boolean {
+  return diaryTemplate(invitation.template)?.care === true;
 }

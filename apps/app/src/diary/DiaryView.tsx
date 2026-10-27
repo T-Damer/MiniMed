@@ -5,6 +5,7 @@ import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
 import { DiaryMore } from '@/diary/DiaryMore';
 import { DiaryRecords } from '@/diary/DiaryRecords';
 import { DiarySend } from '@/diary/DiarySend';
+import { DiaryToday } from '@/diary/DiaryToday';
 import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
@@ -13,6 +14,7 @@ import {
   type DiaryEntry,
   type DiaryInvitation,
   type DiaryResults,
+  isCareDiary,
   parseDiaryEntry,
 } from '@/features/diary/diary-model';
 import { diaryPrintHtml, printHtmlInFrame } from '@/features/diary/diary-print';
@@ -106,6 +108,7 @@ export function DiaryView(props: {
 }): JSX.Element {
   const [results, setResults] = createSignal<DiaryResults>(props.initial);
   const [sent, setSent] = createSignal(props.store.meta(props.initial.invitation.id).sent);
+  const [meta, setMeta] = createSignal(props.store.meta(props.initial.invitation.id));
   const [error, setError] = createSignal('');
   const [notice, setNotice] = createSignal(props.notice);
   const [saved, setSaved] = createSignal<SavedEntry | undefined>(undefined);
@@ -166,6 +169,11 @@ export function DiaryView(props: {
 
   const startEntry = (entry: DiaryEntry | undefined, from: 'home' | 'records'): void => {
     setSaved(undefined);
+    if (isCareDiary(invitation())) {
+      // Marks of a care diary are made on its day page, one sheet per intake or checkpoint.
+      navigate('home');
+      return;
+    }
     setEditing(entry);
     setReturnTo(from);
     navigate('entry');
@@ -185,6 +193,23 @@ export function DiaryView(props: {
     } catch (cause) {
       return errorMessage(cause, 'Не удалось сохранить запись.');
     }
+  };
+
+  /** A mark from the day page of a care diary: saved in place, no page change. */
+  const saveCare = (value: Record<string, unknown>): string | undefined => {
+    try {
+      const entry = parseDiaryEntry(invitation(), value);
+      commit(withEntry(withoutEntry(results(), entry.id), entry));
+      setNotice(undefined);
+      return undefined;
+    } catch (cause) {
+      return errorMessage(cause, 'Не удалось сохранить отметку.');
+    }
+  };
+
+  const updateMeta = (patch: Parameters<DiaryStore['setMeta']>[1]): void => {
+    props.store.setMeta(invitation().id, patch);
+    setMeta(props.store.meta(invitation().id));
   };
 
   const remove = (entry: DiaryEntry): void => {
@@ -250,6 +275,26 @@ export function DiaryView(props: {
             if (id === invitation().id) setResults(props.store.read(id) ?? results());
           }}
           onOpened={props.onOpened}
+          onList={props.onBack}
+        />
+      </Match>
+      <Match when={screen() === 'home' && isCareDiary(invitation())}>
+        <DiaryToday
+          results={results()}
+          status={status()}
+          consentAt={meta().consentAt}
+          tipsRead={meta().tipsRead ?? []}
+          hasOtherDiaries={props.hasOtherDiaries}
+          onSave={saveCare}
+          onRemove={remove}
+          onConsent={() => updateMeta({ consentAt: new Date().toISOString() })}
+          onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
+          onRecords={() => {
+            setSaved(undefined);
+            navigate('records');
+          }}
+          onSend={() => navigate('send')}
+          onMore={() => navigate('more')}
           onList={props.onBack}
         />
       </Match>

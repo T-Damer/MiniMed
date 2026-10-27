@@ -20,6 +20,40 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
+
+First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through
+messengers today. Still serverless: the doctor's link carries the plan, the patient's marks return by QR/file/text as
+before. The live sync server is proposed in [ADR-0026](adr/0026-connected-diary-service.md) and **not built**; consent
+drafts for the faculty lawyer are in [diary-consent/](diary-consent/).
+
+- **Format** (still `v: 2`, all additions optional and validated in `diary-model.ts`): plan items get `times`
+  (`HH:MM`, meal relation, dose per intake) and `asNeeded`; the invitation gets `checkpoints` (score / vitals /
+  questionnaire with `everyDays`), `contacts`, `tips`, `crisis` lines and `consent`; an entry gets `check` and
+  questionnaire `answers`; a plan mark gets `slot`. Free text (notes, the `text` field, tips) holds 4 000 characters
+  with line breaks (was 200, one line). QR wire format carries slot, checkpoint and answers (`diary-codec.ts`).
+- **Template «Дневник лечения»** (`care`, first in «Выдать дневник»): medicines with intake times, «После приёма» effect
+  chips, wellbeing 0–10 morning and evening, pulse / pressure / SpO₂ (preset on), questionnaires.
+- **Doctor** (`DiaryCareEditor`): medicine name with offline suggestions from the shipped drug-name index
+  (`suggestDrugNames`), dose, «По времени | При необходимости», intake times with «До еды / С едой / После», a tip per
+  medicine; checkpoint switches with times; questionnaire chips (PHQ-9, GAD-7, both Zung scales — self-report only, from
+  `content/tool-modules/psychology.json`) with a period; contacts; crisis lines. Re-issue keeps plan and checkpoint ids;
+  a removed medicine stays as ended so old marks resolve (`diary-care-draft.ts`).
+- **Patient** (`DiaryToday`, care diaries only; other diaries keep DIARY4's home): consent summaries and the crisis
+  screen before the first entry (`CareIntro`); header with «Связаться» and «Помощь» (112, the doctor's contacts, the
+  doctor's crisis lines); a year heatmap — brightness is the share of the day's plan marked, not mood (`heatmapDays`);
+  any past day opens for back-filling; the day's checklist by period: a round button marks an intake taken now, the row
+  opens a sheet (taken/skipped, time, effects, text); wellbeing 0–10, vitals with the existing range checks,
+  questionnaires one card per question (no score shown to the patient; a schema alert such as PHQ-9 item 9 opens the
+  crisis sheet after saving), «Добавить описание состояния» with an auto-growing text area. A doctor's tip shows as «?»
+  until opened. Sheets are history steps (Back closes them). Calmer blue-teal accent for care diaries, light and dark.
+- **Offline:** questionnaires are a lazy chunk prefetched when a care diary opens, so the diary worker keeps them.
+- Tests: `diary-care.test.ts`, `diary-care-draft.test.ts`; `diary-doctor.spec.ts` now picks the blood-pressure diary
+  explicitly. Checked in the dev build at 375 px light/dark and in the doctor dialog at 1024 px.
+- Not done: the server, accounts, live sync, curators, doctor dashboard with charts, push reminders (phases D2–D4); the
+  doctor does not yet see questionnaire scores or effects in the patient card beyond the entry lines; no real phone,
+  VoiceOver/TalkBack or patient test.
+
 ## Module shelf on three worker shards — 2026-10-27 (STATE SHARD1)
 
 A search asks every installed module, and SQLite in a worker is synchronous, so the one shelf worker of MEM1 answered

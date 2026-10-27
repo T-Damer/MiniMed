@@ -26,6 +26,8 @@ async function noCanShare(page: Page): Promise<void> {
 
 async function issueBloodPressureDiary(page: Page): Promise<string> {
   await page.getByRole('button', { name: 'Выдать дневник', exact: true }).click();
+  // «Дневник лечения» is the default; this flow is about the blood pressure diary.
+  await page.getByText('Дневник артериального давления', { exact: true }).click();
   await page.getByLabel('Врач (необязательно)').fill('Иванова А. А.');
   await page.getByRole('button', { name: 'Создать QR-код', exact: true }).click();
   const link = await page.locator('.patient-diary__link').getAttribute('href');
