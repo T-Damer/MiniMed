@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-10-27 19:10 | claude-opus (DIARY6) | connected care diary, phases D2–D4 of `docs/DIARY_PLAN.md`: E2E-encrypted sync server, doctor accounts, live patient sync, doctor dashboard with charts, curators, alerts/push, export | `packages/diary-sync/**`, `apps/diary-server/**`, `apps/app/src/features/diary/**`, `apps/app/src/diary/**`, `apps/app/public/diary/**`, doctor diary route files, `docs/DIARY_PLAN.md`, `docs/adr/0026-*` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
