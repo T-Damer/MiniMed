@@ -13,6 +13,8 @@ export interface AppProfile {
   /** Route prefixes the profile allows (hash form). */
   readonly routes: readonly string[];
   readonly hideNavigation: boolean;
+  /** The app's own first-run tour and base download are not part of this job. */
+  readonly skipOnboarding: boolean;
 }
 
 export const APP_PROFILES: readonly AppProfile[] = [
@@ -21,6 +23,7 @@ export const APP_PROFILES: readonly AppProfile[] = [
     home: '#/notes/diaries',
     routes: ['#/notes/diaries'],
     hideNavigation: true,
+    skipOnboarding: true,
   },
 ];
 

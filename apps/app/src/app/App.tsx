@@ -131,7 +131,9 @@ export function App(): JSX.Element {
   const scaledFloatingWindow =
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
-  const [onboardingOpen, setOnboardingOpen] = createSignal(!isSetupDismissed());
+  const [onboardingOpen, setOnboardingOpen] = createSignal(
+    !isSetupDismissed() && !activeProfile()?.skipOnboarding,
+  );
   // The first launch's onboarding introduces the app before the core download begins; the
   // onboarding lets it go, and so does any path on which the onboarding is not going to show.
   if (onboardingOpen() && !embeddedFloatingWindow) holdCoreStart();

@@ -25,7 +25,10 @@ Detailed history, moved verbatim on 2026-09-24:
 Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the accepted
 [ADR-0026](adr/0026-connected-diary-service.md); running and deploying: [DIARY_SERVICE.md](DIARY_SERVICE.md).
 **The first backend in the project, for the diary only**; search, documents and the patient vault
-stay serverless. Not deployed yet (no VM, no DNS record).
+stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51.250.93.197`,
+`ru-central1-a`; bundled service + Caddy + nightly backups; management:
+[DIARY_ADMIN.md](DIARY_ADMIN.md), doctors' guide: [diary-doctor-guide.ru.md](diary-doctor-guide.ru.md)).
+`?profile=diaries` skips the app's onboarding. Waiting for the DNS record `med.1damer.com`.
 
 - **Crypto** (`packages/diary-sync`, Web Crypto only): password → PBKDF2 (600 000) → HKDF auth key
   (server stores its argon2id hash) and wrap key (never leaves the device); ECDH + ECDSA P-256 identity

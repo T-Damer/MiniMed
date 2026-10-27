@@ -1,5 +1,6 @@
 # /etc/systemd/system/minimed-diary.service — the connected diary service (ADR-0026).
-# The checkout lives in /opt/minimed; the database in /var/lib/minimed-diary (ciphertext + accounts).
+# /opt/minimed holds the bundled service (diary-server.js) and the built app (app/), both copied by
+# scripts/diary-deploy.sh; the database lives in /var/lib/minimed-diary (ciphertext + accounts).
 [Unit]
 Description=MiniMed connected diary service
 After=network-online.target
@@ -8,15 +9,15 @@ Wants=network-online.target
 [Service]
 User=minimed
 Group=minimed
-WorkingDirectory=/opt/minimed/apps/diary-server
+WorkingDirectory=/opt/minimed
 Environment=DIARY_HOST=127.0.0.1
 Environment=DIARY_PORT=8790
 Environment=DIARY_DB=/var/lib/minimed-diary/diary.db
-Environment=DIARY_STATIC=/opt/minimed/apps/app/dist
+Environment=DIARY_STATIC=/opt/minimed/app
 Environment=DIARY_SIGNUP=invite
 Environment=DIARY_PUSH_SUBJECT=mailto:admin@1damer.com
 # Environment=DIARY_CORS_ORIGINS=https://localhost,capacitor://localhost
-ExecStart=/usr/local/bin/bun src/main.ts
+ExecStart=/usr/local/bin/bun /opt/minimed/diary-server.js
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true

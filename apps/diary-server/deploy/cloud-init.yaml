@@ -1,0 +1,28 @@
+#cloud-config
+# Yandex Cloud VM for the connected diary (docs/DIARY_SERVICE.md). Ubuntu 24.04. Installs Bun (the
+# repository-pinned version), Caddy and an empty service; scripts/diary-deploy.sh copies the code.
+users:
+  - default
+  # The deploying admin; scripts/diary-vm.sh puts the SSH public key here.
+  - name: yc-user
+    groups: sudo
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - __SSH_PUBLIC_KEY__
+  - name: minimed
+    system: true
+    shell: /usr/sbin/nologin
+package_update: true
+packages:
+  - caddy
+  - sqlite3
+  - unzip
+  - rsync
+runcmd:
+  - [bash, -c, "curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s bun-v1.2.3"]
+  - [mkdir, -p, /opt/minimed/app, /var/lib/minimed-diary]
+  - [chown, -R, "minimed:minimed", /var/lib/minimed-diary]
+  - [ufw, allow, OpenSSH]
+  - [ufw, allow, "80,443/tcp"]
+  - [ufw, --force, enable]

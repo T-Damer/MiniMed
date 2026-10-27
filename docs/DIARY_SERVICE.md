@@ -45,6 +45,12 @@ The decoy-salt secret and the VAPID key pair are generated on first start and ke
 
 ## Pilot production (Yandex Cloud, `ru-central1`)
 
+Live since 2026-10-27: VM `minimed-diary` at `51.250.93.197` — day-to-day management is in
+[DIARY_ADMIN.md](DIARY_ADMIN.md); `scripts/diary-vm.sh create` made it (zone `ru-central1-a`;
+`ru-central1-b` refused new VMs and the folder has no SSD quota, hence a network HDD), cloud-init
+from `apps/diary-server/deploy/cloud-init.yaml`, code by `scripts/diary-deploy.sh`. The steps below
+describe the same setup by hand.
+
 1. Ubuntu 24.04 VM; install Bun (repository-pinned version) and Caddy; user `minimed`;
    `/var/lib/minimed-diary` owned by it.
 2. Checkout in `/opt/minimed`, `bun install`, `bun run build:app` with the pilot settings.
@@ -57,9 +63,22 @@ The decoy-salt secret and the VAPID key pair are generated on first start and ke
    ciphertext; doctors' e-mails, names and password hashes are not.
 7. Invite codes for the faculty's doctors: `bun run --cwd apps/diary-server invite`.
 
-A development tunnel from the owner's Mac (`cloudflared`, e.g. `med-dev.1damer.com` →
-`127.0.0.1:8790`) is for demos with test data only; creating it changes the Cloudflare account and is
-done on the owner's go.
+## Demo tunnel (owner's Mac, test data only)
+
+`scripts/diary-demo.sh start` builds the app, starts the service on `127.0.0.1:8792` with
+`data/diary-server/demo.db` and invite-only sign-up, and runs the `minimed-dev` cloudflared tunnel
+(config `~/.cloudflared/minimed-dev.yml`, tunnel id `430e0d52-af51-4ec5-a7af-5cf7cbb23f96`) to
+`https://med-dev.1damer.com`. `status`, `invite` (a doctor's sign-up code) and `stop` do what they
+say; logs are next to the database. Nothing is installed as a system service: after a reboot run
+`start` again (`SKIP_BUILD=1` reuses the last build).
+
+DNS: `med-dev` CNAME `430e0d52-af51-4ec5-a7af-5cf7cbb23f96.cfargotunnel.com`, proxied. The local
+`cert.pem` token could not create it (Cloudflare error 10000, 2026-10-27); either add the record in
+the dashboard or renew the login (`cloudflared tunnel login`, choose `1damer.com`) and run
+`cloudflared tunnel route dns minimed-dev med-dev.1damer.com`.
+
+Cloudflare ends TLS for this tunnel, so it is for demos only; Russian networks may also cut proxied
+connections. Pilot patients use the VM above.
 
 ## Limits (by design)
 
