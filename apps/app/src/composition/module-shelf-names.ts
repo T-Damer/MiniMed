@@ -1,5 +1,25 @@
-/** The one SAH pool that holds the database file of every small installed module. */
-export const SHELF_POOL_NAME = 'minimed-shelf';
+/**
+ * The shelf is split into shards: each is one SAH pool with its own worker, so a search that asks
+ * every installed module runs on several threads at once (one worker ran 774 modules one after
+ * another). Fixed, not taken from the device: a file's shard follows from its name, and a smaller
+ * count would leave the files of the dropped shards unreachable.
+ */
+export const SHELF_SHARD_COUNT = 3;
+
+/** The SAH pool of a shard; shard 0 keeps the name of the single pool earlier apps wrote. */
+export function shelfPoolName(shard: number): string {
+  return shard === 0 ? 'minimed-shelf' : `minimed-shelf-${shard}`;
+}
+
+/** The shard a module file lives in: FNV-1a of its name, so placement needs no lookup table. */
+export function shelfShardOf(file: string, shardCount: number): number {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < file.length; index += 1) {
+    hash ^= file.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0) % shardCount;
+}
 /**
  * Memory the page caches of all shelf connections may fill together, in KiB, when the device does
  * not say how much memory it has. SQLite offers no global limit, so every connection gets an equal

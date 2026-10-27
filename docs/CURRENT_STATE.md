@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 26 October 2026
+> Updated: 27 October 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,38 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Module shelf on three worker shards — 2026-10-27 (STATE SHARD1)
+
+A search asks every installed module, and SQLite in a worker is synchronous, so the one shelf worker of MEM1 answered
+774 КР modules one after another: the shelf was busy ~1 s of a ~1 s search. The shelf is now **three shards**
+(`SHELF_SHARD_COUNT`, `composition/module-shelf*.ts`): each is its own SAH pool (`minimed-shelf`, `minimed-shelf-1`,
+`minimed-shelf-2`) and worker, a file's shard follows from its name (`shelfShardOf`, FNV-1a), and a search's calls go
+to the three workers at once, one batch each. The page-cache budget is still shared by all connections (unchanged).
+A file the single-pool shelf wrote (shard 0) moves to its shard the first time it is opened, one file at a time (read,
+written and opened in its shard, then unlinked from shard 0); a copy a live connection still uses stays where it is.
+The count is fixed, not taken from the device: raising it later is safe (files move from any shard), lowering it
+would strand files.
+
+- **Measured** (`e2e/many-modules-reload.spec.ts`, 774 КР modules, 20 queries, persistent Chromium profile on this
+  Mac, search-result cache cleared before the timed reload — the cache of 2026-10-08 answered repeat runs on a kept
+  profile, which first made both builds look equal at 0.21 s):
+
+  | shelf | median search | first search | startup | browser RSS at start |
+  |---|---|---|---|---|
+  | 1 worker (before) | 1.02 / 0.88 s | 4.95 / 3.76 s | 2.0 s | 1.29 GB |
+  | 3 shards | **0.46 / 0.44 s** | 3.2 / 3.0 s | 2.3 s | 1.35–1.40 GB |
+  | 1 worker, CPU throttled ×4 | 1.32 s | 7.8 s | | |
+  | 3 shards, CPU throttled ×4 | **0.90 s** | 7.0 s | | |
+
+  2 shards: 0.56 s, 4 shards: 0.36 s (one run each, +~100 MB more at 4). Upgrade from a single-pool library:
+  every file moved without a copy left behind (shards 544 / 623 / 497 MB = the 1 662 MB before), the move cost ~3.8 s
+  once at the first start, no search failed.
+- **Vector scan.** The suggested tightening of the int8 loop in `scoreVectors` (no `?? 0`, unrolled sums, a floor
+  check) measured 37.0 → 36.6 ms over 93 k vectors × 384 in V8, unrolled slower (38–43 ms): not kept. The scan is
+  split over the shards with the rest of the search.
+- **Not measured:** a phone (Chromium's CPU throttling is only an approximation; a big.LITTLE phone may gain less),
+  the WebView build on the emulator.
 
 ## EAEU sister-register instruction module — 2026-10-26 (STATE EA1)
 

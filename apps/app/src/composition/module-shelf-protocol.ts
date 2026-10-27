@@ -4,8 +4,8 @@ import type {
 } from '@/composition/opfs-pack-protocol';
 
 /**
- * Messages between the app and the module shelf worker: one worker, one OPFS pool, one SQLite
- * connection per installed module file. The shelf exists so that the memory of the installed
+ * Messages between the app and a module shelf worker: one worker per shard, one OPFS pool per
+ * worker, one SQLite connection per installed module file. The shelf exists so that the memory of the installed
  * library does not grow with the size of its modules (see `module-shelf.ts`).
  */
 
@@ -34,6 +34,10 @@ export type ShelfRequest =
       readonly bytes: Uint8Array;
     }
   | { readonly id: number; readonly type: 'read'; readonly file: string }
+  /** The pool's file names (the answer of `init` too), without the leading slash. */
+  | { readonly id: number; readonly type: 'list' }
+  /** Deletes a file no connection uses: a module moved to the shard its name belongs to. */
+  | { readonly id: number; readonly type: 'unlink'; readonly file: string }
   | { readonly id: number; readonly type: 'stats' }
   /**
    * Calls made in the same turn of the event loop, answered by one message: a search asks every

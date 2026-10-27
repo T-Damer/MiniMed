@@ -8,6 +8,8 @@ import {
   shelfCacheKiB,
   shelfFileName,
   shelfFileVersionKey,
+  shelfPoolName,
+  shelfShardOf,
 } from '@/composition/module-shelf-names';
 import type { ShelfRequest, ShelfResponse } from '@/composition/module-shelf-protocol';
 
@@ -93,7 +95,7 @@ describe('shelf names', () => {
 describe('ModuleShelf', () => {
   it('sends the calls of one turn as a single message and answers each caller', async () => {
     const { worker, requests } = fakeWorker();
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const stores = await Promise.all(
       ['a', 'b', 'c'].map((file) => shelf.open(file, 10, { cacheSizeKiB: -256 })),
     );
@@ -106,7 +108,7 @@ describe('ModuleShelf', () => {
 
   it('opens a file once and closes it after its last lease', async () => {
     const { worker, requests } = fakeWorker();
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const first = await shelf.open('a', 10, { cacheSizeKiB: -256 });
     const second = await shelf.open('a', 10, { cacheSizeKiB: -256 });
     expect(requests.filter((request) => request.type === 'open')).toHaveLength(1);
@@ -119,7 +121,7 @@ describe('ModuleShelf', () => {
 
   it('passes the image to write and the page cache the caller chose', async () => {
     const { worker, requests } = fakeWorker();
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const bytes = new Uint8Array([1, 2, 3]);
     await shelf.open('a', 3, { bytes, cacheSizeKiB: -512 });
     expect(requests.find((request) => request.type === 'open')).toMatchObject({
@@ -133,7 +135,7 @@ describe('ModuleShelf', () => {
 
   it('asks a file for its health once, and again after it is seeded', async () => {
     const { worker, requests } = fakeWorker();
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
     const calls = () =>
       requests
@@ -151,7 +153,7 @@ describe('ModuleShelf', () => {
 
   it('reads each whole-file listing once per open file, across leases', async () => {
     const { worker, requests } = fakeWorker();
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const first = await shelf.open('a', 10, { cacheSizeKiB: -256 });
     const second = await shelf.open('a', 10, { cacheSizeKiB: -256 });
     await first.listAliases();
@@ -173,7 +175,7 @@ describe('ModuleShelf', () => {
           }
         : undefined,
     );
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     const [a, b] = await Promise.all([
       shelf.open('a', 10, { cacheSizeKiB: -256 }),
       shelf.open('b', 10, { cacheSizeKiB: -256 }),
@@ -187,7 +189,7 @@ describe('ModuleShelf', () => {
     const { worker } = fakeWorker((request) =>
       request.type === 'init' ? { id: request.id, error: 'No OPFS here.' } : undefined,
     );
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     await expect(shelf.open('a', 10, { cacheSizeKiB: -256 })).rejects.toThrow('No OPFS here.');
     expect(shelf.unavailable).toBe(true);
     expect(worker.terminated).toBe(true);
@@ -200,7 +202,7 @@ describe('ModuleShelf', () => {
       if (request.type === 'sweep') return { id: request.id, result: 2 };
       return undefined;
     });
-    const shelf = new ModuleShelf({ createWorker: () => worker, idleShutdownMs: 0 });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, idleShutdownMs: 0 });
     await shelf.put('a', new Uint8Array([1, 2]));
     expect(await shelf.read('a')).toEqual(new Uint8Array([9]));
     expect(await shelf.sweep(['x@1'])).toBe(2);
@@ -218,6 +220,7 @@ describe('ModuleShelf', () => {
     try {
       const workers: ReturnType<typeof fakeWorker>[] = [];
       const shelf = new ModuleShelf({
+        shardCount: 1,
         createWorker: () => {
           const created = fakeWorker();
           workers.push(created);
@@ -247,9 +250,71 @@ describe('ModuleShelf', () => {
       worker.onmessage?.({ data: { id: request.id, status: 'lock-acquired' } } as MessageEvent);
       return { id: request.id, result: undefined };
     });
-    const shelf = new ModuleShelf({ createWorker: () => worker });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
     shelf.onWaitingForOtherTab((waiting) => waits.push(waiting));
     await shelf.open('a', 10, { cacheSizeKiB: -256 });
     expect(waits).toEqual([true, false]);
+  });
+
+  it('spreads files over the shards and asks each shard once per turn', async () => {
+    const workers = [0, 1, 2].map(() => fakeWorker());
+    const shelf = new ModuleShelf({
+      shardCount: 3,
+      createWorker: (shard) => (workers[shard] as ReturnType<typeof fakeWorker>).worker,
+    });
+    const files = Array.from({ length: 12 }, (_, index) => `module-${index}.db`);
+    const stores = await Promise.all(
+      files.map((file) => shelf.open(file, 10, { cacheSizeKiB: -256 })),
+    );
+    for (const file of files) {
+      const opens = workers[shelfShardOf(file, 3)]?.requests.filter(
+        (request) => request.type === 'open' && request.file === file,
+      );
+      expect(opens).toHaveLength(1);
+    }
+    const before = workers.map(({ requests }) => requests.length);
+    const results = await Promise.all(stores.map((store) => store.getChunk('id')));
+    expect(results).toEqual(files.map((file) => `getChunk:${file}`));
+    workers.forEach(({ requests }, shard) => {
+      const holdsFiles = files.some((file) => shelfShardOf(file, 3) === shard);
+      expect(requests.length - (before[shard] ?? 0)).toBe(holdsFiles ? 1 : 0);
+    });
+    expect(workers.map(({ requests }) => requests[0])).toMatchObject(
+      [0, 1, 2].map((shard) => ({ type: 'init', poolName: shelfPoolName(shard) })),
+    );
+  });
+
+  it('moves a file an earlier app wrote into the single pool to its shard, once', async () => {
+    const file = Array.from({ length: 20 }, (_, index) => `old-${index}.db`).find(
+      (name) => shelfShardOf(name, 3) !== 0,
+    ) as string;
+    const home = shelfShardOf(file, 3);
+    const image = new Uint8Array([4, 5, 6, 7]);
+    const workers = [0, 1, 2].map((shard) =>
+      fakeWorker((request) => {
+        if (request.type === 'init') return { id: request.id, result: shard === 0 ? [file] : [] };
+        if (request.type === 'read') return { id: request.id, result: image };
+        return undefined;
+      }),
+    );
+    const shelf = new ModuleShelf({
+      shardCount: 3,
+      createWorker: (shard) => (workers[shard] as ReturnType<typeof fakeWorker>).worker,
+    });
+    const [first, second] = await Promise.all([
+      shelf.open(file, 4, { cacheSizeKiB: -256 }),
+      shelf.open(file, 4, { cacheSizeKiB: -256 }),
+    ]);
+    const old = workers[0]?.requests ?? [];
+    expect(old.filter((request) => request.type === 'read')).toHaveLength(1);
+    expect(old.filter((request) => request.type === 'unlink')).toMatchObject([{ file }]);
+    expect(workers[home]?.requests.filter((request) => request.type === 'open')).toMatchObject([
+      { file, byteLength: 4, bytes: image },
+    ]);
+    await first?.close();
+    await second?.close();
+    await shelf.open(file, 4, { cacheSizeKiB: -256 });
+    expect(old.filter((request) => request.type === 'read')).toHaveLength(1);
+    expect(await shelf.read(file)).toEqual(image);
   });
 });

@@ -13,12 +13,15 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-
  * MEM1: the search core after a reload with many modules installed. Every small module used to be
  * deserialized into the 2 GB wasm heap of the main thread; with the full recommendation set
  * (774 modules, 1.65 GB) the heap ran out and every search failed with SQLITE_NOMEM. Modules now
- * live as files of one OPFS pool opened by one worker (`composition/module-shelf.ts`).
+ * live as files of the shelf's OPFS pools, each opened by its own worker (`composition/module-shelf.ts`).
  *
- * `MEM1_MODULES=774` runs the whole set (about a minute). The default is a quick slice. The browser
- * is a persistent profile on purpose: Playwright's default contexts are incognito, where OPFS is
- * served over IPC and a read costs ten times what it does for a person, so latency measured there
- * says nothing about the app.
+ * `MEM1_MODULES=774` runs the whole set (about a minute). The default is a quick slice.
+ * `MEM1_PROFILE=<dir>` keeps the browser profile; a second run with `MEM1_UPGRADE=1` against a
+ * newer build opens the library the earlier build left there instead of seeding one, so its first
+ * start measures the upgrade (the shelf moving files into their shards). The browser is a
+ * persistent profile on purpose: Playwright's default contexts are incognito, where OPFS is served
+ * over IPC and a read costs ten times what it does for a person, so latency measured there says
+ * nothing about the app.
  */
 const run = promisify(execFile);
 const ROOT = resolve(import.meta.dirname, '../../..');
@@ -36,6 +39,8 @@ for (const directory of DIRECTORIES.toReversed()) {
   for (const file of readdirSync(directory)) located.set(file, resolve(directory, file));
 }
 const COUNT = Number(process.env['MEM1_MODULES'] ?? 120);
+const KEPT_PROFILE = process.env['MEM1_PROFILE'];
+const UPGRADE = process.env['MEM1_UPGRADE'] === '1';
 
 interface Seed {
   readonly moduleId: string;
@@ -121,7 +126,7 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
   test.skip(!existsSync(DIRECTORY), 'The published KD1 module copy is local-only.');
   test.setTimeout(900_000);
   const list = await seeds();
-  const profile = mkdtempSync(join(tmpdir(), 'mem1-profile-'));
+  const profile = KEPT_PROFILE ?? mkdtempSync(join(tmpdir(), 'mem1-profile-'));
   const context = await chromium.launchPersistentContext(profile, {
     headless: true,
     args: ['--mute-audio'],
@@ -143,44 +148,51 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     page.on('console', (message) => {
       if (/NOMEM|out of memory|sqlite3_step/iu.test(message.text())) problems.push(message.text());
     });
+    const openedAt = Date.now();
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     await waitForSearchEditable(page);
+    // With an earlier build's library (MEM1_UPGRADE) this first open is the upgrade itself.
+    const initialOpenMs = Date.now() - openedAt;
 
     // The library as an app without the shelf left it: every index as bytes in IndexedDB.
-    await page.evaluate(async (items) => {
-      const database = await new Promise<IDBDatabase>((resolveDb, reject) => {
-        const request = indexedDB.open('minimed-content-modules-v1', 2);
-        request.onsuccess = () => resolveDb(request.result);
-        request.onerror = () => reject(request.error);
-      });
-      for (let start = 0; start < items.length; start += 8) {
-        const rows = await Promise.all(
-          items.slice(start, start + 8).map(async (item) => {
-            const response = await fetch(`/__seed/${encodeURIComponent(item.file)}`);
-            return { item, blob: new Blob([await response.arrayBuffer()]) };
-          }),
-        );
-        const transaction = database.transaction(['versions', 'active'], 'readwrite');
-        for (const { item, blob } of rows) {
-          transaction.objectStore('versions').put({
-            key: `${item.moduleId}@${item.version}`,
-            moduleId: item.moduleId,
-            version: item.version,
-            bytes: blob,
-            sourceSetDigest: '',
-            installedAt: new Date().toISOString(),
-          });
-          transaction.objectStore('active').put({ moduleId: item.moduleId, version: item.version });
-        }
-        await new Promise<void>((resolveTx, reject) => {
-          transaction.oncomplete = () => resolveTx();
-          transaction.onerror = () => reject(transaction.error);
+    if (!UPGRADE)
+      await page.evaluate(async (items) => {
+        const database = await new Promise<IDBDatabase>((resolveDb, reject) => {
+          const request = indexedDB.open('minimed-content-modules-v1', 2);
+          request.onsuccess = () => resolveDb(request.result);
+          request.onerror = () => reject(request.error);
         });
-      }
-      database.close();
-    }, list);
+        for (let start = 0; start < items.length; start += 8) {
+          const rows = await Promise.all(
+            items.slice(start, start + 8).map(async (item) => {
+              const response = await fetch(`/__seed/${encodeURIComponent(item.file)}`);
+              return { item, blob: new Blob([await response.arrayBuffer()]) };
+            }),
+          );
+          const transaction = database.transaction(['versions', 'active'], 'readwrite');
+          for (const { item, blob } of rows) {
+            transaction.objectStore('versions').put({
+              key: `${item.moduleId}@${item.version}`,
+              moduleId: item.moduleId,
+              version: item.version,
+              bytes: blob,
+              sourceSetDigest: '',
+              installedAt: new Date().toISOString(),
+            });
+            transaction
+              .objectStore('active')
+              .put({ moduleId: item.moduleId, version: item.version });
+          }
+          await new Promise<void>((resolveTx, reject) => {
+            transaction.oncomplete = () => resolveTx();
+            transaction.onerror = () => reject(transaction.error);
+          });
+        }
+        database.close();
+      }, list);
 
-    // The first start writes every module onto the shelf and drops its IndexedDB copy.
+    // The first start writes every module onto the shelf and drops its IndexedDB copy (upgrade:
+    // moves the files an earlier build left on the shelf into their shards).
     const firstStartAt = Date.now();
     await page.reload();
     await waitForSearchEditable(page);
@@ -207,11 +219,39 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     });
     expect(rows).toEqual({ total: list.length, shelf: list.length, withBytes: 0 });
 
+    // Finished searches are kept per device (`state/search-result-cache.ts`): a run on a kept
+    // profile would time cache hits, not searches. The delete completes once the reload has closed
+    // the app's connection.
+    await page.evaluate(() => {
+      indexedDB.deleteDatabase('minimed-search-results');
+    });
     // A later start only opens the files: no payload moves, nothing is written.
     const startedAt = Date.now();
     await page.reload();
     await waitForSearchEditable(page);
     const startupMs = Date.now() - startedAt;
+    const cachedSearches = await page.evaluate(
+      () =>
+        new Promise<number>((resolveCount, reject) => {
+          const request = indexedDB.open('minimed-search-results');
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('searches')) {
+              database.close();
+              resolveCount(0);
+              return;
+            }
+            const count = database.transaction('searches').objectStore('searches').count();
+            count.onsuccess = () => {
+              database.close();
+              resolveCount(count.result);
+            };
+            count.onerror = () => reject(count.error);
+          };
+        }),
+    );
+    expect(cachedSearches).toBe(0);
     const phases = await page.evaluate(() =>
       Object.fromEntries(
         performance
@@ -222,6 +262,12 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     );
     const rssStartMb = await browserRssMb(profile);
 
+    const throttle = Number(process.env['MEM1_CPU_THROTTLE'] ?? 1);
+    if (throttle > 1) {
+      // A phone-like CPU: Chromium slows the page's main thread and its workers by this factor.
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle });
+    }
     const input = page.getByTestId('search-input');
     const timings: number[] = [];
     const failures: string[] = [];
@@ -244,6 +290,38 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
       }
     }
     const rssEndMb = await browserRssMb(profile);
+    // Where the shelf's bytes are: the OPFS directory of every shelf pool, its files and size.
+    const shelfPools = await page.evaluate(async () => {
+      const sizeOf = async (
+        directory: FileSystemDirectoryHandle,
+      ): Promise<{ files: number; bytes: number }> => {
+        let files = 0;
+        let bytes = 0;
+        for await (const entry of (
+          directory as unknown as { values(): AsyncIterable<FileSystemHandle> }
+        ).values()) {
+          if (entry.kind === 'directory') {
+            const inner = await sizeOf(entry as FileSystemDirectoryHandle);
+            files += inner.files;
+            bytes += inner.bytes;
+          } else {
+            files += 1;
+            bytes += (await (entry as FileSystemFileHandle).getFile()).size;
+          }
+        }
+        return { files, bytes };
+      };
+      const root = await navigator.storage.getDirectory();
+      const pools: Record<string, { files: number; mb: number }> = {};
+      for await (const entry of (
+        root as unknown as { values(): AsyncIterable<FileSystemHandle> }
+      ).values()) {
+        if (entry.kind !== 'directory' || !entry.name.includes('minimed-shelf')) continue;
+        const { files, bytes } = await sizeOf(entry as FileSystemDirectoryHandle);
+        pools[entry.name] = { files, mb: Math.round(bytes / 1048576) };
+      }
+      return pools;
+    });
     const session = await context.newCDPSession(page);
     const heap = (await session.send('Runtime.getHeapUsage')) as {
       usedSize: number;
@@ -252,6 +330,7 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     console.log(
       `MEM1RESULT ${JSON.stringify({
         modules: list.length,
+        initialOpenMs,
         firstStartMs,
         startupMs,
         phases,
@@ -261,12 +340,14 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
         rssEndMb,
         mainJsHeapMb: Math.round(heap.usedSize / 1048576),
         failures: failures.length,
+        throttle,
+        shelfPools,
       })}`,
     );
     expect(problems).toEqual([]);
     expect(failures).toEqual([]);
   } finally {
     await context.close();
-    rmSync(profile, { recursive: true, force: true });
+    if (!KEPT_PROFILE) rmSync(profile, { recursive: true, force: true });
   }
 });

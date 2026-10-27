@@ -7,7 +7,11 @@ import {
 } from '@localmed/storage-sqlite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetModuleShelfForTests } from '@/composition/module-shelf';
-import { shelfFileName, shelfFileVersionKey } from '@/composition/module-shelf-names';
+import {
+  SHELF_SHARD_COUNT,
+  shelfFileName,
+  shelfFileVersionKey,
+} from '@/composition/module-shelf-names';
 import {
   BrowserModuleBackend,
   BrowserModuleValidator,
@@ -54,7 +58,7 @@ interface OpenRequest {
 /** A message of the module shelf worker; the per-module pack worker's messages never carry `file`. */
 interface ShelfMessage {
   readonly id: number;
-  readonly type: 'init' | 'open' | 'put' | 'read' | 'batch' | 'close' | 'sweep';
+  readonly type: 'init' | 'open' | 'put' | 'read' | 'list' | 'unlink' | 'batch' | 'close' | 'sweep';
   readonly file?: string;
   readonly byteLength?: number;
   readonly bytes?: Uint8Array;
@@ -86,7 +90,9 @@ function request<T>(result: T): IDBRequest<T> {
 function isShelfMessage(message: object): boolean {
   if (!('type' in message)) return false;
   return (
-    ['init', 'put', 'read', 'batch', 'close', 'sweep'].includes(String(message.type)) ||
+    ['init', 'put', 'read', 'list', 'unlink', 'batch', 'close', 'sweep'].includes(
+      String(message.type),
+    ) ||
     (message.type === 'open' && 'file' in message)
   );
 }
@@ -110,6 +116,12 @@ function answerShelf(world: World, message: ShelfMessage): Record<string, unknow
       return { id: message.id, result: undefined };
     case 'read':
       return { id: message.id, result: world.shelfFiles.get(file) ?? null };
+    // One world plays every shard: each lists, and may delete, any file of it.
+    case 'list':
+      return { id: message.id, result: [...world.shelfFiles.keys()] };
+    case 'unlink':
+      world.shelfFiles.delete(file);
+      return { id: message.id, result: 1 };
     case 'close':
       world.shelfOpen.delete(file);
       return { id: message.id, result: undefined };
@@ -566,8 +578,8 @@ describe('module shelf', () => {
     const open = world.shelfMessages.find((message) => message.type === 'open');
     expect(open?.bytes).toBeUndefined();
     expect(open?.byteLength).toBe(3);
-    // One worker holds the whole library: opening a module starts no worker of its own.
-    expect(Worker).toHaveBeenCalledOnce();
+    // The shard workers hold the whole library: opening a module starts no worker of its own.
+    expect(Worker).toHaveBeenCalledTimes(SHELF_SHARD_COUNT);
     await Promise.all(mounts.map((mount) => mount.store.close()));
   });
 
@@ -581,7 +593,7 @@ describe('module shelf', () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  it('serves many mounted modules from one worker', async () => {
+  it('serves many mounted modules from the shard workers', async () => {
     for (let index = 0; index < 40; index += 1) {
       const id = `minimed.small.${index}`;
       seed(world, row(id, '1.0.0', { indexStorage: 'shelf', indexSizeBytes: 3 }));
@@ -590,7 +602,7 @@ describe('module shelf', () => {
     }
     const mounts = await loadInstalledModuleMounts();
     expect(mounts).toHaveLength(40);
-    expect(Worker).toHaveBeenCalledOnce();
+    expect(Worker).toHaveBeenCalledTimes(SHELF_SHARD_COUNT);
     await Promise.all(mounts.map((mount) => mount.store.close()));
   });
 

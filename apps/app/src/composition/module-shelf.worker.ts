@@ -22,8 +22,8 @@ import type {
 } from '@/composition/module-shelf-protocol';
 
 /**
- * The module shelf: every small installed module is a file of one SAH pool, opened here as one
- * SQLite connection. The wasm heap of this worker holds connections and bounded page caches, not
+ * One shard of the module shelf: every small installed module of the shard is a file of its SAH
+ * pool, opened here as one SQLite connection. The wasm heap of this worker holds connections and bounded page caches, not
  * database images, so installing more modules does not exhaust it (the 2 GB heap of the main
  * thread did, at about 800 modules).
  */
@@ -46,6 +46,11 @@ function inWriteQueue<T>(task: () => Promise<T>): Promise<T> {
 function requirePool(): string {
   if (!poolName) throw new Error('The module shelf is not initialised.');
   return poolName;
+}
+
+/** The module files of a pool, without the leading slash the pool keeps. */
+async function poolFiles(pool: string): Promise<readonly string[]> {
+  return (await listOpfsPoolFiles(pool)).map((name) => name.replace(/^\//u, ''));
 }
 
 function imageSource(bytes: Uint8Array, byteLength: number): OpfsPackSource {
@@ -104,13 +109,20 @@ async function callStore(call: ShelfCall): Promise<unknown> {
 async function handle(message: ShelfRequest): Promise<unknown> {
   switch (message.type) {
     case 'init': {
-      if (poolName) return undefined;
-      await holdPoolLock(message.id, message.poolName);
-      poolName = message.poolName;
-      reply({ id: message.id, status: 'lock-acquired' });
-      // Opening the pool reads its file table; later opens reuse it.
-      await listOpfsPoolFiles(poolName);
-      return undefined;
+      if (!poolName) {
+        await holdPoolLock(message.id, message.poolName);
+        poolName = message.poolName;
+        reply({ id: message.id, status: 'lock-acquired' });
+      }
+      // Opening the pool reads its file table; later opens reuse it. The client places files by it.
+      return poolFiles(poolName);
+    }
+    case 'list':
+      return poolFiles(requirePool());
+    case 'unlink': {
+      const pool = requirePool();
+      if (stores.has(message.file)) throw new Error('The module file is open on the shelf.');
+      return inWriteQueue(() => unlinkOpfsPoolFiles(pool, [`/${message.file}`]));
     }
     case 'open': {
       const pool = requirePool();

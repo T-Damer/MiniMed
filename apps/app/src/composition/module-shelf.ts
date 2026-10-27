@@ -18,7 +18,7 @@ import type {
   VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
-import { SHELF_POOL_NAME } from '@/composition/module-shelf-names';
+import { SHELF_SHARD_COUNT, shelfPoolName, shelfShardOf } from '@/composition/module-shelf-names';
 import type {
   ShelfCall,
   ShelfCallMethod,
@@ -30,14 +30,17 @@ import type {
 } from '@/composition/module-shelf-protocol';
 
 /**
- * The module shelf (client side): the installed modules are files of one OPFS pool, owned by one
- * worker that keeps a SQLite connection per file. Each `ShelfModuleStore` is a thin `MedicalStore`
- * for one of them, so `MultiMedicalStore` mounts a module exactly as it mounted an in-memory one.
+ * The module shelf (client side): the installed modules are files of a few OPFS pools (shards),
+ * each owned by one worker that keeps a SQLite connection per file. Each `ShelfModuleStore` is a
+ * thin `MedicalStore` for one of them, so `MultiMedicalStore` mounts a module exactly as it
+ * mounted an in-memory one.
  *
  * Why a shelf: a module used to be deserialized whole into the wasm heap of the main thread
  * (at most 2 GB), so ~800 clinical modules (1.65 GB) plus their page caches ended in SQLITE_NOMEM
  * and a search core that could not read anything. On the shelf a module costs a connection
- * (~170 KB) and a 256 KiB page cache in the worker, whatever its size.
+ * (~170 KB) and a 256 KiB page cache in the worker, whatever its size. Why shards: SQLite in a
+ * worker is synchronous, so one worker answered the hundreds of modules a search asks one after
+ * another; three workers answer them on three threads.
  */
 
 type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
@@ -73,15 +76,26 @@ export interface ShelfWorker {
 }
 
 export interface ModuleShelfOptions {
-  readonly createWorker?: () => ShelfWorker;
-  readonly poolName?: string;
+  /** The worker of a shard (tests); the shard index tells them apart. */
+  readonly createWorker?: (shard: number) => ShelfWorker;
+  /** Shards of the shelf (`SHELF_SHARD_COUNT`); tests use fewer. */
+  readonly shardCount?: number;
+  /** The pool of a shard (`shelfPoolName`). */
+  readonly poolName?: (shard: number) => string;
   /** How long a worker without open files lives on, for the next install or core rebuild. */
   readonly idleShutdownMs?: number;
 }
 
+interface ShelfShardOptions {
+  readonly createWorker?: (() => ShelfWorker) | undefined;
+  readonly poolName: string;
+  readonly idleShutdownMs?: number | undefined;
+}
+
 const IDLE_SHUTDOWN_MS = 4_000;
 
-export class ModuleShelf {
+/** One worker and its pool: the files of the modules whose names hash to it. */
+class ShelfShard {
   private worker: ShelfWorker | undefined;
   private ready: Promise<void> | undefined;
   private requestId = 0;
@@ -91,8 +105,10 @@ export class ModuleShelf {
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
   private failure: Error | undefined;
   private waitingForOtherTab: ((waiting: boolean) => void) | undefined;
+  /** The pool's files, as its worker listed them at start and the shelf changed them since. */
+  private files = new Set<string>();
 
-  public constructor(private readonly options: ModuleShelfOptions = {}) {}
+  public constructor(private readonly options: ShelfShardOptions) {}
 
   /** True once the shelf could not start (no OPFS, a worker error): callers keep modules in memory. */
   public get unavailable(): boolean {
@@ -108,12 +124,28 @@ export class ModuleShelf {
     this.waitingForOtherTab = listener;
   }
 
-  /**
-   * Writes a module's database image into the pool without keeping a connection. Throws when the
-   * image cannot be stored or is not a database; the caller then keeps the bytes elsewhere.
-   */
+  /** Whether the pool holds `file`; starts the worker, which lists the pool. */
+  public async holds(file: string): Promise<boolean> {
+    if (this.failure) throw this.failure;
+    await this.start();
+    return this.files.has(file) || this.entries.has(file);
+  }
+
+  /** Whether a connection to `file` is open (or opening) here. */
+  public isOpen(file: string): boolean {
+    return this.entries.has(file);
+  }
+
   public async put(file: string, bytes: Uint8Array): Promise<void> {
     await this.send({ type: 'put', file, byteLength: bytes.byteLength, bytes });
+    this.files.add(file);
+    this.scheduleIdleShutdown();
+  }
+
+  /** Deletes a file no connection here uses (a module moved to its own shard). */
+  public async unlink(file: string): Promise<void> {
+    await this.send({ type: 'unlink', file });
+    this.files.delete(file);
     this.scheduleIdleShutdown();
   }
 
@@ -129,18 +161,15 @@ export class ModuleShelf {
     return (await this.send({ type: 'stats' })) as ShelfStats;
   }
 
-  /** Deletes the files of module versions no stored row refers to; open files are left. */
   public async sweep(referencedVersionKeys: readonly string[]): Promise<number> {
     const removed = (await this.send({ type: 'sweep', referencedVersionKeys })) as number;
+    this.files = new Set(
+      ((await this.send({ type: 'list' })) as readonly string[] | undefined) ?? [],
+    );
     this.scheduleIdleShutdown();
     return removed;
   }
 
-  /**
-   * Opens a module file. `bytes` is written first when the pool does not hold the file (an index
-   * that is still in IndexedDB); without it the file must be there already. A file that is open
-   * is leased again, as a core rebuild opens every module while the previous core is still live.
-   */
   public async open(
     file: string,
     byteLength: number,
@@ -160,7 +189,9 @@ export class ModuleShelf {
           byteLength,
           cacheSizeKiB: options.cacheSizeKiB,
           ...(options.bytes ? { bytes: options.bytes } : {}),
-        }).then(() => undefined),
+        }).then(() => {
+          this.files.add(file);
+        }),
         listings: new Map(),
       };
       entry = created;
@@ -223,7 +254,6 @@ export class ModuleShelf {
     }
   }
 
-  /** Stops the worker (tests, and the end of the page). Open stores fail afterwards. */
   public dispose(): void {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = undefined;
@@ -272,10 +302,9 @@ export class ModuleShelf {
       else pending.resolve(data.result);
     };
     worker.onerror = () => this.shutdown(new Error('The module shelf worker failed.'));
-    const ready = this.request({
-      type: 'init',
-      poolName: this.options.poolName ?? SHELF_POOL_NAME,
-    }).then(() => undefined);
+    const ready = this.request({ type: 'init', poolName: this.options.poolName }).then((names) => {
+      this.files = new Set((names as readonly string[] | undefined) ?? []);
+    });
     this.ready = ready;
     ready.catch((cause: unknown) =>
       this.shutdown(cause instanceof Error ? cause : new Error('The module shelf did not start.')),
@@ -300,12 +329,152 @@ export class ModuleShelf {
   }
 }
 
-/** A module file of the shelf as a `MedicalStore`; the connection lives in the shelf worker. */
+/**
+ * The shelf as callers see it: a file lives in the shard its name hashes to (`shelfShardOf`), so
+ * the modules of one search spread over the shard workers. A file an earlier app wrote into the
+ * single pool (now shard 0) moves to its shard when it is first opened, one file at a time.
+ */
+export class ModuleShelf {
+  private readonly shards: readonly ShelfShard[];
+  private readonly waitingShards = new Set<number>();
+  private waitingForOtherTab: ((waiting: boolean) => void) | undefined;
+  /** Moves read a whole image into this thread: one at a time. */
+  private moves: Promise<unknown> = Promise.resolve();
+
+  public constructor(options: ModuleShelfOptions = {}) {
+    const count = Math.max(1, options.shardCount ?? SHELF_SHARD_COUNT);
+    this.shards = Array.from({ length: count }, (_, index) => {
+      const create = options.createWorker;
+      const shard = new ShelfShard({
+        createWorker: create ? () => create(index) : undefined,
+        poolName: (options.poolName ?? shelfPoolName)(index),
+        idleShutdownMs: options.idleShutdownMs,
+      });
+      shard.onWaitingForOtherTab((waiting) => {
+        const before = this.waitingShards.size > 0;
+        if (waiting) this.waitingShards.add(index);
+        else this.waitingShards.delete(index);
+        if (before !== this.waitingShards.size > 0) this.waitingForOtherTab?.(!before);
+      });
+      return shard;
+    });
+  }
+
+  /** True once a shard could not start (no OPFS, a worker error): callers keep modules in memory. */
+  public get unavailable(): boolean {
+    return this.shards.some((shard) => shard.unavailable);
+  }
+
+  /** True while a shard worker is alive (files are open, or an install is writing). */
+  public get running(): boolean {
+    return this.shards.some((shard) => shard.running);
+  }
+
+  public onWaitingForOtherTab(listener: (waiting: boolean) => void): void {
+    this.waitingForOtherTab = listener;
+  }
+
+  /**
+   * Writes a module's database image into the pool without keeping a connection. Throws when the
+   * image cannot be stored or is not a database; the caller then keeps the bytes elsewhere.
+   */
+  public put(file: string, bytes: Uint8Array): Promise<void> {
+    return this.home(file).put(file, bytes);
+  }
+
+  /** The database image of a file, or null when no shard holds it. */
+  public async read(file: string): Promise<Uint8Array | null> {
+    const holder = await this.holder(file);
+    return holder ? holder.read(file) : null;
+  }
+
+  /** What the shard workers hold now: open files and the size of their wasm heaps, summed. */
+  public async stats(): Promise<ShelfStats> {
+    const all = await Promise.all(this.shards.map((shard) => shard.stats()));
+    return {
+      openFiles: all.reduce((total, stats) => total + stats.openFiles, 0),
+      heapBytes: all.reduce((total, stats) => total + stats.heapBytes, 0),
+    };
+  }
+
+  /**
+   * Deletes the files of module versions no stored row refers to; open files are left. Only the
+   * shards already running are asked: starting a worker would hold its pool lock for nothing.
+   */
+  public async sweep(referencedVersionKeys: readonly string[]): Promise<number> {
+    const running = this.shards.filter((shard) => shard.running);
+    const removed = await Promise.all(running.map((shard) => shard.sweep(referencedVersionKeys)));
+    return removed.reduce((total, count) => total + count, 0);
+  }
+
+  /**
+   * Opens a module file. `bytes` is written first when the pool does not hold the file (an index
+   * that is still in IndexedDB); without it the file must be there already. A file that is open
+   * is leased again, as a core rebuild opens every module while the previous core is still live.
+   */
+  public async open(
+    file: string,
+    byteLength: number,
+    options: { readonly bytes?: Uint8Array; readonly cacheSizeKiB: number },
+  ): Promise<ShelfModuleStore> {
+    const home = this.home(file);
+    if (options.bytes || this.shards.length === 1 || home.isOpen(file)) {
+      return home.open(file, byteLength, options);
+    }
+    const holder = await this.holder(file);
+    // Not on the shelf at all: the home shard reports the missing file as before. A connection of
+    // the previous core still using the old copy keeps reading it where it is.
+    if (!holder || holder === home || holder.isOpen(file)) {
+      return (holder ?? home).open(file, byteLength, options);
+    }
+    const moved = this.moves.then(() =>
+      this.openMoved(file, byteLength, holder, options.cacheSizeKiB),
+    );
+    this.moves = moved.catch(() => undefined);
+    return moved;
+  }
+
+  /** Stops the workers (tests, and the end of the page). Open stores fail afterwards. */
+  public dispose(): void {
+    for (const shard of this.shards) shard.dispose();
+  }
+
+  private home(file: string): ShelfShard {
+    return this.shards[shelfShardOf(file, this.shards.length)] as ShelfShard;
+  }
+
+  private async holder(file: string): Promise<ShelfShard | undefined> {
+    const home = this.home(file);
+    if (await home.holds(file)) return home;
+    for (const shard of this.shards) {
+      if (shard !== home && (await shard.holds(file))) return shard;
+    }
+    return undefined;
+  }
+
+  /** Moves a file to its shard from the shard an earlier app wrote it to, then opens it there. */
+  private async openMoved(
+    file: string,
+    byteLength: number,
+    holder: ShelfShard,
+    cacheSizeKiB: number,
+  ): Promise<ShelfModuleStore> {
+    const home = this.home(file);
+    const bytes = (await home.holds(file)) ? null : await holder.read(file);
+    // Another open moved it while this one waited its turn.
+    if (!bytes) return home.open(file, byteLength, { cacheSizeKiB });
+    const store = await home.open(file, bytes.byteLength, { bytes, cacheSizeKiB });
+    if (!holder.isOpen(file)) await holder.unlink(file);
+    return store;
+  }
+}
+
+/** A module file of the shelf as a `MedicalStore`; the connection lives in a shard worker. */
 export class ShelfModuleStore implements MedicalStore {
   private closed = false;
 
   public constructor(
-    private readonly shelf: ModuleShelf,
+    private readonly shelf: ShelfShard,
     private readonly file: string,
     private readonly entry: ShelfEntry,
   ) {}
