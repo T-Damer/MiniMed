@@ -24,7 +24,7 @@ import { createApp } from './app';
 import { openDatabase } from './db';
 import { loadVapid } from './push';
 
-async function setup(signup: 'open' | 'invite' = 'open') {
+async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number) {
   const db = openDatabase(':memory:');
   const logs: string[] = [];
   const app = createApp(db, {
@@ -32,6 +32,7 @@ async function setup(signup: 'open' | 'invite' = 'open') {
     secret: 'test-secret',
     vapid: await loadVapid(db, 'mailto:test@example.org'),
     log: (line) => logs.push(line),
+    ...(onlineWindowMs === undefined ? {} : { onlineWindowMs }),
   });
   const call = async (method: string, path: string, body?: unknown, token?: string) => {
     const response = await app(
@@ -47,7 +48,7 @@ async function setup(signup: 'open' | 'invite' = 'open') {
     // biome-ignore lint/suspicious/noExplicitAny: the test reads answers as loose JSON.
     return { status: response.status, body: (await response.json()) as Record<string, any> };
   };
-  return { db, call, logs };
+  return { db, call, logs, app };
 }
 
 const KDF = { salt: 'c2FsdHNhbHRzYWx0c2FsdA', iterations: 100_000 };
@@ -360,6 +361,93 @@ describe('diary server', () => {
     expect(dump).not.toContain('Дневник лечения');
     expect(dump).not.toContain('wellbeing');
     expect(logs.join('\n')).not.toContain(patientId);
+  });
+
+  it('tracks when a patient was last seen and tells the doctors without content', async () => {
+    const { db, call, app } = await setup('open', 60);
+    const owner = await register(call, 'owner@clinic.ru', 'Д-р Иванова');
+    const patientId = randomId();
+    const key = newDataKey();
+    const ownerPublic = await publicIdentity(owner.identity);
+    await call(
+      'POST',
+      '/api/patients',
+      {
+        id: patientId,
+        key: {
+          epoch: 1,
+          recipient: `d:${owner.id}`,
+          wrapped: await wrapDataKey(key, ownerPublic.wrap),
+        },
+      },
+      owner.token,
+    );
+    const secret = newPairingSecret();
+    await call(
+      'POST',
+      `/api/patients/${patientId}/pairings`,
+      {
+        secretHash: await sha256(secret),
+        keys: await sealPairingKeys(new Map([[1, key]]), secret),
+      },
+      owner.token,
+    );
+    const device = await generateIdentity();
+    const paired = await call('POST', '/api/pair', {
+      patientId,
+      secret,
+      identity: await publicIdentity(device),
+    });
+    const deviceToken = paired.body['token'] as string;
+    const summaryOf = async () =>
+      (await call('GET', '/api/patients', undefined, owner.token)).body['patients'][0];
+
+    // Never seen: no timestamp, offline.
+    const before = await summaryOf();
+    expect(before.online).toBe(false);
+    expect(before).not.toHaveProperty('lastSeenAt');
+
+    // The doctor's live stream.
+    const stream = await app(
+      new Request('http://diary.test/api/events', {
+        headers: { Authorization: `Bearer ${owner.token}` },
+      }),
+    );
+    const reader = (stream.body as ReadableStream<Uint8Array>).getReader();
+    const decoder = new TextDecoder();
+    const next = async (): Promise<string> =>
+      decoder.decode((await reader.read()).value as Uint8Array);
+    expect(await next()).toContain(': open');
+
+    // Any authenticated request of the phone stamps it and announces «online» at once.
+    expect((await call('GET', '/api/device/keys', undefined, deviceToken)).status).toBe(200);
+    const online = await next();
+    expect(online).toContain('event: presence');
+    const data = JSON.parse(online.split('data: ')[1] as string);
+    expect(data).toEqual({ patientId, online: true, lastSeenAt: expect.any(String) });
+    const seen = await summaryOf();
+    expect(seen.online).toBe(true);
+    expect(seen.lastSeenAt).toBe(data.lastSeenAt);
+
+    // Further requests inside the throttle interval stay silent: the next event is the alert.
+    await call('GET', '/api/device/keys', undefined, deviceToken);
+    await call('POST', '/api/device/alerts', {}, deviceToken);
+    expect(await next()).toContain('event: alert');
+
+    // The phone goes quiet: the window passes, the doctors hear «offline» and the summary agrees.
+    const offline = await next();
+    expect(offline).toContain('event: presence');
+    expect(JSON.parse(offline.split('data: ')[1] as string)).toEqual({
+      patientId,
+      online: false,
+      lastSeenAt: expect.any(String),
+    });
+    const after = await summaryOf();
+    expect(after.online).toBe(false);
+    expect(after.lastSeenAt).toBe(
+      db.query<{ at: string }, []>('SELECT MAX(last_seen_at) AS at FROM devices').get()?.at,
+    );
+    await reader.cancel();
   });
 
   it('asks for an invite when sign-up is closed and resets a password with the recovery code', async () => {

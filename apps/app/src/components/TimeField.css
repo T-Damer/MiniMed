@@ -1,0 +1,91 @@
+.ui-time-field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ui-time-field__label {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ui-time-field__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+.ui-time-field__input {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 3rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease);
+}
+
+.ui-time-field__input:focus-within {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 0.125rem var(--theme-accent-soft);
+}
+
+.ui-time-field__segment {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.3rem;
+  border-radius: calc(var(--theme-radius-control) - 0.15rem);
+  color: var(--theme-text);
+  outline: none;
+  cursor: text;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.ui-time-field__segment--placeholder {
+  color: var(--theme-placeholder);
+}
+
+.ui-time-field__segment:focus {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.ui-time-field__segment:active {
+  transform: scale(0.96);
+}
+
+.ui-time-field__segment[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

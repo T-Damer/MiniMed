@@ -20,6 +20,7 @@ import {
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
 import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
+import { type AssessmentLimit, scoreScaleLimit } from '@/state/assessment-limits';
 
 export interface Adherence {
   /** Marked share of the plan over the period, 0–1; undefined when nothing was planned. */
@@ -118,6 +119,10 @@ export interface QuestionnairePoint {
 
 export interface QuestionnaireSeries {
   readonly checkpointId: string;
+  /** Key of the doctor's red line: the questionnaire slug. */
+  readonly limitId: string;
+  /** The red line the questionnaire's schema declares (`scoreScaleLimit`). */
+  readonly preset: AssessmentLimit | undefined;
   readonly title: string;
   readonly points: readonly QuestionnairePoint[];
 }
@@ -160,6 +165,8 @@ export async function questionnaireSeries(
     if (!points.length) continue;
     series.push({
       checkpointId: checkpoint.id,
+      limitId: checkpoint.questionnaire,
+      preset: scoreScaleLimit(definition),
       title: definition.shortTitle,
       points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
     });

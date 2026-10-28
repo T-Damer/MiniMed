@@ -109,6 +109,17 @@ export const DiaryPatientCreateSchema = z.object({
   key: DiaryWrappedKeySchema,
 });
 
+/**
+ * Presence definition. A patient's phone talks to the service on open, when it becomes visible or
+ * online again, on every live-event reconnect and every `SYNC_INTERVAL_MS` (60 s) while the diary is
+ * visible; each of those authenticated requests stamps the device's `last_seen_at`. A patient is
+ * «online» while the newest stamp over her phones is younger than 2.5 sync intervals, so one missed
+ * beat does not flicker the indicator and a closed diary turns offline within ~2.5 minutes.
+ */
+export const DIARY_ONLINE_WINDOW_MS = 150_000;
+/** The service tells a patient's doctors at most this often about a changed `lastSeenAt`. */
+export const DIARY_PRESENCE_EVENT_INTERVAL_MS = 60_000;
+
 export const DiaryPatientSummarySchema = z.object({
   id: DiaryIdSchema,
   role: DiaryRoleSchema,
@@ -120,9 +131,21 @@ export const DiaryPatientSummarySchema = z.object({
   lastRecordAt: z.string().nullable(),
   openAlerts: z.number().int().min(0),
   devices: z.number().int().min(0),
+  /** Latest authenticated request of any of the patient's phones (presence metadata only). */
+  lastSeenAt: z.string().optional(),
+  /** A phone made a request within `DIARY_ONLINE_WINDOW_MS`. */
+  online: z.boolean(),
   createdAt: z.string(),
 });
 export type DiaryPatientSummary = z.infer<typeof DiaryPatientSummarySchema>;
+
+/** Content-free live event `presence`: a patient went online or offline, or was seen again. */
+export const DiaryPresenceEventSchema = z.object({
+  patientId: DiaryIdSchema,
+  online: z.boolean(),
+  lastSeenAt: z.string().optional(),
+});
+export type DiaryPresenceEvent = z.infer<typeof DiaryPresenceEventSchema>;
 
 export const DiaryPairingCreateSchema = z.object({
   secretHash: base64Url.max(100),

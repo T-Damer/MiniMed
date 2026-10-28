@@ -8,9 +8,11 @@ import type {
   DiaryAlert,
   DiaryPatientDetail,
   DiaryPatientSummary,
+  DiaryPresenceEvent,
   DiaryRole,
   DiaryWrappedKey,
 } from '@localmed/contracts';
+import { DiaryPresenceEventSchema } from '@localmed/contracts';
 import {
   newDataKey,
   newPairingSecret,
@@ -183,7 +185,28 @@ export class DoctorDiaries {
     for (const name of ['records', 'alert', 'members', 'invite', 'device']) {
       events.addEventListener(name, onPatient as EventListener);
     }
+    // Presence carries the new state itself (no content): patch the summary, no refetch.
+    events.addEventListener('presence', ((event: MessageEvent<string>) => {
+      const parsed = DiaryPresenceEventSchema.safeParse(JSON.parse(event.data));
+      if (parsed.success) this.applyPresence(parsed.data);
+      else console.warn('Дневники: событие присутствия не разобрано');
+    }) as EventListener);
     this.events = events;
+  }
+
+  /** A patient went online/offline or was seen again (live `presence` event). */
+  private applyPresence(event: DiaryPresenceEvent): void {
+    const entry = this.entries.get(event.patientId);
+    if (!entry) return;
+    this.entries.set(event.patientId, {
+      ...entry,
+      summary: {
+        ...entry.summary,
+        online: event.online,
+        ...(event.lastSeenAt === undefined ? {} : { lastSeenAt: event.lastSeenAt }),
+      },
+    });
+    this.emit();
   }
 
   disconnect(): void {
@@ -350,6 +373,7 @@ export class DoctorDiaries {
     await diaryPatients.remove(this.api, patientId);
     this.entries.delete(patientId);
     this.sessions.delete(patientId);
+    this.alertList = this.alertList.filter((alert) => alert.patientId !== patientId);
     this.emit();
   }
 

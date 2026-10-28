@@ -236,6 +236,8 @@ test('duplicates, exports, imports and deletes a questionnaire', async ({ page }
   expect(exported.population.group).toBe('adults');
 
   // A copy opens for editing under its own name.
+  // Rare actions live in the header's «⋯» menu.
+  await page.getByRole('button', { name: 'Ещё' }).click();
   await page.getByTestId('questionnaire-duplicate').click();
   await expect(page.getByTestId('questionnaire-title')).toHaveValue('Для копирования (копия)');
 
@@ -260,6 +262,7 @@ test('duplicates, exports, imports and deletes a questionnaire', async ({ page }
   await expect(page.getByTestId('questionnaire-title')).toHaveValue(/Для копирования/u);
 
   // Delete from the editor, after a confirmation.
+  await page.getByRole('button', { name: 'Ещё' }).click();
   await page.getByTestId('questionnaire-delete').click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Удалить' }).click();
   await expect(page).toHaveURL(/#\/assessments\/mine$/u);

@@ -106,6 +106,8 @@ describe('diary insights for the doctor', () => {
   it('scores questionnaires with their schema, alerts included', async () => {
     const [phq] = await questionnaireSeries(invitation, entries);
     expect(phq?.title).toBe('PHQ-9');
+    expect(phq?.limitId).toBe('phq-9');
+    expect(phq?.preset).toEqual({ value: 10, direction: 'above' });
     expect(phq?.points[0]?.total).toBe(10);
     expect(phq?.points[0]?.max).toBe(27);
     expect(phq?.points[0]?.alerts.join(' ')).toContain('Пункт 9');

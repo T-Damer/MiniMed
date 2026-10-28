@@ -1,6 +1,9 @@
 import type { Chart as ChartInstance } from 'chart.js';
 import ChartJs from 'chart.js/auto';
-import { createEffect, type JSX, onCleanup } from 'solid-js';
+import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
+
+import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 
@@ -49,6 +52,10 @@ export function TrendChart(props: {
   /** Fixed range of the right axis. */
   readonly rightMin?: number | undefined;
   readonly rightMax?: number | undefined;
+  /** Opens the doctor's «Порог тревоги» for this chart (a pencil in the title row). */
+  readonly onLimit?: (() => void) | undefined;
+  /** The latest value needs attention: a filled bell in the title row opens why. */
+  readonly warning?: { readonly label: string; readonly onOpen: () => void } | undefined;
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number }[]> | undefined;
@@ -168,7 +175,33 @@ export function TrendChart(props: {
 
   return (
     <figure class="diary-chart">
-      <figcaption class="diary-chart__title">{props.title}</figcaption>
+      <figcaption class="diary-chart__head">
+        <span class="diary-chart__title">{props.title}</span>
+        <span class="diary-chart__actions">
+          <Show when={props.warning}>
+            {(warning) => (
+              <Button
+                variant="icon"
+                class="diary-chart__warning"
+                icon={<AppGlyph name="bell-fill" />}
+                aria-label={warning().label}
+                onClick={() => warning().onOpen()}
+              />
+            )}
+          </Show>
+          <Show when={props.onLimit}>
+            {(open) => (
+              <Button
+                variant="icon"
+                class="diary-chart__limit"
+                icon={<AppGlyph name="edit" />}
+                aria-label={`Порог тревоги: ${props.title}`}
+                onClick={() => open()()}
+              />
+            )}
+          </Show>
+        </span>
+      </figcaption>
       <div class="diary-chart__canvas-box">
         <canvas class="diary-chart__canvas" ref={canvas} aria-label={props.title} role="img" />
       </div>

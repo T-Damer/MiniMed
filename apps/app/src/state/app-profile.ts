@@ -15,6 +15,9 @@ export interface AppProfileNavItem extends RootViewItem {
   readonly hash: string;
 }
 
+/** Settings rows that only matter to the full app; a profile without that part hides them. */
+export type SettingsRowId = 'split-navigation' | 'useful-features' | 'floating-windows';
+
 export interface AppProfile {
   readonly id: string;
   /** Where the app opens and where a route outside the profile returns to. */
@@ -25,6 +28,8 @@ export interface AppProfile {
   readonly navigation: readonly AppProfileNavItem[];
   /** The settings pages the profile offers; all of them when absent. */
   readonly settingsPages?: readonly SettingsPageId[];
+  /** Rows of the offered pages that do nothing in this profile. */
+  readonly hiddenSettings?: readonly SettingsRowId[];
   /** The app's own first-run tour and base download are not part of this job. */
   readonly skipOnboarding: boolean;
 }
@@ -36,14 +41,23 @@ export const APP_PROFILES: readonly AppProfile[] = [
     routes: ['#/notes/diaries', '#/settings', '#/assessments/mine'],
     navigation: [
       { id: 'notes', label: 'Пациенты', icon: 'users', hash: '#/notes/diaries' },
+      // The doctor's own questionnaires: the list, and from it the editor and the run page.
+      { id: 'assessments', label: 'Опросники', icon: 'list-checks', hash: '#/assessments/mine' },
       { id: 'settings', label: 'Настройки', icon: 'system', hash: '#/settings' },
     ],
     settingsPages: ['clinician', 'appearance'],
+    // No search home, no section tabs and no documents to float in the diaries profile.
+    hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows'],
     skipOnboarding: true,
   },
 ];
 
 let cached: AppProfile | null | undefined;
+
+/** Whether a settings row applies in the active profile (every row without one). */
+export function settingShown(id: SettingsRowId): boolean {
+  return !activeProfile()?.hiddenSettings?.includes(id);
+}
 
 function storage(): Storage | undefined {
   try {

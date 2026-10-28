@@ -16,6 +16,7 @@ import arrowsOutLineHorizontalBold from '@phosphor-icons/core/assets/bold/arrows
 import arrowsOutLineVerticalBold from '@phosphor-icons/core/assets/bold/arrows-out-line-vertical-bold.svg?raw';
 import arrowsOutSimpleBold from '@phosphor-icons/core/assets/bold/arrows-out-simple-bold.svg?raw';
 import atBold from '@phosphor-icons/core/assets/bold/at-bold.svg?raw';
+import bellBold from '@phosphor-icons/core/assets/bold/bell-bold.svg?raw';
 import binaryBold from '@phosphor-icons/core/assets/bold/binary-bold.svg?raw';
 import binocularsBold from '@phosphor-icons/core/assets/bold/binoculars-bold.svg?raw';
 import bookOpenBold from '@phosphor-icons/core/assets/bold/book-open-bold.svg?raw';
@@ -125,6 +126,7 @@ import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
+import bellFill from '@phosphor-icons/core/assets/fill/bell-fill.svg?raw';
 import bookmarkSimpleFill from '@phosphor-icons/core/assets/fill/bookmark-simple-fill.svg?raw';
 import brainFill from '@phosphor-icons/core/assets/fill/brain-fill.svg?raw';
 import downloadSimpleFill from '@phosphor-icons/core/assets/fill/download-simple-fill.svg?raw';
@@ -196,6 +198,8 @@ export type AppGlyphName =
   | 'trash'
   | 'users'
   | 'vibrate'
+  | 'bell'
+  | 'bell-fill'
   | 'printer'
   | 'prescription'
   | 'copy'
@@ -352,6 +356,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   trash: svgBody(trashBold),
   users: svgBody(usersBold),
   vibrate: svgBody(vibrateBold),
+  bell: svgBody(bellBold),
+  'bell-fill': svgBody(bellFill),
   printer: svgBody(printerBold),
   prescription: svgBody(prescriptionBold),
   copy: svgBody(copyBold),

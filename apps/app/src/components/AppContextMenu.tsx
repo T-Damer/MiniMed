@@ -2,7 +2,7 @@ import { ContextMenu } from '@kobalte/core/context-menu';
 import {
   createEffect,
   createSignal,
-  For,
+  Index,
   type JSX,
   onCleanup,
   type ParentProps,
@@ -148,7 +148,7 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
             onClick={stopMenuPropagation}
             onContextMenu={stopMenuContextMenu}
           >
-            <For each={props.action.children}>{(action) => <MenuItem action={action} />}</For>
+            <Index each={props.action.children}>{(action) => <MenuItem action={action()} />}</Index>
           </ContextMenu.SubContent>
         </ContextMenu.Portal>
       </AppContextMenuSub>
@@ -242,7 +242,9 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
             onClick={stopMenuPropagation}
             onContextMenu={stopMenuContextMenu}
           >
-            <For each={props.actions}>{(action) => <MenuItem action={action} />}</For>
+            {/* Position-keyed: callers rebuild their action objects (labels, disabled state) while
+                the menu is open; items update in place instead of being torn down under the finger. */}
+            <Index each={props.actions}>{(action) => <MenuItem action={action()} />}</Index>
           </ContextMenu.Content>
         </ContextMenu.Portal>
       </Show>

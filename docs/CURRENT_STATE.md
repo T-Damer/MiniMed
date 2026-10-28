@@ -106,6 +106,19 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   per-device thresholds (`state/assessment-limits.ts`), pressure separate from pulse + SpO₂.
 - Sounds and haptics in the patient PWA and the dashboard (web vibration fallback), switchable.
 - Page surfaces are exactly one screen tall (no scroll on short pages, app-wide).
+- Later on 2026-10-28: the editor shows the patient's real screen (`CareRow`, `DiaryHeatmap`,
+  sections by part of day) with two-colour dashed frames and pencils on what the doctor can change;
+  editing opens in sheets (Kobalte `TimeField`), questionnaires open as the patient fills them, rows
+  can be ticked as a showcase (toast). Red lines: questionnaire presets come from their schema
+  (`scoreScaleLimit`: first band with moderate attention — PHQ-9 10, GAD-7 10, Zung 48/40),
+  measurements from clinical cut-offs; the doctor sets their own per chart («Порог тревоги»,
+  pencil), and a filled bell opens why the latest questionnaire is worrying. Charts are declared
+  data (`diary-charts.ts`). Archived patients can be deleted (one or «Удалить все», owner only;
+  server cascade). The heatmap filter is remembered per device (patient and doctor separately).
+  Presence: `lastSeenAt`/`online` on the patient summary (online = a device request within 150 s;
+  live `presence` SSE event), green dot on the avatar and «в сети …» on the patient page. Profiles
+  hide settings rows that do nothing in them (`AppProfile.hiddenSettings`). The doctor's day view
+  has the patient's spacing and colours (`.diary-care-scope`) and its buttons in the page header.
 
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 

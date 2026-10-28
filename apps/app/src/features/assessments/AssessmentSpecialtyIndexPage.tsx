@@ -1,8 +1,9 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { FileDropZone } from '@/components/FileDropZone';
+import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
@@ -25,6 +26,7 @@ import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
 import { assessmentCountLabel, pluralRu } from '@/i18n/labels';
 import { getSplitNavigation } from '@/state/app-preferences';
+import { activeProfile } from '@/state/app-profile';
 import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   type StoredUserQuestionnaire,
@@ -100,6 +102,23 @@ export function AssessmentSpecialtyIndexPage(props: {
     );
   };
   const [importOpen, setImportOpen] = createSignal(false);
+  /** Create is the main action of the list (folds last); import is a file the doctor got elsewhere. */
+  const mineActions = createMemo((): readonly HeaderAction[] => [
+    {
+      id: 'create',
+      label: 'Создать опросник',
+      icon: 'plus',
+      priority: 1,
+      onSelect: props.onCreateUserQuestionnaire,
+    },
+    {
+      id: 'import',
+      label: 'Импортировать опросник',
+      icon: 'file-arrow-down',
+      priority: 2,
+      onSelect: () => setImportOpen(true),
+    },
+  ]);
 
   return (
     <>
@@ -110,37 +129,11 @@ export function AssessmentSpecialtyIndexPage(props: {
               navigation: (
                 <NavBack
                   class="assessment-user-questionnaires__back"
-                  aria-label="К тестам и опросникам"
+                  aria-label={activeProfile() ? 'Назад' : 'К тестам и опросникам'}
                   onClick={props.onBack}
                 />
               ),
-              actions: (
-                <>
-                  <Button
-                    type="button"
-                    variant="icon"
-                    class="assessment-user-questionnaires__import"
-                    aria-label="Импортировать опросник"
-                    title="Импортировать опросник"
-                    onClick={() => setImportOpen(true)}
-                    icon={
-                      <AppGlyph
-                        name="file-arrow-down"
-                        class="assessment-user-questionnaires__icon"
-                      />
-                    }
-                  />
-                  <Button
-                    type="button"
-                    variant="icon"
-                    class="assessment-user-questionnaires__create ui-button--primary"
-                    aria-label="Создать опросник"
-                    title="Создать опросник"
-                    onClick={props.onCreateUserQuestionnaire}
-                    icon={<AppGlyph name="plus" class="assessment-user-questionnaires__icon" />}
-                  />
-                </>
-              ),
+              headerActions: mineActions(),
             }
           : getSplitNavigation()
             ? {}

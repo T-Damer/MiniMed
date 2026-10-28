@@ -5,6 +5,8 @@
  */
 import type { Database } from 'bun:sqlite';
 import {
+  DIARY_ONLINE_WINDOW_MS,
+  DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
   DiaryEmailSchema,
   DiaryEnvelopeSchema,
@@ -41,6 +43,8 @@ export interface AppConfig {
   /** Other origins allowed to call the API (the Android app's WebView); none by default. */
   readonly corsOrigins?: readonly string[];
   readonly log?: (line: string) => void;
+  /** Presence window; tests shorten it (default `DIARY_ONLINE_WINDOW_MS`). */
+  readonly onlineWindowMs?: number;
 }
 
 const SESSION_DAYS = 30;
@@ -163,6 +167,7 @@ export function createApp(
   const hub = new EventHub();
   const attempts = new Map<string, number[]>();
   const log = config.log ?? ((line: string) => console.info(line));
+  const onlineWindowMs = config.onlineWindowMs ?? DIARY_ONLINE_WINDOW_MS;
 
   const limit = (key: string): void => {
     const time = Date.now();
@@ -171,6 +176,52 @@ export function createApp(
       throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
     recent.push(time);
     attempts.set(key, recent);
+  };
+
+  // --- presence --------------------------------------------------------------------------------
+  // A phone is seen on every authenticated request (the diary syncs on open, when visible/online
+  // again and every 60 s while visible; see DIARY_ONLINE_WINDOW_MS). Only timestamps and an
+  // online flag are kept or sent: no record content.
+
+  /** Patient id → what the doctors were last told, and the timer that flips it to offline. */
+  const presence = new Map<
+    string,
+    { online: boolean; sentAt: number; timer?: ReturnType<typeof setTimeout> }
+  >();
+
+  const presenceOf = (patientId: string): { lastSeenAt?: string; online: boolean } => {
+    const row = db
+      .query<{ at: string | null }, [string]>(
+        'SELECT MAX(last_seen_at) AS at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
+      )
+      .get(patientId);
+    const lastSeenAt = row?.at ?? undefined;
+    const online = lastSeenAt !== undefined && Date.now() - Date.parse(lastSeenAt) < onlineWindowMs;
+    return lastSeenAt === undefined ? { online } : { lastSeenAt, online };
+  };
+
+  const announcePresence = (patientId: string): void => {
+    const state = presence.get(patientId);
+    if (state) state.sentAt = Date.now();
+    hub.send(activeDoctors(patientId), 'presence', { patientId, ...presenceOf(patientId) });
+  };
+
+  const touchDevice = (deviceId: string, patientId: string): void => {
+    db.query('UPDATE devices SET last_seen_at = ? WHERE id = ?').run(now(), deviceId);
+    const state = presence.get(patientId) ?? { online: false, sentAt: 0 };
+    clearTimeout(state.timer);
+    const cameOnline = !state.online;
+    state.online = true;
+    // Nobody calls once the diary is closed, so the offline flip is timer-driven.
+    state.timer = setTimeout(() => {
+      state.online = false;
+      announcePresence(patientId);
+    }, onlineWindowMs + 100);
+    state.timer.unref();
+    presence.set(patientId, state);
+    if (cameOnline || Date.now() - state.sentAt >= DIARY_PRESENCE_EVENT_INTERVAL_MS) {
+      announcePresence(patientId);
+    }
   };
 
   // --- callers ---------------------------------------------------------------------------------
@@ -194,7 +245,7 @@ export function createApp(
       )
       .get(hash);
     if (device) {
-      db.query('UPDATE devices SET last_seen_at = ? WHERE id = ?').run(now(), device.id);
+      touchDevice(device.id, device.patient_id);
       return { kind: 'device', id: device.id, patientId: device.patient_id };
     }
     throw new HttpError(401, 'Нужен вход.');
@@ -326,6 +377,7 @@ export function createApp(
       lastRecordAt: last?.at ?? null,
       openAlerts: alerts?.count ?? 0,
       devices: devices?.count ?? 0,
+      ...presenceOf(row.id),
       createdAt: row.created_at,
     };
   };

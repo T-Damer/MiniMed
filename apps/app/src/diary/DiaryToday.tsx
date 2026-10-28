@@ -13,6 +13,12 @@ import {
 } from '@/diary/care-sheets';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { formatTime, pluralize } from '@/diary/diary-format';
+import {
+  createHeatFilter,
+  DOCTOR_HEAT_FILTER_KEY,
+  effectiveHeatParts,
+  PATIENT_HEAT_FILTER_KEY,
+} from '@/diary/heatmap-filter';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import {
@@ -176,8 +182,11 @@ function syncWords(sync: SyncStatus): string {
   }
 }
 
-/** One line of the day: a round check on the left, the text opening its sheet. */
-function CareRow(props: {
+/**
+ * One line of the day: a round check on the left, the text opening its sheet. The doctor's screen
+ * editor shows the same row with a pencil (`onEdit`) and the dashed «editable» frame.
+ */
+export function CareRow(props: {
   readonly icon: AppGlyphName;
   readonly time?: string | undefined;
   readonly title: string;
@@ -187,6 +196,8 @@ function CareRow(props: {
   readonly tip: boolean;
   readonly onCheck: () => void;
   readonly onOpen: () => void;
+  readonly onEdit?: (() => void) | undefined;
+  readonly editLabel?: string | undefined;
 }): JSX.Element {
   const done = (): boolean => props.state === 'done';
   return (
@@ -197,6 +208,7 @@ function CareRow(props: {
         'care-row--skipped': props.state === 'skipped',
         'care-row--late': props.state === 'late',
         'care-row--missed': props.state === 'missed',
+        'care-row--editable': Boolean(props.onEdit),
       }}
     >
       <button
@@ -234,6 +246,18 @@ function CareRow(props: {
           </span>
         </Show>
       </button>
+      <Show when={props.onEdit}>
+        {(edit) => (
+          <button
+            type="button"
+            class="care-row__edit"
+            aria-label={props.editLabel ?? `Изменить: ${props.title}`}
+            onClick={() => edit()()}
+          >
+            <AppGlyph name="edit" class="care-row__edit-icon" />
+          </button>
+        )}
+      </Show>
     </li>
   );
 }
@@ -270,6 +294,14 @@ export function DiaryToday(props: {
    * becomes a correction the patient sees marked.
    */
   readonly viewer?: 'doctor' | undefined;
+  /**
+   * The doctor's page puts the contacts and crisis buttons in its own header: it receives the
+   * openers (and whether the plan has contacts), and the diary's header shows titles only.
+   */
+  readonly controls?: (api: {
+    readonly openContacts: () => void;
+    readonly openCrisis: () => void;
+  }) => void;
 }): JSX.Element {
   const invitation = () => props.results.invitation;
   const [now, setNow] = createSignal(new Date());
@@ -292,7 +324,10 @@ export function DiaryToday(props: {
   });
 
   const plan = createMemo(() => dayPlan(invitation(), props.results.entries, day(), now()));
-  const [include, setInclude] = createSignal<ReadonlySet<HeatPart>>(new Set());
+  const [saved, setInclude] = createHeatFilter(
+    props.viewer === 'doctor' ? DOCTOR_HEAT_FILTER_KEY : PATIENT_HEAT_FILTER_KEY,
+  );
+  const include = createMemo(() => effectiveHeatParts(heatParts(invitation()), saved()));
   const heat = createMemo(() => {
     const range = heatmapRange(diaryStarted(invitation(), props.results.entries), today());
     return heatmapDays(invitation(), props.results.entries, range.from, range.to, now(), include());
@@ -311,6 +346,10 @@ export function DiaryToday(props: {
   };
 
   const close = (): void => setSheet(undefined);
+  props.controls?.({
+    openContacts: () => setSheet({ kind: 'contacts' }),
+    openCrisis: () => setSheet({ kind: 'crisis', raised: false }),
+  });
   /** A short sound and buzz for a saved or failed mark; the engine loads lazily, after first paint. */
   const feel = (moment: 'saved' | 'failed'): void => {
     void import('@/state/ui-feedback').then(({ FEEDBACK_MOMENTS, playFeedback }) => {
@@ -383,7 +422,10 @@ export function DiaryToday(props: {
         />
       }
     >
-      <main class="diary-page diary-page--care diary-today">
+      <main
+        class="diary-page diary-page--care diary-today"
+        classList={{ 'diary-today--doctor': props.viewer === 'doctor' }}
+      >
         <header class="diary-today__header">
           <Show when={props.hasOtherDiaries}>
             <button
@@ -401,7 +443,7 @@ export function DiaryToday(props: {
               <p class="diary-today__doctor">{invitation().doctor}</p>
             </Show>
           </div>
-          <Show when={invitation().contacts?.length}>
+          <Show when={!props.controls && invitation().contacts?.length}>
             <button
               type="button"
               class="diary-today__icon"
@@ -411,14 +453,16 @@ export function DiaryToday(props: {
               <AppGlyph name="phone" class="diary-today__icon-glyph" />
             </button>
           </Show>
-          <button
-            type="button"
-            class="diary-today__icon diary-today__icon--help"
-            aria-label="Помощь, если очень плохо"
-            onClick={() => setSheet({ kind: 'crisis', raised: false })}
-          >
-            <AppGlyph name="lifebuoy" class="diary-today__icon-glyph" />
-          </button>
+          <Show when={!props.controls}>
+            <button
+              type="button"
+              class="diary-today__icon diary-today__icon--help"
+              aria-label="Помощь, если очень плохо"
+              onClick={() => setSheet({ kind: 'crisis', raised: false })}
+            >
+              <AppGlyph name="lifebuoy" class="diary-today__icon-glyph" />
+            </button>
+          </Show>
         </header>
 
         <DiaryHeatmap

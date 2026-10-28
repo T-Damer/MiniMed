@@ -5,6 +5,7 @@ import {
   profileAllows,
   profileHidesNavigation,
   resetProfileCache,
+  settingShown,
 } from '@/state/app-profile';
 
 const memory = new Map<string, string>();
@@ -35,6 +36,15 @@ describe('app profiles', () => {
     expect(activeProfile('')).toBeUndefined();
   });
 
+  it('hides the settings rows that do nothing in the profile', () => {
+    activeProfile('?profile=off');
+    expect(settingShown('floating-windows')).toBe(true);
+    resetProfileCache();
+    activeProfile('?profile=diaries');
+    expect(settingShown('floating-windows')).toBe(false);
+    expect(settingShown('useful-features')).toBe(false);
+  });
+
   it('allows only its own routes', () => {
     const profile = activeProfile('?profile=diaries');
     expect(profileAllows('#/notes/diaries', profile)).toBe(true);
@@ -57,10 +67,21 @@ describe('app profiles', () => {
     expect(profileHidesNavigation(undefined)).toBe(false);
     expect(profile?.navigation.map((item) => [item.id, item.label, item.hash])).toEqual([
       ['notes', 'Пациенты', '#/notes/diaries'],
+      ['assessments', 'Опросники', '#/assessments/mine'],
       ['settings', 'Настройки', '#/settings'],
     ]);
     for (const item of profile?.navigation ?? [])
       expect(profileAllows(item.hash, profile)).toBe(true);
+  });
+
+  it('allows the own-questionnaire list, its editor and run pages, but not the test catalog', () => {
+    const profile = activeProfile('?profile=diaries');
+    expect(profileAllows('#/assessments/mine', profile)).toBe(true);
+    expect(profileAllows('#/assessments/mine/new', profile)).toBe(true);
+    expect(profileAllows('#/assessments/mine/abc/edit', profile)).toBe(true);
+    expect(profileAllows('#/assessments/mine/abc/results/r1', profile)).toBe(true);
+    expect(profileAllows('#/assessments', profile)).toBe(false);
+    expect(profileAllows('#/assessments/mine-x', profile)).toBe(false);
   });
 
   it('offers only the settings pages it declares', () => {

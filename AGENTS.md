@@ -247,6 +247,17 @@ reported.
   (`installUiFeedback`); non-tap moments (saved, failed, received) call
   `playFeedback(...FEEDBACK_MOMENTS.<moment>)`. Both follow the «Звуки» / «Вибрация» switches, and
   every app mode (profiles, the patient diary PWA) offers those switches.
+- **Schema first (owner 2026-10-28).** Build new features as declared data rendered by generic
+  components — chart lists (`features/diary/dashboard/diary-charts.ts`), red lines from the tool
+  schemas (`state/assessment-limits.ts`), profile flags (`hiddenSettings`) — so the main app can
+  reuse them; a page never branches on one chart, tool or row id.
+- **Editable previews (owner 2026-10-28).** Where one user edits what another sees (the doctor and
+  the patient's screen), show the real screen with its real components; every part that can be
+  changed gets the two-colour dashed frame (`care-editable`, `care-row--editable`) and a pencil, and
+  editing opens a sheet over the live preview. The preview can be used like the other user would
+  (ticks, questionnaires); a toast says it is only a showcase.
+- **No «необязательно» (owner 2026-10-28).** Do not label optional fields «(необязательно)» or use
+  it as a placeholder — the «не» reads as a refusal; invite instead («Опишите ваши ощущения»).
 - **Never a lone spinner (owner 2026-10-26).** A loading screen keeps its chrome (‹ back, title when
   known, bottom bar) and shows a skeleton shaped like the coming page: `PageSkeleton` for a whole
   screen, `SkeletonLines` for text still arriving inside a page (`components/PageSkeleton.tsx`). A

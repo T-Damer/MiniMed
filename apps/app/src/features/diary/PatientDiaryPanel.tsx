@@ -594,7 +594,7 @@ function IssueDiaryDialog(props: {
           <Show when={!isCare()}>
             <TextField
               class="patient-diary__field"
-              label="Врач (необязательно)"
+              label="Врач"
               value={doctor()}
               onInput={(event) => setDoctor(event.currentTarget.value)}
             />

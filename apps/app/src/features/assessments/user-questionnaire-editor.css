@@ -1,12 +1,9 @@
 /* The page of the questionnaire editor and the blocks it is built from. */
 
+/* The page starts right under the header; blocks are one rhythm apart. */
 .user-questionnaire-editor {
-  gap: var(--theme-space-4);
-}
-
-.user-questionnaire-editor__actions {
-  align-items: center;
-  flex-wrap: wrap;
+  align-content: start;
+  gap: var(--theme-space-3);
 }
 
 .user-questionnaire-editor__icon {
@@ -32,66 +29,107 @@
   font-size: 0.875rem;
 }
 
+/* The save status lives in the header description: a quiet line, red only when saving failed. */
 .user-questionnaire-editor__save-state {
-  margin: 0;
   color: var(--theme-text-muted);
-  font-size: var(--theme-type-caption);
 }
 
 .user-questionnaire-editor__save-state--error {
   color: var(--theme-danger);
 }
 
-.user-questionnaire-editor__hero {
-  display: grid;
-  gap: var(--theme-space-2);
-  padding: var(--theme-space-4);
+/* The top of the questionnaire as the respondent sees it: background picture, name, introduction. */
+.user-questionnaire-hero {
+  display: flex;
+  min-width: 0;
 }
 
-.user-questionnaire-editor__hero-header,
-.user-questionnaire-editor__questions-header {
-  display: flex;
+.user-questionnaire-hero--empty {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--theme-space-2);
+  padding: var(--theme-space-3) var(--theme-space-4);
 }
 
-.user-questionnaire-editor__hero-copy {
+.user-questionnaire-hero__copy {
   min-width: 0;
 }
 
-.user-questionnaire-editor__hero-preview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.user-questionnaire-hero__label {
   margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+}
+
+.user-questionnaire-hero__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
+}
+
+.user-questionnaire-hero--filled {
+  min-height: 12.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--theme-space-4);
+  box-sizing: border-box;
+  padding: var(--theme-space-2);
   overflow: hidden;
   border: var(--theme-border-hairline) solid var(--theme-border);
   border-radius: var(--theme-radius-control);
-  background: var(--theme-surface-muted);
+  background-color: var(--theme-surface-muted);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  animation: user-questionnaire-hero-in var(--motion-base) var(--motion-ease-out);
 }
 
-.user-questionnaire-editor__hero-image {
-  display: block;
-  grid-column: 1 / -1;
-  width: 100%;
-  max-height: 20rem;
-  object-fit: cover;
+.user-questionnaire-hero__tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--theme-space-1);
 }
 
-.user-questionnaire-editor__hero-caption {
-  min-width: 0;
-  padding: var(--theme-space-2) var(--theme-space-3);
+/* A scrim keeps the name readable on any picture. */
+.user-questionnaire-hero__text {
+  display: grid;
+  gap: var(--theme-space-1);
+  margin: calc(-1 * var(--theme-space-2));
+  margin-top: 0;
+  padding: var(--theme-space-6, 1.5rem) var(--theme-space-3) var(--theme-space-3);
+  color: var(--theme-accent-contrast);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--theme-text) 82%, transparent),
+    transparent
+  );
+}
+
+.user-questionnaire-hero__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.user-questionnaire-hero__intro {
+  display: -webkit-box;
+  margin: 0;
   overflow: hidden;
-  color: var(--theme-text-muted);
-  font-size: var(--theme-type-caption);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
-.user-questionnaire-editor__hero-remove {
-  align-self: center;
-  margin-right: var(--theme-space-2);
+@keyframes user-questionnaire-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
 }
 
 .user-questionnaire-editor__image-input {
@@ -101,6 +139,14 @@
 .user-questionnaire-editor__questions {
   display: grid;
   gap: var(--theme-space-3);
+}
+
+.user-questionnaire-editor__questions-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
 }
 
 .user-questionnaire-editor__group {
@@ -122,14 +168,19 @@
 
 .questionnaire-issues {
   display: grid;
-  gap: var(--theme-space-2);
-  padding: var(--theme-space-3) var(--theme-space-4);
-  border-left: 0.25rem solid var(--theme-danger);
+  gap: var(--theme-space-1);
+  padding: var(--theme-space-2) var(--theme-space-3);
 }
 
 .questionnaire-issues__title {
   margin: 0;
-  font-size: 1rem;
+  color: var(--theme-danger);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+}
+
+.questionnaire-issues__title--ready {
+  color: var(--theme-text-muted);
 }
 
 .questionnaire-issues__list {
@@ -146,6 +197,8 @@
   color: var(--theme-danger);
   background: none;
   font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.35;
   text-align: left;
   cursor: pointer;
 }

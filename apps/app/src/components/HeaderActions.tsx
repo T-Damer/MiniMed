@@ -48,6 +48,8 @@ export interface HeaderAction {
   readonly danger?: boolean;
   /** Always in the «⋯» menu: account and rare actions (reminders, sign-out). */
   readonly menuOnly?: boolean;
+  /** Stable hook for tests and automation, on the inline button and on the menu item. */
+  readonly testId?: string;
 }
 
 export interface HeaderActionsProps {
@@ -121,6 +123,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
         icon: action.icon,
         ...(action.danger ? { danger: true } : {}),
         ...(action.disabled ? { disabled: true } : {}),
+        ...(action.testId ? { testId: action.testId } : {}),
         onSelect: () => {
           if (action.panel) setOpenPanel(action.id);
           else action.onSelect?.();
@@ -259,6 +262,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
                     aria-label={action.label}
                     title={action.label}
                     disabled={action.disabled ?? false}
+                    data-testid={action.testId}
                     icon={<AppGlyph name={action.icon} class="header-actions__icon" />}
                     onClick={() => action.onSelect?.()}
                   />

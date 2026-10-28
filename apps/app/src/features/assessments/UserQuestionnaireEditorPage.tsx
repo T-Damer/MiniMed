@@ -11,6 +11,8 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import type { HeaderAction } from '@/components/HeaderActions';
+import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
@@ -67,6 +69,81 @@ function sectionCount(count: number): string {
 function scrollToPart(part: QuestionnaireIssue['part']): void {
   const target = document.getElementById(`user-questionnaire-${part ?? 'questions'}`);
   target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * The top of the questionnaire as the respondent sees it: the background picture with the name and
+ * the introduction over it. Without a picture it is a quiet row that offers to add one.
+ */
+function UserQuestionnaireHero(props: {
+  readonly title: string;
+  readonly intro: string;
+  readonly image: UserQuestionnaireImage | undefined;
+  readonly onPick: () => void;
+  readonly onRemove: (imageId: string) => void;
+}): JSX.Element {
+  return (
+    <Show
+      when={props.image}
+      fallback={
+        <section
+          class="user-questionnaire-hero user-questionnaire-hero--empty paper-card"
+          aria-label="Фон опросника"
+        >
+          <div class="user-questionnaire-hero__copy">
+            <h2 class="user-questionnaire-hero__label">Фон опросника</h2>
+            <p class="user-questionnaire-hero__hint">PNG, JPEG, GIF или WebP до 5 МБ</p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            class="user-questionnaire-hero__add"
+            data-testid="questionnaire-background-add"
+            onClick={props.onPick}
+            icon={<AppGlyph name="image" class="user-questionnaire-editor__icon" />}
+          >
+            Добавить фон
+          </Button>
+        </section>
+      }
+    >
+      {(image) => (
+        <section
+          class="user-questionnaire-hero user-questionnaire-hero--filled"
+          aria-label="Фон опросника"
+          data-testid="questionnaire-background"
+          style={{ 'background-image': `url("${image().dataUrl}")` }}
+        >
+          <div class="user-questionnaire-hero__tools">
+            <Button
+              type="button"
+              variant="icon"
+              class="user-questionnaire-hero__tool"
+              aria-label="Изменить фон"
+              title="Изменить фон"
+              onClick={props.onPick}
+              icon={<AppGlyph name="image" class="user-questionnaire-editor__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="user-questionnaire-hero__tool"
+              aria-label={`Удалить фон «${image().name}»`}
+              title="Удалить фон"
+              onClick={() => props.onRemove(image().id)}
+              icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
+            />
+          </div>
+          <div class="user-questionnaire-hero__text">
+            <p class="user-questionnaire-hero__title">{props.title || 'Новый опросник'}</p>
+            <Show when={props.intro}>
+              <p class="user-questionnaire-hero__intro">{props.intro}</p>
+            </Show>
+          </div>
+        </section>
+      )}
+    </Show>
+  );
 }
 
 export function UserQuestionnaireEditorPage(props: {
@@ -160,14 +237,6 @@ export function UserQuestionnaireEditorPage(props: {
     if (range) parts.push(`баллы ${formatScoreRange(range.min, range.max)}`);
     return parts.join(' · ');
   };
-  const runTitle = (): string =>
-    errors()[0]?.message ??
-    (saveState() === 'saving'
-      ? 'Дождитесь сохранения черновика'
-      : saveState() === 'error'
-        ? error()
-        : 'Открыть опросник');
-
   const printBlank = (): void => {
     if (
       !printBlankAssessment(
@@ -255,98 +324,101 @@ export function UserQuestionnaireEditorPage(props: {
     );
   };
 
+  const runBlocked = createMemo(() => errors().length > 0 || saveState() !== 'saved');
+  /** Run is the primary action (folds last); print and export next; copy and delete live in «⋯». */
+  const headerActions = createMemo((): readonly HeaderAction[] => [
+    {
+      id: 'run',
+      label: 'Пройти опросник',
+      icon: 'play',
+      priority: 1,
+      disabled: runBlocked(),
+      testId: 'questionnaire-run',
+      onSelect: props.onRun,
+    },
+    {
+      id: 'print',
+      label: 'Распечатать бланк',
+      icon: 'printer',
+      priority: 2,
+      testId: 'questionnaire-print',
+      onSelect: printBlank,
+    },
+    {
+      id: 'export',
+      label: 'Экспорт в файл',
+      icon: 'share',
+      priority: 2,
+      testId: 'questionnaire-export',
+      onSelect: props.onExport,
+    },
+    {
+      id: 'duplicate',
+      label: 'Создать копию',
+      icon: 'copy',
+      priority: 3,
+      menuOnly: true,
+      testId: 'questionnaire-duplicate',
+      onSelect: props.onDuplicate,
+    },
+    {
+      id: 'delete',
+      label: 'Удалить опросник',
+      icon: 'trash',
+      priority: 3,
+      menuOnly: true,
+      danger: true,
+      testId: 'questionnaire-delete',
+      onSelect: () => setConfirmDelete(true),
+    },
+  ]);
+
   return (
     <div class="assessment-workspace user-questionnaire-editor">
       <Page
         class="assessment-page-header user-questionnaire-editor__header"
-        navigation={
-          <Button
-            type="button"
-            variant="icon"
-            class="user-questionnaire-editor__back"
-            aria-label="Назад"
-            title="Назад"
-            onClick={props.onBack}
-            icon={<AppGlyph name="arrow-left" class="user-questionnaire-editor__icon" />}
-          />
-        }
-        icon={<AppGlyph name="list-checks" class="page__icon-glyph" />}
+        navigation={<NavBack aria-label="Назад" title="Назад" onClick={props.onBack} />}
         title={
           <Heading depth={2} class="assessment-subpage-title">
-            Редактирование опросника
+            {draft().title.trim() || 'Новый опросник'}
           </Heading>
         }
-        description={summary()}
-        actions={
-          <div class="assessment-subpage-header-actions user-questionnaire-editor__actions">
-            <Button
-              type="button"
-              variant="icon"
-              class="user-questionnaire-editor__action"
-              data-testid="questionnaire-print"
-              aria-label="Распечатать бланк опросника"
-              title="Распечатать бланк"
-              onClick={printBlank}
-              icon={<AppGlyph name="printer" class="user-questionnaire-editor__icon" />}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              class="user-questionnaire-editor__action"
-              data-testid="questionnaire-export"
-              aria-label="Экспортировать опросник в файл"
-              title="Экспорт в файл"
-              onClick={props.onExport}
-              icon={<AppGlyph name="share" class="user-questionnaire-editor__icon" />}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              class="user-questionnaire-editor__action"
-              data-testid="questionnaire-duplicate"
-              aria-label="Создать копию опросника"
-              title="Создать копию"
-              onClick={props.onDuplicate}
-              icon={<AppGlyph name="squares-four" class="user-questionnaire-editor__icon" />}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              class="user-questionnaire-editor__action"
-              data-testid="questionnaire-delete"
-              aria-label="Удалить опросник"
-              title="Удалить опросник"
-              onClick={() => setConfirmDelete(true)}
-              icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
-            />
-            <Button
-              type="button"
-              variant="primary"
-              class="user-questionnaire-editor__run"
-              data-testid="questionnaire-run"
-              disabled={errors().length > 0 || saveState() !== 'saved'}
-              title={runTitle()}
-              onClick={props.onRun}
-              icon={<AppGlyph name="list-checks" class="user-questionnaire-editor__icon" />}
-            >
-              Пройти
-            </Button>
-          </div>
+        description={
+          <span
+            class="user-questionnaire-editor__save-state"
+            classList={{ 'user-questionnaire-editor__save-state--error': saveState() === 'error' }}
+            role="status"
+            data-testid="questionnaire-save-state"
+          >
+            {saveState() === 'saving'
+              ? 'Сохраняем…'
+              : saveState() === 'error'
+                ? error()
+                : 'Все изменения сохранены'}
+          </span>
+        }
+        headerActions={headerActions()}
+        help={
+          <>
+            <p>
+              Изменения сохраняются сами. «Пройти» открывает опросник так, как его увидит пациент;
+              бланк для печати и файл для коллеги — рядом.
+            </p>
+            <p>
+              Разделы группируют вопросы под заголовком и, если нужно, считают баллы отдельно.
+              Вопрос без раздела входит только в общий итог.
+            </p>
+          </>
         }
       />
 
-      <p
-        class="user-questionnaire-editor__save-state"
-        classList={{ 'user-questionnaire-editor__save-state--error': saveState() === 'error' }}
-        role="status"
-        data-testid="questionnaire-save-state"
-      >
-        {saveState() === 'saving'
-          ? 'Сохраняем…'
-          : saveState() === 'error'
-            ? error()
-            : 'Все изменения сохранены'}
-      </p>
+      <UserQuestionnaireHero
+        title={draft().title.trim()}
+        intro={draft().description.trim()}
+        image={draft().images[0]}
+        onPick={() => openImagePicker(null)}
+        onRemove={(imageId) => removeImage(null, imageId)}
+      />
 
       <Show when={issues().length > 0}>
         <section
@@ -354,7 +426,10 @@ export function UserQuestionnaireEditorPage(props: {
           aria-label="Что нужно исправить"
           data-testid="questionnaire-issues"
         >
-          <h2 class="questionnaire-issues__title">
+          <h2
+            class="questionnaire-issues__title"
+            classList={{ 'questionnaire-issues__title--ready': errors().length === 0 }}
+          >
             {errors().length > 0
               ? `Чтобы пройти опросник, исправьте: ${errors().length}`
               : 'Опросник готов. Советы:'}
@@ -387,7 +462,7 @@ export function UserQuestionnaireEditorPage(props: {
         class="user-questionnaire-editor__details paper-card"
         id="user-questionnaire-details"
       >
-        <h2 class="user-questionnaire-editor__section-title">Основное</h2>
+        <h2 class="user-questionnaire-editor__section-title">Об опроснике</h2>
         <TextField
           label="Название"
           hint="Так опросник называется в списке и в «Моих файлах»."
@@ -424,49 +499,6 @@ export function UserQuestionnaireEditorPage(props: {
         />
       </section>
 
-      <section class="user-questionnaire-editor__hero paper-card" aria-label="Фон опросника">
-        <header class="user-questionnaire-editor__hero-header">
-          <div class="user-questionnaire-editor__hero-copy">
-            <h2 class="user-questionnaire-editor__section-title">Фон опросника</h2>
-            <p class="user-questionnaire-editor__hint">
-              Одно изображение в начале опросника: PNG, JPEG, GIF или WebP до 5 МБ.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            class="user-questionnaire-editor__hero-action"
-            onClick={() => openImagePicker(null)}
-            icon={<AppGlyph name="image" class="user-questionnaire-editor__icon" />}
-          >
-            {draft().images.length > 0 ? 'Изменить фон' : 'Добавить фон'}
-          </Button>
-        </header>
-        <Show when={draft().images[0]}>
-          {(image) => (
-            <figure class="user-questionnaire-editor__hero-preview">
-              <img
-                class="user-questionnaire-editor__hero-image"
-                src={image().dataUrl}
-                alt={image().name}
-              />
-              <figcaption class="user-questionnaire-editor__hero-caption">
-                {image().name}
-              </figcaption>
-              <Button
-                type="button"
-                variant="icon"
-                class="user-questionnaire-editor__hero-remove"
-                aria-label={`Удалить фон «${image().name}»`}
-                title="Удалить фон"
-                onClick={() => removeImage(null, image().id)}
-                icon={<AppGlyph name="trash" class="user-questionnaire-editor__icon" />}
-              />
-            </figure>
-          )}
-        </Show>
-      </section>
-
       <input
         ref={(element) => {
           imageInput = element;
@@ -499,6 +531,7 @@ export function UserQuestionnaireEditorPage(props: {
             variant="secondary"
             class="user-questionnaire-editor__add-section"
             data-testid="questionnaire-add-section"
+            title="Раздел группирует вопросы под заголовком и может считать баллы отдельно"
             disabled={!canAddSection(draft())}
             onClick={() => persist(addSection(draft()))}
             icon={<AppGlyph name="plus" class="user-questionnaire-editor__icon" />}
@@ -506,8 +539,8 @@ export function UserQuestionnaireEditorPage(props: {
             Добавить раздел
           </Button>
         </header>
-        <p class="user-questionnaire-editor__hint">
-          Разделы группируют вопросы под заголовком и, если нужно, считают баллы отдельно.
+        <p class="user-questionnaire-editor__hint" data-testid="questionnaire-summary">
+          {summary()}
         </p>
 
         <Show when={questionsOf(undefined).length > 0}>

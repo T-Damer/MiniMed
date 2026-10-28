@@ -6,11 +6,13 @@ import {
   on,
   onCleanup,
   Show,
+  Suspense,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
+import { SkeletonLines } from '@/components/SkeletonLines';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
 import { type HistoryLayer, openHistoryLayer } from '@/state/history-layer';
 import { motionMs } from '@/state/motion';
@@ -308,7 +310,11 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
             <div
               class={`overlay-dialog-body overlay-dialog-body--${presentation()} ${props.bodyClass ?? ''}`}
             >
-              {props.children}
+              {/* Data loading inside a sheet waits here, not in the page's boundary behind it
+                  (that swapped the whole page for its skeleton while the sheet opened). */}
+              <Suspense fallback={<SkeletonLines label="Загружаем" lines={3} />}>
+                {props.children}
+              </Suspense>
             </div>
           </section>
         </div>

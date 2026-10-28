@@ -1,7 +1,8 @@
-import { createUniqueId, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createUniqueId, type JSX, onCleanup, onMount, Show, Suspense } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { SkeletonLines } from '@/components/SkeletonLines';
 
 const SHEET_KEY = 'diarySheet';
 
@@ -92,7 +93,11 @@ export function DiarySheet(props: {
               <AppGlyph name="close" class="diary-sheet__close-icon" />
             </button>
           </header>
-          <div class="diary-sheet__body">{props.children}</div>
+          <div class="diary-sheet__body">
+            <Suspense fallback={<SkeletonLines label="Загружаем" lines={3} />}>
+              {props.children}
+            </Suspense>
+          </div>
           <Show when={props.footer}>
             <footer class="diary-sheet__footer">{props.footer}</footer>
           </Show>

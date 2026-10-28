@@ -708,12 +708,6 @@
   gap: 0.35rem;
 }
 
-.diary-patient__quiz-last {
-  margin: 0;
-  color: var(--theme-text-muted);
-  font-size: 0.9rem;
-}
-
 .diary-chart {
   display: grid;
   gap: 0.35rem;
@@ -966,15 +960,17 @@
   gap: 0.5rem;
 }
 
-.diary-day-view__bar {
+.diary-dash__order-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: calc(0.5rem + var(--safe-top, 0px)) 0.75rem 0;
+  gap: 0.5rem;
 }
 
-.diary-day-view__who {
-  font-weight: 700;
+.diary-dash__order-glyph {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--theme-text-muted);
 }
 
 .diary-dash__order {
@@ -1008,28 +1004,6 @@
   display: block;
 }
 
-.diary-patient__quiz-alert {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-inline-start: 0.4rem;
-  border: 0;
-  border-radius: 50%;
-  color: #fff;
-  background: var(--theme-danger, #c0392b);
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-  vertical-align: middle;
-  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
-}
-
-.diary-patient__quiz-alert:active {
-  transform: scale(0.96);
-}
-
 .diary-adherence__course {
   display: block;
   color: var(--theme-text-muted);
@@ -1052,4 +1026,152 @@
 
 .diary-push-help__step {
   line-height: 1.4;
+}
+
+/* «Порог тревоги»: the doctor's red line of one chart. */
+.diary-limit {
+  display: grid;
+  gap: 1rem;
+}
+
+.diary-limit__row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-limit__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.diary-limit__label {
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-limit__field {
+  animation: diary-limit-in var(--motion-base) var(--motion-ease-out);
+}
+
+.diary-limit__error {
+  margin: 0;
+  color: var(--theme-danger);
+}
+
+.diary-limit__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@keyframes diary-limit-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}
+
+.diary-chart__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.diary-chart__actions {
+  display: flex;
+  flex: none;
+  gap: 0.35rem;
+}
+
+.diary-chart__limit {
+  color: var(--theme-danger);
+}
+
+.diary-chart__warning {
+  color: var(--theme-danger-contrast, #fff);
+  background: var(--theme-danger);
+  animation: diary-chart-warning-in var(--motion-base) var(--motion-ease-out);
+}
+
+@keyframes diary-chart-warning-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* «Приём лекарств»: a paper card like the charts around it. */
+.diary-patient__section--card {
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+}
+
+.diary-patient__day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.diary-patient__day-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+}
+
+.diary-dash__archive-clear {
+  justify-self: start;
+  color: var(--theme-danger);
+}
+
+/* Presence: a green dot on the avatar while the patient's diary is open; «в сети …» otherwise. */
+.diary-dash-row__avatar {
+  position: relative;
+}
+
+.diary-dash-row__online {
+  position: absolute;
+  inset-block-end: 0.05rem;
+  inset-inline-end: 0.05rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--theme-surface-raised);
+  border-radius: 50%;
+  background: #2f9e5b;
+  animation: diary-presence-in var(--motion-base) var(--motion-ease-out);
+}
+
+.diary-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--theme-text-muted);
+}
+
+.diary-presence__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--theme-border-strong, var(--theme-border));
+  transition: background var(--motion-base) var(--motion-ease);
+}
+
+.diary-presence--online {
+  color: var(--theme-text);
+}
+
+.diary-presence__dot--online {
+  background: #2f9e5b;
+}
+
+@keyframes diary-presence-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
 }

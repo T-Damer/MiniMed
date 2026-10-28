@@ -1,16 +1,29 @@
-import { createMemo, createResource, createSignal, For, Index, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, For, Index, type JSX, onMount, Show, Suspense } from 'solid-js';
+import { toast } from 'solid-sonner';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ChoiceChip } from '@/components/ChoiceChip';
 import { DateRangeCalendar } from '@/components/DateRangeCalendar';
 import { countDays, describeRanges } from '@/components/date-ranges';
-import { NativeDateTimeField } from '@/components/NativeDateTimeField';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { SelectField } from '@/components/SelectField';
 import { Switch } from '@/components/Switch';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { TimeField } from '@/components/TimeField';
+import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
+import { CareRow } from '@/diary/DiaryToday';
+import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import {
+  addDays,
+  DAY_PERIOD_LABEL,
+  type DayPeriod,
+  dayKey,
+  dayPeriod,
+  type HeatDay,
+} from '@/features/diary/diary-care';
 import {
   CARE_SECTION_LABEL,
   type CareContactDraft,
@@ -24,6 +37,7 @@ import {
 } from '@/features/diary/diary-care-draft';
 import {
   DIARY_MEAL_LABEL,
+  type DiaryCheckpoint,
   type DiaryContactKind,
   type DiaryMeal,
   MAX_DIARY_CONTACTS,
@@ -36,7 +50,11 @@ import {
   loadOwnQuestionnaire,
   OWN_QUESTIONNAIRE_NEW_HASH,
 } from '@/features/diary/diary-own-questionnaires';
-import { DIARY_QUESTIONNAIRES, diaryQuestionnaire } from '@/features/diary/diary-questionnaires';
+import {
+  DIARY_QUESTIONNAIRES,
+  diaryQuestionnaire,
+  questionnaireCheckpointId,
+} from '@/features/diary/diary-questionnaires';
 import { DrugSearchField } from '@/features/drug-picker/DrugSearchField';
 import type { DrugSuggestionForm } from '@/features/drug-picker/drug-suggest';
 import {
@@ -130,7 +148,12 @@ function sectionDetail(section: CareSectionDraft): string {
     case 'questionnaire':
       return `${diaryQuestionnaire(section.quiz)?.about ?? 'свой опросник'} · раз в ${section.everyDays} дн.`;
     default:
-      return section.times.length ? timesText(section.times) : 'в любое время дня';
+      // The row shows the first time; the detail adds the others, or says it has none.
+      return section.times.filter((time) => time.time).length > 1
+        ? timesText(section.times)
+        : section.times.some((time) => time.time)
+          ? ''
+          : 'в любое время дня';
   }
 }
 
@@ -169,8 +192,8 @@ function EditableLine(props: {
       fallback={
         <button
           type="button"
-          class={`screen-editor__editable ${props.class}`}
-          classList={{ 'screen-editor__editable--empty': !props.value.trim() }}
+          class={`screen-editor__editable care-editable ${props.class}`}
+          classList={{ 'care-editable--empty': !props.value.trim() }}
           onClick={() => setEditing(true)}
         >
           <Show when={!props.value.trim()}>
@@ -179,6 +202,9 @@ function EditableLine(props: {
           <span class="screen-editor__editable-text">
             {props.value.trim() || props.placeholder}
           </span>
+          <Show when={props.value.trim()}>
+            <AppGlyph name="edit" class="screen-editor__editable-glyph" />
+          </Show>
         </button>
       }
     >
@@ -235,15 +261,14 @@ function TimesEditor(props: {
       <Index each={props.times}>
         {(time, index) => (
           <div class="screen-editor__time">
-            <NativeDateTimeField
-              type="time"
+            <TimeField
               label="Время"
-              placeholder="--:--"
+              hideLabel
               class="screen-editor__time-field"
-              buttonClass="screen-editor__time-button"
               value={time().time}
               onChange={(value) => patch(index, { time: value })}
             />
+            <span class="screen-editor__leader" aria-hidden="true" />
             <Show when={props.meals}>
               <SegmentedControl
                 label="Еда"
@@ -268,8 +293,8 @@ function TimesEditor(props: {
       </Index>
       <Button
         type="button"
-        variant="quiet"
-        class="screen-editor__add-time"
+        variant="secondary"
+        class="screen-editor__wide"
         icon={<AppGlyph name="clock" class="screen-editor__glyph" />}
         disabled={props.times.length >= MAX_DIARY_DOSE_TIMES}
         onClick={() => {
@@ -281,7 +306,7 @@ function TimesEditor(props: {
           ]);
         }}
       >
-        Время
+        Добавить время
       </Button>
     </div>
   );
@@ -462,12 +487,13 @@ function ChoiceFields(props: {
       </Index>
       <Button
         type="button"
-        variant="quiet"
+        variant="secondary"
+        class="screen-editor__wide"
         icon={<AppGlyph name="plus" class="screen-editor__glyph" />}
         disabled={props.section.options.length >= MAX_DIARY_OPTIONS}
         onClick={() => props.patch({ options: [...props.section.options, ''] })}
       >
-        Вариант
+        Добавить вариант
       </Button>
     </div>
   );
@@ -485,11 +511,17 @@ function SectionEditor(props: {
   const patch = (next: Partial<CareSectionDraft>): void =>
     props.onChange({ ...props.section, ...next });
   // The doctor's own questionnaires from the main app's builder, read when a questionnaire opens.
-  const [own] = createResource(
-    () => props.section.kind === 'questionnaire',
-    (open) => (open ? listOwnQuestionnaires() : Promise.resolve([])),
-  );
+  // A plain signal, not a resource: a resource read here suspended the whole page (a blink).
+  const [own, setOwn] = createSignal<Awaited<ReturnType<typeof listOwnQuestionnaires>>>([]);
   const [ownError, setOwnError] = createSignal('');
+  onMount(() => {
+    if (props.section.kind !== 'questionnaire') return;
+    listOwnQuestionnaires()
+      .then(setOwn)
+      .catch((cause: unknown) =>
+        setOwnError(cause instanceof Error ? cause.message : 'Свои опросники не открылись.'),
+      );
+  });
   return (
     <div class="screen-editor__sheet">
       <Show when={props.section.kind === 'drug'}>
@@ -514,7 +546,7 @@ function SectionEditor(props: {
               </ChoiceChip>
             )}
           </For>
-          <For each={own() ?? []}>
+          <For each={own()}>
             {(option) => (
               <ChoiceChip
                 accent={props.section.quiz === option.slug}
@@ -635,14 +667,6 @@ function ContactsEditor(props: {
               value={contact().value}
               onInput={(event) => patchContact(index, { value: event.currentTarget.value })}
             />
-            <TextField
-              inputClass="screen-editor__input"
-              label="Подпись"
-              hideLabel
-              placeholder="Подпись"
-              value={contact().label}
-              onInput={(event) => patchContact(index, { label: event.currentTarget.value })}
-            />
             <Button
               type="button"
               variant="icon"
@@ -654,17 +678,27 @@ function ContactsEditor(props: {
                 })
               }
             />
+            <TextField
+              class="screen-editor__contact-label"
+              inputClass="screen-editor__input"
+              label="Подпись"
+              hideLabel
+              placeholder="Подпись: «Регистратура», «Лечащий врач»"
+              value={contact().label}
+              onInput={(event) => patchContact(index, { label: event.currentTarget.value })}
+            />
           </div>
         )}
       </Index>
       <Button
         type="button"
-        variant="quiet"
+        variant="secondary"
+        class="screen-editor__wide"
         icon={<AppGlyph name="plus" class="screen-editor__glyph" />}
         disabled={props.draft.contacts.length >= MAX_DIARY_CONTACTS}
         onClick={() => props.patch({ contacts: [...props.draft.contacts, EMPTY_CARE_CONTACT] })}
       >
-        Контакт
+        Добавить контакт
       </Button>
       <TextArea
         textareaClass="screen-editor__input"
@@ -682,10 +716,69 @@ function ContactsEditor(props: {
   );
 }
 
+type Preview = { readonly kind: 'quiz'; readonly key: string } | undefined;
+
+/** The checkpoint a questionnaire section becomes, to show it as the patient will. */
+function quizCheckpoint(section: CareSectionDraft): DiaryCheckpoint {
+  return {
+    id: questionnaireCheckpointId(section.quiz),
+    kind: 'questionnaire',
+    label: section.title.trim() || diaryQuestionnaire(section.quiz)?.title || 'Опросник',
+    questionnaire: section.quiz,
+    everyDays: section.everyDays,
+    ...(section.custom ? { custom: section.custom } : {}),
+  };
+}
+
+/** An empty month calendar: the patient's own, with its title, before anything is marked. */
+function emptyHeat(today: string): HeatDay[] {
+  const range = heatmapRange(today, today);
+  const days: HeatDay[] = [];
+  for (let day = range.from; day <= range.to; day = addDays(day, 1)) {
+    days.push({ day, level: 0, symptoms: 0, done: 0, total: 0, entries: 0 });
+  }
+  return days;
+}
+
+/** One row per intake time, grouped by part of day, as the patient's checklist shows them. */
+function drugRows(sections: readonly CareSectionDraft[]) {
+  const timed: { period: DayPeriod; rows: { key: string; time: CareDoseDraft }[] }[] = [];
+  const asNeeded: string[] = [];
+  for (const section of sections) {
+    if (section.kind !== 'drug') continue;
+    const times = section.times.filter((time) => time.time);
+    if (section.asNeeded || !times.length) {
+      asNeeded.push(section.key);
+      continue;
+    }
+    for (const time of times) {
+      const period = dayPeriod(time.time);
+      const group = timed.find((candidate) => candidate.period === period);
+      const row = { key: section.key, time };
+      if (group) group.rows.push(row);
+      else timed.push({ period, rows: [row] });
+    }
+  }
+  const order: readonly DayPeriod[] = ['morning', 'day', 'evening', 'night'];
+  for (const group of timed) group.rows.sort((a, b) => a.time.time.localeCompare(b.time.time));
+  timed.sort((a, b) => order.indexOf(a.period) - order.indexOf(b.period));
+  return { timed, asNeeded };
+}
+
+const CHECK_KINDS: readonly CareSectionKind[] = [
+  'score',
+  'mood',
+  'vitals',
+  'body',
+  'text',
+  'choice',
+];
+
 /**
- * The patient's day screen as the doctor builds it: the same header, note and grouped rows the
- * patient will see. A tap on any part edits it in place; «Добавить раздел» adds a medicine, a
- * wellbeing score, vitals, a description, a choice or a questionnaire.
+ * The patient's day screen as the doctor builds it: the patient's own header, month calendar,
+ * checklist rows and sections, each part the doctor can change framed in two-colour dashes with a
+ * pencil. Editing opens in a sheet over the live screen; a questionnaire opens as the patient
+ * fills it in, its pencil edits it.
  */
 export function PatientScreenEditor(props: {
   readonly draft: CareDraft;
@@ -697,16 +790,33 @@ export function PatientScreenEditor(props: {
   /** Medicines this doctor prescribes most, offered while a medicine name is empty. */
   readonly frequent?: readonly string[];
 }): JSX.Element {
-  const [open, setOpen] = createSignal<string>();
+  const [editing, setEditing] = createSignal<string>();
+  const [preview, setPreview] = createSignal<Preview>();
   const [adding, setAdding] = createSignal(false);
+  // The doctor may tick rows like the patient would; nothing is recorded, a toast says so.
+  const [ticked, setTicked] = createSignal<ReadonlySet<string>>(new Set());
+  const tick = (id: string): void => {
+    const next = new Set(ticked());
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setTicked(next);
+    toast('Так отмечает пациент. Здесь это только показ — ничего не сохраняется.', {
+      id: 'patient-screen-showcase',
+    });
+  };
+  const state = (id: string): 'done' | 'idle' => (ticked().has(id) ? 'done' : 'idle');
+  const today = dayKey(new Date());
+  const heat = emptyHeat(today);
   const patch = (next: Partial<CareDraft>): void => props.onChange({ ...props.draft, ...next });
+  const sectionOf = (key: string | undefined): CareSectionDraft | undefined =>
+    key ? props.draft.sections.find((section) => section.key === key) : undefined;
   const replace = (key: string, section: CareSectionDraft): void =>
     patch({
       sections: props.draft.sections.map((current) => (current.key === key ? section : current)),
     });
   const remove = (key: string): void => {
+    setEditing(undefined);
     patch({ sections: props.draft.sections.filter((current) => current.key !== key) });
-    setOpen(undefined);
   };
   const quizzes = createMemo(
     () =>
@@ -722,66 +832,78 @@ export function PatientScreenEditor(props: {
     const section = newCareSection(kind, quiz);
     patch({ sections: [...props.draft.sections, section] });
     setAdding(false);
-    setOpen(section.key);
+    setEditing(section.key);
   };
   const contactCount = (): number =>
     props.draft.contacts.filter((contact) => contact.value.trim()).length;
+  // Rows are keyed by section key (strings), so an edit updates a row in place instead of
+  // re-creating it.
+  const doses = createMemo(() => drugRows(props.draft.sections));
+  const checkKeys = createMemo(() =>
+    props.draft.sections.filter((s) => CHECK_KINDS.includes(s.kind)).map((s) => s.key),
+  );
+  const quizKeys = createMemo(() =>
+    props.draft.sections.filter((s) => s.kind === 'questionnaire').map((s) => s.key),
+  );
+  const titleOf = (section: CareSectionDraft | undefined): string =>
+    !section
+      ? ''
+      : section.title.trim() ||
+        (section.kind === 'drug' ? 'Выберите препарат' : CARE_SECTION_LABEL[section.kind]);
+  const drugTitle = (section: CareSectionDraft | undefined): string =>
+    [titleOf(section), section?.dose.trim()].filter(Boolean).join(' ');
 
   return (
-    <div class="screen-editor">
+    <div class="screen-editor diary-care-scope">
       <div class="screen-editor__frame">
-        <header class="screen-editor__header screen-editor__header--doctor">
-          <div class="screen-editor__titles">
-            <p class="screen-editor__title">Дневник лечения</p>
-            <EditableLine
-              class="screen-editor__doctor"
-              label="Врач"
-              placeholder="Подпись врача"
-              value={props.doctor}
-              onInput={props.onDoctor}
-            />
-          </div>
-          <button
-            type="button"
-            class="screen-editor__icon screen-editor__icon--doctor"
-            classList={{ 'screen-editor__icon--on': open() === 'contacts' }}
-            aria-label={`Контакты врача: ${contactCount()}`}
-            aria-expanded={open() === 'contacts'}
-            onClick={() => setOpen(open() === 'contacts' ? undefined : 'contacts')}
-          >
-            <AppGlyph name="phone" class="screen-editor__icon-glyph" />
-            <Show when={!contactCount()}>
-              <span class="screen-editor__badge screen-editor__badge--doctor" aria-hidden="true">
-                +
-              </span>
+        <header class="screen-editor__header care-editable">
+          <p class="diary-today__title screen-editor__title">Дневник лечения</p>
+          <div class="screen-editor__tools">
+            <Show when={contactCount()}>
+              <button
+                type="button"
+                class="diary-today__icon screen-editor__icon"
+                aria-label={`Контакты врача: ${contactCount()}. Изменить`}
+                onClick={() => setEditing('contacts')}
+              >
+                <AppGlyph name="phone" class="diary-today__icon-glyph" />
+                <span class="screen-editor__badge" aria-hidden="true">
+                  <AppGlyph name="edit" class="screen-editor__badge-glyph" />
+                </span>
+              </button>
             </Show>
-          </button>
-          <button
-            type="button"
-            class="screen-editor__icon screen-editor__icon--help"
-            aria-label="Кризисные контакты"
-            onClick={() => setOpen(open() === 'contacts' ? undefined : 'contacts')}
-          >
-            <AppGlyph name="lifebuoy" class="screen-editor__icon-glyph" />
-          </button>
+            <button
+              type="button"
+              class="diary-today__icon diary-today__icon--help screen-editor__icon"
+              aria-label="Кризисные контакты. Изменить"
+              onClick={() => setEditing('contacts')}
+            >
+              <AppGlyph name="lifebuoy" class="diary-today__icon-glyph" />
+            </button>
+          </div>
+          <EditableLine
+            class="screen-editor__doctor"
+            label="Врач"
+            placeholder="Подпись врача"
+            value={props.doctor}
+            onInput={props.onDoctor}
+          />
+          <Show when={!contactCount()}>
+            <button
+              type="button"
+              class="screen-editor__contact-add"
+              onClick={() => setEditing('contacts')}
+            >
+              <AppGlyph name="plus" class="screen-editor__glyph" />
+              <span class="screen-editor__contact-add-text">Контакт</span>
+            </button>
+          </Show>
         </header>
-        <Show when={open() === 'contacts'}>
-          <ContactsEditor draft={props.draft} patch={patch} onDone={() => setOpen(undefined)} />
-        </Show>
 
-        <div class="screen-editor__heat" aria-hidden="true">
-          <For each={Array.from({ length: 28 }, (_, index) => index)}>
-            {(index) => (
-              <span
-                class="screen-editor__heat-day"
-                classList={{ 'screen-editor__heat-day--today': index === 27 }}
-              />
-            )}
-          </For>
-        </div>
+        <DiaryHeatmap days={heat} selected={today} today={today} onSelect={() => undefined} />
 
         <EditableLine
-          class="screen-editor__note"
+          class="diary-today__note screen-editor__note"
           label="Инструкция пациенту"
           placeholder="Инструкция пациенту"
           multiline
@@ -789,113 +911,226 @@ export function PatientScreenEditor(props: {
           onInput={props.onNote}
         />
 
-        <For each={GROUPS}>
-          {(group) => (
-            <Show when={props.draft.sections.some((s) => group.kinds.includes(s.kind))}>
-              <section class="screen-editor__group">
-                <h3 class="screen-editor__group-title">{group.title}</h3>
-                <ul class="screen-editor__list">
-                  <For each={props.draft.sections.filter((s) => group.kinds.includes(s.kind))}>
-                    {(section) => (
-                      <li
-                        class="screen-editor__item"
-                        classList={{ 'screen-editor__item--open': open() === section.key }}
-                      >
-                        <button
-                          type="button"
-                          class="screen-editor__row"
-                          aria-expanded={open() === section.key}
-                          onClick={() => setOpen(open() === section.key ? undefined : section.key)}
-                        >
-                          <span class="screen-editor__row-check" aria-hidden="true">
-                            <AppGlyph
-                              name={KIND_ICON[section.kind]}
-                              class="screen-editor__row-icon"
-                            />
-                          </span>
-                          <span class="screen-editor__row-main">
-                            <span class="screen-editor__row-title">
-                              {section.title.trim() ||
-                                (section.kind === 'drug'
-                                  ? 'Выберите препарат'
-                                  : CARE_SECTION_LABEL[section.kind])}
-                              <Show when={section.tip.trim()}>
-                                <span class="screen-editor__row-tip" aria-hidden="true">
-                                  ?
-                                </span>
-                                <span class="visually-hidden">Есть подсказка</span>
-                              </Show>
-                            </span>
-                            <Show when={sectionDetail(section)}>
-                              <span class="screen-editor__row-detail">
-                                {sectionDetail(section)}
-                              </span>
-                            </Show>
-                          </span>
-                          <AppGlyph
-                            name={open() === section.key ? 'caret-up' : 'edit'}
-                            class="screen-editor__row-edit"
-                          />
-                        </button>
-                        <Show when={open() === section.key}>
-                          <SectionEditor
-                            section={section}
-                            frequent={props.frequent ?? []}
-                            taken={quizzes()}
-                            onChange={(next) => replace(section.key, next)}
-                            onRemove={() => remove(section.key)}
-                            onDone={() => setOpen(undefined)}
-                          />
-                        </Show>
-                      </li>
+        <section class="care-section">
+          <h3 class="care-section__title">Лекарства</h3>
+          <For each={doses().timed}>
+            {(group) => (
+              <>
+                <p class="care-section__period">{DAY_PERIOD_LABEL[group.period]}</p>
+                <ul class="care-section__list">
+                  <For each={group.rows}>
+                    {(row) => (
+                      <CareRow
+                        icon="pill"
+                        time={row.time.time}
+                        title={drugTitle(sectionOf(row.key))}
+                        detail={
+                          [
+                            row.time.meal ? DIARY_MEAL_LABEL[row.time.meal] : '',
+                            sectionOf(row.key)?.course.length
+                              ? describeRanges(sectionOf(row.key)?.course ?? [])
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ') || undefined
+                        }
+                        state={state(`${row.key}@${row.time.time}`)}
+                        checkLabel={`${titleOf(sectionOf(row.key))} в ${row.time.time}: отметить, как пациент`}
+                        tip={Boolean(sectionOf(row.key)?.tip.trim())}
+                        onCheck={() => tick(`${row.key}@${row.time.time}`)}
+                        onOpen={() => setEditing(row.key)}
+                        onEdit={() => setEditing(row.key)}
+                      />
                     )}
                   </For>
                 </ul>
-              </section>
-            </Show>
-          )}
-        </For>
+              </>
+            )}
+          </For>
+          <Show when={doses().asNeeded.length}>
+            <p class="care-section__period">При необходимости</p>
+            <ul class="care-section__list">
+              <For each={doses().asNeeded}>
+                {(key) => (
+                  <CareRow
+                    icon="plus"
+                    title={drugTitle(sectionOf(key))}
+                    detail="Отметьте, когда примете"
+                    state={state(key)}
+                    checkLabel={`${titleOf(sectionOf(key))}: отметить, как пациент`}
+                    tip={Boolean(sectionOf(key)?.tip.trim())}
+                    onCheck={() => tick(key)}
+                    onOpen={() => setEditing(key)}
+                    onEdit={() => setEditing(key)}
+                  />
+                )}
+              </For>
+            </ul>
+          </Show>
+          <button
+            type="button"
+            class="screen-editor__add care-editable care-editable--empty"
+            disabled={drugs() >= MAX_DIARY_PLAN_ITEMS}
+            onClick={() => add('drug')}
+          >
+            <AppGlyph name="plus" class="screen-editor__add-glyph" />
+            <span class="screen-editor__add-text">Лекарство</span>
+          </button>
+        </section>
 
-        <Show
-          when={adding()}
-          fallback={
-            <button type="button" class="screen-editor__add" onClick={() => setAdding(true)}>
-              <AppGlyph name="plus" class="screen-editor__add-glyph" />
-              <span class="screen-editor__add-text">Добавить раздел</span>
-            </button>
-          }
-        >
-          <fieldset class="screen-editor__kinds screen-editor__kinds--set">
-            <legend class="visually-hidden">Вид раздела</legend>
-            <For each={KIND_ORDER}>
-              {(kind) => (
-                <button
-                  type="button"
-                  class="screen-editor__kind"
-                  disabled={(kind === 'drug' && drugs() >= MAX_DIARY_PLAN_ITEMS) || false}
-                  onClick={() => add(kind)}
-                >
-                  <AppGlyph name={KIND_ICON[kind]} class="screen-editor__kind-glyph" />
-                  <span class="screen-editor__kind-text">{CARE_SECTION_LABEL[kind]}</span>
-                </button>
+        <section class="care-section">
+          <h3 class="care-section__title">Самочувствие и показатели</h3>
+          <ul class="care-section__list">
+            <For each={checkKeys()}>
+              {(key) => (
+                <CareRow
+                  icon={KIND_ICON[sectionOf(key)?.kind ?? 'score']}
+                  time={sectionOf(key)?.times.find((time) => time.time)?.time}
+                  title={titleOf(sectionOf(key))}
+                  detail={(() => {
+                    const section = sectionOf(key);
+                    return section ? sectionDetail(section) : undefined;
+                  })()}
+                  state={state(key)}
+                  checkLabel={`${titleOf(sectionOf(key))}: отметить, как пациент`}
+                  tip={Boolean(sectionOf(key)?.tip.trim())}
+                  onCheck={() => tick(key)}
+                  onOpen={() => setEditing(key)}
+                  onEdit={() => setEditing(key)}
+                />
               )}
             </For>
-            <Button
-              type="button"
-              variant="icon"
-              class="screen-editor__kinds-close"
-              aria-label="Не добавлять"
-              icon={<AppGlyph name="close" class="screen-editor__glyph" />}
-              onClick={() => setAdding(false)}
-            />
-          </fieldset>
-        </Show>
+          </ul>
+          <Show
+            when={adding()}
+            fallback={
+              <button
+                type="button"
+                class="screen-editor__add care-editable care-editable--empty"
+                onClick={() => setAdding(true)}
+              >
+                <AppGlyph name="plus" class="screen-editor__add-glyph" />
+                <span class="screen-editor__add-text">Показатель</span>
+              </button>
+            }
+          >
+            <fieldset class="screen-editor__kinds screen-editor__kinds--set">
+              <legend class="visually-hidden">Что добавить</legend>
+              <For each={CHECK_KINDS}>
+                {(kind) => (
+                  <button type="button" class="screen-editor__kind" onClick={() => add(kind)}>
+                    <AppGlyph name={KIND_ICON[kind]} class="screen-editor__kind-glyph" />
+                    <span class="screen-editor__kind-text">{CARE_SECTION_LABEL[kind]}</span>
+                  </button>
+                )}
+              </For>
+              <Button
+                type="button"
+                variant="icon"
+                class="screen-editor__kinds-close"
+                aria-label="Не добавлять"
+                icon={<AppGlyph name="close" class="screen-editor__glyph" />}
+                onClick={() => setAdding(false)}
+              />
+            </fieldset>
+          </Show>
+        </section>
 
-        <p class="screen-editor__ghost" aria-hidden="true">
-          <AppGlyph name="note-pencil" class="screen-editor__glyph" />
-          Добавить описание состояния
-        </p>
+        <section class="care-section">
+          <h3 class="care-section__title">Опросники</h3>
+          <ul class="care-section__list">
+            <For each={quizKeys()}>
+              {(key) => (
+                <CareRow
+                  icon="list-checks"
+                  title={titleOf(sectionOf(key))}
+                  detail={(() => {
+                    const section = sectionOf(key);
+                    return section ? sectionDetail(section) : undefined;
+                  })()}
+                  state="idle"
+                  checkLabel={`${titleOf(sectionOf(key))}: как увидит пациент`}
+                  tip={Boolean(sectionOf(key)?.tip.trim())}
+                  onCheck={() => setPreview({ kind: 'quiz', key })}
+                  onOpen={() => setPreview({ kind: 'quiz', key })}
+                  onEdit={() => setEditing(key)}
+                  editLabel={`Изменить опросник ${titleOf(sectionOf(key))}`}
+                />
+              )}
+            </For>
+          </ul>
+          <button
+            type="button"
+            class="screen-editor__add care-editable care-editable--empty"
+            onClick={() => add('questionnaire')}
+          >
+            <AppGlyph name="plus" class="screen-editor__add-glyph" />
+            <span class="screen-editor__add-text">Опросник</span>
+          </button>
+        </section>
+
+        <section class="care-section">
+          <h3 class="care-section__title">Описание состояния</h3>
+          <p class="care-add screen-editor__ghost" aria-disabled="true">
+            <AppGlyph name="note-pencil" class="care-add__icon" />
+            <span class="care-add__text">Добавить описание состояния</span>
+          </p>
+        </section>
       </div>
+
+      <Show when={editing() === 'contacts'}>
+        <OverlayDialog
+          open
+          title="Контакты врача"
+          class="screen-editor__dialog"
+          onClose={() => setEditing(undefined)}
+        >
+          <ContactsEditor draft={props.draft} patch={patch} onDone={() => setEditing(undefined)} />
+        </OverlayDialog>
+      </Show>
+      <Show when={sectionOf(editing())}>
+        {(section) => (
+          <OverlayDialog
+            open
+            title={titleOf(section())}
+            subtitle={CARE_SECTION_LABEL[section().kind]}
+            class="screen-editor__dialog"
+            onClose={() => setEditing(undefined)}
+          >
+            <SectionEditor
+              section={section()}
+              frequent={props.frequent ?? []}
+              taken={quizzes()}
+              onChange={(next) => replace(section().key, next)}
+              onRemove={() => remove(section().key)}
+              onDone={() => setEditing(undefined)}
+            />
+          </OverlayDialog>
+        )}
+      </Show>
+      <Show
+        when={(() => {
+          const current = preview();
+          return current ? sectionOf(current.key) : undefined;
+        })()}
+      >
+        {(section) => (
+          <Suspense>
+            <QuestionnaireSheet
+              day={today}
+              checkpoint={quizCheckpoint(section())}
+              entry={undefined}
+              onSave={() => {
+                // The doctor's try-out is not an answer: nothing is saved.
+                setPreview(undefined);
+                return undefined;
+              }}
+              onAlert={() => undefined}
+              onClose={() => setPreview(undefined)}
+            />
+          </Suspense>
+        )}
+      </Show>
     </div>
   );
 }

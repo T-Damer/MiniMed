@@ -231,7 +231,7 @@ export function DoseSheet(props: {
       <GrowingText
         label={taken() ? 'Что ещё заметили' : 'Почему пропустили'}
         value={note()}
-        placeholder={taken() ? 'Необязательно' : 'Например: забыл(а), закончились таблетки'}
+        placeholder={taken() ? 'Опишите ваши ощущения' : 'Например: забыл(а), закончились таблетки'}
         onInput={setNote}
       />
     </DiarySheet>
@@ -321,7 +321,7 @@ export function ScoreSheet(props: {
       <GrowingText
         label="Комментарий"
         value={note()}
-        placeholder="Необязательно: что повлияло на самочувствие"
+        placeholder="Опишите, что повлияло на самочувствие"
         onInput={setNote}
       />
     </DiarySheet>
@@ -573,7 +573,7 @@ export function AnswerSheet(props: {
         <GrowingText
           label="Комментарий"
           value={note()}
-          placeholder="Необязательно"
+          placeholder="Опишите ваши ощущения"
           onInput={setNote}
         />
       </Show>

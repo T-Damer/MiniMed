@@ -2,9 +2,11 @@
  * Care diary: the day page, its sheets and the month calendar. Patient pages use a calmer blue-teal
  * accent than the doctor's app (owner 2026-10-27). Sheets are portalled into <body>, so the accent
  * is set on the body of a care diary rather than on the page element. Motion follows the app's
- * fast iOS-like rules; the diary bundle has no global.css, so the tokens carry fallbacks.
+ * fast iOS-like rules; the diary bundle has no global.css, so the tokens carry fallbacks. Doctor
+ * views that show the patient's screen inside the main app wrap it in `.diary-care-scope`.
  */
-.diary-body:has(.diary-page--care) {
+.diary-body:has(.diary-page--care),
+body:has(.diary-care-scope) {
   --theme-accent: #3c6478;
   --theme-accent-text: #2f5466;
   --theme-accent-contrast: #f4f7f8;
@@ -19,10 +21,13 @@
   --care-base: var(--motion-base, 180ms);
   --care-slow: var(--motion-slow, 240ms);
   --care-ease: var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  --care-edit-dash: var(--theme-accent);
+  --care-edit-gap: color-mix(in srgb, #e8b931 60%, var(--theme-surface-raised));
 }
 
 @media (prefers-color-scheme: dark) {
-  .diary-body:has(.diary-page--care) {
+  .diary-body:has(.diary-page--care),
+  body:has(.diary-care-scope) {
     --theme-accent: #8fb8cc;
     --theme-accent-text: #9cc4d6;
     --theme-accent-contrast: #12191c;
@@ -48,6 +53,16 @@
 .diary-today {
   gap: 1.1rem;
   padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* The doctor's look at the patient's screen: no bottom bar, inside the app's own page chrome. */
+.diary-today--doctor {
+  width: 100%;
+  min-height: 0;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  border-radius: 1.25rem 1.25rem 0 0;
 }
 
 .diary-today__header {
@@ -326,6 +341,53 @@
   height: 1.5rem;
 }
 
+/*
+ * Something the doctor can change on the patient's screen (owner 2026-10-28): a dashed frame in two
+ * colours — accent dashes over warm gaps — so editable parts never pass for the patient's own.
+ */
+.care-row--editable,
+.care-editable {
+  border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
+  background:
+    linear-gradient(
+      var(--care-edit-fill, var(--theme-surface-raised)),
+      var(--care-edit-fill, var(--theme-surface-raised))
+    )
+    padding-box,
+    var(--care-edit-gap, #ecd9a0) border-box;
+}
+
+.care-editable--empty {
+  --care-edit-fill: var(--theme-surface-muted);
+  color: var(--theme-text-muted);
+}
+
+.care-row__edit {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  border: 0;
+  color: var(--theme-accent-text);
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--care-fast) var(--care-ease);
+}
+
+.care-row__edit:active {
+  transform: scale(0.96);
+}
+
+.care-row__edit:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -4px;
+}
+
+.care-row__edit-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .care-row__main {
   display: grid;
   flex: 1;
@@ -421,7 +483,7 @@
   border: 1px dashed color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
   border-radius: var(--theme-radius-panel, 0.75rem);
   color: var(--theme-accent-text);
-  background: transparent;
+  background: var(--theme-surface-raised);
   font: inherit;
   font-weight: 600;
   cursor: pointer;

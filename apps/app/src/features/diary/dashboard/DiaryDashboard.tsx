@@ -45,6 +45,7 @@ import {
   PATIENT_ORDER_LABEL,
   type PatientOrder,
 } from '@/features/diary/dashboard/patient-order';
+import { isOnline } from '@/features/diary/dashboard/presence';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
@@ -102,8 +103,14 @@ function PatientRow(props: {
         >
           <span class="diary-dash-row__avatar" aria-hidden="true">
             {props.patient.replica.profile?.emoji ?? '🙂'}
+            <Show when={isOnline(props.patient.summary)}>
+              <span class="diary-dash-row__online" />
+            </Show>
           </span>
           <span class="diary-dash-row__text">
+            <Show when={isOnline(props.patient.summary)}>
+              <span class="visually-hidden">В сети.</span>
+            </Show>
             <span class="diary-dash-row__name">
               {props.patient.replica.profile?.label ??
                 (status() === 'pending' ? 'Приглашение к пациенту' : 'Пациент')}
@@ -152,6 +159,8 @@ export function DiaryDashboard(props: {
   const [order, setOrder] = createSignal<PatientOrder>(readOrder());
   const [showArchive, setShowArchive] = createSignal(false);
   const [leaving, setLeaving] = createSignal(false);
+  /** Archived patients waiting for «Удалить» to be confirmed. */
+  const [deleting, setDeleting] = createSignal<readonly DoctorPatient[]>([]);
   const [pushHelp, setPushHelp] = createSignal(false);
   const chooseOrder = (next: PatientOrder): void => {
     setOrder(next);
@@ -304,6 +313,24 @@ export function DiaryDashboard(props: {
       );
   };
 
+  /** Archived patients this doctor owns: only the owner can delete a diary. */
+  const deletable = createMemo(() =>
+    listed().archived.filter((patient) => patient.summary.role === 'owner'),
+  );
+
+  const remove = async (doomed: readonly DoctorPatient[]): Promise<void> => {
+    setDeleting([]);
+    const diaries = workspace();
+    if (!diaries) return;
+    try {
+      for (const patient of doomed) await diaries.removePatient(patient.summary.id);
+      playFeedback(...FEEDBACK_MOMENTS.saved);
+    } catch (cause) {
+      playFeedback(...FEEDBACK_MOMENTS.failed);
+      setError(cause instanceof Error ? cause.message : 'Не удалось удалить.');
+    }
+  };
+
   const row = (patient: DoctorPatient): JSX.Element => {
     const id = patient.summary.id;
     const phone = patient.replica.profile?.phone;
@@ -357,6 +384,17 @@ export function DiaryDashboard(props: {
                 },
               ]
             : []),
+          ...(archived && patient.summary.role === 'owner'
+            ? [
+                {
+                  id: 'delete',
+                  label: 'Удалить',
+                  icon: 'trash' as const,
+                  danger: true,
+                  onSelect: () => setDeleting([patient]),
+                },
+              ]
+            : []),
         ]}
       />
     );
@@ -405,6 +443,26 @@ export function DiaryDashboard(props: {
           />
         )}
       </Show>
+      <ConfirmationDialog
+        open={deleting().length > 0}
+        title={
+          deleting().length === 1
+            ? `Удалить «${label(deleting()[0]?.summary.id ?? '')}»?`
+            : `Удалить ${deleting().length} ${pluralize(deleting().length, 'пациента', 'пациентов', 'пациентов')}?`
+        }
+        description={
+          <p>
+            Дневник и все записи удалятся с сервера, у пациента он перестанет обновляться. Вернуть
+            не получится.
+          </p>
+        }
+        confirmLabel="Удалить"
+        danger
+        onConfirm={() => void remove(deleting())}
+        onOpenChange={(open) => {
+          if (!open) setDeleting([]);
+        }}
+      />
       <Show when={pushHelp() && session()}>
         {(current) => (
           <PushHelpDialog
@@ -601,16 +659,19 @@ export function DiaryDashboard(props: {
                     </div>
                   }
                 >
-                  <SegmentedControl
-                    label="Порядок"
-                    class="diary-dash__order"
-                    value={order()}
-                    options={(['patient', 'doctor', 'name'] as const).map((value) => ({
-                      value,
-                      label: PATIENT_ORDER_LABEL[value],
-                    }))}
-                    onChange={chooseOrder}
-                  />
+                  <div class="diary-dash__order-row">
+                    <AppGlyph name="arrows-down-up" class="diary-dash__order-glyph" />
+                    <SegmentedControl
+                      label="Порядок"
+                      class="diary-dash__order"
+                      value={order()}
+                      options={(['patient', 'doctor', 'name'] as const).map((value) => ({
+                        value,
+                        label: PATIENT_ORDER_LABEL[value],
+                      }))}
+                      onChange={chooseOrder}
+                    />
+                  </div>
                   <ul class="diary-dash-list">
                     <For each={listed().active}>{(patient) => row(patient)}</For>
                   </ul>
@@ -632,6 +693,16 @@ export function DiaryDashboard(props: {
                       <ul class="diary-dash-list diary-dash-list--archive">
                         <For each={listed().archived}>{(patient) => row(patient)}</For>
                       </ul>
+                      <Show when={deletable().length}>
+                        <Button
+                          variant="quiet"
+                          class="diary-dash__archive-clear"
+                          icon={<AppGlyph name="trash" />}
+                          onClick={() => setDeleting(deletable())}
+                        >
+                          {deletable().length === 1 ? 'Удалить' : 'Удалить все'}
+                        </Button>
+                      </Show>
                     </Show>
                   </Show>
                 </Show>

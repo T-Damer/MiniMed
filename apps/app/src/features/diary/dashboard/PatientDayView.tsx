@@ -1,10 +1,14 @@
 import { createMemo, createSignal, type JSX, Show } from 'solid-js';
 
+import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
+import { Heading } from '@/components/Text';
 import { DiaryToday } from '@/diary/DiaryToday';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { parseDiaryEntry } from '@/features/diary/diary-model';
+import '@/diary/diary-page.css';
 import '@/diary/diary-care.css';
 
 /**
@@ -26,18 +30,44 @@ export function PatientDayView(props: {
     return replicaResults(props.patient.replica);
   });
   const canEdit = (): boolean => props.patient.summary.role !== 'reader';
+  let openers: { readonly openContacts: () => void; readonly openCrisis: () => void } | undefined;
+  const actions = createMemo((): readonly HeaderAction[] => [
+    ...(results()?.invitation.contacts?.length
+      ? [
+          {
+            id: 'contacts',
+            label: 'Контакты врача, как у пациента',
+            icon: 'phone' as const,
+            priority: 2 as const,
+            onSelect: () => openers?.openContacts(),
+          },
+        ]
+      : []),
+    {
+      id: 'crisis',
+      label: 'Помощь, если очень плохо',
+      icon: 'lifebuoy' as const,
+      priority: 1 as const,
+      onSelect: () => openers?.openCrisis(),
+    },
+  ]);
   const fail = (cause: unknown): void => {
     setError(cause instanceof Error ? cause.message : 'Не удалось сохранить исправление.');
   };
 
   return (
-    <div class="diary-day-view">
-      <div class="diary-day-view__bar">
-        <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onBack} />
-        <span class="diary-day-view__who">
-          {props.patient.replica.profile?.emoji} {props.patient.replica.profile?.label}
-        </span>
-      </div>
+    <div class="diary-day-view diary-care-scope">
+      <Page
+        navigation={
+          <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onBack} />
+        }
+        title={
+          <Heading depth={1}>
+            {`${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim()}
+          </Heading>
+        }
+        headerActions={actions()}
+      />
       <Show when={error()}>
         <p class="diary-dash__error" role="alert">
           {error()}
@@ -50,6 +80,9 @@ export function PatientDayView(props: {
         {(current) => (
           <DiaryToday
             viewer="doctor"
+            controls={(api) => {
+              openers = api;
+            }}
             initialDay={props.day}
             results={current()}
             status={{

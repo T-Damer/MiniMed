@@ -149,8 +149,9 @@ export function App(): JSX.Element {
     activeProfile()?.navigation ?? (expandedNavigation() ? ROOT_VIEWS : COMPACT_ROOT_VIEWS);
   // The tab the herbal book was opened from (it is a search section and a files folder).
   const [herbalOrigin, setHerbalOrigin] = createSignal<RootView | undefined>();
+  // A profile's bar lists its own tabs, so the view itself is the active tab (no folding).
   const navView = () =>
-    expandedNavigation()
+    expandedNavigation() || activeProfile()
       ? navigation.view()
       : compactRootView(navigation.view(), currentHash(), herbalOrigin());
   const navigateTab = (next: RootView): void => {

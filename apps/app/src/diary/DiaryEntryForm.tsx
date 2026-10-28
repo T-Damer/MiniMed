@@ -492,7 +492,7 @@ export function DiaryEntryForm(props: {
       </div>
       <div class="diary-field">
         <label class="diary-field__label" for={`${formId}-note`}>
-          Комментарий (необязательно)
+          Комментарий
         </label>
         <input
           id={`${formId}-note`}

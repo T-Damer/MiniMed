@@ -21,10 +21,20 @@ import { StatCard, StatGrid } from '@/components/StatCard';
 import { Heading } from '@/components/Text';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { pluralize } from '@/diary/diary-format';
+import {
+  createHeatFilter,
+  DOCTOR_HEAT_FILTER_KEY,
+  effectiveHeatParts,
+} from '@/diary/heatmap-filter';
 import '@/diary/diary-care.css';
 import type { DiaryAlert } from '@localmed/contracts';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import {
+  chartSeries,
+  DIARY_CHARTS,
+  type DiaryChart,
+} from '@/features/diary/dashboard/diary-charts';
 import {
   type AlertCause,
   adherence,
@@ -33,8 +43,10 @@ import {
   exportXlsx,
   fieldSeries,
   medicineAdherence,
+  type QuestionnaireSeries,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
+import { LimitDialog, type LimitTarget } from '@/features/diary/dashboard/LimitDialog';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import {
   AlertDialog,
@@ -44,6 +56,7 @@ import {
   TipsDialog,
 } from '@/features/diary/dashboard/PatientDialogs';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
+import { isOnline, presenceLabel } from '@/features/diary/dashboard/presence';
 import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
 import {
   dayKey,
@@ -54,7 +67,7 @@ import {
   heatParts,
 } from '@/features/diary/diary-care';
 import { type DiaryEntry, describeDiaryEntry } from '@/features/diary/diary-model';
-import { ASSESSMENT_LIMIT_LABEL, assessmentLimit, crossesLimit } from '@/state/assessment-limits';
+import { assessmentLimit, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 
 type Dialog =
   | 'pair'
@@ -63,7 +76,8 @@ type Dialog =
   | 'export'
   | { readonly correct: DiaryEntry }
   | { readonly alert: DiaryAlert }
-  | { readonly notice: AlertCause };
+  | { readonly notice: AlertCause }
+  | { readonly limit: readonly LimitTarget[] };
 type Period = '14' | '30' | '90';
 
 function download(blob: Blob, name: string): void {
@@ -80,6 +94,19 @@ function download(blob: Blob, name: string): void {
 function within(entries: readonly DiaryEntry[], days: number): DiaryEntry[] {
   const since = Date.now() - days * 86_400_000;
   return entries.filter((entry) => Date.parse(entry.at) >= since);
+}
+
+const MEASURED_VITALS = ['systolic', 'diastolic', 'pulse', 'spo2'] as const;
+const MEASURED_SCORES = ['wellbeing', 'mood'] as const;
+
+/** The red lines a declared chart draws, as the «Порог тревоги» dialog edits them. */
+function chartLimits(chart: DiaryChart): (LimitTarget & { readonly axis?: 'right' })[] {
+  return (chart.limits ?? []).map((limit) => ({
+    id: limit.id,
+    label: MEASUREMENT_LIMIT_LABEL[limit.id] ?? limit.id,
+    ...(limit.unit ? { unit: limit.unit } : {}),
+    ...(limit.axis ? { axis: limit.axis } : {}),
+  }));
 }
 
 /**
@@ -114,7 +141,11 @@ export function DiaryPatientPage(props: {
   const title = () =>
     `${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim();
 
-  const [include, setInclude] = createSignal<ReadonlySet<HeatPart>>(new Set());
+  const [savedParts, setInclude] = createHeatFilter(DOCTOR_HEAT_FILTER_KEY);
+  const include = createMemo(() => {
+    const current = results();
+    return current ? effectiveHeatParts(heatParts(current.invitation), savedParts()) : savedParts();
+  });
   const heat = createMemo(() => {
     const current = results();
     if (!current) return [];
@@ -147,16 +178,33 @@ export function DiaryPatientPage(props: {
     },
     ({ current }) => questionnaireSeries(current.invitation, current.entries),
   );
-  /** Questionnaire days over the doctor's red line (worse with the schema's own alerts). */
+  /**
+   * Days over the doctor's red lines: questionnaire totals (worse with the schema's own alerts),
+   * measurements and self-ratings; only the parts the calendar counts.
+   */
   const symptomDays = createMemo(() => {
     const days = new Map<string, 0 | 1 | 2 | 3 | 4>();
-    if (include().size && !include().has('questionnaires')) return days;
-    for (const series of quizzes() ?? []) {
-      const slug = series.checkpointId.replace(/^q-/u, '');
-      for (const point of series.points) {
-        const level = point.alerts.length ? 4 : crossesLimit(slug, point.total) ? 3 : 0;
-        const day = dayKey(point.at);
-        if (level > (days.get(day) ?? 0)) days.set(day, level);
+    const counts = (part: HeatPart): boolean => !include().size || include().has(part);
+    const raise = (at: string, level: 0 | 1 | 2 | 3 | 4): void => {
+      const day = dayKey(at);
+      if (level > (days.get(day) ?? 0)) days.set(day, level);
+    };
+    if (counts('questionnaires')) {
+      for (const series of quizzes.latest ?? []) {
+        for (const point of series.points) {
+          const over = crossesLimit(series.limitId, point.total, series.preset);
+          raise(point.at, point.alerts.length ? 4 : over ? 3 : 0);
+        }
+      }
+    }
+    const measured = [
+      ...(counts('vitals') ? MEASURED_VITALS : []),
+      ...(counts('scores') ? MEASURED_SCORES : []),
+    ];
+    for (const entry of results()?.entries ?? []) {
+      for (const id of measured) {
+        const value = entry.values[id];
+        if (typeof value === 'number' && crossesLimit(id, value)) raise(entry.at, 2);
       }
     }
     return days;
@@ -239,13 +287,30 @@ export function DiaryPatientPage(props: {
   };
 
   /** The doctor's red lines for these measurements or questionnaires. */
-  const limitsOf = (ids: readonly string[]): TrendLimit[] =>
-    ids.flatMap((id) => {
-      const limit = assessmentLimit(id);
-      return limit
-        ? [{ value: limit.value, label: `${ASSESSMENT_LIMIT_LABEL[id] ?? id}: порог` }]
-        : [];
+  const limitsOf = (targets: readonly LimitTarget[]): TrendLimit[] =>
+    targets.flatMap((target) => {
+      const limit = assessmentLimit(target.id, target.preset);
+      return limit ? [{ value: limit.value, label: `${target.label}: порог` }] : [];
     });
+  const openLimit = (targets: readonly LimitTarget[]) => () => setDialog({ limit: targets });
+  /** The latest answers raised the schema's alerts or crossed the red line: why, one tap away. */
+  const quizWarning = (series: QuestionnaireSeries) => {
+    const last = series.points.at(-1);
+    if (!last) return undefined;
+    if (!last.alerts.length && !crossesLimit(series.limitId, last.total, series.preset)) {
+      return undefined;
+    }
+    return {
+      label: `${series.title}: ${last.total} из ${last.max}, ${last.headline}`,
+      onOpen: () => setDialog({ notice: { title: series.title, point: last } }),
+    };
+  };
+  const quizLimit = (series: QuestionnaireSeries): LimitTarget => ({
+    id: series.limitId,
+    label: series.title,
+    unit: 'баллов',
+    preset: series.preset,
+  });
 
   const exportAs = async (kind: 'csv' | 'xlsx'): Promise<void> => {
     const current = results();
@@ -267,6 +332,23 @@ export function DiaryPatientPage(props: {
           <NavBack class="knowledge-back-button" aria-label="К списку" onClick={props.onBack} />
         }
         title={<Heading depth={1}>{title()}</Heading>}
+        description={(() => {
+          void props.version;
+          const label = presenceLabel(props.patient.summary);
+          return label ? (
+            <span
+              class="diary-presence"
+              classList={{ 'diary-presence--online': isOnline(props.patient.summary) }}
+            >
+              <span
+                class="diary-presence__dot"
+                classList={{ 'diary-presence__dot--online': isOnline(props.patient.summary) }}
+                aria-hidden="true"
+              />
+              {label}
+            </span>
+          ) : undefined;
+        })()}
         headerActions={actions()}
         help={
           <>
@@ -401,7 +483,10 @@ export function DiaryPatientPage(props: {
             />
 
             <Show when={medicines().length}>
-              <section class="diary-patient__section" aria-label="Приём лекарств">
+              <section
+                class="diary-patient__section diary-patient__section--card"
+                aria-label="Приём лекарств"
+              >
                 <h2 class="diary-patient__heading">Приём лекарств</h2>
                 <ul class="diary-adherence">
                   <For each={medicines()}>
@@ -435,115 +520,38 @@ export function DiaryPatientPage(props: {
             </Show>
 
             <div class="diary-patient__charts">
-              <Show when={fieldSeries(recent(), 'wellbeing').length}>
-                <TrendChart
-                  from={Date.now() - Number(period()) * 86_400_000}
-                  to={Date.now()}
-                  title="Самочувствие (0–10)"
-                  limits={limitsOf(['wellbeing'])}
-                  min={0}
-                  max={10}
-                  series={[
-                    {
-                      label: 'Утром',
-                      points: fieldSeries(recent(), 'wellbeing', 'am'),
-                      color: '--theme-accent',
-                    },
-                    {
-                      label: 'Вечером',
-                      points: fieldSeries(recent(), 'wellbeing', 'pm'),
-                      color: '--theme-warning',
-                    },
-                  ]}
-                />
-              </Show>
-              <Show when={fieldSeries(recent(), 'mood').length}>
-                <TrendChart
-                  from={Date.now() - Number(period()) * 86_400_000}
-                  to={Date.now()}
-                  title="Настроение (0–10)"
-                  min={0}
-                  max={10}
-                  series={[
-                    {
-                      label: 'Настроение',
-                      points: fieldSeries(recent(), 'mood'),
-                      color: '--theme-info',
-                    },
-                  ]}
-                  limits={limitsOf(['mood'])}
-                />
-              </Show>
-              <Show when={fieldSeries(recent(), 'weight').length}>
-                <TrendChart
-                  from={Date.now() - Number(period()) * 86_400_000}
-                  to={Date.now()}
-                  title="Вес, кг"
-                  series={[
-                    {
-                      label: 'Вес',
-                      points: fieldSeries(recent(), 'weight'),
-                      color: '--theme-accent',
-                    },
-                  ]}
-                />
-              </Show>
-              <Show when={fieldSeries(recent(), 'systolic').length}>
-                <TrendChart
-                  from={Date.now() - Number(period()) * 86_400_000}
-                  to={Date.now()}
-                  title="Давление, мм рт. ст."
-                  series={[
-                    {
-                      label: 'Верхнее',
-                      points: fieldSeries(recent(), 'systolic'),
-                      color: '--theme-danger',
-                    },
-                    {
-                      label: 'Нижнее',
-                      points: fieldSeries(recent(), 'diastolic'),
-                      color: '--theme-warning',
-                    },
-                  ]}
-                  limits={limitsOf(['systolic', 'diastolic'])}
-                />
-              </Show>
-              <Show
-                when={fieldSeries(recent(), 'pulse').length || fieldSeries(recent(), 'spo2').length}
-              >
-                <TrendChart
-                  from={Date.now() - Number(period()) * 86_400_000}
-                  to={Date.now()}
-                  title="Пульс и сатурация"
-                  series={[
-                    {
-                      label: 'Пульс, уд/мин',
-                      points: fieldSeries(recent(), 'pulse'),
-                      color: '--theme-accent',
-                    },
-                    {
-                      label: 'SpO₂, %',
-                      points: fieldSeries(recent(), 'spo2'),
-                      color: '--theme-info',
-                      axis: 'right',
-                    },
-                  ]}
-                  rightMin={85}
-                  rightMax={100}
-                  limits={[
-                    ...limitsOf(['pulse']),
-                    ...limitsOf(['spo2']).map((limit) => ({ ...limit, axis: 'right' as const })),
-                  ]}
-                />
-              </Show>
-              <For each={quizzes() ?? []}>
+              <For each={DIARY_CHARTS}>
+                {(chart) => (
+                  <Show when={chartSeries(chart, recent()).length}>
+                    <TrendChart
+                      from={Date.now() - Number(period()) * 86_400_000}
+                      to={Date.now()}
+                      title={chart.title}
+                      min={chart.min}
+                      max={chart.max}
+                      rightMin={chart.rightMin}
+                      rightMax={chart.rightMax}
+                      series={chartSeries(chart, recent())}
+                      limits={chartLimits(chart).flatMap((target) =>
+                        limitsOf([target]).map((limit) =>
+                          target.axis ? { ...limit, axis: target.axis } : limit,
+                        ),
+                      )}
+                      onLimit={chart.limits?.length ? openLimit(chartLimits(chart)) : undefined}
+                    />
+                  </Show>
+                )}
+              </For>
+              <For each={quizzes.latest ?? []}>
                 {(series) => (
                   <section class="diary-patient__quiz">
                     <TrendChart
                       from={Date.now() - Number(period()) * 86_400_000}
                       to={Date.now()}
                       title={`${series.title}, сумма баллов`}
-                      limits={limitsOf([series.checkpointId.replace(/^q-/u, '')])}
+                      limits={limitsOf([quizLimit(series)])}
+                      onLimit={openLimit([quizLimit(series)])}
+                      warning={quizWarning(series)}
                       min={0}
                       max={series.points[0]?.max}
                       series={[
@@ -557,45 +565,43 @@ export function DiaryPatientPage(props: {
                         },
                       ]}
                     />
-                    <Show when={series.points.at(-1)}>
-                      {(last) => (
-                        <p class="diary-patient__quiz-last">
-                          <span class="diary-patient__quiz-text">
-                            Последний: {last().total} из {last().max} — {last().headline}
-                          </span>
-                          <Show when={last().alertDetails.length}>
-                            <button
-                              type="button"
-                              class="diary-patient__quiz-alert"
-                              aria-label={`Важно: ${last().alerts.join('; ')}`}
-                              onClick={() =>
-                                setDialog({
-                                  notice: { title: series.title, point: last() },
-                                })
-                              }
-                            >
-                              !
-                            </button>
-                          </Show>
-                        </p>
-                      )}
-                    </Show>
                   </section>
                 )}
               </For>
             </div>
 
             <section class="diary-patient__section" aria-label="Записи дня">
-              <h2 class="diary-patient__heading" ref={dayHeading}>
-                {new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })}
-              </h2>
+              <div class="diary-patient__day-head">
+                <h2 class="diary-patient__heading" ref={dayHeading}>
+                  {new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  })}
+                </h2>
+                <Show when={dayEntries().length}>
+                  <Button
+                    variant="icon"
+                    aria-label="Экран пациента в этот день"
+                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
+                    onClick={() => props.onOpen(`day/${day()}`)}
+                  />
+                </Show>
+              </div>
               <Show
                 when={dayEntries().length}
-                fallback={<p class="diary-dash__quiet">В этот день записей нет.</p>}
+                fallback={
+                  <div class="diary-patient__day-empty">
+                    <p class="diary-dash__quiet">В этот день записей нет.</p>
+                    <Button
+                      variant="secondary"
+                      icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
+                      onClick={() => props.onOpen(`day/${day()}`)}
+                    >
+                      {canEdit() ? 'Открыть день и отметить' : 'Открыть день пациента'}
+                    </Button>
+                  </div>
+                }
               >
                 <ul class="diary-timeline">
                   <For each={dayEntries()}>
@@ -733,6 +739,14 @@ export function DiaryPatientPage(props: {
               onClose={() => setDialog(undefined)}
             />
           )}
+        </Match>
+        <Match
+          when={(() => {
+            const current = dialog();
+            return typeof current === 'object' && 'limit' in current ? current.limit : undefined;
+          })()}
+        >
+          {(targets) => <LimitDialog targets={targets()} onClose={() => setDialog(undefined)} />}
         </Match>
       </Switch>
     </div>

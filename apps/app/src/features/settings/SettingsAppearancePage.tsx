@@ -1,4 +1,4 @@
-import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
+import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { RangeSlider } from '@/components/RangeSlider';
@@ -21,6 +21,7 @@ import {
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
+import { settingShown } from '@/state/app-profile';
 import {
   getThemePreference,
   setThemePreference,
@@ -137,57 +138,63 @@ export function SettingsAppearancePage(): JSX.Element {
         />
       </div>
 
-      <div class="settings-row">
-        <div class="settings-row__text">
-          <span class="settings-row__label settings-row__label--with-icon">
-            <AppGlyph name="squares-four" class="settings-row__label-icon" aria-hidden="true" />
-            Отдельные вкладки разделов
-          </span>
-          <p class="settings-row__helper">
-            Показывать базу знаний, опросники, калькуляторы и заметки отдельными кнопками внизу
-            экрана.
-          </p>
+      <Show when={settingShown('split-navigation')}>
+        <div class="settings-row">
+          <div class="settings-row__text">
+            <span class="settings-row__label settings-row__label--with-icon">
+              <AppGlyph name="squares-four" class="settings-row__label-icon" aria-hidden="true" />
+              Отдельные вкладки разделов
+            </span>
+            <p class="settings-row__helper">
+              Показывать базу знаний, опросники, калькуляторы и заметки отдельными кнопками внизу
+              экрана.
+            </p>
+          </div>
+          <Switch
+            checked={splitNavigation()}
+            aria-label="Отдельные вкладки разделов"
+            onChange={setSplitNavigation}
+          />
         </div>
-        <Switch
-          checked={splitNavigation()}
-          aria-label="Отдельные вкладки разделов"
-          onChange={setSplitNavigation}
-        />
-      </div>
+      </Show>
 
-      <div class="settings-row">
-        <div class="settings-row__text">
-          <span class="settings-row__label settings-row__label--with-icon">
-            <AppGlyph name="lightbulb" class="settings-row__label-icon" aria-hidden="true" />
-            Полезные функции на главной
-          </span>
-          <p class="settings-row__helper">
-            Карточки с возможностями приложения под строкой поиска.
-          </p>
+      <Show when={settingShown('useful-features')}>
+        <div class="settings-row">
+          <div class="settings-row__text">
+            <span class="settings-row__label settings-row__label--with-icon">
+              <AppGlyph name="lightbulb" class="settings-row__label-icon" aria-hidden="true" />
+              Полезные функции на главной
+            </span>
+            <p class="settings-row__helper">
+              Карточки с возможностями приложения под строкой поиска.
+            </p>
+          </div>
+          <Switch
+            checked={usefulFeatures()}
+            aria-label="Полезные функции на главной"
+            onChange={setUsefulFeaturesShown}
+          />
         </div>
-        <Switch
-          checked={usefulFeatures()}
-          aria-label="Полезные функции на главной"
-          onChange={setUsefulFeaturesShown}
-        />
-      </div>
+      </Show>
 
-      <div class="settings-row">
-        <div class="settings-row__text">
-          <span class="settings-row__label settings-row__label--with-icon">
-            <AppGlyph name="frame-corners" class="settings-row__label-icon" aria-hidden="true" />
-            Плавающие окна
-          </span>
-          <p class="settings-row__helper">
-            Открывать документы и калькуляторы в маленьком окне поверх текущего экрана.
-          </p>
+      <Show when={settingShown('floating-windows')}>
+        <div class="settings-row">
+          <div class="settings-row__text">
+            <span class="settings-row__label settings-row__label--with-icon">
+              <AppGlyph name="frame-corners" class="settings-row__label-icon" aria-hidden="true" />
+              Плавающие окна
+            </span>
+            <p class="settings-row__helper">
+              Открывать документы и калькуляторы в маленьком окне поверх текущего экрана.
+            </p>
+          </div>
+          <Switch
+            checked={floatingWindowsEnabled()}
+            aria-label="Плавающие окна"
+            onChange={(enabled) => setFloatingWindowsEnabled(enabled)}
+          />
         </div>
-        <Switch
-          checked={floatingWindowsEnabled()}
-          aria-label="Плавающие окна"
-          onChange={(enabled) => setFloatingWindowsEnabled(enabled)}
-        />
-      </div>
+      </Show>
     </section>
   );
 }

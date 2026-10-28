@@ -70,6 +70,7 @@ import { filterByAge } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import { navigateBack, visitRoute } from '@/state/app-back';
 import { getSplitNavigation } from '@/state/app-preferences';
+import { activeProfile } from '@/state/app-profile';
 import {
   ASSESSMENT_RESULTS_EVENT,
   ASSESSMENT_RESULTS_KEY,
@@ -436,6 +437,12 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
   const navigate = (hash: string): void => {
     window.location.hash = hash;
   };
+  /**
+   * Where back from an own questionnaire falls to without history: its list when the list is a
+   * tab (split navigation, a narrowed profile), else the search home.
+   */
+  const questionnaireBackFallback = (): string =>
+    getSplitNavigation() || activeProfile() ? userQuestionnaireHomePath() : '#/search';
 
   const installToolModule = async (moduleId: string | undefined): Promise<void> => {
     if (!moduleId) return;
@@ -702,7 +709,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           recentRecords={records().slice(0, 8)}
           userQuestionnaires={userQuestionnaires()}
           onQuery={setQuery}
-          onBack={() => navigateBack('#/assessments')}
+          onBack={() => navigateBack(activeProfile()?.home ?? '#/assessments')}
           onHome={() => visitRoute('#/search')}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
@@ -833,9 +840,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             <Button
               type="button"
               class="assessment-pack-required__button"
-              onClick={() =>
-                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search')
-              }
+              onClick={() => navigate(questionnaireBackFallback())}
             >
               К моим опросникам
             </Button>
@@ -854,8 +859,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           <UserQuestionnaireEditorPage
             stored={stored()}
             onBack={() => {
-              if (!returnFromTool())
-                navigateBack(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+              if (!returnFromTool()) navigateBack(questionnaireBackFallback());
             }}
             onRun={() => navigate(userQuestionnairePath(stored().file.id))}
             onMessage={setMessage}
@@ -887,8 +891,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             {...(userDraftRecord() ? { initialRecord: userDraftRecord() } : {})}
             sectionTitle="Мои опросники"
             onBack={() => {
-              if (!returnFromTool())
-                navigateBack(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+              if (!returnFromTool()) navigateBack(questionnaireBackFallback());
             }}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
