@@ -81,7 +81,11 @@ for (const width of [375, 1280]) {
         return { size: style.backgroundSize.split(',')[1]?.trim(), color: style.backgroundColor };
       });
     const before = await tint();
-    expect(before.size).toBe(`100% ${844}px`);
+    // «Заметки» has a hero (components/PageHero.tsx): its page is one flat sheet under the band.
+    // Elsewhere the tint spans one viewport. Either way it never stretches with the content.
+    expect(await desk.evaluate((element) => element.querySelector('.page--hero') !== null)).toBe(
+      true,
+    );
     await desk.evaluate((element) => {
       (element as HTMLElement).style.minHeight = '400rem';
     });

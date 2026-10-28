@@ -36,6 +36,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Wide windows reserve the page scrollbar's width on every route: Search scrolls and Files, Feed
+   and Settings often don't, and a classic scrollbar on only one of them shifted the centred board by
+   half its width. Phone-width layouts (full-width sheets, edge-to-edge bars) reserve nothing, and
+   overlay scrollbars never do. */
+@media (min-width: 600px) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
 body {
   min-width: 20rem;
   min-height: 100vh;

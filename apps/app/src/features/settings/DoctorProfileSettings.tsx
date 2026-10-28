@@ -1,4 +1,4 @@
-import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -6,19 +6,24 @@ import { SheetPopover } from '@/components/SheetPopover';
 import {
   type DoctorProfile,
   getDoctorProfile,
+  noteDoctorField,
+  PROFILE_FULL_CONFIDENCE,
   resetDoctorProfile,
   subscribeDoctorProfile,
 } from '@/features/reference/doctor-profile';
 import { doctorProfileFieldsLine } from '@/features/reference/doctor-profile-feeds';
+import { MEDICAL_FIELDS } from '@/features/reference/medical-fields';
 import '@/styles/doctor-profile-settings.css';
 
 /**
  * «Профиль врача»: the specialties the app has noticed you read, used only to put the likelier
- * meaning of an ambiguous term first. Lives on this device; «Сбросить» forgets it.
+ * meaning of an ambiguous term first. Lives on this device. Empty, it offers «Добавить» (pick the
+ * specialties by hand); learned, «Сбросить» forgets it.
  */
 export function DoctorProfileSettings(): JSX.Element {
   const [profile, setProfile] = createSignal<DoctorProfile>(getDoctorProfile());
   const [helpOpen, setHelpOpen] = createSignal(false);
+  const [pickOpen, setPickOpen] = createSignal(false);
   const empty = (): boolean => Object.keys(profile().fields).length === 0;
 
   onMount(() => {
@@ -50,20 +55,48 @@ export function DoctorProfileSettings(): JSX.Element {
             </p>
           </SheetPopover>
         </span>
-        <p
-          class="settings-row__helper doctor-profile-settings__summary"
-          data-testid="doctor-profile-summary"
-        >
-          {doctorProfileFieldsLine(profile())}
-        </p>
+        <Show when={!empty()}>
+          <p
+            class="settings-row__helper doctor-profile-settings__summary"
+            data-testid="doctor-profile-summary"
+          >
+            {doctorProfileFieldsLine(profile())}
+          </p>
+        </Show>
       </div>
-      <Button
-        class="settings-row__action"
-        disabled={empty()}
-        onClick={() => setProfile(resetDoctorProfile())}
+      <Show
+        when={!empty()}
+        fallback={
+          <SheetPopover
+            open={pickOpen()}
+            onOpenChange={setPickOpen}
+            title="Ваши специальности"
+            triggerClass="ui-button settings-row__action"
+            triggerLabel="Добавить специальности"
+            trigger="Добавить"
+            contentClass="doctor-profile-settings__pick-panel"
+            placement="bottom-end"
+          >
+            <div class="doctor-profile-settings__fields">
+              <For each={MEDICAL_FIELDS}>
+                {(field) => (
+                  <button
+                    type="button"
+                    class="doctor-profile-settings__field"
+                    onClick={() => setProfile(noteDoctorField(field.id, PROFILE_FULL_CONFIDENCE))}
+                  >
+                    {field.label}
+                  </button>
+                )}
+              </For>
+            </div>
+          </SheetPopover>
+        }
       >
-        Сбросить
-      </Button>
+        <Button class="settings-row__action" onClick={() => setProfile(resetDoctorProfile())}>
+          Сбросить
+        </Button>
+      </Show>
     </div>
   );
 }

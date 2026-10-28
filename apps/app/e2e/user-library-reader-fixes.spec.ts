@@ -167,9 +167,9 @@ test.describe('phone, dark theme', () => {
     const retry = page.getByRole('menuitem', { name: 'Повторить' });
     await expect(retry).toBeVisible();
     await retry.click();
-    // The retry reads the file again and, the file being broken, ends the same way.
-    await expect(meta).not.toHaveText('Читаем файл…', { timeout: 30_000 });
-    expect((await meta.innerText()).trim()).toBe(failure);
+    // The retry reads the file again and, the file being broken, ends the same way (waiting for
+    // that end: «not reading» could still be the moment before the retry starts).
+    await expect(meta).toHaveText(failure, { timeout: 30_000 });
   });
 });
 

@@ -159,7 +159,10 @@ test.describe('desktop sheets', () => {
     const sheet = await openToolsSheet(page);
     const box = await sheet.boundingBox();
     expect(box?.width).toBeLessThanOrEqual(44 * 16 + 1);
-    expect(box ? Math.abs(box.x + box.width / 2 - 640) : 99).toBeLessThan(2);
+    // Centred on the app area (a wide window keeps the scrollbar's gutter, `scrollbar-gutter`).
+    const area = await page.locator('.app-main').boundingBox();
+    const centre = area ? area.x + area.width / 2 : 640;
+    expect(box ? Math.abs(box.x + box.width / 2 - centre) : 99).toBeLessThan(2);
     await expect(sheet.locator('.overlay-dialog__grip')).toBeHidden();
     await page.screenshot({ path: testInfo.outputPath('sheet-1280.png') });
     await page.keyboard.press('Escape');

@@ -9,6 +9,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -124,6 +125,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
     >
       <Show when={!props.embedded}>
         <Page
+          hero={PAGE_HEROES.library}
           class="archive-library-page-header"
           icon={<AppGlyph name="book-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>Документы</Heading>}

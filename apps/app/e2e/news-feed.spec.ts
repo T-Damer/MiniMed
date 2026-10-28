@@ -217,7 +217,9 @@ test.describe('news feed tab', () => {
     await expect(nav.locator('.app-nav-button').nth(2)).toHaveAttribute('aria-label', 'Лента');
     await nav.getByRole('button', { name: 'Лента', exact: true }).click();
     await expect(page).toHaveURL(/#\/news$/u);
-    await expect(page.getByTestId('news-empty')).toBeVisible();
+    // Nothing subscribed: the suggestions are the screen, with no explaining line (owner 2026-10-28).
+    await expect(page.getByText('Свой источник').first()).toBeVisible();
+    await expect(page.getByText(/новое будет появляться здесь/u)).toHaveCount(0);
     // The web build has no APK banner (owner 2026-10-20); nothing is preselected.
     await expect(page.getByTestId('news-web-hint')).toHaveCount(0);
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
@@ -672,7 +674,7 @@ test.describe('news feed tab', () => {
     await page.getByRole('button', { name: 'Удалить', exact: true }).last().click();
     await expect(page.getByTestId('news-sources')).toContainText('Подписок пока нет');
     await page.getByRole('button', { name: 'К ленте' }).click();
-    await expect(page.getByTestId('news-empty')).toBeVisible();
+    await expect(page.getByText('Свой источник').first()).toBeVisible();
     await expect(page.getByTestId('news-unread-badge')).toHaveCount(0);
   });
 

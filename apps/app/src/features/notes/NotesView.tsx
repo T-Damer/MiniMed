@@ -15,6 +15,7 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import {
   AppContextMenu,
@@ -1423,6 +1424,7 @@ export function NotesView(props: {
       </Show>
       <Show when={props.active && route().kind === 'index'}>
         <Page
+          hero={PAGE_HEROES.notes}
           class="patient-notes-heading"
           icon={<AppGlyph name="notes" class="page__icon-glyph" />}
           title={<Heading depth={1}>Заметки</Heading>}
@@ -1650,6 +1652,7 @@ export function NotesView(props: {
           {(card) => (
             <>
               <Page
+                hero={PAGE_HEROES.notes}
                 class="notes-route-heading"
                 navigation={
                   <button
@@ -1856,6 +1859,7 @@ export function NotesView(props: {
             const note = activeNote;
             const recordHeading = (): JSX.Element => (
               <Page
+                hero={PAGE_HEROES.notes}
                 class="notes-route-heading"
                 navigation={
                   // The full-screen editor draws its own «Назад к записям» on top.

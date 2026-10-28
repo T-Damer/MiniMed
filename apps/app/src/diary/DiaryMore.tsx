@@ -1,4 +1,5 @@
 import { createSignal, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -187,6 +188,7 @@ export function DiaryMore(props: {
         onBack={props.onBack}
         help={<DiaryHelp connected={connected()} />}
         helpTitle="Как пользоваться дневником"
+        hero={PAGE_HEROES.diarySettings}
       />
       <InstallWarning store={props.store} entries={props.entries} />
 

@@ -10,6 +10,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
@@ -152,6 +153,7 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
   return (
     <section class="herbal-book">
       <Page
+        hero={PAGE_HEROES.herbal}
         class="herbal-book__header"
         navigation={
           <NavBack

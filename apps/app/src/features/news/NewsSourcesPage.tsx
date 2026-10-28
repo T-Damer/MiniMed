@@ -1,5 +1,6 @@
 import { type Accessor, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -153,6 +154,7 @@ export function NewsSourcesPage(props: {
   return (
     <section class="news-sources page-surface page-grain" data-testid="news-sources">
       <Page
+        hero={PAGE_HEROES.newsSources}
         class="news-sources__heading"
         navigation={
           <NavBack

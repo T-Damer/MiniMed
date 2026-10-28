@@ -42,8 +42,11 @@ test.describe('a portrait tablet is not a phone strip', () => {
   test('the search page uses the width instead of a 65ch column', async ({ page }) => {
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     const box = await page.locator('.search-home').boundingBox();
-    // 744 pt minus the 2 rem desk margin; the old column was ~578 pt wide with 83 pt gutters.
-    expect(box?.width ?? 0).toBeGreaterThanOrEqual(744 - 40);
+    // The width the app lays out in (a desktop engine's classic scrollbar keeps its gutter,
+    // `scrollbar-gutter`) minus the 2 rem desk margin; the old column was ~578 pt wide with 83 pt
+    // gutters.
+    const usable = (await page.locator('.app-main').boundingBox())?.width ?? 744;
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(usable - 40);
   });
 });
 

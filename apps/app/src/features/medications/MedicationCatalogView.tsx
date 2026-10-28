@@ -10,6 +10,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
 import { stripKnownHtmlMarkupInline } from '@/components/html-markup';
@@ -371,6 +372,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   return (
     <section class="medication-page">
       <Page
+        hero={PAGE_HEROES.medications}
         class="medication-page-header"
         navigation={
           <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />

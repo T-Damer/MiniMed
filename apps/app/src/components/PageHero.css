@@ -1,0 +1,243 @@
+/*
+ * Root-page hero (components/PageHero.tsx): a dark band under the header, edge to edge from the
+ * screen top, the page a sheet whose rounded top starts over the band's lower edge. The band's art
+ * drifts slower than the page and fades as it scrolls (scroll-driven, compositor-only); a slim bar
+ * takes the title's place at the top once the header is gone.
+ *
+ * Geometry: the band reaches the page edges and the screen top past the surface's padding, which
+ * `Page` measures (`--page-hero-inset-*`, `useHeroBleed`); a surface may state it instead
+ * (`--page-hero-bleed-x` / `--page-hero-bleed-top`). `--page-hero-sheet` is the surface's
+ * background, so the sheet's rounded lip matches the page under it.
+ */
+
+:root {
+  --page-hero-band: var(--shell-bar, #47453f);
+  --page-hero-ink: var(--shell-bar-text, #f2ead8);
+  --page-hero-trace: 46 204 113;
+  --page-hero-lip: 1.25rem;
+}
+
+.page-hero {
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--page-hero-inset-top, var(--page-hero-bleed-top, 0px)));
+  right: calc(-1 * var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)));
+  bottom: 0;
+  left: calc(-1 * var(--page-hero-inset-left, var(--page-hero-bleed-x, 0px)));
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 85% 0%, rgb(255 255 255 / 7%), transparent 60%),
+    var(--page-hero-band);
+  /* The lowest strip is the sheet's rounded top: open, so the page shows through it (content that
+     scrolls under the bar stays visible down to the sheet's edge instead of under a flat strip). */
+  clip-path: inset(0 0 var(--page-hero-lip) 0);
+  pointer-events: none;
+}
+
+/* The sheet's rounded top corners: only the band's two corner pieces are drawn in that strip. */
+.page--hero::after {
+  position: absolute;
+  z-index: -1;
+  right: calc(-1 * var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)));
+  bottom: 0;
+  left: calc(-1 * var(--page-hero-inset-left, var(--page-hero-bleed-x, 0px)));
+  height: var(--page-hero-lip);
+  background:
+    radial-gradient(
+      circle at 100% 100%,
+      transparent calc(var(--page-hero-lip) - 0.5px),
+      var(--page-hero-band) var(--page-hero-lip)
+    )
+    left bottom / var(--page-hero-lip) var(--page-hero-lip) no-repeat,
+    radial-gradient(
+      circle at 0 100%,
+      transparent calc(var(--page-hero-lip) - 0.5px),
+      var(--page-hero-band) var(--page-hero-lip)
+    )
+    right bottom / var(--page-hero-lip) var(--page-hero-lip) no-repeat;
+  pointer-events: none;
+  content: "";
+}
+
+.page-hero__art {
+  position: absolute;
+  inset: 0;
+  transform-origin: 85% 0;
+}
+
+.page-hero__emblem {
+  position: absolute;
+  top: calc(var(--page-hero-inset-top, var(--page-hero-bleed-top, 0px)) - 1.5rem);
+  right: -1.75rem;
+  width: 9.5rem;
+  height: 9.5rem;
+  color: var(--page-hero-ink);
+  opacity: 0.08;
+  transform: rotate(-12deg);
+}
+
+.page-hero__ecg {
+  position: absolute;
+  bottom: var(--page-hero-ecg-bottom, calc(var(--page-hero-lip) + 0.75rem));
+  left: 0;
+  width: 200%;
+  height: 2.5rem;
+  opacity: 0.55;
+  animation: page-hero-ecg-drift 14s linear infinite;
+}
+
+.page-hero__ecg-line {
+  fill: none;
+  stroke: rgb(var(--page-hero-trace));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgb(var(--page-hero-trace) / 70%));
+}
+
+@keyframes page-hero-ecg-drift {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* The art drifts at about half the page's speed and fades out as the sheet covers it. */
+@supports (animation-timeline: scroll()) {
+  .page-hero__art {
+    animation: page-hero-art-scroll linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 14rem;
+  }
+}
+
+@keyframes page-hero-art-scroll {
+  to {
+    opacity: 0;
+    transform: translateY(6rem) scale(0.96);
+  }
+}
+
+/* The header that sits on the band: light ink. */
+.page--hero {
+  position: relative;
+  isolation: isolate;
+  color: var(--page-hero-ink);
+}
+
+/* Room at rest for the band to shrink from (the row stays, the band below it closes) and for the
+   sheet's lip. An element, not padding: the sticky row may only travel within the header's
+   content box, and padding there kept it 2–4 rem above the status bar line. */
+.page__hero-room {
+  height: calc(var(--page-hero-lip) + 2rem);
+}
+
+/* With a trace: a strip under the header's text for it, so it never runs through the words. */
+.page__hero-room.page__hero-room--trace {
+  height: calc(var(--page-hero-lip) + 3.5rem);
+}
+
+/* The section link above the title («Настройки ›»), light on the band. */
+.page__parent.page__parent--hero {
+  color: color-mix(in srgb, var(--page-hero-ink) 72%, transparent);
+}
+
+/* The trace runs in the room under the header's text. */
+.page--hero.page--hero-trace {
+  --page-hero-ecg-bottom: calc(var(--page-hero-lip) + 0.125rem);
+}
+
+/* Two classes: the base description colour (components.css) loads after this file in the diary. */
+.page__description.page__description--hero {
+  color: color-mix(in srgb, var(--page-hero-ink) 78%, transparent);
+}
+
+/* ---- the header shrinking into a bar (components/PageHero.tsx `useHeroScroll`) ---- */
+
+/* Two classes: a surface raises all its direct children alike (`.page-grain > *`, loaded later),
+   which let the content after the header paint over it once it sticks. */
+.page.page--hero {
+  z-index: var(--z-sticky-chrome, 20);
+}
+
+/* The header sticks with its bottom strip on screen and its row sticks under the status bar (both
+   native sticky); scroll-driven, the emblem slides and shrinks into the strip, the title settles
+   and the description fades (transform, opacity). Without scroll-driven animations the header
+   simply scrolls away. */
+@supports (animation-timeline: scroll()) {
+  .page--hero.page--hero-sticky {
+    position: sticky;
+    /* Only the bar's strip stays on screen: the status bar, the row, a gap and the sheet's lip. */
+    top: calc(
+      var(--safe-top, 0px) +
+      var(--page-hero-row, 0px) +
+      0.5rem +
+      var(--page-hero-lip) -
+      var(--page-hero-height, 0px)
+    );
+  }
+
+  /* Native sticky, not a scroll-linked transform: WebKit moved the transform a frame behind the
+     sticky header, and the row jumped while scrolling. */
+  .page__above-header.page__above-header--sticky {
+    position: sticky;
+    z-index: var(--z-raised, 1);
+    top: var(--safe-top, 0px);
+  }
+
+  /* The title rests a size larger and settles into the bar (iOS large title). */
+  .page__title-row.page__title-row--hero {
+    transform-origin: left center;
+    animation: page-hero-title linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--page-hero-start, 0px) var(--page-hero-end, 1px);
+  }
+
+  .page__header.page__header--hero {
+    animation: page-hero-fade linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--page-hero-start, 0px) var(--page-hero-fade-end, 1px);
+  }
+
+  .page-hero__emblem {
+    animation: page-hero-emblem linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--page-hero-start, 0px) var(--page-hero-end, 1px);
+  }
+}
+
+@keyframes page-hero-title {
+  from {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes page-hero-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-hero-emblem {
+  to {
+    opacity: 0.14;
+    transform: translateY(var(--page-hero-emblem-shift, 0px)) scale(0.36) rotate(-12deg);
+  }
+}
+
+/* Animations off: the trace and the drift stand still; the bar simply appears. */
+:root[data-motion="off"] .page-hero__ecg,
+:root[data-motion="off"] .page-hero__art {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-hero__ecg,
+  .page-hero__art {
+    animation: none;
+  }
+}

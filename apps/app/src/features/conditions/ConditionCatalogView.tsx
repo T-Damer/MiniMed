@@ -10,6 +10,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { CountBadge } from '@/components/CountBadge';
@@ -185,6 +186,7 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
         fallback={
           <>
             <Page
+              hero={PAGE_HEROES.conditions}
               class="condition-catalog-page__header"
               navigation={
                 <NavBack
@@ -308,6 +310,7 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
         {(entry) => (
           <>
             <Page
+              hero={PAGE_HEROES.conditions}
               class="condition-catalog-page__header"
               navigation={
                 <NavBack

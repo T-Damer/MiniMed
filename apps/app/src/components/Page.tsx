@@ -7,6 +7,7 @@ import {
   type HeaderAction,
   HeaderActions,
 } from '@/components/HeaderActions';
+import { type PageHero, PageHeroBand, useHeroBleed, useHeroScroll } from '@/components/PageHero';
 import { SheetPopover } from '@/components/SheetPopover';
 import { visitRoute } from '@/state/app-back';
 
@@ -33,6 +34,11 @@ export interface PageProps {
   readonly help?: JSX.Element;
   /** Heading of the help panel; «Как это работает» by default. */
   readonly helpTitle?: string;
+  /**
+   * The page's band: the header sits on it, the page slides over it, and the header shrinks into a
+   * bar that keeps its row (`app/page-heroes.ts`). Readers, forms and editors have none.
+   */
+  readonly hero?: PageHero | undefined;
 }
 
 /**
@@ -42,6 +48,17 @@ export interface PageProps {
 export function Page(props: PageProps): JSX.Element {
   const className = (base: string, extra?: string): string => (extra ? `${base} ${extra}` : base);
   const [helpOpen, setHelpOpen] = createSignal(false);
+  let headerElement: HTMLElement | undefined;
+  let rowElement: HTMLDivElement | undefined;
+  useHeroScroll(
+    () => headerElement,
+    () => rowElement,
+    () => props.hero !== undefined,
+  );
+  useHeroBleed(
+    () => headerElement,
+    () => props.hero !== undefined,
+  );
   const inline = (): boolean =>
     props.title !== undefined &&
     props.breadcrumbs === undefined &&
@@ -73,7 +90,10 @@ export function Page(props: PageProps): JSX.Element {
   const titleRow = (): JSX.Element => (
     <div
       class="page__title-row"
-      classList={{ 'page__title-row--inline': inline() }}
+      classList={{
+        'page__title-row--inline': inline(),
+        'page__title-row--hero': inline() && props.hero !== undefined,
+      }}
       {...(inline() ? { [HEADER_TITLE_ATTRIBUTE]: '' } : {})}
     >
       <Show when={props.icon !== undefined && !inline()}>
@@ -84,6 +104,7 @@ export function Page(props: PageProps): JSX.Element {
           {(parent) => (
             <a
               class="page__parent"
+              classList={{ 'page__parent--hero': props.hero !== undefined }}
               href={parent().href}
               onClick={(event) => {
                 if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
@@ -102,7 +123,18 @@ export function Page(props: PageProps): JSX.Element {
   );
 
   return (
-    <header class={`page ${props.class ?? ''}`} classList={{ 'page--inline': inline() }}>
+    <header
+      ref={(element) => {
+        headerElement = element;
+      }}
+      class={`page ${props.class ?? ''}`}
+      classList={{
+        'page--inline': inline(),
+        'page--hero': props.hero !== undefined,
+        'page--hero-trace': props.hero?.ambient === 'ecg',
+      }}
+    >
+      <Show when={props.hero}>{(hero) => <PageHeroBand hero={hero()} />}</Show>
       <Show
         when={
           props.navigation !== undefined ||
@@ -112,7 +144,14 @@ export function Page(props: PageProps): JSX.Element {
           props.help !== undefined
         }
       >
-        <div class="page__above-header" {...{ [HEADER_ROW_ATTRIBUTE]: '' }}>
+        <div
+          ref={(element) => {
+            rowElement = element;
+          }}
+          class="page__above-header"
+          classList={{ 'page__above-header--hero': props.hero !== undefined }}
+          {...{ [HEADER_ROW_ATTRIBUTE]: '' }}
+        >
           <Show when={props.navigation !== undefined}>
             <div class={className('page__left-actions', props.navigationClass)}>
               {props.navigation}
@@ -159,16 +198,31 @@ export function Page(props: PageProps): JSX.Element {
           props.description !== undefined
         }
       >
-        <div class="page__header">
+        <div class="page__header" classList={{ 'page__header--hero': props.hero !== undefined }}>
           <Show when={!inline() && (props.icon !== undefined || props.title !== undefined)}>
             {titleRow()}
           </Show>
           <Show when={props.description !== undefined}>
-            <p class="page__description" classList={{ 'page__description--inline': inline() }}>
+            <p
+              class="page__description"
+              classList={{
+                'page__description--inline': inline(),
+                'page__description--hero': props.hero !== undefined,
+              }}
+            >
               {props.description}
             </p>
           </Show>
         </div>
+      </Show>
+      <Show when={props.hero}>
+        {(hero) => (
+          <div
+            class="page__hero-room"
+            classList={{ 'page__hero-room--trace': hero().ambient === 'ecg' }}
+            aria-hidden="true"
+          />
+        )}
       </Show>
     </header>
   );

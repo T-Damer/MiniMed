@@ -1,5 +1,6 @@
 import { type JSX, Show } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
@@ -29,6 +30,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
   return (
     <section class="settings-subpage" data-testid={props.testId}>
       <Page
+        hero={PAGE_HEROES.settings}
         class="settings-page__heading settings-page__heading--subroute"
         navigation={
           <Show when={props.showBack}>

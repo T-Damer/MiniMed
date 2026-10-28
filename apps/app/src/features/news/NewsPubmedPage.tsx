@@ -10,6 +10,7 @@ import {
   Switch,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -138,6 +139,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
   return (
     <section class="news-pubmed page-surface page-grain" data-testid="news-pubmed">
       <Page
+        hero={PAGE_HEROES.pubmed}
         class="news-pubmed__heading"
         navigation={
           <NavBack

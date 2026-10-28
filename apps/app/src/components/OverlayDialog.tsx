@@ -70,6 +70,8 @@ function focusableElementsWithin(root: HTMLElement): HTMLElement[] {
 export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
   let backdrop: HTMLElement | undefined;
+  /** The press began on the backdrop itself (not a drag out of the panel that ended there). */
+  let pressedBackdrop = false;
   let historyLayer: HistoryLayer | undefined;
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
   const tracksHistory = () => props.tracksHistory !== false;
@@ -241,6 +243,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   return (
     <Show when={mounted()}>
       <Portal>
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: the dimmed area around the panel; Escape and the close button are the keyboard path. */}
         <div
           ref={(element) => {
             backdrop = element;
@@ -248,8 +251,13 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
           class={`overlay-backdrop overlay-backdrop--${presentation()}`}
           classList={{ 'overlay-backdrop--closing': closing() }}
           role="presentation"
+          // Closes on the click, not the press: the closing backdrop stops catching pointers at once,
+          // so a close on pointerdown let the same tap's click land on the page underneath.
           onPointerDown={(event) => {
-            if (closing()) return;
+            pressedBackdrop = event.target === event.currentTarget;
+          }}
+          onClick={(event) => {
+            if (closing() || !pressedBackdrop) return;
             if (event.target === event.currentTarget && dismissible()) closeDialog();
           }}
         >

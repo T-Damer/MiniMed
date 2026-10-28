@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -190,6 +191,7 @@ export function DiarySend(props: {
         title="Отправить врачу"
         subtitle={invitation().title}
         onBack={props.tabbed ? undefined : props.onBack}
+        hero={PAGE_HEROES.diarySend}
       />
       <Show
         when={props.results.entries.length > 0}

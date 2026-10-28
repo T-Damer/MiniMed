@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import { createStore, reconcile } from 'solid-js/store';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -11,8 +12,8 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
-import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { SavedItemRow } from '@/features/collections/SavedItemRow';
@@ -432,7 +433,6 @@ export function UserLibraryPage(props: {
   const [renameTarget, setRenameTarget] = createSignal<RenameTarget | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
   const [searchQuery, setSearchQuery] = createSignal('');
-  const [headingElement, setHeadingElement] = createSignal<HTMLElement | undefined>();
   const [creatingFolder, setCreatingFolder] = createSignal(false);
   const [folderTitle, setFolderTitle] = createSignal('');
   const [deleteTarget, setDeleteTarget] = createSignal<DeleteTarget | null>(null);
@@ -486,8 +486,6 @@ export function UserLibraryPage(props: {
   };
   let fileInputElement: HTMLInputElement | undefined;
   let refreshGeneration = 0;
-
-  useStickySurface(headingElement);
 
   const refreshVaultMode = async (): Promise<void> => {
     try {
@@ -1971,28 +1969,31 @@ export function UserLibraryPage(props: {
         )}
       </Show>
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
-        <div
-          ref={setHeadingElement}
-          class="user-library-page__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred knowledge-subroute-heading--titled module-catalog-heading route-sticky-chrome route-sticky-chrome--transparent"
-        >
-          <NavBack
-            class="knowledge-back-button knowledge-subroute-heading__control knowledge-subroute-heading__back"
-            aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
-            onClick={() => (searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy())}
-            icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
-          />
-          <Heading depth={1} class="knowledge-subroute-heading__title">
-            {folderTrail().at(-1)?.title ?? 'Ваши файлы'}
-          </Heading>
-          <SearchField
-            class="route-search knowledge-subroute-heading__control knowledge-subroute-heading__search"
-            value={searchQuery()}
-            onInput={setSearchQuery}
-            label="Поиск по текущей папке"
-            hideLabel
-            placeholder="Название или файл"
-          />
-        </div>
+        {/* The tab's hero header (components/PageHero.tsx): the row with back and the folder's
+            title shrinks into the bar; the search sits on the sheet under it. */}
+        <Page
+          class="user-library-page__heading"
+          hero={PAGE_HEROES.files}
+          navigation={
+            <NavBack
+              class="knowledge-back-button"
+              aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
+              onClick={() =>
+                searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy()
+              }
+              icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
+            />
+          }
+          title={<Heading depth={1}>{folderTrail().at(-1)?.title ?? 'Ваши файлы'}</Heading>}
+        />
+        <SearchField
+          class="route-search user-library-page__search"
+          value={searchQuery()}
+          onInput={setSearchQuery}
+          label="Поиск по текущей папке"
+          hideLabel
+          placeholder="Название или файл"
+        />
 
         <div class="user-library-page__breadcrumb-row">
           <nav class="user-library-breadcrumbs" aria-label="Папки библиотеки">

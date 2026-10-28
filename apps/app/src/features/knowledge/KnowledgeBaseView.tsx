@@ -1,5 +1,6 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
@@ -108,6 +109,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
         {(status) => (
           <div class="knowledge-base-page__pending">
             <Page
+              hero={PAGE_HEROES.knowledge}
               class="module-page-header"
               icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
               title={<Heading depth={1}>База знаний</Heading>}

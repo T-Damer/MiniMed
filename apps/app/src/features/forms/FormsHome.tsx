@@ -1,4 +1,5 @@
 import { For, type JSX } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
@@ -18,6 +19,7 @@ export function FormsHome(props: {
   return (
     <section class="forms-workspace" aria-label="Формы">
       <Page
+        hero={PAGE_HEROES.forms}
         navigation={
           <NavBack
             class="knowledge-back-button"

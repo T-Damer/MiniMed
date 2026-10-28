@@ -30,7 +30,8 @@
   flex: none;
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--theme-link);
+  /* The title's own ink: it stands on the dark hero band (the link colour was dark on dark). */
+  color: currentColor;
 }
 
 /* Round header and row buttons: the same ring, surface and press feedback everywhere in the tab. */
@@ -232,13 +233,6 @@
   color: var(--theme-text-muted);
   font-size: 0.9375rem;
   line-height: 1.45;
-}
-
-/* With nothing subscribed the line sits above the suggestions: it is the first step. */
-.news-empty--lead {
-  padding-block: 0;
-  color: var(--theme-text);
-  font-weight: 650;
 }
 
 /* Source avatars: the site's icon, or a monogram coloured by the name. */

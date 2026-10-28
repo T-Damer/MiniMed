@@ -46,9 +46,17 @@ body {
   background: var(--desk);
 }
 
-/* Draw page surfaces under the status bar so it stays translucent instead of a solid desk strip. */
+/* Draw page surfaces under the status bar so it stays translucent instead of a solid desk strip.
+   A home-screen web app (iOS) has the same inset and the same pulled-up surfaces: padding here
+   too pushed every page 62 pt down. */
 .app-shell--native {
   padding-top: 0;
+}
+
+@media (display-mode: standalone) {
+  .app-shell {
+    padding-top: 0;
+  }
 }
 
 .app-shell::before {

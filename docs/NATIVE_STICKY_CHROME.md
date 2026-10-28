@@ -23,6 +23,35 @@ The shared implementation is in `styles/mobile-shell.css`, `styles/modules.css`,
 `components/sticky-surface.ts`. Feature styles may define layout and ordinary padding, but not native
 safe-area geometry.
 
+## Hero header (owner 2026-10-28)
+
+Tabs, hubs, catalogs and lists pass a declared `hero` (`app/page-heroes.ts`) to `Page`; the patient
+diary's tab screens do the same through `ScreenHeader`. Readers, forms, editors and tool workspaces
+keep their own chrome. Implementation: `components/PageHero.tsx`, `components/PageHero.css`.
+
+- A dark band (`--page-hero-band`, the bottom bar's colour) runs from the screen top and the surface
+  edges under the header. `useHeroBleed` measures how far the header sits from its surface's edges
+  and top (`--page-hero-inset-*`), so no route repeats safe-area geometry. The page is a flat sheet
+  (`--page-hero-sheet`) whose rounded lip starts over the band's lower edge.
+- The header is sticky with only its bottom strip on screen (`top` is CSS from the live
+  `--safe-top`); its row (back, title, actions, «?») is natively sticky under the status bar. Native,
+  not a scroll-linked transform: WebKit ran the transform a frame behind the sticky header and the
+  row jumped. The room under the header's text is an element (`page__hero-room`), not padding: a
+  sticky child may only travel within its parent's content box. Scroll-driven
+  (`animation-timeline: scroll(root)`, cosmetic only): the title settles from 1.12× to 1×, the emblem
+  slides and shrinks into the strip, the description fades before the row reaches it, the band's
+  art drifts and fades. `useHeroScroll` measures on resize, on inset changes and on the screen's
+  entrance, never per frame, and always the unstuck box. A header without a row does not stick
+  (nothing to tap). Without scroll-driven animations the header scrolls away.
+- The band's lowest strip is open (`clip-path`), with only its two concave corners drawn: content
+  scrolling under the bar stays visible down to the sheet's rounded top. The search home's band
+  (its header does not shrink) keeps an opaque lip.
+- The status bar text is light while a band is under it (`state/system-bars.ts`, native only; the
+  installed web app's `black-translucent` is always light).
+- The search home has its own sticky tools row: it takes the band (`page-hero--search`, the field
+  straddling its edge) and «MiniMed» in the row's empty middle at rest.
+- Do not add a second pinned bar: the header's own row is the bar.
+
 ## WebView document-reader chrome
 
 Official and personal document readers do not use backdrop blur.

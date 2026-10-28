@@ -3616,6 +3616,49 @@ layout probe in the copied bundle (`ios/App/App/public`, not committed) that pos
   WebKit) do not reproduce the original leak, so `search-history-drawer.spec.ts` only guards that a
   backdrop tap closes the drawer without navigating.
 
+### Hero header and the web app's top — 2026-10-28 (STATE UI-HERO1)
+
+- *Installed web app on iPhone.* The shell padded the status-bar inset outside the native app while
+  the pulled-up surfaces padded it again: every page started 62 pt low (the empty top on the search
+  home). `@media (display-mode: standalone)` drops the shell's top padding as the native class does.
+- *Core download progress* moved from the screen's corner (clipped by the rounded display) and the
+  bottom-edge line into one pill under the bottom bar that fills as it downloads; the bar rises only
+  where the gap under it is too small (`--bottom-nav-floor`). The tour keeps its compact corner pill.
+- *Hero header* (owner: «make the header interesting», a sheet sliding over a moving header): dark
+  band, rounded sheet lip, the header shrinking into a bar that keeps its real row and the route's
+  icon; ECG trace on the search home and the diary's «Сегодня». Contract in
+  `docs/NATIVE_STICKY_CHROME.md` «Hero header». Applied to the tabs, hubs, catalogs and lists (and the
+  diary's four tabs); not to «Пациенты» (it has its own sticky search row), readers, forms, editors.
+- *Search home «?»* was a translucent cream that turned grey on the band: opaque now.
+- *Stacking and jitter.* A surface raises all its direct children alike (`.page-grain > *`), which
+  let Лента's cards paint over the stuck header: the header's z-index is a two-class rule now.
+  Measuring a stuck header read its stuck position, shifting the band and scroll ranges mid-scroll
+  (jitter while scrolling slowly): measurements lift the sticky class for the read, and run only on
+  resize and the screen's own entrance. `e2e/hero-header.spec.ts` scrolls every hero route with tall
+  content and fails on content over the header or the row over a visible title block.
+- *Width between tabs on desktop.* Search scrolls the document and Files, Лента and Settings often
+  do not; a classic scrollbar on one tab only moved the centred board ~5 px (narrowed it below
+  ~1184 px). `html { scrollbar-gutter: stable }` (`styles/global.css`); overlay scrollbars (phones)
+  reserve nothing.
+- *Second pass (owner video).* The row jumped while scrolling: the scroll-linked transform ran a
+  frame behind the sticky header in WebKit — the row is natively sticky now, and the header's room
+  is an element (padding kept a sticky row 2–4 rem above the status bar line). Content no longer
+  disappears under a flat strip: the sheet's top strip is open, clipped by the band's rounded
+  corners. «Ваши файлы» uses `Page` with a hero (the search moved onto the sheet under it; the
+  native-chrome tests follow the new header). The sticky offset follows `--safe-top` live (it can
+  arrive after the first paint).
+- *Backdrop taps went through* every dialog and sheet (`OverlayDialog`, also the history drawer):
+  the backdrop closed on `pointerdown` and its closing state stops catching pointers at once, so the
+  tap's click reached the page under it. They close on a click that began on the backdrop.
+- *Лента* lost the «Выберите источник…» line (the suggestions are the screen) and its title icon is
+  the band's ink.
+- *«Профиль врача»* no longer says «пока пуст»: empty, the row offers «Добавить» (specialty chips;
+  a tap notes the field at full confidence); learned, «Сбросить».
+
+Not verified: Android device scroll smoothness at 60 FPS (CSS scroll-driven animations, compositor
+only); the shrink inside routes whose surface wraps the header in a short container (the header then
+scrolls away instead of sticking).
+
 ## Patient diary: a home with three visible actions — 2026-10-06 (STATE DIARY4)
 
 Owner request: it was not always clear how to open, read, fill and send the diary, and the actions were

@@ -12,8 +12,10 @@ import {
   untrack,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { PageHeroBand } from '@/components/PageHero';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -884,6 +886,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
 
   return (
     <section class="search-home page-grain" aria-label="Поиск MiniMed">
+      <PageHeroBand hero={PAGE_HEROES.search} class="page-hero--search" />
       <div
         class="search-home__backdrop-blur masked-backdrop-blur"
         classList={{ 'search-home__backdrop-blur--visible': hasSearchScroll() }}
@@ -900,6 +903,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             onReplay={replayHistory}
             back={sectionOpen() ? { label: 'Назад к разделам', onBack: backToSections } : undefined}
           />
+        </Show>
+        <Show when={!fieldAway()}>
+          {/* The row's empty middle at rest; the field's pill takes it once the field is away. */}
+          <span
+            class="search-home__mark"
+            classList={{ 'search-home__mark--away': hasSearchScroll() }}
+            aria-hidden="true"
+          >
+            MiniMed
+          </span>
         </Show>
         <Show when={fieldAway()}>
           <button

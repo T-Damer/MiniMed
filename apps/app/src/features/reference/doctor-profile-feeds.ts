@@ -67,15 +67,19 @@ export function topProfileFields(profile: DoctorProfile, count: number): readonl
 
 const SHOWN_FIELDS = 3;
 
-/** The row title: the leading fields, «…» when more are known, a plain note while it is empty. */
+/** The row title: the leading fields, «…» when more are known; the bare title while it is empty. */
 export function doctorProfileSummary(profile: DoctorProfile): string {
-  return `Профиль врача: ${doctorProfileFieldsLine(profile)}`;
+  const fields = doctorProfileFieldsLine(profile);
+  return fields ? `Профиль врача: ${fields}` : 'Профиль врача';
 }
 
-/** The specialties alone («неврология, психиатрия, наркология»), or «пока пуст». */
+/**
+ * The specialties alone («неврология, психиатрия, наркология»); empty while nothing is known (the
+ * row then offers «Добавить» instead of a «пока пуст» note).
+ */
 export function doctorProfileFieldsLine(profile: DoctorProfile): string {
   const fields = topProfileFields(profile, SHOWN_FIELDS + 1);
-  if (fields.length === 0) return 'пока пуст';
+  if (fields.length === 0) return '';
   const shown = fields.slice(0, SHOWN_FIELDS).map(medicalFieldLabel).join(', ');
   return `${shown}${fields.length > SHOWN_FIELDS ? '…' : ''}`;
 }

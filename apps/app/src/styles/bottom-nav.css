@@ -7,14 +7,21 @@
  */
 :root {
   /* Gap from the screen edge to the bar's bottom edge (also the row of the tools beside it). */
-  --bottom-nav-offset: calc(0.625rem + var(--nav-safe-bottom, 0px));
+  --bottom-nav-offset: max(
+    calc(0.625rem + var(--nav-safe-bottom, 0px)),
+    var(--bottom-nav-floor, 0px)
+  );
 }
 
 /* iOS 26 floats its tab bar into the home-indicator inset: 22 pt from the edge on a 34 pt inset
    (measured on the iPhone 17 simulator, Photos). Without an inset (Safari) the plain gap stays. */
 @supports (-webkit-touch-callout: none) {
   :root {
-    --bottom-nav-offset: max(0.625rem, calc(var(--nav-safe-bottom, 0px) - 0.75rem));
+    --bottom-nav-offset: max(
+      0.625rem,
+      calc(var(--nav-safe-bottom, 0px) - 0.75rem),
+      var(--bottom-nav-floor, 0px)
+    );
   }
 }
 
@@ -39,7 +46,9 @@
   box-shadow: 0 0.625rem 1.875rem rgb(38 32 24 / 30%);
   backdrop-filter: blur(1rem);
   isolation: isolate;
-  transition: transform 180ms ease;
+  transition:
+    transform 180ms ease,
+    bottom var(--motion-base, 180ms) var(--motion-ease, ease);
   touch-action: pan-y;
 }
 

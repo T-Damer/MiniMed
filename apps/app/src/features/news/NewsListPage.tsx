@@ -9,6 +9,7 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Page } from '@/components/Page';
@@ -158,6 +159,7 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
     <section class="news-page page-surface page-grain" data-testid="news-page">
       <Page
         class="news-page__heading"
+        hero={PAGE_HEROES.news}
         title={
           <span class="news-page__brand">
             <AppGlyph name="newspaper" class="news-page__brand-icon" />
@@ -251,11 +253,6 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
         </div>
       </Show>
 
-      <Show when={subscriptions().length === 0}>
-        <p class="news-empty news-empty--lead" data-testid="news-empty">
-          Выберите источник — новое будет появляться здесь.
-        </p>
-      </Show>
       <Show
         when={feeds().length === 0}
         fallback={

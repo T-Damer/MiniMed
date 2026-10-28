@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -123,6 +124,7 @@ export function AssessmentSpecialtyIndexPage(props: {
   return (
     <>
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-catalog-page-header"
         {...(props.mineOnly
           ? {

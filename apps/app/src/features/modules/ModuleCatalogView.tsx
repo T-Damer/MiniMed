@@ -16,6 +16,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -1011,6 +1012,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     >
       <Show when={!props.embedded || catalogOverviewVisible()}>
         <Page
+          hero={PAGE_HEROES.modules}
           class="module-page-header"
           icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
           title={<Heading depth={1}>База знаний</Heading>}

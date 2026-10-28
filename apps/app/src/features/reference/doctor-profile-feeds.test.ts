@@ -136,7 +136,7 @@ describe('doctor profile feeds', () => {
   });
 
   it('summarises the profile for the settings row', () => {
-    expect(doctorProfileSummary(EMPTY_DOCTOR_PROFILE)).toBe('Профиль врача: пока пуст');
+    expect(doctorProfileSummary(EMPTY_DOCTOR_PROFILE)).toBe('Профиль врача');
     expect(doctorProfileSummary({ version: 1, fields: { psychiatry: 3, neurology: 2 } })).toBe(
       'Профиль врача: психиатрия, неврология',
     );

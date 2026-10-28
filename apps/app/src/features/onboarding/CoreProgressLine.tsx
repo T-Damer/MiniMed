@@ -39,6 +39,13 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
   );
 
   const wide = () => !props.compact && (state().kind === 'deferred' || state().kind === 'error');
+  // Outside the tour the progress is one small pill centred under the bottom bar, filling as the
+  // download runs (owner 2026-10-28: the corner chip and the edge line hid in the screen's curve).
+  const pill = () => !props.compact && !wide();
+  const fillStyle = (): JSX.CSSProperties | undefined => {
+    const fraction = state().fraction;
+    return fraction === undefined ? undefined : { transform: `scaleX(${fraction})` };
+  };
   // Before the first byte the search field says the same in its own words («Подготавливаем
   // поиск…», «Соединяемся с сервером…»): the pill stays quiet until it has a number to add.
   const quiet = () => state().kind === 'preparing' || state().kind === 'connecting';
@@ -78,11 +85,13 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
             [`core-progress-line--${state().kind}`]: true,
             'core-progress-line--leaving': leaving(),
             'core-progress-line--waiting': props.waiting === true,
+            'core-progress-line--under-nav': pill(),
           }}
           aria-hidden={props.waiting ? 'true' : undefined}
         >
           <div
             class="core-progress-line__track"
+            classList={{ 'core-progress-line__track--pill': pill() }}
             role="progressbar"
             aria-label="Загрузка основной базы"
             aria-valuemin={0}
@@ -91,25 +100,35 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
               ? {}
               : { 'aria-valuenow': Math.round((state().fraction ?? 0) * 100) })}
           >
-            <div
-              class="core-progress-line__fill"
-              classList={{
-                'core-progress-line__fill--indeterminate': state().fraction === undefined,
-              }}
-              style={
-                state().fraction === undefined
-                  ? undefined
-                  : { transform: `scaleX(${state().fraction})` }
-              }
-            />
+            <Show when={!pill()}>
+              <div
+                class="core-progress-line__fill"
+                classList={{
+                  'core-progress-line__fill--indeterminate': state().fraction === undefined,
+                }}
+                style={fillStyle()}
+              />
+            </Show>
           </div>
           <div
             class="core-progress-line__caption"
             classList={{
               'core-progress-line__caption--wide': wide(),
               'core-progress-line__caption--quiet': quiet(),
+              'core-progress-line__caption--pill': pill(),
             }}
           >
+            <Show when={pill()}>
+              <span class="core-progress-line__pill-track" aria-hidden="true">
+                <span
+                  class="core-progress-line__fill core-progress-line__fill--pill"
+                  classList={{
+                    'core-progress-line__fill--indeterminate': state().fraction === undefined,
+                  }}
+                  style={fillStyle()}
+                />
+              </span>
+            </Show>
             <span class="core-progress-line__label" aria-hidden="true">
               {props.compact ? state().compactLabel : state().label}
             </span>

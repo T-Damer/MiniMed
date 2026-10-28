@@ -1,4 +1,5 @@
 import { For, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -156,6 +157,7 @@ export function AssessmentCatalogPage(props: {
   return (
     <>
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-specialty-page-header"
         navigation={
           <NavBack

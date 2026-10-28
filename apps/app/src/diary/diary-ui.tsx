@@ -5,6 +5,7 @@ import { Button } from '@/components/Button';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
+import type { PageHero } from '@/components/PageHero';
 import { Heading } from '@/components/Text';
 import type { SendTone } from '@/diary/diary-home';
 
@@ -22,10 +23,13 @@ export function ScreenHeader(props: {
   readonly headerActions?: readonly HeaderAction[] | undefined;
   readonly help?: JSX.Element;
   readonly helpTitle?: string;
+  /** The tab screens' band (`PAGE_HEROES`); inner screens have none. */
+  readonly hero?: PageHero | undefined;
 }): JSX.Element {
   return (
     <Page
       class="diary-screen"
+      hero={props.hero}
       navigation={
         <Show when={props.onBack}>
           {(back) => (

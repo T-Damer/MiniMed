@@ -11,6 +11,7 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -405,6 +406,7 @@ function CalculatorSectionPage(props: {
   return (
     <section class="calculator-section-page">
       <Page
+        hero={PAGE_HEROES.calculators}
         class="calculator-section-page-header"
         navigation={
           <NavBack
@@ -1870,6 +1872,7 @@ export function CalculatorsView(): JSX.Element {
                     fallback={
                       <>
                         <Page
+                          hero={PAGE_HEROES.calculators}
                           class="calculators-heading"
                           {...(getSplitNavigation()
                             ? {}

@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { createDebouncedValue } from '@/components/debounced-value';
@@ -49,6 +50,7 @@ export function SavedItemsPage(props: {
   return (
     <section class="saved-items" aria-label="Избранное">
       <Page
+        hero={PAGE_HEROES.saved}
         navigation={
           <NavBack
             class="knowledge-back-button"

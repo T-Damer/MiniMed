@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -52,6 +53,7 @@ export function DiaryRecords(props: {
         title="Записи"
         subtitle={`${invitation().title}: ${entriesLabel(props.results.entries.length)}`}
         onBack={props.onBack}
+        hero={PAGE_HEROES.diaryRecords}
       />
       <Show when={props.error}>
         <p class="diary-error" role="alert">

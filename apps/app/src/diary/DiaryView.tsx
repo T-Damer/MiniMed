@@ -9,6 +9,7 @@ import {
   Switch,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import type { NavItem } from '@/app/root-view';
 import { useBottomNav } from '@/app/use-bottom-nav';
@@ -502,6 +503,7 @@ export function DiaryView(props: {
                   backLabel="Мои дневники"
                   onBack={props.hasOtherDiaries ? props.onBack : undefined}
                   headerActions={homeActions()}
+                  hero={PAGE_HEROES.diaryToday}
                 />
                 <InstallWarning
                   store={props.store}

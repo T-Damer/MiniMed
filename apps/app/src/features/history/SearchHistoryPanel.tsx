@@ -67,6 +67,8 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
     velocityThresholdPxPerMs: 0.5,
   });
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
+  /** The press began on the backdrop (not a swipe out of the panel that ended there). */
+  let pressedBackdrop = false;
   let swipeMode: 'open' | 'close' | undefined;
 
   const refresh = (): void => {
@@ -178,8 +180,11 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
             role="presentation"
             // On click, not pointerdown: the closing backdrop stops catching pointers at once, so a
             // close on pointerdown let the same tap's click land on the search page underneath.
+            onPointerDown={(event) => {
+              pressedBackdrop = event.target === event.currentTarget;
+            }}
             onClick={(event) => {
-              if (event.target === event.currentTarget) close();
+              if (pressedBackdrop && event.target === event.currentTarget) close();
             }}
           >
             <aside class="search-history-panel" aria-label="Недавние поисковые запросы">

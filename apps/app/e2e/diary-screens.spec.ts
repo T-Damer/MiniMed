@@ -95,6 +95,12 @@ function findProblems(scope: string | undefined): Finding[] {
     return 0.2126 * channel(r ?? 0) + 0.7152 * channel(g ?? 0) + 0.0722 * channel(b ?? 0);
   };
   const background = (element: Element): [number, number, number] => {
+    // Text in a hero header stands on its band (components/PageHero.tsx), drawn behind it.
+    const hero = element.closest('.page--hero');
+    if (hero) {
+      const [r, g, b] = parse(getComputedStyle(hero).getPropertyValue('--page-hero-band').trim());
+      return [r, g, b];
+    }
     const layers: [number, number, number, number][] = [];
     for (let node: Element | null = element; node; node = node.parentElement) {
       const color = parse(getComputedStyle(node).backgroundColor);

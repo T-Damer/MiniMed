@@ -21,14 +21,21 @@
     var(--theme-warning) 18%,
     var(--theme-surface-raised)
   );
+  /* For the tab screens' hero band (components/PageHero.css): it reaches the edges and the top. */
+  --page-hero-bleed-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  --page-hero-bleed-x: max(1rem, env(safe-area-inset-left, 0px));
+  --page-hero-sheet: var(--theme-surface);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   max-width: 40rem;
   min-height: 100dvh;
   margin: 0 auto;
-  padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
-    var(--diary-pad-bottom) max(1rem, env(safe-area-inset-left, 0px));
+  /* As the main app's page area: a hero title resting a size larger never scrolls the page
+     sideways (clip, unlike hidden, keeps the sticky header working). */
+  overflow-x: clip;
+  padding: var(--page-hero-bleed-top) max(1rem, env(safe-area-inset-right, 0px))
+    var(--diary-pad-bottom) var(--page-hero-bleed-x);
   gap: 1rem;
   color: var(--theme-text);
   background: var(--theme-surface);

@@ -145,14 +145,15 @@ for (const viewport of [
   });
 }
 
-test('keeps native status blur below the nested files header', async ({ page }) => {
+test('the files header shrinks into a bar under the native status bar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page);
   await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/user`);
-  await page.locator('.user-library-page__search-chrome').waitFor();
+  await page.locator('.user-library-page__heading.page--hero').waitFor();
   await emulateNativeShell(page);
 
-  const searchInput = await page.locator('.user-library-page__search-chrome input').boundingBox();
+  // The search sits on the sheet under the header and is reachable.
+  const searchInput = await page.locator('.user-library-page__search input').boundingBox();
   if (!searchInput) throw new Error('Files search input is not visible.');
   const target = await classAtPoint(page, {
     x: searchInput.x + searchInput.width / 2,
@@ -160,79 +161,31 @@ test('keeps native status blur below the nested files header', async ({ page }) 
   });
   expect(target).toContain('archive-search__input');
 
+  // Scrolled: the header sticks and its row (back, title) rests right under the status bar.
+  // Content long enough to scroll, inside the header's own container (sticky stays within it).
   await page.evaluate(() => {
     const spacer = document.createElement('div');
-    spacer.style.height = '1000px';
-    document.body.append(spacer);
-    window.scrollTo(0, 160);
+    spacer.style.height = '1500px';
+    document.querySelector('.user-library-page__heading')?.parentElement?.append(spacer);
+    window.scrollTo(0, 300);
   });
-  const heading = page.locator('.user-library-page__search-chrome');
-  await expect(heading).toHaveClass(/sticky-surface--stuck/u);
-  await expect
-    .poll(() => heading.evaluate((element) => getComputedStyle(element, '::before').opacity))
-    .toBe('1');
-  const backdrop = await heading.evaluate((element) => {
-    const elementRect = element.getBoundingClientRect();
-    const styles = getComputedStyle(element, '::before');
-    const top = elementRect.top + Number.parseFloat(styles.top);
-    return {
-      top,
-      bottom: top + Number.parseFloat(styles.height),
-      elementBottom: elementRect.bottom,
-      mask: styles.maskImage || styles.webkitMaskImage,
-    };
-  });
-  expect(backdrop.top).toBeCloseTo(0, 0);
-  expect(backdrop.bottom).toBeGreaterThan(backdrop.elementBottom);
-  expect(backdrop.mask).toContain('linear-gradient');
-});
+  const header = page.locator('.user-library-page__heading');
+  await expect(header).toHaveClass(/page--hero-sticky/u);
+  const rowTop = () =>
+    page.evaluate(() => {
+      const row = document.querySelector('.user-library-page__heading .page__above-header');
+      const safeTop = Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
+      );
+      return (row?.getBoundingClientRect().top ?? 0) - safeTop;
+    });
+  await expect.poll(rowTop).toBeCloseTo(0, 0);
 
-test('keeps transparent route headers below the native status bar after viewport resize', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page);
-  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/user`);
-  const heading = page.locator('.user-library-page__search-chrome');
-  await heading.waitFor();
-  await emulateNativeShell(page);
-  await page.evaluate(() => {
-    const spacer = document.createElement('div');
-    spacer.style.height = '1000px';
-    document.body.append(spacer);
-    window.scrollTo(0, 160);
-  });
-  await expect(heading).toHaveClass(/sticky-surface--stuck/u);
-
-  await page.locator('.user-library-page__search-chrome input').focus();
+  // Still there after the viewport changes (a keyboard, a rotation).
   await page.setViewportSize({ width: 390, height: 480 });
   await page.evaluate(() => window.dispatchEvent(new Event('resize')));
-
-  const geometry = await heading.evaluate((element) => {
-    const safeTop = Number.parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
-    );
-    return {
-      top: element.getBoundingClientRect().top,
-      paddingTop: Number.parseFloat(getComputedStyle(element).paddingTop),
-      safeTop,
-    };
-  });
-  expect(geometry.top - geometry.safeTop).toBeCloseTo(8, 0);
-  expect(geometry.paddingTop).toBeCloseTo(4, 0);
-
+  await expect.poll(rowTop).toBeCloseTo(0, 0);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.evaluate(() => window.dispatchEvent(new Event('resize')));
-  await expect
-    .poll(() =>
-      heading.evaluate((element) => {
-        const safeTop = Number.parseFloat(
-          getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
-        );
-        return element.getBoundingClientRect().top - safeTop;
-      }),
-    )
-    .toBeCloseTo(8, 0);
 });
 
 test('removes native status blur from routes without transparent sticky chrome', async ({

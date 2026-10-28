@@ -10,6 +10,7 @@ import {
   Show,
   Switch,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -554,6 +555,7 @@ export function DiaryDashboard(props: {
       </Show>
       <Show when={!(props.patientId && current()) && !(adding() && workspace())}>
         <Page
+          hero={PAGE_HEROES.patients}
           class="diary-dash__header"
           navigation={
             // In the diaries-only app there is nowhere to go back to.

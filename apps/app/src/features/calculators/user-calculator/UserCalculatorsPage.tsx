@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -149,6 +150,7 @@ export function UserCalculatorsPage(props: {
   return (
     <div class="user-calculators" data-testid="user-calculators">
       <Page
+        hero={PAGE_HEROES.calculators}
         class="user-calculators__header"
         navigation={
           <NavBack
