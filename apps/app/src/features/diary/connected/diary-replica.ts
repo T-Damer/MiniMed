@@ -33,6 +33,8 @@ export interface DiaryProfile {
   readonly label: string;
   readonly emoji?: string;
   readonly phone?: string;
+  /** `YYYY-MM-DD`, when the doctor wrote it down (owner 2026-10-28: optional). */
+  readonly birthDate?: string;
   /** Moved out of the doctor's working list; nothing else changes. */
   readonly archived?: boolean;
 }
@@ -42,6 +44,18 @@ const PHONE_PATTERN = /^\+?[\d\s()-]{5,24}$/u;
 /** A phone number as the doctor may type it: digits, spaces, brackets, dashes, a leading +. */
 export function isDiaryPhone(value: string): boolean {
   return PHONE_PATTERN.test(value.trim());
+}
+
+/** A real calendar day `YYYY-MM-DD` from 1900 up to today. */
+export function isDiaryBirthDate(value: string, today: Date = new Date()): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value);
+  if (!match) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const real =
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  return real && year >= 1900 && value <= todayKey;
 }
 
 export type DiaryPayload =
@@ -124,11 +138,13 @@ export function applyRevisions(
         const label = payload['label'];
         const emoji = payload['emoji'];
         const phone = payload['phone'];
+        const birthDate = payload['birthDate'];
         if (typeof label !== 'string' || label.length > 120) throw new DiaryFormatError('Профиль.');
         profile = {
           label,
           ...(typeof emoji === 'string' && emoji.length <= 16 ? { emoji } : {}),
           ...(typeof phone === 'string' && isDiaryPhone(phone) ? { phone: phone.trim() } : {}),
+          ...(typeof birthDate === 'string' && isDiaryBirthDate(birthDate) ? { birthDate } : {}),
           ...(payload['archived'] === true ? { archived: true } : {}),
         };
       } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {

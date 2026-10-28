@@ -28,6 +28,7 @@ import {
 } from '@/diary/heatmap-filter';
 import '@/diary/diary-care.css';
 import type { DiaryAlert } from '@localmed/contracts';
+import { patientRowSummary } from '@/components/patient-picker-summary';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
@@ -341,19 +342,27 @@ export function DiaryPatientPage(props: {
         description={(() => {
           void props.version;
           const label = presenceLabel(props.patient.summary);
-          return label ? (
-            <span
-              class="diary-presence"
-              classList={{ 'diary-presence--online': isOnline(props.patient.summary) }}
-            >
-              <span
-                class="diary-presence__dot"
-                classList={{ 'diary-presence__dot--online': isOnline(props.patient.summary) }}
-                aria-hidden="true"
-              />
-              {label}
+          const birth = props.patient.replica.profile?.birthDate;
+          const born = birth ? patientRowSummary(birth, dayKey(new Date())) : undefined;
+          if (!label && !born) return undefined;
+          return (
+            <span class="diary-patient__line">
+              <Show when={born}>{(text) => <span class="diary-patient__born">{text()}</span>}</Show>
+              <Show when={label}>
+                <span
+                  class="diary-presence"
+                  classList={{ 'diary-presence--online': isOnline(props.patient.summary) }}
+                >
+                  <span
+                    class="diary-presence__dot"
+                    classList={{ 'diary-presence__dot--online': isOnline(props.patient.summary) }}
+                    aria-hidden="true"
+                  />
+                  {label}
+                </span>
+              </Show>
             </span>
-          ) : undefined;
+          );
         })()}
         headerActions={actions()}
         help={

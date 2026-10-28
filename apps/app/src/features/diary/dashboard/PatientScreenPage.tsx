@@ -4,7 +4,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
-import { isDiaryPhone } from '@/features/diary/connected/diary-replica';
+import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
@@ -33,6 +33,7 @@ export function PatientScreenPage(props: {
   const [label, setLabel] = createSignal(profile?.label ?? '');
   const [emoji, setEmoji] = createSignal(profile?.emoji ?? '🙂');
   const [phone, setPhone] = createSignal(profile?.phone ?? '');
+  const [birthDate, setBirthDate] = createSignal(profile?.birthDate ?? '');
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const frequent = frequentDrugs(
@@ -44,6 +45,10 @@ export function PatientScreenPage(props: {
     setError('');
     if (phone().trim() && !isDiaryPhone(phone())) {
       setError('Проверьте телефон пациента.');
+      return;
+    }
+    if (birthDate() && !isDiaryBirthDate(birthDate())) {
+      setError('Проверьте дату рождения.');
       return;
     }
     setBusy(true);
@@ -60,11 +65,15 @@ export function PatientScreenPage(props: {
         label: label().trim() || profile?.label || 'Пациент',
         emoji: emoji(),
         ...(phone().trim() ? { phone: phone().trim() } : {}),
+        ...(birthDate() ? { birthDate: birthDate() } : {}),
+        // Not edited here, kept as it was (an archived patient stays archived).
+        ...(profile?.archived ? { archived: true } : {}),
       };
       if (
         next.label !== profile?.label ||
         next.emoji !== profile?.emoji ||
-        (next.phone ?? '') !== (profile?.phone ?? '')
+        (next.phone ?? '') !== (profile?.phone ?? '') ||
+        (next.birthDate ?? '') !== (profile?.birthDate ?? '')
       ) {
         await props.workspace.writeProfile(props.patient.summary.id, next);
       }
@@ -90,9 +99,11 @@ export function PatientScreenPage(props: {
           label={label()}
           emoji={emoji()}
           phone={phone()}
+          birthDate={birthDate()}
           onLabel={setLabel}
           onEmoji={setEmoji}
           onPhone={setPhone}
+          onBirthDate={setBirthDate}
         />
         <PatientScreenEditor
           draft={draft()}

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyRevisions,
   EMPTY_REPLICA,
+  isDiaryBirthDate,
   replicaResults,
 } from '@/features/diary/connected/diary-replica';
 import { DIARY_FORMAT_VERSION, diaryTemplate } from '@/features/diary/diary-model';
@@ -22,6 +23,33 @@ const entry = (wellbeing: number) => ({
   id: 'entry000001',
   at: '2026-10-21T09:00:00.000Z',
   values: { wellbeing },
+});
+
+describe('patient birth date', () => {
+  it('takes a real past day and nothing else', () => {
+    const today = new Date(2026, 9, 28);
+    expect(isDiaryBirthDate('1985-03-12', today)).toBe(true);
+    expect(isDiaryBirthDate('2026-10-28', today)).toBe(true);
+    expect(isDiaryBirthDate('2026-10-29', today)).toBe(false);
+    expect(isDiaryBirthDate('1985-02-30', today)).toBe(false);
+    expect(isDiaryBirthDate('1899-12-31', today)).toBe(false);
+    expect(isDiaryBirthDate('12.03.1985', today)).toBe(false);
+  });
+
+  it('is kept in the profile only when valid', () => {
+    const profile = (birthDate: unknown) =>
+      applyRevisions(EMPTY_REPLICA, [
+        {
+          id: 'profile',
+          rev: 1,
+          author: 'd:doctor0000001',
+          at: 't',
+          payload: { kind: 'profile', label: 'Лиса', birthDate },
+        },
+      ]).profile;
+    expect(profile('1985-03-12')).toEqual({ label: 'Лиса', birthDate: '1985-03-12' });
+    expect(profile('not a date')).toEqual({ label: 'Лиса' });
+  });
 });
 
 describe('connected diary replica', () => {

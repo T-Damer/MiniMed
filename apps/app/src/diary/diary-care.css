@@ -539,8 +539,9 @@ body:has(.diary-care-scope) {
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  /* The main app's sheet close size (overlay-dialog, 2.6rem). */
+  width: 2.6rem;
+  height: 2.6rem;
   border: 0;
   border-radius: 50%;
   color: var(--theme-text);

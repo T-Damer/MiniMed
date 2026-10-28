@@ -5,7 +5,7 @@ import { Button } from '@/components/Button';
 import { PatientEmojiPicker } from '@/components/PatientEmojiPicker';
 import { SheetPopover } from '@/components/SheetPopover';
 import { TextField } from '@/components/TextField';
-import { isDiaryPhone } from '@/features/diary/connected/diary-replica';
+import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import { savePatientContact, telHref } from '@/features/diary/dashboard/patient-contact';
 
 /**
@@ -16,9 +16,12 @@ export function PatientIdentity(props: {
   readonly label: string;
   readonly emoji: string;
   readonly phone: string;
+  /** `YYYY-MM-DD` or empty. */
+  readonly birthDate: string;
   readonly onLabel: (value: string) => void;
   readonly onEmoji: (value: string) => void;
   readonly onPhone: (value: string) => void;
+  readonly onBirthDate: (value: string) => void;
 }): JSX.Element {
   const [picking, setPicking] = createSignal(false);
   const [error, setError] = createSignal('');
@@ -51,6 +54,19 @@ export function PatientIdentity(props: {
           placeholder="Например: Лиса, А. К."
           value={props.label}
           onInput={(event) => props.onLabel(event.currentTarget.value)}
+        />
+      </div>
+      <div class="diary-identity__row">
+        <TextField
+          label="Дата рождения"
+          class="diary-identity__birth"
+          inputClass="screen-editor__input"
+          type="date"
+          value={props.birthDate}
+          error={
+            props.birthDate && !isDiaryBirthDate(props.birthDate) ? 'Проверьте дату' : undefined
+          }
+          onInput={(event) => props.onBirthDate(event.currentTarget.value)}
         />
       </div>
       <div class="diary-identity__row">

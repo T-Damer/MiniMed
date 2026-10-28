@@ -4,7 +4,7 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
-import { isDiaryPhone } from '@/features/diary/connected/diary-replica';
+import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
@@ -28,6 +28,7 @@ export function NewPatientScreen(props: {
   const [label, setLabel] = createSignal('');
   const [emoji, setEmoji] = createSignal('🦊');
   const [phone, setPhone] = createSignal('');
+  const [birthDate, setBirthDate] = createSignal('');
   const [draft, setDraft] = createSignal<CareDraft>(emptyCareDraft());
   const [doctor, setDoctor] = createSignal(props.workspace.session.doctor.name);
   const [note, setNote] = createSignal('');
@@ -49,6 +50,10 @@ export function NewPatientScreen(props: {
       setError('Проверьте телефон пациента.');
       return;
     }
+    if (birthDate() && !isDiaryBirthDate(birthDate())) {
+      setError('Проверьте дату рождения.');
+      return;
+    }
     setBusy(true);
     try {
       const id = await props.workspace.createPatient(
@@ -56,6 +61,7 @@ export function NewPatientScreen(props: {
           label: label().trim(),
           emoji: emoji(),
           ...(phone().trim() ? { phone: phone().trim() } : {}),
+          ...(birthDate() ? { birthDate: birthDate() } : {}),
         },
         (patientId) =>
           careInvitation({ id: patientId, draft: draft(), doctor: doctor(), note: note() }),
@@ -84,9 +90,11 @@ export function NewPatientScreen(props: {
               label={label()}
               emoji={emoji()}
               phone={phone()}
+              birthDate={birthDate()}
               onLabel={setLabel}
               onEmoji={setEmoji}
               onPhone={setPhone}
+              onBirthDate={setBirthDate}
             />
             <PatientScreenEditor
               draft={draft()}

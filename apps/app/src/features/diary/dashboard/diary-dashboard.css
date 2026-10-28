@@ -1277,3 +1277,15 @@
     transform: scale(0.4);
   }
 }
+
+/* Under the patient's name: birth date and age, then presence. */
+.diary-patient__line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.diary-patient__born {
+  color: var(--theme-text-muted);
+}

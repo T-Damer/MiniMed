@@ -160,6 +160,11 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   an «в сети» tag; the desktop header «⋯» is always visible (a card-hover rule hid it); back after
   creating a patient returns to the list.
 
+- Later on 2026-10-28 (owner): the patient profile takes an optional birth date (`DiaryProfile.birthDate`,
+  validated real past day; the patient page shows «12.03.1985 · 41 год» under the name); the patient
+  still sees no questionnaire score (decision recorded in DIARY_PLAN); patient-mode chrome uses the
+  main app's button sizes. Saving «Экран пациента» keeps an archived patient archived.
+
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 
 First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through

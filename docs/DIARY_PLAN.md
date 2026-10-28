@@ -38,6 +38,9 @@ tips and an urgent alert, without anyone but the patient's doctors being able to
 | Hosting | Pilot by us; later the faculty's Ubuntu/Debian server. Production on a Yandex Cloud VM; this Mac for development. |
 | Domain | `med.1damer.com` (no «psy» in any patient-visible name, see Privacy). |
 | Consent | Before the first entry the patient sees the ИДС and the personal-data consent (drafts in `diary-consent/`). |
+| Questionnaire results | The patient does not see a questionnaire's score or severity (owner 2026-10-28: it could cause panic); the doctor sees totals, bands and alerts. |
+| Patient profile | Pseudonym, emoji, optional phone and optional birth date (owner 2026-10-28), encrypted like the records. |
+| Patient-mode controls | The main app's sizes for its chrome (round header buttons, sheet and dialog close ≈40px); the diary's other controls keep 48px. |
 
 ### Recommended defaults taken in this plan (owner may override)
 

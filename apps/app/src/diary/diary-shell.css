@@ -24,12 +24,12 @@
 }
 
 /* The dialog close button: the main app styles it in doctor-ux.css, which the diary does not load;
-   here it is the diary's 48px round button. */
+   the same round 2.6rem button here (owner 2026-10-28: main-app sizes in patient mode). */
 .overlay-dialog__close-button {
   display: grid;
   box-sizing: border-box;
-  width: 3rem;
-  height: 3rem;
+  width: 2.6rem;
+  height: 2.6rem;
   flex: none;
   place-items: center;
   padding: 0;

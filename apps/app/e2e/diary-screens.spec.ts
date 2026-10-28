@@ -55,9 +55,13 @@ function findProblems(scope: string | undefined): Finding[] {
         : element;
     const box = target.getBoundingClientRect();
     const quiet = element.classList.contains('diary-screen__back');
-    // The round icon buttons of the main app's page header (back 44px, «?» 40px, header actions)
-    // and of a sheet (close, 44px) are the main app's own size; every other control keeps 48px.
-    const minimum = element.closest('header.page, .diary-sheet__header') !== null ? 39.5 : 47.5;
+    // The round icon buttons of the main app's chrome keep the main app's size (owner 2026-10-28):
+    // the page header (back, «?», header actions), a sheet's and a dialog's close button (≈40px).
+    // Every other control keeps the diary's 48px.
+    const mainChrome =
+      element.closest('header.page, .diary-sheet__header') !== null ||
+      element.classList.contains('overlay-dialog__close-button');
+    const minimum = mainChrome ? 39.5 : 47.5;
     if (box.height < minimum || (box.width < minimum && !quiet)) {
       found.push({
         kind: 'target',
