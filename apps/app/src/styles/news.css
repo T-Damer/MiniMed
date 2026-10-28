@@ -1021,7 +1021,7 @@ html.news-vt::view-transition-new(news-sheet) {
   height: 1.125rem;
 }
 
-/* Viewer: a compact header row, then the article as plain reading text. */
+/* Viewer: a compact header row, then the article on a paper sheet. */
 .news-viewer {
   min-height: 100dvh;
 }
@@ -1124,10 +1124,49 @@ html.news-vt::view-transition-new(news-sheet) {
   font-weight: 700;
 }
 
-/* The article: its heading lives here, in the content. */
+/*
+ * The article: its heading lives here, in the content. A `paper-sheet` (shared border, ink, shadow)
+ * on the desk, but plain paper with the dialog sheets' grain instead of the ruled lines, which would
+ * not meet the reading line height. Text tokens take their paper values back from the desk ones.
+ * On wide screens the sheet keeps a reading measure and stands centred under the header row.
+ */
 .news-article {
+  --theme-text-muted: var(--theme-paper-text-muted);
+  --theme-text-faint: var(--theme-paper-text-faint);
+  --theme-link: var(--theme-paper-link);
+  --theme-kicker: var(--theme-paper-kicker);
   display: grid;
+  box-sizing: border-box;
+  isolation: isolate;
   gap: 0.75rem;
+  justify-self: center;
+  width: min(100%, 48rem);
+  min-width: 0;
+  padding: clamp(1rem, 3.5vw, 2rem) clamp(1rem, 4vw, 2.5rem) clamp(1.25rem, 4vw, 2.25rem);
+  border-radius: var(--theme-radius-panel);
+  background: var(--paper-light);
+  animation: news-sheet-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+/* The grain lies under the text across the whole sheet and never takes a tap. */
+.news-article::before {
+  position: absolute;
+  z-index: var(--z-behind);
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  background-image: var(--page-grain-image);
+  background-size: 12.5rem 12.5rem;
+  mix-blend-mode: multiply;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+@keyframes news-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
 }
 
 .news-article__title {
@@ -1381,6 +1420,7 @@ html.news-vt::view-transition-new(news-sheet) {
   .news-grid__subscribe-icon--spinning,
   .news-grid__item,
   .news-viewer__spinner-icon,
+  .news-article,
   .news-sheet__skeleton {
     animation: none;
   }

@@ -2785,7 +2785,9 @@ Owner screenshots and requests of 2026-10-08, applied by eight Sonnet worktree a
   sheet, merged «Источники» page (avatar, name, site + update, switch, delete). In-app article reader:
   X-Frame-Options ignored, the page fetched over the native/CORS-capable transport, readability-style
   extraction cached in IndexedDB `minimed-news` v2 `articles`; raw page in a sandboxed `srcdoc`. Avatars
-  in `localStorage` `minimed.news.icons.v1`. ADR-0024 amended. Not tested on a device.
+  in `localStorage` `minimed.news.icons.v1`. ADR-0024 amended. Not tested on a device. The article
+  (title, date, text) sits on a `paper-sheet` with the dialog sheets' grain under the header row,
+  centred at a 48rem reading measure on wide screens (2026-10-28).
 - **Definitions.** «Депрессия» was a real rare sense (КР 904_1, fracture) ranked by coverage only. Senses
   now carry field, usage (КР paragraphs closest to the sense), independent documents and authority; the
   card shows the likeliest sense first and other senses as field chips; an on-device doctor profile

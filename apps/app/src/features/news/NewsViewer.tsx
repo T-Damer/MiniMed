@@ -231,7 +231,11 @@ function NewsArticle(props: {
     return images() && cover && cover !== firstImageOf(nodes()) ? cover : undefined;
   };
   return (
-    <article class="news-article" data-testid="news-article" data-article-source={source()}>
+    <article
+      class="news-article paper-sheet"
+      data-testid="news-article"
+      data-article-source={source()}
+    >
       <h1 class="news-article__title">{props.item.title}</h1>
       <p class="news-article__meta">
         {itemDateLabel(props.item.publishedAt)}
