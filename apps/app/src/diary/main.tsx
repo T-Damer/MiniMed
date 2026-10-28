@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { DiaryApp } from '@/diary/DiaryApp';
 import { listenForInstallPrompt } from '@/diary/install-state';
 import '@/styles/theme.css';
+import '@/diary/diary-shell.css';
 import '@/styles/theme-dark-diary.css';
 import '@/diary/diary-page.css';
 import '@/diary/diary-care.css';

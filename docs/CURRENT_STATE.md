@@ -141,6 +141,25 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   manifests carry a description and screenshots (`public/screenshots`, `public/diary/screenshots`)
   for Chrome's install sheet. `install.sh` has not run on a Linux server; no iPhone test.
 
+- Patient mode as the main app (owner 2026-10-28, STATE DIARY13): a care diary's screens use the
+  main app's page header (`Page` through `ScreenHeader`: back, serif title, one description line
+  with the doctor and «врач видит записи на 15:22», icon buttons that fold into «⋯», «?» help), the
+  main floating tab bar (`components/BottomNav.tsx`, generic; `AppBottomNav` renders through it):
+  «Сегодня», «Записи», «Врачу» (QR diaries only), «Настройки». «Ещё» became «Настройки» in the main
+  Settings list's inset groups (notifications, reminders, names; sounds; print, FHIR, restore,
+  another link, my diaries; withdraw consent with a confirmation dialog); how-to text is behind
+  «?». Shared styles moved out of compact-release.css into `styles/bottom-nav.css`,
+  `styles/page-chrome.css` (headings, back button) and `styles/motion-tokens.css`, imported at the
+  same cascade position in main.tsx and @imported by `diary/diary-shell.css`. «Добавьте дневник на
+  экран «Домой»» is an amber warning row (`InstallWarning`) that fires the browser's install prompt
+  or opens an animated guide of the real browser UI (`InstallGuide`: Android Chrome, iPhone, iPad,
+  messenger, desktop). Open tasks show an empty checkbox (done: a green check), the condition note
+  is a checkbox row; «Изменить» in «Записи» opens that entry's sheet on its day; crisis-line phone
+  numbers are call links; vitals units sit in the label so inputs keep their width. Doctor side:
+  the pairing sheet waits live and turns into «Телефон подключён · в сети»; online patients carry
+  an «в сети» tag; the desktop header «⋯» is always visible (a card-hover rule hid it); back after
+  creating a patient returns to the list.
+
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 
 First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through

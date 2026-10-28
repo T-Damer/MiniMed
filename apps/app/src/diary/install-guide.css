@@ -1,0 +1,780 @@
+/*
+ * «Add to home screen» warning row and its animated guide. The guide draws miniatures of the
+ * browser screens in HTML and CSS; every element has its own class (BEM), the scene is toggled by
+ * state classes only. The diary bundle has no global.css, so the motion tokens carry fallbacks.
+ * Motion: 120-260 ms through the theme tokens; reduced-motion and «Анимации: выкл» show the steps
+ * without movement.
+ */
+.install-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-warning) 55%, var(--theme-border));
+  border-radius: 0.9rem;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-warning) 18%, var(--theme-surface-raised));
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, cubic-bezier(0.32, 0.72, 0, 1)),
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.install-warning:active {
+  transform: scale(0.96);
+}
+
+.install-warning--busy {
+  opacity: 0.7;
+}
+
+.install-warning__icon {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--theme-warning);
+}
+
+.install-warning__text {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.install-warning__chevron {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-muted);
+}
+
+/* Guide -------------------------------------------------------------------------------------- */
+.install-guide {
+  display: grid;
+  gap: 1rem;
+}
+
+.install-guide__steps {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-guide__item {
+  display: block;
+}
+
+.install-guide__step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 0.8rem;
+  color: var(--theme-text-muted);
+  background: transparent;
+  font: inherit;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, cubic-bezier(0.32, 0.72, 0, 1)),
+    color var(--motion-base, 180ms) var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color var(--motion-base, 180ms)
+    var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.install-guide__step:active {
+  transform: scale(0.96);
+}
+
+.install-guide__step--current {
+  color: var(--theme-text);
+  background: var(--theme-accent-soft);
+  font-weight: 600;
+}
+
+.install-guide__number {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  transition:
+    color var(--motion-base, 180ms) var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color var(--motion-base, 180ms)
+    var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.install-guide__number--current {
+  color: var(--theme-accent-contrast, #fff);
+  background: var(--theme-accent);
+}
+
+.install-guide__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.install-guide__note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.95rem;
+}
+
+.install-guide__install {
+  width: 100%;
+}
+
+/* Scene: a phone (or window) with the browser's own controls ---------------------------------- */
+.install-scene {
+  --scene-ease: var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  --scene-base: var(--motion-base, 180ms);
+  --scene-slow: var(--motion-slow, 260ms);
+  --scene-fast: var(--motion-fast, 120ms);
+  --scene-ink: var(--theme-text);
+  --scene-muted: var(--theme-text-muted);
+  --scene-paper: var(--theme-surface);
+  --scene-raised: var(--theme-surface-raised);
+  --scene-bar: var(--theme-surface-muted);
+  --scene-line: var(--theme-border);
+  --scene-hot: var(--theme-accent);
+  --scene-hot-soft: var(--theme-accent-soft);
+  display: flex;
+  justify-content: center;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  user-select: none;
+  pointer-events: none;
+}
+
+.install-scene__phone {
+  position: relative;
+  box-sizing: border-box;
+  flex: none;
+  width: 16em;
+  height: 19em;
+  overflow: hidden;
+  border: 0.3em solid color-mix(in srgb, var(--scene-ink) 78%, var(--scene-paper));
+  border-radius: 1.6em;
+  color: var(--scene-ink);
+  background: var(--scene-paper);
+}
+
+.install-scene__phone--wide {
+  width: min(100%, 22em);
+  height: 15em;
+  border-radius: 1.1em;
+}
+
+.install-scene__phone--window {
+  width: min(100%, 22em);
+  height: 14em;
+  border-width: 0.2em;
+  border-radius: 0.7em;
+}
+
+/* Browser bars */
+.install-scene__topbar,
+.install-scene__bottombar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  box-sizing: border-box;
+  height: 2.6em;
+  padding: 0 0.5em;
+  background: var(--scene-raised);
+}
+
+.install-scene__topbar {
+  top: 0;
+  border-bottom: 1px solid var(--scene-line);
+}
+
+.install-scene__topbar--messenger {
+  justify-content: space-between;
+}
+
+.install-scene__bottombar {
+  bottom: 0;
+  height: 3em;
+  border-top: 1px solid var(--scene-line);
+}
+
+.install-scene__messenger-title {
+  flex: 1;
+  font-weight: 700;
+  text-align: center;
+}
+
+.install-scene__pill {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.3em;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 1.8em;
+  padding: 0 0.7em;
+  border-radius: 1em;
+  color: var(--scene-muted);
+  background: var(--scene-bar);
+}
+
+.install-scene__pill-lock {
+  flex: none;
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.install-scene__pill-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.install-scene__button {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+}
+
+.install-scene__button-glyph {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.install-scene__install {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+}
+
+.install-scene__install-glyph {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.install-scene__lights {
+  flex: none;
+  width: 2.2em;
+  height: 0.6em;
+  border-radius: 0.3em;
+  background: repeating-linear-gradient(90deg, var(--scene-line) 0 0.6em, transparent 0.6em 0.8em);
+}
+
+/* Page under the bars */
+.install-scene__page {
+  position: absolute;
+  inset: 2.6em 0 0;
+  display: grid;
+  align-content: start;
+  gap: 0.6em;
+  padding: 1em;
+}
+
+.install-scene__page-title {
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.install-scene__bar {
+  display: block;
+  width: 70%;
+  height: 0.7em;
+  border-radius: 0.35em;
+  background: var(--scene-bar);
+}
+
+.install-scene__bar--wide {
+  width: 100%;
+}
+
+.install-scene__bar--short {
+  width: 45%;
+}
+
+/* Layers that slide or fade in */
+.install-layer {
+  position: absolute;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--scene-base) var(--scene-ease),
+    transform var(--scene-slow) var(--scene-ease);
+}
+
+.install-layer--fade {
+  transform: none;
+}
+
+.install-layer--pop {
+  transform: translateY(-0.4em) scale(0.92);
+  transform-origin: top right;
+}
+
+.install-layer--rise {
+  transform: translateY(100%);
+}
+
+.install-layer--on {
+  opacity: 1;
+  transform: none;
+}
+
+.install-scene__scrim {
+  inset: 0;
+  z-index: 2;
+  background: rgb(0 0 0 / 38%);
+}
+
+/* Menus and popovers */
+.install-scene__menu {
+  top: 0.5em;
+  right: 0.5em;
+  z-index: 3;
+  display: grid;
+  gap: 0.1em;
+  box-sizing: border-box;
+  width: 12.6em;
+  padding: 0.3em;
+  border-radius: 0.8em;
+  background: var(--scene-raised);
+  box-shadow: 0 0.4em 1.4em rgb(0 0 0 / 28%);
+}
+
+.install-scene__menu--bottom {
+  top: auto;
+  bottom: 3.3em;
+  transform-origin: bottom right;
+}
+
+.install-scene__menu--tablet {
+  top: 2.9em;
+  right: 3.6em;
+  width: 10em;
+}
+
+.install-scene__menu--window {
+  top: 3em;
+  right: 0.6em;
+  width: 13.5em;
+  gap: 0.6em;
+  padding: 0.7em;
+}
+
+.install-scene__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2em;
+  padding: 0 0.6em;
+  border-radius: 0.5em;
+  white-space: nowrap;
+}
+
+.install-scene__row--spread {
+  justify-content: space-between;
+}
+
+.install-scene__row-glyph {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  margin-left: 0.4em;
+}
+
+/* Android dialog and the Safari sheets */
+.install-scene__dialog,
+.install-scene__add {
+  left: 0;
+  right: 0;
+  min-width: 0;
+  z-index: 4;
+  display: grid;
+  gap: 0.7em;
+  box-sizing: border-box;
+  padding: 0.9em;
+  border-radius: 1em 1em 0 0;
+  background: var(--scene-raised);
+  box-shadow: 0 -0.3em 1.2em rgb(0 0 0 / 22%);
+}
+
+.install-scene__dialog,
+.install-scene__add {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.install-scene__dialog {
+  bottom: 0;
+}
+
+.install-scene__add {
+  top: 1.2em;
+  bottom: 0;
+  align-content: start;
+}
+
+.install-scene__dialog-title {
+  font-weight: 700;
+}
+
+.install-scene__field {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  box-sizing: border-box;
+  min-height: 2.6em;
+  padding: 0.3em 0.6em;
+  border-radius: 0.6em;
+  background: var(--scene-bar);
+}
+
+.install-scene__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25em 0.4em;
+}
+
+.install-scene__action {
+  position: relative;
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.1em;
+  padding: 0 0.55em;
+  border-radius: 1.1em;
+  color: var(--scene-hot);
+}
+
+.install-scene__action--primary {
+  color: var(--theme-accent-contrast, #fff);
+  background: var(--scene-hot);
+}
+
+.install-scene__add-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4em;
+}
+
+.install-scene__add-cancel {
+  flex: none;
+  width: 1.3em;
+  height: 1.3em;
+  color: var(--scene-muted);
+}
+
+.install-scene__add-done {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35em 0.7em;
+  border-radius: 1em;
+  color: var(--scene-hot);
+  font-weight: 700;
+}
+
+.install-scene__share {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  gap: 0.5em;
+  box-sizing: border-box;
+  padding: 0.8em 0.6em 0.4em;
+  border-radius: 1em 1em 0 0;
+  background: var(--scene-raised);
+  box-shadow: 0 -0.3em 1.2em rgb(0 0 0 / 22%);
+}
+
+.install-scene__share-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0 0.3em;
+  font-weight: 700;
+}
+
+.install-scene__listbox {
+  position: relative;
+  display: block;
+  height: 6.2em;
+  overflow: hidden;
+  border-radius: 0.7em;
+  background: var(--scene-bar);
+}
+
+.install-scene__list {
+  display: grid;
+  transition: transform var(--scene-slow) var(--scene-ease) var(--scene-base);
+}
+
+.install-scene__list--scrolled {
+  transform: translateY(-2em);
+}
+
+.install-scene__hint {
+  position: absolute;
+  right: 0.5em;
+  bottom: 0.2em;
+  opacity: 0;
+  color: var(--scene-hot);
+}
+
+.install-scene__hint--on {
+  animation: install-scene-hint 1.2s var(--scene-ease) both;
+}
+
+.install-scene__hint-glyph {
+  display: block;
+  width: 1.4em;
+  height: 1.4em;
+}
+
+/* Browser opened from a messenger, and the desktop's app window */
+.install-scene__browser {
+  inset: 0;
+  z-index: 4;
+  background: var(--scene-paper);
+}
+
+.install-scene__done {
+  position: absolute;
+  right: 1em;
+  bottom: 1em;
+  width: 2.6em;
+  height: 2.6em;
+  color: var(--care-good, #2f7d5b);
+}
+
+.install-scene__appwindow {
+  inset: 2.6em 3em 1em;
+  z-index: 3;
+  overflow: hidden;
+  border: 1px solid var(--scene-line);
+  border-radius: 0.6em;
+  background: var(--scene-paper);
+  box-shadow: 0 0.4em 1.4em rgb(0 0 0 / 28%);
+  transform-origin: center;
+}
+
+.install-scene__appwindow-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.4em 0.6em;
+  background: var(--scene-bar);
+  font-weight: 700;
+}
+
+/* App icon and home screen */
+.install-scene__app {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 3em;
+  height: 3em;
+  border-radius: 0.8em;
+  color: var(--theme-accent-contrast, #fff);
+  background: var(--scene-hot);
+}
+
+.install-scene__app--small {
+  width: 2em;
+  height: 2em;
+  border-radius: 0.55em;
+}
+
+.install-scene__app-glyph {
+  width: 55%;
+  height: 55%;
+}
+
+.install-scene__home {
+  inset: 0;
+  z-index: 5;
+  padding: 2.4em 1em 1em;
+  box-sizing: border-box;
+  color: #fff;
+  background: linear-gradient(160deg, #3c6478, #14222b);
+}
+
+.install-scene__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1em 0.6em;
+}
+
+.install-scene__slot {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-height: 3.8em;
+}
+
+.install-scene__tile {
+  width: 3em;
+  height: 3em;
+  border-radius: 0.8em;
+  background: rgb(255 255 255 / 22%);
+}
+
+.install-scene__newapp {
+  display: grid;
+  justify-items: center;
+  gap: 0.25em;
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.install-scene__newapp--in {
+  animation: install-scene-appear var(--scene-slow) cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s both;
+}
+
+.install-scene__newapp-label {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+/* Highlight and tap feedback */
+.install-hot {
+  transition:
+    background-color var(--scene-base) var(--scene-ease),
+    box-shadow var(--scene-base) var(--scene-ease);
+}
+
+.install-hot--on {
+  background: var(--scene-hot-soft);
+  box-shadow: 0 0 0 0.16em var(--scene-hot);
+  animation: install-scene-pulse 0.8s var(--scene-ease) 2;
+}
+
+.install-scene__action--primary.install-hot--on {
+  background: var(--scene-hot);
+}
+
+.install-scene__ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.6em;
+  height: 2.6em;
+  margin: -1.3em 0 0 -1.3em;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--scene-hot) 45%, transparent);
+  opacity: 0;
+}
+
+.install-scene__ripple--tap {
+  animation: install-scene-tap 0.8s var(--scene-ease) 0.3s both;
+}
+
+@keyframes install-scene-pulse {
+  50% {
+    box-shadow: 0 0 0 0.45em color-mix(in srgb, var(--scene-hot) 35%, transparent);
+  }
+}
+
+@keyframes install-scene-tap {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.3);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes install-scene-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes install-scene-hint {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.3em);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(0.2em);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(0.2em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-warning,
+  .install-guide__step,
+  .install-guide__number,
+  .install-layer,
+  .install-hot,
+  .install-hot--on,
+  .install-scene__list,
+  .install-scene__hint--on,
+  .install-scene__ripple--tap,
+  .install-scene__newapp--in {
+    transition: none;
+    animation: none;
+  }
+
+  .install-scene__newapp--in {
+    opacity: 1;
+    transform: none;
+  }
+
+  .install-scene__ripple--tap {
+    opacity: 0;
+  }
+}

@@ -1,6 +1,6 @@
 import { createUniqueId, type JSX } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 
 import '@/components/ConfirmationDialog.css';
@@ -12,6 +12,8 @@ interface ConfirmationDialogProps {
   readonly confirmLabel: string;
   readonly cancelLabel?: string;
   readonly danger?: boolean;
+  /** The confirm button's icon when the default (trash when `danger`) does not fit the action. */
+  readonly icon?: AppGlyphName;
   readonly onConfirm: () => void;
   readonly onOpenChange: (open: boolean) => void;
 }
@@ -47,7 +49,7 @@ export function ConfirmationDialog(props: ConfirmationDialogProps): JSX.Element 
           onClick={props.onConfirm}
         >
           <AppGlyph
-            name={props.danger ? 'trash' : 'list-checks'}
+            name={props.icon ?? (props.danger ? 'trash' : 'list-checks')}
             class="confirmation-sheet__icon"
           />
           {props.confirmLabel}

@@ -29,7 +29,14 @@ export function DiaryRecords(props: {
   readonly sent: DiarySent | undefined;
   readonly saved: SavedEntry | undefined;
   readonly error: string;
-  readonly onBack: () => void;
+  /** Absent when the tab bar opened the page. */
+  readonly onBack?: (() => void) | undefined;
+  /**
+   * A care diary with the tab bar: marks are made on «Сегодня» and the bar has «Врачу», so the dock
+   * at the bottom is not repeated; a connected diary sends by itself, so no «не отправлена» badge.
+   */
+  readonly tabbed?: boolean;
+  readonly connected?: boolean;
   readonly onWrite: () => void;
   readonly onSend: () => void;
   readonly onEdit: (entry: DiaryEntry) => void;
@@ -42,7 +49,7 @@ export function DiaryRecords(props: {
   return (
     <main class="diary-page diary-page--records">
       <ScreenHeader
-        title="Мои записи"
+        title="Записи"
         subtitle={`${invitation().title}: ${entriesLabel(props.results.entries.length)}`}
         onBack={props.onBack}
       />
@@ -101,7 +108,7 @@ export function DiaryRecords(props: {
                         <Show when={entry.note}>
                           <span class="diary-record__note">{entry.note}</span>
                         </Show>
-                        <Show when={entryBadge(entry, props.sent)}>
+                        <Show when={!props.connected && entryBadge(entry, props.sent)}>
                           {(badge) => <span class="diary-record__badge">{badge()}</span>}
                         </Show>
                         <Show
@@ -162,25 +169,27 @@ export function DiaryRecords(props: {
           </For>
         </div>
       </Show>
-      <div class="diary-dock">
-        <Button
-          class="diary-button diary-dock__primary"
-          type="button"
-          variant="primary"
-          icon={<AppGlyph name="edit" class="diary-record__icon" />}
-          onClick={props.onWrite}
-        >
-          Записать показания
-        </Button>
-        <Button
-          class="diary-button diary-dock__secondary"
-          type="button"
-          icon={<AppGlyph name="envelope-simple" class="diary-record__icon" />}
-          onClick={props.onSend}
-        >
-          Отправить врачу
-        </Button>
-      </div>
+      <Show when={!props.tabbed}>
+        <div class="diary-dock">
+          <Button
+            class="diary-button diary-dock__primary"
+            type="button"
+            variant="primary"
+            icon={<AppGlyph name="edit" class="diary-record__icon" />}
+            onClick={props.onWrite}
+          >
+            Записать показания
+          </Button>
+          <Button
+            class="diary-button diary-dock__secondary"
+            type="button"
+            icon={<AppGlyph name="envelope-simple" class="diary-record__icon" />}
+            onClick={props.onSend}
+          >
+            Отправить врачу
+          </Button>
+        </div>
+      </Show>
     </main>
   );
 }

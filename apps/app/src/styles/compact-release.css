@@ -1026,28 +1026,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   min-height: 100dvh;
 }
 
-.app-bottom-nav {
-  position: fixed;
-  z-index: var(--z-bottom-nav);
-  right: 0;
-  bottom: calc(0.625rem + var(--nav-safe-bottom, 0px));
-  left: 0;
-  display: flex;
-  width: max-content;
-  margin-inline: auto;
-  gap: 0.25rem;
-  padding: 0.3125rem;
-  border: 1px solid var(--theme-accent);
-  border-radius: 999px;
-  color: #f8f0dd;
-  background: rgb(58 57 51 / 94%);
-  box-shadow: 0 0.625rem 1.875rem rgb(38 32 24 / 30%);
-  backdrop-filter: blur(1rem);
-  isolation: isolate;
-  transition: transform 180ms ease;
-  touch-action: pan-y;
-}
-
 .route-sticky-chrome {
   transition: transform 180ms ease;
 }
@@ -1075,110 +1053,8 @@ html.reader-outline-open .app-shell {
   z-index: var(--z-reader-shell-open);
 }
 
-.app-bottom-nav .app-nav-item {
-  position: relative;
-  z-index: var(--z-raised);
-  display: grid;
-  flex: 0 0 auto;
-  min-width: auto;
-  place-items: center;
-}
-
-.app-bottom-nav__bubble {
-  position: absolute;
-  z-index: var(--z-base);
-  border: 1px solid color-mix(in srgb, var(--theme-accent) 72%, #fff 28%);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 18%, rgb(255 255 255 / 72%), transparent 58%),
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--theme-surface-raised) 88%, #fff 12%),
-      var(--theme-surface-raised)
-    );
-  box-shadow:
-    0 0.25rem 0.625rem rgb(21 19 15 / 22%),
-    0 1px 0 rgb(255 255 255 / 55%) inset;
-  pointer-events: none;
-  transform: scale(1);
-  transition:
-    left 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    top 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    width 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    height 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: left, top, width, height, transform;
-}
-
-.app-bottom-nav--dragging .app-bottom-nav__bubble {
-  transition: none;
-}
-
-.app-bottom-nav .app-nav-button {
-  display: grid;
-  grid-template: 1fr / 1fr;
-  width: 2.625rem;
-  height: 2.625rem;
-  margin: 0;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  aspect-ratio: 1;
-  color: #d5cdbc;
-  background: transparent;
-  box-shadow: none;
-  line-height: 0;
-  place-items: center;
-  place-content: center;
-}
-
-.app-bottom-nav .app-nav-button--active {
-  width: 2.625rem;
-  height: 2.625rem;
-  margin: 0;
-  padding: 0;
-  border-color: transparent;
-  color: var(--theme-accent);
-  background: transparent;
-  box-shadow: none;
-}
-
-.app-bottom-nav .app-nav-button--active::before,
-.app-bottom-nav .app-nav-button--active::after {
-  content: none;
-}
-
-.app-bottom-nav .app-nav-button__icon,
-.app-bottom-nav .app-nav-button__icon--active {
-  display: block;
-  grid-area: 1 / 1;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin: 0;
-  color: inherit;
-  fill: currentColor;
-  place-self: center;
-  transform: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .app-bottom-nav .app-nav-button:hover {
-    transform: none;
-    color: var(--theme-accent);
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .app-bottom-nav .app-nav-button--active:hover {
-    color: var(--theme-accent);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .app-bottom-nav,
-  .route-sticky-chrome,
-  .app-bottom-nav__bubble {
+  .route-sticky-chrome {
     transition: none;
   }
 }
@@ -1540,15 +1416,6 @@ html.reader-outline-open .app-shell {
 }
 .knowledge-graph-legend i.notes {
   background: #925a78;
-}
-
-@media (max-width: 640px) {
-  .app-bottom-nav .app-nav-button,
-  .app-bottom-nav .app-nav-button--active {
-    width: 2.375rem;
-    height: 2.375rem;
-    aspect-ratio: 1;
-  }
 }
 
 /* Personal notes: a separate trust layer, styled so it never reads as installed official content. */
@@ -2588,34 +2455,6 @@ html.native-print-active #root {
     linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%), var(--route-desk-gradient);
 }
 
-.knowledge-back-button {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--theme-border);
-  border-radius: 50%;
-  color: var(--theme-accent);
-  background: var(--theme-surface-raised);
-  box-shadow: 0 0.25rem 0.75rem rgb(34 31 25 / 10%);
-  cursor: pointer;
-  line-height: 0;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .knowledge-back-button:hover {
-    border-color: var(--theme-accent);
-    background: var(--theme-hover-surface);
-  }
-}
-
-.knowledge-back-button svg {
-  display: block;
-  width: 1.125rem;
-  height: 1.125rem;
-}
-
 /* Flat sticker cards open into a focused timeline instead of expanding the whole grid. */
 .patient-card-list,
 .module-grid,
@@ -3463,29 +3302,6 @@ html.native-print-active #root {
     align-items: stretch;
     flex-direction: column;
   }
-}
-
-/* Typography: route-depth-aware page headings (components/Text.tsx) */
-
-.app-heading {
-  overflow-wrap: break-word;
-  margin: 0;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  line-height: 1.15;
-  text-wrap: balance;
-}
-
-.app-heading--depth-1 {
-  font-size: clamp(1.3rem, 3vw, 1.75rem);
-}
-
-.app-heading--depth-2 {
-  font-size: clamp(1.12rem, 2.4vw, 1.4rem);
-}
-
-.app-heading--depth-3 {
-  font-size: clamp(1rem, 2vw, 1.2rem);
 }
 
 .search-mode-picker--single {

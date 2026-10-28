@@ -405,7 +405,12 @@ export function VitalsSheet(props: {
         <For each={fields}>
           {(field) => (
             <label class="diary-vitals__field">
-              <span class="diary-vitals__label">{field.label}</span>
+              <span class="diary-vitals__label">
+                {field.label}
+                <Show when={field.unit}>
+                  <span class="diary-vitals__unit">, {field.unit}</span>
+                </Show>
+              </span>
               <span class="diary-vitals__row">
                 <input
                   class="diary-vitals__input"
@@ -418,11 +423,12 @@ export function VitalsSheet(props: {
                   onInput={(event) => {
                     const value = event.currentTarget.value;
                     setTexts((current) => ({ ...current, [field.id]: value }));
+                    // The field turns calm again as soon as the patient changes it.
+                    if (problems()[field.id]) {
+                      setProblems(({ [field.id]: _fixed, ...rest }) => rest);
+                    }
                   }}
                 />
-                <Show when={field.unit}>
-                  <span class="diary-vitals__unit">{field.unit}</span>
-                </Show>
               </span>
               <Show when={problems()[field.id]}>
                 <span class="diary-vitals__problem">{problems()[field.id]}</span>

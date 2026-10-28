@@ -16,6 +16,9 @@ body:has(.diary-care-scope) {
   --theme-primary-active-background: color-mix(in srgb, var(--theme-accent) 92%, black);
   --theme-hover-surface: color-mix(in srgb, var(--theme-surface-raised) 88%, var(--theme-accent));
   --care-good: #2f7d5b;
+  /* The tick of a done task: white on a vivid green, readable in both themes. */
+  --care-check: #2f9e5b;
+  --care-check-ink: #ffffff;
   --care-late: #b06a12;
   --care-fast: var(--motion-fast, 120ms);
   --care-base: var(--motion-base, 180ms);
@@ -35,6 +38,8 @@ body:has(.diary-care-scope) {
     --theme-primary-hover-background: color-mix(in srgb, var(--theme-accent) 82%, white);
     --theme-hover-surface: color-mix(in srgb, var(--theme-surface-raised) 84%, var(--theme-accent));
     --care-good: #7fc4a2;
+    --care-check: #2f9e5b;
+    --care-check-ink: #ffffff;
     --care-late: #e2a554;
   }
 }
@@ -52,7 +57,6 @@ body:has(.diary-care-scope) {
 /* Day page ----------------------------------------------------------------------------------- */
 .diary-today {
   gap: 1.1rem;
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* The doctor's look at the patient's screen: no bottom bar, inside the app's own page chrome. */
@@ -65,27 +69,10 @@ body:has(.diary-care-scope) {
   border-radius: 1.25rem 1.25rem 0 0;
 }
 
-.diary-today__header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.diary-today__titles {
-  flex: 1;
-  min-width: 0;
-}
-
 .diary-today__title {
   margin: 0;
   font-size: 1.45rem;
   line-height: 1.2;
-}
-
-.diary-today__doctor {
-  margin: 0.1rem 0 0;
-  color: var(--theme-text-muted);
-  font-size: 0.95rem;
 }
 
 .diary-today__icon {
@@ -104,7 +91,6 @@ body:has(.diary-care-scope) {
 
 .diary-today__icon:active,
 .diary-today__step:active,
-.diary-today__bar-button:active,
 .care-row__check:active,
 .care-add:active {
   transform: scale(0.96);
@@ -117,7 +103,6 @@ body:has(.diary-care-scope) {
 
 .diary-today__icon-glyph,
 .diary-today__step-icon,
-.diary-today__bar-icon,
 .care-add__icon,
 .diary-sheet__close-icon,
 .diary-contact__glyph,
@@ -194,10 +179,6 @@ body:has(.diary-care-scope) {
   cursor: pointer;
 }
 
-.diary-today__bar-button--busy {
-  opacity: 0.7;
-}
-
 .diary-today__note {
   margin: 0;
   padding: 0.75rem 0.9rem;
@@ -225,42 +206,6 @@ body:has(.diary-care-scope) {
 .diary-today__flash:not(:empty) {
   opacity: 1;
   transform: translate(-50%, 0);
-}
-
-.diary-today__bar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--theme-border);
-  background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
-  backdrop-filter: blur(12px);
-}
-
-.diary-today__bar-button {
-  display: inline-flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  max-width: 9rem;
-  min-height: 3.25rem;
-  padding: 0.35rem 0.5rem;
-  border: 0;
-  border-radius: var(--theme-radius-control, 0.6rem);
-  color: var(--theme-text);
-  background: transparent;
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.diary-today__bar-button--pending {
-  color: var(--care-late);
 }
 
 /* Sections and rows -------------------------------------------------------------------------- */
@@ -332,13 +277,42 @@ body:has(.diary-care-scope) {
 }
 
 .care-row__check--done {
-  color: var(--theme-accent-contrast);
-  background: var(--care-good);
+  color: var(--care-check-ink);
+  background: var(--care-check);
 }
 
 .care-row__check-icon {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+/* Just ticked: the check pops in. */
+.care-row__check-icon--done {
+  animation: care-check-pop var(--care-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+/* An open task: an empty box waiting for its tick. */
+.care-row__box {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 70%, transparent);
+  border-radius: 0.5rem;
+  background: var(--theme-surface);
+  box-shadow: inset 0 0.08rem 0.15rem rgb(0 0 0 / 8%);
+}
+
+.care-row__box--late {
+  border-color: var(--care-late, var(--theme-warning));
+}
+
+/* Scale only: a paused or skipped animation must never leave the tick transparent. */
+@keyframes care-check-pop {
+  from {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.12);
+  }
 }
 
 /*
@@ -497,7 +471,8 @@ body:has(.diary-care-scope) {
 .diary-sheet {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* Above the floating tab bar (--z-bottom-nav), as the main app's dialogs are. */
+  z-index: var(--z-dialog, 80);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -699,7 +674,6 @@ body:has(.diary-care-scope) {
 .care-add:focus-visible,
 .diary-today__icon:focus-visible,
 .diary-today__step:focus-visible,
-.diary-today__bar-button:focus-visible,
 .diary-contact:focus-visible,
 .diary-crisis__call:focus-visible {
   outline: 0.19rem solid var(--theme-accent);
@@ -830,8 +804,8 @@ body:has(.diary-care-scope) {
 }
 
 .diary-vitals__unit {
-  flex: none;
   color: var(--theme-text-muted);
+  font-weight: 400;
   font-size: 0.9rem;
 }
 
@@ -1022,4 +996,13 @@ body:has(.diary-care-scope) {
 .diary-button--confirm {
   color: var(--theme-accent-contrast, #fff);
   background: var(--theme-danger);
+}
+
+/* A number inside a help line the doctor wrote: tap to call. */
+.diary-crisis__phone {
+  color: var(--theme-link, var(--theme-accent-text));
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  white-space: nowrap;
 }

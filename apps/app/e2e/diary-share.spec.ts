@@ -10,6 +10,8 @@ import {
   localInput,
   openDiaryList,
   openRecords,
+  openRestoreSheet,
+  openSettings,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -74,9 +76,13 @@ test.describe('patient diary: returning results to the doctor', () => {
     await expect(page.locator('.diary-send__status')).toContainText('новых или изменённых: 2');
     await backToHome(page);
 
-    // The list shows the same count so the patient notices from the first screen.
+    // The list shows the same count so the patient notices from the first screen (a second diary
+    // on the phone makes the list reachable).
+    await page.goto(await testInvitationLink(testInvitation({ template: 'glucose' })));
     await openDiaryList(page);
-    await expect(page.locator('.diary-list__item')).toContainText('Не отправлено: 2 записи');
+    await expect(page.locator('.diary-list__item', { hasText: 'давления' })).toContainText(
+      'Не отправлено: 2 записи',
+    );
   });
 
   test('a file for the doctor carries every entry, and doubles as a backup', async ({ page }) => {
@@ -198,11 +204,13 @@ test.describe('patient diary: returning results to the doctor', () => {
       await backToHome(page);
 
       await addReading(page, { systolic: 120, diastolic: 80, at: localInput(0, 8) });
-      await page.getByRole('button', { name: /^Ещё/u }).click();
-      await page.getByText('Восстановить записи из файла или текста').click();
+      await openSettings(page);
+      await openRestoreSheet(page);
       await page.getByLabel('Или вставьте текст').fill(oldCopy);
       await page.getByRole('button', { name: 'Восстановить', exact: true }).click();
       await expect(page.locator('.diary-restore')).toContainText('Новых записей нет');
+      // The sheet stays to show that result; the patient closes it.
+      await page.keyboard.press('Escape');
       await backToHome(page);
       await expectRecordCount(page, 2);
     });
@@ -244,11 +252,12 @@ test.describe('patient diary: returning results to the doctor', () => {
       await expect(app.getByRole('heading', { level: 1 })).toContainText('давления');
       await expect(app.locator('.diary-notice')).toHaveCount(0);
 
-      await app.getByRole('button', { name: /^Ещё/u }).click();
-      await app.getByText('Восстановить записи из файла или текста').click();
+      await openSettings(app);
+      await openRestoreSheet(app);
       await app.getByLabel('Или вставьте текст').fill(copied);
       await app.getByRole('button', { name: 'Восстановить', exact: true }).click();
       await expect(app.locator('.diary-restore')).toContainText('Добавлено: 2 записи');
+      await app.keyboard.press('Escape');
       await backToHome(app);
       await expectRecordCount(app, 2);
       await icon.close();
@@ -281,8 +290,8 @@ test.describe('patient diary: returning results to the doctor', () => {
     for (let index = 0; index < 1; index += 1) {
       await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
     }
-    await openDiaryList(page);
-    await page.getByText('Восстановить записи из файла или текста').click();
+    await openSettings(page);
+    await openRestoreSheet(page);
     await page.getByLabel('Или вставьте текст').fill('MMD1.AAAAAAAA.1.2.abcdef');
     await page.getByRole('button', { name: 'Восстановить', exact: true }).click();
     await expect(page.locator('.diary-restore')).toContainText('Данные неполные');

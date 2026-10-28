@@ -2,6 +2,7 @@ import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { DiarySheet } from '@/diary/DiarySheet';
+import { crisisLineParts } from '@/features/diary/crisis-lines';
 import type { DiaryContact, DiaryInvitation } from '@/features/diary/diary-model';
 
 const CONTACT_GLYPH: Readonly<Record<DiaryContact['kind'], AppGlyphName>> = {
@@ -99,7 +100,21 @@ export function CrisisContent(props: { readonly invitation: DiaryInvitation }): 
         <h3 class="diary-crisis__heading">Где ещё помогут</h3>
         <ul class="diary-crisis__lines">
           <For each={props.invitation.crisis}>
-            {(line) => <li class="diary-crisis__line">{line}</li>}
+            {(line) => (
+              <li class="diary-crisis__line">
+                <For each={crisisLineParts(line)}>
+                  {(part) =>
+                    part.kind === 'phone' ? (
+                      <a class="diary-crisis__phone" href={part.href}>
+                        {part.text}
+                      </a>
+                    ) : (
+                      part.text
+                    )
+                  }
+                </For>
+              </li>
+            )}
           </For>
         </ul>
       </Show>

@@ -3,6 +3,8 @@ import { diaryInvitationLink, readInvitationFragment } from '../src/features/dia
 import {
   createDiaryId,
   DIARY_FORMAT_VERSION,
+  type DiaryContact,
+  type DiaryDoseTime,
   type DiaryInvitation,
   diaryTemplate,
   parseDiaryInvitation,
@@ -18,7 +20,14 @@ export interface TestInvitationOptions {
   readonly issuedAt?: string;
   readonly doctor?: string;
   readonly note?: string;
-  readonly plan?: readonly { id: string; name: string; dose?: string; schedule?: string }[];
+  readonly plan?: readonly {
+    id: string;
+    name: string;
+    dose?: string;
+    schedule?: string;
+    times?: readonly DiaryDoseTime[];
+  }[];
+  readonly contacts?: readonly DiaryContact[];
 }
 
 /** A built-in-template invitation exactly as the doctor's dialog would issue it. */
@@ -37,6 +46,8 @@ export function testInvitation(options: TestInvitationOptions = {}): DiaryInvita
       : {}),
     ...(options.doctor ? { doctor: options.doctor } : {}),
     ...(options.note ? { note: options.note } : {}),
+    ...(template.checkpoints ? { checkpoints: template.checkpoints } : {}),
+    ...(options.contacts ? { contacts: options.contacts } : {}),
   });
 }
 
@@ -83,13 +94,13 @@ export async function setEntryTime(page: Page, value: string): Promise<void> {
   await page.getByLabel('Дата и время').fill(value);
 }
 
-/** One row of «Мои записи». */
+/** One row of «Записи». */
 export const ENTRY_ROWS = '.diary-record';
 
-/** From the diary home to «Мои записи». */
+/** From the diary home to «Записи» (the home's card is still called «Мои записи (N)»). */
 export async function openRecords(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^Мои записи \(/u }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Мои записи' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Записи', exact: true })).toBeVisible();
 }
 
 /** From any step back to the diary home. */
@@ -105,16 +116,46 @@ export async function expectRecordCount(page: Page, count: number): Promise<void
   ).toBeVisible();
 }
 
-/** To the list of diaries: the button on the home when there are several, else through «Ещё». */
+/**
+ * To the list of diaries. Only a phone with several diaries offers the way (the home's back button,
+ * or the «Мои дневники» row of «Настройки», reached through the home's «Ещё» card).
+ */
 export async function openDiaryList(page: Page): Promise<void> {
   const top = page.getByRole('button', { name: 'Мои дневники', exact: true });
   if ((await top.count()) === 0) {
     await page.getByRole('button', { name: /^Ещё/u }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Настройки' })).toBeVisible();
     await page.getByRole('button', { name: 'Мои дневники', exact: true }).click();
   } else {
     await top.click();
   }
   await expect(page.getByRole('heading', { level: 1, name: 'Мои дневники' })).toBeVisible();
+}
+
+/** From the home of a simple diary (its «Ещё» card) to «Настройки». */
+export async function openSettings(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /^Ещё/u }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Настройки' })).toBeVisible();
+}
+
+/** In «Настройки»: the «Вернуть записи из копии» row opens a sheet with the restore form open. */
+export async function openRestoreSheet(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /^Вернуть записи из копии/u }).click();
+  await expect(page.getByLabel('Или вставьте текст')).toBeVisible();
+}
+
+/** In «Настройки»: the «Ссылка от другого врача» row opens a sheet with the paste form open. */
+export async function openPasteSheet(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /^Ссылка от другого врача/u }).click();
+  await expect(page.getByLabel('Ссылка от врача')).toBeVisible();
+}
+
+/** The ids of the diaries this browser keeps, read from the diary store's index. */
+export async function storedDiaryIds(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const raw = window.localStorage.getItem('minimed.diary.v1.index');
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  });
 }
 
 /** True when the diary page is the built one (service worker active), false on the dev server. */

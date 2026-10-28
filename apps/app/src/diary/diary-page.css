@@ -9,8 +9,13 @@
   background: var(--theme-surface);
 }
 
+/* The main app's floating tab bar is over the page (a care diary): pages leave room for it. */
+.diary-body:has(.app-bottom-nav) {
+  --diary-nav-clearance: calc(var(--bottom-nav-clearance) + 0.75rem);
+}
+
 .diary-page {
-  --diary-pad-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  --diary-pad-bottom: var(--diary-nav-clearance, calc(1rem + env(safe-area-inset-bottom, 0px)));
   --diary-warning-surface: color-mix(
     in srgb,
     var(--theme-warning) 18%,
@@ -27,7 +32,7 @@
   gap: 1rem;
   color: var(--theme-text);
   background: var(--theme-surface);
-  font-family: system-ui, sans-serif;
+  /* The main app's type (theme.css :root), so the patient mode reads as the same app. */
   font-size: 1.0625rem;
   line-height: 1.45;
 }
@@ -70,27 +75,23 @@
   gap: 0.35rem;
 }
 
-.diary-header__title,
-.diary-screen__title {
+.diary-header__title {
   margin: 0;
   font-size: 1.65rem;
   line-height: 1.2;
 }
 
-.diary-header__title:focus,
-.diary-screen__title:focus {
+.diary-header__title:focus {
   outline: none;
 }
 
 .diary-header__meta,
 .diary-header__note,
-.diary-header__privacy,
-.diary-screen__subtitle {
+.diary-header__privacy {
   margin: 0;
 }
 
-.diary-header__meta,
-.diary-screen__subtitle {
+.diary-header__meta {
   color: var(--theme-text-muted);
   font-size: 1.0625rem;
 }
@@ -393,17 +394,6 @@
   display: grid;
   gap: 0.7rem;
   margin-top: 0.7rem;
-}
-
-.diary-card__steps {
-  display: grid;
-  margin: 0;
-  padding-inline-start: 1.4rem;
-  gap: 0.45rem;
-}
-
-.diary-card__step {
-  padding-inline-start: 0.2rem;
 }
 
 .diary-card__actions {
@@ -940,37 +930,6 @@
 }
 
 /* «Ещё» ------------------------------------------------------------------------------------- */
-.diary-more__group {
-  display: grid;
-  gap: 1rem;
-}
-
-.diary-more__row {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.diary-more__button {
-  --ui-button-height: 3.5rem;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-.diary-more__icon {
-  width: 1.4rem;
-  height: 1.4rem;
-}
-
-.diary-more__preference {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 3.25rem;
-}
-
-.diary-more__preference-label {
-  flex: 1;
-}
 
 .diary-more__text {
   margin: 0;
@@ -1152,4 +1111,43 @@
   .diary-page {
     scroll-behavior: auto;
   }
+}
+
+/* «Настройки» of the patient: the main Settings list's inset groups (settings-list.css). ------- */
+.diary-settings__section {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-settings__note {
+  margin: 0;
+  padding-inline: 0.875rem;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+.diary-settings__row--danger {
+  color: var(--theme-danger);
+}
+
+.diary-settings__help-steps {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.diary-settings__help-step {
+  line-height: 1.45;
+}
+
+/* The diary's 48px rule for older patients: the switch gets a full tap area around its track, and
+   the row states read at body size. */
+/* Two classes: the component styles (Switch.css, settings-list.css) may load after this file. */
+.ui-switch.diary-settings__switch {
+  padding: 0.6875rem 0.125rem;
+}
+
+.settings-list__status.diary-settings__status {
+  font-size: 1rem;
 }

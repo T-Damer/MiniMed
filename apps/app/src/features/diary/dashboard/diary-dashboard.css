@@ -366,7 +366,8 @@
   font-size: 1.1rem;
   letter-spacing: 0.06em;
   text-align: center;
-  word-break: break-all;
+  /* Lines break only after a group's hyphen, never inside «4YH7». */
+  overflow-wrap: normal;
 }
 
 .diary-signin__error {
@@ -653,6 +654,103 @@
   margin: 0;
   color: var(--theme-text-muted);
   text-align: center;
+}
+
+/* While the code is shown: a quiet live line, the dot breathing. */
+.diary-pair__waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.92rem;
+}
+
+.diary-pair__waiting-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--theme-accent);
+  animation: diary-pair-breathe 1.6s var(--motion-ease) infinite;
+}
+
+/* The phone paired: the code gives way to a check, sliding up and fading in. */
+.diary-pair__done {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding-block: 1.5rem 0.5rem;
+  animation: diary-pair-done-in var(--motion-slow) var(--motion-ease-out);
+}
+
+.diary-pair__check {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: #2f9e5b;
+  color: white;
+  animation: diary-presence-in var(--motion-slow) var(--motion-ease-out);
+}
+
+.diary-pair__check-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.diary-pair__done-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-pair__done-button {
+  min-width: 10rem;
+}
+
+@keyframes diary-pair-breathe {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes diary-pair-done-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+/* «в сети» next to a patient's name: a small green pill. */
+.diary-online-tag {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-success, #2f9e5b) 16%, transparent);
+  color: var(--theme-success, #23794a);
+  font-size: 0.78rem;
+  font-weight: var(--theme-weight-strong, 600);
+  line-height: 1.4;
+  animation: diary-presence-in var(--motion-base) var(--motion-ease-out);
+}
+
+.diary-online-tag__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #2f9e5b;
+}
+
+.diary-dash-row__title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 /* Curators ---------------------------------------------------------------------------------- */

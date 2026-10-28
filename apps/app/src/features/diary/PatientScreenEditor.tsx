@@ -804,7 +804,10 @@ export function PatientScreenEditor(props: {
       id: 'patient-screen-showcase',
     });
   };
-  const state = (id: string): 'done' | 'idle' => (ticked().has(id) ? 'done' : 'idle');
+  /** A ticked row is done; an unticked one looks as the patient sees it: an empty box (`open`), or
+   * its own icon for what is taken when needed (`idle`). */
+  const state = (id: string, untouched: 'open' | 'idle' = 'open'): 'done' | 'open' | 'idle' =>
+    ticked().has(id) ? 'done' : untouched;
   const today = dayKey(new Date());
   const heat = emptyHeat(today);
   const patch = (next: Partial<CareDraft>): void => props.onChange({ ...props.draft, ...next });
@@ -956,7 +959,7 @@ export function PatientScreenEditor(props: {
                     icon="plus"
                     title={drugTitle(sectionOf(key))}
                     detail="Отметьте, когда примете"
-                    state={state(key)}
+                    state={state(key, 'idle')}
                     checkLabel={`${titleOf(sectionOf(key))}: отметить, как пациент`}
                     tip={Boolean(sectionOf(key)?.tip.trim())}
                     onCheck={() => tick(key)}
@@ -1071,10 +1074,17 @@ export function PatientScreenEditor(props: {
 
         <section class="care-section">
           <h3 class="care-section__title">Описание состояния</h3>
-          <p class="care-add screen-editor__ghost" aria-disabled="true">
-            <AppGlyph name="note-pencil" class="care-add__icon" />
-            <span class="care-add__text">Добавить описание состояния</span>
-          </p>
+          <ul class="care-section__list">
+            <CareRow
+              icon="note-pencil"
+              title="Как вы себя чувствуете?"
+              state={state('note')}
+              checkLabel="Описать состояние"
+              tip={false}
+              onCheck={() => tick('note')}
+              onOpen={() => tick('note')}
+            />
+          </ul>
         </section>
       </div>
 

@@ -34,6 +34,7 @@ import { DEMO_LABEL_PREFIX, seedDemoPatients } from '@/features/diary/dashboard/
 import { adherence } from '@/features/diary/dashboard/diary-insights';
 import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
+import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
 import { AlertDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
@@ -108,12 +109,14 @@ function PatientRow(props: {
             </Show>
           </span>
           <span class="diary-dash-row__text">
-            <Show when={isOnline(props.patient.summary)}>
-              <span class="visually-hidden">В сети.</span>
-            </Show>
-            <span class="diary-dash-row__name">
-              {props.patient.replica.profile?.label ??
-                (status() === 'pending' ? 'Приглашение к пациенту' : 'Пациент')}
+            <span class="diary-dash-row__title">
+              <span class="diary-dash-row__name">
+                {props.patient.replica.profile?.label ??
+                  (status() === 'pending' ? 'Приглашение к пациенту' : 'Пациент')}
+              </span>
+              <Show when={isOnline(props.patient.summary)}>
+                <OnlineTag />
+              </Show>
             </span>
             <span class="diary-dash-row__meta">
               {status() === 'pending'
@@ -148,6 +151,8 @@ export function DiaryDashboard(props: {
   readonly day?: string | undefined;
   readonly onBack: () => void;
   readonly onOpenPatient: (id: string, sub?: 'screen' | `day/${string}`) => void;
+  /** The new patient's page in place of «Новый пациент», so back returns to the list. */
+  readonly onReplacePatient: (id: string) => void;
   readonly onList: () => void;
 }): JSX.Element {
   const [session, setSession] = createSignal<DoctorSession | undefined>();
@@ -440,6 +445,7 @@ export function DiaryDashboard(props: {
               </p>
             }
             confirmLabel="Выйти"
+            icon="arrow-square-out"
             danger
             onConfirm={() => {
               setLeaving(false);
@@ -500,7 +506,7 @@ export function DiaryDashboard(props: {
           <NewPatientScreen
             workspace={diaries()}
             onBack={props.onList}
-            onCreated={(id) => props.onOpenPatient(id)}
+            onCreated={(id) => props.onReplacePatient(id)}
           />
         )}
       </Show>
@@ -558,8 +564,9 @@ export function DiaryDashboard(props: {
           // Signed out, the centred sign-in card carries the page; the header keeps only its tools.
           title={session() ? <Heading depth={1}>Дневники пациентов</Heading> : undefined}
           description={
-            session() && patients().length
-              ? `${patients().length} ${pluralize(patients().length, 'пациент', 'пациента', 'пациентов')}${
+            // Archived patients are not counted: the number matches the rows above the archive.
+            session() && listed().active.length
+              ? `${listed().active.length} ${pluralize(listed().active.length, 'пациент', 'пациента', 'пациентов')}${
                   alerts().length ? ` · срочных: ${alerts().length}` : ''
                 }`
               : undefined
@@ -644,8 +651,7 @@ export function DiaryDashboard(props: {
                         Первый пациент — пара минут
                       </Heading>
                       <p class="diary-dash__empty-text">
-                        Соберите экран дневника: лекарства, самочувствие, опросники. Затем покажите
-                        пациенту QR-код — его телефон подключится, и записи начнут приходить сюда.
+                        Соберите экран дневника и покажите пациенту QR-код.
                       </p>
                       <div class="diary-dash__empty-actions">
                         <Button

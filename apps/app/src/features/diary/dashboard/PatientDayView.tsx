@@ -93,7 +93,6 @@ export function PatientDayView(props: {
             }}
             consentAt={props.patient.replica.consentAt}
             tipsRead={[...props.patient.replica.tipsRead]}
-            hasOtherDiaries={false}
             onSave={(value) => {
               if (!canEdit()) return 'Куратор с правом чтения не может исправлять записи.';
               try {
@@ -111,10 +110,6 @@ export function PatientDayView(props: {
             }}
             onConsent={() => undefined}
             onTipRead={() => undefined}
-            onRecords={props.onBack}
-            onSend={props.onBack}
-            onMore={props.onBack}
-            onList={props.onBack}
           />
         )}
       </Show>

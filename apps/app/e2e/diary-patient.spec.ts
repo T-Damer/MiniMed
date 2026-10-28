@@ -8,9 +8,10 @@ import {
   expectRecordCount,
   IPHONE_SAFARI,
   localInput,
-  openDiaryList,
   openRecords,
+  openSettings,
   setEntryTime,
+  storedDiaryIds,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -83,9 +84,9 @@ test.describe('patient diary: finding the same diary again', () => {
     await expect(page.locator('.diary-header__note')).toHaveText('Теперь измеряйте только утром');
     await expectRecordCount(page, 1);
 
-    // Still exactly one diary on the device.
-    await openDiaryList(page);
-    await expect(page.locator('.diary-list__item')).toHaveCount(1);
+    // Still exactly one diary on the device (with one diary the list is not offered at all).
+    expect(await storedDiaryIds(page)).toEqual([id]);
+    await expect(page.getByRole('button', { name: 'Мои дневники', exact: true })).toHaveCount(0);
   });
 
   test('a plan the doctor changed keeps old entries readable and stops offering dropped items', async ({
@@ -168,7 +169,9 @@ test.describe('patient diary: finding the same diary again', () => {
     const pressure = page.locator('.diary-list__item', { hasText: 'давления' });
 
     await pressure.getByRole('button', { name: /^Мои записи/u }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Мои записи' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Записи', exact: true }),
+    ).toBeVisible();
     await expect(page.locator(ENTRY_ROWS)).toHaveCount(1);
     await page.goto(DIARY_PAGE);
 
@@ -229,15 +232,15 @@ test.describe('patient diary: the home and its three actions', () => {
       expect((box?.y ?? 0) + (box?.height ?? 0), String(name)).toBeLessThanOrEqual(viewport);
       expect(box?.height ?? 0, String(name)).toBeGreaterThanOrEqual(80);
     }
-    // The install tip, restore and print are not above the actions: they come after.
+    // The install warning, restore and print are not above the actions: they come after.
     const write = await page.getByRole('button', { name: WRITE, exact: true }).boundingBox();
-    const tips = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
-    if ((await tips.count()) > 0) {
-      expect((await tips.boundingBox())?.y ?? 0).toBeGreaterThan(write?.y ?? 0);
+    const warning = page.getByRole('button', { name: 'Добавьте дневник на экран «Домой»' });
+    if ((await warning.count()) > 0) {
+      expect((await warning.boundingBox())?.y ?? 0).toBeGreaterThan(write?.y ?? 0);
     }
   });
 
-  test('on an iPhone the install tip comes after the actions and the actions stay on the first screen', async ({
+  test('on an iPhone the install warning comes after the actions and the actions stay on the first screen', async ({
     browser,
   }) => {
     const context = await browser.newContext({
@@ -250,13 +253,15 @@ test.describe('patient diary: the home and its three actions', () => {
         testInvitation({ doctor: 'Иванова А. А.', note: 'Утром и вечером, сидя' }),
       ),
     );
-    const tip = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
-    await expect(tip).toBeVisible();
+    const warning = page.getByRole('button', { name: 'Добавьте дневник на экран «Домой»' });
+    await expect(warning).toBeVisible();
     const send = await page
       .getByRole('button', { name: 'Отправить врачу', exact: true })
       .boundingBox();
     expect((send?.y ?? 0) + (send?.height ?? 0)).toBeLessThanOrEqual(844);
-    expect((await tip.boundingBox())?.y ?? 0).toBeGreaterThan((send?.y ?? 0) + (send?.height ?? 0));
+    expect((await warning.boundingBox())?.y ?? 0).toBeGreaterThan(
+      (send?.y ?? 0) + (send?.height ?? 0),
+    );
     await context.close();
   });
 
@@ -391,7 +396,7 @@ test.describe('patient diary: the home and its three actions', () => {
     await expectRecordCount(page, 0);
   });
 
-  test('an entry is corrected and deleted from «Мои записи», each deletion asked once', async ({
+  test('an entry is corrected and deleted from «Записи», each deletion asked once', async ({
     page,
   }) => {
     await page.goto(await testInvitationLink(testInvitation()));
@@ -413,7 +418,9 @@ test.describe('patient diary: the home and its three actions', () => {
     await page.getByLabel(/^Верхнее/u).fill('132');
     await page.getByRole('button', { name: 'Сохранить изменения', exact: true }).click();
     // Back in the list the patient came from, with the change confirmed.
-    await expect(page.getByRole('heading', { level: 1, name: 'Мои записи' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Записи', exact: true }),
+    ).toBeVisible();
     await expect(page.locator('.diary-saved')).toContainText('Запись изменена');
     await expect(page.locator(ENTRY_ROWS).first()).toContainText('132/88');
 
@@ -443,25 +450,55 @@ test.describe('patient diary: the home and its three actions', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Отправить врачу' })).toBeVisible();
     await page.goBack();
     await expect(page.getByRole('button', { name: WRITE, exact: true })).toBeVisible();
-    // The on-screen «На главную» takes the same road.
-    await page.getByRole('button', { name: /^Ещё/u }).click();
+    // The on-screen round back button («На главную») takes the same road.
+    await openSettings(page);
     await backToHome(page);
     expect(page.url()).toContain('/diary/');
   });
 
-  test('«Ещё» holds the rare things, and the install tip is dismissed once', async ({ page }) => {
+  test('«Настройки» hold the rare things; the how-to is behind the «?»', async ({ page }) => {
     await page.goto(await testInvitationLink(testInvitation()));
     await expect(page.getByRole('button', { name: /^Распечатать/u })).toHaveCount(0);
-    await page.getByRole('button', { name: /^Ещё/u }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Ещё' })).toBeVisible();
+    await openSettings(page);
     await expect(page.getByRole('button', { name: /^Распечатать/u })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^Файл для другой программы/u })).toBeDisabled();
-    await expect(page.getByText('Восстановить записи из файла или текста')).toBeVisible();
-    await expect(page.getByText('Добавить дневник по ссылке врача')).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Как пользоваться дневником' })).toContainText(
-      'Записать показания',
-    );
-    await expect(page.getByRole('button', { name: 'Мои дневники', exact: true })).toBeVisible();
+    await expect(page.getByRole('switch', { name: 'Звуки' })).toBeVisible();
+    await expect(page.getByRole('switch', { name: 'Вибрация' })).toBeVisible();
+    // Nothing to export yet; a connected-only row and the diary list are not offered either.
+    await expect(page.getByRole('button', { name: /^Файл для другой программы/u })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Отозвать согласие/u })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Мои дневники', exact: true })).toHaveCount(0);
+    // The two cards that need room open in a sheet over the page.
+    await page.getByRole('button', { name: /^Вернуть записи из копии/u }).click();
+    const restore = page.getByRole('dialog', { name: 'Вернуть записи из копии' });
+    await expect(restore.getByText('Восстановить записи из файла или текста')).toBeVisible();
+    await restore.getByRole('button', { name: 'Закрыть' }).click();
+    await expect(restore).toHaveCount(0);
+    await page.getByRole('button', { name: /^Ссылка от другого врача/u }).click();
+    const paste = page.getByRole('dialog', { name: 'Ссылка от другого врача' });
+    await expect(paste.getByText('Добавить дневник по ссылке врача')).toBeVisible();
+    await paste.getByRole('button', { name: 'Закрыть' }).click();
+    await expect(paste).toHaveCount(0);
+    // The explanation is not a section of the page: it opens from the header «?».
+    await expect(page.getByText('Записи хранятся только в этом браузере')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Как пользоваться дневником' }).click();
+    await expect(page.getByText('Записи хранятся только в этом браузере')).toBeVisible();
+  });
+
+  test('«Файл для другой программы» appears once there are entries', async ({ page }) => {
+    await page.goto(await testInvitationLink(testInvitation()));
+    await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
+    await openSettings(page);
+    await expect(page.getByRole('button', { name: /^Файл для другой программы/u })).toBeVisible();
+  });
+
+  test('«Мои дневники» is a row of «Настройки» once the phone keeps another diary', async ({
+    page,
+  }) => {
+    await page.goto(await testInvitationLink(testInvitation()));
+    await page.goto(await testInvitationLink(testInvitation({ template: 'glucose' })));
+    await openSettings(page);
+    await page.getByRole('button', { name: 'Мои дневники', exact: true }).click();
+    await expect(page.locator('.diary-list__item')).toHaveCount(2);
   });
 
   test('a long form keeps «Сохранить» on the screen while the patient scrolls', async ({

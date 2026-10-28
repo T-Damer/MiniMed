@@ -18,6 +18,8 @@ export function PasteLinkCard(props: {
   readonly store: DiaryStore;
   /** Nothing in the list yet: the card is the main thing on the page. */
   readonly prominent: boolean;
+  /** Already unfolded (inside the «Настройки» sheet). */
+  readonly open?: boolean;
   readonly onOpened: (opened: DiaryOpenResult) => void;
 }): JSX.Element {
   const [text, setText] = createSignal('');
@@ -80,7 +82,7 @@ export function PasteLinkCard(props: {
     <Show
       when={props.prominent}
       fallback={
-        <details class="diary-card diary-card--fold diary-paste">
+        <details class="diary-card diary-card--fold diary-paste" open={props.open}>
           <summary class="diary-paste__summary">Добавить дневник по ссылке врача</summary>
           <div class="diary-card__body">{body}</div>
         </details>

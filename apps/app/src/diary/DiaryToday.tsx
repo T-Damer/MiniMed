@@ -166,21 +166,6 @@ function quizStatus(task: QuestionnaireTask, today: string): string {
 }
 
 /** Where sending to the doctor stands, in two or three words. */
-function syncWords(sync: SyncStatus): string {
-  switch (sync.phase) {
-    case 'syncing':
-      return 'Отправка…';
-    case 'offline':
-      return sync.pending ? `Нет сети · ${sync.pending}` : 'Нет сети';
-    case 'error':
-      return 'Не отправлено';
-    case 'ended':
-      return 'Наблюдение завершено';
-    case 'idle':
-      if (sync.pending) return `Ждут отправки: ${sync.pending}`;
-      return sync.lastSyncAt ? `У врача · ${formatTime(sync.lastSyncAt)}` : 'У врача';
-  }
-}
 
 /**
  * One line of the day: a round check on the left, the text opening its sheet. The doctor's screen
@@ -219,10 +204,25 @@ export function CareRow(props: {
         aria-pressed={done()}
         onClick={() => props.onCheck()}
       >
-        <AppGlyph
-          name={done() ? 'check' : props.state === 'skipped' ? 'minus' : props.icon}
-          class="care-row__check-icon"
-        />
+        {/* A task waiting for its tick is an empty box (owner 2026-10-28: «I took pills — check»);
+            `idle` rows (taken when needed, not due) keep their own icon. */}
+        <Show
+          when={done() || props.state === 'skipped' || props.state === 'idle'}
+          fallback={
+            <span
+              class="care-row__box"
+              classList={{ 'care-row__box--late': props.state === 'late' }}
+              aria-hidden="true"
+            />
+          }
+        >
+          <AppGlyph
+            name={done() ? 'check' : props.state === 'skipped' ? 'minus' : props.icon}
+            class={
+              done() ? 'care-row__check-icon care-row__check-icon--done' : 'care-row__check-icon'
+            }
+          />
+        </Show>
       </button>
       <button type="button" class="care-row__main" onClick={() => props.onOpen()}>
         <span class="care-row__line">
@@ -271,20 +271,14 @@ export function DiaryToday(props: {
   readonly status: DiaryShareStatus;
   readonly consentAt: string | undefined;
   readonly tipsRead: readonly string[];
-  readonly hasOtherDiaries: boolean;
   readonly onSave: CareSave;
   readonly onRemove: (entry: DiaryEntry) => void;
   readonly onConsent: () => void;
   readonly onTipRead: (id: string) => void;
-  readonly onRecords: () => void;
-  readonly onSend: () => void;
-  readonly onMore: () => void;
-  readonly onList: () => void;
   /** Connected diary: where sending to the doctor stands; absent for a QR diary. */
   readonly sync?: SyncStatus | undefined;
   readonly notice?: string | undefined;
   readonly onDismissNotice?: () => void;
-  readonly onSyncNow?: () => void;
   /** An answer raised a schema alert (PHQ-9 item 9): tell the doctor. */
   readonly onUrgent?: () => void;
   /** The day to open first (`YYYY-MM-DD`); today by default. */
@@ -295,12 +289,18 @@ export function DiaryToday(props: {
    */
   readonly viewer?: 'doctor' | undefined;
   /**
-   * The doctor's page puts the contacts and crisis buttons in its own header: it receives the
-   * openers (and whether the plan has contacts), and the diary's header shows titles only.
+   * The page around the diary (the patient's shell, the doctor's day view) owns the header and its
+   * buttons: it receives the openers of the contacts and crisis sheets, and of one entry's sheet
+   * («Изменить» in «Записи»).
    */
+  /** An entry whose sheet opens as the page mounts («Изменить» in «Записи»). */
+  readonly openOnMount?: DiaryEntry | undefined;
+  /** The page header the shell puts at the top of the day page (the main app's `Page`). */
+  readonly header?: JSX.Element;
   readonly controls?: (api: {
     readonly openContacts: () => void;
     readonly openCrisis: () => void;
+    readonly openEntry: (entry: DiaryEntry) => void;
   }) => void;
 }): JSX.Element {
   const invitation = () => props.results.invitation;
@@ -346,9 +346,42 @@ export function DiaryToday(props: {
   };
 
   const close = (): void => setSheet(undefined);
+  /** The sheet of one entry, on its own day: what «Изменить» in «Записи» opens. */
+  const openEntry = (entry: DiaryEntry): void => {
+    const target = dayKey(entry.at);
+    setDay(target);
+    const shown = dayPlan(invitation(), props.results.entries, target, now());
+    const dose = shown.doses.find((task) => task.entry?.id === entry.id);
+    if (dose) {
+      setSheet({ kind: 'dose', item: dose.item, time: dose.time, entry });
+      return;
+    }
+    const needed = shown.asNeeded.find((group) =>
+      group.entries.some((candidate) => candidate.id === entry.id),
+    );
+    if (needed) {
+      setSheet({ kind: 'dose', item: needed.item, time: undefined, entry });
+      return;
+    }
+    const check = shown.checks.find((task) => task.entry?.id === entry.id);
+    if (check) {
+      setSheet({ kind: 'check', task: check });
+      return;
+    }
+    const quiz = shown.questionnaires.find((task) => task.entry?.id === entry.id);
+    if (quiz) {
+      setSheet({ kind: 'quiz', task: quiz });
+      return;
+    }
+    setSheet({ kind: 'note', entry });
+  };
+  onMount(() => {
+    if (props.openOnMount) openEntry(props.openOnMount);
+  });
   props.controls?.({
     openContacts: () => setSheet({ kind: 'contacts' }),
     openCrisis: () => setSheet({ kind: 'crisis', raised: false }),
+    openEntry,
   });
   /** A short sound and buzz for a saved or failed mark; the engine loads lazily, after first paint. */
   const feel = (moment: 'saved' | 'failed'): void => {
@@ -426,44 +459,7 @@ export function DiaryToday(props: {
         class="diary-page diary-page--care diary-today"
         classList={{ 'diary-today--doctor': props.viewer === 'doctor' }}
       >
-        <header class="diary-today__header">
-          <Show when={props.hasOtherDiaries}>
-            <button
-              type="button"
-              class="diary-today__icon"
-              aria-label="Мои дневники"
-              onClick={() => props.onList()}
-            >
-              <AppGlyph name="arrow-left" class="diary-today__icon-glyph" />
-            </button>
-          </Show>
-          <div class="diary-today__titles">
-            <h1 class="diary-today__title">{invitation().title}</h1>
-            <Show when={invitation().doctor}>
-              <p class="diary-today__doctor">{invitation().doctor}</p>
-            </Show>
-          </div>
-          <Show when={!props.controls && invitation().contacts?.length}>
-            <button
-              type="button"
-              class="diary-today__icon"
-              aria-label="Связаться с врачом"
-              onClick={() => setSheet({ kind: 'contacts' })}
-            >
-              <AppGlyph name="phone" class="diary-today__icon-glyph" />
-            </button>
-          </Show>
-          <Show when={!props.controls}>
-            <button
-              type="button"
-              class="diary-today__icon diary-today__icon--help"
-              aria-label="Помощь, если очень плохо"
-              onClick={() => setSheet({ kind: 'crisis', raised: false })}
-            >
-              <AppGlyph name="lifebuoy" class="diary-today__icon-glyph" />
-            </button>
-          </Show>
-        </header>
+        {props.header}
 
         <DiaryHeatmap
           days={heat()}
@@ -685,68 +681,22 @@ export function DiaryToday(props: {
               </For>
             </ul>
           </Show>
-          <button
-            type="button"
-            class="care-add"
-            onClick={() => setSheet({ kind: 'note', entry: undefined })}
-          >
-            <AppGlyph name="note-pencil" class="care-add__icon" />
-            <span class="care-add__text">Добавить описание состояния</span>
-          </button>
+          <ul class="care-section__list">
+            <CareRow
+              icon="note-pencil"
+              title={plan().notes.length ? 'Добавить ещё' : 'Как вы себя чувствуете?'}
+              state={plan().notes.length ? 'done' : 'open'}
+              checkLabel="Описать состояние"
+              tip={false}
+              onCheck={() => setSheet({ kind: 'note', entry: undefined })}
+              onOpen={() => setSheet({ kind: 'note', entry: undefined })}
+            />
+          </ul>
         </section>
 
         <p class="diary-today__flash" role="status" aria-live="polite">
           {flash()}
         </p>
-
-        <Show when={props.viewer !== 'doctor'}>
-          <nav class="diary-today__bar" aria-label="Дневник">
-            <button type="button" class="diary-today__bar-button" onClick={() => props.onRecords()}>
-              <AppGlyph name="list" class="diary-today__bar-icon" />
-              <span class="diary-today__bar-text">Записи</span>
-            </button>
-            <Show
-              when={props.sync}
-              fallback={
-                <button
-                  type="button"
-                  class="diary-today__bar-button"
-                  classList={{ 'diary-today__bar-button--pending': props.status.unsent > 0 }}
-                  onClick={() => props.onSend()}
-                >
-                  <AppGlyph name="share" class="diary-today__bar-icon" />
-                  <span class="diary-today__bar-text">
-                    {props.status.unsent > 0 ? `Отправить (${props.status.unsent})` : 'Отправить'}
-                  </span>
-                </button>
-              }
-            >
-              {(sync) => (
-                <button
-                  type="button"
-                  class="diary-today__bar-button"
-                  classList={{
-                    'diary-today__bar-button--pending':
-                      sync().pending > 0 || sync().phase === 'offline' || sync().phase === 'error',
-                    'diary-today__bar-button--busy': sync().phase === 'syncing',
-                  }}
-                  aria-label={`Отправка врачу: ${syncWords(sync())}. Отправить сейчас`}
-                  onClick={() => props.onSyncNow?.()}
-                >
-                  <AppGlyph
-                    name={sync().phase === 'idle' && sync().pending === 0 ? 'check' : 'refresh'}
-                    class="diary-today__bar-icon"
-                  />
-                  <span class="diary-today__bar-text">{syncWords(sync())}</span>
-                </button>
-              )}
-            </Show>
-            <button type="button" class="diary-today__bar-button" onClick={() => props.onMore()}>
-              <AppGlyph name="dots-three" class="diary-today__bar-icon" />
-              <span class="diary-today__bar-text">Ещё</span>
-            </button>
-          </nav>
-        </Show>
       </main>
 
       <Switch>

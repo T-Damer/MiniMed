@@ -125,7 +125,7 @@ import {
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
 import '@/styles/notes-root.css';
-import { navigateBack, pushRoute } from '@/state/app-back';
+import { navigateBack, pushRoute, replaceRoute } from '@/state/app-back';
 
 type DeleteTarget =
   | {
@@ -1326,6 +1326,7 @@ export function NotesView(props: {
               onBack={() => navigateBack(notesPath())}
               onList={() => navigateBack(diariesPath())}
               onOpenPatient={(id, sub) => pushRoute(diariesPath(id, sub))}
+              onReplacePatient={(id) => replaceRoute(diariesPath(id))}
             />
           </Suspense>
         )}

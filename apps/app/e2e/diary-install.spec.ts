@@ -15,6 +15,9 @@ import {
   testInvitationLink,
 } from './diary-fixtures';
 
+const ADD_TO_HOME = 'Добавьте дневник на экран «Домой»';
+const OPEN_IN_BROWSER = 'Откройте дневник в браузере';
+
 test.use({ viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' });
 
 test.describe('patient diary: keeping it one tap away', () => {
@@ -27,26 +30,33 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    const card = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
-    await expect(card).toContainText('«Поделиться»');
-    // Safari on iOS 26 keeps «Поделиться» inside the «⋯» menu at the bottom.
-    await expect(card).toContainText('«⋯»');
-    await expect(card).toContainText('«Ещё»');
-    await expect(card).toContainText('На экран Домой');
-    await expect(card).toContainText('«Добавить»');
-    await expect(card).toContainText('до первой записи');
-    await expect(card).toContainText('на iPhone значок хранит записи отдельно от Safari');
+    await page.getByRole('button', { name: ADD_TO_HOME }).click();
+    const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
+    await expect(guide.locator('.install-guide__label')).toHaveText([
+      'Нажмите «⋯» внизу Safari',
+      'Выберите «Поделиться»',
+      'Пролистайте до «На экран «Домой»»',
+      'Нажмите «Добавить»',
+      'Значок появится на экране',
+    ]);
+    // Nothing to lose yet: the storage caveat is said only once there are entries.
+    await expect(guide.locator('.install-guide__note')).toHaveCount(0);
+    await guide.getByRole('button', { name: 'Закрыть' }).click();
+    await expect(guide).toHaveCount(0);
 
     await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
-    await expect(card).toContainText('без записей, сделанных сейчас в Safari');
-    await expect(card).toContainText('Отправить файлом');
-    await expect(card).toContainText('Восстановить записи');
+    await page.getByRole('button', { name: ADD_TO_HOME }).click();
+    const note = guide.locator('.install-guide__note');
+    await expect(note).toContainText('На iPhone значок хранит записи отдельно от Safari');
+    await expect(note).toContainText('Отправить врачу');
+    await expect(note).toContainText('Восстановить записи');
+    await guide.getByRole('button', { name: 'Закрыть' }).click();
 
-    await card.getByRole('button', { name: /Понятно/u }).click();
-    await expect(card).toHaveCount(0);
+    // The warning has no «Не сейчас»: it stays until the diary runs from the icon.
     await page.reload();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(card).toHaveCount(0);
+    await expect(page.getByRole('button', { name: ADD_TO_HOME })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Не сейчас/u })).toHaveCount(0);
     await context.close();
   });
 
@@ -62,14 +72,18 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    const card = page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' });
-    await expect(card).toContainText('«Поделиться»');
-    await expect(card).toContainText('в верхней панели');
-    await expect(card).toContainText('«Ещё»');
-    await expect(card).toContainText('На экран Домой');
-    await expect(card).toContainText('на iPad значок');
-    await expect(card).not.toContainText('«⋯»');
-    await expect(card).not.toContainText('телефон');
+    await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
+    await page.getByRole('button', { name: ADD_TO_HOME }).click();
+    const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
+    await expect(guide.locator('.install-guide__label')).toHaveText([
+      'Нажмите «Поделиться» вверху',
+      'Выберите «На экран «Домой»»',
+      'Нажмите «Добавить»',
+      'Значок появится на экране',
+    ]);
+    await expect(guide.locator('.install-guide__note')).toContainText('На iPad значок');
+    await expect(guide).not.toContainText('«⋯»');
+    await expect(guide).not.toContainText('iPhone');
     await context.close();
   });
 
@@ -80,13 +94,22 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
-    ).toContainText('Добавить на главный экран');
+    await page.getByRole('button', { name: ADD_TO_HOME }).click();
+    const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
+    await expect(guide.locator('.install-guide__label')).toHaveText([
+      'Нажмите «⋮» в Chrome',
+      'Выберите «Добавить на гл. экран»',
+      'Нажмите «Установить»',
+      'Значок появится на экране',
+    ]);
+    // No native prompt, so no install button either.
+    await expect(guide.getByRole('button', { name: 'Установить', exact: true })).toHaveCount(0);
     await context.close();
   });
 
-  test('the browser install prompt is offered as one big button and used', async ({ browser }) => {
+  test('the browser install prompt opens at one tap on the warning, with no guide in between', async ({
+    browser,
+  }) => {
     const context = await browser.newContext({
       userAgent: ANDROID_CHROME,
       viewport: { width: 390, height: 844 },
@@ -104,19 +127,42 @@ test.describe('patient diary: keeping it one tap away', () => {
       });
       window.dispatchEvent(event);
     });
-    const install = page.getByRole('button', { name: 'Добавить на экран', exact: true });
-    await expect(install).toBeVisible();
-    const box = await install.boundingBox();
+    const warning = page.getByRole('button', { name: ADD_TO_HOME });
+    await expect(warning).toBeVisible();
+    const box = await warning.boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(48);
-    await install.click();
+    await warning.click();
     await expect
       .poll(() =>
         page.evaluate(() => (window as unknown as { __prompted?: boolean }).__prompted === true),
       )
       .toBe(true);
-    await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
-    ).toHaveCount(0);
+    // Accepted: the diary is installed, so neither the guide nor the warning is left.
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(warning).toHaveCount(0);
+    await context.close();
+  });
+
+  test('when the install prompt is dismissed the warning opens the guide instead', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      userAgent: ANDROID_CHROME,
+      viewport: { width: 390, height: 844 },
+    });
+    const page = await context.newPage();
+    await page.goto(await testInvitationLink(testInvitation()));
+    await page.evaluate(() => {
+      const event = new Event('beforeinstallprompt', { cancelable: true });
+      Object.assign(event, {
+        prompt: () => Promise.resolve(),
+        userChoice: Promise.resolve({ outcome: 'dismissed' }),
+      });
+      window.dispatchEvent(event);
+    });
+    await page.getByRole('button', { name: ADD_TO_HOME }).click();
+    const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
+    await expect(guide.locator('.install-guide__label')).toHaveCount(4);
     await context.close();
   });
 
@@ -131,9 +177,8 @@ test.describe('patient diary: keeping it one tap away', () => {
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: ADD_TO_HOME })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: OPEN_IN_BROWSER })).toHaveCount(0);
     await context.close();
   });
 
@@ -144,11 +189,14 @@ test.describe('patient diary: keeping it one tap away', () => {
     });
     const page = await context.newPage();
     await page.goto(await testInvitationLink(testInvitation()));
-    const warning = page.getByRole('region', { name: 'Откройте в браузере' });
-    await expect(warning).toContainText('Открыть в Safari');
-    await expect(
-      page.getByRole('region', { name: 'Добавить дневник на экран «Домой»' }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: ADD_TO_HOME })).toHaveCount(0);
+    await page.getByRole('button', { name: OPEN_IN_BROWSER }).click();
+    const guide = page.getByRole('dialog', { name: OPEN_IN_BROWSER });
+    await expect(guide.locator('.install-guide__label')).toHaveText([
+      'Нажмите «⋯» или «⋮» вверху',
+      'Выберите «Открыть в браузере»',
+      'Дневник откроется в браузере',
+    ]);
     await context.close();
   });
 

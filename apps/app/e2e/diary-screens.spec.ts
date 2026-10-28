@@ -9,7 +9,10 @@ import {
   IPHONE_MESSENGER,
   IPHONE_SAFARI,
   localInput,
+  openPasteSheet,
   openRecords,
+  openRestoreSheet,
+  openSettings,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -27,7 +30,8 @@ interface Finding {
 }
 
 /** Runs in the page: collects everything that breaks the reading and tapping rules. */
-function findProblems(): Finding[] {
+function findProblems(scope: string | undefined): Finding[] {
+  const root = (scope ? document.querySelector(scope) : null) ?? document.body;
   const found: Finding[] = [];
   const describe = (element: Element): string =>
     `${element.tagName.toLowerCase()}.${String(element.getAttribute('class') ?? '').split(' ')[0]} «${(element.textContent ?? '').trim().slice(0, 40)}»`;
@@ -40,7 +44,7 @@ function findProblems(): Finding[] {
   };
 
   // Touch targets: a control, or the label row around a checkbox, at least 48px each way.
-  const controls = document.querySelectorAll(
+  const controls = root.querySelectorAll(
     'button, a[href], summary, textarea, select, input:not([type="hidden"]):not([type="file"]), label.ui-file-button',
   );
   for (const element of controls) {
@@ -51,7 +55,10 @@ function findProblems(): Finding[] {
         : element;
     const box = target.getBoundingClientRect();
     const quiet = element.classList.contains('diary-screen__back');
-    if (box.height < 47.5 || (box.width < 47.5 && !quiet)) {
+    // The round icon buttons of the main app's page header (back 44px, «?» 40px, header actions)
+    // and of a sheet (close, 44px) are the main app's own size; every other control keeps 48px.
+    const minimum = element.closest('header.page, .diary-sheet__header') !== null ? 39.5 : 47.5;
+    if (box.height < minimum || (box.width < minimum && !quiet)) {
       found.push({
         kind: 'target',
         what: `${describe(element)} is ${Math.round(box.width)}x${Math.round(box.height)}`,
@@ -99,11 +106,18 @@ function findProblems(): Finding[] {
     return [r, g, b];
   };
 
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = (node.textContent ?? '').trim();
     const element = node.parentElement;
-    if (!text || !element || !shown(element) || element.closest('script, style, noscript')) {
+    // The install guide's miniature of the browser is a picture (hidden from readers); the steps
+    // under it, which are checked, carry the words.
+    if (
+      !text ||
+      !element ||
+      !shown(element) ||
+      element.closest('script, style, noscript, .install-scene')
+    ) {
       continue;
     }
     const style = getComputedStyle(element);
@@ -134,8 +148,21 @@ function findProblems(): Finding[] {
   return found;
 }
 
-async function check(page: Page, name: string, tag: string): Promise<void> {
-  expect(await page.evaluate(findProblems), name).toEqual([]);
+/**
+ * `scope` narrows the scan to one element: a sheet or panel open over a page is checked on its
+ * own, so the page behind it is not reported again. `lint: false` only takes the screenshots (the
+ * care diary's day page has its own dense layout, a heatmap of small cells, that these older-patient
+ * rules were never written for).
+ */
+async function check(
+  page: Page,
+  name: string,
+  tag: string,
+  scope?: string,
+  lint = true,
+): Promise<void> {
+  // Soft: one screen's findings must not hide the problems of the screens after it.
+  if (lint) expect.soft(await page.evaluate(findProblems, scope), name).toEqual([]);
   if (SCREENSHOTS) {
     mkdirSync(OUTPUT, { recursive: true });
     const engine = test.info().project.name === 'webkit-ios' ? '-webkit' : '';
@@ -188,9 +215,17 @@ for (const width of [390, 1024]) {
       await check(page, '5-home-saved', tag);
 
       await addReading(page, { systolic: 150, diastolic: 95, pulse: 80, at: localInput(2, 8, 10) });
-      await page.getByRole('button', { name: /^Ещё/u }).click();
-      await expect(page.getByRole('heading', { level: 1, name: 'Ещё' })).toBeVisible();
-      await check(page, '8-more', tag);
+      await openSettings(page);
+      await check(page, '8-settings', tag);
+      await openRestoreSheet(page);
+      await check(page, '8a-settings-restore-sheet', tag, '[role="dialog"]');
+      await page.getByRole('dialog').getByRole('button', { name: 'Закрыть' }).click();
+      await openPasteSheet(page);
+      await check(page, '8b-settings-paste-sheet', tag, '[role="dialog"]');
+      await page.getByRole('dialog').getByRole('button', { name: 'Закрыть' }).click();
+      await page.getByRole('button', { name: 'Как пользоваться дневником' }).click();
+      await check(page, '8c-settings-help', tag, '[role="dialog"]');
+      await page.keyboard.press('Escape');
       await page.getByRole('button', { name: 'На главную', exact: true }).click();
 
       await openRecords(page);
@@ -223,6 +258,29 @@ for (const width of [390, 1024]) {
       await page.getByRole('button', { name: 'Записать показания', exact: true }).click();
       await expect(page.getByLabel('Был стул')).toBeVisible();
       await check(page, 'e-entry-form-long', tag);
+
+      // The care diary: the day page with the tab bar, then its other tabs.
+      const care = testInvitation({
+        template: 'care',
+        doctor: 'Иванова А. А.',
+        plan: [{ id: 'p1', name: 'Эналаприл', dose: '5 мг', times: [{ time: '08:00' }] }],
+        contacts: [{ kind: 'phone', value: '+7 900 000-00-00', label: 'Регистратура' }],
+      });
+      await page.goto(await testInvitationLink(care));
+      const tabs = page.getByRole('navigation', { name: 'Дневник' });
+      await expect(tabs).toBeVisible();
+      await check(page, 'h-care-today', tag, undefined, false);
+      await tabs.getByRole('button', { name: 'Записи', exact: true }).click();
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'Записи', exact: true }),
+      ).toBeVisible();
+      await check(page, 'i-care-records', tag, undefined, false);
+      await tabs.getByRole('button', { name: 'Врачу', exact: true }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Отправить врачу' })).toBeVisible();
+      await check(page, 'j-care-send', tag, undefined, false);
+      await tabs.getByRole('button', { name: 'Настройки', exact: true }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Настройки' })).toBeVisible();
+      await check(page, 'k-care-settings', tag, undefined, false);
     });
 
     test(`patient diary on an iPhone, ${scheme}, ${width}px`, async ({ browser }) => {
@@ -240,6 +298,12 @@ for (const width of [390, 1024]) {
         await page.goto(link);
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         await check(page, name, tag);
+        // The warning row opens the animated guide for this browser in a sheet.
+        await page
+          .getByRole('button', { name: /Добавьте дневник на экран|Откройте дневник в браузере/u })
+          .click();
+        await expect(page.locator('.install-guide__label').first()).toBeVisible();
+        await check(page, `${name}-guide`, tag, '[role="dialog"]');
         await context.close();
       }
     });

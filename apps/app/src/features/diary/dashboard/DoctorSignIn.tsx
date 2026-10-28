@@ -12,6 +12,7 @@ import {
   signUpMode,
 } from '@/features/diary/connected/doctor-account';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
+import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
 
 type Mode = 'login' | 'register' | 'recover';
 
@@ -83,6 +84,14 @@ export function DoctorSignIn(props: {
           rememberDevice: remember(),
         });
         setRecovery({ code: result.recoveryCode, session: result.session });
+        // The name the doctor just typed also signs their forms, unless one is already set.
+        if (!getClinicianProfile().clinicianFullName?.trim()) {
+          // «Д-р Иванова А. С.» signs for patients; a form wants the name without the title.
+          const fullName = name()
+            .trim()
+            .replace(/^(?:д-р|др\.?|доктор)\s+/iu, '');
+          setClinicianProfile({ clinicianFullName: fullName });
+        }
       } else {
         props.onSignedIn(
           await recoverAccount({

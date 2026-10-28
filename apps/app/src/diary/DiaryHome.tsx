@@ -4,7 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { lastEntrySummary, sendSummary, todaySummary, whenLabel } from '@/diary/diary-home';
 import { ActionCard, SavedBanner } from '@/diary/diary-ui';
-import { InstallCard, MessengerWarning } from '@/diary/InstallCard';
+import { InstallWarning } from '@/diary/InstallWarning';
 import type { DiaryShareStatus } from '@/features/diary/diary-merge';
 import {
   activePlanItems,
@@ -50,7 +50,6 @@ export function DiaryHome(props: {
 
   return (
     <main class="diary-page diary-page--home">
-      <MessengerWarning />
       <Show when={props.error}>
         <p class="diary-error" role="alert">
           {props.error}
@@ -152,7 +151,7 @@ export function DiaryHome(props: {
               </Button>
             </section>
           </Show>
-          <InstallCard store={props.store} entries={props.results.entries.length} variant="tip" />
+          <InstallWarning store={props.store} entries={props.results.entries.length} />
           <p class="diary-header__privacy">
             Записи хранятся только на этом устройстве, в браузере. Не очищайте данные сайта до
             визита к врачу.

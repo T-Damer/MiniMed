@@ -514,8 +514,10 @@ export function DiaryPatientPage(props: {
                             />
                           </span>
                           <span class="diary-adherence__value">
-                            {medicine.taken} из {medicine.planned}
-                            {medicine.skipped ? `, пропущено ${medicine.skipped}` : ''}
+                            <Show when={medicine.planned} fallback="приёмов ещё не было">
+                              {medicine.taken} из {medicine.planned}
+                              {medicine.skipped ? `, пропущено ${medicine.skipped}` : ''}
+                            </Show>
                           </span>
                         </li>
                       );

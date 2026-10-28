@@ -1,7 +1,7 @@
-import { type Accessor, For, type JSX, onCleanup, Show } from 'solid-js';
-import { watchNavCrowding } from '@/app/nav-crowding';
+import { type Accessor, type JSX, Show } from 'solid-js';
+
 import type { RootView, RootViewItem } from '@/app/root-view';
-import { AppGlyph } from '@/components/AppGlyph';
+import { BottomNav } from '@/components/BottomNav';
 
 function compactCount(value: number, cap: number): string {
   return value > cap ? `${cap}+` : String(value);
@@ -30,94 +30,68 @@ export function AppBottomNav(props: {
   readonly onItemClick: (next: RootView) => void;
 }): JSX.Element {
   return (
-    <nav
-      ref={(element) => {
-        props.bindNav(element);
-        onCleanup(watchNavCrowding(element));
+    <BottomNav
+      view={props.view}
+      items={props.items}
+      label="Разделы приложения"
+      tour="nav"
+      itemLabel={(item) => {
+        if (item.id === 'modules') {
+          return `${item.label}, доступно: ${props.availableModuleCount()}, загружено: ${props.downloadedModuleCount()}`;
+        }
+        if (item.id === 'notes' && props.dueReminderCount() > 0) {
+          return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
+        }
+        if (item.id === 'news' && props.newsUnreadCount() > 0) {
+          return `${item.label}, непрочитанных: ${props.newsUnreadCount()}`;
+        }
+        if (item.id === 'settings' && props.appUpdateReady()) {
+          return `${item.label}, доступно обновление приложения`;
+        }
+        return item.label;
       }}
-      class="app-bottom-nav"
-      data-tour="nav"
-      classList={{
-        'app-bottom-nav--dragging': props.dragging(),
-        'app-bottom-nav--pressed': props.pressed(),
-      }}
-      aria-label="Разделы приложения"
+      badges={(item) => (
+        <>
+          <Show when={item.id === 'settings' && props.appUpdateReady()}>
+            <span class="app-nav-badge app-nav-badge--app-update" aria-hidden="true" />
+          </Show>
+          <Show when={item.id === 'modules' && props.availableModuleCount() > 0}>
+            <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
+              {compactCount(props.availableModuleCount(), 99)}
+            </span>
+          </Show>
+          <Show when={item.id === 'modules' && props.downloadedModuleCount() > 0}>
+            <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
+              {compactCount(props.downloadedModuleCount(), 99)}
+            </span>
+          </Show>
+          <Show when={item.id === 'news' && props.newsUnreadCount() > 0}>
+            <span
+              class="app-nav-badge app-nav-badge--news"
+              data-testid="news-unread-badge"
+              aria-hidden="true"
+            >
+              {compactCount(props.newsUnreadCount(), 99)}
+            </span>
+          </Show>
+          <Show when={item.id === 'notes' && props.dueReminderCount() > 0}>
+            <span class="app-nav-badge app-nav-badge--reminder" aria-hidden="true">
+              {compactCount(props.dueReminderCount(), 9)}
+            </span>
+          </Show>
+        </>
+      )}
+      dragIndex={props.dragIndex}
+      dragging={props.dragging}
+      pressed={props.pressed}
+      bubbleStyle={props.bubbleStyle}
+      bindNav={props.bindNav}
+      onPrefetch={props.onPrefetch}
       onPointerDown={props.onPointerDown}
       onPointerMove={props.onPointerMove}
       onPointerUp={props.onPointerUp}
       onPointerCancel={props.onPointerCancel}
-    >
-      <span class="app-bottom-nav__bubble" style={props.bubbleStyle()} aria-hidden="true" />
-      <For each={props.items()}>
-        {(item, index) => {
-          const selected = () =>
-            (props.dragIndex() ?? props.items().findIndex((entry) => entry.id === props.view())) ===
-            index();
-          const label = () => {
-            if (item.id === 'modules') {
-              return `${item.label}, доступно: ${props.availableModuleCount()}, загружено: ${props.downloadedModuleCount()}`;
-            }
-            if (item.id === 'notes' && props.dueReminderCount() > 0) {
-              return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
-            }
-            if (item.id === 'news' && props.newsUnreadCount() > 0) {
-              return `${item.label}, непрочитанных: ${props.newsUnreadCount()}`;
-            }
-            if (item.id === 'settings' && props.appUpdateReady()) {
-              return `${item.label}, доступно обновление приложения`;
-            }
-            return item.label;
-          };
-          return (
-            <div class="app-nav-item">
-              <button
-                class="app-nav-button"
-                data-tour={`nav-${item.id}`}
-                classList={{ 'app-nav-button--active': selected() }}
-                type="button"
-                aria-label={label()}
-                aria-current={props.view() === item.id ? 'page' : undefined}
-                title={label()}
-                onPointerEnter={() => props.onPrefetch(item.id)}
-                onPointerDown={() => props.onPrefetch(item.id)}
-                onClick={() => props.onItemClick(item.id)}
-              >
-                <AppGlyph
-                  name={item.icon}
-                  class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
-                />
-                <Show when={item.id === 'settings' && props.appUpdateReady()}>
-                  <span class="app-nav-badge app-nav-badge--app-update" aria-hidden="true" />
-                </Show>
-                <Show when={item.id === 'modules' && props.availableModuleCount() > 0}>
-                  <span class="app-nav-badge app-nav-badge--available" aria-hidden="true">
-                    {compactCount(props.availableModuleCount(), 99)}
-                  </span>
-                </Show>
-                <Show when={item.id === 'modules' && props.downloadedModuleCount() > 0}>
-                  <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
-                    {compactCount(props.downloadedModuleCount(), 99)}
-                  </span>
-                </Show>
-                <Show when={item.id === 'news' && props.newsUnreadCount() > 0}>
-                  <span
-                    class="app-nav-badge app-nav-badge--news"
-                    data-testid="news-unread-badge"
-                    aria-hidden="true"
-                  >
-                    {compactCount(props.newsUnreadCount(), 99)}
-                  </span>
-                </Show>
-                <Show when={item.id === 'notes' && props.dueReminderCount() > 0}>
-                  <span class="app-nav-badge app-nav-badge--reminder" aria-hidden="true">
-                    {compactCount(props.dueReminderCount(), 9)}
-                  </span>
-                </Show>
-              </button>
-            </div>
-          );
-        }}
-      </For>
-    </nav>
+      onItemClick={props.onItemClick}
+    />
   );
 }

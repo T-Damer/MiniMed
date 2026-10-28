@@ -20,6 +20,8 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 export function RestoreCard(props: {
   readonly store: DiaryStore;
   readonly onRestored: (diaryId: string) => void;
+  /** Already unfolded (inside the «Настройки» sheet, where it is the only thing). */
+  readonly open?: boolean;
 }): JSX.Element {
   const [text, setText] = createSignal('');
   const [message, setMessage] = createSignal('');
@@ -63,7 +65,7 @@ export function RestoreCard(props: {
   };
 
   return (
-    <details class="diary-card diary-card--fold diary-restore">
+    <details class="diary-card diary-card--fold diary-restore" open={props.open}>
       <summary class="diary-restore__summary">Восстановить записи из файла или текста</summary>
       <div class="diary-card__body">
         <p class="diary-card__text">

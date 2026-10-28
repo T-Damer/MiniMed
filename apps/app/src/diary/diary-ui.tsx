@@ -2,38 +2,47 @@ import { createUniqueId, For, type JSX, onMount, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import type { HeaderAction } from '@/components/HeaderActions';
+import { NavBack } from '@/components/NavBack';
+import { Page } from '@/components/Page';
+import { Heading } from '@/components/Text';
 import type { SendTone } from '@/diary/diary-home';
 
 /**
- * Header of every step after the diary home: a big «назад», what this page is, and which diary.
- * Focus moves to the title when the page opens, so a screen reader announces where the patient is.
+ * Header of every patient screen: the main app's page header (`Page`) — the round back button when
+ * the screen has one, the title, one description line, icon buttons on the right (they fold into
+ * «⋯» when the row runs out of room) and the round «?» for explanations.
  */
 export function ScreenHeader(props: {
   readonly title: string;
   readonly subtitle?: string | undefined;
   readonly backLabel?: string;
-  readonly onBack: () => void;
+  /** Absent on the screens the tab bar opens: they are not a step back from anything. */
+  readonly onBack?: (() => void) | undefined;
+  readonly headerActions?: readonly HeaderAction[] | undefined;
+  readonly help?: JSX.Element;
+  readonly helpTitle?: string;
 }): JSX.Element {
-  let title: HTMLHeadingElement | undefined;
-  onMount(() => title?.focus({ preventScroll: true }));
   return (
-    <header class="diary-screen">
-      <Button
-        class="diary-screen__back"
-        type="button"
-        variant="quiet"
-        icon={<AppGlyph name="arrow-left" class="diary-screen__back-icon" />}
-        onClick={props.onBack}
-      >
-        {props.backLabel ?? 'На главную'}
-      </Button>
-      <h1 class="diary-screen__title" tabindex="-1" ref={title}>
-        {props.title}
-      </h1>
-      <Show when={props.subtitle}>
-        <p class="diary-screen__subtitle">{props.subtitle}</p>
-      </Show>
-    </header>
+    <Page
+      class="diary-screen"
+      navigation={
+        <Show when={props.onBack}>
+          {(back) => (
+            <NavBack
+              class="knowledge-back-button"
+              aria-label={props.backLabel ?? 'На главную'}
+              onClick={() => back()()}
+            />
+          )}
+        </Show>
+      }
+      title={<Heading depth={1}>{props.title}</Heading>}
+      description={props.subtitle}
+      headerActions={props.headerActions}
+      help={props.help}
+      {...(props.helpTitle ? { helpTitle: props.helpTitle } : {})}
+    />
   );
 }
 

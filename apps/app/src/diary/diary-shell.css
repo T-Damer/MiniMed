@@ -1,0 +1,41 @@
+/*
+ * The main app's chrome inside the patient diary (owner 2026-10-28: the patient mode should look
+ * like the main app): the page header (`Page`, components.css), the floating tab bar
+ * (bottom-nav.css), settings groups and rows. Inlined with @import so the files stay inside the
+ * diary entry in this order (a stylesheet two entries import becomes a shared chunk linked first).
+ */
+@import "../styles/motion-tokens.css";
+@import "../styles/zIndex.css";
+@import "../styles/breakpoints.css";
+@import "../styles/bottom-nav.css";
+@import "../styles/page-chrome.css";
+@import "../styles/context-menu.css";
+@import "../styles/components.css";
+@import "../styles/settings.css";
+@import "../styles/settings-list.css";
+
+/* Safe-area tokens of the main shell (mobile-shell.css), which the diary does not load whole. */
+:root {
+  --safe-top: max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px));
+  --safe-right: max(var(--safe-area-inset-right, 0px), env(safe-area-inset-right, 0px));
+  --safe-left: max(var(--safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
+  --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-clearance: calc(4.75rem + var(--nav-safe-bottom));
+}
+
+/* The dialog close button: the main app styles it in doctor-ux.css, which the diary does not load;
+   here it is the diary's 48px round button. */
+.overlay-dialog__close-button {
+  display: grid;
+  box-sizing: border-box;
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 import { type Accessor, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 
-import { ROOT_VIEWS, type RootView, type RootViewItem } from '@/app/root-view';
+import { type NavItem, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { hapticFeedback } from '@/state/haptics';
 import { uiSounds } from '@/state/ui-sounds';
 
@@ -64,13 +64,16 @@ const DEFAULT_BOTTOM_NAV_BUBBLE: BottomNavBubblePosition = {
   height: 42,
 };
 
-export function useBottomNav(options: {
-  readonly view: Accessor<RootView>;
-  readonly items?: Accessor<readonly RootViewItem[]>;
-  readonly navigate: (next: RootView) => void;
+/** The tab bar's bubble, drag and taps; `V` is the bar's view ids (the main app's by default). */
+export function useBottomNav<V extends string = RootView>(options: {
+  readonly view: Accessor<V>;
+  /** Defaults to the main app's views (`ROOT_VIEWS`); another bar passes its own. */
+  readonly items?: Accessor<readonly NavItem<V>[]>;
+  readonly navigate: (next: V) => void;
   readonly enabled: Accessor<boolean>;
 }) {
-  const items = () => options.items?.() ?? ROOT_VIEWS;
+  const items = (): readonly NavItem<V>[] =>
+    options.items?.() ?? (ROOT_VIEWS as readonly NavItem<string>[] as readonly NavItem<V>[]);
   const [bottomNavBubble, setBottomNavBubble] =
     createSignal<BottomNavBubblePosition>(DEFAULT_BOTTOM_NAV_BUBBLE);
   const [bottomNavBubbleMotion, setBottomNavBubbleMotion] = createSignal<BottomNavBubbleMotion>({
@@ -99,12 +102,15 @@ export function useBottomNav(options: {
   const readBottomNavGeometry = (): BottomNavGeometry | undefined => {
     if (!bottomNav) return undefined;
     const navRect = bottomNav.getBoundingClientRect();
+    // The bubble is placed inside the bar's border (an absolute child's origin is the padding box).
+    const edgeX = bottomNav.clientLeft;
+    const edgeY = bottomNav.clientTop;
     const buttons = navButtons()
       .map((button) => {
         const rect = button.getBoundingClientRect();
         return {
-          left: rect.left - navRect.left,
-          top: rect.top - navRect.top,
+          left: rect.left - navRect.left - edgeX,
+          top: rect.top - navRect.top - edgeY,
           width: rect.width,
           height: rect.height,
           center: rect.left - navRect.left + rect.width / 2,
@@ -334,7 +340,7 @@ export function useBottomNav(options: {
     }
   };
 
-  const handleClick = (next: RootView): void => {
+  const handleClick = (next: V): void => {
     if (performance.now() < suppressNavClickUntil) {
       suppressNavClickUntil = 0;
       return;

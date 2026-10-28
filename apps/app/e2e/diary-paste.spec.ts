@@ -8,6 +8,8 @@ import {
   invitationIdInAddress,
   localInput,
   openDiaryList,
+  openPasteSheet,
+  openSettings,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -55,8 +57,28 @@ test.describe('patient diary: pasting the doctor link', () => {
     const first = testInvitation({ issuedAt: new Date(Date.now() - 7_200_000).toISOString() });
     await page.goto(await testInvitationLink(first));
     await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
+    // A second diary on the phone makes the list reachable.
+    await page.goto(await testInvitationLink(testInvitation({ template: 'glucose' })));
     await openDiaryList(page);
     await page.getByText('Добавить дневник по ссылке врача').click();
+    const older = await diaryInvitationLink(
+      { ...first, issuedAt: new Date(Date.now() - 10_800_000).toISOString() },
+      DIARY_PAGE,
+    );
+    await page.getByLabel('Ссылка от врача').fill(older);
+    await page.getByRole('button', { name: 'Открыть дневник' }).click();
+    await expect(page.locator('.diary-notice')).toContainText('старее');
+    await expectRecordCount(page, 1);
+  });
+
+  test('«Настройки» of a diary take another doctor link in a sheet, and an older link changes nothing', async ({
+    page,
+  }) => {
+    const first = testInvitation({ issuedAt: new Date(Date.now() - 7_200_000).toISOString() });
+    await page.goto(await testInvitationLink(first));
+    await addReading(page, { systolic: 130, diastolic: 80, at: localInput(0, 8) });
+    await openSettings(page);
+    await openPasteSheet(page);
     const older = await diaryInvitationLink(
       { ...first, issuedAt: new Date(Date.now() - 10_800_000).toISOString() },
       DIARY_PAGE,

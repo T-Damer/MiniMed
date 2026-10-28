@@ -28,11 +28,14 @@ export type RootView =
   | 'news'
   | 'settings';
 
-export interface RootViewItem {
-  readonly id: RootView;
+/** One tab of a floating tab bar (`BottomNav`): the main app's views or the patient diary's. */
+export interface NavItem<V extends string = string> {
+  readonly id: V;
   readonly label: string;
   readonly icon: AppGlyphName;
 }
+
+export type RootViewItem = NavItem<RootView>;
 
 export const ROOT_VIEWS: readonly RootViewItem[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },

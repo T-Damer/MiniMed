@@ -5,7 +5,7 @@ import { Button } from '@/components/Button';
 import type { DiaryScreen } from '@/diary/DiaryView';
 import { formatDateTime } from '@/diary/diary-format';
 import { sendSummary } from '@/diary/diary-home';
-import { InstallCard, MessengerWarning } from '@/diary/InstallCard';
+import { InstallWarning } from '@/diary/InstallWarning';
 import { isStandaloneApp } from '@/diary/install-state';
 import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
@@ -73,7 +73,10 @@ export function DiaryList(props: {
   return (
     <main class="diary-page diary-page--list">
       <h1 class="diary-header__title">Мои дневники</h1>
-      <MessengerWarning />
+      <InstallWarning
+        store={props.store}
+        entries={diaries().reduce((sum, d) => sum + d.entries, 0)}
+      />
       <Show when={props.store.warnings().length > 0}>
         <p class="diary-error" role="alert">
           {props.store.warnings().join(' ')}
@@ -219,11 +222,6 @@ export function DiaryList(props: {
         store={props.store}
         prominent={diaries().length === 0}
         onOpened={props.onOpened}
-      />
-      <InstallCard
-        store={props.store}
-        entries={diaries().reduce((sum, d) => sum + d.entries, 0)}
-        variant="tip"
       />
       <RestoreCard store={props.store} onRestored={refresh} />
     </main>

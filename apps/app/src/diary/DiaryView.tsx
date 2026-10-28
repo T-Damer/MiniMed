@@ -1,4 +1,19 @@
-import { createSignal, type JSX, Match, onCleanup, onMount, Switch } from 'solid-js';
+import {
+  createMemo,
+  createSignal,
+  type JSX,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from 'solid-js';
+import { Portal } from 'solid-js/web';
+
+import type { NavItem } from '@/app/root-view';
+import { useBottomNav } from '@/app/use-bottom-nav';
+import { BottomNav } from '@/components/BottomNav';
+import type { HeaderAction } from '@/components/HeaderActions';
 
 import { DiaryEntryForm } from '@/diary/DiaryEntryForm';
 import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
@@ -8,6 +23,8 @@ import { DiarySend } from '@/diary/DiarySend';
 import { DiaryToday } from '@/diary/DiaryToday';
 import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
+import { InstallWarning } from '@/diary/InstallWarning';
+import { syncNeedsAction, syncWords } from '@/diary/sync-words';
 import {
   isConnectedDiary,
   PatientConnection,
@@ -206,12 +223,16 @@ export function DiaryView(props: {
 
   const navigate = (next: DiaryScreen): void => {
     setError('');
+    if (next !== 'home') setEditTarget(undefined);
     if (next === 'home') {
-      setScreen('home');
       if (pushed) {
+        // Back first; the popstate brings the home in. Rendering it now would let a sheet it opens
+        // on mount push its history layer before this back, which would then pop that layer.
         pushed = false;
         window.history.back();
+        return;
       }
+      setScreen('home');
     } else {
       if (!pushed && screen() === 'home') {
         window.history.pushState({ [HISTORY_KEY]: next }, '', window.location.href);
@@ -255,13 +276,86 @@ export function DiaryView(props: {
   const startEntry = (entry: DiaryEntry | undefined, from: 'home' | 'records'): void => {
     setSaved(undefined);
     if (isCareDiary(invitation())) {
-      // Marks of a care diary are made on its day page, one sheet per intake or checkpoint.
+      // Marks of a care diary are made on its day page, one sheet per intake or checkpoint:
+      // «Изменить» in «Записи» opens that entry's sheet there.
+      setEditTarget(entry);
       navigate('home');
       return;
     }
     setEditing(entry);
     setReturnTo(from);
     navigate('entry');
+  };
+
+  // The patient's tab bar (owner 2026-10-28: the main app's bar): a care diary's own pages.
+  type Tab = Exclude<DiaryScreen, 'entry'>;
+  const tabbed = (): boolean => isCareDiary(invitation());
+  const tabs = createMemo((): readonly NavItem<Tab>[] => [
+    { id: 'home', label: 'Сегодня', icon: 'calendar' },
+    { id: 'records', label: 'Записи', icon: 'check' },
+    // A connected diary sends by itself; a QR diary is handed over before the visit.
+    ...(sync() ? [] : [{ id: 'send' as const, label: 'Врачу', icon: 'share' as const }]),
+    { id: 'more', label: 'Настройки', icon: 'system' },
+  ]);
+  const tabNav = useBottomNav<Tab>({
+    view: () => (screen() === 'entry' ? 'home' : screen()) as Tab,
+    items: tabs,
+    navigate: (next) => {
+      setSaved(undefined);
+      navigate(next);
+    },
+    enabled: () => tabbed() && screen() !== 'entry',
+  });
+
+  // The day page's sheets, opened from the header and from «Записи».
+  let openers:
+    | {
+        readonly openContacts: () => void;
+        readonly openCrisis: () => void;
+        readonly openEntry: (entry: DiaryEntry) => void;
+      }
+    | undefined;
+  const [editTarget, setEditTarget] = createSignal<DiaryEntry | undefined>(undefined);
+  const homeActions = createMemo((): readonly HeaderAction[] => {
+    const current = sync();
+    return [
+      ...(current && syncNeedsAction(current)
+        ? [
+            {
+              id: 'sync',
+              label: 'Отправить врачу сейчас',
+              icon: 'refresh' as const,
+              priority: 2 as const,
+              disabled: current.phase === 'syncing',
+              onSelect: () => void runSync(),
+            },
+          ]
+        : []),
+      ...(invitation().contacts?.length
+        ? [
+            {
+              id: 'contacts',
+              label: 'Связаться с врачом',
+              icon: 'phone' as const,
+              priority: 2 as const,
+              onSelect: () => openers?.openContacts(),
+            },
+          ]
+        : []),
+      {
+        id: 'crisis',
+        label: 'Помощь, если очень плохо',
+        icon: 'lifebuoy' as const,
+        priority: 1 as const,
+        danger: true,
+        onSelect: () => openers?.openCrisis(),
+      },
+    ];
+  });
+  const homeLine = (): string | undefined => {
+    const current = sync();
+    const parts = [invitation().doctor, current ? syncWords(current) : undefined].filter(Boolean);
+    return parts.length ? parts.join(' · ') : undefined;
   };
 
   const save = (value: Record<string, unknown>): string | undefined => {
@@ -315,128 +409,164 @@ export function DiaryView(props: {
   };
 
   return (
-    <Switch>
-      <Match when={screen() === 'entry'}>
-        <EntryPage
-          invitation={invitation()}
-          entry={editing()}
-          backLabel={returnTo() === 'records' ? 'Мои записи' : 'На главную'}
-          onSave={save}
-          onLeave={() => navigate(returnTo())}
-        />
-      </Match>
-      <Match when={screen() === 'records'}>
-        <DiaryRecords
-          results={results()}
-          sent={sent()}
-          saved={saved()}
-          error={error()}
-          onBack={() => {
-            setSaved(undefined);
-            navigate('home');
-          }}
-          onWrite={() => startEntry(undefined, 'records')}
-          onSend={() => navigate('send')}
-          onEdit={(entry) => startEntry(entry, 'records')}
-          onDelete={remove}
-        />
-      </Match>
-      <Match when={screen() === 'send'}>
-        <DiarySend
-          results={results()}
-          status={status()}
-          onSent={confirmSent}
-          onBack={() => navigate('home')}
-          onWrite={() => startEntry(undefined, 'home')}
-        />
-      </Match>
-      <Match when={screen() === 'more'}>
-        <DiaryMore
-          store={props.store}
-          entries={results().entries.length}
-          onBack={() => navigate('home')}
-          onPrint={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
-          onFhir={() => downloadFhir(results())}
-          onRestored={(id) => {
-            if (id === invitation().id) setResults(props.store.read(id) ?? results());
-          }}
-          onOpened={props.onOpened}
-          onList={props.onBack}
-          onEnablePush={
-            connection()
-              ? async () => {
-                  const state = await (connection() as PatientConnection).enablePush();
-                  setReminders(connection()?.reminderSettings());
-                  return state;
-                }
-              : undefined
-          }
-          pushOn={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
-          reminders={reminders()}
-          onReminders={(patch) => {
-            const current = connection();
-            if (!current) return;
-            void current.setReminders(patch).then(setSync);
-            setReminders(current.reminderSettings());
-          }}
-          onWithdraw={
-            connection()
-              ? async () => {
-                  await connection()?.withdraw();
-                  props.onBack();
-                }
-              : undefined
-          }
-        />
-      </Match>
-      <Match when={screen() === 'home' && isCareDiary(invitation())}>
-        <DiaryToday
-          results={results()}
-          status={status()}
-          consentAt={meta().consentAt}
-          tipsRead={meta().tipsRead ?? []}
-          hasOtherDiaries={props.hasOtherDiaries}
-          onSave={saveCare}
-          onRemove={remove}
-          onConsent={() => updateMeta({ consentAt: new Date().toISOString() })}
-          onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
-          onRecords={() => {
-            setSaved(undefined);
-            navigate('records');
-          }}
-          onSend={() => navigate('send')}
-          onMore={() => navigate('more')}
-          onList={props.onBack}
-          sync={sync()}
-          notice={notice()}
-          onDismissNotice={() => setNotice(undefined)}
-          onSyncNow={() => void runSync()}
-          onUrgent={() => {
-            const current = connection();
-            if (current) void current.raiseAlert().then(setSync);
-          }}
-        />
-      </Match>
-      <Match when={screen() === 'home'}>
-        <DiaryHome
-          store={props.store}
-          results={results()}
-          status={status()}
-          notice={notice()}
-          saved={saved()}
-          error={error()}
-          hasOtherDiaries={props.hasOtherDiaries}
-          onWrite={() => startEntry(undefined, 'home')}
-          onRecords={() => {
-            setSaved(undefined);
-            navigate('records');
-          }}
-          onSend={() => navigate('send')}
-          onMore={() => navigate('more')}
-          onDismissNotice={() => setNotice(undefined)}
-          onList={props.onBack}
-        />
-      </Match>
-    </Switch>
+    <>
+      <Switch>
+        <Match when={screen() === 'entry'}>
+          <EntryPage
+            invitation={invitation()}
+            entry={editing()}
+            backLabel={returnTo() === 'records' ? 'Мои записи' : 'На главную'}
+            onSave={save}
+            onLeave={() => navigate(returnTo())}
+          />
+        </Match>
+        <Match when={screen() === 'records'}>
+          <DiaryRecords
+            results={results()}
+            sent={sent()}
+            saved={saved()}
+            error={error()}
+            onBack={
+              tabbed()
+                ? undefined
+                : () => {
+                    setSaved(undefined);
+                    navigate('home');
+                  }
+            }
+            tabbed={tabbed()}
+            connected={sync() !== undefined}
+            onWrite={() => startEntry(undefined, 'records')}
+            onSend={() => navigate('send')}
+            onEdit={(entry) => startEntry(entry, 'records')}
+            onDelete={remove}
+          />
+        </Match>
+        <Match when={screen() === 'send'}>
+          <DiarySend
+            results={results()}
+            status={status()}
+            onSent={confirmSent}
+            tabbed={tabbed()}
+            onBack={() => navigate('home')}
+            onWrite={() => startEntry(undefined, 'home')}
+          />
+        </Match>
+        <Match when={screen() === 'more'}>
+          <DiaryMore
+            store={props.store}
+            entries={results().entries.length}
+            onBack={tabbed() ? undefined : () => navigate('home')}
+            hasOtherDiaries={props.hasOtherDiaries}
+            onPrint={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
+            onFhir={() => downloadFhir(results())}
+            onRestored={(id) => {
+              if (id === invitation().id) setResults(props.store.read(id) ?? results());
+            }}
+            onOpened={props.onOpened}
+            onList={props.onBack}
+            onEnablePush={
+              connection()
+                ? async () => {
+                    const state = await (connection() as PatientConnection).enablePush();
+                    setReminders(connection()?.reminderSettings());
+                    return state;
+                  }
+                : undefined
+            }
+            pushOn={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
+            reminders={reminders()}
+            onReminders={(patch) => {
+              const current = connection();
+              if (!current) return;
+              void current.setReminders(patch).then(setSync);
+              setReminders(current.reminderSettings());
+            }}
+            onWithdraw={
+              connection()
+                ? async () => {
+                    await connection()?.withdraw();
+                    props.onBack();
+                  }
+                : undefined
+            }
+          />
+        </Match>
+        <Match when={screen() === 'home' && isCareDiary(invitation())}>
+          <DiaryToday
+            header={
+              <>
+                <ScreenHeader
+                  title={invitation().title}
+                  subtitle={homeLine()}
+                  backLabel="Мои дневники"
+                  onBack={props.hasOtherDiaries ? props.onBack : undefined}
+                  headerActions={homeActions()}
+                />
+                <InstallWarning store={props.store} entries={results().entries.length} />
+              </>
+            }
+            results={results()}
+            status={status()}
+            consentAt={meta().consentAt}
+            tipsRead={meta().tipsRead ?? []}
+            controls={(api) => {
+              openers = api;
+            }}
+            openOnMount={editTarget()}
+            onSave={saveCare}
+            onRemove={remove}
+            onConsent={() => updateMeta({ consentAt: new Date().toISOString() })}
+            onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
+            sync={sync()}
+            notice={notice()}
+            onDismissNotice={() => setNotice(undefined)}
+            onUrgent={() => {
+              const current = connection();
+              if (current) void current.raiseAlert().then(setSync);
+            }}
+          />
+        </Match>
+        <Match when={screen() === 'home'}>
+          <DiaryHome
+            store={props.store}
+            results={results()}
+            status={status()}
+            notice={notice()}
+            saved={saved()}
+            error={error()}
+            hasOtherDiaries={props.hasOtherDiaries}
+            onWrite={() => startEntry(undefined, 'home')}
+            onRecords={() => {
+              setSaved(undefined);
+              navigate('records');
+            }}
+            onSend={() => navigate('send')}
+            onMore={() => navigate('more')}
+            onDismissNotice={() => setNotice(undefined)}
+            onList={props.onBack}
+          />
+        </Match>
+      </Switch>
+      <Show when={tabbed() && screen() !== 'entry' && (!invitation().consent || meta().consentAt)}>
+        <Portal>
+          <BottomNav
+            view={() => (screen() === 'entry' ? 'home' : screen()) as Tab}
+            items={tabs}
+            label="Дневник"
+            dragIndex={tabNav.dragIndex}
+            dragging={tabNav.dragging}
+            pressed={tabNav.pressed}
+            bubbleStyle={tabNav.bubbleStyle}
+            bindNav={tabNav.bindNav}
+            onPointerDown={tabNav.handlePointerDown}
+            onPointerMove={tabNav.handlePointerMove}
+            onPointerUp={tabNav.handlePointerUp}
+            onPointerCancel={tabNav.handlePointerCancel}
+            onItemClick={tabNav.handleClick}
+          />
+        </Portal>
+      </Show>
+    </>
   );
 }

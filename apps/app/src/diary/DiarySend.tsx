@@ -129,6 +129,8 @@ export function DiarySend(props: {
   readonly status: DiaryShareStatus;
   readonly onSent: () => void;
   readonly onBack: () => void;
+  /** Opened from the tab bar: the header has no back arrow. */
+  readonly tabbed?: boolean;
   readonly onWrite: () => void;
 }): JSX.Element {
   const [showCodes, setShowCodes] = createSignal(false);
@@ -184,7 +186,11 @@ export function DiarySend(props: {
 
   return (
     <main class="diary-page diary-page--send">
-      <ScreenHeader title="Отправить врачу" subtitle={invitation().title} onBack={props.onBack} />
+      <ScreenHeader
+        title="Отправить врачу"
+        subtitle={invitation().title}
+        onBack={props.tabbed ? undefined : props.onBack}
+      />
       <Show
         when={props.results.entries.length > 0}
         fallback={

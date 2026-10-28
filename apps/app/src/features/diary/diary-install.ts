@@ -76,3 +76,79 @@ export function installCardDismissed(dismissedAt: string | undefined, now: numbe
   const time = Date.parse(dismissedAt);
   return Number.isFinite(time) && now - time < DISMISS_DAYS * 86_400_000;
 }
+
+/** Which miniature the install guide draws: decided from the browser alone. */
+export type InstallGuideKind = 'messenger' | 'android' | 'iphone' | 'ipad' | 'desktop';
+
+export function installGuideKind(input: {
+  readonly messenger: boolean;
+  readonly platform: DiaryPlatform;
+  readonly ipad: boolean;
+}): InstallGuideKind {
+  if (input.messenger) return 'messenger';
+  if (input.platform === 'ios') return input.ipad ? 'ipad' : 'iphone';
+  if (input.platform === 'android') return 'android';
+  return 'desktop';
+}
+
+/**
+ * The «add to home screen» warning stays until the diary runs from the icon. Inside a messenger
+ * it is always shown (the browser there cannot install anything); on a desktop without an install
+ * prompt there is nothing to ask for.
+ */
+export function installWarningVisible(input: {
+  readonly messenger: boolean;
+  readonly advice: InstallAdvice;
+}): boolean {
+  if (input.messenger) return true;
+  return input.advice !== 'installed' && input.advice !== 'none';
+}
+
+/** One short line per step; the guide animates the same steps in the same order. */
+export const INSTALL_GUIDE_STEPS: Readonly<Record<InstallGuideKind, readonly string[]>> = {
+  messenger: [
+    'Нажмите «⋯» или «⋮» вверху',
+    'Выберите «Открыть в браузере»',
+    'Дневник откроется в браузере',
+  ],
+  android: [
+    'Нажмите «⋮» в Chrome',
+    'Выберите «Добавить на гл. экран»',
+    'Нажмите «Установить»',
+    'Значок появится на экране',
+  ],
+  iphone: [
+    'Нажмите «⋯» внизу Safari',
+    'Выберите «Поделиться»',
+    'Пролистайте до «На экран «Домой»»',
+    'Нажмите «Добавить»',
+    'Значок появится на экране',
+  ],
+  ipad: [
+    'Нажмите «Поделиться» вверху',
+    'Выберите «На экран «Домой»»',
+    'Нажмите «Добавить»',
+    'Значок появится на экране',
+  ],
+  desktop: [
+    'Нажмите значок установки в адресной строке',
+    'Нажмите «Установить»',
+    'Дневник откроется как приложение',
+  ],
+};
+
+/** Heading of the warning row and of the guide. */
+export function installWarningTitle(messenger: boolean): string {
+  return messenger ? 'Откройте дневник в браузере' : 'Добавьте дневник на экран «Домой»';
+}
+
+/**
+ * On iOS the home-screen icon keeps its own storage, so entries already made in Safari stay in
+ * Safari. Said once, only when there is something to lose.
+ */
+export function installGuideNote(kind: InstallGuideKind, entries: number): string | null {
+  if (entries <= 0) return null;
+  if (kind !== 'iphone' && kind !== 'ipad') return null;
+  const device = kind === 'ipad' ? 'iPad' : 'iPhone';
+  return `На ${device} значок хранит записи отдельно от Safari. Прежние перенесите: «Отправить врачу», затем в дневнике со значка «Ещё» → «Восстановить записи».`;
+}
