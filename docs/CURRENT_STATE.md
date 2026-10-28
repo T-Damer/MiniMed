@@ -20,6 +20,23 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## UI fixes from owner screenshots — 2026-10-28
+
+- **Onboarding on short (21:9) windows.** The intro's «Далее» / «Пропустить обучение» footer is in
+  the column flow instead of pinned to the bottom, so it no longer covers the text; icon, headroom
+  and title scale with the height and a ≤600 px window tightens the choice buttons. The download
+  choice has no «Нажмите «Далее»…» line (the «Позже» button says it), and the speech-model step no
+  longer shows «Загрузка идёт в фоне…».
+- **Dialogs no longer shift the page.** `lockBodyScroll` keeps the scrollbar gutter while it hides a
+  classic (space-taking) scrollbar.
+- **Files.** Leaving the file list from a sub-folder keeps that folder on screen during the route
+  change instead of flashing the root listing.
+- **News.** The web feed transport times out after 15 s *without progress* (no answer or no new body
+  bytes), 60 s in total, so a large feed over a slow link (who.int behind a throttled CDN) loads;
+  the source sheet no longer re-plays its rise and backdrop fade when the avatar transition ends.
+- **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
+  with a round «+» and the title, not a paper tool card.
+
 ## Connected diary: live, end-to-end encrypted — 2026-10-27 (STATE DIARY6)
 
 Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the accepted

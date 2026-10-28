@@ -112,11 +112,6 @@ function SpeechModelAction(): JSX.Element {
       >
         {label()}
       </Button>
-      <Show when={busy()}>
-        <p class="onboarding-extra__hint" role="status" aria-live="polite">
-          Загрузка идёт в фоне: можно продолжать обучение.
-        </p>
-      </Show>
       <Show when={failure()}>
         {(message) => (
           <p class="onboarding-extra__hint onboarding-extra__hint--error" role="alert">

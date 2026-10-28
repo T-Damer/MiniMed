@@ -117,12 +117,17 @@
   opacity: 0;
 }
 
+/* A column: the scenes centred in the free space, the footer below them in the flow, so on a
+   short (21:9) window the buttons push the text up instead of covering it. The bottom padding
+   clears the core progress label in the bottom corner (a 2.75 rem strip). */
 .onboarding-intro {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: calc(var(--safe-top, 0px) + 1.5rem) 1.5rem calc(var(--safe-bottom, 0px) + 1.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(var(--safe-top, 0px) + 1.5rem) 1.5rem calc(var(--safe-bottom, 0px) + 3.25rem);
+  overflow-y: auto;
   outline: none;
 }
 
@@ -130,7 +135,7 @@
   position: relative;
   display: flex;
   width: min(100%, 34rem);
-  height: 100%;
+  flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -177,10 +182,11 @@
 .onboarding-intro__logo {
   position: relative;
   flex: none;
-  width: 6.5rem;
-  height: 6.5rem;
+  /* Smaller on a short (21:9) window, so the scenes and the footer fit without scrolling. */
+  width: clamp(4.5rem, 16dvh, 6.5rem);
+  height: clamp(4.5rem, 16dvh, 6.5rem);
   /* Headroom above the icon: the documents rise out of it into this space. */
-  margin: 3.75rem 0 1rem;
+  margin: clamp(2.5rem, 9dvh, 3.75rem) 0 clamp(0.5rem, 2dvh, 1rem);
 }
 
 .onboarding-intro__mark {
@@ -279,7 +285,7 @@
 
 .onboarding-intro__title {
   margin: 0;
-  font: 700 clamp(1.7rem, 6.4vw, 2.4rem) / 1.15 var(--font-serif);
+  font: 700 clamp(1.5rem, min(6.4vw, 6.5dvh), 2.4rem) / 1.15 var(--font-serif);
   text-wrap: balance;
 }
 
@@ -347,15 +353,12 @@
   opacity: 0.85;
 }
 
-/* The footer clears the core progress label in the bottom corner (a 2.75 rem strip). */
 .onboarding-intro__footer {
-  position: absolute;
-  right: 0;
-  bottom: calc(var(--safe-bottom, 0px) + 3.25rem);
-  left: 0;
   display: grid;
+  flex: none;
   justify-items: center;
-  gap: 1.25rem;
+  gap: clamp(0.5rem, 2.5dvh, 1.25rem);
+  margin-top: clamp(1rem, 4dvh, 2rem);
   pointer-events: none;
 }
 
@@ -407,6 +410,31 @@
   transition:
     opacity 420ms ease,
     visibility 0s;
+}
+
+/* A short (21:9 or landscape) window: tighter spacing so the choices and «Далее» fit without
+   scrolling. */
+@media (max-height: 600px) {
+  .onboarding-intro {
+    padding-top: calc(var(--safe-top, 0px) + 0.75rem);
+  }
+
+  .onboarding-intro__core {
+    gap: 0.75rem;
+  }
+
+  .onboarding-intro__choices {
+    gap: 0.375rem;
+  }
+
+  .onboarding-intro__choice {
+    --ui-button-height: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .onboarding-intro__footer {
+    margin-top: 0.75rem;
+  }
 }
 
 /* The core is in: the button wakes up once, then keeps a slow ring. Outline, not box-shadow, so

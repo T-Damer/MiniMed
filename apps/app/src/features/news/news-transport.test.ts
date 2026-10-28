@@ -157,6 +157,31 @@ describe('web transport', () => {
       'timeout',
     );
   });
+
+  it('keeps reading a slow body while its bytes still arrive', async () => {
+    const encoder = new TextEncoder();
+    const parts = ['<rss><channel>', '<title>Медленно</title>', '</channel></rss>'];
+    const slow = vi.fn(async () => {
+      let index = 0;
+      const body = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+          const part = parts[index];
+          index += 1;
+          if (part === undefined) controller.close();
+          else controller.enqueue(encoder.encode(part));
+        },
+      });
+      return new Response(body, { status: 200 });
+    });
+    const transport = createWebTransport({
+      fetch: slow as unknown as typeof fetch,
+      online: () => true,
+    });
+    // Each chunk comes well within the 30 ms idle limit; the whole body takes longer than it.
+    const response = await transport.fetch({ url: 'https://a.example/feed', timeoutMs: 30 });
+    expect(response.text).toBe(parts.join(''));
+  });
 });
 
 describe('native transport', () => {

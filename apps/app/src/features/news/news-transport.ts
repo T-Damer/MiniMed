@@ -13,6 +13,7 @@ export interface FeedRequest {
   readonly method?: 'GET' | 'HEAD';
   readonly etag?: string | undefined;
   readonly lastModified?: string | undefined;
+  /** Silence allowed before giving up: no answer, or no new bytes of the body, for this long. */
   readonly timeoutMs?: number;
   readonly maxBytes?: number;
   /** `Accept` header; feeds by default. A web page or an image asks for its own type. */
@@ -54,6 +55,8 @@ export class FeedFetchError extends Error {
 }
 
 export const DEFAULT_TIMEOUT_MS = 15_000;
+/** A body that keeps arriving still ends after this many idle timeouts in total. */
+const TOTAL_TIMEOUT_FACTOR = 4;
 export const DEFAULT_MAX_BYTES = 6_000_000;
 
 export const FAILURE_MESSAGES: Readonly<Record<FetchFailureCode, string>> = {
@@ -110,7 +113,11 @@ function lowerHeaders(headers: Headers | Record<string, unknown>): Record<string
   return out;
 }
 
-async function readCapped(response: Response, maxBytes: number): Promise<Uint8Array> {
+async function readCapped(
+  response: Response,
+  maxBytes: number,
+  onProgress: () => void = () => {},
+): Promise<Uint8Array> {
   const body = response.body;
   if (!body) {
     const buffer = new Uint8Array(await response.arrayBuffer());
@@ -124,6 +131,7 @@ async function readCapped(response: Response, maxBytes: number): Promise<Uint8Ar
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
+    onProgress();
     total += value.length;
     if (total > maxBytes) {
       await reader.cancel();
@@ -182,10 +190,19 @@ export function createWebTransport(
       const controller = new AbortController();
       const timeoutMs = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
       let timedOut = false;
-      const timer = setTimeout(() => {
+      const giveUp = (): void => {
         timedOut = true;
         controller.abort();
-      }, timeoutMs);
+      };
+      // Idle, not total: a large feed over a slow link (who.int behind a throttled CDN) keeps
+      // arriving and must not be cut off while its bytes still flow.
+      let idleTimer: ReturnType<typeof setTimeout> | undefined;
+      const rearm = (): void => {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(giveUp, timeoutMs);
+      };
+      rearm();
+      const totalTimer = setTimeout(giveUp, timeoutMs * TOTAL_TIMEOUT_FACTOR);
       const relay = (): void => controller.abort();
       request.signal?.addEventListener('abort', relay);
       try {
@@ -217,7 +234,8 @@ export function createWebTransport(
             headers,
           };
         }
-        const bytes = await readCapped(response, request.maxBytes ?? DEFAULT_MAX_BYTES);
+        rearm();
+        const bytes = await readCapped(response, request.maxBytes ?? DEFAULT_MAX_BYTES, rearm);
         return {
           status: response.status,
           notModified: response.status === 304,
@@ -237,7 +255,8 @@ export function createWebTransport(
         );
         throw new FeedFetchError(code, FAILURE_MESSAGES[code]);
       } finally {
-        clearTimeout(timer);
+        clearTimeout(idleTimer);
+        clearTimeout(totalTimer);
         request.signal?.removeEventListener('abort', relay);
       }
     },

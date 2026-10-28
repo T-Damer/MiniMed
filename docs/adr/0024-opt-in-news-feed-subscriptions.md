@@ -54,7 +54,7 @@ never routes anything through a server of ours.
 - ETag / Last-Modified are used only where the adapter can read and send them (native). A page
   cannot send them without turning a readable feed into a blocked CORS preflight; the browser's own
   HTTP cache revalidates there.
-- Limits: 15 s timeout, 6 MB of body, 4 M characters of feed text, 100 items per fetch.
+- Limits: 15 s without an answer or new body bytes (60 s in total; on Android the native read timeout), 6 MB of body, 4 M characters of feed text, 100 items per fetch.
 
 ### Parsing and sanitization
 

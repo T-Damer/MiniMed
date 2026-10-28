@@ -11,7 +11,7 @@ for (const width of [375, 1280]) {
     // The «create your own» card comes first in the list and is no tool to star.
     const card = page
       .locator('.unified-catalog__tool-shell')
-      .filter({ hasNot: page.locator('.unified-catalog__tool--create') })
+      .filter({ hasNot: page.locator('.unified-catalog__create') })
       .first();
     await expect(card).toBeVisible();
     const title = (await card.locator('.catalog-card__title').textContent())?.trim() ?? '';

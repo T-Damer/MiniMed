@@ -39,25 +39,38 @@ export function UnifiedSearchCatalog(props: {
           <LayoutVirtualizedGrid data={props.tools}>
             {(entry) => (
               <div class="unified-catalog__tool-shell">
-                <a
-                  class="unified-catalog__tool catalog-card paper-card"
-                  classList={{ 'unified-catalog__tool--create': entry.createsNew === true }}
-                  href={entry.href}
-                  aria-label={entry.title}
-                  onClick={props.onOpenTool}
+                <Show
+                  when={!entry.createsNew}
+                  fallback={
+                    // «Создать свой …» is an action, not a tool: the dashed «add» tile, never a card.
+                    <a
+                      class="unified-catalog__create"
+                      href={entry.href}
+                      aria-label={entry.title}
+                      onClick={props.onOpenTool}
+                    >
+                      <span class="unified-catalog__create-plus">
+                        <AppGlyph name="plus" class="unified-catalog__create-icon" />
+                      </span>
+                      <strong class="unified-catalog__create-title">{entry.title}</strong>
+                    </a>
+                  }
                 >
-                  <span class="catalog-card__tags">
-                    <AppGlyph name={entry.icon} class="unified-catalog__icon" />
-                    <ClinicalTags title={entry.title} specialties={[entry.group]} />
-                  </span>
-                  <strong class="catalog-card__title">{entry.title}</strong>
-                  <span class="catalog-card__description">{entry.description}</span>
-                  <Show when={!entry.createsNew}>
+                  <a
+                    class="unified-catalog__tool catalog-card paper-card"
+                    href={entry.href}
+                    aria-label={entry.title}
+                    onClick={props.onOpenTool}
+                  >
+                    <span class="catalog-card__tags">
+                      <AppGlyph name={entry.icon} class="unified-catalog__icon" />
+                      <ClinicalTags title={entry.title} specialties={[entry.group]} />
+                    </span>
+                    <strong class="catalog-card__title">{entry.title}</strong>
+                    <span class="catalog-card__description">{entry.description}</span>
                     <ToolAgeBadge scope={entry.ageScope} class="unified-catalog__age-badge" />
-                  </Show>
-                </a>
-                {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
-                <Show when={!entry.createsNew}>
+                  </a>
+                  {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
                   <div class="unified-catalog__tool-pins">
                     <ItemFavoriteButton item={toolItem(entry.id, entry.title)} />
                     <ItemCollectionMenu item={toolItem(entry.id, entry.title)} />

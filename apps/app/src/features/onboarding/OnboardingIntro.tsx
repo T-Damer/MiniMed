@@ -112,7 +112,8 @@ export function OnboardingIntro(props: {
   };
   const nextHint = (): string => {
     if (props.coreReady) return 'Нажмите «Далее» — покажем, что умеет приложение';
-    if (choosing()) return 'Нажмите «Далее», чтобы ничего не скачивать сейчас';
+    // «Позже» already says it: no line under the choices.
+    if (choosing()) return '';
     if (!props.coreDownloading && props.chosen === undefined) {
       return 'Нажмите «Далее», чтобы продолжить знакомство';
     }

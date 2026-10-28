@@ -878,6 +878,9 @@
 /*
  * The card's avatar flies into the sheet (View Transition, news-view-transition.ts). While it runs
  * the sheet's own rise is replaced by the named «news-sheet» layer so both come from one snapshot.
+ * The entry animations finish at once rather than being removed: `animation: none` restarted them
+ * when the transition ended, and the open sheet rose and its backdrop faded a second time (a blink).
+ * A changed duration keeps the finished animation finished.
  */
 html.news-vt .news-sheet {
   view-transition-name: news-sheet;
@@ -885,7 +888,7 @@ html.news-vt .news-sheet {
 
 html.news-vt .news-sheet,
 html.news-vt .overlay-backdrop {
-  animation: none;
+  animation-duration: 0s;
 }
 
 html.news-vt::view-transition-group(news-avatar) {

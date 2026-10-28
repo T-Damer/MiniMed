@@ -25,6 +25,7 @@ import {
   sortLibraryEntries,
 } from '@/features/library/user-library-entries';
 import {
+  isUserLibraryCatalogRoute,
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
   userLibraryFolderHash,
@@ -522,9 +523,11 @@ export function UserLibraryPage(props: {
 
   onMount(() => {
     const syncFolderFromLocation = (): void => {
-      const requestedFolderId = parseUserLibraryFolderRoute(
-        window.location.hash.replace(/^#\/?/u, ''),
-      );
+      const route = window.location.hash.replace(/^#\/?/u, '');
+      // Leaving the list (another tab, back out of a folder): keep the folder on screen while the
+      // route crossfades away instead of flashing the root listing for a frame.
+      if (!isUserLibraryCatalogRoute(route)) return;
+      const requestedFolderId = parseUserLibraryFolderRoute(route);
       if (requestedFolderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
         window.location.hash = notesTemplatesPath();
         return;

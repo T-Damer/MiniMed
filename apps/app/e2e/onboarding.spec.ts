@@ -77,10 +77,9 @@ for (const viewport of [
     await page.waitForTimeout(1_000);
     expect(core.downloads()).toBe(0);
     await intro.getByTestId('core-choice-core').click();
-    await expect(intro.getByText(/Скачиваем в фоне/u)).toBeVisible();
-    await expect(
-      intro.getByText('Нажмите «Далее», чтобы продолжить знакомство, пока идёт загрузка'),
-    ).toBeVisible();
+    // The headline says the setup goes on in the background; no extra «Нажмите «Далее»» line.
+    await expect(intro.getByText(/Продолжаем настройку приложения в фоне/u)).toBeVisible();
+    await expect(intro.locator('.onboarding-intro__hint')).toHaveCount(0);
     await expect.poll(core.downloads).toBe(1);
     await expect(page.locator('.core-progress-line__track')).toBeVisible();
     await expect(page.locator('.core-progress-line__track')).toHaveAttribute('role', 'progressbar');
