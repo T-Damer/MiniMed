@@ -178,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-28 claude-opus DIARY12: D4 checked on the Android emulator (Chrome, real FCM: reminder with «Принял», tip push); fixed the diary worker never finishing install (precache took `url(%23n)` in the paper grain SVG for a file, unread failures exhausted connections — now skipped, bodies cancelled, 15 s bound), a second diary tab overwriting the reminder switches (saves re-read storage); PWA manifests with descriptions and screenshots; «Включить уведомления»; deployed, no release
 - 2026-10-28 claude-opus DIARY11: diary phase D4 without ЕСИА/МИС — dose/checkpoint reminders by push (phone sends only moments, `reminders` table + 20 s tick, notices in Cache Storage, «Принял» on Android queued and marked at next open, names off by default), encrypted push kinds (RFC 8291, plan/tip/correction/alert/withdrawn/invite), open doctor sign-up on the pilot (global cap), faculty self-host package (`scripts/diary-selfhost-package.sh`, `deploy/selfhost/install.sh`, docs/DIARY_SELFHOST.md; install.sh untested on Linux); deployed, no release
 - 2026-10-28 claude-opus DIARY10: alert lines «выше» and «ниже» for any charted value (`AssessmentBounds`, storage `minimed.assessment-limits.v2`), weight chart limits, empty field hides a preset line; deployed, no release
 - 2026-10-28 claude-opus PATIENT-CREATE: patient quick-create sheet reuses app TextField/Button/cell styles (`PatientQuickCreate.css`); no release

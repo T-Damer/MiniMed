@@ -1,5 +1,5 @@
 // Diary page cache: keeps the page usable offline after the first visit. Scope: diary/ only.
-const CACHE_NAME = 'minimed-diary-v5';
+const CACHE_NAME = 'minimed-diary-v6';
 const STATIC_DESTINATIONS = new Set([
   'document',
   'script',
@@ -12,10 +12,39 @@ const STATIC_DESTINATIONS = new Set([
 // Resolve against the diary folder, where this worker lives.
 const BASE = new URL('./', self.location.href);
 
+/** One request of the precache may take this long; a hung one must not keep the worker installing. */
+const PRECACHE_TIMEOUT_MS = 15000;
+
+/**
+ * Caches one asset if it answers. A failed answer's body is cancelled: an unread body keeps its
+ * connection busy, and a few of them exhaust the browser's connections to the host.
+ */
+async function addQuietly(cache, url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(PRECACHE_TIMEOUT_MS) }).catch(
+    () => undefined,
+  );
+  if (response?.ok) await cache.put(url, response);
+  else await response?.body?.cancel();
+}
+
+/**
+ * A file a style sheet pulls in, or nothing: `data:` URIs and the fragment references inside
+ * inline SVG (`filter='url(%23n)'` of the paper grain) are not files, and other origins are not
+ * ours to keep.
+ */
+function sheetAsset(reference, sheet) {
+  if (/^(?:data:|#|%23)/iu.test(reference)) return undefined;
+  const url = new URL(reference, sheet);
+  return url.origin === self.location.origin ? url.href : undefined;
+}
+
 /** Caches the page and everything it needs, so the very first visit is already enough for offline. */
 async function precache() {
   const cache = await caches.open(CACHE_NAME);
-  const page = await fetch(BASE, { cache: 'reload' });
+  const page = await fetch(BASE, {
+    cache: 'reload',
+    signal: AbortSignal.timeout(PRECACHE_TIMEOUT_MS),
+  });
   if (!page.ok) throw new Error('Diary page is not available.');
   const html = await page.clone().text();
   await cache.put(BASE, page);
@@ -23,24 +52,20 @@ async function precache() {
   for (const match of html.matchAll(/(?:src|href)="([^"#]+\.(?:js|css|png|ico|webmanifest))"/gu)) {
     urls.add(new URL(match[1], BASE).href);
   }
-  const styles = [...urls].filter((url) => url.endsWith('.css'));
-  await Promise.all(
-    [...urls].map((url) =>
-      cache.add(url).catch(() => {
-        // A missing optional asset must not stop the page itself from being cached.
-      }),
-    ),
-  );
-  // Fonts and images that the style sheets pull in.
-  for (const sheet of styles) {
+  // A missing optional asset must not stop the page itself from being cached.
+  await Promise.all([...urls].map((url) => addQuietly(cache, url)));
+  // Fonts and images that the style sheets pull in, each once.
+  const assets = new Set();
+  for (const sheet of [...urls].filter((url) => url.endsWith('.css'))) {
     const response = await cache.match(sheet);
     if (!response) continue;
     const css = await response.text();
     for (const match of css.matchAll(/url\(\s*["']?([^"')\s]+)["']?\s*\)/gu)) {
-      if (match[1].startsWith('data:')) continue;
-      await cache.add(new URL(match[1], sheet).href).catch(() => {});
+      const asset = sheetAsset(match[1], sheet);
+      if (asset && !urls.has(asset)) assets.add(asset);
     }
   }
+  await Promise.all([...assets].map((url) => addQuietly(cache, url)));
 }
 
 self.addEventListener('install', (event) => {

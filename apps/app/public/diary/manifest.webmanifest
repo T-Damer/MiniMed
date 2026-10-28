@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Дневник самоконтроля MiniMed",
   "short_name": "Дневник",
-  "description": "Записи хранятся только на этом устройстве.",
+  "description": "Дневник лечения от вашего врача: приём лекарств, самочувствие, давление и пульс, опросники и напоминания. Работает без интернета; записи уходят врачу зашифрованными.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
@@ -10,8 +10,18 @@
   "background_color": "#f3ecd9",
   "theme_color": "#2f4638",
   "icons": [
-    { "src": "../icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "../icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "../maskable-192.png",
       "sizes": "192x192",
@@ -23,6 +33,30 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "categories": ["medical", "health"],
+  "screenshots": [
+    {
+      "src": "screenshots/today.webp",
+      "sizes": "720x1478",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "День лечения: лекарства по времени приёма и отметки"
+    },
+    {
+      "src": "screenshots/dose-tip.webp",
+      "sizes": "720x1478",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Отметка приёма с рекомендацией врача"
+    },
+    {
+      "src": "screenshots/wellbeing.webp",
+      "sizes": "720x1478",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Самочувствие по шкале от 0 до 10"
     }
   ]
 }

@@ -1,13 +1,24 @@
 {
   "name": "MiniMed — локальная медицинская картотека",
   "short_name": "MiniMed",
+  "description": "Справочник врача без интернета: клинические рекомендации, лекарства, МКБ, шкалы и калькуляторы, бланки и дневники пациентов.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f3ecd9",
   "theme_color": "#2f4638",
   "icons": [
-    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "./maskable-192.png",
       "sizes": "192x192",
@@ -19,6 +30,37 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "categories": ["medical", "health", "education"],
+  "screenshots": [
+    {
+      "src": "./screenshots/search-wide.webp",
+      "sizes": "1280x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Поиск по справочникам, рекомендациям и препаратам без интернета"
+    },
+    {
+      "src": "./screenshots/results-wide.webp",
+      "sizes": "1280x800",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Результаты: документы и калькуляторы по запросу"
+    },
+    {
+      "src": "./screenshots/search-narrow.webp",
+      "sizes": "720x1548",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Поиск и разделы справочника"
+    },
+    {
+      "src": "./screenshots/results-narrow.webp",
+      "sizes": "720x1548",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Калькуляторы и рекомендации по запросу"
     }
   ]
 }

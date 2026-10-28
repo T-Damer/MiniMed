@@ -130,8 +130,16 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   against the RFC's worked example); a doctor's profile edit no longer rings the phone. The
   pilot has open sign-up (owner: a prototype with students and stable patients); the faculty
   self-host package is `scripts/diary-selfhost-package.sh` + `deploy/selfhost/install.sh`
-  ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)). Not yet seen on a real phone's notification shade;
-  `install.sh` has not run on a Linux server.
+  ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)). Checked on the Android 36 emulator (Chrome, real FCM):
+  a reminder shows «Пора принять лекарство · 08:00» with «Принял»/«Открыть», «Принял» marks the
+  intake and syncs it, a tip push reads «Врач оставил рекомендацию». That run found two bugs, fixed
+  the same day: the diary worker's precache took `url(%23n)` inside the paper grain's inline SVG
+  for a file, and the unread failed answers used up Chrome's connections, so the worker never
+  finished installing (no offline, no push; now fragments and `data:` are skipped, failed bodies
+  cancelled, each request bounded to 15 s); and a second open tab of the diary wrote its stale copy
+  of the connection back, switching reminders off (saves now re-read the stored state). Both
+  manifests carry a description and screenshots (`public/screenshots`, `public/diary/screenshots`)
+  for Chrome's install sheet. `install.sh` has not run on a Linux server; no iPhone test.
 
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 

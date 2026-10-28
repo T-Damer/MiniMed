@@ -152,9 +152,7 @@ export function DiaryMore(props: {
           <section class="diary-more__group" aria-label="Уведомления">
             <MoreAction
               icon="vibrate"
-              title={
-                push() === 'on' ? 'Уведомления включены' : 'Уведомлять, когда врач что-то изменит'
-              }
+              title={push() === 'on' ? 'Уведомления включены' : 'Включить уведомления'}
               text={
                 push() === 'unsupported'
                   ? 'Этот браузер не умеет. На iPhone сначала добавьте дневник на экран «Домой».'

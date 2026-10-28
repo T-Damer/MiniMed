@@ -272,7 +272,17 @@ export class PatientConnection {
     };
   }
 
+  /**
+   * The stored state again: another tab of the same diary keeps its own copy, and writing back a
+   * stale whole copy would undo what that tab saved (the reminder switches, for one).
+   */
+  private refresh(): void {
+    const stored = read(this.storage, this.connection.patientId);
+    if (stored) this.connection = stored;
+  }
+
   private save(patch: Partial<StoredConnection>): void {
+    this.refresh();
     this.connection = { ...this.connection, ...patch };
     write(this.storage, this.connection);
   }
@@ -354,6 +364,7 @@ export class PatientConnection {
   }
 
   private async run(): Promise<SyncStatus> {
+    this.refresh();
     if (this.connection.ended) return this.status();
     const open = (state: SessionState) =>
       new DiarySession(
@@ -475,6 +486,7 @@ export class PatientConnection {
   }
 
   reminderSettings(): ReminderSettings {
+    this.refresh();
     return {
       on: this.connection.reminders === true,
       names: this.connection.reminderNames === true,
