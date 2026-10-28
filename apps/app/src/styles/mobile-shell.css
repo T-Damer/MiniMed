@@ -40,7 +40,8 @@ body {
   min-height: 100dvh;
   padding-top: var(--safe-top);
   padding-right: var(--safe-right);
-  padding-bottom: var(--nav-safe-bottom);
+  /* No bottom padding: the floating bar overlays the page and every route leaves its own clearance;
+     a padded 100dvh shell scrolled the document past the page onto a darker desk strip. */
   padding-left: var(--safe-left);
   background: var(--desk);
 }

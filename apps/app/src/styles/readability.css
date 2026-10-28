@@ -59,7 +59,7 @@
 /* The scroll-to-top button (and the other floating tools above it) stands in the navigation's own
    row, beside the bar, instead of floating over the content above it. */
 .floating-window-controls {
-  --floating-control-bottom: calc(0.625rem + var(--nav-safe-bottom, 0px) + 0.40625rem);
+  --floating-control-bottom: calc(var(--bottom-nav-offset, 0.625rem) + 0.40625rem);
   --floating-control-above-nav: calc(var(--bottom-nav-clearance) + 0.25rem);
   /* `--nav-crowded` (set by the bar, `app/nav-crowding.ts`) is 1 when a five- or six-tab bar on a
      phone leaves no room beside it: the tools then stand above the bar so it never covers them. */

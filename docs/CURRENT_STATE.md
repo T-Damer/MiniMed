@@ -3596,6 +3596,26 @@ real taps against a local diary server.
 Not verified: push delivery and «Принял» on iOS (real device needed); TestFlight (installs only on a
 real device); the connected diary inside the native apps (see above).
 
+**iOS app chrome (owner report, same day).** Measured in the native simulator build with a temporary
+layout probe in the copied bundle (`ios/App/App/public`, not committed) that posted
+`getBoundingClientRect` and matching rules to a local listener.
+
+- *Bar too high.* Ours sat at the 34 pt inset + 10 pt = 44 pt from the edge; iOS 26 Photos floats its
+  tab bar 22 pt from the edge (inset − 12 pt). `--bottom-nav-offset` (`styles/bottom-nav.css`, shared
+  with the diary) is `max(0.625rem, inset − 0.75rem)` on iOS (`@supports (-webkit-touch-callout)`),
+  `0.625rem + inset` elsewhere; the tools beside the bar (`--floating-control-bottom`) follow it.
+- *Darker strip at the bottom* (Settings 96 pt, the reader 34 pt). Two causes: `.app-shell` padded the
+  bottom inset under 100dvh routes, so the document scrolled past the page onto the desk colour
+  (padding removed — the bar overlays and every route leaves its own clearance); and the shared
+  full-height rule reset `.page-surface`/`.search-home` to `min-height: 100dvh` although they are
+  pulled up by `margin-top: -safe-top`, so they ended 62 pt short (now `100dvh + safe-top`). Web is
+  unchanged (both insets are 0 there).
+- *History drawer tap-through.* The backdrop closed on `pointerdown` and its `.closing` state stops
+  catching pointers at once, so on iOS the same tap's `click` landed on the result card underneath.
+  It now closes on `click`. Verified in the simulator; Playwright's synthetic taps (Chromium and
+  WebKit) do not reproduce the original leak, so `search-history-drawer.spec.ts` only guards that a
+  backdrop tap closes the drawer without navigating.
+
 ## Patient diary: a home with three visible actions — 2026-10-06 (STATE DIARY4)
 
 Owner request: it was not always clear how to open, read, fill and send the diary, and the actions were

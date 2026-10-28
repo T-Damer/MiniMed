@@ -1004,11 +1004,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   }
 }
 
-/* 1.0 shell: bottom nav is a floating overlay; route surfaces extend behind it via negative margin. */
-.app-shell {
-  padding-bottom: var(--nav-safe-bottom);
-}
-
 /* The boot surface owns viewport sizing and space for the already interactive navigation. */
 .app-shell--booting {
   min-height: 100dvh;
@@ -2281,6 +2276,13 @@ fieldset.search-mode-picker {
   margin-bottom: 0;
   padding-bottom: calc(6rem + var(--nav-safe-bottom));
   scroll-padding-bottom: calc(6rem + var(--nav-safe-bottom));
+}
+
+/* These two are pulled under the status bar (`margin-top: -safe-top`): as much taller, or they stop
+   short of the bottom edge and the desk shows as a strip there (iOS app, 62 pt). */
+.page-surface,
+.search-home {
+  min-height: calc(100dvh + var(--safe-top));
 }
 
 /* Without the bottom bar (a narrowed app profile) nothing needs the room under it. */

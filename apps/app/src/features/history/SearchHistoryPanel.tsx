@@ -171,11 +171,14 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
 
       <Show when={open()}>
         <Portal>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: the dimmed area outside the drawer; Escape and «Закрыть историю» are the keyboard path. */}
           <div
             class="search-history-drawer-backdrop"
             classList={{ closing: closing() }}
             role="presentation"
-            onPointerDown={(event) => {
+            // On click, not pointerdown: the closing backdrop stops catching pointers at once, so a
+            // close on pointerdown let the same tap's click land on the search page underneath.
+            onClick={(event) => {
               if (event.target === event.currentTarget) close();
             }}
           >
