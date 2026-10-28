@@ -7,6 +7,7 @@ import {
   installGuideNote,
   installWarningTitle,
   installWarningVisible,
+  pairHere,
 } from '@/features/diary/diary-install';
 
 describe('install guide', () => {
@@ -52,5 +53,18 @@ describe('install guide', () => {
     expect(installGuideNote('android', 5)).toBeNull();
     expect(installGuideNote('messenger', 5)).toBeNull();
     expect(installGuideNote('desktop', 5)).toBeNull();
+  });
+
+  it('keeps a connected note apart: the doctor holds the records', () => {
+    expect(installGuideNote('iphone', 2, true)).toContain('новый код');
+    expect(installGuideNote('iphone', 2, false)).toContain('Вернуть записи из копии');
+  });
+
+  it('pairs a connected diary where it will stay: never in iPhone Safari or a messenger', () => {
+    expect(pairHere({ platform: 'ios', standalone: false, messenger: false })).toBe(false);
+    expect(pairHere({ platform: 'ios', standalone: true, messenger: false })).toBe(true);
+    expect(pairHere({ platform: 'android', standalone: false, messenger: false })).toBe(true);
+    expect(pairHere({ platform: 'other', standalone: false, messenger: false })).toBe(true);
+    expect(pairHere({ platform: 'android', standalone: false, messenger: true })).toBe(false);
   });
 });

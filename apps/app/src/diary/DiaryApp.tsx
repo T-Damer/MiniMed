@@ -4,13 +4,15 @@ import { Button } from '@/components/Button';
 import { DiaryList } from '@/diary/DiaryList';
 import { type DiaryScreen, DiaryView } from '@/diary/DiaryView';
 import { entriesLabel } from '@/diary/diary-format';
-import { isStandaloneApp } from '@/diary/install-state';
+import { InstallFirst } from '@/diary/InstallFirst';
+import { insideMessenger, isStandaloneApp, platform } from '@/diary/install-state';
 import {
   isConnectedDiary,
   PatientConnection,
   readPairingFragment,
 } from '@/features/diary/connected/patient-connection';
 import { diaryInvitationLink, readInvitationFragment } from '@/features/diary/diary-codec';
+import { pairHere } from '@/features/diary/diary-install';
 import type { InvitationMergeOutcome } from '@/features/diary/diary-merge';
 import type { DiaryResults } from '@/features/diary/diary-model';
 import {
@@ -27,6 +29,8 @@ type State =
   | { readonly kind: 'loading' }
   | { readonly kind: 'error'; readonly message: string; readonly store: DiaryStore | undefined }
   | { readonly kind: 'list'; readonly store: DiaryStore }
+  /** A connected diary's code waits in the address for the home-screen icon. */
+  | { readonly kind: 'install-first' }
   | {
       readonly kind: 'diary';
       readonly store: DiaryStore;
@@ -144,12 +148,26 @@ export function DiaryApp(): JSX.Element {
 
   // Two links opened one after the other: the later one wins even if the earlier finishes last.
   let latestOpen = 0;
+  // «Подключить здесь»: the patient chose to connect in this browser after all.
+  let pairAnyway = false;
   const open = async (): Promise<void> => {
     let store: DiaryStore | undefined;
     const ticket = ++latestOpen;
     try {
       store = createDiaryStore(openStorage());
       const pairing = readPairingFragment(window.location.hash);
+      if (
+        pairing &&
+        !pairAnyway &&
+        !pairHere({
+          platform: platform(),
+          standalone: isStandaloneApp(),
+          messenger: insideMessenger(),
+        })
+      ) {
+        if (ticket === latestOpen) setState({ kind: 'install-first' });
+        return;
+      }
       if (pairing) {
         const connection = await PatientConnection.pair(window.localStorage, store, pairing);
         const results = store.read(connection.patientId);
@@ -227,6 +245,15 @@ export function DiaryApp(): JSX.Element {
               </main>
             );
           }
+          case 'install-first':
+            return (
+              <InstallFirst
+                onPairHere={() => {
+                  pairAnyway = true;
+                  void open();
+                }}
+              />
+            );
           case 'list':
             return (
               <DiaryList

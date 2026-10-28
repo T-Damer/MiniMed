@@ -20,6 +20,8 @@ export function InstallWarning(props: {
   readonly store: DiaryStore;
   /** Entries already made: on iOS the home-screen icon keeps its own storage. */
   readonly entries: number;
+  /** A connected diary (the iPhone note tells to ask the doctor for a new code). */
+  readonly connected?: boolean | undefined;
 }): JSX.Element {
   const [guideOpen, setGuideOpen] = createSignal(false);
   const [asking, setAsking] = createSignal(false);
@@ -52,7 +54,11 @@ export function InstallWarning(props: {
       </button>
       <Show when={guideOpen()}>
         <DiarySheet title={installWarningTitle(messenger())} onClose={() => setGuideOpen(false)}>
-          <InstallGuide entries={props.entries} onInstalled={() => setGuideOpen(false)} />
+          <InstallGuide
+            entries={props.entries}
+            connected={props.connected}
+            onInstalled={() => setGuideOpen(false)}
+          />
         </DiarySheet>
       </Show>
     </Show>

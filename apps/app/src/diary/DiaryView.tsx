@@ -503,7 +503,11 @@ export function DiaryView(props: {
                   onBack={props.hasOtherDiaries ? props.onBack : undefined}
                   headerActions={homeActions()}
                 />
-                <InstallWarning store={props.store} entries={results().entries.length} />
+                <InstallWarning
+                  store={props.store}
+                  entries={results().entries.length}
+                  connected={sync() !== undefined}
+                />
               </>
             }
             results={results()}

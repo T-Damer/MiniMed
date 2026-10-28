@@ -1151,3 +1151,8 @@
 .settings-list__status.diary-settings__status {
   font-size: 1rem;
 }
+
+/* A connected diary's code waiting for the home-screen icon: the guide fills the page. */
+.diary-install-first {
+  gap: 1.25rem;
+}

@@ -3570,6 +3570,32 @@ the behaviour should match, but the share-sheet path differs); Android Chrome in
 script-inserted manifest (Chrome supports a manifest link added during load, the installability e2e
 reads the inserted link but cannot run Chrome's installer).
 
+### Connected diary on the iPhone — 2026-10-28 (STATE DIARY15)
+
+Re-tested the connected diary (`#c=` pairing link, D4 push) on the iPhone 17 simulator, iOS 26.5,
+real taps against a local diary server.
+
+- **Paired in Safari, then the icon was empty.** Pairing consumes the link and clears the fragment, so
+  «На экран Домой» saved a bare `/diary/` and the icon (its own storage) had no diary. Now an iPhone
+  that opens a pairing link in Safari is not paired there: `pairHere()` (`diary-install.ts`) sends it to
+  `InstallFirst` — the iOS guide with the link still in the address and «Подключить здесь, в Safari» as
+  a way out. The icon keeps `#c=…` and pairs on first launch (verified: second `POST /api/pair` from the
+  standalone app, diary filled). Android, desktop and messenger in-app browsers pair at once as before.
+- **iOS 26 share sheet:** «На экран «Домой»» is under «Ещё» (step 3 of the iOS guide says so).
+- **Web Push cannot be tested in the simulator.** A standalone scratch PWA (no MiniMed code) gets
+  `Notification.permission === 'granted'` and an active worker, then `pushManager.subscribe` throws
+  `NotAllowedError: User denied push permission` — the simulator has no web-push service. Needs a
+  real iPhone. The settings row used to swallow this as «недоступны» with the «add to home screen»
+  hint (wrong inside the icon); it now logs the error name and shows «не получилось» with a retry hint.
+
+- **Native iOS app** (simulator build per «Build and run (simulator)»): boots, offline search and
+  results, files tab work. The connected diary is not reachable from native builds yet: no build sets
+  `VITE_DIARY_SERVER` and the pilot unit leaves `DIARY_CORS_ORIGINS` commented out, so a doctor in the
+  Android/iOS app has no diary service (same on Android).
+
+Not verified: push delivery and «Принял» on iOS (real device needed); TestFlight (installs only on a
+real device); the connected diary inside the native apps (see above).
+
 ## Patient diary: a home with three visible actions — 2026-10-06 (STATE DIARY4)
 
 Owner request: it was not always clear how to open, read, fill and send the diary, and the actions were

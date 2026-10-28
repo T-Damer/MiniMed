@@ -35,7 +35,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     await expect(guide.locator('.install-guide__label')).toHaveText([
       'Нажмите «⋯» внизу Safari',
       'Выберите «Поделиться»',
-      'Пролистайте до «На экран «Домой»»',
+      'Нажмите «Ещё» и выберите «На экран «Домой»»',
       'Нажмите «Добавить»',
       'Значок появится на экране',
     ]);
@@ -48,8 +48,8 @@ test.describe('patient diary: keeping it one tap away', () => {
     await page.getByRole('button', { name: ADD_TO_HOME }).click();
     const note = guide.locator('.install-guide__note');
     await expect(note).toContainText('На iPhone значок хранит записи отдельно от Safari');
-    await expect(note).toContainText('Отправить врачу');
-    await expect(note).toContainText('Восстановить записи');
+    await expect(note).toContainText('«Врачу» → «Скопировать текстом»');
+    await expect(note).toContainText('Вернуть записи из копии');
     await guide.getByRole('button', { name: 'Закрыть' }).click();
 
     // The warning has no «Не сейчас»: it stays until the diary runs from the icon.

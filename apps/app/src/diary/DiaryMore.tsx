@@ -17,7 +17,7 @@ import {
   setVibrationEnabled,
 } from '@/state/app-preferences';
 
-type PushState = 'off' | 'on' | 'unsupported' | 'denied';
+type PushState = 'off' | 'on' | 'unsupported' | 'denied' | 'failed';
 
 function Tile(props: { readonly icon: AppGlyphName; readonly tone: SettingsTileTone }) {
   return (
@@ -209,10 +209,20 @@ export function DiaryMore(props: {
                       ? 'недоступны'
                       : push() === 'denied'
                         ? 'запрещены'
-                        : undefined
+                        : push() === 'failed'
+                          ? 'не получилось'
+                          : undefined
                   }
                   onClick={() => {
-                    void enable()().then(setPush, () => setPush('unsupported'));
+                    void enable()().then(setPush, (error: unknown) => {
+                      // A refused subscription (the iOS simulator, a blocked push service) or a
+                      // failed upload: the row stays tappable for another try.
+                      console.warn(
+                        'diary: enabling notifications failed',
+                        error instanceof Error ? error.name : 'unknown',
+                      );
+                      setPush('failed');
+                    });
                   }}
                 />
               </Show>
@@ -241,11 +251,13 @@ export function DiaryMore(props: {
                 )}
               </Show>
             </ul>
-            <Show when={push() === 'unsupported' || push() === 'denied'}>
+            <Show when={push() !== 'on' && push() !== 'off'}>
               <p class="diary-settings__note">
                 {push() === 'denied'
                   ? 'Уведомления запрещены в настройках телефона для этого сайта.'
-                  : 'На iPhone уведомления приходят, когда дневник добавлен на экран «Домой».'}
+                  : push() === 'failed'
+                    ? 'Телефон не подписал дневник на уведомления. Попробуйте ещё раз позже.'
+                    : 'На iPhone уведомления приходят, когда дневник добавлен на экран «Домой».'}
               </p>
             </Show>
           </section>

@@ -120,7 +120,7 @@ export const INSTALL_GUIDE_STEPS: Readonly<Record<InstallGuideKind, readonly str
   iphone: [
     'Нажмите «⋯» внизу Safari',
     'Выберите «Поделиться»',
-    'Пролистайте до «На экран «Домой»»',
+    'Нажмите «Ещё» и выберите «На экран «Домой»»',
     'Нажмите «Добавить»',
     'Значок появится на экране',
   ],
@@ -146,9 +146,32 @@ export function installWarningTitle(messenger: boolean): string {
  * On iOS the home-screen icon keeps its own storage, so entries already made in Safari stay in
  * Safari. Said once, only when there is something to lose.
  */
-export function installGuideNote(kind: InstallGuideKind, entries: number): string | null {
+export function installGuideNote(
+  kind: InstallGuideKind,
+  entries: number,
+  connected = false,
+): string | null {
   if (entries <= 0) return null;
   if (kind !== 'iphone' && kind !== 'ipad') return null;
   const device = kind === 'ipad' ? 'iPad' : 'iPhone';
-  return `На ${device} значок хранит записи отдельно от Safari. Прежние перенесите: «Отправить врачу», затем в дневнике со значка «Ещё» → «Восстановить записи».`;
+  // A connected diary's records are with the doctor: a new code brings them into the icon.
+  if (connected) {
+    return `На ${device} значок — отдельный дневник: попросите у врача новый код и откройте его со значка, записи вернутся сами.`;
+  }
+  return `На ${device} значок хранит записи отдельно от Safari. Прежние перенесите: «Врачу» → «Скопировать текстом», затем в дневнике со значка «Настройки» → «Вернуть записи из копии».`;
+}
+
+/**
+ * Whether a connected diary's one-time code may be used in this browser now. On iPhone and iPad
+ * the home-screen icon keeps storage of its own, so the code waits in the address until the
+ * diary is opened from the icon (iOS Safari gets no manifest, the icon keeps the address); in a
+ * messenger's browser it waits for a real browser.
+ */
+export function pairHere(input: {
+  readonly platform: DiaryPlatform;
+  readonly standalone: boolean;
+  readonly messenger: boolean;
+}): boolean {
+  if (input.messenger) return false;
+  return input.platform !== 'ios' || input.standalone;
 }

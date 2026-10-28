@@ -35,6 +35,8 @@ function animationsAllowed(): boolean {
 export function InstallGuide(props: {
   /** Entries already made: on iOS the home-screen icon keeps its own storage. */
   readonly entries: number;
+  /** A connected diary: its records are with the doctor, so the iPhone note differs. */
+  readonly connected?: boolean | undefined;
   /** Called after the browser's own install dialog was accepted. */
   readonly onInstalled?: () => void;
 }): JSX.Element {
@@ -42,7 +44,7 @@ export function InstallGuide(props: {
     installGuideKind({ messenger: insideMessenger(), platform: platform(), ipad: onIpad() }),
   );
   const steps = createMemo(() => INSTALL_GUIDE_STEPS[kind()]);
-  const note = createMemo(() => installGuideNote(kind(), props.entries));
+  const note = createMemo(() => installGuideNote(kind(), props.entries, props.connected));
   const [step, setStep] = createSignal(0);
   const [installing, setInstalling] = createSignal(false);
   const animated = animationsAllowed();
