@@ -17,6 +17,7 @@ import {
   type SettingsStatusInputs,
   useSettingsStatuses,
 } from '@/features/settings/use-settings-statuses';
+import { activeProfile } from '@/state/app-profile';
 import {
   consumeAndRestoreReturnTo,
   type ReturnToLocation,
@@ -73,7 +74,13 @@ export function SettingsList(props: SettingsListProps): JSX.Element {
   const statuses = useSettingsStatuses(props.statusInputs);
   const [query, setQuery] = createSignal('');
   const filtering = () => query().trim() !== '';
-  const matches = () => filterSettingsPages(query());
+  // A narrowed app (`?profile=`) offers only the pages it declares.
+  const offered = activeProfile()?.settingsPages;
+  const isOffered = (id: SettingsPageId): boolean => offered === undefined || offered.includes(id);
+  const groups = SETTINGS_GROUPS.map((group) => group.filter(isOffered)).filter(
+    (group) => group.length > 0,
+  );
+  const matches = () => filterSettingsPages(query()).filter((page) => isOffered(page.id));
   return (
     <div class="settings-list">
       <Page
@@ -131,7 +138,7 @@ export function SettingsList(props: SettingsListProps): JSX.Element {
           </Show>
         }
       >
-        <For each={SETTINGS_GROUPS}>
+        <For each={groups}>
           {(group) => (
             <ul class="settings-list__group">
               <For each={group}>

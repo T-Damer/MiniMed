@@ -1020,7 +1020,7 @@ html.news-vt::view-transition-new(news-sheet) {
 
 /* Viewer: a compact header row, then the article as plain reading text. */
 .news-viewer {
-  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
+  min-height: 100dvh;
 }
 
 .news-viewer__source {

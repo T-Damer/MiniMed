@@ -1,5 +1,5 @@
 /*
- * Care diary: the day page, its sheets and the year calendar. Patient pages use a calmer blue-teal
+ * Care diary: the day page, its sheets and the month calendar. Patient pages use a calmer blue-teal
  * accent than the doctor's app (owner 2026-10-27). Sheets are portalled into <body>, so the accent
  * is set on the body of a care diary rather than on the page element. Motion follows the app's
  * fast iOS-like rules; the diary bundle has no global.css, so the tokens carry fallbacks.
@@ -427,125 +427,6 @@
   cursor: pointer;
 }
 
-/* Heatmap ------------------------------------------------------------------------------------ */
-.diary-heat {
-  --heat-cell: 0.95rem;
-  --heat-gap: 0.2rem;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.diary-heat__frame {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.diary-heat__weekdays {
-  display: grid;
-  flex: none;
-  grid-template-rows: 1rem repeat(7, var(--heat-cell));
-  gap: var(--heat-gap);
-  color: var(--theme-text-faint);
-  font-size: 0.7rem;
-  line-height: var(--heat-cell);
-}
-
-.diary-heat__scroller {
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.diary-heat__grid {
-  display: flex;
-  gap: var(--heat-gap);
-  width: max-content;
-}
-
-.diary-heat__week {
-  display: grid;
-  grid-template-rows: 1rem repeat(7, var(--heat-cell));
-  gap: var(--heat-gap);
-}
-
-.diary-heat__month {
-  width: 0;
-  overflow: visible;
-  color: var(--theme-text-faint);
-  font-size: 0.7rem;
-  white-space: nowrap;
-}
-
-.diary-heat__day,
-.diary-heat__swatch {
-  width: var(--heat-cell);
-  height: var(--heat-cell);
-  padding: 0;
-  border: 0;
-  border-radius: 0.2rem;
-}
-
-.diary-heat__day {
-  cursor: pointer;
-  transition: transform var(--care-fast) var(--care-ease);
-}
-
-.diary-heat__day:active {
-  transform: scale(0.9);
-}
-
-.diary-heat__day--level-0,
-.diary-heat__swatch--level-0 {
-  background: var(--theme-surface-muted);
-}
-
-.diary-heat__day--level-1,
-.diary-heat__swatch--level-1 {
-  background: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-surface-muted));
-}
-
-.diary-heat__day--level-2,
-.diary-heat__swatch--level-2 {
-  background: color-mix(in srgb, var(--theme-accent) 50%, var(--theme-surface-muted));
-}
-
-.diary-heat__day--level-3,
-.diary-heat__swatch--level-3 {
-  background: color-mix(in srgb, var(--theme-accent) 75%, var(--theme-surface-muted));
-}
-
-.diary-heat__day--level-4,
-.diary-heat__swatch--level-4 {
-  background: var(--theme-accent);
-}
-
-.diary-heat__day--today {
-  box-shadow: inset 0 0 0 1.5px var(--theme-text-muted);
-}
-
-.diary-heat__day--selected {
-  outline: 2px solid var(--theme-text);
-  outline-offset: 1px;
-}
-
-.diary-heat__day--future {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.diary-heat__legend {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--heat-gap);
-  color: var(--theme-text-faint);
-  font-size: 0.75rem;
-}
-
-.diary-heat__legend-text {
-  padding-inline: 0.25rem;
-}
-
 /* Sheets ------------------------------------------------------------------------------------- */
 .diary-sheet-open {
   overflow: hidden;
@@ -748,6 +629,7 @@
 .diary-segment__option:focus-visible,
 .diary-chip:focus-visible,
 .diary-score__option:focus-visible,
+.diary-answer__option:focus-visible,
 .diary-quiz__option:focus-visible,
 .care-row__check:focus-visible,
 .care-row__main:focus-visible,
@@ -756,7 +638,6 @@
 .diary-today__icon:focus-visible,
 .diary-today__step:focus-visible,
 .diary-today__bar-button:focus-visible,
-.diary-heat__day:focus-visible,
 .diary-contact:focus-visible,
 .diary-crisis__call:focus-visible {
   outline: 0.19rem solid var(--theme-accent);
@@ -777,6 +658,7 @@
 .diary-segment__option,
 .diary-chip,
 .diary-score__option,
+.diary-answer__option,
 .diary-quiz__option {
   border: 1px solid var(--theme-border);
   color: var(--theme-text);
@@ -792,6 +674,7 @@
 .diary-segment__option:active,
 .diary-chip:active,
 .diary-score__option:active,
+.diary-answer__option:active,
 .diary-quiz__option:active {
   transform: scale(0.96);
 }
@@ -831,6 +714,7 @@
 
 .diary-chip--on,
 .diary-score__option--on,
+.diary-answer__option--on,
 .diary-quiz__option--on {
   border-color: var(--theme-accent);
   color: var(--theme-accent-contrast);
@@ -852,6 +736,23 @@
   font-size: 1.2rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.diary-answer {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.diary-answer__option {
+  min-height: 3.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.8rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-align: start;
 }
 
 .diary-vitals {
@@ -1054,4 +955,9 @@
   .diary-skeleton__bar {
     animation: none;
   }
+}
+
+.diary-button--confirm {
+  color: var(--theme-accent-contrast, #fff);
+  background: var(--theme-danger);
 }

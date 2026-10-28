@@ -11,7 +11,6 @@ import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { captureStartErrorMessage } from '@/features/conversations/recording-errors';
-import { DiaryCareEditor } from '@/features/diary/DiaryCareEditor';
 import {
   type CareDraft,
   careDraftFrom,
@@ -59,6 +58,7 @@ import {
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
 import { diaryPrintHtml } from '@/features/diary/diary-print';
+import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
 import { decodeQrFromSource } from '@/features/diary/qr-decode';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
@@ -240,11 +240,15 @@ function IssueDiaryDialog(props: {
   /** Plan, checkpoints, contacts, tips and help lines of a care diary. */
   const careParts = () => {
     const parts = careInvitationParts(care(), editing);
-    if (!parts.plan.some((item) => !item.ended)) {
-      throw new Error('Добавьте хотя бы один препарат.');
+    if (
+      !parts.plan.some((item) => !item.ended) &&
+      !parts.checkpoints.some((checkpoint) => !checkpoint.ended)
+    ) {
+      throw new Error('Добавьте хотя бы один раздел.');
     }
     return {
-      plan: parts.plan,
+      fields: parts.fields,
+      ...(parts.plan.length ? { plan: parts.plan } : {}),
       planTitle: 'Лекарства',
       ...(parts.checkpoints.length ? { checkpoints: parts.checkpoints } : {}),
       ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
@@ -305,7 +309,6 @@ function IssueDiaryDialog(props: {
         template: editing.template,
         title: editing.title,
         issuedAt,
-        fields: editing.fields,
         ...careParts(),
         ...(doctor().trim() ? { doctor: doctor() } : {}),
         ...(note().trim() ? { note: note() } : {}),
@@ -319,7 +322,6 @@ function IssueDiaryDialog(props: {
         template: templateId(),
         title: base?.title ?? '',
         issuedAt: new Date().toISOString(),
-        fields: base?.fields ?? [],
         ...careParts(),
         ...(doctor().trim() ? { doctor: doctor() } : {}),
         ...(note().trim() ? { note: note() } : {}),
@@ -518,7 +520,14 @@ function IssueDiaryDialog(props: {
             </div>
           </Show>
           <Show when={isCare()}>
-            <DiaryCareEditor draft={care()} onChange={setCare} />
+            <PatientScreenEditor
+              draft={care()}
+              onChange={setCare}
+              doctor={doctor()}
+              onDoctor={setDoctor}
+              note={note()}
+              onNote={setNote}
+            />
           </Show>
           <Show when={hasPlan() && !isCare()}>
             <div class="patient-diary__medications">
@@ -582,20 +591,22 @@ function IssueDiaryDialog(props: {
               </Button>
             </div>
           </Show>
-          <TextField
-            class="patient-diary__field"
-            label="Врач (необязательно)"
-            value={doctor()}
-            onInput={(event) => setDoctor(event.currentTarget.value)}
-          />
-          <TextArea
-            class="patient-diary__field"
-            label="Инструкция пациенту"
-            maxLength={200}
-            value={note()}
-            placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
-            onInput={(event) => setNote(event.currentTarget.value)}
-          />
+          <Show when={!isCare()}>
+            <TextField
+              class="patient-diary__field"
+              label="Врач (необязательно)"
+              value={doctor()}
+              onInput={(event) => setDoctor(event.currentTarget.value)}
+            />
+            <TextArea
+              class="patient-diary__field"
+              label="Инструкция пациенту"
+              maxLength={200}
+              value={note()}
+              placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
+              onInput={(event) => setNote(event.currentTarget.value)}
+            />
+          </Show>
           <Show when={error()}>
             <p class="patient-diary__error" role="alert">
               {error()}

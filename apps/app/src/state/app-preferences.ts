@@ -36,11 +36,14 @@ export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
 export const SEARCH_SCOPE_KEY = 'minimed.search-scope.v1';
 export const APP_PREFERENCES_EVENT = 'minimed:app-preferences';
 
+/** The volume a plain «Звуки» switch turns on to (the settings slider sets finer values). */
+export const DEFAULT_SOUND_VOLUME = 0.2;
+
 const DEFAULT_PREFERENCES: AppPreferences = {
   splitNavigation: false,
   vibrationEnabled: true,
   rememberSearchMode: false,
-  soundVolume: 0.2,
+  soundVolume: DEFAULT_SOUND_VOLUME,
   bookReadingMode: false,
   floatingWindowsEnabled: false,
   experimentalModulesEnabled: true,
@@ -186,6 +189,16 @@ export function getSoundVolume(): number {
 
 export function setSoundVolume(volume: number): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), soundVolume: clampVolume(volume) });
+}
+
+export function getSoundsEnabled(): boolean {
+  return getSoundVolume() > 0;
+}
+
+/** On/off for surfaces without a slider: on keeps a volume already chosen, else the default. */
+export function setSoundsEnabled(enabled: boolean): AppPreferences {
+  if (!enabled) return setSoundVolume(0);
+  return getSoundVolume() > 0 ? loadAppPreferences() : setSoundVolume(DEFAULT_SOUND_VOLUME);
 }
 
 export function getBookReadingMode(): boolean {

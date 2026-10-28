@@ -8,7 +8,7 @@ import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import { atTime, dayKey } from '@/features/diary/diary-care';
 import { createDiaryId, type DiaryCheckpoint, type DiaryEntry } from '@/features/diary/diary-model';
-import { loadDiaryQuestionnaire } from '@/features/diary/diary-questionnaires';
+import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
 
 function optionsFor(definition: AssessmentDefinition, questionId: string) {
   const question = definition.questions.find((candidate) => candidate.id === questionId);
@@ -29,8 +29,8 @@ export function QuestionnaireSheet(props: {
   readonly onClose: () => void;
 }): JSX.Element {
   const [definition] = createResource(
-    () => props.checkpoint.questionnaire,
-    (slug) => loadDiaryQuestionnaire(slug),
+    () => props.checkpoint,
+    (checkpoint) => loadCheckpointQuestionnaire(checkpoint),
   );
   const [answers, setAnswers] = createSignal<Record<string, number>>({
     ...(props.entry?.answers ?? {}),

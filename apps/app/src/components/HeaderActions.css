@@ -1,0 +1,78 @@
+/*
+ * Header buttons that fold into «⋯» (AGENTS.md «Header overflow»). The host is as wide as its
+ * buttons and never shrinks: HeaderActions measures the row and folds buttons instead.
+ */
+.header-actions {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Until the first measurement: reserve the layout, show nothing, so no button flashes and folds. */
+.header-actions--pending {
+  visibility: hidden;
+}
+
+.header-actions__menu {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.header-actions__button {
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--theme-motion-control, 140ms ease-out),
+    box-shadow var(--theme-motion-control, 140ms ease-out);
+}
+
+.header-actions__button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.header-actions__button--danger {
+  color: var(--theme-danger);
+}
+
+.header-actions__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* The «⋯» button looks like its inline neighbours (the context menu's own button is a floating chip). */
+.app-context-menu__more.header-actions__more {
+  position: static;
+  display: inline-flex;
+  width: var(--ui-icon-button-size, 2.75rem);
+  height: var(--ui-icon-button-size, 2.75rem);
+  min-width: var(--ui-icon-button-size, 2.75rem);
+  min-height: var(--ui-icon-button-size, 2.75rem);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.65rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 10%),
+    0 0.14rem 0 0 color-mix(in srgb, currentColor 28%, transparent),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--theme-motion-control, 140ms ease-out);
+}
+
+.app-context-menu__more.header-actions__more:active {
+  transform: scale(0.96);
+}
+
+.header-actions__panel {
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+}

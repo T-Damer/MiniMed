@@ -961,6 +961,17 @@
   height: 1.4rem;
 }
 
+.diary-more__preference {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+}
+
+.diary-more__preference-label {
+  flex: 1;
+}
+
 .diary-more__text {
   margin: 0;
   color: var(--theme-text-muted);

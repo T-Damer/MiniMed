@@ -255,3 +255,19 @@ export function installUiFeedback(root: Document = document): () => void {
     root.removeEventListener('pointerout', handlePointerOut);
   };
 }
+
+/**
+ * A cue and a haptic pulse for a moment that is not a click (a record saved, a send failed). Both
+ * follow the user's «Звуки» and «Вибрация» preferences, so callers never check them.
+ */
+export function playFeedback(cue: CueName, haptic: HapticStrength = 'light'): void {
+  uiSounds.play(cue);
+  hapticFeedback(haptic);
+}
+
+/** Ready-made moments for `playFeedback`: `playFeedback(...FEEDBACK_MOMENTS.saved)`. */
+export const FEEDBACK_MOMENTS = {
+  saved: ['success', 'medium'],
+  failed: ['error', 'heavy'],
+  received: ['notification', 'light'],
+} as const satisfies Record<string, readonly [CueName, HapticStrength]>;

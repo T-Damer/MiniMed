@@ -18,6 +18,7 @@ import {
   validateUserLibraryFile,
 } from '@/state/user-library-formats';
 import { defaultUserLibraryTitle } from '@/state/user-library-metadata';
+import { normalizeUserLibraryName, USER_LIBRARY_NAME_MAX_LENGTH } from '@/state/user-library-name';
 
 export {
   USER_LIBRARY_FILE_CAPABILITIES,
@@ -28,6 +29,7 @@ export {
   userLibraryFileExtension,
   userLibraryFileMimeType,
 } from '@/state/user-library-capabilities';
+export { normalizeUserLibraryName, USER_LIBRARY_NAME_MAX_LENGTH };
 
 import { GITHUB_REPOSITORY_URL, RELEASE_TAG } from '../../../../release';
 
@@ -211,8 +213,6 @@ const DEFAULT_USER_LIBRARY_FOLDERS = [
   { id: USER_LIBRARY_RESEARCH_FOLDER_ID, title: USER_LIBRARY_RESEARCH_FOLDER_TITLE },
 ] as const;
 
-export const USER_LIBRARY_NAME_MAX_LENGTH = 256;
-
 const USER_LIBRARY_FILE_PICKER_CAPABILITIES = userLibraryFilePickerCapabilities();
 const ALLOWED_MIME_TYPES = new Set(
   USER_LIBRARY_FILE_PICKER_CAPABILITIES.flatMap((capability) => capability.mimeTypes),
@@ -339,23 +339,6 @@ export function isUserLibraryArchive(fileName: string): boolean {
     lower.endsWith('.tar.xz') ||
     lower.endsWith('.txz')
   );
-}
-
-export function normalizeUserLibraryName(value: string, kind: 'file' | 'folder'): string {
-  const trimmed = value.trim();
-  if (!trimmed)
-    throw new Error(kind === 'folder' ? 'Введите название папки.' : 'Имя файла пустое.');
-  if ([...trimmed].length > USER_LIBRARY_NAME_MAX_LENGTH) {
-    throw new Error(
-      `${kind === 'folder' ? 'Название папки' : 'Имя файла'} не должно быть длиннее ${USER_LIBRARY_NAME_MAX_LENGTH} символов.`,
-    );
-  }
-  if (trimmed.includes('\u0000') || /[\\/]/u.test(trimmed)) {
-    throw new Error(
-      `${kind === 'folder' ? 'Название папки' : 'Имя файла'} содержит недопустимый символ.`,
-    );
-  }
-  return trimmed;
 }
 
 function isFiniteUnit(value: unknown): value is number {

@@ -1321,9 +1321,11 @@ export function NotesView(props: {
           >
             <DiaryDashboard
               patientId={current().patientId}
+              view={current().view}
+              day={current().day}
               onBack={() => navigateBack(notesPath())}
               onList={() => navigateBack(diariesPath())}
-              onOpenPatient={(id) => pushRoute(diariesPath(id))}
+              onOpenPatient={(id, sub) => pushRoute(diariesPath(id, sub))}
             />
           </Suspense>
         )}

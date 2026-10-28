@@ -127,9 +127,9 @@
 
 .user-document-reader.page-surface {
   --user-document-text-scale: 1;
-  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
+  min-height: 100dvh;
   margin-top: 0;
-  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
+  margin-bottom: 0;
   padding: var(--safe-top, 0px) 0 0;
 }
 

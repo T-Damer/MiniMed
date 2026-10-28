@@ -2,11 +2,18 @@ import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Switch } from '@/components/Switch';
 import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallCard } from '@/diary/InstallCard';
 import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
 import type { DiaryOpenResult, DiaryStore } from '@/features/diary/diary-storage';
+import {
+  getSoundsEnabled,
+  getVibrationEnabled,
+  setSoundsEnabled,
+  setVibrationEnabled,
+} from '@/state/app-preferences';
 
 function MoreAction(props: {
   readonly icon: AppGlyphName;
@@ -31,6 +38,21 @@ function MoreAction(props: {
   );
 }
 
+function PreferenceRow(props: {
+  readonly icon: AppGlyphName;
+  readonly label: string;
+  readonly checked: boolean;
+  readonly onChange: (checked: boolean) => void;
+}): JSX.Element {
+  return (
+    <div class="diary-more__preference">
+      <AppGlyph name={props.icon} class="diary-more__icon" aria-hidden="true" />
+      <span class="diary-more__preference-label">{props.label}</span>
+      <Switch checked={props.checked} aria-label={props.label} onChange={props.onChange} />
+    </div>
+  );
+}
+
 /**
  * «Ещё»: what a patient needs rarely — print, a copy for another program, bringing records back,
  * adding the diary to the home screen, another doctor's link, a short how-to. Nothing here
@@ -51,6 +73,8 @@ export function DiaryMore(props: {
   readonly onEnablePush?: (() => Promise<'on' | 'unsupported' | 'denied'>) | undefined;
 }): JSX.Element {
   const [push, setPush] = createSignal<'off' | 'on' | 'unsupported' | 'denied'>('off');
+  const [sounds, setSounds] = createSignal(getSoundsEnabled());
+  const [vibration, setVibration] = createSignal(getVibrationEnabled());
   const [confirming, setConfirming] = createSignal(false);
   const [withdrawError, setWithdrawError] = createSignal('');
   return (
@@ -69,6 +93,26 @@ export function DiaryMore(props: {
           text="Для врача, который работает в другой медицинской программе."
           disabled={props.entries === 0}
           onClick={props.onFhir}
+        />
+      </section>
+      <section class="diary-more__group" aria-label="Звуки и вибрация">
+        <PreferenceRow
+          icon="speaker-high"
+          label="Звуки"
+          checked={sounds()}
+          onChange={(checked) => {
+            setSoundsEnabled(checked);
+            setSounds(getSoundsEnabled());
+          }}
+        />
+        <PreferenceRow
+          icon="vibrate"
+          label="Вибрация"
+          checked={vibration()}
+          onChange={(checked) => {
+            setVibrationEnabled(checked);
+            setVibration(getVibrationEnabled());
+          }}
         />
       </section>
       <RestoreCard store={props.store} onRestored={props.onRestored} />

@@ -380,16 +380,17 @@ describe('diary server', () => {
       },
     };
     expect((await call('POST', '/api/auth/register', request)).status).toBe(403);
-    db.query("INSERT INTO invites (code, created_at) VALUES ('invite-code-1', 'now')").run();
+    db.query("INSERT INTO invites (code, created_at) VALUES ('K7MP-2QXR-9HTN', 'now')").run();
+    // Typed in lower case, with spaces and without dashes: still the same code.
     expect(
-      (await call('POST', '/api/auth/register', { ...request, invite: 'invite-code-1' })).status,
+      (await call('POST', '/api/auth/register', { ...request, invite: ' k7mp 2qxr9htn ' })).status,
     ).toBe(201);
     expect(
       (
         await call('POST', '/api/auth/register', {
           ...request,
           email: 'c@d.ru',
-          invite: 'invite-code-1',
+          invite: 'K7MP-2QXR-9HTN',
         })
       ).status,
     ).toBe(403);

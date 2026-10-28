@@ -1,4 +1,4 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
@@ -68,6 +68,19 @@ function SheetFooter(props: {
   readonly onSave: () => void;
   readonly onRemove?: (() => void) | undefined;
 }): JSX.Element {
+  // Deleting asks once more in place: the button turns into «Точно удалить?» for a few seconds.
+  const [confirming, setConfirming] = createSignal(false);
+  let timer: number | undefined;
+  onCleanup(() => window.clearTimeout(timer));
+  const remove = (): void => {
+    if (!confirming()) {
+      setConfirming(true);
+      timer = window.setTimeout(() => setConfirming(false), 4000);
+      return;
+    }
+    window.clearTimeout(timer);
+    props.onRemove?.();
+  };
   return (
     <>
       <Show when={props.error}>
@@ -79,10 +92,11 @@ function SheetFooter(props: {
         <Show when={props.onRemove}>
           <Button
             class="diary-button diary-button--danger"
+            classList={{ 'diary-button--confirm': confirming() }}
             variant="quiet"
-            onClick={props.onRemove}
+            onClick={remove}
           >
-            Удалить
+            {confirming() ? 'Точно удалить?' : 'Удалить'}
           </Button>
         </Show>
         <Button
@@ -471,6 +485,98 @@ export function NoteSheet(props: {
         autofocus={!props.entry}
         onInput={setText}
       />
+    </DiarySheet>
+  );
+}
+
+/** A doctor's own section: a description in the patient's words, or one of a few variants. */
+export function AnswerSheet(props: {
+  readonly day: string;
+  readonly checkpoint: DiaryCheckpoint;
+  readonly field: DiaryField;
+  readonly time: string | undefined;
+  readonly entry: DiaryEntry | undefined;
+  readonly tip: string | undefined;
+  readonly onSave: CareSave;
+  readonly onRemove: (entry: DiaryEntry) => void;
+  readonly onClose: () => void;
+}): JSX.Element {
+  const previous = props.entry?.values[props.field.id];
+  const [answer, setAnswer] = createSignal(typeof previous === 'string' ? previous : '');
+  const [time, setTime] = createSignal(
+    props.entry ? clock(props.entry.at) : initialTime(props.day, props.time),
+  );
+  const [note, setNote] = createSignal(props.entry?.note ?? '');
+  const [error, setError] = createSignal('');
+  const choice = (): boolean => props.field.type === 'choice';
+
+  const save = (): void => {
+    if (!answer().trim()) {
+      setError(choice() ? 'Выберите вариант.' : 'Напишите пару слов.');
+      return;
+    }
+    setError(
+      props.onSave({
+        id: props.entry?.id ?? createDiaryId(),
+        at: atTime(props.day, time()),
+        check: props.checkpoint.id,
+        values: { [props.field.id]: answer() },
+        ...(choice() && note().trim() ? { note: note() } : {}),
+      }) ?? '',
+    );
+  };
+
+  return (
+    <DiarySheet
+      title={props.checkpoint.label}
+      onClose={props.onClose}
+      footer={
+        <SheetFooter
+          error={error()}
+          onSave={save}
+          onRemove={props.entry ? () => props.entry && props.onRemove(props.entry) : undefined}
+        />
+      }
+    >
+      <TipBox text={props.tip} />
+      <Show
+        when={choice()}
+        fallback={
+          <GrowingText
+            label={props.checkpoint.label}
+            value={answer()}
+            placeholder="Своими словами"
+            autofocus={!props.entry}
+            onInput={setAnswer}
+          />
+        }
+      >
+        <fieldset class="diary-answer">
+          <legend class="diary-hidden-label">{props.checkpoint.label}</legend>
+          <For each={props.field.options ?? []}>
+            {(option) => (
+              <button
+                type="button"
+                class="diary-answer__option"
+                classList={{ 'diary-answer__option--on': answer() === option }}
+                aria-pressed={answer() === option}
+                onClick={() => setAnswer(option)}
+              >
+                {option}
+              </button>
+            )}
+          </For>
+        </fieldset>
+      </Show>
+      <TimeField value={time()} onInput={setTime} />
+      <Show when={choice()}>
+        <GrowingText
+          label="Комментарий"
+          value={note()}
+          placeholder="Необязательно"
+          onInput={setNote}
+        />
+      </Show>
     </DiarySheet>
   );
 }

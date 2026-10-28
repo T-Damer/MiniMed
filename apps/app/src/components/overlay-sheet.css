@@ -6,12 +6,23 @@
   position: relative;
   isolation: isolate;
   width: min(44rem, 100%);
+  /*
+   * Bounded by the backdrop's own box (100%, the row below is definite) and by dynamic viewport
+   * units, never by 100vh: a sheet whose content grows after opening stops growing at the edge and
+   * its body scrolls, instead of the panel running past the screen and being clipped.
+   */
+  max-height: min(calc(100dvh - 2rem - var(--safe-top, 0px) - var(--safe-bottom, 0px)), 100%);
   border: 1px solid var(--theme-border);
   border-radius: 1rem;
   color: var(--theme-text);
   background: var(--paper-light);
   box-shadow: 0 1.25rem 3rem rgb(29 27 22 / 22%);
   transform: translateY(var(--sheet-drag, 0));
+}
+
+/* One definite row the size of the backdrop's content box: the sheet's 100% resolves against it. */
+.overlay-backdrop.overlay-backdrop--sheet {
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
 }
 
 /* The paper grain lies under the content, across the whole sheet, and never takes a tap. */
@@ -56,6 +67,16 @@
   background: color-mix(in srgb, var(--theme-text-muted) 45%, transparent);
 }
 
+/*
+ * The body is the only scroller: it fills what the header leaves (min-height: 0 lets it shrink) and
+ * keeps room under the last control, including for a field scrolled into view. With content that
+ * fits there is nothing to scroll, so no scrollbar shows.
+ */
+.overlay-dialog-body.overlay-dialog-body--sheet {
+  padding-block-end: 1.5rem;
+  scroll-padding-block-end: 1.5rem;
+}
+
 @media (max-width: 760px) {
   .overlay-backdrop.overlay-backdrop--sheet {
     align-items: end;
@@ -66,7 +87,7 @@
   .overlay-dialog.overlay-dialog--sheet {
     width: 100%;
     min-height: 0;
-    max-height: calc(100dvh - var(--safe-top, 0px) - 2.5rem);
+    max-height: min(calc(100dvh - var(--safe-top, 0px) - 2.5rem), 100%);
     align-self: end;
     border-width: 1px 0 0;
     border-radius: 1.125rem 1.125rem 0 0;
@@ -100,7 +121,8 @@
 
   /* The last line of content clears the home indicator. */
   .overlay-dialog-body.overlay-dialog-body--sheet {
-    padding-bottom: calc(1rem + var(--safe-bottom, 0px));
+    padding-block-end: calc(1.5rem + var(--safe-bottom, 0px));
+    scroll-padding-block-end: calc(1.5rem + var(--safe-bottom, 0px));
   }
 }
 

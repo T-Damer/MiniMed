@@ -25,15 +25,28 @@ export function tipReadRecordId(tipId: string): string {
   return `read-${tipId}`;
 }
 
-/** The doctor's label for a patient (pseudonym, emoji). Encrypted like everything else. */
+/**
+ * The doctor's label for a patient (pseudonym, emoji) and, when the doctor wrote it down, the
+ * patient's phone to call back. Encrypted like everything else.
+ */
 export interface DiaryProfile {
   readonly label: string;
   readonly emoji?: string;
+  readonly phone?: string;
+  /** Moved out of the doctor's working list; nothing else changes. */
+  readonly archived?: boolean;
+}
+
+const PHONE_PATTERN = /^\+?[\d\s()-]{5,24}$/u;
+
+/** A phone number as the doctor may type it: digits, spaces, brackets, dashes, a leading +. */
+export function isDiaryPhone(value: string): boolean {
+  return PHONE_PATTERN.test(value.trim());
 }
 
 export type DiaryPayload =
   | { readonly kind: 'plan'; readonly invitation: unknown }
-  | { readonly kind: 'profile'; readonly label: string; readonly emoji?: string }
+  | ({ readonly kind: 'profile' } & DiaryProfile)
   | { readonly kind: 'entry'; readonly entry: unknown }
   | { readonly kind: 'deleted' }
   | { readonly kind: 'consent'; readonly at: string; readonly version: string }
@@ -110,10 +123,13 @@ export function applyRevisions(
         if (!revision.author.startsWith('d:')) throw new DiaryFormatError('Профиль не от врача.');
         const label = payload['label'];
         const emoji = payload['emoji'];
+        const phone = payload['phone'];
         if (typeof label !== 'string' || label.length > 120) throw new DiaryFormatError('Профиль.');
         profile = {
           label,
           ...(typeof emoji === 'string' && emoji.length <= 16 ? { emoji } : {}),
+          ...(typeof phone === 'string' && isDiaryPhone(phone) ? { phone: phone.trim() } : {}),
+          ...(payload['archived'] === true ? { archived: true } : {}),
         };
       } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
         if (typeof payload['at'] !== 'string') throw new DiaryFormatError('Согласие.');

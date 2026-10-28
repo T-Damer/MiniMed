@@ -14,7 +14,15 @@ vi.mock('@/state/haptics', () => ({
   hapticFeedback: vi.fn(() => true),
 }));
 
-import { feedbackForClick, noteControlPointerDown, sonifiedControl } from '@/state/ui-feedback';
+import { hapticFeedback } from '@/state/haptics';
+import {
+  FEEDBACK_MOMENTS,
+  feedbackForClick,
+  noteControlPointerDown,
+  playFeedback,
+  sonifiedControl,
+} from '@/state/ui-feedback';
+import { uiSounds } from '@/state/ui-sounds';
 
 interface MockNode {
   readonly tagName: string;
@@ -308,5 +316,21 @@ describe('feedbackForClick', () => {
     const slider = asElement(createNode('input', null, { inputType: 'range' }));
     expect(sonifiedControl(slider)).toBe(slider);
     expect(feedbackForClick(slider)).toBeNull();
+  });
+});
+
+describe('playFeedback', () => {
+  it('plays a cue and a haptic pulse; both gate themselves on the preferences', () => {
+    playFeedback('success', 'medium');
+    expect(uiSounds.play).toHaveBeenLastCalledWith('success');
+    expect(hapticFeedback).toHaveBeenLastCalledWith('medium');
+  });
+
+  it('defaults to a light pulse and offers ready-made moments', () => {
+    playFeedback('open');
+    expect(hapticFeedback).toHaveBeenLastCalledWith('light');
+    playFeedback(...FEEDBACK_MOMENTS.failed);
+    expect(uiSounds.play).toHaveBeenLastCalledWith('error');
+    expect(hapticFeedback).toHaveBeenLastCalledWith('heavy');
   });
 });

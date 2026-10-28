@@ -1,0 +1,114 @@
+/* Medicine name combobox. The list is in document flow under the input (see DrugSearchField.tsx). */
+.drug-search-field {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.drug-search-field__list {
+  display: grid;
+  min-width: 0;
+  max-height: min(18rem, 45vh);
+  margin: 0;
+  padding: 0.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+  list-style: none;
+  animation: drug-search-field-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+.drug-search-field__option {
+  display: grid;
+  min-width: 0;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease-out),
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease-out);
+}
+
+.drug-search-field__option--active {
+  background: var(--theme-accent-soft);
+}
+
+.drug-search-field__option:active {
+  transform: scale(0.98);
+}
+
+.drug-search-field__heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.drug-search-field__name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drug-search-field__badge {
+  flex: none;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.drug-search-field__chips {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.drug-search-field__chip {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drug-search-field__chip--more {
+  border-style: dashed;
+}
+
+.drug-search-field__empty {
+  margin: 0;
+  padding: 0.1rem 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  animation: drug-search-field-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes drug-search-field-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

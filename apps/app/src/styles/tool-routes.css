@@ -3,9 +3,9 @@
   box-sizing: border-box;
   width: 100%;
   max-width: none;
-  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
+  min-height: 100dvh;
   margin-inline: auto;
-  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
+  margin-bottom: 0;
   padding: calc(clamp(1rem, 3vw, 1.5rem) + 2 * var(--safe-top)) clamp(0.875rem, 3vw, 1.5rem)
     calc(6.5rem + var(--nav-safe-bottom));
   background:

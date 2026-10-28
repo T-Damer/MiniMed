@@ -68,6 +68,28 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   ЕСИА/МИС (order 193н), signature check of a record's author role at write time on clients (the
   server enforces roles), doctor private notes.
 
+### Patient screen editor and doctor views — 2026-10-28
+
+- The plan is edited as the patient's own screen (`PatientScreenEditor`): sections «Лекарство»
+  (recipe: name from the drug index ranked by ЖНВЛП/market size plus the doctor's frequent drugs,
+  form, dose, signa in the prescription tool's wording, times with meals, course day ranges via
+  `DateRangeCalendar`), «Самочувствие», «Настроение», «Пульс и давление», «Вес и рост»,
+  «Описание» (text checkpoint), «Выбор» (choice checkpoint; a lost variant gets a new id),
+  «Опросник» (built-in self-report scales or the doctor's own questionnaire from the main app's
+  builder, embedded in the encrypted plan without images). Removed sections stay as ended.
+- Routes: `#/notes/diaries/new` (new patient), `…/<id>/screen` (patient view), `…/<id>/day/<date>`
+  (the patient's day screen for the doctor; saves become corrections). These are full-screen
+  routes (`app/full-screen-routes.ts`, no bottom bar). The `diaries` profile shows a two-item bar
+  (Пациенты, Настройки) and allows `#/assessments/mine`.
+- Patient profile record carries an optional phone (call, vCard «В контакты») and `archived`.
+  List: sort by patient activity / doctor change / name, archive via long-press menu, floating «+».
+- Patient page: shared `StatCard`s, month heatmap with day numbers, parts filter and red symptom
+  tint (low wellbeing/mood, questionnaires over the red line), alert sheet that finds and explains
+  the answers behind an alert on the doctor's device, charts with dashed red lines from the global
+  per-device thresholds (`state/assessment-limits.ts`), pressure separate from pulse + SpO₂.
+- Sounds and haptics in the patient PWA and the dashboard (web vibration fallback), switchable.
+- Page surfaces are exactly one screen tall (no scroll on short pages, app-wide).
+
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 
 First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through

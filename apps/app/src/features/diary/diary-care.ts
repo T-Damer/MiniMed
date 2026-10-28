@@ -69,6 +69,11 @@ export interface DayPlan {
 export interface HeatDay {
   readonly day: string;
   readonly level: 0 | 1 | 2 | 3 | 4;
+  /**
+   * How many symptoms the day shows, 0 (none) to 4 (severe): a low wellbeing score. Missed intakes
+   * are not symptoms. Questionnaire results need their schema, so the caller adds those.
+   */
+  readonly symptoms: 0 | 1 | 2 | 3 | 4;
   readonly done: number;
   readonly total: number;
   readonly entries: number;
@@ -165,6 +170,23 @@ function questionnaireTask(
   return { checkpoint, entry, last, due, nextDay };
 }
 
+/**
+ * The first day of the diary: when it was issued or the earliest entry, whichever is first. A
+ * re-issued plan carries a new `issuedAt`, so the issue date alone would forget earlier days.
+ */
+export function diaryStarted(invitation: DiaryInvitation, entries: readonly DiaryEntry[]): string {
+  return entries.reduce(
+    (earliest, entry) => (dayKey(entry.at) < earliest ? dayKey(entry.at) : earliest),
+    dayKey(invitation.issuedAt),
+  );
+}
+
+/** The item is taken on this day: no course dates, or the day falls in one of its ranges. */
+export function onCourse(item: DiaryPlanItem, day: string): boolean {
+  if (!item.course?.length) return true;
+  return item.course.some((range) => range.from <= day && day <= range.to);
+}
+
 /** What a day asks for and what the patient marked on it. */
 export function dayPlan(
   invitation: DiaryInvitation,
@@ -177,12 +199,14 @@ export function dayPlan(
   const asNeeded: { item: DiaryPlanItem; entries: DiaryEntry[] }[] = [];
   for (const item of activePlanItems(invitation)) {
     if (item.asNeeded) {
+      if (!onCourse(item, day)) continue;
       asNeeded.push({
         item,
         entries: ofDay.filter((entry) => doseValue(entry)?.item === item.id),
       });
       continue;
     }
+    if (!onCourse(item, day)) continue;
     for (const time of item.times ?? []) {
       const entry = ofDay.findLast((candidate) => {
         const value = doseValue(candidate);
@@ -266,36 +290,132 @@ export function heatLevel(done: number, total: number, entries: number): HeatDay
   return 4;
 }
 
-/** Heatmap days from `from` to `to` inclusive (day keys). */
+/** A part of the day plan the heatmap can count (the doctor's and the patient's filter). */
+export type HeatPart = 'doses' | 'scores' | 'vitals' | 'answers' | 'questionnaires' | 'notes';
+
+export const HEAT_PART_LABEL: Readonly<Record<HeatPart, string>> = {
+  doses: 'Лекарства',
+  scores: 'Самочувствие',
+  vitals: 'Показатели',
+  answers: 'Описания',
+  questionnaires: 'Опросники',
+  notes: 'Заметки',
+};
+
+const HEAT_PART_ORDER: readonly HeatPart[] = [
+  'doses',
+  'scores',
+  'vitals',
+  'answers',
+  'questionnaires',
+  'notes',
+];
+
+const CHECK_PART: Readonly<Record<DiaryCheckpoint['kind'], HeatPart>> = {
+  score: 'scores',
+  vitals: 'vitals',
+  text: 'answers',
+  choice: 'answers',
+  questionnaire: 'questionnaires',
+};
+
+/**
+ * The heatmap parts this diary actually has, in display order: intakes when the doctor planned
+ * any, one part per kind of checkpoint, and free notes (every diary takes them).
+ */
+export function heatParts(invitation: DiaryInvitation): readonly HeatPart[] {
+  const present = new Set<HeatPart>(['notes']);
+  if (activePlanItems(invitation).length > 0) present.add('doses');
+  for (const checkpoint of invitation.checkpoints ?? []) {
+    if (!checkpoint.ended) present.add(CHECK_PART[checkpoint.kind]);
+  }
+  return HEAT_PART_ORDER.filter((part) => present.has(part));
+}
+
+/** Wellbeing scores up to this one count as a symptom. */
+export const SYMPTOM_WELLBEING_MAX = 3;
+
+/**
+ * Symptom level of a day from its wellbeing and mood scores: the lowest score sets it (3 gives 1, 0 gives 4)
+ * and a second low score the same day adds one.
+ */
+export function symptomLevel(scores: readonly number[]): HeatDay['symptoms'] {
+  const low = scores.filter((score) => score <= SYMPTOM_WELLBEING_MAX);
+  if (low.length === 0) return 0;
+  const base = Math.max(1, SYMPTOM_WELLBEING_MAX + 1 - Math.max(0, Math.min(...low)));
+  return Math.min(4, base + (low.length > 1 ? 1 : 0)) as HeatDay['symptoms'];
+}
+
+/** The part an entry belongs to; entries of an unknown checkpoint count as free notes. */
+function entryPart(
+  entry: DiaryEntry,
+  kinds: ReadonlyMap<string, DiaryCheckpoint['kind']>,
+): HeatPart {
+  if (entry.check !== undefined) {
+    const kind = kinds.get(entry.check);
+    return kind ? CHECK_PART[kind] : 'notes';
+  }
+  return doseValue(entry) === undefined ? 'notes' : 'doses';
+}
+
+/** Marked and planned tasks of a day, restricted to the chosen parts. */
+function planCounts(
+  plan: DayPlan,
+  include: ReadonlySet<HeatPart>,
+): { readonly done: number; readonly total: number } {
+  const counted = [
+    ...(include.has('doses')
+      ? plan.doses.map((task) => task.state === 'done' || task.state === 'skipped')
+      : []),
+    ...plan.checks
+      .filter((task) => include.has(CHECK_PART[task.checkpoint.kind]))
+      .map((task) => task.state === 'done'),
+    ...(include.has('questionnaires')
+      ? plan.questionnaires.filter((task) => task.due).map((task) => task.entry !== undefined)
+      : []),
+  ];
+  return { done: counted.filter(Boolean).length, total: counted.length };
+}
+
+/**
+ * Heatmap days from `from` to `to` inclusive (day keys). `include` limits the counted parts of the
+ * plan and of the entries; absent (or empty) it counts everything.
+ */
 export function heatmapDays(
   invitation: DiaryInvitation,
   entries: readonly DiaryEntry[],
   from: string,
   to: string,
   now: Date = new Date(),
+  include?: ReadonlySet<HeatPart>,
 ): HeatDay[] {
+  const only = include && include.size > 0 ? include : undefined;
+  const kinds = new Map((invitation.checkpoints ?? []).map((item) => [item.id, item.kind]));
   const days: HeatDay[] = [];
   const counts = new Map<string, number>();
+  const wellbeing = new Map<string, number[]>();
   for (const entry of entries) {
+    if (only && !only.has(entryPart(entry, kinds))) continue;
     const key = dayKey(entry.at);
     counts.set(key, (counts.get(key) ?? 0) + 1);
+    // Low mood is a symptom the same way a low wellbeing score is.
+    for (const field of ['wellbeing', 'mood']) {
+      const score = entry.values[field];
+      if (typeof score === 'number') wellbeing.set(key, [...(wellbeing.get(key) ?? []), score]);
+    }
   }
-  const issued = dayKey(invitation.issuedAt);
+  const issued = diaryStarted(invitation, entries);
   for (let day = from; day <= to; day = addDays(day, 1)) {
     const count = counts.get(day) ?? 0;
+    const symptoms = symptomLevel(wellbeing.get(day) ?? []);
     // Before the diary was issued nothing was asked; those days only show what was written.
     if (day < issued || day > dayKey(now)) {
-      days.push({ day, level: count > 0 ? 2 : 0, done: 0, total: 0, entries: count });
+      days.push({ day, level: count > 0 ? 2 : 0, symptoms, done: 0, total: 0, entries: count });
       continue;
     }
     const plan = dayPlan(invitation, entries, day, now);
-    days.push({
-      day,
-      level: heatLevel(plan.done, plan.total, count),
-      done: plan.done,
-      total: plan.total,
-      entries: count,
-    });
+    const { done, total } = only ? planCounts(plan, only) : plan;
+    days.push({ day, level: heatLevel(done, total, count), symptoms, done, total, entries: count });
   }
   return days;
 }

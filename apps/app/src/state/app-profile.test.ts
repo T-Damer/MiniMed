@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { activeProfile, profileAllows, resetProfileCache } from '@/state/app-profile';
+import {
+  activeProfile,
+  profileAllows,
+  profileHidesNavigation,
+  resetProfileCache,
+} from '@/state/app-profile';
 
 const memory = new Map<string, string>();
 Object.defineProperty(globalThis, 'window', {
@@ -37,5 +42,28 @@ describe('app profiles', () => {
     expect(profileAllows('#/notes/diaries-x', profile)).toBe(false);
     expect(profileAllows('#/search', profile)).toBe(false);
     expect(profileAllows('#/search', undefined)).toBe(true);
+  });
+
+  it('allows the settings routes its bar links to', () => {
+    const profile = activeProfile('?profile=diaries');
+    expect(profileAllows('#/settings', profile)).toBe(true);
+    expect(profileAllows('#/settings/appearance', profile)).toBe(true);
+    expect(profileAllows('#/settings-x', profile)).toBe(false);
+  });
+
+  it('declares a limited bottom bar whose addresses all belong to the profile', () => {
+    const profile = activeProfile('?profile=diaries');
+    expect(profileHidesNavigation(profile)).toBe(false);
+    expect(profileHidesNavigation(undefined)).toBe(false);
+    expect(profile?.navigation.map((item) => [item.id, item.label, item.hash])).toEqual([
+      ['notes', 'Пациенты', '#/notes/diaries'],
+      ['settings', 'Настройки', '#/settings'],
+    ]);
+    for (const item of profile?.navigation ?? [])
+      expect(profileAllows(item.hash, profile)).toBe(true);
+  });
+
+  it('offers only the settings pages it declares', () => {
+    expect(activeProfile('?profile=diaries')?.settingsPages).toEqual(['clinician', 'appearance']);
   });
 });

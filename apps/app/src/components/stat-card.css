@@ -1,0 +1,181 @@
+/*
+ * Summary tiles (`StatCard` inside a `StatGrid`): a strong figure, its label, a tone. A paper card
+ * with a defined border and a tone bar, so the tile stays visible on the page in both themes (the
+ * plain raised-surface tile it replaces vanished in the dark theme). Tokens only; the tone sets
+ * `--stat-tone` (figure, chip), `--stat-bar` (left bar) and the tint of the surface.
+ */
+.ui-stat-card {
+  --stat-tone: var(--theme-text);
+  --stat-bar: var(--theme-border-strong, var(--theme-border));
+  --stat-tint: 4%;
+  display: grid;
+  box-sizing: border-box;
+  align-content: start;
+  justify-items: start;
+  gap: 0.25rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.7rem 0.7rem 0.65rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--stat-tone) 24%, var(--theme-border));
+  border-radius: var(--theme-radius-panel, 0.7rem);
+  color: var(--theme-text);
+  background:
+    linear-gradient(var(--stat-bar), var(--stat-bar)) left / 0.25rem 100% no-repeat,
+    radial-gradient(color-mix(in srgb, var(--theme-text) 5%, transparent) 0.6px, transparent 0.8px)
+    0 0 / 3px 3px,
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--stat-tone) var(--stat-tint), var(--theme-surface-raised)),
+      color-mix(
+        in srgb,
+        var(--stat-tone) var(--stat-tint),
+        color-mix(in srgb, var(--theme-surface-raised) 92%, var(--theme-surface-muted))
+      )
+    );
+  background-origin: border-box;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 35%, transparent),
+    0 1px 2px color-mix(in srgb, var(--theme-text) 14%, transparent);
+  font: inherit;
+  text-align: start;
+}
+
+.ui-stat-card--good {
+  --stat-tone: var(--theme-accent-text);
+  --stat-bar: var(--theme-accent);
+  --stat-tint: 9%;
+}
+
+.ui-stat-card--warn {
+  --stat-tone: var(--theme-warning);
+  --stat-bar: var(--theme-warning);
+  --stat-tint: 10%;
+}
+
+.ui-stat-card--danger {
+  --stat-tone: var(--theme-danger);
+  --stat-bar: var(--theme-danger);
+  --stat-tint: 9%;
+}
+
+.ui-stat-card--accent {
+  --stat-tone: var(--theme-info);
+  --stat-bar: var(--theme-info);
+  --stat-tint: 9%;
+}
+
+.ui-stat-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+}
+
+.ui-stat-card__chip {
+  display: inline-grid;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  color: var(--stat-tone);
+  background: color-mix(in srgb, var(--stat-tone) 16%, var(--theme-surface-raised));
+}
+
+.ui-stat-card__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.ui-stat-card__value {
+  min-width: 0;
+  color: var(--stat-tone);
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.ui-stat-card__label {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+.ui-stat-card__hint {
+  color: var(--theme-text-faint);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+/* A card that is a button: the same tile, with press feedback. */
+.ui-stat-card--interactive {
+  width: 100%;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    border-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.ui-stat-card--interactive:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ui-stat-card--interactive:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.ui-stat-card--interactive:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+/* The chosen filter card. */
+.ui-stat-card--pressed {
+  --stat-tint: 18%;
+  border-color: var(--stat-tone);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-stat-card--interactive:hover:not(:disabled):not(.ui-stat-card--pressed) {
+    --stat-tint: 12%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .ui-stat-card {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 7%, transparent),
+      0 1px 3px rgb(0 0 0 / 45%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-stat-card--interactive {
+    transition: none;
+  }
+}
+
+/* Grid of tiles: two columns by default; three stay three at 375 px, four drop to two on a phone. */
+.ui-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ui-stat-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 40rem) {
+  .ui-stat-grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

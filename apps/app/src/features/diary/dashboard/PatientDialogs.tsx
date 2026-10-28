@@ -1,16 +1,24 @@
-import type { DiaryPatientDetail, DiaryRole } from '@localmed/contracts';
+import type { DiaryAlert, DiaryPatientDetail, DiaryRole } from '@localmed/contracts';
 import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { isDiaryPhone, replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
-import { DiaryCareEditor } from '@/features/diary/DiaryCareEditor';
-import { EmojiPicker } from '@/features/diary/dashboard/NewPatientDialog';
-import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
+import {
+  type AlertCause,
+  alertCause,
+  questionnaireSeries,
+} from '@/features/diary/dashboard/diary-insights';
+import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
+import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
+import { telHref } from '@/features/diary/dashboard/patient-contact';
+import { CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
 import {
   type DiaryEntry,
@@ -19,6 +27,7 @@ import {
   type DiaryTip,
   parseDiaryEntry,
 } from '@/features/diary/diary-model';
+import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
 
 function errorText(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -237,92 +246,6 @@ export function CuratorsDialog(props: {
   );
 }
 
-/** Edits the plan (medicines, checkpoints, questionnaires, contacts) and the patient's label. */
-export function EditPlanDialog(props: {
-  readonly workspace: DoctorDiaries;
-  readonly patient: DoctorPatient;
-  readonly invitation: DiaryInvitation;
-  readonly onClose: () => void;
-}): JSX.Element {
-  const [draft, setDraft] = createSignal<CareDraft>(careDraftFrom(props.invitation));
-  const [doctor, setDoctor] = createSignal(props.invitation.doctor ?? '');
-  const [note, setNote] = createSignal(props.invitation.note ?? '');
-  const [label, setLabel] = createSignal(props.patient.replica.profile?.label ?? '');
-  const [emoji, setEmoji] = createSignal(props.patient.replica.profile?.emoji ?? '🙂');
-  const [busy, setBusy] = createSignal(false);
-  const [error, setError] = createSignal('');
-  const medicineIds = new Set((props.invitation.plan ?? []).map((item) => item.id));
-
-  const save = async (event: SubmitEvent): Promise<void> => {
-    event.preventDefault();
-    setError('');
-    setBusy(true);
-    try {
-      const invitation = careInvitation({
-        id: props.invitation.id,
-        draft: draft(),
-        doctor: doctor(),
-        note: note(),
-        previous: props.invitation,
-        // Tips on checkpoints are edited in «Подсказки»; keep them.
-        extraTips: (props.invitation.tips ?? []).filter((tip) => !medicineIds.has(tip.target)),
-      });
-      await props.workspace.writePlan(props.patient.summary.id, invitation);
-      const profile = props.patient.replica.profile;
-      if (label().trim() && (label().trim() !== profile?.label || emoji() !== profile?.emoji)) {
-        await props.workspace.writeProfile(props.patient.summary.id, {
-          label: label().trim(),
-          emoji: emoji(),
-        });
-      }
-      props.onClose();
-    } catch (cause) {
-      setError(errorText(cause, 'Не удалось сохранить план.'));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <OverlayDialog
-      open
-      title="План лечения"
-      subtitle="Пациент получит изменения сам"
-      class="diary-dash-dialog"
-      onClose={props.onClose}
-    >
-      <form class="diary-dash-form" onSubmit={(event) => void save(event)}>
-        <TextField
-          label="Имя или псевдоним"
-          value={label()}
-          onInput={(event) => setLabel(event.currentTarget.value)}
-        />
-        <EmojiPicker value={emoji()} onChange={setEmoji} />
-        <DiaryCareEditor draft={draft()} onChange={setDraft} />
-        <TextField
-          label="Врач (видит пациент)"
-          value={doctor()}
-          onInput={(event) => setDoctor(event.currentTarget.value)}
-        />
-        <TextArea
-          label="Инструкция пациенту"
-          maxLength={200}
-          value={note()}
-          onInput={(event) => setNote(event.currentTarget.value)}
-        />
-        <Show when={error()}>
-          <p class="diary-dash__error" role="alert">
-            {error()}
-          </p>
-        </Show>
-        <Button type="submit" variant="primary" disabled={busy()}>
-          {busy() ? 'Сохраняем…' : 'Сохранить и отправить пациенту'}
-        </Button>
-      </form>
-    </OverlayDialog>
-  );
-}
-
 /**
  * Tips on what the patient fills: a medicine or a checkpoint. The patient sees a «?» on that row
  * until opened; here the doctor sees whether it was read.
@@ -441,6 +364,7 @@ export function CorrectEntryDialog(props: {
   const [note, setNote] = createSignal(props.entry.note ?? '');
   const [error, setError] = createSignal('');
   const [busy, setBusy] = createSignal(false);
+  const [confirming, setConfirming] = createSignal(false);
 
   const save = async (remove: boolean): Promise<void> => {
     setError('');
@@ -513,11 +437,159 @@ export function CorrectEntryDialog(props: {
           </p>
         </Show>
         <div class="diary-dash-form__actions">
-          <Button variant="quiet" disabled={busy()} onClick={() => void save(true)}>
+          <Button variant="quiet" disabled={busy()} onClick={() => setConfirming(true)}>
             Удалить запись
           </Button>
+          <ConfirmationDialog
+            open={confirming()}
+            title="Удалить запись?"
+            description={<p>Запись исчезнет у пациента и у кураторов.</p>}
+            confirmLabel="Удалить"
+            danger
+            onConfirm={() => {
+              setConfirming(false);
+              void save(true);
+            }}
+            onOpenChange={setConfirming}
+          />
           <Button variant="primary" disabled={busy()} onClick={() => void save(false)}>
             Сохранить исправление
+          </Button>
+        </div>
+      </div>
+    </OverlayDialog>
+  );
+}
+
+function when(iso: string): string {
+  return new Date(iso).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/** A questionnaire result with its schema alerts: score, band and what each alert asks for. */
+export function AlertNotices(props: { readonly cause: AlertCause }): JSX.Element {
+  return (
+    <>
+      <p class="diary-alert__score">
+        <span class="diary-alert__quiz">{props.cause.title}</span>
+        <span class="diary-alert__total">
+          {props.cause.point.total} из {props.cause.point.max}
+        </span>
+        <span class="diary-alert__headline">{props.cause.point.headline}</span>
+      </p>
+      <ul class="diary-alert__list">
+        <For each={props.cause.point.alertDetails}>
+          {(detail) => (
+            <li class="diary-alert__item">
+              <span class="diary-alert__title">{detail.title}</span>
+              <span class="diary-alert__message">{detail.message}</span>
+            </li>
+          )}
+        </For>
+      </ul>
+      <p class="diary-dash__quiet">Ответ дан {when(props.cause.point.at)}.</p>
+    </>
+  );
+}
+
+/**
+ * What an alert is about. The server only knows that and when it was raised; the answers that
+ * raised it are found and scored here, on the doctor's device, with the questionnaire's own alert
+ * notices. Call, open the day, or mark it seen.
+ */
+export function AlertDialog(props: {
+  readonly workspace: DoctorDiaries;
+  readonly alert: DiaryAlert;
+  readonly onOpenDay: (day: string) => void;
+  readonly onClose: () => void;
+}): JSX.Element {
+  const patient = () => props.workspace.patient(props.alert.patientId);
+  const name = () =>
+    `${patient()?.replica.profile?.emoji ?? ''} ${patient()?.replica.profile?.label ?? 'Пациент'}`.trim();
+  const phone = () => patient()?.replica.profile?.phone;
+  const [cause] = createResource(
+    () => (props.alert.kind === 'urgent' ? patient() : undefined),
+    async (current) => {
+      const results = replicaResults(current.replica);
+      if (!results) return null;
+      const series = await questionnaireSeries(results.invitation, results.entries);
+      return alertCause(series, props.alert.at) ?? null;
+    },
+  );
+  const [busy, setBusy] = createSignal(false);
+  const [error, setError] = createSignal('');
+  const seen = (): void => {
+    setBusy(true);
+    props.workspace
+      .ackAlert(props.alert.id)
+      .then(() => props.onClose())
+      .catch((cause: unknown) => setError(errorText(cause, 'Не удалось отметить.')))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    <OverlayDialog
+      open
+      title={props.alert.kind === 'withdrawn' ? 'Согласие отозвано' : 'Срочная отметка'}
+      subtitle={`${name()} · ${when(props.alert.at)}`}
+      class="diary-dash-dialog"
+      onClose={props.onClose}
+    >
+      <div class="diary-alert">
+        <Show
+          when={props.alert.kind === 'urgent'}
+          fallback={
+            <p class="diary-alert__text">
+              Пациент отозвал согласие: его записи удалены с сервера, новые не приходят.
+            </p>
+          }
+        >
+          <Show
+            when={!cause.loading}
+            fallback={<p class="diary-dash__quiet">Расшифровываем ответы…</p>}
+          >
+            <Show
+              when={cause()}
+              fallback={
+                <p class="diary-alert__text">
+                  Ответа, поднявшего отметку, на этом устройстве нет — он мог быть удалён или
+                  исправлен.
+                </p>
+              }
+            >
+              {(found) => <AlertNotices cause={found()} />}
+            </Show>
+          </Show>
+        </Show>
+        <Show when={error()}>
+          <p class="diary-dash__error" role="alert">
+            {error()}
+          </p>
+        </Show>
+        <div class="diary-alert__actions">
+          <Show when={phone()}>
+            {(number) => (
+              <a class="ui-button ui-button--secondary diary-alert__call" href={telHref(number())}>
+                <AppGlyph name="phone" class="diary-dash__glyph" />
+                Позвонить
+              </a>
+            )}
+          </Show>
+          <Show when={props.alert.kind === 'urgent'}>
+            <Button
+              type="button"
+              icon={<AppGlyph name="calendar" class="diary-dash__glyph" />}
+              onClick={() => props.onOpenDay(dayKey(cause()?.point.at ?? props.alert.at))}
+            >
+              Открыть день
+            </Button>
+          </Show>
+          <Button type="button" variant="primary" disabled={busy()} onClick={seen}>
+            Просмотрено
           </Button>
         </div>
       </div>

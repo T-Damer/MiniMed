@@ -43,19 +43,28 @@ describe('hapticFeedback', () => {
     installLocalStorageMock();
     const { setVibrationEnabled } = await import('@/state/app-preferences');
     setVibrationEnabled(true);
-    vi.stubGlobal('navigator', { vibrate: vi.fn() });
+    vi.stubGlobal('navigator', { vibrate: vi.fn(() => true) });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('does not vibrate on web', async () => {
-    const { hapticFeedback } = await import('@/state/haptics');
+  it('vibrates through the browser API on web, one pulse per strength', async () => {
+    const { hapticFeedback, WEB_VIBRATION_MS } = await import('@/state/haptics');
     const { nativeAndroidHapticImpact } = await import('@/state/native-haptics');
-    expect(hapticFeedback('light')).toBe(false);
-    expect(navigator.vibrate).not.toHaveBeenCalled();
+    for (const strength of ['selection', 'light', 'medium', 'heavy'] as const) {
+      expect(hapticFeedback(strength)).toBe(true);
+      expect(navigator.vibrate).toHaveBeenLastCalledWith(WEB_VIBRATION_MS[strength]);
+    }
+    expect(WEB_VIBRATION_MS.selection).toBeLessThan(WEB_VIBRATION_MS.heavy);
     expect(nativeAndroidHapticImpact).not.toHaveBeenCalled();
+  });
+
+  it('does nothing on a browser without the vibration API', async () => {
+    vi.stubGlobal('navigator', {});
+    const { hapticFeedback } = await import('@/state/haptics');
+    expect(hapticFeedback('light')).toBe(false);
   });
 
   it('no-ops when vibration is disabled', async () => {
@@ -64,6 +73,7 @@ describe('hapticFeedback', () => {
     const { nativeAndroidHapticImpact } = await import('@/state/native-haptics');
     setVibrationEnabled(false);
     expect(hapticFeedback('selection')).toBe(false);
+    expect(navigator.vibrate).not.toHaveBeenCalled();
     expect(nativeAndroidHapticImpact).not.toHaveBeenCalled();
   });
 });

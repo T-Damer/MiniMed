@@ -6,8 +6,12 @@ import {
   dayKey,
   dayPeriod,
   dayPlan,
+  HEAT_PART_LABEL,
+  type HeatPart,
   heatLevel,
   heatmapDays,
+  heatParts,
+  symptomLevel,
 } from '@/features/diary/diary-care';
 import { DiaryPartCollector, encodeDiaryResults } from '@/features/diary/diary-codec';
 import { entryFingerprint } from '@/features/diary/diary-merge';
@@ -201,6 +205,130 @@ describe('heatmap', () => {
       ['2026-10-21', 0, 0],
     ]);
     expect(dayKey(NOW)).toBe(DAY);
+  });
+});
+
+describe('heatmap parts', () => {
+  const invitation = careInvitation();
+  const entries = [
+    entry(invitation, {
+      id: 'dose000001',
+      at: atTime(DAY, '08:10'),
+      values: { medication: { item: 'p1', done: true, slot: '08:00' } },
+    }),
+    entry(invitation, {
+      id: 'score00001',
+      at: atTime(DAY, '09:05'),
+      values: { wellbeing: 7 },
+      check: 'am',
+    }),
+    entry(invitation, {
+      id: 'note000001',
+      at: atTime(DAY, '12:00'),
+      values: {},
+      note: 'Лёгкая головная боль',
+    }),
+  ];
+  const on = (...parts: HeatPart[]) =>
+    heatmapDays(invitation, entries, DAY, DAY, NOW, new Set(parts))[0];
+  const figures = (day: ReturnType<typeof on>) => [day?.done, day?.total, day?.entries, day?.level];
+
+  it('lists only the parts the diary has, in display order', () => {
+    expect(heatParts(invitation)).toEqual(['doses', 'scores', 'vitals', 'questionnaires', 'notes']);
+    const bare = careInvitation({ plan: [], checkpoints: [] });
+    expect(heatParts(bare)).toEqual(['notes']);
+    const ended = careInvitation({
+      checkpoints: CARE_CHECKPOINTS.map((item) => ({ ...item, ended: true })),
+    });
+    expect(heatParts(ended)).toEqual(['doses', 'notes']);
+    expect(Object.keys(HEAT_PART_LABEL)).toHaveLength(6);
+  });
+
+  it('counts everything without a filter, with the full set and with an empty one', () => {
+    const all = heatmapDays(invitation, entries, DAY, DAY, NOW)[0];
+    expect(figures(all)).toEqual([2, 6, 3, 2]);
+    expect(heatmapDays(invitation, entries, DAY, DAY, NOW, new Set(heatParts(invitation)))).toEqual(
+      [all],
+    );
+    expect(heatmapDays(invitation, entries, DAY, DAY, NOW, new Set())).toEqual([all]);
+  });
+
+  it('counts the intakes alone', () => {
+    expect(figures(on('doses'))).toEqual([1, 2, 1, 3]);
+  });
+
+  it('counts wellbeing scores and vitals separately', () => {
+    expect(figures(on('scores'))).toEqual([1, 2, 1, 3]);
+    expect(figures(on('vitals'))).toEqual([0, 1, 0, 0]);
+  });
+
+  it('counts a due questionnaire only when asked to', () => {
+    expect(figures(on('questionnaires'))).toEqual([0, 1, 0, 0]);
+    expect(figures(on('scores', 'vitals'))).toEqual([1, 3, 1, 2]);
+  });
+
+  it('counts free notes as entries without a plan', () => {
+    expect(figures(on('notes'))).toEqual([0, 0, 1, 2]);
+  });
+
+  it('keeps days before the diary and in the future showing only the chosen entries', () => {
+    const days = heatmapDays(
+      invitation,
+      entries,
+      '2026-09-30',
+      '2026-10-21',
+      NOW,
+      new Set<HeatPart>(['notes']),
+    );
+    expect(
+      days.map((day) => [day.day, day.level, day.total]).filter(([, level]) => level !== 0),
+    ).toEqual([[DAY, 2, 0]]);
+  });
+
+  it('files an entry of an unknown checkpoint under notes', () => {
+    const stray = { ...(entries[1] as DiaryEntry), check: 'gone' };
+    const [day] = heatmapDays(invitation, [stray], DAY, DAY, NOW, new Set<HeatPart>(['notes']));
+    expect(day?.entries).toBe(1);
+  });
+});
+
+describe('heatmap symptoms', () => {
+  const invitation = careInvitation();
+  const score = (id: string, time: string, check: string, wellbeing: number) =>
+    entry(invitation, { id, at: atTime(DAY, time), values: { wellbeing }, check });
+
+  it('grades low wellbeing scores, the lowest and the repeats', () => {
+    expect([[], [4], [10], [3], [2], [1], [0]].map((scores) => symptomLevel(scores))).toEqual([
+      0, 0, 0, 1, 2, 3, 4,
+    ]);
+    expect(symptomLevel([3, 3])).toBe(2);
+    expect(symptomLevel([1, 2])).toBe(4);
+    expect(symptomLevel([0, 0, 0])).toBe(4);
+  });
+
+  it('tints the day by its wellbeing scores', () => {
+    const entries = [score('score00001', '09:00', 'am', 2), score('score00002', '21:00', 'pm', 8)];
+    const [day] = heatmapDays(invitation, entries, DAY, DAY, NOW);
+    expect(day?.symptoms).toBe(2);
+    const calm = heatmapDays(invitation, [score('score00003', '09:00', 'am', 7)], DAY, DAY, NOW);
+    expect(calm[0]?.symptoms).toBe(0);
+  });
+
+  it('does not count skipped intakes as symptoms', () => {
+    const skipped = entry(invitation, {
+      id: 'dose000001',
+      at: atTime(DAY, '08:10'),
+      values: { medication: { item: 'p1', done: false, slot: '08:00' } },
+    });
+    expect(heatmapDays(invitation, [skipped], DAY, DAY, NOW)[0]?.symptoms).toBe(0);
+  });
+
+  it('follows the part filter', () => {
+    const entries = [score('score00001', '09:00', 'am', 1)];
+    const without = heatmapDays(invitation, entries, DAY, DAY, NOW, new Set<HeatPart>(['doses']));
+    expect(without[0]?.symptoms).toBe(0);
+    const only = heatmapDays(invitation, entries, DAY, DAY, NOW, new Set<HeatPart>(['scores']));
+    expect(only[0]?.symptoms).toBe(3);
   });
 });
 

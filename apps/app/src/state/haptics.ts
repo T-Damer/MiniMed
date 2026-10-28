@@ -6,6 +6,20 @@ import { nativeAndroidHapticImpact } from '@/state/native-haptics';
 
 export type HapticStrength = 'selection' | 'light' | 'medium' | 'heavy';
 
+/** Browser vibration pulses (ms): a tick for selection up to a firm thump for destructive taps. */
+export const WEB_VIBRATION_MS: Readonly<Record<HapticStrength, number>> = {
+  selection: 5,
+  light: 10,
+  medium: 16,
+  heavy: 26,
+};
+
+/** Android Chrome and installed PWAs; iOS Safari has no vibration API. */
+function webVibrate(strength: HapticStrength): boolean {
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
+  return navigator.vibrate(WEB_VIBRATION_MS[strength]);
+}
+
 export function hapticFeedback(strength: HapticStrength): boolean {
   if (!getVibrationEnabled()) return false;
 
@@ -29,5 +43,5 @@ export function hapticFeedback(strength: HapticStrength): boolean {
     return true;
   }
 
-  return false;
+  return webVibrate(strength);
 }

@@ -1,0 +1,434 @@
+/*
+ * Month calendar card of the care diary. One paper card: title row with paging arrows, the months
+ * (week columns, Monday to Sunday) and a tight legend. Used by the patient bundle (no global.css)
+ * and by the doctor's app, so every token carries a fallback.
+ */
+.diary-heat {
+  --heat-cell: 1.1rem;
+  --heat-alert: var(--theme-heat-alert, #d23b2e);
+  --heat-gap: 0.18rem;
+  --heat-head: 0.95rem;
+  --heat-motion: var(--care-fast, var(--motion-fast, 120ms));
+  --heat-ease: var(--care-ease, var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)));
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem 0.5rem;
+  border: 1px solid var(--theme-border, #cbc0a7);
+  border-radius: var(--theme-radius-panel, 0.7rem);
+  background:
+    radial-gradient(
+      color-mix(in srgb, var(--theme-text, #292720) 5%, transparent) 0.6px,
+      transparent 0.8px
+    )
+    0 0 / 3px 3px,
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-surface-raised, #fbf7ea) 94%, white) 0%,
+      var(--theme-surface-raised, #fbf7ea) 55%,
+      color-mix(
+          in srgb,
+          var(--theme-surface-raised, #fbf7ea) 92%,
+          var(--theme-surface-muted, #e6dcc4)
+        )
+        100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 40%, transparent),
+    0 1px 2px color-mix(in srgb, var(--theme-text, #292720) 12%, transparent);
+}
+
+.diary-heat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+  position: relative;
+}
+
+.diary-heat__title {
+  margin: 0;
+  color: var(--theme-text-muted, #524d43);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.diary-heat__nav {
+  display: flex;
+  flex: none;
+  gap: 0.3rem;
+}
+
+.diary-heat__arrow {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--theme-border, #cbc0a7);
+  border-radius: 50%;
+  background: var(--theme-surface-raised, #fbf7ea);
+  color: var(--theme-text, #292720);
+  cursor: pointer;
+  transition:
+    transform var(--heat-motion) var(--heat-ease),
+    opacity var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__arrow:active {
+  transform: scale(0.96);
+}
+
+.diary-heat__arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+}
+
+.diary-heat__arrow-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.diary-heat__frame {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.diary-heat__weekdays {
+  display: grid;
+  flex: none;
+  grid-template-rows: var(--heat-head) repeat(7, var(--heat-cell));
+  gap: var(--heat-gap);
+  color: var(--theme-text-faint, #58534a);
+  font-size: 0.68rem;
+  line-height: var(--heat-cell);
+}
+
+.diary-heat__scroller {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.diary-heat__scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.diary-heat__grid {
+  display: flex;
+  width: max-content;
+}
+
+.diary-heat__month {
+  display: grid;
+  grid-template-rows: var(--heat-head) auto;
+  gap: var(--heat-gap);
+}
+
+.diary-heat__month--divided {
+  margin-inline-start: 0.4rem;
+  padding-inline-start: 0.4rem;
+  border-inline-start: 1px solid color-mix(in srgb, var(--theme-border, #cbc0a7) 70%, transparent);
+}
+
+.diary-heat__month-label {
+  color: var(--theme-text-faint, #58534a);
+  font-size: 0.68rem;
+  line-height: var(--heat-head);
+  white-space: nowrap;
+}
+
+.diary-heat__month-label--current {
+  color: var(--theme-accent-text, var(--theme-text, #292720));
+  font-weight: 700;
+}
+
+.diary-heat__cells {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--heat-cell));
+  grid-auto-columns: var(--heat-cell);
+  gap: var(--heat-gap);
+}
+
+.diary-heat__pad {
+  width: var(--heat-cell);
+  height: var(--heat-cell);
+}
+
+.diary-heat__day,
+.diary-heat__swatch {
+  width: var(--heat-cell);
+  height: var(--heat-cell);
+  padding: 0;
+  border: 0;
+  border-radius: 0.2rem;
+}
+
+.diary-heat__swatch {
+  --heat-cell: 0.65rem;
+}
+
+.diary-heat__day {
+  display: grid;
+  place-items: center;
+  color: var(--theme-text-muted, #524d43);
+  font: inherit;
+  font-size: 0.56rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__day:active {
+  transform: scale(0.9);
+}
+
+.diary-heat__day:focus-visible,
+.diary-heat__arrow:focus-visible {
+  outline: 0.19rem solid var(--theme-accent, #3c6478);
+  outline-offset: 0.12rem;
+}
+
+.diary-heat__day--level-0,
+.diary-heat__swatch--level-0 {
+  background: var(--theme-surface-muted, #e6dcc4);
+}
+
+.diary-heat__day--level-1,
+.diary-heat__swatch--level-1 {
+  background: color-mix(
+    in srgb,
+    var(--theme-accent, #3c6478) 28%,
+    var(--theme-surface-muted, #e6dcc4)
+  );
+}
+
+.diary-heat__day--level-2,
+.diary-heat__swatch--level-2 {
+  background: color-mix(
+    in srgb,
+    var(--theme-accent, #3c6478) 50%,
+    var(--theme-surface-muted, #e6dcc4)
+  );
+}
+
+.diary-heat__day--level-3,
+.diary-heat__swatch--level-3 {
+  background: color-mix(
+    in srgb,
+    var(--theme-accent, #3c6478) 75%,
+    var(--theme-surface-muted, #e6dcc4)
+  );
+}
+
+.diary-heat__day--level-4,
+.diary-heat__swatch--level-4 {
+  background: var(--theme-accent, #3c6478);
+}
+
+/* Days with symptoms: a red layer over the level colour, redder the more symptoms. */
+.diary-heat__day--symptoms-1 {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--heat-alert) 28%, transparent),
+    color-mix(in srgb, var(--heat-alert) 28%, transparent)
+  );
+}
+
+.diary-heat__day--symptoms-2 {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--heat-alert) 50%, transparent),
+    color-mix(in srgb, var(--heat-alert) 50%, transparent)
+  );
+}
+
+.diary-heat__day--symptoms-3 {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--heat-alert) 72%, transparent),
+    color-mix(in srgb, var(--heat-alert) 72%, transparent)
+  );
+  color: #fff;
+}
+
+.diary-heat__day--symptoms-4 {
+  background-image: linear-gradient(var(--heat-alert), var(--heat-alert));
+  color: #fff;
+}
+
+.diary-heat__day--level-3,
+.diary-heat__day--level-4 {
+  color: #fff;
+}
+
+.diary-heat__day--today {
+  box-shadow: inset 0 0 0 1.5px var(--theme-text-muted, #524d43);
+}
+
+.diary-heat__day--selected {
+  outline: 2px solid var(--theme-text, #292720);
+  outline-offset: 1px;
+}
+
+.diary-heat__day--future {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.diary-heat__legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  color: var(--theme-text-faint, #58534a);
+  font-size: 0.68rem;
+}
+
+.diary-heat__legend-text {
+  padding-inline: 0.2rem;
+}
+
+.diary-heat__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.diary-heat__filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.75rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--theme-border, #cbc0a7);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised, #fbf7ea);
+  color: var(--theme-text-muted, #524d43);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform var(--heat-motion) var(--heat-ease),
+    border-color var(--heat-motion) var(--heat-ease),
+    color var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__filter-button:active {
+  transform: scale(0.96);
+}
+
+.diary-heat__filter-button--partial {
+  border-color: var(--theme-accent, #3c6478);
+  color: var(--theme-accent-text, var(--theme-text, #292720));
+}
+
+.diary-heat__filter-button:focus-visible,
+.diary-heat__option:focus-visible {
+  outline: 0.19rem solid var(--theme-accent, #3c6478);
+  outline-offset: 0.12rem;
+}
+
+.diary-heat__filter-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.diary-heat__filter-text {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A dropdown under the title row: an intentional overlay, so it is positioned over the card. */
+.diary-heat__menu {
+  position: absolute;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-end: 0;
+  z-index: 5;
+  display: grid;
+  min-width: 11rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--theme-border, #cbc0a7);
+  border-radius: var(--theme-radius-panel, 0.7rem);
+  background: var(--theme-surface-raised, #fbf7ea);
+  box-shadow: 0 0.5rem 1.2rem color-mix(in srgb, var(--theme-text, #292720) 22%, transparent);
+  animation: diary-heat-menu var(--heat-motion) var(--heat-ease);
+}
+
+@keyframes diary-heat-menu {
+  from {
+    opacity: 0;
+    transform: translateY(-0.3rem) scale(0.98);
+  }
+}
+
+.diary-heat__option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.5rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--theme-text, #292720);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform var(--heat-motion) var(--heat-ease),
+    background-color var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__option:active {
+  transform: scale(0.96);
+  background: var(--theme-surface-muted, #e6dcc4);
+}
+
+.diary-heat__option-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1.5px solid var(--theme-border-strong, var(--theme-border, #cbc0a7));
+  border-radius: 0.3rem;
+  color: var(--theme-accent-contrast, #fff);
+  transition:
+    background-color var(--heat-motion) var(--heat-ease),
+    border-color var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__option-check {
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--heat-motion) var(--heat-ease),
+    transform var(--heat-motion) var(--heat-ease);
+}
+
+.diary-heat__option-mark--on {
+  border-color: var(--theme-accent, #3c6478);
+  background: var(--theme-accent, #3c6478);
+}
+
+.diary-heat__option-check--on {
+  opacity: 1;
+  transform: none;
+}
+
+.diary-heat__option-label {
+  min-width: 0;
+}

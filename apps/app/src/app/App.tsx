@@ -16,6 +16,7 @@ import { Toaster } from 'solid-sonner';
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
+import { isFullScreenRoute } from '@/app/full-screen-routes';
 import { LazyBoundary } from '@/app/LazyBoundary';
 import {
   COMPACT_ROOT_VIEWS,
@@ -24,6 +25,7 @@ import {
   herbalBookOrigin,
   ROOT_VIEWS,
   type RootView,
+  type RootViewItem,
 } from '@/app/root-view';
 import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
@@ -54,7 +56,7 @@ import {
   getSplitNavigation,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
-import { activeProfile, profileAllows } from '@/state/app-profile';
+import { activeProfile, profileAllows, profileHidesNavigation } from '@/state/app-profile';
 import { parseDocumentReadRoute } from '@/state/document-route';
 import { createFloatingWindows } from '@/state/floating-windows';
 import {
@@ -143,7 +145,8 @@ export function App(): JSX.Element {
   const [currentHash, setCurrentHash] = createSignal(window.location.hash);
   let lastPersonalHash = USER_LIBRARY_CATALOG_HASH;
   const expandedNavigation = () => splitNavigation() && Boolean(session.ready());
-  const navItems = () => (expandedNavigation() ? ROOT_VIEWS : COMPACT_ROOT_VIEWS);
+  const navItems = (): readonly RootViewItem[] =>
+    activeProfile()?.navigation ?? (expandedNavigation() ? ROOT_VIEWS : COMPACT_ROOT_VIEWS);
   // The tab the herbal book was opened from (it is a search section and a files folder).
   const [herbalOrigin, setHerbalOrigin] = createSignal<RootView | undefined>();
   const navView = () =>
@@ -151,6 +154,12 @@ export function App(): JSX.Element {
       ? navigation.view()
       : compactRootView(navigation.view(), currentHash(), herbalOrigin());
   const navigateTab = (next: RootView): void => {
+    // A narrowed app's tab opens the address the profile declares for it.
+    const profileTab = activeProfile()?.navigation.find((item) => item.id === next);
+    if (profileTab) {
+      visitRoute(profileTab.hash);
+      return;
+    }
     if (!expandedNavigation() && next === 'notes') {
       // «Мои файлы» is a tab like the others: a place the history may already hold is stepped back to.
       visitRoute(
@@ -409,6 +418,9 @@ export function App(): JSX.Element {
         'app-shell--floating-child': embeddedFloatingWindow,
         'app-shell--floating-child-scaled': scaledFloatingWindow,
         'app-shell--floating-fullscreen': Boolean(floatingWindows.fullscreenWindowId()),
+        // A narrowed app without any bottom bar: pages need no room to slide under it.
+        'app-shell--no-nav':
+          profileHidesNavigation(activeProfile()) || isFullScreenRoute(currentHash()),
       }}
     >
       <Portal>
@@ -576,7 +588,8 @@ export function App(): JSX.Element {
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId() &&
-          !activeProfile()?.hideNavigation
+          !profileHidesNavigation(activeProfile()) &&
+          !isFullScreenRoute(currentHash())
         }
       >
         <Portal>

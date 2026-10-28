@@ -1,6 +1,12 @@
-import { createSignal, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import {
+  HEADER_ROW_ATTRIBUTE,
+  HEADER_TITLE_ATTRIBUTE,
+  type HeaderAction,
+  HeaderActions,
+} from '@/components/HeaderActions';
 import { SheetPopover } from '@/components/SheetPopover';
 import { visitRoute } from '@/state/app-back';
 
@@ -18,6 +24,11 @@ export interface PageProps {
   readonly parent?: { readonly label: string; readonly href: string } | undefined;
   readonly description?: JSX.Element;
   readonly actions?: JSX.Element;
+  /**
+   * Header buttons that fold into a «⋯» menu when the row runs out of width, lowest priority first
+   * (`HeaderActions`). The «?» help takes part as a priority-1 action. Memoise the array.
+   */
+  readonly headerActions?: readonly HeaderAction[] | undefined;
   /** «Как это работает» and other explanations: a round «?» in the header opens it. */
   readonly help?: JSX.Element;
   /** Heading of the help panel; «Как это работает» by default. */
@@ -34,11 +45,37 @@ export function Page(props: PageProps): JSX.Element {
   const inline = (): boolean =>
     props.title !== undefined &&
     props.breadcrumbs === undefined &&
-    (props.navigation !== undefined || props.actions !== undefined || props.help !== undefined);
+    (props.navigation !== undefined ||
+      props.actions !== undefined ||
+      props.headerActions !== undefined ||
+      props.help !== undefined);
   const helpTitle = (): string => props.helpTitle ?? 'Как это работает';
+  /** With `headerActions` the «?» is one of them (priority 1, first), so it folds into «⋯» too. */
+  const foldableActions = createMemo((): readonly HeaderAction[] | undefined => {
+    const own = props.headerActions;
+    if (own === undefined) return undefined;
+    if (props.help === undefined) return own;
+    return [
+      {
+        id: 'help',
+        label: helpTitle(),
+        icon: 'question',
+        priority: 1,
+        panel: {
+          content: () => <div class="page__help-body">{props.help}</div>,
+          contentClass: 'page__help-panel',
+        },
+      },
+      ...own,
+    ];
+  });
 
   const titleRow = (): JSX.Element => (
-    <div class="page__title-row" classList={{ 'page__title-row--inline': inline() }}>
+    <div
+      class="page__title-row"
+      classList={{ 'page__title-row--inline': inline() }}
+      {...(inline() ? { [HEADER_TITLE_ATTRIBUTE]: '' } : {})}
+    >
       <Show when={props.icon !== undefined && !inline()}>
         <div class="page__icon">{props.icon}</div>
       </Show>
@@ -71,10 +108,11 @@ export function Page(props: PageProps): JSX.Element {
           props.navigation !== undefined ||
           props.breadcrumbs !== undefined ||
           props.actions !== undefined ||
+          props.headerActions !== undefined ||
           props.help !== undefined
         }
       >
-        <div class="page__above-header">
+        <div class="page__above-header" {...{ [HEADER_ROW_ATTRIBUTE]: '' }}>
           <Show when={props.navigation !== undefined}>
             <div class={className('page__left-actions', props.navigationClass)}>
               {props.navigation}
@@ -84,9 +122,18 @@ export function Page(props: PageProps): JSX.Element {
             <div class="page__breadcrumbs">{props.breadcrumbs}</div>
           </Show>
           <Show when={inline()}>{titleRow()}</Show>
-          <Show when={props.actions !== undefined || props.help !== undefined}>
+          <Show
+            when={
+              props.actions !== undefined ||
+              props.headerActions !== undefined ||
+              props.help !== undefined
+            }
+          >
             <div class="page__right-actions">
-              <Show when={props.help !== undefined}>
+              <Show when={foldableActions()}>
+                {(actions) => <HeaderActions actions={actions()} />}
+              </Show>
+              <Show when={props.help !== undefined && props.headerActions === undefined}>
                 <SheetPopover
                   open={helpOpen()}
                   onOpenChange={setHelpOpen}

@@ -230,6 +230,23 @@ reported.
 - **Loading is one state.** A screen shows one loading state, then the finished content — no
   loading → partial → loading → full flicker; background data refreshes never replace visible
   content with a loader.
+- **Header overflow (owner 2026-10-27).** Header buttons carry a priority: 1 (phone, «?») folds last, 2
+  (export, share, edit) next, 3 first. When the header row runs out of width — a long patient name —
+  the lowest priority folds into one «⋯» context menu (same labels and icons), then the next; a single
+  button is never folded (the «⋯» takes a slot, so hide at least two), and with everything fitting
+  there is no «⋯». Width is measured dynamically (ResizeObserver), the title keeping its natural width
+  so buttons fold before it truncates. Use `HeaderActions` (`Page` `headerActions`, «?» included as
+  priority 1) and the pure `layoutHeaderActions`; never hand-roll responsive hiding of header buttons.
+  Account and rare actions (reminders, sign-out, demo data) are `menuOnly`: always in «⋯».
+- **Scroll only when it overflows (owner 2026-10-27).** A page or panel that fits shows no scroll:
+  no `min-height` that pushes a short page past the screen. Vertical scroll is shown by the themed
+  overlay scrollbar (OverlayScrollbars / the thin themed native bar); horizontal scroll areas use
+  `HorizontalScroller` with its ‹ › arrows (`controls`, hidden bar) — never a bare horizontal
+  scrollbar. Month-by-month strips (heatmap, calendar) page with ‹ › in their title row.
+- **Sounds and haptics (owner 2026-10-27).** Taps get sound and vibration from the shared feedback
+  (`installUiFeedback`); non-tap moments (saved, failed, received) call
+  `playFeedback(...FEEDBACK_MOMENTS.<moment>)`. Both follow the «Звуки» / «Вибрация» switches, and
+  every app mode (profiles, the patient diary PWA) offers those switches.
 - **Never a lone spinner (owner 2026-10-26).** A loading screen keeps its chrome (‹ back, title when
   known, bottom bar) and shows a skeleton shaped like the coming page: `PageSkeleton` for a whole
   screen, `SkeletonLines` for text still arriving inside a page (`components/PageSkeleton.tsx`). A

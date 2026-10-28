@@ -4,7 +4,7 @@ import type {
   UserQuestionnaireBand,
   UserQuestionnaireQuestion,
   UserQuestionnaireSection,
-} from '@/state/user-questionnaires';
+} from '@/state/user-questionnaire-format';
 
 /** Where a band applies: the whole questionnaire or one section scored on its own. */
 export type QuestionnaireScoreScope = 'total' | string;

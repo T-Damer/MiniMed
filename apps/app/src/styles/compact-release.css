@@ -2402,16 +2402,25 @@ fieldset.search-mode-picker {
   }
 }
 
-/* Full-height local surfaces keep the desk background inside the active route. */
+/* Full-height local surfaces keep the desk background inside the active route. Exactly as tall as
+   the window (the fixed bottom bar overlays the bottom padding), so a short page does not scroll
+   (AGENTS.md «Scroll only when it overflows»). */
 .page-surface,
 .knowledge-base-page,
 .settings-page,
 .patient-notes-view,
 .search-home {
-  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
-  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
+  min-height: 100dvh;
+  margin-bottom: 0;
   padding-bottom: calc(6rem + var(--nav-safe-bottom));
   scroll-padding-bottom: calc(6rem + var(--nav-safe-bottom));
+}
+
+/* Without the bottom bar (a narrowed app profile) nothing needs the room under it. */
+.app-shell--no-nav .page-surface,
+.app-shell--no-nav .patient-notes-view {
+  padding-bottom: calc(1.5rem + var(--safe-bottom, 0px));
+  scroll-padding-bottom: calc(1.5rem + var(--safe-bottom, 0px));
 }
 
 .knowledge-base-page > .module-page,
@@ -2422,8 +2431,8 @@ fieldset.search-mode-picker {
 }
 
 .patient-notes-view {
-  min-height: calc(100dvh + 7rem + var(--nav-safe-bottom));
-  margin-bottom: calc(-7rem - var(--nav-safe-bottom));
+  min-height: 100dvh;
+  margin-bottom: 0;
   padding-bottom: calc(7rem + var(--nav-safe-bottom));
   scroll-padding-bottom: calc(7rem + var(--nav-safe-bottom));
 }

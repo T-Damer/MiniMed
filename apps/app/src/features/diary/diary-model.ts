@@ -9,6 +9,12 @@
  * Everything that crosses a device boundary is validated here.
  */
 
+import {
+  parseUserQuestionnaire,
+  stripUntrustedQuestionnaireImages,
+  type UserQuestionnaire,
+} from '@/state/user-questionnaire-format';
+
 export const DIARY_FORMAT_VERSION = 2 as const;
 
 export type DiaryFieldType = 'number' | 'choice' | 'multi' | 'flag' | 'count' | 'text' | 'plan';
@@ -85,6 +91,15 @@ export interface DiaryPlanItem {
   readonly name: string;
   readonly dose?: string;
   readonly schedule?: string;
+  /** Dosage form («таблетки», «капсулы»), as the doctor chose it. */
+  readonly form?: string;
+  /** The doctor's instruction to the patient (signa): «по 1 таблетке после завтрака». */
+  readonly signa?: string;
+  /**
+   * Days the course runs, as local day ranges `YYYY-MM-DD`; absent or empty: no end date. Intakes
+   * are offered only on these days.
+   */
+  readonly course?: readonly { readonly from: string; readonly to: string }[];
   /** Daily intakes; absent for an item taken when needed or described only in words. */
   readonly times?: readonly DiaryDoseTime[];
   /** Taken when needed: offered as «Принять сейчас», not as a timed check. */
@@ -100,7 +115,7 @@ export interface DiaryPlanItem {
  * Something the doctor asks the patient to fill at set times: a score (wellbeing 0–10), a group of
  * measurements, or a questionnaire every few days.
  */
-export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire';
+export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire' | 'text' | 'choice';
 
 export interface DiaryCheckpoint {
   readonly id: string;
@@ -110,8 +125,14 @@ export interface DiaryCheckpoint {
   readonly times?: readonly string[];
   /** Fields this checkpoint fills (score: one number field; vitals: several). */
   readonly fields?: readonly string[];
-  /** Questionnaire slug (`phq-9`) for a questionnaire checkpoint. */
+  /** Questionnaire slug (`phq-9`) for a questionnaire checkpoint; `own-…` for a doctor's own. */
   readonly questionnaire?: string;
+  /**
+   * The doctor's own questionnaire (main app «Мои опросники»), embedded because the patient's
+   * device cannot read the doctor's files. Present exactly when the slug starts with `own-`;
+   * pictures are removed (size), the rest is validated by the main app's questionnaire parser.
+   */
+  readonly custom?: UserQuestionnaire;
   /** Questionnaire: repeat every N days. */
   readonly everyDays?: number;
   /** Switched off by the doctor; kept so earlier entries still resolve. */
@@ -196,10 +217,10 @@ export class DiaryFormatError extends Error {
 }
 
 export const MAX_DIARY_ENTRIES = 1500;
-export const MAX_DIARY_FIELDS = 16;
+export const MAX_DIARY_FIELDS = 40;
 export const MAX_DIARY_OPTIONS = 16;
 export const MAX_DIARY_PLAN_ITEMS = 30;
-export const MAX_DIARY_CHECKPOINTS = 12;
+export const MAX_DIARY_CHECKPOINTS = 24;
 export const MAX_DIARY_CONTACTS = 6;
 export const MAX_DIARY_TIPS = 40;
 export const MAX_DIARY_DOSE_TIMES = 8;
@@ -404,7 +425,63 @@ function parseDoseTimes(value: unknown, index: number): DiaryDoseTime[] | undefi
   return times.toSorted((left, right) => left.time.localeCompare(right.time));
 }
 
-const CHECKPOINT_KINDS: readonly DiaryCheckpointKind[] = ['score', 'vitals', 'questionnaire'];
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
+
+function parseCourse(
+  value: unknown,
+  index: number,
+): { readonly from: string; readonly to: string }[] | undefined {
+  if (value === undefined) return undefined;
+  const label = `Пункт назначения ${index + 1}`;
+  if (!Array.isArray(value) || value.length > 60) {
+    throw new DiaryFormatError(`${label}: некорректный срок приёма.`);
+  }
+  return value.map((range) => {
+    const source = record(range, label);
+    const from = source['from'];
+    const to = source['to'];
+    if (
+      typeof from !== 'string' ||
+      typeof to !== 'string' ||
+      !DAY_PATTERN.test(from) ||
+      !DAY_PATTERN.test(to) ||
+      to < from
+    ) {
+      throw new DiaryFormatError(`${label}: некорректный срок приёма.`);
+    }
+    return { from, to };
+  });
+}
+
+/** Slug of a doctor's own questionnaire: `own-` and a short id; checkpoint ids stay within 24. */
+export const CUSTOM_QUESTIONNAIRE_SLUG = /^own-[a-z0-9]{4,16}$/u;
+/** One embedded questionnaire, as JSON; 120 questions of average length fit comfortably. */
+export const MAX_DIARY_CUSTOM_CHARS = 32_000;
+/** All embedded questionnaires of one invitation, ended ones included. */
+export const MAX_DIARY_CUSTOM_TOTAL_CHARS = 96_000;
+
+function parseCustomQuestionnaire(value: unknown, label: string): UserQuestionnaire {
+  let questionnaire: UserQuestionnaire;
+  try {
+    questionnaire = parseUserQuestionnaire(stripUntrustedQuestionnaireImages(value));
+  } catch (cause) {
+    throw new DiaryFormatError(
+      `«${label}»: опросник врача некорректен${cause instanceof Error ? ` (${cause.message})` : ''}.`,
+    );
+  }
+  if (JSON.stringify(questionnaire).length > MAX_DIARY_CUSTOM_CHARS) {
+    throw new DiaryFormatError(`«${label}»: опросник врача слишком большой для дневника.`);
+  }
+  return questionnaire;
+}
+
+const CHECKPOINT_KINDS: readonly DiaryCheckpointKind[] = [
+  'score',
+  'vitals',
+  'questionnaire',
+  'text',
+  'choice',
+];
 const CONTACT_KINDS: readonly DiaryContactKind[] = ['phone', 'telegram', 'link', 'email'];
 
 function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryCheckpoint[] {
@@ -446,12 +523,26 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
     if (kind !== 'questionnaire' && !(fieldIds as unknown[] | undefined)?.length) {
       throw new DiaryFormatError(`«${label}»: не указаны поля.`);
     }
+    // A description writes one text field, a choice one field with options.
+    const first = fields.find((field) => field.id === (fieldIds as string[] | undefined)?.[0]);
+    if (
+      (kind === 'text' && first?.type !== 'text') ||
+      (kind === 'choice' && first?.type !== 'choice')
+    ) {
+      throw new DiaryFormatError(`«${label}»: поле не того вида.`);
+    }
     const questionnaire = source['questionnaire'];
     if (
       kind === 'questionnaire' &&
       (typeof questionnaire !== 'string' || !/^[a-z0-9][a-z0-9-]{0,47}$/u.test(questionnaire))
     ) {
       throw new DiaryFormatError(`«${label}»: не указан опросник.`);
+    }
+    // An own questionnaire travels inside the checkpoint; a built-in one never does.
+    const own = kind === 'questionnaire' && CUSTOM_QUESTIONNAIRE_SLUG.test(questionnaire as string);
+    const custom = own ? parseCustomQuestionnaire(source['custom'], label) : undefined;
+    if (kind === 'questionnaire' && source['custom'] !== undefined && !own) {
+      throw new DiaryFormatError(`«${label}»: опросник врача должен называться own-….`);
     }
     const everyDays =
       source['everyDays'] === undefined ? undefined : finite(source['everyDays'], 'Период');
@@ -468,12 +559,21 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
       ...(times?.length ? { times } : {}),
       ...(kind !== 'questionnaire' ? { fields: fieldIds as string[] } : {}),
       ...(kind === 'questionnaire' ? { questionnaire: questionnaire as string } : {}),
+      ...(custom ? { custom } : {}),
       ...(everyDays === undefined ? {} : { everyDays }),
       ...(source['ended'] === true ? { ended: true as const } : {}),
     };
   });
   if (new Set(checkpoints.map((checkpoint) => checkpoint.id)).size !== checkpoints.length) {
     throw new DiaryFormatError('Отметки дневника повторяются.');
+  }
+  const customChars = checkpoints.reduce(
+    (total, checkpoint) =>
+      total + (checkpoint.custom ? JSON.stringify(checkpoint.custom).length : 0),
+    0,
+  );
+  if (customChars > MAX_DIARY_CUSTOM_TOTAL_CHARS) {
+    throw new DiaryFormatError('Опросники врача слишком велики для одного дневника.');
   }
   return checkpoints;
 }
@@ -539,10 +639,16 @@ function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
     const dose = text(source['dose'], 'Доза', true);
     const schedule = text(source['schedule'], 'Когда', true);
     const times = parseDoseTimes(source['times'], index);
+    const form = text(source['form'], 'Форма', true);
+    const signa = longText(source['signa'], 'Как принимать', true);
+    const course = parseCourse(source['course'], index);
     return {
       id,
       name: text(source['name'], `Пункт назначения ${index + 1}`),
       ...(dose ? { dose } : {}),
+      ...(form ? { form } : {}),
+      ...(signa ? { signa } : {}),
+      ...(course?.length ? { course } : {}),
       ...(schedule ? { schedule } : {}),
       ...(times?.length ? { times } : {}),
       ...(source['asNeeded'] === true ? { asNeeded: true } : {}),
@@ -1071,6 +1177,26 @@ export const DIARY_TEMPLATES: readonly DiaryTemplate[] = [
         metric: { metricId: 'oxygen-saturation', label: 'SpO₂', loinc: '59408-5', ucum: '%' },
       },
       { id: 'state', type: 'text', label: 'Описание состояния' },
+      { id: 'mood', type: 'number', label: 'Настроение', unit: 'из 10', min: 0, max: 10, step: 1 },
+      {
+        id: 'weight',
+        type: 'number',
+        label: 'Вес',
+        unit: 'кг',
+        min: 20,
+        max: 300,
+        step: 0.1,
+        metric: { metricId: 'body-mass', label: 'Масса тела', loinc: '29463-7', ucum: 'kg' },
+      },
+      {
+        id: 'height',
+        type: 'number',
+        label: 'Рост',
+        unit: 'см',
+        min: 50,
+        max: 250,
+        metric: { metricId: 'body-height', label: 'Рост', loinc: '8302-2', ucum: 'cm' },
+      },
     ],
   },
   {

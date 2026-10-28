@@ -1,0 +1,78 @@
+/*
+ * Round «+» action button (`FloatingActionButton`). Inside the app's floating-controls column
+ * (`#app-floating-controls`, already above the bottom nav) it is a plain item; without that host
+ * it fixes itself to the bottom-right corner above the nav.
+ */
+.ui-fab {
+  display: grid;
+  flex: none;
+  width: 3.25rem;
+  height: 3.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 70%, black);
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    0 0.2rem 0.45rem rgb(0 0 0 / 22%),
+    0 0.75rem 1.5rem rgb(0 0 0 / 22%);
+  cursor: pointer;
+  animation: ui-fab-in var(--motion-slow, 260ms) var(--motion-ease-out, ease-out) backwards;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    box-shadow var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.ui-fab--fixed {
+  position: fixed;
+  z-index: var(--z-scroll-top, 45);
+  right: max(0.75rem, var(--safe-right, 0px));
+  bottom: calc(4.375rem + var(--safe-bottom, 0px));
+}
+
+.ui-fab__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ui-fab:active {
+  transform: scale(0.96);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    0 0.1rem 0.25rem rgb(0 0 0 / 25%);
+}
+
+.ui-fab:focus-visible {
+  outline: 2px solid var(--theme-accent-text);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-fab:hover {
+    background: var(--theme-primary-hover-background, var(--theme-accent));
+  }
+}
+
+@keyframes ui-fab-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-fab {
+    animation: none;
+    transition: none;
+  }
+}

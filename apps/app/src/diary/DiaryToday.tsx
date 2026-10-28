@@ -3,7 +3,14 @@ import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch }
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { CareIntro } from '@/diary/CareIntro';
 import { ContactsSheet, CrisisSheet } from '@/diary/care-contacts';
-import { type CareSave, DoseSheet, NoteSheet, ScoreSheet, VitalsSheet } from '@/diary/care-sheets';
+import {
+  AnswerSheet,
+  type CareSave,
+  DoseSheet,
+  NoteSheet,
+  ScoreSheet,
+  VitalsSheet,
+} from '@/diary/care-sheets';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { formatTime, pluralize } from '@/diary/diary-format';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
@@ -20,7 +27,10 @@ import {
   dayPeriod,
   dayPlan,
   dayStart,
+  diaryStarted,
+  type HeatPart,
   heatmapDays,
+  heatParts,
   type QuestionnaireTask,
   type TaskState,
 } from '@/features/diary/diary-care';
@@ -35,7 +45,10 @@ import {
   type DiaryPlanValue,
   type DiaryResults,
 } from '@/features/diary/diary-model';
-import { diaryQuestionnaire, loadDiaryQuestionnaire } from '@/features/diary/diary-questionnaires';
+import {
+  checkpointQuestionnaireAbout,
+  loadCheckpointQuestionnaire,
+} from '@/features/diary/diary-questionnaires';
 
 type Sheet =
   | {
@@ -71,6 +84,14 @@ function dayTitle(day: string, today: string): string {
   return `${weekday[0]?.toUpperCase() ?? ''}${weekday.slice(1)}, ${date}`;
 }
 
+const CHECK_ICON: Readonly<Record<DiaryCheckpoint['kind'], AppGlyphName>> = {
+  score: 'smiley',
+  vitals: 'heartbeat',
+  text: 'note-pencil',
+  choice: 'list-checks',
+  questionnaire: 'list-numbers',
+};
+
 const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
   late: 'Пора',
   missed: 'Не отмечено',
@@ -91,10 +112,24 @@ function doseStatus(task: DoseTask): string {
   return STATE_WORD[task.state] ?? '';
 }
 
+/** «курс до 9 нояб.», «последний день курса» for an item with course dates. */
+function courseLeft(item: DiaryPlanItem, day: string): string {
+  const range = item.course?.find((candidate) => candidate.from <= day && day <= candidate.to);
+  if (!range) return '';
+  if (range.to === day) return 'последний день курса';
+  return `курс до ${dayStart(range.to).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`;
+}
+
 function checkStatus(task: CheckTask): string {
   const entry = task.entry;
   if (!entry) return STATE_WORD[task.state] ?? '';
   const values = entry.values;
+  if (task.checkpoint.kind === 'text' || task.checkpoint.kind === 'choice') {
+    const field = task.checkpoint.fields?.[0];
+    const value = field ? values[field] : undefined;
+    const said = typeof value === 'string' ? value.replaceAll('\n', ' ') : '';
+    return `${said.length > 60 ? `${said.slice(0, 60)}…` : said} · ${formatTime(entry.at)}${correctedMark(entry)}`;
+  }
   if (task.checkpoint.kind === 'score') {
     const field = task.checkpoint.fields?.[0];
     const value = field ? values[field] : undefined;
@@ -108,6 +143,8 @@ function checkStatus(task: CheckTask): string {
   }
   if (typeof values['pulse'] === 'number') parts.push(`пульс ${values['pulse']}`);
   if (typeof values['spo2'] === 'number') parts.push(`SpO₂ ${values['spo2']} %`);
+  if (typeof values['weight'] === 'number') parts.push(`${values['weight']} кг`);
+  if (typeof values['height'] === 'number') parts.push(`${values['height']} см`);
   return `${parts.join(', ') || 'Заполнено'}${correctedMark(entry)}`;
 }
 
@@ -226,11 +263,18 @@ export function DiaryToday(props: {
   readonly onSyncNow?: () => void;
   /** An answer raised a schema alert (PHQ-9 item 9): tell the doctor. */
   readonly onUrgent?: () => void;
+  /** The day to open first (`YYYY-MM-DD`); today by default. */
+  readonly initialDay?: string | undefined;
+  /**
+   * The doctor looks at the patient's screen: no consent intro and no bottom bar; what they save
+   * becomes a correction the patient sees marked.
+   */
+  readonly viewer?: 'doctor' | undefined;
 }): JSX.Element {
   const invitation = () => props.results.invitation;
   const [now, setNow] = createSignal(new Date());
   const today = () => dayKey(now());
-  const [day, setDay] = createSignal(dayKey(new Date()));
+  const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
   const [sheet, setSheet] = createSignal<Sheet | undefined>(undefined);
   const [flash, setFlash] = createSignal('');
 
@@ -239,7 +283,7 @@ export function DiaryToday(props: {
   onMount(() => {
     for (const checkpoint of invitation().checkpoints ?? []) {
       if (checkpoint.questionnaire) {
-        loadDiaryQuestionnaire(checkpoint.questionnaire).catch((cause: unknown) => {
+        loadCheckpointQuestionnaire(checkpoint).catch((cause: unknown) => {
           // The sheet shows the failure when the patient opens it; this only explains the cause.
           console.warn('Опросник не загружен заранее:', cause);
         });
@@ -248,13 +292,10 @@ export function DiaryToday(props: {
   });
 
   const plan = createMemo(() => dayPlan(invitation(), props.results.entries, day(), now()));
+  const [include, setInclude] = createSignal<ReadonlySet<HeatPart>>(new Set());
   const heat = createMemo(() => {
-    const started = props.results.entries.reduce(
-      (earliest, entry) => (dayKey(entry.at) < earliest ? dayKey(entry.at) : earliest),
-      dayKey(invitation().issuedAt),
-    );
-    const range = heatmapRange(started, today());
-    return heatmapDays(invitation(), props.results.entries, range.from, range.to, now());
+    const range = heatmapRange(diaryStarted(invitation(), props.results.entries), today());
+    return heatmapDays(invitation(), props.results.entries, range.from, range.to, now(), include());
   });
 
   const tipFor = (...targets: readonly (string | undefined)[]) =>
@@ -270,8 +311,16 @@ export function DiaryToday(props: {
   };
 
   const close = (): void => setSheet(undefined);
+  /** A short sound and buzz for a saved or failed mark; the engine loads lazily, after first paint. */
+  const feel = (moment: 'saved' | 'failed'): void => {
+    void import('@/state/ui-feedback').then(({ FEEDBACK_MOMENTS, playFeedback }) => {
+      const [cue, haptic] = FEEDBACK_MOMENTS[moment];
+      playFeedback(cue, haptic);
+    });
+  };
   const save: CareSave = (value) => {
     const problem = props.onSave(value);
+    feel(problem ? 'failed' : 'saved');
     if (!problem) {
       setNow(new Date());
       setFlash('Сохранено');
@@ -325,7 +374,7 @@ export function DiaryToday(props: {
 
   return (
     <Show
-      when={!invitation().consent || props.consentAt}
+      when={!invitation().consent || props.consentAt || props.viewer === 'doctor'}
       fallback={
         <CareIntro
           invitation={invitation()}
@@ -372,7 +421,15 @@ export function DiaryToday(props: {
           </button>
         </header>
 
-        <DiaryHeatmap days={heat()} selected={day()} today={today()} onSelect={setDay} />
+        <DiaryHeatmap
+          days={heat()}
+          selected={day()}
+          today={today()}
+          onSelect={setDay}
+          parts={heatParts(invitation())}
+          include={include()}
+          onInclude={setInclude}
+        />
 
         <nav class="diary-today__day" aria-label="День">
           <button
@@ -437,8 +494,13 @@ export function DiaryToday(props: {
                             .filter(Boolean)
                             .join(' ')}
                           detail={
-                            doseStatus(task) ||
-                            (task.time.meal ? DIARY_MEAL_LABEL[task.time.meal] : undefined)
+                            [
+                              doseStatus(task) ||
+                                (task.time.meal ? DIARY_MEAL_LABEL[task.time.meal] : ''),
+                              courseLeft(task.item, day()),
+                            ]
+                              .filter(Boolean)
+                              .join(' · ') || undefined
                           }
                           state={task.state}
                           checkLabel={`${task.item.name} в ${task.time.time}: отметить приём`}
@@ -508,7 +570,7 @@ export function DiaryToday(props: {
               <For each={plan().checks}>
                 {(task) => (
                   <CareRow
-                    icon={task.checkpoint.kind === 'score' ? 'smiley' : 'heartbeat'}
+                    icon={CHECK_ICON[task.checkpoint.kind]}
                     time={task.time}
                     title={task.checkpoint.label}
                     detail={checkStatus(task)}
@@ -536,7 +598,7 @@ export function DiaryToday(props: {
                     icon="list-checks"
                     title={task.checkpoint.label}
                     detail={[
-                      diaryQuestionnaire(task.checkpoint.questionnaire ?? '')?.about,
+                      checkpointQuestionnaireAbout(task.checkpoint),
                       quizStatus(task, today()),
                     ]
                       .filter(Boolean)
@@ -593,52 +655,54 @@ export function DiaryToday(props: {
           {flash()}
         </p>
 
-        <nav class="diary-today__bar" aria-label="Дневник">
-          <button type="button" class="diary-today__bar-button" onClick={() => props.onRecords()}>
-            <AppGlyph name="list" class="diary-today__bar-icon" />
-            <span class="diary-today__bar-text">Записи</span>
-          </button>
-          <Show
-            when={props.sync}
-            fallback={
-              <button
-                type="button"
-                class="diary-today__bar-button"
-                classList={{ 'diary-today__bar-button--pending': props.status.unsent > 0 }}
-                onClick={() => props.onSend()}
-              >
-                <AppGlyph name="share" class="diary-today__bar-icon" />
-                <span class="diary-today__bar-text">
-                  {props.status.unsent > 0 ? `Отправить (${props.status.unsent})` : 'Отправить'}
-                </span>
-              </button>
-            }
-          >
-            {(sync) => (
-              <button
-                type="button"
-                class="diary-today__bar-button"
-                classList={{
-                  'diary-today__bar-button--pending':
-                    sync().pending > 0 || sync().phase === 'offline' || sync().phase === 'error',
-                  'diary-today__bar-button--busy': sync().phase === 'syncing',
-                }}
-                aria-label={`Отправка врачу: ${syncWords(sync())}. Отправить сейчас`}
-                onClick={() => props.onSyncNow?.()}
-              >
-                <AppGlyph
-                  name={sync().phase === 'idle' && sync().pending === 0 ? 'check' : 'refresh'}
-                  class="diary-today__bar-icon"
-                />
-                <span class="diary-today__bar-text">{syncWords(sync())}</span>
-              </button>
-            )}
-          </Show>
-          <button type="button" class="diary-today__bar-button" onClick={() => props.onMore()}>
-            <AppGlyph name="dots-three" class="diary-today__bar-icon" />
-            <span class="diary-today__bar-text">Ещё</span>
-          </button>
-        </nav>
+        <Show when={props.viewer !== 'doctor'}>
+          <nav class="diary-today__bar" aria-label="Дневник">
+            <button type="button" class="diary-today__bar-button" onClick={() => props.onRecords()}>
+              <AppGlyph name="list" class="diary-today__bar-icon" />
+              <span class="diary-today__bar-text">Записи</span>
+            </button>
+            <Show
+              when={props.sync}
+              fallback={
+                <button
+                  type="button"
+                  class="diary-today__bar-button"
+                  classList={{ 'diary-today__bar-button--pending': props.status.unsent > 0 }}
+                  onClick={() => props.onSend()}
+                >
+                  <AppGlyph name="share" class="diary-today__bar-icon" />
+                  <span class="diary-today__bar-text">
+                    {props.status.unsent > 0 ? `Отправить (${props.status.unsent})` : 'Отправить'}
+                  </span>
+                </button>
+              }
+            >
+              {(sync) => (
+                <button
+                  type="button"
+                  class="diary-today__bar-button"
+                  classList={{
+                    'diary-today__bar-button--pending':
+                      sync().pending > 0 || sync().phase === 'offline' || sync().phase === 'error',
+                    'diary-today__bar-button--busy': sync().phase === 'syncing',
+                  }}
+                  aria-label={`Отправка врачу: ${syncWords(sync())}. Отправить сейчас`}
+                  onClick={() => props.onSyncNow?.()}
+                >
+                  <AppGlyph
+                    name={sync().phase === 'idle' && sync().pending === 0 ? 'check' : 'refresh'}
+                    class="diary-today__bar-icon"
+                  />
+                  <span class="diary-today__bar-text">{syncWords(sync())}</span>
+                </button>
+              )}
+            </Show>
+            <button type="button" class="diary-today__bar-button" onClick={() => props.onMore()}>
+              <AppGlyph name="dots-three" class="diary-today__bar-icon" />
+              <span class="diary-today__bar-text">Ещё</span>
+            </button>
+          </nav>
+        </Show>
       </main>
 
       <Switch>
@@ -659,10 +723,7 @@ export function DiaryToday(props: {
         </Match>
         <Match when={sheet()?.kind === 'check' && (sheet() as Extract<Sheet, { kind: 'check' }>)}>
           {(current) => (
-            <Show
-              when={
-                current().task.checkpoint.kind === 'score' && scoreField(current().task.checkpoint)
-              }
+            <Switch
               fallback={
                 <VitalsSheet
                   invitation={invitation()}
@@ -680,20 +741,48 @@ export function DiaryToday(props: {
                 />
               }
             >
-              {(field) => (
-                <ScoreSheet
-                  day={day()}
-                  checkpoint={current().task.checkpoint}
-                  field={field()}
-                  time={current().task.time}
-                  entry={current().task.entry}
-                  tip={readTip(current().task.checkpoint.id, field().id)}
-                  onSave={save}
-                  onRemove={remove}
-                  onClose={close}
-                />
-              )}
-            </Show>
+              <Match
+                when={
+                  (current().task.checkpoint.kind === 'text' ||
+                    current().task.checkpoint.kind === 'choice') &&
+                  scoreField(current().task.checkpoint)
+                }
+              >
+                {(field) => (
+                  <AnswerSheet
+                    day={day()}
+                    checkpoint={current().task.checkpoint}
+                    field={field()}
+                    time={current().task.time}
+                    entry={current().task.entry}
+                    tip={readTip(current().task.checkpoint.id, field().id)}
+                    onSave={save}
+                    onRemove={remove}
+                    onClose={close}
+                  />
+                )}
+              </Match>
+              <Match
+                when={
+                  current().task.checkpoint.kind === 'score' &&
+                  scoreField(current().task.checkpoint)
+                }
+              >
+                {(field) => (
+                  <ScoreSheet
+                    day={day()}
+                    checkpoint={current().task.checkpoint}
+                    field={field()}
+                    time={current().task.time}
+                    entry={current().task.entry}
+                    tip={readTip(current().task.checkpoint.id, field().id)}
+                    onSave={save}
+                    onRemove={remove}
+                    onClose={close}
+                  />
+                )}
+              </Match>
+            </Switch>
           )}
         </Match>
         <Match when={sheet()?.kind === 'quiz' && (sheet() as Extract<Sheet, { kind: 'quiz' }>)}>

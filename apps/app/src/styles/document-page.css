@@ -3,8 +3,8 @@
   --document-heading-top: calc(var(--sticky-header-top) + var(--document-chrome-height));
   --document-path-height: 2.25rem;
   display: flex;
-  min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
-  margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
+  min-height: 100dvh;
+  margin-bottom: 0;
   flex-direction: column;
 }
 

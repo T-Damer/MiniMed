@@ -1,0 +1,273 @@
+/*
+ * Whole-page error state (CalmError): wool cloud + breathing circle, title, one line, one action.
+ * Colours are theme tokens only. The breath is an 8 s loop (4 s in, 4 s out); the base rules are the
+ * still picture, the loops live in the no-preference block, so reduced motion and «Анимации: выкл»
+ * (which collapses the loop to nothing) both end on it.
+ */
+/* How much of the text colour lifts the wool: none on light paper, a lot on dark. */
+.calm-error {
+  --calm-lift: 0%;
+
+  display: grid;
+  min-height: 100dvh;
+  align-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: calc(1.5rem + var(--safe-top, 0px)) 1.25rem calc(5rem + var(--nav-safe-bottom, 0px));
+  box-sizing: border-box;
+  color: var(--theme-text);
+  text-align: center;
+  animation: calm-error-enter var(--motion-slow, 260ms) var(--motion-ease-out, ease-out) both;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .calm-error {
+    --calm-lift: 24%;
+  }
+}
+
+:root[data-theme="dark"] .calm-error {
+  --calm-lift: 24%;
+}
+
+.calm-error--embedded {
+  min-height: 0;
+  padding-block: 1.5rem;
+}
+
+.calm-error__scene {
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.calm-error__art {
+  width: min(15rem, 72vw);
+  height: auto;
+  overflow: visible;
+}
+
+/* Gradient stops, from the theme. */
+.calm-error__stop--halo-core {
+  stop-color: color-mix(in srgb, var(--theme-accent) 24%, transparent);
+}
+
+.calm-error__stop--halo-edge {
+  stop-color: color-mix(in srgb, var(--theme-accent) 0%, transparent);
+}
+
+.calm-error__stop--disc-lit {
+  stop-color: color-mix(in srgb, var(--theme-accent) 34%, var(--theme-surface-raised));
+}
+
+.calm-error__stop--disc-shade {
+  stop-color: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-surface-raised));
+}
+
+.calm-error__stop--fleece-top {
+  stop-color: color-mix(
+    in srgb,
+    var(--theme-text) calc(var(--calm-lift) + 6%),
+    var(--theme-surface-raised)
+  );
+}
+
+.calm-error__stop--fleece-bottom {
+  stop-color: color-mix(
+    in srgb,
+    var(--theme-accent) 22%,
+    color-mix(in srgb, var(--theme-text) var(--calm-lift), var(--theme-surface-raised))
+  );
+}
+
+.calm-error__grain {
+  flood-color: var(--theme-text);
+  flood-opacity: 0.08;
+}
+
+.calm-error__halo {
+  pointer-events: none;
+}
+
+.calm-error__ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--theme-accent) 42%, transparent);
+  stroke-width: 1.25;
+}
+
+.calm-error__breath {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.92);
+}
+
+.calm-error__cloud,
+.calm-error__puff {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.calm-error__fleece-shade {
+  fill: color-mix(
+    in srgb,
+    var(--theme-accent) 36%,
+    color-mix(in srgb, var(--theme-text) calc(var(--calm-lift) * 0.4), var(--theme-surface-muted))
+  );
+}
+
+.calm-error__fleece-lit {
+  fill: color-mix(
+    in srgb,
+    var(--theme-text) calc(var(--calm-lift) + 8%),
+    var(--theme-surface-raised)
+  );
+  opacity: 0.6;
+}
+
+.calm-error__curl {
+  fill: none;
+  stroke: color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+.calm-error__puff {
+  opacity: 0.8;
+}
+
+/* «Вдох» / «Выдох»: both words share one cell and take turns; shown only while the breath moves. */
+.calm-error__breath-label {
+  display: grid;
+  min-height: 1.25rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.calm-error__breath-word {
+  grid-area: 1 / 1;
+  opacity: 0;
+}
+
+.calm-error__title {
+  margin: 0;
+  color: var(--theme-text);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.calm-error__detail {
+  max-width: 22rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+  text-wrap: balance;
+}
+
+.calm-error__action {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease-out);
+}
+
+.calm-error__action:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .calm-error__breath {
+    animation: calm-error-breath 8s ease-in-out infinite;
+  }
+
+  .calm-error__cloud {
+    animation: calm-error-float 7s ease-in-out infinite alternate;
+  }
+
+  .calm-error__puff {
+    animation: calm-error-drift 14s ease-in-out infinite alternate;
+  }
+
+  .calm-error__breath-word--in {
+    animation: calm-error-word-in 8s ease-in-out infinite;
+  }
+
+  .calm-error__breath-word--out {
+    animation: calm-error-word-out 8s ease-in-out infinite;
+  }
+}
+
+@keyframes calm-error-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* 0–4 s in, 4–8 s out. */
+@keyframes calm-error-breath {
+  0%,
+  100% {
+    transform: scale(0.8);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes calm-error-float {
+  from {
+    transform: translateY(-0.2rem);
+  }
+
+  to {
+    transform: translateY(0.35rem);
+  }
+}
+
+@keyframes calm-error-drift {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(2.2rem, -0.35rem);
+  }
+}
+
+@keyframes calm-error-word-in {
+  0% {
+    opacity: 0;
+  }
+
+  8%,
+  42% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes calm-error-word-out {
+  0%,
+  50% {
+    opacity: 0;
+  }
+
+  58%,
+  92% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

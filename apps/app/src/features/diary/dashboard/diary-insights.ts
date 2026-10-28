@@ -9,6 +9,7 @@ import {
   CARE_DOSE_FIELD,
   dayKey,
   dayPlan,
+  diaryStarted,
   heatmapDays,
 } from '@/features/diary/diary-care';
 import {
@@ -18,7 +19,7 @@ import {
   type DiaryPlanValue,
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
-import { loadDiaryQuestionnaire } from '@/features/diary/diary-questionnaires';
+import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
 
 export interface Adherence {
   /** Marked share of the plan over the period, 0–1; undefined when nothing was planned. */
@@ -35,7 +36,10 @@ export function adherence(
   now: Date = new Date(),
 ): Adherence {
   const today = dayKey(now);
-  const heat = heatmapDays(invitation, entries, addDays(today, -(days - 1)), today, now);
+  // Days before the diary was issued asked for nothing; counting them would show 0 %.
+  const window = addDays(today, -(days - 1));
+  const issued = diaryStarted(invitation, entries);
+  const heat = heatmapDays(invitation, entries, issued > window ? issued : window, today, now);
   const done = heat.reduce((sum, day) => sum + day.done, 0);
   const total = heat.reduce((sum, day) => sum + day.total, 0);
   return { share: total ? done / total : undefined, done, total };
@@ -57,10 +61,11 @@ export function medicineAdherence(
   now: Date = new Date(),
 ): MedicineAdherence[] {
   const today = dayKey(now);
+  const started = diaryStarted(invitation, entries);
   const result = new Map<string, MedicineAdherence>();
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = addDays(today, -offset);
-    if (day < dayKey(invitation.issuedAt)) continue;
+    if (day < started) continue;
     for (const task of dayPlan(invitation, entries, day, now).doses) {
       const current = result.get(task.item.id) ?? {
         itemId: task.item.id,
@@ -107,6 +112,8 @@ export interface QuestionnairePoint {
   readonly max: number;
   readonly headline: string;
   readonly alerts: readonly string[];
+  /** The schema's alert notices with their explanations. */
+  readonly alertDetails: readonly { readonly title: string; readonly message: string }[];
 }
 
 export interface QuestionnaireSeries {
@@ -125,7 +132,7 @@ export async function questionnaireSeries(
     if (checkpoint.kind !== 'questionnaire' || !checkpoint.questionnaire) continue;
     const answered = entries.filter((entry) => entry.check === checkpoint.id && entry.answers);
     if (!answered.length) continue;
-    const definition = await loadDiaryQuestionnaire(checkpoint.questionnaire);
+    const definition = await loadCheckpointQuestionnaire(checkpoint);
     const points: QuestionnairePoint[] = [];
     for (const entry of answered) {
       const scored = scoreAssessment(definition, entry.answers ?? {}, entry.at);
@@ -143,8 +150,14 @@ export async function questionnaireSeries(
         max: total.maximumScore,
         headline: scored.value.headline,
         alerts: (scored.value.alerts ?? []).map((alert) => alert.title),
+        alertDetails: (scored.value.alerts ?? []).map((alert) => ({
+          title: alert.title,
+          message: alert.message,
+        })),
       });
     }
+    // A questionnaire the doctor made without scores has nothing to chart.
+    if (!points.length) continue;
     series.push({
       checkpointId: checkpoint.id,
       title: definition.shortTitle,
@@ -253,4 +266,29 @@ export async function exportXlsx(rows: readonly ExportRow[], sheetName: string):
   return new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
+}
+
+export interface AlertCause {
+  /** Questionnaire short title. */
+  readonly title: string;
+  readonly point: QuestionnairePoint;
+}
+
+/**
+ * The answers behind an urgent alert. The server only knows that and when an alert was raised; the
+ * questionnaire entry with schema alerts saved last before it (a minute of clock slack) is its cause.
+ */
+export function alertCause(
+  series: readonly QuestionnaireSeries[],
+  alertAt: string,
+): AlertCause | undefined {
+  const limit = Date.parse(alertAt) + 60_000;
+  let best: AlertCause | undefined;
+  for (const one of series) {
+    for (const point of one.points) {
+      if (!point.alerts.length || Date.parse(point.at) > limit) continue;
+      if (!best || point.at > best.point.at) best = { title: one.title, point };
+    }
+  }
+  return best;
 }

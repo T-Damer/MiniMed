@@ -1,0 +1,555 @@
+/* The doctor's editor shaped like the patient's day screen (PatientScreenEditor). */
+
+.screen-editor {
+  display: grid;
+  justify-items: center;
+}
+
+.screen-editor__frame {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 26rem);
+  padding: 1rem 0.9rem 1.1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(rgb(0 0 0 / 3%) 0.5px, transparent 0.6px) 0 0 / 5px 5px,
+    linear-gradient(180deg, var(--theme-surface-raised), var(--theme-surface));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 40%),
+    0 10px 28px rgb(0 0 0 / 8%);
+}
+
+.screen-editor__header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.screen-editor__titles {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.screen-editor__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.screen-editor__editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  max-width: 100%;
+  padding: 0.15rem 0.45rem;
+  margin-inline-start: -0.45rem;
+  border: 1px dashed transparent;
+  border-radius: 0.6rem;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: text;
+  transition:
+    border-color var(--motion-fast, 140ms) var(--motion-ease, ease),
+    background var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__editable:hover,
+.screen-editor__editable:focus-visible {
+  border-color: var(--theme-border);
+  background: var(--theme-surface-muted);
+}
+
+.screen-editor__editable--empty {
+  border-color: var(--theme-border);
+  color: var(--theme-text-muted);
+}
+
+.screen-editor__editable-glyph {
+  flex: none;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.screen-editor__editable-text {
+  overflow-wrap: anywhere;
+}
+
+.screen-editor__doctor {
+  color: var(--theme-text-muted);
+  font-size: 0.92rem;
+}
+
+.screen-editor__note {
+  width: 100%;
+  margin-inline-start: 0;
+  padding: 0.6rem 0.75rem;
+  border-color: var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-muted);
+  white-space: pre-line;
+}
+
+.screen-editor__icon {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__icon:active,
+.screen-editor__row:active,
+.screen-editor__add:active,
+.screen-editor__kind:active,
+.screen-editor__course:active {
+  transform: scale(0.96);
+}
+
+.screen-editor__icon--on {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+}
+
+.screen-editor__icon--help {
+  color: var(--theme-danger, #c0392b);
+}
+
+.screen-editor__icon-glyph {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* An overlay badge on the icon button. */
+.screen-editor__badge {
+  position: absolute;
+  inset-block-start: -0.2rem;
+  inset-inline-end: -0.2rem;
+  display: grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.screen-editor__heat {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 0.18rem;
+  padding: 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+}
+
+.screen-editor__heat-day {
+  aspect-ratio: 1;
+  border-radius: 0.2rem;
+  background: var(--theme-surface-muted);
+}
+
+.screen-editor__heat-day--today {
+  box-shadow: 0 0 0 1.5px var(--theme-accent);
+}
+
+.screen-editor__group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.screen-editor__group-title {
+  margin: 0.25rem 0 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.screen-editor__list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.screen-editor__item {
+  border: 1px solid var(--theme-border);
+  border-radius: 1rem;
+  background: var(--theme-surface-raised);
+  transition: box-shadow var(--motion-base, 200ms) var(--motion-ease, ease);
+}
+
+.screen-editor__item--open {
+  border-color: var(--theme-accent);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
+}
+
+.screen-editor__row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3.4rem;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 1rem;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__row-check {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 2px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent);
+}
+
+.screen-editor__row-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.screen-editor__row-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.screen-editor__row-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.screen-editor__row-tip {
+  display: inline-grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.screen-editor__row-detail {
+  color: var(--theme-text-muted);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.screen-editor__row-edit {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
+}
+
+.screen-editor__sheet {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.25rem 0.75rem 0.8rem;
+  animation: screen-editor-open var(--motion-base, 200ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes screen-editor-open {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+}
+
+.screen-editor__sheet-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.screen-editor__remove {
+  color: var(--theme-danger, #c0392b);
+}
+
+.screen-editor__pair {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 0.5rem;
+}
+
+.screen-editor__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.screen-editor__switch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+}
+
+.screen-editor__switch-text {
+  font-weight: 600;
+}
+
+.screen-editor__times {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.screen-editor__time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.screen-editor__editable:focus-visible,
+.screen-editor__row:focus-visible,
+.screen-editor__icon:focus-visible,
+.screen-editor__add:focus-visible,
+.screen-editor__kind:focus-visible,
+.screen-editor__course:focus-visible {
+  outline: 0.19rem solid var(--theme-accent);
+  outline-offset: 0.12rem;
+}
+
+.screen-editor__meal {
+  flex: 1 1 100%;
+  order: 3;
+}
+
+.screen-editor__time-field {
+  flex: 1;
+}
+
+/* Chained with the shared field class: the notes stylesheet styles that class later in order. */
+.screen-editor__time-button.native-datetime-field {
+  min-width: 7rem;
+  border-radius: 0.7rem;
+  background: var(--theme-surface);
+  min-height: 2.75rem;
+  padding-inline: 0.75rem;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.screen-editor__add-time {
+  justify-self: start;
+}
+
+.screen-editor__muted {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+.screen-editor__course {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.8rem;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__course-text {
+  flex: 1;
+}
+
+.screen-editor__options {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.screen-editor__option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.screen-editor__contact {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.screen-editor__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3rem;
+  border: 1.5px dashed var(--theme-border);
+  border-radius: 1rem;
+  color: var(--theme-accent);
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__add-glyph,
+.screen-editor__glyph {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.screen-editor__kinds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  animation: screen-editor-open var(--motion-base, 200ms) var(--motion-ease-out, ease-out);
+}
+
+.screen-editor__kind {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.65rem 0.3rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__kind:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.screen-editor__kind-glyph {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--theme-accent);
+}
+
+.screen-editor__kinds-close {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.screen-editor__ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.8rem;
+  margin: 0;
+  border: 1px dashed var(--theme-border);
+  border-radius: 1rem;
+  color: var(--theme-text-muted);
+  opacity: 0.7;
+}
+
+@media (width <= 30rem) {
+  .screen-editor__contact {
+    grid-template-columns: 1fr auto;
+  }
+
+  .screen-editor__frame {
+    padding-inline: 0.65rem;
+  }
+}
+
+.screen-editor__chips--set,
+.screen-editor__kinds--set {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Fields read as the patient's text with a pencil; a tap anywhere on the field edits it.
+   Chained with the shared field classes, which the base stylesheet styles later in order. */
+.screen-editor__input.ui-text-field__input,
+.screen-editor__input.ui-text-area__control {
+  padding-inline-end: 2.4rem;
+  border-color: transparent;
+  border-bottom-color: var(--theme-border);
+  border-radius: 0.6rem;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a59a86' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem top 0.75rem;
+  background-size: 1.05rem;
+  box-shadow: none;
+  transition:
+    background-color var(--motion-fast, 140ms) var(--motion-ease, ease),
+    border-color var(--motion-fast, 140ms) var(--motion-ease, ease);
+}
+
+.screen-editor__input.ui-text-field__input:hover,
+.screen-editor__input.ui-text-area__control:hover {
+  border-color: var(--theme-border);
+}
+
+.screen-editor__input.ui-text-field__input:focus,
+.screen-editor__input.ui-text-area__control:focus {
+  border-color: var(--theme-accent);
+  background-color: var(--theme-surface);
+  background-image: none;
+}
+
+/* The doctor's own part of the patient's screen (signature, phone, crisis lines): warm yellow. */
+.screen-editor__header--doctor {
+  padding: 0.6rem 0.7rem;
+  border: 1px dashed color-mix(in srgb, #d9a520 60%, var(--theme-border));
+  border-radius: 1rem;
+  background: color-mix(in srgb, #e8b931 14%, transparent);
+}
+
+.screen-editor__icon--doctor {
+  border-color: color-mix(in srgb, #d9a520 70%, var(--theme-border));
+  color: #c8901a;
+  background: color-mix(in srgb, #e8b931 18%, var(--theme-surface-raised));
+}
+
+.screen-editor__badge--doctor {
+  background: #d9a520;
+}

@@ -28,6 +28,7 @@ import { randomBytes, randomId, sha256, toBase64Url } from '@localmed/diary-sync
 import type { z } from 'zod';
 
 import { now } from './db';
+import { inviteCandidates } from './invites';
 import { sendPush, type Vapid } from './push';
 
 export interface AppConfig {
@@ -367,15 +368,23 @@ export function createApp(
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
     limit(`register:${input.email}`);
+    let inviteCode: string | undefined;
     if (config.signup === 'invite') {
       const invite = input.invite
-        ? db
-            .query<{ code: string; used_by: string | null }, [string]>(
-              'SELECT code, used_by FROM invites WHERE code = ?',
+        ? inviteCandidates(input.invite)
+            .map((code) =>
+              db
+                .query<{ code: string; used_by: string | null }, [string]>(
+                  'SELECT code, used_by FROM invites WHERE code = ?',
+                )
+                .get(code),
             )
-            .get(input.invite)
-        : null;
-      if (!invite || invite.used_by) throw new HttpError(403, 'Нужен действующий код приглашения.');
+            .find(Boolean)
+        : undefined;
+      if (!invite || invite.used_by) {
+        throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
+      }
+      inviteCode = invite.code;
     }
     if (doctorByEmail(input.email)) throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
     const id = randomId();
@@ -398,8 +407,8 @@ export function createApp(
         input.recovery.identityBlob,
         now(),
       );
-      if (config.signup === 'invite' && input.invite) {
-        db.query('UPDATE invites SET used_by = ? WHERE code = ?').run(id, input.invite);
+      if (inviteCode) {
+        db.query('UPDATE invites SET used_by = ? WHERE code = ?').run(id, inviteCode);
       }
     })();
     const row = doctorByEmail(input.email) as DoctorRow;

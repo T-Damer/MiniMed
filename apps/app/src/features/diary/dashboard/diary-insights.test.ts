@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   adherence,
+  alertCause,
   exportCsv,
   exportRows,
   fieldSeries,
@@ -9,7 +10,7 @@ import {
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { atTime } from '@/features/diary/diary-care';
-import { careInvitation, emptyCareDraft } from '@/features/diary/diary-care-draft';
+import { careInvitation, emptyCareDraft, newCareSection } from '@/features/diary/diary-care-draft';
 import { type DiaryEntry, parseDiaryEntry } from '@/features/diary/diary-model';
 
 const NOW = new Date(2026, 9, 21, 23, 0);
@@ -21,14 +22,14 @@ const invitation = (() => {
       id: 'patient0000000000001',
       draft: {
         ...emptyCareDraft(),
-        items: [
+        sections: [
           {
-            name: 'Сертралин',
+            ...newCareSection('drug'),
+            title: 'Сертралин',
             dose: '50 мг',
             times: [{ time: '08:00', meal: 'after' }],
-            asNeeded: false,
-            tip: '',
           },
+          ...emptyCareDraft().sections.slice(1),
         ],
       },
       doctor: 'Д-р',
@@ -108,6 +109,19 @@ describe('diary insights for the doctor', () => {
     expect(phq?.points[0]?.total).toBe(10);
     expect(phq?.points[0]?.max).toBe(27);
     expect(phq?.points[0]?.alerts.join(' ')).toContain('Пункт 9');
+    expect(phq?.points[0]?.alertDetails[0]?.message).toBeTruthy();
+  });
+
+  it('finds the answers behind an alert: the last alerting entry before it', async () => {
+    const series = await questionnaireSeries(invitation, entries);
+    const point = series[0]?.points[0];
+    if (!point) throw new Error('No questionnaire point.');
+    const cause = alertCause(series, new Date(Date.parse(point.at) + 30_000).toISOString());
+    expect(cause?.point.entryId).toBe(point.entryId);
+    expect(cause?.title).toBe('PHQ-9');
+    expect(alertCause(series, new Date(Date.parse(point.at) - 3_600_000).toISOString())).toBe(
+      undefined,
+    );
   });
 
   it('exports one row per entry; CSV quotes what needs quoting', () => {

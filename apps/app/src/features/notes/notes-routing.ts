@@ -12,8 +12,16 @@ export type NotesRoute =
       readonly episodeId?: string;
     }
   | { readonly kind: 'saved' }
-  /** Connected patient diaries (ADR-0026): the list, or one patient. */
-  | { readonly kind: 'diaries'; readonly patientId?: string }
+  /**
+   * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`), one patient, its
+   * patient view to edit (`screen`) or one day as the patient saw it (`day`).
+   */
+  | {
+      readonly kind: 'diaries';
+      readonly patientId?: string;
+      readonly view?: 'screen' | 'day';
+      readonly day?: string;
+    }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | {
       readonly kind: 'drug-interactions';
@@ -104,9 +112,17 @@ export function readNotesRoute(
   if (parts[1] === 'saved') return { kind: 'saved' };
   if (parts[1] === 'diaries') {
     const patientId = parts[2];
-    return patientId && /^[a-z0-9]{12,32}$/u.test(patientId) && parts.length === 3
-      ? { kind: 'diaries', patientId }
-      : { kind: 'diaries' };
+    if (patientId === 'new' && parts.length === 3) return { kind: 'diaries', patientId };
+    if (!patientId || !/^[a-z0-9]{12,32}$/u.test(patientId)) return { kind: 'diaries' };
+    if (parts.length === 3) return { kind: 'diaries', patientId };
+    if (parts[3] === 'screen' && parts.length === 4) {
+      return { kind: 'diaries', patientId, view: 'screen' };
+    }
+    const day = parts[4];
+    if (parts[3] === 'day' && day && /^\d{4}-\d{2}-\d{2}$/u.test(day) && parts.length === 5) {
+      return { kind: 'diaries', patientId, view: 'day', day };
+    }
+    return { kind: 'diaries', patientId };
   }
   if (parts[1] === 'vaccination') {
     const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
@@ -295,7 +311,11 @@ export function withNotesFullscreen(hash: string, fullscreen: boolean): string {
   return nextQuery ? `${path}?${nextQuery}` : path;
 }
 
-/** `#/notes/diaries` lists connected diaries; `#/notes/diaries/<id>` opens one patient. */
-export function diariesPath(patientId?: string): string {
-  return patientId ? `#/notes/diaries/${patientId}` : '#/notes/diaries';
+/**
+ * `#/notes/diaries` lists connected diaries; `#/notes/diaries/<id>` opens one patient,
+ * `…/<id>/screen` its patient view, `…/<id>/day/<YYYY-MM-DD>` one day as the patient saw it.
+ */
+export function diariesPath(patientId?: string, sub?: 'screen' | `day/${string}`): string {
+  if (!patientId) return '#/notes/diaries';
+  return sub ? `#/notes/diaries/${patientId}/${sub}` : `#/notes/diaries/${patientId}`;
 }

@@ -7,6 +7,7 @@ import {
   getModuleAutoUpdatesEnabled,
   getMotionSpeed,
   getRememberSearchMode,
+  getSoundsEnabled,
   getSoundVolume,
   getSplitNavigation,
   getToolAgeFilter,
@@ -21,6 +22,7 @@ import {
   setModuleAutoUpdatesEnabled,
   setMotionSpeed,
   setRememberSearchMode,
+  setSoundsEnabled,
   setSoundVolume,
   setSplitNavigation,
   setToolAgeFilter,
@@ -161,6 +163,18 @@ describe('app-preferences', () => {
     expect(getSplitNavigation()).toBe(true);
     expect(loadAppPreferences().vibrationEnabled).toBe(false);
     expect(listener).toHaveBeenCalledWith(expect.objectContaining({ splitNavigation: true }));
+  });
+
+  it('turns sounds off to zero and back on to the chosen or default volume', () => {
+    setSoundVolume(0.6);
+    setSoundsEnabled(true);
+    expect(getSoundVolume()).toBe(0.6);
+    setSoundsEnabled(false);
+    expect(getSoundsEnabled()).toBe(false);
+    expect(getSoundVolume()).toBe(0);
+    setSoundsEnabled(true);
+    expect(getSoundsEnabled()).toBe(true);
+    expect(getSoundVolume()).toBe(0.2);
   });
 
   it('persists search scope only when remember mode is enabled', () => {
