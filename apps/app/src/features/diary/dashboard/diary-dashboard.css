@@ -1037,21 +1037,32 @@
 .diary-limit__row {
   display: grid;
   gap: 0.5rem;
-}
-
-.diary-limit__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .diary-limit__label {
+  padding: 0;
   font-weight: var(--theme-weight-strong, 600);
 }
 
+.diary-limit__unit {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+/* «Тревожно выше» and «Тревожно ниже» side by side. */
+.diary-limit__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.6rem;
+}
+
 .diary-limit__field {
-  animation: diary-limit-in var(--motion-base) var(--motion-ease-out);
+  min-width: 0;
 }
 
 .diary-limit__error {
@@ -1063,13 +1074,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-}
-
-@keyframes diary-limit-in {
-  from {
-    opacity: 0;
-    transform: translateY(-0.25rem);
-  }
 }
 
 .diary-chart__head {

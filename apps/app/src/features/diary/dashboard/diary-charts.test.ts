@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import { chartSeries, DIARY_CHARTS } from '@/features/diary/dashboard/diary-charts';
 import type { DiaryEntry } from '@/features/diary/diary-model';
-import { MEASUREMENT_LIMITS } from '@/state/assessment-limits';
+import { MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 
 const entry = (at: string, values: DiaryEntry['values'], check?: string): DiaryEntry =>
   ({ id: at, at, values, ...(check ? { check } : {}) }) as DiaryEntry;
 
 describe('diary charts as data', () => {
-  it('declares unique charts whose red lines all exist', () => {
+  it('declares unique charts, each with named red lines the doctor can set', () => {
     expect(new Set(DIARY_CHARTS.map((chart) => chart.id)).size).toBe(DIARY_CHARTS.length);
     for (const chart of DIARY_CHARTS) {
-      for (const limit of chart.limits ?? []) expect(MEASUREMENT_LIMITS[limit.id]).toBeDefined();
+      expect(chart.limits?.length).toBeGreaterThan(0);
+      for (const limit of chart.limits ?? [])
+        expect(MEASUREMENT_LIMIT_LABEL[limit.id]).toBeTruthy();
     }
   });
 

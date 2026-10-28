@@ -41,7 +41,6 @@ import {
   exportCsv,
   exportRows,
   exportXlsx,
-  fieldSeries,
   medicineAdherence,
   type QuestionnaireSeries,
   questionnaireSeries,
@@ -67,7 +66,7 @@ import {
   heatParts,
 } from '@/features/diary/diary-care';
 import { type DiaryEntry, describeDiaryEntry } from '@/features/diary/diary-model';
-import { assessmentLimit, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
+import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 
 type Dialog =
   | 'pair'
@@ -96,7 +95,7 @@ function within(entries: readonly DiaryEntry[], days: number): DiaryEntry[] {
   return entries.filter((entry) => Date.parse(entry.at) >= since);
 }
 
-const MEASURED_VITALS = ['systolic', 'diastolic', 'pulse', 'spo2'] as const;
+const MEASURED_VITALS = ['systolic', 'diastolic', 'pulse', 'spo2', 'weight'] as const;
 const MEASURED_SCORES = ['wellbeing', 'mood'] as const;
 
 /** The red lines a declared chart draws, as the «Порог тревоги» dialog edits them. */
@@ -289,8 +288,15 @@ export function DiaryPatientPage(props: {
   /** The doctor's red lines for these measurements or questionnaires. */
   const limitsOf = (targets: readonly LimitTarget[]): TrendLimit[] =>
     targets.flatMap((target) => {
-      const limit = assessmentLimit(target.id, target.preset);
-      return limit ? [{ value: limit.value, label: `${target.label}: порог` }] : [];
+      const bounds = assessmentBounds(target.id, target.preset);
+      return [
+        ...(bounds.above === undefined
+          ? []
+          : [{ value: bounds.above, label: `${target.label}: выше ${bounds.above}` }]),
+        ...(bounds.below === undefined
+          ? []
+          : [{ value: bounds.below, label: `${target.label}: ниже ${bounds.below}` }]),
+      ];
     });
   const openLimit = (targets: readonly LimitTarget[]) => () => setDialog({ limit: targets });
   /** The latest answers raised the schema's alerts or crossed the red line: why, one tap away. */

@@ -1,7 +1,8 @@
 /**
  * The doctor's charts of a diary, declared as data (owner 2026-10-28: «schema» first, so the main
  * app's patient card can draw the same charts). A chart names its series by diary field (and
- * checkpoint, for morning versus evening), its red lines by limit id (`state/assessment-limits`)
+ * checkpoint, for morning versus evening), its red lines by limit id (`state/assessment-limits`;
+ * every chart has some, so the doctor can set «выше» and «ниже» for any value)
  * and its axis ranges; `TrendChart` renders any of them and the page never branches on a chart.
  * Questionnaire charts come from the questionnaire schemas instead (`questionnaireSeries`).
  */
@@ -61,6 +62,8 @@ export const DIARY_CHARTS: readonly DiaryChart[] = [
     id: 'weight',
     title: 'Вес, кг',
     series: [{ field: 'weight', label: 'Вес', color: '--theme-accent' }],
+    // No usual cut-off: the doctor sets the patient's own lines («выше», «ниже»).
+    limits: [{ id: 'weight', unit: 'кг' }],
   },
   {
     id: 'pressure',

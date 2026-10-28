@@ -111,8 +111,8 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   editing opens in sheets (Kobalte `TimeField`), questionnaires open as the patient fills them, rows
   can be ticked as a showcase (toast). Red lines: questionnaire presets come from their schema
   (`scoreScaleLimit`: first band with moderate attention — PHQ-9 10, GAD-7 10, Zung 48/40),
-  measurements from clinical cut-offs; the doctor sets their own per chart («Порог тревоги»,
-  pencil), and a filled bell opens why the latest questionnaire is worrying. Charts are declared
+  measurements from clinical cut-offs; for any value (every chart, weight included) the doctor
+  sets their own lines «выше» and «ниже» or hides a preset one («Порог тревоги», pencil), and a filled bell opens why the latest questionnaire is worrying. Charts are declared
   data (`diary-charts.ts`). Archived patients can be deleted (one or «Удалить все», owner only;
   server cascade). The heatmap filter is remembered per device (patient and doctor separately).
   Presence: `lastSeenAt`/`online` on the patient summary (online = a device request within 150 s;

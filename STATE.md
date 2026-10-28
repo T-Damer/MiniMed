@@ -178,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-28 claude-opus DIARY10: alert lines «выше» and «ниже» for any charted value (`AssessmentBounds`, storage `minimed.assessment-limits.v2`), weight chart limits, empty field hides a preset line; deployed, no release
 - 2026-10-28 claude-opus PATIENT-CREATE: patient quick-create sheet reuses app TextField/Button/cell styles (`PatientQuickCreate.css`); no release
 - 2026-10-28 claude-opus FORM-ZOOM: form reader zoom group as a rounded square concentric with its buttons; no release
 - 2026-10-28 claude-opus NEWS-PAPER: short news reader article on a `paper-sheet` with dialog grain, 48rem measure on wide screens; no release

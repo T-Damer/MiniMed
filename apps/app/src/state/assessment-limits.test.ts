@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { loadDiaryQuestionnaire } from '@/features/diary/diary-questionnaires';
 import {
-  assessmentLimit,
+  assessmentBounds,
   crossesLimit,
   isOwnLimit,
+  resetAssessmentLimit,
   scoreScaleLimit,
-  setAssessmentLimit,
+  setAssessmentBound,
 } from '@/state/assessment-limits';
 
 const memory = new Map<string, string>();
@@ -58,21 +59,38 @@ describe('assessment red lines', () => {
   });
 
   it('uses the clinical cut-offs for measurements, saturation worrying from below', () => {
+    expect(assessmentBounds('spo2')).toEqual({ below: 94 });
     expect(crossesLimit('spo2', 93)).toBe(true);
     expect(crossesLimit('spo2', 97)).toBe(false);
-    expect(assessmentLimit('unknown')).toBeUndefined();
+    expect(assessmentBounds('weight')).toEqual({});
   });
 
-  it('keeps the doctor’s level, hides a line set to null and resets to the default', () => {
-    setAssessmentLimit('pulse', 110);
-    expect(isOwnLimit('pulse')).toBe(true);
-    expect(crossesLimit('pulse', 105)).toBe(false);
-    setAssessmentLimit('pulse', null);
-    expect(assessmentLimit('pulse')).toBeUndefined();
-    setAssessmentLimit('pulse', undefined);
-    expect(assessmentLimit('pulse')?.value).toBe(100);
+  it('takes the doctor’s lines above and below for any value', () => {
+    setAssessmentBound('pulse', 'below', 50);
+    expect(assessmentBounds('pulse')).toEqual({ above: 100, below: 50 });
+    expect(crossesLimit('pulse', 45)).toBe(true);
+    expect(crossesLimit('pulse', 70)).toBe(false);
+    setAssessmentBound('weight', 'above', 90);
+    setAssessmentBound('weight', 'below', 60);
+    expect(crossesLimit('weight', 58)).toBe(true);
+    expect(crossesLimit('weight', 95)).toBe(true);
+    expect(isOwnLimit('weight')).toBe(true);
+  });
+
+  it('hides a preset line with null and returns to the presets', () => {
+    setAssessmentBound('pulse', 'above', null);
+    expect(assessmentBounds('pulse')).toEqual({});
+    expect(crossesLimit('pulse', 140)).toBe(false);
+    setAssessmentBound('pulse', 'above', undefined);
+    expect(assessmentBounds('pulse')).toEqual({ above: 100 });
     expect(isOwnLimit('pulse')).toBe(false);
-    setAssessmentLimit('phq-9', 12);
-    expect(assessmentLimit('phq-9', { value: 10, direction: 'above' })?.value).toBe(12);
+    setAssessmentBound('phq-9', 'above', 12);
+    setAssessmentBound('phq-9', 'below', 2);
+    expect(assessmentBounds('phq-9', { value: 10, direction: 'above' })).toEqual({
+      above: 12,
+      below: 2,
+    });
+    resetAssessmentLimit('phq-9');
+    expect(assessmentBounds('phq-9', { value: 10, direction: 'above' })).toEqual({ above: 10 });
   });
 });
