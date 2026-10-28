@@ -1,8 +1,13 @@
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { PatientAvatarPicker } from '@/components/PatientAvatarPicker';
+import { TextField } from '@/components/TextField';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import { createPatientInVault } from '@/state/patient-vault';
 import type { PatientAvatar } from '@/state/patientAvatar';
+
+import '@/components/PatientQuickCreate.css';
 
 export function PatientQuickCreate(props: {
   readonly initialName: string;
@@ -37,11 +42,21 @@ export function PatientQuickCreate(props: {
     }
   };
   return (
-    <fieldset class="patient-quick-create__create" aria-label="Добавить пациента">
-      <label class="patient-quick-create__label">
-        Имя или псевдоним
-        <input
+    <fieldset class="patient-quick-create" aria-label="Добавить пациента">
+      <div class="patient-quick-create__identity">
+        <PatientAvatarPicker
+          name={name()}
+          value={avatar()}
+          onBusyChange={setAvatarBusy}
+          onChange={(value) => {
+            setAvatar(value);
+          }}
+        />
+        <TextField
           class="patient-quick-create__name"
+          label="Имя или псевдоним"
+          placeholder="Например: Иванова А. К."
+          autocomplete="off"
           value={name()}
           onInput={(event) => setName(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -52,36 +67,33 @@ export function PatientQuickCreate(props: {
             }
           }}
         />
-      </label>
-      <PatientAvatarPicker
-        name={name()}
-        value={avatar()}
-        onBusyChange={setAvatarBusy}
-        onChange={(value) => {
-          setAvatar(value);
-        }}
-      />
-      <button
-        class="patient-quick-create__action"
-        type="button"
-        disabled={busy() || avatarBusy() || !name().trim()}
-        onClick={() => void create()}
-      >
-        {busy() ? 'Создаём…' : 'Создать пациента'}
-      </button>
-      <button
-        class="patient-quick-create__action"
-        type="button"
-        disabled={busy()}
-        onClick={props.onCancel}
-      >
-        Назад к списку
-      </button>
+      </div>
       <Show when={error()}>
         <p class="patient-quick-create__error" role="alert">
           {error()}
         </p>
       </Show>
+      <div class="patient-quick-create__actions">
+        <Button
+          type="button"
+          variant="icon"
+          class="patient-quick-create__back"
+          aria-label="Назад к списку"
+          title="Назад к списку"
+          icon={<AppGlyph name="caret-left" />}
+          disabled={busy()}
+          onClick={props.onCancel}
+        />
+        <Button
+          type="button"
+          variant="primary"
+          class="patient-quick-create__submit"
+          disabled={busy() || avatarBusy() || !name().trim()}
+          onClick={() => void create()}
+        >
+          {busy() ? 'Создаём…' : 'Создать пациента'}
+        </Button>
+      </div>
     </fieldset>
   );
 }

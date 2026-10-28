@@ -178,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-28 claude-opus PATIENT-CREATE: patient quick-create sheet reuses app TextField/Button/cell styles (`PatientQuickCreate.css`); no release
 - 2026-10-28 claude-opus FORM-ZOOM: form reader zoom group as a rounded square concentric with its buttons; no release
 - 2026-10-28 claude-opus NEWS-PAPER: short news reader article on a `paper-sheet` with dialog grain, 48rem measure on wide screens; no release
 - 2026-10-28 claude-opus DIARY9: patient screen editor = the patient's real screen (CareRow, heatmap, sections) with two-colour dashed frames + pencils, edit sheets, Kobalte TimeField, showcase ticks (toast), questionnaire preview; red lines from questionnaire schemas + doctor's own («Порог тревоги»), filled-bell warnings, charts as declared data (`diary-charts.ts`); delete archived patients («Удалить все»); remembered heatmap filter; presence (`lastSeenAt`/`online`, live SSE, green dot); doctor day view with patient spacing and header buttons; sheet-local Suspense (no page skeleton flash), position-keyed «⋯» menus; own-questionnaire builder header/naming/background + «Опросники» tab in diaries profile; profile `hiddenSettings`; AGENTS.md rules (schema first, editable previews, no «необязательно»); deployed, no release
