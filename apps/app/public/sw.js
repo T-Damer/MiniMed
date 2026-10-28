@@ -166,12 +166,27 @@ self.addEventListener('fetch', (event) => {
   else if (isOptional(key)) event.respondWith(serveRuntime(event, key, request));
 });
 
-// Connected diary (ADR-0026): pushes carry no content; the text is fixed here so nothing about a
-// patient passes through the push service. A tap opens the doctor's diaries.
+// Connected diary (ADR-0026): a push says only what happened (`{ kind }`, encrypted for this
+// browser; an old subscription sends an empty push), and the text is fixed here, so nothing about
+// a patient passes through the push service. A tap opens the doctor's diaries.
+const DIARY_PUSH_TEXT = {
+  alert: 'Срочная отметка пациента. Откройте, чтобы посмотреть.',
+  withdrawn: 'Пациент отозвал согласие на наблюдение.',
+  invite: 'Вас пригласили вести пациента.',
+};
+
 self.addEventListener('push', (event) => {
+  let kind;
+  try {
+    kind = event.data?.json()?.kind;
+  } catch {
+    kind = undefined;
+  }
   event.waitUntil(
     self.registration.showNotification('Дневники пациентов', {
-      body: 'Срочная отметка или новое приглашение. Откройте, чтобы посмотреть.',
+      body:
+        DIARY_PUSH_TEXT[kind] ??
+        'Срочная отметка или новое приглашение. Откройте, чтобы посмотреть.',
       tag: 'minimed-diary',
       renotify: true,
       icon: 'apple-touch-icon.png',

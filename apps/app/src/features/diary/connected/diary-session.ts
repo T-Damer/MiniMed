@@ -3,6 +3,7 @@
  * signature, decrypts with the epoch key, and seals and pushes local changes as the next revision.
  * Used by the patient's phone and by the doctor's dashboard alike.
  */
+import type { DiaryRecordsNotice } from '@localmed/contracts';
 import { openRecord, sealRecord, verifyRecord } from '@localmed/diary-sync';
 
 import {
@@ -105,8 +106,10 @@ export class DiarySession {
    * took, or a newer epoch) is resolved by refreshing keys, pulling and retrying once with fresh
    * numbers; what that pull brought is returned so the caller can apply it.
    */
+  /** `notice`: what the patient's phone is told (a doctor's plan, tip or correction). */
   async push(
     items: readonly { readonly id: string; readonly payload: unknown }[],
+    notice?: DiaryRecordsNotice,
   ): Promise<readonly DiaryRecordRevision[]> {
     const pulled: DiaryRecordRevision[] = [];
     if (!items.length) return pulled;
@@ -131,7 +134,12 @@ export class DiarySession {
       );
       try {
         for (let start = 0; start < envelopes.length; start += 200) {
-          await diaryRecords.push(this.api, this.patientId, envelopes.slice(start, start + 200));
+          await diaryRecords.push(
+            this.api,
+            this.patientId,
+            envelopes.slice(start, start + 200),
+            notice,
+          );
         }
         const revs = { ...this.state.revs };
         for (const envelope of envelopes) revs[envelope.id] = envelope.rev;

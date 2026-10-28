@@ -185,6 +185,12 @@ export function DiaryDashboard(props: {
       diaries.disconnect();
     };
     setWorkspace(diaries);
+    // Allowed on an earlier visit: re-send the subscription with its payload keys, no prompt.
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      void enableDoctorPush(next).then(setPushState, (cause: unknown) => {
+        console.warn('Дневники: подписка на уведомления не обновлена', cause);
+      });
+    }
     diaries
       .refresh()
       .then(() => diaries.connectLive())

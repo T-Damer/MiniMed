@@ -10,11 +10,13 @@ import {
   openPairingKeys,
   openRecord,
   publicIdentity,
+  randomBytes,
   randomId,
   sealIdentity,
   sealPairingKeys,
   sealRecord,
   sha256,
+  toBase64Url,
   unwrapDataKey,
   verifyRecord,
   wrapDataKey,
@@ -23,6 +25,7 @@ import {
 import { createApp } from './app';
 import { openDatabase } from './db';
 import { loadVapid } from './push';
+import { sendDueReminders } from './reminders';
 
 async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number) {
   const db = openDatabase(':memory:');
@@ -448,6 +451,149 @@ describe('diary server', () => {
       db.query<{ at: string }, []>('SELECT MAX(last_seen_at) AS at FROM devices').get()?.at,
     );
     await reader.cancel();
+  });
+
+  it('stores only reminder moments and pushes each once, with kinds and no content', async () => {
+    const { db, call } = await setup('open');
+    const owner = await register(call, 'remind@clinic.ru', 'Д-р Петрова');
+    expect((await call('GET', '/api/info')).body).toEqual({ signup: 'open' });
+    const patientId = randomId();
+    const key = newDataKey();
+    const ownerPublic = await publicIdentity(owner.identity);
+    await call(
+      'POST',
+      '/api/patients',
+      {
+        id: patientId,
+        key: {
+          epoch: 1,
+          recipient: `d:${owner.id}`,
+          wrapped: await wrapDataKey(key, ownerPublic.wrap),
+        },
+      },
+      owner.token,
+    );
+    const secret = newPairingSecret();
+    await call(
+      'POST',
+      `/api/patients/${patientId}/pairings`,
+      {
+        secretHash: await sha256(secret),
+        keys: await sealPairingKeys(new Map([[1, key]]), secret),
+      },
+      owner.token,
+    );
+    const paired = await call('POST', '/api/pair', {
+      patientId,
+      secret,
+      identity: await publicIdentity(await generateIdentity()),
+    });
+    const deviceToken = paired.body['token'] as string;
+    const deviceId = paired.body['deviceId'] as string;
+
+    // Only a doctor's own phone may set reminders; the list replaces the earlier one.
+    const soon = new Date(Date.now() + 60_000).toISOString();
+    const later = new Date(Date.now() + 3_600_000).toISOString();
+    const past = new Date(Date.now() - 60_000).toISOString();
+    expect((await call('PUT', '/api/device/reminders', { at: [soon] }, owner.token)).status).toBe(
+      403,
+    );
+    const stored = await call(
+      'PUT',
+      '/api/device/reminders',
+      { at: [soon, later, later, past] },
+      deviceToken,
+    );
+    expect(stored.body).toEqual({ count: 2 });
+    expect(
+      (await call('PUT', '/api/device/reminders', { at: ['08:00'] }, deviceToken)).status,
+    ).toBe(400);
+
+    // The phone's browser subscribes with its payload keys.
+    const browser = (await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
+      'deriveBits',
+    ])) as CryptoKeyPair;
+    const p256dh = toBase64Url(
+      new Uint8Array(await crypto.subtle.exportKey('raw', browser.publicKey)),
+    );
+    await call(
+      'POST',
+      '/api/push/subscriptions',
+      {
+        endpoint: 'https://push.example/phone',
+        keys: { p256dh, auth: toBase64Url(randomBytes(16)) },
+      },
+      deviceToken,
+    );
+    await call(
+      'POST',
+      '/api/push/subscriptions',
+      { endpoint: 'https://push.example/doctor' },
+      owner.token,
+    );
+
+    const sent: { url: string; headers: Headers; size: number }[] = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+      sent.push({
+        url: String(input),
+        headers: new Headers(init?.headers),
+        size: init?.body ? (init.body as Uint8Array).length : 0,
+      });
+      return new Response(null, { status: 201 });
+    }) as typeof fetch;
+    try {
+      const vapid = await loadVapid(db, 'mailto:test@example.org');
+      // Not due yet; then due; then gone (sent once).
+      expect(sendDueReminders(db, vapid, () => undefined)).toBe(0);
+      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(soon) + 1000)).toBe(1);
+      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(soon) + 2000)).toBe(0);
+      // A reminder missed by more than the grace period is dropped, not sent late.
+      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(later) + 3_600_000)).toBe(0);
+      expect(db.query('SELECT COUNT(*) AS n FROM reminders').get()).toEqual({ n: 0 });
+      await Bun.sleep(20);
+      expect(sent).toHaveLength(1);
+      expect(sent[0]?.url).toBe('https://push.example/phone');
+      expect(sent[0]?.headers.get('Content-Encoding')).toBe('aes128gcm');
+      expect(sent[0]?.headers.get('TTL')).toBe('1200');
+      expect(sent[0]?.size).toBeGreaterThan(86);
+
+      // A doctor's tip: the phone hears «tip»; the doctor's own old subscription gets nothing.
+      const tip = await sealRecord(
+        { patientId, id: 'tip-1', rev: 1, epoch: 1, author: `d:${owner.id}` },
+        { kind: 'tip' },
+        key,
+        owner.identity.sign.privateKey,
+      );
+      expect(
+        (
+          await call(
+            'POST',
+            `/api/patients/${patientId}/records`,
+            { records: [tip], notice: 'tip' },
+            owner.token,
+          )
+        ).status,
+      ).toBe(201);
+      // The doctor's subscription has no keys: an urgent mark reaches it as an empty push.
+      await call('POST', '/api/device/alerts', {}, deviceToken);
+      await Bun.sleep(20);
+      // Encrypting takes longer than an empty push, so the order is not fixed.
+      expect(sent.map((one) => one.url).sort()).toEqual([
+        'https://push.example/doctor',
+        'https://push.example/phone',
+        'https://push.example/phone',
+      ]);
+      expect(sent.find((one) => one.url.endsWith('/doctor'))?.size).toBe(0);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+    // A phone whose patient withdrew keeps no reminders.
+    await call('PUT', '/api/device/reminders', { at: [later] }, deviceToken);
+    await call('DELETE', '/api/device', undefined, deviceToken);
+    const vapid = await loadVapid(db, 'mailto:test@example.org');
+    expect(sendDueReminders(db, vapid, () => undefined, Date.parse(later) + 1000)).toBe(0);
+    expect(deviceId).toBeTruthy();
   });
 
   it('asks for an invite when sign-up is closed and resets a password with the recovery code', async () => {

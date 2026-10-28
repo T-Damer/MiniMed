@@ -96,6 +96,17 @@ const MIGRATIONS: readonly string[] = [
     created_at TEXT NOT NULL
   );
   `,
+  // 2: payload keys of push subscriptions; reminder moments of patients' phones (times only).
+  `
+  ALTER TABLE push_subscriptions ADD COLUMN p256dh TEXT;
+  ALTER TABLE push_subscriptions ADD COLUMN auth TEXT;
+  CREATE TABLE reminders (
+    device_id TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
+    at TEXT NOT NULL,
+    PRIMARY KEY (device_id, at)
+  );
+  CREATE INDEX reminders_at ON reminders (at);
+  `,
 ];
 
 export function openDatabase(path: string): Database {

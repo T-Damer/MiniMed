@@ -164,8 +164,32 @@ export const DiaryPairResponseSchema = z.object({
   keys: sealed,
 });
 
+/**
+ * What a push tells the device, inside the payload encrypted for its browser (RFC 8291): the kind
+ * of event and, for a reminder, its moment. Never a name, a medicine or a value (ADR-0026).
+ */
+export const DIARY_PUSH_KINDS = [
+  'plan',
+  'tip',
+  'correction',
+  'reminder',
+  'alert',
+  'withdrawn',
+  'invite',
+] as const;
+export const DiaryPushPayloadSchema = z.object({
+  kind: z.enum(DIARY_PUSH_KINDS),
+  /** The reminder's moment (ISO). */
+  at: z.string().datetime().optional(),
+});
+export type DiaryPushPayload = z.infer<typeof DiaryPushPayloadSchema>;
+/** What a doctor's records change for the patient, so the patient's notification can say it. */
+export const DiaryRecordsNoticeSchema = z.enum(['plan', 'tip', 'correction']);
+export type DiaryRecordsNotice = z.infer<typeof DiaryRecordsNoticeSchema>;
+
 export const DiaryRecordsPushSchema = z.object({
   records: z.array(DiaryEnvelopeSchema).min(1).max(200),
+  notice: DiaryRecordsNoticeSchema.optional(),
 });
 export const DiaryRecordsPushResponseSchema = z.object({ seqs: z.array(z.number().int()) });
 export const DiaryRecordsPageSchema = z.object({
@@ -225,7 +249,24 @@ export const DiaryPushSubscriptionSchema = z.object({
     .url()
     .max(1000)
     .refine((url) => url.startsWith('https://'), 'https only'),
+  /** The browser's payload keys (`PushSubscription.toJSON().keys`); without them pushes are empty. */
+  keys: z.object({ p256dh: base64Url.max(120), auth: base64Url.max(40) }).optional(),
 });
+
+/**
+ * Dose and checkpoint reminders of a patient's phone: only the moments, computed on the phone for
+ * the next days (the server never sees the plan). Each `PUT` replaces the phone's list.
+ */
+export const DIARY_REMINDER_DAYS = 14;
+export const DIARY_REMINDER_MAX = 400;
+/** A reminder the server could not send this long after its moment is dropped. */
+export const DIARY_REMINDER_GRACE_MS = 20 * 60_000;
+export const DiaryRemindersSchema = z.object({
+  at: z.array(z.string().datetime()).max(DIARY_REMINDER_MAX),
+});
+
+/** What the service tells a client before sign-in. */
+export const DiaryServerInfoSchema = z.object({ signup: z.enum(['open', 'invite']) });
 
 export const DiaryPushKeySchema = z.object({ publicKey: base64Url.nullable() });
 

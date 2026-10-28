@@ -17,10 +17,12 @@ import {
   DiaryPreloginResponseSchema,
   type DiaryPublicIdentity,
   DiaryPushKeySchema,
+  type DiaryRecordsNotice,
   DiaryRecordsPageSchema,
   DiaryRecoverFetchResponseSchema,
   type DiaryRegisterRequest,
   type DiaryRole,
+  DiaryServerInfoSchema,
   type DiarySessionResponse,
   DiarySessionResponseSchema,
   type DiaryStoredEnvelope,
@@ -179,8 +181,16 @@ export const diaryPatients = {
 export const diaryRecords = {
   page: (api: DiaryApi, patientId: string, after: number) =>
     api.call('GET', `/api/patients/${patientId}/records?after=${after}`, DiaryRecordsPageSchema),
-  push: (api: DiaryApi, patientId: string, records: readonly DiaryEnvelope[]) =>
-    api.call('POST', `/api/patients/${patientId}/records`, Seqs, { records }),
+  push: (
+    api: DiaryApi,
+    patientId: string,
+    records: readonly DiaryEnvelope[],
+    notice?: DiaryRecordsNotice,
+  ) =>
+    api.call('POST', `/api/patients/${patientId}/records`, Seqs, {
+      records,
+      ...(notice ? { notice } : {}),
+    }),
 };
 
 export const diaryDevice = {
@@ -199,8 +209,22 @@ export const diaryAlerts = {
 
 export const diaryPush = {
   key: (api: DiaryApi) => api.call('GET', '/api/push/key', DiaryPushKeySchema),
-  subscribe: (api: DiaryApi, endpoint: string) =>
-    api.call('POST', '/api/push/subscriptions', Ok, { endpoint }),
+  /** The subscription with its payload keys, so pushes can say what happened (still no content). */
+  subscribe: (api: DiaryApi, subscription: PushSubscription) => {
+    const keys = subscription.toJSON().keys;
+    return api.call('POST', '/api/push/subscriptions', Ok, {
+      endpoint: subscription.endpoint,
+      ...(keys?.['p256dh'] && keys['auth']
+        ? { keys: { p256dh: keys['p256dh'], auth: keys['auth'] } }
+        : {}),
+    });
+  },
+  /** The phone's next reminder moments (ISO), replacing its earlier list. */
+  reminders: (api: DiaryApi, at: readonly string[]) =>
+    api.call('PUT', '/api/device/reminders', z.object({ count: z.number().int() }), { at }),
 };
+
+/** Sign-up mode of the service, before an account exists. */
+export const diaryInfo = (api: DiaryApi) => api.call('GET', '/api/info', DiaryServerInfoSchema);
 
 export type { DiaryStoredEnvelope };

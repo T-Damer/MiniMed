@@ -1,4 +1,4 @@
-import { createSignal, type JSX, Match, Show, Switch } from 'solid-js';
+import { createResource, createSignal, type JSX, Match, Show, Switch } from 'solid-js';
 
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
@@ -9,6 +9,7 @@ import {
   recoverAccount,
   signIn,
   signUp,
+  signUpMode,
 } from '@/features/diary/connected/doctor-account';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 
@@ -56,6 +57,13 @@ export function DoctorSignIn(props: {
   const [error, setError] = createSignal('');
   const [copied, setCopied] = createSignal(false);
   const [recovery, setRecovery] = createSignal<{ code: string; session: DoctorSession }>();
+  // Open sign-up needs no invite code; while unknown (offline) the field stays, as before.
+  const [signup] = createResource(() =>
+    signUpMode().catch((cause: unknown) => {
+      console.warn('Дневники: режим регистрации не получен', cause);
+      return 'invite' as const;
+    }),
+  );
 
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
@@ -149,12 +157,14 @@ export function DoctorSignIn(props: {
                   value={name()}
                   onInput={(event) => setName(event.currentTarget.value)}
                 />
-                <TextField
-                  label="Код приглашения"
-                  placeholder="Из письма или сообщения"
-                  value={invite()}
-                  onInput={(event) => setInvite(event.currentTarget.value)}
-                />
+                <Show when={signup.latest !== 'open'}>
+                  <TextField
+                    label="Код приглашения"
+                    placeholder="Из письма или сообщения"
+                    value={invite()}
+                    onInput={(event) => setInvite(event.currentTarget.value)}
+                  />
+                </Show>
               </Show>
               <Show when={mode() === 'recover'}>
                 <TextField

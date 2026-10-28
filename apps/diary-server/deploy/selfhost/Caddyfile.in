@@ -1,0 +1,27 @@
+# Managed by minimed-diary install.sh — re-running it rewrites this file.
+# TLS for the diary service; Let's Encrypt certificates are automatic (ports 80 and 443 must reach
+# this server, and an A record for __DOMAIN__ must point at it). No CDN or proxy in front of patients.
+__GLOBAL__
+__DOMAIN__ {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8790 {
+		# Live updates (server-sent events) must not be buffered.
+		flush_interval -1
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	log {
+		# Paths only; Caddy does not log bodies. Query strings may hold the live-stream token.
+		format filter {
+			wrap console
+			fields {
+				request>uri query {
+					delete token
+				}
+				request>headers>Authorization delete
+			}
+		}
+	}
+}

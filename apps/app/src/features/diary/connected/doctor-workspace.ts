@@ -9,6 +9,7 @@ import type {
   DiaryPatientDetail,
   DiaryPatientSummary,
   DiaryPresenceEvent,
+  DiaryRecordsNotice,
   DiaryRole,
   DiaryWrappedKey,
 } from '@localmed/contracts';
@@ -39,6 +40,22 @@ import { type DoctorSession, doctorApi } from '@/features/diary/connected/doctor
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
+
+/**
+ * What a new plan tells the patient's phone: «tip» when it only adds tips to the plan the phone
+ * has, otherwise «plan». The text of the tip never leaves the encrypted record.
+ */
+export function planNotice(
+  before: DiaryInvitation | undefined,
+  after: DiaryInvitation,
+): DiaryRecordsNotice {
+  if (!before) return 'plan';
+  const known = new Set((before.tips ?? []).map((tip) => tip.id));
+  const added = (after.tips ?? []).some((tip) => !known.has(tip.id));
+  const rest = ({ tips: _tips, issuedAt: _issued, ...other }: DiaryInvitation) =>
+    JSON.stringify(other);
+  return added && rest(before) === rest(after) ? 'tip' : 'plan';
+}
 
 export interface DoctorPatient {
   readonly summary: DiaryPatientSummary;
@@ -214,14 +231,16 @@ export class DoctorDiaries {
     this.events = undefined;
   }
 
+  /** `notice`: what the patient's phone is told; absent, the write is silent (a profile edit). */
   private async write(
     patientId: string,
     items: readonly { readonly id: string; readonly payload: unknown }[],
+    notice?: DiaryRecordsNotice,
   ): Promise<void> {
     const entry = this.entries.get(patientId);
     if (!entry) throw new Error('Пациент не найден.');
     const session = await this.sessionFor(entry.summary);
-    const pulled = await session.push(items);
+    const pulled = await session.push(items, notice);
     const after = await session.pull();
     this.entries.set(patientId, {
       ...entry,
@@ -251,8 +270,14 @@ export class DoctorDiaries {
     return id;
   }
 
+  /** A new plan; the patient hears «tip» when the change only adds tips, otherwise «plan». */
   writePlan(patientId: string, invitation: DiaryInvitation): Promise<void> {
-    return this.write(patientId, [{ id: PLAN_RECORD, payload: { kind: 'plan', invitation } }]);
+    const before = this.entries.get(patientId)?.replica.invitation;
+    return this.write(
+      patientId,
+      [{ id: PLAN_RECORD, payload: { kind: 'plan', invitation } }],
+      planNotice(before, invitation),
+    );
   }
 
   writeProfile(patientId: string, profile: DiaryProfile): Promise<void> {
@@ -263,16 +288,24 @@ export class DoctorDiaries {
 
   /** A correction: a new revision signed by the doctor; the patient sees it marked. */
   correctEntry(patientId: string, entry: DiaryEntry): Promise<void> {
-    return this.write(patientId, [
-      {
-        id: entryRecordId(entry.id),
-        payload: { kind: 'entry', entry: { ...entry, corrected: true } },
-      },
-    ]);
+    return this.write(
+      patientId,
+      [
+        {
+          id: entryRecordId(entry.id),
+          payload: { kind: 'entry', entry: { ...entry, corrected: true } },
+        },
+      ],
+      'correction',
+    );
   }
 
   deleteEntry(patientId: string, entryId: string): Promise<void> {
-    return this.write(patientId, [{ id: entryRecordId(entryId), payload: { kind: 'deleted' } }]);
+    return this.write(
+      patientId,
+      [{ id: entryRecordId(entryId), payload: { kind: 'deleted' } }],
+      'correction',
+    );
   }
 
   /** A one-time code for the patient's phone, valid 72 hours. */

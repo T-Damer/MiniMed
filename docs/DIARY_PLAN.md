@@ -1,10 +1,13 @@
 # Connected patient diary — plan
 
-- Status: **D1–D3 implemented, D4 partly** (2026-10-27): offline day page (DIARY5), the
-  end-to-end encrypted sync service, doctor accounts, live sync, the doctor dashboard with charts,
-  curators and key rotation, urgent alerts, content-free push, export, `?profile=diaries`
-  (DIARY6). Not done: deployment (VM, DNS), dose reminders by push, faculty self-host package,
-  ЕСИА/МИС route. Running and deploying: [DIARY_SERVICE.md](DIARY_SERVICE.md).
+- Status: **D1–D4 implemented except the ЕСИА/МИС route** (2026-10-28): offline day page
+  (DIARY5), the end-to-end encrypted sync service, doctor accounts, live sync, the doctor dashboard
+  with charts, curators and key rotation, urgent alerts, content-free push, export,
+  `?profile=diaries` (DIARY6), the pilot on `med.1damer.com` (2026-10-27), and D4 (DIARY11): dose
+  and checkpoint reminders by push with «Принял» on Android, the patient told what the doctor
+  changed (plan, tip, correction), open doctor sign-up for the prototype, the faculty self-host
+  package ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)). Running and deploying:
+  [DIARY_SERVICE.md](DIARY_SERVICE.md).
   Owner request 2026-10-27 (a psychiatric faculty asked for a «separate diary program»: doctors now
   follow patients through messengers).
 - Architecture decision: [ADR-0026](adr/0026-connected-diary-service.md) (proposed).
@@ -207,7 +210,7 @@ Research of 2026-10-27 (sources in the consent drafts):
 | D1 | Format v3 + patient «Сегодня» screen: schedules, dose checklist, after-dose sheet, vitals preset, checkpoints, notes, heatmap + day back-fill, questionnaires, contacts, crisis screen, consent screens, patient accent and shell precache | the whole patient flow works offline with the existing QR transport; e2e at 390 px light/dark, Chromium + WebKit |
 | D2 | `packages/diary-sync` + `apps/diary-server`: doctor accounts (invite), keys and recovery code, pairing by QR, record sync with revisions, curators and roles, key rotation, alerts with Web Push to doctors, consent withdrawal | two doctors and one patient in three browser contexts: pairing, live sync, role enforcement, removal + rotation, alert push; server sees no plaintext (test inspects the DB) |
 | D3 | Doctor dashboard: list, patient page with charts, corrections, tips with read state, one-screen composer, curators sheet, CSV/XLSX | a doctor runs a week of a test patient end to end on a phone and a laptop |
-| D4 | Later: dose reminders by server push (times only) with Android notification actions; patient push for new tips; faculty self-host package; open sign-up after the legal model; route (b) ЕСИА/МИС | — |
+| D4 | Dose reminders by server push (times only) with Android notification actions; patient push for new tips; faculty self-host package; open sign-up; route (b) ЕСИА/МИС | Done 2026-10-28 except ЕСИА/МИС: reminders and push kinds (server tests incl. the RFC 8291 vector, reminder schedule tests, a paired phone in the browser), self-host package built and started locally (`install.sh` not yet run on a Linux server). Open sign-up: owner 2026-10-28, the pilot is a prototype with students and stable patients, so the legal model does not hold it back. Not tested on a real Android/iPhone notification yet |
 
 ## Open questions
 

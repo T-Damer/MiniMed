@@ -1,0 +1,33 @@
+# /etc/systemd/system/minimed-diary.service — the connected diary service on a faculty server.
+# Installed by install.sh from the self-host package (docs/DIARY_SELFHOST.md). The pilot uses
+# ../minimed-diary.service instead.
+#
+# /opt/minimed-diary/current is a symlink to the active release (install.sh switches it on update and
+# rollback). Settings come from /etc/minimed-diary/diary.env (written by install.sh) and the optional
+# /etc/minimed-diary/diary.local.env (yours, e.g. DIARY_CORS_ORIGINS; install.sh never touches it).
+[Unit]
+Description=MiniMed connected diary service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=minimed
+Group=minimed
+WorkingDirectory=/opt/minimed-diary/current
+Environment=DIARY_HOST=127.0.0.1
+Environment=DIARY_PORT=8790
+Environment=DIARY_DB=/var/lib/minimed-diary/diary.db
+Environment=DIARY_STATIC=/opt/minimed-diary/current/app
+EnvironmentFile=/etc/minimed-diary/diary.env
+EnvironmentFile=-/etc/minimed-diary/diary.local.env
+ExecStart=/usr/local/bin/bun /opt/minimed-diary/current/apps/diary-server/src/main.ts
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/minimed-diary
+
+[Install]
+WantedBy=multi-user.target

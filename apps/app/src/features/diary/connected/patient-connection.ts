@@ -32,6 +32,10 @@ import {
   type Keyring,
   type SessionState,
 } from '@/features/diary/connected/diary-session';
+import {
+  pendingReminderActions,
+  writeReminderNotices,
+} from '@/features/diary/connected/reminder-cache';
 import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
   type DiaryEntry,
@@ -39,6 +43,12 @@ import {
   parseDiaryEntry,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
+import {
+  applyReminderAction,
+  reminderMoments,
+  reminderNotices,
+  reminderSlots,
+} from '@/features/diary/diary-reminders';
 import { type DiaryStore, withEntry, withoutEntry } from '@/features/diary/diary-storage';
 
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
@@ -79,6 +89,17 @@ interface StoredConnection {
   readonly pendingAlerts: number;
   readonly lastSyncAt?: string;
   readonly ended?: boolean;
+  /** Dose and checkpoint reminders by push (on once notifications are allowed). */
+  readonly reminders?: boolean;
+  /** Medicine names in reminder texts (off: «Приём лекарств», for the lock screen). */
+  readonly reminderNames?: boolean;
+  /** The moments the server has, joined, so an unchanged list is not sent again. */
+  readonly remindersSent?: string;
+}
+
+export interface ReminderSettings {
+  readonly on: boolean;
+  readonly names: boolean;
 }
 
 export type SyncPhase = 'idle' | 'syncing' | 'offline' | 'error' | 'ended';
@@ -345,6 +366,8 @@ export class PatientConnection {
         () => this.refreshKeys(),
       );
     let session = open(this.connection.session);
+    // Notices first: they are local and must follow a tick even when offline.
+    const moments = await this.refreshNotices();
     try {
       let pulled = await session.pull();
       if (pulled.refused > 0) {
@@ -364,6 +387,13 @@ export class PatientConnection {
       while (this.connection.pendingAlerts > 0) {
         await diaryDevice.alert(this.api);
         this.save({ pendingAlerts: this.connection.pendingAlerts - 1 });
+      }
+      // The plan may have changed with this pull: work the moments out again before sending.
+      const fresh = this.connection.reminders ? await this.refreshNotices() : moments;
+      const joined = fresh.join(',');
+      if (joined !== (this.connection.remindersSent ?? '')) {
+        await diaryPush.reminders(this.api, fresh);
+        this.save({ remindersSent: joined });
       }
       this.save({ lastSyncAt: new Date().toISOString() });
       return this.status();
@@ -424,8 +454,70 @@ export class PatientConnection {
         userVisibleOnly: true,
         applicationServerKey: fromBase64Url(publicKey),
       }));
-    await diaryPush.subscribe(this.api, subscription.endpoint);
+    await diaryPush.subscribe(this.api, subscription);
+    if (this.connection.reminders === undefined) this.save({ reminders: true });
+    void this.sync();
     return 'on';
+  }
+
+  /**
+   * Re-sends an existing subscription with its payload keys (subscriptions saved before reminders
+   * had none). Asks nothing: without a granted permission it does nothing.
+   */
+  async refreshPush(): Promise<boolean> {
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) return false;
+    if (Notification.permission !== 'granted') return false;
+    const registration = await navigator.serviceWorker.getRegistration('./');
+    const subscription = await registration?.pushManager.getSubscription();
+    if (!subscription) return false;
+    await diaryPush.subscribe(this.api, subscription);
+    return true;
+  }
+
+  reminderSettings(): ReminderSettings {
+    return {
+      on: this.connection.reminders === true,
+      names: this.connection.reminderNames === true,
+    };
+  }
+
+  /** Switches reminders or their medicine names; the next sync tells the server. */
+  setReminders(patch: Partial<ReminderSettings>): Promise<SyncStatus> {
+    this.save({
+      ...(patch.on === undefined ? {} : { reminders: patch.on }),
+      ...(patch.names === undefined ? {} : { reminderNames: patch.names }),
+    });
+    return this.sync();
+  }
+
+  /** Writes the worker's notices for the coming moments; returns the moments (none when off). */
+  private async refreshNotices(): Promise<string[]> {
+    const results = this.store.read(this.patientId);
+    const slots =
+      this.connection.reminders && results
+        ? reminderSlots(results.invitation, results.entries)
+        : [];
+    await writeReminderNotices(
+      this.patientId,
+      reminderNotices(slots, this.connection.reminderNames === true),
+    );
+    return reminderMoments(slots);
+  }
+
+  /**
+   * Applies the «Принял» pressed in notifications while the diary was closed. Returns whether
+   * anything was marked (the caller reloads and syncs).
+   */
+  async applyReminderActions(): Promise<boolean> {
+    const pending = await pendingReminderActions(this.patientId);
+    if (!pending.actions.length) return false;
+    let results = this.store.read(this.patientId);
+    if (results) {
+      for (const action of pending.actions) results = applyReminderAction(results, action);
+      this.store.save(results);
+    }
+    await pending.clear();
+    return true;
   }
 
   /** An urgent answer: sent now if online, otherwise with the next sync. */

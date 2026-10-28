@@ -37,7 +37,7 @@ no plaintext), plus the vitest suites under `packages/diary-sync` and `apps/app/
 | `DIARY_HOST` / `DIARY_PORT` | `127.0.0.1` / `8790` | listen address (8787 is taken by OrbStack on the owner's Mac) |
 | `DIARY_DB` | `data/diary-server/diary.db` | SQLite file (WAL) |
 | `DIARY_STATIC` | — | built app (`apps/app/dist`) to serve next to the API |
-| `DIARY_SIGNUP` | `invite` | `open` lets any doctor register; `invite` needs a code from `bun run --cwd apps/diary-server invite` |
+| `DIARY_SIGNUP` | `invite` | `open` lets any doctor register (the pilot since 2026-10-28; at most 12 new accounts a minute); `invite` needs a code from `bun run --cwd apps/diary-server invite`. `GET /api/info` tells the sign-in form, which then hides the code field |
 | `DIARY_PUSH_SUBJECT` | `mailto:admin@1damer.com` | VAPID contact |
 | `DIARY_CORS_ORIGINS` | — | comma-separated origins allowed cross-origin (the Android app, which needs `VITE_DIARY_SERVER` at build time) |
 
@@ -50,6 +50,8 @@ Live since 2026-10-27: VM `minimed-diary` at `51.250.93.197` — day-to-day mana
 `ru-central1-b` refused new VMs and the folder has no SSD quota, hence a network HDD), cloud-init
 from `apps/diary-server/deploy/cloud-init.yaml`, code by `scripts/diary-deploy.sh`. The steps below
 describe the same setup by hand.
+
+A faculty that runs its own server uses the self-host package instead: [DIARY_SELFHOST.md](DIARY_SELFHOST.md).
 
 1. Ubuntu 24.04 VM; install Bun (repository-pinned version) and Caddy; user `minimed`;
    `/var/lib/minimed-diary` owned by it.
@@ -84,7 +86,15 @@ connections. Pilot patients use the VM above.
 - The server cannot chart, search or alert by content; the patient's phone raises the urgent signal.
 - A doctor who loses both the password and the recovery code loses access unless another curator
   re-invites them.
-- Push carries no text; on iPhone it needs the diary on the home screen; phones without Google
-  services get changes when the diary is opened (live stream while it is open).
+- Push carries no text: an encrypted payload (RFC 8291) names only the kind of event (`plan`, `tip`,
+  `correction`, `reminder`, `alert`, `withdrawn`, `invite`) and, for a reminder, its moment; the
+  service workers write the text. Subscriptions saved before 2026-10-28 have no payload keys and
+  get an empty push until the app re-sends them (it does so on open). On iPhone push needs the
+  diary on the home screen; phones without Google services get changes when the diary is opened.
+- Reminders: the patient's phone sends only its next moments (`PUT /api/device/reminders`, 14
+  days, at most 400, replaced on every sync, ticked ones left out); the service pushes each once
+  within 20 s and drops one it could not send within 20 minutes. What is due, and the medicine
+  names (only when the patient switches them on), stay on the phone in Cache Storage; «Принял» in
+  an Android notification is queued there and marked when the diary is next open.
 - Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is not covered — see the
   legal section of [DIARY_PLAN.md](DIARY_PLAN.md).

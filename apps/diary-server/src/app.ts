@@ -19,11 +19,13 @@ import {
   DiaryPatientCreateSchema,
   type DiaryPatientSummary,
   DiaryPreloginRequestSchema,
+  type DiaryPushPayload,
   DiaryPushSubscriptionSchema,
   DiaryRecordsPushSchema,
   DiaryRecoverFetchRequestSchema,
   DiaryRecoverResetRequestSchema,
   DiaryRegisterRequestSchema,
+  DiaryRemindersSchema,
   type DiaryRole,
 } from '@localmed/contracts';
 import { randomBytes, randomId, sha256, toBase64Url } from '@localmed/diary-sync';
@@ -31,7 +33,8 @@ import type { z } from 'zod';
 
 import { now } from './db';
 import { inviteCandidates } from './invites';
-import { sendPush, type Vapid } from './push';
+import { pushToOwners, type Vapid } from './push';
+import { replaceReminders } from './reminders';
 
 export interface AppConfig {
   readonly signup: 'open' | 'invite';
@@ -297,26 +300,8 @@ export function createApp(
       .all(patientId)
       .map((row) => row.doctor_id);
 
-  const pushTo = (owners: readonly string[]): void => {
-    if (!owners.length) return;
-    const placeholders = owners.map(() => '?').join(',');
-    const endpoints = db
-      .query<{ endpoint: string }, string[]>(
-        `SELECT endpoint FROM push_subscriptions WHERE owner IN (${placeholders})`,
-      )
-      .all(...owners);
-    for (const { endpoint } of endpoints) {
-      void sendPush(config.vapid, endpoint)
-        .then((outcome) => {
-          if (outcome === 'gone') {
-            db.query('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
-          }
-        })
-        .catch((cause: unknown) =>
-          log(`push failed: ${cause instanceof Error ? cause.name : 'error'}`),
-        );
-    }
-  };
+  const pushTo = (owners: readonly string[], payload: DiaryPushPayload): void =>
+    pushToOwners(db, config.vapid, owners, payload, log);
 
   const profile = (row: DoctorRow) => ({
     id: row.id,
@@ -408,6 +393,8 @@ export function createApp(
 
   route('GET', '/api/push/key', async () => json({ publicKey: config.vapid.publicKey }));
 
+  route('GET', '/api/info', async () => json({ signup: config.signup }));
+
   route('POST', '/api/auth/prelogin', async (request) => {
     const { email } = await body(request, DiaryPreloginRequestSchema);
     limit(`prelogin:${email}`);
@@ -420,6 +407,8 @@ export function createApp(
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
     limit(`register:${input.email}`);
+    // Open sign-up: a cap on new accounts for the whole service, not only per address.
+    if (config.signup === 'open') limit('register');
     let inviteCode: string | undefined;
     if (config.signup === 'invite') {
       const invite = input.invite
@@ -787,7 +776,8 @@ export function createApp(
         .all(id)
         .map((row) => `p:${row.id}`);
       hub.send(devices, 'records', { seq: seqs.at(-1) });
-      pushTo(devices);
+      // Only what the patient should look at rings the phone (a profile edit does not).
+      if (input.notice) pushTo(devices, { kind: input.notice });
     }
     return json({ seqs }, 201);
   });
@@ -818,7 +808,7 @@ export function createApp(
       }
     })();
     hub.send([input.doctorId], 'invite', { patientId: id });
-    pushTo([`d:${input.doctorId}`]);
+    pushTo([`d:${input.doctorId}`], { kind: 'invite' });
     return json({ ok: true }, 201);
   });
 
@@ -958,7 +948,10 @@ export function createApp(
       .run(who.patientId, now());
     const doctors = activeDoctors(who.patientId);
     hub.send(doctors, 'alert', { id: Number(result.lastInsertRowid), patientId: who.patientId });
-    pushTo(doctors.map((id) => `d:${id}`));
+    pushTo(
+      doctors.map((id) => `d:${id}`),
+      { kind: 'alert' },
+    );
     return json({ ok: true }, 201);
   });
 
@@ -985,7 +978,10 @@ export function createApp(
       );
     })();
     hub.send(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
-    pushTo(doctors.map((id) => `d:${id}`));
+    pushTo(
+      doctors.map((id) => `d:${id}`),
+      { kind: 'withdrawn' },
+    );
     return json({ ok: true });
   });
 
@@ -1024,12 +1020,21 @@ export function createApp(
 
   route('POST', '/api/push/subscriptions', async (request, url) => {
     const who = await caller(request, url);
-    const { endpoint } = await body(request, DiaryPushSubscriptionSchema);
+    const { endpoint, keys } = await body(request, DiaryPushSubscriptionSchema);
     const owner = who.kind === 'doctor' ? `d:${who.id}` : `p:${who.id}`;
     db.query(
-      'INSERT INTO push_subscriptions (endpoint, owner, created_at) VALUES (?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET owner = excluded.owner',
-    ).run(endpoint, owner, now());
+      `INSERT INTO push_subscriptions (endpoint, owner, created_at, p256dh, auth) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET owner = excluded.owner, p256dh = excluded.p256dh, auth = excluded.auth`,
+    ).run(endpoint, owner, now(), keys?.p256dh ?? null, keys?.auth ?? null);
     return json({ ok: true }, 201);
+  });
+
+  /** The phone's next reminder moments (times only); replaces its earlier list. */
+  route('PUT', '/api/device/reminders', async (request, url) => {
+    const who = await caller(request, url);
+    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const { at } = await body(request, DiaryRemindersSchema);
+    return json({ count: replaceReminders(db, who.id, at) });
   });
 
   // Live stream: a doctor by id, a patient's phone as `p:<device id>` (no colon in doctor ids).
@@ -1070,7 +1075,7 @@ export function createApp(
     return {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
       'Access-Control-Max-Age': '600',
       Vary: 'Origin',
     };

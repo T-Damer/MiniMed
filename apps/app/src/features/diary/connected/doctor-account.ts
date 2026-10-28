@@ -16,7 +16,12 @@ import {
   sealIdentity,
 } from '@localmed/diary-sync';
 
-import { createDiaryApi, type DiaryApi, diaryAuth } from '@/features/diary/connected/diary-api';
+import {
+  createDiaryApi,
+  type DiaryApi,
+  diaryAuth,
+  diaryInfo,
+} from '@/features/diary/connected/diary-api';
 import { diaryServiceBase } from '@/features/diary/diary-links';
 
 const SESSION_KEY = 'minimed.diary.doctor.v1';
@@ -97,6 +102,11 @@ export function forgetDoctorSession(): void {
 
 export function doctorApi(session: Pick<DoctorSession, 'token'> | undefined): DiaryApi {
   return createDiaryApi(() => session?.token, diaryServiceBase());
+}
+
+/** Whether the service lets any doctor register or needs an invite code. */
+export async function signUpMode(): Promise<'open' | 'invite'> {
+  return (await diaryInfo(doctorApi(undefined))).signup;
 }
 
 export interface SignUpResult {

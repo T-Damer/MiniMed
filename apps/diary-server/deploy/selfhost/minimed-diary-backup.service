@@ -1,0 +1,10 @@
+# Nightly copy of the diary database (ciphertext + doctors' accounts + service keys), 14 kept locally.
+# Copies are readable by the minimed user only; copy them off the server too (docs/DIARY_SELFHOST.md).
+[Unit]
+Description=MiniMed diary database backup
+
+[Service]
+Type=oneshot
+User=minimed
+UMask=0077
+ExecStart=/bin/bash -c 'mkdir -p /var/lib/minimed-diary/backups && sqlite3 /var/lib/minimed-diary/diary.db ".backup /var/lib/minimed-diary/backups/diary-$(date +%%F).db" && ls -1t /var/lib/minimed-diary/backups/diary-*.db | tail -n +15 | xargs -r rm --'

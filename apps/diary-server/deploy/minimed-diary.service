@@ -14,7 +14,8 @@ Environment=DIARY_HOST=127.0.0.1
 Environment=DIARY_PORT=8790
 Environment=DIARY_DB=/var/lib/minimed-diary/diary.db
 Environment=DIARY_STATIC=/opt/minimed/app
-Environment=DIARY_SIGNUP=invite
+# Open sign-up for the prototype (owner 2026-10-28): students and stable patients only.
+Environment=DIARY_SIGNUP=open
 Environment=DIARY_PUSH_SUBJECT=mailto:admin@1damer.com
 # Environment=DIARY_CORS_ORIGINS=https://localhost,capacitor://localhost
 ExecStart=/usr/local/bin/bun /opt/minimed/diary-server.js

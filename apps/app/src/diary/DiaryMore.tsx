@@ -71,8 +71,17 @@ export function DiaryMore(props: {
   readonly onWithdraw?: (() => Promise<void>) | undefined;
   /** Connected diary: notifications when the doctor changes something. */
   readonly onEnablePush?: (() => Promise<'on' | 'unsupported' | 'denied'>) | undefined;
+  /** Notifications were allowed on an earlier visit. */
+  readonly pushOn?: boolean;
+  /** Connected diary: dose and checkpoint reminders, and whether they name the medicines. */
+  readonly reminders?: { readonly on: boolean; readonly names: boolean } | undefined;
+  readonly onReminders?:
+    | ((patch: { readonly on?: boolean; readonly names?: boolean }) => void)
+    | undefined;
 }): JSX.Element {
-  const [push, setPush] = createSignal<'off' | 'on' | 'unsupported' | 'denied'>('off');
+  const [push, setPush] = createSignal<'off' | 'on' | 'unsupported' | 'denied'>(
+    props.pushOn ? 'on' : 'off',
+  );
   const [sounds, setSounds] = createSignal(getSoundsEnabled());
   const [vibration, setVibration] = createSignal(getVibrationEnabled());
   const [confirming, setConfirming] = createSignal(false);
@@ -151,13 +160,33 @@ export function DiaryMore(props: {
                   ? 'Этот браузер не умеет. На iPhone сначала добавьте дневник на экран «Домой».'
                   : push() === 'denied'
                     ? 'Уведомления запрещены в настройках телефона.'
-                    : 'Новая рекомендация или изменение лечения. Текст уведомления без подробностей.'
+                    : 'Напоминания о приёме, новая рекомендация или изменение лечения.'
               }
               disabled={push() === 'on'}
               onClick={() => {
                 void enable()().then(setPush, () => setPush('unsupported'));
               }}
             />
+            <Show when={push() === 'on' && props.reminders}>
+              {(reminders) => (
+                <>
+                  <PreferenceRow
+                    icon="bell"
+                    label="Напоминать о приёме и отметках"
+                    checked={reminders().on}
+                    onChange={(on) => props.onReminders?.({ on })}
+                  />
+                  <Show when={reminders().on}>
+                    <PreferenceRow
+                      icon="pill"
+                      label="Названия лекарств в уведомлении"
+                      checked={reminders().names}
+                      onChange={(names) => props.onReminders?.({ names })}
+                    />
+                  </Show>
+                </>
+              )}
+            </Show>
           </section>
         )}
       </Show>

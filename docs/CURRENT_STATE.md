@@ -120,6 +120,19 @@ stay serverless. Deployed 2026-10-27 to the Yandex Cloud VM `minimed-diary` (`51
   hide settings rows that do nothing in them (`AppProfile.hiddenSettings`). The doctor's day view
   has the patient's spacing and colours (`.diary-care-scope`) and its buttons in the page header.
 
+- D4 on 2026-10-28 (STATE DIARY11): reminders by push — the patient's phone works out its open
+  timed intakes and checkpoints for 14 days (`diary-reminders.ts`), sends the server only the
+  moments (`reminders` table, migration 2, sent by a 20 s tick in `main.ts`), and keeps the texts
+  in Cache Storage for its worker (`reminder-cache.ts`); medicine names show only when the
+  patient switches them on in «Ещё». «Принял» (Android) is queued in the cache and marked at the
+  next open, with the press time. Pushes now carry an encrypted kind (`plan`/`tip`/`correction`
+  for the patient, `alert`/`withdrawn`/`invite` for doctors; RFC 8291 in `push.ts`, checked
+  against the RFC's worked example); a doctor's profile edit no longer rings the phone. The
+  pilot has open sign-up (owner: a prototype with students and stable patients); the faculty
+  self-host package is `scripts/diary-selfhost-package.sh` + `deploy/selfhost/install.sh`
+  ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)). Not yet seen on a real phone's notification shade;
+  `install.sh` has not run on a Linux server.
+
 ## Care diary: the patient's day page, offline — 2026-10-27 (STATE DIARY5)
 
 First slice (phase D1) of [DIARY_PLAN.md](DIARY_PLAN.md), for a psychiatric faculty that follows patients through

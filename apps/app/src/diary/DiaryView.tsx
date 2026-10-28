@@ -11,6 +11,7 @@ import { ScreenHeader } from '@/diary/diary-ui';
 import {
   isConnectedDiary,
   PatientConnection,
+  type ReminderSettings,
   type SyncStatus,
 } from '@/features/diary/connected/patient-connection';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
@@ -130,6 +131,7 @@ export function DiaryView(props: {
 
   // Connected diary (ADR-0026): marks go to the doctor by themselves whenever there is a network.
   const [connection, setConnection] = createSignal<PatientConnection | undefined>(undefined);
+  const [reminders, setReminders] = createSignal<ReminderSettings | undefined>(undefined);
   const [sync, setSync] = createSignal<SyncStatus | undefined>(
     isConnectedDiary(window.localStorage, props.initial.invitation.id)
       ? { phase: 'syncing', lastSyncAt: undefined, pending: 0 }
@@ -145,6 +147,8 @@ export function DiaryView(props: {
   const runSync = async (): Promise<void> => {
     const current = connection();
     if (!current) return;
+    // «Принял» pressed in a notification while the diary was closed.
+    if (await current.applyReminderActions()) reload();
     setSync({ ...current.status(), phase: 'syncing' });
     const status = await current.sync();
     setSync(status);
@@ -161,8 +165,13 @@ export function DiaryView(props: {
       (opened) => {
         if (!opened) return;
         setConnection(opened);
+        setReminders(opened.reminderSettings());
         setSync(opened.status());
         void runSync();
+        void opened.refreshPush().catch((cause: unknown) => {
+          // Offline or the browser dropped the subscription: «Ещё» offers notifications again.
+          console.warn('Подписка на уведомления не обновлена:', cause);
+        });
         stopListening = opened.listen((status) => {
           setSync(status);
           reload();
@@ -170,6 +179,13 @@ export function DiaryView(props: {
       },
     );
     const onOnline = (): void => void runSync();
+    // The worker tells an open diary about a «Принял» right away.
+    const onWorkerMessage = (event: MessageEvent): void => {
+      if ((event.data as { type?: unknown } | null)?.type === 'diary-reminder-action') {
+        void runSync();
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', onWorkerMessage);
     const onVisible = (): void => {
       if (document.visibilityState === 'visible') void runSync();
     };
@@ -183,6 +199,7 @@ export function DiaryView(props: {
       window.clearTimeout(syncTimer);
       window.clearInterval(interval);
       window.removeEventListener('online', onOnline);
+      navigator.serviceWorker?.removeEventListener('message', onWorkerMessage);
       document.removeEventListener('visibilitychange', onVisible);
     });
   });
@@ -346,8 +363,22 @@ export function DiaryView(props: {
           onOpened={props.onOpened}
           onList={props.onBack}
           onEnablePush={
-            connection() ? () => (connection() as PatientConnection).enablePush() : undefined
+            connection()
+              ? async () => {
+                  const state = await (connection() as PatientConnection).enablePush();
+                  setReminders(connection()?.reminderSettings());
+                  return state;
+                }
+              : undefined
           }
+          pushOn={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
+          reminders={reminders()}
+          onReminders={(patch) => {
+            const current = connection();
+            if (!current) return;
+            void current.setReminders(patch).then(setSync);
+            setReminders(current.reminderSettings());
+          }}
           onWithdraw={
             connection()
               ? async () => {

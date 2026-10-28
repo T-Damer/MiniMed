@@ -38,6 +38,6 @@ export async function enableDoctorPush(session: DoctorSession): Promise<PushStat
       userVisibleOnly: true,
       applicationServerKey: fromBase64Url(publicKey),
     }));
-  await diaryPush.subscribe(api, subscription.endpoint);
+  await diaryPush.subscribe(api, subscription);
   return 'on';
 }
