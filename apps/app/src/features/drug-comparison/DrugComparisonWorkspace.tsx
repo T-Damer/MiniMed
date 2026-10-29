@@ -12,6 +12,7 @@ import {
   untrack,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -358,6 +359,7 @@ export function DrugComparisonWorkspace(props: {
   return (
     <section class="drug-comparison" aria-label="Сравнение препаратов">
       <Page
+        hero={PAGE_HEROES.comparison}
         navigation={
           <NavBack
             class="drug-comparison__back knowledge-back-button"

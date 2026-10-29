@@ -11,6 +11,7 @@ import {
   Show,
   Switch,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
@@ -406,6 +407,7 @@ export function NewsViewer(props: {
   return (
     <section class="news-viewer page-surface page-grain" data-testid="news-viewer">
       <Page
+        hero={PAGE_HEROES.news}
         class="news-viewer__heading"
         navigation={
           <NavBack

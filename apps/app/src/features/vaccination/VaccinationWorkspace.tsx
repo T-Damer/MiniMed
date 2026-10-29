@@ -11,6 +11,7 @@ import {
   Switch,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
@@ -232,6 +233,7 @@ export function VaccinationWorkspace(props: {
   return (
     <section class="vax" aria-label="Календарь прививок">
       <Page
+        hero={PAGE_HEROES.calculators}
         navigation={
           <NavBack
             class="vax__back knowledge-back-button"

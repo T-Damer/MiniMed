@@ -989,6 +989,12 @@
   cursor: pointer;
 }
 
+/* Inside the pill under the bar: the button fits the pill's height. */
+.core-progress-line__action.core-progress-line__action--pill {
+  margin-inline-end: -0.5rem;
+  padding: 0.125rem 0.5rem;
+}
+
 /* ---- notices ---- */
 
 /* A toast never lands on the tour's card or buttons: while the onboarding is open the notices

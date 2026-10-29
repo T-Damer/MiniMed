@@ -1996,6 +1996,7 @@ export function CalculatorsView(): JSX.Element {
                       return (
                         <section class="calculator-pack-required">
                           <Page
+                            hero={PAGE_HEROES.calculators}
                             class="calculator-pack-required__header"
                             navigation={
                               <NavBack
@@ -2072,6 +2073,7 @@ export function CalculatorsView(): JSX.Element {
               >
                 <div class="calculator-workspace">
                   <Page
+                    hero={PAGE_HEROES.calculators}
                     class="calculator-subpage-header"
                     navigation={
                       <NavBack

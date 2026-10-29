@@ -1,4 +1,4 @@
-import { createMemo, createSignal, type JSX, Show } from 'solid-js';
+import { children, createMemo, createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
@@ -18,6 +18,8 @@ export interface PageProps {
   readonly breadcrumbs?: JSX.Element;
   readonly icon?: JSX.Element;
   readonly title?: JSX.Element;
+  /** The title takes the row's free width (a search field standing in for the title). */
+  readonly titleFill?: boolean;
   /**
    * The section this page belongs to, as a small link above the title: a doctor who returns to a
    * tab and lands on one of its inner pages sees where they are («Лента › Источники»).
@@ -48,6 +50,16 @@ export interface PageProps {
 export function Page(props: PageProps): JSX.Element {
   const className = (base: string, extra?: string): string => (extra ? `${base} ${extra}` : base);
   const [helpOpen, setHelpOpen] = createSignal(false);
+  // Each slot is built once: reading a JSX prop builds its elements again, and the header reads
+  // them in several places (a search field or a menu in the row was rebuilt, losing its state).
+  const slot = {
+    title: children(() => props.title),
+    navigation: children(() => props.navigation),
+    actions: children(() => props.actions),
+    breadcrumbs: children(() => props.breadcrumbs),
+    description: children(() => props.description),
+    icon: children(() => props.icon),
+  };
   let headerElement: HTMLElement | undefined;
   let rowElement: HTMLDivElement | undefined;
   useHeroScroll(
@@ -60,10 +72,10 @@ export function Page(props: PageProps): JSX.Element {
     () => props.hero !== undefined,
   );
   const inline = (): boolean =>
-    props.title !== undefined &&
-    props.breadcrumbs === undefined &&
-    (props.navigation !== undefined ||
-      props.actions !== undefined ||
+    slot.title() !== undefined &&
+    slot.breadcrumbs() === undefined &&
+    (slot.navigation() !== undefined ||
+      slot.actions() !== undefined ||
       props.headerActions !== undefined ||
       props.help !== undefined);
   const helpTitle = (): string => props.helpTitle ?? 'Как это работает';
@@ -92,14 +104,13 @@ export function Page(props: PageProps): JSX.Element {
       class="page__title-row"
       classList={{
         'page__title-row--inline': inline(),
-        'page__title-row--hero': inline() && props.hero !== undefined,
       }}
       {...(inline() ? { [HEADER_TITLE_ATTRIBUTE]: '' } : {})}
     >
-      <Show when={props.icon !== undefined && !inline()}>
-        <div class="page__icon">{props.icon}</div>
+      <Show when={slot.icon() !== undefined && !inline()}>
+        <div class="page__icon">{slot.icon()}</div>
       </Show>
-      <div class="page__title">
+      <div class="page__title" classList={{ 'page__title--fill': props.titleFill === true }}>
         <Show when={props.parent}>
           {(parent) => (
             <a
@@ -117,7 +128,7 @@ export function Page(props: PageProps): JSX.Element {
             </a>
           )}
         </Show>
-        {props.title}
+        {slot.title()}
       </div>
     </div>
   );
@@ -137,9 +148,9 @@ export function Page(props: PageProps): JSX.Element {
       <Show when={props.hero}>{(hero) => <PageHeroBand hero={hero()} />}</Show>
       <Show
         when={
-          props.navigation !== undefined ||
-          props.breadcrumbs !== undefined ||
-          props.actions !== undefined ||
+          slot.navigation() !== undefined ||
+          slot.breadcrumbs() !== undefined ||
+          slot.actions() !== undefined ||
           props.headerActions !== undefined ||
           props.help !== undefined
         }
@@ -152,18 +163,23 @@ export function Page(props: PageProps): JSX.Element {
           classList={{ 'page__above-header--hero': props.hero !== undefined }}
           {...{ [HEADER_ROW_ATTRIBUTE]: '' }}
         >
-          <Show when={props.navigation !== undefined}>
+          {/* The route's emblem: large and faint on the band at rest, a small icon beside the
+              title once the header is a bar (components/PageHero.tsx `useHeroScroll`). */}
+          <Show when={props.hero?.emblem}>
+            {(name) => <AppGlyph name={name()} class="page-hero__emblem" />}
+          </Show>
+          <Show when={slot.navigation() !== undefined}>
             <div class={className('page__left-actions', props.navigationClass)}>
-              {props.navigation}
+              {slot.navigation()}
             </div>
           </Show>
-          <Show when={props.breadcrumbs !== undefined}>
-            <div class="page__breadcrumbs">{props.breadcrumbs}</div>
+          <Show when={slot.breadcrumbs() !== undefined}>
+            <div class="page__breadcrumbs">{slot.breadcrumbs()}</div>
           </Show>
           <Show when={inline()}>{titleRow()}</Show>
           <Show
             when={
-              props.actions !== undefined ||
+              slot.actions() !== undefined ||
               props.headerActions !== undefined ||
               props.help !== undefined
             }
@@ -187,22 +203,22 @@ export function Page(props: PageProps): JSX.Element {
                   <div class="page__help-body">{props.help}</div>
                 </SheetPopover>
               </Show>
-              {props.actions}
+              {slot.actions()}
             </div>
           </Show>
         </div>
       </Show>
       <Show
         when={
-          (!inline() && (props.icon !== undefined || props.title !== undefined)) ||
-          props.description !== undefined
+          (!inline() && (slot.icon() !== undefined || slot.title() !== undefined)) ||
+          slot.description() !== undefined
         }
       >
         <div class="page__header" classList={{ 'page__header--hero': props.hero !== undefined }}>
-          <Show when={!inline() && (props.icon !== undefined || props.title !== undefined)}>
+          <Show when={!inline() && (slot.icon() !== undefined || slot.title() !== undefined)}>
             {titleRow()}
           </Show>
-          <Show when={props.description !== undefined}>
+          <Show when={slot.description() !== undefined}>
             <p
               class="page__description"
               classList={{
@@ -210,7 +226,7 @@ export function Page(props: PageProps): JSX.Element {
                 'page__description--hero': props.hero !== undefined,
               }}
             >
-              {props.description}
+              {slot.description()}
             </p>
           </Show>
         </div>

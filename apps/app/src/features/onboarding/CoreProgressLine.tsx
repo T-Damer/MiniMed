@@ -38,9 +38,10 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
     }),
   );
 
-  const wide = () => !props.compact && (state().kind === 'deferred' || state().kind === 'error');
+  const wide = () => !props.compact && state().kind === 'error';
   // Outside the tour the progress is one small pill centred under the bottom bar, filling as the
-  // download runs (owner 2026-10-28: the corner chip and the edge line hid in the screen's curve).
+  // download runs (owner 2026-10-28: the corner chip and the edge line hid in the screen's curve);
+  // the offer to download («не скачана · Скачать») is the same pill.
   const pill = () => !props.compact && !wide();
   const fillStyle = (): JSX.CSSProperties | undefined => {
     const fraction = state().fraction;
@@ -133,7 +134,12 @@ export function CoreProgressLine(props: CoreProgressLineProps): JSX.Element {
               {props.compact ? state().compactLabel : state().label}
             </span>
             <Show when={state().kind === 'deferred'}>
-              <button class="core-progress-line__action" type="button" onClick={props.onDownload}>
+              <button
+                class="core-progress-line__action"
+                classList={{ 'core-progress-line__action--pill': pill() }}
+                type="button"
+                onClick={props.onDownload}
+              >
                 Скачать
               </button>
             </Show>

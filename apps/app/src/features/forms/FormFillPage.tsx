@@ -9,6 +9,7 @@ import {
   Show,
   untrack,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -337,6 +338,7 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
   return (
     <section class="forms-workspace" aria-label={`Форма № ${props.schema.formNumber}`}>
       <Page
+        hero={PAGE_HEROES.forms}
         navigation={
           <NavBack
             class="knowledge-back-button"

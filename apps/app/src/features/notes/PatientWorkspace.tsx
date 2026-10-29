@@ -11,6 +11,7 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import {
   AppContextMenu,
@@ -1089,6 +1090,7 @@ function PatientDetail(props: {
   return (
     <>
       <Page
+        hero={PAGE_HEROES.patients}
         class="patient-card__page"
         navigation={
           <NavBack
@@ -1434,6 +1436,7 @@ function DynamicsView(props: {
   return (
     <>
       <Page
+        hero={PAGE_HEROES.patients}
         navigation={
           <NavBack
             class="knowledge-back-button"

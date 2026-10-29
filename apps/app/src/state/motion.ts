@@ -34,12 +34,26 @@ function applySpeed(speed: MotionSpeed): void {
   document.documentElement.dataset['motion'] = speed;
 }
 
+/**
+ * Scroll-driven animations (`animation-timeline: scroll()`) follow the scroll position, not time:
+ * a playback rate would make them run ahead of or behind the page.
+ */
+function followsTime(animation: Animation): boolean {
+  return (
+    animation.timeline === null ||
+    typeof DocumentTimeline === 'undefined' ||
+    animation.timeline instanceof DocumentTimeline
+  );
+}
+
 function retime(event: Event): void {
   if (rate === 1 || rate === 0) return;
   const target = event.target;
   if (!(target instanceof Element) || typeof target.getAnimations !== 'function') return;
   for (const animation of target.getAnimations()) {
-    if (animation.playbackRate !== rate) animation.updatePlaybackRate(rate);
+    if (followsTime(animation) && animation.playbackRate !== rate) {
+      animation.updatePlaybackRate(rate);
+    }
   }
 }
 
@@ -61,6 +75,7 @@ export function installMotionManager(): () => void {
       options?: number | KeyframeAnimationOptions,
     ): Animation {
       const animation = animate.call(this, keyframes, options);
+      if (!followsTime(animation)) return animation;
       if (rate === 0) animation.finish();
       else if (rate !== 1) animation.updatePlaybackRate(rate);
       return animation;

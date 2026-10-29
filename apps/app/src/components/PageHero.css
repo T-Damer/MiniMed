@@ -34,6 +34,20 @@
   pointer-events: none;
 }
 
+/* Above a pinned bar the band goes on to the screen top whatever the header's height (a short
+   header stuck by its lowest strip would otherwise leave the status bar over the page). */
+.page--hero::before {
+  position: absolute;
+  z-index: -1;
+  right: calc(-1 * var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)));
+  bottom: 100%;
+  left: calc(-1 * var(--page-hero-inset-left, var(--page-hero-bleed-x, 0px)));
+  height: 100vh;
+  background: var(--page-hero-band);
+  pointer-events: none;
+  content: "";
+}
+
 /* The sheet's rounded top corners: only the band's two corner pieces are drawn in that strip. */
 .page--hero::after {
   position: absolute;
@@ -67,13 +81,15 @@
 
 .page-hero__emblem {
   position: absolute;
-  top: calc(var(--page-hero-inset-top, var(--page-hero-bleed-top, 0px)) - 1.5rem);
-  right: -1.75rem;
+  /* In the row, under its controls and over its pinned fill. */
+  z-index: -1;
+  top: calc(-1.5rem - var(--page-hero-row-offset, 0px));
+  right: calc(-1 * (var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)) + 1.75rem));
   width: 9.5rem;
   height: 9.5rem;
   color: var(--page-hero-ink);
   opacity: 0.08;
-  transform: rotate(-12deg);
+  transform: translate(0, 0) scale(1) rotate(-12deg);
 }
 
 .page-hero__ecg {
@@ -94,6 +110,18 @@
   stroke-width: 1.6;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 3px rgb(var(--page-hero-trace) / 70%));
+  transition:
+    stroke var(--motion-slow) var(--motion-ease),
+    filter var(--motion-slow) var(--motion-ease);
+}
+
+/* The app's own pulse (state/frame-health.ts): yellow while frames drop, red when it struggles. */
+.page-hero__ecg-line.page-hero__ecg-line--strained {
+  --page-hero-trace: 241 196 15;
+}
+
+.page-hero__ecg-line.page-hero__ecg-line--poor {
+  --page-hero-trace: 231 76 60;
 }
 
 @keyframes page-hero-ecg-drift {
@@ -106,19 +134,13 @@
   }
 }
 
-/* The art drifts at about half the page's speed and fades out as the sheet covers it. */
+/* The art fades out as the sheet covers it. Opacity only: a scroll-linked transform runs a frame
+   behind the scroll in WebKit, which reads as jitter on a slow scroll. */
 @supports (animation-timeline: scroll()) {
   .page-hero__art {
-    animation: page-hero-art-scroll linear both;
+    animation: page-hero-fade linear both;
     animation-timeline: scroll(root);
     animation-range: 0 14rem;
-  }
-}
-
-@keyframes page-hero-art-scroll {
-  to {
-    opacity: 0;
-    transform: translateY(6rem) scale(0.96);
   }
 }
 
@@ -165,9 +187,10 @@
 }
 
 /* The header sticks with its bottom strip on screen and its row sticks under the status bar (both
-   native sticky); scroll-driven, the emblem slides and shrinks into the strip, the title settles
-   and the description fades (transform, opacity). Without scroll-driven animations the header
-   simply scrolls away. */
+   native sticky, so they move with the scroll itself); scroll-driven, the description fades and
+   the emblem flies into a small icon beside the bar's title (`useHeroScroll` measures where).
+   The ranges are measured once per layout, never during a scroll: re-measuring mid-scroll made
+   the header flash its end state. Without scroll-driven animations the header scrolls away. */
 @supports (animation-timeline: scroll()) {
   .page--hero.page--hero-sticky {
     position: sticky;
@@ -187,14 +210,14 @@
     position: sticky;
     z-index: var(--z-raised, 1);
     top: var(--safe-top, 0px);
-  }
-
-  /* The title rests a size larger and settles into the bar (iOS large title). */
-  .page__title-row.page__title-row--hero {
-    transform-origin: left center;
-    animation: page-hero-title linear both;
+    isolation: isolate;
+    /* Pinned, the row is filled with the band's colour: it looks the same on the band, and Safari
+       tints the strip under the status bar from an opaque sticky bar at the top (a clear row let
+       the page show through there). */
+    animation: page-hero-row-fill linear both;
     animation-timeline: scroll(root);
-    animation-range: var(--page-hero-start, 0px) var(--page-hero-end, 1px);
+    /* From the moment it pins (a short page may never scroll to the header's end). */
+    animation-range: var(--page-hero-start, 0px) calc(var(--page-hero-start, 0px) + 1px);
   }
 
   .page__header.page__header--hero {
@@ -210,9 +233,13 @@
   }
 }
 
-@keyframes page-hero-title {
+@keyframes page-hero-row-fill {
   from {
-    transform: scale(1.12);
+    background-color: transparent;
+  }
+
+  to {
+    background-color: var(--page-hero-band);
   }
 }
 
@@ -222,10 +249,12 @@
   }
 }
 
+/* The same function list at both ends, so the steps interpolate one by one (no matrix blend). */
 @keyframes page-hero-emblem {
   to {
-    opacity: 0.14;
-    transform: translateY(var(--page-hero-emblem-shift, 0px)) scale(0.36) rotate(-12deg);
+    opacity: var(--page-hero-emblem-opacity, 0);
+    transform: translate(var(--page-hero-emblem-x, 0px), var(--page-hero-emblem-y, 0px))
+      scale(var(--page-hero-emblem-scale, 0.2)) rotate(0deg);
   }
 }
 

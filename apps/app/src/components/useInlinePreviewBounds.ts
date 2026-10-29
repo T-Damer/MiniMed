@@ -50,6 +50,9 @@ export function useInlinePreviewBounds(
       positioner.observe(element.parentElement, { attributes: true, attributeFilter: ['style'] });
     position();
     schedule();
+    // The bottom bar slides up or down when the download pill under it comes or goes.
+    const nav = document.querySelector<HTMLElement>('.app-bottom-nav');
+    nav?.addEventListener('transitionend', schedule);
     document.addEventListener('scroll', scroll, true);
     window.addEventListener('resize', schedule);
     window.visualViewport?.addEventListener('resize', schedule);
@@ -57,6 +60,7 @@ export function useInlinePreviewBounds(
       observer.disconnect();
       positioner.disconnect();
       cancelAnimationFrame(frame);
+      nav?.removeEventListener('transitionend', schedule);
       document.removeEventListener('scroll', scroll, true);
       window.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('resize', schedule);

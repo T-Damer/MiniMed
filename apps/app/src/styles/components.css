@@ -90,6 +90,10 @@
   min-width: 0;
 }
 
+.page__title.page__title--fill {
+  flex: 1 1 auto;
+}
+
 /* The owning section above an inner page's title: small, one line, a way up. */
 .page__parent {
   display: inline-flex;

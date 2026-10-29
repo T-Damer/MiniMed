@@ -36,14 +36,23 @@ function nativeBlurGrain(page: Page): Promise<string> {
   );
 }
 
-test('keeps native status blur below sticky controls and above page content', async ({ page }) => {
+// The search row turns into the band's bar once the field has become its pill (the bar replaced
+// the status blur there: the blur smeared the field while it morphed).
+test('the search row becomes an opaque bar under the native status bar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page);
   await emulateNativeShell(page);
   await expect.poll(() => nativeBlurOpacity(page)).toBe('0');
+  const bar = page.locator('.search-mode-tools__bar');
+  await expect(bar).toHaveCSS('opacity', '0');
   await page.evaluate(() => window.scrollTo(0, 160));
   await expect(page.locator('.search-mode-tools')).toHaveClass(/sticky-surface--stuck/u);
-  await expect.poll(() => nativeBlurOpacity(page)).toBe('1');
+  await expect(bar).toHaveCSS('opacity', '1');
+  await expect.poll(() => nativeBlurOpacity(page)).toBe('0');
+  // The bar reaches the screen top, over the status bar.
+  expect(await bar.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThanOrEqual(
+    0,
+  );
   await expect
     .poll(() =>
       page.locator('.search-mode-tools').evaluate((element) => {
@@ -63,9 +72,7 @@ test('keeps native status blur below sticky controls and above page content', as
     x: historyButton.x + 4,
     y: historyButton.y + historyButton.height / 2,
   });
-  const contentTarget = await classAtPoint(page, { x: 195, y: 100 });
   expect(historyButtonTarget).toContain('search-history-fab');
-  expect(contentTarget).toContain('app-shell');
 });
 
 test('refreshes search sticky state when its keep-alive view becomes visible', async ({ page }) => {

@@ -1,14 +1,5 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
-import {
-  createDeferred,
-  createEffect,
-  createMemo,
-  createSignal,
-  type JSX,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createDeferred, createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -62,9 +53,6 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   };
   const [filter, setFilter] = createSignal('');
   const [error, setError] = createSignal<string>();
-  const [listReady, setListReady] = createSignal(
-    !document.documentElement.classList.contains('using-root-view-transition'),
-  );
 
   const deferredFilter = createDeferred(filter, { timeoutMs: 120 });
   const activeQuery = createMemo(() => props.query ?? deferredFilter());
@@ -91,16 +79,6 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       ? { documents: filteredDocuments(), total: filteredDocuments().length, focused: false }
       : selectGraphNeighborhood(filteredDocuments()),
   );
-
-  onMount(() => {
-    const syncListReady = (): void => {
-      setListReady(!document.documentElement.classList.contains('using-root-view-transition'));
-    };
-    syncListReady();
-    const observer = new MutationObserver(syncListReady);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    onCleanup(() => observer.disconnect());
-  });
 
   createEffect(() => {
     if (props.documents !== undefined) return;
@@ -233,7 +211,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           class="document-library-grid"
           classList={{ 'document-library-grid--embedded': props.embedded }}
         >
-          <Show when={filteredDocuments().length > 0 && listReady()}>
+          <Show when={filteredDocuments().length > 0}>
             <LayoutVirtualizedGrid data={filteredDocuments()} bufferSize={500}>
               {(document, index) => (
                 <button

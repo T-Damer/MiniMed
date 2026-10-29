@@ -28,9 +28,12 @@ test('hero headers stay above the page and never overlap their own title block',
     await page.evaluate((hash) => {
       window.location.hash = hash;
     }, route);
+    // A tab switch is a view transition: the new page is in place once it has run.
+    // biome-ignore lint/performance/noAwaitInLoops: the routes are visited one after another.
+    await page.waitForTimeout(150);
+    await expect(page.locator('html')).not.toHaveClass(/using-root-view-transition/u);
     const header = page.locator('.app-view.active .page--hero').first();
     await expect(header, route).toBeVisible({ timeout: 30_000 });
-    // biome-ignore lint/performance/noAwaitInLoops: the routes are visited one after another.
     const found = await page.evaluate(async (hash) => {
       const found: string[] = [];
       const view = document.querySelector('.app-view.active');

@@ -1,20 +1,37 @@
+import { Capacitor } from '@capacitor/core';
 import type { JSX } from 'solid-js';
+import { For } from 'solid-js';
 
-import { ANDROID_APK_URL, GITHUB_REPOSITORY_URL } from '../../../../release';
+import { diaryPageUrl } from '@/features/diary/diary-links';
+import { appVariantLinks, defaultAppVariantUrls } from '@/state/app-variants';
 
 interface ReleaseLinksProps {
   readonly linkClass?: string;
 }
 
+/** The app's other variants (never the one running now) and the source repository. */
 export function ReleaseLinks(props: ReleaseLinksProps = {}): JSX.Element {
+  const links = appVariantLinks(
+    {
+      nativePlatform: Capacitor.getPlatform(),
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      maxTouchPoints: navigator.maxTouchPoints,
+    },
+    defaultAppVariantUrls(diaryPageUrl()),
+  );
   return (
-    <>
-      <a class={props.linkClass} href={GITHUB_REPOSITORY_URL} target="_blank" rel="noreferrer">
-        GitHub
-      </a>
-      <a class={props.linkClass} href={ANDROID_APK_URL}>
-        Android APK
-      </a>
-    </>
+    <For each={links}>
+      {(link) => (
+        <a
+          class={props.linkClass}
+          href={link.href}
+          target={link.external ? '_blank' : undefined}
+          rel={link.external ? 'noreferrer' : undefined}
+        >
+          {link.label}
+        </a>
+      )}
+    </For>
   );
 }

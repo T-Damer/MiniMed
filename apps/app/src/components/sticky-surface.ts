@@ -1,21 +1,5 @@
 import { onCleanup, onMount } from 'solid-js';
 
-const ROOT_VIEW_ENTER_SELECTOR = '.root-view-enter-forward, .root-view-enter-backward';
-
-export function scrollYForStickyElement(
-  node: Element,
-  windowScrollY: number,
-  root: HTMLElement = document.documentElement,
-): number {
-  if (!node.closest(ROOT_VIEW_ENTER_SELECTOR)) {
-    return windowScrollY;
-  }
-  const parsed = Number.parseFloat(
-    getComputedStyle(root).getPropertyValue('--root-view-enter-to-scroll'),
-  );
-  return Number.isFinite(parsed) ? parsed : windowScrollY;
-}
-
 export function useStickySurface(element: () => HTMLElement | undefined): void {
   onMount(() => {
     let frame: number | undefined;
@@ -39,7 +23,7 @@ export function useStickySurface(element: () => HTMLElement | undefined): void {
         return;
       }
       const stickyTop = Number.parseFloat(getComputedStyle(node).top);
-      const scrollY = scrollYForStickyElement(node, window.scrollY);
+      const scrollY = window.scrollY;
       const isStuck =
         Number.isFinite(stickyTop) &&
         scrollY > 1 &&

@@ -8,6 +8,7 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -376,6 +377,7 @@ export function UserQuestionnaireEditorPage(props: {
   return (
     <div class="assessment-workspace user-questionnaire-editor">
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-page-header user-questionnaire-editor__header"
         navigation={<NavBack aria-label="Назад" title="Назад" onClick={props.onBack} />}
         title={

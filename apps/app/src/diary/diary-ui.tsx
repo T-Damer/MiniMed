@@ -1,4 +1,5 @@
 import { createUniqueId, For, type JSX, onMount, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -23,13 +24,13 @@ export function ScreenHeader(props: {
   readonly headerActions?: readonly HeaderAction[] | undefined;
   readonly help?: JSX.Element;
   readonly helpTitle?: string;
-  /** The tab screens' band (`PAGE_HEROES`); inner screens have none. */
+  /** The screen's band (`PAGE_HEROES`); inner screens get the plain band. */
   readonly hero?: PageHero | undefined;
 }): JSX.Element {
   return (
     <Page
       class="diary-screen"
-      hero={props.hero}
+      hero={props.hero ?? PAGE_HEROES.diaryInner}
       navigation={
         <Show when={props.onBack}>
           {(back) => (

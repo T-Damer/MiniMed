@@ -2,7 +2,6 @@ import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 
 import {
   bootstrapDocumentReadLocation,
-  ROOT_VIEW_ORDER,
   type RootView,
   redirectLegacySettingsRoutes,
   rootViewRestoresRoute,
@@ -17,15 +16,6 @@ import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { installScrollRestoration, rememberedScroll } from '@/state/scroll-restore';
 import { trackToolNavigation } from '@/state/tool-navigation';
 
-type RootNavigationDirection = 'forward' | 'backward';
-
-interface RootNavigationMotion {
-  readonly from: RootView;
-  readonly to: RootView;
-  readonly direction: RootNavigationDirection;
-}
-
-const ROOT_NAVIGATION_MOTION_MS = 180;
 const CHROME_HIDE_AFTER = 96;
 const CHROME_DIRECTION_THRESHOLD = 1;
 
@@ -54,18 +44,12 @@ export function useRootNavigation() {
   const [mountedViews, setMountedViews] = createSignal<ReadonlySet<RootView>>(
     new Set([viewFromLocation()]),
   );
-  const [rootNavigationMotion, setRootNavigationMotion] = createSignal<RootNavigationMotion>();
   const [showScrollTop, setShowScrollTop] = createSignal(false);
   const [chromeHidden, setChromeHidden] = createSignal(false);
 
-  let rootNavigationMotionFallbackTimer: ReturnType<typeof setTimeout> | undefined;
-  let rootNavigationMotionEndFrame: number | undefined;
   let scrollFrame: number | undefined;
   let lastScrollTop = window.scrollY;
   let chromeHoldUntil = 0;
-  let rootNavigationIncomingListener:
-    | { readonly element: HTMLElement; readonly handler: (event: AnimationEvent) => void }
-    | undefined;
   const rootNavigationQueue: Array<{ readonly next: RootView; readonly commit: () => void }> = [];
   /** Where each tab was left: hash and query (a tool keeps its state in the query). */
   const lastRouteByView = new Map<RootView, { readonly hash: string; readonly search: string }>();
@@ -76,9 +60,7 @@ export function useRootNavigation() {
     search = window.location.search,
   ): void => {
     if (isDocumentReadRoute(hash)) return;
-    if (!rootNavigationMotion()) {
-      scrollByView.set(view(), window.scrollY);
-    }
+    scrollByView.set(view(), window.scrollY);
     lastRouteByView.set(view(), { hash: hash || `#/${view()}`, search });
   };
   const lastPlace = (target: RootView): { readonly hash: string; readonly search: string } =>
@@ -95,106 +77,9 @@ export function useRootNavigation() {
     window.scrollTo({ top, behavior: 'instant' });
   };
 
-  const setIncomingScrollShift = (fromScroll: number, toScroll: number): void => {
-    document.documentElement.style.setProperty(
-      '--root-view-enter-scroll-shift',
-      `${fromScroll - toScroll}px`,
-    );
-    document.documentElement.style.setProperty('--root-view-enter-to-scroll', `${toScroll}px`);
-  };
-
-  const clearIncomingScrollShift = (): void => {
-    document.documentElement.style.removeProperty('--root-view-enter-scroll-shift');
-    document.documentElement.style.removeProperty('--root-view-enter-to-scroll');
-  };
-
-  const cancelRootNavigationMotionEnd = (): void => {
-    if (rootNavigationMotionFallbackTimer) {
-      clearTimeout(rootNavigationMotionFallbackTimer);
-      rootNavigationMotionFallbackTimer = undefined;
-    }
-    if (rootNavigationMotionEndFrame !== undefined) {
-      cancelAnimationFrame(rootNavigationMotionEndFrame);
-      rootNavigationMotionEndFrame = undefined;
-    }
-    if (rootNavigationIncomingListener) {
-      rootNavigationIncomingListener.element.removeEventListener(
-        'animationend',
-        rootNavigationIncomingListener.handler,
-      );
-      rootNavigationIncomingListener = undefined;
-    }
-  };
-
-  const finishRootNavigationMotion = (target: RootView): void => {
-    cancelRootNavigationMotionEnd();
-    if (!rootNavigationMotion()) return;
-    setRootNavigationMotion(undefined);
-    document.documentElement.classList.remove('using-root-view-transition');
-    clearIncomingScrollShift();
-    restoreScrollFor(target, false);
-  };
-
-  const finishRootNavigationMotionIfActive = (): void => {
-    const motion = rootNavigationMotion();
-    if (motion) finishRootNavigationMotion(motion.to);
-  };
-
-  const scheduleRootNavigationMotionEnd = (target: RootView): void => {
-    cancelRootNavigationMotionEnd();
-    rootNavigationMotionEndFrame = requestAnimationFrame(() => {
-      rootNavigationMotionEndFrame = undefined;
-      const incoming = document.querySelector<HTMLElement>(
-        '.app-view.root-view-enter-forward, .app-view.root-view-enter-backward',
-      );
-      if (!incoming) {
-        finishRootNavigationMotion(target);
-        return;
-      }
-      const onAnimationEnd = (event: AnimationEvent): void => {
-        if (event.target !== incoming) return;
-        if (!event.animationName.startsWith('root-view-enter-')) return;
-        finishRootNavigationMotion(target);
-      };
-      rootNavigationIncomingListener = { element: incoming, handler: onAnimationEnd };
-      incoming.addEventListener('animationend', onAnimationEnd);
-      rootNavigationMotionFallbackTimer = setTimeout(
-        () => finishRootNavigationMotion(target),
-        ROOT_NAVIGATION_MOTION_MS + 120,
-      );
-    });
-  };
-
   const moveToRootView = (next: RootView): boolean => {
-    const current = view();
-    if (current === next) return false;
-    const reduceMotion =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      document.querySelector('.overlay-dialog:not(.overlay-dialog--closing)') !== null ||
-      new URLSearchParams(window.location.search).has('minimed-floating') ||
-      !mountedViews().has(next);
-    const inFlight = rootNavigationMotion();
-    if (inFlight) {
-      finishRootNavigationMotion(inFlight.to);
-    } else {
-      cancelRootNavigationMotionEnd();
-    }
-    if (!reduceMotion) {
-      setIncomingScrollShift(window.scrollY, scrollByView.get(next) ?? 0);
-      setRootNavigationMotion({
-        from: current,
-        to: next,
-        direction:
-          (ROOT_VIEW_ORDER.get(next) ?? 0) > (ROOT_VIEW_ORDER.get(current) ?? 0)
-            ? 'forward'
-            : 'backward',
-      });
-      document.documentElement.classList.add('using-root-view-transition');
-    } else {
-      setRootNavigationMotion(undefined);
-      document.documentElement.classList.remove('using-root-view-transition');
-      clearIncomingScrollShift();
-    }
+    if (view() === next) return false;
+    const mounted = mountedViews().has(next);
     setView(next);
     setMountedViews((current) => {
       if (current.has(next)) return current;
@@ -202,19 +87,40 @@ export function useRootNavigation() {
       expanded.add(next);
       return expanded;
     });
-    if (reduceMotion) {
-      restoreScrollFor(next);
-    } else {
-      scheduleRootNavigationMotionEnd(next);
-    }
+    // In the same frame: the new page is never drawn at the old page's scroll.
+    restoreScrollFor(next, false);
+    // A page built just now lays itself out after this frame.
+    if (!mounted) restoreScrollFor(next);
     return true;
   };
 
+  /** How long a tab switch counts as one: the hash changes it causes land inside this window. */
+  const SWITCH_SETTLE_MS = 200;
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /**
+   * A tab switch is instant, like an iOS tab bar (owner 2026-10-29): the new page is shown at its
+   * saved scroll in the same frame. The earlier cross-fade drew the incoming page shifted while the
+   * window still had the old page's scroll, so its sticky header and scroll-driven parts were drawn
+   * for the wrong place and jumped (blinked) when it ended; a view transition would hold every tap
+   * while it runs. `using-root-view-transition` marks the switch for a moment, so a view that
+   * resets its scroll on its own hash change leaves the restored place alone.
+   */
   const runNextRootNavigation = (): void => {
-    const request = rootNavigationQueue.shift();
-    if (!request) return;
-    request.commit();
-    runNextRootNavigation();
+    const root = document.documentElement;
+    for (
+      let request = rootNavigationQueue.shift();
+      request;
+      request = rootNavigationQueue.shift()
+    ) {
+      root.classList.add('using-root-view-transition');
+      request.commit();
+    }
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      settleTimer = undefined;
+      root.classList.remove('using-root-view-transition');
+    }, SWITCH_SETTLE_MS);
   };
 
   const transitionToRootView = (next: RootView, commit: () => void): boolean => {
@@ -228,21 +134,11 @@ export function useRootNavigation() {
     return true;
   };
 
-  const rootViewClasses = (target: RootView): Readonly<Record<string, boolean>> => {
-    const motion = rootNavigationMotion();
-    return {
-      active: view() === target,
-      'root-view-enter-forward': motion?.to === target && motion.direction === 'forward',
-      'root-view-enter-backward': motion?.to === target && motion.direction === 'backward',
-      'root-view-exit-forward': motion?.from === target && motion.direction === 'forward',
-      'root-view-exit-backward': motion?.from === target && motion.direction === 'backward',
-    };
-  };
+  const rootViewClasses = (target: RootView): Readonly<Record<string, boolean>> => ({
+    active: view() === target,
+  });
 
-  const isViewVisible = (target: RootView): boolean => {
-    const motion = rootNavigationMotion();
-    return view() === target || motion?.from === target;
-  };
+  const isViewVisible = (target: RootView): boolean => view() === target;
 
   const hasMountedView = (target: RootView): boolean => mountedViews().has(target);
 
@@ -282,9 +178,6 @@ export function useRootNavigation() {
 
   const handleHashChange = (event: HashChangeEvent): void => {
     trackToolNavigation(event.oldURL, event.newURL);
-    if (event.isTrusted) {
-      finishRootNavigationMotionIfActive();
-    }
     redirectLegacySettingsRoutes();
     applyDocumentReadState();
     // A new place starts with its controls in view. Moving from one document to another kept the
@@ -339,9 +232,6 @@ export function useRootNavigation() {
     const scrollTop = readScrollTop(event);
     const direction = scrollTop - lastScrollTop;
     lastScrollTop = scrollTop;
-    if (document.documentElement.classList.contains('using-root-view-transition')) {
-      finishRootNavigationMotionIfActive();
-    }
     const canHideChrome = documentReadActive() && !medicalImageViewerActive();
     if (!canHideChrome || performance.now() < chromeHoldUntil) {
       if (chromeHidden()) setChromeHidden(false);
@@ -364,10 +254,6 @@ export function useRootNavigation() {
     if (chromeHidden()) setChromeHidden(false);
   };
 
-  const handleVisibilityChange = (): void => {
-    finishRootNavigationMotionIfActive();
-  };
-
   createEffect(() => {
     const canHideChrome = documentReadActive() && !medicalImageViewerActive();
     if (!canHideChrome) {
@@ -385,7 +271,6 @@ export function useRootNavigation() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
     window.addEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     handleScroll();
   });
 
@@ -395,9 +280,8 @@ export function useRootNavigation() {
     document.removeEventListener('scroll', handleScroll, { capture: true });
     window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.documentElement.classList.remove('app-chrome-hidden');
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    cancelRootNavigationMotionEnd();
     if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
+    if (settleTimer) clearTimeout(settleTimer);
   });
 
   return {

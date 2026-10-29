@@ -96,7 +96,9 @@
   max-width: 100%;
   flex: 0 1 auto;
   min-width: 0;
-  flex-wrap: wrap;
+  /* One line with the sort and view tools: the folder names shorten instead of wrapping. */
+  flex-wrap: nowrap;
+  overflow: hidden;
   align-items: center;
   gap: 0.3rem;
   padding: 0.3rem;
@@ -899,21 +901,6 @@
 }
 
 @media (max-width: 759px) {
-  .user-library-page__breadcrumb-row {
-    flex-wrap: wrap;
-  }
-
-  .user-library-breadcrumbs {
-    width: 100%;
-    flex-basis: 100%;
-  }
-
-  .user-library-page__breadcrumb-tools {
-    width: 100%;
-    min-width: 0;
-    justify-content: flex-end;
-  }
-
   .user-library-page__list--grid .layout-card-grid {
     grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
   }

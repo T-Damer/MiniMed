@@ -1,4 +1,5 @@
 import { createSignal, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
@@ -77,6 +78,7 @@ export function NewPatientScreen(props: {
   return (
     <div class="diary-new">
       <Page
+        hero={PAGE_HEROES.patients}
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К списку" onClick={props.onBack} />
         }

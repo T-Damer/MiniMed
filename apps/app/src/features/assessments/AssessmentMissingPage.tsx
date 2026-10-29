@@ -1,4 +1,5 @@
 import type { JSX } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -17,6 +18,7 @@ export function AssessmentMissingPage(props: {
   return (
     <div class="assessment-workspace">
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-page-header"
         navigation={
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />

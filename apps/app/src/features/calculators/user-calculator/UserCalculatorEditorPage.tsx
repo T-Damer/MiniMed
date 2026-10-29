@@ -8,6 +8,7 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
@@ -255,6 +256,7 @@ function CalculatorEditor(props: {
   return (
     <div class="user-calculator-editor" data-testid="user-calculator-editor">
       <Page
+        hero={PAGE_HEROES.calculators}
         class="user-calculator-editor__header"
         navigation={
           <NavBack

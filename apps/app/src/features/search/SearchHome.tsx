@@ -79,6 +79,7 @@ import {
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
+import { useSearchFieldMorph } from '@/features/search/search-field-morph';
 import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { isSearchHash } from '@/features/search/search-query-route';
 import {
@@ -777,7 +778,16 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [fieldAway, setFieldAway] = createSignal(false);
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
+  const [homeElement, setHomeElement] = createSignal<HTMLElement>();
+  const [rowElement, setRowElement] = createSignal<HTMLElement>();
+  const [pillElement, setPillElement] = createSignal<HTMLElement>();
   useStickySurface(() => searchModeTools);
+  useSearchFieldMorph({
+    page: homeElement,
+    field: fieldForm,
+    row: rowElement,
+    pill: pillElement,
+  });
 
   onMount(() => {
     const refreshTools = () => setToolRevision((revision) => revision + 1);
@@ -885,7 +895,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
 
   return (
-    <section class="search-home page-grain" aria-label="Поиск MiniMed">
+    <section ref={setHomeElement} class="search-home page-grain" aria-label="Поиск MiniMed">
       <PageHeroBand hero={PAGE_HEROES.search} class="page-hero--search" />
       <div
         class="search-home__backdrop-blur masked-backdrop-blur"
@@ -896,16 +906,24 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         class="search-mode-tools route-sticky-chrome--transparent"
         ref={(element) => {
           searchModeTools = element;
+          setRowElement(element);
         }}
       >
+        {/* The band's bar behind the row once the field has become its pill. */}
+        <span
+          class="search-mode-tools__bar"
+          classList={{ 'search-mode-tools__bar--on': fieldAway() }}
+          aria-hidden="true"
+        />
         <Show when={props.active}>
           <SearchHistoryPanel
             onReplay={replayHistory}
             back={sectionOpen() ? { label: 'Назад к разделам', onBack: backToSections } : undefined}
           />
         </Show>
-        <Show when={!fieldAway()}>
-          {/* The row's empty middle at rest; the field's pill takes it once the field is away. */}
+        {/* The row's middle: «MiniMed» at rest, the field's pill once the field has risen into
+            it (search-field-morph.ts). Both stay in one cell, so the row never reflows. */}
+        <span class="search-home__slot">
           <span
             class="search-home__mark"
             classList={{ 'search-home__mark--away': hasSearchScroll() }}
@@ -913,18 +931,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           >
             MiniMed
           </span>
-        </Show>
-        <Show when={fieldAway()}>
           <button
+            ref={setPillElement}
             class="search-field-pill"
+            classList={{ 'search-field-pill--away': fieldAway() }}
             type="button"
             aria-label="Вернуться к поиску"
+            tabIndex={fieldAway() ? 0 : -1}
             onClick={returnToField}
           >
             <AppGlyph name="search" class="search-field-pill__icon" />
             <span class="search-field-pill__label">{catalogQuery().trim() || 'Поиск'}</span>
           </button>
-        </Show>
+        </span>
         <SheetPopover
           open={helpMenuOpen()}
           onOpenChange={setHelpMenuOpen}

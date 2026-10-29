@@ -1,4 +1,5 @@
 import { createMemo, createSignal, type JSX, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
@@ -58,6 +59,7 @@ export function PatientDayView(props: {
   return (
     <div class="diary-day-view diary-care-scope">
       <Page
+        hero={PAGE_HEROES.patients}
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onBack} />
         }

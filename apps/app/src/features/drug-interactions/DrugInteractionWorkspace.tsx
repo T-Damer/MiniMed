@@ -8,6 +8,7 @@ import {
   type JSX,
   Show,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
@@ -147,6 +148,7 @@ export function DrugInteractionWorkspace(props: {
   return (
     <section class="drug-interactions" aria-label="Взаимодействие препаратов">
       <Page
+        hero={PAGE_HEROES.medications}
         navigation={
           <NavBack
             class="drug-interactions__back knowledge-back-button"

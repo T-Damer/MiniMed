@@ -3659,6 +3659,51 @@ Not verified: Android device scroll smoothness at 60 FPS (CSS scroll-driven anim
 only); the shrink inside routes whose surface wraps the header in a short container (the header then
 scrolls away instead of sticking).
 
+### Header on every route, instant tabs, search field morph — 2026-10-29 (STATE UI-HERO2)
+
+- *The header flashed its end state on a slow scroll* (owner, iPhone simulator and Android
+  emulator). Two causes: the animation speed setting (Settings → «Анимации») retimed every
+  animation as it started, scroll-driven ones too, so on «Быстро» they ran ahead of the scroll —
+  `state/motion.ts` now leaves animations on a scroll timeline alone; and a browser's toolbars
+  collapsing while the page scrolls fire `resize`, after which `nav-crowding` writes the root's
+  style and the header re-measured on every one (lifting the sticky class mid-scroll and restarting
+  the ranges). `watchInsets` re-measures only when the width or the status bar's inset changes, and
+  measured lengths are written only when they change (`setLength`).
+- *The emblem* flies with the scroll into a small icon just after the bar's title, where no button
+  covers it; it fades instead when the row has no room (a search field, a long title). It is drawn in
+  the row, which is already stuck while it moves, so nothing lags behind the scroll. The pinned row is
+  filled with the band's colour (Safari tints the strip under the status bar from an opaque sticky
+  bar; a clear row let the page show through there), and the band goes on above a pinned bar to the
+  screen top. The large title no longer scales.
+- *Every `Page` route has the header* (owner): tools, questionnaires and results, editors, forms, the
+  patient screens, the news viewer, comparison, interactions, prescriptions, vaccination; the diary's
+  inner screens get the plain band (`PAGE_HEROES.diaryInner`). Readers keep their own chrome.
+- *Tab switches are instant*, like an iOS tab bar. The previous cross-fade showed the incoming page
+  shifted while the window still had the old page's scroll, so its sticky header and scroll-driven
+  parts were drawn for the wrong place and blinked when it ended (owner: Лента scrolled to the bottom,
+  Files after Лента). A view transition was tried and dropped: Chromium sends every hit to `<html>`
+  while one runs, so taps were held (AGENTS.md: never block input). The «Библиотека» list no longer
+  waits for the switch to end.
+- *Search field morph* (owner: «only depend on scroll-percent»): as the search home scrolls, the
+  field's outline is clipped down to the top row's pill while it rises into the row, its contents
+  dissolve into the pill's surface, the pill takes over where the two meet and the row becomes the
+  band's bar (`features/search/search-field-morph.ts`, scroll-driven clip-path and opacity; without
+  scroll-driven animations the row swaps by state). The bar replaces the status blur there.
+- *Pulse* (owner): the search home's ECG turns yellow and beats faster while frames are dropped, red
+  and faster still when the app struggles (`state/frame-health.ts`: Chromium's long-frame reports,
+  WebKit counts frames one second in ten while the band is shown; worse at once, better after two
+  calm windows).
+- *Files header*: back, the search and «+» in the row; the folder path, sort and view on one line
+  under it (folder names shorten instead of wrapping). `Page` builds its slots once
+  (`children()`): reading a JSX prop rebuilt the row's search field and menu.
+- *Core download offer* («не скачана · Скачать») is the pill under the bottom bar like the progress.
+- *Other variants* (`state/app-variants.ts`, `ReleaseLinks`): Android, iPhone (the web app on the home
+  screen), «Компьютер», «Дневник пациента» and GitHub, minus the one running.
+- The inline document preview re-fits when the bottom bar slides for the pill.
+
+Not verified: a real iPhone and Android device (simulator Safari and headless Chromium/WebKit only);
+Safari's top-strip tint from the filled row is iOS 26 behaviour seen in the simulator.
+
 ## Patient diary: a home with three visible actions — 2026-10-06 (STATE DIARY4)
 
 Owner request: it was not always clear how to open, read, fill and send the diary, and the actions were

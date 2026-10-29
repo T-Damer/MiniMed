@@ -8,6 +8,7 @@ import {
   Show,
   Switch,
 } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -335,6 +336,7 @@ export function DiaryPatientPage(props: {
   return (
     <div class="diary-patient">
       <Page
+        hero={PAGE_HEROES.patients}
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К списку" onClick={props.onBack} />
         }

@@ -1,4 +1,5 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import {
   AppContextMenu,
@@ -164,6 +165,7 @@ export function AssessmentResultPage(props: {
   return (
     <article class="assessment-result-page">
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-page-header assessment-result-page__header"
         navigation={
           <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />

@@ -1969,11 +1969,12 @@ export function UserLibraryPage(props: {
         )}
       </Show>
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
-        {/* The tab's hero header (components/PageHero.tsx): the row with back and the folder's
-            title shrinks into the bar; the search sits on the sheet under it. */}
+        {/* The tab's hero header (components/PageHero.tsx): its row is back, the search and «+»,
+            and it shrinks into the bar; the folder path under it says where the doctor is. */}
         <Page
           class="user-library-page__heading"
           hero={PAGE_HEROES.files}
+          titleFill
           navigation={
             <NavBack
               class="knowledge-back-button"
@@ -1984,15 +1985,32 @@ export function UserLibraryPage(props: {
               icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
             />
           }
-          title={<Heading depth={1}>{folderTrail().at(-1)?.title ?? 'Ваши файлы'}</Heading>}
-        />
-        <SearchField
-          class="route-search user-library-page__search"
-          value={searchQuery()}
-          onInput={setSearchQuery}
-          label="Поиск по текущей папке"
-          hideLabel
-          placeholder="Название или файл"
+          title={
+            <>
+              <Heading depth={1} class="sr-only">
+                {folderTrail().at(-1)?.title ?? 'Ваши файлы'}
+              </Heading>
+              <SearchField
+                class="route-search user-library-page__search"
+                value={searchQuery()}
+                onInput={setSearchQuery}
+                label="Поиск по текущей папке"
+                hideLabel
+                placeholder="Название или файл"
+              />
+            </>
+          }
+          actions={
+            <AppContextMenu
+              actions={pageActions()}
+              class="user-library-page__page-actions"
+              buttonClass="user-library-page__add-button"
+              buttonIcon="plus"
+              buttonLabel="Действия со страницей"
+            >
+              <span class="user-library-page__add-anchor" aria-hidden="true" />
+            </AppContextMenu>
+          }
         />
 
         <div class="user-library-page__breadcrumb-row">
@@ -2049,15 +2067,6 @@ export function UserLibraryPage(props: {
           <div class="user-library-page__breadcrumb-tools">
             {sortMenu()}
             {viewToggle()}
-            <AppContextMenu
-              actions={pageActions()}
-              class="user-library-page__page-actions"
-              buttonClass="user-library-page__add-button"
-              buttonIcon="plus"
-              buttonLabel="Действия со страницей"
-            >
-              <span class="user-library-page__add-anchor" aria-hidden="true" />
-            </AppContextMenu>
           </div>
         </div>
         <input

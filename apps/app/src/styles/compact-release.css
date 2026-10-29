@@ -24,84 +24,6 @@
   overflow-x: clip;
 }
 
-html.using-root-view-transition .app-main {
-  overflow-x: clip;
-}
-
-/* Keep the outgoing view in normal flow while the incoming view overlays it during the motion window.
-   App.tsx toggles `hidden` off for both so the old screen stays visually still underneath the new one.
-   `--root-view-enter-scroll-shift` pre-offsets the overlay to the incoming page's saved scroll while
-   `window.scrollY` still belongs to the outgoing page. Avoid transforms here: they create a sticky
-   containing block and can expose horizontal overflow during navigation. */
-.app-view.root-view-enter-forward,
-.app-view.root-view-enter-backward {
-  position: absolute;
-  top: var(--root-view-enter-scroll-shift, 0px);
-  right: auto;
-  left: calc((100% - min(100%, var(--page-content-width))) / 2);
-  width: min(100%, var(--page-content-width));
-  margin-inline: 0;
-  z-index: var(--z-raised-2);
-  transform: none;
-  animation-duration: 120ms;
-  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
-  animation-fill-mode: both;
-}
-
-.app-view.root-view-exit-forward,
-.app-view.root-view-exit-backward {
-  position: relative;
-  z-index: var(--z-base);
-  isolation: isolate;
-  animation: none;
-  opacity: 1;
-  transform: none;
-}
-
-html.using-root-view-transition .app-view.root-view-exit-forward .sticky-surface,
-html.using-root-view-transition .app-view.root-view-exit-forward .route-sticky-chrome,
-html.using-root-view-transition
-  .app-view.root-view-exit-forward
-  .knowledge-subroute-heading--blurred,
-html.using-root-view-transition
-  .app-view.root-view-exit-forward
-  .search-home__backdrop-blur--visible,
-html.using-root-view-transition .app-view.root-view-exit-forward .module-catalog-heading,
-html.using-root-view-transition .app-view.root-view-exit-forward .module-catalog-toolbar,
-html.using-root-view-transition .app-view.root-view-exit-forward .medication-route-heading,
-html.using-root-view-transition .app-view.root-view-exit-backward .sticky-surface,
-html.using-root-view-transition .app-view.root-view-exit-backward .route-sticky-chrome,
-html.using-root-view-transition
-  .app-view.root-view-exit-backward
-  .knowledge-subroute-heading--blurred,
-html.using-root-view-transition
-  .app-view.root-view-exit-backward
-  .search-home__backdrop-blur--visible,
-html.using-root-view-transition .app-view.root-view-exit-backward .module-catalog-heading,
-html.using-root-view-transition .app-view.root-view-exit-backward .module-catalog-toolbar,
-html.using-root-view-transition .app-view.root-view-exit-backward .medication-route-heading {
-  position: relative;
-  top: auto;
-}
-
-.app-view.root-view-enter-forward {
-  animation-name: root-view-enter-forward;
-}
-
-.app-view.root-view-enter-backward {
-  animation-name: root-view-enter-backward;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-view.root-view-enter-forward,
-  .app-view.root-view-enter-backward,
-  .app-view.root-view-exit-forward,
-  .app-view.root-view-exit-backward {
-    position: static;
-    animation: none;
-  }
-}
-
 .app-main > .app-view {
   max-width: var(--page-content-width);
   padding-inline: 0;
@@ -183,11 +105,19 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   content: "";
 }
 
-/* «MiniMed» in the top row's middle while the page rests on the band; it fades once it scrolls. */
-.search-home__mark {
+/* The top row's middle: «MiniMed» and the field's pill share one cell. */
+.search-home__slot {
   position: relative;
   z-index: var(--z-raised);
+  display: grid;
   flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+
+/* «MiniMed» in the top row's middle while the page rests on the band; it fades once it scrolls. */
+.search-home__mark {
+  grid-area: 1 / 1;
   min-width: 0;
   color: var(--page-hero-ink);
   font: 500 1.375rem / 1 var(--font-serif);
@@ -3490,7 +3420,7 @@ html.native-print-active #root {
   position: relative;
   z-index: var(--z-raised);
   display: inline-flex;
-  flex: 1 1 auto;
+  grid-area: 1 / 1;
   min-width: 0;
   height: 2.5rem;
   align-items: center;
@@ -3505,7 +3435,17 @@ html.native-print-active #root {
   font-size: 0.9375rem;
   text-align: left;
   cursor: text;
-  animation: search-field-pill-in 180ms ease-out;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    visibility var(--motion-fast);
+}
+
+/* Without scroll-driven animations the pill simply appears once the field is away. */
+.search-field-pill.search-field-pill--away {
+  opacity: 1;
+  visibility: visible;
 }
 
 .search-field-pill:focus-visible {
@@ -3527,16 +3467,122 @@ html.native-print-active #root {
   white-space: nowrap;
 }
 
-@keyframes search-field-pill-in {
-  from {
+/* ---- search field morph (features/search/search-field-morph.ts) ----
+   As the page scrolls, the field's outline is clipped down to the pill's shape while it rises to
+   the row, its contents dissolve into the pill's surface, the pill takes over where the two meet
+   and the row becomes the band's bar. Only clip-path and opacity follow the scroll position: the
+   field itself moves with the scroll, so nothing runs a frame behind it. */
+
+/* The band's bar behind the row, from the screen top to the sheet's rounded edge. */
+.search-mode-tools__bar {
+  position: absolute;
+  z-index: var(--z-base);
+  /* Up past the screen top whatever the row's offset there (its sticky top varies by shell). */
+  top: -100vh;
+  right: 0;
+  bottom: calc(-1 * var(--page-hero-lip));
+  left: 0;
+  background: var(--page-hero-band);
+  clip-path: inset(0 0 var(--page-hero-lip) 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+
+.search-mode-tools__bar.search-mode-tools__bar--on {
+  opacity: 1;
+}
+
+@supports (animation-timeline: scroll()) {
+  .query-sheet.query-sheet--morph {
+    animation:
+      search-field-morph linear both,
+      search-field-leave linear both;
+    animation-timeline: scroll(root), scroll(root);
+    animation-range:
+      var(--search-morph-start) var(--search-morph-end),
+      calc(var(--search-morph-end) - 1px) var(--search-morph-end);
+  }
+
+  /* The field's contents dissolve into the pill's surface as it shrinks. */
+  .query-sheet.query-sheet--morph::after {
+    position: absolute;
+    z-index: var(--z-raised-2);
+    inset: 0;
+    background: var(--theme-search-surface);
+    content: "";
     opacity: 0;
-    transform: translateY(-0.25rem);
+    pointer-events: none;
+    animation: search-field-dissolve linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--search-morph-start) calc(var(--search-morph-end) - 0.75rem);
+  }
+
+  .search-field-pill.search-field-pill--morph {
+    transition: none;
+    animation: search-field-arrive linear both;
+    animation-timeline: scroll(root);
+    /* The swap is where the field's shape is exactly the pill's: no second pill shows. */
+    animation-range: calc(var(--search-morph-end) - 1px) var(--search-morph-end);
+  }
+
+  .search-home__mark {
+    transition: none;
+    animation: search-field-leave linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 3rem;
+  }
+
+  /* The bar replaces the blur under the row: the blur smeared the field while it morphed. */
+  .search-home__backdrop-blur.search-home__backdrop-blur--visible,
+  .app-shell.app-shell--native:has(
+    .app-view.active .search-mode-tools.sticky-surface--stuck
+  )::before {
+    opacity: 0;
+  }
+
+  .search-mode-tools__bar {
+    transition: none;
+    animation: search-field-arrive linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--search-morph-end, 100vh) calc(var(--search-morph-end, 100vh) + 1.5rem);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .search-field-pill {
-    animation: none;
+@keyframes search-field-morph {
+  from {
+    clip-path: inset(-3rem round 0.5625rem);
+  }
+
+  to {
+    clip-path: inset(
+      0 var(--search-morph-right, 0px) var(--search-morph-bottom, 0px) var(--search-morph-left, 0px)
+        round 1.25rem
+    );
+  }
+}
+
+@keyframes search-field-dissolve {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes search-field-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes search-field-arrive {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  to {
+    opacity: 1;
+    visibility: visible;
   }
 }
 

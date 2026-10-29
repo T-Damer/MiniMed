@@ -1,9 +1,10 @@
 import type { PageHero } from '@/components/PageHero';
 
 /**
- * The hero bands (components/PageHero.tsx) of the tabs, hubs, catalogs and lists, declared once and
- * rendered by the shared `Page`; the patient diary's tabs use the same. Readers, forms, editors and
- * tool workspaces keep a compact header.
+ * The hero bands (components/PageHero.tsx) of every `Page` route — tabs, hubs, catalogs, lists,
+ * tools, forms and editors (owner 2026-10-29: one header design everywhere) — declared once and
+ * rendered by the shared `Page`; the patient diary's tabs use the same. Readers keep their own
+ * chrome.
  */
 export const PAGE_HEROES = {
   search: { ambient: 'ecg' },
@@ -24,8 +25,12 @@ export const PAGE_HEROES = {
   pubmed: { emblem: 'microscope' },
   newsSources: { emblem: 'rss' },
   notes: { emblem: 'notes' },
+  prescription: { emblem: 'prescription' },
+  comparison: { emblem: 'scales' },
   diaryToday: { emblem: 'calendar', ambient: 'ecg' },
   diaryRecords: { emblem: 'check' },
   diarySend: { emblem: 'share' },
   diarySettings: { emblem: 'system' },
+  /** The diary's inner screens (a record, the install step): the band alone. */
+  diaryInner: {},
 } as const satisfies Record<string, PageHero>;

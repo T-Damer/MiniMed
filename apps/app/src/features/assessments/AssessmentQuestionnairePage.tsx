@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import NumberFlow from 'solid-number-flow';
+import { PAGE_HEROES } from '@/app/page-heroes';
 
 import {
   AppContextMenu,
@@ -355,6 +356,7 @@ export function AssessmentQuestionnairePage(props: {
   return (
     <div class="assessment-workspace">
       <Page
+        hero={PAGE_HEROES.assessments}
         class="assessment-page-header"
         navigation={
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />
