@@ -3510,28 +3510,78 @@ html.native-print-active #root {
   right: 0;
   bottom: calc(-1 * var(--page-hero-lip));
   left: 0;
-  /* Solid above the row (its first 100vh), the row's middle cell open until the second stage. */
+  /* Solid above the row (its first 100vh); the row's sides are the covers below, its middle open
+     until the second stage. */
   background:
-    linear-gradient(var(--page-hero-band), var(--page-hero-band)) top / 100% 100vh no-repeat,
-    linear-gradient(
-      to right,
-      var(--page-hero-band) var(--search-bar-middle-left, 3.5rem),
-      transparent var(--search-bar-middle-left, 3.5rem),
-      transparent calc(100% - var(--search-bar-middle-right, 3.5rem)),
-      var(--page-hero-band) calc(100% - var(--search-bar-middle-right, 3.5rem))
-    );
+    linear-gradient(var(--page-hero-band), var(--page-hero-band)) top / 100% 100vh no-repeat;
   clip-path: inset(0 0 var(--page-hero-lip) 0);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--motion-base) var(--motion-ease);
 }
 
+/* A side button's backing: hangs from the band with a concave fillet where it meets it, its inner
+   lower corner rounded; it slides in from the screen edge. */
+.search-mode-tools__cover {
+  --search-bar-cover-radius: 1.25rem;
+  position: absolute;
+  top: 100vh;
+  bottom: var(--page-hero-lip);
+  background: var(--page-hero-band);
+  transition: transform var(--motion-slow) var(--motion-ease-out);
+}
+
+/* The concave fillet: a clear box with one rounded corner whose band-coloured shadow fills the
+   rest of the box (anti-aliased like any border radius; a radial gradient looked stepped). */
+.search-mode-tools__cover::after {
+  --search-bar-fillet-shift: calc(var(--search-bar-cover-radius) / 2);
+  position: absolute;
+  top: 0;
+  width: var(--search-bar-cover-radius);
+  height: var(--search-bar-cover-radius);
+  content: "";
+}
+
+.search-mode-tools__cover.search-mode-tools__cover--start {
+  left: 0;
+  width: var(--search-bar-middle-left, 3.5rem);
+  border-bottom-right-radius: var(--search-bar-cover-radius);
+  transform: translateX(-100%);
+}
+
+.search-mode-tools__cover.search-mode-tools__cover--start::after {
+  left: 100%;
+  border-top-left-radius: var(--search-bar-cover-radius);
+  box-shadow: calc(-1 * var(--search-bar-fillet-shift)) calc(-1 * var(--search-bar-fillet-shift)) 0
+    var(--search-bar-fillet-shift) var(--page-hero-band);
+}
+
+.search-mode-tools__cover.search-mode-tools__cover--end {
+  right: 0;
+  width: var(--search-bar-middle-right, 3.5rem);
+  border-bottom-left-radius: var(--search-bar-cover-radius);
+  transform: translateX(100%);
+}
+
+.search-mode-tools__cover.search-mode-tools__cover--end::after {
+  right: 100%;
+  border-top-right-radius: var(--search-bar-cover-radius);
+  box-shadow: var(--search-bar-fillet-shift) calc(-1 * var(--search-bar-fillet-shift)) 0
+    var(--search-bar-fillet-shift) var(--page-hero-band);
+}
+
+.search-mode-tools__bar--sides > .search-mode-tools__cover,
+.search-mode-tools__bar--on > .search-mode-tools__cover {
+  transform: none;
+}
+
+/* The second stage: the whole row. */
 .search-mode-tools__bar::after {
   position: absolute;
   top: 100vh;
-  right: var(--search-bar-middle-right, 3.5rem);
-  bottom: 0;
-  left: var(--search-bar-middle-left, 3.5rem);
+  right: 0;
+  bottom: var(--page-hero-lip);
+  left: 0;
   background: var(--page-hero-band);
   content: "";
   opacity: 0;
@@ -3547,8 +3597,35 @@ html.native-print-active #root {
   opacity: 1;
 }
 
-/* «MiniMed» fades slowly with the scroll, gone by the time the field reaches the row. */
+/* «MiniMed» fades slowly with the scroll, gone by the time the field reaches the row; the band
+   above the row and the side covers arrive with the scroll position too (owner 2026-10-29), the
+   state classes above being the fallback. */
 @supports (animation-timeline: scroll()) {
+  .search-mode-tools__bar,
+  .search-mode-tools__cover {
+    transition: none;
+    animation-timeline: scroll(root);
+    animation-range: var(--search-bar-sides-start, 100vh) var(--search-bar-sides-end, 100vh);
+  }
+
+  .search-mode-tools__bar {
+    animation-name: search-bar-sides-in;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+  }
+
+  .search-mode-tools__cover.search-mode-tools__cover--start {
+    animation-name: search-bar-cover-start-in;
+    animation-timing-function: var(--motion-ease-out);
+    animation-fill-mode: both;
+  }
+
+  .search-mode-tools__cover.search-mode-tools__cover--end {
+    animation-name: search-bar-cover-end-in;
+    animation-timing-function: var(--motion-ease-out);
+    animation-fill-mode: both;
+  }
+
   .search-home__mark {
     transition: none;
     animation: search-home-mark-fade linear both;
@@ -3558,6 +3635,36 @@ html.native-print-active #root {
 
   .search-home__mark.search-home__mark--away {
     opacity: 1;
+  }
+}
+
+@keyframes search-bar-sides-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes search-bar-cover-start-in {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes search-bar-cover-end-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: none;
   }
 }
 

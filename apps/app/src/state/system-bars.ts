@@ -33,3 +33,26 @@ export function holdLightStatusBar(): () => void {
     apply();
   };
 }
+
+/**
+ * Light status-bar text while the shell's status cap is shown (styles/compact-release.css): it is
+ * displayed exactly while the active page has a band, whose band, pinned bar or cap is then under
+ * the status bar however far the page has scrolled. The band's own hold (PageHero) let go as soon as
+ * the band scrolled away, leaving dark text on the dark pinned bar.
+ */
+export function holdLightStatusBarWhileShown(element: HTMLElement): () => void {
+  let release: (() => void) | undefined;
+  const update = (shown: boolean): void => {
+    if (shown) release ??= holdLightStatusBar();
+    else {
+      release?.();
+      release = undefined;
+    }
+  };
+  const observer = new ResizeObserver(([entry]) => update((entry?.contentRect.height ?? 0) > 0));
+  observer.observe(element);
+  return () => {
+    observer.disconnect();
+    update(false);
+  };
+}

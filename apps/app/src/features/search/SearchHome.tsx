@@ -800,9 +800,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       setLength(row, '--search-bar-middle-left', slotBox.left - rowBox.left);
       setLength(row, '--search-bar-middle-right', rowBox.right - slotBox.right);
       const stuckTop = Number.parseFloat(getComputedStyle(row).top) || 0;
+      const fieldTop = form.getBoundingClientRect().top + window.scrollY;
       const markBottom = stuckTop + (mark.getBoundingClientRect().bottom - rowBox.top);
-      const reach = form.getBoundingClientRect().top + window.scrollY - markBottom;
-      setLength(row, '--search-mark-fade-end', Math.max(remToPx(1.5), reach));
+      setLength(row, '--search-mark-fade-end', Math.max(remToPx(1.5), fieldTop - markBottom));
+      // The side covers slide in with the scroll from 2rem before the field's top reaches the
+      // row's lower edge until 1.5rem after it (the field sits close under the row at rest).
+      const reachRow = Math.max(0, fieldTop - (stuckTop + rowBox.height));
+      setLength(row, '--search-bar-sides-start', Math.max(0, reachRow - remToPx(2)));
+      setLength(row, '--search-bar-sides-end', reachRow + remToPx(1.5));
     };
     const rowObserver = new ResizeObserver(measureRow);
     if (searchModeTools) rowObserver.observe(searchModeTools);
@@ -831,9 +836,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         const form = fieldForm();
         const rowBottom = searchModeTools?.getBoundingClientRect().bottom ?? 0;
         setFieldUnder(form ? form.getBoundingClientRect().top < rowBottom : false);
-        // Once the typing line is hidden: the field's lower controls may still show.
+        // Once the typing line has risen 2rem past the row's lower edge: until then the field shows
+        // in the row's open middle, framed by the covers' concave corners (owner 2026-10-29).
         const input = form?.querySelector('[data-testid="search-input"]') ?? form;
-        setFieldAway(input ? input.getBoundingClientRect().bottom < rowBottom : false);
+        setFieldAway(input ? input.getBoundingClientRect().bottom < rowBottom - remToPx(2) : false);
       });
     };
     updateSearchScroll();
@@ -946,7 +952,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             'search-mode-tools__bar--on': fieldAway(),
           }}
           aria-hidden="true"
-        />
+        >
+          <span class="search-mode-tools__cover search-mode-tools__cover--start" />
+          <span class="search-mode-tools__cover search-mode-tools__cover--end" />
+        </span>
         <Show when={props.active}>
           <SearchHistoryPanel
             onReplay={replayHistory}

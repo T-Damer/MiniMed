@@ -1,4 +1,5 @@
 import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
+import { animatePageEnter } from '@/app/page-enter';
 
 import {
   bootstrapDocumentReadLocation,
@@ -263,11 +264,31 @@ export function useRootNavigation() {
     document.documentElement.classList.toggle('app-chrome-hidden', canHideChrome && chromeHidden());
   });
 
+  // The arrived page's blocks grow in (app/page-enter.ts) once it has laid out, two frames on, or
+  // a few frames later for a page still mounting; readers keep their own chrome and start at once.
+  let enterFrame: number | undefined;
+  const scheduleEnter = (): void => {
+    if (isDocumentReadRoute(window.location.hash)) return;
+    if (enterFrame !== undefined) cancelAnimationFrame(enterFrame);
+    let frames = 0;
+    const tick = (): void => {
+      frames += 1;
+      if (frames < 2) {
+        enterFrame = requestAnimationFrame(tick);
+        return;
+      }
+      const started = animatePageEnter(document.querySelector('.app-view.active'));
+      enterFrame = started || frames >= 20 ? undefined : requestAnimationFrame(tick);
+    };
+    enterFrame = requestAnimationFrame(tick);
+  };
+
   onMount(() => {
     redirectLegacySettingsRoutes();
     applyDocumentReadState();
     setView(viewFromLocation());
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', scheduleEnter);
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
     window.addEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
@@ -276,6 +297,8 @@ export function useRootNavigation() {
 
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
+    window.removeEventListener('hashchange', scheduleEnter);
+    if (enterFrame !== undefined) cancelAnimationFrame(enterFrame);
     window.removeEventListener('scroll', handleScroll);
     document.removeEventListener('scroll', handleScroll, { capture: true });
     window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);

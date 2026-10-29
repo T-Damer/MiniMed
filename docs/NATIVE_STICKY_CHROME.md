@@ -120,3 +120,12 @@ The WebView reader contract above remains separate from the native Compose imple
 - reader controls hide on downward scroll and return on upward scroll (`pdf-viewer.spec.ts` checks
   the same for the PDF page dock, and that a go-to-page jump keeps the controls);
 - routes without transparent sticky chrome do not show the status-bar blur.
+
+## Android edge-to-edge on old WebViews (2026-10-29)
+
+`MainActivity.drawUnderSystemBars` replaces Capacitor SystemBars' inset listener: the WebView
+always draws under the status and navigation bars, its container gets bottom padding only for the
+keyboard, and the system-bar insets are written to `--safe-area-inset-*` (WebView < 140 reports
+`env(safe-area-inset-*)` as 0, and Capacitor padded such WebViews between the bars). Light status
+text while a band page is active comes from the shell's status cap
+(`holdLightStatusBarWhileShown`).

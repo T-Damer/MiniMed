@@ -63,6 +63,7 @@ import {
   ROUTE_WINDOW_REQUEST_EVENT,
   type RouteWindowRequestDetail,
 } from '@/state/route-window-request';
+import { holdLightStatusBarWhileShown } from '@/state/system-bars';
 
 const loadAssessmentsView = () =>
   import('@/features/assessments/AssessmentsView').then(({ AssessmentsView: component }) => ({
@@ -223,6 +224,11 @@ export function App(): JSX.Element {
     const handOff = onboardingVisible() ? { handOff: handOffToOnboarding } : {};
     void firstScreenPainted(firstScreen).then(() => revealFromBootSurface(handOff));
   });
+  let statusCap: HTMLDivElement | undefined;
+  onMount(() => {
+    if (statusCap) onCleanup(holdLightStatusBarWhileShown(statusCap));
+  });
+
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
@@ -425,7 +431,13 @@ export function App(): JSX.Element {
       }}
     >
       {/* iOS Safari takes the status-bar strip's colour from it (styles/compact-release.css). */}
-      <div class="app-shell__status-cap" aria-hidden="true" />
+      <div
+        ref={(element) => {
+          statusCap = element;
+        }}
+        class="app-shell__status-cap"
+        aria-hidden="true"
+      />
       <Portal>
         <Toaster
           class="app-notification-host"

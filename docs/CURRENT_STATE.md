@@ -3707,6 +3707,19 @@ scrolls away instead of sticking).
   desks' yellow (`--folder-light`), so the bottom strip and overscroll continue the page instead of
   a darker desk. The band is one flat colour (a highlight made it read
   lighter than the bar and the strip).
+- *Android edge-to-edge on every WebView* (owner, emulator): Capacitor 8's SystemBars lets only
+  WebView 140+ draw under the status and navigation bars and pads older ones between them, so the
+  emulator (WebView 133; 0.6.65 the same) showed opaque cream strips. `MainActivity` now takes the
+  inset listener: the container only makes room for the keyboard and the insets go to the page as
+  `--safe-area-inset-*`, which the app reads (`--safe-top`). Overlays that use `env()` directly
+  (assessment and calculator dialogs) keep their 0.75rem minimum on such WebViews.
+- *Status-bar text* stays light while a band page is shown (`holdLightStatusBarWhileShown`, the
+  shell's status cap): the band's own hold let go once the band scrolled away, leaving dark icons
+  on the dark pinned bar.
+- *Arriving on a page* (owner): the active view's content blocks on screen grow from 0.94 and fade
+  in, 25 ms apart, 160 ms each (`app/page-enter.ts`, `Element.animate`, on every hash change but
+  readers; a lazy page is waited for up to 20 frames). Route headers, sticky rows and overlays stay
+  put; taps are never held.
 - *Pulse* (owner): the search home's ECG turns yellow and beats faster while frames are dropped, red
   and faster still when the app struggles (`state/frame-health.ts`: Chromium's long-frame reports,
   WebKit counts frames one second in ten while the band is shown; worse at once, better after two

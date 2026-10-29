@@ -15,10 +15,14 @@ import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
     private static final String WEB_ASSET_CACHE_PREFS = "LocalMedWebAssetCache";
@@ -91,6 +95,43 @@ public class MainActivity extends BridgeActivity {
         return true;
     }
 
+    /**
+     * The page draws under the status and navigation bars on every WebView. Capacitor's SystemBars
+     * only lets WebView 140+ do that and pads older ones between the bars (opaque strips above and
+     * below the page); the page reads the insets from the --safe-area-inset-* variables either way,
+     * so they are written here and the container only makes room for the keyboard.
+     */
+    private void drawUnderSystemBars(WebView webView, View host) {
+        ViewCompat.setOnApplyWindowInsetsListener(
+                host,
+                (view, insets) -> {
+                    Insets bars =
+                            insets.getInsets(
+                                    WindowInsetsCompat.Type.systemBars()
+                                            | WindowInsetsCompat.Type.displayCutout());
+                    boolean keyboard = insets.isVisible(WindowInsetsCompat.Type.ime());
+                    int keyboardBottom =
+                            keyboard ? insets.getInsets(WindowInsetsCompat.Type.ime()).bottom : 0;
+                    view.setPadding(0, 0, 0, keyboardBottom);
+                    float density = getResources().getDisplayMetrics().density;
+                    String script =
+                            String.format(
+                                    Locale.US,
+                                    "(() => { const s = document.documentElement.style;"
+                                            + " s.setProperty('--safe-area-inset-top', '%dpx');"
+                                            + " s.setProperty('--safe-area-inset-right', '%dpx');"
+                                            + " s.setProperty('--safe-area-inset-bottom', '%dpx');"
+                                            + " s.setProperty('--safe-area-inset-left', '%dpx'); })()",
+                                    (int) (bars.top / density),
+                                    (int) (bars.right / density),
+                                    (int) ((keyboard ? 0 : bars.bottom) / density),
+                                    (int) (bars.left / density));
+                    webView.evaluateJavascript(script, null);
+                    return insets;
+                });
+        ViewCompat.requestApplyInsets(host);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
@@ -131,6 +172,9 @@ public class MainActivity extends BridgeActivity {
         if (webView != null) {
             // Until the page paints, the WebView shows the splash ground (light or night), not white.
             webView.setBackgroundColor(ContextCompat.getColor(this, R.color.splashBackground));
+        }
+        if (webView != null && webView.getParent() instanceof View) {
+            drawUnderSystemBars(webView, (View) webView.getParent());
         }
         if (webView != null && shouldClearWebAssetCache()) {
             webView.clearCache(true);
