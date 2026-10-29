@@ -3687,8 +3687,9 @@ scrolls away instead of sticking).
 - *Search field and the row* (owner: a scroll-linked morph of the field into the row's pill «still
   feels off»; 3rem and 8rem versions were tried): the field scrolls normally; once it starts sliding
   under the row, the row becomes the band's opaque bar (`search-mode-tools--filled`, bar `--on`), so
-  the field passes beneath it, and once its typing line is hidden the «Поиск» pill appears in the
-  row (fade and a slight scale, `--motion-fast`). Both are state classes from the scroll handler in
+  the field passes beneath it, and once its typing line is hidden the «Поиск» pill pops into the
+  row (grows from 0.6 past its size and settles, fading in, `--motion-slow`; leaves with a quick
+  fade). Both are state classes from the scroll handler in
   `SearchHome`; the bar replaces the status blur there.
 - *Safari's status-bar strip* (owner, simulator): iOS 26 Safari paints the strip under the status
   bar in the colour of an opaque fixed or sticky bar touching the top edge, otherwise the page shows

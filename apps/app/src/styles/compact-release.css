@@ -3446,17 +3446,37 @@ html.native-print-active #root {
   cursor: text;
   opacity: 0;
   visibility: hidden;
-  transform: scale(0.96);
+  transform: scale(0.9);
   transition:
     opacity var(--motion-fast) var(--motion-ease-out),
     transform var(--motion-fast) var(--motion-ease-out),
     visibility var(--motion-fast);
 }
 
+/* It pops in from the row's middle (grows past its size and settles, like an iOS control
+   appearing); it leaves with the quick fade above. */
 .search-field-pill.search-field-pill--away {
   opacity: 1;
   visibility: visible;
   transform: none;
+  animation: search-field-pill-in var(--motion-slow) var(--motion-ease-out) both;
+}
+
+@keyframes search-field-pill-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .search-field-pill:focus-visible {
