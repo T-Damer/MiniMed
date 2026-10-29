@@ -3423,7 +3423,8 @@ html.native-print-active #root {
   gap: 0.75rem;
 }
 
-/* Once the field scrolls up behind the toolbar, the toolbar carries a way back to it. */
+/* Once the field has scrolled away behind the row, the row carries a way back to it: the pill
+   simply appears (owner 2026-10-29: a scroll-linked morph of the field into it felt off). */
 .search-field-pill {
   position: relative;
   z-index: var(--z-raised);
@@ -3445,15 +3446,17 @@ html.native-print-active #root {
   cursor: text;
   opacity: 0;
   visibility: hidden;
+  transform: scale(0.96);
   transition:
-    opacity var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease-out),
+    transform var(--motion-fast) var(--motion-ease-out),
     visibility var(--motion-fast);
 }
 
-/* Without scroll-driven animations the pill simply appears once the field is away. */
 .search-field-pill.search-field-pill--away {
   opacity: 1;
   visibility: visible;
+  transform: none;
 }
 
 .search-field-pill:focus-visible {
@@ -3475,13 +3478,8 @@ html.native-print-active #root {
   white-space: nowrap;
 }
 
-/* ---- search field morph (features/search/search-field-morph.ts) ----
-   As the page scrolls, the field's outline is clipped down to the pill's shape while it rises to
-   the row, its contents dissolve into the pill's surface, the pill takes over where the two meet
-   and the row becomes the band's bar. Only clip-path and opacity follow the scroll position: the
-   field itself moves with the scroll, so nothing runs a frame behind it. */
-
-/* The band's bar behind the row, from the screen top to the sheet's rounded edge. */
+/* The band's bar behind the row, from the screen top to the sheet's rounded edge, as soon as the
+   field starts sliding under the row (the field then passes beneath an opaque bar). */
 .search-mode-tools__bar {
   position: absolute;
   z-index: var(--z-base);
@@ -3501,105 +3499,30 @@ html.native-print-active #root {
   opacity: 1;
 }
 
-@supports (animation-timeline: scroll()) {
-  .query-sheet.query-sheet--morph {
-    animation:
-      search-field-morph linear both,
-      search-field-leave linear both;
-    animation-timeline: scroll(root), scroll(root);
-    animation-range:
-      var(--search-morph-start) var(--search-morph-end),
-      calc(var(--search-morph-end) - 1px) var(--search-morph-end);
-  }
-
-  /* The field's contents dissolve into the pill's surface as it shrinks. */
-  .query-sheet.query-sheet--morph::after {
-    position: absolute;
-    z-index: var(--z-raised-2);
-    inset: 0;
-    background: var(--theme-search-surface);
-    content: "";
-    opacity: 0;
-    pointer-events: none;
-    animation: search-field-dissolve linear both;
-    animation-timeline: scroll(root);
-    animation-range: var(--search-morph-start) calc(var(--search-morph-end) - 0.75rem);
-  }
-
-  .search-field-pill.search-field-pill--morph {
-    transition: none;
-    animation: search-field-arrive linear both;
-    animation-timeline: scroll(root);
-    /* The swap is where the field's shape is exactly the pill's: no second pill shows. */
-    animation-range: calc(var(--search-morph-end) - 1px) var(--search-morph-end);
-  }
-
-  .search-home__mark {
-    transition: none;
-    animation: search-field-leave linear both;
-    animation-timeline: scroll(root);
-    animation-range: 0 3rem;
-  }
-
-  /* The bars replace the status-bar blurs: the blur smeared the field while it morphed. Not merely
-     transparent: iOS Safari stops tinting the status-bar strip from the pinned bar while an
-     invisible fixed blur layer lies over the top edge (with the bottom bar present). */
-  .search-home__backdrop-blur,
-  .app-shell::before {
-    display: none;
-  }
-
-  .search-mode-tools__bar {
-    transition: none;
-    animation: search-field-arrive linear both;
-    animation-timeline: scroll(root);
-    animation-range: var(--search-morph-end, 100vh) calc(var(--search-morph-end, 100vh) + 1.5rem);
-  }
-
-  /* The row itself takes the band colour as well: iOS Safari tints the status-bar strip from the
-     opaque sticky element at the top, and the bar above is only its child. */
-  .search-home > .search-mode-tools {
-    animation: page-hero-row-fill linear both;
-    animation-timeline: scroll(root);
-    animation-range: var(--search-morph-end, 100vh) calc(var(--search-morph-end, 100vh) + 1.5rem);
-  }
+/* The row itself takes the band colour as well: iOS Safari tints the status-bar strip from the
+   opaque sticky element at the top, and the bar above is only its child. */
+.search-home > .search-mode-tools {
+  transition: background-color var(--motion-fast) var(--motion-ease);
 }
 
-@keyframes search-field-morph {
-  from {
-    clip-path: inset(-3rem round 0.5625rem);
-  }
-
-  to {
-    clip-path: inset(
-      0 var(--search-morph-right, 0px) var(--search-morph-bottom, 0px) var(--search-morph-left, 0px)
-        round 1.25rem
-    );
-  }
+.search-home > .search-mode-tools.search-mode-tools--filled {
+  background-color: var(--page-hero-band);
 }
 
-@keyframes search-field-dissolve {
-  to {
-    opacity: 1;
-  }
+/* The bars replace the status-bar blurs. Not merely transparent: iOS Safari stops tinting the
+   status-bar strip from the pinned bar while an invisible fixed blur layer lies over the top edge
+   (with the bottom bar present). */
+.search-home__backdrop-blur,
+.app-shell::before {
+  display: none;
 }
 
-@keyframes search-field-leave {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes search-field-arrive {
-  from {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  to {
-    opacity: 1;
-    visibility: visible;
-  }
+/* The page's own background is the band's colour: iOS Safari paints the status-bar strip from it
+   while nothing is pinned at the top (pages start on the band; the desk colour showed a khaki strip
+   above it), and overscroll shows it. The shell above it keeps the desk. */
+html:root,
+html:root > body {
+  background: var(--page-hero-band, var(--shell-bar));
 }
 
 /* Clear, layered over the field's top-right corner so the field stays one clean surface. */

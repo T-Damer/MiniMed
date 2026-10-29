@@ -52,13 +52,15 @@ the same through `ScreenHeader` (inner screens get the plain band). Readers keep
 - The status bar text is light while a band is under it (`state/system-bars.ts`, native only; the
   installed web app's `black-translucent` is always light).
 - The search home has its own sticky tools row: it takes the band (`page-hero--search`, the field
-  straddling its edge) and «MiniMed» in the row's empty middle at rest. Scrolling, the field morphs
-  into the row's pill (clip-path and opacity by scroll position, `search-field-morph.ts`) and the row
-  becomes the band's bar (`search-mode-tools__bar`), which replaces the status blur there.
+  straddling its edge) and «MiniMed» in the row's empty middle at rest. Scrolling, the row becomes
+  the band's opaque bar (`search-mode-tools__bar`, row `--filled`) as soon as the field starts sliding
+  under it, and the «Поиск» pill appears once the typing line is hidden (state classes, short
+  fades); the bar replaces the status blur there.
 - iOS Safari tints the status-bar strip only from an opaque fixed or sticky bar flush with the top
   edge, and gives up when an invisible fixed layer also lies over that edge (with the bottom bar
   present). Keep pinned rows flush (`top: var(--safe-top)`, gap as padding) and remove unused fixed
-  overlays with `display: none`, not `opacity: 0`.
+  overlays with `display: none`, not `opacity: 0`. With nothing pinned it uses the body's background
+  colour, which is therefore the band's (the shell paints the desk).
 - Every `Page` route has a hero (`app/page-heroes.ts`); readers keep their own chrome.
 - Do not add a second pinned bar: the header's own row is the bar.
 

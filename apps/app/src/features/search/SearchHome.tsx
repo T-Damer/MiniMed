@@ -79,7 +79,6 @@ import {
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
-import { useSearchFieldMorph } from '@/features/search/search-field-morph';
 import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { isSearchHash } from '@/features/search/search-query-route';
 import {
@@ -774,20 +773,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
+  /** The field has started sliding under the sticky row: the row becomes the band's bar. */
+  const [fieldUnder, setFieldUnder] = createSignal(false);
   /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
   const [fieldAway, setFieldAway] = createSignal(false);
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
-  const [homeElement, setHomeElement] = createSignal<HTMLElement>();
-  const [rowElement, setRowElement] = createSignal<HTMLElement>();
-  const [pillElement, setPillElement] = createSignal<HTMLElement>();
   useStickySurface(() => searchModeTools);
-  useSearchFieldMorph({
-    page: homeElement,
-    field: fieldForm,
-    row: rowElement,
-    pill: pillElement,
-  });
 
   onMount(() => {
     const refreshTools = () => setToolRevision((revision) => revision + 1);
@@ -805,7 +797,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         // Measured live: the row's height changes with its contents and the safe area.
         const form = fieldForm();
         const rowBottom = searchModeTools?.getBoundingClientRect().bottom ?? 0;
-        setFieldAway(form ? form.getBoundingClientRect().bottom < rowBottom : false);
+        const formBox = form?.getBoundingClientRect();
+        setFieldUnder(formBox ? formBox.top < rowBottom : false);
+        // The pill once the typing line is hidden: the field's lower controls may still show.
+        const input = form?.querySelector('[data-testid="search-input"]') ?? form;
+        setFieldAway(input ? input.getBoundingClientRect().bottom < rowBottom : false);
       });
     };
     updateSearchScroll();
@@ -895,7 +891,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
 
   return (
-    <section ref={setHomeElement} class="search-home page-grain" aria-label="Поиск MiniMed">
+    <section class="search-home page-grain" aria-label="Поиск MiniMed">
       <PageHeroBand hero={PAGE_HEROES.search} class="page-hero--search" />
       <div
         class="search-home__backdrop-blur masked-backdrop-blur"
@@ -904,15 +900,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       />
       <div
         class="search-mode-tools route-sticky-chrome--transparent"
+        classList={{ 'search-mode-tools--filled': fieldUnder() }}
         ref={(element) => {
           searchModeTools = element;
-          setRowElement(element);
         }}
       >
-        {/* The band's bar behind the row once the field has become its pill. */}
+        {/* The band's bar behind the row once the field slides under it. */}
         <span
           class="search-mode-tools__bar"
-          classList={{ 'search-mode-tools__bar--on': fieldAway() }}
+          classList={{ 'search-mode-tools__bar--on': fieldUnder() }}
           aria-hidden="true"
         />
         <Show when={props.active}>
@@ -921,8 +917,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             back={sectionOpen() ? { label: 'Назад к разделам', onBack: backToSections } : undefined}
           />
         </Show>
-        {/* The row's middle: «MiniMed» at rest, the field's pill once the field has risen into
-            it (search-field-morph.ts). Both stay in one cell, so the row never reflows. */}
+        {/* The row's middle: «MiniMed» at rest, the field's pill once the field has scrolled
+            away. Both stay in one cell, so the row never reflows. */}
         <span class="search-home__slot">
           <span
             class="search-home__mark"
@@ -932,7 +928,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             MiniMed
           </span>
           <button
-            ref={setPillElement}
             class="search-field-pill"
             classList={{ 'search-field-pill--away': fieldAway() }}
             type="button"

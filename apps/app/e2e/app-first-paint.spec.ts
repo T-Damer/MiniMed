@@ -31,22 +31,26 @@ for (const width of [375, 1280]) {
       probe.style.background = 'var(--theme-background)';
       document.body.append(probe);
       const desk = getComputedStyle(probe).backgroundColor;
+      probe.style.background = 'var(--page-hero-band)';
+      const band = getComputedStyle(probe).backgroundColor;
       probe.remove();
       const parked = document.createDocumentFragment();
       while (root.firstChild) parked.append(root.firstChild);
       const html = getComputedStyle(document.documentElement).backgroundColor;
       const body = getComputedStyle(document.body).backgroundColor;
       root.append(parked);
-      return { rendered, html, body, desk };
+      return { rendered, html, body, desk, band };
     });
-    // Once rendered, the desk owns the canvas again (overscroll keeps the desk colour).
+    // Once rendered, the canvas is the band's colour: pages start on the band, and iOS Safari
+    // paints the status-bar strip from the page background while nothing is pinned at the top.
     expect(colours).toEqual({
-      rendered: colours.desk,
+      rendered: colours.band,
       html: SPLASH,
       body: SPLASH,
       desk: colours.desk,
+      band: colours.band,
     });
-    expect(colours.desk).not.toBe(SPLASH);
+    expect(colours.band).not.toBe(SPLASH);
 
     await expect
       .poll(() =>

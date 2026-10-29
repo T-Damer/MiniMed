@@ -25,9 +25,9 @@
   bottom: 0;
   left: calc(-1 * var(--page-hero-inset-left, var(--page-hero-bleed-x, 0px)));
   overflow: hidden;
-  background:
-    radial-gradient(120% 90% at 85% 0%, rgb(255 255 255 / 7%), transparent 60%),
-    var(--page-hero-band);
+  /* One flat colour: the pinned bar and Safari's status-bar strip are flat, and a highlight here made
+     the band read lighter than both (owner 2026-10-29). */
+  background: var(--page-hero-band);
   /* The lowest strip is the sheet's rounded top: open, so the page shows through it (content that
      scrolls under the bar stays visible down to the sheet's edge instead of under a flat strip). */
   clip-path: inset(0 0 var(--page-hero-lip) 0);
