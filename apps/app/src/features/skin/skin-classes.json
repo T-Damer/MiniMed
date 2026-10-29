@@ -1,0 +1,138 @@
+{
+  "note": "Prototype class list (owner 2026-10-29): the conditions with enough open phone photos in SCIN (>= ~35 labelled cases) and the six PAD-UFES-20 lesion classes. Source labels map to one class each; МКБ-10 codes link a class to the app's documents later and are to be checked against the owner's guide. Insect bites have no single МКБ-10 diagnosis code (W57 is an external cause), so their code is left empty.",
+  "classes": [
+    {
+      "id": "eczema",
+      "ru": "Экзема / дерматит",
+      "icd10": ["L30.9", "L20"],
+      "malignant": false,
+      "scin": ["Eczema"]
+    },
+    {
+      "id": "contact_dermatitis",
+      "ru": "Контактный дерматит",
+      "icd10": ["L25", "L23", "L24"],
+      "malignant": false,
+      "scin": [
+        "Allergic Contact Dermatitis",
+        "Irritant Contact Dermatitis",
+        "CD - Contact dermatitis"
+      ]
+    },
+    {
+      "id": "urticaria",
+      "ru": "Крапивница",
+      "icd10": ["L50"],
+      "malignant": false,
+      "scin": ["Urticaria"]
+    },
+    {
+      "id": "insect_bite",
+      "ru": "Укус насекомого",
+      "icd10": [],
+      "malignant": false,
+      "scin": ["Insect Bite"]
+    },
+    {
+      "id": "folliculitis",
+      "ru": "Фолликулит",
+      "icd10": ["L73.9"],
+      "malignant": false,
+      "scin": ["Folliculitis"]
+    },
+    {
+      "id": "psoriasis",
+      "ru": "Псориаз",
+      "icd10": ["L40"],
+      "malignant": false,
+      "scin": ["Psoriasis"]
+    },
+    {
+      "id": "tinea",
+      "ru": "Дерматофития",
+      "icd10": ["B35"],
+      "malignant": false,
+      "scin": ["Tinea"]
+    },
+    {
+      "id": "impetigo",
+      "ru": "Импетиго",
+      "icd10": ["L01"],
+      "malignant": false,
+      "scin": ["Impetigo"]
+    },
+    {
+      "id": "herpes_zoster",
+      "ru": "Опоясывающий лишай",
+      "icd10": ["B02"],
+      "malignant": false,
+      "scin": ["Herpes Zoster"]
+    },
+    {
+      "id": "pigmented_purpuric",
+      "ru": "Пигментный пурпурозный дерматоз",
+      "icd10": ["L81.7"],
+      "malignant": false,
+      "scin": ["Pigmented purpuric eruption"]
+    },
+    { "id": "acne", "ru": "Акне", "icd10": ["L70"], "malignant": false, "scin": ["Acne"] },
+    {
+      "id": "drug_rash",
+      "ru": "Лекарственная сыпь",
+      "icd10": ["L27.0"],
+      "malignant": false,
+      "scin": ["Drug Rash"]
+    },
+    {
+      "id": "herpes_simplex",
+      "ru": "Простой герпес",
+      "icd10": ["B00"],
+      "malignant": false,
+      "scin": ["Herpes Simplex"]
+    },
+    {
+      "id": "pityriasis_rosea",
+      "ru": "Розовый лишай",
+      "icd10": ["L42"],
+      "malignant": false,
+      "scin": ["Pityriasis rosea"]
+    },
+    {
+      "id": "tinea_versicolor",
+      "ru": "Отрубевидный лишай",
+      "icd10": ["B36.0"],
+      "malignant": false,
+      "scin": ["Tinea Versicolor"]
+    },
+    {
+      "id": "bcc",
+      "ru": "Базальноклеточный рак",
+      "icd10": ["C44"],
+      "malignant": true,
+      "pad": ["BCC"]
+    },
+    {
+      "id": "scc",
+      "ru": "Плоскоклеточный рак / болезнь Боуэна",
+      "icd10": ["C44", "D04"],
+      "malignant": true,
+      "pad": ["SCC"]
+    },
+    { "id": "melanoma", "ru": "Меланома", "icd10": ["C43"], "malignant": true, "pad": ["MEL"] },
+    {
+      "id": "actinic_keratosis",
+      "ru": "Актинический кератоз",
+      "icd10": ["L57.0"],
+      "malignant": false,
+      "pad": ["ACK"]
+    },
+    { "id": "nevus", "ru": "Невус", "icd10": ["D22"], "malignant": false, "pad": ["NEV"] },
+    {
+      "id": "seborrheic_keratosis",
+      "ru": "Себорейный кератоз",
+      "icd10": ["L82"],
+      "malignant": false,
+      "pad": ["SEK"]
+    }
+  ]
+}

@@ -1,0 +1,1198 @@
+{
+  "note": "Skin atlas, clinical text (draft, 2026-10-29): paraphrased from the app's clinical recommendations (cr.minzdrav) and, where no КР covers a condition, krasotaimedicina reference articles; every entry cites its documents. Danger levels and red-flag triggers are a drafted judgement on those sources, not copied wording. Open gaps are listed in 'gaps'.",
+  "conditions": [
+    {
+      "id": "eczema",
+      "ru": "Экзема / дерматит",
+      "icd10": ["L30.9", "L20"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Хроническое рецидивирующее воспаление кожи",
+      "action": "Выявить триггер; наружные противовоспалительные средства; гнойные корки — искать инфекцию",
+      "summary": "Эритема и отёк с микровезикулами, точечными эрозиями («серозные колодцы»), мокнутием и серозными корками; границы нечёткие, зуд. Позже сухость, шелушение, лихенификация.",
+      "evolution": "Острая стадия с мокнутием и корками, новые элементы появляются на фоне старых; затем эритема, шелушение, лихенификация и поствоспалительная пигментация.",
+      "redFlags": [
+        {
+          "text": "Пустулы и гнойные корки: присоединилась инфекция",
+          "danger": "moderate",
+          "triggers": ["spreading", "fever"]
+        },
+        {
+          "text": "Быстрое распространение с лихорадкой",
+          "danger": "moderate",
+          "triggers": ["spreading", "fever"]
+        }
+      ],
+      "features": {
+        "elements": ["vesicle", "erosion", "crust", "scale", "papule"],
+        "colors": ["red", "pink"],
+        "sites": ["hand", "foot", "arm", "head_neck"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.246_3-e3d7571d217f0872",
+          "title": "Экзема",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.265_3-6041279afd1cab8c",
+          "title": "Атопический дерматит",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "contact_dermatitis",
+      "ru": "Контактный дерматит",
+      "icd10": ["L25", "L23", "L24"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Реакция кожи на раздражитель или аллерген",
+      "action": "Прекратить контакт с веществом; наружно глюкокортикоиды (при инфекции — с антибиотиком)",
+      "summary": "Эритема, отёк, папулы, везикулы, эрозии с мокнутием в зоне контакта; при сильном воздействии пузыри или некроз. Хронически: сухость, шелушение, трещины. Зуд, жжение.",
+      "evolution": "Раздражительный — сразу после контакта; аллергический — через часы–сутки, возможен выход за зону контакта. При повторном воздействии течение хроническое.",
+      "redFlags": [
+        {
+          "text": "Пузыри или некроз после сильного раздражителя",
+          "danger": "moderate",
+          "triggers": ["blisters_wide", "pain"]
+        },
+        {
+          "text": "Пустулы и гнойные корки: вторичная инфекция",
+          "danger": "moderate",
+          "triggers": ["spreading", "fever"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "papule", "vesicle", "erosion", "crust"],
+        "colors": ["red", "pink"],
+        "sites": ["hand", "head_neck", "arm"],
+        "signs": ["itch", "pain"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.213_3-a82597830ec7e50f",
+          "title": "Дерматит контактный",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.213_3-a82597830ec7e50f",
+          "title": "Дерматит контактный",
+          "section": "3. Лечение"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "urticaria",
+      "ru": "Крапивница",
+      "icd10": ["L50"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Волдыри обратимы за сутки; риск ангиоотёка",
+      "action": "Неседативный антигистаминный; ангиоотёк гортани или анафилаксия — экстренно в стационар",
+      "summary": "Волдыри: отёчные бледно-розовые или белые элементы с эритемой по краю, разного размера, склонны к слиянию; зуд, реже жжение. Ангиоотёк — плотный бледный отёк без зуда.",
+      "evolution": "Каждый волдырь держится до 24 ч и исчезает бесследно, новые появляются волнами; острая форма до 6 недель, хроническая дольше. Ангиоотёк — часы, до 72 ч.",
+      "redFlags": [
+        {
+          "text": "Отёк губ, языка, век, осиплость голоса, затруднённое дыхание",
+          "danger": "urgent",
+          "triggers": ["face_swelling"]
+        },
+        {
+          "text": "Высыпания по всему телу с лихорадкой",
+          "danger": "moderate",
+          "triggers": ["fever", "spreading"]
+        }
+      ],
+      "features": {
+        "elements": ["wheal"],
+        "colors": ["pink", "red", "white"],
+        "sites": ["torso", "arm", "leg", "buttocks"],
+        "signs": ["itch", "raised"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.264_2-6d7eb76349816009",
+          "title": "Крапивница",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.264_2-6d7eb76349816009",
+          "title": "Крапивница",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "insect_bite",
+      "ru": "Укус насекомого",
+      "icd10": [],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Местная реакция; системная — редко",
+      "action": "Оценить местную и общую реакцию, не расчёсывать; системные признаки — неотложно",
+      "summary": "Красное припухлое пятно и уплотнение 3–7 см (при аллергии до 7–10 см), иногда пузырьки и волдыри; зуд, жжение; регионарные лимфоузлы могут увеличиваться.",
+      "evolution": "Зуд и отёк через минуты; через 6–24 ч возможна эритема как при роже; симптомы 5–14 суток, пигментация до 3–4 недель.",
+      "redFlags": [
+        {
+          "text": "Осиплость, одышка, головокружение, боли за грудиной: анафилаксия",
+          "danger": "urgent",
+          "triggers": ["face_swelling"]
+        },
+        {
+          "text": "Нарастающий отёк, боль, лихорадка: вторичная инфекция",
+          "danger": "moderate",
+          "triggers": ["spreading", "fever", "pain"]
+        }
+      ],
+      "features": {
+        "elements": ["papule", "wheal", "vesicle"],
+        "colors": ["red", "pink"],
+        "sites": ["arm", "leg", "head_neck"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.31b7286ef474580c-edee9ca21f8cc5a9",
+          "title": "Аллергия на укусы комаров ( Кулицидоз )",
+          "section": "Симптомы аллергии на укусы комаров"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.b6253d519c825036-cb0f59a02d2c6cc8",
+          "title": "Аллергия на укусы насекомых ( Инсектная аллергия )",
+          "section": "Симптомы аллергии на насекомых"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "folliculitis",
+      "ru": "Фолликулит",
+      "icd10": ["L73.9"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Поверхностное гнойное воспаление фолликула",
+      "action": "Антисептик наружно; множественные, на лице и рецидивирующие — к дерматовенерологу",
+      "summary": "Небольшие пустулы, пронизанные волосом, на красном болезненном основании; после вскрытия эрозия с жёлтой коркой. Чаще множественные, на волосистых участках.",
+      "evolution": "Красный узелок → пустула на 2–3-й день → корка на 5–7-й; цикл одного фолликула до недели. Глубокий — оставляет пигментацию или рубец.",
+      "redFlags": [
+        {
+          "text": "Нарастающий болезненный узел, лихорадка: переход в фурункул",
+          "danger": "moderate",
+          "triggers": ["pain", "fever", "raised"]
+        },
+        {
+          "text": "Множественные пустулы быстро распространяются",
+          "danger": "moderate",
+          "triggers": ["spreading"]
+        }
+      ],
+      "features": {
+        "elements": ["pustule", "papule", "crust"],
+        "colors": ["red", "yellow"],
+        "sites": ["head_neck", "leg", "torso"],
+        "signs": ["itch", "pain"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.232_2-54c31314cd8ccf3f",
+          "title": "Пиодермии",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.8ac867668eb4bbd9-fbc624d290a80151",
+          "title": "Фолликулит",
+          "section": "Симптомы фолликулита"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "psoriasis",
+      "ru": "Псориаз",
+      "icd10": ["L40"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Хроническое неинфекционное заболевание кожи",
+      "action": "К дерматовенерологу; тяжесть по PASI (20 и выше — круглосуточный стационар)",
+      "summary": "Розово-красные чётко ограниченные папулы и бляшки с серебристо-белыми чешуйками и венчиком эритемы; разгибатели, поясница, волосистая часть головы.",
+      "evolution": "Рост по периферии и слияние папул в бляшки, новые элементы на травмах (Кёбнер); затем стационарная стадия и регресс с псевдоатрофическим ободком Воронова.",
+      "redFlags": [
+        {
+          "text": "Эритродермия: красная горячая кожа >90% площади, 38–39 °C",
+          "danger": "urgent",
+          "triggers": ["fever", "spreading"]
+        },
+        {
+          "text": "Генерализованные пустулы на ярко-красной коже, жжение",
+          "danger": "urgent",
+          "triggers": ["fever", "spreading"]
+        },
+        {
+          "text": "Боль и отёк суставов: псориатический артрит",
+          "danger": "moderate",
+          "triggers": ["pain"]
+        }
+      ],
+      "features": {
+        "elements": ["plaque", "papule", "scale"],
+        "colors": ["red", "pink", "white"],
+        "sites": ["arm", "leg", "head_neck", "torso"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.234_2-749b85b1481c42fb",
+          "title": "Псориаз",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.234_2-749b85b1481c42fb",
+          "title": "Псориаз",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "tinea",
+      "ru": "Дерматофития",
+      "icd10": ["B35"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Грибковая инфекция, лечится амбулаторно",
+      "action": "Подтвердить гриб (микроскопия, посев) до лечения; ведёт дерматовенеролог",
+      "summary": "Округлые эритематозно-шелушащиеся очаги, растущие по периферии; на коже головы — обламывание волос и очаги алопеции, похоже на себорейный дерматит.",
+      "evolution": "Гриб растёт радиально: очаг округлый и расширяющийся; при поражении волос они обламываются и возникают участки облысения.",
+      "redFlags": [
+        {
+          "text": "Болезненный инфильтрат с гноем и выпадением волос (керион)",
+          "danger": "moderate",
+          "triggers": ["pain", "raised", "grew"]
+        },
+        {
+          "text": "Нагноение и осложнённое течение у ребёнка: нужен стационар",
+          "danger": "moderate",
+          "triggers": ["fever", "pain"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "plaque", "scale"],
+        "colors": ["red", "pink"],
+        "sites": ["head_neck", "torso", "arm", "leg"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.1037_1-b486c021b108d4ed",
+          "title": "Дерматофития",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.1037_1-b486c021b108d4ed",
+          "title": "Дерматофития",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "impetigo",
+      "ru": "Импетиго",
+      "icd10": ["L01"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Поверхностная пиодермия, высоко контагиозна",
+      "action": "Амбулаторно у дерматовенеролога; распространённые и токсинзависимые формы — стационар",
+      "summary": "Фликтены с серозным или гнойным содержимым, после вскрытия эрозии и серо-жёлтые корки, чаще вокруг носа и рта. Буллёзное: пузыри с венчиком гиперемии на ногах, кистях.",
+      "evolution": "Фликтена → эрозия → серо-жёлтая корка, отпадает через 3–5 суток без рубцов и атрофии.",
+      "redFlags": [
+        {
+          "text": "Распространённые пузыри, эритема, лихорадка у ребёнка: токсинзависимая форма",
+          "danger": "urgent",
+          "triggers": ["blisters_wide", "fever", "spreading"]
+        },
+        {
+          "text": "Под коркой глубокая язва (эктима)",
+          "danger": "moderate",
+          "triggers": ["non_healing", "pain"]
+        }
+      ],
+      "features": {
+        "elements": ["bulla", "pustule", "erosion", "crust"],
+        "colors": ["yellow", "red"],
+        "sites": ["head_neck", "hand", "leg"],
+        "signs": ["spreading"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.232_2-54c31314cd8ccf3f",
+          "title": "Пиодермии",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.232_2-54c31314cd8ccf3f",
+          "title": "Пиодермии",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "herpes_zoster",
+      "ru": "Опоясывающий лишай",
+      "icd10": ["B02"],
+      "model": true,
+      "danger": "moderate",
+      "dangerWhy": "Нейротропная инфекция; боль, осложнения",
+      "action": "Ацикловир с началом сыпи; лицо и область глаза — в тот же день к специалисту",
+      "summary": "Односторонняя болезненная сыпь по ходу нерва: розовые пятна 2–5 мм, затем тесно сгруппированные везикулы с серозным содержимым на отёчном красном основании.",
+      "evolution": "Боль и жжение до сыпи; пятна → везикулы за сутки → помутнение и корочки; гиперпигментация, выздоровление к 3-й неделе. Боли могут держаться годами.",
+      "redFlags": [
+        {
+          "text": "Сыпь у глаза или на кончике носа: риск поражения роговицы",
+          "danger": "urgent",
+          "triggers": ["near_eye"]
+        },
+        {
+          "text": "Крупные сливные или геморрагические пузыри",
+          "danger": "moderate",
+          "triggers": ["blisters_wide"]
+        },
+        {
+          "text": "Сыпь вне зоны нерва или дольше 3 недель: исключить иммунодефицит и опухоль",
+          "danger": "moderate",
+          "triggers": ["spreading", "non_healing"]
+        }
+      ],
+      "features": {
+        "elements": ["vesicle", "macule", "crust"],
+        "colors": ["red", "pink"],
+        "sites": ["torso", "head_neck"],
+        "signs": ["pain", "itch", "fever"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.be509156cffeccc3-dda2639ed45840ea",
+          "title": "Герпес опоясывающий",
+          "section": "Симптомы опоясывающего герпеса"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.be509156cffeccc3-dda2639ed45840ea",
+          "title": "Герпес опоясывающий",
+          "section": "Лечение опоясывающего герпеса"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "pigmented_purpuric",
+      "ru": "Пигментный пурпурозный дерматоз",
+      "icd10": ["L81.7"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Доброкачественно, внутренние органы не поражены",
+      "action": "Наблюдение у дерматолога; избегать ушибов и переохлаждения, санировать очаги инфекции",
+      "summary": "Симметричные точечные кровоизлияния и буро-коричневые пятна гемосидероза с неровными очертаниями, без отёка; чаще голени. Бывают телеангиэктазии, блестящие узелки.",
+      "evolution": "Свежие петехии появляются рядом со старыми пятнами; красные точки становятся буро-коричневыми или жёлтыми. Течение хроническое.",
+      "redFlags": [
+        {
+          "text": "Лихорадка, недомогание: не типично для болезни, искать другую причину",
+          "danger": "moderate",
+          "triggers": ["fever"]
+        }
+      ],
+      "features": {
+        "elements": ["petechia", "macule", "papule"],
+        "colors": ["brown", "red", "purple"],
+        "sites": ["leg"],
+        "signs": []
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.ecb15defba0e3f84-2b2f951744d8d04b",
+          "title": "Болезнь Шамберга",
+          "section": "Симптомы болезни Шамберга"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.ecb15defba0e3f84-2b2f951744d8d04b",
+          "title": "Болезнь Шамберга",
+          "section": "Лечение болезни Шамберга"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "acne",
+      "ru": "Акне",
+      "icd10": ["L70"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Частое воспаление сальных желёз; рубцы",
+      "action": "Лечение у дерматолога; узлы и кисты заживают рубцом — не затягивать",
+      "summary": "Открытые и закрытые комедоны, красные папулы и пустулы; при тяжёлом течении болезненные узлы и багрово-синюшные кисты. Лоб, подбородок, щёки, грудь, спина.",
+      "evolution": "Закупорка фолликула → комедон → воспалительная папула или пустула; узлы и кисты распадаются и заживают рубцом.",
+      "redFlags": [
+        {
+          "text": "Язвенно-некротические элементы, температура 38 °C и выше: молниеносные угри",
+          "danger": "urgent",
+          "triggers": ["fever", "spreading", "non_healing"]
+        },
+        {
+          "text": "Болезненные узлы и кисты: риск рубцов",
+          "danger": "moderate",
+          "triggers": ["pain", "raised"]
+        }
+      ],
+      "features": {
+        "elements": ["comedo", "papule", "pustule", "nodule"],
+        "colors": ["red", "pink"],
+        "sites": ["head_neck", "torso"],
+        "signs": ["pain"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.b17e58687598b282-0c238738621c3689",
+          "title": "Акне ( Угревая болезнь )",
+          "section": "Симптомы акне"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c20927e588d21ab2-dbce2f3722c09f7b",
+          "title": "Молниеносные угри ( Фульминантные акне )",
+          "section": "Симптомы молниеносных угрей"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "drug_rash",
+      "ru": "Лекарственная сыпь",
+      "icd10": ["L27.0"],
+      "model": true,
+      "danger": "moderate",
+      "dangerWhy": "Токсикодермия; тяжёлые формы поражают органы",
+      "action": "Отменить подозреваемое лекарство; распространённая сыпь с лихорадкой — в стационар",
+      "summary": "Разнообразная сыпь: эритематозные пятна, папулы, волдыри, пузырьки; зуд, жжение. Фиксированная форма — круглые красные пятна 2–3 см, позже бурые, иногда с пузырём.",
+      "evolution": "Фиксированная форма проходит за ~10 дней после отмены препарата; при повторном приёме возвращается на тех же местах и появляется на новых.",
+      "redFlags": [
+        {
+          "text": "Пузыри, поражение слизистых, лихорадка: синдром Стивенса–Джонсона",
+          "danger": "urgent",
+          "triggers": ["mucosa", "blisters_wide", "fever", "new_drug"]
+        },
+        {
+          "text": "Распространённая сыпь с ознобом, лихорадкой, тяжёлым состоянием",
+          "danger": "urgent",
+          "triggers": ["fever", "spreading", "new_drug"]
+        },
+        {
+          "text": "Сыпь после нового лекарства: прекратить воздействие",
+          "danger": "moderate",
+          "triggers": ["new_drug", "itch"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "papule", "wheal", "vesicle"],
+        "colors": ["red", "pink", "brown"],
+        "sites": ["torso", "arm", "leg"],
+        "signs": ["itch", "new_drug"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.d9dd8a9248f573b8-b7b108cb4296c8cd",
+          "title": "Токсикодермия ( Токсидермия )",
+          "section": "Симптомы токсикодермии"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.d00c638dc29fe043-e95b7f9e3749c7d1",
+          "title": "Синдром Стивенса-Джонсона ( Злокачественная экссудативная эритема )",
+          "section": "Симптомы"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "herpes_simplex",
+      "ru": "Простой герпес",
+      "icd10": ["B00"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Рецидивирующая вирусная инфекция, обычно локальная",
+      "action": "Ацикловир по показаниям; тяжёлые и диссеминированные формы — в инфекционный стационар",
+      "summary": "Сгруппированные пузырьки 1,5–2 мм на эритеме, затем болезненные эрозии с фестончатыми краями и корки; обычно одиночный очаг из 3–5 пузырьков.",
+      "evolution": "Жжение и покалывание → пузырьки с прозрачным, затем мутным содержимым → эрозии → эпителизация. Рецидив ~5–6 дней, первичный эпизод 10–14 дней и дольше.",
+      "redFlags": [
+        {
+          "text": "Распространённые высыпания, лихорадка: диссеминация",
+          "danger": "moderate",
+          "triggers": ["spreading", "fever"]
+        },
+        {
+          "text": "Эрозии во рту с лихорадкой: герпетический стоматит",
+          "danger": "moderate",
+          "triggers": ["mucosa", "fever"]
+        },
+        {
+          "text": "Длительно незаживающие язвы: язвенно-некротическая форма",
+          "danger": "moderate",
+          "triggers": ["non_healing", "pain"]
+        }
+      ],
+      "features": {
+        "elements": ["vesicle", "erosion", "crust"],
+        "colors": ["red", "pink"],
+        "sites": ["head_neck", "mouth", "genital"],
+        "signs": ["pain", "itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.492_2-225cd1e8d61f50cb",
+          "title": "Простой герпес (ПГ) у взрослых",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.492_2-225cd1e8d61f50cb",
+          "title": "Простой герпес (ПГ) у взрослых",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "pityriasis_rosea",
+      "ru": "Розовый лишай",
+      "icd10": ["L42"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Самопроходящий дерматоз, 2–12 недель",
+      "action": "Лечение не требуется; в сложных случаях исключить сифилис и микоз",
+      "summary": "Овальные розовые пятна 1–2 см с желтоватым центром и шелушением «воротничком» вдоль линий Лангера на туловище; вначале «материнская» бляшка 2–5 см.",
+      "evolution": "«Материнская» бляшка; через 1–2 недели вспышками множественные «медальоны»; разрешаются от центра с остаточной пигментацией; выздоровление к 4–5-й неделе.",
+      "redFlags": [
+        {
+          "text": "Нетипичная или затянувшаяся сыпь: исключить сифилис и микоз",
+          "danger": "moderate",
+          "triggers": ["non_healing"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "plaque", "scale"],
+        "colors": ["pink", "red", "brown"],
+        "sites": ["torso", "arm"],
+        "signs": []
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.996_1-5ef33038b4a20dbe",
+          "title": "Розовый лишай Жибера",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.996_1-5ef33038b4a20dbe",
+          "title": "Розовый лишай Жибера",
+          "section": "3. Лечение"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "tinea_versicolor",
+      "ru": "Отрубевидный лишай",
+      "icd10": ["B36.0"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Поверхностный микоз, косметический дефект",
+      "action": "Амбулаторно у дерматовенеролога; госпитализация не требуется",
+      "summary": "Нерезко очерченные круглые или овальные пятна 3–5 мм от розового до коричневого, сливаются в полициклические очаги; отрубевидное шелушение при поскабливании. Грудь, спина, плечи, шея.",
+      "evolution": "Пятна множатся и сливаются; после загара остаются депигментированные участки; усиливается в жару; пигментация может держаться после лечения.",
+      "redFlags": [
+        {
+          "text": "Атипичная локализация (лицо, кисти, пах): уточнить диагноз",
+          "danger": "moderate",
+          "triggers": []
+        }
+      ],
+      "features": {
+        "elements": ["macule", "scale"],
+        "colors": ["brown", "pink", "white"],
+        "sites": ["torso", "arm", "head_neck"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.224_2-35287e3a53aa2743",
+          "title": "Разноцветный лишай",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.224_2-35287e3a53aa2743",
+          "title": "Разноцветный лишай",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "bcc",
+      "ru": "Базальноклеточный рак",
+      "icd10": ["C44"],
+      "model": true,
+      "danger": "moderate",
+      "dangerWhy": "Злокачественная опухоль, растёт местно, метастазы редки",
+      "action": "К онкологу; биопсия на всю толщину кожи для гистологии до лечения",
+      "summary": "Серо-розовый узел с перламутровым блеском и валиком из «жемчужин», либо эритематозное пятно с чёткими границами; эрозия или язва с геморрагической коркой. Лицо, голова, туловище.",
+      "evolution": "Медленный местно-деструирующий рост; пятно не отвечает на противовоспалительные мази; затем эрозия и язва («разъедающая язва»).",
+      "redFlags": [
+        {
+          "text": "Эрозия или язва с коркой не заживает, кровит",
+          "danger": "moderate",
+          "triggers": ["non_healing", "bleed", "grew"]
+        },
+        {
+          "text": "Кожа века или область глаза: консультация в онкоофтальмологии",
+          "danger": "moderate",
+          "triggers": ["near_eye"]
+        },
+        {
+          "text": "Пигментная форма серо-чёрного цвета похожа на меланому",
+          "danger": "high",
+          "triggers": ["changed", "grew"]
+        },
+        {
+          "text": "Множественные у молодого: исключить синдром Горлина–Гольца",
+          "danger": "moderate",
+          "triggers": []
+        }
+      ],
+      "features": {
+        "elements": ["nodule", "plaque", "ulcer", "crust", "macule"],
+        "colors": ["pink", "white", "brown"],
+        "sites": ["head_neck", "torso"],
+        "signs": ["non_healing", "bleed", "grew"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.467_3-68fa73a972b045f5",
+          "title": "Базальноклеточный рак кожи",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.467_3-68fa73a972b045f5",
+          "title": "Базальноклеточный рак кожи",
+          "section": "2.2 Физикальное обследование"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "scc",
+      "ru": "Плоскоклеточный рак / болезнь Боуэна",
+      "icd10": ["C44", "D04"],
+      "model": true,
+      "danger": "high",
+      "dangerWhy": "Злокачественная опухоль, регионарные метастазы 10–15%",
+      "action": "К онкологу; биопсия на всю толщину кожи (не соскоб) для гистологии",
+      "summary": "Плотный тёмно-красный узел с многослойной коркой или красная бляшка с жёлто-белыми чешуйками, возможна язва. Боуэн: чёткая псориазиформная бляшка с плотными чешуйками. Голова, шея, тыл кистей.",
+      "evolution": "Из актинического кератоза или de novo: бляшка с чешуйками → плотный узел с коркой → язва с некрозом. Болезнь Боуэна годами растёт медленно.",
+      "redFlags": [
+        {
+          "text": "Узел с коркой или язва, кровит, не заживает",
+          "danger": "high",
+          "triggers": ["non_healing", "bleed", "grew"]
+        },
+        {
+          "text": "Бляшка с чешуйками не отвечает на противовоспалительные мази",
+          "danger": "high",
+          "triggers": ["non_healing", "raised"]
+        },
+        {
+          "text": "Увеличенные регионарные лимфоузлы: возможны метастазы",
+          "danger": "high",
+          "triggers": []
+        }
+      ],
+      "features": {
+        "elements": ["plaque", "nodule", "scale", "crust", "ulcer"],
+        "colors": ["red", "pink"],
+        "sites": ["head_neck", "hand", "arm"],
+        "signs": ["non_healing", "bleed", "grew", "raised"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.476_3-b4a1d6b4f18883ea",
+          "title": "Плоскоклеточный рак кожи",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.476_3-b4a1d6b4f18883ea",
+          "title": "Плоскоклеточный рак кожи",
+          "section": "2.2 Физикальное обследование"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "melanoma",
+      "ru": "Меланома",
+      "icd10": ["C43"],
+      "model": true,
+      "danger": "high",
+      "dangerWhy": "Злокачественная опухоль, метастазирует",
+      "action": "К онкологу в течение 3 рабочих дней; эксцизионная биопсия с отступом 1–3 мм",
+      "summary": "Асимметричное пятно или узел с неровными границами и несколькими цветами (чёрный, коричневый, сине-чёрный), чаще >5 мм; узловая форма — плотный бугристый узел.",
+      "evolution": "Растёт, меняет границы и цвет, поверхность неровная, легко кровоточит, зуд или жжение. Радиальный рост годами, затем вертикальный с метастазами.",
+      "redFlags": [
+        {
+          "text": "Изменилась родинка: рост, цвет, границы",
+          "danger": "high",
+          "triggers": ["changed", "grew"]
+        },
+        {
+          "text": "Кровоточит, изъязвление, корки",
+          "danger": "high",
+          "triggers": ["bleed"]
+        },
+        {
+          "text": "Зуд, боль или жжение в образовании",
+          "danger": "high",
+          "triggers": ["itch", "pain"]
+        },
+        {
+          "text": "Быстро растущий плотный узел, в том числе без пигмента",
+          "danger": "high",
+          "triggers": ["grew", "raised"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "nodule", "plaque", "ulcer", "crust"],
+        "colors": ["black", "brown", "blue_gray"],
+        "sites": ["torso", "leg", "foot", "hand", "arm", "head_neck"],
+        "signs": ["changed", "grew", "bleed", "itch", "raised"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.921_1-9fb56c76ebccdc0b",
+          "title": "Меланома кожи и слизистых оболочек",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.921_1-9fb56c76ebccdc0b",
+          "title": "Меланома кожи и слизистых оболочек",
+          "section": "6. Организация оказания медицинской помощи"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "actinic_keratosis",
+      "ru": "Актинический кератоз",
+      "icd10": ["L57.0"],
+      "model": true,
+      "danger": "moderate",
+      "dangerWhy": "Предрак, может перейти в плоскоклеточный рак",
+      "action": "К дерматологу или онкологу; утолщение, язва, кровоточивость — биопсия",
+      "summary": "Шероховатые красноватые пятна и бляшки до 1–4 см с тонкими, позже желтоватыми чешуйками на открытых участках; возможен кожный рог; на нижней губе — хейлит.",
+      "evolution": "Эритема → пальпируемая бляшка с нарастающими чешуйками → кожный рог; может исчезать, но возможен переход в плоскоклеточный рак.",
+      "redFlags": [
+        {
+          "text": "Воспалительный ободок, боль, зуд, быстрый рост: подозрение на рак",
+          "danger": "high",
+          "triggers": ["grew", "pain", "itch", "changed"]
+        },
+        {
+          "text": "Язва, кровоточивость, не заживает",
+          "danger": "high",
+          "triggers": ["bleed", "non_healing"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "plaque", "scale", "crust"],
+        "colors": ["red", "pink", "yellow"],
+        "sites": ["head_neck", "hand", "arm"],
+        "signs": ["raised", "bleed"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.476_3-b4a1d6b4f18883ea",
+          "title": "Плоскоклеточный рак кожи",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.d066b9a3ef8645e4-827ff22af7905490",
+          "title": "Актинический кератоз ( Сенильная акантома , Солнечный кератоз )",
+          "section": "Симптомы актинического кератоза"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "nevus",
+      "ru": "Невус",
+      "icd10": ["D22"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Доброкачественный меланоцитарный невус",
+      "action": "Лечение не требуется; удаление — с гистологией; меняющийся невус — к онкологу",
+      "summary": "Симметричное равномерно окрашенное пятно или мягкая папула с гладкой поверхностью и чёткими округлыми границами, обычно меньше 6 мм; коричневый, розовый, голубой или цвета кожи.",
+      "evolution": "Возникает в детстве; пограничный невус (пятно) со временем становится сложным и внутридермальным (приподнятая папула цвета кожи).",
+      "redFlags": [
+        {
+          "text": "Рост, смена цвета или границ, «гадкий утёнок»",
+          "danger": "high",
+          "triggers": ["changed", "grew"]
+        },
+        {
+          "text": "Кровоточивость, зуд, боль, изъязвление",
+          "danger": "high",
+          "triggers": ["bleed", "itch", "pain"]
+        },
+        {
+          "text": "Более 50 невусов или атипичные: группа риска меланомы",
+          "danger": "moderate",
+          "triggers": []
+        }
+      ],
+      "features": {
+        "elements": ["macule", "papule"],
+        "colors": ["brown", "skin", "pink"],
+        "sites": ["torso", "arm", "leg", "head_neck"],
+        "signs": []
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.763_2-7159aff7a94eecf9",
+          "title": "Меланоформный невус",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.763_2-7159aff7a94eecf9",
+          "title": "Меланоформный невус",
+          "section": "3. Лечение"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "seborrheic_keratosis",
+      "ru": "Себорейный кератоз",
+      "icd10": ["L82"],
+      "model": true,
+      "danger": "low",
+      "dangerWhy": "Доброкачественная опухоль кожи",
+      "action": "Лечение не требуется; удалять при раздражении или по желанию; сомнительный — гистология",
+      "summary": "Тусклая восковая бородавчатая папула или бляшка, как «приклеенная»; от светлого и жёлтого до тёмно-коричневого и чёрного; единичные или множественные; лицо, туловище, складки.",
+      "evolution": "Медленно растёт в размерах и числе годами; к 60 годам есть почти у всех. Внезапное появление множества очагов — тревожный признак.",
+      "redFlags": [
+        {
+          "text": "Внезапно много новых очагов (симптом Лезера–Трела): исключить опухоль",
+          "danger": "moderate",
+          "triggers": ["spreading"]
+        },
+        {
+          "text": "Растёт, кровит, меняется: исключить меланому",
+          "danger": "high",
+          "triggers": ["changed", "grew", "bleed"]
+        }
+      ],
+      "features": {
+        "elements": ["papule", "plaque", "scale"],
+        "colors": ["brown", "black", "yellow"],
+        "sites": ["torso", "head_neck", "arm"],
+        "signs": ["itch"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.975_1-f25ecd54dabbd4f8",
+          "title": "Себорейный кератоз",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.975_1-f25ecd54dabbd4f8",
+          "title": "Себорейный кератоз",
+          "section": "3. Лечение"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "vitiligo",
+      "ru": "Витилиго",
+      "icd10": ["L80"],
+      "model": false,
+      "danger": "low",
+      "dangerWhy": "Хроническая депигментация, косметический дефект",
+      "action": "К дерматологу; защищать депигментированные участки от солнца",
+      "summary": "Молочно-белые (цвета слоновой кости) пятна округлых очертаний, волосы на них обесцвечены; по краю иногда зона гиперпигментации. Без боли.",
+      "evolution": "Одно пятно растёт по периферии, появляются новые, очаги сливаются в обширные участки; прогрессирование трудно предсказать.",
+      "redFlags": [
+        {
+          "text": "Пятно с зудом, шелушением или изменением: исключить грибок, меланому",
+          "danger": "moderate",
+          "triggers": ["changed", "itch"]
+        }
+      ],
+      "features": {
+        "elements": ["macule"],
+        "colors": ["white"],
+        "sites": ["hand", "arm", "head_neck", "torso"],
+        "signs": []
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.88c8620922bc988e-b71d77e9de7f524b",
+          "title": "Витилиго",
+          "section": "Клинические проявления витилиго"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.88c8620922bc988e-b71d77e9de7f524b",
+          "title": "Витилиго",
+          "section": "Диагностика витилиго"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "milia",
+      "ru": "Милиум",
+      "icd10": ["L72.0"],
+      "model": false,
+      "danger": "low",
+      "dangerWhy": "Ретенционная киста фолликула, безболезненна",
+      "action": "Не выдавливать; удаление у дерматолога (вскрытие и удаление капсулы)",
+      "summary": "Мелкие округлые плотные узелки 0,5–3 мм бело-жёлтого цвета с чёткими границами, как просяные зёрна; веки, вокруг глаз, виски, щёки, нос.",
+      "evolution": "Образуются постепенно и безболезненно, годами не меняются; у новорождённых исчезают сами.",
+      "redFlags": [
+        {
+          "text": "Воспаление, гнойничок: вторичная инфекция",
+          "danger": "moderate",
+          "triggers": ["pain"]
+        }
+      ],
+      "features": {
+        "elements": ["papule"],
+        "colors": ["white", "yellow"],
+        "sites": ["head_neck"],
+        "signs": []
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.f4d102eb1e607926-a1af8b782be1765a",
+          "title": "Милиум",
+          "section": "Характеристика милиумов"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.f4d102eb1e607926-a1af8b782be1765a",
+          "title": "Милиум",
+          "section": "Лечение милиумов"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "furuncle",
+      "ru": "Фурункул, карбункул, абсцесс",
+      "icd10": ["L02"],
+      "model": false,
+      "danger": "moderate",
+      "dangerWhy": "Гнойно-некротическое воспаление; риск осложнений",
+      "action": "Не выдавливать; при абсцедировании вскрытие у хирурга; на лице — антибиотик внутрь",
+      "summary": "Очень болезненный красный узел вокруг волосяного фолликула с отёком, пустулой и волосом в центре, затем гнойно-некротический стержень. Карбункул — 5–10 см, несколько пустул.",
+      "evolution": "Инфильтрат 1–3 см → на 3–4-й день стержень и гной → вскрытие, язва, рубец; цикл фурункула до ~10 дней, карбункула — недели.",
+      "redFlags": [
+        {
+          "text": "Лицо, нос, носогубный треугольник с лихорадкой: риск внутричерепных осложнений",
+          "danger": "urgent",
+          "triggers": ["near_eye", "fever", "face_swelling"]
+        },
+        {
+          "text": "Карбункул, температура до 40 °C, слабость",
+          "danger": "moderate",
+          "triggers": ["fever", "spreading"]
+        },
+        {
+          "text": "Множественные или рецидивирующие: фурункулёз, искать причину",
+          "danger": "moderate",
+          "triggers": ["spreading"]
+        }
+      ],
+      "features": {
+        "elements": ["nodule", "pustule", "ulcer", "crust"],
+        "colors": ["red", "purple"],
+        "sites": ["head_neck", "torso", "buttocks", "leg", "arm"],
+        "signs": ["pain", "fever", "raised"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.232_2-54c31314cd8ccf3f",
+          "title": "Пиодермии",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.ec0c6645e7e85694-6ce25d977df6b71e",
+          "title": "Фурункул",
+          "section": "Симптомы фурункула"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.956_1-665dc6eaf768ff18",
+          "title": "Абсцесс. Фурункул носа. Карбункул носа.",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "skin_ulcer",
+      "ru": "Язва кожи",
+      "icd10": ["I83.0", "L89"],
+      "model": false,
+      "danger": "moderate",
+      "dangerWhy": "Хронический дефект; инфекция, остеомиелит",
+      "action": "Найти причину (вены, давление); флеболог или хирург; при инфекции антибиотик по посеву",
+      "summary": "Дефект кожи с влажным тёмно-красным дном, струпом и отделяемым. Трофическая — на голени на фоне пигментации и лаковой кожи; пролежень — от стойкой гиперемии до глубокого некроза.",
+      "evolution": "Пигментация, уплотнение, белая атрофия → мелкий дефект → расширение и углубление; пролежень по глубине делят на стадии I–V.",
+      "redFlags": [
+        {
+          "text": "Язва углубляется, боль усиливается: поражение глубоких тканей",
+          "danger": "moderate",
+          "triggers": ["non_healing", "pain", "grew"]
+        },
+        {
+          "text": "Гнойное отделяемое, запах, лихорадка: инфекция",
+          "danger": "moderate",
+          "triggers": ["fever", "spreading"]
+        },
+        {
+          "text": "Давно не заживает, кровит: исключить плоскоклеточный рак",
+          "danger": "high",
+          "triggers": ["non_healing", "bleed"]
+        }
+      ],
+      "features": {
+        "elements": ["ulcer", "crust", "erosion"],
+        "colors": ["red", "brown", "yellow"],
+        "sites": ["leg", "foot", "buttocks"],
+        "signs": ["non_healing", "pain"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.68a558d6ed912aaa-b9a4c9ec0a0ee088",
+          "title": "Трофическая язва",
+          "section": "Симптомы трофической язвы"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.1079_1-c05be6b390cec962",
+          "title": "Пролежень (декубитальная язва)",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.476_3-b4a1d6b4f18883ea",
+          "title": "Плоскоклеточный рак кожи",
+          "section": "2.1 Жалобы и анамнез"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "measles_koplik",
+      "ru": "Корь (пятна Филатова–Коплика)",
+      "icd10": ["B05"],
+      "model": false,
+      "danger": "urgent",
+      "dangerWhy": "Высококонтагиозна; пневмония, энцефалит",
+      "action": "Изолировать, экстренное извещение; тяжёлое течение — в инфекционный стационар",
+      "summary": "Мелкие беловато-серые точки на слизистой щёк у коренных зубов с венчиком гиперемии; затем яркая пятнисто-папулёзная сыпь, склонная к слиянию.",
+      "evolution": "Катар и лихорадка 3–4 дня; пятна за 1–2 дня до сыпи и исчезают с ней; сыпь с 4–5-го дня сверху вниз; затем пигментация 7–14 дней.",
+      "redFlags": [
+        {
+          "text": "Лихорадка, катар, конъюнктивит и пятна на щеках: изолировать",
+          "danger": "urgent",
+          "triggers": ["fever", "mucosa"]
+        },
+        {
+          "text": "Пневмония, энцефалит: тяжёлые осложнения",
+          "danger": "urgent",
+          "triggers": ["fever"]
+        }
+      ],
+      "features": {
+        "elements": ["macule", "papule"],
+        "colors": ["white", "red"],
+        "sites": ["mouth", "head_neck", "torso"],
+        "signs": ["fever", "mucosa", "spreading"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.563_2-088286b623951169",
+          "title": "Корь",
+          "section": "1.6 Клиническая картина заболевания или состояния"
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.563_2-088286b623951169",
+          "title": "Корь",
+          "section": "6. Организация оказания медицинской помощи; Исходный документ (экстренное извещение)"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "aphthous",
+      "ru": "Афтозный стоматит",
+      "icd10": ["K12.0"],
+      "model": false,
+      "danger": "low",
+      "dangerWhy": "Рецидивирующие болезненные афты, заживают сами",
+      "action": "Местно антисептик и анестетик; частые рецидивы — к стоматологу, искать системную причину",
+      "summary": "Болезненные афты — эрозии и язвочки с фибринозным налётом на слизистой губ, боковой поверхности языка, переходных складок; бывают единичные.",
+      "evolution": "Афты эпителизируются за 1–2 недели; рецидивы 1–3 раза в год, затем чаще. Рубцующиеся язвы до 1,5 см заживают до 3 месяцев с рубцом.",
+      "redFlags": [
+        {
+          "text": "Язвы дольше 3 недель, глубокие, с рубцеванием",
+          "danger": "moderate",
+          "triggers": ["non_healing", "pain"]
+        },
+        {
+          "text": "Некротические афты при тяжёлых соматических и кровяных болезнях",
+          "danger": "moderate",
+          "triggers": []
+        }
+      ],
+      "features": {
+        "elements": ["erosion", "ulcer"],
+        "colors": ["white", "yellow", "red"],
+        "sites": ["mouth"],
+        "signs": ["pain", "mucosa"]
+      },
+      "sources": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.0757ac300e20164f-03c9f89274bfb185",
+          "title": "Афтозный стоматит",
+          "section": "Симптомы афтозного стоматита"
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.0757ac300e20164f-03c9f89274bfb185",
+          "title": "Афтозный стоматит",
+          "section": "Лечение афтозного стоматита"
+        }
+      ],
+      "status": "draft"
+    }
+  ],
+  "gaps": [
+    "Дерматофития: КР 1037_1 описывает микозы волосистой части головы и бороды; гладкая кожа туловища и конечностей описана только общим механизмом (радиальный рост очага) и черепицеобразным микозом, поэтому описание очага на теле консервативное.",
+    "Опоясывающий герпес, акне, лекарственная сыпь, укус насекомого, пигментный пурпурозный дерматоз, актинический кератоз, витилиго, милиум, афтозный стоматит, фурункул, трофическая язва: КР в папке нет, использованы статьи krasotaimedicina (права на источник не определены, публикация заблокирована). Для актинического кератоза дополнительно использована КР «Плоскоклеточный рак кожи».",
+    "Статьи krasotaimedicina не содержат кодов МКБ-10 для опоясывающего герпеса, милиума, фурункула, афтозного стоматита, витилиго; коды взяты из задания. Для лекарственной сыпи L27.0 статья описывает токсикодермию (L27, L51.1); для укусов насекомых кода нет (W57 — внешняя причина).",
+    "Язва кожи: код L98.4 источниками не подтверждён, указаны I83.0 (статья о трофической язве) и L89 (КР «Пролежень»).",
+    "Уровни срочности (urgent) для эритродермии и пустулёзного псориаза, молниеносных угрей, фурункула лица и осложнений кори назначены по описанным в источниках системным проявлениям (лихорадка, поражение органов, риск осложнений); прямого указания «в тот же день» в источниках нет.",
+    "Опоясывающий герпес у глаза: статья описывает поражение век и роговицы при поражении лицевых нервов; направление «в тот же день к специалисту» — вывод из этого описания, а не прямая норма источника.",
+    "Герпес простой у глаза: КР явно исключает глазные формы (отдельные КР), поэтому красный флаг «у глаза» для простого герпеса не заполнялся.",
+    "Пигментный пурпурозный дерматоз: красный флаг «лихорадка, недомогание» выведен из утверждения статьи об отсутствии нарушений общего самочувствия при болезни Шамберга; прямого перечня тревожных признаков в статье нет.",
+    "Корь: экстренное извещение (телефонное сообщение в течение 2 часов, письменное — в течение 12 часов) найдено только в полном тексте КР («Исходный документ»), не в структурированных разделах.",
+    "Меланома: срок консультации онколога ≤3 рабочих дней взят из общего порядка оказания онкологической помощи в разделе 6 КР 921_1; в КР по БКРК и ПКРК такого срока в разделе 6 не найдено, поэтому для них срок не указан.",
+    "Витилиго: статья утверждает, что пятна не бывают на ладонях и подошвах; это не включено в описание как недостаточно подтверждённое. Цвет пятен приведён по статье (слоновая кость, белоснежные).",
+    "Локализации (sites) и признаки (signs) в features заданы как типичные для матчинга по описанию и выведены из текста источников, а не перечислены в них в готовом виде."
+  ]
+}

@@ -1,0 +1,955 @@
+{
+  "note": "Reference pictures of the skin atlas as drawn schemas (features/skin/skin-lesion-art.ts): skin tone, then layers of morphological elements placed in a pattern. Each picture is a typical form, not a photo of a patient.",
+  "art": {
+    "eczema": [
+      {
+        "caption": "Острая",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 26,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 3
+          },
+          {
+            "element": "vesicle",
+            "pattern": "cluster",
+            "count": 16,
+            "size": 1.8,
+            "seed": 5
+          },
+          {
+            "element": "crust",
+            "pattern": "cluster",
+            "count": 3,
+            "size": 3,
+            "seed": 9
+          }
+        ]
+      },
+      {
+        "caption": "Хроническая",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 24,
+            "colors": ["red", "brown"],
+            "border": "irregular",
+            "surface": ["scale"],
+            "seed": 21
+          }
+        ]
+      }
+    ],
+    "contact_dermatitis": [
+      {
+        "caption": "Острый",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 22,
+            "colors": ["red"],
+            "border": "sharp",
+            "seed": 8
+          },
+          {
+            "element": "vesicle",
+            "pattern": "cluster",
+            "count": 14,
+            "size": 1.8,
+            "seed": 13
+          }
+        ]
+      },
+      {
+        "caption": "Полоса от контакта",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "linear",
+            "count": 9,
+            "size": 3.2,
+            "colors": ["red"],
+            "seed": 4
+          },
+          {
+            "element": "vesicle",
+            "pattern": "linear",
+            "count": 6,
+            "size": 1.6,
+            "seed": 6
+          }
+        ]
+      }
+    ],
+    "urticaria": [
+      {
+        "caption": "Волдыри",
+        "layers": [
+          {
+            "element": "wheal",
+            "pattern": "scattered",
+            "count": 5,
+            "size": 9,
+            "border": "irregular",
+            "seed": 2
+          }
+        ]
+      },
+      {
+        "caption": "Сливные",
+        "layers": [
+          {
+            "element": "wheal",
+            "size": 24,
+            "border": "irregular",
+            "seed": 17
+          }
+        ]
+      }
+    ],
+    "insect_bite": [
+      {
+        "caption": "Одиночный",
+        "layers": [
+          {
+            "element": "papule",
+            "size": 6,
+            "colors": ["pink"],
+            "surface": ["halo", "umbilicated"],
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Дорожка",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "linear",
+            "count": 3,
+            "size": 4.5,
+            "colors": ["red"],
+            "surface": ["umbilicated"],
+            "seed": 12
+          }
+        ]
+      }
+    ],
+    "folliculitis": [
+      {
+        "caption": "Гнойнички у волоса",
+        "layers": [
+          {
+            "element": "pustule",
+            "pattern": "follicular",
+            "count": 14,
+            "size": 2.2,
+            "seed": 3
+          }
+        ]
+      },
+      {
+        "caption": "Папулы",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "follicular",
+            "count": 18,
+            "size": 2.4,
+            "colors": ["red"],
+            "seed": 7
+          }
+        ]
+      }
+    ],
+    "psoriasis": [
+      {
+        "caption": "Бляшка",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 24,
+            "colors": ["red"],
+            "border": "sharp",
+            "surface": ["scale"],
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Каплевидный",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "scattered",
+            "count": 14,
+            "size": 3.8,
+            "colors": ["red"],
+            "border": "sharp",
+            "surface": ["scale"],
+            "seed": 9
+          }
+        ]
+      }
+    ],
+    "tinea": [
+      {
+        "caption": "Кольцо",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 28,
+            "colors": ["red"],
+            "border": "sharp",
+            "surface": ["clearing", "scale"],
+            "seed": 6
+          }
+        ]
+      },
+      {
+        "caption": "Валик из папул",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "annular",
+            "count": 22,
+            "size": 2.6,
+            "colors": ["red"],
+            "surface": ["scale"],
+            "seed": 2
+          }
+        ]
+      }
+    ],
+    "impetigo": [
+      {
+        "caption": "Медовые корки",
+        "layers": [
+          {
+            "element": "erosion",
+            "pattern": "cluster",
+            "count": 4,
+            "size": 6,
+            "seed": 3
+          },
+          {
+            "element": "crust",
+            "pattern": "cluster",
+            "count": 4,
+            "size": 5,
+            "seed": 3
+          }
+        ]
+      },
+      {
+        "caption": "Фликтены",
+        "layers": [
+          {
+            "element": "pustule",
+            "pattern": "cluster",
+            "count": 5,
+            "size": 3.5,
+            "surface": ["halo"],
+            "seed": 8
+          },
+          {
+            "element": "crust",
+            "size": 5,
+            "seed": 14
+          }
+        ]
+      }
+    ],
+    "herpes_zoster": [
+      {
+        "caption": "Полоса пузырьков",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "dermatomal",
+            "count": 5,
+            "size": 9,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 4
+          },
+          {
+            "element": "vesicle",
+            "pattern": "dermatomal",
+            "count": 30,
+            "size": 1.8,
+            "seed": 6
+          }
+        ]
+      },
+      {
+        "caption": "Корки",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "dermatomal",
+            "count": 5,
+            "size": 8,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 4
+          },
+          {
+            "element": "crust",
+            "pattern": "dermatomal",
+            "count": 14,
+            "size": 2.4,
+            "seed": 9
+          }
+        ]
+      }
+    ],
+    "pigmented_purpuric": [
+      {
+        "caption": "Точки «кайенского перца»",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 24,
+            "colors": ["brown"],
+            "border": "diffuse",
+            "seed": 5
+          },
+          {
+            "element": "petechia",
+            "pattern": "cluster",
+            "count": 50,
+            "size": 0.9,
+            "colors": ["red"],
+            "seed": 7
+          }
+        ]
+      },
+      {
+        "caption": "Россыпь петехий",
+        "layers": [
+          {
+            "element": "petechia",
+            "pattern": "scattered",
+            "count": 60,
+            "size": 0.8,
+            "colors": ["purple"],
+            "seed": 11
+          }
+        ]
+      }
+    ],
+    "acne": [
+      {
+        "caption": "Комедоны и папулы",
+        "layers": [
+          {
+            "element": "comedo",
+            "pattern": "scattered",
+            "count": 18,
+            "seed": 3
+          },
+          {
+            "element": "papule",
+            "pattern": "scattered",
+            "count": 6,
+            "size": 3,
+            "colors": ["red"],
+            "seed": 5
+          },
+          {
+            "element": "pustule",
+            "pattern": "scattered",
+            "count": 4,
+            "size": 2.4,
+            "seed": 8
+          }
+        ]
+      },
+      {
+        "caption": "Узловатые",
+        "layers": [
+          {
+            "element": "nodule",
+            "pattern": "scattered",
+            "count": 3,
+            "size": 7,
+            "colors": ["red"],
+            "seed": 2
+          },
+          {
+            "element": "pustule",
+            "pattern": "scattered",
+            "count": 4,
+            "size": 2.4,
+            "seed": 12
+          }
+        ]
+      }
+    ],
+    "drug_rash": [
+      {
+        "caption": "Пятнисто-папулёзная",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 30,
+            "size": 3.6,
+            "colors": ["red"],
+            "border": "irregular",
+            "seed": 3
+          }
+        ]
+      },
+      {
+        "caption": "Мишени",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 18,
+            "colors": ["red"],
+            "surface": ["clearing"],
+            "seed": 4
+          },
+          {
+            "element": "macule",
+            "size": 6,
+            "colors": ["purple"],
+            "seed": 4
+          }
+        ]
+      }
+    ],
+    "herpes_simplex": [
+      {
+        "caption": "Группа пузырьков",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 10,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 3
+          },
+          {
+            "element": "vesicle",
+            "pattern": "cluster",
+            "count": 7,
+            "size": 2.2,
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Корочки",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 10,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 3
+          },
+          {
+            "element": "crust",
+            "pattern": "cluster",
+            "count": 4,
+            "size": 2.6,
+            "seed": 7
+          }
+        ]
+      }
+    ],
+    "pityriasis_rosea": [
+      {
+        "caption": "Материнская бляшка",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 15,
+            "colors": ["pink"],
+            "border": "sharp",
+            "surface": ["clearing", "scale"],
+            "seed": 4
+          },
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 8,
+            "size": 3.5,
+            "colors": ["pink"],
+            "seed": 9
+          }
+        ]
+      },
+      {
+        "caption": "Высыпания",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 14,
+            "size": 4.5,
+            "colors": ["pink"],
+            "surface": ["scale"],
+            "seed": 2
+          }
+        ]
+      }
+    ],
+    "tinea_versicolor": [
+      {
+        "caption": "Коричневые пятна",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 10,
+            "size": 6,
+            "colors": ["brown"],
+            "surface": ["scale"],
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Светлые пятна",
+        "tone": 2,
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 10,
+            "size": 6,
+            "colors": ["white"],
+            "seed": 8
+          }
+        ]
+      }
+    ],
+    "bcc": [
+      {
+        "caption": "Узловая",
+        "layers": [
+          {
+            "element": "nodule",
+            "size": 11,
+            "colors": ["pink"],
+            "border": "sharp",
+            "surface": ["pearly", "telangiectasia"],
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Язвенная",
+        "layers": [
+          {
+            "element": "ulcer",
+            "size": 10,
+            "border": "sharp",
+            "surface": ["rolled", "pearly"],
+            "seed": 7
+          }
+        ]
+      },
+      {
+        "caption": "Поверхностная",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 18,
+            "colors": ["pink"],
+            "border": "sharp",
+            "surface": ["pearly", "scale"],
+            "seed": 11
+          }
+        ]
+      }
+    ],
+    "scc": [
+      {
+        "caption": "Ороговевающий узел",
+        "layers": [
+          {
+            "element": "nodule",
+            "size": 13,
+            "colors": ["red"],
+            "border": "irregular",
+            "surface": ["scale", "crust"],
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Язва",
+        "layers": [
+          {
+            "element": "ulcer",
+            "size": 14,
+            "border": "irregular",
+            "surface": ["rolled"],
+            "seed": 9
+          }
+        ]
+      }
+    ],
+    "melanoma": [
+      {
+        "caption": "Поверхностная",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 16,
+            "colors": ["brown", "black", "blue_gray", "red"],
+            "border": "irregular",
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Узловая",
+        "layers": [
+          {
+            "element": "nodule",
+            "size": 10,
+            "colors": ["black", "blue_gray"],
+            "border": "sharp",
+            "surface": ["shine"],
+            "seed": 7
+          }
+        ]
+      },
+      {
+        "caption": "Лентиго-меланома",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 23,
+            "colors": ["brown", "black"],
+            "border": "irregular",
+            "seed": 13
+          }
+        ]
+      }
+    ],
+    "actinic_keratosis": [
+      {
+        "caption": "Шершавая бляшка",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 10,
+            "colors": ["pink"],
+            "border": "diffuse",
+            "surface": ["scale"],
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Множественный",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "scattered",
+            "count": 5,
+            "size": 5,
+            "colors": ["red"],
+            "border": "diffuse",
+            "surface": ["scale"],
+            "seed": 8
+          }
+        ]
+      }
+    ],
+    "nevus": [
+      {
+        "caption": "Пограничный",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 6,
+            "colors": ["brown"],
+            "border": "sharp",
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Внутридермальный",
+        "layers": [
+          {
+            "element": "papule",
+            "size": 6,
+            "colors": ["skin", "brown"],
+            "border": "sharp",
+            "seed": 6
+          }
+        ]
+      },
+      {
+        "caption": "Галоневус",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 5,
+            "colors": ["brown"],
+            "border": "sharp",
+            "surface": ["halo"],
+            "seed": 9
+          }
+        ]
+      }
+    ],
+    "seborrheic_keratosis": [
+      {
+        "caption": "«Приклеенная»",
+        "layers": [
+          {
+            "element": "plaque",
+            "size": 12,
+            "colors": ["brown"],
+            "border": "sharp",
+            "surface": ["scale"],
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Множественные",
+        "layers": [
+          {
+            "element": "plaque",
+            "pattern": "scattered",
+            "count": 5,
+            "size": 6,
+            "colors": ["brown"],
+            "border": "sharp",
+            "seed": 8
+          }
+        ]
+      }
+    ],
+    "vitiligo": [
+      {
+        "caption": "Депигментация",
+        "tone": 2,
+        "layers": [
+          {
+            "element": "macule",
+            "size": 22,
+            "colors": ["white"],
+            "border": "sharp",
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Множественные",
+        "tone": 3,
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 5,
+            "size": 9,
+            "colors": ["white"],
+            "border": "sharp",
+            "seed": 11
+          }
+        ]
+      }
+    ],
+    "milia": [
+      {
+        "caption": "Белые точки",
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "cluster",
+            "count": 8,
+            "size": 1.5,
+            "colors": ["white"],
+            "border": "sharp",
+            "seed": 4
+          }
+        ]
+      },
+      {
+        "caption": "Россыпь",
+        "tone": 2,
+        "layers": [
+          {
+            "element": "papule",
+            "pattern": "scattered",
+            "count": 14,
+            "size": 1.3,
+            "colors": ["white"],
+            "border": "sharp",
+            "seed": 9
+          }
+        ]
+      }
+    ],
+    "furuncle": [
+      {
+        "caption": "Фурункул",
+        "layers": [
+          {
+            "element": "nodule",
+            "size": 12,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 4
+          },
+          {
+            "element": "pustule",
+            "size": 3,
+            "seed": 6
+          }
+        ]
+      },
+      {
+        "caption": "Карбункул",
+        "layers": [
+          {
+            "element": "nodule",
+            "size": 18,
+            "colors": ["red", "purple"],
+            "border": "diffuse",
+            "seed": 8
+          },
+          {
+            "element": "pustule",
+            "pattern": "cluster",
+            "count": 5,
+            "size": 2.4,
+            "seed": 10
+          }
+        ]
+      }
+    ],
+    "skin_ulcer": [
+      {
+        "caption": "Трофическая",
+        "tone": 2,
+        "layers": [
+          {
+            "element": "macule",
+            "size": 30,
+            "colors": ["brown"],
+            "border": "diffuse",
+            "seed": 3
+          },
+          {
+            "element": "ulcer",
+            "size": 16,
+            "border": "irregular",
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Пролежень",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 24,
+            "colors": ["purple"],
+            "border": "diffuse",
+            "seed": 9
+          },
+          {
+            "element": "ulcer",
+            "size": 11,
+            "border": "sharp",
+            "surface": ["crust"],
+            "seed": 12
+          }
+        ]
+      }
+    ],
+    "measles_koplik": [
+      {
+        "caption": "Слизистая щеки",
+        "background": "mucosa",
+        "layers": [
+          {
+            "element": "macule",
+            "size": 30,
+            "colors": ["red"],
+            "border": "diffuse",
+            "seed": 4
+          },
+          {
+            "element": "papule",
+            "pattern": "cluster",
+            "count": 26,
+            "size": 0.9,
+            "colors": ["white"],
+            "border": "sharp",
+            "seed": 6
+          }
+        ]
+      },
+      {
+        "caption": "Сыпь на коже",
+        "layers": [
+          {
+            "element": "macule",
+            "pattern": "scattered",
+            "count": 26,
+            "size": 4,
+            "colors": ["red"],
+            "border": "irregular",
+            "seed": 9
+          },
+          {
+            "element": "papule",
+            "pattern": "scattered",
+            "count": 8,
+            "size": 2.4,
+            "colors": ["red"],
+            "seed": 12
+          }
+        ]
+      }
+    ],
+    "aphthous": [
+      {
+        "caption": "Афта",
+        "background": "mucosa",
+        "layers": [
+          {
+            "element": "erosion",
+            "size": 5,
+            "colors": ["yellow"],
+            "border": "sharp",
+            "surface": ["halo"],
+            "seed": 5
+          }
+        ]
+      },
+      {
+        "caption": "Несколько афт",
+        "background": "mucosa",
+        "layers": [
+          {
+            "element": "erosion",
+            "pattern": "scattered",
+            "count": 3,
+            "size": 3.5,
+            "colors": ["yellow"],
+            "border": "sharp",
+            "surface": ["halo"],
+            "seed": 7
+          }
+        ]
+      }
+    ]
+  }
+}

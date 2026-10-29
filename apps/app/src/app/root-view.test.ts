@@ -63,6 +63,7 @@ describe('viewFromLocation', () => {
     // Tools opened from search keep «Поиск» lit even though their routes live under notes.
     expect(compactRootView('notes', '#/notes/drug-interactions?d=a')).toBe('search');
     expect(compactRootView('notes', '#/notes/vaccination')).toBe('search');
+    expect(compactRootView('notes', '#/notes/skin-photo')).toBe('search');
     expect(compactRootView('notes', '#/notes/forms')).toBe('notes');
     // The herbal book keeps the tab it was opened from: a search section and a files folder.
     expect(compactRootView('modules', '#/modules/documents/herbal', 'search')).toBe('search');

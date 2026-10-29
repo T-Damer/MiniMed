@@ -124,6 +124,7 @@ import textItalicBold from '@phosphor-icons/core/assets/bold/text-italic-bold.sv
 import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
 import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
+import warningBold from '@phosphor-icons/core/assets/bold/warning-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
 import bellFill from '@phosphor-icons/core/assets/fill/bell-fill.svg?raw';
@@ -243,6 +244,7 @@ export type AppGlyphName =
   | 'phone'
   | 'chat'
   | 'lifebuoy'
+  | 'warning'
   | 'note-pencil'
   | 'smiley'
   | 'palette'
@@ -399,6 +401,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   phone: svgBody(phoneBold),
   chat: svgBody(chatCircleBold),
   lifebuoy: svgBody(lifebuoyBold),
+  warning: svgBody(warningBold),
   'note-pencil': svgBody(notePencilBold),
   smiley: svgBody(smileyBold),
   palette: svgBody(paletteBold),

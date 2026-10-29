@@ -7,6 +7,7 @@ import {
   notesNewPatientPath,
   notesPath,
   notesPatientsPath,
+  notesSkinPhotoPath,
   notesTemplatesPath,
   notesVaccinationPath,
   noteTemplatePath,
@@ -15,6 +16,11 @@ import {
 } from '@/features/notes/notes-routing';
 
 describe('notes routing', () => {
+  it('opens «Кожа по фото» at its own address', () => {
+    expect(readNotesRoute(notesSkinPhotoPath())).toEqual({ kind: 'skin-photo' });
+    expect(readNotesRoute('#/notes/skin-photo?x=1')).toEqual({ kind: 'skin-photo' });
+  });
+
   it('opens the drug comparison with typed names and exact drugs', () => {
     expect(readNotesRoute('#/notes/drug-comparison')).toEqual({
       kind: 'drug-comparison',

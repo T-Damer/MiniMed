@@ -23,6 +23,7 @@ export type NotesRoute =
       readonly day?: string;
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
+  | { readonly kind: 'skin-photo' }
   | {
       readonly kind: 'drug-interactions';
       /** Names typed in a search query (`d`), looked up in the drug search when the tool opens. */
@@ -128,6 +129,7 @@ export function readNotesRoute(
     const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
   }
+  if (parts[1] === 'skin-photo') return { kind: 'skin-photo' };
   if (parts[1] === 'drug-interactions') {
     const params = new URLSearchParams(query);
     return { kind: 'drug-interactions', names: params.getAll('d'), cards: params.getAll('c') };
@@ -234,6 +236,11 @@ export function notesVaccinationPath(part?: string): string {
   return part
     ? `#/notes/vaccination?${VACCINATION_PART_QUERY_KEY}=${encodeURIComponent(part)}`
     : '#/notes/vaccination';
+}
+
+/** `#/notes/skin-photo` opens «Кожа по фото» (experimental modules only). */
+export function notesSkinPhotoPath(): string {
+  return '#/notes/skin-photo';
 }
 
 /** `#/notes/drug-interactions` opens «Взаимодействие препаратов», with drug names to look up (`d`) or exact cards (`c`). */

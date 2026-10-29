@@ -20,6 +20,59 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «Кожа по фото» — the page (experimental, 2026-10-29)
+
+Owner spec 2026-10-29. An experimental module (`experimentalModulesEnabled`): the entry card in the home
+«Полезные функции» carousel, a row in «Все инструменты» (Приём) and the route `#/notes/skin-photo`
+(`NotesView`, lazy `features/skin/SkinPhotoWorkspace.tsx`) exist only while the setting is on; the
+address leads back to the files when it is off.
+
+- **TV camera** (`SkinTv.tsx`, `styles/skin-tv.css`): a retro TV with a 1:1 screen — the centred square
+  the model sees. Live back camera (`getUserMedia`, `facingMode: environment`); controls come from
+  `track.getCapabilities()` (`skin-camera.ts`): zoom chips from the real range (0.5×/1×/2×/3×/5×/10× that
+  fit), torch knob, close-focus knob (only with manual `focusDistance`). No `mediaDevices`, no camera in
+  `enumerateDevices`, a refused permission or a busy camera show animated snow with «Нажмите, чтобы
+  загрузить фото»; tapping the idle screen, the shutter (without a feed) or the gallery knob always opens
+  the file picker. A capture or an upload becomes a centred-square JPEG (`skin-crop.ts`, 1024 px for the
+  model). «Переснять» / «Анализ»; the scan (grid, sweeping line, mono status lines) runs while the model
+  works and for at least ~1.1 s; the TV then shrinks and the first one to three results (`skin-results.ts`:
+  the first always, the others from 8 %) rise under it with name, percent, bar, МКБ-10 codes, documents of
+  the condition (`skin-document-links.ts`: the app's own condition catalog by МКБ-10 code, plus a link to the
+  ordinary search for the name) and the plain «не уверен» / «проверка злокачественности сработала» lines.
+- **Details and patient**: no pre-filled values; tap chips appear group by group (место → срок →
+  симптомы и фототип; a symptom cycles есть → нет → не спрашивали); `PatientPickerRow` fills the age bucket
+  and sex from the card. A change after a result re-ranks in place (350 ms debounce, same cards move via
+  FLIP, the old ranking stays until the new one arrives).
+- **Gallery** (`skin-history.ts`, `SkinHistorySheet.tsx`): IndexedDB `minimed-skin-photos` — compressed
+  photo (720 px), thumbnail, details, top-5 ranking, time, note (autosaves, 500 ms), optional patient;
+  records are validated on read; delete asks inline. Photos never leave the device. With the model missing
+  the page still works and keeps the photo without a ranking («Модель не найдена» in place).
+- **Model seam**: the page reads `skinModel` (`skin-model-client.ts`, owned by the model work);
+  `skin-model-test-hook.ts` lets the browser specs put a model on `window.__minimedSkinTestModel`
+  (test-only, nothing in the product sets it).
+- **Android**: `CAMERA` permission (`uses-feature` camera not required) so Capacitor's WebChromeClient
+  grants `getUserMedia` video. Not tried on a phone: real zoom/torch/macro, WebView permission prompt.
+- Tests: `features/skin/*.test.ts` (details, camera capabilities, crop maths, results, document links,
+  history validation and memory store, session state machine) and `apps/app/e2e/skin-photo.spec.ts`.
+- **Atlas and danger** (owner 2026-10-29: «main thing for the doctor is how dangerous this is»).
+  `skin-atlas.json` (27 conditions: the 21 model classes plus vitiligo, milia, furuncle/abscess, skin ulcer,
+  measles/Koplik spots and aphthae) declares per condition a danger level (`low` · `moderate` · `high` ·
+  `urgent`), why, the action, look, course, red flags with the signs/symptoms that trigger them, features
+  for description matching and cited sources (КР pointers of the core; krasotaimedicina articles where no
+  КР exists; open gaps listed in the file). The text is a **draft** (badge «Черновик»), paraphrased from those
+  documents by an agent, not reviewed by a doctor. `skin-atlas-art.json` holds 2–3 drawn references per
+  condition as schemas (skin tone, layers of morphological elements in a pattern) rendered by
+  `skin-lesion-art.ts` / `SkinLesionArt.tsx` — no photos. The page shows a danger banner (highest level among
+  the variants shown, raised by active red flags; a fired malignancy check lifts it to high), a danger chip
+  and reference tiles on every card, a «Что видно» description (elements → colours, signs, free-text course;
+  saved with the gallery entry) that ranks the description-only conditions under «По описанию» without
+  touching the model's percentages, and an «Атлас кожи» sheet (header) grouped by danger.
+- **Model numbers** (held-out test split, per case; `tools/derm-cnn`, local weights only): EfficientNet-B0 with
+  details 52 % top-1 / 80 % top-3; ConvNeXt-Tiny with details 57 % / 80 %, cancer sensitivity 97 % at 89 %
+  specificity; the average of both 60 % / 82 % (AUC 0.98). The app ships one model (B0, FP32 16 MB; dynamic
+  INT8 broke it); an ensemble manifest and more datasets (Fitzpatrick17k, PASSION, SLICE-3D, MIDAS… —
+  licences not a constraint for this personal build) are the next model steps.
+
 ## UI fixes from owner screenshots — 2026-10-28
 
 - **Onboarding on short (21:9) windows.** The intro's «Далее» / «Пропустить обучение» footer is in

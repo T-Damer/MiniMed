@@ -102,6 +102,8 @@ import { hideUsefulFeatures, USEFUL_FEATURES_NOTICE_ID } from '@/features/search
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { settingsPageHash } from '@/features/settings/settings-routing';
 import { FeatureTour } from '@/features/setup/FeatureTour';
+import { SkinHomeEntry } from '@/features/skin/SkinHomeEntry';
+import { SKIN_PHOTO_TOOL } from '@/features/skin/skin-tool';
 import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -375,6 +377,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       group: 'reception',
       href: `#/calculators/${ECG_PHOTO_CALIPER_ID}`,
     },
+    // «Кожа по фото» is an experimental module.
+    ...(experimentalModulesEnabled()
+      ? [
+          {
+            id: SKIN_PHOTO_TOOL.id,
+            title: SKIN_PHOTO_TOOL.title,
+            kindLabel: SKIN_PHOTO_TOOL.kindLabel,
+            icon: SKIN_PHOTO_TOOL.icon,
+            ageScope: SKIN_PHOTO_TOOL.ageScope,
+            group: 'reception' as const,
+            href: SKIN_PHOTO_TOOL.href,
+          },
+        ]
+      : []),
     {
       id: APP_TOOL_IDS.forms,
       title: 'Формы',
@@ -497,6 +513,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
    * map and the random record are not repeated here: both have buttons in the page header. */
   const homeFeatures = createMemo((): readonly HomeFeature[] => [
     { id: 'ecg-photo', render: () => <EcgHomeEntry /> },
+    ...(experimentalModulesEnabled()
+      ? [{ id: 'skin-photo', render: () => <SkinHomeEntry /> }]
+      : []),
     {
       id: 'imaging',
       render: () => (

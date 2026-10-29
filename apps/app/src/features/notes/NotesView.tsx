@@ -127,6 +127,7 @@ import { requestReminderNotificationPermission } from '@/state/reminder-notifica
 import { attachmentViewerKind } from '@/state/thumbnails';
 import '@/styles/notes-root.css';
 import { navigateBack, pushRoute, replaceRoute } from '@/state/app-back';
+import { experimentalModulesEnabled } from '@/state/experimental-modules';
 
 type DeleteTarget =
   | {
@@ -432,6 +433,11 @@ const DrugComparisonWorkspace = lazy(() =>
 const PrescriptionWorkspace = lazy(() =>
   import('@/features/prescription/PrescriptionWorkspace').then((module) => ({
     default: module.PrescriptionWorkspace,
+  })),
+);
+const SkinPhotoWorkspace = lazy(() =>
+  import('@/features/skin/SkinPhotoWorkspace').then((module) => ({
+    default: module.SkinPhotoWorkspace,
   })),
 );
 const DrugInteractionWorkspace = lazy(() =>
@@ -983,6 +989,16 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'prescription' ? current : null;
   });
+  /** An experimental tool: without the setting its address leads back to the files. */
+  const skinPhotoRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'skin-photo' && experimentalModulesEnabled() ? current : null;
+  });
+  createEffect(() => {
+    if (props.active && route().kind === 'skin-photo' && !experimentalModulesEnabled()) {
+      navigateBack(notesPath());
+    }
+  });
   const drugInteractionsRoute = createMemo(() => {
     const current = route();
     return current.kind === 'drug-interactions' ? current : null;
@@ -1368,6 +1384,18 @@ export function NotesView(props: {
             />
           </Suspense>
         )}
+      </Show>
+      <Show when={props.active && skinPhotoRoute()}>
+        <Suspense
+          fallback={
+            <PageSkeleton
+              fallbackHash={notesPath()}
+              notice={<p class="vax-loading">Открываем «Кожа по фото»…</p>}
+            />
+          }
+        >
+          <SkinPhotoWorkspace core={props.core} onBack={() => navigateBack(notesPath())} />
+        </Suspense>
       </Show>
       <Show when={props.active && prescriptionRoute()}>
         {(current) => (

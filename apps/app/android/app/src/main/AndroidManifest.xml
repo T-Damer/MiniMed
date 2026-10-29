@@ -57,6 +57,11 @@
     <!-- Capacitor's WebChromeClient asks for this together with RECORD_AUDIO on every getUserMedia
          audio request and denies the page unless both are granted; it is a normal permission. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- «Кожа по фото»: getUserMedia video in the WebView. Capacitor's WebChromeClient grants the page's
+         camera request once the runtime permission is held; phones without a camera still install. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />

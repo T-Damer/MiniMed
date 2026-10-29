@@ -26,6 +26,7 @@ export const PAGE_HEROES = {
   newsSources: { emblem: 'rss' },
   notes: { emblem: 'notes' },
   prescription: { emblem: 'prescription' },
+  skinPhoto: { emblem: 'camera' },
   comparison: { emblem: 'scales' },
   diaryToday: { emblem: 'calendar', ambient: 'ecg' },
   diaryRecords: { emblem: 'check' },

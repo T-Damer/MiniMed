@@ -105,3 +105,6 @@ apps/app/public/content/core.db.restoring
 
 # Prepared from reviewed tool modules and source reference tables before native packaging.
 /native/shared/src/commonMain/composeResources/files/native-tool-data.json
+
+# Skin photo model: weights trained on local-only data (tools/derm-cnn/stage_model.sh)
+apps/app/public/models/skin/
