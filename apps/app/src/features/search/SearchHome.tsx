@@ -15,7 +15,7 @@ import { toast } from 'solid-sonner';
 import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { PageHeroBand } from '@/components/PageHero';
+import { PageHeroBand, remToPx, setLength, watchInsets } from '@/components/PageHero';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -773,13 +773,46 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
-  /** The field has started sliding under the sticky row: the row becomes the band's bar. */
+  /** The field has started sliding under the sticky row: the bar covers the row's side buttons. */
   const [fieldUnder, setFieldUnder] = createSignal(false);
-  /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
+  /**
+   * The field's typing line has scrolled up behind the sticky row: the bar fills the row's middle
+   * too and the row offers a way back to the field.
+   */
   const [fieldAway, setFieldAway] = createSignal(false);
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
   useStickySurface(() => searchModeTools);
+
+  createEffect(() => {
+    const form = fieldForm();
+    if (!form) return;
+    // Measured on resize, never per scroll frame: where the row's middle cell sits (the bar's side
+    // covers end there) and how far the page scrolls before the field's top reaches «MiniMed» (it
+    // fades with the scroll over that whole distance, gone before the field passes under it).
+    const measureRow = (): void => {
+      const row = searchModeTools;
+      const slot = row?.querySelector<HTMLElement>('.search-home__slot');
+      const mark = row?.querySelector<HTMLElement>('.search-home__mark');
+      if (!row || !form || !slot || !mark) return;
+      const rowBox = row.getBoundingClientRect();
+      const slotBox = slot.getBoundingClientRect();
+      setLength(row, '--search-bar-middle-left', slotBox.left - rowBox.left);
+      setLength(row, '--search-bar-middle-right', rowBox.right - slotBox.right);
+      const stuckTop = Number.parseFloat(getComputedStyle(row).top) || 0;
+      const markBottom = stuckTop + (mark.getBoundingClientRect().bottom - rowBox.top);
+      const reach = form.getBoundingClientRect().top + window.scrollY - markBottom;
+      setLength(row, '--search-mark-fade-end', Math.max(remToPx(1.5), reach));
+    };
+    const rowObserver = new ResizeObserver(measureRow);
+    if (searchModeTools) rowObserver.observe(searchModeTools);
+    rowObserver.observe(form);
+    const stopInsets = watchInsets(measureRow);
+    onCleanup(() => {
+      rowObserver.disconnect();
+      stopInsets();
+    });
+  });
 
   onMount(() => {
     const refreshTools = () => setToolRevision((revision) => revision + 1);
@@ -797,9 +830,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         // Measured live: the row's height changes with its contents and the safe area.
         const form = fieldForm();
         const rowBottom = searchModeTools?.getBoundingClientRect().bottom ?? 0;
-        const formBox = form?.getBoundingClientRect();
-        setFieldUnder(formBox ? formBox.top < rowBottom : false);
-        // The pill once the typing line is hidden: the field's lower controls may still show.
+        setFieldUnder(form ? form.getBoundingClientRect().top < rowBottom : false);
+        // Once the typing line is hidden: the field's lower controls may still show.
         const input = form?.querySelector('[data-testid="search-input"]') ?? form;
         setFieldAway(input ? input.getBoundingClientRect().bottom < rowBottom : false);
       });
@@ -900,15 +932,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       />
       <div
         class="search-mode-tools route-sticky-chrome--transparent"
-        classList={{ 'search-mode-tools--filled': fieldUnder() }}
+        classList={{ 'search-mode-tools--filled': fieldAway() }}
         ref={(element) => {
           searchModeTools = element;
         }}
       >
-        {/* The band's bar behind the row once the field slides under it. */}
+        {/* The band's bar behind the row in two stages: the side buttons once the field slides
+            under them, the middle with the pill. */}
         <span
           class="search-mode-tools__bar"
-          classList={{ 'search-mode-tools__bar--on': fieldUnder() }}
+          classList={{
+            'search-mode-tools__bar--sides': fieldUnder(),
+            'search-mode-tools__bar--on': fieldAway(),
+          }}
           aria-hidden="true"
         />
         <Show when={props.active}>

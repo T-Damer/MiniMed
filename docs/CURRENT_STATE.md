@@ -3685,10 +3685,12 @@ scrolls away instead of sticking).
   while one runs, so taps were held (AGENTS.md: never block input). The «Библиотека» list no longer
   waits for the switch to end.
 - *Search field and the row* (owner: a scroll-linked morph of the field into the row's pill «still
-  feels off»; 3rem and 8rem versions were tried): the field scrolls normally; once it starts sliding
-  under the row, the row becomes the band's opaque bar (`search-mode-tools--filled`, bar `--on`), so
-  the field passes beneath it, and once its typing line is hidden the «Поиск» pill pops into the
-  row (grows from 0.6 past its size and settles, fading in, `--motion-slow`; leaves with a quick
+  feels off»; 3rem and 8rem versions were tried): the bar arrives in two stages (owner). As the
+  field starts sliding under the row, the band covers the screen top and the row's round buttons
+  (bar `--sides`; only the row's middle cell stays open, its edges measured as
+  `--search-bar-middle-*`); once the typing line is hidden the middle fills too (bar `--on`, row
+  `--filled`) and the «Поиск» pill pops into the row. «MiniMed» fades with the scroll position,
+  gone when the field's top reaches it (`--search-mark-fade-end`). The pill (grows from 0.6 past its size and settles, fading in, `--motion-slow`; leaves with a quick
   fade). Both are state classes from the scroll handler in
   `SearchHome`; the bar replaces the status blur there.
 - *Safari's status-bar strip* (owner, simulator): iOS 26 Safari paints the strip under the status
@@ -3698,9 +3700,12 @@ scrolls away instead of sticking).
   was present (found by bisecting a static copy of the page in the simulator). With scroll-driven
   animations those layers are now `display: none`, and the search row pins flush with the top
   (its gap is padding) and takes the band colour itself, like `Page`'s row. At rest (nothing
-  pinned) Safari paints the strip in the body's background colour, so the body and the canvas are
-  the band's colour (the shell keeps the desk; overscroll shows the band); `theme-color` and the
-  root background alone did not change it. The band is one flat colour (a highlight made it read
+  pinned) Safari paints the top strip, and always the strip under its bottom toolbar, from the
+  body's background colour; `theme-color` did not change it. A real fixed element
+  (`app-shell__status-cap`, 6 px of band colour, topmost at the edge while a band is on screen)
+  gives the top strip its colour (a 1 px element or a pseudo-element did not); the body is the
+  desks' yellow (`--folder-light`), so the bottom strip and overscroll continue the page instead of
+  a darker desk. The band is one flat colour (a highlight made it read
   lighter than the bar and the strip).
 - *Pulse* (owner): the search home's ECG turns yellow and beats faster while frames are dropped, red
   and faster still when the app struggles (`state/frame-health.ts`: Chromium's long-frame reports,

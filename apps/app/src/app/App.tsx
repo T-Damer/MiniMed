@@ -424,6 +424,8 @@ export function App(): JSX.Element {
           profileHidesNavigation(activeProfile()) || isFullScreenRoute(currentHash()),
       }}
     >
+      {/* iOS Safari takes the status-bar strip's colour from it (styles/compact-release.css). */}
+      <div class="app-shell__status-cap" aria-hidden="true" />
       <Portal>
         <Toaster
           class="app-notification-host"

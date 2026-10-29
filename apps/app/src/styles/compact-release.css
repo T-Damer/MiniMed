@@ -3498,8 +3498,10 @@ html.native-print-active #root {
   white-space: nowrap;
 }
 
-/* The band's bar behind the row, from the screen top to the sheet's rounded edge, as soon as the
-   field starts sliding under the row (the field then passes beneath an opaque bar). */
+/* The band's bar behind the row, from the screen top to the sheet's rounded edge, in two stages
+   (owner 2026-10-29): first the side buttons are covered as the field starts sliding under them,
+   then the middle fills in with the pill once the typing line is hidden. The middle cell's edges
+   are measured (`--search-bar-middle-*`, SearchHome). */
 .search-mode-tools__bar {
   position: absolute;
   z-index: var(--z-base);
@@ -3508,21 +3510,67 @@ html.native-print-active #root {
   right: 0;
   bottom: calc(-1 * var(--page-hero-lip));
   left: 0;
-  background: var(--page-hero-band);
+  /* Solid above the row (its first 100vh), the row's middle cell open until the second stage. */
+  background:
+    linear-gradient(var(--page-hero-band), var(--page-hero-band)) top / 100% 100vh no-repeat,
+    linear-gradient(
+      to right,
+      var(--page-hero-band) var(--search-bar-middle-left, 3.5rem),
+      transparent var(--search-bar-middle-left, 3.5rem),
+      transparent calc(100% - var(--search-bar-middle-right, 3.5rem)),
+      var(--page-hero-band) calc(100% - var(--search-bar-middle-right, 3.5rem))
+    );
   clip-path: inset(0 0 var(--page-hero-lip) 0);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--motion-fast) var(--motion-ease);
+  transition: opacity var(--motion-base) var(--motion-ease);
 }
 
+.search-mode-tools__bar::after {
+  position: absolute;
+  top: 100vh;
+  right: var(--search-bar-middle-right, 3.5rem);
+  bottom: 0;
+  left: var(--search-bar-middle-left, 3.5rem);
+  background: var(--page-hero-band);
+  content: "";
+  opacity: 0;
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
+.search-mode-tools__bar.search-mode-tools__bar--sides,
 .search-mode-tools__bar.search-mode-tools__bar--on {
   opacity: 1;
+}
+
+.search-mode-tools__bar.search-mode-tools__bar--on::after {
+  opacity: 1;
+}
+
+/* «MiniMed» fades slowly with the scroll, gone by the time the field reaches the row. */
+@supports (animation-timeline: scroll()) {
+  .search-home__mark {
+    transition: none;
+    animation: search-home-mark-fade linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 var(--search-mark-fade-end, 6rem);
+  }
+
+  .search-home__mark.search-home__mark--away {
+    opacity: 1;
+  }
+}
+
+@keyframes search-home-mark-fade {
+  to {
+    opacity: 0;
+  }
 }
 
 /* The row itself takes the band colour as well: iOS Safari tints the status-bar strip from the
    opaque sticky element at the top, and the bar above is only its child. */
 .search-home > .search-mode-tools {
-  transition: background-color var(--motion-fast) var(--motion-ease);
+  transition: background-color var(--motion-base) var(--motion-ease);
 }
 
 .search-home > .search-mode-tools.search-mode-tools--filled {
@@ -3537,12 +3585,35 @@ html.native-print-active #root {
   display: none;
 }
 
-/* The page's own background is the band's colour: iOS Safari paints the status-bar strip from it
-   while nothing is pinned at the top (pages start on the band; the desk colour showed a khaki strip
-   above it), and overscroll shows it. The shell above it keeps the desk. */
+/* A thin fixed cap in the band's colour along the top edge while the page has a band: with
+   nothing pinned there iOS Safari paints the status-bar strip (and the strip under its bottom
+   toolbar) from the body's background colour, which has to stay the desk for the page's bottom.
+   Safari takes a fixed bar's colour for the top instead (1px was too thin for it); the cap sits on
+   the band at rest and over the pinned bar's top padding once scrolled, both the same colour. It
+   is the topmost layer at the edge: Safari's probe ignores pointer-events and stops at the first
+   layer it meets (the rows' invisible bars reach the screen top). */
+/* The page's own background (seen only where Safari paints its bottom toolbar's strip and in
+   overscroll) is the colour the route desks end on, not the darker desk under the shell. */
 html:root,
 html:root > body {
-  background: var(--page-hero-band, var(--shell-bar));
+  background-color: var(--folder-light);
+}
+
+.app-shell__status-cap {
+  display: none;
+}
+
+/* A real element: Safari's probe reads a pseudo-element as its (unfixed) parent. */
+.app-shell:has(.app-view.active :is(.page--hero, .search-home)) > .app-shell__status-cap {
+  display: block;
+  position: fixed;
+  z-index: var(--z-status-cap);
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: var(--page-hero-band);
+  pointer-events: none;
 }
 
 /* Clear, layered over the field's top-right corner so the field stays one clean surface. */

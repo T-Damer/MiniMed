@@ -18,6 +18,8 @@
   --z-float: 30;
   --z-search-tools: 40;
   --z-scroll-top: 45;
+  /* Above the pinned rows (their invisible bars reach the screen top), below bars and sheets. */
+  --z-status-cap: 50;
   --z-safe-blur: 55;
   --z-assessment-next: 59;
   --z-graph: 60;
