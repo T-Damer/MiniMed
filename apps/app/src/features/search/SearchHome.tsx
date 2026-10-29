@@ -784,6 +784,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   let searchScrollFrame: number | undefined;
   useStickySurface(() => searchModeTools);
 
+  /** Scroll offsets of the bar's two stages (measured with the row, on resize). */
+  let fieldUnderAt = Number.POSITIVE_INFINITY;
+  let fieldAwayAt = Number.POSITIVE_INFINITY;
+  const updateSearchScroll = (): void => {
+    if (searchScrollFrame !== undefined) return;
+    searchScrollFrame = requestAnimationFrame(() => {
+      searchScrollFrame = undefined;
+      const scrolled = window.scrollY;
+      setHasSearchScroll(scrolled > 1);
+      setFieldUnder(scrolled > fieldUnderAt);
+      setFieldAway(scrolled > fieldAwayAt);
+    });
+  };
+
   createEffect(() => {
     const form = fieldForm();
     if (!form) return;
@@ -796,6 +810,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       const mark = row?.querySelector<HTMLElement>('.search-home__mark');
       if (!row || !form || !slot || !mark) return;
       const rowBox = row.getBoundingClientRect();
+      // A hidden tab measures as zero; it measures again when shown (its size changes).
+      if (rowBox.height === 0) return;
       const slotBox = slot.getBoundingClientRect();
       setLength(row, '--search-bar-middle-left', slotBox.left - rowBox.left);
       setLength(row, '--search-bar-middle-right', rowBox.right - slotBox.right);
@@ -808,6 +824,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       const reachRow = Math.max(0, fieldTop - (stuckTop + rowBox.height));
       setLength(row, '--search-bar-sides-start', Math.max(0, reachRow - remToPx(2)));
       setLength(row, '--search-bar-sides-end', reachRow + remToPx(1.5));
+      // The two stages as scroll offsets, so the scroll handler reads no layout: under the row's
+      // buttons once the field's top passes the stuck row's lower edge; the middle and the pill
+      // once the typing line has risen 2rem past it (until then the field shows in the row's open
+      // middle, framed by the covers' concave corners, owner 2026-10-29).
+      const input = form.querySelector('[data-testid="search-input"]') ?? form;
+      const inputBottom = input.getBoundingClientRect().bottom + window.scrollY;
+      fieldUnderAt = reachRow;
+      fieldAwayAt = Math.max(0, inputBottom - (stuckTop + rowBox.height) + remToPx(2));
+      updateSearchScroll();
     };
     const rowObserver = new ResizeObserver(measureRow);
     if (searchModeTools) rowObserver.observe(searchModeTools);
@@ -827,21 +852,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       window.removeEventListener(ASSESSMENT_PACKS_EVENT, refreshTools);
       window.removeEventListener(CALCULATOR_PACKS_EVENT, refreshTools);
     });
-    const updateSearchScroll = (): void => {
-      if (searchScrollFrame !== undefined) return;
-      searchScrollFrame = requestAnimationFrame(() => {
-        searchScrollFrame = undefined;
-        setHasSearchScroll(window.scrollY > 1);
-        // Measured live: the row's height changes with its contents and the safe area.
-        const form = fieldForm();
-        const rowBottom = searchModeTools?.getBoundingClientRect().bottom ?? 0;
-        setFieldUnder(form ? form.getBoundingClientRect().top < rowBottom : false);
-        // Once the typing line has risen 2rem past the row's lower edge: until then the field shows
-        // in the row's open middle, framed by the covers' concave corners (owner 2026-10-29).
-        const input = form?.querySelector('[data-testid="search-input"]') ?? form;
-        setFieldAway(input ? input.getBoundingClientRect().bottom < rowBottom - remToPx(2) : false);
-      });
-    };
     updateSearchScroll();
     window.addEventListener('scroll', updateSearchScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', updateSearchScroll));

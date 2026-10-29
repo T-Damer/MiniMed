@@ -182,7 +182,9 @@ const SOURCE_LABEL: Readonly<Record<ContentModuleCatalogSource, string>> = {
 export async function loadContentModuleCatalog(
   options: LoadContentModuleCatalogOptions,
 ): Promise<LoadedContentModuleCatalog> {
-  const bundled = ContentModuleCatalogSchema.parse(options.bundledCatalog);
+  // Already a parsed catalog (the app parses its bundled copy when the module loads): a second
+  // schema pass over the 8.5 MB catalog held the main thread at start-up for ~70 ms on a phone.
+  const bundled = options.bundledCatalog;
   const now = options.now ?? (() => new Date().toISOString());
   const fetcher = options.fetcher ?? defaultFetcher;
   const allowFullDownload = options.allowFullDownload ?? true;

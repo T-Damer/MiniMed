@@ -100,6 +100,17 @@
   height: 2.5rem;
   opacity: 0.55;
   animation: page-hero-ecg-drift 14s linear infinite;
+  will-change: transform;
+}
+
+.page-hero__ecg.page-hero__ecg--paused {
+  animation-play-state: paused;
+}
+
+.page-hero__ecg-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .page-hero__ecg-line {

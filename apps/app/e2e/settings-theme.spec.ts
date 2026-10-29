@@ -4,7 +4,8 @@ import { openSettingsPage } from './settings-nav';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
-const DARK_BACKGROUND = 'rgb(33, 27, 23)';
+// The page's own background is the colour the dark route desks end on (`--folder-light`).
+const DARK_BACKGROUND = 'rgb(52, 44, 35)';
 
 async function rootScheme(page: Page): Promise<string> {
   return page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);

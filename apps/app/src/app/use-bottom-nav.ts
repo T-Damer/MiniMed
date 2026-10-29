@@ -248,7 +248,9 @@ export function useBottomNav<V extends string = RootView>(options: {
     const position = bottomNavBubble();
     const motion = bottomNavBubbleMotion();
     const pressScale = bottomNavPressed() ? 0.92 : 1;
-    return `left:${position.left}px;top:${position.top}px;width:${position.width}px;height:${position.height}px;transform-origin:${motion.origin} center;transform:scaleX(${motion.scaleX * pressScale}) scaleY(${motion.scaleY * pressScale}) rotate(${motion.rotate}deg)`;
+    // Position through `translate` (composited, its own spring), not left/top: those laid the bar out
+    // again on every frame of a tab switch.
+    return `left:0;top:0;translate:${position.left}px ${position.top}px;width:${position.width}px;height:${position.height}px;transform-origin:${motion.origin} center;transform:scaleX(${motion.scaleX * pressScale}) scaleY(${motion.scaleY * pressScale}) rotate(${motion.rotate}deg)`;
   };
 
   const finishBottomNavGesture = (event: PointerEvent | undefined, commit = true): void => {

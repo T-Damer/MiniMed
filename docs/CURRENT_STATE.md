@@ -3720,6 +3720,17 @@ scrolls away instead of sticking).
   in, 25 ms apart, 160 ms each (`app/page-enter.ts`, `Element.animate`, on every hash change but
   readers; a lazy page is waited for up to 20 frames). Route headers, sticky rows and overlays stay
   put; taps are never held.
+- *Performance pass* (Sonnet agent measurement, Chromium at 4× CPU and the Android emulator):
+  the ECG drift moved from the `<svg>` root (not composited: WebView repainted the glowing line on
+  the main thread every frame, 18–20 % busy at idle) to a wrapping box, paused while off screen
+  (emulator idle 410–530 → 257 frames per 8 s with the trace shown, 27 once scrolled away); the
+  bottom-nav bubble moves by `translate` instead of left/top (about one layout per frame for
+  420 ms on every tab switch); the search bar's two stages are scroll offsets measured on resize
+  (the scroll handler read three element boxes per frame); one shared `watchInsets` watcher for
+  all headers; the bundled 8.5 MB module catalog is no longer schema-parsed a second time at
+  start-up (~70 ms on a phone). Not done: cold first visits of Лента/Настройки/Файлы still render
+  synchronously (110–270 ms at 4×; their chunks are already prefetched in idle time), and
+  `listToolDefinitions` parses every tool definition after the core opens (~95 ms on a phone).
 - *Pulse* (owner): the search home's ECG turns yellow and beats faster while frames are dropped, red
   and faster still when the app struggles (`state/frame-health.ts`: Chromium's long-frame reports,
   WebKit counts frames one second in ten while the band is shown; worse at once, better after two

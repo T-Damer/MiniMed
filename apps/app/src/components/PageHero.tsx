@@ -30,29 +30,43 @@ const ECG_BEAT = 'h34 l4 -3 l4 3 h8 l3 4 l5 -26 l5 32 l4 -10 h14 q6 -7 12 0 h27'
  */
 function EcgTrace(): JSX.Element {
   const health = useFrameHealth();
-  let trace: SVGSVGElement | undefined;
+  let trace: HTMLDivElement | undefined;
   createEffect(() => {
     const rate = PULSE_RATE[health()] * Math.max(motionRate(), 0);
     if (!trace || rate === 0) return;
     for (const animation of trace.getAnimations()) animation.updatePlaybackRate(rate);
   });
+  // The drift stands still while the trace is off screen (scrolled away, a hidden tab): an endless
+  // animation keeps the WebView drawing every frame.
+  onMount(() => {
+    if (!trace || typeof IntersectionObserver === 'undefined') return;
+    const element = trace;
+    const observer = new IntersectionObserver(([entry]) =>
+      element.classList.toggle('page-hero__ecg--paused', entry?.isIntersecting !== true),
+    );
+    observer.observe(element);
+    onCleanup(() => observer.disconnect());
+  });
+  // The drift moves this box, not the svg: an animated <svg> root is not composited (WebView fell
+  // back to repainting the glowing line on the main thread every frame).
   return (
-    <svg
-      ref={trace}
-      class="page-hero__ecg"
-      viewBox="0 0 480 48"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path
-        class="page-hero__ecg-line"
-        classList={{
-          'page-hero__ecg-line--strained': health() === 'strained',
-          'page-hero__ecg-line--poor': health() === 'poor',
-        }}
-        d={`M0 30 ${ECG_BEAT.repeat(4)}`}
-      />
-    </svg>
+    <div ref={trace} class="page-hero__ecg" aria-hidden="true">
+      <svg
+        class="page-hero__ecg-svg"
+        viewBox="0 0 480 48"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          class="page-hero__ecg-line"
+          classList={{
+            'page-hero__ecg-line--strained': health() === 'strained',
+            'page-hero__ecg-line--poor': health() === 'poor',
+          }}
+          d={`M0 30 ${ECG_BEAT.repeat(4)}`}
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -193,6 +207,21 @@ function measureEmblem(header: HTMLElement, row: HTMLElement, rowHeight: number)
   header.style.setProperty('--page-hero-emblem-opacity', room ? '0.7' : '0');
 }
 
+/** One watcher for every header: each kept its own observer, listener and probe layout. */
+const insetWatchers = new Set<() => void>();
+let insetWidth = 0;
+let insetSafeTop = 0;
+let stopInsetWatch: (() => void) | undefined;
+
+function checkInsets(): void {
+  const width = window.innerWidth;
+  const safeTop = measureSafeTop();
+  if (width === insetWidth && safeTop === insetSafeTop) return;
+  insetWidth = width;
+  insetSafeTop = safeTop;
+  for (const measure of insetWatchers) measure();
+}
+
 /**
  * Measures again when the window's width or the status bar's inset changes (the insets are set on
  * the root's style, sometimes after the first paint). Only then: a browser's toolbars collapsing
@@ -201,22 +230,24 @@ function measureEmblem(header: HTMLElement, row: HTMLElement, rowHeight: number)
  * header flashed its end state on a slow scroll).
  */
 export function watchInsets(measure: () => void): () => void {
-  let width = window.innerWidth;
-  let safeTop = measureSafeTop();
-  const check = (): void => {
-    const nextWidth = window.innerWidth;
-    const nextSafeTop = measureSafeTop();
-    if (nextWidth === width && nextSafeTop === safeTop) return;
-    width = nextWidth;
-    safeTop = nextSafeTop;
-    measure();
-  };
-  const observer = new MutationObserver(check);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-  window.addEventListener('resize', check);
+  if (insetWatchers.size === 0) {
+    insetWidth = window.innerWidth;
+    insetSafeTop = measureSafeTop();
+    const observer = new MutationObserver(checkInsets);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    window.addEventListener('resize', checkInsets);
+    stopInsetWatch = () => {
+      observer.disconnect();
+      window.removeEventListener('resize', checkInsets);
+    };
+  }
+  insetWatchers.add(measure);
   return () => {
-    observer.disconnect();
-    window.removeEventListener('resize', check);
+    insetWatchers.delete(measure);
+    if (insetWatchers.size === 0) {
+      stopInsetWatch?.();
+      stopInsetWatch = undefined;
+    }
   };
 }
 
