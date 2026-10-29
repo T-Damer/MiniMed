@@ -2,8 +2,12 @@ import { createEffect, onCleanup } from 'solid-js';
 
 import { remToPx, setLength, watchInsets } from '@/components/PageHero';
 
-/** How much scroll the field takes to become the row's pill. */
-const MORPH_DISTANCE_REM = 8;
+/**
+ * How much scroll the field takes to become the row's pill: short, so it stays a whole field until
+ * it nearly reaches the row (a long morph left a faded ghost of the field on screen, owner
+ * 2026-10-29).
+ */
+const MORPH_DISTANCE_REM = 3;
 
 /**
  * The search field turns into the top row's pill as the page scrolls (owner 2026-10-29): the

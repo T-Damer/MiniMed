@@ -24,7 +24,10 @@ async function classAtPoint(page: Page, point: { readonly x: number; readonly y:
 function nativeBlurOpacity(page: Page): Promise<string> {
   return page.evaluate(() => {
     const shell = document.querySelector<HTMLElement>('.app-shell');
-    return shell ? getComputedStyle(shell, '::before').opacity : '';
+    if (!shell) return '';
+    const blur = getComputedStyle(shell, '::before');
+    // Removed outright where the bars replace it (an invisible fixed layer stops Safari's tint).
+    return blur.display === 'none' ? '0' : blur.opacity;
   });
 }
 
@@ -53,6 +56,8 @@ test('the search row becomes an opaque bar under the native status bar', async (
   expect(await bar.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThanOrEqual(
     0,
   );
+  // Pinned flush under the status bar (its gap is padding): Safari tints the strip only from a bar
+  // touching the top edge.
   await expect
     .poll(() =>
       page.locator('.search-mode-tools').evaluate((element) => {
@@ -62,9 +67,9 @@ test('the search row becomes an opaque bar under the native status bar', async (
         return element.getBoundingClientRect().top - safeTop;
       }),
     )
-    .toBeCloseTo(8, 0);
+    .toBeCloseTo(0, 0);
   await expect.poll(() => nativeBlurGrain(page)).toContain("feFlood flood-color='white'");
-  await expect(page.locator('.search-home__backdrop-blur')).toHaveCSS('opacity', '0');
+  await expect(page.locator('.search-home__backdrop-blur')).toHaveCSS('display', 'none');
 
   const historyButton = await page.locator('.search-history-fab').boundingBox();
   if (!historyButton) throw new Error('Search history button is not visible.');

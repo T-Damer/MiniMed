@@ -3688,7 +3688,16 @@ scrolls away instead of sticking).
   field's outline is clipped down to the top row's pill while it rises into the row, its contents
   dissolve into the pill's surface, the pill takes over where the two meet and the row becomes the
   band's bar (`features/search/search-field-morph.ts`, scroll-driven clip-path and opacity; without
-  scroll-driven animations the row swaps by state). The bar replaces the status blur there.
+  scroll-driven animations the row swaps by state). The bar replaces the status blur there. The
+  morph takes the last 3rem of scroll before the row (owner: an 8rem morph left a faded ghost of the
+  field on screen).
+- *Safari's status-bar strip* (owner, simulator): iOS 26 Safari paints the strip under the status
+  bar in the colour of an opaque fixed or sticky bar touching the top edge, otherwise the page shows
+  through it. It did neither on any route: two invisible (opacity 0) fixed blur layers over the top
+  edge — the shell's status blur and the search home's — made Safari give up while the bottom bar
+  was present (found by bisecting a static copy of the page in the simulator). With scroll-driven
+  animations those layers are now `display: none`, and the search row pins flush with the top
+  (its gap is padding) and takes the band colour itself, like `Page`'s row.
 - *Pulse* (owner): the search home's ECG turns yellow and beats faster while frames are dropped, red
   and faster still when the app struggles (`state/frame-health.ts`: Chromium's long-frame reports,
   WebKit counts frames one second in ten while the band is shown; worse at once, better after two

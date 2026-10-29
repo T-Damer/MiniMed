@@ -154,6 +154,14 @@
   z-index: var(--z-search-tools);
 }
 
+/* Pinned flush with the screen top, the gap kept as padding: iOS Safari tints the status-bar strip
+   only from an opaque sticky bar that touches the top edge (as `Page`'s row does). */
+.search-home > .search-mode-tools.route-sticky-chrome--transparent {
+  top: var(--safe-top);
+  margin-top: -0.5rem;
+  padding-top: 0.75rem;
+}
+
 .search-mode-heading {
   display: flex;
   align-items: flex-start;
@@ -3533,17 +3541,25 @@ html.native-print-active #root {
     animation-range: 0 3rem;
   }
 
-  /* The bar replaces the blur under the row: the blur smeared the field while it morphed. */
-  .search-home__backdrop-blur.search-home__backdrop-blur--visible,
-  .app-shell.app-shell--native:has(
-    .app-view.active .search-mode-tools.sticky-surface--stuck
-  )::before {
-    opacity: 0;
+  /* The bars replace the status-bar blurs: the blur smeared the field while it morphed. Not merely
+     transparent: iOS Safari stops tinting the status-bar strip from the pinned bar while an
+     invisible fixed blur layer lies over the top edge (with the bottom bar present). */
+  .search-home__backdrop-blur,
+  .app-shell::before {
+    display: none;
   }
 
   .search-mode-tools__bar {
     transition: none;
     animation: search-field-arrive linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--search-morph-end, 100vh) calc(var(--search-morph-end, 100vh) + 1.5rem);
+  }
+
+  /* The row itself takes the band colour as well: iOS Safari tints the status-bar strip from the
+     opaque sticky element at the top, and the bar above is only its child. */
+  .search-home > .search-mode-tools {
+    animation: page-hero-row-fill linear both;
     animation-timeline: scroll(root);
     animation-range: var(--search-morph-end, 100vh) calc(var(--search-morph-end, 100vh) + 1.5rem);
   }

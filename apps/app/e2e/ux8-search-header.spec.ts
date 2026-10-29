@@ -49,8 +49,11 @@ for (const width of [360, 390, 1280]) {
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.viewport);
         expect(item.right, item.name).toBeLessThanOrEqual(geometry.row.right + 0.5);
       }
-      // Only the history button and «?» are in the row.
-      await expect(page.locator('.search-mode-tools > *')).toHaveCount(2);
+      // Only the history button and «?» are in the row, beside the band's bar and the middle slot
+      // («MiniMed» at rest, the field's pill once scrolled).
+      await expect(
+        page.locator('.search-mode-tools > :not(.search-mode-tools__bar, .search-home__slot)'),
+      ).toHaveCount(2);
       await expect(page.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
       await page.screenshot({
