@@ -4,6 +4,25 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.66] - 2026-10-29
+
+- New header on every page: a dark band from the screen top, the page as a sheet over it, and a header that
+  shrinks into a pinned bar with its back button, title and tools; the route's icon flies into a small icon beside
+  the title. Diary screens use it too.
+- Search: the field slides under the top row's buttons, which get rounded dark backings as you scroll, then the
+  «Поиск» pill pops into the row; «MiniMed» fades with the scroll. The pulse line turns yellow or red when the app
+  drops frames.
+- Pages open with a quick grow-in of their blocks; tab switches are instant, without the blink on «Лента» and
+  «Файлы».
+- «Файлы»: search and «+» in the header row, folder path and sorting on one compact line.
+- Android: the app draws under the status and navigation bars on every WebView version (older ones showed cream
+  strips above and below), with light status-bar icons on dark headers. iPhone Safari: the status-bar strip takes
+  the header's colour, and page bottoms stay yellow.
+- Smoother: the pulse animation no longer repaints every frame and stops off screen, the tab-bar bubble no longer
+  re-lays out the bar, and start-up skips a second check of the bundled module catalog.
+- «Скачать» for the main database sits as a pill under the bottom bar; links to the other app versions (Android,
+  iPhone, desktop, patient diary) show all but the one in use.
+
 ## [0.6.65] - 2026-10-26
 
 - Search results: the download button of a source card sits in the card header, right of the type, instead of a
