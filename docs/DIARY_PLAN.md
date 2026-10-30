@@ -215,6 +215,18 @@ Research of 2026-10-27 (sources in the consent drafts):
 | D3 | Doctor dashboard: list, patient page with charts, corrections, tips with read state, one-screen composer, curators sheet, CSV/XLSX | a doctor runs a week of a test patient end to end on a phone and a laptop |
 | D4 | Dose reminders by server push (times only) with Android notification actions; patient push for new tips; faculty self-host package; open sign-up; route (b) ЕСИА/МИС | Done 2026-10-28 except ЕСИА/МИС: reminders and push kinds (server tests incl. the RFC 8291 vector, reminder schedule tests, a paired phone in the browser), self-host package built and started locally (`install.sh` not yet run on a Linux server). Open sign-up: owner 2026-10-28, the pilot is a prototype with students and stable patients, so the legal model does not hold it back. Checked on the Android emulator with real FCM pushes (reminder, «Принял», tip), 2026-10-28; no iPhone test |
 
+## Voice notes (owner 2026-10-30)
+
+The patient speaks about their state instead of typing; a transcript reaches the doctor, an AI
+summary may follow. Built on the app's speech model (Whisper through transformers.js,
+`features/asr/asr-models.ts`) and the existing entry sync, in slices:
+
+| # | Slice | Status |
+| --- | --- | --- |
+| V1 | «Сказать голосом» in the patient's «Описать состояние» sheet: record (≤3 min, opus 32 kbps, `features/notes/voice-capture.ts`), transcribe on the patient's phone, append the text to the field; the patient corrects and saves, and it syncs encrypted as today's `state` text. The 81 MB model is offered after the first recording (asked before downloading) and kept for later notes. The audio never leaves the phone and is not kept. | Done 2026-10-30 |
+| V2 | Patients who will not download the model: keep the recording on the phone (IndexedDB, not the localStorage diary), sync it as its own encrypted record kind (`v-<entry id>`, ≤60 s at 16 kbps fits one 256 kB record body), and let the doctor's device transcribe it and store the text with the entry (a doctor-side transcript, marked as such, not a «correction»). Needs a parser/fingerprint change for the new kind and a play button on the doctor's timeline. | Planned |
+| V3 | An optional summary of a period's notes on the doctor's device (local model when one ships; a hosted model only with an ADR and consent, since today nothing leaves the devices unencrypted). | Idea |
+
 ## Open questions
 
 1. The crisis channels after «compliant doctor» (owner's message was cut off).

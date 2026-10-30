@@ -3,6 +3,7 @@ import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { Button } from '@/components/Button';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
+import { VoiceNote } from '@/diary/VoiceNote';
 import { atTime, CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import {
   createDiaryId,
@@ -491,6 +492,7 @@ export function NoteSheet(props: {
         autofocus={!props.entry}
         onInput={setText}
       />
+      <VoiceNote onText={(said) => setText(text().trim() ? `${text().trim()}\n${said}` : said)} />
     </DiarySheet>
   );
 }

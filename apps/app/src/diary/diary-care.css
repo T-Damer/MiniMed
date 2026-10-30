@@ -1007,3 +1007,151 @@ body:has(.diary-care-scope) {
   text-underline-offset: 0.15em;
   white-space: nowrap;
 }
+
+/* «Сказать голосом» in the own-words sheet (VoiceNote): a round mic, a status line, and the
+   one-time model offer in place when the phone has no speech model yet. */
+.diary-voice {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.diary-voice__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.diary-voice__button {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--theme-text) 18%, transparent);
+  cursor: pointer;
+  transition:
+    transform var(--care-fast) var(--care-ease),
+    background var(--care-base) var(--care-ease),
+    opacity var(--care-base) var(--care-ease);
+}
+
+.diary-voice__button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.diary-voice__button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.diary-voice__button--recording {
+  border-color: var(--theme-danger);
+  color: #fff;
+  background: var(--theme-danger);
+}
+
+.diary-voice__button--busy {
+  animation: diary-voice-breathe 1.2s ease-in-out infinite;
+}
+
+@keyframes diary-voice-breathe {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* The halo grows with the voice's loudness (an intentional overlay around the button). */
+.diary-voice__halo {
+  position: absolute;
+  inset: calc(-0.1rem - var(--voice-level, 0%) * 0.12);
+  border: 2px solid color-mix(in srgb, var(--theme-danger) 45%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: inset var(--care-fast) linear;
+}
+
+.diary-voice__icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.diary-voice__status {
+  color: var(--theme-text-muted);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.diary-voice__offer {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.7rem);
+  background: color-mix(in srgb, var(--theme-accent) 6%, var(--theme-surface-raised));
+  animation: diary-voice-in var(--care-base) var(--care-ease);
+}
+
+@keyframes diary-voice-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+}
+
+.diary-voice__offer-text {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.diary-voice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.diary-voice__primary,
+.diary-voice__secondary {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--care-fast) var(--care-ease);
+}
+
+.diary-voice__primary:active,
+.diary-voice__secondary:active {
+  transform: scale(0.96);
+}
+
+.diary-voice__primary {
+  border: 0;
+  color: var(--theme-on-accent, #fff);
+  background: var(--theme-accent);
+}
+
+.diary-voice__secondary {
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+}
+
+.diary-voice__error {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-voice__button--busy,
+  .diary-voice__offer {
+    animation: none;
+  }
+}

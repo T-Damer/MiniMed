@@ -114,6 +114,35 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
   },
 };
 
+/**
+ * Word timestamps need the decoder's cross attentions, which some Whisper exports do not return
+ * («Model outputs must contain cross attentions to extract timestamps»). Then segment timestamps,
+ * and if those fail too, plain text: a transcript without timings beats none.
+ */
+async function transcribeWithFallback(
+  pipe: (audio: Float32Array, options: Record<string, unknown>) => Promise<unknown>,
+  audio: Float32Array,
+  options: Readonly<Record<string, unknown>>,
+): Promise<unknown> {
+  const attempts: readonly Record<string, unknown>[] = [
+    options,
+    { ...options, return_timestamps: true },
+    { ...options, return_timestamps: false },
+  ];
+  let failure: unknown;
+  for (const attempt of attempts) {
+    try {
+      return await pipe(audio, attempt);
+    } catch (cause) {
+      failure = cause;
+      const text = cause instanceof Error ? cause.message : String(cause);
+      if (!/cross attentions|timestamps/iu.test(text)) throw cause;
+      console.warn('Whisper: эти метки времени недоступны, пробуем проще', text);
+    }
+  }
+  throw failure;
+}
+
 const NETWORK_RETRY_DELAYS_MS = [750, 2000] as const;
 
 env.allowLocalModels = false;
@@ -280,7 +309,11 @@ scope.onmessage = (event) => {
       const pipe = current?.pipe;
       const spec = current?.id === message.modelId ? MODEL_SPECS[message.modelId] : undefined;
       if (!pipe || !spec) throw new Error(`Модель не загружена: ${message.modelId}`);
-      const output: unknown = await pipe(message.audio, spec.callOptions ?? {});
+      const output: unknown = await transcribeWithFallback(
+        pipe,
+        message.audio,
+        spec.callOptions ?? {},
+      );
       const first = Array.isArray(output)
         ? (output[0] as { text?: unknown; chunks?: unknown } | undefined)
         : (output as { text?: unknown; chunks?: unknown } | undefined);

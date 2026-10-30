@@ -80,10 +80,43 @@ test.describe('patient diary: the care diary with the tab bar', () => {
     await expect(feeling.locator('.care-row__box')).toBeVisible();
     await feeling.getByRole('button', { name: 'Как вы себя чувствуете?' }).click();
     const sheet = page.getByRole('dialog', { name: 'Добавить описание состояния' });
+    await expect(sheet.getByRole('button', { name: 'Сказать голосом' })).toBeVisible();
     await sheet.getByLabel('Что вы чувствуете').fill('Спокойно, давление в норме');
     await sheet.getByRole('button', { name: 'Сохранить' }).click();
     await expect(page.locator('.care-note')).toContainText('Спокойно, давление в норме');
     await expect(page.locator('.care-row').filter({ hasText: 'Добавить ещё' })).toBeVisible();
+  });
+
+  test('a spoken note asks before downloading the speech model and sends nothing anywhere', async ({
+    page,
+  }) => {
+    // A tone stands in for the microphone; no speech model is on this «phone».
+    await page.addInitScript(() => {
+      navigator.mediaDevices.getUserMedia = async () => {
+        const context = new AudioContext();
+        const tone = context.createOscillator();
+        const sink = context.createMediaStreamDestination();
+        tone.connect(sink);
+        tone.start();
+        return sink.stream;
+      };
+    });
+    const downloads: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('huggingface.co')) downloads.push(request.url());
+    });
+    await page.goto(await testInvitationLink(careInvitation()));
+    const feeling = page.locator('.care-row').filter({ hasText: 'Как вы себя чувствуете?' });
+    await feeling.getByRole('button', { name: 'Как вы себя чувствуете?' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Добавить описание состояния' });
+    await sheet.getByRole('button', { name: 'Сказать голосом' }).click();
+    await expect(sheet.getByRole('status')).toContainText('Говорите');
+    await page.waitForTimeout(1200);
+    await sheet.getByRole('button', { name: 'Остановить запись' }).click();
+    await expect(sheet.getByRole('button', { name: 'Скачать и расшифровать' })).toBeVisible();
+    await sheet.getByRole('button', { name: 'Не сейчас' }).click();
+    await expect(sheet.getByRole('button', { name: 'Скачать и расшифровать' })).toHaveCount(0);
+    expect(downloads).toEqual([]);
   });
 
   test('«Записи» on a tab: no back button, no dock, and «Изменить» opens that mark on the day page', async ({
