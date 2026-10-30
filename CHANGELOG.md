@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.67] - 2026-10-30
+
+- Doctor diary sign-in: signed out, the screen is only the sign-in card (no header, no bottom bar). A doctor can
+  sign in with an access code alone (e.g. a demo code) and lands in the diaries with the patient list, where
+  patients can be added and demo patients loaded. Switching «Вход» / «Регистрация» / «Забыли пароль?» no longer
+  blinks: the card changes height smoothly and the headline cross-fades.
+- Settings on wide screens: no tall dark header band, compact header rows, and the list and the page scroll as
+  one; the footer links stay above the bottom bar.
+- «Кожа по фото» (experimental): place, elements and colour are dropdown fields that open a checkable list; each
+  result ends with a field-styled «Искать в базе» and a round button that opens the condition in the atlas; the
+  atlas and history moved into the «⋯» menu next to «?».
+- Diary: the activity calendar fills its card, the «↑» button no longer covers the bottom buttons of the new-patient
+  form, and patient rows stay on one line.
+- Headers: in a phone browser the pinned bar no longer sticks flush to the screen edge (its buttons were cut), and
+  page icons on the dark band (settings, tests, calculators) are drawn light instead of dark green.
+- News and other pages whose title has its own icon no longer show a second flying icon beside it.
+
 ## [0.6.66] - 2026-10-29
 
 - New header on every page: a dark band from the screen top, the page as a sheet over it, and a header that
