@@ -17,6 +17,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
@@ -37,6 +38,7 @@ import { adherence } from '@/features/diary/dashboard/diary-insights';
 import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
+import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
 import { PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
 import { PushHelpDialog } from '@/features/diary/dashboard/PushHelpDialog';
@@ -194,6 +196,8 @@ export function DiaryDashboard(props: {
   /** Archived patients waiting for «Удалить» to be confirmed. */
   const [deleting, setDeleting] = createSignal<readonly DoctorPatient[]>([]);
   const [pushHelp, setPushHelp] = createSignal(false);
+  /** The patient whose pairing code and link are shown again (a lost page, another device). */
+  const [pairing, setPairing] = createSignal<string>();
   const chooseOrder = (next: PatientOrder): void => {
     setOrder(next);
     try {
@@ -409,6 +413,16 @@ export function DiaryDashboard(props: {
                 },
               ]
             : []),
+          ...(patient.summary.role !== 'reader' && patient.replica.invitation
+            ? [
+                {
+                  id: 'pair',
+                  label: 'QR-код и ссылка для пациента',
+                  icon: 'qr-code' as const,
+                  onSelect: () => setPairing(id),
+                },
+              ]
+            : []),
           ...(phone
             ? [
                 {
@@ -520,6 +534,21 @@ export function DiaryDashboard(props: {
             onState={setPushState}
             onClose={() => setPushHelp(false)}
           />
+        )}
+      </Show>
+      <Show when={pairing() ? workspace() : undefined}>
+        {(diaries) => (
+          <OverlayDialog
+            open
+            title="QR-код и ссылка для пациента"
+            onClose={() => setPairing(undefined)}
+          >
+            <PairingView
+              workspace={diaries()}
+              patientId={pairing() ?? ''}
+              onDone={() => setPairing(undefined)}
+            />
+          </OverlayDialog>
         )}
       </Show>
       <Show when={adding() ? workspace() : undefined}>

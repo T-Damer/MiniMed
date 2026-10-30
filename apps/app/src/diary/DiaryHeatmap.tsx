@@ -36,8 +36,9 @@ const ALL_PARTS: ReadonlySet<HeatPart> = new Set();
 const WEEKDAYS = ['', 'Пн', '', 'Ср', '', 'Пт', '', ''];
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
-export function heatDayLabel(day: HeatDay): string {
+export function heatDayLabel(day: HeatDay, since?: string): string {
   const date = dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  if (since && day.day < since && day.entries === 0) return `${date}: до начала дневника`;
   const symptoms = day.symptoms > 0 ? ', есть симптомы' : '';
   if (day.total > 0)
     return `${date}: ${day.done} из ${day.total} ${pluralize(day.total, 'отметки', 'отметок', 'отметок')}${symptoms}`;
@@ -110,6 +111,11 @@ export function DiaryHeatmap(props: {
   readonly onInclude?: (next: ReadonlySet<HeatPart>) => void;
   /** Symptom level 0–4 by day the caller computed (e.g. questionnaires above the norm). */
   readonly symptomDays?: ReadonlyMap<string, HeatDay['symptoms']>;
+  /**
+   * The diary's first day: earlier days without records are drawn as «before the diary» (owner
+   * 2026-10-30), still tappable so a missed day can be filled in later.
+   */
+  readonly since?: string;
 }): JSX.Element {
   let scroller: HTMLDivElement | undefined;
   let grid: HTMLDivElement | undefined;
@@ -349,14 +355,17 @@ export function DiaryHeatmap(props: {
                           type="button"
                           class={`diary-heat__day diary-heat__day--level-${day.level} diary-heat__day--symptoms-${day.symptoms}`}
                           classList={{
+                            'diary-heat__day--before': Boolean(
+                              props.since && day.day < props.since && day.entries === 0,
+                            ),
                             'diary-heat__day--selected': day.day === props.selected,
                             'diary-heat__day--today': day.day === props.today,
                             'diary-heat__day--future': day.day > props.today,
                           }}
                           disabled={day.day > props.today}
                           tabindex={day.day === props.selected ? 0 : -1}
-                          title={heatDayLabel(day)}
-                          aria-label={heatDayLabel(day)}
+                          title={heatDayLabel(day, props.since)}
+                          aria-label={heatDayLabel(day, props.since)}
                           aria-pressed={day.day === props.selected}
                           onClick={() => props.onSelect(day.day)}
                         >

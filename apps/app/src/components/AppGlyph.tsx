@@ -104,6 +104,7 @@ import playBold from '@phosphor-icons/core/assets/bold/play-bold.svg?raw';
 import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
 import prescriptionBold from '@phosphor-icons/core/assets/bold/prescription-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
+import qrCodeBold from '@phosphor-icons/core/assets/bold/qr-code-bold.svg?raw';
 import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
 import queueBold from '@phosphor-icons/core/assets/bold/queue-bold.svg?raw';
 import rssBold from '@phosphor-icons/core/assets/bold/rss-bold.svg?raw';
@@ -207,6 +208,7 @@ export type AppGlyphName =
   | 'question'
   | 'scales'
   | 'share'
+  | 'qr-code'
   | 'share-fat'
   | 'stop-circle'
   | 'binoculars'
@@ -366,6 +368,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   question: svgBody(questionMarkBold),
   scales: svgBody(scalesBold),
   share: svgBody(shareNetworkBold),
+  'qr-code': svgBody(qrCodeBold),
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),
   binoculars: svgBody(binocularsBold),

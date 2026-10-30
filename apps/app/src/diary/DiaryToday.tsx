@@ -466,6 +466,7 @@ export function DiaryToday(props: {
           selected={day()}
           today={today()}
           onSelect={setDay}
+          since={diaryStarted(invitation(), props.results.entries)}
           parts={heatParts(invitation())}
           include={include()}
           onInclude={setInclude}

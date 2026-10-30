@@ -67,10 +67,15 @@ import {
   heatmapDays,
   heatParts,
 } from '@/features/diary/diary-care';
-import { type DiaryEntry, describeDiaryEntry } from '@/features/diary/diary-model';
+import {
+  type DiaryEntry,
+  type DiaryInvitation,
+  describeDiaryEntry,
+} from '@/features/diary/diary-model';
 import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 
 type Dialog =
+  | 'day'
   | 'pair'
   | 'curators'
   | 'tips'
@@ -211,6 +216,61 @@ export function DiaryPatientPage(props: {
     return days;
   });
   const dayEntries = createMemo(() => entriesOfDay(results()?.entries ?? [], day()).toReversed());
+  /** The chosen day's records (or its empty state): on the page and in the day sheet. */
+  const dayRecords = (invitation: DiaryInvitation): JSX.Element => (
+    <Show
+      when={dayEntries().length}
+      fallback={
+        <div class="diary-patient__day-empty">
+          <p class="diary-dash__quiet">В этот день записей нет.</p>
+          <Button
+            variant="secondary"
+            icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
+            onClick={() => props.onOpen(`day/${day()}`)}
+          >
+            {canEdit() ? 'Открыть день и отметить' : 'Открыть день пациента'}
+          </Button>
+        </div>
+      }
+    >
+      <ul class="diary-timeline">
+        <For each={dayEntries()}>
+          {(entry) => (
+            <li class="diary-timeline__item">
+              <span class="diary-timeline__time">
+                {new Date(entry.at).toLocaleTimeString('ru-RU', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+              <span class="diary-timeline__text">
+                <span class="diary-timeline__line">{describeDiaryEntry(invitation, entry)}</span>
+                <Show when={entry.note}>
+                  <span class="diary-timeline__note">{entry.note}</span>
+                </Show>
+                <Show when={entry.corrected}>
+                  <span class="diary-timeline__badge">исправлено врачом</span>
+                </Show>
+              </span>
+              <Show when={canEdit()}>
+                <Button
+                  variant="icon"
+                  aria-label="Исправить запись"
+                  icon={<AppGlyph name="edit" class="diary-dash__glyph" />}
+                  onClick={() => setDialog({ correct: entry })}
+                />
+              </Show>
+            </li>
+          )}
+        </For>
+      </ul>
+    </Show>
+  );
+  /** Before the diary began (a backfilled record moves the start back). */
+  const beforeStart = (): boolean => {
+    const current = results();
+    return Boolean(current && day() < diaryStarted(current.invitation, current.entries));
+  };
   const urgent = createMemo(() => {
     void props.version;
     return props.workspace.alerts().filter((alert) => alert.patientId === props.patient.summary.id);
@@ -244,8 +304,9 @@ export function DiaryPatientPage(props: {
             },
             {
               id: 'pair',
-              label: 'Подключить телефон пациента',
-              icon: 'share' as const,
+              // Again whenever needed: a lost page, another device (owner 2026-10-30).
+              label: 'QR-код и ссылка для пациента',
+              icon: 'qr-code' as const,
               priority: 2 as const,
               onSelect: () => setDialog('pair'),
             },
@@ -480,9 +541,11 @@ export function DiaryPatientPage(props: {
               selected={day()}
               today={dayKey(new Date())}
               onSelect={(next) => {
+                // A day opens as a sheet over the page; the full day screen is one tap further.
                 setDay(next);
-                props.onOpen(`day/${next}`);
+                setDialog('day');
               }}
+              since={diaryStarted(current().invitation, current().entries)}
               parts={heatParts(current().invitation)}
               include={include()}
               onInclude={setInclude}
@@ -608,61 +671,39 @@ export function DiaryPatientPage(props: {
                   />
                 </Show>
               </div>
-              <Show
-                when={dayEntries().length}
-                fallback={
-                  <div class="diary-patient__day-empty">
-                    <p class="diary-dash__quiet">В этот день записей нет.</p>
-                    <Button
-                      variant="secondary"
-                      icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-                      onClick={() => props.onOpen(`day/${day()}`)}
-                    >
-                      {canEdit() ? 'Открыть день и отметить' : 'Открыть день пациента'}
-                    </Button>
-                  </div>
-                }
-              >
-                <ul class="diary-timeline">
-                  <For each={dayEntries()}>
-                    {(entry) => (
-                      <li class="diary-timeline__item">
-                        <span class="diary-timeline__time">
-                          {new Date(entry.at).toLocaleTimeString('ru-RU', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span class="diary-timeline__text">
-                          <span class="diary-timeline__line">
-                            {describeDiaryEntry(current().invitation, entry)}
-                          </span>
-                          <Show when={entry.note}>
-                            <span class="diary-timeline__note">{entry.note}</span>
-                          </Show>
-                          <Show when={entry.corrected}>
-                            <span class="diary-timeline__badge">исправлено врачом</span>
-                          </Show>
-                        </span>
-                        <Show when={canEdit()}>
-                          <Button
-                            variant="icon"
-                            aria-label="Исправить запись"
-                            icon={<AppGlyph name="edit" class="diary-dash__glyph" />}
-                            onClick={() => setDialog({ correct: entry })}
-                          />
-                        </Show>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
+              {dayRecords(current().invitation)}
             </section>
           </>
         )}
       </Show>
 
       <Switch>
+        <Match when={dialog() === 'day' && results()}>
+          {(current) => (
+            <OverlayDialog
+              open
+              title={new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+              {...(beforeStart() ? { subtitle: 'До начала дневника' } : {})}
+              headerEnd={
+                <Show when={dayEntries().length}>
+                  <Button
+                    variant="icon"
+                    aria-label="Экран пациента в этот день"
+                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
+                    onClick={() => props.onOpen(`day/${day()}`)}
+                  />
+                </Show>
+              }
+              onClose={() => setDialog(undefined)}
+            >
+              {dayRecords(current().invitation)}
+            </OverlayDialog>
+          )}
+        </Match>
         <Match when={dialog() === 'pair'}>
           <OverlayDialog
             open
