@@ -200,7 +200,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     await context.close();
   });
 
-  test('the page is installable: manifest scope, start URL and icons stay inside the diary', async ({
+  test('the page is installable: scope and start URL stay inside the diary, the icons load', async ({
     page,
     request,
   }, testInfo) => {
@@ -220,7 +220,8 @@ test.describe('patient diary: keeping it one tap away', () => {
       display: string;
       icons: { src: string; sizes: string }[];
     };
-    expect(manifest.display).toBe('standalone');
+    // Full screen, over the system bars (owner 2026-10-30); standalone where that is refused.
+    expect(manifest.display).toBe('fullscreen');
     const start = new URL(manifest.start_url, manifestUrl);
     const scope = new URL(manifest.scope, manifestUrl);
     expect(start.href).toBe(new URL(DIARY_PAGE).href);

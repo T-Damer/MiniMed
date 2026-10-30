@@ -29,6 +29,8 @@ describe('what the service worker precaches', () => {
       'assets/pdf.worker.min-CHFwMXne.mjs',
       'fonts/CascadiaCode-Regular.woff2',
       'onboarding/mri/slice-1.jpg',
+      'diaries/boot-icon.png',
+      'diaries/manifest.webmanifest',
     ]) {
       expect(role(path), path).toBe('precache');
     }

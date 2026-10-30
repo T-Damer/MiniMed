@@ -110,6 +110,27 @@
   height: 0.7rem;
 }
 
+/* The list title with the diaries' notebook logo before it (public/diaries/logo.svg); the logo
+   overhangs the line rather than making the header row taller. */
+.diary-dash__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.diary-dash__logo {
+  flex: none;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-block: -0.5rem;
+  padding: 0.15rem;
+  border-radius: 0.6rem;
+  /* A paper chip, so the green cover stands out on the dark band. */
+  background: #f3ecd9;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+}
+
 /* Signed out, the sign-in fills the page: no header and no bottom bar take room (owner 2026-10-30). */
 .diary-dash--signed-out {
   flex: 1 0 auto;

@@ -23,6 +23,31 @@
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="./apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      // The diaries-only app (`?profile=diaries`, remembered by state/app-profile.ts) installs and
+      // shows as itself: its own manifest, favicon, title and boot icon (public/diaries/).
+      (() => {
+        let profile = new URLSearchParams(location.search).get('profile');
+        if (!profile) {
+          try {
+            profile = localStorage.getItem('minimed.app-profile.v1');
+          } catch {
+            profile = null;
+          }
+        }
+        if (profile !== 'diaries') return;
+        document.documentElement.dataset.appIdentity = 'diaries';
+        const set = (selector, href) => {
+          for (const link of document.querySelectorAll(selector)) link.href = href;
+        };
+        set('link[rel="manifest"]', './diaries/manifest.webmanifest');
+        set('link[rel="icon"][sizes="any"]', './diaries/favicon.ico');
+        set('link[rel="icon"][sizes="32x32"]', './diaries/favicon-32.png');
+        set('link[rel="icon"][sizes="64x64"]', './diaries/favicon-64.png');
+        set('link[rel="apple-touch-icon"]', './diaries/apple-touch-icon.png');
+        document.title = 'Дневники пациентов';
+      })();
+    </script>
     <meta
       name="description"
       content="MiniMed — offline-first поиск по локальному корпусу клинических материалов."
@@ -88,8 +113,11 @@
       // On Android the splash icon is centred on the screen, the WebView sits between the system
       // bars: move ours to the same spot (MiniMedBoot comes from LocalMedSystemUiPlugin).
       (() => {
-        const bridge = window.MiniMedBoot;
         const icon = document.querySelector('.boot-surface__icon');
+        if (icon && document.documentElement.dataset.appIdentity === 'diaries') {
+          icon.src = './diaries/boot-icon.png';
+        }
+        const bridge = window.MiniMedBoot;
         if (!bridge || !icon) return;
         const place = () => {
           icon.style.translate = `0 ${bridge.iconShiftY()}px`;

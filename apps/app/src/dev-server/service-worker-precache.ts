@@ -55,7 +55,10 @@ export function classifyBuildFile(file: BuildFile): BuildFileRole {
   if (path.startsWith('assets/')) {
     return path.endsWith('.wasm') && file.bytes > PRECACHE_MAX_WASM_BYTES ? 'optional' : 'precache';
   }
-  if (path.startsWith('fonts/') || path.startsWith('onboarding/')) return 'precache';
+  // diaries/: the diaries app's manifest, icons and boot icon (index.html swaps them in).
+  if (path.startsWith('fonts/') || path.startsWith('onboarding/') || path.startsWith('diaries/')) {
+    return 'precache';
+  }
   // index.html, the manifest and the icons sit at the root of the build.
   return path.includes('/') ? 'skip' : 'precache';
 }

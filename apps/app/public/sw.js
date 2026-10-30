@@ -189,7 +189,7 @@ self.addEventListener('push', (event) => {
         'Срочная отметка или новое приглашение. Откройте, чтобы посмотреть.',
       tag: 'minimed-diary',
       renotify: true,
-      icon: 'apple-touch-icon.png',
+      icon: 'diaries/apple-touch-icon.png',
     }),
   );
 });

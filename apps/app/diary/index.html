@@ -6,8 +6,10 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="referrer" content="no-referrer" />
-    <link rel="icon" href="../favicon.ico" sizes="any" />
-    <link rel="apple-touch-icon" sizes="192x192" href="../apple-touch-icon.png" />
+    <!-- The diaries' own notebook icon (public/diaries/), not the main app's wallet. -->
+    <link rel="icon" href="../diaries/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="../diaries/logo.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../diaries/apple-touch-icon.png" />
     <!--
       iOS Safari reads the manifest once, while the page loads, and a manifest's start_url has no
       room for the invitation (#i=...): the home-screen icon would then open an empty diary. Without
@@ -27,7 +29,7 @@
         document.head.appendChild(link);
       })();
     </script>
-    <meta name="theme-color" content="#2f4638" />
+    <meta name="theme-color" content="#f3ecd9" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Дневник" />

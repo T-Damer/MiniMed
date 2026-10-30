@@ -124,7 +124,7 @@ self.addEventListener('fetch', (event) => {
 // Cache Storage (`src/features/diary/connected/reminder-cache.ts` describes the layout).
 const REMINDER_CACHE = 'minimed-diary-reminders';
 const REMINDERS = new URL('reminders/', BASE).href;
-const ICON = new URL('../apple-touch-icon.png', BASE).href;
+const ICON = new URL('../diaries/apple-touch-icon.png', BASE).href;
 const DOCTOR_TEXT = {
   plan: 'Врач изменил план лечения. Откройте, чтобы посмотреть.',
   tip: 'Врач оставил рекомендацию. Откройте, чтобы прочитать.',

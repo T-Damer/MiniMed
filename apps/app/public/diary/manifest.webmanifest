@@ -6,33 +6,40 @@
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "background_color": "#f3ecd9",
-  "theme_color": "#2f4638",
+  "theme_color": "#f3ecd9",
   "icons": [
     {
-      "src": "../icon-192.png",
+      "src": "../diaries/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../icon-512.png",
+      "src": "../diaries/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../maskable-192.png",
+      "src": "../diaries/maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "../maskable-512.png",
+      "src": "../diaries/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "../diaries/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "categories": ["medical", "health"],

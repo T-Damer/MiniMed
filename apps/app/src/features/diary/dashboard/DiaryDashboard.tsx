@@ -613,7 +613,18 @@ export function DiaryDashboard(props: {
                 <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
               )
             }
-            title={<Heading depth={1}>Дневники пациентов</Heading>}
+            title={
+              <Heading depth={1} class="diary-dash__title">
+                <img
+                  class="diary-dash__logo"
+                  src={`${import.meta.env.BASE_URL}diaries/logo.svg`}
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+                Дневники пациентов
+              </Heading>
+            }
             description={
               // Archived patients are not counted: the number matches the rows above the archive.
               session() && listed().active.length
