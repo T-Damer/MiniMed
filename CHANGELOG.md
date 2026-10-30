@@ -4,6 +4,18 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.69] - 2026-10-30
+
+- Patient diary: «Сказать голосом» in «Описать состояние» — up to three minutes of speech, transcribed on the phone
+  (the 81 MB speech model is offered after the first recording, never downloaded without consent) into the text the
+  patient corrects and saves; the recording itself stays on the phone and is not kept. Transcription also works
+  again with the current speech model (word timestamps failed).
+- «Кожа по фото»: a new skin model (phone photos: 86 % top-3, was 80 %; cancer check 96 % sensitivity at 96 %
+  specificity) ships as a downloadable pack, «Скачать модель · 17 МБ», offered right on the screen; the pack also
+  puts 99 real reference photos into the atlas (drawings remain where a condition has none), each with its source.
+- Model packs (ECG and skin) now download on med.1damer.com too.
+- The header's faint emblem no longer catches taps meant for controls under it.
+
 ## [0.6.68] - 2026-10-30
 
 - Patient diaries: an own logo (a notebook with a checklist) before «Дневники пациентов»; the diaries and the

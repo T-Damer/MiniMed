@@ -178,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-30 claude-opus REL 0.6.69: app-only release (patient voice notes V1, published skin pack `minimed-skin-pack-2026.10.30.zip` on models-preview-1 with the DermLIP-distilled B0 and 99 photos, med.1damer.com serves /content/releases from the Pages mirror, emblem pointer fix)
 - 2026-10-30 claude-opus REL 0.6.68: app-only release (diary owner batches 1–3: day sheet, pre-diary days, QR again, own logo and full-screen PWAs, scroll thumb, compact stats; questionnaire band fix); APK by the release workflow, Pages by CI, med.1damer.com by `scripts/diary-deploy.sh`
 - 2026-10-30 claude-opus REL 0.6.67: app-only release (diary sign-in by code, wide settings, skin dropdowns/header, news icon); APK by the release workflow, Pages by CI, med.1damer.com by `scripts/diary-deploy.sh` (app only, without the local skin model); SKIN2 (Derm1M + DermLIP-distilled B0, skin pack) continues
 - 2026-10-30 claude-opus DIARY16: diary sign-in is the whole screen (no header, no bottom bar), sign-in by access code alone (sign-up code → no-name doctor, demo patients and new patients work), Вход/Регистрация cross-fade without remount, wide settings without the hero cover and as one scrolling surface; see CURRENT_STATE «Diary sign-in by code»; not deployed, no release
