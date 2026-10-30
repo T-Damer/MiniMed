@@ -23,14 +23,18 @@ TABLES = [
 ]
 
 
+TOKEN_NAME = "HF_TOKEN"
+
+
 def token() -> str:
-    value = os.environ.get("HF_TOKEN", "")
+    value = os.environ.get(TOKEN_NAME, "")
     if not value:
         for line in (ROOT / ".env").read_text(encoding="utf-8").splitlines():
-            if line.startswith("HF_TOKEN="):
-                value = line.removeprefix("HF_TOKEN=").strip().strip("\"'")
+            name, _, rest = line.partition("=")
+            if name.strip() == TOKEN_NAME:
+                value = rest.strip().strip("\"'")
     if not value:
-        raise SystemExit("HF_TOKEN is not set (environment or .env)")
+        raise SystemExit(f"{TOKEN_NAME} is not set (environment or .env)")
     return value
 
 
