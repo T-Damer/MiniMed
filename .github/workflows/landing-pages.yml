@@ -70,6 +70,7 @@ jobs:
           gh release download models-preview-1 --repo "$GITHUB_REPOSITORY" \
             --pattern minimed-ecg-open-digitizer-2026.1-q8.zip \
             --pattern minimed-ecg-numeric-adult-2026.2.zip \
+            --pattern 'minimed-skin-pack-*.zip' \
             --dir apps/app/public/content/releases/models-preview-1 --clobber
           # Data prereleases (terminology, draft definition reference, krasotaimedicina) advertised by the module
           # catalogs. Release hosts send no CORS headers, so the app reads these Pages copies.

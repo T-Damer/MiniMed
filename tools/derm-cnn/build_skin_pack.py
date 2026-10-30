@@ -125,6 +125,12 @@ def main() -> None:
     parser.add_argument(
         "--exclude", default="", help="comma-separated photo ids to leave out"
     )
+    parser.add_argument(
+        "--keep",
+        type=Path,
+        help="reviewed photo ids, one per line: only these go into the pack (a class with none "
+        "keeps its drawings)",
+    )
     args = parser.parse_args()
 
     classes = json.loads(t.CLASSES.read_text(encoding="utf-8"))["classes"]
@@ -151,6 +157,12 @@ def main() -> None:
     for record in records:
         record.image = originals[id(record)]
 
+    keep = (
+        {line.split("#")[0].strip() for line in args.keep.read_text().splitlines()}
+        - {""}
+        if args.keep
+        else None
+    )
     chosen: dict[str, list] = {}
     for label, class_id in enumerate(ids):
         pool = sorted(
@@ -161,6 +173,8 @@ def main() -> None:
             ),
             key=lambda item: -item[0],
         )
+        if keep is not None:
+            pool = [item for item in pool if photo_id(item[1].image) in keep]
         picked, groups = [], set()
         for score, record in pool:
             if record.group in groups:

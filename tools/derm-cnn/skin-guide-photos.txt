@@ -1,0 +1,102 @@
+# Reviewed reference photos of the skin pack (build_skin_pack.py --keep), 2026-10-30: up to three per
+# class, chosen from the model-ranked review sheets. A class without lines keeps its drawings
+# (drug_rash: no candidate plainly showed one; milia: none acceptable).
+d3228f5bf603 # acne
+0c8748764412
+cefbbe1c1360
+3266d47e153c # actinic_keratosis
+6886c9b78e14
+34b28ec84527
+3a7705af7ee1 # alopecia_areata
+91a620fcd49c
+3a32fefda14f
+1b18899bd27b # bcc
+1c0c9ca15838
+b42d571363e0
+4c6e6b4bf31d # candidiasis
+de6c80010c50 # cellulitis
+66b39def1ae9
+74dd9ec370ac
+064bfff62585 # chickenpox
+dbe6337b560a
+20bc8635e79d
+61aeebc114e8 # contact_dermatitis
+0ea018286e0a
+4c2e740ff495
+f8ed64c04475 # eczema
+c6e424c5745b
+dad888e275ed
+b3641da245ba # folliculitis
+4b366ff81f64
+e8bec4a81c66
+7079e6f2af77 # furuncle
+56c2d917adf9
+debb8fd13957
+0cf5628f04f6 # herpes_simplex
+4baf3b337068
+655150ac0f1a
+f6c6c8d3c5b6 # herpes_zoster
+b88a9326027f
+4cb542fe9659
+876b79874e39 # impetigo
+3d6ab919e49a
+9d4a10bd1dd8
+ad8cf23d3b96 # insect_bite
+f65274c65823
+947a16a6518c
+148d7410defd # lichen_planus
+4cafec60551f # measles
+659b053ae3af
+969ba54eccbe # melanoma
+137b5f63f0e9
+beebb51889c0
+2872766f8661 # molluscum
+e65e6a562872
+4cc36100a1e6
+40d814597ed5 # nevus
+fab70a50b00c
+feb92d836fa1
+b556d91ccb37 # onychomycosis
+3d438db321b0
+0c21948ffaff
+588a8fce586b # pigmented_purpuric
+5f030bac443a
+9de047e0e8c1
+b80bf38a7488 # pityriasis_rosea
+b314af8ceeba
+e1c4803022b1
+cb22843aff05 # psoriasis
+bb11b3f89f6e
+2df5f783326a
+147a42312942 # rosacea
+0d5381240ed3
+1c21e2e22ca1
+6c591e5df195 # scabies
+6d5af9a653d7
+966d3acc1340
+7f9cb3a4cc2e # scc
+83b9f42f88ff
+c347be70202e
+5623e7d20a6c # seborrheic_dermatitis
+bbf264603472
+621aa2e7332b
+222e305d0b92 # seborrheic_keratosis
+203fae3a1abe
+90f447a6443e
+09284fc41e24 # tinea
+b82c941c3524
+dd7dfb46d529
+004d8932b3f8 # tinea_versicolor
+fd2348977b54
+f10159dfed11
+e960a77299b1 # urticaria
+157ecc1c0ed2
+60d3c85beff4
+eca937c18468 # vasculitis
+2ba08218e7b1
+4b88dde5ecf7
+dd49cf9fe208 # vitiligo
+493df02685f1
+1a5d3968f1fb # warts
+fd6e9e964a96
+49e18eb03741

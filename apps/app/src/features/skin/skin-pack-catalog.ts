@@ -7,8 +7,9 @@
 /** `version` of skin-pack.json inside the ZIP. */
 export const SKIN_PACK_VERSION = '2026.10.30';
 /** The GitHub release asset, `https://github.com/T-Damer/MiniMed/releases/download/<tag>/<file>.zip`. */
-export const SKIN_PACK_RELEASE_URL = '';
+export const SKIN_PACK_RELEASE_URL =
+  'https://github.com/T-Damer/MiniMed/releases/download/models-preview-1/minimed-skin-pack-2026.10.30.zip';
 /** SHA-256 of the whole ZIP, 64 lowercase hex characters. */
-export const SKIN_PACK_SHA256 = '';
+export const SKIN_PACK_SHA256 = '9c60ab2b83a79a83fab30fda14660340b71b3a14d972d87bfe6ddbf401f9d646';
 /** Exact size of the ZIP in bytes. */
-export const SKIN_PACK_DOWNLOAD_BYTES = 0;
+export const SKIN_PACK_DOWNLOAD_BYTES = 17_992_027;

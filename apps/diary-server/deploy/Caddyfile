@@ -3,9 +3,22 @@
 # in front of patients (ADR-0026 §8).
 med.1damer.com {
 	encode zstd gzip
-	reverse_proxy 127.0.0.1:8790 {
-		# Live updates (server-sent events) must not be buffered.
-		flush_interval -1
+	# Model packs (ECG, skin) are GitHub release assets, which send no CORS headers: the app reads
+	# them from ./content/releases/, served here from the GitHub Pages mirror. Nothing of the
+	# user's request goes along (no cookies, no authorization).
+	handle /content/releases/* {
+		rewrite * /MiniMed/app{uri}
+		reverse_proxy https://t-damer.github.io {
+			header_up Host t-damer.github.io
+			header_up -Authorization
+			header_up -Cookie
+		}
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8790 {
+			# Live updates (server-sent events) must not be buffered.
+			flush_interval -1
+		}
 	}
 	header {
 		Strict-Transport-Security "max-age=31536000"

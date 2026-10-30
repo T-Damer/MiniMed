@@ -261,8 +261,8 @@ test('the page works with the model missing: the photo is kept and the state is 
   await upload(page);
   await page.getByTestId('skin-analyze').click();
   await expect(page.getByTestId('skin-model-missing')).toContainText('Модель не найдена');
-  // No pack is published in this build: there is nothing to offer, and no dead button.
-  await expect(page.getByTestId('skin-pack-offer')).toHaveCount(0);
+  // The published pack is offered right there (installing it is the next test's subject).
+  await expect(page.getByTestId('skin-model-missing').getByTestId('skin-pack-offer')).toBeVisible();
   await expect(page.getByTestId('skin-scan')).toHaveCount(0);
   await expect(page.getByTestId('skin-result')).toHaveCount(0);
   await shoot(page, 'model-missing');
