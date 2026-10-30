@@ -405,7 +405,8 @@
   max-width: 100%;
   min-width: 0;
   margin-inline: auto;
-  overflow-x: clip;
+  /* No overflow clip here: the screen already clips sideways (.app-main, .diary-page), and a clip
+     on the workspace cut the hero header's band off short of the screen edges. */
   box-sizing: border-box;
 }
 

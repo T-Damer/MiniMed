@@ -301,19 +301,19 @@ export function useHeroBleed(header: () => HTMLElement | undefined, enabled: () 
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     const stopInsets = watchInsets(measure);
-    // A screen that slides or fades in was measured mid-way: measure again once it has settled.
-    // Only the screen's own entrance (its view or page), not every control's transition inside it.
-    const settle = element.closest('.app-view, .diary-page') ?? element.parentElement;
+    // A screen that slides, scales or fades in was measured mid-way (a scaled ancestor shrinks every
+    // box): measure again once an entrance of the header or of anything holding it has ended — not
+    // on every control's transition inside the page.
     const settled = (event: Event): void => {
-      if (event.target === settle) measure();
+      if (event.target instanceof Node && event.target.contains(element)) measure();
     };
-    settle?.addEventListener('animationend', settled);
-    settle?.addEventListener('transitionend', settled);
+    document.addEventListener('animationend', settled);
+    document.addEventListener('transitionend', settled);
     onCleanup(() => {
       observer.disconnect();
       stopInsets();
-      settle?.removeEventListener('animationend', settled);
-      settle?.removeEventListener('transitionend', settled);
+      document.removeEventListener('animationend', settled);
+      document.removeEventListener('transitionend', settled);
     });
   });
 }
