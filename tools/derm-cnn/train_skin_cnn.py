@@ -740,7 +740,15 @@ def main() -> None:
     assert best_state is not None
     model.load_state_dict(best_state)
     val_p, val_y = predict(model, loaders["val"], device)
-    threshold = sensitivity_threshold(val_p, val_y, malignant, 0.95)
+    # The malignancy threshold is set on the phone photos (SCIN, PAD-UFES-20) the app sees: with
+    # Derm1M in the split, a threshold set on every source flagged far more benign phone photos.
+    phone_val = np.array([r.source in ("scin", "pad") for r in splits["val"]])
+    threshold = sensitivity_threshold(
+        val_p[phone_val] if phone_val.any() else val_p,
+        val_y[phone_val] if phone_val.any() else val_y,
+        malignant,
+        0.95,
+    )
     test_p, test_y = predict(model, loaders["test"], device)
     test_groups = [r.group for r in splits["test"]]
     report: dict[str, object] = {

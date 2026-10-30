@@ -240,6 +240,22 @@ more conditions without losing top-3. The second model adds about one point, so 
 B0. The weakest classes have the fewest photos (cellulitis, furuncle, impetigo, drug rash, milia); the next
 gain is data, not architecture — Derm1M (gated on Hugging Face) is the largest open source left.
 
+### Derm1M and a DermLIP teacher
+
+Phone cases, and the phone cases DermLIP never saw (PAD + the SCIN photos outside Derm1M, 229 cases, mostly
+PAD lesions). Malignancy thresholds at 95 % sensitivity on validation (the distilled B0: phone validation).
+
+| Model | Phone top-1 / top-3 | Phone sens. / spec. | Unseen top-1 / top-3 | Unseen sens. / spec. | Ships |
+|---|---|---|---|---|---|
+| B0 (above) | 61 % / 80 % | 97 % / 91 % | 80 % / 94 % | 98 % / 80 % | was |
+| DermLIP ViT-B/16 frozen + linear head, with details | 60 % / 85 % | 97 % / 95 % | 82 % / 99 % | 98 % / 84 % | no (ND licence) |
+| B0 + 69k Derm1M photos, distilled from DermLIP | 61.5 % / 86.2 % | 96 % / 96 % | 79.5 % / 97.4 % | 97 % / 88 % | yes |
+
+Top-1 on phone rashes stays near 60 %: SCIN labels are dermatologists' differentials from the same photos
+(eczema, contact dermatitis, bites and folliculitis look alike), so top-3 is the fairer measure there. The
+student matches its teacher on top-3 at 16 MB and B0 speed. Retraining DermLIP fully (local only) would make a
+stronger teacher; DermFM-Zero (PanDerm ViT-L, 304M) needs the authors' open_clip fork and was not scored.
+
 ## Sources
 
 - Derm Foundation card: https://huggingface.co/google/derm-foundation ; file sizes via https://huggingface.co/api/models/google/derm-foundation?blobs=true

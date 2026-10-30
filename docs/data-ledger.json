@@ -1020,8 +1020,8 @@
       "producer": "Skin photo datasets for tools/derm-cnn: SCIN and PAD-UFES-20 (direct downloads), DermNet (Hugging Face WahajRaza/Dermnet parquet), Atlas Dermatológico (tools/derm-cnn/index_atlas.py + download_images.py), ISIC 2024 SLICE-3D (isic-archive S3), MSID / scabies benchmark / SkinDiseaseBD (Mendeley Data)",
       "consumers": ["tools/derm-cnn/train_skin_cnn.py", "tools/derm-cnn/eval_onnx.py"],
       "note": "Personal-use training data (owner 2026-10-29: licences not a constraint, weights stay local). Re-downloadable but slow; dermnet/images and isic2024/images are unpacked from the parquet/zip on first use.",
-      "bytes": 21755301291,
-      "modified": "2026-10-29"
+      "bytes": 53705597942,
+      "modified": "2026-10-30"
     },
     {
       "path": "data/build/derm",
@@ -1029,8 +1029,8 @@
       "producer": "tools/derm-cnn/train_skin_cnn.py and eval_onnx.py over data/raw/derm",
       "consumers": ["tools/derm-cnn/stage_model.sh → apps/app/public/models/skin (gitignored)"],
       "note": "Resized-photo caches, trained runs (model.pt, ONNX, metrics) and logs. Superseded runs are deleted once the staged ensemble is verified.",
-      "bytes": 826950016,
-      "modified": "2026-10-29"
+      "bytes": 2835278775,
+      "modified": "2026-10-30"
     }
   ]
 }

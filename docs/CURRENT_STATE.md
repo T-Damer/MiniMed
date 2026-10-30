@@ -70,24 +70,25 @@ address leads back to the files when it is off.
   are dropdown fields (`components/MultiPickField.tsx`: a checkable list in a popover / bottom sheet; the
   details group declares `control: 'pick'`); each card ends with a field-styled «Искать в базе» and a book
   button that opens the condition in the atlas. The header holds «?» and «⋯» (atlas, history).
-- **Model numbers** (2026-10-30; held-out test split, per case; `tools/derm-cnn`, local weights only,
-  licences not a constraint for this personal build). 37 classes trained on SCIN, PAD-UFES-20, DermNet,
-  Atlas Dermatológico, ISIC 2024 (SLICE-3D), MSID, a scabies set and SkinDiseaseBD (train-only), with phone
-  degradation of atlas photos and a phone-weighted sampler (15.8k train / 3.0k val / 3.4k test images).
-  The app ships EfficientNet-B0 with details (FP32 16 MB): all cases 75 % top-1 / 89 % top-3; phone cases
-  (SCIN + PAD) 61 % / 80 %, cancer sensitivity 97 % at 91 % specificity (AUC 0.98). The B0 + ConvNeXt-Tiny
-  average (`eval_onnx.py --write`, manifest v2 with two graphs, 122 MB) reaches 77 % / 90 % overall and
-  63 % / 81 % on phone cases at 95 % / 93 % — not shipped: one point of top-3 for 7× the size and work.
-  Weak: cellulitis, furuncle, impetigo, drug rash, milia (few photos).
-- **Next model, in progress (2026-10-30).** Derm1M (gated, CC BY-NC; owner's HF token in `.env`) adds
-  about 69k labelled photos (`derm_sources.derm1m_records`: its `public` folder is skipped — it holds
-  copies of ISIC, DermNet and 6,473 SCIN photos — and so are dermoscopy, histology and >5 frames per
-  video); Wikimedia Commons photos come from `fetch_commons.py` with author and licence per photo.
-  `probe_clip.py`: frozen DermLIP ViT-B/16 + a linear head beats B0 on the phone cases DermLIP never
-  saw (PAD + SCIN outside Derm1M: 82 % / 99 % vs 80 % / 94 %). DermLIP and DermFM-Zero (ViT-L, 304M) are
-  CC BY-NC-ND with a no-redistribution promise, so they stay local: the shipped model will be B0
-  distilled from DermLIP (`train_skin_cnn.py --teacher`). Owner decision: the skin pack (model + guide
-  photos from SCIN, PAD-UFES-20 and Commons only) is published like the ECG packs.
+- **Model numbers** (2026-10-30; per case on the held-out split; `tools/derm-cnn`, weights local and
+  gitignored until the skin pack ships). 37 classes. The installed model is EfficientNet-B0 with details
+  (FP32 16 MB) trained on SCIN, PAD-UFES-20, DermNet, Atlas Dermatológico, ISIC 2024, MSID, a scabies set,
+  SkinDiseaseBD (train-only) and 69k Derm1M photos (64k train / 13k val / 14k test images), distilled from
+  DermLIP (`--teacher`: a frozen DermLIP ViT-B/16 + linear head over all photos and details, 50 % of the
+  loss, temperature 2). Its malignancy threshold (0.256) is set on the phone validation photos at 95 %
+  sensitivity. Phone cases (SCIN + PAD): 61.5 % top-1 / 86.2 % top-3, cancer 96 % sensitivity at 96 %
+  specificity, AUC 0.987 (previous B0: 60.7 % / 80.2 %, 97 % / 91 %). Phone cases DermLIP never saw (PAD +
+  SCIN outside Derm1M): 79.5 % / 97.4 %, 97 % / 88 % (previous B0 80.4 % / 94.3 %, 98 % / 80 %). Totals over
+  all sources are not comparable with earlier runs: the test split now holds 9k noisy Derm1M photos.
+- **Data and models.** Derm1M (gated, CC BY-NC; owner's HF token in `.env`; `download_derm1m.py`):
+  `derm_sources.derm1m_records` skips its `public` folder (copies of ISIC, DermNet and 6,473 SCIN photos),
+  dermoscopy, histology and more than 5 frames per video. Wikimedia Commons photos come from
+  `fetch_commons.py` with author and licence per photo (for the guide pack and training). `probe_clip.py`
+  scores a frozen CLIP encoder + linear head next to a B0 run on the phone photos the encoder never saw.
+  DermLIP and DermFM-Zero (ViT-L, 304M) are CC BY-NC-ND with a no-redistribution promise: they stay local
+  and only teach. The B0 + ConvNeXt-Tiny average (77 % / 90 %, 122 MB) was not shipped. Owner decision:
+  the skin pack (model + guide photos from SCIN, PAD-UFES-20 and Commons only) is published like the ECG
+  packs; not built yet.
 
 ## UI fixes from owner screenshots — 2026-10-28
 
