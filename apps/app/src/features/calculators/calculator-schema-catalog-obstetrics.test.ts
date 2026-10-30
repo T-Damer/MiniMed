@@ -291,10 +291,17 @@ describe('gestational age from EDD schema matches the hardcoded implementation',
   });
 
   it('defaults the as-of date to today when left blank, same as the hardcoded implementation', () => {
-    const legacy = calculateGestationalAgeFromEdd({ eddDate: '2026-10-08' });
-    const schemaResult = evaluateCalculatorSchema(OBSTETRIC_GA_FROM_EDD_SCHEMA, {
-      eddDate: '2026-10-08',
-    });
+    // Due in two months from the day the test runs: a fixed date stops being a valid pregnancy
+    // once "today" passes it.
+    const due = new Date();
+    due.setDate(due.getDate() + 60);
+    const eddDate = [
+      due.getFullYear(),
+      String(due.getMonth() + 1).padStart(2, '0'),
+      String(due.getDate()).padStart(2, '0'),
+    ].join('-');
+    const legacy = calculateGestationalAgeFromEdd({ eddDate });
+    const schemaResult = evaluateCalculatorSchema(OBSTETRIC_GA_FROM_EDD_SCHEMA, { eddDate });
     expect(legacy.ok).toBe(true);
     expect(schemaResult.ok).toBe(true);
     if (!legacy.ok || !schemaResult.ok || !('values' in legacy)) throw new Error('unreachable');
