@@ -183,6 +183,13 @@
   gap: 0.5rem;
 }
 
+/* No bottom bar to stand on: the controls sit at the screen edge and the page keeps their room
+   below its last row (compact-release.css `.app-shell--no-nav`), so «↑» never covers a bottom
+   button such as «Создать и показать код». */
+.floating-window-controls--no-nav {
+  bottom: max(0.75rem, calc(0.75rem + var(--safe-bottom)));
+}
+
 .floating-window-controls .floating-window-toggle,
 .floating-window-controls .scroll-top-button,
 .floating-window-controls .patient-notes-fab,

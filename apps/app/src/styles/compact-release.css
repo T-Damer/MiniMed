@@ -2277,11 +2277,12 @@ fieldset.search-mode-picker {
   min-height: calc(100dvh + var(--safe-top));
 }
 
-/* Without the bottom bar (a narrowed app profile) nothing needs the room under it. */
+/* Without the bottom bar only the floating «↑» needs room under the last row
+   (`.floating-window-controls--no-nav`: 0.75rem from the edge, 2.6875rem tall). */
 .app-shell--no-nav .page-surface,
 .app-shell--no-nav .patient-notes-view {
-  padding-bottom: calc(1.5rem + var(--safe-bottom, 0px));
-  scroll-padding-bottom: calc(1.5rem + var(--safe-bottom, 0px));
+  padding-bottom: calc(4.25rem + var(--safe-bottom, 0px));
+  scroll-padding-bottom: calc(4.25rem + var(--safe-bottom, 0px));
 }
 
 .knowledge-base-page > .module-page,

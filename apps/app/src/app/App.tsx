@@ -631,7 +631,14 @@ export function App(): JSX.Element {
         </Portal>
       </Show>
 
-      <div id="app-floating-controls" class="floating-window-controls">
+      <div
+        id="app-floating-controls"
+        class="floating-window-controls"
+        classList={{
+          'floating-window-controls--no-nav':
+            profileHidesNavigation(activeProfile()) || isFullScreen(currentHash()),
+        }}
+      >
         <Show
           when={
             session.ready() &&

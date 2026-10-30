@@ -615,6 +615,14 @@
   font-weight: var(--theme-weight-strong, 600);
 }
 
+/* One line: a long name ends in «…» rather than pushing the row to two lines. */
+.diary-dash-row__name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .diary-dash-row__meta,
 .diary-curator__meta {
   overflow: hidden;
@@ -828,6 +836,13 @@
   height: 0.45rem;
   border-radius: 50%;
   background: #2f9e5b;
+}
+
+/* On a phone the avatar's green dot already says «в сети»: the word gives the name its room. */
+@media (max-width: 30rem) {
+  .diary-dash-row__online-tag {
+    display: none;
+  }
 }
 
 .diary-dash-row__title {

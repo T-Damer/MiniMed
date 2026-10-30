@@ -55,6 +55,16 @@ interface HeatMonth {
   readonly days: readonly HeatDay[];
 }
 
+/** A `rem` or `px` custom property in pixels (the root size follows the text-size setting). */
+function cssPx(value: string, fallback: number): number {
+  const number = Number.parseFloat(value);
+  if (!Number.isFinite(number)) return fallback;
+  if (value.trim().endsWith('rem')) {
+    return number * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+  }
+  return number;
+}
+
 function groupMonths(days: readonly HeatDay[]): HeatMonth[] {
   const groups = new Map<string, HeatDay[]>();
   for (const day of days) {
@@ -152,8 +162,35 @@ export function DiaryHeatmap(props: {
     });
   });
 
+  /**
+   * Week columns stretch to fill the card (the day squares grow up to `--heat-cell-max` tall and
+   * become wider cells beyond that); months that do not fit at the base size page with ‹ ›.
+   */
+  const fit = (): void => {
+    if (!scroller || !grid) return;
+    const style = getComputedStyle(scroller);
+    const base = cssPx(style.getPropertyValue('--heat-cell-base'), 17.6);
+    const tallest = cssPx(style.getPropertyValue('--heat-cell-max'), 30);
+    const columns = months().reduce(
+      (sum, month) => sum + Math.ceil((month.offset + month.days.length) / 7),
+      0,
+    );
+    if (columns === 0) return;
+    const current =
+      Number.parseFloat(getComputedStyle(grid).getPropertyValue('--heat-col')) || base;
+    // Gaps and month dividers: what the grid is wider than its columns.
+    const fixed = grid.scrollWidth - columns * current;
+    const column = Math.max(base, (scroller.clientWidth - fixed) / columns);
+    const next = `${Math.floor(column * 100) / 100}px`;
+    if (grid.style.getPropertyValue('--heat-col') !== next) {
+      grid.style.setProperty('--heat-col', next);
+      scroller.parentElement?.style.setProperty('--heat-cell', `${Math.min(column, tallest)}px`);
+    }
+  };
+
   const measure = (): void => {
     if (!scroller) return;
+    fit();
     const room = scroller.scrollWidth - scroller.clientWidth;
     setOverflow(room > 2);
     setCanBack(scroller.scrollLeft > 2);
@@ -171,6 +208,7 @@ export function DiaryHeatmap(props: {
   // The current month is on the right: open scrolled there.
   onMount(() => {
     if (!scroller) return;
+    fit();
     scroller.scrollLeft = scroller.scrollWidth;
     measure();
     scroller.addEventListener('scroll', schedule, { passive: true });

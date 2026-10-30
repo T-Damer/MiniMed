@@ -116,7 +116,7 @@ function PatientRow(props: {
                   (status() === 'pending' ? 'Приглашение к пациенту' : 'Пациент')}
               </span>
               <Show when={isOnline(props.patient.summary)}>
-                <OnlineTag />
+                <OnlineTag class="diary-dash-row__online-tag" />
               </Show>
             </span>
             <span class="diary-dash-row__meta">
