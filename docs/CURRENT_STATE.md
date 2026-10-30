@@ -88,7 +88,11 @@ address leads back to the files when it is off.
   DermLIP and DermFM-Zero (ViT-L, 304M) are CC BY-NC-ND with a no-redistribution promise: they stay local
   and only teach. The B0 + ConvNeXt-Tiny average (77 % / 90 %, 122 MB) was not shipped. Owner decision:
   the skin pack (model + guide photos from SCIN, PAD-UFES-20 and Commons only) is published like the ECG
-  packs; the app side is the «Skin pack» item below, the release is not published yet.
+  packs; the app side is the «Skin pack» item below. Published: `minimed-skin-pack-2026.10.30.zip` on
+  `models-preview-1` (18.0 MB: the distilled B0 and 99 AVIF photos, up to three per class, picked from
+  model-ranked review sheets and listed in `tools/derm-cnn/skin-guide-photos.txt`; drug rash and milia keep
+  their drawings). The Pages build mirrors it, and med.1damer.com serves `/content/releases/*` from that
+  mirror (Caddy), so model packs (ECG too) download there as well.
 - **Skin pack** (`features/skin/skin-pack.ts`, `skin-pack-catalog.ts`, `skin-pack-download.ts`,
   `use-skin-pack.ts`). One ZIP (`tools/derm-cnn/build_skin_pack.py`: `skin-pack.json`, `skin-model.json` +
   graphs, `photos.json`, `photos/<hex>.avif`) is a GitHub release asset installed like the ECG packs: the
@@ -97,7 +101,7 @@ address leads back to the files when it is off.
   is validated with zod (photo paths `photos/<hex>.avif`, existing classes, sane sizes, AVIF header, https
   source link, model classes equal to the app's) and only then written to a Cache Storage cache with a
   `localStorage` descriptor, swapped in atomically. The catalog entry carries no values until the release
-  exists: `skinPackOffer()` is undefined and nothing is offered (no dead button). The worker loads graphs
+  existed: without them `skinPackOffer()` is undefined and nothing is offered (no dead button). The worker loads graphs
   from the pack's cache; `public/models/skin/` stays a developer fallback when no pack is installed. With the
   model missing the page offers «Скачать модель · N МБ» in place (under the TV and in the «Модель не
   найдена» note; the tap is the consent, progress fills the control, the same tap cancels) and ranks a photo
