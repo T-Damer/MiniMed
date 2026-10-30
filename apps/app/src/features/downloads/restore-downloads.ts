@@ -44,6 +44,15 @@ export async function restoreDownloadIntents(): Promise<void> {
       ) {
         restore = () => ecg.installEcgPackage(new AbortController().signal, () => undefined);
       }
+    } else if (recipe.kind === 'skin-pack') {
+      const skin = await import('@/features/skin/skin-pack-download');
+      if (
+        task.id === skin.SKIN_DOWNLOAD_ID &&
+        recipe.id === task.id &&
+        recipe.version === skin.skinPackDownloadVersion()
+      ) {
+        restore = () => skin.installSkinPack();
+      }
     } else if (recipe.kind === 'ocr-language-pack') {
       const ocr = await import('@/features/ocr/ocr-language-pack');
       const catalog = await import('@/features/ocr/ocr-language-pack-catalog');

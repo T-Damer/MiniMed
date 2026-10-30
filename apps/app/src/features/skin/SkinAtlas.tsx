@@ -6,6 +6,8 @@ import { MultiPickField } from '@/components/MultiPickField';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { TextArea } from '@/components/TextArea';
 import { SkinLesionArt } from '@/features/skin/SkinLesionArt';
+import { SkinPhotoImage } from '@/features/skin/SkinPhotoImage';
+import { SkinPhotoViewer } from '@/features/skin/SkinPhotoViewer';
 import {
   activeTriggers,
   atlasCondition,
@@ -36,6 +38,8 @@ import {
   skinSearchHash,
 } from '@/features/skin/skin-document-links';
 import type { SkinDetails } from '@/features/skin/skin-model';
+import type { SkinPhoto } from '@/features/skin/skin-pack';
+import { useSkinPhotos } from '@/features/skin/use-skin-photos';
 
 import '@/styles/skin-atlas.css';
 
@@ -81,23 +85,36 @@ export function SkinDangerChip(props: { readonly level: SkinDangerLevel }): JSX.
   );
 }
 
-/** The condition's drawn references as small tiles; a tap opens the atlas on it. */
+/**
+ * The condition's reference as a small tile; a tap opens the atlas on it. The first photo of the
+ * installed skin pack is the tile; without photos, the drawn pictures.
+ */
 export function SkinArtStrip(props: {
   readonly condition: SkinAtlasCondition;
   readonly onOpen: () => void;
 }): JSX.Element {
+  const photosFor = useSkinPhotos();
+  const photo = (): SkinPhoto | undefined => photosFor(props.condition.id)[0];
   return (
-    <Show when={props.condition.art.length > 0}>
+    <Show when={photo() !== undefined || props.condition.art.length > 0}>
       <button
         type="button"
         class="skin-art-strip"
         aria-label={`Атлас: ${props.condition.ru}`}
         data-testid="skin-art-strip"
+        data-kind={photo() ? 'photo' : 'art'}
         onClick={() => props.onOpen()}
       >
-        <For each={props.condition.art}>
-          {(art) => <SkinLesionArt art={art} class="skin-art-strip__tile" />}
-        </For>
+        <Show
+          when={photo()}
+          fallback={
+            <For each={props.condition.art}>
+              {(art) => <SkinLesionArt art={art} class="skin-art-strip__tile" />}
+            </For>
+          }
+        >
+          {(first) => <SkinPhotoImage photo={first()} alt="" class="skin-art-strip__photo" />}
+        </Show>
       </button>
     </Show>
   );
@@ -146,26 +163,60 @@ function SkinAtlasEntry(props: {
   const triggers = createMemo(() => activeTriggers(props.details, props.findings));
   const level = createMemo(() => conditionDanger(props.condition, triggers()));
   const flags = createMemo(() => redFlagViews(props.condition, triggers()));
+  const photosFor = useSkinPhotos();
+  const photos = (): readonly SkinPhoto[] => photosFor(props.condition.id);
+  const [viewing, setViewing] = createSignal<SkinPhoto>();
   return (
     <article
       class="skin-atlas__entry"
       data-testid="skin-atlas-entry"
       data-condition={props.condition.id}
     >
-      <div class="skin-atlas__gallery">
-        <For each={props.condition.art}>
-          {(art) => (
-            <figure class="skin-atlas__figure">
-              <SkinLesionArt
-                art={art}
-                class="skin-atlas__art"
-                label={`${props.condition.ru}: ${art.caption}`}
-              />
-              <figcaption class="skin-atlas__caption">{art.caption}</figcaption>
-            </figure>
-          )}
-        </For>
-      </div>
+      <Show
+        when={photos().length > 0}
+        fallback={
+          <div class="skin-atlas__gallery">
+            <For each={props.condition.art}>
+              {(art) => (
+                <figure class="skin-atlas__figure">
+                  <SkinLesionArt
+                    art={art}
+                    class="skin-atlas__art"
+                    label={`${props.condition.ru}: ${art.caption}`}
+                  />
+                  <figcaption class="skin-atlas__caption">{art.caption}</figcaption>
+                </figure>
+              )}
+            </For>
+          </div>
+        }
+      >
+        <div class="skin-atlas__photos" data-testid="skin-atlas-photos">
+          <For each={photos()}>
+            {(photo) => (
+              <button
+                type="button"
+                class="skin-atlas__photo"
+                data-testid="skin-atlas-photo"
+                aria-label={`Фото: ${props.condition.ru}`}
+                onClick={() => setViewing(photo)}
+              >
+                <SkinPhotoImage
+                  photo={photo}
+                  alt={props.condition.ru}
+                  class="skin-atlas__photo-image"
+                  natural
+                />
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+      <SkinPhotoViewer
+        photo={viewing()}
+        title={props.condition.ru}
+        onClose={() => setViewing(undefined)}
+      />
       <div class={`skin-atlas__danger skin-atlas__danger--${level()}`}>
         <SkinDangerChip level={level()} />
         <span class="skin-atlas__danger-why">{props.condition.dangerWhy}</span>
@@ -232,6 +283,7 @@ export function SkinAtlasSheet(props: {
       { defer: true },
     ),
   );
+  const photosFor = useSkinPhotos();
   const groups = createMemo(() =>
     SKIN_DANGER_LEVELS.toReversed().map((level) => ({
       level,
@@ -279,9 +331,22 @@ export function SkinAtlasSheet(props: {
                               class="skin-atlas__cell"
                               onClick={() => props.onSelect(entry.id)}
                             >
-                              <Show when={entry.art[0]}>
-                                {(art) => (
-                                  <SkinLesionArt art={art()} class="skin-atlas__cell-art" />
+                              <Show
+                                when={photosFor(entry.id)[0]}
+                                fallback={
+                                  <Show when={entry.art[0]}>
+                                    {(art) => (
+                                      <SkinLesionArt art={art()} class="skin-atlas__cell-art" />
+                                    )}
+                                  </Show>
+                                }
+                              >
+                                {(first) => (
+                                  <SkinPhotoImage
+                                    photo={first()}
+                                    alt=""
+                                    class="skin-atlas__cell-photo"
+                                  />
                                 )}
                               </Show>
                               <span class="skin-atlas__cell-name">{entry.ru}</span>

@@ -1,9 +1,11 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 
 import { expect, type Page, test } from '@playwright/test';
 
+import { buildSkinPackZip } from '../src/features/skin/skin-pack-fixture';
 import { mountBuiltApp } from './mount-built-app';
 
 // «Кожа по фото»: the TV, the upload door, the scan, the ranking, the details that re-rank it, the
@@ -259,6 +261,8 @@ test('the page works with the model missing: the photo is kept and the state is 
   await upload(page);
   await page.getByTestId('skin-analyze').click();
   await expect(page.getByTestId('skin-model-missing')).toContainText('Модель не найдена');
+  // No pack is published in this build: there is nothing to offer, and no dead button.
+  await expect(page.getByTestId('skin-pack-offer')).toHaveCount(0);
   await expect(page.getByTestId('skin-scan')).toHaveCount(0);
   await expect(page.getByTestId('skin-result')).toHaveCount(0);
   await shoot(page, 'model-missing');
@@ -440,5 +444,164 @@ test('the atlas says how dangerous the variants are and shows drawn references',
   );
   await expect(page.getByTestId('skin-danger')).toHaveAttribute('data-level', 'urgent');
   await shoot(page, 'atlas-described');
+  expect(errors).toEqual([]);
+});
+
+const PACK_TAG = 'skin-pack-e2e';
+const PACK_FILE = 'minimed-skin-pack-e2e.zip';
+
+interface ServedPack {
+  readonly photoClasses: readonly string[];
+}
+
+/**
+ * Serves a pack of the spec's own as the release asset and points the catalog at it (the checksum of
+ * a pack built here is not the catalog's, so the spec declares the catalog entry). The model inside
+ * is a stub: it installs, but is not a graph the runtime can run.
+ */
+async function servePack(page: Page, served: ServedPack): Promise<{ readonly bytes: number }> {
+  const zip = Buffer.from(
+    await buildSkinPackZip({
+      classIds: classes.map((entry) => entry.id),
+      photoClasses: served.photoClasses,
+      perClass: 3,
+    }),
+  );
+  const item = {
+    id: 'skin-pack-e2e',
+    name: 'Кожа по фото',
+    description: 'e2e',
+    version: '2026.10.30',
+    bundleUrl: `https://github.com/T-Damer/MiniMed/releases/download/${PACK_TAG}/${PACK_FILE}`,
+    bundleSha256: createHash('sha256').update(zip).digest('hex'),
+    downloadBytes: zip.byteLength,
+  };
+  await page.addInitScript((catalog) => {
+    (window as unknown as Record<string, unknown>)['__minimedSkinPackCatalog'] = catalog;
+  }, item);
+  // A developer's own `public/models/skin/` must not stand in for the pack under test.
+  await page.route('**/models/skin/**', (route) => route.fulfill({ status: 404 }));
+  await page.route(`**/content/releases/${PACK_TAG}/${PACK_FILE}*`, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/zip', body: zip }),
+  );
+  return { bytes: zip.byteLength };
+}
+
+test('with the model missing the download is offered in place, installs, and the photo is ranked', async ({
+  page,
+}) => {
+  const errors = collectPageErrors(page);
+  const { bytes } = await servePack(page, { photoClasses: ['melanoma'] });
+  await withoutCamera(page);
+  await openTool(page);
+
+  // The offer sits under the TV before anything is photographed: icon, text and the size.
+  const offer = page.getByTestId('skin-pack-offer');
+  await expect(offer).toBeVisible();
+  await expect(offer).toContainText('Скачать модель');
+  await expect(offer).toContainText(/\d+(?:,\d)? (?:КБ|МБ)/u);
+  expect(bytes).toBeGreaterThan(0);
+  await shoot(page, 'pack-offer');
+
+  // A photo taken meanwhile is kept; the result area says the model is missing and offers it too.
+  await upload(page);
+  await page.getByTestId('skin-analyze').click();
+  await expect(page.getByTestId('skin-model-missing').getByTestId('skin-pack-offer')).toBeVisible();
+  await expect(page.getByTestId('skin-pack-offer')).toHaveCount(1);
+
+  // The tap is the consent; the pack installs and the same photo is run against its model. The
+  // stub graph cannot be run, so the run ends in the failed state, not in «Модель не найдена».
+  await page.getByTestId('skin-pack-offer').click();
+  await expect(page.getByTestId('skin-pack-offer')).toHaveCount(0);
+  await expect(page.getByTestId('skin-failed')).toBeVisible();
+  await expect(page.getByTestId('skin-model-missing')).toHaveCount(0);
+  const stored = await page.evaluate(() => localStorage.getItem('minimed.skin-pack'));
+  expect(stored).toContain('"photoCount":3');
+  expect(errors).toEqual([]);
+});
+
+test('the installed pack puts its photos in the atlas; a tap opens one with its credit; removing restores the drawings', async ({
+  page,
+}) => {
+  const errors = collectPageErrors(page);
+  await servePack(page, { photoClasses: ['melanoma'] });
+  await withoutCamera(page);
+  await openTool(page);
+
+  // Before the pack: the drawn references.
+  await page.getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('menuitem', { name: 'Атлас кожи', exact: true }).press('Enter');
+  await expect(page.getByTestId('skin-atlas-index')).toBeVisible();
+  await page.getByRole('button', { name: 'Меланома', exact: false }).first().click();
+  const entry = page.getByTestId('skin-atlas-entry');
+  await expect(entry).toHaveAttribute('data-condition', 'melanoma');
+  await expect(entry.locator('.skin-atlas__art')).toHaveCount(3);
+  await expect(page.getByTestId('skin-atlas-photo')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(entry).toHaveCount(0);
+
+  // Install through the settings card (the same pack the tool offers), then reopen the atlas.
+  await page.evaluate(() => {
+    window.location.hash = '#/settings/ai';
+  });
+  const card = page.locator('.skin-pack-settings');
+  await expect(card).toContainText('Не скачано');
+  await card.getByRole('button', { name: 'Скачать' }).click();
+  await expect(card).toContainText('Готово к работе');
+  await page.evaluate(() => {
+    window.location.hash = '#/notes/skin-photo';
+  });
+  await expect(page.getByRole('heading', { name: 'Кожа по фото', level: 1 })).toBeVisible();
+  await expect(page.getByTestId('skin-pack-offer')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('menuitem', { name: 'Атлас кожи', exact: true }).press('Enter');
+  // Melanoma has photos; a condition the pack has none for keeps its drawing in the index.
+  const photoCell = page.locator('.skin-atlas__cell', { hasText: 'Меланома' }).first();
+  await expect(photoCell.locator('.skin-atlas__cell-photo')).toBeVisible();
+  await photoCell.click();
+  await expect(entry).toHaveAttribute('data-condition', 'melanoma');
+  const photos = page.getByTestId('skin-atlas-photo');
+  await expect(photos).toHaveCount(3);
+  await expect(entry.locator('.skin-atlas__art')).toHaveCount(0);
+  const image = photos.first().locator('img');
+  await expect(image).toHaveAttribute('src', /^blob:/u);
+  await expect
+    .poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth))
+    .toBeGreaterThan(0);
+  // The photo keeps its proportions (64 × 48) and no credit is on the page itself.
+  const box = await photos.first().boundingBox();
+  expect(box ? box.width / box.height : 0).toBeCloseTo(64 / 48, 1);
+  await expect(page.getByTestId('skin-photo-credit')).toHaveCount(0);
+  await shoot(page, 'atlas-photos');
+
+  await photos.first().click();
+  const credit = page.getByTestId('skin-photo-credit');
+  await expect(credit).toContainText('SCIN (Google)');
+  await expect(credit).toContainText('SCIN Data Use License');
+  await expect(credit.getByRole('link', { name: 'Источник' })).toHaveAttribute(
+    'href',
+    'https://example.test/photo',
+  );
+  await shoot(page, 'atlas-photo-open');
+  await page.keyboard.press('Escape');
+  await expect(credit).toHaveCount(0);
+  await expect(entry).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // Removing the pack returns the drawings.
+  await page.evaluate(() => {
+    window.location.hash = '#/settings/ai';
+  });
+  await card.getByRole('button', { name: 'Удалить' }).click();
+  await expect(card).toContainText('Не скачано');
+  await page.evaluate(() => {
+    window.location.hash = '#/notes/skin-photo';
+  });
+  await expect(page.getByRole('heading', { name: 'Кожа по фото', level: 1 })).toBeVisible();
+  await page.getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('menuitem', { name: 'Атлас кожи', exact: true }).press('Enter');
+  await page.getByRole('button', { name: 'Меланома', exact: false }).first().click();
+  await expect(entry.locator('.skin-atlas__art')).toHaveCount(3);
   expect(errors).toEqual([]);
 });

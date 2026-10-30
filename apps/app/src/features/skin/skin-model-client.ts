@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 import {
   encodeSkinDetails,
   SKIN_CLASSES,
@@ -9,31 +7,26 @@ import {
   type SkinModel,
   type SkinModelStatus,
 } from '@/features/skin/skin-model';
+import {
+  manifestMatchesClasses,
+  parseSkinModelManifest,
+  type SkinModelManifest,
+} from '@/features/skin/skin-model-manifest';
+import {
+  readInstalledSkinManifest,
+  readSkinPackDescriptor,
+  skinPackStorageUrl,
+  subscribeSkinPack,
+} from '@/features/skin/skin-pack';
+
+export { manifestMatchesClasses, type SkinModelManifest };
 
 /**
- * The app's skin model: the manifest beside the weights (written by tools/derm-cnn on export and
- * staged into `public/models/skin/`, gitignored), and a worker that runs the ONNX graph. A build
- * without the local weights has no manifest and reports «missing».
+ * The app's skin model: the manifest and graphs of the installed skin pack (skin-pack.ts), or — as a
+ * developer fallback when no pack is installed — the files tools/derm-cnn staged into
+ * `public/models/skin/` (gitignored); and a worker that runs the ONNX graph. A build with neither
+ * reports «missing».
  */
-const SkinModelManifestSchema = z.object({
-  format: z.literal('minimed-skin-cnn'),
-  version: z.literal(2),
-  /** One graph, or several whose probabilities are averaged (an ensemble). */
-  models: z
-    .array(
-      z.object({
-        file: z.string().regex(/^[\w.-]+\.onnx$/u),
-        inputSide: z.number().int().min(96).max(512),
-        details: z.boolean(),
-      }),
-    )
-    .min(1)
-    .max(4),
-  classes: z.array(z.string()).min(2),
-  /** Sum of the malignant classes' probabilities at which the check fires (set on validation). */
-  malignantThreshold: z.number().min(0).max(1),
-});
-export type SkinModelManifest = z.infer<typeof SkinModelManifestSchema>;
 
 /** The best class has to lead the second by this much, and reach this share, to be called. */
 const UNCERTAIN_MARGIN = 0.1;
@@ -63,38 +56,59 @@ export function skinAnalysisFrom(
   };
 }
 
-/** The model's classes must be the app's, in the same order: a stale model is reported missing. */
-export function manifestMatchesClasses(manifest: SkinModelManifest): boolean {
-  return (
-    manifest.classes.length === SKIN_CLASSES.length &&
-    manifest.classes.every((id, index) => SKIN_CLASSES[index]?.id === id)
-  );
-}
-
 const baseUrl = (): string =>
   new URL(`${import.meta.env.BASE_URL}${SKIN_MODEL_URL}`, window.location.href).href;
 
-let manifest: Promise<SkinModelManifest | undefined> | undefined;
+/** Where the graphs of the model in use are read from. */
+interface ModelSource {
+  readonly manifest: SkinModelManifest;
+  readonly urlFor: (file: string) => string;
+  /** The pack's cache; absent for the developer files, which are fetched. */
+  readonly cacheName?: string;
+}
 
-function readManifest(): Promise<SkinModelManifest | undefined> {
-  manifest ??= fetch(`${baseUrl()}skin-model.json`, { cache: 'no-cache' })
-    .then(async (response) => {
-      if (!response.ok) return undefined;
-      const parsed = SkinModelManifestSchema.safeParse(await response.json());
-      if (!parsed.success) {
-        console.warn('The skin model manifest is invalid.', parsed.error.issues.length);
-        return undefined;
-      }
-      return manifestMatchesClasses(parsed.data) ? parsed.data : undefined;
-    })
-    .catch((cause: unknown) => {
-      console.warn(
-        'The skin model manifest could not be read.',
-        cause instanceof Error ? cause.name : cause,
-      );
+let source: Promise<ModelSource | undefined> | undefined;
+
+async function readDevSource(): Promise<ModelSource | undefined> {
+  try {
+    const response = await fetch(`${baseUrl()}skin-model.json`, { cache: 'no-cache' });
+    if (!response.ok) return undefined;
+    const manifest = parseSkinModelManifest(await response.text());
+    if (!manifest) {
+      console.warn('The skin model manifest is invalid.');
       return undefined;
-    });
-  return manifest;
+    }
+    return { manifest, urlFor: (file) => `${baseUrl()}${file}` };
+  } catch (cause) {
+    console.warn(
+      'The skin model manifest could not be read.',
+      cause instanceof Error ? cause.name : cause,
+    );
+    return undefined;
+  }
+}
+
+async function readSource(): Promise<ModelSource | undefined> {
+  const descriptor = readSkinPackDescriptor();
+  const manifest = descriptor ? await readInstalledSkinManifest() : undefined;
+  if (descriptor && manifest) {
+    return { manifest, urlFor: skinPackStorageUrl, cacheName: descriptor.cacheName };
+  }
+  return readDevSource();
+}
+
+function currentSource(): Promise<ModelSource | undefined> {
+  source ??= readSource();
+  return source;
+}
+
+// A pack installed or removed changes the graphs: forget the manifest and the loaded sessions.
+// Registered when this module loads, so it runs before any page listener of the same event.
+if (typeof window !== 'undefined') {
+  subscribeSkinPack(() => {
+    source = undefined;
+    resetWorker();
+  });
 }
 
 type WorkerReply =
@@ -107,6 +121,17 @@ const pending = new Map<
   string,
   { resolve: (value: Float32Array) => void; reject: (cause: Error) => void }
 >();
+
+function failPending(error: Error): void {
+  for (const waiter of pending.values()) waiter.reject(error);
+  pending.clear();
+}
+
+function resetWorker(): void {
+  worker?.terminate();
+  worker = undefined;
+  failPending(new Error('Модель кожи была заменена.'));
+}
 
 function workerInstance(): Worker {
   if (worker) return worker;
@@ -123,9 +148,7 @@ function workerInstance(): Worker {
   };
   instance.onerror = () => {
     worker = undefined;
-    for (const waiter of pending.values())
-      waiter.reject(new Error('Модель кожи остановилась с ошибкой.'));
-    pending.clear();
+    failPending(new Error('Модель кожи остановилась с ошибкой.'));
   };
   worker = instance;
   return instance;
@@ -133,10 +156,10 @@ function workerInstance(): Worker {
 
 export const skinModel: SkinModel = {
   async status(): Promise<SkinModelStatus> {
-    return (await readManifest()) ? 'ready' : 'missing';
+    return (await currentSource()) ? 'ready' : 'missing';
   },
   async analyze(photo: Blob, details: SkinDetails): Promise<SkinAnalysis> {
-    const current = await readManifest();
+    const current = await currentSource();
     if (!current) throw new Error('Модель кожи не найдена.');
     requests += 1;
     const requestId = `skin-${requests}`;
@@ -147,8 +170,9 @@ export const skinModel: SkinModel = {
         {
           type: 'analyze',
           requestId,
-          models: current.models.map((entry) => ({
-            url: `${baseUrl()}${entry.file}`,
+          models: current.manifest.models.map((entry) => ({
+            url: current.urlFor(entry.file),
+            ...(current.cacheName ? { cacheName: current.cacheName } : {}),
             inputSide: entry.inputSide,
             details: entry.details,
           })),
@@ -160,6 +184,6 @@ export const skinModel: SkinModel = {
         [image],
       );
     });
-    return skinAnalysisFrom(probabilities, current);
+    return skinAnalysisFrom(probabilities, current.manifest);
   },
 };

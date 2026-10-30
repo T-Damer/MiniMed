@@ -76,6 +76,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
       'asr',
       'whisper',
       'экг',
+      'кожа',
       'модель',
       'ocr',
       'распознавание текста',

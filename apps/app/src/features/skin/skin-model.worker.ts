@@ -5,6 +5,8 @@ import * as ort from 'onnxruntime-web/webgpu';
 
 interface ModelRef {
   readonly url: string;
+  /** Set for a graph of the installed skin pack: it is read from this Cache Storage cache. */
+  readonly cacheName?: string;
   readonly inputSide: number;
   /** Whether this graph was trained to use the details (others get every field unknown). */
   readonly details: boolean;
@@ -32,24 +34,32 @@ const STD = [0.229, 0.224, 0.225] as const;
 /** One session per graph, kept for the worker's life; a failed load is forgotten so it can retry. */
 const sessions = new Map<string, Promise<ort.InferenceSession>>();
 
-function load(url: string): Promise<ort.InferenceSession> {
-  const known = sessions.get(url);
+async function modelBytes(ref: ModelRef): Promise<ArrayBuffer> {
+  if (ref.cacheName) {
+    const cache = await caches.open(ref.cacheName);
+    const hit = await cache.match(ref.url);
+    if (!hit) throw new Error('Модель кожи: файл пакета не найден.');
+    return hit.arrayBuffer();
+  }
+  const response = await fetch(ref.url);
+  if (!response.ok) throw new Error(`Модель кожи: ${response.status}`);
+  return response.arrayBuffer();
+}
+
+function load(ref: ModelRef): Promise<ort.InferenceSession> {
+  const key = `${ref.cacheName ?? ''}|${ref.url}`;
+  const known = sessions.get(key);
   if (known) return known;
   ort.env.wasm.numThreads = 1;
-  const session = fetch(url)
-    .then((response) => {
-      if (!response.ok) throw new Error(`Модель кожи: ${response.status}`);
-      return response.arrayBuffer();
-    })
-    .then((bytes) =>
-      ort.InferenceSession.create(bytes, {
-        executionProviders: ['wasm'],
-        graphOptimizationLevel: 'all',
-      }),
-    );
-  sessions.set(url, session);
+  const session = modelBytes(ref).then((bytes) =>
+    ort.InferenceSession.create(bytes, {
+      executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all',
+    }),
+  );
+  sessions.set(key, session);
   session.catch(() => {
-    sessions.delete(url);
+    sessions.delete(key);
   });
   return session;
 }
@@ -100,7 +110,7 @@ self.onmessage = async (event: MessageEvent<AnalyzeMessage>) => {
     // Graphs of the same input side share one decoded image.
     const images = new Map<number, Promise<Float32Array>>();
     const runs = message.models.map(async (ref) => {
-      const model = await load(ref.url);
+      const model = await load(ref);
       const side = ref.inputSide;
       let image = images.get(side);
       if (!image) {

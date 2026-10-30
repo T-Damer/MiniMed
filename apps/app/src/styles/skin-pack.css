@@ -1,0 +1,166 @@
+/* The skin pack: the download control, a reference photo and its opened view. */
+
+.skin-pack-offer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font: inherit;
+  font-weight: 600;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-base) var(--motion-ease);
+}
+
+.skin-pack-offer:active {
+  transform: scale(0.96);
+}
+
+.skin-pack-offer[data-state="failed"] {
+  border-color: var(--theme-danger, var(--theme-border));
+}
+
+/* Progress fills the control from the start edge; an intentional layer under the content. */
+.skin-pack-offer__bar {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(var(--skin-pack-fill, 0));
+  transform-origin: left center;
+  background: color-mix(in srgb, var(--theme-accent, var(--theme-text)) 16%, transparent);
+  opacity: 0;
+  transition:
+    transform var(--motion-base) var(--motion-ease-out),
+    opacity var(--motion-fast) var(--motion-ease);
+  pointer-events: none;
+}
+
+.skin-pack-offer--busy .skin-pack-offer__bar {
+  opacity: 1;
+}
+
+.skin-pack-offer__icon {
+  position: relative;
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.skin-pack-offer__text {
+  position: relative;
+  min-width: 0;
+}
+
+/* A reference photo: a box with the photo's proportions that fills in once the picture is read. */
+.skin-photo-img {
+  display: block;
+  overflow: hidden;
+  background: var(--theme-surface-muted);
+}
+
+.skin-photo-img--natural {
+  width: 100%;
+}
+
+.skin-photo-img__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--motion-base) var(--motion-ease-out);
+}
+
+.skin-photo-img__image--loaded {
+  opacity: 1;
+}
+
+/* The tile that stands for a condition under a result card and in the atlas index. */
+.skin-art-strip__photo {
+  overflow: hidden;
+  flex: none;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: var(--theme-radius-control);
+}
+
+.skin-atlas__cell-photo {
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--theme-radius-control);
+}
+
+/* The photos of an opened condition keep their proportions. */
+.skin-atlas__photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  align-items: start;
+  gap: 0.5rem;
+}
+
+.skin-atlas__photo {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  background: none;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.skin-atlas__photo:active {
+  transform: scale(0.96);
+}
+
+.skin-atlas__photo-image {
+  border-radius: var(--theme-radius-control);
+}
+
+/* The opened photo. */
+.skin-photo-viewer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 0;
+}
+
+.skin-photo-viewer__stage {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.skin-photo-viewer__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 11rem);
+  margin: 0 auto;
+}
+
+.skin-photo-viewer__credit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.skin-photo-viewer__credit-link {
+  color: inherit;
+  text-decoration: underline;
+}

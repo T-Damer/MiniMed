@@ -4,6 +4,7 @@ export type DownloadKind =
   | 'module'
   | 'images'
   | 'ecg'
+  | 'skin'
   | 'ocr'
   | 'speech'
   | 'model'
@@ -27,6 +28,7 @@ export interface DownloadResume {
   readonly kind:
     | 'reference-images'
     | 'ecg-package'
+    | 'skin-pack'
     | 'ocr-language-pack'
     | 'speech'
     | 'semantic-model';
@@ -101,6 +103,7 @@ const KINDS = new Set<DownloadKind>([
   'module',
   'images',
   'ecg',
+  'skin',
   'ocr',
   'speech',
   'model',
@@ -758,6 +761,7 @@ export class DownloadQueue {
           [
             'reference-images',
             'ecg-package',
+            'skin-pack',
             'ocr-language-pack',
             'speech',
             'semantic-model',

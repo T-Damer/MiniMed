@@ -88,7 +88,27 @@ address leads back to the files when it is off.
   DermLIP and DermFM-Zero (ViT-L, 304M) are CC BY-NC-ND with a no-redistribution promise: they stay local
   and only teach. The B0 + ConvNeXt-Tiny average (77 % / 90 %, 122 MB) was not shipped. Owner decision:
   the skin pack (model + guide photos from SCIN, PAD-UFES-20 and Commons only) is published like the ECG
-  packs; not built yet.
+  packs; the app side is the «Skin pack» item below, the release is not published yet.
+- **Skin pack** (`features/skin/skin-pack.ts`, `skin-pack-catalog.ts`, `skin-pack-download.ts`,
+  `use-skin-pack.ts`). One ZIP (`tools/derm-cnn/build_skin_pack.py`: `skin-pack.json`, `skin-model.json` +
+  graphs, `photos.json`, `photos/<hex>.avif`) is a GitHub release asset installed like the ECG packs: the
+  download goes through `downloadWithRetry` and the shared queue (kind `skin`, listed in Settings →
+  «Загрузки», restored after a restart), size and SHA-256 are checked against `SKIN_PACK_CATALOG`, every file
+  is validated with zod (photo paths `photos/<hex>.avif`, existing classes, sane sizes, AVIF header, https
+  source link, model classes equal to the app's) and only then written to a Cache Storage cache with a
+  `localStorage` descriptor, swapped in atomically. The catalog entry carries no values until the release
+  exists: `skinPackOffer()` is undefined and nothing is offered (no dead button). The worker loads graphs
+  from the pack's cache; `public/models/skin/` stays a developer fallback when no pack is installed. With the
+  model missing the page offers «Скачать модель · N МБ» in place (under the TV and in the «Модель не
+  найдена» note; the tap is the consent, progress fills the control, the same tap cancels) and ranks a photo
+  kept meanwhile once the pack arrives; Settings → «Функции ИИ» has a card (download, update, remove) with
+  experimental modules on. Installed photos replace the drawn art: the first photo is the tile on result
+  cards and in the atlas index, all of a condition's photos are in its atlas page, a tap opens one with
+  pinch-zoom and one small credit line (source · author · licence · «Источник» link) — no credits on the
+  page itself; photos load lazily with their own proportions; conditions without photos keep the drawings.
+  Tests: `skin-pack.test.ts` (validation, install, replace, remove) and `e2e/skin-photo.spec.ts`
+  (offer, install, atlas photos, credit, removal; the catalog is replaced through
+  `window.__minimedSkinPackCatalog`, test-only like the model seam). Not tried: a real pack, a phone.
 
 ## UI fixes from owner screenshots — 2026-10-28
 

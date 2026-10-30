@@ -111,6 +111,9 @@ def file_infos(titles: list[str]) -> list[dict]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=ROOT / "data/raw/derm/commons")
+    parser.add_argument(
+        "--per-class", type=int, default=12, help="new downloads per class"
+    )
     args = parser.parse_args()
     classes = json.loads(CLASSES.read_text(encoding="utf-8"))["classes"]
     rows: list[dict[str, str]] = []
@@ -132,6 +135,10 @@ def main() -> None:
             key = hashlib.sha1(info["title"].encode()).hexdigest()[:16]
             target = args.out / "images" / entry["id"] / f"{key}.jpg"
             if not target.exists():
+                # Photos already on disk are kept; new downloads stop at the cap per class (the
+                # guide needs a few, and Commons rate-limits bulk downloads hard).
+                if kept >= args.per_class:
+                    continue
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(fetch(info["url"]))
                 time.sleep(2)

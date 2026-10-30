@@ -30,6 +30,7 @@ import {
 } from '@/features/skin/SkinAtlas';
 import { SkinDetailsChips } from '@/features/skin/SkinDetailsChips';
 import { SkinHistorySheet } from '@/features/skin/SkinHistorySheet';
+import { SkinPackOffer } from '@/features/skin/SkinPackOffer';
 import { SkinResultCards, SkinStatusLines } from '@/features/skin/SkinResults';
 import { SkinTv } from '@/features/skin/SkinTv';
 import {
@@ -49,6 +50,7 @@ import { skinHistory } from '@/features/skin/skin-history';
 import { SKIN_CLASSES } from '@/features/skin/skin-model';
 import { skinModel } from '@/features/skin/skin-model-client';
 import { resolveSkinModel } from '@/features/skin/skin-model-test-hook';
+import { subscribeSkinPack } from '@/features/skin/skin-pack';
 import {
   SKIN_SCAN_STATUS_LINES,
   skinClassById,
@@ -57,6 +59,7 @@ import {
   visiblePredictions,
 } from '@/features/skin/skin-results';
 import { createSkinSession, type SkinSessionState } from '@/features/skin/skin-session';
+import { useSkinPack } from '@/features/skin/use-skin-pack';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -138,7 +141,20 @@ export function SkinPhotoWorkspace(props: {
       playFeedback(moment[0], moment[1]);
     }
   });
-  onMount(() => void session.init());
+  const pack = useSkinPack();
+  // A pack installed or removed changes whether the model exists. A photo that was kept without a
+  // ranking while the model was missing is ranked as soon as it arrives.
+  const refreshModel = async (): Promise<void> => {
+    await session.init();
+    const current = session.state();
+    if (current.modelStatus === 'ready' && current.phase === 'result' && !current.analysis) {
+      void session.analyze();
+    }
+  };
+  onMount(() => {
+    void session.init();
+    onCleanup(subscribeSkinPack(() => void refreshModel()));
+  });
   onCleanup(() => {
     unsubscribe();
     session.dispose();
@@ -284,6 +300,10 @@ export function SkinPhotoWorkspace(props: {
         onAnalyze={() => void session.analyze()}
       />
 
+      <Show when={state().modelStatus === 'missing' && state().phase !== 'result'}>
+        <SkinPackOffer pack={pack} />
+      </Show>
+
       <Show when={state().phase === 'result'}>
         <div class="skin-photo__results" data-testid="skin-outcome">
           <Switch>
@@ -311,7 +331,8 @@ export function SkinPhotoWorkspace(props: {
             <Match when={state().modelStatus !== 'ready'}>
               <p class="skin-note" data-testid="skin-model-missing">
                 <AppGlyph name="info" class="skin-note__icon" />
-                Модель не найдена
+                <span class="skin-note__text">Модель не найдена</span>
+                <SkinPackOffer pack={pack} />
               </p>
             </Match>
             <Match when={state().failed}>
