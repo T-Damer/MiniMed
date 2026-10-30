@@ -1885,6 +1885,7 @@ export function CalculatorsView(): JSX.Element {
                                   />
                                 ),
                               })}
+                          icon={<AppGlyph name="calculator" class="page__icon-glyph" />}
                           title={<Heading depth={1}>Калькуляторы</Heading>}
                         />
                         <Show when={unknownSlug()}>

@@ -131,7 +131,7 @@ export function useHeroScroll(
       if (!pinned || !element.isConnected) return;
       const box = naturalBox(element);
       if (box.height === 0) return;
-      const safeTop = measureSafeTop();
+      const safeTop = measurePinTop();
       const lip = remToPx(1.25);
       const height = element.offsetHeight;
       const top = box.top + window.scrollY;
@@ -320,8 +320,18 @@ export function useHeroBleed(header: () => HTMLElement | undefined, enabled: () 
 
 /** The status bar's height in CSS pixels (`--safe-top`). */
 function measureSafeTop(): number {
+  return measureLength('var(--safe-top, 0px)');
+}
+
+/** Where the pinned row sticks (`--page-hero-pin` in PageHero.css): under the status bar, and a
+ * little below the screen edge where there is none (a phone browser), so its buttons are not cut. */
+function measurePinTop(): number {
+  return measureLength('max(var(--safe-top, 0px), 0.5rem)');
+}
+
+function measureLength(css: string): number {
   const probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;top:0;height:var(--safe-top, 0px);visibility:hidden';
+  probe.style.cssText = `position:fixed;top:0;height:${css};visibility:hidden`;
   document.body.append(probe);
   const height = probe.offsetHeight;
   probe.remove();

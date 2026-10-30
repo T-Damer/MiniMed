@@ -15,6 +15,9 @@
   --page-hero-ink: var(--shell-bar-text, #f2ead8);
   --page-hero-trace: 46 204 113;
   --page-hero-lip: 1.25rem;
+  /* Where the pinned row sticks: under the status bar, or a little below the screen edge where
+     there is none (a phone browser), so its buttons are not cut (PageHero.tsx measurePinTop). */
+  --page-hero-pin: max(var(--safe-top, 0px), 0.5rem);
 }
 
 .page-hero {
@@ -207,7 +210,7 @@
     position: sticky;
     /* Only the bar's strip stays on screen: the status bar, the row, a gap and the sheet's lip. */
     top: calc(
-      var(--safe-top, 0px) +
+      var(--page-hero-pin) +
       var(--page-hero-row, 0px) +
       0.5rem +
       var(--page-hero-lip) -
@@ -220,7 +223,7 @@
   .page__above-header.page__above-header--sticky {
     position: sticky;
     z-index: var(--z-raised, 1);
-    top: var(--safe-top, 0px);
+    top: var(--page-hero-pin);
     isolation: isolate;
     /* Pinned, the row is filled with the band's colour: it looks the same on the band, and Safari
        tints the strip under the status bar from an opaque sticky bar at the top (a clear row let

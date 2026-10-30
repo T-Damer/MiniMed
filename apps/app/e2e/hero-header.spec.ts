@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 
 // The hero header (components/PageHero.tsx): on every page that has one, the header stays above the
 // page's content while it scrolls (it shrinks into a bar), and the title block under its row is
-// gone before the row slides over it, however little the page can scroll.
+// gone before the row slides over it, however little the page can scroll. The diaries are not here:
+// signed out they are only the sign-in card, with no header (diary-signin.spec.ts).
 const ROUTES = [
   '#/news',
   '#/settings',
@@ -12,7 +13,6 @@ const ROUTES = [
   '#/calculators',
   '#/assessments',
   '#/notes',
-  '#/notes/diaries',
   '#/modules/documents/user',
 ] as const;
 

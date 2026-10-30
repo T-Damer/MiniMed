@@ -81,6 +81,11 @@
   color: var(--theme-link);
 }
 
+/* On the dark header band the link colour is lost: the icon takes the band's ink. */
+.page__icon.page__icon--hero {
+  color: var(--page-hero-ink);
+}
+
 .page__icon-glyph {
   width: 100%;
   height: 100%;

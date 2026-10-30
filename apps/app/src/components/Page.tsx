@@ -108,7 +108,9 @@ export function Page(props: PageProps): JSX.Element {
       {...(inline() ? { [HEADER_TITLE_ATTRIBUTE]: '' } : {})}
     >
       <Show when={slot.icon() !== undefined && !inline()}>
-        <div class="page__icon">{slot.icon()}</div>
+        <div class="page__icon" classList={{ 'page__icon--hero': props.hero !== undefined }}>
+          {slot.icon()}
+        </div>
       </Show>
       <div class="page__title" classList={{ 'page__title--fill': props.titleFill === true }}>
         <Show when={props.parent}>

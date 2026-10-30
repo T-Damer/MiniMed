@@ -148,8 +148,7 @@
   .knowledge-back-button .app-glyph,
   .subpage-heading .app-glyph,
   .assessments-heading .app-glyph,
-  .calculators-heading .app-glyph,
-  .calculators-heading h1::before {
+  .calculators-heading .app-glyph {
     color: var(--theme-link);
     fill: currentColor;
   }
