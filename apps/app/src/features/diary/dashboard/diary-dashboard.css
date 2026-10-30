@@ -71,6 +71,11 @@
   gap: 0.5rem;
 }
 
+/* Signed out, the sign-in fills the page: no header and no bottom bar take room (owner 2026-10-30). */
+.diary-dash--signed-out {
+  flex: 1 0 auto;
+}
+
 /* Sign-in: a centred card in a small garden ---------------------------------------------------- */
 .diary-signin {
   position: relative;
@@ -79,11 +84,20 @@
   /* Centred while it fits; on a short window it starts at the top and the page scrolls. */
   align-items: safe center;
   justify-items: center;
-  min-height: max(0px, calc(100dvh - 11rem));
   padding: 1rem 1rem 2rem;
 }
 
 /* The garden covers the whole screen, not the padded page column it sits in. */
+/* The full app's way back, above the card; the diaries-only app has none. */
+.diary-signin--back {
+  grid-template-rows: auto 1fr;
+}
+
+.diary-signin__top {
+  justify-self: stretch;
+  align-self: start;
+}
+
 .diary-signin__stage,
 .diary-dash__garden {
   position: fixed;
@@ -321,7 +335,9 @@
 }
 
 .diary-signin__form {
-  display: grid;
+  /* Flex, not grid: a folded field's negative margin takes its gap back. */
+  display: flex;
+  flex-direction: column;
   gap: 0.7rem;
   width: 100%;
 }
@@ -329,8 +345,67 @@
 .diary-signin__headline {
   display: grid;
   gap: 0.2rem;
+  align-content: center;
   text-align: center;
   animation: diary-signin-swap var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+  transition:
+    opacity var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    transform var(--motion-base, 180ms) var(--motion-ease-out, ease-out),
+    visibility 0s;
+}
+
+/* The three headlines share one cell, as tall as the tallest: switching only cross-fades. */
+.diary-signin__headlines {
+  display: grid;
+}
+
+.diary-signin__headline--stacked {
+  grid-area: 1 / 1;
+}
+
+.diary-signin__headline--hidden {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(0.35rem);
+  transition:
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease),
+    transform var(--motion-base, 180ms) var(--motion-ease, ease),
+    visibility 0s var(--motion-base, 180ms);
+}
+
+/* Fields of one mode: folded to no height (the form's gap folds with them) and faded. */
+.diary-signin__reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -0.7rem;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--motion-slow, 240ms) var(--motion-ease, ease),
+    margin-top var(--motion-slow, 240ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease),
+    visibility 0s var(--motion-slow, 240ms);
+}
+
+.diary-signin__reveal--open {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  visibility: visible;
+  opacity: 1;
+  transition:
+    grid-template-rows var(--motion-slow, 240ms) var(--motion-ease, ease),
+    margin-top var(--motion-slow, 240ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease),
+    visibility 0s;
+}
+
+.diary-signin__reveal-body {
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  /* Room for focus rings and the control's shadow inside the clip. */
+  margin: -0.25rem;
+  padding: 0.25rem;
 }
 
 @keyframes diary-signin-swap {
@@ -436,6 +511,15 @@
 @keyframes diary-signin-breathe {
   50% {
     opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-signin__headline,
+  .diary-signin__headline--hidden,
+  .diary-signin__reveal,
+  .diary-signin__reveal--open {
+    transition: none;
   }
 }
 

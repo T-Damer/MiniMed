@@ -1,13 +1,17 @@
-import { createResource, createSignal, type JSX, Match, Show, Switch } from 'solid-js';
+import { createResource, createSignal, For, type JSX, Match, Show, Switch } from 'solid-js';
 
+import { claimFullScreen } from '@/app/full-screen-routes';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
+import { NavBack } from '@/components/NavBack';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { TextField } from '@/components/TextField';
 import {
   type DoctorSession,
+  readAccessCode,
   recoverAccount,
   signIn,
+  signInWithCode,
   signUp,
   signUpMode,
 } from '@/features/diary/connected/doctor-account';
@@ -15,6 +19,8 @@ import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
 
 type Mode = 'login' | 'register' | 'recover';
+
+const MODES: readonly Mode[] = ['login', 'register', 'recover'];
 
 const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: string }>> = {
   login: { title: 'С возвращением!', lead: 'Дневники пациентов уже ждут' },
@@ -24,6 +30,23 @@ const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: 
 
 function message(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
+}
+
+/**
+ * Fields that come and go with the mode: always mounted, they fold to nothing and fade, so the card
+ * grows and shrinks smoothly instead of jumping (AGENTS.md «Motion»). Folded, they take no input.
+ */
+function Reveal(props: { readonly open: boolean; readonly children: JSX.Element }): JSX.Element {
+  return (
+    <div
+      class="diary-signin__reveal"
+      classList={{ 'diary-signin__reveal--open': props.open }}
+      inert={!props.open}
+      aria-hidden={props.open ? undefined : 'true'}
+    >
+      <div class="diary-signin__reveal-body">{props.children}</div>
+    </div>
+  );
 }
 
 /** A heartbeat trace drawing itself across the card, again and again. */
@@ -40,13 +63,17 @@ function Pulse(): JSX.Element {
 }
 
 /**
- * Sign-in to the diary service, centred, with a little life in it. The password unlocks the
- * doctor's keys on this device and is never sent; «Мой компьютер» keeps the unlocked keys here
- * (IndexedDB, non-extractable key).
+ * Sign-in to the diary service, centred, with a little life in it: the whole screen while the
+ * doctor is out. The password unlocks the doctor's keys on this device and is never sent;
+ * «Мой компьютер» keeps the unlocked keys here (IndexedDB, non-extractable key). The first field
+ * also takes an access code: typed in full, the password folds away and the code alone signs in.
  */
 export function DoctorSignIn(props: {
   readonly onSignedIn: (session: DoctorSession) => void;
+  /** The way back in the full app; the diaries-only app has nowhere to go. */
+  readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
+  claimFullScreen();
   const [mode, setMode] = createSignal<Mode>('login');
   const [email, setEmail] = createSignal('');
   const [name, setName] = createSignal('');
@@ -65,13 +92,21 @@ export function DoctorSignIn(props: {
       return 'invite' as const;
     }),
   );
+  /** Signing in with an access code typed in full into the first field. */
+  const byCode = (): boolean => mode() === 'login' && readAccessCode(email()) !== undefined;
+  const choose = (next: Mode): void => {
+    setMode(next);
+    setError('');
+  };
 
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
     setError('');
     setBusy(true);
     try {
-      if (mode() === 'login') {
+      if (byCode()) {
+        props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
+      } else if (mode() === 'login') {
         props.onSignedIn(
           await signIn({ email: email(), password: password(), rememberDevice: remember() }),
         );
@@ -103,17 +138,33 @@ export function DoctorSignIn(props: {
         );
       }
     } catch (cause) {
-      setError(message(cause, 'Не получилось. Проверьте адрес и пароль.'));
+      setError(
+        message(
+          cause,
+          byCode() ? 'Не получилось войти по коду.' : 'Не получилось. Проверьте адрес и пароль.',
+        ),
+      );
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <section class="diary-signin" aria-label="Вход в дневники пациентов">
+    <section
+      class="diary-signin"
+      classList={{ 'diary-signin--back': Boolean(props.onBack) }}
+      aria-label="Вход в дневники пациентов"
+    >
       <div class="diary-signin__stage">
         <SignInGarden />
       </div>
+      <Show when={props.onBack}>
+        {(back) => (
+          <div class="diary-signin__top">
+            <NavBack class="knowledge-back-button" aria-label="Назад" onClick={back()} />
+          </div>
+        )}
+      </Show>
       <div class="diary-signin__card">
         <img
           class="diary-signin__logo"
@@ -127,15 +178,22 @@ export function DoctorSignIn(props: {
           when={recovery()}
           fallback={
             <form class="diary-signin__form" onSubmit={(event) => void submit(event)}>
-              <Show when={mode()} keyed>
-                {(current) => (
-                  <div class="diary-signin__headline">
-                    <h1 class="diary-signin__title">{HEADLINES[current].title}</h1>
-                    <p class="diary-signin__lead">{HEADLINES[current].lead}</p>
-                  </div>
-                )}
-              </Show>
-              <Show when={mode() !== 'recover'}>
+              {/* All three headlines share one cell and cross-fade: the card never re-mounts. */}
+              <div class="diary-signin__headlines">
+                <For each={MODES}>
+                  {(each) => (
+                    <div
+                      class="diary-signin__headline diary-signin__headline--stacked"
+                      classList={{ 'diary-signin__headline--hidden': mode() !== each }}
+                      aria-hidden={mode() === each ? undefined : 'true'}
+                    >
+                      <h1 class="diary-signin__title">{HEADLINES[each].title}</h1>
+                      <p class="diary-signin__lead">{HEADLINES[each].lead}</p>
+                    </div>
+                  )}
+                </For>
+              </div>
+              <Reveal open={mode() !== 'recover'}>
                 <SegmentedControl
                   label="Вход или регистрация"
                   stretch
@@ -144,57 +202,60 @@ export function DoctorSignIn(props: {
                     { value: 'login', label: 'Вход' },
                     { value: 'register', label: 'Регистрация' },
                   ]}
-                  onChange={(next) => {
-                    setMode(next);
-                    setError('');
-                  }}
+                  onChange={choose}
                 />
-              </Show>
+              </Reveal>
               <TextField
-                label="Почта"
-                type="email"
+                label={mode() === 'login' ? 'Почта или код доступа' : 'Почта'}
+                // Text, not e-mail: the same field takes «K2CM-R5AG-2M4R».
+                type={mode() === 'login' ? 'text' : 'email'}
+                inputMode="email"
                 autocomplete="username"
+                autocapitalize="off"
+                spellcheck={false}
                 required
                 value={email()}
                 onInput={(event) => setEmail(event.currentTarget.value)}
               />
-              <Show when={mode() === 'register'}>
+              <Reveal open={mode() === 'register'}>
                 <TextField
                   label="Как вас подписать для пациентов"
                   placeholder="Д-р Иванова А. С."
-                  required
+                  required={mode() === 'register'}
                   value={name()}
                   onInput={(event) => setName(event.currentTarget.value)}
                 />
-                <Show when={signup.latest !== 'open'}>
-                  <TextField
-                    label="Код приглашения"
-                    placeholder="Из письма или сообщения"
-                    value={invite()}
-                    onInput={(event) => setInvite(event.currentTarget.value)}
-                  />
-                </Show>
-              </Show>
-              <Show when={mode() === 'recover'}>
+              </Reveal>
+              <Reveal open={mode() === 'register' && signup.latest !== 'open'}>
+                <TextField
+                  label="Код приглашения"
+                  placeholder="Из письма или сообщения"
+                  value={invite()}
+                  onInput={(event) => setInvite(event.currentTarget.value)}
+                />
+              </Reveal>
+              <Reveal open={mode() === 'recover'}>
                 <TextField
                   label="Код восстановления"
                   placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
-                  required
+                  required={mode() === 'recover'}
                   value={code()}
                   onInput={(event) => setCode(event.currentTarget.value)}
                 />
-              </Show>
-              <TextField
-                label={mode() === 'login' ? 'Пароль' : 'Новый пароль (от 8 символов)'}
-                type="password"
-                autocomplete={mode() === 'login' ? 'current-password' : 'new-password'}
-                minLength={8}
-                required
-                value={password()}
-                onInput={(event) => setPassword(event.currentTarget.value)}
-              />
+              </Reveal>
+              <Reveal open={!byCode()}>
+                <TextField
+                  label={mode() === 'login' ? 'Пароль' : 'Новый пароль (от 8 символов)'}
+                  type="password"
+                  autocomplete={mode() === 'login' ? 'current-password' : 'new-password'}
+                  minLength={8}
+                  required={!byCode()}
+                  value={password()}
+                  onInput={(event) => setPassword(event.currentTarget.value)}
+                />
+              </Reveal>
               <Checkbox
-                label="Мой компьютер: не спрашивать пароль снова"
+                label={`Мой компьютер: не спрашивать ${byCode() ? 'код' : 'пароль'} снова`}
                 checked={remember()}
                 onChange={(event) => setRemember(event.currentTarget.checked)}
               />
@@ -212,23 +273,21 @@ export function DoctorSignIn(props: {
               >
                 <Switch>
                   <Match when={busy()}>Открываем ключи…</Match>
+                  <Match when={byCode()}>Войти по коду</Match>
                   <Match when={mode() === 'login'}>Войти</Match>
                   <Match when={mode() === 'register'}>Создать аккаунт</Match>
                   <Match when={mode() === 'recover'}>Восстановить доступ</Match>
                 </Switch>
               </Button>
-              <Show when={mode() !== 'register'}>
+              <Reveal open={mode() !== 'register' && !byCode()}>
                 <button
                   type="button"
                   class="diary-signin__switch"
-                  onClick={() => {
-                    setMode(mode() === 'recover' ? 'login' : 'recover');
-                    setError('');
-                  }}
+                  onClick={() => choose(mode() === 'recover' ? 'login' : 'recover')}
                 >
                   {mode() === 'recover' ? 'Вспомнили пароль? Войти' : 'Забыли пароль?'}
                 </button>
-              </Show>
+              </Reveal>
             </form>
           }
         >

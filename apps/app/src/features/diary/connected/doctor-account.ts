@@ -19,6 +19,7 @@ import {
 import {
   createDiaryApi,
   type DiaryApi,
+  DiaryApiError,
   diaryAuth,
   diaryInfo,
 } from '@/features/diary/connected/diary-api';
@@ -165,6 +166,66 @@ export async function signIn(input: {
   };
   if (input.rememberDevice) await remember(session);
   return session;
+}
+
+/**
+ * An access code: the service's sign-up code (`K7MP-2QXR-9HTN`, apps/diary-server/src/invites.ts)
+ * typed in any case, with any separators. Returns the grouped capitals, or nothing when the text
+ * is not one (an e-mail, a half-typed code).
+ */
+export function readAccessCode(typed: string): string | undefined {
+  if (typed.includes('@')) return undefined;
+  const letters = typed.toUpperCase().replaceAll(/[\s-]/gu, '');
+  if (!/^[A-Z0-9]{12}$/u.test(letters)) return undefined;
+  return letters.replaceAll(/(.{4})(?=.)/gu, '$1-');
+}
+
+/**
+ * The account an access code stands for: a doctor without e-mail or name, whose code is the
+ * password. The address is a digest, so colleagues who see it in a patient's access list do not
+ * see the code.
+ */
+async function accessCodeAccount(code: string): Promise<{ email: string; password: string }> {
+  const digest = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`minimed-access-code:${code}`)),
+  );
+  const hex = [...digest.slice(0, 10)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return { email: `${hex}@code.invalid`, password: code };
+}
+
+/** The name patients see for a doctor who signed in by code alone. */
+export const ACCESS_CODE_DOCTOR_NAME = 'Врач';
+
+/**
+ * Sign-in by an access code alone. The first use spends the code as the sign-up invite and creates
+ * the account; every later use signs in to it. No recovery code: the access code is the way back.
+ */
+export async function signInWithCode(input: {
+  readonly code: string;
+  readonly rememberDevice: boolean;
+}): Promise<DoctorSession> {
+  const code = readAccessCode(input.code);
+  if (!code) throw new Error('Код выглядит как XXXX-XXXX-XXXX.');
+  const account = await accessCodeAccount(code);
+  try {
+    return await signIn({ ...account, rememberDevice: input.rememberDevice });
+  } catch (cause) {
+    if (!(cause instanceof DiaryApiError && cause.status === 401)) throw cause;
+  }
+  try {
+    const { session } = await signUp({
+      ...account,
+      name: ACCESS_CODE_DOCTOR_NAME,
+      invite: input.code.trim(),
+      rememberDevice: input.rememberDevice,
+    });
+    return session;
+  } catch (cause) {
+    if (cause instanceof DiaryApiError && cause.status === 403) {
+      throw new DiaryApiError(403, 'Код не подошёл.');
+    }
+    throw cause;
+  }
 }
 
 /** A new password from the recovery code; the keys (and so every patient) are kept. */

@@ -420,7 +420,10 @@ export function DiaryDashboard(props: {
   return (
     <section
       class="diary-dash"
-      classList={{ 'diary-dash--garden': Boolean(session()) && !props.patientId }}
+      classList={{
+        'diary-dash--garden': Boolean(session()) && !props.patientId,
+        'diary-dash--signed-out': !session(),
+      }}
       aria-label="Дневники пациентов"
     >
       <Show when={session() && !props.patientId}>
@@ -554,47 +557,53 @@ export function DiaryDashboard(props: {
         )}
       </Show>
       <Show when={!(props.patientId && current()) && !(adding() && workspace())}>
-        <Page
-          hero={PAGE_HEROES.patients}
-          class="diary-dash__header"
-          navigation={
-            // In the diaries-only app there is nowhere to go back to.
-            activeProfile() ? undefined : (
-              <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
-            )
-          }
-          // Signed out, the centred sign-in card carries the page; the header keeps only its tools.
-          title={session() ? <Heading depth={1}>Дневники пациентов</Heading> : undefined}
-          description={
-            // Archived patients are not counted: the number matches the rows above the archive.
-            session() && listed().active.length
-              ? `${listed().active.length} ${pluralize(listed().active.length, 'пациент', 'пациента', 'пациентов')}${
-                  alerts().length ? ` · срочных: ${alerts().length}` : ''
-                }`
-              : undefined
-          }
-          headerActions={actions()}
-          help={
-            <>
-              <p>
-                Пациент заполняет дневник на своём телефоне — записи приходят сюда сами, вживую.
-                Экран пациента вы собираете из разделов: лекарства со временем приёма и сроком
-                курса, самочувствие, давление и пульс, описание, выбор, опросники.
-              </p>
-              <p>
-                Всё шифруется на устройствах: сервер хранит только шифр, прочитать его можете вы и
-                подключённые кураторы. Срочные отметки (например, мысли о самоповреждении в PHQ-9)
-                поднимаются наверх и приходят уведомлением.
-              </p>
-              <p>«⋯» — уведомления, демо-пациенты и выход.</p>
-            </>
-          }
-        />
+        {/* Signed out, the sign-in is the whole screen: no header, no bottom bar (owner 2026-10-30). */}
+        <Show when={session()}>
+          <Page
+            hero={PAGE_HEROES.patients}
+            class="diary-dash__header"
+            navigation={
+              // In the diaries-only app there is nowhere to go back to.
+              activeProfile() ? undefined : (
+                <NavBack class="knowledge-back-button" aria-label="Назад" onClick={props.onBack} />
+              )
+            }
+            title={<Heading depth={1}>Дневники пациентов</Heading>}
+            description={
+              // Archived patients are not counted: the number matches the rows above the archive.
+              session() && listed().active.length
+                ? `${listed().active.length} ${pluralize(listed().active.length, 'пациент', 'пациента', 'пациентов')}${
+                    alerts().length ? ` · срочных: ${alerts().length}` : ''
+                  }`
+                : undefined
+            }
+            headerActions={actions()}
+            help={
+              <>
+                <p>
+                  Пациент заполняет дневник на своём телефоне — записи приходят сюда сами, вживую.
+                  Экран пациента вы собираете из разделов: лекарства со временем приёма и сроком
+                  курса, самочувствие, давление и пульс, описание, выбор, опросники.
+                </p>
+                <p>
+                  Всё шифруется на устройствах: сервер хранит только шифр, прочитать его можете вы и
+                  подключённые кураторы. Срочные отметки (например, мысли о самоповреждении в PHQ-9)
+                  поднимаются наверх и приходят уведомлением.
+                </p>
+                <p>«⋯» — уведомления, демо-пациенты и выход.</p>
+              </>
+            }
+          />
+        </Show>
         <Show
           when={session()}
           fallback={
             <Show when={restored()} fallback={<p class="diary-dash__quiet">Открываем…</p>}>
-              <DoctorSignIn onSignedIn={start} />
+              <DoctorSignIn
+                onSignedIn={start}
+                // In the diaries-only app there is nowhere to go back to.
+                onBack={activeProfile() ? undefined : props.onBack}
+              />
             </Show>
           }
         >

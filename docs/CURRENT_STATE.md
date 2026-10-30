@@ -106,6 +106,31 @@ address leads back to the files when it is off.
 - **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
   with a round «+» and the title, not a paper tool card.
 
+## Diary sign-in by code, bare login, wide settings — 2026-10-30 (STATE DIARY16)
+
+Owner demo fixes for the doctor's diary app (med.1damer.com):
+
+- **Signed out, the sign-in is the whole screen.** No route header and no bottom bar: `DoctorSignIn`
+  calls `claimFullScreen()` (`app/full-screen-routes.ts`) and the shell's `isFullScreen(hash)` hides
+  the bar while it is mounted; the full app (no profile) gets a ‹ back above the card.
+- **Access code alone.** The first field is «Почта или код доступа». A complete service sign-up
+  code (`K7MP-2QXR-9HTN`, `apps/diary-server/src/invites.ts`) folds the password away and
+  `signInWithCode` (`doctor-account.ts`) signs in to a no-name doctor («Врач»): e-mail
+  `<sha256 prefix>@code.invalid`, password = the code; on the first use (login 401) it registers
+  with the code as the invite. No server change, no recovery code. Limits: on an open-sign-up
+  server any well-formed code creates an account on first use (a typo opens a new empty account);
+  whoever knows the code can derive the doctor's keys.
+- **Вход ↔ Регистрация without a blink.** The three headlines share one grid cell and cross-fade;
+  mode fields fold through `grid-template-rows` 0fr↔1fr (inert, hidden when folded); the form is a
+  flex column so a folded field's gap folds too. Nothing re-mounts.
+- **Wide settings (≥900 px).** The list and the open page drop the hero cover (`compact`) for the
+  plain header row, and the list is no longer sticky: one surface that scrolls as one and ends above
+  the bottom bar. Phone layout unchanged.
+
+Checked in the browser at 375×812 and 1280×800 against a local service (invite and open sign-up):
+code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
+patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
+
 ## Connected diary: live, end-to-end encrypted — 2026-10-27 (STATE DIARY6)
 
 Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the accepted

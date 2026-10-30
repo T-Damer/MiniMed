@@ -112,6 +112,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         backHash={SETTINGS_ROOT_HASH}
         backLabel="Назад"
         headingLevel={pageHeading()}
+        compact={wide()}
         {...(testId ? { testId } : {})}
         {...(help ? { help: help() } : {})}
       >
@@ -126,10 +127,12 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
       classList={{ 'settings-shell--wide': wide() }}
     >
       <Show when={listVisible()}>
-        <div class="settings-shell__list" classList={{ 'settings-shell__list--sticky': wide() }}>
+        {/* Not sticky: list and page scroll as one surface (owner 2026-10-30). */}
+        <div class="settings-shell__list">
           <SettingsList
             selected={selected()}
             returnTo={returnTo()}
+            compact={wide()}
             statusInputs={{
               updateReady: () => props.appUpdateReady,
               updating: () => props.appUpdating,
@@ -193,6 +196,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                   backHash={settingsParentHash('settings/images/reference') ?? SETTINGS_ROOT_HASH}
                   backLabel="К разделу «Изображения»"
                   headingLevel={pageHeading()}
+                  compact={wide()}
                   testId="reference-images-page"
                 >
                   <ReferenceImagesPage />

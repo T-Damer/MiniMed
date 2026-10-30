@@ -16,7 +16,7 @@ import { Toaster } from 'solid-sonner';
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
-import { isFullScreenRoute } from '@/app/full-screen-routes';
+import { isFullScreen } from '@/app/full-screen-routes';
 import { LazyBoundary } from '@/app/LazyBoundary';
 import {
   COMPACT_ROOT_VIEWS,
@@ -426,8 +426,7 @@ export function App(): JSX.Element {
         'app-shell--floating-child-scaled': scaledFloatingWindow,
         'app-shell--floating-fullscreen': Boolean(floatingWindows.fullscreenWindowId()),
         // A narrowed app without any bottom bar: pages need no room to slide under it.
-        'app-shell--no-nav':
-          profileHidesNavigation(activeProfile()) || isFullScreenRoute(currentHash()),
+        'app-shell--no-nav': profileHidesNavigation(activeProfile()) || isFullScreen(currentHash()),
       }}
     >
       {/* iOS Safari takes the status-bar strip's colour from it (styles/compact-release.css). */}
@@ -604,7 +603,7 @@ export function App(): JSX.Element {
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId() &&
           !profileHidesNavigation(activeProfile()) &&
-          !isFullScreenRoute(currentHash())
+          !isFullScreen(currentHash())
         }
       >
         <Portal>

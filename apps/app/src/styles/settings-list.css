@@ -18,11 +18,6 @@
   min-width: 0;
 }
 
-.settings-shell__list--sticky {
-  position: sticky;
-  top: 1rem;
-}
-
 .settings-shell__detail {
   display: grid;
   min-width: 0;

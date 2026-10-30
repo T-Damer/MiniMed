@@ -145,6 +145,8 @@ test.describe('settings master–detail on a wide screen', () => {
     const listBox = await list.boundingBox();
     const detailBox = await detail.boundingBox();
     expect(listBox && detailBox && listBox.x + listBox.width <= detailBox.x).toBe(true);
+    // Side by side the headers are compact rows, no dark hero cover (owner 2026-10-30).
+    await expect(page.locator('.settings-shell .page--hero')).toHaveCount(0);
 
     await openSettingsPage(page, 'Внешний вид');
     await expect(page).toHaveURL(/#\/settings\/appearance$/u);
@@ -161,5 +163,17 @@ test.describe('settings master–detail on a wide screen', () => {
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1),
     ).toBe(false);
+
+    // List and page scroll as one surface: the list leaves with the page, nothing stays pinned.
+    await page.setViewportSize({ width: 1280, height: 360 });
+    await expect
+      .poll(() => page.evaluate(() => document.scrollingElement?.scrollHeight ?? 0))
+      .toBeGreaterThan(400);
+    const top = (await list.boundingBox())?.y ?? 0;
+    await page.evaluate(() => window.scrollTo({ top: 200, behavior: 'instant' }));
+    const scrolled = await page.evaluate(() => window.scrollY);
+    expect(scrolled).toBeGreaterThan(0);
+    // A few pixels of slack: the shell's own chrome may settle as the page scrolls.
+    expect((await list.boundingBox())?.y ?? 0).toBeLessThan(top - scrolled + 5);
   });
 });

@@ -19,6 +19,11 @@ export interface SettingsSubpageProps {
   readonly backLabel: string;
   /** `h1` when the page fills the screen, `h2` next to the list that owns the `h1`. */
   readonly headingLevel: 'h1' | 'h2';
+  /**
+   * Next to the list (wide screens): a compact header row without the hero cover, so the list and
+   * the page read as one surface that scrolls as one (owner 2026-10-30).
+   */
+  readonly compact?: boolean;
   readonly testId?: string;
   /** Explanations of the page: a round «?» in the header opens them. */
   readonly help?: JSX.Element;
@@ -30,7 +35,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
   return (
     <section class="settings-subpage" data-testid={props.testId}>
       <Page
-        hero={PAGE_HEROES.settings}
+        hero={props.compact ? undefined : PAGE_HEROES.settings}
         class="settings-page__heading settings-page__heading--subroute"
         navigation={
           <Show when={props.showBack}>

@@ -30,6 +30,8 @@ export interface SettingsListProps {
   readonly selected: SettingsPageId | undefined;
   readonly returnTo: ReturnToLocation | null;
   readonly statusInputs: SettingsStatusInputs;
+  /** Next to the open page (wide screens): a compact header row, no hero cover (owner 2026-10-30). */
+  readonly compact?: boolean;
 }
 
 function SettingsRow(props: {
@@ -104,7 +106,7 @@ export function SettingsList(props: SettingsListProps): JSX.Element {
         icon={<AppGlyph name="system" class="page__icon-glyph" />}
         title={<h1 class="settings-page__title">Настройки</h1>}
         description="Обновления, загрузки, ИИ, внешний вид."
-        hero={PAGE_HEROES.settings}
+        hero={props.compact ? undefined : PAGE_HEROES.settings}
       />
       <SearchField
         class="settings-list__search"
