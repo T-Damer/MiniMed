@@ -4,6 +4,21 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.68] - 2026-10-30
+
+- Patient diaries: an own logo (a notebook with a checklist) before «Дневники пациентов»; the diaries and the
+  patient diary install and start as their own apps — matching favicon, splash icon and loader, full screen with
+  paper-coloured system bars.
+- Patient page: a calendar day opens as a sheet over the page instead of leaving it; days before the diary began
+  are drawn dashed («до начала дневника») and can still be filled in; «QR-код и ссылка для пациента» in the «⋯»
+  menus shows the pairing code and link again for a lost page or another device; compact cards under the header;
+  presence and birth date readable on the dark band.
+- Patient list: no repeated warning banners (rows keep «!»), a skeleton while loading, and an expired session
+  returns to the sign-in. Questionnaires are listed newest edit first.
+- Scrolling shows a thin, always-visible scroll thumb on pages, the patient diary and every sheet.
+- «Новый опросник» and other assessment pages: the header band reaches the screen edges; «Все изменения
+  сохранены» is readable on the dark band.
+
 ## [0.6.67] - 2026-10-30
 
 - Doctor diary sign-in: signed out, the screen is only the sign-in card (no header, no bottom bar). A doctor can
