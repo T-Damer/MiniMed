@@ -21,6 +21,19 @@ const classes = (
 const [first, second, third] = classes;
 if (!first || !second || !third) throw new Error('The class list is too short.');
 
+/** Chooses one value in a dropdown field: opens it, taps the value, closes it. */
+async function pick(page: Page, fieldTestId: string, label: string): Promise<void> {
+  await page.getByTestId(fieldTestId).getByRole('button').click();
+  await page.getByRole('dialog').getByRole('button', { name: label, exact: true }).click();
+  await page.keyboard.press('Escape');
+}
+
+/** Runs a header action that lives in the «⋯» menu (the menu takes the keyboard, as a user's tap). */
+async function menuAction(page: Page, label: string): Promise<void> {
+  await page.getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('menuitem', { name: label, exact: true }).press('Enter');
+}
+
 const PREFERENCES = {
   'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
 };
@@ -176,10 +189,10 @@ test('a photo uploaded through the screen is scanned, ranked, re-ranked by detai
   await expect(page.getByTestId('skin-retake')).toBeVisible();
   await shoot(page, 'tv-captured');
 
-  // The details are tap chips that appear one group after another.
+  // The details appear one group after another; the place is a dropdown field.
   const details = page.getByTestId('skin-details');
   await expect(details.getByRole('group')).toHaveCount(1);
-  await details.getByRole('button', { name: 'Рука', exact: true }).click();
+  await pick(page, 'skin-pick-sites', 'Рука');
   await expect(details.getByRole('group')).toHaveCount(2);
 
   await page.getByTestId('skin-analyze').click();
@@ -206,13 +219,13 @@ test('a photo uploaded through the screen is scanned, ranked, re-ranked by detai
   await firstCard.evaluate((element) => {
     element.setAttribute('data-marked', 'yes');
   });
-  await details.getByRole('button', { name: 'Стопа', exact: true }).click();
+  await pick(page, 'skin-pick-sites', 'Стопа');
   await expect(cards.first()).toContainText(second.ru, { timeout: 10_000 });
   await expect(page.locator('[data-marked="yes"]')).toHaveCount(1);
   await expect(page.locator('[data-marked="yes"]')).toContainText(first.ru);
 
   // One entry in the gallery, with the note typed into it saved as a draft.
-  await page.getByTestId('skin-history-open').click();
+  await menuAction(page, 'История снимков');
   const thumbs = page.getByTestId('skin-history-thumb');
   await expect(thumbs).toHaveCount(1);
   await shoot(page, 'history');
@@ -251,7 +264,7 @@ test('the page works with the model missing: the photo is kept and the state is 
   await shoot(page, 'model-missing');
 
   // The gallery still holds the shot, without a ranking.
-  await page.getByTestId('skin-history-open').click();
+  await menuAction(page, 'История снимков');
   await expect(page.getByTestId('skin-history-thumb')).toHaveCount(1);
   await page.getByTestId('skin-history-thumb').first().click();
   await expect(page.getByTestId('skin-history-item')).toContainText('Без анализа');
@@ -417,8 +430,8 @@ test('the atlas says how dangerous the variants are and shows drawn references',
 
   // A description alone reaches what the photo model does not know: Koplik spots are urgent.
   const findings = page.getByTestId('skin-findings');
-  await findings.getByRole('button', { name: 'Папула', exact: true }).click();
-  await findings.getByRole('button', { name: 'Белый', exact: true }).click();
+  await pick(page, 'skin-findings-elements', 'Папула');
+  await pick(page, 'skin-findings-colors', 'Белый');
   await findings.getByRole('button', { name: 'На слизистой', exact: true }).click();
   await findings.getByRole('button', { name: 'Лихорадка', exact: true }).click();
   await expect(page.getByTestId('skin-described-item').first()).toHaveAttribute(

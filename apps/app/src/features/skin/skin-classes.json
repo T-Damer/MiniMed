@@ -1,12 +1,54 @@
 {
-  "note": "Prototype class list (owner 2026-10-29): the conditions with enough open phone photos in SCIN (>= ~35 labelled cases) and the six PAD-UFES-20 lesion classes. Source labels map to one class each; МКБ-10 codes link a class to the app's documents later and are to be checked against the owner's guide. Insect bites have no single МКБ-10 diagnosis code (W57 is an external cause), so their code is left empty.",
+  "note": "Class list of the skin model (owner 2026-10-29): the conditions with enough photos across SCIN, PAD-UFES-20, DermNet, Atlas Dermatológico, MSID, the Mendeley scabies set, SkinDiseaseBD, ISIC 2024 and Derm1M. Each source key lists that source's own label names for the class (DermNet: the diagnosis in its file names; Derm1M: its disease_label; Commons: category names, for the guide photos). МКБ-10 codes link a class to the app's documents. Insect bites have no single МКБ-10 diagnosis code (W57 is an external cause), so their code is left empty.",
   "classes": [
     {
       "id": "eczema",
       "ru": "Экзема / дерматит",
       "icd10": ["L30.9", "L20"],
       "malignant": false,
-      "scin": ["Eczema"]
+      "scin": [
+        "Eczema",
+        "Acute dermatitis, NOS",
+        "Chronic dermatitis, NOS",
+        "Acute and chronic dermatitis",
+        "Lichen Simplex Chronicus"
+      ],
+      "dermnet": [
+        "eczema-fingertips",
+        "eczema-nummular",
+        "eczema-hand",
+        "eczema-subacute",
+        "eczema-foot",
+        "05atopic",
+        "eczema-asteatotic",
+        "eczema-chronic",
+        "eczema-trunk-generalized",
+        "eczema-areola",
+        "eczema-leg",
+        "eczema-acute",
+        "05atopicderm",
+        "05atopicfeet",
+        "eczema-lids",
+        "05atopicface",
+        "05atopicchild",
+        "eczema-face",
+        "eczema-arms",
+        "dyshidrosis",
+        "pompholyx",
+        "3eczema3",
+        "lichen-simplex-chronicus"
+      ],
+      "bd": ["Eczema"],
+      "atlas": [
+        "atopic dermatitis",
+        "lichen simplex",
+        "asteatotic dermatitis",
+        "dyshidrotic eczema",
+        "eczema microbic",
+        "stasis eczema"
+      ],
+      "derm1m": ["eczema", "atopic dermatitis"],
+      "commons": ["Atopic_dermatitis", "Eczema"]
     },
     {
       "id": "contact_dermatitis",
@@ -17,122 +59,588 @@
         "Allergic Contact Dermatitis",
         "Irritant Contact Dermatitis",
         "CD - Contact dermatitis"
-      ]
+      ],
+      "dermnet": [
+        "allergic-contact-dermatitis",
+        "rhus-dermatitis",
+        "shoe-allergy",
+        "metal-dermatitis"
+      ],
+      "atlas": ["contact dermatitis", "nail polish dermatitis", "henna tattooing dermatitis"],
+      "derm1m": [
+        "contact dermatitis",
+        "allergic contact dermatitis",
+        "irritant contact dermatitis"
+      ],
+      "commons": ["Contact_dermatitis", "Allergic_contact_dermatitis"]
     },
     {
       "id": "urticaria",
       "ru": "Крапивница",
       "icd10": ["L50"],
       "malignant": false,
-      "scin": ["Urticaria"]
+      "scin": ["Urticaria"],
+      "dermnet": ["hives-urticaria-acute", "dermagraphism", "cholinergic-uriticaria", "angioedema"],
+      "atlas": ["urticaria"],
+      "derm1m": ["urticaria"],
+      "commons": ["Urticaria"]
     },
     {
       "id": "insect_bite",
       "ru": "Укус насекомого",
       "icd10": [],
       "malignant": false,
-      "scin": ["Insect Bite"]
+      "scin": ["Insect Bite"],
+      "dermnet": ["biting-insects", "tick-bite", "spider-bite", "flea-bites", "fire-ants"],
+      "atlas": ["tick bite"],
+      "derm1m": ["insect bite", "tick bite", "chigger bites", "chigas bites"],
+      "commons": ["Insect_bites", "Mosquito_bites", "Bedbug_bites", "Flea_bites", "Tick_bites"]
     },
     {
       "id": "folliculitis",
       "ru": "Фолликулит",
       "icd10": ["L73.9"],
       "malignant": false,
-      "scin": ["Folliculitis"]
+      "scin": ["Folliculitis"],
+      "dermnet": [
+        "folliculitis",
+        "staphylococcal-folliculitis",
+        "pseudomonas-folliculitis",
+        "sycosis-barbae"
+      ],
+      "atlas": ["folliculitis"],
+      "derm1m": ["folliculitis"],
+      "commons": ["Folliculitis"]
     },
     {
       "id": "psoriasis",
       "ru": "Псориаз",
       "icd10": ["L40"],
       "malignant": false,
-      "scin": ["Psoriasis"]
+      "scin": ["Psoriasis"],
+      "dermnet": [
+        "psoriasis",
+        "psoriasis-palms-soles",
+        "psoriasis-chronic-plaque",
+        "psoriasis-guttate",
+        "psoriasis-scalp",
+        "psoriasis-hand",
+        "psoriasis-inversus",
+        "psoriasis-pustular-generalized",
+        "psoriasis-erythrodermic",
+        "psoriasis-penis",
+        "psoriasis-anus"
+      ],
+      "atlas": ["psoriasis", "psoriasis-pustular psoriasis"],
+      "derm1m": ["psoriasis", "pustular psoriasis"],
+      "commons": ["Psoriasis"]
     },
     {
       "id": "tinea",
       "ru": "Дерматофития",
       "icd10": ["B35"],
       "malignant": false,
-      "scin": ["Tinea"]
+      "scin": ["Tinea"],
+      "dermnet": [
+        "tinea-groin",
+        "tinea-body",
+        "tinea-foot-webs",
+        "tinea-hand-dorsum",
+        "tinea-primary-lesion",
+        "tinea-scalp",
+        "tinea-incognito",
+        "tinea-face",
+        "tinea-foot-dorsum",
+        "tinea-foot-plantar",
+        "tinea-palm",
+        "kerion",
+        "tinea-beard",
+        "majocchi-granuloma"
+      ],
+      "bd": ["Tinea Ringworm"],
+      "atlas": [
+        "tinea corporis",
+        "kerion celsi",
+        "tinea capitis",
+        "tinea facei",
+        "tinea cruris",
+        "tinea pedis",
+        "tinea manuum"
+      ],
+      "derm1m": ["tinea", "tinea corporis", "tinea pedis", "tinea cruris", "ringworm"],
+      "commons": ["Tinea_corporis", "Dermatophytosis", "Tinea_pedis", "Tinea_cruris"]
     },
     {
       "id": "impetigo",
       "ru": "Импетиго",
       "icd10": ["L01"],
       "malignant": false,
-      "scin": ["Impetigo"]
+      "scin": ["Impetigo", "Ecthyma"],
+      "dermnet": ["impetigo"],
+      "atlas": ["impetigo"],
+      "derm1m": ["impetigo"],
+      "commons": ["Impetigo"]
     },
     {
       "id": "herpes_zoster",
       "ru": "Опоясывающий лишай",
       "icd10": ["B02"],
       "malignant": false,
-      "scin": ["Herpes Zoster"]
+      "scin": ["Herpes Zoster"],
+      "dermnet": ["herpes-zoster"],
+      "atlas": ["herpes zoster", "herpes_zoster_in_a_kidney_patient"],
+      "derm1m": ["herpes zoster"],
+      "commons": ["Herpes_zoster", "Shingles"]
     },
     {
       "id": "pigmented_purpuric",
       "ru": "Пигментный пурпурозный дерматоз",
       "icd10": ["L81.7"],
       "malignant": false,
-      "scin": ["Pigmented purpuric eruption"]
+      "scin": ["Pigmented purpuric eruption"],
+      "dermnet": ["schamberg-disease"],
+      "derm1m": ["pigmented purpuric eruption", "pigmented progressive purpuric dermatosis"],
+      "commons": ["Pigmented_purpuric_dermatosis", "Schamberg's_disease"]
     },
-    { "id": "acne", "ru": "Акне", "icd10": ["L70"], "malignant": false, "scin": ["Acne"] },
+    {
+      "id": "acne",
+      "ru": "Акне",
+      "icd10": ["L70"],
+      "malignant": false,
+      "scin": ["Acne"],
+      "dermnet": [
+        "acne-cystic",
+        "acne-open-comedo",
+        "acne-pustular",
+        "acne-closed-comedo",
+        "acne-excoriated",
+        "acne-infantile"
+      ],
+      "atlas": ["acne", "acne neonatorum", "acne_fulminans"],
+      "derm1m": ["acne", "acne vulgaris"],
+      "commons": ["Acne_vulgaris", "Acne"]
+    },
     {
       "id": "drug_rash",
       "ru": "Лекарственная сыпь",
       "icd10": ["L27.0"],
       "malignant": false,
-      "scin": ["Drug Rash"]
+      "scin": ["Drug Rash"],
+      "dermnet": [
+        "drug-eruptions",
+        "fixed-drug-eruption",
+        "drug-eruption-photosensitivity",
+        "stevens-johnson-syndrome"
+      ],
+      "atlas": ["fixed eruptions", "drug reactions"],
+      "derm1m": [
+        "drug eruption",
+        "fixed drug eruption",
+        "drug reaction with eosinophilia and systemic symptoms",
+        "drug reaction with eosinophilia and systemic symptoms (dress)"
+      ],
+      "commons": ["Drug_eruptions", "Fixed_drug_eruption", "Drug_rash"]
     },
     {
       "id": "herpes_simplex",
       "ru": "Простой герпес",
       "icd10": ["B00"],
       "malignant": false,
-      "scin": ["Herpes Simplex"]
+      "scin": ["Herpes Simplex"],
+      "dermnet": [
+        "herpes-type-1-recurrent",
+        "herpes-cutaneous",
+        "herpes-type-1-primary",
+        "herpes-simplex",
+        "herpes-type-2-primary",
+        "herpes-type-2-recurrent",
+        "herpes-buttocks",
+        "genital-herpes-simplex",
+        "eczema-herpeticum"
+      ],
+      "atlas": ["herpes simplex", "eczema herpeticum"],
+      "derm1m": ["herpes simplex virus", "herpes simplex", "herpes labialis", "eczema herpeticum"],
+      "commons": ["Herpes_labialis", "Herpes_simplex"]
     },
     {
       "id": "pityriasis_rosea",
       "ru": "Розовый лишай",
       "icd10": ["L42"],
       "malignant": false,
-      "scin": ["Pityriasis rosea"]
+      "scin": ["Pityriasis rosea"],
+      "dermnet": ["pityriasis-rosea"],
+      "atlas": ["pityriasis rosea"],
+      "derm1m": ["pityriasis rosea"],
+      "commons": ["Pityriasis_rosea"]
     },
     {
       "id": "tinea_versicolor",
       "ru": "Отрубевидный лишай",
       "icd10": ["B36.0"],
       "malignant": false,
-      "scin": ["Tinea Versicolor"]
+      "scin": ["Tinea Versicolor"],
+      "dermnet": ["tinea-versicolor"],
+      "atlas": ["pityriasis versicolor"],
+      "derm1m": [
+        "tinea versicolor",
+        "pityriasis versicolor",
+        "pteriesis versicolor",
+        "ptoriasis versicolor",
+        "clinical diagnosis: pityriasis versicolor"
+      ],
+      "commons": ["Tinea_versicolor"]
     },
     {
       "id": "bcc",
       "ru": "Базальноклеточный рак",
       "icd10": ["C44"],
       "malignant": true,
-      "pad": ["BCC"]
+      "pad": ["BCC"],
+      "scin": ["Basal Cell Carcinoma"],
+      "dermnet": [
+        "basal-cell-carcinoma-lesion",
+        "basal-cell-carcinoma-pigmented",
+        "basal-cell-carcinoma-superficial",
+        "basal-cell-carcinoma-nose",
+        "basal-cell-carcinoma-lid",
+        "basal-cell-carcinoma-face",
+        "basal-cell-carcinoma-ear",
+        "basal-cell-carcinoma-lip",
+        "basal-cell-carcinoma-scalp",
+        "basal-cell-carcinoma-trunk-ext"
+      ],
+      "isic": ["Basal cell carcinoma"],
+      "atlas": ["basal cell carcinoma"],
+      "derm1m": ["basal cell carcinoma"],
+      "commons": ["Basal-cell_carcinoma", "Basal_cell_carcinoma"]
     },
     {
       "id": "scc",
       "ru": "Плоскоклеточный рак / болезнь Боуэна",
       "icd10": ["C44", "D04"],
       "malignant": true,
-      "pad": ["SCC"]
+      "pad": ["SCC"],
+      "scin": ["SCC/SCCIS"],
+      "dermnet": [
+        "squamous-cell-carcinoma-ear",
+        "squamous-cell-carcinoma-lip",
+        "squamous-cell-carcinoma-lesion",
+        "squamous-cell-carcinoma-hand-arm",
+        "keratoacanthoma",
+        "bowens-disease"
+      ],
+      "isic": [
+        "Squamous cell carcinoma in situ",
+        "Squamous cell carcinoma, Invasive",
+        "Squamous cell carcinoma, NOS"
+      ],
+      "atlas": ["squamous cell carcinoma", "keratoacanthoma", "bowen's disease"],
+      "derm1m": ["squamous cell carcinoma", "keratoacanthoma", "keratocanthoma", "bowen disease"],
+      "commons": ["Squamous_cell_carcinoma_of_the_skin", "Keratoacanthoma", "Bowen's_disease"]
     },
-    { "id": "melanoma", "ru": "Меланома", "icd10": ["C43"], "malignant": true, "pad": ["MEL"] },
+    {
+      "id": "melanoma",
+      "ru": "Меланома",
+      "icd10": ["C43"],
+      "malignant": true,
+      "pad": ["MEL"],
+      "dermnet": ["malignant-melanoma", "lentigo-maligna"],
+      "isic": ["Melanoma in situ", "Melanoma Invasive", "Melanoma, NOS"],
+      "atlas": ["melanoma", "lentigo maligna-melanoma"],
+      "derm1m": ["melanoma", "lentigo maligna"],
+      "commons": ["Melanoma"]
+    },
     {
       "id": "actinic_keratosis",
       "ru": "Актинический кератоз",
       "icd10": ["L57.0"],
       "malignant": false,
-      "pad": ["ACK"]
+      "pad": ["ACK"],
+      "scin": ["Actinic Keratosis"],
+      "dermnet": [
+        "actinic-keratosis-face",
+        "actinic-keratosis-lesion",
+        "actinic-keratosis-hand",
+        "actinic-keratosis-nose",
+        "actinic-keratosis-ear",
+        "actinic-keratosis-horn",
+        "actinic-keratosis-pigmented",
+        "actinic-cheilitis-sq-cell-lip"
+      ],
+      "isic": ["Solar or actinic keratosis"],
+      "atlas": ["keratosis solar"],
+      "derm1m": ["actinic keratoses"],
+      "commons": ["Actinic_keratosis"]
     },
-    { "id": "nevus", "ru": "Невус", "icd10": ["D22"], "malignant": false, "pad": ["NEV"] },
+    {
+      "id": "nevus",
+      "ru": "Невус",
+      "icd10": ["D22"],
+      "malignant": false,
+      "pad": ["NEV"],
+      "dermnet": [
+        "melanocytic-nevi",
+        "congenital-nevus",
+        "atypical-nevi",
+        "halo-nevus",
+        "blue-nevus",
+        "atypical-nevi-trunk"
+      ],
+      "isic": ["Nevus", "Benign"],
+      "atlas": ["naevus halo", "naevus blue", "naevus compound", "dysplastic_nevus"],
+      "derm1m": ["nevus", "melanocytic nevus"],
+      "commons": ["Melanocytic_nevi", "Nevi", "Moles_(skin)"]
+    },
     {
       "id": "seborrheic_keratosis",
       "ru": "Себорейный кератоз",
       "icd10": ["L82"],
       "malignant": false,
-      "pad": ["SEK"]
+      "pad": ["SEK"],
+      "scin": ["SK/ISK"],
+      "dermnet": [
+        "seborrheic-keratoses-ruff",
+        "seborrheic-keratoses-smooth",
+        "seborrheic-keratosis-irritated",
+        "stucco-keratoses"
+      ],
+      "isic": ["Seborrheic keratosis"],
+      "atlas": ["keratosis seborrheic"],
+      "derm1m": ["seborrheic keratoses", "irritated seborrheic keratosis (from \"sk/isk\")"],
+      "commons": ["Seborrheic_keratosis"]
+    },
+    {
+      "id": "vitiligo",
+      "ru": "Витилиго",
+      "icd10": ["L80"],
+      "malignant": false,
+      "scin": ["Vitiligo"],
+      "dermnet": ["vitiligo"],
+      "bd": ["Vitiligo"],
+      "atlas": ["vitiligo"],
+      "derm1m": ["vitiligo"],
+      "commons": ["Vitiligo"]
+    },
+    {
+      "id": "milia",
+      "ru": "Милиум",
+      "icd10": ["L72.0"],
+      "malignant": false,
+      "scin": ["Milia"],
+      "dermnet": ["milia"],
+      "atlas": ["milia"],
+      "derm1m": ["milia"],
+      "commons": ["Milia"]
+    },
+    {
+      "id": "scabies",
+      "ru": "Чесотка",
+      "icd10": ["B86"],
+      "malignant": false,
+      "scin": ["Scabies"],
+      "dermnet": ["scabies"],
+      "bd": ["Scabies"],
+      "scabies": ["Scabies"],
+      "atlas": ["scabies", "norwegian scabies"],
+      "derm1m": ["scabies"],
+      "commons": ["Scabies"]
+    },
+    {
+      "id": "molluscum",
+      "ru": "Контагиозный моллюск",
+      "icd10": ["B08.1"],
+      "malignant": false,
+      "scin": ["Molluscum Contagiosum"],
+      "dermnet": ["molluscum-contagiosum"],
+      "atlas": ["molluscum contagiosum"],
+      "derm1m": ["molluscum contagiosum"],
+      "commons": ["Molluscum_contagiosum"]
+    },
+    {
+      "id": "warts",
+      "ru": "Бородавки",
+      "icd10": ["B07", "A63.0"],
+      "malignant": false,
+      "scin": ["Verruca vulgaris"],
+      "dermnet": [
+        "warts-plantar",
+        "warts-common",
+        "warts-flat",
+        "warts-digitate",
+        "warts",
+        "warts-periungual",
+        "periungual-warts",
+        "genital-warts",
+        "warts-immunocompromised"
+      ],
+      "atlas": [
+        "condyloma acuminatum",
+        "warts vulgaris",
+        "warts filiformis",
+        "warts plane",
+        "warts plantaris"
+      ],
+      "derm1m": [
+        "skin diseases caused by warts",
+        "verruca vulgaris",
+        "flat wart",
+        "verruca plantaris",
+        "condyloma"
+      ],
+      "commons": ["Warts", "Plantar_warts"]
+    },
+    {
+      "id": "lichen_planus",
+      "ru": "Красный плоский лишай",
+      "icd10": ["L43"],
+      "malignant": false,
+      "scin": ["Lichen planus/lichenoid eruption"],
+      "dermnet": [
+        "lichen-planus",
+        "lichen-planus-hypertrophic",
+        "lichen-planus-palm-soles",
+        "lichen-planus-drug",
+        "lichen-planus-oral"
+      ],
+      "atlas": [
+        "lichen planus",
+        "lichen planus actinicus",
+        "lichen planus follicularis",
+        "lichen planus linearis",
+        "lichen planus-vesicular",
+        "lichen planus annular"
+      ],
+      "derm1m": ["lichen planus"],
+      "commons": ["Lichen_planus"]
+    },
+    {
+      "id": "rosacea",
+      "ru": "Розацеа",
+      "icd10": ["L71"],
+      "malignant": false,
+      "scin": ["Rosacea"],
+      "dermnet": ["rosacea", "rosacea-nose"],
+      "atlas": ["acne rosacea", "rinofima", "rosacea-granulomatous_rosacea"],
+      "derm1m": ["rosacea"],
+      "commons": ["Rosacea"]
+    },
+    {
+      "id": "seborrheic_dermatitis",
+      "ru": "Себорейный дерматит",
+      "icd10": ["L21"],
+      "malignant": false,
+      "scin": ["Seborrheic Dermatitis"],
+      "dermnet": ["seborrheic-dermatitis"],
+      "atlas": ["seborrhoeic dermatitis"],
+      "derm1m": ["seborrheic dermatitis"],
+      "commons": ["Seborrheic_dermatitis", "Seborrhoeic_dermatitis"]
+    },
+    {
+      "id": "chickenpox",
+      "ru": "Ветряная оспа",
+      "icd10": ["B01"],
+      "malignant": false,
+      "scin": ["Chicken pox exanthem"],
+      "dermnet": ["varicella"],
+      "msid": ["Chickenpox"],
+      "atlas": ["varicella", "herpes zoster-varicella"],
+      "derm1m": ["varicella"],
+      "commons": ["Chickenpox", "Varicella"]
+    },
+    {
+      "id": "measles",
+      "ru": "Корь (сыпь)",
+      "icd10": ["B05"],
+      "malignant": false,
+      "msid": ["Measles"],
+      "derm1m": ["measles"],
+      "commons": ["Measles"]
+    },
+    {
+      "id": "furuncle",
+      "ru": "Фурункул, карбункул, абсцесс",
+      "icd10": ["L02"],
+      "malignant": false,
+      "scin": ["Abscess", "Furuncle"],
+      "dermnet": ["furuncles-carbuncles"],
+      "atlas": ["furuncle"],
+      "derm1m": ["furuncle", "carbuncle", "boils"],
+      "commons": ["Furuncles", "Boils", "Carbuncles", "Furunculosis"]
+    },
+    {
+      "id": "cellulitis",
+      "ru": "Целлюлит, рожа",
+      "icd10": ["L03", "A46"],
+      "malignant": false,
+      "scin": ["Cellulitis"],
+      "dermnet": ["cellulitis", "erysipelas", "pseudomonas-cellulitis"],
+      "atlas": ["erysipelas"],
+      "derm1m": ["cellulitis"],
+      "commons": ["Cellulitis", "Erysipelas"]
+    },
+    {
+      "id": "candidiasis",
+      "ru": "Кандидоз кожи и слизистых",
+      "icd10": ["B37"],
+      "malignant": false,
+      "dermnet": [
+        "candidiasis-large-skin-folds",
+        "candida-penis",
+        "candidiasis-diaper",
+        "candidiasis-mouth",
+        "candida-groin",
+        "perleche",
+        "erosio-interdigitalis-blastomycetica"
+      ],
+      "atlas": ["candidiasis", "candidiasis chronic mucocutaneos", "balanitis candidomycetica"],
+      "derm1m": ["candidiasis", "candida infection", "candidal balanoposthitis"],
+      "commons": ["Intertrigo", "Candidiasis", "Cutaneous_candidiasis"]
+    },
+    {
+      "id": "alopecia_areata",
+      "ru": "Гнёздная алопеция",
+      "icd10": ["L63"],
+      "malignant": false,
+      "dermnet": ["alopecia-areata"],
+      "atlas": ["alopecia areata"],
+      "derm1m": ["alopecia areata"],
+      "commons": ["Alopecia_areata"]
+    },
+    {
+      "id": "onychomycosis",
+      "ru": "Онихомикоз",
+      "icd10": ["B35.1"],
+      "malignant": false,
+      "scin": ["Onychomycosis"],
+      "dermnet": [
+        "distal-subungual-onychomycosis",
+        "white-superficial-onychomycosis",
+        "proximal-subungual-onychomycosis"
+      ],
+      "atlas": ["onychomycosis"],
+      "derm1m": ["onychomycosis"],
+      "commons": ["Onychomycosis"]
+    },
+    {
+      "id": "vasculitis",
+      "ru": "Васкулит, пурпура",
+      "icd10": ["M31.8", "D69.0"],
+      "malignant": false,
+      "scin": ["Leukocytoclastic Vasculitis", "Purpura"],
+      "dermnet": ["vasculitis", "henoch-schonlein-purpura", "urticaria-vasculitis"],
+      "atlas": ["henoch-shönlein_purpura-iga_vasculite", "allergic vasculitis"],
+      "derm1m": [
+        "vasculitis",
+        "henoch-schönlein purpura",
+        "henoch-schonlein purpura",
+        "allergic purpura"
+      ],
+      "commons": [
+        "Henoch–Schönlein_purpura",
+        "IgA_vasculitis",
+        "Cutaneous_vasculitis",
+        "Vasculitis"
+      ]
     }
   ]
 }

@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, type JSX, on, Show } from 
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { createDebouncer } from '@/components/debounced-value';
+import { MultiPickField } from '@/components/MultiPickField';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { TextArea } from '@/components/TextArea';
 import { SkinLesionArt } from '@/features/skin/SkinLesionArt';
@@ -97,7 +98,6 @@ export function SkinArtStrip(props: {
         <For each={props.condition.art}>
           {(art) => <SkinLesionArt art={art} class="skin-art-strip__tile" />}
         </For>
-        <AppGlyph name="book-open" class="skin-art-strip__icon" />
       </button>
     </Show>
   );
@@ -109,29 +109,29 @@ function SkinDocumentLinks(props: {
   readonly onOpenDocument: (documentId: string) => void;
 }): JSX.Element {
   return (
-    <ul class="skin-atlas__links">
-      <For each={props.links}>
-        {(link) => (
-          <li class="skin-atlas__link-item">
-            <button
-              type="button"
-              class="skin-atlas__link"
-              onClick={() => props.onOpenDocument(link.documentId)}
-            >
-              <AppGlyph name="file-text" class="skin-atlas__link-icon" />
-              <span class="skin-atlas__link-title">{link.title}</span>
-              <span class="skin-atlas__link-kind">{SKIN_DOCUMENT_KIND_LABELS[link.kind]}</span>
-            </button>
-          </li>
-        )}
-      </For>
-      <li class="skin-atlas__link-item">
-        <a class="skin-atlas__link" href={skinSearchHash(props.condition.ru)}>
-          <AppGlyph name="search" class="skin-atlas__link-icon" />
-          <span class="skin-atlas__link-title">Искать в базе</span>
-        </a>
-      </li>
-    </ul>
+    <>
+      <ul class="skin-atlas__links">
+        <For each={props.links}>
+          {(link) => (
+            <li class="skin-atlas__link-item">
+              <button
+                type="button"
+                class="skin-atlas__link"
+                onClick={() => props.onOpenDocument(link.documentId)}
+              >
+                <AppGlyph name="file-text" class="skin-atlas__link-icon" />
+                <span class="skin-atlas__link-title">{link.title}</span>
+                <span class="skin-atlas__link-kind">{SKIN_DOCUMENT_KIND_LABELS[link.kind]}</span>
+              </button>
+            </li>
+          )}
+        </For>
+      </ul>
+      <a class="skin-atlas__search" href={skinSearchHash(props.condition.ru)}>
+        <AppGlyph name="search" class="skin-atlas__search-icon" />
+        <span class="skin-atlas__search-text">Искать в базе</span>
+      </a>
+    </>
   );
 }
 
@@ -401,46 +401,44 @@ export function SkinFindingsInput(props: {
   const started = (): boolean => (props.findings.elements?.length ?? 0) > 0;
   return (
     <div class="skin-details skin-findings" data-testid="skin-findings">
-      <fieldset class="skin-details__group">
-        <legend class="skin-details__label">Что видно</legend>
-        <div class="skin-details__chips">
-          <For each={SKIN_ELEMENTS}>
-            {(element) => (
-              <FindingChip
-                on={props.findings.elements?.includes(element) ?? false}
-                label={SKIN_ELEMENT_LABELS[element]}
-                onToggle={() =>
-                  props.onChange({
-                    ...props.findings,
-                    elements: toggleFinding(SKIN_ELEMENTS, props.findings.elements, element),
-                  })
-                }
-              />
-            )}
-          </For>
-        </div>
-      </fieldset>
+      <div class="skin-details__group">
+        <MultiPickField
+          label="Что видно"
+          placeholder="Выберите элементы"
+          testId="skin-findings-elements"
+          options={SKIN_ELEMENTS.map((element) => ({
+            id: element,
+            label: SKIN_ELEMENT_LABELS[element],
+            selected: props.findings.elements?.includes(element) ?? false,
+          }))}
+          onToggle={(id) =>
+            props.onChange({
+              ...props.findings,
+              elements: toggleFinding(SKIN_ELEMENTS, props.findings.elements, id),
+            })
+          }
+        />
+      </div>
       <Show when={started()}>
-        <fieldset class="skin-details__group">
-          <legend class="skin-details__label">Цвет</legend>
-          <div class="skin-details__chips">
-            <For each={SKIN_COLORS}>
-              {(color) => (
-                <FindingChip
-                  on={props.findings.colors?.includes(color) ?? false}
-                  label={SKIN_COLOR_LABELS[color]}
-                  swatch={SKIN_COLOR_SWATCHES[color]}
-                  onToggle={() =>
-                    props.onChange({
-                      ...props.findings,
-                      colors: toggleFinding(SKIN_COLORS, props.findings.colors, color),
-                    })
-                  }
-                />
-              )}
-            </For>
-          </div>
-        </fieldset>
+        <div class="skin-details__group">
+          <MultiPickField
+            label="Цвет"
+            placeholder="Выберите цвет"
+            testId="skin-findings-colors"
+            options={SKIN_COLORS.map((color) => ({
+              id: color,
+              label: SKIN_COLOR_LABELS[color],
+              swatch: SKIN_COLOR_SWATCHES[color],
+              selected: props.findings.colors?.includes(color) ?? false,
+            }))}
+            onToggle={(id) =>
+              props.onChange({
+                ...props.findings,
+                colors: toggleFinding(SKIN_COLORS, props.findings.colors, id),
+              })
+            }
+          />
+        </div>
         <fieldset class="skin-details__group">
           <legend class="skin-details__label">Признаки</legend>
           <div class="skin-details__chips">

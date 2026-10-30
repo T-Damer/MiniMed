@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13496556237,
-      "modified": "2026-10-24"
+      "bytes": 13509927910,
+      "modified": "2026-10-28"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -1013,6 +1013,24 @@
       "note": "All 774 КР as clinical-json-2026.10.25-68d6f3a19cc9 (0.6.0-json.1cec87f7f6e3.kd1), published 2026-10-25 to datasets/clinical-json-2026.10.25-68d6f3a19cc9; the local release copy. output/module-zstd-json-2026-10-20 and module-zstd-kd1-2026-10-11 are the rollback.",
       "bytes": 693079180,
       "modified": "2026-10-25"
+    },
+    {
+      "path": "data/raw/derm",
+      "class": "SOURCE",
+      "producer": "Skin photo datasets for tools/derm-cnn: SCIN and PAD-UFES-20 (direct downloads), DermNet (Hugging Face WahajRaza/Dermnet parquet), Atlas Dermatológico (tools/derm-cnn/index_atlas.py + download_images.py), ISIC 2024 SLICE-3D (isic-archive S3), MSID / scabies benchmark / SkinDiseaseBD (Mendeley Data)",
+      "consumers": ["tools/derm-cnn/train_skin_cnn.py", "tools/derm-cnn/eval_onnx.py"],
+      "note": "Personal-use training data (owner 2026-10-29: licences not a constraint, weights stay local). Re-downloadable but slow; dermnet/images and isic2024/images are unpacked from the parquet/zip on first use.",
+      "bytes": 21755301291,
+      "modified": "2026-10-29"
+    },
+    {
+      "path": "data/build/derm",
+      "class": "REBUILDABLE",
+      "producer": "tools/derm-cnn/train_skin_cnn.py and eval_onnx.py over data/raw/derm",
+      "consumers": ["tools/derm-cnn/stage_model.sh → apps/app/public/models/skin (gitignored)"],
+      "note": "Resized-photo caches, trained runs (model.pt, ONNX, metrics) and logs. Superseded runs are deleted once the staged ensemble is verified.",
+      "bytes": 826950016,
+      "modified": "2026-10-29"
     }
   ]
 }

@@ -3,15 +3,23 @@
 // The same entry the ECG tool and @huggingface/transformers use: one ONNX Runtime wasm in the app.
 import * as ort from 'onnxruntime-web/webgpu';
 
-/** What the page's client sends: the photo's bytes, the details vector and where the model lives. */
+interface ModelRef {
+  readonly url: string;
+  readonly inputSide: number;
+  /** Whether this graph was trained to use the details (others get every field unknown). */
+  readonly details: boolean;
+}
+
+/** What the page's client sends: the photo's bytes, the details vector and the graphs to run. */
 interface AnalyzeMessage {
   readonly type: 'analyze';
   readonly requestId: string;
-  readonly modelUrl: string;
-  readonly inputSide: number;
+  readonly models: readonly ModelRef[];
   readonly image: ArrayBuffer;
   readonly mimeType: string;
   readonly details: Float32Array;
+  /** Every field unknown: what a graph trained without details expects. */
+  readonly blankDetails: Float32Array;
 }
 
 type OutMessage =
@@ -21,14 +29,14 @@ type OutMessage =
 const MEAN = [0.485, 0.456, 0.406] as const;
 const STD = [0.229, 0.224, 0.225] as const;
 
-let session: Promise<ort.InferenceSession> | undefined;
-let sessionUrl = '';
+/** One session per graph, kept for the worker's life; a failed load is forgotten so it can retry. */
+const sessions = new Map<string, Promise<ort.InferenceSession>>();
 
 function load(url: string): Promise<ort.InferenceSession> {
-  if (session && sessionUrl === url) return session;
-  sessionUrl = url;
+  const known = sessions.get(url);
+  if (known) return known;
   ort.env.wasm.numThreads = 1;
-  session = fetch(url)
+  const session = fetch(url)
     .then((response) => {
       if (!response.ok) throw new Error(`Модель кожи: ${response.status}`);
       return response.arrayBuffer();
@@ -39,8 +47,9 @@ function load(url: string): Promise<ort.InferenceSession> {
         graphOptimizationLevel: 'all',
       }),
     );
+  sessions.set(url, session);
   session.catch(() => {
-    session = undefined;
+    sessions.delete(url);
   });
   return session;
 }
@@ -88,28 +97,40 @@ function softmax(logits: Float32Array): Float32Array {
 self.onmessage = async (event: MessageEvent<AnalyzeMessage>) => {
   const message = event.data;
   try {
-    const model = await load(message.modelUrl);
-    const side = message.inputSide;
-    const available: Record<string, ort.Tensor> = {
-      image: new ort.Tensor('float32', await pixels(message.image, message.mimeType, side), [
-        1,
-        3,
-        side,
-        side,
-      ]),
-      details: new ort.Tensor('float32', message.details, [1, message.details.length]),
-    };
-    // A photo-only model has no details input: feed only what the graph asks for.
-    const feeds = Object.fromEntries(
-      model.inputNames.map((name) => {
-        const tensor = available[name];
-        if (!tensor) throw new Error(`Модель кожи: неизвестный вход ${name}.`);
-        return [name, tensor];
-      }),
-    );
-    const output = (await model.run(feeds))[model.outputNames[0] ?? 'logits'];
-    if (!output) throw new Error('Модель кожи не вернула результат.');
-    const probabilities = softmax(output.data as Float32Array);
+    // Graphs of the same input side share one decoded image.
+    const images = new Map<number, Promise<Float32Array>>();
+    const runs = message.models.map(async (ref) => {
+      const model = await load(ref.url);
+      const side = ref.inputSide;
+      let image = images.get(side);
+      if (!image) {
+        image = pixels(message.image, message.mimeType, side);
+        images.set(side, image);
+      }
+      const details = ref.details ? message.details : message.blankDetails;
+      const available: Record<string, ort.Tensor> = {
+        image: new ort.Tensor('float32', await image, [1, 3, side, side]),
+        details: new ort.Tensor('float32', details, [1, details.length]),
+      };
+      // A photo-only model has no details input: feed only what the graph asks for.
+      const feeds = Object.fromEntries(
+        model.inputNames.map((name) => {
+          const tensor = available[name];
+          if (!tensor) throw new Error(`Модель кожи: неизвестный вход ${name}.`);
+          return [name, tensor];
+        }),
+      );
+      const output = (await model.run(feeds))[model.outputNames[0] ?? 'logits'];
+      if (!output) throw new Error('Модель кожи не вернула результат.');
+      return softmax(output.data as Float32Array);
+    });
+    // Sequential in practice (one wasm thread); the ensemble's answer is the mean probability.
+    const all = await Promise.all(runs);
+    const probabilities = new Float32Array(all[0]?.length ?? 0);
+    for (const entry of all)
+      entry.forEach((value, index) => {
+        probabilities[index] = (probabilities[index] ?? 0) + value / all.length;
+      });
     (self as unknown as Worker).postMessage(
       { type: 'result', requestId: message.requestId, probabilities } satisfies OutMessage,
       [probabilities.buffer],

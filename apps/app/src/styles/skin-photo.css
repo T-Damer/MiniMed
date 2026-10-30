@@ -234,10 +234,6 @@
   transform: scale(0.98);
 }
 
-.skin-result__link--search {
-  color: var(--theme-text-muted);
-}
-
 .skin-result__link-icon {
   flex: none;
   width: 1.1rem;
@@ -256,6 +252,78 @@
   flex: none;
   color: var(--theme-text-faint);
   font-size: 0.78rem;
+}
+
+/* Search the base for the condition, open it in the atlas: one row. */
+.skin-result__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.skin-result__search,
+.skin-atlas__search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-sizing: border-box;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  color: var(--theme-placeholder);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.skin-result__search:active,
+.skin-atlas__search:active {
+  transform: scale(0.98);
+}
+
+.skin-result__search-icon,
+.skin-atlas__search-icon {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-muted);
+}
+
+.skin-result__search-text,
+.skin-atlas__search-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skin-result__atlas {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.skin-result__atlas:active {
+  transform: scale(0.96);
+}
+
+.skin-result__atlas-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* The facts about the ranking */

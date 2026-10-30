@@ -8,10 +8,8 @@ import {
 
 const manifest: SkinModelManifest = {
   format: 'minimed-skin-cnn',
-  version: 1,
-  model: 'model.int8.onnx',
-  inputSide: 224,
-  details: true,
+  version: 2,
+  models: [{ file: 'model.onnx', inputSide: 224, details: true }],
   classes: SKIN_CLASSES.map((entry) => entry.id),
   malignantThreshold: 0.2,
 };

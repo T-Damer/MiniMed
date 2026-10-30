@@ -17,10 +17,18 @@ import {
  */
 const SkinModelManifestSchema = z.object({
   format: z.literal('minimed-skin-cnn'),
-  version: z.literal(1),
-  model: z.string().regex(/^[\w.-]+\.onnx$/u),
-  inputSide: z.number().int().min(96).max(512),
-  details: z.boolean(),
+  version: z.literal(2),
+  /** One graph, or several whose probabilities are averaged (an ensemble). */
+  models: z
+    .array(
+      z.object({
+        file: z.string().regex(/^[\w.-]+\.onnx$/u),
+        inputSide: z.number().int().min(96).max(512),
+        details: z.boolean(),
+      }),
+    )
+    .min(1)
+    .max(4),
   classes: z.array(z.string()).min(2),
   /** Sum of the malignant classes' probabilities at which the check fires (set on validation). */
   malignantThreshold: z.number().min(0).max(1),
@@ -139,11 +147,15 @@ export const skinModel: SkinModel = {
         {
           type: 'analyze',
           requestId,
-          modelUrl: `${baseUrl()}${current.model}`,
-          inputSide: current.inputSide,
+          models: current.models.map((entry) => ({
+            url: `${baseUrl()}${entry.file}`,
+            inputSide: entry.inputSide,
+            details: entry.details,
+          })),
           image,
           mimeType: photo.type || 'image/jpeg',
-          details: encodeSkinDetails(current.details ? details : {}),
+          details: encodeSkinDetails(details),
+          blankDetails: encodeSkinDetails({}),
         },
         [image],
       );

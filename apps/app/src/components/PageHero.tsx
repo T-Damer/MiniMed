@@ -171,8 +171,8 @@ const EMBLEM_BAR_REM = 1.375;
 
 /**
  * Where the emblem ends: a small icon just after the row's title, in the row's middle, where no
- * button covers it. A row with no room there (a search field, a long title, the actions) lets the
- * emblem fade instead of hiding it under a control.
+ * button covers it. A row with no room there (a search field, a long title, the actions), or whose
+ * title has its own icon, lets the emblem fade instead.
  */
 function measureEmblem(header: HTMLElement, row: HTMLElement, rowHeight: number): void {
   const emblem = row.querySelector<HTMLElement>('.page-hero__emblem');
@@ -195,7 +195,10 @@ function measureEmblem(header: HTMLElement, row: HTMLElement, rowHeight: number)
   const actions = row.querySelector<HTMLElement>('.page__right-actions');
   const titleRight = title?.getBoundingClientRect().right;
   const limit = actions?.getBoundingClientRect().left ?? headerBox.right;
-  const room = titleRight !== undefined && titleRight + gap + size + gap <= limit;
+  // A title that already carries its own icon or avatar (the feed's newspaper, a source's logo)
+  // would show the emblem twice side by side: it fades there instead.
+  const ownIcon = title?.querySelector('svg, img') != null;
+  const room = !ownIcon && titleRight !== undefined && titleRight + gap + size + gap <= limit;
   const endX = room && titleRight !== undefined ? titleRight + gap + size / 2 : restX;
   const endY = rowHeight / 2;
   setLength(header, '--page-hero-emblem-x', endX - restX);

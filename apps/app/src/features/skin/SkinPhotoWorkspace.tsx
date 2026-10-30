@@ -73,7 +73,8 @@ function SkinHelp(): JSX.Element {
   return (
     <>
       <p class="skin-help__text">
-        Модель обучена на открытых фотографиях кожи: SCIN (Google) и PAD-UFES-20.
+        Модель обучена на открытых фотографиях кожи: телефонные снимки SCIN (Google) и PAD-UFES-20,
+        атласы DermNet и Atlas Dermatológico, ISIC 2024 и несколько небольших наборов.
       </p>
       <p class="skin-help__text">
         Она знает {count} {pluralRu(count, 'состояние', 'состояния', 'состояний')}:
@@ -206,7 +207,15 @@ export function SkinPhotoWorkspace(props: {
     mergeSkinDetails(state().chips, patientSkinDetails(selectedPatient(), todayIso())),
   );
   const triggers = createMemo(() => activeTriggers(details(), state().findings));
-  const described = createMemo(() => describedConditions(details(), state().findings));
+  const described = createMemo(() =>
+    describedConditions(
+      details(),
+      state().findings,
+      new Set(
+        visiblePredictions(state().analysis?.predictions ?? []).map((entry) => entry.classId),
+      ),
+    ),
+  );
   const danger = createMemo(() =>
     skinDangerSummary({
       predictions: visiblePredictions(state().analysis?.predictions ?? []),
@@ -232,6 +241,7 @@ export function SkinPhotoWorkspace(props: {
       priority: 2,
       onSelect: () => openAtlas(undefined),
       testId: 'skin-atlas-open',
+      menuOnly: true,
     },
     {
       id: 'history',
@@ -240,6 +250,7 @@ export function SkinPhotoWorkspace(props: {
       priority: 2,
       onSelect: () => setHistoryOpen(true),
       testId: 'skin-history-open',
+      menuOnly: true,
     },
   ]);
 

@@ -55,8 +55,8 @@ address leads back to the files when it is off.
 - Tests: `features/skin/*.test.ts` (details, camera capabilities, crop maths, results, document links,
   history validation and memory store, session state machine) and `apps/app/e2e/skin-photo.spec.ts`.
 - **Atlas and danger** (owner 2026-10-29: «main thing for the doctor is how dangerous this is»).
-  `skin-atlas.json` (27 conditions: the 21 model classes plus vitiligo, milia, furuncle/abscess, skin ulcer,
-  measles/Koplik spots and aphthae) declares per condition a danger level (`low` · `moderate` · `high` ·
+  `skin-atlas.json` (40 conditions: the 37 model classes plus skin ulcer, measles/Koplik spots and aphthae,
+  which are reached by description only) declares per condition a danger level (`low` · `moderate` · `high` ·
   `urgent`), why, the action, look, course, red flags with the signs/symptoms that trigger them, features
   for description matching and cited sources (КР pointers of the core; krasotaimedicina articles where no
   КР exists; open gaps listed in the file). The text is a **draft** (badge «Черновик»), paraphrased from those
@@ -66,12 +66,28 @@ address leads back to the files when it is off.
   the variants shown, raised by active red flags; a fired malignancy check lifts it to high), a danger chip
   and reference tiles on every card, a «Что видно» description (elements → colours, signs, free-text course;
   saved with the gallery entry) that ranks the description-only conditions under «По описанию» without
-  touching the model's percentages, and an «Атлас кожи» sheet (header) grouped by danger.
-- **Model numbers** (held-out test split, per case; `tools/derm-cnn`, local weights only): EfficientNet-B0 with
-  details 52 % top-1 / 80 % top-3; ConvNeXt-Tiny with details 57 % / 80 %, cancer sensitivity 97 % at 89 %
-  specificity; the average of both 60 % / 82 % (AUC 0.98). The app ships one model (B0, FP32 16 MB; dynamic
-  INT8 broke it); an ensemble manifest and more datasets (Fitzpatrick17k, PASSION, SLICE-3D, MIDAS… —
-  licences not a constraint for this personal build) are the next model steps.
+  touching the model's percentages, and an «Атлас кожи» sheet grouped by danger. Place, elements and colours
+  are dropdown fields (`components/MultiPickField.tsx`: a checkable list in a popover / bottom sheet; the
+  details group declares `control: 'pick'`); each card ends with a field-styled «Искать в базе» and a book
+  button that opens the condition in the atlas. The header holds «?» and «⋯» (atlas, history).
+- **Model numbers** (2026-10-30; held-out test split, per case; `tools/derm-cnn`, local weights only,
+  licences not a constraint for this personal build). 37 classes trained on SCIN, PAD-UFES-20, DermNet,
+  Atlas Dermatológico, ISIC 2024 (SLICE-3D), MSID, a scabies set and SkinDiseaseBD (train-only), with phone
+  degradation of atlas photos and a phone-weighted sampler (15.8k train / 3.0k val / 3.4k test images).
+  The app ships EfficientNet-B0 with details (FP32 16 MB): all cases 75 % top-1 / 89 % top-3; phone cases
+  (SCIN + PAD) 61 % / 80 %, cancer sensitivity 97 % at 91 % specificity (AUC 0.98). The B0 + ConvNeXt-Tiny
+  average (`eval_onnx.py --write`, manifest v2 with two graphs, 122 MB) reaches 77 % / 90 % overall and
+  63 % / 81 % on phone cases at 95 % / 93 % — not shipped: one point of top-3 for 7× the size and work.
+  Weak: cellulitis, furuncle, impetigo, drug rash, milia (few photos).
+- **Next model, in progress (2026-10-30).** Derm1M (gated, CC BY-NC; owner's HF token in `.env`) adds
+  about 69k labelled photos (`derm_sources.derm1m_records`: its `public` folder is skipped — it holds
+  copies of ISIC, DermNet and 6,473 SCIN photos — and so are dermoscopy, histology and >5 frames per
+  video); Wikimedia Commons photos come from `fetch_commons.py` with author and licence per photo.
+  `probe_clip.py`: frozen DermLIP ViT-B/16 + a linear head beats B0 on the phone cases DermLIP never
+  saw (PAD + SCIN outside Derm1M: 82 % / 99 % vs 80 % / 94 %). DermLIP and DermFM-Zero (ViT-L, 304M) are
+  CC BY-NC-ND with a no-redistribution promise, so they stay local: the shipped model will be B0
+  distilled from DermLIP (`train_skin_cnn.py --teacher`). Owner decision: the skin pack (model + guide
+  photos from SCIN, PAD-UFES-20 and Commons only) is published like the ECG packs.
 
 ## UI fixes from owner screenshots — 2026-10-28
 

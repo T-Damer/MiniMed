@@ -13,6 +13,7 @@ import argparse
 import ast
 import csv
 import hashlib
+import io
 import json
 import random
 import time
@@ -22,7 +23,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 from sklearn.metrics import balanced_accuracy_score, f1_score, roc_auc_score
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
@@ -132,6 +133,9 @@ class Record:
 
 
 def split_of(group: str) -> str:
+    # Sets of augmented copies without the originals' names cannot be split safely: train only.
+    if group.startswith("train-only:"):
+        return "train"
     bucket = int(hashlib.sha1(group.encode()).hexdigest(), 16) % 100
     return "train" if bucket < 70 else "val" if bucket < 85 else "test"
 
@@ -290,11 +294,67 @@ def scin_records(
     return records
 
 
+def all_records(
+    data: Path, classes: list[dict], scin_min_weight: float = 0.5
+) -> list[Record]:
+    """Every labelled photo: SCIN and PAD-UFES-20 (phones, with details) and the extra sources."""
+    from derm_sources import extra_records, label_map
+
+    label_of = label_map(classes, ("scin", "pad"))
+    return (
+        pad_records(data / "pad-ufes-20", label_of)
+        + scin_records(data / "scin", label_of, scin_min_weight)
+        + extra_records(data, classes)
+    )
+
+
+class PhoneDegrade:
+    """Pushes an atlas photo towards what a phone in a clinic gives: lower resolution, JPEG,
+    slight blur, noise and a white-balance cast. Applied with probability `p`."""
+
+    def __init__(self, p: float, rng: random.Random) -> None:
+        self.p = p
+        self.rng = rng
+
+    def __call__(self, image: Image.Image) -> Image.Image:
+        rng = self.rng
+        if rng.random() >= self.p:
+            return image
+        if rng.random() < 0.7:
+            side = rng.randint(96, 200)
+            small = image.resize(
+                (side, round(side * image.height / image.width)), Image.BILINEAR
+            )
+            image = small.resize(image.size, Image.BILINEAR)
+        if rng.random() < 0.5:
+            image = image.filter(ImageFilter.GaussianBlur(rng.uniform(0.3, 1.2)))
+        if rng.random() < 0.6:
+            gains = [rng.uniform(0.9, 1.1) for _ in range(3)]
+            array = np.asarray(image, dtype=np.float32) * np.array(
+                gains, dtype=np.float32
+            )
+            if rng.random() < 0.5:
+                array += np.random.default_rng(rng.randint(0, 1 << 30)).normal(
+                    0, rng.uniform(2, 7), array.shape
+                )
+            image = Image.fromarray(np.clip(array, 0, 255).astype(np.uint8))
+        if rng.random() < 0.7:
+            buffer = io.BytesIO()
+            image.save(buffer, "JPEG", quality=rng.randint(35, 85))
+            buffer.seek(0)
+            image = Image.open(buffer).convert("RGB")
+        return image
+
+
 def cache_one(job: tuple[str, str]) -> str:
     source, target = job
     target_path = Path(target)
     if not target_path.exists():
-        image = ImageOps.exif_transpose(Image.open(source)).convert("RGB")
+        try:
+            image = ImageOps.exif_transpose(Image.open(source)).convert("RGB")
+        except OSError:
+            # Truncated or not an image (web sources): the record is dropped by build_cache.
+            return ""
         image.thumbnail((CACHE_SIDE * 2, CACHE_SIDE * 2))
         scale = CACHE_SIDE / min(image.size)
         image = image.resize(
@@ -308,7 +368,8 @@ def cache_one(job: tuple[str, str]) -> str:
     return target
 
 
-def build_cache(records: list[Record], cache: Path, workers: int) -> None:
+def build_cache(records: list[Record], cache: Path, workers: int) -> list[Record]:
+    """Resizes every photo once into the cache; returns the records that could be read."""
     jobs = []
     for record in records:
         key = hashlib.sha1(str(record.image).encode()).hexdigest()
@@ -316,17 +377,34 @@ def build_cache(records: list[Record], cache: Path, workers: int) -> None:
         jobs.append((str(record.image), str(target)))
         record.image = target
     with ProcessPoolExecutor(workers) as pool:
-        list(pool.map(cache_one, jobs, chunksize=32))
+        done = list(pool.map(cache_one, jobs, chunksize=32))
+    kept = [record for record, result in zip(records, done) if result]
+    if len(kept) < len(records):
+        print(json.dumps({"unreadable_images": len(records) - len(kept)}), flush=True)
+    return kept
 
 
 class SkinDataset(Dataset):
     def __init__(
-        self, records: list[Record], train: bool, use_details: bool, seed: int
+        self,
+        records: list[Record],
+        train: bool,
+        use_details: bool,
+        seed: int,
+        teacher: dict[str, np.ndarray] | None = None,
+        classes: int = 0,
     ) -> None:
         self.records = records
         self.train = train
         self.use_details = use_details
+        self.teacher = teacher or {}
+        self.classes = classes
         self.rng = random.Random(seed)
+        from derm_sources import PHONE_SOURCES
+
+        self.phone_sources = PHONE_SOURCES
+        self.degrade_atlas = PhoneDegrade(0.6, self.rng)
+        self.degrade_phone = PhoneDegrade(0.15, self.rng)
         normalize = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         self.transform = (
             transforms.Compose(
@@ -354,13 +432,31 @@ class SkinDataset(Dataset):
     def __len__(self) -> int:
         return len(self.records)
 
-    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor, int]:
+    def __getitem__(
+        self, index: int
+    ) -> tuple[torch.Tensor, torch.Tensor, int, torch.Tensor]:
         record = self.records[index]
-        image = self.transform(Image.open(record.image).convert("RGB"))
+        # The teacher's class probabilities for this photo; a photo it has none for falls back
+        # to its own label.
+        soft = self.teacher.get(str(record.image))
+        if soft is None:
+            soft = np.eye(max(self.classes, record.label + 1), dtype=np.float32)[
+                record.label
+            ]
+        image = Image.open(record.image).convert("RGB")
+        if self.train:
+            phone = record.source in self.phone_sources
+            image = (self.degrade_phone if phone else self.degrade_atlas)(image)
+        image = self.transform(image)
         details = record.details if self.use_details else Details()
         if self.train and self.use_details:
             details = drop_details(details, self.rng)
-        return image, torch.from_numpy(encode(details)), record.label
+        return (
+            image,
+            torch.from_numpy(encode(details)),
+            record.label,
+            torch.from_numpy(soft),
+        )
 
 
 class SkinNet(nn.Module):
@@ -402,13 +498,31 @@ class SkinNet(nn.Module):
         return self.head(features)
 
 
+def load_teacher(path: Path, classes: int) -> dict[str, np.ndarray]:
+    """A teacher's class probabilities per cached photo (teach_dermlip.py writes them)."""
+    saved = np.load(path, allow_pickle=False)
+    probabilities = saved["probabilities"].astype(np.float32)
+    assert probabilities.shape[1] == classes, "teacher classes differ from the app's"
+    return dict(zip(saved["paths"].tolist(), probabilities))
+
+
+def distill_loss(
+    logits: torch.Tensor, teacher: torch.Tensor, temperature: float
+) -> torch.Tensor:
+    """Knowledge distillation: the student's softened distribution follows the teacher's."""
+    soft = teacher.clamp_min(1e-8) ** (1 / temperature)
+    soft = soft / soft.sum(1, keepdim=True)
+    student = torch.log_softmax(logits / temperature, 1)
+    return nn.functional.kl_div(student, soft, reduction="batchmean") * temperature**2
+
+
 def predict(
     model: SkinNet, loader: DataLoader, device: torch.device
 ) -> tuple[np.ndarray, np.ndarray]:
     model.eval()
     probabilities, labels = [], []
     with torch.no_grad():
-        for image, details, label in loader:
+        for image, details, label, _ in loader:
             logits = model(image.to(device), details.to(device))
             probabilities.append(torch.softmax(logits, 1).cpu().numpy())
             labels.append(label.numpy())
@@ -433,6 +547,7 @@ def metrics(
         "per_class_recall": {
             class_ids[c]: {
                 "recall": float(np.mean(top[labels == c, 0] == c)),
+                "top3": float(np.mean([c in row[:3] for row in top[labels == c]])),
                 "n": int(np.sum(labels == c)),
             }
             for c in present
@@ -488,6 +603,20 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--scin-min-weight", type=float, default=0.5)
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--name", default="", help="run folder name (default: arch-details)"
+    )
+    parser.add_argument(
+        "--phone-weight",
+        type=float,
+        default=2.0,
+        help="sampling weight of phone photos vs atlas photos",
+    )
+    parser.add_argument(
+        "--teacher", type=Path, help="teacher probabilities (.npz) to distil from"
+    )
+    parser.add_argument("--teacher-weight", type=float, default=0.5)
+    parser.add_argument("--temperature", type=float, default=2.0)
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -495,41 +624,71 @@ def main() -> None:
     torch.manual_seed(args.seed)
     classes = json.loads(CLASSES.read_text(encoding="utf-8"))["classes"]
     class_ids = [entry["id"] for entry in classes]
-    label_of = {
-        f"{source}:{name}": index
-        for index, entry in enumerate(classes)
-        for source in ("scin", "pad")
-        for name in entry.get(source, [])
-    }
     malignant = [index for index, entry in enumerate(classes) if entry["malignant"]]
 
-    records = pad_records(args.data / "pad-ufes-20", label_of) + scin_records(
-        args.data / "scin", label_of, args.scin_min_weight
+    records = all_records(args.data, classes, args.scin_min_weight)
+    run = args.output / (
+        args.name or f"{args.arch}-{'details' if args.details else 'photo'}"
     )
-    run = args.output / f"{args.arch}-{'details' if args.details else 'photo'}"
     run.mkdir(parents=True, exist_ok=True)
-    build_cache(records, args.output / "cache", args.workers)
+    records = build_cache(records, args.output / "cache", args.workers)
     splits = {
         name: [r for r in records if split_of(r.group) == name]
         for name in ("train", "val", "test")
     }
     print(json.dumps({name: len(items) for name, items in splits.items()}), flush=True)
+    print(
+        json.dumps(
+            {
+                "train_by_class": {
+                    class_ids[i]: int(n)
+                    for i, n in enumerate(
+                        np.bincount(
+                            [r.label for r in splits["train"]], minlength=len(classes)
+                        )
+                    )
+                },
+                "train_by_source": {
+                    s: sum(r.source == s for r in splits["train"])
+                    for s in sorted({r.source for r in records})
+                },
+            }
+        ),
+        flush=True,
+    )
 
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     counts = np.bincount(
         [r.label for r in splits["train"]], minlength=len(classes)
     ).astype(np.float64)
-    weights = torch.tensor(
-        (counts.max() / np.maximum(counts, 1)) ** 0.5,
-        dtype=torch.float32,
-        device=device,
+    # Balanced sampling instead of a weighted loss: rarer classes are drawn more often (square
+    # root of the imbalance) and phone photos more than atlas photos.
+    from derm_sources import PHONE_SOURCES
+
+    class_weight = (counts.max() / np.maximum(counts, 1)) ** 0.5
+    sample_weights = [
+        class_weight[r.label]
+        * (args.phone_weight if r.source in PHONE_SOURCES else 1.0)
+        for r in splits["train"]
+    ]
+    sampler = torch.utils.data.WeightedRandomSampler(
+        sample_weights, num_samples=len(splits["train"]), replacement=True
     )
     model = SkinNet(len(classes), args.details, args.arch).to(device)
+    teacher = load_teacher(args.teacher, len(classes)) if args.teacher else None
+    if teacher is not None:
+        covered = sum(str(r.image) in teacher for r in splits["train"])
+        print(
+            json.dumps({"teacher_covers": covered, "of": len(splits["train"])}),
+            flush=True,
+        )
     loaders = {
         name: DataLoader(
-            SkinDataset(items, name == "train", args.details, args.seed),
+            SkinDataset(
+                items, name == "train", args.details, args.seed, teacher, len(classes)
+            ),
             batch_size=args.batch_size,
-            shuffle=name == "train",
+            sampler=sampler if name == "train" else None,
             num_workers=args.workers,
             persistent_workers=True,
         )
@@ -539,17 +698,22 @@ def main() -> None:
     schedule = torch.optim.lr_scheduler.OneCycleLR(
         optimizer, max_lr=4e-4, total_steps=args.epochs * len(loaders["train"])
     )
-    loss_fn = nn.CrossEntropyLoss(weight=weights, label_smoothing=0.1)
+    loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     best, best_state = -1.0, None
     for epoch in range(args.epochs):
         model.train()
         started, total = time.time(), 0.0
-        for image, details, label in loaders["train"]:
+        for image, details, label, soft in loaders["train"]:
             optimizer.zero_grad()
-            loss = loss_fn(
-                model(image.to(device), details.to(device)), label.to(device)
-            )
+            logits = model(image.to(device), details.to(device))
+            loss = loss_fn(logits, label.to(device))
+            if teacher is not None:
+                loss = (
+                    1 - args.teacher_weight
+                ) * loss + args.teacher_weight * distill_loss(
+                    logits, soft.to(device), args.temperature
+                )
             loss.backward()
             optimizer.step()
             schedule.step()
@@ -588,9 +752,22 @@ def main() -> None:
             *by_group(test_p, test_y, test_groups), class_ids, malignant, threshold
         ),
     }
+    # The number that matters for the app: SCIN and PAD-UFES-20, real phone photos, per case.
+    phone = np.array([r.source in ("scin", "pad") for r in splits["test"]])
+    if phone.any():
+        report["test_phone_by_case"] = metrics(
+            *by_group(
+                test_p[phone],
+                test_y[phone],
+                [g for g, keep in zip(test_groups, phone) if keep],
+            ),
+            class_ids,
+            malignant,
+            threshold,
+        )
     if args.details:
         blank = DataLoader(
-            SkinDataset(splits["test"], False, False, args.seed),
+            SkinDataset(splits["test"], False, False, args.seed, None, len(classes)),
             batch_size=args.batch_size,
             num_workers=args.workers,
         )
@@ -668,10 +845,10 @@ def export_onnx(
     # FP32: dynamic INT8 quantisation wrecked EfficientNet (test top-1 50 % -> 7 %, eval_onnx.py).
     manifest = {
         "format": "minimed-skin-cnn",
-        "version": 1,
-        "model": "model.onnx",
-        "inputSide": INPUT_SIDE,
-        "details": details_input,
+        "version": 2,
+        "models": [
+            {"file": "model.onnx", "inputSide": INPUT_SIDE, "details": details_input}
+        ],
         "classes": class_ids,
         "malignantThreshold": round(threshold, 4),
     }

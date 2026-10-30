@@ -87,36 +87,50 @@ export function SkinResultCards(props: {
                   />
                 )}
               </Show>
-              <ul class="skin-result__links">
-                <For each={props.linksFor(classId).slice(0, LINKS_PER_RESULT)}>
-                  {(link) => (
-                    <li class="skin-result__link-item">
-                      <button
-                        type="button"
-                        class="skin-result__link"
-                        data-testid="skin-document-link"
-                        onClick={() => props.onOpenDocument(link.documentId)}
-                      >
-                        <AppGlyph name="file-text" class="skin-result__link-icon" />
-                        <span class="skin-result__link-title">{link.title}</span>
-                        <span class="skin-result__link-kind">
-                          {SKIN_DOCUMENT_KIND_LABELS[link.kind]}
-                        </span>
-                      </button>
-                    </li>
-                  )}
-                </For>
-                <li class="skin-result__link-item">
-                  <a
-                    class="skin-result__link skin-result__link--search"
-                    href={skinSearchHash(view()?.name ?? '')}
-                    data-testid="skin-search-link"
+              <Show when={props.linksFor(classId).length > 0}>
+                <ul class="skin-result__links">
+                  <For each={props.linksFor(classId).slice(0, LINKS_PER_RESULT)}>
+                    {(link) => (
+                      <li class="skin-result__link-item">
+                        <button
+                          type="button"
+                          class="skin-result__link"
+                          data-testid="skin-document-link"
+                          onClick={() => props.onOpenDocument(link.documentId)}
+                        >
+                          <AppGlyph name="file-text" class="skin-result__link-icon" />
+                          <span class="skin-result__link-title">{link.title}</span>
+                          <span class="skin-result__link-kind">
+                            {SKIN_DOCUMENT_KIND_LABELS[link.kind]}
+                          </span>
+                        </button>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </Show>
+              <div class="skin-result__tools">
+                <a
+                  class="skin-result__search"
+                  href={skinSearchHash(view()?.name ?? '')}
+                  data-testid="skin-search-link"
+                >
+                  <AppGlyph name="search" class="skin-result__search-icon" />
+                  <span class="skin-result__search-text">Искать в базе</span>
+                </a>
+                <Show when={props.onOpenAtlas && atlasCondition(classId)}>
+                  <button
+                    type="button"
+                    class="skin-result__atlas"
+                    aria-label="Открыть в атласе"
+                    title="Открыть в атласе"
+                    data-testid="skin-result-atlas"
+                    onClick={() => props.onOpenAtlas?.(classId)}
                   >
-                    <AppGlyph name="search" class="skin-result__link-icon" />
-                    <span class="skin-result__link-title">Искать в базе</span>
-                  </a>
-                </li>
-              </ul>
+                    <AppGlyph name="book-open" class="skin-result__atlas-icon" />
+                  </button>
+                </Show>
+              </div>
             </li>
           );
         }}

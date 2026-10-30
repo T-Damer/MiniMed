@@ -225,6 +225,21 @@ current acts and the register before relying on this summary.*
 | 3 fine-tune | 2–3 | full fine-tune, augmentation as in section 4, calibration, OOD threshold, INT8 / FP16 comparison | meets thresholds fixed in phase 2 |
 | 4 ship | 1–2 | `fetch-skin-model` local stage, manifest, help text with real numbers, tests (class map, quality gate, thresholds), `CURRENT_STATE.md`; QA pass as a doctor | one local APK; public repo carries no images or restricted weights |
 
+## 10. Results, 2026-10-30
+
+Per case on the held-out split (groups keep one patient or series in one split); "phone" = SCIN + PAD-UFES-20.
+
+| Model | All cases top-1 / top-3 | Phone cases top-1 / top-3 | Cancer sens. / spec. (phone) | Size |
+|---|---|---|---|---|
+| B0, 21 classes, SCIN + PAD only (v1) | — | 52 % / 80 % | 94 % / 89 % | 16 MB |
+| B0, 37 classes, all sources (shipped) | 75 % / 89 % | 61 % / 80 % | 97 % / 91 % | 16 MB |
+| B0 + ConvNeXt-Tiny average | 77 % / 90 % | 63 % / 81 % | 95 % / 93 % | 122 MB |
+
+Adding atlas, DermNet and ISIC photos lifted top-1 on phone photos by nine points and let the model learn 16
+more conditions without losing top-3. The second model adds about one point, so the app keeps the single
+B0. The weakest classes have the fewest photos (cellulitis, furuncle, impetigo, drug rash, milia); the next
+gain is data, not architecture — Derm1M (gated on Hugging Face) is the largest open source left.
+
 ## Sources
 
 - Derm Foundation card: https://huggingface.co/google/derm-foundation ; file sizes via https://huggingface.co/api/models/google/derm-foundation?blobs=true

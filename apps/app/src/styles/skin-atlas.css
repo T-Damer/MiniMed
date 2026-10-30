@@ -148,12 +148,6 @@
   border-radius: var(--theme-radius-control);
 }
 
-.skin-art-strip__icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-inline-start: 0.2rem;
-}
-
 /* Conditions reached by the description only. */
 .skin-photo__described {
   display: grid;

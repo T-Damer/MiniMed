@@ -183,6 +183,8 @@ export interface SkinDescriptionMatch {
   readonly matched: number;
   /** Doctor's picks in all. */
   readonly asked: number;
+  /** Overlap of the picks with the condition's own features (Jaccard): breaks ties for the specific. */
+  readonly fit: number;
 }
 
 /** A description-only condition is offered when it shows at least this share of the picks. */
@@ -191,13 +193,15 @@ const MIN_MATCHED = 2;
 export const MAX_DESCRIPTION_MATCHES = 2;
 
 /**
- * Conditions the photo model does not know, ranked by how much of the doctor's description they
- * show: elements, colours, sites (the mouth when «На слизистой» is ticked), signs and symptoms. At
+ * Conditions the description points to that the photo ranking does not already show, ranked by how
+ * much of the description they show: elements, colours, sites (the mouth when «На слизистой» is ticked), signs and symptoms. At
  * least one element must agree; a description without elements offers nothing.
  */
 export function describedConditions(
   details: SkinDetails,
   findings: SkinFindings,
+  /** Conditions already on screen from the photo: not offered twice. */
+  exclude: ReadonlySet<string> = new Set(),
   atlas: readonly SkinAtlasCondition[] = SKIN_ATLAS,
 ): readonly SkinDescriptionMatch[] {
   const elements = findings.elements ?? [];
@@ -210,7 +214,7 @@ export function describedConditions(
   const colors = findings.colors ?? [];
   const asked = elements.length + colors.length + sites.length + triggers.size;
   return atlas
-    .filter((condition) => !condition.model)
+    .filter((condition) => !exclude.has(condition.id))
     .flatMap((condition): SkinDescriptionMatch[] => {
       const features = condition.features;
       const elementHits = elements.filter((entry) => features.elements.includes(entry)).length;
@@ -220,13 +224,20 @@ export function describedConditions(
         colors.filter((entry) => features.colors.includes(entry)).length +
         sites.filter((entry) => features.sites.includes(entry)).length +
         [...triggers].filter((entry) => features.signs.includes(entry)).length;
+      const own =
+        features.elements.length +
+        features.colors.length +
+        features.sites.length +
+        features.signs.length;
       return matched >= MIN_MATCHED && matched / asked >= MIN_MATCH_SHARE
-        ? [{ conditionId: condition.id, matched, asked }]
+        ? [{ conditionId: condition.id, matched, asked, fit: matched / (asked + own - matched) }]
         : [];
     })
     .toSorted(
       (left, right) =>
-        right.matched / right.asked - left.matched / left.asked || right.matched - left.matched,
+        right.matched / right.asked - left.matched / left.asked ||
+        right.fit - left.fit ||
+        right.matched - left.matched,
     )
     .slice(0, MAX_DESCRIPTION_MATCHES);
 }

@@ -207,6 +207,9 @@ export interface SkinChipView {
 export interface SkinChipGroupView {
   readonly id: SkinDetailGroup;
   readonly label: string;
+  /** A long list of places is a dropdown field (`placeholder` when empty); short ones are chips. */
+  readonly control: 'pick' | 'chips';
+  readonly placeholder?: string;
   readonly chips: readonly SkinChipView[];
 }
 
@@ -225,6 +228,8 @@ export function skinChipGroups(details: SkinDetails): readonly SkinChipGroupView
     sites: {
       id: 'sites',
       label: 'Где',
+      control: 'pick',
+      placeholder: 'Выберите место',
       chips: SKIN_SITE_OPTIONS.map((option) => ({
         id: option.value,
         label: option.label,
@@ -235,6 +240,7 @@ export function skinChipGroups(details: SkinDetails): readonly SkinChipGroupView
     duration: {
       id: 'duration',
       label: 'Как давно',
+      control: 'chips',
       chips: SKIN_DURATION_OPTIONS.map((option) => ({
         id: option.value,
         label: option.label,
@@ -245,6 +251,7 @@ export function skinChipGroups(details: SkinDetails): readonly SkinChipGroupView
     symptoms: {
       id: 'symptoms',
       label: 'Симптомы',
+      control: 'chips',
       chips: SKIN_SYMPTOM_OPTIONS.map((option) => ({
         id: option.value,
         label: option.label,
@@ -255,6 +262,7 @@ export function skinChipGroups(details: SkinDetails): readonly SkinChipGroupView
     fitzpatrick: {
       id: 'fitzpatrick',
       label: 'Фототип кожи',
+      control: 'chips',
       chips: SKIN_FITZPATRICK_OPTIONS.map((option) => ({
         id: String(option.value),
         label: option.label,

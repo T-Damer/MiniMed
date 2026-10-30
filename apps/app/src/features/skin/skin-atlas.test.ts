@@ -18,9 +18,7 @@ describe('skin atlas data', () => {
   it('covers every model class and marks the description-only conditions', () => {
     expect(missingAtlasClasses()).toEqual([]);
     const describedOnly = SKIN_ATLAS.filter((entry) => !entry.model).map((entry) => entry.id);
-    expect(describedOnly).toEqual(
-      expect.arrayContaining(['vitiligo', 'milia', 'furuncle', 'skin_ulcer', 'measles_koplik']),
-    );
+    expect(describedOnly).toEqual(['skin_ulcer', 'measles_koplik', 'aphthous']);
   });
 
   it('gives every condition two or three pictures and at least one source', () => {
