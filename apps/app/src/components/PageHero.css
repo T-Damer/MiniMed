@@ -93,6 +93,8 @@
   color: var(--page-hero-ink);
   opacity: 0.08;
   transform: translate(0, 0) scale(1) rotate(-12deg);
+  /* Decoration: taps go to what is under it (a toolbar's scroll arrows sat beneath it). */
+  pointer-events: none;
 }
 
 .page-hero__ecg {
