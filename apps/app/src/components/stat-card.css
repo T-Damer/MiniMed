@@ -75,23 +75,23 @@
 .ui-stat-card__chip {
   display: inline-grid;
   flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--stat-chip, 1.75rem);
+  height: var(--stat-chip, 1.75rem);
   place-items: center;
-  border-radius: 0.5rem;
+  border-radius: var(--stat-chip-radius, 0.5rem);
   color: var(--stat-tone);
   background: color-mix(in srgb, var(--stat-tone) 16%, var(--theme-surface-raised));
 }
 
 .ui-stat-card__icon {
-  width: 1rem;
-  height: 1rem;
+  width: var(--stat-icon, 1rem);
+  height: var(--stat-icon, 1rem);
 }
 
 .ui-stat-card__value {
   min-width: 0;
   color: var(--stat-tone);
-  font-size: 1.6rem;
+  font-size: var(--stat-value, 1.6rem);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.1;
@@ -100,7 +100,7 @@
 
 .ui-stat-card__label {
   color: var(--theme-text-muted);
-  font-size: 0.8125rem;
+  font-size: var(--stat-label, 0.8125rem);
   line-height: 1.25;
 }
 
@@ -109,6 +109,18 @@
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
+}
+
+/* Compact: a row of summaries that should not push the content below off the first screen. The
+   parts read their sizes from these properties. */
+.ui-stat-card--compact {
+  --stat-chip: 1.3rem;
+  --stat-chip-radius: 0.35rem;
+  --stat-icon: 0.8rem;
+  --stat-value: 1.15rem;
+  --stat-label: 0.75rem;
+  gap: 0.1rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.75rem;
 }
 
 /* A card that is a button: the same tile, with press feedback. */

@@ -351,10 +351,7 @@ export function DiaryPatientPage(props: {
             <span class="diary-patient__line">
               <Show when={born}>{(text) => <span class="diary-patient__born">{text()}</span>}</Show>
               <Show when={label}>
-                <span
-                  class="diary-presence"
-                  classList={{ 'diary-presence--online': isOnline(props.patient.summary) }}
-                >
+                <span class="diary-presence">
                   <span
                     class="diary-presence__dot"
                     classList={{ 'diary-presence__dot--online': isOnline(props.patient.summary) }}
@@ -427,6 +424,7 @@ export function DiaryPatientPage(props: {
           <>
             <StatGrid columns={3}>
               <StatCard
+                compact
                 value={
                   week()?.share === undefined ? '—' : `${Math.round((week()?.share ?? 0) * 100)} %`
                 }
@@ -443,6 +441,7 @@ export function DiaryPatientPage(props: {
                 }
               />
               <StatCard
+                compact
                 value={current().entries.length}
                 label={pluralize(current().entries.length, 'запись', 'записи', 'записей')}
                 icon="notes"
@@ -451,6 +450,7 @@ export function DiaryPatientPage(props: {
                 when={props.patient.summary.devices > 0}
                 fallback={
                   <StatCard
+                    compact
                     value="—"
                     label="Подключить телефон"
                     icon="share"
@@ -461,6 +461,7 @@ export function DiaryPatientPage(props: {
                 }
               >
                 <StatCard
+                  compact
                   value={props.patient.summary.devices}
                   label={pluralize(
                     props.patient.summary.devices,

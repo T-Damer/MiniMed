@@ -17,6 +17,8 @@ export interface StatCardClassState {
   readonly tone?: StatTone | undefined;
   readonly interactive: boolean;
   readonly pressed?: boolean | undefined;
+  /** A smaller tile for a row of summaries above denser content (the diary patient page). */
+  readonly compact?: boolean | undefined;
   readonly class?: string | undefined;
 }
 
@@ -24,6 +26,7 @@ export function statCardClass(state: StatCardClassState): string {
   const classes = ['ui-stat-card', `ui-stat-card--${state.tone ?? 'default'}`];
   if (state.interactive) classes.push('ui-stat-card--interactive');
   if (state.pressed) classes.push('ui-stat-card--pressed');
+  if (state.compact) classes.push('ui-stat-card--compact');
   if (state.class) classes.push(state.class);
   return classes.join(' ');
 }

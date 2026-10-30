@@ -28,6 +28,7 @@ import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-
 import { assessmentCountLabel, pluralRu } from '@/i18n/labels';
 import { getSplitNavigation } from '@/state/app-preferences';
 import { activeProfile } from '@/state/app-profile';
+import { byRecentEdit } from '@/state/user-questionnaire-format';
 import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   type StoredUserQuestionnaire,
@@ -84,7 +85,7 @@ export function AssessmentSpecialtyIndexPage(props: {
   const visibleSpecialties = () =>
     visibleAssessmentSpecialties(props.query, props.definitions, props.matches);
   const userQuestionnairesForAge = () =>
-    props.userQuestionnaires.filter((stored) =>
+    byRecentEdit(props.userQuestionnaires).filter((stored) =>
       toolMatchesAgeFilter(userQuestionnaireAgeScope(stored.questionnaire), props.ageFilter),
     );
   const visibleUserQuestionnaires = () => {

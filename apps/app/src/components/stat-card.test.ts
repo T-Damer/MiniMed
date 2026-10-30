@@ -23,6 +23,9 @@ function selectors(css: string): string[] {
 describe('stat card classes', () => {
   it('defaults to the neutral tone and adds interactive and pressed modifiers', () => {
     expect(statCardClass({ interactive: false })).toBe('ui-stat-card ui-stat-card--default');
+    expect(statCardClass({ interactive: false, compact: true })).toBe(
+      'ui-stat-card ui-stat-card--default ui-stat-card--compact',
+    );
     expect(statCardClass({ tone: 'danger', interactive: true, pressed: true, class: 'x' })).toBe(
       'ui-stat-card ui-stat-card--danger ui-stat-card--interactive ui-stat-card--pressed x',
     );

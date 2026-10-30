@@ -1,4 +1,3 @@
-import type { DiaryAlert } from '@localmed/contracts';
 import {
   createMemo,
   createResource,
@@ -22,9 +21,11 @@ import { Page } from '@/components/Page';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import { pluralize } from '@/diary/diary-format';
+import { DiaryApiError } from '@/features/diary/connected/diary-api';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import {
   type DoctorSession,
+  forgetDoctorSession,
   restoreDoctorSession,
   signOut,
 } from '@/features/diary/connected/doctor-account';
@@ -37,7 +38,6 @@ import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
-import { AlertDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
 import { PushHelpDialog } from '@/features/diary/dashboard/PushHelpDialog';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
@@ -52,6 +52,7 @@ import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
+import '@/components/page-skeleton.css';
 import '@/features/diary/dashboard/diary-dashboard.css';
 import { activeProfile } from '@/state/app-profile';
 
@@ -145,6 +146,31 @@ function PatientRow(props: {
  * «Дневники пациентов»: the doctor's connected diaries. Sign-in, the list with urgent marks on
  * top, and one patient's page. Everything is decrypted on this device (ADR-0026).
  */
+/** The patient list while it loads: rows shaped like the coming ones (AGENTS.md «Loading is one state»). */
+function PatientListSkeleton(): JSX.Element {
+  return (
+    <ul
+      class="diary-dash-skeleton"
+      role="status"
+      aria-busy="true"
+      aria-label="Загружаем дневники"
+      data-testid="patient-list-skeleton"
+    >
+      <For each={[72, 56, 64]}>
+        {(width) => (
+          <li class="diary-dash-skeleton__row" aria-hidden="true">
+            <span class="diary-dash-skeleton__avatar" />
+            <span class="diary-dash-skeleton__lines">
+              <span class="page-skeleton__bar" style={{ width: `${width}%` }} />
+              <span class="page-skeleton__bar diary-dash-skeleton__meta" />
+            </span>
+          </li>
+        )}
+      </For>
+    </ul>
+  );
+}
+
 export function DiaryDashboard(props: {
   readonly patientId: string | undefined;
   /** The patient view to edit, or one day as the patient saw it. */
@@ -176,8 +202,6 @@ export function DiaryDashboard(props: {
       console.warn('Порядок списка не сохранён', cause);
     }
   };
-  const [shownAlert, setShownAlert] = createSignal<DiaryAlert>();
-  const [focusDay, setFocusDay] = createSignal<string>();
 
   let stopCurrent: (() => void) | undefined;
   onCleanup(() => stopCurrent?.());
@@ -201,6 +225,15 @@ export function DiaryDashboard(props: {
       .refresh()
       .then(() => diaries.connectLive())
       .catch((cause: unknown) => {
+        // The kept session expired on the server: back to the sign-in, not a list that never loads.
+        if (cause instanceof DiaryApiError && cause.status === 401) {
+          console.warn('Дневники: сохранённый вход больше не действует');
+          stopCurrent?.();
+          forgetDoctorSession();
+          setWorkspace(undefined);
+          setSession(undefined);
+          return;
+        }
         setError(cause instanceof Error ? cause.message : 'Не удалось загрузить дневники.');
       });
   };
@@ -489,22 +522,6 @@ export function DiaryDashboard(props: {
           />
         )}
       </Show>
-      <Show when={shownAlert() && workspace()}>
-        {(diaries) => (
-          <AlertDialog
-            workspace={diaries()}
-            alert={shownAlert() as DiaryAlert}
-            onOpenDay={(day) => {
-              const alert = shownAlert();
-              setFocusDay(day);
-              // Navigate from inside the sheet: the new page takes the layer's place in history.
-              if (alert) props.onOpenPatient(alert.patientId);
-              setShownAlert(undefined);
-            }}
-            onClose={() => setShownAlert(undefined)}
-          />
-        )}
-      </Show>
       <Show when={adding() ? workspace() : undefined}>
         {(diaries) => (
           <NewPatientScreen
@@ -526,7 +543,6 @@ export function DiaryDashboard(props: {
                     version={version()}
                     onBack={props.onList}
                     onOpen={(sub) => props.onOpenPatient(patient().summary.id, sub)}
-                    initialDay={focusDay()}
                   />
                 }
               >
@@ -598,7 +614,7 @@ export function DiaryDashboard(props: {
         <Show
           when={session()}
           fallback={
-            <Show when={restored()} fallback={<p class="diary-dash__quiet">Открываем…</p>}>
+            <Show when={restored()} fallback={<PatientListSkeleton />}>
               <DoctorSignIn
                 onSignedIn={start}
                 // In the diaries-only app there is nowhere to go back to.
@@ -619,40 +635,10 @@ export function DiaryDashboard(props: {
                   {error()}
                 </p>
               </Show>
-              <Show when={alerts().length}>
-                <ul class="diary-dash-alerts" aria-label="Срочные отметки">
-                  <For each={alerts()}>
-                    {(alert) => (
-                      <li class="diary-dash-alert">
-                        <button
-                          type="button"
-                          class="diary-dash-alert__open"
-                          onClick={() => setShownAlert(alert)}
-                        >
-                          <span class="diary-dash-alert__mark" aria-hidden="true">
-                            !
-                          </span>
-                          <span class="diary-dash-alert__text">
-                            {alert.kind === 'withdrawn'
-                              ? `${label(alert.patientId)}: согласие отозвано`
-                              : `${label(alert.patientId)}: срочная отметка`}
-                            <span class="diary-dash-alert__when">{relative(alert.at)}</span>
-                          </span>
-                        </button>
-                        <Button
-                          variant="icon"
-                          aria-label="Отметить как просмотренное"
-                          icon={<AppGlyph name="check" class="diary-dash__glyph" />}
-                          onClick={() => void workspace()?.ackAlert(alert.id)}
-                        />
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
+              {/* Alerts show as «!» on their rows and in full on the patient's page (owner 2026-10-30). */}
               <Show
                 when={workspace()?.isLoaded() || version() > 0}
-                fallback={<p class="diary-dash__quiet">Загружаем и расшифровываем дневники…</p>}
+                fallback={<PatientListSkeleton />}
               >
                 <Show
                   when={patients().length}

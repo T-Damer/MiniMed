@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
+import { byRecentEdit } from '@/state/user-questionnaire-format';
 import {
   userQuestionnaireIssues,
   userQuestionnaireReadinessError,
@@ -380,5 +381,16 @@ describe('questionnaire sections, scores and ranges', () => {
         ],
       }),
     ).toThrow('раздел, которого нет');
+  });
+
+  it('lists the latest edited questionnaire first', () => {
+    const stored = (id: string, updatedAt: string) =>
+      ({ file: { id }, questionnaire: { updatedAt } }) as unknown as StoredUserQuestionnaire;
+    const order = byRecentEdit([
+      stored('old', '2026-10-01T08:00:00.000Z'),
+      stored('new', '2026-10-30T08:00:00.000Z'),
+      stored('mid', '2026-10-15T08:00:00.000Z'),
+    ]).map((item) => item.file.id);
+    expect(order).toEqual(['new', 'mid', 'old']);
   });
 });

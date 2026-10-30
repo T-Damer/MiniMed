@@ -1,0 +1,33 @@
+/* An always-visible scroll thumb where native scrollbars are overlays (components/ScrollIndicator). */
+.scroll-indicator {
+  z-index: var(--z-scroll-indicator, 30);
+  width: 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.scroll-indicator--shown {
+  opacity: 1;
+}
+
+/* The page: along the right edge, between the status bar and the bottom of the screen. */
+.scroll-indicator--page {
+  position: fixed;
+  top: calc(var(--safe-top, 0px) + 0.25rem);
+  right: calc(var(--safe-right, 0px) + 0.125rem);
+  bottom: calc(var(--safe-bottom, 0px) + 0.25rem);
+}
+
+/* Inside a box (a sheet's body): `top` and `height` follow the scrolled element. */
+.scroll-indicator--inner {
+  position: absolute;
+  right: 0.125rem;
+}
+
+.scroll-indicator__thumb {
+  width: 100%;
+  border-radius: 999px;
+  background: var(--theme-scrollbar-thumb, rgb(0 0 0 / 35%));
+  will-change: transform;
+}

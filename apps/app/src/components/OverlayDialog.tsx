@@ -12,6 +12,7 @@ import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
+import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { SkeletonLines } from '@/components/SkeletonLines';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
 import { type HistoryLayer, openHistoryLayer } from '@/state/history-layer';
@@ -70,6 +71,7 @@ function focusableElementsWithin(root: HTMLElement): HTMLElement[] {
 export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
   let backdrop: HTMLElement | undefined;
+  let body: HTMLDivElement | undefined;
   /** The press began on the backdrop itself (not a drag out of the panel that ended there). */
   let pressedBackdrop = false;
   let historyLayer: HistoryLayer | undefined;
@@ -316,6 +318,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
               </Show>
             </header>
             <div
+              ref={(element) => {
+                body = element;
+              }}
               class={`overlay-dialog-body overlay-dialog-body--${presentation()} ${props.bodyClass ?? ''}`}
             >
               {/* Data loading inside a sheet waits here, not in the page's boundary behind it
@@ -324,6 +329,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                 {props.children}
               </Suspense>
             </div>
+            <ScrollIndicator target={() => body} />
           </section>
         </div>
       </Portal>

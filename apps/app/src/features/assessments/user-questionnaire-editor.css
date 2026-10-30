@@ -29,9 +29,10 @@
   font-size: 0.875rem;
 }
 
-/* The save status lives in the header description: a quiet line, red only when saving failed. */
+/* The save status lives in the header description and takes its colour (light ink on the hero
+   band): a quiet line, red only when saving failed. */
 .user-questionnaire-editor__save-state {
-  color: var(--theme-text-muted);
+  color: inherit;
 }
 
 .user-questionnaire-editor__save-state--error {

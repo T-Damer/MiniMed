@@ -26,6 +26,8 @@ export interface StatCardProps {
   /** For a filter card: it is the one currently chosen (`aria-pressed`). */
   readonly pressed?: boolean;
   readonly disabled?: boolean;
+  /** A smaller tile: smaller figure, chip and padding. */
+  readonly compact?: boolean;
   /** Accessible name for an interactive card; defaults to «value label». */
   readonly ariaLabel?: string;
   readonly class?: string;
@@ -60,7 +62,14 @@ export function StatCard(props: StatCardProps): JSX.Element {
     <Show
       when={interactive()}
       fallback={
-        <div class={statCardClass({ tone: props.tone, interactive: false, class: props.class })}>
+        <div
+          class={statCardClass({
+            tone: props.tone,
+            interactive: false,
+            compact: props.compact,
+            class: props.class,
+          })}
+        >
           {body()}
         </div>
       }
@@ -71,6 +80,7 @@ export function StatCard(props: StatCardProps): JSX.Element {
           tone: props.tone,
           interactive: true,
           pressed: props.pressed,
+          compact: props.compact,
           class: props.class,
         })}
         aria-pressed={props.pressed}

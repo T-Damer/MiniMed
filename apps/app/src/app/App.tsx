@@ -12,7 +12,6 @@ import {
 } from 'solid-js';
 import { Dynamic, Portal } from 'solid-js/web';
 import { Toaster } from 'solid-sonner';
-
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
@@ -35,6 +34,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { PageSkeleton } from '@/components/PageSkeleton';
+import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
@@ -453,6 +453,7 @@ export function App(): JSX.Element {
       </Portal>
       <Show when={!embeddedFloatingWindow}>
         <ConversationRecorderHost />
+        <ScrollIndicator />
       </Show>
       <Show when={onboardingVisible()}>
         <Suspense>

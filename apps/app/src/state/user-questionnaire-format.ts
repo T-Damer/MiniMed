@@ -112,6 +112,15 @@ export interface StoredUserQuestionnaire {
   readonly questionnaire: UserQuestionnaire;
 }
 
+/** The latest edited first (owner 2026-10-30: «sort by time»); ties keep their order. */
+export function byRecentEdit(
+  items: readonly StoredUserQuestionnaire[],
+): readonly StoredUserQuestionnaire[] {
+  return [...items].sort((left, right) =>
+    right.questionnaire.updatedAt.localeCompare(left.questionnaire.updatedAt),
+  );
+}
+
 interface UntrustedQuestionnaireRecord {
   readonly createdAt?: unknown;
   readonly dataUrl?: unknown;
