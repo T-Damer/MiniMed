@@ -233,7 +233,9 @@ test('a reference illustration opens in the shared zoomable preview', async ({ p
     }
     await route.fulfill({ body: await readFile(file), contentType: 'image/jpeg' });
   });
-  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  // The article is read from the search core: on a busy machine it opens in up to a minute, longer
+  // than the wait for the picture below, so wait for the core first.
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true, waitForCore: true });
   const id =
     'core.catalog.pointer.reference.krasotaimedicina.disease.0007ef852d70ba32-82f435504305e1c9';
   await page.evaluate((documentId) => {
