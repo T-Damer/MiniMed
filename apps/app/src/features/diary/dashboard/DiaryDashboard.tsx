@@ -19,6 +19,7 @@ import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
+import { PatientRowsSkeleton } from '@/components/PatientRowsSkeleton';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import { pluralize } from '@/diary/diary-format';
@@ -54,7 +55,6 @@ import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
-import '@/components/page-skeleton.css';
 import '@/features/diary/dashboard/diary-dashboard.css';
 import { activeProfile } from '@/state/app-profile';
 
@@ -148,31 +148,6 @@ function PatientRow(props: {
  * «Дневники пациентов»: the doctor's connected diaries. Sign-in, the list with urgent marks on
  * top, and one patient's page. Everything is decrypted on this device (ADR-0026).
  */
-/** The patient list while it loads: rows shaped like the coming ones (AGENTS.md «Loading is one state»). */
-function PatientListSkeleton(): JSX.Element {
-  return (
-    <ul
-      class="diary-dash-skeleton"
-      role="status"
-      aria-busy="true"
-      aria-label="Загружаем дневники"
-      data-testid="patient-list-skeleton"
-    >
-      <For each={[72, 56, 64]}>
-        {(width) => (
-          <li class="diary-dash-skeleton__row" aria-hidden="true">
-            <span class="diary-dash-skeleton__avatar" />
-            <span class="diary-dash-skeleton__lines">
-              <span class="page-skeleton__bar" style={{ width: `${width}%` }} />
-              <span class="page-skeleton__bar diary-dash-skeleton__meta" />
-            </span>
-          </li>
-        )}
-      </For>
-    </ul>
-  );
-}
-
 export function DiaryDashboard(props: {
   readonly patientId: string | undefined;
   /** The patient view to edit, or one day as the patient saw it. */
@@ -654,7 +629,12 @@ export function DiaryDashboard(props: {
         <Show
           when={session()}
           fallback={
-            <Show when={restored()} fallback={<PatientListSkeleton />}>
+            <Show
+              when={restored()}
+              fallback={
+                <PatientRowsSkeleton label="Загружаем дневники" testId="patient-list-skeleton" />
+              }
+            >
               <DoctorSignIn
                 onSignedIn={start}
                 // In the diaries-only app there is nowhere to go back to.
@@ -678,7 +658,9 @@ export function DiaryDashboard(props: {
               {/* Alerts show as «!» on their rows and in full on the patient's page (owner 2026-10-30). */}
               <Show
                 when={workspace()?.isLoaded() || version() > 0}
-                fallback={<PatientListSkeleton />}
+                fallback={
+                  <PatientRowsSkeleton label="Загружаем дневники" testId="patient-list-skeleton" />
+                }
               >
                 <Show
                   when={patients().length}

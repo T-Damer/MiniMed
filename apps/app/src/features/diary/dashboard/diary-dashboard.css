@@ -71,45 +71,6 @@
   gap: 0.5rem;
 }
 
-/* The patient list while it loads (`PatientListSkeleton`): the rows' shape, no text. */
-.diary-dash-skeleton {
-  display: grid;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.diary-dash-skeleton__row {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-height: 4rem;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  background: var(--theme-surface-raised);
-}
-
-.diary-dash-skeleton__avatar {
-  flex: none;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--theme-text-faint) 18%, transparent);
-}
-
-.diary-dash-skeleton__lines {
-  display: grid;
-  flex: 1;
-  gap: 0.45rem;
-}
-
-.diary-dash-skeleton__meta {
-  width: 45%;
-  height: 0.7rem;
-}
-
 /* The list title with the diaries' notebook logo before it (public/diaries/logo.svg); the logo
    overhangs the line rather than making the header row taller. */
 .diary-dash__title {
