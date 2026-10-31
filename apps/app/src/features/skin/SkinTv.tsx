@@ -178,16 +178,6 @@ export function SkinTv(props: {
       aria-label="Камера"
       data-phase={props.phase}
     >
-      <span
-        class="skin-tv__antenna skin-tv__antenna--left"
-        classList={{ 'skin-tv__antenna--hidden': props.compact }}
-        aria-hidden="true"
-      />
-      <span
-        class="skin-tv__antenna skin-tv__antenna--right"
-        classList={{ 'skin-tv__antenna--hidden': props.compact }}
-        aria-hidden="true"
-      />
       <div class="skin-tv__body" classList={{ 'skin-tv__body--compact': props.compact }}>
         <div class="skin-tv__screen" data-testid="skin-screen" data-feed={live() ? 'live' : feed()}>
           <video

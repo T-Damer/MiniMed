@@ -12,43 +12,11 @@
   width: 100%;
   max-inline-size: 24rem;
   margin-inline: auto;
-  padding-top: 1.7rem;
-  transition:
-    max-inline-size var(--motion-slow) var(--motion-ease),
-    padding-top var(--motion-slow) var(--motion-ease);
+  transition: max-inline-size var(--motion-slow) var(--motion-ease);
 }
 
 .skin-tv--compact {
   max-inline-size: 11.5rem;
-  padding-top: 0;
-}
-
-.skin-tv__antenna {
-  position: absolute;
-  top: 0;
-  width: 0.22rem;
-  height: 2.4rem;
-  border-radius: 999px;
-  background: linear-gradient(to top, #8a8472, #4c493f);
-  transform-origin: bottom center;
-  transition:
-    opacity var(--motion-base) var(--motion-ease),
-    transform var(--motion-slow) var(--motion-ease);
-}
-
-.skin-tv__antenna--left {
-  left: calc(50% - 2.2rem);
-  transform: rotate(-26deg);
-}
-
-.skin-tv__antenna--right {
-  right: calc(50% - 2.2rem);
-  transform: rotate(24deg);
-}
-
-.skin-tv__antenna--hidden {
-  opacity: 0;
-  transform: scaleY(0.4);
 }
 
 .skin-tv__body {

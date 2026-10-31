@@ -12,7 +12,7 @@ export const SKIN_PHOTO_TOOL = {
   id: 'minimed.app.skin-photo',
   title: 'Кожа по фото',
   kindLabel: 'Сходство снимка с состояниями кожи',
-  icon: 'camera' as AppGlyphName,
+  icon: 'skin-layers' as AppGlyphName,
   /** The model takes the age bucket as a detail; photos of any age are ranked. */
   ageScope: anyAgeScope(
     'Модель обучена на фотографиях кожи взрослых и детей; возраст пациента подаётся ей как уточнение.',

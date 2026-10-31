@@ -209,6 +209,7 @@ export type AppGlyphName =
   | 'scales'
   | 'share'
   | 'qr-code'
+  | 'skin-layers'
   | 'share-fat'
   | 'stop-circle'
   | 'binoculars'
@@ -288,6 +289,10 @@ export type AppGlyphName =
 function svgBody(asset: string): string {
   return asset.slice(asset.indexOf('>') + 1, asset.lastIndexOf('</svg>'));
 }
+
+/** A block of skin seen from an angle: the wavy surface layer, the layer under it and a few cells
+ * (redrawn after the owner's reference, in the 256 grid and bold stroke of the Phosphor set). */
+const skinLayers = `<g fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M128 36 228 76 128 116 28 76Z"/><path d="M28 76v100l100 46 100-46V76M128 116v106"/><path d="M28 112q12.5-8 25 10t25 10t25 10t25 10q12.5-18 25-10t25-10t25-10t25-10"/><path d="M28 146l100 44 100-44" opacity=".55"/></g><circle cx="62" cy="145" r="9"/><circle cx="98" cy="159" r="9"/><circle cx="190" cy="145" r="9"/>`;
 
 const glyphBodies: Record<AppGlyphName, string> = {
   'refresh-fill': svgBody(arrowsClockwiseFill),
@@ -369,6 +374,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   scales: svgBody(scalesBold),
   share: svgBody(shareNetworkBold),
   'qr-code': svgBody(qrCodeBold),
+  'skin-layers': skinLayers,
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),
   binoculars: svgBody(binocularsBold),
