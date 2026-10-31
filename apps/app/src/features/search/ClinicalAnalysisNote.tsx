@@ -1,20 +1,36 @@
-import { createSignal, type JSX } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { SheetPopover } from '@/components/SheetPopover';
+import { CLINICAL_STAGE_LABEL, type ClinicalStage } from '@/features/search/clinical-stages';
 
 import './clinical-analysis-note.css';
 
 /**
  * «Клинический разбор» above the results while the mode is on: one quiet line, the explanation of
- * what the mode does sits behind its «?» button instead of in the page.
+ * what the mode does sits behind its «?» button instead of in the page. While the pass runs, the
+ * row says which stage it is in and a thin bar moves along its bottom edge: progress in place,
+ * never a spinner of its own.
  */
-export function ClinicalAnalysisNote(): JSX.Element {
+export function ClinicalAnalysisNote(props: {
+  readonly stage?: ClinicalStage | undefined;
+}): JSX.Element {
   const [helpOpen, setHelpOpen] = createSignal(false);
   return (
-    <aside class="clinical-analysis-note" aria-label="О клиническом разборе">
+    <aside
+      class="clinical-analysis-note"
+      aria-label="О клиническом разборе"
+      aria-busy={props.stage !== undefined}
+    >
       <AppGlyph name="brain-fill" class="clinical-analysis-note__icon" />
       <span class="clinical-analysis-note__label">Клинический разбор</span>
+      <span class="clinical-analysis-note__stage" role="status">
+        <Show when={props.stage} keyed>
+          {(stage) => (
+            <span class="clinical-analysis-note__stage-text">{CLINICAL_STAGE_LABEL[stage]}</span>
+          )}
+        </Show>
+      </span>
       <SheetPopover
         open={helpOpen()}
         onOpenChange={setHelpOpen}
@@ -31,6 +47,11 @@ export function ClinicalAnalysisNote(): JSX.Element {
           рекомендации по смыслу. В выдаче — исходные документы.
         </p>
       </SheetPopover>
+      <span
+        class="clinical-analysis-note__progress"
+        classList={{ 'clinical-analysis-note__progress--running': props.stage !== undefined }}
+        aria-hidden="true"
+      />
     </aside>
   );
 }

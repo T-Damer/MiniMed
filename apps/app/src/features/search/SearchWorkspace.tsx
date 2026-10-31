@@ -65,6 +65,7 @@ import { DoseCard } from '@/features/prescription/DoseCard';
 import { parseDoseQuery } from '@/features/prescription/dose-query';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
 import { ClinicalAnalysisNote } from '@/features/search/ClinicalAnalysisNote';
+import { clinicalStage } from '@/features/search/clinical-stages';
 import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
 import {
   type CalculatorSchemaWithSearch,
@@ -1482,7 +1483,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={props.scope === 'diagnosis'}>
-          <ClinicalAnalysisNote />
+          <ClinicalAnalysisNote
+            stage={clinicalStage({
+              analysing: analysisLoading(),
+              searching: loading(),
+              refreshing: refreshing(),
+            })}
+          />
         </Show>
 
         <Show
