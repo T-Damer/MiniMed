@@ -62,8 +62,23 @@ export function HomeFeatureCard(props: {
   readonly helpHref?: string;
 }): JSX.Element {
   const titleId = createUniqueId();
+  const available = (): boolean =>
+    !props.action.unavailableReason && Boolean(props.action.run ?? props.action.href);
+  /** A tap anywhere on the card does what its first button does (buttons and links keep theirs). */
+  const openFromCard = (event: MouseEvent): void => {
+    if (!available()) return;
+    if (event.target instanceof Element && event.target.closest('a, button, input, label')) return;
+    if (props.action.run) props.action.run();
+    else if (props.action.href) window.location.assign(props.action.href);
+  };
   return (
-    <section class="home-feature" aria-labelledby={titleId}>
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the card's first button is the keyboard path to the same action.
+    <section
+      class="home-feature"
+      classList={{ 'home-feature--clickable': available() }}
+      aria-labelledby={titleId}
+      onClick={openFromCard}
+    >
       <div class="home-feature__head">
         <h2 class="home-feature__title" id={titleId}>
           <AppGlyph class="home-feature__title-icon" name={props.icon} />

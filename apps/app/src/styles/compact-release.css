@@ -1215,8 +1215,16 @@ html.reader-outline-open .app-shell {
   align-items: center;
   justify-content: space-between;
   gap: 0.625rem;
-  padding: max(1rem, calc(1rem + var(--safe-top))) 0.875rem 0.75rem;
+  padding: 1rem 0.875rem 0.75rem;
   border-bottom: 1px solid rgb(72 59 34 / 18%);
+}
+
+/* The drawer covers the status bar, whose icons are light over the app's dark header: this strip
+   keeps the bar's colour there (owner 2026-10-31: «white on white»). No status bar, no strip. */
+.search-history-panel__status {
+  flex: none;
+  height: var(--safe-top, 0px);
+  background: var(--shell-bar, #47453f);
 }
 
 .search-history-panel-header > div,
@@ -2293,7 +2301,9 @@ fieldset.search-mode-picker {
 }
 
 .patient-notes-view {
-  min-height: 100dvh;
+  /* Pulled under the status bar like every page surface: as much taller, or the shell's own
+     background shows as a strip at the bottom (Избранное, owner 2026-10-31). */
+  min-height: calc(100dvh + var(--safe-top));
   margin-bottom: 0;
   padding-bottom: calc(7rem + var(--nav-safe-bottom));
   scroll-padding-bottom: calc(7rem + var(--nav-safe-bottom));

@@ -67,6 +67,9 @@ export function ScrollIndicator(props: {
     const element = scroller();
     if (!element) return;
     const source: HTMLElement | Window = props.target ? element : window;
+    // One scrollbar: the native overlay bar hides while this thumb stands in for it.
+    const host = props.target ? element : document.documentElement;
+    host.classList.add('scroll-indicator-host');
     source.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
     const observer = new ResizeObserver(schedule);
@@ -79,6 +82,7 @@ export function ScrollIndicator(props: {
       source.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
       observer.disconnect();
+      host.classList.remove('scroll-indicator-host');
       if (frame) cancelAnimationFrame(frame);
     });
   });

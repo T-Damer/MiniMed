@@ -172,6 +172,9 @@ public class MainActivity extends BridgeActivity {
         if (webView != null) {
             // Until the page paints, the WebView shows the splash ground (light or night), not white.
             webView.setBackgroundColor(ContextCompat.getColor(this, R.color.splashBackground));
+            // The page draws its own always-visible scroll thumb (components/ScrollIndicator):
+            // the WebView's fading bar beside it was a second scrollbar (owner 2026-10-31).
+            webView.setVerticalScrollBarEnabled(false);
         }
         if (webView != null && webView.getParent() instanceof View) {
             drawUnderSystemBars(webView, (View) webView.getParent());

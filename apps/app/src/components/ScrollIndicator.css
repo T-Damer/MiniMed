@@ -31,3 +31,12 @@
   background: var(--theme-scrollbar-thumb, rgb(0 0 0 / 35%));
   will-change: transform;
 }
+
+/* The scroll area it stands in for shows no native bar of its own (a second, fading scrollbar). */
+.scroll-indicator-host {
+  scrollbar-width: none;
+}
+
+.scroll-indicator-host::-webkit-scrollbar {
+  display: none;
+}
