@@ -30,6 +30,8 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
   → withAtcDrugs                 an ATC code or prefix as the whole query: the drugs that carry it in front (ATC5)
   → withDrugClass                a class word as the whole query («макролиды») or inside a short one («макролиды детям»): class card + its drugs in front (SRCH1, SRCH2)
   → withHomeopathyDemoted        homeopathic cards behind the ordinary cards that name the query (SRCH1)
+SearchWorkspace (UI)
+  → search-scope-fallback.ts     a section that found nothing: the same words over «Все источники», hits grouped by section (SRCH3, item 23)
 ```
 
 The UI never touches SQL. Every store implements the `MedicalStore` port
@@ -133,6 +135,17 @@ rule — only when the typed query names nothing:
    0.25 per letter («оменции» → «аменции»). Budget: 0.5 up to five letters, 1 up to eight, 1.5 up
    to eleven, 2 beyond. Ties go to a whole name, then the length nearest the typed one, then the
    name more documents carry.
+
+   TYPO2 (item 24) changes this: the budget is 0.5 up to five letters, 1 at six, 1.5 at seven, 2 from
+   eight; «ц» for «тс» and «щ» for «сч»/«шч» (and back) cost 0.5 (`DIGRAPHS`, read from the row of two
+   letters back); a word form (stem + a tail an ending could be, `isWordForm`) is corrected only by
+   one cheap edit to a whole name word («складчатй» → «складчатый»); a word that begins some name is
+   left as typed; a whole name beats a name beginning with the typed ending on it
+   unless that is cheaper by more than a quarter edit. `spellingCorrectionWithCost` reports whether a
+   word was corrected at more than `CONFIDENT_TYPO_COST` (1): such a *stretched* correction never
+   replaces an answer that a title or alias within two edits of the typed words already gives
+   (`responseNamesQuery(…, 'near')`), nor the answer of a query a close name already answers, and
+   applies only when its own result names the corrected words.
 2. The vocabulary (`QueryDocumentIndex.nameVocabulary`, built on first use, ~47k words over the
    released packs, 0.4 s on a laptop): words of titles, short titles, declared and navigation aliases,
    terminology names, and the core's exact source names of modules not installed
@@ -151,6 +164,24 @@ rule — only when the typed query names nothing:
    `search-correction.ts`); a tap on the marked letters puts the corrected text in the field, a tap
    anywhere else reaches the field and hides the correction until the next search. `createMedicalCore({
    spellingCorrection: false })` switches it off for measurements.
+
+### A section that finds nothing (SRCH3, item 23)
+
+`SearchWorkspace` (UI only; the core and the ranking inside a scope are untouched). After the scoped
+`core.search` of a lookup section («Клинические рекомендации», «Препараты», «Нормативные документы»,
+«МКБ…», «МКБ-11») or of a group of «Все источники» («Педиатрия») returns nothing at all — no group,
+no identity hit, no named source (`scopedSearchFoundNothing`) — `searchOtherSections`
+(`search-scope-fallback.ts`) runs the same words through `ScopedMedicalCore('all')` (lexical, lookup:
+the core's own name-variant and spelling fallbacks apply, so a misspelt name is found too), and
+`groupHitsBySection` puts each group under the section whose `documentMatchesSearchScope` accepts its
+document (narrower section first: a МКБ card is «МКБ, симптомы и состояния», not «Клинические
+рекомендации»; a hit of no section stays under «Другие источники»). Sections are ordered by their best
+hit, hits inside a section keep the ranking. The list shows one line («Поиск по запросу «…» не дал
+результатов в разделе «…»»), then «Результаты раздела «…»:» before each group; a tap on a subheader
+opens that section with the same words (`carryQuery`), the picker keeps the picked section meanwhile.
+The wider answer is computed before the list is shown (one loading state, no empty-state flash) and
+kept with the section, group and words it answers. «Клинический разбор» never falls back (it already
+searches every source but ICD-11), nor do tool lists (calculators, questionnaires) and personal notes.
 
 ## 3. Lexical retrieval
 

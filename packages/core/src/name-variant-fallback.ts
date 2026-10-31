@@ -5,9 +5,11 @@ import type {
   SearchResponse,
 } from '@localmed/contracts';
 import {
+  CONFIDENT_TYPO_COST,
   correctWord,
   isCloseToken,
   isLookupMetaToken,
+  levenshteinDistance,
   MEDICATION_SPELLING_LABEL,
   type NameVocabulary,
   nameQueryVariants,
@@ -42,11 +44,21 @@ function typedWords(query: string): readonly string[] {
   return normalizeSurfaceText(searchSubjectText(query)).match(WORD) ?? [];
 }
 
-function namesCover(names: readonly string[], words: readonly string[], exact: boolean): boolean {
+/** How near a title word must be to a typed word to answer it: a prefix, a close token, or within two edits. */
+export type NameCloseness = 'exact' | 'close' | 'near';
+
+function namesCover(
+  names: readonly string[],
+  words: readonly string[],
+  closeness: NameCloseness,
+): boolean {
   const nameWords = names.flatMap((name) => normalizeSurfaceText(name).split(/[^0-9a-zа-я]+/u));
   return words.every((word) =>
     nameWords.some(
-      (name) => name.startsWith(word) || (!exact && word.length >= 5 && isCloseToken(name, word)),
+      (name) =>
+        name.startsWith(word) ||
+        (closeness === 'close' && word.length >= 5 && isCloseToken(name, word)) ||
+        (closeness === 'near' && word.length >= 5 && levenshteinDistance(name, word, 2) <= 2),
     ),
   );
 }
@@ -54,13 +66,14 @@ function namesCover(names: readonly string[], words: readonly string[], exact: b
 /**
  * True when the response already answers the typed name: an identity hit, a terminology match, or
  * a group among the first few whose title or alias begins with every typed word — or, unless
- * `exact`, a word close to it («внеплания» for «пневмания»).
+ * `closeness` is `exact`, a word close to it («внеплания» for «пневмания»); `near` also accepts a word
+ * within two edits (a hit the typed misspelling already found).
  */
 export function responseNamesQuery(
   response: SearchResponse,
   query: string,
   index: QueryDocumentIndex,
-  exact = false,
+  closeness: NameCloseness = 'close',
 ): boolean {
   if (response.identities?.length) return true;
   const words = typedWords(query);
@@ -77,7 +90,7 @@ export function responseNamesQuery(
         ? value.filter((item): item is string => typeof item === 'string')
         : [];
     });
-    return namesCover([group.title, ...aliases], words, exact);
+    return namesCover([group.title, ...aliases], words, closeness);
   });
 }
 
@@ -120,8 +133,23 @@ export function spellingCorrection(
   query: string,
   vocabulary: NameVocabulary,
 ): QueryCorrection | null {
+  return spellingCorrectionWithCost(query, vocabulary)?.correction ?? null;
+}
+
+export interface CostedSpellingCorrection {
+  readonly correction: QueryCorrection;
+  /** Some word was corrected at more than {@link CONFIDENT_TYPO_COST}: the result must name it. */
+  readonly stretched: boolean;
+}
+
+/** {@link spellingCorrection} with the size of its largest word correction (roadmap item 24). */
+export function spellingCorrectionWithCost(
+  query: string,
+  vocabulary: NameVocabulary,
+): CostedSpellingCorrection | null {
   const normalized = normalizeSurfaceText(query);
   const corrections: QueryWordCorrection[] = [];
+  let largestCost = 0;
   let corrected = '';
   let cursor = 0;
   for (const match of normalized.matchAll(LETTER_WORD)) {
@@ -140,6 +168,7 @@ export function spellingCorrection(
     if (!found) continue;
     corrected += normalized.slice(cursor, match.index) + found.corrected;
     cursor = match.index + word.length;
+    largestCost = Math.max(largestCost, found.cost);
     corrections.push({
       original: word,
       corrected: found.corrected,
@@ -147,7 +176,10 @@ export function spellingCorrection(
     });
   }
   if (corrections.length === 0) return null;
-  return { correctedQuery: corrected + normalized.slice(cursor), corrections };
+  return {
+    correction: { correctedQuery: corrected + normalized.slice(cursor), corrections },
+    stretched: largestCost > CONFIDENT_TYPO_COST,
+  };
 }
 
 /**

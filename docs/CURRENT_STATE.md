@@ -20,6 +20,34 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Search: an empty section falls back to the other sections; real misspellings — 2026-10-31 (STATE SRCH3)
+
+Owner requests 13 and 14; roadmap items 23 and 24 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md)), design in
+[SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md) «A section that finds nothing» and «Misspelt words».
+
+- **Empty section → other sections (item 23).** A lookup in a section («Клинические рекомендации», «Препараты»,
+  «Нормативные документы», «МКБ…», «МКБ-11») or in a group of «Все источники» («Педиатрия») that finds nothing at
+  all is repeated in «Все источники»; the list shows «Поиск по запросу «…» не дал результатов в разделе «…»» and the
+  hits under «Результаты раздела «…»:», sections ordered by their best hit, ranking kept inside one. The picked
+  section stays in the picker; a tap on a subheader opens that section with the same words. Never when the scope found
+  anything (a group, an identity hit, a named source); no ranking change. «Клинический разбор» (already searches
+  everything but ICD-11), calculators, questionnaires and personal notes never fall back. Code:
+  `features/search/search-scope-fallback.ts` (+ test), `SearchScopeFallbackList.tsx`, the results list and the
+  scope-change handling of `SearchWorkspace.tsx`, one prop in `SearchHome.tsx`; e2e `search-scope-fallback.spec.ts`.
+  The wider answer is computed before the list appears (one loading state). The card component is untouched.
+- **Forgiving spelling (item 24).** Budget 0.5 up to five letters, 1 at six, 1.5 at seven, 2 from eight; «ц»/«тс» and
+  «щ»/«сч» half an edit; a left-out last letter of a word form is repaired («складчатй»); a whole name beats a name
+  beginning plus the typed ending; a correction above one edit must be named by its own result and never replaces an
+  answer a name within two edits already gives. Measured on `typo-queries.json` (929 cases kept, +1 849 `hard` cases,
+  +200 nonsense words, 220 controls): hard hit@1 0.930 → 0.954, hit@5 0.952 → 0.975; first-letter set 0.990 → 0.991;
+  controls unchanged 220/220; 2 of 2 778 cases lost a hit@5; nonsense words rewritten 10 → 14 of 200; corrected-query
+  latency on a laptop p50/p95 228/1295 → 259/1322 ms.
+- Not tested: a phone; the vocabulary does not hold body-text words; identity hits (names of modules not installed)
+  of the wider search are not shown in the fallback list.
+- Unrelated e2e failures seen while running the search suites on a tree with other sessions' work:
+  `search-icd11-section.spec.ts` (all-sources total 57 333 vs 57 404) and `search.spec.ts:202` («Как это работает» link
+  count in the feature carousel); neither touches the search path.
+
 ## «Кожа по фото» — the page (experimental, 2026-10-29)
 
 Owner spec 2026-10-29. An experimental module (`experimentalModulesEnabled`): the entry card in the home
