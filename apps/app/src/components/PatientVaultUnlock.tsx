@@ -43,6 +43,10 @@ export function PatientVaultUnlock(props: {
     createSignal<Awaited<ReturnType<typeof patientVaultStorageMode>>>();
   /** The browser refused to keep an encryption key: plaintext is the only choice left. */
   const [noDeviceKey, setNoDeviceKey] = createSignal(false);
+  /** The fingerprint / PIN check did not happen: nothing is lost, «Разблокировать» asks again. */
+  const [needsAuth, setNeedsAuth] = createSignal(false);
+  /** The Keystore key is gone; only a saved backup reopens the vault, and nothing is deleted. */
+  const [keyInvalidated, setKeyInvalidated] = createSignal(false);
   const [attempting, setAttempting] = createSignal(true);
   const [busy, setBusy] = createSignal(true);
   const [slow, setSlow] = createSignal(false);
@@ -74,8 +78,24 @@ export function PatientVaultUnlock(props: {
     })();
   });
   const fail = (cause: unknown, fallback: string): void => {
-    if (cause instanceof PatientVaultError && cause.code === 'unavailable') setNoDeviceKey(true);
+    const code = cause instanceof PatientVaultError ? cause.code : undefined;
+    // An encrypted vault that did not open is not a browser without a key: no plaintext offer.
+    if (code === 'unavailable' && !isEncryptedPatientVaultMode(storedMode())) setNoDeviceKey(true);
+    setNeedsAuth(code === 'auth-required');
+    setKeyInvalidated(code === 'key-invalidated');
     setError(cause instanceof Error ? cause.message : fallback);
+  };
+  const unlockExisting = async (): Promise<void> => {
+    setError('');
+    setNeedsAuth(false);
+    setBusy(true);
+    try {
+      unlocked(await unlockPatientVault());
+    } catch (cause) {
+      fail(cause, 'Не удалось открыть хранилище.');
+    } finally {
+      setBusy(false);
+    }
   };
   const createEncrypted = async (): Promise<void> => {
     setError('');
@@ -123,6 +143,8 @@ export function PatientVaultUnlock(props: {
   const firstUse = (): boolean => !storedMode() && !noDeviceKey();
   const heading = (): string => {
     if (busy()) return 'Открываем пациентов…';
+    if (needsAuth() && openFailed()) return 'Хранилище заблокировано';
+    if (keyInvalidated()) return 'Ключ хранилища недействителен';
     if (openFailed()) return 'Не удалось открыть защищённое хранилище';
     if (firstUse()) return 'Не удалось создать хранилище';
     return 'Карточки пациентов без шифрования';
@@ -152,9 +174,17 @@ export function PatientVaultUnlock(props: {
         </p>
       </Show>
       <Show when={error()}>
-        <p class="patient-workspace__error" role="alert">
+        <p
+          class={needsAuth() ? 'patient-workspace__note' : 'patient-workspace__error'}
+          role={needsAuth() ? 'status' : 'alert'}
+        >
           {error()}
         </p>
+      </Show>
+      <Show when={!busy() && openFailed() && !keyInvalidated()}>
+        <Button type="button" variant="primary" onClick={() => void unlockExisting()}>
+          Разблокировать
+        </Button>
       </Show>
       <Show when={!busy() && firstUse()}>
         <Button type="button" variant="primary" onClick={() => void createEncrypted()}>

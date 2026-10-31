@@ -227,6 +227,7 @@ export type PatientVaultState =
   | 'checking'
   | 'empty'
   | 'native-keychain'
+  | 'native-keychain-no-lock'
   | 'browser-device-key'
   | 'unencrypted';
 
@@ -238,6 +239,8 @@ export function dataStatus(state: PatientVaultState): SettingsStatus {
       return { label: 'Пусто', tone: 'neutral' };
     case 'native-keychain':
       return { label: 'Защищено', tone: 'ok' };
+    case 'native-keychain-no-lock':
+      return { label: 'Без блокировки экрана', tone: 'attention' };
     case 'browser-device-key':
       return { label: 'Зашифровано в браузере', tone: 'ok' };
     case 'unencrypted':
@@ -254,6 +257,8 @@ export function patientStorageDescription(state: PatientVaultState): string {
       return 'Карточек пациентов пока нет. Карточка создаётся в разделе заметок и остаётся на этом устройстве.';
     case 'native-keychain':
       return 'Карточки пациентов зашифрованы ключом этого устройства и никуда не отправляются.';
+    case 'native-keychain-no-lock':
+      return 'Карточки пациентов зашифрованы ключом этого устройства и никуда не отправляются. Без блокировки экрана хранилище не защищено отпечатком.';
     case 'browser-device-key':
       return 'Карточки пациентов зашифрованы ключом этого браузера, который нельзя скопировать вместе с данными, и никуда не отправляются. Очистка данных сайта удалит и ключ, и карточки; для реальных пациентов надёжнее приложение для Android.';
     case 'unencrypted':

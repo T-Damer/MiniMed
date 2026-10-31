@@ -49,6 +49,7 @@ import {
   lockPatientVault,
   openPatientVaultText,
   PatientVaultError,
+  patientVaultDisplayState,
   patientVaultExists,
   patientVaultStorageMode,
   readPatientBlob,
@@ -66,35 +67,110 @@ import {
 } from '@/state/patient-visit-note';
 import coreClinical from '../../../../content/tool-modules/core-clinical.json';
 
+/**
+ * A stand-in for the Android plugin that keeps the real contract: a wrapped key opens only with
+ * the protection it was made with, an auth-bound key needs a fingerprint / PIN check that stays
+ * valid for a window, and the device key survives until `retireLegacyKey`.
+ */
 const nativeBridge = vi.hoisted(() => {
-  let rawKey = new Uint8Array();
+  const marker = { device: 1, auth: 2 } as const;
+  const state = {
+    deviceKeyAlive: false,
+    authKeyAlive: false,
+    windowOpen: false,
+    prompts: 0,
+    prompt: 'ok' as 'ok' | 'cancel' | 'failed',
+    /** Auth-bound unwraps that still succeed before one fails (a blob that cannot be opened). */
+    authUnwrapsLeft: Number.POSITIVE_INFINITY,
+  };
   const base64 = (bytes: Uint8Array): string => {
     let binary = '';
     for (const byte of bytes) binary += String.fromCharCode(byte);
     return btoa(binary);
   };
+  const reject = (code: string): never => {
+    throw Object.assign(new Error(`native ${code}`), { code });
+  };
+  const authenticate = (): void => {
+    if (state.windowOpen) return;
+    state.prompts += 1;
+    if (state.prompt === 'cancel') reject('AUTH_CANCELLED');
+    if (state.prompt === 'failed') reject('AUTH_FAILED');
+    state.windowOpen = true;
+  };
   return {
     native: false,
     available: false,
-    deleteKey: vi.fn(async () => undefined),
-    wrapKey: vi.fn(async (key: Uint8Array) => {
-      rawKey = key.slice();
+    authAvailable: false,
+    state,
+    deleteKey: vi.fn(async () => {
+      state.deviceKeyAlive = false;
+      state.authKeyAlive = false;
+    }),
+    wrapKey: vi.fn(async (key: Uint8Array, protection: 'device' | 'auth' = 'device') => {
+      if (protection === 'auth') {
+        authenticate();
+        state.authKeyAlive = true;
+      } else {
+        state.deviceKeyAlive = true;
+      }
+      const ciphertext = new Uint8Array(48).fill(marker[protection]);
+      ciphertext.set(key.slice(), 0);
       return {
-        ivBase64: base64(new Uint8Array(12).fill(1)),
-        ciphertextBase64: base64(new Uint8Array(48).fill(2)),
+        ivBase64: base64(new Uint8Array(12).fill(marker[protection])),
+        ciphertextBase64: base64(ciphertext),
       };
     }),
-    unwrapKey: vi.fn(async () => rawKey.slice()),
+    unwrapKey: vi.fn(
+      async (
+        wrapped: { readonly ciphertextBase64: string },
+        protection: 'device' | 'auth' = 'device',
+      ) => {
+        if (protection === 'auth') {
+          if (!state.authKeyAlive) reject('KEY_INVALIDATED');
+          authenticate();
+          if (state.authUnwrapsLeft <= 0) throw new Error('stored blob does not open');
+          state.authUnwrapsLeft -= 1;
+        } else if (!state.deviceKeyAlive) {
+          throw new Error('Vault key is missing');
+        }
+        const ciphertext = Uint8Array.from(atob(wrapped.ciphertextBase64), (c) => c.charCodeAt(0));
+        if (ciphertext[47] !== marker[protection]) throw new Error('AEADBadTagException');
+        return ciphertext.slice(0, 32);
+      },
+    ),
+    retire: vi.fn(async () => {
+      if (!state.authKeyAlive) return false;
+      state.deviceKeyAlive = false;
+      return true;
+    }),
   };
 });
 
-vi.mock('@/state/patient-vault-native', () => ({
+vi.mock('@/state/patient-vault-native', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/state/patient-vault-native')>()),
   deletePatientVaultNativeKey: nativeBridge.deleteKey,
+  isNativePatientVaultAuthAvailable: async () => nativeBridge.native && nativeBridge.authAvailable,
   isNativePatientVaultKeychainAvailable: async () => nativeBridge.available,
   isPatientVaultNativePlatform: () => nativeBridge.native,
+  retireLegacyPatientVaultKey: nativeBridge.retire,
   unwrapPatientVaultKey: nativeBridge.unwrapKey,
   wrapPatientVaultKey: nativeBridge.wrapKey,
 }));
+
+function resetNativeBridge(): void {
+  nativeBridge.native = false;
+  nativeBridge.available = false;
+  nativeBridge.authAvailable = false;
+  Object.assign(nativeBridge.state, {
+    deviceKeyAlive: false,
+    authKeyAlive: false,
+    windowOpen: false,
+    prompts: 0,
+    prompt: 'ok',
+    authUnwrapsLeft: Number.POSITIVE_INFINITY,
+  });
+}
 
 type Listener = (() => void) | null;
 
@@ -297,8 +373,7 @@ describe('patient vault storage modes', () => {
 
   beforeEach(() => {
     fakeDatabase = installIndexedDbDouble();
-    nativeBridge.native = false;
-    nativeBridge.available = false;
+    resetNativeBridge();
     lockPatientVault();
   });
 
@@ -625,8 +700,7 @@ describe('browser device-key vault', () => {
 
   beforeEach(() => {
     fakeDatabase = installIndexedDbDouble();
-    nativeBridge.native = false;
-    nativeBridge.available = false;
+    resetNativeBridge();
     lockPatientVault();
   });
 
@@ -869,8 +943,7 @@ describe('visit note autosave', () => {
       dispatchEvent: target.dispatchEvent.bind(target),
     });
     vi.stubGlobal('document', new EventTarget());
-    nativeBridge.native = false;
-    nativeBridge.available = false;
+    resetNativeBridge();
     lockPatientVault();
   });
 
@@ -1031,8 +1104,7 @@ describe('form data and diagnosis drafts', () => {
       dispatchEvent: target.dispatchEvent.bind(target),
     });
     vi.stubGlobal('document', new EventTarget());
-    nativeBridge.native = false;
-    nativeBridge.available = false;
+    resetNativeBridge();
     lockPatientVault();
   });
 
@@ -1142,5 +1214,240 @@ describe('form data and diagnosis drafts', () => {
     const recovered = await recoverPatientDrafts();
     expect(recovered?.episodes[0]?.diagnosis).toEqual({ text: 'Бронхит', icd10: 'J20.9' });
     expect(stored(DIAGNOSIS_WRITE_AHEAD_KEY)).toBe('');
+  });
+});
+
+describe('native vault with a fingerprint / PIN key', () => {
+  let fakeDatabase: FakeVaultDatabase;
+
+  interface WrappedRecord {
+    protection?: string;
+    ivBase64: string;
+    ciphertextBase64: string;
+  }
+  const storedWrapped = (): WrappedRecord => {
+    const record = fakeDatabase.stores.get('vault')?.get('current') as
+      | { wrappedKey: WrappedRecord }
+      | undefined;
+    if (!record) throw new Error('no stored vault');
+    return record.wrappedKey;
+  };
+
+  /** A vault made by the build before the fingerprint unlock: device key, no `protection` field. */
+  const createLegacyVault = async (): Promise<void> => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = false;
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-legacy', 'event-1'));
+    const record = fakeDatabase.stores.get('vault')?.get('current') as {
+      wrappedKey: { protection?: string };
+    };
+    delete record.wrappedKey.protection;
+    lockPatientVault();
+    nativeBridge.authAvailable = true;
+    nativeBridge.state.prompts = 0;
+    nativeBridge.wrapKey.mockClear();
+    nativeBridge.unwrapKey.mockClear();
+  };
+
+  beforeEach(() => {
+    fakeDatabase = installIndexedDbDouble();
+    resetNativeBridge();
+    lockPatientVault();
+  });
+
+  afterEach(() => {
+    lockPatientVault();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('creates a new vault behind the auth-bound key and asks once', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+    await createPatientVault();
+
+    expect(storedWrapped().protection).toBe('auth');
+    expect(nativeBridge.state.prompts).toBe(1);
+    expect(nativeBridge.state.deviceKeyAlive).toBe(false);
+
+    // The window is still open: the next unlock needs no second check.
+    lockPatientVault();
+    await unlockPatientVault();
+    expect(nativeBridge.state.prompts).toBe(1);
+
+    // After the window the prompt returns.
+    lockPatientVault();
+    nativeBridge.state.windowOpen = false;
+    await unlockPatientVault();
+    expect(nativeBridge.state.prompts).toBe(2);
+  });
+
+  it('moves a legacy vault to the auth-bound key, then retires the device key', async () => {
+    await createLegacyVault();
+    expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+
+    const snapshot = await unlockPatientVault();
+
+    expect(snapshot.profiles[0]?.id).toBe('patient-legacy');
+    expect(storedWrapped().protection).toBe('auth');
+    expect(nativeBridge.state.prompts).toBe(1);
+    expect(nativeBridge.retire).toHaveBeenCalledOnce();
+    expect(nativeBridge.state.deviceKeyAlive).toBe(false);
+
+    // Everything still opens through the new key alone, snapshot and later writes included.
+    await writePatientVault(patientSnapshotWithEvent('patient-after', 'event-2'));
+    lockPatientVault();
+    nativeBridge.state.windowOpen = false;
+    expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-after');
+  });
+
+  it('a cancelled prompt keeps a legacy vault locked and untouched, and it opens on retry', async () => {
+    await createLegacyVault();
+    const before = JSON.stringify(storedWrapped());
+    nativeBridge.state.prompt = 'cancel';
+
+    await expect(unlockPatientVault()).rejects.toMatchObject({
+      code: 'auth-required',
+      message: expect.stringContaining('заблокировано'),
+    });
+
+    expect(isPatientVaultUnlocked()).toBe(false);
+    expect(JSON.stringify(storedWrapped())).toBe(before);
+    expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+    expect(nativeBridge.retire).not.toHaveBeenCalled();
+    expect(nativeBridge.deleteKey).not.toHaveBeenCalled();
+    expect(await patientVaultExists()).toBe(true);
+
+    nativeBridge.state.prompt = 'ok';
+    expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-legacy');
+    expect(storedWrapped().protection).toBe('auth');
+  });
+
+  it('a cancelled prompt on an auth-bound vault leaves it locked, and it opens on retry', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-auth', 'event-1'));
+    lockPatientVault();
+    nativeBridge.state.windowOpen = false;
+    nativeBridge.state.prompt = 'cancel';
+
+    await expect(unlockPatientVault()).rejects.toMatchObject({ code: 'auth-required' });
+    expect(isPatientVaultUnlocked()).toBe(false);
+    await expect(readPatientVault()).rejects.toMatchObject({ code: 'locked' });
+
+    nativeBridge.state.prompt = 'ok';
+    expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-auth');
+  });
+
+  it('keeps the old blob and the old key when the new blob cannot be stored', async () => {
+    await createLegacyVault();
+    const before = JSON.stringify(storedWrapped());
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    // The migration write is the only readwrite transaction an unlock makes.
+    fakeDatabase.failNextReadwrite = true;
+
+    const snapshot = await unlockPatientVault();
+
+    expect(snapshot.profiles[0]?.id).toBe('patient-legacy');
+    expect(JSON.stringify(storedWrapped())).toBe(before);
+    expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+    expect(nativeBridge.retire).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
+
+    // The next unlock finishes the move.
+    lockPatientVault();
+    await unlockPatientVault();
+    expect(storedWrapped().protection).toBe('auth');
+    expect(nativeBridge.state.deviceKeyAlive).toBe(false);
+  });
+
+  it('puts the old blob back when the stored new blob does not verify', async () => {
+    await createLegacyVault();
+    const before = JSON.stringify(storedWrapped());
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    // The check right after the wrap passes; the check of the stored copy fails.
+    nativeBridge.state.authUnwrapsLeft = 1;
+
+    const snapshot = await unlockPatientVault();
+
+    expect(snapshot.profiles[0]?.id).toBe('patient-legacy');
+    expect(JSON.stringify(storedWrapped())).toBe(before);
+    expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+    expect(nativeBridge.retire).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
+  });
+
+  it('keeps the device key on a phone without a secure lock screen and says so', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = false;
+    await createPatientVault();
+
+    expect(storedWrapped().protection).toBe('device');
+    expect(nativeBridge.state.prompts).toBe(0);
+    expect(await patientVaultDisplayState()).toBe('native-keychain-no-lock');
+
+    lockPatientVault();
+    await unlockPatientVault();
+    expect(nativeBridge.state.prompts).toBe(0);
+    expect(nativeBridge.retire).not.toHaveBeenCalled();
+    expect(storedWrapped().protection).toBe('device');
+  });
+
+  it('reads as an ordinary protected vault while a legacy one waits for its first unlock', async () => {
+    await createLegacyVault();
+    expect(await patientVaultDisplayState()).toBe('native-keychain');
+  });
+
+  it('reports a removed key without deleting or resetting anything', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-kept', 'event-1'));
+    lockPatientVault();
+    // Android drops auth-bound keys when the lock screen is removed.
+    nativeBridge.state.authKeyAlive = false;
+    const before = JSON.stringify(fakeDatabase.stores.get('vault')?.get('current'));
+
+    await expect(unlockPatientVault()).rejects.toMatchObject({
+      code: 'key-invalidated',
+      message: expect.stringContaining('копии'),
+    });
+
+    expect(JSON.stringify(fakeDatabase.stores.get('vault')?.get('current'))).toBe(before);
+    expect(nativeBridge.deleteKey).not.toHaveBeenCalled();
+    expect(await patientVaultExists()).toBe(true);
+  });
+
+  it('retires a leftover device key after an auth-bound unlock proved the new blob', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+    await createPatientVault();
+    // An upgrade that stored its blob and then lost the app before retiring the old key.
+    nativeBridge.state.deviceKeyAlive = true;
+    lockPatientVault();
+
+    await unlockPatientVault();
+
+    expect(nativeBridge.retire).toHaveBeenCalledOnce();
+    expect(nativeBridge.state.deviceKeyAlive).toBe(false);
+  });
+
+  it('does not create a vault when the very first prompt is cancelled', async () => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+    nativeBridge.state.prompt = 'cancel';
+
+    await expect(createPatientVault()).rejects.toMatchObject({ code: 'auth-required' });
+    expect(await patientVaultExists()).toBe(false);
   });
 });

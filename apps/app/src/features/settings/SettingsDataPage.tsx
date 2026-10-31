@@ -12,7 +12,7 @@ import {
   type PatientVaultState,
   patientStorageDescription,
 } from '@/features/settings/settings-status';
-import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
+import { PATIENT_VAULT_EVENT, patientVaultDisplayState } from '@/state/patient-vault';
 
 /** One backup action: the whole row is the button, a download mark trails. */
 function BackupRow(props: {
@@ -51,9 +51,9 @@ function createPatientVaultState(): Accessor<PatientVaultState> {
   onMount(() => {
     let disposed = false;
     const sync = (): void => {
-      patientVaultStorageMode().then(
-        (mode) => {
-          if (!disposed) setState(mode ?? 'empty');
+      patientVaultDisplayState().then(
+        (next) => {
+          if (!disposed) setState(next);
         },
         (cause: unknown) => {
           console.warn('Хранилище пациентов не прочитано.', cause);

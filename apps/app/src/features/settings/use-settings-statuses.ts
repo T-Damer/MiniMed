@@ -54,7 +54,7 @@ import {
   getClinicianProfile,
   subscribeClinicianProfile,
 } from '@/state/clinician-profile';
-import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
+import { PATIENT_VAULT_EVENT, patientVaultDisplayState } from '@/state/patient-vault';
 import { getThemePreference, subscribeTheme, type ThemePreference } from '@/state/theme';
 import { RELEASE_VERSION } from '../../../../../release';
 
@@ -108,7 +108,7 @@ export function useSettingsStatuses(inputs: SettingsStatusInputs): Accessor<Sett
       if (selected === null) setAsrCached(false);
       else guard(isAsrModelCached(selected), setAsrCached);
     };
-    const syncVault = () => guard(patientVaultStorageMode(), (mode) => setVault(mode ?? 'empty'));
+    const syncVault = () => guard(patientVaultDisplayState(), setVault);
 
     const onQueue = () => setTasks(queue.list());
     const syncEcg = () => setEcgState(ecgPackageStatus().state);

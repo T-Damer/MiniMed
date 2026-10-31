@@ -202,6 +202,10 @@ describe('settings statuses', () => {
 
   it('describes the patient storage in plain words', () => {
     expect(patientStorageDescription('native-keychain')).toMatch(/зашифрованы ключом/u);
+    expect(patientStorageDescription('native-keychain-no-lock')).toMatch(
+      /Без блокировки экрана хранилище не защищено отпечатком/u,
+    );
+    expect(dataStatus('native-keychain-no-lock').tone).toBe('attention');
     expect(patientStorageDescription('browser-device-key')).toMatch(/ключом этого браузера/u);
     expect(patientStorageDescription('unencrypted')).toMatch(/без шифрования/u);
     expect(patientStorageDescription('empty')).toMatch(/пока нет/u);
