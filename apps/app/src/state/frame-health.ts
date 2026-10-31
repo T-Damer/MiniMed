@@ -72,8 +72,13 @@ export function useFrameHealth(): Accessor<FrameHealth> {
   const type = observedEntryType();
   if (type) {
     let blocked = 0;
+    // A frame's report arrives after the frame: the start-up frames that ended just after the pulse
+    // appeared were counted as if the app were struggling now (yellow for ten seconds after every
+    // start on the owner's phone). Only frames that began while the pulse was watching count.
+    const watchingSince = performance.now();
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
+        if (entry.startTime < watchingSince) continue;
         // The part of a long frame or task past 50 ms is what held input and drawing up.
         const reported = (entry as PerformanceEntry & { readonly blockingDuration?: number })
           .blockingDuration;

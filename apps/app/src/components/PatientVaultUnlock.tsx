@@ -2,6 +2,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { PatientRowsSkeleton } from '@/components/PatientRowsSkeleton';
 import { PatientVaultRecoveryForm } from '@/components/PatientVaultRecovery';
 import { Heading } from '@/components/Text';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
@@ -242,9 +243,7 @@ export function PatientVaultUnlock(props: {
   );
   const pending = (): JSX.Element => (
     <Show when={attempting() && slow()}>
-      <p class="patient-vault-unlock__pending" role="status">
-        Открываем пациентов…
-      </p>
+      <PatientRowsSkeleton label="Открываем пациентов" testId="patient-vault-pending" />
     </Show>
   );
   const dialog = props.dialog;
