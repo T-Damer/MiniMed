@@ -165,6 +165,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalMedSharePlugin.class);
         registerPlugin(LocalMedSystemUiPlugin.class);
         registerPlugin(LocalMedPatientVaultPlugin.class);
+        registerPlugin(LocalMedCameraPlugin.class);
         registerPlugin(LocalMedTranscriberPlugin.class);
         super.onCreate(savedInstanceState);
 

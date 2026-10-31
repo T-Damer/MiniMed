@@ -12,6 +12,7 @@ import {
   Show,
   Switch,
 } from 'solid-js';
+import { toast } from 'solid-sonner';
 import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { createFlipAnimator } from '@/components/flip-layout';
@@ -40,6 +41,7 @@ import {
   describedConditions,
   skinDangerSummary,
 } from '@/features/skin/skin-atlas';
+import { squareJpegFromBlob } from '@/features/skin/skin-crop';
 import { mergeSkinDetails, patientSkinDetails } from '@/features/skin/skin-details';
 import {
   buildSkinCatalog,
@@ -51,6 +53,10 @@ import { SKIN_CLASSES } from '@/features/skin/skin-model';
 import { skinModel } from '@/features/skin/skin-model-client';
 import { resolveSkinModel } from '@/features/skin/skin-model-test-hook';
 import { subscribeSkinPack } from '@/features/skin/skin-pack';
+import {
+  SKIN_PHOTO_HANDOFF_EVENT,
+  takeHandedOffSkinPhoto,
+} from '@/features/skin/skin-photo-handoff';
 import {
   SKIN_SCAN_STATUS_LINES,
   skinClassById,
@@ -154,6 +160,18 @@ export function SkinPhotoWorkspace(props: {
   onMount(() => {
     void session.init();
     onCleanup(subscribeSkinPack(() => void refreshModel()));
+    // A camera photo that arrived after the app restarted is frozen on the TV like a fresh shot.
+    const receive = (): void => {
+      const photo = takeHandedOffSkinPhoto();
+      if (!photo) return;
+      squareJpegFromBlob(photo).then(
+        (square) => session.setPhoto(square),
+        () => toast.error('Не удалось открыть снимок.'),
+      );
+    };
+    receive();
+    window.addEventListener(SKIN_PHOTO_HANDOFF_EVENT, receive);
+    onCleanup(() => window.removeEventListener(SKIN_PHOTO_HANDOFF_EVENT, receive));
   });
   onCleanup(() => {
     unsubscribe();

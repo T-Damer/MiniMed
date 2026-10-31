@@ -30,6 +30,7 @@ import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
 import { useFindShortcut } from '@/app/use-find-shortcut';
 import { useNativeBack } from '@/app/use-native-back';
+import { useRestoredCameraPhoto } from '@/app/use-restored-camera-photo';
 import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
@@ -370,6 +371,7 @@ export function App(): JSX.Element {
   });
   useFindShortcut();
   useNativeBack({ view: navigation.view, navigate: navigation.navigate });
+  useRestoredCameraPhoto();
 
   const collapseFloatingWindow = (id: string): void => {
     const windowState = floatingWindows.windowFor(id);

@@ -3,6 +3,12 @@ import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
+  captureNativePhoto,
+  NativeCameraError,
+  nativeCameraMessage,
+  usesNativeCamera,
+} from '@/features/camera/native-camera';
+import {
   activeZoomChip,
   type SkinCameraSession,
   startSkinCamera,
@@ -48,6 +54,8 @@ export function SkinTv(props: {
   let video: HTMLVideoElement | undefined;
   let fileInput: HTMLInputElement | undefined;
   let attempt = 0;
+  /** Android: the shot is taken by the system camera app, the screen stays on its idle static. */
+  const native = usesNativeCamera();
 
   const idle = (): boolean => props.phase === 'idle';
   const live = (): boolean => idle() && feed() === 'live' && session() !== undefined;
@@ -65,6 +73,10 @@ export function SkinTv(props: {
 
   const startCamera = async (): Promise<void> => {
     if (session()) return;
+    if (native) {
+      setFeed('static');
+      return;
+    }
     const mine = ++attempt;
     setFeed('starting');
     const result = await startSkinCamera();
@@ -119,7 +131,13 @@ export function SkinTv(props: {
     onCleanup(() => window.clearInterval(timer));
   });
 
-  const openPicker = (): void => fileInput?.click();
+  /** The gallery button opens the picker through the same input that, on Android, takes a photo. */
+  let galleryRequested = false;
+  const openPicker = (): void => {
+    galleryRequested = true;
+    fileInput?.click();
+    galleryRequested = false;
+  };
 
   const takeFile = async (event: Event & { currentTarget: HTMLInputElement }): Promise<void> => {
     const file = event.currentTarget.files?.[0];
@@ -129,6 +147,23 @@ export function SkinTv(props: {
       props.onPhoto(await squareJpegFromBlob(file));
     } catch {
       toast.error('Не удалось открыть снимок.');
+    }
+  };
+
+  const shootNative = async (): Promise<void> => {
+    if (!idle() || capturing()) return;
+    setCapturing(true);
+    try {
+      const file = await captureNativePhoto('skin');
+      if (file) props.onPhoto(await squareJpegFromBlob(file));
+    } catch (cause) {
+      toast.error(
+        cause instanceof NativeCameraError
+          ? nativeCameraMessage(cause.failure)
+          : 'Не удалось открыть снимок.',
+      );
+    } finally {
+      setCapturing(false);
     }
   };
 
@@ -225,7 +260,11 @@ export function SkinTv(props: {
                 class="skin-tv__pick-label"
                 classList={{ 'skin-tv__pick-label--hidden': feed() !== 'static' }}
               >
-                {feed() === 'static' ? 'Нажмите, чтобы загрузить фото' : 'Загрузить фото'}
+                {native
+                  ? 'Нажмите, чтобы снять'
+                  : feed() === 'static'
+                    ? 'Нажмите, чтобы загрузить фото'
+                    : 'Загрузить фото'}
               </span>
               <input
                 ref={(element) => {
@@ -236,6 +275,12 @@ export function SkinTv(props: {
                 accept="image/*"
                 aria-label="Загрузить фото"
                 data-testid="skin-file"
+                onClick={(event) => {
+                  if (!native || galleryRequested) return;
+                  // The screen takes a photo; the gallery has its own button.
+                  event.preventDefault();
+                  void shootNative();
+                }}
                 onChange={(event) => void takeFile(event)}
               />
               <AppGlyph
@@ -312,14 +357,18 @@ export function SkinTv(props: {
               <button
                 type="button"
                 class="skin-tv__shutter"
-                classList={{ 'skin-tv__shutter--upload': !live() }}
-                aria-label={live() ? 'Снять' : 'Загрузить фото'}
+                classList={{ 'skin-tv__shutter--upload': !live() && !native }}
+                aria-label={live() || native ? 'Снять' : 'Загрузить фото'}
                 data-testid="skin-shutter"
                 disabled={capturing()}
-                onClick={() => (live() ? void shoot() : openPicker())}
+                onClick={() => {
+                  if (native) void shootNative();
+                  else if (live()) void shoot();
+                  else openPicker();
+                }}
               >
                 <Show
-                  when={live()}
+                  when={live() || native}
                   fallback={<AppGlyph name="image" class="skin-tv__shutter-icon" />}
                 >
                   <span class="skin-tv__shutter-ring" />
@@ -358,7 +407,7 @@ export function SkinTv(props: {
             </Show>
           </div>
           <div class="skin-tv__chin-end">
-            <Show when={idle() && live()}>
+            <Show when={idle() && (live() || native)}>
               <button
                 type="button"
                 class="skin-tv__knob"

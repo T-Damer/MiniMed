@@ -1,5 +1,12 @@
-import type { JSX } from 'solid-js';
+import { type JSX, Show } from 'solid-js';
+import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
+import {
+  captureNativePhoto,
+  NativeCameraError,
+  nativeCameraMessage,
+  usesNativeCamera,
+} from '@/features/camera/native-camera';
 
 export const ECG_PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
@@ -19,28 +26,56 @@ export function EcgPhotoPicker(props: {
     event.currentTarget.value = '';
     if (file) props.onFile(file);
   };
+  /** Android: the system camera app, not the WebView's `<input capture>`. */
+  const native = usesNativeCamera();
+  const shoot = async (): Promise<void> => {
+    try {
+      const file = await captureNativePhoto('ecg');
+      if (file) props.onFile(file);
+    } catch (cause) {
+      toast.error(
+        nativeCameraMessage(cause instanceof NativeCameraError ? cause.failure : 'failed'),
+      );
+    }
+  };
+  const cameraLabel = (): string => (props.replacing ? 'Переснять' : 'Фото');
+  const cameraClasses = (): Record<string, boolean> => ({
+    'ecg-picker__option--primary': !props.replacing,
+    'ecg-picker__option--stretch': props.stretch ?? false,
+    'ecg-picker__option--wide': props.stack ?? false,
+  });
   return (
     <div class="ecg-picker" classList={{ 'ecg-picker--stack': props.stack ?? false }}>
-      <label
-        class="ecg-picker__option"
-        classList={{
-          'ecg-picker__option--primary': !props.replacing,
-          'ecg-picker__option--stretch': props.stretch ?? false,
-          'ecg-picker__option--wide': props.stack ?? false,
-        }}
+      <Show
+        when={native}
+        fallback={
+          <label class="ecg-picker__option" classList={cameraClasses()}>
+            <AppGlyph class="ecg-picker__icon" name="camera" />
+            {cameraLabel()}
+            <input
+              class="ecg-picker__input"
+              type="file"
+              accept={ECG_PHOTO_ACCEPT}
+              capture="environment"
+              aria-label="Сфотографировать ЭКГ"
+              disabled={props.disabled}
+              onChange={pick}
+            />
+          </label>
+        }
       >
-        <AppGlyph class="ecg-picker__icon" name="camera" />
-        {props.replacing ? 'Переснять' : 'Фото'}
-        <input
-          class="ecg-picker__input"
-          type="file"
-          accept={ECG_PHOTO_ACCEPT}
-          capture="environment"
+        <button
+          class="ecg-picker__option"
+          classList={cameraClasses()}
+          type="button"
           aria-label="Сфотографировать ЭКГ"
           disabled={props.disabled}
-          onChange={pick}
-        />
-      </label>
+          onClick={() => void shoot()}
+        >
+          <AppGlyph class="ecg-picker__icon" name="camera" />
+          {cameraLabel()}
+        </button>
+      </Show>
       <label
         class="ecg-picker__option"
         classList={{ 'ecg-picker__option--stretch': props.stretch ?? false }}

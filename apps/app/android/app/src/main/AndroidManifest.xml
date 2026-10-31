@@ -57,8 +57,10 @@
     <!-- Capacitor's WebChromeClient asks for this together with RECORD_AUDIO on every getUserMedia
          audio request and denies the page unless both are granted; it is a normal permission. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <!-- «Кожа по фото»: getUserMedia video in the WebView. Capacitor's WebChromeClient grants the page's
-         camera request once the runtime permission is held; phones without a camera still install. -->
+    <!-- «Кожа по фото» and «ЭКГ по фото»: LocalMedCameraPlugin opens the system camera app, which with this
+         declared requires the runtime permission (requested by the plugin). The web build's getUserMedia
+         is granted by Capacitor's WebChromeClient under the same permission; phones without a camera
+         still install. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
