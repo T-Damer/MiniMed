@@ -3,6 +3,8 @@
 // The same entry the ECG tool and @huggingface/transformers use: one ONNX Runtime wasm in the app.
 import * as ort from 'onnxruntime-web/webgpu';
 
+import { pinOrtWasmFiles } from '@/features/onnx/ort-wasm-paths';
+
 interface ModelRef {
   readonly url: string;
   /** Set for a graph of the installed skin pack: it is read from this Cache Storage cache. */
@@ -50,7 +52,7 @@ function load(ref: ModelRef): Promise<ort.InferenceSession> {
   const key = `${ref.cacheName ?? ''}|${ref.url}`;
   const known = sessions.get(key);
   if (known) return known;
-  ort.env.wasm.numThreads = 1;
+  pinOrtWasmFiles(ort.env);
   const session = modelBytes(ref).then((bytes) =>
     ort.InferenceSession.create(bytes, {
       executionProviders: ['wasm'],

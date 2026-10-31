@@ -4,7 +4,6 @@ import { RawImage } from '@huggingface/transformers';
 // The same entry @huggingface/transformers uses: one ONNX Runtime wasm in the app instead of two
 // (the default entry adds a 27 MB WebGPU/JSEP build this CPU-only model never uses).
 import * as ort from 'onnxruntime-web/webgpu';
-
 import {
   ECG_DIGITIZER_CONFIG_FILE,
   ECG_DIGITIZER_WEIGHTS_FILE,
@@ -23,6 +22,7 @@ import {
   enhanceSignalWithBlueInk,
   extractDigitizedEcg,
 } from '@/features/calculators/ecg-waveform-digitizer';
+import { pinOrtWasmFiles } from '@/features/onnx/ort-wasm-paths';
 
 interface DigitizeMessage {
   readonly type: 'digitize';
@@ -98,7 +98,7 @@ async function directDigitizer(cache: Cache, spec: DigitizerSpec): Promise<Digit
   const response = await cache.match(ecgModelStorageUrl(ECG_DIGITIZER_WEIGHTS_FILE));
   if (!response)
     throw new Error(`Оцифровщик ЭКГ: в кеше отсутствует ${ECG_DIGITIZER_WEIGHTS_FILE}.`);
-  ort.env.wasm.numThreads = 1;
+  pinOrtWasmFiles(ort.env);
   const session = await ort.InferenceSession.create(await response.arrayBuffer(), {
     executionProviders: ['wasm'],
     graphOptimizationLevel: 'all',
