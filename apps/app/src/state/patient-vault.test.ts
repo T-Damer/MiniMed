@@ -1539,7 +1539,9 @@ describe('vault recovery code', () => {
       expect(record().recovery).toMatchObject({ confirmed: false });
       expect(raw()).not.toContain(code);
       expect(raw()).not.toContain(code.replaceAll('-', ''));
-      expect(JSON.stringify({ ...localStorage })).not.toContain(code);
+      // Node test runs may have no Web Storage at all; where it exists, the code is not in it.
+      const storage = typeof localStorage === 'undefined' ? {} : { ...localStorage };
+      expect(JSON.stringify(storage)).not.toContain(code);
       expect(await patientVaultHasRecovery()).toBe(true);
     });
 
