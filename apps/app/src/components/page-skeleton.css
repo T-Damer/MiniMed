@@ -21,7 +21,10 @@
 
 .page-skeleton__paper {
   flex: 1 0 auto;
-  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+  /* After a short pause: a quick load shows no lines at all, and the reader's controls (asked back
+     by `SkeletonLines`, a 180 ms slide) are in place before the lines appear. */
+  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out) 240ms
+    both;
   pointer-events: none;
 }
 
@@ -79,7 +82,10 @@
   display: grid;
   gap: 0.9375rem;
   padding-block: 0.75rem;
-  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+  /* After a short pause: a quick load shows no lines at all, and the reader's controls (asked back
+     by `SkeletonLines`, a 180 ms slide) are in place before the lines appear. */
+  animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out) 240ms
+    both;
   pointer-events: none;
 }
 

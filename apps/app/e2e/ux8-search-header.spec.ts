@@ -119,7 +119,7 @@ test('the first run shows no status line while the download waits for the greeti
 });
 
 for (const width of [360, 390, 1280]) {
-  test(`the source card puts a compact download button in its header row at ${width}px`, async ({
+  test(`the source card puts a download icon in its tag row, the title at full width, at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
@@ -131,27 +131,31 @@ for (const width of [360, 390, 1280]) {
       .locator('.result-group')
       .filter({ has: page.locator('.result-group__action') })
       .first();
-    const chip = group.locator('.search-download-chip');
-    await expect(chip).toBeVisible({ timeout: 60_000 });
-    // The sentence stays in the accessible name; only the size is printed.
-    await expect(chip).toHaveAccessibleName(/^Скачать полный текст · .+ · [\d.,\s]+(КБ|МБ|ГБ)$/u);
-    await expect(chip).toHaveText(/^[\d.,\s]+(КБ|МБ|ГБ)$/u);
-    const [head, header, box, card] = await Promise.all([
+    const button = group.locator('.search-download-icon');
+    await expect(button).toBeVisible({ timeout: 60_000 });
+    // The sentence with the size is the accessible name; nothing is printed (owner 2026-10-31).
+    await expect(button).toHaveAccessibleName(/^Скачать полный текст · .+ · [\d.,\s]+(КБ|МБ|ГБ)$/u);
+    await expect(button).toHaveText('');
+    const [head, kind, title, box, card] = await Promise.all([
       group.locator('.result-group__head').boundingBox(),
-      group.locator('.result-group-header').boundingBox(),
-      chip.boundingBox(),
+      group.locator('.result-group-header__kind').boundingBox(),
+      group.locator('.result-group-header__title').boundingBox(),
+      button.boundingBox(),
       group.boundingBox(),
     ]);
-    if (!head || !header || !box || !card) {
-      throw new Error('The card, its header or the button has no box.');
+    if (!head || !kind || !title || !box || !card) {
+      throw new Error('The card, its header parts or the button has no box.');
     }
     expect(box.height).toBeLessThanOrEqual(40);
-    expect(box.width).toBeLessThanOrEqual(140);
-    // In the header row, right of the title (owner 2026-10-25): never over the title, no line of its own.
-    expect(box.x).toBeGreaterThanOrEqual(header.x + header.width - 1);
+    expect(box.width).toBeLessThanOrEqual(40);
+    // In the tag's row, at the header's right edge.
     expect(box.y).toBeGreaterThanOrEqual(head.y);
-    expect(box.y + box.height).toBeLessThanOrEqual(head.y + head.height);
+    expect(box.y).toBeLessThan(kind.y + kind.height);
+    expect(box.x).toBeGreaterThan(kind.x + kind.width);
     expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width);
+    // The title starts below the button and may run under its column: the card's full width.
+    expect(title.y).toBeGreaterThanOrEqual(box.y + box.height - 1);
+    expect(title.x + title.width).toBeGreaterThan(box.x);
     // One finding per card: no fragments toggle on that line (owner 2026-10-20).
     await expect(group.locator('.ui-disclosure__header')).toHaveCount(0);
     await group.screenshot({ path: testInfo.outputPath(`source-card-${width}.png`) });

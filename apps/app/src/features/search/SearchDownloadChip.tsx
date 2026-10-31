@@ -31,6 +31,11 @@ export function SearchDownloadChip(props: {
    * sentence stays in the accessible name and the tooltip.
    */
   readonly compact?: boolean | undefined;
+  /**
+   * A round icon button (a result card's header, owner 2026-10-31): the download glyph, then the
+   * progress ring; the sentence with the size is its accessible name and tooltip.
+   */
+  readonly iconOnly?: boolean | undefined;
 }): JSX.Element {
   const pause = useDownloadsPause();
   const installed = createMemo(() => props.downloads.installedIds(props.modules));
@@ -146,46 +151,68 @@ export function SearchDownloadChip(props: {
       : status() === 'queued' || status() === 'paused'
         ? 'queued'
         : 'running';
+  const glyph = (): JSX.Element => (
+    <Show
+      when={active() || done()}
+      fallback={
+        <AppGlyph
+          name={failed() ? 'arrow-counter-clockwise' : 'download'}
+          class={props.iconOnly ? 'search-download-icon__glyph' : 'choice-chip__glyph'}
+        />
+      }
+    >
+      <DownloadProgressMark
+        state={markState()}
+        progress={status() === 'downloading' ? progress().byteProgress : null}
+        busy={status() === 'connecting' || status() === 'installing'}
+      />
+    </Show>
+  );
+  const install = (event: MouseEvent): void => {
+    event.stopPropagation();
+    void props.downloads.install(pending());
+  };
   return (
     <Show when={props.downloads.ready() && (pending().length > 0 || done())}>
-      <ChoiceChip
-        class={done() ? 'search-download-chip search-download-chip--done' : 'search-download-chip'}
-        accent={props.accent}
-        compact={props.compact}
-        {...(props.compact ? { 'aria-label': compactName(), title: compactName() } : {})}
-        icon={
-          <Show
-            when={active() || done()}
-            fallback={
-              <AppGlyph
-                name={failed() ? 'arrow-counter-clockwise' : 'download'}
-                class="choice-chip__glyph"
-              />
-            }
+      <Show
+        when={!props.iconOnly}
+        fallback={
+          <button
+            type="button"
+            class="search-download-icon"
+            classList={{ 'search-download-icon--done': done() }}
+            aria-label={compactName()}
+            title={compactName()}
+            aria-live="polite"
+            disabled={active() || done()}
+            onClick={install}
           >
-            <DownloadProgressMark
-              state={markState()}
-              progress={status() === 'downloading' ? progress().byteProgress : null}
-              busy={status() === 'connecting' || status() === 'installing'}
-            />
-          </Show>
+            {glyph()}
+          </button>
         }
-        detail={props.compact ? undefined : detail()}
-        disabled={active() || done()}
-        aria-live="polite"
-        onClick={(event) => {
-          event.stopPropagation();
-          void props.downloads.install(pending());
-        }}
       >
-        <Show when={status()} keyed>
-          {(_state) => (
-            <span class="search-download-chip__state">
-              {props.compact ? compactText() : label()}
-            </span>
-          )}
-        </Show>
-      </ChoiceChip>
+        <ChoiceChip
+          class={
+            done() ? 'search-download-chip search-download-chip--done' : 'search-download-chip'
+          }
+          accent={props.accent}
+          compact={props.compact}
+          {...(props.compact ? { 'aria-label': compactName(), title: compactName() } : {})}
+          icon={glyph()}
+          detail={props.compact ? undefined : detail()}
+          disabled={active() || done()}
+          aria-live="polite"
+          onClick={install}
+        >
+          <Show when={status()} keyed>
+            {(_state) => (
+              <span class="search-download-chip__state">
+                {props.compact ? compactText() : label()}
+              </span>
+            )}
+          </Show>
+        </ChoiceChip>
+      </Show>
     </Show>
   );
 }

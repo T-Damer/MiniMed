@@ -68,6 +68,12 @@ export type OpfsPackWorkerResponse =
       /** Present once the download is written and the database is being opened and checked. */
       readonly phase?: 'installing';
     }
+  /**
+   * One page of a long array result (listings of every document or alias): the client gathers the
+   * pages and resolves the call with them when `result` arrives. One message of tens of megabytes
+   * held the main thread for half a second while it was decoded; pages decode in short tasks.
+   */
+  | { readonly id: number; readonly part: readonly unknown[] }
   | { readonly id: number; readonly result: unknown }
   | { readonly id: number; readonly error: string }
   | { readonly id: number; readonly status: OpfsPackWorkerLockStatus };

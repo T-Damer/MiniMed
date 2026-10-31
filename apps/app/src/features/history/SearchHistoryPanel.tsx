@@ -188,6 +188,8 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
             }}
           >
             <aside class="search-history-panel" aria-label="Недавние поисковые запросы">
+              {/* Under the status bar: the shell's dark bar, so its light icons stay readable. */}
+              <div class="search-history-panel__status" aria-hidden="true" />
               <header class="search-history-panel-header">
                 <div>
                   <span>

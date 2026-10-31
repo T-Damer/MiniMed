@@ -24,6 +24,13 @@ const CUE_GAIN: Partial<Record<CueName, number>> = {
  * device, ~200 ms of main thread) and renders each cue's buffer, so it is done once in idle time
  * instead of inside the first tap on a button.
  */
+/** Runs `task` when the browser is idle (or soon, where idle callbacks are missing). */
+function whenIdle(task: () => void): void {
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function')
+    window.requestIdleCallback(task, { timeout: 2000 });
+  else setTimeout(task, 50);
+}
+
 export const WARM_UP_CUES: readonly CueName[] = [
   'hover',
   'press',
@@ -63,11 +70,20 @@ export class UiSoundController {
     });
   }
 
-  /** Builds the audio context and the common cues ahead of the first tap; safe to call twice. */
+  /**
+   * Builds the audio context and the common cues ahead of the first tap, one cue per idle slot:
+   * synthesising them all at once held the main thread for ~0.2 s at phone speed. Safe to call twice.
+   */
   warmUp(): void {
     if (this.warmedUp || getSoundVolume() <= 0) return;
     this.warmedUp = true;
-    void this.player.preload(WARM_UP_CUES);
+    const pending = [...WARM_UP_CUES];
+    const next = (): void => {
+      const cue = pending.shift();
+      if (!cue || !this.warmedUp) return;
+      void this.player.preload([cue]).then(() => whenIdle(next));
+    };
+    next();
   }
 
   unlock(): void {

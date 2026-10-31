@@ -75,6 +75,7 @@ import {
   parseCalculatorToolMention,
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
+import { clinicalStage } from '@/features/search/clinical-stages';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
 import {
   documentMatchesSearchScope,
@@ -87,6 +88,7 @@ import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
+import { SearchScopeFallbackList } from '@/features/search/SearchScopeFallbackList';
 import { SearchSourceNote } from '@/features/search/SearchSourceNote';
 import { correctionPieces } from '@/features/search/search-correction';
 import {
@@ -100,6 +102,11 @@ import {
   resultQualifier,
   sourceContextKicker,
 } from '@/features/search/search-result-presentation';
+import {
+  type StoredScopeFallback,
+  scopedSearchFoundNothing,
+  searchOtherSections,
+} from '@/features/search/search-scope-fallback';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
 import '@/features/search/search-error.css';
 import '@/features/search/search-refresh.css';
@@ -164,6 +171,21 @@ interface SearchWorkspaceProps {
   readonly emptyResults?: (query: string) => JSX.Element;
   /** Per-group action, e.g. downloading the full text behind a source pointer. */
   readonly groupAction?: (group: SearchResultGroup) => JSX.Element;
+  /**
+   * A search of the open section (or group) that finds nothing is repeated over all sources and
+   * shown by section (roadmap item 23). Absent where the fallback does not apply.
+   */
+  readonly scopeFallback?:
+    | {
+        /** «Все источники» as a scoped core. */
+        readonly core: MedicalCore;
+        /** The section or group the doctor picked. */
+        readonly missedLabel: string;
+        readonly labelOf: (scope: SearchScope) => string;
+        /** Opens a section from a subheader; the query stays. */
+        readonly onOpenSection: (scope: SearchScope) => void;
+      }
+    | undefined;
 }
 
 const SearchInlineCalculatorWorkspace = lazy(async () => {
@@ -300,6 +322,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [suggestionStrip, setSuggestionStrip] = createSignal<HTMLElement>();
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
+  // The all-sources hits of a section whose own search found nothing (roadmap item 23).
+  const [fallbackResult, setFallbackResult] = createSignal<StoredScopeFallback>();
   const [context, setContext] = createSignal<ChunkContext>();
   const [contextDocuments, setContextDocuments] = createSignal<readonly MedicalDocumentSummary[]>(
     [],
@@ -365,9 +389,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     {
       query: string;
       response: SearchResponse | undefined;
+      fallback: StoredScopeFallback | undefined;
       scrollTop: number;
     }
   >();
+  // The next scope change is a tap on a subheader of the fallback list: the query goes along.
+  let carryQuery = false;
 
   createEffect(() => props.onQueryChange?.(query()));
   createEffect(() => props.onResultDocuments?.(visibleGroups().map((group) => group.documentId)));
@@ -412,16 +439,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           definition.state === 'available' && installedIds.has(definition.id),
       )
       .slice(0, 8);
-  });
-
-  // A misspelt word the search corrected, drawn over the field while the box still holds it.
-  // Tapping the field to edit hides it until the next search (`runSearch` shows it again).
-  const [correctionDismissed, setCorrectionDismissed] = createSignal(false);
-  const correction = createMemo(() => {
-    const corrected = props.scope !== 'personal' ? response()?.queryCorrection : undefined;
-    return corrected && !correctionDismissed()
-      ? correctionPieces(query(), corrected.corrections)
-      : null;
   });
 
   function applyCorrection(text: string): void {
@@ -489,6 +506,34 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const resultCount = createMemo(() =>
     visibleGroups().reduce((total, group) => total + group.results.length, 0),
   );
+  // The fallback belongs to the section, the group and the words it was searched for, and shows
+  // only while the section's own list is empty.
+  const scopeFallback = createMemo(() => {
+    const stored = fallbackResult();
+    const shown = response();
+    return stored &&
+      shown &&
+      props.scopeFallback &&
+      stored.scope === props.scope &&
+      stored.specialty === props.specialty &&
+      stored.query === shown.analysis.originalQuery &&
+      visibleGroups().length === 0
+      ? stored
+      : undefined;
+  });
+  // A misspelt word the search corrected, drawn over the field while the box still holds it.
+  // Tapping the field to edit hides it until the next search (`runSearch` shows it again).
+  const [correctionDismissed, setCorrectionDismissed] = createSignal(false);
+  const correction = createMemo(() => {
+    const corrected =
+      props.scope !== 'personal'
+        ? (response()?.queryCorrection ?? scopeFallback()?.response.queryCorrection)
+        : undefined;
+    return corrected && !correctionDismissed()
+      ? correctionPieces(query(), corrected.corrections)
+      : null;
+  });
+
   const visibleIdentities = createMemo(() =>
     (response()?.identities ?? []).filter((hit) => {
       const target = hit.target;
@@ -578,6 +623,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       sectionState.set(previousScope, {
         query: query(),
         response: response(),
+        fallback: fallbackResult(),
         scrollTop: window.scrollY,
       });
       const saved = sectionState.get(props.scope);
@@ -589,9 +635,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       if (searchTimer) clearTimeout(searchTimer);
       setSearchQueued(false);
       if (analysisTimer) clearTimeout(analysisTimer);
-      setQuery(saved?.query ?? (clinicalToggle ? query() : (urlQuery ?? '')));
-      setResponse(saved?.response);
-      setDraftAnalysis(saved?.response?.analysis);
+      // A subheader of the fallback list opens its section with the words just searched.
+      const carried = carryQuery;
+      carryQuery = false;
+      const savedForQuery = carried && saved?.query !== query() ? undefined : saved;
+      setQuery(carried ? query() : (saved?.query ?? (clinicalToggle ? query() : (urlQuery ?? ''))));
+      setResponse(savedForQuery?.response);
+      setFallbackResult(savedForQuery?.fallback);
+      setDraftAnalysis(savedForQuery?.response?.analysis);
       setContext(undefined);
       setLoading(false);
       setError(undefined);
@@ -806,6 +857,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (!saved || generation !== searchGeneration || searchableQuery(query()) !== trimmed) {
       return false;
     }
+    // A saved empty search of a section is widened again (item 23); the copy holds the scoped
+    // answer only.
+    const widened = await searchOtherSectionsFor(trimmed, saved.response);
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return false;
+    setFallbackResult(widened);
     if (response()?.analysis.originalQuery !== trimmed) {
       setResponse(saved.response);
       setDraftAnalysis(saved.response.analysis);
@@ -897,6 +953,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     });
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+    // A section that found nothing: the same words over all sources, before the list is shown, so
+    // the empty state never flashes (one loading state).
+    const widened = result.ok ? await searchOtherSectionsFor(trimmed, result.value) : undefined;
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+    setFallbackResult(widened);
     setLoading(false);
     setRefreshing(false);
     if (!result.ok) {
@@ -932,6 +993,49 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (options.reloadContextDocuments || contextDocuments().length === 0) {
       await loadContextDocuments(core, generation, trimmed);
     }
+  }
+
+  /**
+   * Item 23: when the section's search found nothing, the words are searched over all sources and
+   * grouped by section. Undefined where the section found something or the fallback does not apply.
+   */
+  async function searchOtherSectionsFor(
+    trimmed: string,
+    scoped: SearchResponse,
+  ): Promise<StoredScopeFallback | undefined> {
+    const config = props.scopeFallback;
+    if (!config || props.scope === 'personal' || !scopedSearchFoundNothing(scoped))
+      return undefined;
+    const widened = await searchOtherSections({
+      allSourcesCore: config.core,
+      request: {
+        query: trimmed,
+        mode: searchModeForScope('all'),
+        analysisMode: 'lookup',
+        filters: {},
+        limit: 20,
+        includeSuggestions: false,
+      },
+      missedLabel: config.missedLabel,
+      labelOf: config.labelOf,
+    });
+    return widened
+      ? {
+          ...widened,
+          query: scoped.analysis.originalQuery,
+          scope: props.scope,
+          specialty: props.specialty,
+        }
+      : undefined;
+  }
+
+  function openFallbackSection(scope: SearchScope): void {
+    carryQuery = true;
+    props.scopeFallback?.onOpenSection(scope);
+    // A section that stayed closed (not allowed yet) must not claim a later, unrelated change.
+    queueMicrotask(() => {
+      carryQuery = false;
+    });
   }
 
   /** The words as typed, without reading the first of them as the name of a source. */
@@ -1482,7 +1586,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <Show when={props.scope === 'diagnosis'}>
-          <ClinicalAnalysisNote />
+          <ClinicalAnalysisNote
+            stage={clinicalStage({
+              analysing: analysisLoading(),
+              searching: loading(),
+              refreshing: refreshing(),
+            })}
+          />
         </Show>
 
         <Show
@@ -1544,7 +1654,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           <Show when={response()}>
             {(_searchResponse) => (
               <div class="search-results-slot__content search-results-slot__reveal">
-                <Show when={props.scope !== 'personal' ? response()?.queryRewrite : undefined}>
+                <Show
+                  when={
+                    props.scope !== 'personal'
+                      ? (response()?.queryRewrite ?? scopeFallback()?.response.queryRewrite)
+                      : undefined
+                  }
+                >
                   {(rewrite) => (
                     <div
                       class="results-refreshing-note search-rewrite-note"
@@ -1642,20 +1758,48 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     )}
                   </Show>
                   <div class="results-list" data-testid="search-results">
-                    <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400} align="start">
-                      {(group, groupIndex) => {
-                        return (
-                          <SearchResultGroupCard
-                            group={group}
-                            index={groupIndex}
-                            selectedChunkId={context()?.focusChunkId}
-                            action={props.groupAction?.(group)}
-                            qualifier={qualifierOf(group)}
-                            onOpenDocument={openDocumentInArchive}
-                          />
-                        );
-                      }}
-                    </LayoutVirtualizedGrid>
+                    <Show
+                      when={scopeFallback()}
+                      fallback={
+                        <LayoutVirtualizedGrid
+                          data={visibleGroups()}
+                          bufferSize={400}
+                          align="start"
+                        >
+                          {(group, groupIndex) => {
+                            return (
+                              <SearchResultGroupCard
+                                group={group}
+                                index={groupIndex}
+                                selectedChunkId={context()?.focusChunkId}
+                                action={props.groupAction?.(group)}
+                                qualifier={qualifierOf(group)}
+                                onOpenDocument={openDocumentInArchive}
+                              />
+                            );
+                          }}
+                        </LayoutVirtualizedGrid>
+                      }
+                    >
+                      {(fallback) => (
+                        <SearchScopeFallbackList
+                          fallback={fallback()}
+                          selectedChunkId={context()?.focusChunkId}
+                          action={(group) => props.groupAction?.(group)}
+                          qualifier={(group) =>
+                            repeatedResultTitles(
+                              fallback().sections.flatMap((section) =>
+                                section.groups.map((entry) => entry.title),
+                              ),
+                            ).has(group.title)
+                              ? resultQualifier(contextDocumentsById().get(group.documentId))
+                              : undefined
+                          }
+                          onOpenDocument={openDocumentInArchive}
+                          onOpenSection={openFallbackSection}
+                        />
+                      )}
+                    </Show>
                   </div>
                 </Show>
 
@@ -1663,6 +1807,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   when={
                     !loading() &&
                     visibleGroups().length === 0 &&
+                    !scopeFallback() &&
                     !response()?.identities?.length &&
                     !response()?.sourceScope &&
                     props.scope !== 'personal'

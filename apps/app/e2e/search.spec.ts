@@ -271,8 +271,8 @@ for (const width of [375, 1280]) {
       .poll(() => carousel.locator('.carousel__track').evaluate((track) => track.scrollLeft))
       .toBe(0);
 
-    // «Как это работает» is a round «?»; a second action is a button beside the first.
-    await expect(carousel.getByRole('link', { name: 'Как это работает' })).toHaveCount(1);
+    // «Как это работает» is a round «?» (on each card that has one); a second action is a button beside the first.
+    await expect(carousel.getByRole('link', { name: 'Как это работает' }).first()).toBeAttached();
     await expect(carousel.getByText('Как это работает', { exact: true })).toHaveCount(0);
     await expect(
       carousel.locator('.home-feature__action--secondary', { hasText: 'Мои файлы' }),

@@ -87,6 +87,7 @@ import {
   nameVariantCandidates,
   responseNamesQuery,
   spellingCorrection,
+  spellingCorrectionWithCost,
 } from './name-variant-fallback';
 import { QueryDocumentIndex } from './query-document-index';
 import {
@@ -1794,13 +1795,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       if (options.spellingCorrection === false) return ok(primary);
       // Named only by a close word («Внеплания» for «пневмания», «АМОКСИЦИЛЛИН» for
       // «амоксицилин»): a correction whose own search names the corrected words exactly wins.
-      if (!responseNamesQuery(primary, request.query, index, true)) {
-        const correction = spellingCorrection(request.query, await spellingVocabulary(index));
+      if (!responseNamesQuery(primary, request.query, index, 'exact')) {
+        const costed = spellingCorrectionWithCost(request.query, await spellingVocabulary(index));
+        // A close name already answers; only a confident correction (one edit) may replace it.
+        const correction = costed && !costed.stretched ? costed.correction : null;
         if (correction) {
           const corrected = await runSearch({ ...request, query: correction.correctedQuery });
           if (
             corrected.ok &&
-            responseNamesQuery(corrected.value, correction.correctedQuery, index, true)
+            responseNamesQuery(corrected.value, correction.correctedQuery, index, 'exact')
           )
             return ok({
               ...corrected.value,
@@ -1830,13 +1833,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     // A misspelt word (roadmap item 19): the corrected query replaces the result only when it
     // names what was corrected to, or found something where the typed query found nothing.
     if (options.spellingCorrection === false) return ok(primary);
-    const correction = spellingCorrection(request.query, await spellingVocabulary(index));
-    if (!correction) return ok(primary);
+    const costed = spellingCorrectionWithCost(request.query, await spellingVocabulary(index));
+    if (!costed) return ok(primary);
+    const { correction, stretched } = costed;
+    // Two edits from a name do not replace a hit the typed words already found («мекибил» finds
+    // «Мексибел»): another name nearer to the keys would only trade it for a guess.
+    if (stretched && responseNamesQuery(primary, request.query, index, 'near')) return ok(primary);
     const corrected = await runSearch({ ...request, query: correction.correctedQuery });
+    // An empty answer takes any correction that finds something, except a stretched one (item 24):
+    // two edits from a name are trusted only when the result names the corrected words.
     if (
       !corrected.ok ||
       corrected.value.groups.length === 0 ||
-      (primary.groups.length > 0 &&
+      ((primary.groups.length > 0 || stretched) &&
         !responseNamesQuery(corrected.value, correction.correctedQuery, index))
     )
       return ok(primary);
@@ -1866,7 +1875,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       response.queryCorrection ||
       response.sourceScope ||
       words.length < DESCRIPTION_MIN_WORDS ||
-      responseNamesQuery(response, request.query, index, true)
+      responseNamesQuery(response, request.query, index, 'exact')
     )
       return response;
     if (!options.embedder) return response;

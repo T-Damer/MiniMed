@@ -6,7 +6,8 @@
  * (state/motion.ts); nothing waits for it, taps go through at once.
  */
 
-const DURATION_MS = 160;
+// 0.2 s: the owner found 160 ms too abrupt (2026-10-31).
+const DURATION_MS = 200;
 const STAGGER_MS = 25;
 const MAX_BLOCKS = 8;
 const KEYFRAMES: Keyframe[] = [

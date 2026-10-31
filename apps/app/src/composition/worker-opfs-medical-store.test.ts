@@ -150,6 +150,49 @@ describe('WorkerOpfsMedicalStore', () => {
     expect(terminate).toHaveBeenCalledOnce();
   });
 
+  it('gathers a long listing sent in pages and resolves once with every row', async () => {
+    const postMessage = vi.fn();
+    vi.stubGlobal(
+      'Worker',
+      vi.fn(function FakeWorker(this: {
+        postMessage: typeof postMessage;
+        terminate: () => void;
+        onmessage: unknown;
+        onerror: unknown;
+      }) {
+        this.postMessage = postMessage;
+        this.terminate = () => undefined;
+        this.onmessage = undefined;
+        this.onerror = undefined;
+      }),
+    );
+    const openPromise = WorkerOpfsMedicalStore.open({
+      url: 'https://example.test/content/paged.db',
+      databaseName: 'paged.db',
+      fetchTimeoutMs: 180_000,
+      poolName: 'minimed-sah-paged',
+    });
+    const worker = vi.mocked(Worker).mock.instances[0] as unknown as {
+      onmessage?: (event: MessageEvent) => void;
+    };
+    worker.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+    const store = await openPromise;
+
+    let settled = false;
+    const listPromise = store.listDocuments().then((rows) => {
+      settled = true;
+      return rows;
+    });
+    worker.onmessage?.({
+      data: { id: 2, part: [{ id: 'doc-1' }, { id: 'doc-2' }] },
+    } as MessageEvent);
+    worker.onmessage?.({ data: { id: 2, part: [{ id: 'doc-3' }] } } as MessageEvent);
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    worker.onmessage?.({ data: { id: 2, result: [] } } as MessageEvent);
+    await expect(listPromise).resolves.toEqual([{ id: 'doc-1' }, { id: 'doc-2' }, { id: 'doc-3' }]);
+  });
+
   it('reports another tab holding the pool and starts the open timeout only after the lock', async () => {
     vi.useFakeTimers();
     try {

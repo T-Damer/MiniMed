@@ -260,6 +260,14 @@ A core pointer holds no such text, so the line is read from the product records 
 document it comes from. Only the first five groups, only for lookup, and not when the query asks for a dose form, a route, a
 strength or a section («нурофен суспензия» keeps the form passage first).
 
+## A section that finds nothing — 2026-10-31
+
+A lookup inside one section (or a group such as «Педиатрия») that returns nothing at all is repeated in
+«Все источники»; the list then says «Поиск по запросу «…» не дал результатов в разделе «…»» and groups the hits
+under «Результаты раздела «…»:». It never runs when the section found something and never reorders a section's own
+results; «Клинический разбор», the tool lists and personal notes are excluded. Details:
+[`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md) «A section that finds nothing», roadmap item 23.
+
 ## Snippets and source context
 
 Known HTML fragments and entities are converted to readable plain text before snippet offsets are

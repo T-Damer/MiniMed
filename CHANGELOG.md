@@ -4,6 +4,30 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.71] - 2026-10-31
+
+- Smoother right after start-up: the large document lists reach the screens in small pieces instead of one block, each
+  screen handles them in turn, sorting and settings reads are cheaper, and tap sounds prepare one at a time. Scrolling
+  right after the app opens no longer stalls; the home pulse should stay green more often (one shorter stall remains
+  while the home catalog first appears).
+
+## [0.6.70] - 2026-10-31
+
+- Search: when the chosen section finds nothing, the other sections are searched and their results shown under
+  «Результаты раздела «…»» after one line saying what the chosen section did not find; a tap on a section heading
+  opens it with the same query. Misspellings are forgiven more: up to two slips in long words, anywhere in the word,
+  sound-alike spellings (ц/тс, щ/сч, unstressed vowels, doubled letters).
+- «Клинический разбор» shows its stage while it works, with a thin moving bar; the «Детали» line fits one row.
+- Result cards: the type tag and a round download button on top, the title across the full width.
+- Image viewer: a translucent blurred backdrop and a capsule toolbar.
+- Home: tapping anywhere on a feature card opens it; the hide control has a background. Pages appear in 0.2 s.
+- The search history drawer keeps the status bar readable; one scrollbar instead of two; notes-tab pages (Избранное)
+  reach the bottom of the screen.
+- ECG photo and the skin model: the on-device model now always loads (an Android phone failed with «no available backend
+  found»).
+- «Кожа по фото» has its own icon; the camera TV has no antennas.
+- Readers keep their controls on screen while text is still loading.
+
 ## [0.6.69] - 2026-10-30
 
 - Patient diary: «Сказать голосом» in «Описать состояние» — up to three minutes of speech, transcribed on the phone

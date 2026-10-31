@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildNameVocabulary, correctWord, maxTypoCost, vocabularyHasPrefix } from './word-typo';
+import {
+  buildNameVocabulary,
+  CONFIDENT_TYPO_COST,
+  correctWord,
+  maxTypoCost,
+  vocabularyHasPrefix,
+} from './word-typo';
 
 const vocabulary = buildNameVocabulary([
   'аменция',
@@ -88,5 +94,73 @@ describe('word forms', () => {
   it('prefers a whole name to the beginning of another at the same cost', () => {
     const drugs = buildNameVocabulary(['цефтриаксон', 'цефтриаксоновый']);
     expect(correctWord('цефтриаксн', drugs)?.corrected).toBe('цефтриаксон');
+  });
+});
+
+describe('real misspellings (roadmap item 24)', () => {
+  const names = buildNameVocabulary([
+    'депрессия',
+    'гемолитическая желтуха',
+    'складчатый язык',
+    'валацикловир',
+    'клещевина',
+    'дебильность',
+    'отравление мышьяком',
+    'гипофизит',
+  ]);
+
+  it('allows two full edits from eight letters, one and a half at seven, one at six', () => {
+    expect(maxTypoCost(4)).toBe(0.5);
+    expect(maxTypoCost(5)).toBe(0.5);
+    expect(maxTypoCost(6)).toBe(1);
+    expect(maxTypoCost(7)).toBe(1.5);
+    expect(maxTypoCost(8)).toBe(2);
+    expect(maxTypoCost(14)).toBe(2);
+    expect(CONFIDENT_TYPO_COST).toBe(1);
+  });
+
+  it('repairs two unrelated letters in a long word', () => {
+    expect(correctWord('дшпресшия', names)).toMatchObject({ corrected: 'депрессия', cost: 2 });
+  });
+
+  it('repairs a dropped consonant and a doubled letter anywhere in the word', () => {
+    expect(correctWord('дебильнсть', names)?.corrected).toBe('дебильность');
+    expect(correctWord('дебильноссть', names)?.corrected).toBe('дебильность');
+    expect(correctWord('гипофиит', names)?.corrected).toBe('гипофизит');
+  });
+
+  it('reads «ц» for «тс» and «щ» for «сч» as half an edit', () => {
+    expect(correctWord('валатсикловир', names)).toMatchObject({
+      corrected: 'валацикловир',
+      cost: 0.5,
+    });
+    expect(correctWord('клесчевина', names)).toMatchObject({ corrected: 'клещевина', cost: 0.5 });
+    expect(correctWord('валацикловир', names)).toBeNull();
+  });
+
+  it('repairs a left-out letter at the end of a word that looks like a word form', () => {
+    // «складчатй» = the stem «складчат» + a tail an ending could be, yet no word of the corpus.
+    expect(correctWord('складчатй', names)).toMatchObject({
+      corrected: 'складчатый',
+      cost: 0.5,
+    });
+  });
+
+  it('corrects a word form only by one cheap edit to a whole word', () => {
+    const forms = buildNameVocabulary(['дуоденальный', 'аменция']);
+    // a legitimate form is not rewritten into the base name, an ending is not cut
+    expect(correctWord('дуоденальной', forms)).toBeNull();
+    expect(correctWord('аменцией', forms)).toBeNull();
+  });
+
+  it('prefers a whole name word to a name beginning with the typed ending on it', () => {
+    expect(correctWord('гемолитичесая', names)?.corrected).toBe('гемолитическая');
+  });
+
+  it('reads sound-alike vowels in the middle of a name at half an edit each', () => {
+    expect(correctWord('гемолитическоя', names)).toMatchObject({
+      corrected: 'гемолитическая',
+      cost: 0.5,
+    });
   });
 });

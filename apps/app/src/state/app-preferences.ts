@@ -136,18 +136,28 @@ function persist(preferences: AppPreferences): AppPreferences {
   return preferences;
 }
 
+/**
+ * The last read, keyed by the stored strings: hot paths (a release check per catalog module, per
+ * document of the home catalog) read the preferences thousands of times, and parsing them each time
+ * cost about a quarter of a second at phone speed. A changed string is read afresh.
+ */
+let lastRead:
+  | { readonly raw: string | null; readonly legacy: string | null; readonly value: AppPreferences }
+  | undefined;
+
 export function loadAppPreferences(): AppPreferences {
   try {
     const raw = window.localStorage.getItem(APP_PREFERENCES_KEY);
+    const legacy = window.localStorage.getItem('minimed.module-auto-updates-paused.v1');
+    if (lastRead && lastRead.raw === raw && lastRead.legacy === legacy) return lastRead.value;
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     const preferences = normalizePreferences(parsed);
-    if (parsed && typeof parsed === 'object' && 'moduleAutoUpdatesEnabled' in parsed)
-      return preferences;
-    return {
-      ...preferences,
-      moduleAutoUpdatesEnabled:
-        window.localStorage.getItem('minimed.module-auto-updates-paused.v1') !== 'true',
-    };
+    const value =
+      parsed && typeof parsed === 'object' && 'moduleAutoUpdatesEnabled' in parsed
+        ? preferences
+        : { ...preferences, moduleAutoUpdatesEnabled: legacy !== 'true' };
+    lastRead = { raw, legacy, value };
+    return value;
   } catch {
     return DEFAULT_PREFERENCES;
   }

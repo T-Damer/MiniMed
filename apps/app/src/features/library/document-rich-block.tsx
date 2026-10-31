@@ -152,6 +152,7 @@ export function MediaViewer(props: {
           <button
             type="button"
             class="media-viewer__backdrop"
+            classList={{ 'media-viewer__backdrop--image': props.zoomMode === 'image' }}
             aria-label="Закрыть просмотр"
             onClick={props.onClose}
           />
@@ -167,6 +168,7 @@ export function MediaViewer(props: {
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
+                  classList={{ 'media-viewer__toolbar-button--image': props.zoomMode === 'image' }}
                   aria-label="Уменьшить"
                   title="Уменьшить"
                   disabled={pinch.scale() <= 1}
@@ -177,6 +179,7 @@ export function MediaViewer(props: {
                 <button
                   type="button"
                   class="media-viewer__toolbar-button media-viewer__zoom-reset"
+                  classList={{ 'media-viewer__toolbar-button--image': props.zoomMode === 'image' }}
                   aria-label="Исходный масштаб"
                   title="100%"
                   disabled={pinch.scale() <= 1}
@@ -187,6 +190,7 @@ export function MediaViewer(props: {
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
+                  classList={{ 'media-viewer__toolbar-button--image': props.zoomMode === 'image' }}
                   aria-label="Увеличить"
                   title="Увеличить"
                   disabled={pinch.scale() >= 3}
@@ -200,6 +204,9 @@ export function MediaViewer(props: {
                   <button
                     type="button"
                     class="media-viewer__toolbar-button"
+                    classList={{
+                      'media-viewer__toolbar-button--image': props.zoomMode === 'image',
+                    }}
                     aria-label="Печать"
                     title="Печать"
                     onClick={handlePrint}
@@ -210,6 +217,7 @@ export function MediaViewer(props: {
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
+                  classList={{ 'media-viewer__toolbar-button--image': props.zoomMode === 'image' }}
                   aria-label="Закрыть"
                   title="Закрыть"
                   onClick={props.onClose}

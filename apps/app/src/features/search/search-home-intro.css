@@ -63,6 +63,24 @@
 }
 
 /* Name and «?» span the whole card, so the «?» sits in the top-right corner at any width. */
+/* The whole card opens the tool (owner 2026-10-31); its buttons keep their own actions. */
+.home-feature--clickable {
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
+}
+
+.home-feature--clickable:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-feature--clickable:hover {
+    border-color: var(--theme-border);
+  }
+}
+
 .home-feature__head {
   display: flex;
   grid-column: 1 / -1;
@@ -167,10 +185,12 @@
   flex: none;
   place-items: center;
   padding: 0;
-  border: 1px solid transparent;
+  /* The same chip as the carousel arrows beside it (owner 2026-10-31: «should have a bg»). */
+  border: 1px solid var(--theme-border);
   border-radius: 999px;
   color: var(--theme-text-muted);
-  background: transparent;
+  background: color-mix(in srgb, var(--theme-surface-raised) 88%, transparent);
+  box-shadow: 0 0.125rem 0.375rem rgb(29 27 22 / 12%);
   cursor: pointer;
   transition:
     color var(--motion-fast) var(--motion-ease),

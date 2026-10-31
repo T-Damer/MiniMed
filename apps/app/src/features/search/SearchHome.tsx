@@ -79,8 +79,8 @@ import {
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
-import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { isSearchHash } from '@/features/search/search-query-route';
+import { scopeFallbackEnabled } from '@/features/search/search-scope-fallback';
 import {
   SECTION_WAIT_NOTICE_ID,
   sectionGate,
@@ -212,13 +212,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const document = first === undefined ? undefined : documentsById().get(first);
     return document !== undefined && searchResultDocumentKind(document) === 'medication';
   });
-  /** The result that carries each pack's download chip: a pack is offered once per list. */
-  const packOffers = createMemo(() =>
-    packOfferOwners(
-      resultDocumentIds(),
-      (documentId) => pointerModuleOf(documentsById().get(documentId), downloads.catalog())?.id,
-    ),
-  );
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
     return searchSectionDownloadBlocks(documents(), toolRows(), downloads.catalog());
@@ -931,6 +924,31 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         : undefined,
     );
   });
+  /** Item 23: an empty search of the open section is repeated over all sources. */
+  const scopeFallback = () => {
+    const base = props.baseCore;
+    if (
+      !base ||
+      !scopeFallbackEnabled({
+        scope: scope(),
+        grouped: Boolean(specialty()),
+        catalogOnly: catalogOnly(),
+      })
+    )
+      return undefined;
+    const section = sections().find((entry) => entry.id === scope());
+    const group = section?.groups.find((entry) => entry.id === specialty());
+    const labelOf = (id: SearchScope): string =>
+      sections().find((entry) => entry.id === id)?.label ??
+      SEARCH_SECTIONS.find((entry) => entry.id === id)?.label ??
+      id;
+    return {
+      core: new ScopedMedicalCore(base, 'all'),
+      missedLabel: group?.label ?? section?.label ?? labelOf(scope()),
+      labelOf,
+      onOpenSection: (next: SearchScope) => openSection(next),
+    };
+  };
   const replayHistory = (entry: SearchHistoryEntry): void => {
     const next = SEARCH_SECTIONS.some((section) => section.id === entry.scope)
       ? entry.scope
@@ -1073,10 +1091,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               <SearchResultModuleDownload
                 document={documentsById().get(group.documentId)}
                 downloads={downloads}
-                offerOwners={packOffers()}
               />
             ) : undefined
           }
+          scopeFallback={scopeFallback()}
           emptyResults={(query) => (
             <SearchNoResults
               query={query}

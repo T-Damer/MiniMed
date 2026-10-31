@@ -9,8 +9,9 @@
  * being typed is corrected to the beginning of the name it starts. Slips a doctor actually makes
  * cost half an edit: a neighbouring key of the ЙЦУКЕН or QWERTY layout, a letter that sounds the
  * same in an unstressed or devoiced position (о/а, е/и, з/с…), a soft or hard sign, a doubled
- * letter. Any other substitution, a missing or an extra letter costs one edit; two swapped letters
- * cost 0.6.
+ * letter, «ц» written «тс» and «щ» written «сч». Any other substitution, a missing or an extra
+ * letter costs one edit; two swapped letters cost 0.6. Item 24 (TYPO2) lets a word of eight letters
+ * or more carry two full edits (seven letters: one and a half), anywhere in the word.
  */
 
 export interface NameVocabulary {
@@ -28,6 +29,12 @@ export interface WordCorrection {
   readonly cost: number;
 }
 
+/**
+ * Edits up to which a correction is trusted when the typed query found nothing: two cheap slips or
+ * one full edit. A word corrected at a higher cost must also be answered by a result that names it.
+ */
+export const CONFIDENT_TYPO_COST = 1;
+
 /** Words shorter than this are never corrected: too many names lie one slip away. */
 export const MIN_CORRECTED_WORD_LENGTH = 4;
 
@@ -35,8 +42,8 @@ export const MIN_CORRECTED_WORD_LENGTH = 4;
 export function maxTypoCost(length: number): number {
   if (length < MIN_CORRECTED_WORD_LENGTH) return 0;
   if (length <= 5) return 0.5;
-  if (length <= 8) return 1;
-  if (length <= 11) return 1.5;
+  if (length === 6) return 1;
+  if (length === 7) return 1.5;
   return 2;
 }
 
@@ -82,6 +89,15 @@ const SOUND_ALIKE = [
 ];
 
 const SILENT = new Set(['ь', 'ъ']);
+
+/**
+ * Two letters written as one and the other way round, pronounced alike: «ц» for «тс» («валатсикловир»
+ * for «валацикловир»), «щ» for «сч» and «шч». Keyed by the pair followed by the single letter.
+ */
+const DIGRAPHS: ReadonlySet<string> = new Set(['тсц', 'счщ', 'шчщ']);
+/** First letters of those pairs: the walk keeps a branch half an edit longer to reach them. */
+const DIGRAPH_STARTS: ReadonlySet<string> = new Set(['т', 'с', 'ш']);
+const DIGRAPH = 0.5;
 
 const cheapPairs: ReadonlySet<string> = (() => {
   const pairs = new Set<string>();
@@ -191,8 +207,7 @@ const ENDING_LETTERS = [...'аеиоуыэюяйь'];
  * dropped consonant is no ending: «цефтриаксн» is a slip, and so is «амоксицилин», whose stem
  * «амоксицил» goes on with a consonant in «амоксициллин».
  */
-function isKnownWord(word: string, vocabulary: NameVocabulary): boolean {
-  if (vocabularyHasPrefix(vocabulary, word)) return true;
+function isWordForm(word: string, vocabulary: NameVocabulary): boolean {
   for (let ending = 1; ending <= MAX_ENDING; ending += 1) {
     const stem = word.slice(0, word.length - ending);
     if (stem.length < MIN_KNOWN_STEM) break;
@@ -213,13 +228,17 @@ function isKnownWord(word: string, vocabulary: NameVocabulary): boolean {
  */
 export function correctWord(word: string, vocabulary: NameVocabulary): WordCorrection | null {
   const budget = maxTypoCost(word.length);
-  if (budget === 0 || isKnownWord(word, vocabulary)) return null;
+  if (budget === 0 || vocabularyHasPrefix(vocabulary, word)) return null;
+  // A word form («складчатй»: stem «складчат» + a tail an ending could be) is a slip only when one
+  // cheap edit makes it a whole name word; any other edit would rewrite a legitimate form.
+  const wordForm = isWordForm(word, vocabulary);
+  const limit = wordForm ? Math.min(budget, CHEAP) : budget;
   const { words, weights } = vocabulary;
   const typed = [...word];
   const length = typed.length;
   // Each letter beyond the typed length costs at least CHEAP, which bounds the depth.
-  const maxDepth = length + Math.floor(budget / CHEAP);
-  const found: { best: Best | null } = { best: null };
+  const maxDepth = length + Math.floor(limit / CHEAP);
+  const found: { best: Best | null; bestWhole: Best | null } = { best: null, bestWhole: null };
 
   const firstRow = new Float64Array(length + 1);
   for (let index = 1; index <= length; index += 1)
@@ -260,17 +279,23 @@ export function correctWord(word: string, vocabulary: NameVocabulary): WordCorre
           letter !== previousLetter
         )
           cost = Math.min(cost, (previousRow[index - 2] ?? 0) + SWAP);
+        // One typed letter for a pair of the name («ц» for «тс»), and a pair for one letter.
+        if (previousRow && previousLetter && DIGRAPHS.has(previousLetter + letter + typedLetter))
+          cost = Math.min(cost, (previousRow[index - 1] ?? 0) + DIGRAPH);
+        if (index > 1 && DIGRAPHS.has((typed[index - 2] ?? '') + typedLetter + letter))
+          cost = Math.min(cost, (row[index - 2] ?? 0) + DIGRAPH);
         next[index] = cost;
         if (cost < rowMin) rowMin = cost;
       }
-      if (rowMin <= budget) {
+      if (rowMin <= (DIGRAPH_STARTS.has(letter) ? limit + CHEAP : limit)) {
         const weight = (weights[end] ?? 0) - (weights[start] ?? 0);
         const whole = words[start] === childPrefix;
         for (let ending = 0; ending <= MAX_ENDING; ending += 1) {
           if (ending > 0 && length - ending < MIN_CORRECTED_WORD_LENGTH) break;
           const cost = (next[length - ending] ?? Number.POSITIVE_INFINITY) + ending * ENDING;
           const corrected = childPrefix + typed.slice(length - ending).join('');
-          if (cost > budget || corrected === word) continue;
+          if (cost > limit || corrected === word || (wordForm && !(ending === 0 && whole)))
+            continue;
           const candidate: Best = {
             cost,
             corrected,
@@ -279,6 +304,7 @@ export function correctWord(word: string, vocabulary: NameVocabulary): WordCorre
             weight,
           };
           if (better(candidate, found.best)) found.best = candidate;
+          if (candidate.whole && better(candidate, found.bestWhole)) found.bestWhole = candidate;
         }
         if (depth + 1 < maxDepth) visit(childPrefix, start, end, next, row);
       }
@@ -287,6 +313,12 @@ export function correctWord(word: string, vocabulary: NameVocabulary): WordCorre
   };
   visit('', 0, words.length, firstRow, null);
 
-  const { best } = found;
+  // A beginning of a name with the typed ending on it («гемолитическя») may beat a whole name word
+  // («гемолитическая») only by more than a quarter edit: it is no word of the vocabulary.
+  const { bestWhole } = found;
+  const best =
+    found.best && !found.best.whole && bestWhole && bestWhole.cost <= found.best.cost + ENDING
+      ? bestWhole
+      : found.best;
   return best ? { original: word, corrected: best.corrected, cost: best.cost } : null;
 }

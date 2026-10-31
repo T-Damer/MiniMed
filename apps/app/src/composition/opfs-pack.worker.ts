@@ -13,6 +13,9 @@ import {
 } from '@/features/modules/encoded-index-reader';
 import { type EpochInstallPhase, epochNow } from '@/features/modules/install-timing';
 
+/** Rows per message of a long array result (about 2 MB of document records). */
+const RESULT_PAGE_ROWS = 1000;
+
 let store: SqliteMedicalStore | undefined;
 let downloadApproval: { id: number; resolve: () => void } | undefined;
 /** Bytes streamed into OPFS so far; reported again when installation starts. */
@@ -189,6 +192,16 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       ...args: readonly unknown[]
     ) => Promise<unknown>;
     const result = await method(...message.args);
+    if (Array.isArray(result) && result.length > RESULT_PAGE_ROWS) {
+      for (let start = 0; start < result.length; start += RESULT_PAGE_ROWS) {
+        self.postMessage({
+          id: message.id,
+          part: result.slice(start, start + RESULT_PAGE_ROWS),
+        } satisfies OpfsPackWorkerResponse);
+      }
+      self.postMessage({ id: message.id, result: [] } satisfies OpfsPackWorkerResponse);
+      return;
+    }
     self.postMessage({ id: message.id, result } satisfies OpfsPackWorkerResponse);
   } catch (cause) {
     self.postMessage({

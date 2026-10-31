@@ -22,6 +22,7 @@ and the list is updated when the proposal is better. How search works today:
 | Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 → 1.0 (S3) | — (lexical by design) | S2, S3 done |
 | Name on the wrong keyboard layout or in Latin letters | `name-variant-queries.json`, 720 generated | hit@1 0.063, hit@5 0.094 → 0.947 / 0.956 | — | S3 item 3 shipped |
 | Name with one slip in the first letters (neighbour key, sound-alike, other) | `typo-queries.json`, 698 generated | hit@1 0.239, hit@5 0.328 → 0.845 / 0.984 | — | item 19 shipped |
+| Name with two slips or a real misspelling anywhere (dropped/doubled letter, sound-alike spelling, ц/тс) | `typo-queries.json` `hard`, 1 849 generated | hit@1 0.930, hit@5 0.952 → 0.954 / 0.975 | — | item 24 shipped |
 | Owner queries («Все», lookup) | `owner-queries.json`, 54 | hit@1 0.167, hit@5 0.444 (rush 0.581, thoughtful 0.261) → 0.278, 0.574 (0.774, 0.304) | with the query model, description recommendations (items 5/14): hit@5 0.463 → 0.833 (rush 0.677 → 0.903, thoughtful 0.174 → 0.739) | S3 items 3–4; items 5/14 shipped 2026-10-14 |
 | Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 (KR packs) | 0.70 | shipped 0.6.48 |
 | Diagnosis phrase → КР through the МКБ card | Q1 RuCCoD, test, `run-icd-bridge.ts` | core only 0.417 → 0.536; core + mkb.db 0.298 → 0.476; 723 КР modules 0.274 → 0.476 | 0.643 → 0.643 (no change) | S3 item 4 shipped (lexical) |
@@ -237,6 +238,58 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     capital abbreviation with ≤ 3 other words that name no substance (`classInQuery`, `restNamesDrug`); `benchmark:class` `phrases`. The reference
     documents flagged `calculationRequired`: the CKD-EPI 2021 and WHO child-growth documents are linked to their calculators, the WHO BMI table and
     CKiD U25 wait for a calculator that implements them.
+
+23. **A section that finds nothing: the other sections answer** (SRCH3, 2026-10-31; owner request 13: «Поиск по запросу
+    «Флувоксами» не дал результатов в разделе «Педиатрия»», «Результаты раздела «Препараты»:»). Compared with the list first:
+    not ranking work (items 1–5 and 8 stay as they are, every gate untouched by construction: the fallback runs only after the
+    scoped search returned nothing at all, so no ranking inside a scope changes); closest are 3 and 19 (a query that finds
+    nothing still finds its name: the wider search is the core's «Все» search, so the layout, transliteration and spelling
+    fallbacks apply to it too, «Флувоксами» is corrected there) and 17 (presentation of results). Shipped in the UI layer only
+    (`search-scope-fallback.ts`, `SearchScopeFallbackList.tsx`, the results list of `SearchWorkspace`): after an empty scoped
+    lookup (a section, or a group such as «Педиатрия» of «Все источники») the words are searched in «Все источники» and the
+    hits are listed by section under «Результаты раздела «…»:», sections ordered by their best hit, ranking kept inside a
+    section, with one line saying where nothing was found; the picker keeps the picked scope, a tap on a subheader opens that
+    section with the same words. **Per mode:** lookup sections and groups — yes; «Клинический разбор» — no (it already searches
+    every source except ICD-11, so an empty answer is not a section miss and the wider search would add only a wrong label);
+    calculators, questionnaires (tool lists) and personal notes — no. Measured by unit tests (decision and grouping) and the
+    e2e `search-scope-fallback.spec.ts` (an empty «Нормативные документы» search of a disease shows the other sections, a tap
+    opens one with the query; a scope that finds something is never widened; nothing anywhere keeps «Ничего не найдено»), not
+    by recall. Cost: one more «Все» search, only after an empty scoped answer, before the list is shown (one loading state).
+    Left: identity hits of the wider search (names of modules not installed) are not shown, the saved copy of a scoped answer is
+    widened again on replay (one search), not measured on a phone.
+
+24. **More forgiving spelling: real misspellings anywhere in a word** (TYPO2, 2026-10-31; owner request 14: «not just mixing some
+    letters, but actually writing something wrong and still getting the right name»). Compared with the list first: extends
+    item 19 (same rule — only when the typed query names nothing, the corrected query must name the result, the box shows the
+    correction) and item 3; no ranking item changes. Item 19 already corrected one weighted slip anywhere in the word by its
+    budget (0.5 up to five letters, 1 up to eight, 1.5 up to eleven, 2 beyond); the gaps were the budget of a seven- or
+    eight-letter name, «ц»/«тс» and «щ»/«сч», word forms of a left-out letter («складчатй» looked like a stem with an ending, so it
+    was never tried), a name beginning plus the typed ending beating the whole name («гемолитичесая» → «гемолитическя»), and the
+    acceptance of a far correction. Shipped (`word-typo.ts`, `name-variant-fallback.ts`, one branch of `withNameVariantFallback`):
+    budget 0.5 up to five letters, 1 at six, 1.5 at seven, **2 from eight** (two full edits); «ц» for «тс» and «щ» for «сч»/«шч»
+    (and back) half an edit; a word form (stem + a tail an ending could be) is corrected by one cheap edit to a whole name word; a
+    whole name word beats a name beginning with the typed ending on it unless it is cheaper by more than a quarter edit; a
+    correction above one edit ("stretched") applies only when the typed words found nothing a title or alias within two edits
+    of them answers, and only when its own result names the corrected words (before, an empty answer took any correction that
+    found something). Dropped or doubled letters, о/а, е/и/я, и/ы, voiced/voiceless pairs, signs and doubled consonants were
+    already half an edit and are measured, not changed. **Measured** (`bun tools/benchmarks/src/run-typo-queries.ts`; the set
+    `typo-queries.json` keeps its 929 cases and 220 controls and gains 1 849 `hard` cases generated from the same 235 names by
+    `build-typo-queries.ts`: a mid-word slip, two cheap slips, two unrelated letters, a dropped and a doubled letter, two sound-alike
+    vowels, doubled/single and voiced/voiceless consonants, ь/ъ, ц/тс, щ/ш, -ий/-ый, a vowel by sound plus a dropped or doubled
+    letter; plus 200 nonsense words), correction on, item 19 code → this change: **hard hit@1 0.930 → 0.954, hit@5 0.952 → 0.975**
+    (on the 1 831 cases whose correctly typed name is itself found in the first five: 0.939 → 0.963, 0.962 → 0.985): two unrelated
+    letters 0.748/0.836 → 0.814/0.934, dropped letter 0.927/0.949 → 0.966/0.974, two sound-alike vowels 0.945/0.964 →
+    0.973/0.977, vowel by sound plus a slip 0.873/0.927 → 0.909/0.958, ь/ъ 0.912/0.941 → 0.941/0.941, -ий/-ый 0.762/0.810 →
+    1.000/1.000, two cheap slips 0.978/0.982 → 0.987/0.991; the first-letter set 0.990 → 0.991 (hit@5 0.990 → 0.991). **Controls
+    unchanged 220/220** (no control's first ten groups differ from item 19's); 2 of 2 778 cases lost a hit@5 (a tie between two
+    equally near names: «эпетор» → «эпитоп» for «эплетор», «целеакя» → «целевая»); nonsense words rewritten by a correction
+    10 → 14 of 200. Latency on a laptop, quiet machine, a third of the set, corrected queries p50/p95: 228/1295 → 259/1322 ms
+    (all queries 229/1291 → 259/1303). Without the stretched-correction rules the budget alone rewrote 31 nonsense words and lost 4
+    hits; budgets of 2 from seven letters measured the same as 1.5 at seven and were not kept. Left out: a correction between
+    names that are equally near is still a guess (the heavier name wins); the hard set's remaining misses are mostly the cases whose
+    own name is not found in the first five groups, two unrelated letters in short words, a typed form of a different real word,
+    and meta words (a query word such as «лекарственный» is never corrected); body-text words stay uncorrected (no vocabulary of
+    them on the device); not measured on a phone.
 
 ## Measured and rejected
 
