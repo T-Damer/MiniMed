@@ -241,6 +241,15 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Upload the test APK (a run on another branch publishes nothing)
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: MiniMed-${{ env.RELEASE_VERSION }}-test-apk
+          path: release-output/${{ env.APK_NAME }}
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Publish APK and database GitHub prerelease
         if: >-
           github.ref == 'refs/heads/main' &&
