@@ -30,6 +30,13 @@ async function homeCounts(page: Page): Promise<ReadonlyMap<string, number>> {
   return new Map(rows.map((row) => [row.name, leadingNumber(row.count)]));
 }
 
+/** What «Все источники» counts: every search section row; «Травник» is a book listed beside them. */
+function searchSectionTotal(counts: ReadonlyMap<string, number>): number {
+  return [...counts]
+    .filter(([name]) => name !== 'Травник')
+    .reduce((sum, [, value]) => sum + value, 0);
+}
+
 /** «Все источники (N)» as the section picker prints it. */
 async function allSourcesTotal(page: Page): Promise<number> {
   const label = page
@@ -81,10 +88,10 @@ test('lists «МКБ-11» with the catalog count, offers the download and adds i
   await expect(row.locator('.search-sections__count')).toHaveText(/^37\s052\sзаписи$/u);
   expect(counts.get(SECTION)).toBeGreaterThan(30_000);
 
-  // «Все источники» is the sum of the section counters, МКБ-11 included.
+  // «Все источники» is the sum of the search section counters, МКБ-11 included.
   await expect
     .poll(() => allSourcesTotal(page), { timeout: 60_000 })
-    .toBe([...counts.values()].reduce((sum, value) => sum + value, 0));
+    .toBe(searchSectionTotal(counts));
 
   await openHomeSection(page, SECTION);
   await expect(page).toHaveURL(/#\/search\/section\/icd11$/u);
@@ -176,7 +183,7 @@ test('finds ICD-11 codes and words, opens the card and returns to the section wi
   expect(after.get(SECTION)).toBe(counts.get(SECTION));
   await expect
     .poll(() => allSourcesTotal(page), { timeout: 60_000 })
-    .toBe([...after.values()].reduce((sum, value) => sum + value, 0));
+    .toBe(searchSectionTotal(after));
 });
 
 test('keeps ICD-11 out of the ICD-10 section and of the clinical analysis', async ({ page }) => {
