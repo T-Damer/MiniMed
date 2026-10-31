@@ -1,0 +1,63 @@
+/* Recovery code of the patient vault: shown once, typed back when the Keystore key is gone. */
+.patient-vault-recovery {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.patient-vault-recovery__code-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.patient-vault-recovery__code {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.9rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--theme-accent);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-accent-soft);
+  font-family: ui-monospace, monospace;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.patient-vault-recovery__group {
+  white-space: nowrap;
+}
+
+.patient-vault-recovery__copy {
+  flex: 0 0 auto;
+  align-self: center;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.patient-vault-recovery__copy:active {
+  transform: scale(0.96);
+}
+
+.patient-vault-recovery__line {
+  margin: 0;
+  color: var(--theme-text-muted);
+  line-height: 1.45;
+}
+
+.patient-vault-recovery__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.patient-vault-recovery__input {
+  font-family: ui-monospace, monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

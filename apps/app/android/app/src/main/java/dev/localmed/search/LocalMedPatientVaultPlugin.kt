@@ -14,6 +14,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.security.KeyStore
+import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -30,6 +31,9 @@ import javax.crypto.spec.GCMParameterSpec
  * - `auth` ([AUTH_KEY_ALIAS]): usable only within [PatientVaultAuthPolicy.AUTH_VALIDITY_SECONDS]
  *   of a fingerprint / face / device-credential check. When Keystore refuses the key for lack of a
  *   recent check, the plugin shows the system prompt and retries once.
+ *
+ * `wrapKey` with `replaceInvalidatedKey` (recovery by code only) first drops an auth key that
+ * Android invalidated, so a fresh one can wrap the data key again.
  *
  * The device key is never touched by the auth path. It goes away only through [retireLegacyKey],
  * which JS calls after the new wrapped key is stored and read back, and through [deleteKey].
@@ -91,6 +95,17 @@ class LocalMedPatientVaultPlugin : Plugin() {
             return
         }
         val raw = decodeKey(call, call.getString("keyBase64")) ?: return
+        if (protection == PatientVaultAuthPolicy.PROTECTION_AUTH &&
+            call.getBoolean("replaceInvalidatedKey", false) == true
+        ) {
+            try {
+                discardInvalidatedAuthKey()
+            } catch (cause: Exception) {
+                raw.fill(0)
+                call.reject("Не удалось обновить ключ Android Keystore: ${safeMessage(cause)}")
+                return
+            }
+        }
         execute(
             call,
             protection,
@@ -282,6 +297,31 @@ class LocalMedPatientVaultPlugin : Plugin() {
             createAuthKey()
         } else {
             createDeviceKey(store)
+        }
+    }
+
+    /**
+     * Recovery by code (JS verified the code and holds the data key): a leftover auth key that
+     * Android invalidated is removed so [createAuthKey] can make a fresh one. A key that still
+     * works, or merely wants a fingerprint check, is left alone.
+     */
+    private fun discardInvalidatedAuthKey() {
+        val store = keyStore()
+        if (!store.containsAlias(AUTH_KEY_ALIAS)) return
+        val existing =
+            try {
+                store.getKey(AUTH_KEY_ALIAS, null)
+            } catch (_: UnrecoverableKeyException) {
+                store.deleteEntry(AUTH_KEY_ALIAS)
+                return
+            }
+        if (existing !is SecretKey) return
+        try {
+            Cipher.getInstance(TRANSFORMATION).init(Cipher.ENCRYPT_MODE, existing)
+        } catch (_: KeyPermanentlyInvalidatedException) {
+            store.deleteEntry(AUTH_KEY_ALIAS)
+        } catch (_: UserNotAuthenticatedException) {
+            // Valid, only waiting for a check.
         }
     }
 

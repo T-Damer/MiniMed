@@ -35,6 +35,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { PageSkeleton } from '@/components/PageSkeleton';
+import { PatientVaultRecoveryHost } from '@/components/PatientVaultRecovery';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
@@ -455,6 +456,7 @@ export function App(): JSX.Element {
       </Portal>
       <Show when={!embeddedFloatingWindow}>
         <ConversationRecorderHost />
+        <PatientVaultRecoveryHost />
         <ScrollIndicator />
       </Show>
       <Show when={onboardingVisible()}>

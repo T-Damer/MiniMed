@@ -2,6 +2,8 @@ import { type Accessor, createSignal, type JSX, onCleanup, onMount, Show } from 
 import { toast } from 'solid-sonner';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import { PatientVaultRecoveryForm } from '@/components/PatientVaultRecovery';
 import {
   PATIENT_BACKUP_CONFIRMATION,
   saveNotesBackup,
@@ -12,7 +14,11 @@ import {
   type PatientVaultState,
   patientStorageDescription,
 } from '@/features/settings/settings-status';
-import { PATIENT_VAULT_EVENT, patientVaultDisplayState } from '@/state/patient-vault';
+import {
+  PATIENT_VAULT_EVENT,
+  patientVaultDisplayState,
+  patientVaultHasRecovery,
+} from '@/state/patient-vault';
 
 /** One backup action: the whole row is the button, a download mark trails. */
 function BackupRow(props: {
@@ -70,6 +76,31 @@ function createPatientVaultState(): Accessor<PatientVaultState> {
   return state;
 }
 
+/** Whether the vault has a recovery code to type; follows the vault while the page is open. */
+function createVaultRecoveryAvailable(): Accessor<boolean> {
+  const [available, setAvailable] = createSignal(false);
+  onMount(() => {
+    let disposed = false;
+    const sync = (): void => {
+      patientVaultHasRecovery().then(
+        (next) => {
+          if (!disposed) setAvailable(next);
+        },
+        (cause: unknown) => {
+          console.warn('Код восстановления хранилища не прочитан.', cause);
+        },
+      );
+    };
+    sync();
+    window.addEventListener(PATIENT_VAULT_EVENT, sync);
+    onCleanup(() => {
+      disposed = true;
+      window.removeEventListener(PATIENT_VAULT_EVENT, sync);
+    });
+  });
+  return available;
+}
+
 /** The «?» of the page: what protects the data, and what a backup file leaves open. */
 export function SettingsDataHelp(): JSX.Element {
   const state = createPatientVaultState();
@@ -112,6 +143,8 @@ export function SettingsDataPage(): JSX.Element {
     void save('patients', savePatientsBackup, 'Карточки пациентов сохранены в файл.');
   };
   const status = () => dataStatus(state());
+  const recoveryAvailable = createVaultRecoveryAvailable();
+  const [recoveryOpen, setRecoveryOpen] = createSignal(false);
   return (
     <ul class="settings-list__group settings-data__group">
       <li class="settings-list__item">
@@ -147,6 +180,32 @@ export function SettingsDataPage(): JSX.Element {
         divided
         onSave={savePatients}
       />
+      <Show when={recoveryAvailable()}>
+        <li class="settings-list__item">
+          <button
+            type="button"
+            class="settings-list__row settings-list__row--action"
+            onClick={() => setRecoveryOpen(true)}
+          >
+            <span class="settings-tile settings-tile--teal">
+              <AppGlyph name="lock" class="settings-tile__glyph" />
+            </span>
+            <span class="settings-list__title">Восстановить по коду</span>
+          </button>
+          <OverlayDialog
+            open={recoveryOpen()}
+            title="Восстановить по коду"
+            onClose={() => setRecoveryOpen(false)}
+          >
+            <PatientVaultRecoveryForm
+              onRecovered={() => {
+                setRecoveryOpen(false);
+                toast.success('Хранилище открыто.');
+              }}
+            />
+          </OverlayDialog>
+        </li>
+      </Show>
     </ul>
   );
 }

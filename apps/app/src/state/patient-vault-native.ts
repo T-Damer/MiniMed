@@ -31,6 +31,7 @@ interface LocalMedPatientVaultPlugin {
   wrapKey(options: {
     readonly keyBase64: string;
     readonly protection: NativeKeyProtection;
+    readonly replaceInvalidatedKey?: boolean;
   }): Promise<NativeWrappedKeyParts>;
   unwrapKey(options: {
     readonly ivBase64: string;
@@ -94,9 +95,17 @@ export function nativeVaultErrorCode(error: unknown): NativeVaultErrorCode | und
 export async function wrapPatientVaultKey(
   rawKey: Uint8Array,
   protection: NativeKeyProtection = 'device',
+  options?: {
+    /** Recovery by code: drop an auth key that Android invalidated so a fresh one wraps the key. */
+    readonly replaceInvalidatedKey?: boolean;
+  },
 ): Promise<NativeWrappedKeyParts> {
   if (rawKey.byteLength !== 32) throw new Error('Некорректная длина ключа хранилища.');
-  return nativePatientVault.wrapKey({ keyBase64: bytesToBase64(rawKey), protection });
+  return nativePatientVault.wrapKey({
+    keyBase64: bytesToBase64(rawKey),
+    protection,
+    ...(options?.replaceInvalidatedKey ? { replaceInvalidatedKey: true } : {}),
+  });
 }
 
 export async function unwrapPatientVaultKey(

@@ -37,6 +37,7 @@ import {
 } from '@/state/patient-tool-recording';
 import {
   addPatientBlob,
+  confirmPatientVaultRecoveryCode,
   createPatientInVault,
   createPatientVault,
   deletePatientBlob,
@@ -51,9 +52,12 @@ import {
   PatientVaultError,
   patientVaultDisplayState,
   patientVaultExists,
+  patientVaultHasRecovery,
   patientVaultStorageMode,
+  pendingPatientVaultRecoveryCode,
   readPatientBlob,
   readPatientVault,
+  recoverPatientVaultWithCode,
   sealPatientVaultText,
   unlockPatientVault,
   updatePatientVault,
@@ -77,6 +81,8 @@ const nativeBridge = vi.hoisted(() => {
   const state = {
     deviceKeyAlive: false,
     authKeyAlive: false,
+    /** Which auth key made a blob: a new key (after Android dropped the old one) opens only its own. */
+    authGeneration: 0,
     windowOpen: false,
     prompts: 0,
     prompt: 'ok' as 'ok' | 'cancel' | 'failed',
@@ -107,20 +113,28 @@ const nativeBridge = vi.hoisted(() => {
       state.deviceKeyAlive = false;
       state.authKeyAlive = false;
     }),
-    wrapKey: vi.fn(async (key: Uint8Array, protection: 'device' | 'auth' = 'device') => {
-      if (protection === 'auth') {
-        authenticate();
-        state.authKeyAlive = true;
-      } else {
-        state.deviceKeyAlive = true;
-      }
-      const ciphertext = new Uint8Array(48).fill(marker[protection]);
-      ciphertext.set(key.slice(), 0);
-      return {
-        ivBase64: base64(new Uint8Array(12).fill(marker[protection])),
-        ciphertextBase64: base64(ciphertext),
-      };
-    }),
+    wrapKey: vi.fn(
+      async (
+        key: Uint8Array,
+        protection: 'device' | 'auth' = 'device',
+        _options?: { readonly replaceInvalidatedKey?: boolean },
+      ) => {
+        if (protection === 'auth') {
+          authenticate();
+          if (!state.authKeyAlive) state.authGeneration += 1;
+          state.authKeyAlive = true;
+        } else {
+          state.deviceKeyAlive = true;
+        }
+        const ciphertext = new Uint8Array(48).fill(marker[protection]);
+        ciphertext.set(key.slice(), 0);
+        if (protection === 'auth') ciphertext[46] = state.authGeneration;
+        return {
+          ivBase64: base64(new Uint8Array(12).fill(marker[protection])),
+          ciphertextBase64: base64(ciphertext),
+        };
+      },
+    ),
     unwrapKey: vi.fn(
       async (
         wrapped: { readonly ciphertextBase64: string },
@@ -136,6 +150,9 @@ const nativeBridge = vi.hoisted(() => {
         }
         const ciphertext = Uint8Array.from(atob(wrapped.ciphertextBase64), (c) => c.charCodeAt(0));
         if (ciphertext[47] !== marker[protection]) throw new Error('AEADBadTagException');
+        if (protection === 'auth' && ciphertext[46] !== state.authGeneration) {
+          throw new Error('AEADBadTagException');
+        }
         return ciphertext.slice(0, 32);
       },
     ),
@@ -165,6 +182,7 @@ function resetNativeBridge(): void {
   Object.assign(nativeBridge.state, {
     deviceKeyAlive: false,
     authKeyAlive: false,
+    authGeneration: 0,
     windowOpen: false,
     prompts: 0,
     prompt: 'ok',
@@ -1449,5 +1467,405 @@ describe('native vault with a fingerprint / PIN key', () => {
 
     await expect(createPatientVault()).rejects.toMatchObject({ code: 'auth-required' });
     expect(await patientVaultExists()).toBe(false);
+  });
+});
+
+describe('vault recovery code', () => {
+  let fakeDatabase: FakeVaultDatabase;
+
+  interface StoredRecord {
+    wrappedKey: { protection?: string; ivBase64: string; ciphertextBase64: string };
+    recovery?: { ivBase64: string; ciphertextBase64: string; confirmed: boolean };
+  }
+  const record = (): StoredRecord => {
+    const stored = fakeDatabase.stores.get('vault')?.get('current') as StoredRecord | undefined;
+    if (!stored) throw new Error('no stored vault');
+    return stored;
+  };
+  const raw = (): string => JSON.stringify(fakeDatabase.stores.get('vault')?.get('current'));
+  const CODE_FORMAT = /^(?:[A-Z2-9]{4}-){5}[A-Z2-9]{4}$/u;
+
+  const useAuthPhone = (): void => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = true;
+  };
+  /** A vault on an auth-bound phone with one patient, its code taken from the sheet's source. */
+  const createAuthVault = async (): Promise<string> => {
+    useAuthPhone();
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-kept', 'event-1'));
+    const code = pendingPatientVaultRecoveryCode();
+    if (!code) throw new Error('no recovery code was offered');
+    return code;
+  };
+  /** Android drops the auth-bound key when the lock screen is removed or changed. */
+  const invalidateKey = (): void => {
+    lockPatientVault();
+    nativeBridge.state.authKeyAlive = false;
+    nativeBridge.state.windowOpen = false;
+  };
+  const createLegacyVault = async (): Promise<void> => {
+    nativeBridge.native = true;
+    nativeBridge.available = true;
+    nativeBridge.authAvailable = false;
+    await createPatientVault();
+    await writePatientVault(patientSnapshotWithEvent('patient-legacy', 'event-1'));
+    delete record().wrappedKey.protection;
+    lockPatientVault();
+    nativeBridge.authAvailable = true;
+    nativeBridge.state.prompts = 0;
+  };
+
+  beforeEach(() => {
+    fakeDatabase = installIndexedDbDouble();
+    resetNativeBridge();
+    lockPatientVault();
+  });
+
+  afterEach(() => {
+    lockPatientVault();
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  describe('creating a vault', () => {
+    it('seals the data key under a fresh code beside the Keystore blob and keeps the code out of storage', async () => {
+      const code = await createAuthVault();
+
+      expect(code).toMatch(CODE_FORMAT);
+      expect(record().wrappedKey.protection).toBe('auth');
+      expect(record().recovery).toMatchObject({ confirmed: false });
+      expect(raw()).not.toContain(code);
+      expect(raw()).not.toContain(code.replaceAll('-', ''));
+      expect(JSON.stringify({ ...localStorage })).not.toContain(code);
+      expect(await patientVaultHasRecovery()).toBe(true);
+    });
+
+    it('asks for no code on a phone that keeps the device key', async () => {
+      nativeBridge.native = true;
+      nativeBridge.available = true;
+      nativeBridge.authAvailable = false;
+      await createPatientVault();
+
+      expect(record().wrappedKey.protection).toBe('device');
+      expect(record().recovery).toBeUndefined();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(await patientVaultHasRecovery()).toBe(false);
+
+      lockPatientVault();
+      await unlockPatientVault();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(record().recovery).toBeUndefined();
+      await expect(
+        recoverPatientVaultWithCode('AAAA-AAAA-AAAA-AAAA-AAAA-AAAA'),
+      ).rejects.toMatchObject({ code: 'unavailable' });
+    });
+
+    it('offers nothing when the record cannot be stored', async () => {
+      useAuthPhone();
+      fakeDatabase.failNextReadwrite = true;
+
+      await expect(createPatientVault()).rejects.toBeInstanceOf(PatientVaultError);
+
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(await patientVaultExists()).toBe(false);
+    });
+
+    it('keeps the code in memory only: a lock forgets it', async () => {
+      await createAuthVault();
+      lockPatientVault();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+    });
+  });
+
+  describe('moving a device-key vault to the auth-bound key', () => {
+    it('stores and reads back the recovery blob before the device key is retired', async () => {
+      await createLegacyVault();
+      let atRetire: StoredRecord | undefined;
+      let deviceKeyAtRetire: boolean | undefined;
+      nativeBridge.retire.mockImplementationOnce(async () => {
+        atRetire = structuredClone(record());
+        deviceKeyAtRetire = nativeBridge.state.deviceKeyAlive;
+        nativeBridge.state.deviceKeyAlive = false;
+        return true;
+      });
+
+      const snapshot = await unlockPatientVault();
+
+      expect(snapshot.profiles[0]?.id).toBe('patient-legacy');
+      expect(atRetire?.wrappedKey.protection).toBe('auth');
+      expect(atRetire?.recovery).toMatchObject({ confirmed: false });
+      expect(deviceKeyAtRetire).toBe(true);
+      expect(pendingPatientVaultRecoveryCode()).toMatch(CODE_FORMAT);
+      expect(nativeBridge.state.deviceKeyAlive).toBe(false);
+    });
+
+    it('keeps the device path and offers no code when the write fails', async () => {
+      await createLegacyVault();
+      const before = raw();
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      fakeDatabase.failNextReadwrite = true;
+
+      await unlockPatientVault();
+
+      expect(raw()).toBe(before);
+      expect(record().recovery).toBeUndefined();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+      expect(nativeBridge.retire).not.toHaveBeenCalled();
+    });
+
+    it('puts the old record back when the stored recovery blob does not match, and retires nothing', async () => {
+      await createLegacyVault();
+      const before = raw();
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const vaultStore = fakeDatabase.stores.get('vault');
+      if (!vaultStore) throw new Error('no vault store');
+      const read = vaultStore.get.bind(vaultStore);
+      let reads = 0;
+      vaultStore.get = (key: string) => {
+        const value = read(key) as StoredRecord | undefined;
+        reads += 1;
+        // Unlock reads, the mutation reads, then the read-back: that copy lost its recovery blob.
+        if (reads === 3 && value?.recovery) {
+          return {
+            ...value,
+            recovery: { ...value.recovery, ciphertextBase64: btoa('x'.repeat(48)) },
+          };
+        }
+        return value;
+      };
+
+      const snapshot = await unlockPatientVault();
+      vaultStore.get = read;
+
+      expect(snapshot.profiles[0]?.id).toBe('patient-legacy');
+      expect(raw()).toBe(before);
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+      expect(nativeBridge.retire).not.toHaveBeenCalled();
+    });
+
+    it('still opens through the new key when retiring the device key fails', async () => {
+      await createLegacyVault();
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      nativeBridge.retire.mockRejectedValueOnce(new Error('keystore busy'));
+
+      await unlockPatientVault();
+
+      expect(record().wrappedKey.protection).toBe('auth');
+      expect(record().recovery).toBeDefined();
+      expect(pendingPatientVaultRecoveryCode()).toMatch(CODE_FORMAT);
+      lockPatientVault();
+      nativeBridge.state.windowOpen = false;
+      expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-legacy');
+    });
+  });
+
+  describe('until the code is confirmed', () => {
+    it('offers a fresh code on every unlock and drops the unconfirmed one', async () => {
+      const first = await createAuthVault();
+      lockPatientVault();
+      const firstBlob = record().recovery?.ciphertextBase64;
+
+      await unlockPatientVault();
+      const second = pendingPatientVaultRecoveryCode();
+
+      expect(second).toMatch(CODE_FORMAT);
+      expect(second).not.toBe(first);
+      expect(record().recovery?.ciphertextBase64).not.toBe(firstBlob);
+      expect(record().recovery?.confirmed).toBe(false);
+      expect(raw()).not.toContain(second ?? 'never');
+      // The code that was never confirmed no longer opens anything.
+      invalidateKey();
+      await expect(recoverPatientVaultWithCode(first)).rejects.toMatchObject({
+        code: 'wrong-code',
+      });
+    });
+
+    it('stops offering once «Я записал» is stored, and keeps the blob', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(record().recovery?.confirmed).toBe(true);
+      const confirmed = raw();
+
+      lockPatientVault();
+      await unlockPatientVault();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(raw()).toBe(confirmed);
+
+      invalidateKey();
+      expect((await recoverPatientVaultWithCode(code)).profiles[0]?.id).toBe('patient-kept');
+    });
+
+    it('keeps the code on screen when the confirmation cannot be stored', async () => {
+      await createAuthVault();
+      const code = pendingPatientVaultRecoveryCode();
+      fakeDatabase.failNextReadwrite = true;
+
+      await expect(confirmPatientVaultRecoveryCode()).rejects.toBeInstanceOf(PatientVaultError);
+
+      expect(pendingPatientVaultRecoveryCode()).toBe(code);
+      expect(record().recovery?.confirmed).toBe(false);
+      await confirmPatientVaultRecoveryCode();
+      expect(record().recovery?.confirmed).toBe(true);
+    });
+
+    it('gives a vault made before recovery codes its first code on unlock', async () => {
+      await createAuthVault();
+      delete record().recovery;
+      lockPatientVault();
+      expect(await patientVaultHasRecovery()).toBe(false);
+
+      await unlockPatientVault();
+
+      expect(pendingPatientVaultRecoveryCode()).toMatch(CODE_FORMAT);
+      expect(record().recovery?.confirmed).toBe(false);
+    });
+  });
+
+  describe('recovering with the code', () => {
+    it('opens a vault whose key was removed, with a code typed in any case, spaces and dashes', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      invalidateKey();
+      await expect(unlockPatientVault()).rejects.toMatchObject({ code: 'key-invalidated' });
+      expect(await patientVaultHasRecovery()).toBe(true);
+      const oldWrapped = record().wrappedKey.ciphertextBase64;
+      const oldRecovery = record().recovery?.ciphertextBase64;
+      const typed = code.toLowerCase().replaceAll('-', ' ');
+      nativeBridge.state.prompts = 0;
+
+      const snapshot = await recoverPatientVaultWithCode(`  ${typed}  `);
+
+      expect(snapshot.profiles[0]?.id).toBe('patient-kept');
+      expect(isPatientVaultUnlocked()).toBe(true);
+      // A new auth-bound key (one prompt) wraps the key; the old key was replaced.
+      expect(nativeBridge.state.prompts).toBe(1);
+      expect(nativeBridge.wrapKey).toHaveBeenLastCalledWith(expect.anything(), 'auth', {
+        replaceInvalidatedKey: true,
+      });
+      expect(record().wrappedKey.protection).toBe('auth');
+      expect(record().wrappedKey.ciphertextBase64).not.toBe(oldWrapped);
+      // A NEW code replaces the old one, shown once and unconfirmed.
+      const next = pendingPatientVaultRecoveryCode();
+      expect(next).toMatch(CODE_FORMAT);
+      expect(next).not.toBe(code);
+      expect(record().recovery?.ciphertextBase64).not.toBe(oldRecovery);
+      expect(record().recovery?.confirmed).toBe(false);
+      expect(raw()).not.toContain(next ?? 'never');
+      expect(nativeBridge.deleteKey).not.toHaveBeenCalled();
+
+      // Everything opens through the new key, and the new code works while the old one does not.
+      await writePatientVault(patientSnapshotWithEvent('patient-after', 'event-2'));
+      lockPatientVault();
+      nativeBridge.state.windowOpen = false;
+      expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-after');
+      invalidateKey();
+      await expect(recoverPatientVaultWithCode(code)).rejects.toMatchObject({
+        code: 'wrong-code',
+      });
+    });
+
+    it('says «Код не подошёл» and changes nothing for a wrong code', async () => {
+      await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      invalidateKey();
+      const before = raw();
+      nativeBridge.state.prompts = 0;
+      nativeBridge.wrapKey.mockClear();
+
+      for (const wrong of ['AAAA-AAAA-AAAA-AAAA-AAAA-AAAA', 'short', '']) {
+        await expect(recoverPatientVaultWithCode(wrong)).rejects.toMatchObject({
+          code: 'wrong-code',
+          message: 'Код не подошёл',
+        });
+      }
+
+      expect(raw()).toBe(before);
+      expect(nativeBridge.state.prompts).toBe(0);
+      expect(nativeBridge.wrapKey).not.toHaveBeenCalled();
+      expect(isPatientVaultUnlocked()).toBe(false);
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(nativeBridge.deleteKey).not.toHaveBeenCalled();
+      expect(await patientVaultExists()).toBe(true);
+    });
+
+    it('leaves everything as it was when the new key is not confirmed, and the code keeps working', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      invalidateKey();
+      const before = raw();
+      nativeBridge.state.prompt = 'cancel';
+
+      await expect(recoverPatientVaultWithCode(code)).rejects.toMatchObject({
+        code: 'auth-required',
+      });
+
+      expect(raw()).toBe(before);
+      expect(isPatientVaultUnlocked()).toBe(false);
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+
+      nativeBridge.state.prompt = 'ok';
+      expect((await recoverPatientVaultWithCode(code)).profiles[0]?.id).toBe('patient-kept');
+    });
+
+    it('keeps the old record and the old code valid when the new record cannot be stored', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      invalidateKey();
+      const before = raw();
+      fakeDatabase.failNextReadwrite = true;
+
+      await expect(recoverPatientVaultWithCode(code)).rejects.toBeInstanceOf(PatientVaultError);
+
+      expect(raw()).toBe(before);
+      expect(isPatientVaultUnlocked()).toBe(false);
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect((await recoverPatientVaultWithCode(code)).profiles[0]?.id).toBe('patient-kept');
+    });
+
+    it('moves onto the device key, without a code, when the phone has no lock screen any more', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      invalidateKey();
+      nativeBridge.authAvailable = false;
+
+      const snapshot = await recoverPatientVaultWithCode(code);
+
+      expect(snapshot.profiles[0]?.id).toBe('patient-kept');
+      expect(record().wrappedKey.protection).toBe('device');
+      expect(record().recovery).toBeUndefined();
+      expect(pendingPatientVaultRecoveryCode()).toBeUndefined();
+      expect(nativeBridge.state.deviceKeyAlive).toBe(true);
+
+      // Silent from now on; a lock screen set later moves it back with a fresh code.
+      lockPatientVault();
+      nativeBridge.state.prompts = 0;
+      expect((await unlockPatientVault()).profiles[0]?.id).toBe('patient-kept');
+      expect(nativeBridge.state.prompts).toBe(0);
+
+      lockPatientVault();
+      nativeBridge.authAvailable = true;
+      await unlockPatientVault();
+      expect(record().wrappedKey.protection).toBe('auth');
+      expect(pendingPatientVaultRecoveryCode()).toMatch(CODE_FORMAT);
+    });
+
+    it('is also what Settings uses on a vault whose key still works', async () => {
+      const code = await createAuthVault();
+      await confirmPatientVaultRecoveryCode();
+      lockPatientVault();
+
+      const snapshot = await recoverPatientVaultWithCode(code);
+
+      expect(snapshot.profiles[0]?.id).toBe('patient-kept');
+      expect(pendingPatientVaultRecoveryCode()).toMatch(CODE_FORMAT);
+      expect(pendingPatientVaultRecoveryCode()).not.toBe(code);
+    });
   });
 });

@@ -2,6 +2,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { PatientVaultRecoveryForm } from '@/components/PatientVaultRecovery';
 import { Heading } from '@/components/Text';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
@@ -10,6 +11,7 @@ import {
   isEncryptedPatientVaultMode,
   isPatientVaultUnlocked,
   PatientVaultError,
+  patientVaultHasRecovery,
   patientVaultStorageMode,
   readPatientVault,
   unlockPatientVault,
@@ -47,6 +49,9 @@ export function PatientVaultUnlock(props: {
   const [needsAuth, setNeedsAuth] = createSignal(false);
   /** The Keystore key is gone; only a saved backup reopens the vault, and nothing is deleted. */
   const [keyInvalidated, setKeyInvalidated] = createSignal(false);
+  /** The lost key has a recovery code: «Восстановить по коду» opens the field for it. */
+  const [canRecover, setCanRecover] = createSignal(false);
+  const [recovering, setRecovering] = createSignal(false);
   const [attempting, setAttempting] = createSignal(true);
   const [busy, setBusy] = createSignal(true);
   const [slow, setSlow] = createSignal(false);
@@ -83,6 +88,16 @@ export function PatientVaultUnlock(props: {
     if (code === 'unavailable' && !isEncryptedPatientVaultMode(storedMode())) setNoDeviceKey(true);
     setNeedsAuth(code === 'auth-required');
     setKeyInvalidated(code === 'key-invalidated');
+    if (code === 'key-invalidated') {
+      patientVaultHasRecovery().then(
+        (has) => {
+          if (current) setCanRecover(has);
+        },
+        (reason: unknown) => {
+          console.warn('Код восстановления хранилища не прочитан.', reason);
+        },
+      );
+    }
     setError(cause instanceof Error ? cause.message : fallback);
   };
   const unlockExisting = async (): Promise<void> => {
@@ -180,6 +195,23 @@ export function PatientVaultUnlock(props: {
         >
           {error()}
         </p>
+      </Show>
+      <Show when={!busy() && keyInvalidated() && canRecover()}>
+        <Show
+          when={recovering()}
+          fallback={
+            <Button
+              type="button"
+              variant="primary"
+              icon={<AppGlyph name="lock" />}
+              onClick={() => setRecovering(true)}
+            >
+              Восстановить по коду
+            </Button>
+          }
+        >
+          <PatientVaultRecoveryForm onRecovered={unlocked} />
+        </Show>
       </Show>
       <Show when={!busy() && openFailed() && !keyInvalidated()}>
         <Button type="button" variant="primary" onClick={() => void unlockExisting()}>

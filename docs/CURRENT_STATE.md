@@ -48,13 +48,48 @@ Patient vault (amends ADR-0016, which said "no biometric prompt"):
   to their existing "vault unavailable" handling.
 - If Android removes the auth key (lock screen removed or replaced; `KeyPermanentlyInvalidatedException`
   or a missing key) the error is `key-invalidated`: stored data is untouched and nothing is deleted
-  automatically, but the data key is gone for good. The only way back today is a patients backup file
-  saved earlier («Данные» → копия пациентов) restored from the patients list; there is no other
-  recovery. This risk is new with the auth key: removing the screen lock now makes the vault
-  unreadable. Browser (`browser-device-key`) path is unchanged.
+  automatically, but the Keystore key is gone for good. Two ways back: the recovery code below, or
+  a patients backup file saved earlier («Данные» → копия пациентов) restored from the patients list.
+  Browser (`browser-device-key`) path is unchanged.
+- **Recovery code** (auth-bound vaults only; a vault on the device key cannot lose its key and has
+  none). The code is the diary doctor account's: `newRecoveryCode` (24 characters, groups of four)
+  and `deriveRecoverySecrets` (HKDF-SHA256, tolerant to case, spaces and dashes) from
+  `@localmed/diary-sync`, with the fixed context `minimed-patient-vault` where the account uses the
+  e-mail. The data key is also sealed with AES-GCM under that derived key (AAD
+  `patient-vault-recovery:v1`) and kept in the stored record as `recovery: { ivBase64,
+  ciphertextBase64, confirmed }` next to `wrappedKey`. The code itself is never stored; it lives in
+  memory (`pendingPatientVaultRecoveryCode`) and is shown once by `PatientVaultRecoveryHost`
+  (mounted in `App.tsx`): sheet «Код восстановления хранилища», large monospace groups, a copy icon
+  button, the line «Запишите его: он откроет хранилище, если смените блокировку экрана», and
+  «Я записал» (`confirmPatientVaultRecoveryCode` sets `confirmed`). The sheet cannot be dismissed.
+  Locking, or closing the app, before «Я записал» forgets the code; the next unlock of that vault
+  replaces the unconfirmed blob with a fresh code and shows it again (the earlier unconfirmed code
+  stops working). Same for an auth-bound vault from the first test build that has no blob yet.
+- Write order. New vault on an auth phone: auth blob and recovery blob in ONE record, strict
+  durability, the code is shown only after the write. Migration (`runUpgradeToAuthProtection`): wrap
+  with the auth key and compare, seal under the new code and prove it opens, write `wrappedKey` +
+  `recovery` in one strict write, read the record back and re-open both blobs (a failed check puts
+  the old record back), offer the code, only then `retireLegacyKey()`. A failure anywhere before
+  retirement keeps the device key and the old blob working; retry at the next unlock.
+- Recovery (`recoverPatientVaultWithCode`; «Восстановить по коду» on the `key-invalidated` card of
+  `PatientVaultUnlock`, and in Settings → «Данные» whenever the vault has a blob): open the blob
+  with the typed code (wrong: `wrong-code`, «Код не подошёл», nothing touched), prove the data key
+  by decrypting the snapshot, wrap it under a new auth-bound key (the plugin's `wrapKey` gets
+  `replaceInvalidatedKey`, which deletes an auth key Android invalidated but leaves a working one),
+  seal it under a NEW code, write both blobs in one strict write, read back and re-open both, show
+  the new code. The old code stays valid until that write lands; a cancelled prompt or a failed
+  write changes nothing. If the phone no longer has a lock screen, the data key goes under the
+  plain device key and the blob is dropped (a lock screen set later migrates it again with a fresh
+  code). The device-to-auth migration also passes `replaceInvalidatedKey`, so a stale auth key left
+  by an earlier lock screen does not block it.
 - Tests: `state/patient-vault.test.ts` (new / legacy migration, cancelled prompt, failure between
-  re-wrap and store, failed read-back, no lock screen, removed key, leftover legacy key),
+  re-wrap and store, failed read-back, no lock screen, removed key, leftover legacy key; recovery:
+  create, write order before retirement, failed write / mismatching read-back, re-offer until
+  confirmed, right / wrong / cancelled / failed-write recovery, device-key phone, lock screen gone),
   `PatientVaultAuthPolicyTest.kt`.
+- Not verified: the `replaceInvalidatedKey` Kotlin branch was not compiled (no `kotlinc` or Gradle
+  here) and, like everything above, has not run on a device. Whether a given phone deletes the auth
+  key or keeps it and throws on use decides which branch recovery takes.
 
 Native camera (Android only; web and iOS keep getUserMedia / `<input capture>`):
 
