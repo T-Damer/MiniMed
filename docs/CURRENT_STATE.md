@@ -20,6 +20,63 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Android test build: fingerprint-unlocked patient vault and native camera — 2026-10-31 (branch `test/native-camera-vault`)
+
+**Implemented, compiled only in part, NOT tested on a device.** Both features exist for a test APK;
+read the checklist before trusting either.
+
+Patient vault (amends ADR-0016, which said "no biometric prompt"):
+
+- `LocalMedPatientVaultPlugin.kt` now has two Keystore wrapping keys. `minimed.patient.vault.v3`
+  (`device`: no user authentication, the old key) and the new `minimed.patient.vault.auth.v1`
+  (`auth`: `setUserAuthenticationRequired(true)`, 300 s window, biometric-strong or device
+  credential, `setInvalidatedByBiometricEnrollment(false)`). When Keystore refuses the auth key for
+  lack of a recent check, the plugin shows the framework `BiometricPrompt` (title «Хранилище
+  пациентов», device PIN allowed) and retries once. Requires API 29+ and a secure lock screen;
+  otherwise the device key is used as before (`isAvailable().authAvailable = false`) and Settings →
+  «Данные» says «Без блокировки экрана хранилище не защищено отпечатком».
+- The stored record's `wrappedKey` gains `protection: 'device' | 'auth'` (absent = `device`).
+  A `device` vault moves on its next unlock (`upgradeToAuthProtection` in `state/patient-vault.ts`):
+  the data key is proven by decrypting the snapshot, wrapped with the auth key (prompt), unwrapped
+  and compared, stored with strict IndexedDB durability only if the record still holds the blob we
+  read, read back and unwrapped again (a failed read-back puts the old record back), and only then
+  `retireLegacyKey()` deletes the old Keystore key (the plugin refuses unless the auth key exists).
+  A failure before that leaves the old key and blob working and is retried at the next unlock.
+- A cancelled or failed prompt leaves the vault locked (`PatientVaultError` code `auth-required`);
+  `PatientVaultUnlock` shows «Хранилище заблокировано» with «Разблокировать». Nothing is wiped or
+  reset. Other callers that open the vault silently (drafts, forms) see the same error and fall back
+  to their existing "vault unavailable" handling.
+- If Android removes the auth key (lock screen removed or replaced; `KeyPermanentlyInvalidatedException`
+  or a missing key) the error is `key-invalidated`: stored data is untouched and nothing is deleted
+  automatically, but the data key is gone for good. The only way back today is a patients backup file
+  saved earlier («Данные» → копия пациентов) restored from the patients list; there is no other
+  recovery. This risk is new with the auth key: removing the screen lock now makes the vault
+  unreadable. Browser (`browser-device-key`) path is unchanged.
+- Tests: `state/patient-vault.test.ts` (new / legacy migration, cancelled prompt, failure between
+  re-wrap and store, failed read-back, no lock screen, removed key, leftover legacy key),
+  `PatientVaultAuthPolicyTest.kt`.
+
+Native camera (Android only; web and iOS keep getUserMedia / `<input capture>`):
+
+- `LocalMedCameraPlugin.kt` (`capturePhoto`, `discardPhoto`) opens `ACTION_IMAGE_CAPTURE` into
+  `cache/localmed/camera/<id>.jpg` through the existing FileProvider, requests CAMERA, resolves with
+  the path; the page reads it via `Capacitor.convertFileSrc`, then discards it. Files older than a
+  day are swept at the next capture.
+- ECG: `EcgPhotoPicker` shows a button instead of the `capture` input on Android. Skin: `SkinTv`
+  keeps its idle static, the screen/shutter read «Нажмите, чтобы снять» and open the system camera;
+  the gallery button and upload are unchanged. The image enters the same pipelines as before.
+- Process death while the camera is open: Capacitor re-delivers the finished call as `appRestoredResult`
+  (`app/use-restored-camera-photo.ts`, `features/camera/native-camera.ts`). The call options carry
+  the `id` and `purpose`, so the file is found again; a photo for `ecg` opens the ECG editor
+  (`handOffEcgPhoto` + `openCalculator`), one for `skin` is frozen on the TV (`skin-photo-handoff.ts`).
+  The file is deleted only after the page has read it.
+- Tests: `features/camera/native-camera.test.ts` (path choice, capture, cancel, errors, restored
+  results), `CameraCapturePolicyTest.kt`.
+
+Build status: the Kotlin sources compile with `kotlinc` 2.2.10 against android-36 and Capacitor;
+Gradle itself could not run here (JDK 27 only, the plugins need a JDK 21 toolchain), so CI must
+compile `:app:compileDebugKotlin`. Kotlin unit tests were run by hand with JUnit.
+
 ## «Кожа по фото» — the page (experimental, 2026-10-29)
 
 Owner spec 2026-10-29. An experimental module (`experimentalModulesEnabled`): the entry card in the home
