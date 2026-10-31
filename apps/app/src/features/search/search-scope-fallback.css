@@ -1,0 +1,65 @@
+/* A section found nothing: the hits of the other sections, a subheader over each (item 23). */
+.scope-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: scope-fallback-rise var(--motion-base) var(--motion-ease) both;
+}
+
+.scope-fallback__miss {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.scope-fallback__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scope-fallback__heading {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.scope-fallback__heading-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scope-fallback__heading-button {
+  display: inline-flex;
+  min-height: 2.25rem;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.scope-fallback__heading-button:active {
+  transform: scale(0.96);
+}
+
+.scope-fallback__heading-icon {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
+}
+
+@keyframes scope-fallback-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}
