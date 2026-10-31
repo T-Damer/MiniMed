@@ -62,6 +62,8 @@
          is granted by Capacitor's WebChromeClient under the same permission; phones without a camera
          still install. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The patient vault asks for a fingerprint, face or the device PIN (BiometricPrompt). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

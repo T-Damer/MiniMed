@@ -5,6 +5,7 @@ import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
 import android.os.Build
 import android.os.CancellationSignal
+import android.util.Log
 import androidx.annotation.RequiresApi
 
 /**
@@ -15,6 +16,10 @@ import androidx.annotation.RequiresApi
  */
 @RequiresApi(Build.VERSION_CODES.Q)
 internal class PatientVaultAuthPrompt(private val activity: Activity) {
+    private companion object {
+        const val TAG = "PatientVaultAuthPrompt"
+    }
+
     private val lock = Any()
     private val waiting = ArrayList<(PatientVaultAuthPolicy.PromptFailure?) -> Unit>()
     private var showing = false
@@ -31,7 +36,9 @@ internal class PatientVaultAuthPrompt(private val activity: Activity) {
         activity.runOnUiThread {
             try {
                 show()
-            } catch (_: Exception) {
+            } catch (cause: Exception) {
+                // Never silent: a missing permission once made every prompt fail without a trace.
+                Log.w(TAG, "The vault prompt could not be shown: ${cause.javaClass.simpleName}", cause)
                 finish(PatientVaultAuthPolicy.PromptFailure.FAILED)
             }
         }
