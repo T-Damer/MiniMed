@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.71] - 2026-10-31
+
+- Smoother right after start-up: the large document lists reach the screens in small pieces instead of one block, each
+  screen handles them in turn, sorting and settings reads are cheaper, and tap sounds prepare one at a time. Scrolling
+  right after the app opens no longer stalls; the home pulse should stay green more often (one shorter stall remains
+  while the home catalog first appears).
+
 ## [0.6.70] - 2026-10-31
 
 - Search: when the chosen section finds nothing, the other sections are searched and their results shown under
