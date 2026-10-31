@@ -15,6 +15,6 @@
     "@localmed/diary-sync": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "1.2.3"
+    "@types/bun": "1.4.4"
   }
 }
