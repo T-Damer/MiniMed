@@ -47,12 +47,19 @@ export interface OpfsDownloadUi {
 /** Whole-pack listings that never change while a pack is open read-only. */
 type PackListingMethod = 'listDocumentIdentities' | 'listAliases' | 'listNavigationDocuments';
 
+/** Hands `value` on in a later task, letting the browser draw a frame first. */
+function nextTask<T>(value: T): Promise<T> {
+  return new Promise((resolve) => setTimeout(() => resolve(value), 0));
+}
+
 export class WorkerOpfsMedicalStore implements MedicalStore {
   private onDownloadWait: (waiting: boolean) => void = () => {};
   private static readonly sharedStores = new Map<string, SharedWorkerStore>();
 
   private requestId = 0;
   private readonly pending = new Map<number, PendingCall>();
+  /** Pages of a long array result, gathered until the call's final message (opfs-pack-protocol). */
+  private readonly parts = new Map<number, unknown[]>();
   private readonly owner: WorkerOpfsMedicalStore;
   private connectionClosed = false;
   private leaseClosed = false;
@@ -107,9 +114,17 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       }
       const pending = this.pending.get(event.data.id);
       if (!pending) return;
+      if ('part' in event.data) {
+        const gathered = this.parts.get(event.data.id) ?? [];
+        for (const row of event.data.part) gathered.push(row);
+        this.parts.set(event.data.id, gathered);
+        return;
+      }
       this.pending.delete(event.data.id);
+      const gathered = this.parts.get(event.data.id);
+      this.parts.delete(event.data.id);
       if ('error' in event.data) pending.reject(new Error(event.data.error));
-      else pending.resolve(event.data.result);
+      else pending.resolve(gathered ?? event.data.result);
     };
     worker.onerror = () => this.shutdown(new Error('OPFS pack worker failed.'));
   }
@@ -380,7 +395,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       // Callers still receive the failure through `pending`; only the cache entry is dropped.
       pending.catch(() => owner.listings.delete(method));
     }
-    return pending as Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>>;
+    // Several screens wait for the same listing; each gets it in a task of its own, so their work
+    // over 20 000 records does not run back to back in one frame (it held the main thread for over
+    // a second at phone speed and turned the home's pulse yellow).
+    return pending.then(nextTask) as Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>>;
   }
 
   private call<M extends Exclude<OpfsPackWorkerMethod, 'inspectIntegrity'>>(
@@ -409,5 +427,6 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private failPending(error: Error): void {
     for (const pending of this.pending.values()) pending.reject(error);
     this.pending.clear();
+    this.parts.clear();
   }
 }

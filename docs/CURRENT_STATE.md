@@ -20,6 +20,24 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Frame drops after the core opens (the yellow pulse) — 2026-10-31 (PERF4)
+
+- **Cause, measured at 4× CPU in Chromium (long-animation-frame + CPU profile):** the OPFS pack worker sent
+  whole-pack listings to the main thread in one message each — `listNavigationDocuments` 37.5 MB (20 002 rows,
+  61 % of it `metadata`: definitions and term anchors), `listAliases` 14.7 MB, `listDocumentIdentities` 3.8 MB —
+  and every screen waiting for a listing ran its work in the same task. One scroll right after start-up held the
+  main thread 1.5 s; the home's pulse turned yellow.
+- **Done:** long array results come in pages of 1 000 rows (`opfs-pack-protocol` `part`, gathered by the client);
+  each caller of a shared listing gets it in a task of its own; the multi-store sorts use one default-locale
+  `Intl.Collator` (same order as `localeCompare()`); `loadAppPreferences` reuses its last parse while the stored
+  strings are unchanged (the release check read them once per catalog module per document); tap sounds warm up
+  one cue per idle slot. Result at 4×: no long frame while scrolling (was 1.5 s of blocking), the 37 MB transfer
+  no longer appears as one task.
+- **Left:** one ~1 s frame at 4× (≈ 0.25 s on a phone) remains when the home catalog first renders the 20 000
+  documents — about a third is script (catalog sections, download blocks, deduplication), the rest layout. Next
+  step would be computing the catalog's sections and counts in the worker and trimming the navigation listing to
+  the fields the home needs. Not measured on a phone.
+
 ## Search: an empty section falls back to the other sections; real misspellings — 2026-10-31 (STATE SRCH3)
 
 Owner requests 13 and 14; roadmap items 23 and 24 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md)), design in

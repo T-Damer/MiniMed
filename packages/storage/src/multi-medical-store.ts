@@ -18,6 +18,17 @@ import type {
   VectorSearchRequest,
 } from './ports';
 
+/**
+ * One default-locale collator for every sort here: the same order as `a.localeCompare(b)` without
+ * arguments, without its per-call setup — sorting the 20 000 navigation titles that way took about
+ * a second of main thread at phone speed.
+ */
+const textCollator = new Intl.Collator();
+
+function compareText(left: string, right: string): number {
+  return textCollator.compare(left, right);
+}
+
 const DEFAULT_RRF_K = 60;
 
 export interface MedicalStoreMount {
@@ -119,7 +130,7 @@ export class MultiMedicalStore implements MedicalStore {
         enabled,
         searchWeight,
       }))
-      .toSorted((left, right) => left.moduleId.localeCompare(right.moduleId));
+      .toSorted((left, right) => compareText(left.moduleId, right.moduleId));
   }
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
@@ -218,7 +229,7 @@ export class MultiMedicalStore implements MedicalStore {
     this.assertInitialized();
     return (await Promise.all(this.activeMounts().map((mount) => mount.store.listDocuments())))
       .flat()
-      .toSorted((left, right) => left.title.localeCompare(right.title));
+      .toSorted((left, right) => compareText(left.title, right.title));
   }
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
@@ -231,7 +242,7 @@ export class MultiMedicalStore implements MedicalStore {
       )
     )
       .flat()
-      .toSorted((left, right) => left.title.localeCompare(right.title));
+      .toSorted((left, right) => compareText(left.title, right.title));
   }
 
   public async lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
@@ -319,7 +330,7 @@ export class MultiMedicalStore implements MedicalStore {
     const byId = new Map<string, AliasRecord>();
     for (const alias of aliases) byId.set(alias.id, alias);
     this.validatedAliases = [...byId.values()].toSorted((left, right) =>
-      left.alias.localeCompare(right.alias),
+      compareText(left.alias, right.alias),
     );
     return this.validatedAliases;
   }
@@ -331,7 +342,7 @@ export class MultiMedicalStore implements MedicalStore {
     ).flat();
     const byId = new Map<string, EmbeddingProfile>();
     for (const profile of profiles) byId.set(profile.id, profile);
-    return [...byId.values()].toSorted((left, right) => left.id.localeCompare(right.id));
+    return [...byId.values()].toSorted((left, right) => compareText(left.id, right.id));
   }
 
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
@@ -410,7 +421,7 @@ export class MultiMedicalStore implements MedicalStore {
     const chosen = [...best.entries()]
       .toSorted(
         ([leftId, left], [rightId, right]) =>
-          right.score - left.score || leftId.localeCompare(rightId),
+          right.score - left.score || compareText(leftId, rightId),
       )
       .slice(0, window);
     const byMount = new Map<InternalMount, { chunkId: string; score: number }[]>();
@@ -426,7 +437,7 @@ export class MultiMedicalStore implements MedicalStore {
     return hydrated
       .flat()
       .toSorted(
-        (left, right) => right.score - left.score || left.chunk.id.localeCompare(right.chunk.id),
+        (left, right) => right.score - left.score || compareText(left.chunk.id, right.chunk.id),
       )
       .slice(0, request.limit);
   }
@@ -447,7 +458,7 @@ export class MultiMedicalStore implements MedicalStore {
       .filter((mount) => mount.enabled && !mount.definitionReference)
       .toSorted(
         (left, right) =>
-          right.searchWeight - left.searchWeight || left.moduleId.localeCompare(right.moduleId),
+          right.searchWeight - left.searchWeight || compareText(left.moduleId, right.moduleId),
       );
   }
 
@@ -534,7 +545,7 @@ export class MultiMedicalStore implements MedicalStore {
       }
     }
     this.validatedAliases = [...aliases.values()].toSorted((left, right) =>
-      left.alias.localeCompare(right.alias),
+      compareText(left.alias, right.alias),
     );
   }
 

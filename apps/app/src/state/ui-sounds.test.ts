@@ -96,10 +96,15 @@ describe('UiSoundController', () => {
 
   it('builds the audio context and the common cues once, ahead of the first tap', async () => {
     const { uiSounds, WARM_UP_CUES } = await import('@/state/ui-sounds');
+    vi.useFakeTimers();
     uiSounds.warmUp();
     uiSounds.warmUp();
-    expect(mockPlayer.preload).toHaveBeenCalledTimes(1);
-    expect(mockPlayer.preload).toHaveBeenCalledWith(WARM_UP_CUES);
+    // One cue per idle slot, each only once.
+    for (let step = 0; step < WARM_UP_CUES.length + 2; step += 1) await vi.runAllTimersAsync();
+    vi.useRealTimers();
+    expect(
+      (mockPlayer.preload.mock.calls as unknown as [readonly string[]][]).map(([cues]) => cues),
+    ).toEqual(WARM_UP_CUES.map((cue) => [cue]));
     expect(mockPlayer.play).not.toHaveBeenCalled();
   });
 
