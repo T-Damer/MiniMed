@@ -79,7 +79,6 @@ import {
   type SearchCoreStatus,
   searchCoreStatusHomeNoteVisible,
 } from '@/features/search/search-core-status';
-import { packOfferOwners, pointerModuleOf } from '@/features/search/search-pack-offers';
 import { isSearchHash } from '@/features/search/search-query-route';
 import {
   SECTION_WAIT_NOTICE_ID,
@@ -212,13 +211,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const document = first === undefined ? undefined : documentsById().get(first);
     return document !== undefined && searchResultDocumentKind(document) === 'medication';
   });
-  /** The result that carries each pack's download chip: a pack is offered once per list. */
-  const packOffers = createMemo(() =>
-    packOfferOwners(
-      resultDocumentIds(),
-      (documentId) => pointerModuleOf(documentsById().get(documentId), downloads.catalog())?.id,
-    ),
-  );
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
     return searchSectionDownloadBlocks(documents(), toolRows(), downloads.catalog());
@@ -1073,7 +1065,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               <SearchResultModuleDownload
                 document={documentsById().get(group.documentId)}
                 downloads={downloads}
-                offerOwners={packOffers()}
               />
             ) : undefined
           }

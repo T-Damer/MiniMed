@@ -900,8 +900,16 @@ html.app-chrome-hidden .document-overlay-paper::before {
   --media-viewer-caption-room: 3.5rem;
 }
 
-/* A picture preview: a dark stage that fills the screen, the picture fitted whole and centred in
-   the free area whatever its size, the toolbar floating over the dark in light controls. */
+/* A picture preview (owner 2026-10-31): the page stays visible under a translucent, blurred dim;
+   the picture is fitted whole and centred in the free area, and the controls float above it in
+   one opaque capsule. Everything rises in quickly (AGENTS.md «Motion»). */
+.media-viewer__backdrop--image {
+  background: rgb(20 19 15 / 58%);
+  -webkit-backdrop-filter: blur(0.625rem);
+  backdrop-filter: blur(0.625rem);
+  animation: media-viewer-dim-in var(--motion-base) var(--motion-ease-out) both;
+}
+
 .media-viewer__panel--image {
   width: 100%;
   height: 100%;
@@ -910,23 +918,62 @@ html.app-chrome-hidden .document-overlay-paper::before {
   border: 0;
   border-radius: 0;
   color: #f1ece0;
-  background: #14130f;
-}
-
-@media (min-width: 45rem) {
-  .media-viewer__panel--image {
-    border-radius: var(--theme-radius-panel);
-  }
+  background: transparent;
+  box-shadow: none;
+  animation: media-viewer-picture-in var(--motion-slow) var(--motion-ease-out) both;
 }
 
 .media-viewer__toolbar--image {
-  --theme-surface-raised: rgb(255 255 255 / 10%);
-  --theme-border: rgb(255 255 255 / 22%);
+  --theme-surface-raised: transparent;
+  --theme-border: transparent;
   --theme-accent: #f1ece0;
-  --theme-accent-soft: rgb(255 255 255 / 24%);
+  --theme-accent-soft: rgb(255 255 255 / 18%);
   --theme-hover-surface: var(--theme-accent-soft);
-  border-bottom-color: rgb(255 255 255 / 10%);
-  background: transparent;
+  align-self: center;
+  gap: 1rem;
+  width: fit-content;
+  max-width: calc(100% - 1rem);
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  background: var(--shell-bar, #47453f);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 32%);
+  animation: media-viewer-capsule-in var(--motion-slow) var(--motion-ease-out) both;
+}
+
+.media-viewer__toolbar-button--image {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+}
+
+@keyframes media-viewer-dim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes media-viewer-picture-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes media-viewer-capsule-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-viewer__backdrop--image,
+  .media-viewer__panel--image,
+  .media-viewer__toolbar--image {
+    animation: none;
+  }
 }
 
 .media-viewer__content--image {

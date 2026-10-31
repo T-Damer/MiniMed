@@ -3,7 +3,8 @@
   min-height: 2.75rem;
   align-items: center;
   gap: 0.5rem;
-  margin-block: 0.5rem 0;
+  /* Room below too: it sat right on the result cards (owner 2026-10-31). */
+  margin-block: 0.5rem 0.75rem;
   padding: 0 0.25rem 0 0.75rem;
   border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
   border-radius: 0.75rem;

@@ -55,7 +55,8 @@ export function SearchResultGroupCard(props: {
   const hasAction = () => action() !== undefined;
   return (
     <section class="result-group" data-document-id={props.group.documentId}>
-      {/* The download offer sits in the header row, beside the button that opens the document. */}
+      {/* Header: the type tag and, in its row, the download button; the title below takes the full
+          width (owner 2026-10-31). */}
       <div class="result-group__head">
         <button
           type="button"
@@ -71,7 +72,10 @@ export function SearchResultGroupCard(props: {
           </span>
 
           <span class="result-group-header__body">
-            <span class="result-group-header__kind">
+            <span
+              class="result-group-header__kind"
+              classList={{ 'result-group-header__kind--beside-action': hasAction() }}
+            >
               <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
               <span class="result-group-header__kind-label">{kind().label}</span>
             </span>

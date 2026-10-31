@@ -933,8 +933,15 @@ main {
   display: block;
   min-width: 0;
   flex: 1 1 auto;
+  overflow: hidden;
   color: var(--query-index-text);
-  text-align: center;
+  /* One line beside the badge on a phone (owner 2026-10-31): smaller and tighter than the
+     summary's micro caps, cut with «…» rather than wrapping. */
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: color var(--theme-motion-control, 140ms ease-out);
 }
 
