@@ -178,6 +178,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-10-31 claude-opus REL 0.6.70: app-only release (search scope fallback and TYPO2, clinical progress, result card header, image viewer, home cards, ECG/skin ORT pinning, skin icon, reader chrome hold); vault biometrics + native camera stay on `test/native-camera-vault` until the owner tests the APK
 - 2026-10-31 claude-opus SRCH3: owner search requests 13+14 (roadmap items 23, 24): an empty section search shows the other sections under «Результаты раздела «…»:»; spelling correction for real misspellings (budget 2 from eight letters, ц/тс, щ/сч, word forms), `typo-queries.json` gains 1 849 hard cases — numbers in `docs/SEARCH_ROADMAP.md` item 24, `docs/CURRENT_STATE.md`
 - 2026-10-30 claude-opus REL 0.6.69: app-only release (patient voice notes V1, published skin pack `minimed-skin-pack-2026.10.30.zip` on models-preview-1 with the DermLIP-distilled B0 and 99 photos, med.1damer.com serves /content/releases from the Pages mirror, emblem pointer fix)
 - 2026-10-30 claude-opus REL 0.6.68: app-only release (diary owner batches 1–3: day sheet, pre-diary days, QR again, own logo and full-screen PWAs, scroll thumb, compact stats; questionnaire band fix); APK by the release workflow, Pages by CI, med.1damer.com by `scripts/diary-deploy.sh`
