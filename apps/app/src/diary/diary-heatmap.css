@@ -283,6 +283,15 @@
   box-shadow: inset 0 0 0 1.5px var(--theme-text-muted, #524d43);
 }
 
+/* The first day of the course: a double frame (owner 2026-11-01), drawn inside the cell so it adds
+   to today's ring and the selection outline instead of replacing them. */
+.diary-heat__day--start {
+  box-shadow:
+    inset 0 0 0 1.5px var(--theme-text, #292720),
+    inset 0 0 0 3px var(--theme-surface-raised, #f7f1e1),
+    inset 0 0 0 4.5px var(--theme-text, #292720);
+}
+
 .diary-heat__day--selected {
   outline: 2px solid var(--theme-text, #292720);
   outline-offset: 1px;

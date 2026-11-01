@@ -167,42 +167,6 @@ h6,
 
 /* Page and inner scroll containers, with a mouse or trackpad: thin and in the theme's ink colour.
    Touch screens keep their overlay scrollbars. */
-@media (hover: hover) and (pointer: fine) {
-  * {
-    scrollbar-color: var(--theme-scrollbar-thumb) transparent;
-    scrollbar-width: thin;
-  }
-
-  .os-scrollbar {
-    --os-size: 0.5rem;
-    --os-handle-bg: var(--theme-scrollbar-thumb);
-    --os-handle-bg-hover: var(--theme-scrollbar-thumb-hover);
-    --os-handle-bg-active: var(--theme-scrollbar-thumb-hover);
-    --os-track-bg: transparent;
-    --os-track-bg-hover: transparent;
-    --os-track-bg-active: transparent;
-  }
-}
-
-/* WebKit engines without the standard properties: the same look through a dedicated class. */
-.scrollbar-themed::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 0.5rem;
-}
-
-.scrollbar-themed::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-themed::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: var(--theme-scrollbar-thumb);
-}
-
-.scrollbar-themed::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-scrollbar-thumb-hover);
-}
-
 /* A horizontal strip (tabs, chips, cards) shows no scrollbar at all: its arrows (`HorizontalScroller`
    or `ScrollStripArrows` in a `scroll-strip`) say that it scrolls. */
 .scroll-strip {

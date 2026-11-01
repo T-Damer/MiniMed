@@ -1,0 +1,38 @@
+/* Thin theme-coloured scrollbars where the pointer is a mouse (classic scrollbars), for the main app
+   and the patient diary alike (owner 2026-11-01: the diary showed the browser's grey bar). Phones
+   draw overlay bars and get the ScrollIndicator thumb instead. */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    scrollbar-color: var(--theme-scrollbar-thumb) transparent;
+    scrollbar-width: thin;
+  }
+
+  .os-scrollbar {
+    --os-size: 0.5rem;
+    --os-handle-bg: var(--theme-scrollbar-thumb);
+    --os-handle-bg-hover: var(--theme-scrollbar-thumb-hover);
+    --os-handle-bg-active: var(--theme-scrollbar-thumb-hover);
+    --os-track-bg: transparent;
+    --os-track-bg-hover: transparent;
+    --os-track-bg-active: transparent;
+  }
+}
+
+/* WebKit engines without the standard properties: the same look through a dedicated class. */
+.scrollbar-themed::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--theme-scrollbar-thumb);
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-scrollbar-thumb-hover);
+}

@@ -37,7 +37,9 @@ const WEEKDAYS = ['', 'Пн', '', 'Ср', '', 'Пт', '', ''];
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
 export function heatDayLabel(day: HeatDay, since?: string): string {
-  const date = dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  const date =
+    dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) +
+    (since && day.day === since ? ', начало дневника' : '');
   if (since && day.day < since && day.entries === 0) return `${date}: до начала дневника`;
   const symptoms = day.symptoms > 0 ? ', есть симптомы' : '';
   if (day.total > 0)
@@ -358,6 +360,7 @@ export function DiaryHeatmap(props: {
                             'diary-heat__day--before': Boolean(
                               props.since && day.day < props.since && day.entries === 0,
                             ),
+                            'diary-heat__day--start': day.day === props.since,
                             'diary-heat__day--selected': day.day === props.selected,
                             'diary-heat__day--today': day.day === props.today,
                             'diary-heat__day--future': day.day > props.today,

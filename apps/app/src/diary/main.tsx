@@ -7,7 +7,10 @@ import '@/diary/diary-shell.css';
 import '@/styles/theme-dark-diary.css';
 import '@/diary/diary-page.css';
 import '@/diary/diary-care.css';
+import '@/styles/scrollbars.css';
 
+// Thin theme-coloured page scrollbar like the main app's (scrollbars.css), not the browser's grey one.
+document.documentElement.classList.add('scrollbar-themed');
 // Chrome offers its install prompt once, early: listen before anything renders.
 listenForInstallPrompt();
 

@@ -53,6 +53,7 @@ import '@/styles/reader-polish.css';
 import '@/styles/floating-windows.css';
 import '@/styles/primary-depth.css';
 import '@/styles/readability.css';
+import '@/styles/scrollbars.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
@@ -60,7 +61,7 @@ if (!root) throw new Error('Missing #root element.');
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
 const stopTheme = installTheme();
-// Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (readability.css).
+// Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (scrollbars.css).
 document.documentElement.classList.add('scrollbar-themed');
 // A tab that was asked to hand the database to another one opens nothing: the reload released its
 // workers and locks, and this page only offers to take the database back (state/tab-takeover.ts).

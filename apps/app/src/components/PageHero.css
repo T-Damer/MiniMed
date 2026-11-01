@@ -209,6 +209,14 @@
    the header flash its end state. Without scroll-driven animations the header scrolls away. */
 @supports (animation-timeline: scroll()) {
   .page--hero.page--hero-sticky {
+    /* The scroll at which the band stops moving (its sticky top below is reached). */
+    --page-hero-collapsed: calc(
+      var(--page-hero-height, 0px) -
+      var(--page-hero-pin) -
+      var(--page-hero-row, 0px) -
+      0.5rem -
+      var(--page-hero-lip)
+    );
     position: sticky;
     /* Only the bar's strip stays on screen: the status bar, the row, a gap and the sheet's lip. */
     top: calc(
@@ -247,6 +255,27 @@
     animation-timeline: scroll(root);
     animation-range: var(--page-hero-start, 0px) var(--page-hero-end, 1px);
   }
+  /* Pinned, the bar is narrower than the band and shorter than the trace: the pulse fades out just
+     before the row pins instead of peeking out beside and under it (owner 2026-11-01). */
+  .page--hero-sticky .page-hero__ecg {
+    animation:
+      page-hero-ecg-drift 14s linear infinite,
+      page-hero-ecg-hide linear both;
+    animation-timeline: auto, scroll(root);
+    animation-range:
+      normal,
+      calc(var(--page-hero-collapsed) - 2.5rem) var(--page-hero-collapsed);
+  }
+
+  .page--hero-sticky .page-hero__ecg.page-hero__ecg--paused {
+    animation-play-state: paused, running;
+  }
+}
+
+@keyframes page-hero-ecg-hide {
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes page-hero-row-fill {
@@ -274,7 +303,8 @@
   }
 }
 
-/* Animations off: the trace and the drift stand still; the bar simply appears. */
+/* Animations off: the trace and the drift stand still; the bar simply appears. A pinned bar still
+   hides the trace (only its fade is scroll-driven, not a motion). */
 :root[data-motion="off"] .page-hero__ecg,
 :root[data-motion="off"] .page-hero__art {
   animation: none;
@@ -284,5 +314,21 @@
   .page-hero__ecg,
   .page-hero__art {
     animation: none;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  :root[data-motion="off"] .page--hero-sticky .page-hero__ecg {
+    animation: page-hero-ecg-hide linear both;
+    animation-timeline: scroll(root);
+    animation-range: calc(var(--page-hero-collapsed) - 2.5rem) var(--page-hero-collapsed);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page--hero-sticky .page-hero__ecg {
+      animation: page-hero-ecg-hide linear both;
+      animation-timeline: scroll(root);
+      animation-range: calc(var(--page-hero-collapsed) - 2.5rem) var(--page-hero-collapsed);
+    }
   }
 }
