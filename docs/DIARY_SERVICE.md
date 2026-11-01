@@ -14,7 +14,7 @@ values are decrypted only on the doctors' and the patient's devices.
 | `packages/diary-sync` | Web Crypto: password → auth key + wrap key, identity key pairs, patient data keys per epoch (ECIES wrap), signed AES-GCM records, pairing seal |
 | `packages/contracts/src/diary-sync.ts` | zod schemas of every request and response |
 | `apps/diary-server` | the service: `src/app.ts` routes over the `src/store.ts` port; `src/sqlite-store.ts` and `src/ydb-store.ts` (numbered migrations each); `src/main.ts` (server mode, Bun), `src/serverless.ts` (Node); `src/push.ts` content-free Web Push; `src/contract.ts` the storage contract both stores pass |
-| `apps/diary-server/deploy` | `serverless/` (image, API Gateway spec, Yandex ids), `container/` (self-host stack), `selfhost/` (systemd package) |
+| `apps/diary-server/deploy` | `serverless/` (image, API Gateway spec, Yandex ids), `container/` (self-host stack), `selfhost/` (systemd package); the VM files at the top (`cloud-init.yaml`, units, `Caddyfile`) for `scripts/diary-vm.sh` and `scripts/diary-deploy.sh` |
 | `apps/app/src/features/diary/connected` | client: API, sync session, replica, patient connection, doctor account and workspace |
 | `apps/app/src/features/diary/dashboard` | the doctor's «Дневники пациентов» (`#/notes/diaries`) |
 | `apps/app/src/diary` | the patient's page (pairing link `#c=<patient>.<secret>`, live sync) |

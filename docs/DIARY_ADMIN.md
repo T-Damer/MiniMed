@@ -60,13 +60,22 @@ vulnerability scanning off (6 free scans, then 14.49 ₽ each) and no warm insta
 
 ## Back to a server
 
-`DIARY_MODE=server` is the same app on Bun over SQLite with the live stream and reminder pushes:
-the container stack or the systemd package of [DIARY_SELFHOST.md](DIARY_SELFHOST.md) on any Linux
-host, then point `med.1damer.com` at it. The pages need no rebuild: they read the mode from
-`/api/health`.
+`DIARY_MODE=server` is the same app on Bun over SQLite with the live stream and reminder pushes; the
+pages need no rebuild, they read the mode from `/api/health` and open the stream again.
+
+- **Back to a VM** (the model of 2026-10-27 – 11-01, kept as it was, ≈ 1 500 ₽/month):
+  `scripts/diary-vm.sh create` (VM + static address in `ru-central1`, cloud-init from
+  `apps/diary-server/deploy/cloud-init.yaml`), then `scripts/diary-deploy.sh yc-user@<address>`
+  (bundled service, systemd units and Caddyfile from `apps/diary-server/deploy/`), the A record of
+  `med.1damer.com` → the new address (DNS only; delete the gateway's domain first), and
+  `DIARY_HOST=yc-user@<address> scripts/diary-vm-admin.sh status|invite|logs|backup|restart`. The old
+  address is released, so the scripts' default host no longer exists. The VM's last database is
+  `data/diary-server/backups/diary-vm-final-2026-11-01.db` on the owner's Mac (restore it with
+  `scp` + `install` as in the backup service).
+- **Any Linux host**: the container stack or the systemd package of [DIARY_SELFHOST.md](DIARY_SELFHOST.md).
 
 ## History
 
 2026-10-27 – 2026-11-01 the service ran on a Yandex Cloud VM (`minimed-diary`, 2 vCPU 20 %, 2 GB,
 ≈ 1 500 ₽/month, idle); it held only demo accounts and was deleted with its address and network after
-the move (ADR-0027).
+the move (ADR-0027). Its scripts stay for a way back (above).

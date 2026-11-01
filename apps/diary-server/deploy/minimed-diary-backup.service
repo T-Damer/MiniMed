@@ -1,0 +1,8 @@
+# Nightly copy of the diary database (ciphertext + doctors' accounts), 14 kept on the VM.
+[Unit]
+Description=MiniMed diary database backup
+
+[Service]
+Type=oneshot
+User=minimed
+ExecStart=/bin/bash -c 'mkdir -p /var/lib/minimed-diary/backups && sqlite3 /var/lib/minimed-diary/diary.db ".backup /var/lib/minimed-diary/backups/diary-$(date +%%F).db" && ls -1t /var/lib/minimed-diary/backups/diary-*.db | tail -n +15 | xargs -r rm --'

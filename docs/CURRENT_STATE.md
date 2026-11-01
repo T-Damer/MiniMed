@@ -318,8 +318,9 @@ strings).
 - **Self-hosting** keeps the `server` mode: a container stack (service, nightly `VACUUM INTO` backup
   job, Caddy, an egress guard that keeps the stack off the host's LAN; image on GHCR from release
   commits) and the systemd package ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)).
-- The VM `minimed-diary` (≈ 1 500 ₽/month, demo accounts only) and its VM-only scripts are retired;
-  its last database is kept locally (`data/diary-server/backups/diary-vm-final-2026-11-01.db`).
+- The VM `minimed-diary` (≈ 1 500 ₽/month, demo accounts only) is deleted; its scripts stay for a way
+  back (`diary-vm.sh`, `diary-deploy.sh`, `diary-vm-admin.sh`, DIARY_ADMIN «Back to a server»), and its
+  last database is kept locally (`data/diary-server/backups/diary-vm-final-2026-11-01.db`).
 - Not done: a serverless invite command (sign-up stays open), a cold-start measurement after a long
   idle period, browser e2e of the dashboard in poll mode against the live service.
 

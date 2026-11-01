@@ -109,7 +109,7 @@ rm -rf "$CHECK"
 
 # 4. Deploy files, installer, README, pins.
 cp "$DEPLOY/selfhost/minimed-diary.service" "$DEPLOY/selfhost/Caddyfile.in" \
-  "$DEPLOY/selfhost/minimed-diary-backup.service" "$DEPLOY/selfhost/minimed-diary-backup.timer" "$PKG/deploy/"
+  "$DEPLOY/selfhost/minimed-diary-backup.service" "$DEPLOY/minimed-diary-backup.timer" "$PKG/deploy/"
 install -m 0755 "$DEPLOY/selfhost/install.sh" "$PKG/install.sh"
 cp "$DEPLOY/selfhost/README.md" "$PKG/README.md"
 printf '%s\n' "$VERSION" >"$PKG/VERSION"
