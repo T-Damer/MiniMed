@@ -15,7 +15,7 @@ export interface ServerSettings {
   readonly staticDir: string | undefined;
   /** VAPID contact (`mailto:` or `https:`), required by push services. */
   readonly pushSubject: string;
-  /** Comma-separated origins allowed to call the API cross-origin (Android app). */
+  /** Origins (separated by commas or semicolons) allowed to call the API cross-origin (Android app). */
   readonly corsOrigins: readonly string[];
   /** `serverless` only: YDB connection string (`grpcs://…?database=…`). */
   readonly ydb: string | undefined;
@@ -37,7 +37,8 @@ export function readSettings(
     staticDir: env['DIARY_STATIC'] ? resolve(env['DIARY_STATIC']) : undefined,
     pushSubject: env['DIARY_PUSH_SUBJECT'] ?? 'mailto:admin@1damer.com',
     corsOrigins: (env['DIARY_CORS_ORIGINS'] ?? '')
-      .split(',')
+      // Commas or semicolons: `yc … --environment` takes commas between variables.
+      .split(/[,;]/u)
       .map((origin) => origin.trim())
       .filter(Boolean),
     ydb: env['DIARY_YDB'],

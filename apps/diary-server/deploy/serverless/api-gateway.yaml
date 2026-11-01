@@ -1,0 +1,48 @@
+# API Gateway of the serverless diary (ADR-0027): /api/* goes to the container; the bare domain and
+# /diary/ send people to the pages on GitHub Pages (a fragment like #c=… survives the redirect).
+# ${CONTAINER_ID} and ${INVOKER_SA} are filled by scripts/diary-serverless-deploy.sh.
+openapi: 3.0.0
+info:
+  title: minimed-diary
+  version: 1.0.0
+# Only these pages may call the API from a browser; the container answers CORS the same way.
+x-yc-apigateway:
+  cors:
+    origin:
+      - https://t-damer.github.io
+      - https://localhost
+      - capacitor://localhost
+    methods: [GET, POST, PUT, PATCH, DELETE]
+    allowedHeaders: [Authorization, Content-Type]
+    maxAge: 600
+paths:
+  /:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 302
+        http_headers:
+          Location: https://t-damer.github.io/MiniMed/app/?profile=diaries
+        content:
+          text/plain: ""
+  /diary:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 302
+        http_headers:
+          Location: https://t-damer.github.io/MiniMed/app/diary/
+        content:
+          text/plain: ""
+  /api/{path+}:
+    x-yc-apigateway-any-method:
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${INVOKER_SA}
