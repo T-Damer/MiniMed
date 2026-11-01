@@ -862,7 +862,13 @@ export function createApp(
 
   const corsHeaders = (request: Request): Record<string, string> => {
     const origin = request.headers.get('Origin');
-    if (!origin || !config.corsOrigins?.includes(origin)) return {};
+    const allowed = config.corsOrigins ?? [];
+    if (!origin) return {};
+    if (!allowed.includes(origin)) {
+      // Name an allowed origin instead of staying silent: a gateway in front (ADR-0027) would
+      // otherwise answer «*», and the browser now refuses the foreign page either way.
+      return allowed[0] ? { 'Access-Control-Allow-Origin': allowed[0], Vary: 'Origin' } : {};
+    }
     return {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Headers': 'Authorization, Content-Type',

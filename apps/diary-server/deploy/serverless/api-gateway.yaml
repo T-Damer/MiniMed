@@ -1,20 +1,11 @@
 # API Gateway of the serverless diary (ADR-0027): /api/* goes to the container; the bare domain and
-# /diary/ send people to the pages on GitHub Pages (a fragment like #c=… survives the redirect).
+# /diary send people to the pages on GitHub Pages (a fragment like #c=… survives the redirect).
+# CORS is the container's (DIARY_CORS_ORIGINS): the gateway's own CORS refuses capacitor:// origins.
 # ${CONTAINER_ID} and ${INVOKER_SA} are filled by scripts/diary-serverless-deploy.sh.
 openapi: 3.0.0
 info:
   title: minimed-diary
   version: 1.0.0
-# Only these pages may call the API from a browser; the container answers CORS the same way.
-x-yc-apigateway:
-  cors:
-    origin:
-      - https://t-damer.github.io
-      - https://localhost
-      - capacitor://localhost
-    methods: [GET, POST, PUT, PATCH, DELETE]
-    allowedHeaders: [Authorization, Content-Type]
-    maxAge: 600
 paths:
   /:
     get:
