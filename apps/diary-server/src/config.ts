@@ -6,6 +6,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 export interface ServerSettings {
+  /** ADR-0027: `server` (Bun + SQLite, live stream) or `serverless` (Node + YDB, clients poll). */
+  readonly mode: 'server' | 'serverless';
   readonly host: string;
   readonly port: number;
   readonly database: string;
@@ -15,15 +17,19 @@ export interface ServerSettings {
   readonly pushSubject: string;
   /** Comma-separated origins allowed to call the API cross-origin (Android app). */
   readonly corsOrigins: readonly string[];
+  /** `serverless` only: YDB connection string (`grpcs://…?database=…`). */
+  readonly ydb: string | undefined;
 }
 
 export function readSettings(
   env: Record<string, string | undefined> = process.env,
 ): ServerSettings {
+  const mode = env['DIARY_MODE'] === 'serverless' ? 'serverless' : 'server';
   const database = resolve(env['DIARY_DB'] ?? 'data/diary-server/diary.db');
-  mkdirSync(dirname(database), { recursive: true });
+  if (mode === 'server') mkdirSync(dirname(database), { recursive: true });
   const signup = env['DIARY_SIGNUP'] === 'open' ? 'open' : 'invite';
   return {
+    mode,
     host: env['DIARY_HOST'] ?? '127.0.0.1',
     port: Number(env['DIARY_PORT'] ?? 8790),
     database,
@@ -34,5 +40,6 @@ export function readSettings(
       .split(',')
       .map((origin) => origin.trim())
       .filter(Boolean),
+    ydb: env['DIARY_YDB'],
   };
 }

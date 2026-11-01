@@ -1,15 +1,15 @@
 /**
  * HTTP API of the connected diary (ADR-0026). One `fetch` handler, so tests drive it without a
- * socket. Every body is validated with the shared contract; every patient route checks membership
- * or device ownership; logs carry the route template, status and time only.
+ * socket, over the storage port (`store.ts`) so the same routes run in both modes of ADR-0027:
+ * `server` (Bun + SQLite, live stream) and `serverless` (Node + YDB, clients poll). Every body is
+ * validated with the shared contract; every patient route checks membership or device ownership;
+ * logs carry the route template, status and time only.
  */
-import type { Database } from 'bun:sqlite';
 import {
   DIARY_ONLINE_WINDOW_MS,
   DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
   DiaryEmailSchema,
-  DiaryEnvelopeSchema,
   DiaryEpochCreateSchema,
   DiaryLoginRequestSchema,
   DiaryMemberInviteSchema,
@@ -31,12 +31,18 @@ import {
 import { randomBytes, randomId, sha256, toBase64Url } from '@localmed/diary-sync';
 import type { z } from 'zod';
 
-import { now } from './db';
 import { inviteCandidates } from './invites';
+import type { Passwords } from './passwords';
 import { pushToOwners, type Vapid } from './push';
 import { replaceReminders } from './reminders';
+import { type DiaryStore, type DoctorRow, now, type PatientRow, StoreConflict } from './store';
+
+/** `server`: one long-running process with a live stream; `serverless`: stateless instances, clients poll. */
+export type DiaryMode = 'server' | 'serverless';
 
 export interface AppConfig {
+  readonly mode?: DiaryMode;
+  readonly passwords: Passwords;
   readonly signup: 'open' | 'invite';
   /** Server secret for the decoy salt of unknown e-mails (no account enumeration). */
   readonly secret: string;
@@ -95,28 +101,6 @@ type Caller =
   | { readonly kind: 'doctor'; readonly id: string }
   | { readonly kind: 'device'; readonly id: string; readonly patientId: string };
 
-interface DoctorRow {
-  id: string;
-  email: string;
-  name: string;
-  auth_hash: string;
-  kdf_salt: string;
-  kdf_iterations: number;
-  identity_wrap: string;
-  identity_sign: string;
-  identity_blob: string;
-  recovery_hash: string;
-  recovery_blob: string;
-}
-
-interface PatientRow {
-  id: string;
-  owner_id: string;
-  epoch: number;
-  status: string;
-  created_at: string;
-}
-
 /** Live streams of signed-in doctors: doctor id → open SSE controllers. */
 class EventHub {
   private readonly streams = new Map<string, Set<ReadableStreamDefaultController<Uint8Array>>>();
@@ -164,21 +148,24 @@ class EventHub {
 }
 
 export function createApp(
-  db: Database,
+  store: DiaryStore,
   config: AppConfig,
 ): (request: Request) => Promise<Response> {
+  const live = (config.mode ?? 'server') === 'server';
   const hub = new EventHub();
-  const attempts = new Map<string, number[]>();
   const log = config.log ?? ((line: string) => console.info(line));
   const onlineWindowMs = config.onlineWindowMs ?? DIARY_ONLINE_WINDOW_MS;
+  const passwords = config.passwords;
 
-  const limit = (key: string): void => {
-    const time = Date.now();
-    const recent = (attempts.get(key) ?? []).filter((at) => time - at < ATTEMPT_WINDOW_MS);
-    if (recent.length >= ATTEMPT_LIMIT)
+  /** Live events reach open streams in `server` mode; in `serverless` mode clients poll instead. */
+  const notify = (ids: readonly string[], event: string, data: unknown): void => {
+    if (live) hub.send(ids, event, data);
+  };
+
+  const limit = async (key: string): Promise<void> => {
+    if (!(await store.attempt(key, ATTEMPT_WINDOW_MS, ATTEMPT_LIMIT))) {
       throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
-    recent.push(time);
-    attempts.set(key, recent);
+    }
   };
 
   // --- presence --------------------------------------------------------------------------------
@@ -192,25 +179,27 @@ export function createApp(
     { online: boolean; sentAt: number; timer?: ReturnType<typeof setTimeout> }
   >();
 
-  const presenceOf = (patientId: string): { lastSeenAt?: string; online: boolean } => {
-    const row = db
-      .query<{ at: string | null }, [string]>(
-        'SELECT MAX(last_seen_at) AS at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
-      )
-      .get(patientId);
-    const lastSeenAt = row?.at ?? undefined;
+  const presenceOf = async (
+    patientId: string,
+  ): Promise<{ lastSeenAt?: string; online: boolean }> => {
+    const lastSeenAt = await store.lastSeen(patientId);
     const online = lastSeenAt !== undefined && Date.now() - Date.parse(lastSeenAt) < onlineWindowMs;
     return lastSeenAt === undefined ? { online } : { lastSeenAt, online };
   };
 
-  const announcePresence = (patientId: string): void => {
+  const announcePresence = async (patientId: string): Promise<void> => {
     const state = presence.get(patientId);
     if (state) state.sentAt = Date.now();
-    hub.send(activeDoctors(patientId), 'presence', { patientId, ...presenceOf(patientId) });
+    notify(await store.activeDoctors(patientId), 'presence', {
+      patientId,
+      ...(await presenceOf(patientId)),
+    });
   };
 
-  const touchDevice = (deviceId: string, patientId: string): void => {
-    db.query('UPDATE devices SET last_seen_at = ? WHERE id = ?').run(now(), deviceId);
+  const touchDevice = async (deviceId: string, patientId: string): Promise<void> => {
+    await store.touchDevice(deviceId, now());
+    // Without a live stream the doctors read presence from the summary; no timers to keep.
+    if (!live) return;
     const state = presence.get(patientId) ?? { online: false, sentAt: 0 };
     clearTimeout(state.timer);
     const cameOnline = !state.online;
@@ -218,12 +207,14 @@ export function createApp(
     // Nobody calls once the diary is closed, so the offline flip is timer-driven.
     state.timer = setTimeout(() => {
       state.online = false;
-      announcePresence(patientId);
+      announcePresence(patientId).catch((cause: unknown) =>
+        log(`presence failed: ${cause instanceof Error ? cause.name : 'error'}`),
+      );
     }, onlineWindowMs + 100);
     state.timer.unref();
     presence.set(patientId, state);
     if (cameOnline || Date.now() - state.sentAt >= DIARY_PRESENCE_EVENT_INTERVAL_MS) {
-      announcePresence(patientId);
+      await announcePresence(patientId);
     }
   };
 
@@ -233,22 +224,14 @@ export function createApp(
     const token = bearer(request, url);
     if (!token) throw new HttpError(401, 'Нужен вход.');
     const hash = await sha256(token);
-    const session = db
-      .query<{ doctor_id: string; expires_at: string }, [string]>(
-        'SELECT doctor_id, expires_at FROM sessions WHERE token_hash = ?',
-      )
-      .get(hash);
+    const session = await store.session(hash);
     if (session) {
       if (session.expires_at < now()) throw new HttpError(401, 'Сессия истекла.');
       return { kind: 'doctor', id: session.doctor_id };
     }
-    const device = db
-      .query<{ id: string; patient_id: string }, [string]>(
-        'SELECT id, patient_id FROM devices WHERE token_hash = ? AND revoked_at IS NULL',
-      )
-      .get(hash);
+    const device = await store.deviceByToken(hash);
     if (device) {
-      touchDevice(device.id, device.patient_id);
+      await touchDevice(device.id, device.patient_id);
       return { kind: 'device', id: device.id, patientId: device.patient_id };
     }
     throw new HttpError(401, 'Нужен вход.');
@@ -259,49 +242,45 @@ export function createApp(
     return who.id;
   };
 
-  const patientRow = (id: string): PatientRow => {
-    const row = db.query<PatientRow, [string]>('SELECT * FROM patients WHERE id = ?').get(id);
+  const patientRow = async (id: string): Promise<PatientRow> => {
+    const row = await store.patient(id);
     if (!row) throw new HttpError(404, 'Пациент не найден.');
     return row;
   };
 
-  const membership = (patientId: string, doctorId: string) =>
-    db
-      .query<{ role: DiaryRole; status: string }, [string, string]>(
-        'SELECT role, status FROM members WHERE patient_id = ? AND doctor_id = ?',
-      )
-      .get(patientId, doctorId);
+  const membership = (patientId: string, doctorId: string) => store.membership(patientId, doctorId);
 
   /** Read access: an active member or a device of this patient. Returns the role (devices: none). */
-  const canRead = (who: Caller, patientId: string): DiaryRole | 'device' => {
+  const canRead = async (who: Caller, patientId: string): Promise<DiaryRole | 'device'> => {
     if (who.kind === 'device') {
       if (who.patientId !== patientId) throw new HttpError(403, 'Нет доступа.');
       return 'device';
     }
-    const member = membership(patientId, who.id);
+    const member = await membership(patientId, who.id);
     if (!member || member.status !== 'active') throw new HttpError(403, 'Нет доступа.');
     return member.role;
   };
 
-  const requireRole = (who: Caller, patientId: string, roles: readonly DiaryRole[]): string => {
+  const requireRole = async (
+    who: Caller,
+    patientId: string,
+    roles: readonly DiaryRole[],
+  ): Promise<string> => {
     const id = doctorOnly(who);
-    const member = membership(patientId, id);
+    const member = await membership(patientId, id);
     if (!member || member.status !== 'active' || !roles.includes(member.role)) {
       throw new HttpError(403, 'Недостаточно прав.');
     }
     return id;
   };
 
-  const activeDoctors = (patientId: string): string[] =>
-    db
-      .query<{ doctor_id: string }, [string]>(
-        "SELECT doctor_id FROM members WHERE patient_id = ? AND status = 'active'",
-      )
-      .all(patientId)
-      .map((row) => row.doctor_id);
+  const activeDoctors = (patientId: string): Promise<string[]> => store.activeDoctors(patientId);
 
-  const pushTo = (owners: readonly string[], payload: DiaryPushPayload): void =>
-    pushToOwners(db, config.vapid, owners, payload, log);
+  const pushTo = (owners: readonly string[], payload: DiaryPushPayload): Promise<void> =>
+    pushToOwners(store, config.vapid, owners, payload, log);
+
+  const activeDeviceOwners = async (patientId: string): Promise<string[]> =>
+    (await store.activeDevices(patientId)).map((row) => `p:${row.id}`);
 
   const profile = (row: DoctorRow) => ({
     id: row.id,
@@ -313,43 +292,20 @@ export function createApp(
   const newSession = async (doctorId: string): Promise<string> => {
     const token = toBase64Url(randomBytes(32));
     const expires = new Date(Date.now() + SESSION_DAYS * 86_400_000).toISOString();
-    db.query('INSERT INTO sessions (token_hash, doctor_id, expires_at) VALUES (?, ?, ?)').run(
-      await sha256(token),
-      doctorId,
-      expires,
-    );
+    await store.createSession(await sha256(token), doctorId, expires);
     return token;
   };
 
-  const doctorByEmail = (email: string) =>
-    db.query<DoctorRow, [string]>('SELECT * FROM doctors WHERE email = ?').get(email);
+  const doctorByEmail = (email: string) => store.doctorByEmail(email);
 
-  const summary = (
+  const summary = async (
     row: PatientRow,
     role: DiaryRole,
     status: string,
     doctorId: string,
-  ): DiaryPatientSummary => {
-    const keys = db
-      .query<{ epoch: number; recipient: string; wrapped: string }, [string, string]>(
-        'SELECT epoch, recipient, wrapped FROM patient_keys WHERE patient_id = ? AND recipient = ? ORDER BY epoch',
-      )
-      .all(row.id, `d:${doctorId}`);
-    const last = db
-      .query<{ seq: number | null; at: string | null }, [string]>(
-        'SELECT MAX(seq) AS seq, MAX(at) AS at FROM records WHERE patient_id = ?',
-      )
-      .get(row.id);
-    const alerts = db
-      .query<{ count: number }, [string]>(
-        'SELECT COUNT(*) AS count FROM alerts WHERE patient_id = ? AND acked_at IS NULL',
-      )
-      .get(row.id);
-    const devices = db
-      .query<{ count: number }, [string]>(
-        'SELECT COUNT(*) AS count FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
-      )
-      .get(row.id);
+  ): Promise<DiaryPatientSummary> => {
+    const keys = await store.keysFor(row.id, `d:${doctorId}`);
+    const counts = await store.counts(row.id);
     return {
       id: row.id,
       role,
@@ -358,11 +314,11 @@ export function createApp(
       ownerId: row.owner_id,
       keys,
       epoch: row.epoch,
-      lastSeq: last?.seq ?? 0,
-      lastRecordAt: last?.at ?? null,
-      openAlerts: alerts?.count ?? 0,
-      devices: devices?.count ?? 0,
-      ...presenceOf(row.id),
+      lastSeq: counts.lastSeq,
+      lastRecordAt: counts.lastRecordAt,
+      openAlerts: counts.openAlerts,
+      devices: counts.devices,
+      ...(await presenceOf(row.id)),
       createdAt: row.created_at,
     };
   };
@@ -389,7 +345,8 @@ export function createApp(
     routes.push({ method, pattern, regex, keys, handler });
   };
 
-  route('GET', '/api/health', async () => json({ ok: true }));
+  // `live` tells clients whether to open the stream or to poll (ADR-0027).
+  route('GET', '/api/health', async () => json({ ok: true, live: live ? 'sse' : 'poll' }));
 
   route('GET', '/api/push/key', async () => json({ publicKey: config.vapid.publicKey }));
 
@@ -397,8 +354,8 @@ export function createApp(
 
   route('POST', '/api/auth/prelogin', async (request) => {
     const { email } = await body(request, DiaryPreloginRequestSchema);
-    limit(`prelogin:${email}`);
-    const row = doctorByEmail(email);
+    await limit(`prelogin:${email}`);
+    const row = await doctorByEmail(email);
     // Unknown e-mail: a stable decoy salt, so the answer does not reveal who has an account.
     const salt = row?.kdf_salt ?? (await sha256(`${config.secret}|${email}`)).slice(0, 22);
     return json({ kdf: { salt, iterations: row?.kdf_iterations ?? 600_000 } });
@@ -406,53 +363,45 @@ export function createApp(
 
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
-    limit(`register:${input.email}`);
+    await limit(`register:${input.email}`);
     // Open sign-up: a cap on new accounts for the whole service, not only per address.
-    if (config.signup === 'open') limit('register');
+    if (config.signup === 'open') await limit('register');
     let inviteCode: string | undefined;
     if (config.signup === 'invite') {
-      const invite = input.invite
-        ? inviteCandidates(input.invite)
-            .map((code) =>
-              db
-                .query<{ code: string; used_by: string | null }, [string]>(
-                  'SELECT code, used_by FROM invites WHERE code = ?',
-                )
-                .get(code),
-            )
-            .find(Boolean)
-        : undefined;
+      let invite: { code: string; used_by: string | null } | undefined;
+      for (const code of input.invite ? inviteCandidates(input.invite) : []) {
+        invite = await store.invite(code);
+        if (invite) break;
+      }
       if (!invite || invite.used_by) {
         throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
       }
       inviteCode = invite.code;
     }
-    if (doctorByEmail(input.email)) throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
-    const id = randomId();
-    db.transaction(() => {
-      db.query(
-        `INSERT INTO doctors (id, email, name, auth_hash, kdf_salt, kdf_iterations, identity_wrap,
-          identity_sign, identity_blob, recovery_hash, recovery_blob, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).run(
-        id,
-        input.email,
-        input.name,
-        Bun.password.hashSync(input.authKey, { algorithm: 'argon2id' }),
-        input.kdf.salt,
-        input.kdf.iterations,
-        input.identity.wrap,
-        input.identity.sign,
-        input.identityBlob,
-        Bun.password.hashSync(input.recovery.authKey, { algorithm: 'argon2id' }),
-        input.recovery.identityBlob,
-        now(),
-      );
-      if (inviteCode) {
-        db.query('UPDATE invites SET used_by = ? WHERE code = ?').run(id, inviteCode);
-      }
-    })();
-    const row = doctorByEmail(input.email) as DoctorRow;
+    if (await doctorByEmail(input.email))
+      throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
+    const row: DoctorRow = {
+      id: randomId(),
+      email: input.email,
+      name: input.name,
+      auth_hash: await passwords.hash(input.authKey),
+      kdf_salt: input.kdf.salt,
+      kdf_iterations: input.kdf.iterations,
+      identity_wrap: input.identity.wrap,
+      identity_sign: input.identity.sign,
+      identity_blob: input.identityBlob,
+      recovery_hash: await passwords.hash(input.recovery.authKey),
+      recovery_blob: input.recovery.identityBlob,
+      created_at: now(),
+    };
+    try {
+      await store.createDoctor(row, inviteCode);
+    } catch (cause) {
+      if (cause instanceof StoreConflict)
+        throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
+      throw cause;
+    }
+    const id = row.id;
     return json(
       { token: await newSession(id), doctor: profile(row), identityBlob: row.identity_blob },
       201,
@@ -461,9 +410,9 @@ export function createApp(
 
   route('POST', '/api/auth/login', async (request) => {
     const { email, authKey } = await body(request, DiaryLoginRequestSchema);
-    limit(`login:${email}`);
-    const row = doctorByEmail(email);
-    if (!row || !(await Bun.password.verify(authKey, row.auth_hash))) {
+    await limit(`login:${email}`);
+    const row = await doctorByEmail(email);
+    if (!row || !(await passwords.verify(authKey, row.auth_hash))) {
       throw new HttpError(401, 'Неверный адрес или пароль.');
     }
     return json({
@@ -475,23 +424,21 @@ export function createApp(
 
   route('POST', '/api/auth/logout', async (request, url) => {
     const token = bearer(request, url);
-    if (token) db.query('DELETE FROM sessions WHERE token_hash = ?').run(await sha256(token));
+    if (token) await store.deleteSession(await sha256(token));
     return json({ ok: true });
   });
 
   route('GET', '/api/auth/me', async (request, url) => {
     const id = doctorOnly(await caller(request, url));
-    const row = db
-      .query<DoctorRow, [string]>('SELECT * FROM doctors WHERE id = ?')
-      .get(id) as DoctorRow;
+    const row = (await store.doctorById(id)) as DoctorRow;
     return json({ doctor: profile(row), identityBlob: row.identity_blob });
   });
 
   route('POST', '/api/auth/recover/fetch', async (request) => {
     const input = await body(request, DiaryRecoverFetchRequestSchema);
-    limit(`recover:${input.email}`);
-    const row = doctorByEmail(input.email);
-    if (!row || !(await Bun.password.verify(input.recoveryAuthKey, row.recovery_hash))) {
+    await limit(`recover:${input.email}`);
+    const row = await doctorByEmail(input.email);
+    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
       throw new HttpError(401, 'Неверный адрес или код восстановления.');
     }
     return json({ identityBlob: row.recovery_blob });
@@ -499,23 +446,18 @@ export function createApp(
 
   route('POST', '/api/auth/recover/reset', async (request) => {
     const input = await body(request, DiaryRecoverResetRequestSchema);
-    limit(`recover:${input.email}`);
-    const row = doctorByEmail(input.email);
-    if (!row || !(await Bun.password.verify(input.recoveryAuthKey, row.recovery_hash))) {
+    await limit(`recover:${input.email}`);
+    const row = await doctorByEmail(input.email);
+    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
       throw new HttpError(401, 'Неверный адрес или код восстановления.');
     }
-    db.transaction(() => {
-      db.query(
-        'UPDATE doctors SET auth_hash = ?, kdf_salt = ?, kdf_iterations = ?, identity_blob = ? WHERE id = ?',
-      ).run(
-        Bun.password.hashSync(input.authKey, { algorithm: 'argon2id' }),
-        input.kdf.salt,
-        input.kdf.iterations,
-        input.identityBlob,
-        row.id,
-      );
-      db.query('DELETE FROM sessions WHERE doctor_id = ?').run(row.id);
-    })();
+    await store.resetDoctorAuth(
+      row.id,
+      await passwords.hash(input.authKey),
+      input.kdf.salt,
+      input.kdf.iterations,
+      input.identityBlob,
+    );
     return json({
       token: await newSession(row.id),
       doctor: profile(row),
@@ -527,7 +469,7 @@ export function createApp(
     doctorOnly(await caller(request, url));
     const parsed = DiaryEmailSchema.safeParse(url.searchParams.get('email') ?? '');
     if (!parsed.success) throw new HttpError(400, 'Некорректный адрес.');
-    const row = doctorByEmail(parsed.data);
+    const row = await doctorByEmail(parsed.data);
     if (!row) throw new HttpError(404, 'Врач с таким адресом не найден.');
     return json({ doctor: profile(row) });
   });
@@ -536,13 +478,10 @@ export function createApp(
 
   route('GET', '/api/patients', async (request, url) => {
     const id = doctorOnly(await caller(request, url));
-    const rows = db
-      .query<PatientRow & { role: DiaryRole; member_status: string }, [string]>(
-        `SELECT p.*, m.role AS role, m.status AS member_status FROM patients p
-         JOIN members m ON m.patient_id = p.id WHERE m.doctor_id = ? ORDER BY p.created_at DESC`,
-      )
-      .all(id);
-    return json({ patients: rows.map((row) => summary(row, row.role, row.member_status, id)) });
+    const rows = await store.patientsOf(id);
+    return json({
+      patients: await Promise.all(rows.map((row) => summary(row, row.role, row.member_status, id))),
+    });
   });
 
   route('POST', '/api/patients', async (request, url) => {
@@ -551,49 +490,24 @@ export function createApp(
     if (input.key.epoch !== 1 || input.key.recipient !== `d:${doctorId}`) {
       throw new HttpError(400, 'Ключ пациента должен быть для владельца, эпоха 1.');
     }
-    const time = now();
     try {
-      db.transaction(() => {
-        db.query(
-          'INSERT INTO patients (id, owner_id, epoch, status, created_at) VALUES (?, ?, 1, ?, ?)',
-        ).run(input.id, doctorId, 'active', time);
-        db.query(
-          "INSERT INTO members (patient_id, doctor_id, role, status, added_at) VALUES (?, ?, 'owner', 'active', ?)",
-        ).run(input.id, doctorId, time);
-        db.query(
-          'INSERT INTO patient_keys (patient_id, epoch, recipient, wrapped) VALUES (?, 1, ?, ?)',
-        ).run(input.id, input.key.recipient, input.key.wrapped);
-      })();
-    } catch {
-      throw new HttpError(409, 'Такой пациент уже есть.');
+      await store.createPatient(input.id, doctorId, input.key, now());
+    } catch (cause) {
+      if (cause instanceof StoreConflict) throw new HttpError(409, 'Такой пациент уже есть.');
+      throw cause;
     }
-    return json({ patient: summary(patientRow(input.id), 'owner', 'active', doctorId) }, 201);
+    return json(
+      { patient: await summary(await patientRow(input.id), 'owner', 'active', doctorId) },
+      201,
+    );
   });
 
   route('GET', '/api/patients/:id', async (request, url, params) => {
     const id = params['id'] as string;
-    canRead(await caller(request, url), id);
-    patientRow(id);
-    const members = db
-      .query<DoctorRow & { role: DiaryRole; status: string; added_at: string }, [string]>(
-        `SELECT d.*, m.role AS role, m.status AS status, m.added_at AS added_at FROM members m
-         JOIN doctors d ON d.id = m.doctor_id WHERE m.patient_id = ? ORDER BY m.added_at`,
-      )
-      .all(id);
-    const devices = db
-      .query<
-        {
-          id: string;
-          identity_wrap: string;
-          identity_sign: string;
-          created_at: string;
-          last_seen_at: string | null;
-        },
-        [string]
-      >(
-        'SELECT id, identity_wrap, identity_sign, created_at, last_seen_at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
-      )
-      .all(id);
+    await canRead(await caller(request, url), id);
+    await patientRow(id);
+    const members = await store.members(id);
+    const devices = await store.activeDevices(id);
     return json({
       members: members.map((row) => ({
         doctor: profile(row),
@@ -613,87 +527,70 @@ export function createApp(
   /** Signing keys of everyone who ever wrote a record here (removed doctors and old devices too). */
   route('GET', '/api/patients/:id/authors', async (request, url, params) => {
     const id = params['id'] as string;
-    canRead(await caller(request, url), id);
-    const authors = db
-      .query<{ author: string }, [string]>(
-        'SELECT DISTINCT author FROM records WHERE patient_id = ?',
-      )
-      .all(id);
+    await canRead(await caller(request, url), id);
     const result: Record<string, string> = {};
-    for (const { author } of authors) {
+    for (const author of await store.authors(id)) {
       const [kind, key] = [author.slice(0, 1), author.slice(2)];
       const sign =
         kind === 'd'
-          ? db
-              .query<{ identity_sign: string }, [string]>(
-                'SELECT identity_sign FROM doctors WHERE id = ?',
-              )
-              .get(key)
-          : db
-              .query<{ identity_sign: string }, [string, string]>(
-                'SELECT identity_sign FROM devices WHERE id = ? AND patient_id = ?',
-              )
-              .get(key, id);
-      if (sign) result[author] = sign.identity_sign;
+          ? (await store.doctorById(key))?.identity_sign
+          : await store.deviceSign(key, id);
+      if (sign) result[author] = sign;
     }
     return json({ authors: result });
   });
 
   route('DELETE', '/api/patients/:id', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner']);
-    db.query('DELETE FROM patients WHERE id = ?').run(id);
+    await requireRole(await caller(request, url), id, ['owner']);
+    await store.deletePatient(id);
     return json({ ok: true });
   });
 
   route('POST', '/api/patients/:id/pairings', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner', 'editor']);
+    await requireRole(await caller(request, url), id, ['owner', 'editor']);
     const input = await body(request, DiaryPairingCreateSchema);
     const expires = new Date(Date.now() + PAIRING_HOURS * 3_600_000).toISOString();
-    db.query(
-      'INSERT INTO pairings (secret_hash, patient_id, sealed_keys, expires_at) VALUES (?, ?, ?, ?)',
-    ).run(input.secretHash, id, input.keys, expires);
+    await store.createPairing(input.secretHash, id, input.keys, expires);
     return json({ expiresAt: expires }, 201);
   });
 
   route('POST', '/api/pair', async (request) => {
     const input = await body(request, DiaryPairRequestSchema);
-    limit(`pair:${input.patientId}`);
+    await limit(`pair:${input.patientId}`);
     const hash = await sha256(input.secret);
-    const pairing = db
-      .query<{ patient_id: string; sealed_keys: string; expires_at: string }, [string]>(
-        'SELECT patient_id, sealed_keys, expires_at FROM pairings WHERE secret_hash = ?',
-      )
-      .get(hash);
+    const pairing = await store.pairing(hash);
     if (!pairing || pairing.patient_id !== input.patientId || pairing.expires_at < now()) {
       throw new HttpError(404, 'Код недействителен: попросите врача показать новый.');
     }
-    const patient = patientRow(input.patientId);
+    const patient = await patientRow(input.patientId);
     if (patient.status === 'withdrawn') throw new HttpError(410, 'Наблюдение завершено.');
     const deviceId = randomId();
     const token = toBase64Url(randomBytes(32));
-    const tokenHash = await sha256(token);
-    db.transaction(() => {
-      db.query(
-        `INSERT INTO devices (id, patient_id, token_hash, identity_wrap, identity_sign, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      ).run(deviceId, input.patientId, tokenHash, input.identity.wrap, input.identity.sign, now());
-      // One-time: a photo of the QR code is useless afterwards.
-      db.query('DELETE FROM pairings WHERE secret_hash = ?').run(hash);
-    })();
-    hub.send(activeDoctors(input.patientId), 'device', { patientId: input.patientId, deviceId });
+    // One-time: a photo of the QR code is useless afterwards (the store deletes the pairing).
+    await store.pairDevice(
+      {
+        id: deviceId,
+        patient_id: input.patientId,
+        token_hash: await sha256(token),
+        identity_wrap: input.identity.wrap,
+        identity_sign: input.identity.sign,
+        created_at: now(),
+      },
+      hash,
+    );
+    notify(await activeDoctors(input.patientId), 'device', {
+      patientId: input.patientId,
+      deviceId,
+    });
     return json({ deviceId, token, keys: pairing.sealed_keys }, 201);
   });
 
   route('DELETE', '/api/patients/:id/devices/:device', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner', 'editor']);
-    db.query('UPDATE devices SET revoked_at = ? WHERE id = ? AND patient_id = ?').run(
-      now(),
-      params['device'] as string,
-      id,
-    );
+    await requireRole(await caller(request, url), id, ['owner', 'editor']);
+    await store.revokeDevice(params['device'] as string, id, now());
     return json({ ok: true });
   });
 
@@ -701,25 +598,9 @@ export function createApp(
 
   route('GET', '/api/patients/:id/records', async (request, url, params) => {
     const id = params['id'] as string;
-    canRead(await caller(request, url), id);
+    await canRead(await caller(request, url), id);
     const after = Math.max(0, Number(url.searchParams.get('after') ?? 0) || 0);
-    const rows = db
-      .query<
-        {
-          seq: number;
-          id: string;
-          rev: number;
-          epoch: number;
-          author: string;
-          body: string;
-          sig: string;
-          at: string;
-        },
-        [string, number, number]
-      >(
-        'SELECT seq, id, rev, epoch, author, body, sig, at FROM records WHERE patient_id = ? AND seq > ? ORDER BY seq LIMIT ?',
-      )
-      .all(id, after, PAGE + 1);
+    const rows = await store.records(id, after, PAGE + 1);
     const more = rows.length > PAGE;
     const records = rows.slice(0, PAGE);
     return json({ records, last: records.at(-1)?.seq ?? after, more });
@@ -728,56 +609,34 @@ export function createApp(
   route('POST', '/api/patients/:id/records', async (request, url, params) => {
     const id = params['id'] as string;
     const who = await caller(request, url);
-    const patient = patientRow(id);
+    const patient = await patientRow(id);
     if (patient.status === 'withdrawn') throw new HttpError(410, 'Наблюдение завершено.');
     let author: string;
     if (who.kind === 'device') {
-      canRead(who, id);
+      await canRead(who, id);
       author = `p:${who.id}`;
     } else {
-      author = `d:${requireRole(who, id, ['owner', 'editor'])}`;
+      author = `d:${await requireRole(who, id, ['owner', 'editor'])}`;
     }
     const input = await body(request, DiaryRecordsPushSchema);
-    const time = now();
-    const seqs: number[] = [];
-    try {
-      db.transaction(() => {
-        for (const record of input.records) {
-          if (record.author !== author) throw new HttpError(403, 'Автор записи не совпадает.');
-          if (record.epoch !== patient.epoch)
-            throw new HttpError(409, 'Ключ устарел: обновите данные.');
-          const result = db
-            .query(
-              'INSERT INTO records (patient_id, id, rev, epoch, author, body, sig, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            )
-            .run(
-              id,
-              record.id,
-              record.rev,
-              record.epoch,
-              record.author,
-              record.body,
-              record.sig,
-              time,
-            );
-          seqs.push(Number(result.lastInsertRowid));
-        }
-      })();
-    } catch (cause) {
-      if (cause instanceof HttpError) throw cause;
-      throw new HttpError(409, 'Такая версия записи уже есть.');
+    for (const record of input.records) {
+      if (record.author !== author) throw new HttpError(403, 'Автор записи не совпадает.');
+      if (record.epoch !== patient.epoch)
+        throw new HttpError(409, 'Ключ устарел: обновите данные.');
     }
-    hub.send(activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
+    let seqs: number[];
+    try {
+      seqs = await store.insertRecords(id, input.records, now());
+    } catch (cause) {
+      if (cause instanceof StoreConflict) throw new HttpError(409, 'Такая версия записи уже есть.');
+      throw cause;
+    }
+    notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
     if (who.kind === 'doctor') {
-      const devices = db
-        .query<{ id: string }, [string]>(
-          'SELECT id FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
-        )
-        .all(id)
-        .map((row) => `p:${row.id}`);
-      hub.send(devices, 'records', { seq: seqs.at(-1) });
+      const devices = await activeDeviceOwners(id);
+      notify(devices, 'records', { seq: seqs.at(-1) });
       // Only what the patient should look at rings the phone (a profile edit does not).
-      if (input.notice) pushTo(devices, { kind: input.notice });
+      if (input.notice) await pushTo(devices, { kind: input.notice });
     }
     return json({ seqs }, 201);
   });
@@ -786,58 +645,39 @@ export function createApp(
 
   route('POST', '/api/patients/:id/members', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner']);
+    await requireRole(await caller(request, url), id, ['owner']);
     const input = await body(request, DiaryMemberInviteSchema);
-    const patient = patientRow(id);
+    const patient = await patientRow(id);
     const recipient = `d:${input.doctorId}`;
-    if (!db.query('SELECT id FROM doctors WHERE id = ?').get(input.doctorId)) {
-      throw new HttpError(404, 'Врач не найден.');
-    }
+    if (!(await store.doctorById(input.doctorId))) throw new HttpError(404, 'Врач не найден.');
     if (input.keys.some((key) => key.recipient !== recipient || key.epoch > patient.epoch)) {
       throw new HttpError(400, 'Ключи не для этого врача.');
     }
-    db.transaction(() => {
-      db.query(
-        `INSERT INTO members (patient_id, doctor_id, role, status, added_at) VALUES (?, ?, ?, 'pending', ?)
-         ON CONFLICT(patient_id, doctor_id) DO UPDATE SET role = excluded.role`,
-      ).run(id, input.doctorId, input.role, now());
-      for (const key of input.keys) {
-        db.query(
-          'INSERT OR REPLACE INTO patient_keys (patient_id, epoch, recipient, wrapped) VALUES (?, ?, ?, ?)',
-        ).run(id, key.epoch, key.recipient, key.wrapped);
-      }
-    })();
-    hub.send([input.doctorId], 'invite', { patientId: id });
-    pushTo([`d:${input.doctorId}`], { kind: 'invite' });
+    await store.inviteMember(id, input.doctorId, input.role, now(), input.keys);
+    notify([input.doctorId], 'invite', { patientId: id });
+    await pushTo([`d:${input.doctorId}`], { kind: 'invite' });
     return json({ ok: true }, 201);
   });
 
   route('POST', '/api/patients/:id/accept', async (request, url, params) => {
     const id = params['id'] as string;
     const doctorId = doctorOnly(await caller(request, url));
-    const member = membership(id, doctorId);
+    const member = await membership(id, doctorId);
     if (!member) throw new HttpError(404, 'Приглашения нет.');
-    db.query("UPDATE members SET status = 'active' WHERE patient_id = ? AND doctor_id = ?").run(
-      id,
-      doctorId,
-    );
-    hub.send(activeDoctors(id), 'members', { patientId: id });
+    await store.acceptMember(id, doctorId);
+    notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
   route('PATCH', '/api/patients/:id/members/:doctor', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner']);
+    await requireRole(await caller(request, url), id, ['owner']);
     const { role } = await body(request, DiaryMemberPatchSchema);
     const target = params['doctor'] as string;
-    const member = membership(id, target);
+    const member = await membership(id, target);
     if (!member || member.role === 'owner') throw new HttpError(400, 'Нельзя изменить эту роль.');
-    db.query('UPDATE members SET role = ? WHERE patient_id = ? AND doctor_id = ?').run(
-      role,
-      id,
-      target,
-    );
-    hub.send(activeDoctors(id), 'members', { patientId: id });
+    await store.setRole(id, target, role);
+    notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -847,65 +687,37 @@ export function createApp(
     const doctorId = doctorOnly(who);
     const target = params['doctor'] as string;
     // The owner removes anyone else; a curator may leave on their own.
-    if (target !== doctorId) requireRole(who, id, ['owner']);
-    const member = membership(id, target);
+    if (target !== doctorId) await requireRole(who, id, ['owner']);
+    const member = await membership(id, target);
     if (!member) throw new HttpError(404, 'Такого куратора нет.');
     if (member.role === 'owner')
       throw new HttpError(400, 'Владельца удалить нельзя: сначала передайте пациента.');
-    db.transaction(() => {
-      db.query('DELETE FROM members WHERE patient_id = ? AND doctor_id = ?').run(id, target);
-      db.query('DELETE FROM patient_keys WHERE patient_id = ? AND recipient = ?').run(
-        id,
-        `d:${target}`,
-      );
-    })();
-    hub.send([...activeDoctors(id), target], 'members', { patientId: id });
+    await store.removeMember(id, target);
+    notify([...(await activeDoctors(id)), target], 'members', { patientId: id });
     return json({ ok: true });
   });
 
   route('POST', '/api/patients/:id/transfer/:doctor', async (request, url, params) => {
     const id = params['id'] as string;
-    const ownerId = requireRole(await caller(request, url), id, ['owner']);
+    const ownerId = await requireRole(await caller(request, url), id, ['owner']);
     const target = params['doctor'] as string;
-    const member = membership(id, target);
+    const member = await membership(id, target);
     if (!member || member.status !== 'active')
       throw new HttpError(400, 'Передать можно только активному куратору.');
-    db.transaction(() => {
-      db.query("UPDATE members SET role = 'editor' WHERE patient_id = ? AND doctor_id = ?").run(
-        id,
-        ownerId,
-      );
-      db.query("UPDATE members SET role = 'owner' WHERE patient_id = ? AND doctor_id = ?").run(
-        id,
-        target,
-      );
-      db.query('UPDATE patients SET owner_id = ? WHERE id = ?').run(target, id);
-    })();
-    hub.send(activeDoctors(id), 'members', { patientId: id });
+    await store.transferOwner(id, ownerId, target);
+    notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
   /** A new data key after a removal: wrapped for every remaining member and device. */
   route('POST', '/api/patients/:id/epochs', async (request, url, params) => {
     const id = params['id'] as string;
-    requireRole(await caller(request, url), id, ['owner']);
+    await requireRole(await caller(request, url), id, ['owner']);
     const input = await body(request, DiaryEpochCreateSchema);
-    const patient = patientRow(id);
+    const patient = await patientRow(id);
     if (input.epoch !== patient.epoch + 1) throw new HttpError(409, 'Эпоха устарела.');
-    const members = new Set(
-      db
-        .query<{ doctor_id: string }, [string]>(
-          'SELECT doctor_id FROM members WHERE patient_id = ?',
-        )
-        .all(id)
-        .map((row) => `d:${row.doctor_id}`),
-    );
-    const devices = db
-      .query<{ id: string }, [string]>(
-        'SELECT id FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
-      )
-      .all(id)
-      .map((row) => `p:${row.id}`);
+    const members = new Set((await store.memberDoctors(id)).map((doctor) => `d:${doctor}`));
+    const devices = await activeDeviceOwners(id);
     const allowed = new Set([...members, ...devices]);
     const covered = new Set(input.keys.map((key) => key.recipient));
     if (input.keys.some((key) => key.epoch !== input.epoch || !allowed.has(key.recipient))) {
@@ -914,15 +726,8 @@ export function createApp(
     if ([...allowed].some((recipient) => !covered.has(recipient))) {
       throw new HttpError(400, 'Новый ключ нужен каждому участнику и устройству.');
     }
-    db.transaction(() => {
-      for (const key of input.keys) {
-        db.query(
-          'INSERT INTO patient_keys (patient_id, epoch, recipient, wrapped) VALUES (?, ?, ?, ?)',
-        ).run(id, key.epoch, key.recipient, key.wrapped);
-      }
-      db.query('UPDATE patients SET epoch = ? WHERE id = ?').run(input.epoch, id);
-    })();
-    hub.send(activeDoctors(id), 'members', { patientId: id });
+    await store.addEpoch(id, input.epoch, input.keys);
+    notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -931,24 +736,18 @@ export function createApp(
   route('GET', '/api/device/keys', async (request, url) => {
     const who = await caller(request, url);
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
-    const keys = db
-      .query<{ epoch: number; recipient: string; wrapped: string }, [string, string]>(
-        'SELECT epoch, recipient, wrapped FROM patient_keys WHERE patient_id = ? AND recipient = ? ORDER BY epoch',
-      )
-      .all(who.patientId, `p:${who.id}`);
-    const patient = patientRow(who.patientId);
+    const keys = await store.keysFor(who.patientId, `p:${who.id}`);
+    const patient = await patientRow(who.patientId);
     return json({ keys, epoch: patient.epoch, patientId: who.patientId, status: patient.status });
   });
 
   route('POST', '/api/device/alerts', async (request, url) => {
     const who = await caller(request, url);
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
-    const result = db
-      .query("INSERT INTO alerts (patient_id, kind, at) VALUES (?, 'urgent', ?)")
-      .run(who.patientId, now());
-    const doctors = activeDoctors(who.patientId);
-    hub.send(doctors, 'alert', { id: Number(result.lastInsertRowid), patientId: who.patientId });
-    pushTo(
+    const alertId = await store.addAlert(who.patientId, 'urgent', now());
+    const doctors = await activeDoctors(who.patientId);
+    notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
+    await pushTo(
       doctors.map((id) => `d:${id}`),
       { kind: 'alert' },
     );
@@ -959,26 +758,10 @@ export function createApp(
   route('DELETE', '/api/device', async (request, url) => {
     const who = await caller(request, url);
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
-    const doctors = activeDoctors(who.patientId);
-    db.transaction(() => {
-      db.query('DELETE FROM records WHERE patient_id = ?').run(who.patientId);
-      db.query('DELETE FROM pairings WHERE patient_id = ?').run(who.patientId);
-      db.query('DELETE FROM patient_keys WHERE patient_id = ? AND recipient LIKE ?').run(
-        who.patientId,
-        'p:%',
-      );
-      db.query('UPDATE devices SET revoked_at = ? WHERE patient_id = ? AND revoked_at IS NULL').run(
-        now(),
-        who.patientId,
-      );
-      db.query("UPDATE patients SET status = 'withdrawn' WHERE id = ?").run(who.patientId);
-      db.query("INSERT INTO alerts (patient_id, kind, at) VALUES (?, 'withdrawn', ?)").run(
-        who.patientId,
-        now(),
-      );
-    })();
-    hub.send(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
-    pushTo(
+    const doctors = await activeDoctors(who.patientId);
+    await store.withdraw(who.patientId, now());
+    notify(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
+    await pushTo(
       doctors.map((id) => `d:${id}`),
       { kind: 'withdrawn' },
     );
@@ -989,18 +772,12 @@ export function createApp(
 
   route('GET', '/api/alerts', async (request, url) => {
     const id = doctorOnly(await caller(request, url));
-    const alerts = db
-      .query<{ id: number; patient_id: string; kind: DiaryAlert['kind']; at: string }, [string]>(
-        `SELECT a.id, a.patient_id, a.kind, a.at FROM alerts a
-         JOIN members m ON m.patient_id = a.patient_id AND m.doctor_id = ? AND m.status = 'active'
-         WHERE a.acked_at IS NULL ORDER BY a.at DESC LIMIT 200`,
-      )
-      .all(id);
+    const alerts = await store.openAlertsFor(id, 200);
     return json({
       alerts: alerts.map((row) => ({
         id: row.id,
         patientId: row.patient_id,
-        kind: row.kind,
+        kind: row.kind as DiaryAlert['kind'],
         at: row.at,
       })),
     });
@@ -1008,13 +785,12 @@ export function createApp(
 
   route('POST', '/api/alerts/:alert/ack', async (request, url, params) => {
     const id = doctorOnly(await caller(request, url));
-    const alert = db
-      .query<{ patient_id: string }, [number]>('SELECT patient_id FROM alerts WHERE id = ?')
-      .get(Number(params['alert']));
-    if (!alert) throw new HttpError(404, 'Отметка не найдена.');
-    canRead({ kind: 'doctor', id }, alert.patient_id);
-    db.query('UPDATE alerts SET acked_at = ? WHERE id = ?').run(now(), Number(params['alert']));
-    hub.send(activeDoctors(alert.patient_id), 'alert', { patientId: alert.patient_id });
+    const alertId = Number(params['alert']);
+    const patientId = await store.alertPatient(alertId);
+    if (!patientId) throw new HttpError(404, 'Отметка не найдена.');
+    await canRead({ kind: 'doctor', id }, patientId);
+    await store.ackAlert(alertId, now());
+    notify(await activeDoctors(patientId), 'alert', { patientId });
     return json({ ok: true });
   });
 
@@ -1022,10 +798,13 @@ export function createApp(
     const who = await caller(request, url);
     const { endpoint, keys } = await body(request, DiaryPushSubscriptionSchema);
     const owner = who.kind === 'doctor' ? `d:${who.id}` : `p:${who.id}`;
-    db.query(
-      `INSERT INTO push_subscriptions (endpoint, owner, created_at, p256dh, auth) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(endpoint) DO UPDATE SET owner = excluded.owner, p256dh = excluded.p256dh, auth = excluded.auth`,
-    ).run(endpoint, owner, now(), keys?.p256dh ?? null, keys?.auth ?? null);
+    await store.savePushSubscription(
+      endpoint,
+      owner,
+      now(),
+      keys?.p256dh ?? null,
+      keys?.auth ?? null,
+    );
     return json({ ok: true }, 201);
   });
 
@@ -1034,12 +813,13 @@ export function createApp(
     const who = await caller(request, url);
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
     const { at } = await body(request, DiaryRemindersSchema);
-    return json({ count: replaceReminders(db, who.id, at) });
+    return json({ count: await replaceReminders(store, who.id, at) });
   });
 
   // Live stream: a doctor by id, a patient's phone as `p:<device id>` (no colon in doctor ids).
   route('GET', '/api/events', async (request, url) => {
     const who = await caller(request, url);
+    if (!live) throw new HttpError(404, 'Живого потока нет: данные обновляются опросом.');
     return hub.open(who.kind === 'doctor' ? who.id : `p:${who.id}`);
   });
 
@@ -1051,6 +831,7 @@ export function createApp(
     if (path.includes('..')) return json({ error: 'Не найдено.' }, 404);
     const candidates = path.endsWith('/') ? [`${path}index.html`] : [path, `${path}/index.html`];
     for (const candidate of candidates) {
+      // Only the `server` mode (Bun) serves files; the serverless entry sets no staticDir.
       const file = Bun.file(`${config.staticDir}${candidate}`);
       if (await file.exists()) {
         const immutable = candidate.startsWith('/assets/');

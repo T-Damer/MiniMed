@@ -23,17 +23,20 @@ import {
 } from '@localmed/diary-sync';
 
 import { createApp } from './app';
-import { openDatabase } from './db';
+import { bunPasswords } from './passwords';
 import { loadVapid } from './push';
 import { sendDueReminders } from './reminders';
+import { openDatabase, SqliteStore } from './sqlite-store';
 
 async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number) {
   const db = openDatabase(':memory:');
+  const store = new SqliteStore(db);
   const logs: string[] = [];
-  const app = createApp(db, {
+  const app = createApp(store, {
+    passwords: bunPasswords,
     signup,
     secret: 'test-secret',
-    vapid: await loadVapid(db, 'mailto:test@example.org'),
+    vapid: await loadVapid(store, 'mailto:test@example.org'),
     log: (line) => logs.push(line),
     ...(onlineWindowMs === undefined ? {} : { onlineWindowMs }),
   });
@@ -51,7 +54,7 @@ async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number
     // biome-ignore lint/suspicious/noExplicitAny: the test reads answers as loose JSON.
     return { status: response.status, body: (await response.json()) as Record<string, any> };
   };
-  return { db, call, logs, app };
+  return { db, store, call, logs, app };
 }
 
 const KDF = { salt: 'c2FsdHNhbHRzYWx0c2FsdA', iterations: 100_000 };
@@ -454,7 +457,7 @@ describe('diary server', () => {
   });
 
   it('stores only reminder moments and pushes each once, with kinds and no content', async () => {
-    const { db, call } = await setup('open');
+    const { db, store, call } = await setup('open');
     const owner = await register(call, 'remind@clinic.ru', 'Д-р Петрова');
     expect((await call('GET', '/api/info')).body).toEqual({ signup: 'open' });
     const patientId = randomId();
@@ -543,13 +546,19 @@ describe('diary server', () => {
       return new Response(null, { status: 201 });
     }) as typeof fetch;
     try {
-      const vapid = await loadVapid(db, 'mailto:test@example.org');
+      const vapid = await loadVapid(store, 'mailto:test@example.org');
       // Not due yet; then due; then gone (sent once).
-      expect(sendDueReminders(db, vapid, () => undefined)).toBe(0);
-      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(soon) + 1000)).toBe(1);
-      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(soon) + 2000)).toBe(0);
+      expect(await sendDueReminders(store, vapid, () => undefined)).toBe(0);
+      expect(await sendDueReminders(store, vapid, () => undefined, Date.parse(soon) + 1000)).toBe(
+        1,
+      );
+      expect(await sendDueReminders(store, vapid, () => undefined, Date.parse(soon) + 2000)).toBe(
+        0,
+      );
       // A reminder missed by more than the grace period is dropped, not sent late.
-      expect(sendDueReminders(db, vapid, () => undefined, Date.parse(later) + 3_600_000)).toBe(0);
+      expect(
+        await sendDueReminders(store, vapid, () => undefined, Date.parse(later) + 3_600_000),
+      ).toBe(0);
       expect(db.query('SELECT COUNT(*) AS n FROM reminders').get()).toEqual({ n: 0 });
       await Bun.sleep(20);
       expect(sent).toHaveLength(1);
@@ -591,8 +600,8 @@ describe('diary server', () => {
     // A phone whose patient withdrew keeps no reminders.
     await call('PUT', '/api/device/reminders', { at: [later] }, deviceToken);
     await call('DELETE', '/api/device', undefined, deviceToken);
-    const vapid = await loadVapid(db, 'mailto:test@example.org');
-    expect(sendDueReminders(db, vapid, () => undefined, Date.parse(later) + 1000)).toBe(0);
+    const vapid = await loadVapid(store, 'mailto:test@example.org');
+    expect(await sendDueReminders(store, vapid, () => undefined, Date.parse(later) + 1000)).toBe(0);
     expect(deviceId).toBeTruthy();
   });
 

@@ -5,11 +5,10 @@
  * Crypto, so no library is needed; subscriptions stored before their keys get an empty push. The
  * VAPID key pair lives in the settings table.
  */
-import type { Database } from 'bun:sqlite';
 import type { DiaryPushPayload } from '@localmed/contracts';
 import { fromBase64Url, randomBytes, toBase64Url } from '@localmed/diary-sync';
 
-import { setSetting, setting } from './db';
+import type { DiaryStore, PushTarget } from './store';
 
 const encoder = new TextEncoder();
 const ECDSA = { name: 'ECDSA', namedCurve: 'P-256' } as const;
@@ -26,8 +25,8 @@ export interface Vapid {
   readonly subject: string;
 }
 
-export async function loadVapid(db: Database, subject: string): Promise<Vapid> {
-  const stored = setting(db, 'vapid');
+export async function loadVapid(store: DiaryStore, subject: string): Promise<Vapid> {
+  const stored = await store.setting('vapid');
   if (stored) {
     const jwk = JSON.parse(stored) as JsonWebKey & { publicRaw: string };
     const privateKey = await crypto.subtle.importKey('jwk', jwk, ECDSA, false, ['sign']);
@@ -38,7 +37,7 @@ export async function loadVapid(db: Database, subject: string): Promise<Vapid> {
   const publicRaw = toBase64Url(
     new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey)),
   );
-  setSetting(db, 'vapid', JSON.stringify({ ...jwk, publicRaw }));
+  await store.setSetting('vapid', JSON.stringify({ ...jwk, publicRaw }));
   return { publicKey: publicRaw, privateKey: pair.privateKey, subject };
 }
 
@@ -65,11 +64,7 @@ async function vapidToken(vapid: Vapid, audience: string): Promise<string> {
 export type PushOutcome = 'sent' | 'gone' | 'failed';
 
 /** A stored subscription; the keys are absent for one saved before payloads existed. */
-export interface PushTarget {
-  readonly endpoint: string;
-  readonly p256dh?: string | null;
-  readonly auth?: string | null;
-}
+export type { PushTarget };
 
 export interface PushOptions {
   /** Seconds the push service keeps an undelivered push (a late reminder is useless). */
@@ -181,35 +176,31 @@ export async function sendPush(
 }
 
 /**
- * Pushes to every subscription of these owners (`d:<doctor>`, `p:<device>`) without waiting;
- * subscriptions the push service no longer knows are deleted.
+ * Pushes to every subscription of these owners (`d:<doctor>`, `p:<device>`) and resolves when all
+ * have answered (a serverless instance may be frozen right after its response, ADR-0027); a failed
+ * push is logged, never thrown. Subscriptions the push service no longer knows are deleted.
  */
-export function pushToOwners(
-  db: Database,
+export async function pushToOwners(
+  store: DiaryStore,
   vapid: Vapid,
   owners: readonly string[],
   payload: DiaryPushPayload,
   log: (line: string) => void,
   options: PushOptions = {},
-): void {
+): Promise<void> {
   if (!owners.length) return;
-  const placeholders = owners.map(() => '?').join(',');
-  const targets = db
-    .query<PushTarget, string[]>(
-      `SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE owner IN (${placeholders})`,
-    )
-    .all(...owners);
-  for (const target of targets) {
-    void sendPush(vapid, target, payload, options)
-      .then((outcome) => {
-        if (outcome === 'gone') {
-          db.query('DELETE FROM push_subscriptions WHERE endpoint = ?').run(target.endpoint);
+  const targets = await store.pushTargets(owners);
+  await Promise.all(
+    targets.map(async (target) => {
+      try {
+        if ((await sendPush(vapid, target, payload, options)) === 'gone') {
+          await store.deletePushSubscription(target.endpoint);
         }
-      })
-      .catch((cause: unknown) =>
-        log(`push failed: ${cause instanceof Error ? cause.name : 'error'}`),
-      );
-  }
+      } catch (cause) {
+        log(`push failed: ${cause instanceof Error ? cause.name : 'error'}`);
+      }
+    }),
+  );
 }
 
 /** Checks that a stored public key decodes; used by tests. */
