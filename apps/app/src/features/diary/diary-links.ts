@@ -10,12 +10,22 @@ export function diaryPageUrl(): string {
   return new URL('diary/', document.baseURI).toString();
 }
 
+/** The pilot's service (ADR-0027: Yandex Cloud behind an API Gateway). */
+const PUBLIC_DIARY_SERVER = 'https://med.1damer.com';
+
 /**
- * Origin of the connected diary service (ADR-0026). Empty: the page's own origin, as when the
- * service serves the app; a native build or a separate host sets `VITE_DIARY_SERVER`.
+ * Origin of the connected diary service (ADR-0026). `VITE_DIARY_SERVER` when set (a self-hosted
+ * service, an empty value for the page's own origin); else the pilot's service for the published
+ * pages and the native shells, which have no service of their own; else the page's own origin, as
+ * when the service serves the app.
  */
 export function diaryServiceBase(): string {
-  return import.meta.env.VITE_DIARY_SERVER ?? '';
+  const configured = import.meta.env.VITE_DIARY_SERVER;
+  if (configured !== undefined) return configured;
+  if (Capacitor.isNativePlatform() || window.location.hostname.endsWith('.github.io')) {
+    return PUBLIC_DIARY_SERVER;
+  }
+  return '';
 }
 
 /**
