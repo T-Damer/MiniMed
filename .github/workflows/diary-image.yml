@@ -1,10 +1,10 @@
 name: Diary container image
 
-# The connected diary's image (docs/DIARY_SELFHOST.md) for every release commit, like the Android
-# release: ghcr.io/<owner>/minimed-diary:<version> and :latest, amd64 + arm64.
+# The self-host image of the connected diary's server mode (docs/DIARY_SELFHOST.md):
+# ghcr.io/<owner>/minimed-diary:<version> and :latest, amd64 + arm64. Manual only (AGENTS.md: Actions
+# minutes are scarce; only CI, Pages and the Android release run by themselves): run it when a
+# faculty needs an image.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,9 +17,6 @@ concurrency:
 
 jobs:
   image:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, 'release: MiniMed')
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:

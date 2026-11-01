@@ -13,7 +13,8 @@ and Caddy files. Nothing in it is private: no data, no keys, no accounts.
 ## Containers
 
 The same service as one image for any Docker host (amd64 or arm64; Linux, or macOS with OrbStack or
-Docker Desktop): `ghcr.io/t-damer/minimed-diary:<version>`, published with every release. Take
+Docker Desktop): `ghcr.io/t-damer/minimed-diary:<version>`, published on request (the manual workflow
+«Diary container image»; or build it with `scripts/diary-image.sh`). Take
 `compose.yaml`, `Caddyfile` and `.env.example` from `apps/diary-server/deploy/container/`:
 
 ```bash
