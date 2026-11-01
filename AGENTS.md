@@ -258,6 +258,14 @@ reported.
   (ticks, questionnaires); a toast says it is only a showcase.
 - **No «необязательно» (owner 2026-10-28).** Do not label optional fields «(необязательно)» or use
   it as a placeholder — the «не» reads as a refusal; invite instead («Опишите ваши ощущения»).
+- **Empty states are centred (owner 2026-11-01).** A list with nothing in it shows, centred in the
+  empty space below the header, an icon, a line or two of text and the action buttons — never a
+  heading stuck to the top of an empty screen. Use `EmptyState` (`components/EmptyState.tsx`); it
+  fills the rest of the viewport above the bottom bar, so the page still does not scroll.
+- **No native pickers (owner 2026-11-01).** Dates and times use the app's own fields — `DateField`
+  (typed «ДД.ММ.ГГГГ» or a calendar in a Kobalte popover / the paper sheet on phones) and the Kobalte
+  `TimeField` — never `<input type="date|time|datetime-local|month">`: native pickers look and work
+  differently on every browser and phone.
 - **Never a lone spinner (owner 2026-10-26).** A loading screen keeps its chrome (‹ back, title when
   known, bottom bar) and shows a skeleton shaped like the coming page: `PageSkeleton` for a whole
   screen, `SkeletonLines` for text still arriving inside a page (`components/PageSkeleton.tsx`). A

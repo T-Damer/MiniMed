@@ -14,6 +14,7 @@ import { AppContextMenu, type AppContextMenuAction } from '@/components/AppConte
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { EmptyState } from '@/components/EmptyState';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
@@ -665,29 +666,29 @@ export function DiaryDashboard(props: {
                 <Show
                   when={patients().length}
                   fallback={
-                    <div class="diary-dash__empty">
-                      <Heading depth={2} class="diary-dash__empty-title">
-                        Первый пациент — пара минут
-                      </Heading>
-                      <p class="diary-dash__empty-text">
-                        Соберите экран дневника и покажите пациенту QR-код.
-                      </p>
-                      <div class="diary-dash__empty-actions">
-                        <Button
-                          variant="primary"
-                          onClick={() => props.onOpenPatient(NEW_PATIENT_ROUTE)}
-                        >
-                          Новый пациент
-                        </Button>
-                        <Show when={workspace()}>
-                          {(diaries) => (
-                            <Button disabled={Boolean(demo())} onClick={() => addDemo(diaries())}>
-                              Посмотреть на демо
-                            </Button>
-                          )}
-                        </Show>
-                      </div>
-                    </div>
+                    <EmptyState
+                      glyph="users"
+                      title="Первый пациент — пара минут"
+                      text="Соберите экран дневника и покажите пациенту QR-код."
+                      data-testid="diary-empty"
+                      actions={
+                        <>
+                          <Button
+                            variant="primary"
+                            onClick={() => props.onOpenPatient(NEW_PATIENT_ROUTE)}
+                          >
+                            Новый пациент
+                          </Button>
+                          <Show when={workspace()}>
+                            {(diaries) => (
+                              <Button disabled={Boolean(demo())} onClick={() => addDemo(diaries())}>
+                                Посмотреть на демо
+                              </Button>
+                            )}
+                          </Show>
+                        </>
+                      }
+                    />
                   }
                 >
                   <div class="diary-dash__order-row">
