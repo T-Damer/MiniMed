@@ -294,6 +294,35 @@ Checked in the browser at 375×812 and 1280×800 against a local service (invite
 code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
 patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
 
+## Connected diary: serverless on Yandex Cloud, two run modes — 2026-11-01 (STATE DIARY12)
+
+[ADR-0027](adr/0027-diary-server-modes.md): one switch, `DIARY_MODE=server|serverless`, for the same
+HTTP app. The routes talk to a `DiaryStore` port (`apps/diary-server/src/store.ts`) with two adapters,
+SQLite (`server`, Bun, live stream, reminder pushes) and YDB (`serverless`, Node, `serverless.ts`).
+One storage contract (`src/contract.ts`) touches every store method and passes over SQLite in both
+modes (`bun test`), over a real YDB database on Node (`scripts/diary-ydb-contract.sh`) and through
+the live gateway. Passwords go through a port (Bun.password / Node `crypto.argon2`, the same PHC
+strings).
+
+- **Live updates without a stream.** In `serverless` mode the server bumps a per-recipient change
+  counter where it would send an event; `/api/health` answers `live: 'poll'` and the doctor's
+  dashboard and the patient's diary read `/api/changes` every 20 s while visible (the dashboard also
+  re-reads every 3 min for presence). Older servers without `live` keep the stream. Reminder pushes
+  are off in this mode (owner: reminders stay on the phone for now).
+- **Pilot hosting.** Serverless Container `diary-api` + YDB serverless + API Gateway `diary` with
+  `med.1damer.com` (Certificate Manager, Let's Encrypt) in the folder `minimed-diary`; inside the free
+  tier, the image in Container Registry ≈ 0.3 ₽/month. The pages are the Pages app:
+  `diaryServiceBase()` is `https://med.1damer.com` on `*.github.io` and in the native shells, and
+  `med.1damer.com/` and `/diary` redirect there. CORS allows only the Pages and native origins; any
+  other origin is answered with an allowed one. Management: [DIARY_ADMIN.md](DIARY_ADMIN.md).
+- **Self-hosting** keeps the `server` mode: a container stack (service, nightly `VACUUM INTO` backup
+  job, Caddy, an egress guard that keeps the stack off the host's LAN; image on GHCR from release
+  commits) and the systemd package ([DIARY_SELFHOST.md](DIARY_SELFHOST.md)).
+- The VM `minimed-diary` (≈ 1 500 ₽/month, demo accounts only) and its VM-only scripts are retired;
+  its last database is kept locally (`data/diary-server/backups/diary-vm-final-2026-11-01.db`).
+- Not done: a serverless invite command (sign-up stays open), a cold-start measurement after a long
+  idle period, browser e2e of the dashboard in poll mode against the live service.
+
 ## Connected diary: live, end-to-end encrypted — 2026-10-27 (STATE DIARY6)
 
 Phases D2–D3 (and part of D4) of [DIARY_PLAN.md](DIARY_PLAN.md) under the accepted
@@ -3846,9 +3875,9 @@ real taps against a local diary server.
   hint (wrong inside the icon); it now logs the error name and shows «не получилось» with a retry hint.
 
 - **Native iOS app** (simulator build per «Build and run (simulator)»): boots, offline search and
-  results, files tab work. The connected diary is not reachable from native builds yet: no build sets
-  `VITE_DIARY_SERVER` and the pilot unit leaves `DIARY_CORS_ORIGINS` commented out, so a doctor in the
-  Android/iOS app has no diary service (same on Android).
+  results, files tab work. Since DIARY12 (2026-11-01) native builds use the pilot service at
+  `https://med.1damer.com` and its CORS list admits `https://localhost` and `capacitor://localhost`;
+  not re-tested on a device.
 
 Not verified: push delivery and «Принял» on iOS (real device needed); TestFlight (installs only on a
 real device); the connected diary inside the native apps (see above).
