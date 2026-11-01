@@ -685,6 +685,18 @@ export class SqliteStore implements DiaryStore {
     this.db.query('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
   }
 
+  /** The server mode streams events instead; a counter in memory keeps the port whole. */
+  private readonly changeCounters = new Map<string, number>();
+
+  async bumpChanges(owners: readonly string[]): Promise<void> {
+    for (const owner of owners)
+      this.changeCounters.set(owner, (this.changeCounters.get(owner) ?? 0) + 1);
+  }
+
+  async changes(owner: string): Promise<number> {
+    return this.changeCounters.get(owner) ?? 0;
+  }
+
   async replaceReminders(deviceId: string, moments: readonly string[]): Promise<void> {
     this.db.transaction(() => {
       this.db.query('DELETE FROM reminders WHERE device_id = ?').run(deviceId);

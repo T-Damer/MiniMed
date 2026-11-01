@@ -209,6 +209,13 @@ export interface DiaryStore {
   ): Promise<void>;
   deletePushSubscription(endpoint: string): Promise<void>;
 
+  /**
+   * `serverless` mode's stand-in for live events: one counter per recipient (a doctor id or
+   * `p:<device>`), bumped where the `server` mode would send an event; clients poll it.
+   */
+  bumpChanges(owners: readonly string[]): Promise<void>;
+  changes(owner: string): Promise<number>;
+
   replaceReminders(deviceId: string, moments: readonly string[]): Promise<void>;
   /** Reminders at or before `at` of active devices, oldest first; all reminders up to `at` are forgotten. */
   takeDueReminders(at: string): Promise<{ device_id: string; at: string }[]>;

@@ -157,9 +157,13 @@ export function createApp(
   const onlineWindowMs = config.onlineWindowMs ?? DIARY_ONLINE_WINDOW_MS;
   const passwords = config.passwords;
 
-  /** Live events reach open streams in `server` mode; in `serverless` mode clients poll instead. */
-  const notify = (ids: readonly string[], event: string, data: unknown): void => {
+  /**
+   * Live events reach open streams in `server` mode; in `serverless` mode the recipients' change
+   * counters are bumped and clients poll `/api/changes` (doctor ids as they are, phones as `p:<id>`).
+   */
+  const notify = async (ids: readonly string[], event: string, data: unknown): Promise<void> => {
     if (live) hub.send(ids, event, data);
+    else await store.bumpChanges(ids);
   };
 
   const limit = async (key: string): Promise<void> => {
@@ -190,7 +194,7 @@ export function createApp(
   const announcePresence = async (patientId: string): Promise<void> => {
     const state = presence.get(patientId);
     if (state) state.sentAt = Date.now();
-    notify(await store.activeDoctors(patientId), 'presence', {
+    await notify(await store.activeDoctors(patientId), 'presence', {
       patientId,
       ...(await presenceOf(patientId)),
     });
@@ -580,7 +584,7 @@ export function createApp(
       },
       hash,
     );
-    notify(await activeDoctors(input.patientId), 'device', {
+    await notify(await activeDoctors(input.patientId), 'device', {
       patientId: input.patientId,
       deviceId,
     });
@@ -631,10 +635,10 @@ export function createApp(
       if (cause instanceof StoreConflict) throw new HttpError(409, 'Такая версия записи уже есть.');
       throw cause;
     }
-    notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
+    await notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
     if (who.kind === 'doctor') {
       const devices = await activeDeviceOwners(id);
-      notify(devices, 'records', { seq: seqs.at(-1) });
+      await notify(devices, 'records', { seq: seqs.at(-1) });
       // Only what the patient should look at rings the phone (a profile edit does not).
       if (input.notice) await pushTo(devices, { kind: input.notice });
     }
@@ -654,7 +658,7 @@ export function createApp(
       throw new HttpError(400, 'Ключи не для этого врача.');
     }
     await store.inviteMember(id, input.doctorId, input.role, now(), input.keys);
-    notify([input.doctorId], 'invite', { patientId: id });
+    await notify([input.doctorId], 'invite', { patientId: id });
     await pushTo([`d:${input.doctorId}`], { kind: 'invite' });
     return json({ ok: true }, 201);
   });
@@ -665,7 +669,7 @@ export function createApp(
     const member = await membership(id, doctorId);
     if (!member) throw new HttpError(404, 'Приглашения нет.');
     await store.acceptMember(id, doctorId);
-    notify(await activeDoctors(id), 'members', { patientId: id });
+    await notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -677,7 +681,7 @@ export function createApp(
     const member = await membership(id, target);
     if (!member || member.role === 'owner') throw new HttpError(400, 'Нельзя изменить эту роль.');
     await store.setRole(id, target, role);
-    notify(await activeDoctors(id), 'members', { patientId: id });
+    await notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -693,7 +697,7 @@ export function createApp(
     if (member.role === 'owner')
       throw new HttpError(400, 'Владельца удалить нельзя: сначала передайте пациента.');
     await store.removeMember(id, target);
-    notify([...(await activeDoctors(id)), target], 'members', { patientId: id });
+    await notify([...(await activeDoctors(id)), target], 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -705,7 +709,7 @@ export function createApp(
     if (!member || member.status !== 'active')
       throw new HttpError(400, 'Передать можно только активному куратору.');
     await store.transferOwner(id, ownerId, target);
-    notify(await activeDoctors(id), 'members', { patientId: id });
+    await notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -727,7 +731,7 @@ export function createApp(
       throw new HttpError(400, 'Новый ключ нужен каждому участнику и устройству.');
     }
     await store.addEpoch(id, input.epoch, input.keys);
-    notify(await activeDoctors(id), 'members', { patientId: id });
+    await notify(await activeDoctors(id), 'members', { patientId: id });
     return json({ ok: true });
   });
 
@@ -746,7 +750,7 @@ export function createApp(
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
     const alertId = await store.addAlert(who.patientId, 'urgent', now());
     const doctors = await activeDoctors(who.patientId);
-    notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
+    await notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
     await pushTo(
       doctors.map((id) => `d:${id}`),
       { kind: 'alert' },
@@ -760,7 +764,7 @@ export function createApp(
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
     const doctors = await activeDoctors(who.patientId);
     await store.withdraw(who.patientId, now());
-    notify(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
+    await notify(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
     await pushTo(
       doctors.map((id) => `d:${id}`),
       { kind: 'withdrawn' },
@@ -790,7 +794,7 @@ export function createApp(
     if (!patientId) throw new HttpError(404, 'Отметка не найдена.');
     await canRead({ kind: 'doctor', id }, patientId);
     await store.ackAlert(alertId, now());
-    notify(await activeDoctors(patientId), 'alert', { patientId });
+    await notify(await activeDoctors(patientId), 'alert', { patientId });
     return json({ ok: true });
   });
 
@@ -814,6 +818,12 @@ export function createApp(
     if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
     const { at } = await body(request, DiaryRemindersSchema);
     return json({ count: await replaceReminders(store, who.id, at) });
+  });
+
+  /** Polling in `serverless` mode: the caller's change counter; re-read the data when it moves. */
+  route('GET', '/api/changes', async (request, url) => {
+    const who = await caller(request, url);
+    return json({ n: await store.changes(who.kind === 'doctor' ? who.id : `p:${who.id}`) });
   });
 
   // Live stream: a doctor by id, a patient's phone as `p:<device id>` (no colon in doctor ids).

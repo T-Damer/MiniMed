@@ -12,7 +12,11 @@
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
-    "@localmed/diary-sync": "workspace:*"
+    "@localmed/diary-sync": "workspace:*",
+    "@ydbjs/auth": "6.3.1",
+    "@ydbjs/core": "6.3.1",
+    "@ydbjs/query": "6.3.0",
+    "@ydbjs/value": "6.0.8"
   },
   "devDependencies": {
     "@types/bun": "1.2.3"
