@@ -179,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-01 claude-opus REL 0.6.74: DIARY16 — the diary's API serverless on Yandex Cloud (ADR-0027), pages from the Pages app, native shells reach the diary; APK by the release workflow, Pages by CI, API by `scripts/diary-serverless-deploy.sh`, self-host image by `diary-image.yml`
 - 2026-11-01 claude-opus DIARY16: diary off the VM (ADR-0027): `DIARY_MODE=server|serverless` over a `DiaryStore` port (SQLite / YDB adapters, one storage contract passing on both, also through the live gateway), polled change counter instead of the event stream in serverless mode, Node entry `serverless.ts`; pilot API = Yandex Serverless Container + YDB + API Gateway at `med.1damer.com` (free tier), pages = the Pages app (`diaryServiceBase()` → med.1damer.com on github.io and native); self-host container stack + egress guard; VM and VM scripts retired (last DB kept in `data/diary-server/backups/`)
 - 2026-11-01 claude-opus REL 0.6.73: vault biometrics + recovery code and native Android camera merged from `test/native-camera-vault` after the owner tested 0.6.72 on his phone; patient row skeleton; pulse ignores start-up frames
 - 2026-10-31 claude-opus REL 0.6.71: app-only release (PERF4: paged worker listings, one task per listing caller, collator sorts, memoized preferences, staged sound warm-up)

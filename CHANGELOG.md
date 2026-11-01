@@ -4,6 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.74] - 2026-11-01
+
+- Connected diary: the service moved off the rented server to Yandex Cloud's serverless services (inside the free
+  tier). The doctor's screen and the patient's diary look for news every 20 seconds while open instead of keeping a
+  live connection; push reminders for doses are off for now, the diary shows what is due when it is opened.
+- The diary pages open from the published app; `med.1damer.com` links and pairing codes keep working and lead there.
+  The Android and iOS apps reach the connected diary too.
+- Self-hosting: the diary server also runs as a container stack on any Linux or macOS machine with Docker.
+
 ## [0.6.73] - 2026-11-01
 
 - Android: the patient vault opens with your fingerprint, face or the phone's PIN (once, then it stays open for five
