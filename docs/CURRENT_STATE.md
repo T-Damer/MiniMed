@@ -294,6 +294,30 @@ Checked in the browser at 375×812 and 1280×800 against a local service (invite
 code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
 patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
 
+## Interface batch: date fields, empty states, wide forms — 2026-11-01 (STATE UI-DIARY17)
+
+Owner feedback on the diary, applied app-wide:
+
+- **No native pickers** (AGENTS.md rule, guarded by `components/no-native-pickers.test.ts`): every
+  date input is `DateField` (`components/DateField.tsx`: «ДД.ММ.ГГГГ» typed with automatic dots, a
+  pasted ISO day accepted, a calendar in a Kobalte popover / the paper sheet on phones with month
+  and year views and keyboard moves; min/max bound the calendar, a typed day goes to the form's own
+  check); every time input is the Kobalte `TimeField`. `NativeDateTimeField` is gone.
+- **Empty states are centred** (AGENTS.md rule): `EmptyState` (icon, text, actions) fills the space
+  below the header without scrolling; the diaries list uses it.
+- **Wide new-patient / patient-screen form**: two columns from 60rem (details and button left, the
+  live preview right), one centred column below.
+- **Focus without flicker**: text fields, text areas and selects fade a shadow ring in; the editor's
+  dashed fields fade their gaps to the accent instead of switching to a solid border.
+- **No forced dark**: the Android shell sets `forceDarkAllowed=false` (MIUI/HyperOS repainted the app);
+  both pages lock Dark Reader out; the app keeps its own dark theme.
+- **Patient diary page**: the hero ECG fades out as the band collapses, so the pinned bar shows no
+  pulse beside or under it (shared `PageHero`); themed thin scrollbars (`styles/scrollbars.css`,
+  shared); the calendar frames the diary's first day twice; a recording the phone makes no words of
+  is kept as a voice note (`DiaryEntry.voice`, ≤ ≈ 1 min at 16 kbit/s, end-to-end encrypted, never in
+  QR codes) and plays for patient and doctor; «Сохранить» waits instead of a red error.
+- The self-host image workflow runs by hand only (Actions minutes).
+
 ## Connected diary: serverless on Yandex Cloud, two run modes — 2026-11-01 (STATE DIARY16)
 
 [ADR-0027](adr/0027-diary-server-modes.md): one switch, `DIARY_MODE=server|serverless`, for the same

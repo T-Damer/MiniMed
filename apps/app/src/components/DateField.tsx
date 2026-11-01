@@ -251,13 +251,7 @@ export function DateField(props: DateFieldProps): JSX.Element {
                   {(day) => <span class="ui-date-field__weekday">{day}</span>}
                 </For>
               </div>
-              <div
-                ref={grid}
-                class="ui-date-field__grid"
-                role="grid"
-                aria-label={`${MONTHS_NOMINATIVE[shown().month - 1]} ${shown().year}`}
-                onKeyDown={onGridKey}
-              >
+              <div ref={grid} class="ui-date-field__grid">
                 <For each={cells()}>
                   {(day) => {
                     const value = (): string =>
@@ -266,17 +260,17 @@ export function DateField(props: DateFieldProps): JSX.Element {
                       <Show when={day !== null} fallback={<span class="ui-date-field__blank" />}>
                         <button
                           type="button"
-                          role="gridcell"
                           class="ui-date-field__day"
                           classList={{
                             'ui-date-field__day--selected': value() === props.value,
                             'ui-date-field__day--today': value() === today,
                           }}
                           aria-label={spokenDay(value())}
-                          aria-selected={value() === props.value}
+                          aria-pressed={value() === props.value}
                           disabled={!dayInBounds(value(), props.min, props.max)}
                           tabIndex={value() === cursor() ? 0 : -1}
                           data-cursor={value() === cursor() ? 'true' : undefined}
+                          onKeyDown={onGridKey}
                           onClick={() => pick(value())}
                         >
                           {day}
