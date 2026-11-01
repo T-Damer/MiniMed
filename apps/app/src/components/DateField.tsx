@@ -39,6 +39,8 @@ export interface DateFieldProps {
   readonly id?: string;
   readonly class?: string;
   readonly inputClass?: string;
+  /** Extra class on the framed control (input + calendar button), e.g. the editor's dashed frame. */
+  readonly controlClass?: string;
   readonly placeholder?: string;
   /** Shown under the field (and marks it invalid), like TextField's. */
   readonly error?: string | undefined;
@@ -159,7 +161,7 @@ export function DateField(props: DateFieldProps): JSX.Element {
         {props.label}
       </label>
       <div
-        class="ui-date-field__control"
+        class={`ui-date-field__control${props.controlClass ? ` ${props.controlClass}` : ''}`}
         classList={{
           'ui-date-field__control--disabled': props.disabled ?? false,
           'ui-date-field__control--error': Boolean(props.error),
@@ -293,6 +295,10 @@ export function DateField(props: DateFieldProps): JSX.Element {
                       class="ui-date-field__choice"
                       classList={{ 'ui-date-field__choice--current': year === shown().year }}
                       aria-pressed={year === shown().year}
+                      disabled={
+                        (props.min !== undefined && year < Number(props.min.slice(0, 4))) ||
+                        (props.max !== undefined && year > Number(props.max.slice(0, 4)))
+                      }
                       onClick={() => {
                         setShown({ year, month: shown().month });
                         setView('months');

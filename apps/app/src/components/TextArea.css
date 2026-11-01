@@ -36,6 +36,11 @@
   font: inherit;
   line-height: 1.45;
   resize: vertical;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
 }
 
 .ui-text-area__control::placeholder {
@@ -44,8 +49,8 @@
 
 .ui-text-area__control:focus-visible {
   border-color: var(--theme-accent);
-  outline: 2px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 28%, transparent);
 }
 
 .ui-text-area__control:disabled {

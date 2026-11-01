@@ -257,6 +257,11 @@
   background: var(--theme-surface-muted);
 }
 
+.ui-date-field__choice:disabled {
+  color: var(--theme-placeholder);
+  cursor: default;
+}
+
 .ui-date-field__choice--current {
   border-color: var(--theme-accent);
   font-weight: 700;

@@ -34,12 +34,16 @@
   color: var(--theme-text);
   background: var(--theme-surface-raised);
   font: inherit;
+  transition:
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
 }
 
 .ui-select-field__control:focus-visible {
   border-color: var(--theme-accent);
-  outline: 2px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 28%, transparent);
 }
 
 .ui-select-field__control:disabled {

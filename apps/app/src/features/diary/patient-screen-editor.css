@@ -368,28 +368,56 @@
 
 /*
  * Fields in the editor read as text in a dashed two-colour frame with a pencil; focused, they turn
- * into a plain solid field (owner 2026-10-28).
+ * into a plain solid field (owner 2026-10-28). The frame stays dashed: its gaps (the background
+ * colour under the border) fade to the dash colour, so the change animates instead of flickering
+ * (owner 2026-11-01).
  */
 .screen-editor__input.ui-text-field__input,
 .screen-editor__input.ui-text-area__control {
   padding-inline-end: 2.4rem;
   border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
   border-radius: 0.7rem;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a59a86' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E")
-    right 0.7rem top 0.8rem / 1.05rem no-repeat padding-box,
-    linear-gradient(var(--theme-surface-raised), var(--theme-surface-raised)) padding-box,
-    var(--care-edit-gap, #ecd9a0) border-box;
+  background-color: var(--care-edit-gap, #ecd9a0);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a59a86' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E"),
+    linear-gradient(var(--theme-surface-raised), var(--theme-surface-raised)),
+    linear-gradient(transparent, transparent);
+  background-position:
+    right 0.7rem top 0.8rem,
+    0 0,
+    0 0;
+  background-size: 1.05rem, auto, auto;
+  background-repeat: no-repeat;
+  /* The bottom layer reaches the border box, so the colour shows through the dashes' gaps. */
+  background-clip: padding-box, padding-box, border-box;
   box-shadow: none;
   transition:
     border-color var(--motion-fast) var(--motion-ease),
-    background var(--motion-fast) var(--motion-ease);
+    background-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .screen-editor__input.ui-text-field__input:focus,
 .screen-editor__input.ui-text-area__control:focus {
-  border-style: solid;
   border-color: var(--theme-accent);
-  background: var(--theme-surface);
+  background-color: var(--theme-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 22%, transparent);
   outline: none;
+}
+
+/* The date field in the same dashed frame (DateField's control: input + calendar button). */
+.ui-date-field__control.screen-editor__date-control {
+  border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
+  border-radius: 0.7rem;
+  background-color: var(--care-edit-gap, #ecd9a0);
+  background-image:
+    linear-gradient(var(--theme-surface-raised), var(--theme-surface-raised)),
+    linear-gradient(transparent, transparent);
+  background-clip: padding-box, border-box;
+}
+
+.ui-date-field__control.screen-editor__date-control:focus-within {
+  border-color: var(--theme-accent);
+  background-color: var(--theme-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 22%, transparent);
 }

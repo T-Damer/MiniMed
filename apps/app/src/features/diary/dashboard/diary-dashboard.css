@@ -1081,6 +1081,46 @@
 
 .diary-new__form {
   width: min(100%, 40rem);
+  margin-inline: auto;
+}
+
+.diary-new__identity,
+.diary-new__screen {
+  min-width: 0;
+}
+
+/* Wide screens (iPad landscape, desktop): the patient's details and the button on the left, the live
+   preview of their screen on the right, both columns centred as one sheet (owner 2026-11-01). */
+@media (width >= 60rem) {
+  .diary-new__form {
+    grid-template-columns: minmax(17rem, 24rem) minmax(0, 28rem);
+    grid-template-areas:
+      "identity screen"
+      "error screen"
+      "submit screen";
+    grid-template-rows: auto auto 1fr;
+    justify-content: center;
+    align-items: start;
+    column-gap: clamp(1.5rem, 4vw, 3rem);
+    width: min(100%, 60rem);
+  }
+
+  .diary-new__identity {
+    grid-area: identity;
+  }
+
+  .diary-new__screen {
+    grid-area: screen;
+  }
+
+  .diary-new__error {
+    grid-area: error;
+  }
+
+  .diary-new__submit {
+    grid-area: submit;
+    justify-self: start;
+  }
 }
 
 /* Alert detail (AlertDialog) --------------------------------------------------------------------- */

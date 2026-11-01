@@ -97,31 +97,35 @@ export function PatientScreenPage(props: {
         description="Изменения придут пациенту сами"
       />
       <form class="diary-dash-form diary-new__form" onSubmit={(event) => void save(event)}>
-        <PatientIdentity
-          label={label()}
-          emoji={emoji()}
-          phone={phone()}
-          birthDate={birthDate()}
-          onLabel={setLabel}
-          onEmoji={setEmoji}
-          onPhone={setPhone}
-          onBirthDate={setBirthDate}
-        />
-        <PatientScreenEditor
-          draft={draft()}
-          onChange={setDraft}
-          doctor={doctor()}
-          onDoctor={setDoctor}
-          note={note()}
-          onNote={setNote}
-          frequent={frequent}
-        />
+        <div class="diary-new__identity">
+          <PatientIdentity
+            label={label()}
+            emoji={emoji()}
+            phone={phone()}
+            birthDate={birthDate()}
+            onLabel={setLabel}
+            onEmoji={setEmoji}
+            onPhone={setPhone}
+            onBirthDate={setBirthDate}
+          />
+        </div>
+        <div class="diary-new__screen">
+          <PatientScreenEditor
+            draft={draft()}
+            onChange={setDraft}
+            doctor={doctor()}
+            onDoctor={setDoctor}
+            note={note()}
+            onNote={setNote}
+            frequent={frequent}
+          />
+        </div>
         <Show when={error()}>
-          <p class="diary-dash__error" role="alert">
+          <p class="diary-dash__error diary-new__error" role="alert">
             {error()}
           </p>
         </Show>
-        <Button type="submit" variant="primary" disabled={busy()}>
+        <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
           {busy() ? 'Сохраняем…' : 'Сохранить'}
         </Button>
       </form>

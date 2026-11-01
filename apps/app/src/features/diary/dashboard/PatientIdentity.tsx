@@ -61,6 +61,7 @@ export function PatientIdentity(props: {
         <DateField
           label="Дата рождения"
           class="diary-identity__birth"
+          controlClass="screen-editor__date-control"
           value={props.birthDate}
           max={todayValue()}
           error={
