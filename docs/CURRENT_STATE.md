@@ -294,7 +294,7 @@ Checked in the browser at 375×812 and 1280×800 against a local service (invite
 code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
 patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
 
-## Connected diary: serverless on Yandex Cloud, two run modes — 2026-11-01 (STATE DIARY12)
+## Connected diary: serverless on Yandex Cloud, two run modes — 2026-11-01 (STATE DIARY16)
 
 [ADR-0027](adr/0027-diary-server-modes.md): one switch, `DIARY_MODE=server|serverless`, for the same
 HTTP app. The routes talk to a `DiaryStore` port (`apps/diary-server/src/store.ts`) with two adapters,
@@ -3875,7 +3875,7 @@ real taps against a local diary server.
   hint (wrong inside the icon); it now logs the error name and shows «не получилось» with a retry hint.
 
 - **Native iOS app** (simulator build per «Build and run (simulator)»): boots, offline search and
-  results, files tab work. Since DIARY12 (2026-11-01) native builds use the pilot service at
+  results, files tab work. Since DIARY16 (2026-11-01) native builds use the pilot service at
   `https://med.1damer.com` and its CORS list admits `https://localhost` and `capacitor://localhost`;
   not re-tested on a device.
 

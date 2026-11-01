@@ -1,7 +1,7 @@
 # ADR-0027: Two run modes of the diary service — server and serverless
 
 - Status: accepted (owner, 2026-11-01: «на Yandex нужен только сервер, очень маленький»; «нужен
-  глобальный переключатель», чтобы вернуться к обычному серверу); implemented in DIARY12.
+  глобальный переключатель», чтобы вернуться к обычному серверу); implemented in DIARY16.
 - Decision: project owner, 2026-10-31 – 2026-11-01 (the VM cost ≈ 1 500 ₽/month for a pilot without
   real patients yet).
 - Amends: [ADR-0026](0026-connected-diary-service.md) decision 2 (stack) and 8 (hosting). Everything
