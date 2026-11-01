@@ -227,4 +227,28 @@ export const diaryPush = {
 /** Sign-up mode of the service, before an account exists. */
 export const diaryInfo = (api: DiaryApi) => api.call('GET', '/api/info', DiaryServerInfoSchema);
 
+/** `live`: absent on servers older than ADR-0027, which all stream. */
+const Health = z.object({ ok: z.literal(true), live: z.enum(['sse', 'poll']).optional() });
+const Changes = z.object({ n: z.number().int() });
+const liveModes = new Map<string, Promise<'sse' | 'poll'>>();
+
+/**
+ * How the service delivers changes (ADR-0027): `sse`, a live stream to open; `poll`, a counter to
+ * read with `diaryChanges` now and then. Asked once per service.
+ */
+export function diaryLiveMode(api: DiaryApi): Promise<'sse' | 'poll'> {
+  let mode = liveModes.get(api.base);
+  if (!mode) {
+    mode = api.call('GET', '/api/health', Health).then((health) => health.live ?? 'sse');
+    // A failed answer (offline) is not remembered: the next caller asks again.
+    mode.catch(() => liveModes.delete(api.base));
+    liveModes.set(api.base, mode);
+  }
+  return mode;
+}
+
+/** The caller's change counter in `poll` mode; it moves whenever something for the caller changed. */
+export const diaryChanges = (api: DiaryApi): Promise<number> =>
+  api.call('GET', '/api/changes', Changes).then((body) => body.n);
+
 export type { DiaryStoredEnvelope };

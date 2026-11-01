@@ -18,8 +18,13 @@ export function diaryServiceBase(): string {
   return import.meta.env.VITE_DIARY_SERVER ?? '';
 }
 
-/** The patient page of the connected diary: always on the service's origin. */
+/**
+ * The patient page of the connected diary. `VITE_DIARY_CONNECTED_PAGE_URL` when the page lives apart
+ * from the service (ADR-0027: page on GitHub Pages, API on its own domain); else the service's origin.
+ */
 export function connectedDiaryPageUrl(): string {
+  const configured = import.meta.env.VITE_DIARY_CONNECTED_PAGE_URL;
+  if (configured) return configured;
   const base = diaryServiceBase();
   return base
     ? new URL('diary/', `${base.replace(/\/$/u, '')}/`).toString()

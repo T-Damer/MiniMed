@@ -25,7 +25,13 @@ import {
   wrapDataKey,
 } from '@localmed/diary-sync';
 
-import { diaryAlerts, diaryDoctors, diaryPatients } from '@/features/diary/connected/diary-api';
+import {
+  diaryAlerts,
+  diaryChanges,
+  diaryDoctors,
+  diaryLiveMode,
+  diaryPatients,
+} from '@/features/diary/connected/diary-api';
 import {
   applyRevisions,
   type DiaryProfile,
@@ -66,6 +72,10 @@ export interface DoctorPatient {
 
 type Listener = () => void;
 
+/** `poll` mode (ADR-0027): how often the change counter is read, and the full re-read for presence. */
+const POLL_MS = 20_000;
+const PRESENCE_MS = 3 * 60_000;
+
 export class DoctorDiaries {
   private readonly api;
   private readonly entries = new Map<string, DoctorPatient>();
@@ -73,6 +83,8 @@ export class DoctorDiaries {
   private readonly listeners = new Set<Listener>();
   private alertList: readonly DiaryAlert[] = [];
   private events: EventSource | undefined;
+  private live = false;
+  private stopPolling: (() => void) | undefined;
   private loaded = false;
 
   constructor(readonly session: DoctorSession) {
@@ -189,8 +201,52 @@ export class DoctorDiaries {
     this.emit();
   }
 
-  /** Live updates while the dashboard is open (server-sent events). */
+  /**
+   * Live updates while the dashboard is open: the server's event stream, or (ADR-0027 `poll` mode)
+   * its change counter read every `POLL_MS` while the page is visible, plus a full re-read every
+   * `PRESENCE_MS` for who is online.
+   */
   connectLive(): void {
+    if (this.live) return;
+    this.live = true;
+    diaryLiveMode(this.api)
+      .then((mode) => {
+        if (!this.live) return;
+        if (mode === 'poll') this.startPolling();
+        else this.openStream();
+      })
+      .catch((cause: unknown) => {
+        this.live = false;
+        console.warn('Дневники: режим обновлений не узнать', cause);
+      });
+  }
+
+  private startPolling(): void {
+    let seen: number | undefined;
+    let fullAt = Date.now();
+    const tick = async (): Promise<void> => {
+      if (document.visibilityState !== 'visible') return;
+      const n = await diaryChanges(this.api);
+      const stale = Date.now() - fullAt >= PRESENCE_MS;
+      if ((seen !== undefined && n !== seen) || stale) {
+        fullAt = Date.now();
+        await this.refresh();
+      }
+      seen = n;
+    };
+    const run = (): void => {
+      tick().catch((cause: unknown) => console.warn('Дневники: опрос не удался', cause));
+    };
+    const timer = window.setInterval(run, POLL_MS);
+    document.addEventListener('visibilitychange', run);
+    run();
+    this.stopPolling = () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', run);
+    };
+  }
+
+  private openStream(): void {
     if (this.events || typeof EventSource === 'undefined') return;
     const url = `${diaryServiceBase()}/api/events?token=${encodeURIComponent(this.session.token)}`;
     const events = new EventSource(url);
@@ -227,8 +283,11 @@ export class DoctorDiaries {
   }
 
   disconnect(): void {
+    this.live = false;
     this.events?.close();
     this.events = undefined;
+    this.stopPolling?.();
+    this.stopPolling = undefined;
   }
 
   /** `notice`: what the patient's phone is told; absent, the write is silent (a profile edit). */

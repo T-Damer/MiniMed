@@ -17,7 +17,9 @@ import {
   createDiaryApi,
   type DiaryApi,
   DiaryApiError,
+  diaryChanges,
   diaryDevice,
+  diaryLiveMode,
   diaryPush,
   isOffline,
 } from '@/features/diary/connected/diary-api';
@@ -36,6 +38,7 @@ import {
   pendingReminderActions,
   writeReminderNotices,
 } from '@/features/diary/connected/reminder-cache';
+import { diaryServiceBase } from '@/features/diary/diary-links';
 import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
   type DiaryEntry,
@@ -52,6 +55,8 @@ import {
 import { type DiaryStore, withEntry, withoutEntry } from '@/features/diary/diary-storage';
 
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
+/** `poll` mode (ADR-0027): how often an open diary reads its change counter. */
+const POLL_MS = 20_000;
 const CONSENT_VERSION = 'draft-2026-10-27';
 
 /** What the address of a connected diary carries: the patient id and the one-time secret. */
@@ -189,7 +194,7 @@ export class PatientConnection {
     private readonly signKey: CryptoKey,
     private readonly wrapKey: CryptoKey,
   ) {
-    this.api = createDiaryApi(() => this.connection.token);
+    this.api = createDiaryApi(() => this.connection.token, diaryServiceBase());
   }
 
   static async open(
@@ -220,7 +225,7 @@ export class PatientConnection {
     const existing = await PatientConnection.open(storage, store, link.patientId);
     if (existing) return existing;
     const identity = await generateIdentity(true);
-    const api = createDiaryApi(() => undefined);
+    const api = createDiaryApi(() => undefined, diaryServiceBase());
     const paired = await diaryDevice.pair(
       api,
       link.patientId,
@@ -429,17 +434,52 @@ export class PatientConnection {
 
   /**
    * Live changes from the doctor while the diary is open: the server's event stream says a record
-   * arrived and the diary syncs. Returns the stop function.
+   * arrived and the diary syncs; in `poll` mode (ADR-0027) the change counter is read every
+   * `POLL_MS` while the page is visible. Returns the stop function.
    */
   listen(onSynced: (status: SyncStatus) => void): () => void {
-    if (typeof EventSource === 'undefined' || this.connection.ended) return () => undefined;
+    if (this.connection.ended) return () => undefined;
+    let stop: () => void = () => undefined;
+    let stopped = false;
+    diaryLiveMode(this.api)
+      .then((mode) => {
+        if (stopped) return;
+        stop = mode === 'poll' ? this.pollChanges(onSynced) : this.openStream(onSynced);
+      })
+      .catch((cause: unknown) => console.warn('Дневник: режим обновлений не узнать', cause));
+    return () => {
+      stopped = true;
+      stop();
+    };
+  }
+
+  private openStream(onSynced: (status: SyncStatus) => void): () => void {
+    if (typeof EventSource === 'undefined') return () => undefined;
     const events = new EventSource(
-      `/api/events?token=${encodeURIComponent(this.connection.token)}`,
+      `${diaryServiceBase()}/api/events?token=${encodeURIComponent(this.connection.token)}`,
     );
     events.addEventListener('records', () => {
       void this.sync().then(onSynced);
     });
     return () => events.close();
+  }
+
+  private pollChanges(onSynced: (status: SyncStatus) => void): () => void {
+    let seen: number | undefined;
+    const tick = async (): Promise<void> => {
+      if (document.visibilityState !== 'visible' || this.connection.ended) return;
+      const n = await diaryChanges(this.api);
+      if (seen !== undefined && n !== seen) onSynced(await this.sync());
+      seen = n;
+    };
+    const run = (): void => {
+      tick().catch((cause: unknown) => {
+        if (!isOffline(cause)) console.warn('Дневник: опрос не удался', cause);
+      });
+    };
+    const timer = window.setInterval(run, POLL_MS);
+    run();
+    return () => window.clearInterval(timer);
   }
 
   /**
