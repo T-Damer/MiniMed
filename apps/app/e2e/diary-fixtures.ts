@@ -88,10 +88,17 @@ export async function addReading(page: Page, reading: BloodPressure): Promise<vo
   await expect(page.locator('.diary-saved')).toBeVisible();
 }
 
-/** Opens the date and time field of the entry form and sets it. */
+/**
+ * Opens the date and time of the entry form and sets them from a `YYYY-MM-DDTHH:MM` value: the date
+ * field takes the day, the Kobalte time field takes the time typed as digits.
+ */
 export async function setEntryTime(page: Page, value: string): Promise<void> {
   await page.getByRole('button', { name: 'Изменить время', exact: true }).click();
-  await page.getByLabel('Дата и время').fill(value);
+  await page.getByLabel('Дата', { exact: true }).fill(value.slice(0, 10));
+  await page.locator('.diary-time__clock .ui-time-field__segment').first().click();
+  await page.keyboard.type(value.slice(11, 16).replace(':', ''));
+  // Move on, as a person would: the screen checks then see the field at rest, not mid-highlight.
+  await page.keyboard.press('Tab');
 }
 
 /** One row of «Записи». */

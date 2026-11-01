@@ -91,8 +91,13 @@ export function maskTypedDay(typed: string): string {
   return [day, month, year].filter((part, index) => part || index === 0).join('.');
 }
 
-/** A complete typed «ДД.ММ.ГГГГ» (or 8 digits) → `YYYY-MM-DD`; undefined when incomplete or impossible. */
+/**
+ * A complete typed «ДД.ММ.ГГГГ» (or 8 digits) → `YYYY-MM-DD`; undefined when incomplete or impossible.
+ * A pasted `YYYY-MM-DD` is read as it is.
+ */
 export function readTypedDay(typed: string): string | undefined {
+  const iso = /^\s*(\d{4}-\d{2}-\d{2})\s*$/u.exec(typed);
+  if (iso) return parseDayValue(iso[1] as string) ? (iso[1] as string) : undefined;
   const digits = typed.replaceAll(/\D/gu, '');
   if (digits.length !== 8) return undefined;
   const parts = {

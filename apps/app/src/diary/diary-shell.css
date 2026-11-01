@@ -21,6 +21,9 @@
   --safe-left: max(var(--safe-area-inset-left, 0px), env(safe-area-inset-left, 0px));
   --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
   --bottom-nav-clearance: calc(4.75rem + var(--nav-safe-bottom));
+  /* The shared date and time fields at the diary's sizes: text ≥ 15px, targets ≥ 48px. */
+  --ui-field-label-size: 1rem;
+  --ui-field-target: 3rem;
 }
 
 /* The dialog close button: the main app styles it in doctor-ux.css, which the diary does not load;

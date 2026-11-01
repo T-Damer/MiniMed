@@ -13,6 +13,7 @@ import {
   openRecords,
   openRestoreSheet,
   openSettings,
+  setEntryTime,
   testInvitation,
   testInvitationLink,
 } from './diary-fixtures';
@@ -217,8 +218,7 @@ for (const width of [390, 1024]) {
       await check(page, '3-entry-form-errors', tag);
       await page.getByLabel(/^Верхнее/u).fill('138');
       await page.getByLabel(/^Нижнее/u).fill('88');
-      await page.getByRole('button', { name: 'Изменить время' }).click();
-      await page.getByLabel('Дата и время').fill(localInput(0, 7, 55));
+      await setEntryTime(page, localInput(0, 7, 55));
       await check(page, '4-entry-form-filled', tag);
       await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
       await expect(page.locator('.diary-saved')).toBeVisible();

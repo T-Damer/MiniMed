@@ -71,7 +71,7 @@ export function DateField(props: DateFieldProps): JSX.Element {
         if (readTypedDay(typed()) === value) return;
         setTyped(displayDay(value));
       },
-      { defer: true },
+      // Not deferred: a value set in the same tick as the mount (a prefilled form) must show.
     ),
   );
 
@@ -94,16 +94,17 @@ export function DateField(props: DateFieldProps): JSX.Element {
   };
 
   const commitTyped = (text: string): void => {
-    const masked = maskTypedDay(text);
+    // A pasted ISO day (another app, a test) is taken as it is.
+    const pasted = /^\s*\d{4}-\d{2}-\d{2}\s*$/u.test(text) ? readTypedDay(text) : undefined;
+    const masked = pasted ? displayDay(pasted) : maskTypedDay(text);
     setTyped(masked);
     if (!masked) {
       if (props.value) props.onChange('');
       return;
     }
     const value = readTypedDay(masked);
-    if (value && dayInBounds(value, props.min, props.max) && value !== props.value) {
-      props.onChange(value);
-    }
+    // min/max bound the calendar; a typed day goes to the form, whose own check explains it.
+    if (value && value !== props.value) props.onChange(value);
   };
 
   const pick = (value: string): void => {
@@ -192,7 +193,7 @@ export function DateField(props: DateFieldProps): JSX.Element {
           onOpenChange={openCalendar}
           title={props.label}
           triggerClass="ui-date-field__trigger"
-          triggerLabel={`${props.label}: выбрать в календаре`}
+          triggerLabel="Открыть календарь"
           trigger={<AppGlyph name="calendar" class="ui-date-field__glyph" />}
           contentClass="ui-date-field__popover"
           placement="bottom-end"

@@ -13,13 +13,7 @@ function futureDateInput(days = 2): string {
 }
 
 async function setReminderDate(page: Page, value = futureDateInput()): Promise<void> {
-  await page
-    .locator('.native-datetime-field__wrapper input[type="date"]')
-    .evaluate((input, date) => {
-      const field = input as HTMLInputElement;
-      field.value = date;
-      field.dispatchEvent(new Event('input', { bubbles: true }));
-    }, value);
+  await page.getByLabel('Дата напоминания').fill(value);
 }
 
 async function openOrdinaryNoteDialog(page: Page): Promise<void> {

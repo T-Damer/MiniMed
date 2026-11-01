@@ -30,6 +30,8 @@ describe('date values', () => {
     expect(readTypedDay('12.03.2025')).toBe('2025-03-12');
     expect(readTypedDay('31.04.2025')).toBeUndefined();
     expect(readTypedDay('12.03.20')).toBeUndefined();
+    expect(readTypedDay('2025-03-12')).toBe('2025-03-12');
+    expect(readTypedDay('2025-02-30')).toBeUndefined();
   });
 
   it('builds Monday-first month grids and moves by days across months', () => {

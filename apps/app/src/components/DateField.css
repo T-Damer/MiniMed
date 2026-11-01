@@ -6,7 +6,8 @@
 
 .ui-date-field__label {
   color: var(--theme-text-muted);
-  font-size: 0.8125rem;
+  /* The patient diary sets larger labels and targets (diary-shell.css). */
+  font-size: var(--ui-field-label-size, 0.8125rem);
   font-weight: 600;
 }
 
@@ -30,7 +31,7 @@
   gap: 0.25rem;
   width: fit-content;
   max-width: 100%;
-  min-height: 3rem;
+  min-height: calc(var(--ui-field-target, 2.5rem) + 0.5rem);
   padding: 0.25rem 0.25rem 0.25rem 0.75rem;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-control);
@@ -63,8 +64,10 @@
 
 .ui-date-field__input {
   box-sizing: border-box;
+  align-self: stretch;
   width: 7.5em;
   min-width: 0;
+  min-height: var(--ui-field-target, 2.5rem);
   padding: 0;
   border: 0;
   color: inherit;
@@ -88,8 +91,8 @@
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--ui-field-target, 2.5rem);
+  height: var(--ui-field-target, 2.5rem);
   padding: 0;
   border: 0;
   border-radius: calc(var(--theme-radius-control) - 0.15rem);
