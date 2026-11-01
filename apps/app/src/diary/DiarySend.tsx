@@ -9,7 +9,7 @@ import { sendDescription, sendSummary } from '@/diary/diary-home';
 import { ActionCard, ScreenHeader } from '@/diary/diary-ui';
 import { encodeDiaryResults, encodeDiaryResultsText } from '@/features/diary/diary-codec';
 import type { DiaryShareStatus } from '@/features/diary/diary-merge';
-import { type DiaryResults, describeDiaryEntry } from '@/features/diary/diary-model';
+import { type DiaryResults, describeDiaryEntry, withoutVoices } from '@/features/diary/diary-model';
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -22,7 +22,8 @@ function QrCarousel(props: { readonly results: DiaryResults }): JSX.Element {
   const [error, setError] = createSignal('');
 
   onMount(() => {
-    void encodeDiaryResults(props.results)
+    // QR codes cannot carry voice recordings: the file and the copy keep them.
+    void encodeDiaryResults(withoutVoices(props.results))
       .then((parts) =>
         Promise.all(
           parts.map((part) =>

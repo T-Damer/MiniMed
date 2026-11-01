@@ -20,6 +20,7 @@ import {
   PATIENT_HEAT_FILTER_KEY,
 } from '@/diary/heatmap-filter';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import { VoiceClip } from '@/diary/VoiceClip';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import {
   addDays,
@@ -674,9 +675,17 @@ export function DiaryToday(props: {
                       <span class="care-note__text">
                         {typeof entry.values['state'] === 'string'
                           ? entry.values['state']
-                          : entry.note}
+                          : (entry.note ?? (entry.voice ? 'Голосовая запись' : ''))}
                       </span>
                     </button>
+                    {/* Beside the row, not in it: the player has its own button. */}
+                    <Show when={entry.voice}>
+                      {(voice) => (
+                        <div class="care-note__voice">
+                          <VoiceClip voice={voice()} />
+                        </div>
+                      )}
+                    </Show>
                   </li>
                 )}
               </For>

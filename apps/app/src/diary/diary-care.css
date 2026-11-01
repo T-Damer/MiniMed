@@ -1141,6 +1141,33 @@ body:has(.diary-care-scope) {
   font-size: 0.9rem;
 }
 
+.diary-voice__clip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.diary-voice__drop {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.6rem);
+  color: var(--theme-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.care-note__voice {
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.diary-voice__kept {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .diary-voice__button--busy,
   .diary-voice__offer {

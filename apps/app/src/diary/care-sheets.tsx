@@ -3,6 +3,7 @@ import { Button } from '@/components/Button';
 import { TimeField as UiTimeField } from '@/components/TimeField';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
+import { VoiceClip } from '@/diary/VoiceClip';
 import { VoiceNote } from '@/diary/VoiceNote';
 import { atTime, CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import {
@@ -15,6 +16,7 @@ import {
   type DiaryInvitation,
   type DiaryPlanItem,
   type DiaryPlanValue,
+  type DiaryVoice,
 } from '@/features/diary/diary-model';
 
 /** Saves an entry; returns the problem to show, or undefined when it was saved. */
@@ -63,6 +65,8 @@ function TipBox(props: { readonly text: string | undefined }) {
 function SheetFooter(props: {
   readonly error: string;
   readonly saveLabel?: string;
+  /** Nothing to save yet: the button waits instead of an error after the tap. */
+  readonly saveDisabled?: boolean;
   readonly onSave: () => void;
   readonly onRemove?: (() => void) | undefined;
 }): JSX.Element {
@@ -100,6 +104,7 @@ function SheetFooter(props: {
         <Button
           class="diary-button diary-care-actions__save"
           variant="primary"
+          disabled={props.saveDisabled ?? false}
           onClick={props.onSave}
         >
           {props.saveLabel ?? 'Сохранить'}
@@ -453,18 +458,21 @@ export function NoteSheet(props: {
     props.entry ? clock(props.entry.at) : initialTime(props.day, undefined),
   );
   const [text, setText] = createSignal(typeof previous === 'string' ? previous : '');
+  // A recording the phone could not make words of, kept as it is (owner 2026-11-01).
+  const [voice, setVoice] = createSignal<DiaryVoice | undefined>(props.entry?.voice);
   const [error, setError] = createSignal('');
+  // Words or a recording: until then the button waits, no red «describe it» after the tap.
+  const empty = (): boolean => !text().trim() && !voice();
 
   const save = (): void => {
-    if (!text().trim()) {
-      setError('Опишите, что вы чувствуете.');
-      return;
-    }
+    if (empty()) return;
+    const recording = voice();
     setError(
       props.onSave({
         id: props.entry?.id ?? createDiaryId(),
         at: atTime(props.day, time()),
-        values: { state: text() },
+        values: text().trim() ? { state: text() } : {},
+        ...(recording ? { voice: recording } : {}),
       }) ?? '',
     );
   };
@@ -476,6 +484,7 @@ export function NoteSheet(props: {
       footer={
         <SheetFooter
           error={error()}
+          saveDisabled={empty()}
           onSave={save}
           onRemove={props.entry ? () => props.entry && props.onRemove(props.entry) : undefined}
         />
@@ -489,7 +498,20 @@ export function NoteSheet(props: {
         autofocus={!props.entry}
         onInput={setText}
       />
-      <VoiceNote onText={(said) => setText(text().trim() ? `${text().trim()}\n${said}` : said)} />
+      <VoiceNote
+        onText={(said) => setText(text().trim() ? `${text().trim()}\n${said}` : said)}
+        onVoice={setVoice}
+      />
+      <Show when={voice()}>
+        {(recording) => (
+          <div class="diary-voice__clip">
+            <VoiceClip voice={recording()} />
+            <button type="button" class="diary-voice__drop" onClick={() => setVoice(undefined)}>
+              Убрать запись
+            </button>
+          </div>
+        )}
+      </Show>
     </DiarySheet>
   );
 }

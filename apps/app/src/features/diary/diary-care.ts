@@ -256,7 +256,9 @@ export function dayPlan(
     (entry) =>
       entry.check === undefined &&
       doseValue(entry) === undefined &&
-      (entry.note !== undefined || typeof entry.values['state'] === 'string'),
+      (entry.note !== undefined ||
+        typeof entry.values['state'] === 'string' ||
+        entry.voice !== undefined),
   );
 
   const counted = [

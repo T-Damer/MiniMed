@@ -1,6 +1,7 @@
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { type DiaryVoice, MAX_DIARY_VOICE_CHARS } from '@/features/diary/diary-model';
 import { createVoiceCapture } from '@/features/notes/voice-capture';
 
 /** Whisper Base: the fast model, preferred for Russian (features/asr/asr-models.ts). */
@@ -8,6 +9,8 @@ const MODEL_ID = 'onnx-community/whisper-base';
 const MODEL_MEGABYTES = 81;
 /** A voice note is a few sentences; three minutes is plenty and keeps on-device decoding quick. */
 const MAX_SECONDS = 180;
+/** Speech needs little: at 16 kbit/s a minute fits a diary record when it is kept without words. */
+const BITRATE = 16_000;
 
 type Phase = 'idle' | 'working' | 'offer' | 'downloading';
 type AsrModule = typeof import('@/features/asr/asr-models');
@@ -16,16 +19,34 @@ function clock(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+async function asVoice(file: File, seconds: number): Promise<DiaryVoice | undefined> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = '';
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+  const data = btoa(binary);
+  if (data.length > MAX_DIARY_VOICE_CHARS) return undefined;
+  return { mime: file.type || 'audio/webm', data, seconds: Math.max(1, seconds) };
+}
+
 /**
  * «Сказать голосом» in the patient's own-words sheet: the patient speaks, the phone turns it into
  * text with the app's speech model and adds it to the field, where it can be corrected before
- * saving. The recording never leaves the phone and is not kept. The model (81 MB) is downloaded
- * once, after the patient agrees, the first time a recording needs it.
+ * saving. When the phone makes no words of it (mumbling, noise), the recording itself is kept for
+ * the doctor (`onVoice`, owner 2026-11-01) — short ones only, end-to-end encrypted like every
+ * record; a recording with words is not kept. The model (81 MB) is downloaded once, after the
+ * patient agrees, the first time a recording needs it.
  */
-export function VoiceNote(props: { readonly onText: (text: string) => void }): JSX.Element {
+export function VoiceNote(props: {
+  readonly onText: (text: string) => void;
+  readonly onVoice?: (voice: DiaryVoice) => void;
+}): JSX.Element {
   const [phase, setPhase] = createSignal<Phase>('idle');
   const [progress, setProgress] = createSignal<number | null>(null);
   const [error, setError] = createSignal('');
+  // What happened to a recording without words: kept as a voice note, or too long to keep.
+  const [kept, setKept] = createSignal('');
   let pending: File | undefined;
   let stopProgress: (() => void) | undefined;
   onCleanup(() => stopProgress?.());
@@ -42,11 +63,25 @@ export function VoiceNote(props: { readonly onText: (text: string) => void }): J
     pending = undefined;
     setPhase('idle');
     if (text) props.onText(text);
-    else setError('Не удалось разобрать слова. Попробуйте ещё раз, ближе к телефону.');
+    else await keep(file);
+  };
+
+  /** No words: keep the recording itself, if it is short enough for a diary record. */
+  const keep = async (file: File): Promise<void> => {
+    // The encoder runs at a steady bitrate, so the size tells the length well enough.
+    const seconds = Math.round((file.size * 8) / BITRATE);
+    const voice = props.onVoice ? await asVoice(file, seconds) : undefined;
+    if (voice && props.onVoice) {
+      props.onVoice(voice);
+      setKept('Слов не разобрать — сохраним запись голосом.');
+    } else {
+      setKept('Слов не разобрать. Скажите ещё раз, короче и ближе к телефону.');
+    }
   };
 
   const handle = (file: File): void => {
     setError('');
+    setKept('');
     setPhase('working');
     void import('@/features/asr/asr-models')
       .then(async (asr) => {
@@ -81,7 +116,7 @@ export function VoiceNote(props: { readonly onText: (text: string) => void }): J
 
   const capture = createVoiceCapture({
     maxSeconds: MAX_SECONDS,
-    bitrate: 32_000,
+    bitrate: BITRATE,
     onStart: () => setError(''),
     onComplete: handle,
     onError: (message) => setError(message),
@@ -129,7 +164,7 @@ export function VoiceNote(props: { readonly onText: (text: string) => void }): J
         <div class="diary-voice__offer">
           <p class="diary-voice__offer-text">
             Текст получится прямо на телефоне: нужна речевая модель, {MODEL_MEGABYTES} МБ, один раз.
-            Запись никуда не отправляется.
+            Без неё запись сохранится голосом.
           </p>
           <div class="diary-voice__actions">
             <button type="button" class="diary-voice__primary" onClick={download}>
@@ -139,14 +174,21 @@ export function VoiceNote(props: { readonly onText: (text: string) => void }): J
               type="button"
               class="diary-voice__secondary"
               onClick={() => {
+                const file = pending;
                 pending = undefined;
                 setPhase('idle');
+                if (file) void keep(file);
               }}
             >
               Не сейчас
             </button>
           </div>
         </div>
+      </Show>
+      <Show when={kept()}>
+        <p class="diary-voice__kept" role="status">
+          {kept()}
+        </p>
       </Show>
       <Show when={error()}>
         <p class="diary-voice__error" role="alert">

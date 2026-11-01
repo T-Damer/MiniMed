@@ -200,6 +200,18 @@ export interface DiaryEntry {
   readonly answers?: Readonly<Record<string, number>>;
   /** The doctor corrected this entry (connected diary); the patient sees it marked. */
   readonly corrected?: true;
+  /**
+   * A short voice recording kept when the phone could not make words of it (owner 2026-11-01):
+   * end-to-end encrypted like every record, never in QR codes.
+   */
+  readonly voice?: DiaryVoice;
+}
+
+export interface DiaryVoice {
+  readonly mime: string;
+  /** Base64 of the recording. */
+  readonly data: string;
+  readonly seconds: number;
 }
 
 /** What the patient shows back. The invitation is repeated so the doctor sees the context. */
@@ -226,6 +238,12 @@ export const MAX_DIARY_TIPS = 40;
 export const MAX_DIARY_DOSE_TIMES = 8;
 /** Free text the patient writes about their state, and the doctor's tips. */
 export const MAX_DIARY_NOTE = 4000;
+/**
+ * A voice recording's base64 length: the record body (≤ 256 000 sealed characters) carries it base64
+ * inside JSON, then sealed in base64 again, so ≈ 100 kB of audio — about a minute at 16 kbit/s.
+ */
+export const MAX_DIARY_VOICE_CHARS = 140_000;
+const VOICE_MIME = /^audio\/(webm|ogg|mp4|aac|mpeg)(;\s*codecs=[\w.,"-]+)?$/u;
 const MAX_TEXT = 200;
 const MAX_ANSWERS = 80;
 const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/u;
@@ -884,6 +902,7 @@ export function parseDiaryEntry(
     throw new DiaryFormatError('Запись ссылается на неизвестную отметку.');
   }
   const answers = parseAnswers(source['answers']);
+  const voice = parseVoice(source['voice']);
   const raw = record(source['values'], 'Значения записи');
   const values: Record<string, DiaryValue> = {};
   for (const field of invitation.fields) {
@@ -914,7 +933,7 @@ export function parseDiaryEntry(
       );
     }
   }
-  if (Object.keys(values).length === 0 && !note && !answers) {
+  if (Object.keys(values).length === 0 && !note && !answers && !voice) {
     throw new DiaryFormatError('Заполните хотя бы одно поле.');
   }
   return {
@@ -925,6 +944,36 @@ export function parseDiaryEntry(
     ...(typeof check === 'string' ? { check } : {}),
     ...(answers ? { answers } : {}),
     ...(source['corrected'] === true ? { corrected: true as const } : {}),
+    ...(voice ? { voice } : {}),
+  };
+}
+
+function parseVoice(value: unknown): DiaryVoice | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Голосовая запись');
+  const { mime, data, seconds } = source;
+  if (
+    typeof mime !== 'string' ||
+    !VOICE_MIME.test(mime) ||
+    typeof data !== 'string' ||
+    data.length === 0 ||
+    data.length > MAX_DIARY_VOICE_CHARS ||
+    !/^[A-Za-z0-9+/]+={0,2}$/u.test(data) ||
+    typeof seconds !== 'number' ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0 ||
+    seconds > 600
+  ) {
+    throw new DiaryFormatError('Голосовая запись некорректна.');
+  }
+  return { mime, data, seconds: Math.round(seconds) };
+}
+
+/** The results without voice recordings: for QR codes, which cannot carry them. */
+export function withoutVoices(results: DiaryResults): DiaryResults {
+  return {
+    ...results,
+    entries: results.entries.map(({ voice: _voice, ...entry }) => entry),
   };
 }
 
@@ -1033,6 +1082,7 @@ export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntr
   return [
     checkpoint?.kind === 'vitals' ? undefined : checkpoint?.label,
     answers ? `ответы на ${answers} вопр.` : undefined,
+    entry.voice ? `голосовая запись, ${entry.voice.seconds} с` : undefined,
     pressure,
     ...parts,
     plan?.slot ? `по плану ${plan.slot}` : undefined,

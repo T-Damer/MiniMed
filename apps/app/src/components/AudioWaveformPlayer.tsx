@@ -1,5 +1,7 @@
 import { createEffect, createSignal, For, type JSX, on, onCleanup } from 'solid-js';
 
+import '@/components/AudioWaveformPlayer.css';
+
 const BAR_COUNT = 44;
 
 let sharedContext: AudioContext | null = null;

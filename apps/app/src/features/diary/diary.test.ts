@@ -19,9 +19,11 @@ import {
   type DiaryResults,
   describeDiaryEntry,
   diaryTemplate,
+  MAX_DIARY_VOICE_CHARS,
   parseDiaryEntry,
   parseDiaryInvitation,
   parseDiaryResults,
+  withoutVoices,
 } from '@/features/diary/diary-model';
 import { diaryPrintHtml } from '@/features/diary/diary-print';
 import { createDiaryStore } from '@/features/diary/diary-storage';
@@ -433,6 +435,54 @@ describe('diary schema v2', () => {
     expect(
       parseDiaryEntry(custom, { id: 'entry0001', at, values: { f1: 'сильная' } }, NOW).values,
     ).toEqual({ f1: 'сильная' });
+  });
+
+  it('keeps a wordless voice recording as an entry of its own, never in QR codes', () => {
+    const custom = parseDiaryInvitation(
+      {
+        v: 2,
+        id: 'custom0002',
+        template: 'custom',
+        title: 'Дневник',
+        issuedAt: '2026-09-01T09:00:00.000Z',
+        fields: [{ id: 'state', type: 'text', label: 'Описание состояния' }],
+      },
+      NOW,
+    );
+    const at = '2026-09-02T09:00:00Z';
+    const voice = {
+      mime: 'audio/webm;codecs=opus',
+      data: 'GkXfo59ChoEBQveBAULygQRC84EIQoKE',
+      seconds: 4,
+    };
+    const entry = parseDiaryEntry(custom, { id: 'entry0002', at, values: {}, voice }, NOW);
+    expect(entry.voice).toEqual(voice);
+    expect(describeDiaryEntry(custom, entry)).toContain('голосовая запись, 4 с');
+    expect(() =>
+      parseDiaryEntry(
+        custom,
+        { id: 'entry0003', at, values: {}, voice: { ...voice, mime: 'text/html' } },
+        NOW,
+      ),
+    ).toThrow('Голосовая запись некорректна');
+    expect(() =>
+      parseDiaryEntry(
+        custom,
+        {
+          id: 'entry0004',
+          at,
+          values: {},
+          voice: { ...voice, data: 'A'.repeat(MAX_DIARY_VOICE_CHARS + 4) },
+        },
+        NOW,
+      ),
+    ).toThrow('Голосовая запись некорректна');
+    const results: DiaryResults = { v: 2, invitation: custom, entries: [entry] };
+    expect(withoutVoices(results).entries[0]).toEqual({
+      id: 'entry0002',
+      at: entry.at,
+      values: {},
+    });
   });
 
   it('prints every field as a column with blank rows to fill by hand', () => {
