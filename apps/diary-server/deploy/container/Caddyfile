@@ -1,7 +1,12 @@
-# /etc/caddy/Caddyfile — TLS for the diary service; Let's Encrypt certificates are automatic.
-# DNS: an A record med.1damer.com → this VM, «DNS only» (grey cloud) at Cloudflare: no proxy
+# Caddyfile of the container stack (compose.yaml): TLS for DIARY_DOMAIN, certificates are automatic.
+# DNS: an A record DIARY_DOMAIN → this host, «DNS only» (grey cloud) at Cloudflare: no proxy
 # in front of patients (ADR-0026 §8).
-med.1damer.com {
+{
+	# No admin API: the stack restarts Caddy instead of reloading it.
+	admin off
+}
+
+{$DIARY_DOMAIN} {
 	encode zstd gzip
 	# Model packs (ECG, skin) are GitHub release assets, which send no CORS headers: the app reads
 	# them from ./content/releases/, served here from the GitHub Pages mirror. Nothing of the
@@ -15,7 +20,7 @@ med.1damer.com {
 		}
 	}
 	handle {
-		reverse_proxy 127.0.0.1:8790 {
+		reverse_proxy diary:8790 {
 			# Live updates (server-sent events) must not be buffered.
 			flush_interval -1
 		}

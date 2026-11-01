@@ -1,0 +1,53 @@
+name: Diary container image
+
+# The connected diary's image (docs/DIARY_SELFHOST.md) for every release commit, like the Android
+# release: ghcr.io/<owner>/minimed-diary:<version> and :latest, amd64 + arm64.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: diary-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'release: MiniMed')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: true
+      - name: Install
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+      - name: Diary service tests
+        run: bun run --cwd apps/diary-server test
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and push the image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/minimed-diary
+        run: |
+          IMAGE="$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')" PUSH=1 scripts/diary-image.sh

@@ -1,0 +1,101 @@
+# The connected diary on any Docker host (Linux, or macOS with OrbStack/Docker Desktop):
+# the service, a nightly backup job and Caddy with automatic Let's Encrypt certificates.
+#
+#   cp .env.example .env   # set DIARY_DOMAIN; the domain's A record must point at this host
+#   docker compose up -d
+#
+# Ports 80 and 443 must reach this host (router port forward at home). Data lives in the
+# `diary-data` volume; daily copies go to DIARY_BACKUP_DIR on the host. The `guard` service keeps
+# the stack's network away from the home LAN and the host (guard.sh); nothing else starts until its
+# rules are in place. docs/DIARY_SELFHOST.md.
+name: minimed-diary
+
+x-diary: &diary
+  image: ${DIARY_IMAGE:-ghcr.io/t-damer/minimed-diary:latest}
+  restart: unless-stopped
+  env_file: .env
+  # Exposed to the internet through Caddy: no root, no capabilities, nothing writable but the volumes.
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  mem_limit: 512m
+  pids_limit: 256
+  depends_on:
+    guard:
+      condition: service_healthy
+
+services:
+  guard:
+    build:
+      context: .
+      dockerfile: guard.Dockerfile
+    image: minimed-diary-guard:local
+    restart: unless-stopped
+    network_mode: host
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN, NET_RAW]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      DIARY_SUBNET: ${DIARY_SUBNET:-172.30.83.0/24}
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/usr/local/bin/guard.sh", "check"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      start_interval: 1s
+
+  diary:
+    <<: *diary
+    volumes:
+      - diary-data:/data
+
+  backup:
+    <<: *diary
+    command: ["bun", "diary-backup.js", "--loop"]
+    healthcheck:
+      disable: true
+    environment:
+      # DIARY_BACKUP_DIR in .env is the host folder; inside the container it is mounted here.
+      DIARY_BACKUP_DIR: /backups
+    volumes:
+      - diary-data:/data
+      - ${DIARY_BACKUP_DIR:-./backups}:/backups
+
+  caddy:
+    image: caddy:2.11
+    restart: unless-stopped
+    depends_on:
+      guard:
+        condition: service_healthy
+      diary:
+        condition: service_started
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    pids_limit: 256
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DIARY_DOMAIN: ${DIARY_DOMAIN:?set DIARY_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${DIARY_SUBNET:-172.30.83.0/24}
+
+volumes:
+  diary-data:
+  caddy-data:
+  caddy-config:

@@ -1,49 +1,31 @@
 #!/usr/bin/env bash
-# Day-to-day management of the diary server (docs/DIARY_ADMIN.md).
+# Day-to-day checks of the serverless diary (docs/DIARY_ADMIN.md, ADR-0027).
 #
-#   scripts/diary-admin.sh invite      # one-time sign-up code for a doctor
-#   scripts/diary-admin.sh status      # service, Caddy, certificate, disk, last backup
-#   scripts/diary-admin.sh logs        # last 100 lines of the service log (no patient data is logged)
-#   scripts/diary-admin.sh backup      # copy the newest backup to data/diary-server/backups/ on this Mac
-#   scripts/diary-admin.sh restart
+#   scripts/diary-admin.sh status   # health, active revision, certificate
+#   scripts/diary-admin.sh logs     # the container's log of the last 30 minutes (no patient data is logged)
 #
-# DIARY_HOST overrides the server (default yc-user@51.250.93.197).
+# Deploys go through scripts/diary-serverless-deploy.sh.
 set -euo pipefail
 
-HOST="${DIARY_HOST:-yc-user@51.250.93.197}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DB_ENV="DIARY_DB=/var/lib/minimed-diary/diary.db"
+# shellcheck source=/dev/null
+source "$ROOT/apps/diary-server/deploy/serverless/yandex.env"
+API="${DIARY_API:-https://med.1damer.com}"
 
 case "${1:-status}" in
-  invite)
-    # Bun 1.2.3 drops the environment when started in a directory its user cannot read: cd first.
-    ssh "$HOST" "cd /opt/minimed && sudo -u minimed env $DB_ENV /usr/local/bin/bun /opt/minimed/diary-cli.js invite"
-    ;;
   status)
-    ssh "$HOST" 'systemctl is-active minimed-diary caddy minimed-diary-backup.timer | paste -sd " " -;
-      curl -fsS http://127.0.0.1:8790/api/health && echo;
-      df -h / | tail -1;
-      ls -1t /var/lib/minimed-diary/backups 2>/dev/null | head -1 || echo "no backup yet";
-      sudo journalctl -u caddy --since "-1h" --no-pager | grep -o "certificate obtained successfully" | tail -1 || true'
+    curl -fsS "$API/api/health" && echo
+    yc serverless container revision list --folder-id "$YC_FOLDER" --container-name "$YC_CONTAINER" \
+      --limit 1 --format json |
+      bun -e 'Bun.stdin.text().then((text) => { const [r] = JSON.parse(text); console.log(`revision ${r.id} ${r.status} ${r.image.image_url.split("/").pop()} since ${r.created_at}`); })'
+    yc certificate-manager certificate get med-1damer-com --folder-id "$YC_FOLDER" --format json |
+      bun -e 'Bun.stdin.text().then((text) => { const c = JSON.parse(text); console.log(`certificate ${c.status} until ${c.not_after ?? "?"}`); })'
     ;;
   logs)
-    ssh "$HOST" 'sudo journalctl -u minimed-diary -n 100 --no-pager'
-    ;;
-  backup)
-    mkdir -p "$ROOT/data/diary-server/backups"
-    latest="$(ssh "$HOST" 'ls -1t /var/lib/minimed-diary/backups/diary-*.db 2>/dev/null | head -1')"
-    if [[ -z "$latest" ]]; then
-      ssh "$HOST" 'sudo systemctl start minimed-diary-backup.service'
-      latest="$(ssh "$HOST" 'ls -1t /var/lib/minimed-diary/backups/diary-*.db | head -1')"
-    fi
-    ssh "$HOST" "sudo cat '$latest'" >"$ROOT/data/diary-server/backups/$(basename "$latest")"
-    echo "saved data/diary-server/backups/$(basename "$latest")"
-    ;;
-  restart)
-    ssh "$HOST" 'sudo systemctl restart minimed-diary && sleep 3 && curl -fsS http://127.0.0.1:8790/api/health && echo'
+    yc logging read --folder-id "$YC_FOLDER" --resource-ids "$YC_CONTAINER_ID" --since 30m --limit 200
     ;;
   *)
-    echo "usage: $0 invite|status|logs|backup|restart" >&2
+    echo "usage: $0 status|logs" >&2
     exit 1
     ;;
 esac

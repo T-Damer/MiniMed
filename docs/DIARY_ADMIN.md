@@ -1,74 +1,72 @@
 # Diary server — management
 
-The connected diary runs on one Yandex Cloud VM. Everything below is run from the repository on the
-owner's Mac. Details and the reasons behind them: [DIARY_SERVICE.md](DIARY_SERVICE.md).
+The connected diary's API runs serverless in Yandex Cloud (since 2026-11-01, ADR-0027; before that a
+VM, see «History»); the pages are the published app on GitHub Pages. Everything below is run from
+the repository on the owner's Mac with the `yc` CLI signed in. How the service works:
+[DIARY_SERVICE.md](DIARY_SERVICE.md); running it on your own machine instead:
+[DIARY_SELFHOST.md](DIARY_SELFHOST.md).
 
 | | |
 | --- | --- |
-| Address | `https://med.1damer.com` (doctors: `https://med.1damer.com/?profile=diaries`) |
-| VM | `minimed-diary`, Yandex Cloud folder `b1g5anoolpkm1sr7c810`, zone `ru-central1-a`, `51.250.93.197` (static) |
-| SSH | `ssh yc-user@51.250.93.197` (key `~/.ssh/id_ed25519`) |
-| Service | systemd `minimed-diary` (Bun, port 8790 on localhost) behind Caddy (HTTPS, automatic certificate) |
-| Data | `/var/lib/minimed-diary/diary.db` — ciphertext of the diaries plus doctors' e-mails, names and password hashes |
-| Backups | nightly 03:30 UTC to `/var/lib/minimed-diary/backups/` (14 kept) |
-| DNS | Cloudflare, `A med.1damer.com → 51.250.93.197`, **DNS only** (grey cloud), added 2026-10-27; a new record took ~5 min to appear on Cloudflare's nameservers |
-| Demo | `med-dev.1damer.com` CNAME → tunnel `minimed-dev` (proxied), served only while `scripts/diary-demo.sh start` runs on the Mac |
+| Pages | doctors `https://t-damer.github.io/MiniMed/app/?profile=diaries`, patients `…/app/diary/` (GitHub Pages, built from `main`) |
+| API | `https://med.1damer.com/api/…` — the bare domain and `/diary` redirect to the pages, so short links keep working |
+| Folder | Yandex Cloud `minimed-diary` (`b1ginjm6vtsvrqgd96qq`); every id is in `apps/diary-server/deploy/serverless/yandex.env` |
+| Gateway | API Gateway `diary` (`d5dodf2e18bku1g3s8e0`), domain `med.1damer.com`, Let's Encrypt certificate `med-1damer-com` from Certificate Manager (renews itself through the `_acme-challenge` CNAME) |
+| Container | Serverless Container `diary-api`: Node 24, 512 MB, 1 core at 50 %, 4 requests per instance, no instance kept warm; image in Container Registry `minimed-diary` (three newest kept) |
+| Data | YDB serverless `diary` — ciphertext of the diaries plus doctors' e-mails, names and password hashes; YDB keeps automatic backups of the last two days |
+| Accounts | `diary-api` runs the container (`ydb.editor`, `container-registry.images.puller`); `diary-gateway` only calls it (`serverless-containers.containerInvoker`) |
+| DNS | Cloudflare, **DNS only**: `CNAME med → d5dodf2e18bku1g3s8e0.s183zexc.apigw.yandexcloud.net`, `CNAME _acme-challenge.med → fpqi1ppd31pp6hfrp2h4.cm.yandexcloud.net` |
+| Mode | `DIARY_MODE=serverless`: no live stream (clients poll `/api/changes` every 20 s), no reminder pushes (reminders stay on the phone) |
 
 ## Everyday commands
 
 ```bash
-scripts/diary-admin.sh invite    # a one-time sign-up code for a doctor (send it with the link)
-scripts/diary-admin.sh status    # service, Caddy, backup timer, health, disk, newest backup
-scripts/diary-admin.sh logs      # service log: routes, status codes, times — never patient data
-scripts/diary-admin.sh backup    # copy the newest backup to data/diary-server/backups/ on this Mac
-scripts/diary-admin.sh restart
+scripts/diary-admin.sh status    # health, active revision, certificate
+scripts/diary-admin.sh logs      # last 30 minutes: routes, status codes, times — never patient data
+scripts/diary-serverless-deploy.sh   # bundle, image, new revision, gateway spec
 ```
 
-## Updating the server
+Sign-up is open for the prototype (owner 2026-10-28). Invite codes (`DIARY_SIGNUP=invite`) are made
+only by the server mode's CLI today; switch sign-up back to invites together with a serverless
+invite command.
+
+## Checking a change against YDB
 
 ```bash
-git pull
-scripts/diary-deploy.sh yc-user@51.250.93.197
+scripts/diary-ydb-contract.sh 'grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1gpdrmddfporukd7enk/<test database>'
 ```
 
-Builds the app, bundles the service into one file, copies both, updates the systemd units and the
-Caddyfile when they changed, restarts and waits for the health check. The database is never touched.
-`SKIP_BUILD=1` reuses the last `apps/app/dist`. A database schema change ships as a numbered
-migration in `apps/diary-server/src/db.ts` and runs by itself on start.
+Runs the storage contract (`apps/diary-server/src/contract.ts`, every store method) on Node over a
+real YDB database. Use a test database (`yc ydb database create diary-test --serverless`), never
+`diary`: every run leaves its rows. `bun run test:diary-server` runs the same contract over SQLite.
 
 ## When something is wrong
 
 | Symptom | Look at |
 | --- | --- |
-| Site does not open | `scripts/diary-admin.sh status`; DNS still points at `51.250.93.197` and is not proxied |
-| Certificate error | `ssh yc-user@51.250.93.197 'sudo journalctl -u caddy -n 50'` (Caddy retries by itself once DNS is right) |
-| Service down | `scripts/diary-admin.sh logs`, then `restart` |
+| `/api/health` fails | `scripts/diary-admin.sh logs`; the revision is ACTIVE; YDB `diary` is RUNNING |
+| First request slow | No instance is kept warm: a cold start is a few seconds; `--min-instances 1` would cost money |
+| Certificate error | `yc certificate-manager certificate get med-1damer-com`; the `_acme-challenge` CNAME is still there |
+| Pages cannot call the API | The page's origin is in `DIARY_CORS_ORIGINS` (`yandex.env`), then deploy |
 | A doctor forgot the password | They use «Восстановить» with their recovery code. Without the code nobody can open their keys; another curator of the patient can invite them again under a new account |
 | A patient's phone was lost | The doctor removes the phone in «Кураторы» → «Телефоны пациента» (this rotates the key) and shows a new code |
 
-## Restoring a backup
+## Costs
 
-```bash
-scp data/diary-server/backups/diary-YYYY-MM-DD.db yc-user@51.250.93.197:/tmp/restore.db
-ssh yc-user@51.250.93.197 'sudo systemctl stop minimed-diary &&
-  sudo install -o minimed -g minimed -m 0600 /tmp/restore.db /var/lib/minimed-diary/diary.db &&
-  sudo rm -f /var/lib/minimed-diary/diary.db-wal /var/lib/minimed-diary/diary.db-shm &&
-  sudo systemctl start minimed-diary'
-```
+Inside Yandex Cloud's monthly free tier at the pilot's traffic (5–600 API calls a day): container calls
+(1 M free), container time (10 GB·h, 5 vCPU·h), gateway requests (100 k), YDB (1 M request units,
+1 GB), Cloud Logging (5 GB). Outside it: the image in Container Registry, ≈ 0.3 ₽/month. Keep
+vulnerability scanning off (6 free scans, then 14.49 ₽ each) and no warm instances.
 
-Everything written after that backup is lost on the server; phones that still hold newer records
-send them again on their next sync.
+## Back to a server
 
-## Costs and shutting down
+`DIARY_MODE=server` is the same app on Bun over SQLite with the live stream and reminder pushes:
+the container stack or the systemd package of [DIARY_SELFHOST.md](DIARY_SELFHOST.md) on any Linux
+host, then point `med.1damer.com` at it. The pages need no rebuild: they read the mode from
+`/api/health`.
 
-Yandex bills per second (prices with VAT, October 2026): 2 vCPU at 20 % ≈ 750 ₽/month, 2 GB RAM ≈
-475 ₽/month, the public address ≈ 190 ₽/month while in use (≈ 435 ₽ while reserved and idle), plus the
-20 GB network HDD (rate not on the public page; small). A stopped VM still pays for the disk and the
-reserved address. To remove everything (the database too):
+## History
 
-```bash
-yc compute instance delete minimed-diary
-yc vpc address delete minimed-diary-ip
-yc vpc subnet delete minimed-diary-ru-central1-a
-yc vpc network delete minimed-diary-net
-```
+2026-10-27 – 2026-11-01 the service ran on a Yandex Cloud VM (`minimed-diary`, 2 vCPU 20 %, 2 GB,
+≈ 1 500 ₽/month, idle); it held only demo accounts and was deleted with its address and network after
+the move (ADR-0027).

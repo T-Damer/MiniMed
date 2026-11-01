@@ -3,7 +3,7 @@
 #
 #   scripts/diary-selfhost-package.sh        # -> output/diary-selfhost-<version>.tar.gz (+ .sha256)
 #
-# Builds the app like scripts/diary-deploy.sh does (`bun run build:app`, in a sanitized environment
+# Builds the app (`bun run build:app`, in a sanitized environment
 # like the CI builds), then packs: the built app, the diary server source with the two workspace
 # packages it imports, a minimal root package.json + bun.lock for `bun install --production`, the
 # systemd/Caddy files, the installer and a README. Nothing from data/, env files or node_modules.
@@ -109,7 +109,7 @@ rm -rf "$CHECK"
 
 # 4. Deploy files, installer, README, pins.
 cp "$DEPLOY/selfhost/minimed-diary.service" "$DEPLOY/selfhost/Caddyfile.in" \
-  "$DEPLOY/selfhost/minimed-diary-backup.service" "$DEPLOY/minimed-diary-backup.timer" "$PKG/deploy/"
+  "$DEPLOY/selfhost/minimed-diary-backup.service" "$DEPLOY/selfhost/minimed-diary-backup.timer" "$PKG/deploy/"
 install -m 0755 "$DEPLOY/selfhost/install.sh" "$PKG/install.sh"
 cp "$DEPLOY/selfhost/README.md" "$PKG/README.md"
 printf '%s\n' "$VERSION" >"$PKG/VERSION"

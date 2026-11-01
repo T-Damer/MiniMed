@@ -10,6 +10,28 @@ The package is one tarball, `diary-selfhost-<version>.tar.gz`, built by the Mini
 `sha256sum -c`). It contains the built web app, the service source, the installer and the systemd
 and Caddy files. Nothing in it is private: no data, no keys, no accounts.
 
+## Containers
+
+The same service as one image for any Docker host (amd64 or arm64; Linux, or macOS with OrbStack or
+Docker Desktop): `ghcr.io/t-damer/minimed-diary:<version>`, published with every release. Take
+`compose.yaml`, `Caddyfile` and `.env.example` from `apps/diary-server/deploy/container/`:
+
+```bash
+cp .env.example .env    # DIARY_DOMAIN, DIARY_IMAGE (pin a version), DIARY_SIGNUP, DIARY_BACKUP_DIR
+docker compose up -d
+docker compose exec diary bun diary-cli.js invite    # a sign-up code for a doctor
+```
+
+Ports 80 and 443 must reach the host and the domain's A record must point at it; Caddy gets the
+certificate. The database lives in the `diary-data` volume; the `backup` container copies it nightly
+(`DIARY_BACKUP_AT`, `DIARY_BACKUP_KEEP`) into `DIARY_BACKUP_DIR` on the host (the folder must be
+writable by uid 1000). Update: change `DIARY_IMAGE`, `docker compose pull && docker compose up -d`.
+Restore: stop `diary` and `backup`, copy the backup over `/data/diary.db` in the volume (delete
+`diary.db-wal` and `diary.db-shm`), start them. To build the image yourself from a checkout:
+`scripts/diary-image.sh`.
+
+The rest of this page is the package for a server without Docker (systemd).
+
 ## What you need
 
 | | |
@@ -169,8 +191,8 @@ monitoring under order 193н (ЕСИА, the clinic's МИС) is a separate route
 
 ## For the MiniMed developers
 
-`scripts/diary-selfhost-package.sh` builds the app (`bun run build:app`, sanitized environment, like
-`scripts/diary-deploy.sh`), packs it with the sources of `apps/diary-server`, `packages/contracts` and
+`scripts/diary-selfhost-package.sh` builds the app (`bun run build:app`, sanitized environment, as in
+CI), packs it with the sources of `apps/diary-server`, `packages/contracts` and
 `packages/diary-sync`, a minimal root `package.json` and `bun.lock` (the pinned Bun version comes from
 the root `packageManager`), and the files from `apps/diary-server/deploy/selfhost/`; the installer is
 `apps/diary-server/deploy/selfhost/install.sh`. The output is `output/diary-selfhost-<version>.tar.gz`

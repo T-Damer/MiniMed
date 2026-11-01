@@ -1,9 +1,11 @@
 # Connected diary service — running and deploying
 
 The sync server of the connected patient diary ([ADR-0026](adr/0026-connected-diary-service.md),
-[DIARY_PLAN.md](DIARY_PLAN.md)). Bun + `bun:sqlite`, one process, serves the built web app and `/api`
-from one origin. It stores ciphertext; names, plans and values are decrypted only on the doctors'
-and the patient's devices.
+[DIARY_PLAN.md](DIARY_PLAN.md)). One HTTP app in two modes ([ADR-0027](adr/0027-diary-server-modes.md)):
+`server` — Bun + `bun:sqlite`, one process, a live event stream and reminder pushes, optionally
+serving the built web app next to `/api`; `serverless` — the same routes on Node over YDB in a Yandex
+Cloud Serverless Container, clients poll a change counter. It stores ciphertext; names, plans and
+values are decrypted only on the doctors' and the patient's devices.
 
 ## Pieces
 
@@ -11,7 +13,8 @@ and the patient's devices.
 | --- | --- |
 | `packages/diary-sync` | Web Crypto: password → auth key + wrap key, identity key pairs, patient data keys per epoch (ECIES wrap), signed AES-GCM records, pairing seal |
 | `packages/contracts/src/diary-sync.ts` | zod schemas of every request and response |
-| `apps/diary-server` | the service (`src/app.ts` routes, `src/db.ts` numbered migrations, `src/push.ts` VAPID push without payload) |
+| `apps/diary-server` | the service: `src/app.ts` routes over the `src/store.ts` port; `src/sqlite-store.ts` and `src/ydb-store.ts` (numbered migrations each); `src/main.ts` (server mode, Bun), `src/serverless.ts` (Node); `src/push.ts` content-free Web Push; `src/contract.ts` the storage contract both stores pass |
+| `apps/diary-server/deploy` | `serverless/` (image, API Gateway spec, Yandex ids), `container/` (self-host stack), `selfhost/` (systemd package) |
 | `apps/app/src/features/diary/connected` | client: API, sync session, replica, patient connection, doctor account and workspace |
 | `apps/app/src/features/diary/dashboard` | the doctor's «Дневники пациентов» (`#/notes/diaries`) |
 | `apps/app/src/diary` | the patient's page (pairing link `#c=<patient>.<secret>`, live sync) |
@@ -28,42 +31,41 @@ and `diary-dev` in `.claude/launch.json`. Doctors: `#/notes/diaries`; patients o
 QR code. `?profile=diaries` narrows the app to the diaries (no bottom bar), `?profile=off` undoes it.
 
 Tests: `bun run test:diary-server` (whole life of a diary against the real crypto, the database holds
-no plaintext), plus the vitest suites under `packages/diary-sync` and `apps/app/src/features/diary`.
+no plaintext; the storage contract over SQLite in both modes), `scripts/diary-ydb-contract.sh` (the
+contract on Node over a real YDB test database), plus the vitest suites under `packages/diary-sync`
+and `apps/app/src/features/diary`.
 
 ## Settings
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `DIARY_HOST` / `DIARY_PORT` | `127.0.0.1` / `8790` | listen address (8787 is taken by OrbStack on the owner's Mac) |
+| `DIARY_MODE` | `server` | `serverless`: `serverless.ts` on Node over YDB, no live stream (clients poll `/api/changes`; `/api/health` says `live: poll`), no reminder pushes |
+| `DIARY_YDB` | — | serverless only: YDB connection string; credentials from the environment (`YDB_METADATA_CREDENTIALS=1` in the container) |
+| `DIARY_HOST` / `DIARY_PORT` | `127.0.0.1` / `8790` | listen address (8787 is taken by OrbStack on the owner's Mac); a serverless container sets `PORT` |
 | `DIARY_DB` | `data/diary-server/diary.db` | SQLite file (WAL) |
 | `DIARY_STATIC` | — | built app (`apps/app/dist`) to serve next to the API |
 | `DIARY_SIGNUP` | `invite` | `open` lets any doctor register (the pilot since 2026-10-28; at most 12 new accounts a minute); `invite` needs a code from `bun run --cwd apps/diary-server invite`. `GET /api/info` tells the sign-in form, which then hides the code field |
 | `DIARY_PUSH_SUBJECT` | `mailto:admin@1damer.com` | VAPID contact |
-| `DIARY_CORS_ORIGINS` | — | comma-separated origins allowed cross-origin (the Android app, which needs `VITE_DIARY_SERVER` at build time) |
+| `DIARY_CORS_ORIGINS` | — | origins (commas or semicolons) allowed cross-origin: the Pages app and the native shells; any other origin is answered with the first allowed one, so browsers refuse it |
 
 The decoy-salt secret and the VAPID key pair are generated on first start and kept in the database.
 
-## Pilot production (Yandex Cloud, `ru-central1`)
+## Pilot production (serverless, Yandex Cloud `ru-central1`)
 
-Live since 2026-10-27: VM `minimed-diary` at `51.250.93.197` — day-to-day management is in
-[DIARY_ADMIN.md](DIARY_ADMIN.md); `scripts/diary-vm.sh create` made it (zone `ru-central1-a`;
-`ru-central1-b` refused new VMs and the folder has no SSD quota, hence a network HDD), cloud-init
-from `apps/diary-server/deploy/cloud-init.yaml`, code by `scripts/diary-deploy.sh`. The steps below
-describe the same setup by hand.
+Live since 2026-11-01 (2026-10-27 – 11-01 on a VM); management, ids and costs:
+[DIARY_ADMIN.md](DIARY_ADMIN.md). `scripts/diary-serverless-deploy.sh` bundles `serverless.ts`,
+pushes the image to Container Registry, deploys a revision of the container `diary-api` and updates
+the API Gateway `diary` (`apps/diary-server/deploy/serverless/api-gateway.yaml`), which serves
+`https://med.1damer.com/api/…` with a Let's Encrypt certificate from Certificate Manager. The pages
+are the app on GitHub Pages: on `*.github.io` and in the native shells `diaryServiceBase()` is
+`https://med.1damer.com`, and the QR link reads `https://med.1damer.com/diary/#c=…`, which the gateway
+redirects to the Pages patient page with the fragment intact.
 
-A faculty that runs its own server uses the self-host package instead: [DIARY_SELFHOST.md](DIARY_SELFHOST.md).
+Cloudflare DNS stays **DNS only** (no proxy — Russian ISPs cut proxied connections, and a foreign TLS
+terminator raises a cross-border question). Data stays in YDB in Russia; the static pages carry none.
 
-1. Ubuntu 24.04 VM; install Bun (repository-pinned version) and Caddy; user `minimed`;
-   `/var/lib/minimed-diary` owned by it.
-2. Checkout in `/opt/minimed`, `bun install`, `bun run build:app` with the pilot settings.
-3. `apps/diary-server/deploy/minimed-diary.service` → `/etc/systemd/system/`, `systemctl enable --now
-   minimed-diary`.
-4. `apps/diary-server/deploy/Caddyfile` → `/etc/caddy/Caddyfile`; Caddy gets the certificate.
-5. Cloudflare DNS: `A med.1damer.com → VM`, **DNS only** (no proxy — Russian ISPs cut proxied
-   connections, and a foreign TLS terminator raises a cross-border question).
-6. Backups: nightly `sqlite3 diary.db ".backup …"` to a private Object Storage bucket. Records are
-   ciphertext; doctors' e-mails, names and password hashes are not.
-7. Invite codes for the faculty's doctors: `bun run --cwd apps/diary-server invite`.
+A faculty that runs its own server uses the server mode: [DIARY_SELFHOST.md](DIARY_SELFHOST.md)
+(container stack or systemd package).
 
 ## Demo tunnel (owner's Mac, test data only)
 
