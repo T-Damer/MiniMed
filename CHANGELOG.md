@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.73] - 2026-11-01
+
+- Android: the patient vault opens with your fingerprint, face or the phone's PIN (once, then it stays open for five
+  minutes). On the first unlock the app shows a recovery code to write down: if you later change or remove the screen
+  lock, «Восстановить по коду» opens the vault again. Phones without a screen lock keep working as before.
+- Android: «Кожа по фото» and the ECG photo use the phone's own camera app; a photo taken while Android closed the app
+  is still delivered when it reopens.
+- Patients open behind skeleton rows instead of «Открываем пациентов…».
+- The home pulse no longer turns yellow for ten seconds after every start.
+
 ## [0.6.71] - 2026-10-31
 
 - Smoother right after start-up: the large document lists reach the screens in small pieces instead of one block, each
