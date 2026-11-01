@@ -4,6 +4,20 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.75] - 2026-11-01
+
+- One date field everywhere instead of the phone's or browser's own picker: type «ДД.ММ.ГГГГ» (the dots come by
+  themselves) or pick the day in a calendar, with quick month and year choice for birth dates. Times use the app's own
+  time field too.
+- An empty list of patients shows its icon, text and buttons in the middle of the screen.
+- New patient and the patient's screen on a tablet or a wide window: details on the left, the live preview on the
+  right.
+- Fields no longer flicker when focused.
+- Phones that force a dark mode (Xiaomi and others) no longer repaint the app; it keeps its own dark theme.
+- Patient diary: the header no longer shows the pulse line beside it while scrolling; thin scrollbars in the app's
+  colours; the diary's first day has a double frame in the calendar; a voice recording the phone cannot make words of
+  is kept as a voice note for the doctor instead of a red error.
+
 ## [0.6.74] - 2026-11-01
 
 - Connected diary: the service moved off the rented server to Yandex Cloud's serverless services (inside the free
