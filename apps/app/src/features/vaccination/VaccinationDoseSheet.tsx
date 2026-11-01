@@ -1,10 +1,9 @@
 import { For, type JSX, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
-import { TextField } from '@/components/TextField';
 import { STATUS_LABELS } from '@/features/vaccination/VaccinationChartView';
 import { VaccinationSourceLink } from '@/features/vaccination/VaccinationSourceLink';
 import {
@@ -134,22 +133,15 @@ export function VaccinationAgeSheet(props: {
                           />
                           <Show when={mark()}>
                             {(current) => (
-                              <TextField
+                              <DateField
                                 class="vax-dose__date"
                                 label={
                                   current().state === 'done' ? 'Дата прививки' : 'Дата по плану'
                                 }
-                                type="date"
                                 value={current().date ?? ''}
-                                {...(current().state === 'done' ? { max: props.today } : {})}
-                                onChange={(event) =>
-                                  props.onMark(
-                                    item.id,
-                                    current().state,
-                                    event.currentTarget.value === ''
-                                      ? null
-                                      : event.currentTarget.value,
-                                  )
+                                max={current().state === 'done' ? props.today : undefined}
+                                onChange={(next) =>
+                                  props.onMark(item.id, current().state, next === '' ? null : next)
                                 }
                               />
                             )}

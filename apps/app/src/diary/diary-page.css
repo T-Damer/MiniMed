@@ -501,18 +501,6 @@
   font-weight: 700;
 }
 
-/* iOS draws date and time fields as a native control wider than its card; the picker still opens
-   on tap. The diary page does not load global.css, so the same rule is repeated here. */
-@supports (-webkit-touch-callout: none) {
-  .diary-field__input[type="datetime-local"] {
-    min-width: 0;
-    max-width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    text-align: left;
-  }
-}
-
 .diary-options {
   display: flex;
   flex-wrap: wrap;
@@ -626,6 +614,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+}
+
+.diary-time__pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.diary-time__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .diary-time__value {

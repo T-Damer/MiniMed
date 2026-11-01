@@ -11,8 +11,8 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 
+import { DateField } from '@/components/DateField';
 import { Disclosure } from '@/components/Disclosure';
-import { NativeDateTimeField } from '@/components/NativeDateTimeField';
 import { TextField } from '@/components/TextField';
 import {
   createDraftState,
@@ -225,10 +225,9 @@ export function PatientFormData(props: {
           />
           <div class="patient-form-data__field">
             <span class="patient-form-data__label">Дата выдачи</span>
-            <NativeDateTimeField
-              type="date"
+            <DateField
               label="Дата выдачи полиса ОМС"
-              placeholder="Не указана"
+              hideLabel
               value={draft().omsIssuedAt}
               onChange={(value) => setField('omsIssuedAt', value)}
             />

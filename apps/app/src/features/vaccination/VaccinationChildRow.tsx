@@ -8,10 +8,9 @@ import {
   onMount,
   Show,
 } from 'solid-js';
-
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
-import { TextField } from '@/components/TextField';
 import {
   type ChildInput,
   childBirthDate,
@@ -135,13 +134,12 @@ export function VaccinationChildRow(props: {
         chooserExtra={(close) => (
           <Show when={!profile()}>
             <div class="vax-child__form">
-              <TextField
+              <DateField
                 class="vax-child__date"
                 label="Или только дата рождения"
-                type="date"
                 value={typedBirthDate()}
                 max={props.today}
-                onInput={(event) => commitBirthDate(event.currentTarget.value)}
+                onChange={commitBirthDate}
               />
               <div class="vax-child__actions">
                 <Show when={typedBirthDate() !== ''}>
@@ -167,13 +165,12 @@ export function VaccinationChildRow(props: {
         )}
       />
       <Show when={profile() && !profile()?.birthDate}>
-        <TextField
+        <DateField
           class="vax-child__date"
           label="Дата рождения (запишется в карточку)"
-          type="date"
           value={typedBirthDate()}
           max={props.today}
-          onInput={(event) => commitBirthDate(event.currentTarget.value)}
+          onChange={commitBirthDate}
         />
       </Show>
       <Show when={problem()}>

@@ -25,7 +25,7 @@ import {
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { NativeDateTimeField } from '@/components/NativeDateTimeField';
+import { DateField } from '@/components/DateField';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
@@ -33,6 +33,7 @@ import { PageSkeleton } from '@/components/PageSkeleton';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
+import { TimeField } from '@/components/TimeField';
 import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import { SavedItemsPage } from '@/features/collections/SavedItemsPage';
 import { ConversationInbox } from '@/features/conversations/ConversationInbox';
@@ -389,18 +390,16 @@ function ReminderFields(props: {
   return (
     <div class="note-reminder-fields">
       <span>Напомнить</span>
-      <NativeDateTimeField
-        type="date"
+      <DateField
         label="Дата напоминания"
+        hideLabel
         value={props.date}
-        placeholder="Дата"
         onChange={props.onDateChange}
       />
-      <NativeDateTimeField
-        type="time"
+      <TimeField
         label="Время напоминания"
+        hideLabel
         value={props.time}
-        placeholder="Время"
         onChange={props.onTimeChange}
       />
       <Show when={props.notificationMessage}>

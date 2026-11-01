@@ -10,6 +10,7 @@ import {
 } from 'solid-js';
 import ecgPhotoExample from '@/assets/ecg-photo-example.jpg';
 import { AppGlyph } from '@/components/AppGlyph';
+import { DateField } from '@/components/DateField';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import {
   analyzeEcgAvSequence,
@@ -775,13 +776,13 @@ export function EcgNumericDiagnosticPanel(props: {
               example: 'Для учебного примера: 01.01.1990.',
             })}
           </div>
-          <input
+          <DateField
             id="ecg-patient-date-of-birth"
-            class="ecg-numeric__input"
-            type="date"
+            label="Дата рождения"
+            hideLabel
             value={dateOfBirth()}
-            onInput={(event) => {
-              setDateOfBirth(event.currentTarget.value);
+            onChange={(next) => {
+              setDateOfBirth(next);
               setEstimates(undefined);
               setError('');
               setMeasurementsConfirmed(false);
@@ -802,13 +803,13 @@ export function EcgNumericDiagnosticPanel(props: {
               example: 'Для учебного примера: 01.01.2016.',
             })}
           </div>
-          <input
+          <DateField
             id="ecg-date"
-            class="ecg-numeric__input"
-            type="date"
+            label="Дата ЭКГ"
+            hideLabel
             value={ecgDate()}
-            onInput={(event) => {
-              setEcgDate(event.currentTarget.value);
+            onChange={(next) => {
+              setEcgDate(next);
               setEstimates(undefined);
               setError('');
               setMeasurementsConfirmed(false);

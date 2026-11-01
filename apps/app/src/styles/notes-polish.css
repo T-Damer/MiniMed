@@ -1240,35 +1240,6 @@
   height: 0.85rem;
 }
 
-/* Native date/time trigger fields */
-
-.native-datetime-field__wrapper {
-  display: inline-flex;
-}
-
-.native-datetime-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.1875rem 0.45rem;
-  border: 1px solid rgb(103 92 68 / 30%);
-  border-radius: 0.25rem;
-  color: var(--theme-text);
-  background: var(--paper-light);
-  font: inherit;
-  font-size: 0.8125rem;
-}
-
-.native-datetime-field--empty .native-datetime-field__value {
-  color: var(--theme-text-muted);
-}
-
-.native-datetime-field__icon.app-glyph {
-  width: var(--native-datetime-icon-size, 0.75rem);
-  height: var(--native-datetime-icon-size, 0.75rem);
-  color: var(--theme-text-muted);
-}
-
 /* Attached files rendered inline under the note text (documents-style cards) */
 
 .note-file-blocks {

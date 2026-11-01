@@ -1,7 +1,8 @@
 import { createSignal, type JSX, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
+import { todayValue } from '@/components/date-value';
 import { PatientEmojiPicker } from '@/components/PatientEmojiPicker';
 import { SheetPopover } from '@/components/SheetPopover';
 import { TextField } from '@/components/TextField';
@@ -57,16 +58,15 @@ export function PatientIdentity(props: {
         />
       </div>
       <div class="diary-identity__row">
-        <TextField
+        <DateField
           label="Дата рождения"
           class="diary-identity__birth"
-          inputClass="screen-editor__input"
-          type="date"
           value={props.birthDate}
+          max={todayValue()}
           error={
             props.birthDate && !isDiaryBirthDate(props.birthDate) ? 'Проверьте дату' : undefined
           }
-          onInput={(event) => props.onBirthDate(event.currentTarget.value)}
+          onChange={props.onBirthDate}
         />
       </div>
       <div class="diary-identity__row">

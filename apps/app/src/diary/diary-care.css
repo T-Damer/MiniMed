@@ -626,14 +626,12 @@ body:has(.diary-care-scope) {
   gap: 0.3rem;
 }
 
-.diary-care-time__label,
 .diary-grow__label,
 .diary-vitals__label,
 .diary-chips__legend {
   font-weight: 700;
 }
 
-.diary-care-time__input,
 .diary-grow__input,
 .diary-vitals__input {
   box-sizing: border-box;
@@ -649,11 +647,6 @@ body:has(.diary-care-scope) {
   appearance: none;
 }
 
-.diary-care-time__input {
-  max-width: 10rem;
-  font-variant-numeric: tabular-nums;
-}
-
 .diary-grow__input {
   min-height: 6rem;
   resize: none;
@@ -661,7 +654,6 @@ body:has(.diary-care-scope) {
   font-size: 1.0625rem;
 }
 
-.diary-care-time__input:focus-visible,
 .diary-grow__input:focus-visible,
 .diary-vitals__input:focus-visible,
 .diary-segment__option:focus-visible,

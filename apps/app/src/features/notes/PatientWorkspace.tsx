@@ -12,7 +12,6 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { PAGE_HEROES } from '@/app/page-heroes';
-
 import {
   AppContextMenu,
   type AppContextMenuAction,
@@ -20,6 +19,8 @@ import {
 } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
+import { todayValue } from '@/components/date-value';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { PatientAvatar } from '@/components/PatientAvatar';
@@ -449,13 +450,13 @@ function NewPatientForm(props: {
             remember();
           }}
         />
-        <TextField
+        <DateField
           class="patient-workspace__field"
           label="Дата рождения"
-          type="date"
           value={birthDate()}
-          onInput={(event) => {
-            setBirthDate(event.currentTarget.value);
+          max={todayValue()}
+          onChange={(next) => {
+            setBirthDate(next);
             remember();
           }}
         />
@@ -756,12 +757,11 @@ function ManualEventForm(props: {
           onChange={(event) => setMedicationKind(event.currentTarget.value as MedicationEventKind)}
         />
       </Show>
-      <TextField
+      <DateField
         class="patient-workspace__field"
         label="Дата"
-        type="date"
         value={date()}
-        onInput={(event) => setDate(event.currentTarget.value)}
+        onChange={setDate}
         required
       />
       <Show when={error()}>

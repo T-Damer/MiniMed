@@ -16,6 +16,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { DateField } from '@/components/DateField';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -896,13 +897,13 @@ function CalculatorForm(props: {
                       </For>
                     </select>
                   ) : input.kind === 'date' ? (
-                    <input
+                    <DateField
                       id={`calculator-input-${input.id}`}
-                      type="date"
+                      label={input.label}
+                      hideLabel
                       disabled={disabled()}
-                      title={disabledTitle()}
                       value={schemaValues()[input.id] ?? ''}
-                      onInput={(event) => setSchemaValue(input.id, event.currentTarget.value)}
+                      onChange={(next) => setSchemaValue(input.id, next)}
                     />
                   ) : input.kind === 'text' ? (
                     <input

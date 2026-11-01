@@ -1,6 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
-
 import { Button } from '@/components/Button';
+import { TimeField as UiTimeField } from '@/components/TimeField';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
 import { VoiceNote } from '@/diary/VoiceNote';
@@ -35,18 +35,15 @@ function initialTime(day: string, planned: string | undefined): string {
   return planned ?? '12:00';
 }
 
+/** The mark's time: the app's Kobalte time field (no native pickers, owner 2026-11-01). */
 function TimeField(props: { readonly value: string; readonly onInput: (value: string) => void }) {
   return (
-    <label class="diary-care-time">
-      <span class="diary-care-time__label">Время</span>
-      <input
-        class="diary-care-time__input"
-        type="time"
-        required
-        value={props.value}
-        onInput={(event) => props.onInput(event.currentTarget.value)}
-      />
-    </label>
+    <UiTimeField
+      label="Время"
+      class="diary-care-time"
+      value={props.value}
+      onChange={props.onInput}
+    />
   );
 }
 

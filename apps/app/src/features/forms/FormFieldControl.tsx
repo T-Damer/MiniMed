@@ -1,10 +1,9 @@
 import type { FormField, FormSchema } from '@localmed/contracts';
 import { createSignal, For, type JSX, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Checkbox } from '@/components/Checkbox';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
-import { NativeDateTimeField } from '@/components/NativeDateTimeField';
+import { DateField } from '@/components/DateField';
 import { SelectField } from '@/components/SelectField';
 import { SheetPopover } from '@/components/SheetPopover';
 import { TextArea } from '@/components/TextArea';
@@ -142,13 +141,11 @@ function Control(props: FormFieldControlProps): JSX.Element {
       <Show when={field().type === 'date'}>
         <div class="form-field__date">
           <span class="form-field__date-label">{label()}</span>
-          <NativeDateTimeField
-            type="date"
+          <DateField
             label={plainFieldLabel(field().label)}
-            placeholder="дд.мм.гггг"
+            hideLabel
             value={textValue(props.value)}
             class="form-field__date-wrapper"
-            buttonClass="form-field__date-button"
             onChange={(next) => props.onChange(next)}
           />
           <Show when={props.error}>

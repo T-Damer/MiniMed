@@ -305,22 +305,8 @@
   line-height: 1.4;
 }
 
-.native-datetime-field__wrapper.form-field__date-wrapper {
-  display: flex;
+.form-field__date-wrapper {
   width: 100%;
-}
-
-.native-datetime-field.form-field__date-button {
-  --native-datetime-icon-size: 1.15rem;
-  width: 100%;
-  min-height: 3.25rem;
-  gap: 0.6rem;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  background: var(--theme-surface-raised);
-  font-size: 1.0625rem;
-  text-align: left;
 }
 
 .form-field__hint,

@@ -1,7 +1,8 @@
 import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
+import { TimeField } from '@/components/TimeField';
 import { Field } from '@/diary/diary-fields';
 import { formatLongDateTime } from '@/diary/diary-format';
 import { inputModeFor, numberProblems, rangeHint } from '@/diary/diary-validation';
@@ -467,27 +468,31 @@ export function DiaryEntryForm(props: {
             </div>
           }
         >
-          <label class="diary-field__label diary-time__label" for={`${formId}-at`}>
-            Дата и время
-          </label>
-          <input
-            id={`${formId}-at`}
-            class="diary-field__input"
-            classList={{ 'diary-field__input--invalid': Boolean(errors()[TIME_PROBLEM]) }}
-            type="datetime-local"
-            required
-            aria-invalid={errors()[TIME_PROBLEM] ? 'true' : undefined}
-            value={customAt() ?? ''}
-            onInput={(event) => {
-              setCustomAt(event.currentTarget.value);
-              setDirty(true);
-            }}
-          />
-          <Show when={errors()[TIME_PROBLEM]}>
-            <p class="diary-field__error" role="alert">
-              {errors()[TIME_PROBLEM]}
-            </p>
-          </Show>
+          <fieldset class="diary-time__pair">
+            <legend class="diary-time__legend">Дата и время</legend>
+            <DateField
+              id={`${formId}-at`}
+              label="Дата"
+              class="diary-time__date"
+              required
+              value={(customAt() ?? '').slice(0, 10)}
+              error={errors()[TIME_PROBLEM]}
+              onChange={(day) => {
+                setCustomAt(day ? `${day}T${(customAt() ?? '').slice(11, 16) || '12:00'}` : '');
+                setDirty(true);
+              }}
+            />
+            <TimeField
+              label="Время"
+              class="diary-time__clock"
+              value={(customAt() ?? '').slice(11, 16)}
+              onChange={(time) => {
+                const day = (customAt() ?? '').slice(0, 10);
+                if (day) setCustomAt(`${day}T${time}`);
+                setDirty(true);
+              }}
+            />
+          </fieldset>
         </Show>
       </div>
       <div class="diary-field">
