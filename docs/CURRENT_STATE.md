@@ -60,8 +60,19 @@ no code taken, only the approach). Core, contracts and a local-model adapter; no
   existing `LocalModelController.completeStructuredTask` with task `visit-note`, temperature 0; an
   answer cut by the token limit keeps its finished items (`extractTruncatedJson`). The controller
   itself is still the research harness that no screen creates since 0.6.33 (`docs/LOCAL_MODELS.md`).
-- **Not done.** Qualification of Qwen3 0.6B / QVikhr 1.7B on this prompt (the harness's own strict
-  JSON pass rate was 3–4 of 20), the draft UI on the conversation card with the model download
+- **Qualification (Mac, llama-server, 2 048-token context, temperature 0)**
+  `tools/benchmarks/src/run-visit-note-model.ts` over three synthetic consultations
+  (`visit-note-consultations.json`: chest pain in person with an earlier record, cystitis by video,
+  a child's cough), graded on facts expected in the kept field texts and facts that must stay out.
+  QVikhr 3 1.7B Q4_K_M: 7 of 23 facts, 0 forbidden, 2–5 s per consultation. Its fields and wording
+  are clinically right, but most items fall at the quote check: it writes spoken numbers as digits
+  («37,2°C» for «тридцать семь и две»), changes word forms («жжет» for «жжение»), quotes one word
+  («нет», «сухой»), and the 1 600-character first window filled the 512-token answer. Qwen3 0.6B
+  Q8_0 (`/no_think`): 1 of 23; nearly every item lands under `examination`, with the doctor's
+  questions as text, and one answer came as a `[{…}]` array. Neither is fit for the draft with
+  verbatim quotes; next is a citation the model can give exactly (numbered source lines), smaller
+  windows, and real consultations.
+- **Not done.** The draft UI on the conversation card with the model download
   offered in place, an omission pass over the doctor's edited note, qualification on real Russian
   consultations (field accuracy, quote fidelity, abstention, phone latency). Debug Android builds
   log the native prompt to logcat (`ai_chat.cpp` `LOGd`, compiled out under `NDEBUG`): drop that
