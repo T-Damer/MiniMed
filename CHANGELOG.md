@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.80] - 2026-11-02
+
+- Patient screen editor: each sheet shows what it edits with an icon next to its title. A medicine sheet can copy its
+  schedule for the next medicine — same form, times and meals, a new drug — in a sheet of its own.
+- New patient on a phone: «Создать и показать код» stays at the bottom of the screen while you scroll.
+- Doctor sign-in: «Демо — без регистрации» is a highlighted button instead of a separate tab; «Войти» and «Создать
+  аккаунт» switch on once the form is filled.
+
 ## [0.6.79] - 2026-11-02
 
 - Demo: everybody who opens the demo now works in one shared demo account, so a whole room can scan the QR code at

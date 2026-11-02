@@ -179,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-02 claude-opus REL 0.6.80 UI-DIARY19: editor sheet icons, copy a prescription, sticky create, demo button instead of a tab
 - 2026-11-02 claude-opus PROMO2: diary presentation grows to 15 slides — registration and QR-connection walkthroughs from real screens, drug/questionnaire pickers, answered PHQ-9
 - 2026-11-02 claude-opus REL 0.6.79 DIARY-DEMO3: one shared demo account (hall-sized sign-in cap), guest diaries pruned after a day
 - 2026-11-02 claude-opus PROMO1: diary presentation in `docs/promo/diary-presentation/` (public HTML, PPTX builder; the full version is gitignored), app-style illustrations + sprite in `apps/app/src/assets/illustrations/`
