@@ -20,9 +20,9 @@ import {
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
 
-type Mode = 'login' | 'register' | 'recover' | 'demo';
+type Mode = 'login' | 'register' | 'recover';
 
-const MODES: readonly Mode[] = ['login', 'register', 'recover', 'demo'];
+const MODES: readonly Mode[] = ['login', 'register', 'recover'];
 
 const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: string }>> = {
   login: { title: 'С возвращением!', lead: 'Дневники пациентов уже ждут' },
@@ -34,13 +34,12 @@ const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: 
     title: 'Без паники',
     lead: 'Код восстановления вернёт доступ к пациентам',
   },
-  demo: {
-    title: 'Загляните в демо',
-    lead: 'Без почты и пароля — пациенты с историей уже ждут',
-  },
 };
 
-/** `?demo` in the address (the doctor's QR code on the slides): the form opens on «Демо». */
+/**
+ * `?demo` in the address (the doctor's QR code on the slides): the form opens on «Регистрация» with
+ * the demo button in front — one tap and the visitor is in (owner 2026-11-02: no demo tab).
+ */
 function demoRequested(): boolean {
   return new URLSearchParams(window.location.search).has('demo');
 }
@@ -91,7 +90,7 @@ export function DoctorSignIn(props: {
   readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
   claimFullScreen();
-  const [mode, setMode] = createSignal<Mode>(demoRequested() ? 'demo' : 'login');
+  const [mode, setMode] = createSignal<Mode>(demoRequested() ? 'register' : 'login');
   const [email, setEmail] = createSignal('');
   const [name, setName] = createSignal('');
   const [password, setPassword] = createSignal('');
@@ -119,7 +118,23 @@ export function DoctorSignIn(props: {
     setError('');
   };
 
-  /** «Демо»: this device's demo doctor, no e-mail, password or code. */
+  /** The fields the chosen form needs are there: until then «Войти» stays off. */
+  const filled = (): boolean => {
+    if (byCode()) return true;
+    const strong = password().length >= 8;
+    if (mode() === 'login') return email().trim() !== '' && password() !== '';
+    if (mode() === 'register') {
+      return (
+        email().trim() !== '' &&
+        name().trim() !== '' &&
+        strong &&
+        (signup.latest === 'open' || invite().trim() !== '')
+      );
+    }
+    return email().trim() !== '' && code().trim() !== '' && strong;
+  };
+
+  /** «Демо»: the shared demo account, no e-mail, password or code. */
   const openDemo = async (): Promise<void> => {
     setError('');
     setBusy(true);
@@ -134,10 +149,6 @@ export function DoctorSignIn(props: {
 
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
-    if (mode() === 'demo') {
-      await openDemo();
-      return;
-    }
     setError('');
     setBusy(true);
     try {
@@ -240,32 +251,26 @@ export function DoctorSignIn(props: {
                 <SegmentedControl
                   label="Вход или регистрация"
                   stretch
-                  value={mode() === 'recover' ? 'login' : mode()}
+                  value={mode() === 'register' ? 'register' : 'login'}
                   options={[
                     { value: 'login', label: 'Вход' },
                     { value: 'register', label: 'Регистрация' },
-                    // Demo needs open sign-up; a demo link shows it before the answer arrives.
-                    ...(signup.latest === 'open' || demoRequested()
-                      ? [{ value: 'demo' as const, label: 'Демо' }]
-                      : []),
                   ]}
                   onChange={choose}
                 />
               </Reveal>
-              <Reveal open={mode() !== 'demo'}>
-                <TextField
-                  label={mode() === 'login' ? 'Почта или код доступа' : 'Почта'}
-                  // Text, not e-mail: the same field takes «K2CM-R5AG-2M4R».
-                  type={mode() === 'login' ? 'text' : 'email'}
-                  inputMode="email"
-                  autocomplete="username"
-                  autocapitalize="off"
-                  spellcheck={false}
-                  required={mode() !== 'demo'}
-                  value={email()}
-                  onInput={(event) => setEmail(event.currentTarget.value)}
-                />
-              </Reveal>
+              <TextField
+                label={mode() === 'login' ? 'Почта или код доступа' : 'Почта'}
+                // Text, not e-mail: the same field takes «K2CM-R5AG-2M4R».
+                type={mode() === 'login' ? 'text' : 'email'}
+                inputMode="email"
+                autocomplete="username"
+                autocapitalize="off"
+                spellcheck={false}
+                required
+                value={email()}
+                onInput={(event) => setEmail(event.currentTarget.value)}
+              />
               <Reveal open={mode() === 'register'}>
                 <TextField
                   label="Как вас подписать для пациентов"
@@ -292,24 +297,22 @@ export function DoctorSignIn(props: {
                   onInput={(event) => setCode(event.currentTarget.value)}
                 />
               </Reveal>
-              <Reveal open={!byCode() && mode() !== 'demo'}>
+              <Reveal open={!byCode()}>
                 <TextField
                   label={mode() === 'login' ? 'Пароль' : 'Новый пароль (от 8 символов)'}
                   type="password"
                   autocomplete={mode() === 'login' ? 'current-password' : 'new-password'}
                   minLength={8}
-                  required={!byCode() && mode() !== 'demo'}
+                  required={!byCode()}
                   value={password()}
                   onInput={(event) => setPassword(event.currentTarget.value)}
                 />
               </Reveal>
-              <Reveal open={mode() !== 'demo'}>
-                <Checkbox
-                  label={`Мой компьютер: не спрашивать ${byCode() ? 'код' : 'пароль'} снова`}
-                  checked={remember()}
-                  onChange={(event) => setRemember(event.currentTarget.checked)}
-                />
-              </Reveal>
+              <Checkbox
+                label={`Мой компьютер: не спрашивать ${byCode() ? 'код' : 'пароль'} снова`}
+                checked={remember()}
+                onChange={(event) => setRemember(event.currentTarget.checked)}
+              />
               <Show when={error()}>
                 <p class="diary-signin__error" role="alert">
                   {error()}
@@ -318,21 +321,19 @@ export function DoctorSignIn(props: {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={busy()}
+                disabled={busy() || !filled()}
                 class="diary-signin__submit"
                 classList={{ 'diary-signin__submit--busy': busy() }}
               >
                 <Switch>
-                  <Match when={busy() && mode() === 'demo'}>Открываем демо…</Match>
                   <Match when={busy()}>Открываем ключи…</Match>
-                  <Match when={mode() === 'demo'}>Открыть демо</Match>
                   <Match when={byCode()}>Войти по коду</Match>
                   <Match when={mode() === 'login'}>Войти</Match>
                   <Match when={mode() === 'register'}>Создать аккаунт</Match>
                   <Match when={mode() === 'recover'}>Восстановить доступ</Match>
                 </Switch>
               </Button>
-              <Reveal open={mode() === 'login' || mode() === 'recover' ? !byCode() : false}>
+              <Reveal open={mode() !== 'register' && !byCode()}>
                 <button
                   type="button"
                   class="diary-signin__switch"
@@ -341,10 +342,12 @@ export function DoctorSignIn(props: {
                   {mode() === 'recover' ? 'Вспомнили пароль? Войти' : 'Забыли пароль?'}
                 </button>
               </Reveal>
-              {/* Try the diaries before any account: needs a service with open sign-up. */}
-              <Reveal open={mode() === 'login' && signup.latest === 'open'}>
+              {/* Try the diaries before any account: needs a service with open sign-up. In front while
+                  the account fields are empty; once they are filled, the submit button takes over. */}
+              <Reveal open={mode() !== 'recover' && (signup.latest === 'open' || demoRequested())}>
                 <Button
                   type="button"
+                  variant={filled() ? 'secondary' : 'primary'}
                   class="diary-signin__demo"
                   icon={<AppGlyph name="play" class="diary-signin__demo-icon" />}
                   disabled={busy()}

@@ -366,6 +366,29 @@
   --care-edit-fill: var(--theme-surface);
 }
 
+/* What the sheet edits, at a glance: the section's icon in a round badge before the title. */
+.screen-editor__dialog-badge {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-inline-end: 0.25rem;
+  border-radius: 50%;
+  color: var(--theme-accent-text);
+  background: var(--theme-accent-soft);
+}
+
+.screen-editor__dialog-glyph {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.screen-editor__dialog-copy {
+  flex: none;
+  margin-inline-end: 0.5rem;
+}
+
 /*
  * Fields in the editor read as text in a dashed two-colour frame with a pencil; focused, they turn
  * into a plain solid field (owner 2026-10-28). The frame stays dashed: its gaps (the background

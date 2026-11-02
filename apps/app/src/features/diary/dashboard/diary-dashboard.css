@@ -1109,6 +1109,18 @@
   justify-items: start;
 }
 
+/* Narrow screens: «Создать» stays at hand at the bottom while the long preview scrolls (owner
+   2026-11-02). Only as wide as its button, so it never covers taps on the preview beside it. On wide
+   screens the footer sits in the sticky left column instead. */
+.diary-new__footer--sticky {
+  position: sticky;
+  bottom: max(0.25rem, env(safe-area-inset-bottom));
+  z-index: 2;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+}
+
 /* Wide screens (iPad landscape, desktop): the patient's details and the button on the left, the live
    preview of their screen on the right, both columns centred as one sheet (owner 2026-11-01). The
    left column stays in view under the pinned header while the long preview scrolls (owner

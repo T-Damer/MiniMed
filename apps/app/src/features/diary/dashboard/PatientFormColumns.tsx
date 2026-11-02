@@ -38,7 +38,7 @@ export function PatientFormColumns(props: {
       </div>
       <div class="diary-new__screen">{props.screen}</div>
       <Show when={!wide()}>
-        <div class="diary-new__footer">{props.footer}</div>
+        <div class="diary-new__footer diary-new__footer--sticky">{props.footer}</div>
       </Show>
     </form>
   );

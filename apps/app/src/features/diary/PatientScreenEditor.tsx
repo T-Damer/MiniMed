@@ -31,6 +31,7 @@ import {
   type CareDraft,
   type CareSectionDraft,
   type CareSectionKind,
+  copyCareSection,
   EMPTY_CARE_CONTACT,
   newCareSection,
   newCustomQuestionnaireSection,
@@ -830,6 +831,15 @@ export function PatientScreenEditor(props: {
       ),
   );
   const drugs = (): number => props.draft.sections.filter((s) => s.kind === 'drug').length;
+  /** «Копировать»: the same schedule for the next medicine, in a dialog of its own. */
+  const copy = (section: CareSectionDraft): void => {
+    const next = copyCareSection(section);
+    const at = props.draft.sections.findIndex((current) => current.key === section.key);
+    const sections = [...props.draft.sections];
+    sections.splice(at + 1, 0, next);
+    patch({ sections });
+    setEditing(next.key);
+  };
   const add = (kind: CareSectionKind): void => {
     const quiz = DIARY_QUESTIONNAIRES.find((option) => !quizzes().has(option.slug))?.slug;
     const section = newCareSection(kind, quiz);
@@ -1093,6 +1103,11 @@ export function PatientScreenEditor(props: {
           open
           title="Контакты врача"
           class="screen-editor__dialog"
+          headerStart={
+            <span class="screen-editor__dialog-badge" aria-hidden="true">
+              <AppGlyph name="phone" class="screen-editor__dialog-glyph" />
+            </span>
+          }
           onClose={() => setEditing(undefined)}
         >
           <ContactsEditor draft={props.draft} patch={patch} onDone={() => setEditing(undefined)} />
@@ -1105,6 +1120,24 @@ export function PatientScreenEditor(props: {
             title={titleOf(section())}
             subtitle={CARE_SECTION_LABEL[section().kind]}
             class="screen-editor__dialog"
+            headerStart={
+              <span class="screen-editor__dialog-badge" aria-hidden="true">
+                <AppGlyph name={KIND_ICON[section().kind]} class="screen-editor__dialog-glyph" />
+              </span>
+            }
+            headerEnd={
+              <Show when={section().kind === 'drug'}>
+                <Button
+                  type="button"
+                  variant="icon"
+                  class="screen-editor__dialog-copy"
+                  aria-label="Копировать назначение для другого препарата"
+                  title="Копировать назначение для другого препарата"
+                  icon={<AppGlyph name="copy" class="screen-editor__glyph" />}
+                  onClick={() => copy(section())}
+                />
+              </Show>
+            }
             onClose={() => setEditing(undefined)}
           >
             <SectionEditor

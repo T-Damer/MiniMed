@@ -107,7 +107,7 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   expect(await doctorId()).toBe(demoDoctor);
 });
 
-test('the demo links: the doctor’s opens on «Демо», the patient’s makes a diary here, the copy stands in offline', async ({
+test('the demo links: the doctor’s opens registration with the demo button in front, the patient’s makes a diary here, the copy stands in offline', async ({
   page,
 }, testInfo) => {
   test.setTimeout(240_000);
@@ -123,9 +123,13 @@ test('the demo links: the doctor’s opens on «Демо», the patient’s make
   await page.goto(`${E2E_ASSET_ORIGIN}/?profile=diaries&demo#/notes/diaries`, {
     waitUntil: 'domcontentloaded',
   });
-  await expect(page.getByRole('heading', { name: 'Загляните в демо' })).toBeVisible();
+  // The registration form, with the demo button in front and the account button off until filled.
+  await expect(page.getByRole('heading', { name: 'Добро пожаловать!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Создать аккаунт' })).toBeDisabled();
+  const demo = page.getByRole('button', { name: 'Демо — без регистрации' });
+  await expect(demo).toHaveClass(/ui-button--primary/u);
   await page.screenshot({ path: testInfo.outputPath('demo-link-signin.png') });
-  await page.getByRole('button', { name: 'Открыть демо' }).click();
+  await demo.click();
   const rows = page.locator('.diary-dash-row');
   await expect(rows).toHaveCount(4, { timeout: 120_000 });
 

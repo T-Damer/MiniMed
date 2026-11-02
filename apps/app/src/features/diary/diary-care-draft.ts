@@ -124,6 +124,14 @@ const BLANK: Omit<CareSectionDraft, 'key' | 'kind'> = {
 };
 
 /** A new section of the kind, with the defaults a doctor most often keeps. */
+/**
+ * A copy of a drug section for the next medicine (owner 2026-11-02): same form, times, meals,
+ * duration and patient hint, without the drug itself, its dose and signa, which belong to it alone.
+ */
+export function copyCareSection(section: CareSectionDraft): CareSectionDraft {
+  return { ...section, key: sectionKey(), title: '', dose: '', signa: '' };
+}
+
 export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSectionDraft {
   const at = (time: string): CareDoseDraft[] => [{ time, meal: undefined }];
   switch (kind) {

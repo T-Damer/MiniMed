@@ -5,6 +5,7 @@ import {
   type CareSectionDraft,
   careDraftFrom,
   careInvitation,
+  copyCareSection,
   emptyCareDraft,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
@@ -148,5 +149,22 @@ describe('care diary editor', () => {
         sections: [{ ...newCareSection('choice'), options: ['да'] }],
       }),
     ).toThrow('два варианта');
+  });
+
+  it('copies a medicine schedule for the next drug without the drug itself', () => {
+    const source = {
+      ...newCareSection('drug'),
+      title: 'Сертралин',
+      form: 'таблетки',
+      dose: '50 мг',
+      signa: 'По 1 таблетке утром',
+      times: [{ time: '08:00', meal: 'after' as const }],
+      tip: 'Пейте после завтрака',
+    };
+    const copy = copyCareSection(source);
+    expect(copy.key).not.toBe(source.key);
+    expect(copy).toMatchObject({ kind: 'drug', title: '', dose: '', signa: '', form: 'таблетки' });
+    expect(copy.times).toEqual(source.times);
+    expect(copy.tip).toBe(source.tip);
   });
 });

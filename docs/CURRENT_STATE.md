@@ -292,6 +292,20 @@ were already marked and every revision is kept signed on the server; three gaps 
   dose kept across a newer link). Not tested: a real doctor edit reaching a paired phone end to end
   (the sync wiring in `patient-connection.ts` is not unit-testable today); no device test.
 
+## Diary editor sheets, sticky create, demo button — 2026-11-02 (STATE UI-DIARY19)
+
+- Every sheet of the patient-screen editor names what it edits with the section's icon in a round
+  badge before the title (`KIND_ICON`; contacts: a phone).
+- A medicine sheet has «Копировать назначение» in its header: `copyCareSection` (diary-care-draft.ts)
+  adds a new medicine right after it with the same form, times, meals, duration and patient hint,
+  without the drug, dose and signa, and opens it in its own sheet — one sheet per medicine.
+- New patient / patient screen on narrow screens: the footer with «Создать и показать код» is sticky at
+  the bottom (`.diary-new__footer--sticky`, as wide as its button).
+- Doctor sign-in: no «Демо» tab any more. «Демо — без регистрации» shows under «Вход» and
+  «Регистрация» (open sign-up, or always with `?demo`) as the primary button while the account fields
+  are empty; the submit button stays off until the form is filled (`filled()`), then becomes the
+  primary one. `?demo` opens the form on «Регистрация».
+
 ## One shared demo account — 2026-11-02 (STATE DIARY-DEMO3)
 
 Owner: a lecture hall scanning the demo QR codes at once must get in, and seeing each other is fun.
@@ -315,9 +329,8 @@ For the faculty slides (owner): two QR codes, a doctor's and a patient's, both o
 - **Short links** on the API Gateway (`api-gateway.yaml`): `https://med.1damer.com/demo` →
   `…/app/?profile=diaries&demo`, `https://med.1damer.com/demo/patient` → `…/app/diary/#demo`.
   `GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh` updates the gateway alone (no image, no revision).
-- **`?demo`** opens the doctor's sign-in on a third segment «Демо» (`DoctorSignIn.tsx`): the account
-  fields fold away and «Открыть демо» signs in this device's demo doctor (`signInDemo`). The segment
-  shows with open sign-up, or always with `?demo`. The bottom «Демо — без регистрации» stays under «Вход».
+- **`?demo`** opens the doctor's sign-in on «Регистрация» with «Демо — без регистрации» as the
+  primary button (UI-DIARY19; at first a third «Демо» segment).
 - **`#demo`** on the patient's page (`DiaryApp.tsx`) signs in the same device demo doctor (remembered),
   adds «Демо · Мой дневник» with 14 days of history (`demoSelfPairing` in `demo-patients.ts`, the
   throw-away device writes it) and pairs this browser with a fresh one-time code; no install-first
