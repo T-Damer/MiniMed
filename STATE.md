@@ -179,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-02 claude-opus REL 0.6.77: diary demo mode (per-device demo account, fixed demo patients) and medicine intake charts
 - 2026-11-02 claude-opus REL 0.6.76: UI-DIARY18 — wide new-patient form keeps its left column in view, today a dashed double frame in the calendar (start stays solid), hero emblem cut at the band and fading instead of flying beside the title (header buttons no longer fold early because of it), centred «Открываем дневник…» state
 - 2026-11-01 claude-opus REL 0.6.75: UI-DIARY17 — DateField and the Kobalte time field instead of every native date/time input (rule + guard test), centred EmptyState (rule), wide new-patient form, smooth focus, no forced dark (Android shell, Dark Reader), pinned hero hides the pulse, themed scrollbars in the patient diary, course start framed in the calendar, wordless recordings kept as voice notes; self-host image workflow manual only
 - 2026-11-01 claude-opus REL 0.6.74: DIARY16 — the diary's API serverless on Yandex Cloud (ADR-0027), pages from the Pages app, native shells reach the diary; APK by the release workflow, Pages by CI, API by `scripts/diary-serverless-deploy.sh`, self-host image by `diary-image.yml`

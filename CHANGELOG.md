@@ -4,6 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.77] - 2026-11-02
+
+- Patient diaries: «Демо — без регистрации» on the sign-in card opens a demo of the doctor's diaries on this device
+  without an e-mail or password: four demo patients are already there and cannot be archived; adding patients, changing
+  prescriptions, the day sheet and the patient's QR code work as usual. The same device returns to the same demo.
+- Medicine intake charts: from «Приём лекарств», «Графики приёма по дням» shows every medicine on the same days —
+  the dose taken each day (a skipped dose counts as 0) with dots for the prescribed dose; days before the diary began
+  stay empty.
+
 ## [0.6.76] - 2026-11-02
 
 - New patient and the patient's screen on a wide window: the details and the button stay in view on the left while the
