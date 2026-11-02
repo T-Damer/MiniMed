@@ -279,12 +279,25 @@
   background-image: none;
 }
 
+/* Today: a dashed double frame, and the first day of the course a solid one (owner 2026-11-01,
+   2026-11-02: the two looked alike). Both are drawn inside the cell, so they add to the selection
+   outline instead of replacing it; on the day the course starts the outer ring is dashed and the
+   inner one solid. */
 .diary-heat__day--today {
-  box-shadow: inset 0 0 0 1.5px var(--theme-text-muted, #524d43);
+  position: relative;
 }
 
-/* The first day of the course: a double frame (owner 2026-11-01), drawn inside the cell so it adds
-   to today's ring and the selection outline instead of replacing them. */
+.diary-heat__day--today::after {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--theme-text, #292720);
+  border-radius: inherit;
+  outline: 1.5px dashed var(--theme-text, #292720);
+  outline-offset: -4.5px;
+  pointer-events: none;
+  content: "";
+}
+
 .diary-heat__day--start {
   box-shadow:
     inset 0 0 0 1.5px var(--theme-text, #292720),
@@ -292,9 +305,20 @@
     inset 0 0 0 4.5px var(--theme-text, #292720);
 }
 
+.diary-heat__day--start.diary-heat__day--today {
+  box-shadow:
+    inset 0 0 0 3px var(--theme-surface-raised, #f7f1e1),
+    inset 0 0 0 4.5px var(--theme-text, #292720);
+}
+
+.diary-heat__day--start.diary-heat__day--today::after {
+  outline: none;
+}
+
+/* The open day: a frame outside the cell, a clear step away from today's and the start's rings. */
 .diary-heat__day--selected {
   outline: 2px solid var(--theme-text, #292720);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 .diary-heat__day--future {

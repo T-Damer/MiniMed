@@ -165,10 +165,14 @@ export function Page(props: PageProps): JSX.Element {
           classList={{ 'page__above-header--hero': props.hero !== undefined }}
           {...{ [HEADER_ROW_ATTRIBUTE]: '' }}
         >
-          {/* The route's emblem: large and faint on the band at rest, a small icon beside the
-              title once the header is a bar (components/PageHero.tsx `useHeroScroll`). */}
+          {/* The route's emblem: large and faint on the band at rest, cut at the band's edges, and
+              gone by the time the header is a bar (components/PageHero.css). */}
           <Show when={props.hero?.emblem}>
-            {(name) => <AppGlyph name={name()} class="page-hero__emblem" />}
+            {(name) => (
+              <span class="page-hero__emblem-clip" aria-hidden="true">
+                <AppGlyph name={name()} class="page-hero__emblem" />
+              </span>
+            )}
           </Show>
           <Show when={slot.navigation() !== undefined}>
             <div class={className('page__left-actions', props.navigationClass)}>

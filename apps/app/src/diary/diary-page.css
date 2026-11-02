@@ -49,6 +49,33 @@
   color: var(--theme-text-muted);
 }
 
+/* Opening a diary (DiaryApp): the empty-state layout with the diary's icon breathing. It shows only
+   when opening takes a moment, so a quick open does not flash it (owner 2026-11-02). */
+.diary-opening {
+  --empty-state-bottom: 0px;
+  animation-delay: 0.25s;
+  animation-fill-mode: both;
+}
+
+.diary-opening .ui-empty-state__title {
+  color: var(--theme-text);
+}
+
+.diary-opening .ui-empty-state__badge {
+  animation: diary-opening-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes diary-opening-breathe {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.75;
+  }
+}
+
+:root[data-motion="off"] .diary-opening .ui-empty-state__badge {
+  animation: none;
+}
+
 /* Button size shared by everything the patient taps ------------------------------------------ */
 .diary-button {
   --ui-button-height: 3.25rem;
@@ -1125,6 +1152,10 @@
 
   .diary-page {
     scroll-behavior: auto;
+  }
+
+  .diary-opening .ui-empty-state__badge {
+    animation: none;
   }
 }
 

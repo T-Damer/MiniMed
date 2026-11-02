@@ -1,5 +1,6 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Button } from '@/components/Button';
+import { EmptyState } from '@/components/EmptyState';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { DiaryList } from '@/diary/DiaryList';
 import { type DiaryScreen, DiaryView } from '@/diary/DiaryView';
@@ -217,7 +218,17 @@ export function DiaryApp(): JSX.Element {
         const current = state();
         switch (current.kind) {
           case 'loading':
-            return <p class="diary-page diary-page--status">Открываем дневник…</p>;
+            return (
+              <main class="diary-page diary-page--status" aria-busy="true">
+                <EmptyState
+                  glyph="notepad"
+                  title="Открываем дневник…"
+                  text="Это займёт пару секунд."
+                  class="diary-opening"
+                  data-testid="diary-opening"
+                />
+              </main>
+            );
           case 'error': {
             const { store } = current;
             return (

@@ -8,6 +8,7 @@ import { Heading } from '@/components/Text';
 import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
+import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
 import type { DiaryInvitation } from '@/features/diary/diary-model';
@@ -96,8 +97,9 @@ export function PatientScreenPage(props: {
         title={<Heading depth={1}>Экран пациента</Heading>}
         description="Изменения придут пациенту сами"
       />
-      <form class="diary-dash-form diary-new__form" onSubmit={(event) => void save(event)}>
-        <div class="diary-new__identity">
+      <PatientFormColumns
+        onSubmit={(event) => void save(event)}
+        identity={
           <PatientIdentity
             label={label()}
             emoji={emoji()}
@@ -108,8 +110,8 @@ export function PatientScreenPage(props: {
             onPhone={setPhone}
             onBirthDate={setBirthDate}
           />
-        </div>
-        <div class="diary-new__screen">
+        }
+        screen={
           <PatientScreenEditor
             draft={draft()}
             onChange={setDraft}
@@ -119,16 +121,20 @@ export function PatientScreenPage(props: {
             onNote={setNote}
             frequent={frequent}
           />
-        </div>
-        <Show when={error()}>
-          <p class="diary-dash__error diary-new__error" role="alert">
-            {error()}
-          </p>
-        </Show>
-        <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
-          {busy() ? 'Сохраняем…' : 'Сохранить'}
-        </Button>
-      </form>
+        }
+        footer={
+          <>
+            <Show when={error()}>
+              <p class="diary-dash__error diary-new__error" role="alert">
+                {error()}
+              </p>
+            </Show>
+            <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
+              {busy() ? 'Сохраняем…' : 'Сохранить'}
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

@@ -294,6 +294,24 @@ Checked in the browser at 375×812 and 1280×800 against a local service (invite
 code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
 patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
 
+## Diary polish: sticky form column, today in the calendar, hero emblem — 2026-11-02 (STATE UI-DIARY18)
+
+Owner screenshots after 0.6.75:
+
+- **New-patient / patient-screen form on a wide screen**: the left column (details and button)
+  stays in view under the pinned header while the long preview scrolls
+  (`features/diary/dashboard/PatientFormColumns.tsx`: the button moves into the left column on a
+  wide screen and after the preview on a phone, the details and the editor keep their state).
+- **Calendar**: today is a dashed double frame, the course's first day a solid one; on the day the
+  course starts the outer ring is dashed and the inner solid; the open day's frame sits 2px out.
+  The day's label says «сегодня».
+- **Hero emblem**: cut at the band's edges (in the diaries' centred column it stuck out past the
+  band) and fades as the header collapses instead of flying beside the title (shared `PageHero`).
+  `HeaderActions` no longer counts out-of-flow row children (the emblem) as taken width: the emblem's
+  9.5rem used to fold buttons into «Ещё» early.
+- **Opening a diary** (patient): the empty-state layout with the diary icon breathing, «Открываем
+  дневник…», shown only when opening takes over 0.25 s.
+
 ## Interface batch: date fields, empty states, wide forms — 2026-11-01 (STATE UI-DIARY17)
 
 Owner feedback on the diary, applied app-wide:
@@ -3980,9 +3998,10 @@ scrolls away instead of sticking).
   style and the header re-measured on every one (lifting the sticky class mid-scroll and restarting
   the ranges). `watchInsets` re-measures only when the width or the status bar's inset changes, and
   measured lengths are written only when they change (`setLength`).
-- *The emblem* flies with the scroll into a small icon just after the bar's title, where no button
-  covers it; it fades instead when the row has no room (a search field, a long title). It is drawn in
-  the row, which is already stuck while it moves, so nothing lags behind the scroll. The pinned row is
+- *The emblem* fades with the scroll (until 2026-11-02 it flew into a small icon after the bar's
+  title; in the diaries' centred column it stuck out past the band and landed apart from the title).
+  It is drawn in the row, which is already stuck while it fades, in a box as wide as the band that
+  cuts it at the band's edges (`.page-hero__emblem-clip`, `overflow-x: clip`). The pinned row is
   filled with the band's colour (Safari tints the strip under the status bar from an opaque sticky
   bar; a clear row let the page show through there), and the band goes on above a pinned bar to the
   screen top. The large title no longer scales.

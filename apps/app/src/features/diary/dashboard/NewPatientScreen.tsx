@@ -9,6 +9,7 @@ import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
+import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careInvitation, emptyCareDraft } from '@/features/diary/diary-care-draft';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
@@ -87,8 +88,9 @@ export function NewPatientScreen(props: {
       <Show
         when={created()}
         fallback={
-          <form class="diary-dash-form diary-new__form" onSubmit={(event) => void create(event)}>
-            <div class="diary-new__identity">
+          <PatientFormColumns
+            onSubmit={(event) => void create(event)}
+            identity={
               <PatientIdentity
                 label={label()}
                 emoji={emoji()}
@@ -99,8 +101,8 @@ export function NewPatientScreen(props: {
                 onPhone={setPhone}
                 onBirthDate={setBirthDate}
               />
-            </div>
-            <div class="diary-new__screen">
+            }
+            screen={
               <PatientScreenEditor
                 draft={draft()}
                 onChange={setDraft}
@@ -110,16 +112,20 @@ export function NewPatientScreen(props: {
                 onNote={setNote}
                 frequent={frequent}
               />
-            </div>
-            <Show when={error()}>
-              <p class="diary-dash__error diary-new__error" role="alert">
-                {error()}
-              </p>
-            </Show>
-            <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
-              {busy() ? 'Шифруем и сохраняем…' : 'Создать и показать код'}
-            </Button>
-          </form>
+            }
+            footer={
+              <>
+                <Show when={error()}>
+                  <p class="diary-dash__error diary-new__error" role="alert">
+                    {error()}
+                  </p>
+                </Show>
+                <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
+                  {busy() ? 'Шифруем и сохраняем…' : 'Создать и показать код'}
+                </Button>
+              </>
+            }
+          />
         }
       >
         {(id) => (

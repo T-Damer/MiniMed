@@ -36,9 +36,10 @@ const ALL_PARTS: ReadonlySet<HeatPart> = new Set();
 const WEEKDAYS = ['', 'Пн', '', 'Ср', '', 'Пт', '', ''];
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
-export function heatDayLabel(day: HeatDay, since?: string): string {
+export function heatDayLabel(day: HeatDay, since?: string, today?: string): string {
   const date =
     dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) +
+    (today && day.day === today ? ', сегодня' : '') +
     (since && day.day === since ? ', начало дневника' : '');
   if (since && day.day < since && day.entries === 0) return `${date}: до начала дневника`;
   const symptoms = day.symptoms > 0 ? ', есть симптомы' : '';
@@ -367,8 +368,8 @@ export function DiaryHeatmap(props: {
                           }}
                           disabled={day.day > props.today}
                           tabindex={day.day === props.selected ? 0 : -1}
-                          title={heatDayLabel(day, props.since)}
-                          aria-label={heatDayLabel(day, props.since)}
+                          title={heatDayLabel(day, props.since, props.today)}
+                          aria-label={heatDayLabel(day, props.since, props.today)}
                           aria-pressed={day.day === props.selected}
                           onClick={() => props.onSelect(day.day)}
                         >

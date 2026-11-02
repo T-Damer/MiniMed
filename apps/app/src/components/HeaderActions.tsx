@@ -75,6 +75,12 @@ function isRendered(element: Element): boolean {
   return element.getClientRects().length > 0;
 }
 
+/** Out of the row's flow (the hero's emblem): it takes no width from the buttons. */
+function isPlaced(element: Element): boolean {
+  const position = getComputedStyle(element).position;
+  return position === 'absolute' || position === 'fixed';
+}
+
 /**
  * Width a title block wants with all its text on one line. A hidden clone placed beside the original
  * (so it inherits the same styles) is measured and removed again: `scrollWidth` of a wrapped title
@@ -153,7 +159,14 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
     let neighbours = 0;
     const titles: HTMLElement[] = [];
     for (const child of Array.from(row.children)) {
-      if (child === slot || !(child instanceof HTMLElement) || !isRendered(child)) continue;
+      if (
+        child === slot ||
+        !(child instanceof HTMLElement) ||
+        !isRendered(child) ||
+        isPlaced(child)
+      ) {
+        continue;
+      }
       neighbours += 1;
       if (child.hasAttribute(HEADER_TITLE_ATTRIBUTE)) titles.push(child);
       else used += child.getBoundingClientRect().width;

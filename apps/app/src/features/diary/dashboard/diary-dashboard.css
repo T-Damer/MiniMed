@@ -1084,42 +1084,38 @@
   margin-inline: auto;
 }
 
+.diary-new__side,
 .diary-new__identity,
 .diary-new__screen {
   min-width: 0;
 }
 
+.diary-new__side,
+.diary-new__footer {
+  display: grid;
+  gap: 1rem;
+}
+
+.diary-new__footer {
+  justify-items: start;
+}
+
 /* Wide screens (iPad landscape, desktop): the patient's details and the button on the left, the live
-   preview of their screen on the right, both columns centred as one sheet (owner 2026-11-01). */
+   preview of their screen on the right, both columns centred as one sheet (owner 2026-11-01). The
+   left column stays in view under the pinned header while the long preview scrolls (owner
+   2026-11-02; components/PageHero.css: the bar is the status bar, the row, a gap and the lip). */
 @media (width >= 60rem) {
   .diary-new__form {
     grid-template-columns: minmax(17rem, 24rem) minmax(0, 28rem);
-    grid-template-areas:
-      "identity screen"
-      "error screen"
-      "submit screen";
-    grid-template-rows: auto auto 1fr;
     justify-content: center;
     align-items: start;
     column-gap: clamp(1.5rem, 4vw, 3rem);
     width: min(100%, 60rem);
   }
 
-  .diary-new__identity {
-    grid-area: identity;
-  }
-
-  .diary-new__screen {
-    grid-area: screen;
-  }
-
-  .diary-new__error {
-    grid-area: error;
-  }
-
-  .diary-new__submit {
-    grid-area: submit;
-    justify-self: start;
+  .diary-new__side {
+    position: sticky;
+    top: calc(var(--page-hero-pin) + 2.75rem + 0.5rem + var(--page-hero-lip) + 0.75rem);
   }
 }
 
