@@ -45,6 +45,19 @@ paths:
           Location: https://t-damer.github.io/MiniMed/app/diary/#demo
         content:
           text/plain: ""
+  # The app was served from this domain on the VM (2026-10-27 – 11-01); browsers that installed it
+  # keep that version in a service worker that never updates, because nothing here answers /sw.js.
+  # This one retires it: caches cleared, unregistered, the page reloaded — onto the redirect to Pages.
+  /sw.js:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 200
+        http_headers:
+          Content-Type: application/javascript; charset=utf-8
+          Cache-Control: no-cache
+        content:
+          application/javascript: "self.addEventListener('install', () => self.skipWaiting());\nself.addEventListener('activate', (event) => event.waitUntil((async () => {\n  for (const key of await caches.keys()) await caches.delete(key);\n  await self.registration.unregister();\n  for (const client of await self.clients.matchAll({ type: 'window' })) client.navigate(client.url);\n})()));\n"
   /api/{path+}:
     x-yc-apigateway-any-method:
       parameters:

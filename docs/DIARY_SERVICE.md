@@ -62,6 +62,10 @@ are the app on GitHub Pages: on `*.github.io` and in the native shells `diarySer
 redirects to the Pages patient page with the fragment intact. Two short demo links for slides: `/demo` (the doctor's sign-in on «Демо») and
 `/demo/patient` (a guest diary in the shared demo account, on the visitor's device); every visitor signs in to one
 public demo account, whose sign-ins are capped at 600 a minute; `GATEWAY_ONLY=1` redeploys only the gateway.
+The gateway also answers `/sw.js` with a service worker that retires itself (clears caches,
+unregisters, reloads): browsers that installed the app from this domain in the VM days (2026-10-27 –
+11-01) were stuck on that version, since nothing here served `/sw.js` for their update check. They land
+on the Pages app and need to install it again from there for its own icon and full-screen mode.
 
 Cloudflare DNS stays **DNS only** (no proxy — Russian ISPs cut proxied connections, and a foreign TLS
 terminator raises a cross-border question). Data stays in YDB in Russia; the static pages carry none.

@@ -179,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus SW-RETIRE: gateway `/sw.js` retires the VM-era app cached on med.1damer.com (the owner's Edge PWA was stuck on 0.6.67)
 - 2026-11-02 claude-opus REL 0.6.80 UI-DIARY19: editor sheet icons, copy a prescription, sticky create, demo button instead of a tab
 - 2026-11-02 claude-opus PROMO2: diary presentation grows to 15 slides — registration and QR-connection walkthroughs from real screens, drug/questionnaire pickers, answered PHQ-9
 - 2026-11-02 claude-opus REL 0.6.79 DIARY-DEMO3: one shared demo account (hall-sized sign-in cap), guest diaries pruned after a day
