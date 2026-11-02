@@ -1,13 +1,15 @@
 import type { VisitNoteDraft, VisitNoteQuoteSource } from '@localmed/contracts';
 
 import { buildVisitNoteDraft, type VisitNoteSources } from './visit-note-draft';
+import { visitNoteLineNumber } from './visit-note-lines';
 
 /**
  * Local-model pass of the visit-note draft (SCRIBE1). The sources go to the model window by window,
  * because the bundled models read about 2 000 tokens at a time; every window asks for statements
  * with their own verbatim quote, the answers are merged per field, and `buildVisitNoteDraft` then
  * keeps only what it can locate. The model never sees its earlier answers, so a window it misreads
- * costs that window only.
+ * costs that window only. With `citation: 'line'` the source lines go numbered and every statement
+ * cites its line numbers instead of quoting (`locateLines`), for models that paraphrase quotes.
  */
 
 /** One completion; resolves with the parsed JSON of the answer, or null when it had none. */
@@ -28,7 +30,11 @@ export interface VisitNoteModelOptions {
   readonly onProgress?: (done: number, total: number) => void;
   /** Source characters per window; the default fits a 2 048-token context with the answer. */
   readonly windowChars?: number;
+  /** How a statement points into the source: a verbatim quote (default) or line numbers. */
+  readonly citation?: VisitNoteCitation;
 }
+
+export type VisitNoteCitation = 'quote' | 'line';
 
 export interface VisitNoteModelResult {
   readonly draft: VisitNoteDraft;
@@ -51,13 +57,27 @@ const FIELD_GUIDE = [
   'plan — обследования, рекомендации, повторный приём',
 ].join('\n');
 
-export function visitNoteSystemPrompt(remote: boolean): string {
-  const lines = [
-    'Ты составляешь черновик протокола приёма. Не рассуждай. Верни только один JSON-объект.',
-    `Ключи, пустые пропускай:\n${FIELD_GUIDE}`,
+const CITATION_RULES: Readonly<Record<VisitNoteCitation, readonly string[]>> = {
+  quote: [
     'Значение — массив пунктов {"text": "кратко, медицинским языком", "quote": "точные слова из текста, 3–12 слов подряд"}.',
     'Пиши только то, что есть в тексте. У каждого пункта своя цитата, слово в слово. Если сказано с отрицанием, цитата начинается с отрицания.',
     'Пример: {"complaints": [{"text": "Давящая боль в груди при ходьбе", "quote": "давит в груди при ходьбе"}]}',
+  ],
+  line: [
+    'Строки текста пронумерованы: «номер| строка». Значение — массив пунктов {"text": "кратко, медицинским языком", "line": номер строки}. Если ответ пациента понятен только с вопросом врача, укажи обе строки: "line": [7, 8].',
+    'Пиши только то, что есть в тексте, по одному факту в пункте. Отрицание пиши явно: «Аллергии нет».',
+    'Пример: {"complaints": [{"text": "Давящая боль в груди при ходьбе", "line": 2}], "allergies": [{"text": "Аллергии нет", "line": [7, 8]}]}',
+  ],
+};
+
+export function visitNoteSystemPrompt(
+  remote: boolean,
+  citation: VisitNoteCitation = 'quote',
+): string {
+  const lines = [
+    'Ты составляешь черновик протокола приёма. Не рассуждай. Верни только один JSON-объект.',
+    `Ключи, пустые пропускай:\n${FIELD_GUIDE}`,
+    ...CITATION_RULES[citation],
   ];
   if (remote) {
     lines.push(
@@ -128,17 +148,23 @@ export async function draftVisitNoteWithModel(
   options: VisitNoteModelOptions = {},
 ): Promise<VisitNoteModelResult> {
   const windowChars = options.windowChars ?? VISIT_NOTE_WINDOW_CHARS;
-  const jobs = [
-    ...splitVisitNoteWindows(sources.transcript, windowChars).map((text) => ({
-      source: 'transcript' as const,
-      text,
-    })),
-    ...splitVisitNoteWindows(sources.priorRecord ?? [], windowChars).map((text) => ({
-      source: 'prior-record' as const,
-      text,
-    })),
-  ];
-  const systemPrompt = visitNoteSystemPrompt(sources.remote);
+  const citation = options.citation ?? 'quote';
+  const promptLines = (source: VisitNoteQuoteSource, lines: readonly string[]) =>
+    citation === 'quote'
+      ? lines
+      : lines.map((line, index) =>
+          line.trim() ? `${visitNoteLineNumber(sources, source, index)}| ${line.trim()}` : '',
+        );
+  const jobs = (['transcript', 'prior-record'] as const).flatMap((source) =>
+    splitVisitNoteWindows(
+      promptLines(
+        source,
+        (source === 'transcript' ? sources.transcript : sources.priorRecord) ?? [],
+      ),
+      windowChars,
+    ).map((text) => ({ source, text })),
+  );
+  const systemPrompt = visitNoteSystemPrompt(sources.remote, citation);
   // A Map, not an object: the keys come from the model, and «__proto__» must stay a plain key.
   const fields = new Map<string, unknown[]>();
   let unreadableWindows = 0;

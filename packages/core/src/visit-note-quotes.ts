@@ -12,7 +12,7 @@ import { normalizeSurfaceTextWithOffsets } from '@localmed/search-lexical';
 /** Shorter quotes (in normalized characters) match too many places to support anything. */
 export const QUOTE_MIN_CHARS = 8;
 
-const NEGATIONS = new Set([
+export const NEGATIONS: ReadonlySet<string> = new Set([
   'не',
   'нет',
   'ни',

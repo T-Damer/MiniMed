@@ -10,7 +10,7 @@ import {
   type VisitNoteQuote,
   type VisitNoteRejection,
 } from '@localmed/contracts';
-
+import { type LineLocation, locateLines } from './visit-note-lines';
 import {
   containsQuoteWords,
   indexQuoteSource,
@@ -27,11 +27,12 @@ import { findRemoteExamFindings } from './visit-note-remote-exam';
  * comes from is trusted: the text decides, transcript first, then the earlier record. The proposal
  * shape, all of it optional:
  *
- *   { fields: { complaints: { text, quotes: [string] } | [{ text, quote }], … },
+ *   { fields: { complaints: { text, quotes: [string] } | [{ text, quote } | { text, line }], … },
  *     omissions: [{ category, field, quote, suggestion }] }
  *
  * A field given as items keeps only the items whose own quote is located, so no statement of it is
- * left without one; a field given as one text is `unsupported` when none of its quotes is found.
+ * left without one; an item may cite numbered source lines instead (`line`: a number or up to three,
+ * see `locateLines`), and several items may cite the same lines; a field given as one text is `unsupported` when none of its quotes is found.
  * Omissions must quote today's conversation: the earlier record is not news to the note.
  */
 export interface VisitNoteSources {
@@ -68,6 +69,7 @@ interface FieldProposal {
 interface ItemProposal {
   readonly text?: unknown;
   readonly quote?: unknown;
+  readonly line?: unknown;
 }
 interface OmissionProposal {
   readonly category?: unknown;
@@ -98,7 +100,7 @@ export function buildVisitNoteDraft(proposal: unknown, sources: VisitNoteSources
   const fields = VISIT_NOTE_FIELDS.map((field) => {
     const proposed = proposedFields?.[field];
     return Array.isArray(proposed)
-      ? buildItemField(field, proposed, indexes, rejected)
+      ? buildItemField(field, proposed, indexes, sources, rejected)
       : buildField(field, asObject<FieldProposal>(proposed), indexes, rejected);
   });
   const noteText = fields.map((field) => field.text).join('\n');
@@ -150,6 +152,7 @@ function buildItemField(
   field: VisitNoteFieldId,
   proposed: readonly unknown[],
   indexes: readonly QuoteSourceIndex[],
+  sources: VisitNoteSources,
   rejected: VisitNoteRejection[],
 ): VisitNoteField {
   const texts: string[] = [];
@@ -157,7 +160,8 @@ function buildItemField(
   const quotes: VisitNoteQuote[] = [];
   for (const candidate of proposed) {
     const item = asObject<ItemProposal>(candidate);
-    if (!item || typeof item.quote !== 'string') {
+    const quoted = typeof item?.quote === 'string';
+    if (!item || (!quoted && item.line === undefined)) {
       rejected.push({ item: 'field-quote', field, code: 'not-an-object' });
       continue;
     }
@@ -166,7 +170,9 @@ function buildItemField(
       rejected.push({ item: 'field-quote', field, code: 'missing-text' });
       continue;
     }
-    const location = locateInAny(indexes, item.quote);
+    const location: QuoteLocation | LineLocation = quoted
+      ? locateInAny(indexes, item.quote as string)
+      : locateLines(sources, item.line, text);
     if (!location.ok) {
       rejected.push({ item: 'field-quote', field, code: location.code });
       continue;
@@ -176,7 +182,8 @@ function buildItemField(
       rejected.push({ item: 'field-quote', field, code: 'duplicate-item' });
       continue;
     }
-    if (quotes.some((quote) => sameSpan(quote, location.quote))) {
+    // Cited lines often carry several findings («хрипов нет, тоны ритмичные»): one item each.
+    if (quoted && quotes.some((quote) => sameSpan(quote, location.quote))) {
       rejected.push({ item: 'field-quote', field, code: 'duplicate-quote' });
       continue;
     }

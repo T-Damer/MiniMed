@@ -4,7 +4,7 @@
 //
 //   llama-server -m <model.gguf> -c 2048 --host 127.0.0.1 --port 8090 --jinja --reasoning-format none
 //   bun src/run-visit-note-model.ts --server=http://127.0.0.1:8090 --label=<name> \
-//     [--no-think] [--only=<id>] [--report=<path>]
+//     [--no-think] [--citation=quote|line] [--window=<chars>] [--only=<id>] [--report=<path>]
 //
 // `--reasoning-format none` keeps a «<think>» block in the answer text, as the app's runtimes see it;
 // without it llama-server moves an unclosed block, often the whole answer, out of `content`.
@@ -14,7 +14,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { draftVisitNoteWithModel, type VisitNoteModel } from '@localmed/core';
+import {
+  draftVisitNoteWithModel,
+  type VisitNoteCitation,
+  type VisitNoteModel,
+} from '@localmed/core';
 
 import {
   extractStructuredJson,
@@ -29,6 +33,8 @@ const label = option('label') ?? 'model';
 const only = option('only');
 const reportPath = option('report');
 const noThink = args.includes('--no-think');
+const citation: VisitNoteCitation = option('citation') === 'line' ? 'line' : 'quote';
+const windowChars = option('window') ? Number(option('window')) : undefined;
 
 interface Pattern {
   readonly field: string;
@@ -93,11 +99,15 @@ for (const consultation of fixture.consultations) {
   if (only && consultation.id !== only) continue;
   const answers: Answer[] = [];
   const startedAt = performance.now();
-  const result = await draftVisitNoteWithModel(serverModel(answers), {
-    transcript: consultation.transcript,
-    ...(consultation.priorRecord ? { priorRecord: consultation.priorRecord } : {}),
-    remote: consultation.remote,
-  });
+  const result = await draftVisitNoteWithModel(
+    serverModel(answers),
+    {
+      transcript: consultation.transcript,
+      ...(consultation.priorRecord ? { priorRecord: consultation.priorRecord } : {}),
+      remote: consultation.remote,
+    },
+    { citation, ...(windowChars ? { windowChars } : {}) },
+  );
   const seconds = (performance.now() - startedAt) / 1000;
   const text = new Map(result.draft.fields.map((field) => [field.field, field.text]));
   const matches = (pattern: Pattern) =>
@@ -136,6 +146,6 @@ console.log(
 if (reportPath) {
   writeFileSync(
     reportPath,
-    `${JSON.stringify({ label, server, noThink, expectedFound, expectedTotal, forbiddenHits, results }, null, 2)}\n`,
+    `${JSON.stringify({ label, server, noThink, citation, windowChars, expectedFound, expectedTotal, forbiddenHits, results }, null, 2)}\n`,
   );
 }

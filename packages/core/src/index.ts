@@ -11,6 +11,7 @@ export * from './query-document-index';
 export * from './query-group-ranking';
 export * from './search-context';
 export * from './visit-note-draft';
+export * from './visit-note-lines';
 export * from './visit-note-model';
 export * from './visit-note-quotes';
 export * from './visit-note-remote-exam';

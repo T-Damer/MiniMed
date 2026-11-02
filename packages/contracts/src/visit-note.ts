@@ -4,7 +4,8 @@ import { z } from 'zod';
  * Visit-note draft (SCRIBE1): a protocol of one consultation proposed from its conversation
  * transcript. Whoever proposes the text (a local model, later perhaps a rule set), every field and
  * every possible omission must stand on a verbatim quote from the transcript or from the patient's
- * earlier record; the core finds each quote itself and keeps where it is. A quote that is not in the
+ * earlier record; the core finds each quote itself and keeps where it is. A field item may cite
+ * numbered source lines instead; its quote is then those lines as stored. A quote that is not in the
  * source is rejected, so a field the model invented stays visibly «unsupported» instead of reading
  * like a fact. The transcript itself is never replaced: the draft only points into it.
  */
@@ -100,6 +101,8 @@ export const VISIT_NOTE_REJECTION_CODES = [
   'quote-too-short',
   'quote-not-found',
   'quote-negated',
+  'line-not-found',
+  'line-unrelated',
   'duplicate-quote',
   'duplicate-item',
   'too-many',

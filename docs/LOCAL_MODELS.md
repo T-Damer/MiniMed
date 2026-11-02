@@ -22,7 +22,8 @@ The visit-note draft (SCRIBE1) has an adapter over this harness
 (`features/conversations/visit-note-model.ts`, task `visit-note`); its output only stands where the
 core locates every quote, and no screen runs it yet. On three synthetic consultations QVikhr 3 1.7B kept
 7 of 23 expected facts and Qwen3 0.6B 1 (`tools/benchmarks/src/run-visit-note-model.ts`; details in
-`CURRENT_STATE.md` SCRIBE1): small models paraphrase their quotes.
+`CURRENT_STATE.md` SCRIBE1): small models paraphrase their quotes. Citing numbered source lines
+instead (`citation: 'line'`) lifts QVikhr to 15 of 23.
 
 It does **not** yet:
 

@@ -136,6 +136,58 @@ describe('draftVisitNoteWithModel', () => {
     ).rejects.toThrow('модель выгружена');
   });
 
+  it('numbers the lines for a line-cited pass and quotes the cited lines as stored', async () => {
+    const model = scriptedModel([
+      {
+        complaints: [
+          { text: 'Давящая боль в груди при ходьбе', line: 2 },
+          { text: 'Длится около двух недель', line: '2' },
+          { text: 'Головная боль', line: 2 },
+          { text: 'Одышка', line: 40 },
+        ],
+        medications: [{ text: 'Аспирин утром', line: [3, 4] }],
+        allergies: [
+          { text: 'Аллергия на пенициллин (сыпь)', line: 4 },
+          { text: 'Сыпь', line: [1, 4] },
+        ],
+        diagnoses: [{ text: 'Гипертоническая болезнь II стадии', line: 5 }],
+      },
+    ]);
+    const result = await draftVisitNoteWithModel(
+      model,
+      {
+        transcript: TRANSCRIPT,
+        priorRecord: ['Диагноз: гипертоническая болезнь II стадии.'],
+        remote: false,
+      },
+      { citation: 'line', windowChars: 400 },
+    );
+
+    expect(model.requests[0]?.systemPrompt).toBe(visitNoteSystemPrompt(false, 'line'));
+    expect(model.requests[0]?.userPrompt).toContain('1| Врач: Что беспокоит?\n2| Пациент: Давит');
+    expect(model.requests[1]?.userPrompt).toContain('5| Диагноз:');
+    const fields = new Map(result.draft.fields.map((field) => [field.field, field]));
+    // Two statements on one line both stand; each keeps the line in the source's wording.
+    expect(fields.get('complaints')).toMatchObject({
+      text: 'Давящая боль в груди при ходьбе\nДлится около двух недель',
+      quotes: [
+        { source: 'transcript', startLine: 1, start: 0, endLine: 1, text: TRANSCRIPT[1] },
+        { source: 'transcript', startLine: 1, endLine: 1 },
+      ],
+    });
+    expect(fields.get('medications')?.quotes[0]).toMatchObject({ startLine: 2, endLine: 3 });
+    expect(fields.get('allergies')?.text).toBe('Аллергия на пенициллин (сыпь)');
+    expect(fields.get('diagnoses')?.quotes[0]).toMatchObject({
+      source: 'prior-record',
+      startLine: 0,
+    });
+    expect(result.draft.rejected).toEqual([
+      { item: 'field-quote', field: 'complaints', code: 'line-unrelated' },
+      { item: 'field-quote', field: 'complaints', code: 'line-not-found' },
+      { item: 'field-quote', field: 'allergies', code: 'line-not-found' },
+    ]);
+  });
+
   it('keeps «__proto__» from the model as an unknown field', async () => {
     const answer = JSON.parse('{"__proto__": [{"text": "x", "quote": "y"}]}') as unknown;
     const result = await draftVisitNoteWithModel(scriptedModel([answer]), {

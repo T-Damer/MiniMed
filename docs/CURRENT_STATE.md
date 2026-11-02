@@ -70,8 +70,24 @@ no code taken, only the approach). Core, contracts and a local-model adapter; no
   («нет», «сухой»), and the 1 600-character first window filled the 512-token answer. Qwen3 0.6B
   Q8_0 (`/no_think`): 1 of 23; nearly every item lands under `examination`, with the doctor's
   questions as text, and one answer came as a `[{…}]` array. Neither is fit for the draft with
-  verbatim quotes; next is a citation the model can give exactly (numbered source lines), smaller
-  windows, and real consultations.
+  verbatim quotes.
+- **Line citation** `packages/core/src/visit-note-lines.ts` `locateLines`, model pass option
+  `citation: 'line'` (default still `quote`): the source lines go numbered («12| …», the earlier
+  record numbered on after the transcript) and an item cites `line`: one number, or up to three
+  within three lines of each other (question and answer). Its quote is those lines as stored; the
+  statement must share a content word with them (first five letters, words of four letters or more
+  or with digits, a few frequent words left out: `line-unrelated`), and a statement whose shared
+  words are all negated in the line — a negation before, «не»/«нет» within the next two words — is
+  `quote-negated` unless it states the negation itself. Several items may cite the same lines. This
+  shows where a statement was taken from, not that the lines say exactly that. QVikhr 1.7B with it:
+  **15 of 23** facts, 0 forbidden, 2–4 s per consultation (1 000-character windows: 8 of 23).
+  Audit of the kept items: all true to their lines; two filed under the wrong field (a prescription
+  and today's symptoms under anamnesis vitae), one empty one («Камера работает» under examination).
+  Caught: «Аллергии нет» for the child allergic to amoxicillin (lines 7–12, too far apart) and
+  «хронических болезней нет» for a hypertensive patient (no shared word). Missed by the stem rule:
+  «Бросить курить» against «Курение нужно бросать». Absence statements («… нет») are the weak spot:
+  they rest on the model's wording and one shared word. Next: decide the default citation, field
+  filing, real consultations.
 - **Not done.** The draft UI on the conversation card with the model download
   offered in place, an omission pass over the doctor's edited note, qualification on real Russian
   consultations (field accuracy, quote fidelity, abstention, phone latency). Debug Android builds
