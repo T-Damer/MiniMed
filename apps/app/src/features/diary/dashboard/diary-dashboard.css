@@ -464,6 +464,15 @@
   width: 100%;
 }
 
+.diary-signin__demo {
+  width: 100%;
+}
+
+.diary-signin__demo-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .diary-signin__switch {
   justify-self: center;
   min-height: 2.5rem;
@@ -1419,4 +1428,10 @@
 
 .diary-patient__born {
   color: inherit;
+}
+
+/* «Приём лекарств по дням»: one chart per medicine, stacked on the same days. */
+.diary-intake {
+  display: grid;
+  gap: 0.75rem;
 }

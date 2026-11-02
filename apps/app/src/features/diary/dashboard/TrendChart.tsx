@@ -14,6 +14,8 @@ export interface TrendSeries {
   readonly color: string;
   /** Drawn against the right axis (another unit: saturation next to pulse). */
   readonly axis?: 'right';
+  /** `dots`: points only, hollow and larger (the prescribed dose next to the dose taken). */
+  readonly style?: 'line' | 'dots';
 }
 
 /** A «red line»: the level above (or below) which a value is a reason to worry. */
@@ -26,6 +28,10 @@ export interface TrendLimit {
 function token(name: string, fallback: string): string {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
+}
+
+function dayDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
 function shortDate(iso: string): string {
@@ -54,6 +60,8 @@ export function TrendChart(props: {
   readonly rightMax?: number | undefined;
   /** Opens the doctor's «Порог тревоги» for this chart (a pencil in the title row). */
   readonly onLimit?: (() => void) | undefined;
+  /** One value per day: the tooltip names the day without a time. */
+  readonly daily?: boolean;
   /** The latest value needs attention: a filled bell in the title row opens why. */
   readonly warning?: { readonly label: string; readonly onOpen: () => void } | undefined;
 }): JSX.Element {
@@ -78,9 +86,14 @@ export function TrendChart(props: {
           data: series.points.map((point) => ({ x: Date.parse(point.at), y: point.value })),
           borderColor: token(series.color, '#3c6478'),
           backgroundColor: token(series.color, '#3c6478'),
-          pointRadius: 2.5,
-          borderWidth: 2,
-          tension: 0.25,
+          ...(series.style === 'dots'
+            ? {
+                showLine: false,
+                pointRadius: 5,
+                pointBorderWidth: 2,
+                pointBackgroundColor: 'transparent',
+              }
+            : { pointRadius: 2.5, borderWidth: 2, tension: props.daily ? 0 : 0.25 }),
           yAxisID: series.axis === 'right' ? 'y2' : 'y',
         })),
         ...(props.limits ?? []).map((limit) => ({
@@ -122,7 +135,10 @@ export function TrendChart(props: {
           tooltip: {
             filter: (item) => !limitLabels.has(item.dataset.label ?? ''),
             callbacks: {
-              title: (items) => shortDate(new Date(items[0]?.parsed.x ?? 0).toISOString()),
+              title: (items) =>
+                (props.daily ? dayDate : shortDate)(
+                  new Date(items[0]?.parsed.x ?? 0).toISOString(),
+                ),
             },
           },
         },

@@ -32,6 +32,7 @@ import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?
 import caretLeftBold from '@phosphor-icons/core/assets/bold/caret-left-bold.svg?raw';
 import caretRightBold from '@phosphor-icons/core/assets/bold/caret-right-bold.svg?raw';
 import caretUpBold from '@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw';
+import chartLineBold from '@phosphor-icons/core/assets/bold/chart-line-bold.svg?raw';
 import chatCircleBold from '@phosphor-icons/core/assets/bold/chat-circle-bold.svg?raw';
 import checkBold from '@phosphor-icons/core/assets/bold/check-bold.svg?raw';
 import circleBold from '@phosphor-icons/core/assets/bold/circle-bold.svg?raw';
@@ -209,6 +210,7 @@ export type AppGlyphName =
   | 'scales'
   | 'share'
   | 'qr-code'
+  | 'chart-line'
   | 'skin-layers'
   | 'share-fat'
   | 'stop-circle'
@@ -374,6 +376,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   scales: svgBody(scalesBold),
   share: svgBody(shareNetworkBold),
   'qr-code': svgBody(qrCodeBold),
+  'chart-line': svgBody(chartLineBold),
   'skin-layers': skinLayers,
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),

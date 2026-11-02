@@ -36,6 +36,7 @@ import {
   chartSeries,
   DIARY_CHARTS,
   type DiaryChart,
+  intakeCharts,
 } from '@/features/diary/dashboard/diary-charts';
 import {
   type AlertCause,
@@ -47,6 +48,7 @@ import {
   type QuestionnaireSeries,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
+import { medicineIntake } from '@/features/diary/dashboard/diary-intake';
 import { LimitDialog, type LimitTarget } from '@/features/diary/dashboard/LimitDialog';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import {
@@ -76,6 +78,7 @@ import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state
 
 type Dialog =
   | 'day'
+  | 'intake'
   | 'pair'
   | 'curators'
   | 'tips'
@@ -568,7 +571,15 @@ export function DiaryPatientPage(props: {
                 class="diary-patient__section diary-patient__section--card"
                 aria-label="Приём лекарств"
               >
-                <h2 class="diary-patient__heading">Приём лекарств</h2>
+                <div class="diary-patient__day-head">
+                  <h2 class="diary-patient__heading">Приём лекарств</h2>
+                  <Button
+                    variant="icon"
+                    aria-label="Графики приёма по дням"
+                    icon={<AppGlyph name="chart-line" class="diary-dash__glyph" />}
+                    onClick={() => setDialog('intake')}
+                  />
+                </div>
                 <ul class="diary-adherence">
                   <For each={medicines()}>
                     {(medicine) => {
@@ -678,6 +689,37 @@ export function DiaryPatientPage(props: {
       </Show>
 
       <Switch>
+        <Match when={dialog() === 'intake' && results()}>
+          {(current) => (
+            <OverlayDialog
+              open
+              title="Приём лекарств по дням"
+              subtitle={`За ${period()} дней`}
+              onClose={() => setDialog(undefined)}
+            >
+              {/* Every medicine on the same days, one chart under another. */}
+              <div class="diary-intake">
+                <For
+                  each={intakeCharts(
+                    medicineIntake(current().invitation, current().entries, Number(period())),
+                  )}
+                  fallback={<p class="diary-dash__quiet">Отметок приёма пока нет.</p>}
+                >
+                  {(chart) => (
+                    <TrendChart
+                      title={chart.title}
+                      from={Date.now() - Number(period()) * 86_400_000}
+                      to={Date.now()}
+                      min={0}
+                      daily
+                      series={chart.series}
+                    />
+                  )}
+                </For>
+              </div>
+            </OverlayDialog>
+          )}
+        </Match>
         <Match when={dialog() === 'day' && results()}>
           {(current) => (
             <OverlayDialog

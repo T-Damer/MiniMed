@@ -131,7 +131,8 @@ export function dayPeriod(time: string): DayPeriod {
   return 'night';
 }
 
-function doseValue(entry: DiaryEntry): DiaryPlanValue | undefined {
+/** The intake mark an entry carries, if it is one. */
+export function doseValue(entry: DiaryEntry): DiaryPlanValue | undefined {
   const value = entry.values[CARE_DOSE_FIELD];
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? (value as DiaryPlanValue)

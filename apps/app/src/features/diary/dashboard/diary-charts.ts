@@ -6,7 +6,9 @@
  * and its axis ranges; `TrendChart` renders any of them and the page never branches on a chart.
  * Questionnaire charts come from the questionnaire schemas instead (`questionnaireSeries`).
  */
+
 import { fieldSeries, type SeriesPoint } from '@/features/diary/dashboard/diary-insights';
+import type { MedicineIntake } from '@/features/diary/dashboard/diary-intake';
 import type { DiaryEntry } from '@/features/diary/diary-model';
 
 export interface DiaryChartSeries {
@@ -104,4 +106,48 @@ export function chartSeries(chart: DiaryChart, entries: readonly DiaryEntry[]): 
     points: fieldSeries(entries, one.field, one.check),
   }));
   return series.some((one) => one.points.length) ? series : [];
+}
+
+/** How one medicine's intake chart is drawn: its two series, declared like the charts above. */
+export const INTAKE_CHART = {
+  taken: { label: 'Принято', color: '--theme-accent', style: 'line' },
+  prescribed: { label: 'Назначено', color: '--theme-warning', style: 'dots' },
+} as const;
+
+export interface IntakeChart {
+  readonly id: string;
+  readonly title: string;
+  readonly series: readonly {
+    readonly label: string;
+    readonly color: string;
+    readonly style: 'line' | 'dots';
+    readonly points: readonly SeriesPoint[];
+  }[];
+}
+
+/** A point at the middle of a local day, so daily values sit between the date ticks. */
+function middayOf(day: string): string {
+  return new Date(`${day}T12:00:00`).toISOString();
+}
+
+/** One chart per medicine: the dose taken per day as a line, the prescribed dose as dots. */
+export function intakeCharts(intakes: readonly MedicineIntake[]): IntakeChart[] {
+  return intakes
+    .filter((intake) => intake.days.length > 0)
+    .map((intake) => ({
+      id: intake.itemId,
+      title: `${intake.name}, ${intake.unit} в день`,
+      series: [
+        {
+          ...INTAKE_CHART.taken,
+          points: intake.days.map((day) => ({ at: middayOf(day.day), value: day.taken })),
+        },
+        {
+          ...INTAKE_CHART.prescribed,
+          points: intake.days.flatMap((day) =>
+            day.prescribed === undefined ? [] : [{ at: middayOf(day.day), value: day.prescribed }],
+          ),
+        },
+      ].filter((series) => series.points.length > 0),
+    }));
 }
