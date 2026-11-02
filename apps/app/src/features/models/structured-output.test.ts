@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   extractStructuredJson,
+  extractTruncatedJson,
   normalizeLocalModelProbe,
 } from '@/features/models/structured-output';
 
@@ -48,5 +49,23 @@ describe('normalizeLocalModelProbe', () => {
   it('rejects empty or partial probes', () => {
     expect(normalizeLocalModelProbe({ intent: '', ageYears: 3, concepts: ['астма'] })).toBeNull();
     expect(normalizeLocalModelProbe({ intent: 'search', ageYears: 3, concepts: [] })).toBeNull();
+  });
+});
+
+describe('extractTruncatedJson', () => {
+  it('keeps the values finished before the token limit cut the answer', () => {
+    expect(
+      extractTruncatedJson('{"a": [{"x": "1"}, {"x": "2"}], "b": [{"x": "3", "y": "те'),
+    ).toEqual({
+      a: [{ x: '1' }, { x: '2' }],
+    });
+    expect(extractTruncatedJson('<think>…</think>{"a": [{"x": "}"}], "b": ')).toEqual({
+      a: [{ x: '}' }],
+    });
+  });
+
+  it('returns null when nothing complete precedes the cut', () => {
+    expect(extractTruncatedJson('{"a": [{"x": "1"')).toBeNull();
+    expect(extractTruncatedJson('Нет данных.')).toBeNull();
   });
 });

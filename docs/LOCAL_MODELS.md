@@ -18,6 +18,10 @@ The experimental slice implements:
 - cached benchmark results and temporary failure suppression;
 - one smaller-candidate fallback.
 
+The visit-note draft (SCRIBE1) has an adapter over this harness
+(`features/conversations/visit-note-model.ts`, task `visit-note`); its output only stands where the
+core locates every quote, and no screen runs it yet.
+
 It does **not** yet:
 
 - use generated text in medical search or answers;

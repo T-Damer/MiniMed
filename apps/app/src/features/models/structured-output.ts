@@ -67,6 +67,44 @@ export function extractStructuredJson(value: string): unknown | null {
   return null;
 }
 
+/**
+ * A JSON object the token limit cut off, closed right after its last complete value; the values the
+ * model finished are kept, the unfinished one is dropped. Null when nothing complete precedes the cut.
+ */
+export function extractTruncatedJson(value: string): unknown | null {
+  const cleaned = withoutThinking(value);
+  const start = cleaned.indexOf('{');
+  if (start < 0) return null;
+  const closers: string[] = [];
+  let candidate: string | null = null;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < cleaned.length; index += 1) {
+    const character = cleaned[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === '{') closers.push('}');
+    else if (character === '[') closers.push(']');
+    else if (character === '}' || character === ']') {
+      if (closers.pop() !== character) return null;
+      candidate = cleaned.slice(start, index + 1) + closers.toReversed().join('');
+      if (closers.length === 0) break;
+    }
+  }
+  if (!candidate) return null;
+  try {
+    return JSON.parse(candidate) as unknown;
+  } catch {
+    // The cut fell inside a key or after a dangling comma: nothing complete to keep at this point.
+    return null;
+  }
+}
+
 export interface LocalModelProbe {
   readonly intent: string;
   readonly ageYears: number;

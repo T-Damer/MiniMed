@@ -17,6 +17,7 @@ import {
   locateQuote,
   type QuoteLocation,
   type QuoteSourceIndex,
+  quoteWords,
 } from './visit-note-quotes';
 import { findRemoteExamFindings } from './visit-note-remote-exam';
 
@@ -26,9 +27,11 @@ import { findRemoteExamFindings } from './visit-note-remote-exam';
  * comes from is trusted: the text decides, transcript first, then the earlier record. The proposal
  * shape, all of it optional:
  *
- *   { fields: { complaints: { text, quotes: [string] }, … },
+ *   { fields: { complaints: { text, quotes: [string] } | [{ text, quote }], … },
  *     omissions: [{ category, field, quote, suggestion }] }
  *
+ * A field given as items keeps only the items whose own quote is located, so no statement of it is
+ * left without one; a field given as one text is `unsupported` when none of its quotes is found.
  * Omissions must quote today's conversation: the earlier record is not news to the note.
  */
 export interface VisitNoteSources {
@@ -42,6 +45,8 @@ export interface VisitNoteSources {
 
 export const VISIT_NOTE_LIMITS = {
   quotesPerField: 3,
+  itemsPerField: 8,
+  itemChars: 400,
   omissions: 6,
   fieldChars: 4_000,
   suggestionChars: 600,
@@ -59,6 +64,10 @@ interface ProposalShape {
 interface FieldProposal {
   readonly text?: unknown;
   readonly quotes?: unknown;
+}
+interface ItemProposal {
+  readonly text?: unknown;
+  readonly quote?: unknown;
 }
 interface OmissionProposal {
   readonly category?: unknown;
@@ -86,9 +95,12 @@ export function buildVisitNoteDraft(proposal: unknown, sources: VisitNoteSources
     if (!FIELD_SET.has(key)) rejected.push({ item: 'field-quote', code: 'unknown-field' });
   }
 
-  const fields = VISIT_NOTE_FIELDS.map((field) =>
-    buildField(field, asObject<FieldProposal>(proposedFields?.[field]), indexes, rejected),
-  );
+  const fields = VISIT_NOTE_FIELDS.map((field) => {
+    const proposed = proposedFields?.[field];
+    return Array.isArray(proposed)
+      ? buildItemField(field, proposed, indexes, rejected)
+      : buildField(field, asObject<FieldProposal>(proposed), indexes, rejected);
+  });
   const noteText = fields.map((field) => field.text).join('\n');
   const omissions = buildOmissions(record?.omissions, transcript, noteText, rejected);
   const examination = fields.find((field) => field.field === 'examination')?.text ?? '';
@@ -132,6 +144,52 @@ function buildField(
     quotes.push(location.quote);
   }
   return { field, text, status: quotes.length > 0 ? 'supported' : 'unsupported', quotes };
+}
+
+function buildItemField(
+  field: VisitNoteFieldId,
+  proposed: readonly unknown[],
+  indexes: readonly QuoteSourceIndex[],
+  rejected: VisitNoteRejection[],
+): VisitNoteField {
+  const texts: string[] = [];
+  const wordings = new Set<string>();
+  const quotes: VisitNoteQuote[] = [];
+  for (const candidate of proposed) {
+    const item = asObject<ItemProposal>(candidate);
+    if (!item || typeof item.quote !== 'string') {
+      rejected.push({ item: 'field-quote', field, code: 'not-an-object' });
+      continue;
+    }
+    const text = clippedText(item.text, VISIT_NOTE_LIMITS.itemChars);
+    if (text.length < VISIT_NOTE_LIMITS.suggestionMinChars) {
+      rejected.push({ item: 'field-quote', field, code: 'missing-text' });
+      continue;
+    }
+    const location = locateInAny(indexes, item.quote);
+    if (!location.ok) {
+      rejected.push({ item: 'field-quote', field, code: location.code });
+      continue;
+    }
+    const wording = quoteWords(text).text;
+    if (wordings.has(wording)) {
+      rejected.push({ item: 'field-quote', field, code: 'duplicate-item' });
+      continue;
+    }
+    if (quotes.some((quote) => sameSpan(quote, location.quote))) {
+      rejected.push({ item: 'field-quote', field, code: 'duplicate-quote' });
+      continue;
+    }
+    if (texts.length >= VISIT_NOTE_LIMITS.itemsPerField) {
+      rejected.push({ item: 'field-quote', field, code: 'too-many' });
+      continue;
+    }
+    texts.push(text);
+    wordings.add(wording);
+    quotes.push(location.quote);
+  }
+  if (texts.length === 0) return { field, text: '', status: 'empty', quotes: [] };
+  return { field, text: texts.join('\n'), status: 'supported', quotes };
 }
 
 function buildOmissions(

@@ -96,6 +96,29 @@ describe('buildVisitNoteDraft', () => {
     ]);
   });
 
+  it('keeps a field given as items only with the items whose own quote is located', () => {
+    const items = [
+      { text: 'Давящая боль в груди', quote: 'давит в груди' },
+      { text: '', quote: 'особенно при ходьбе' },
+      ...Array.from({ length: VISIT_NOTE_LIMITS.itemsPerField }, (_, index) => ({
+        text: `Пункт ${index + 1}`,
+        quote: 'уже недели две',
+      })),
+    ];
+    const draft = buildVisitNoteDraft(
+      { fields: { complaints: items } },
+      { transcript: TRANSCRIPT, remote: false },
+    );
+    expect(field(draft, 'complaints')).toMatchObject({
+      text: 'Давящая боль в груди\nПункт 1',
+      status: 'supported',
+    });
+    expect(draft.rejected.map((rejection) => rejection.code)).toEqual([
+      'missing-text',
+      ...Array.from({ length: VISIT_NOTE_LIMITS.itemsPerField - 1 }, () => 'duplicate-quote'),
+    ]);
+  });
+
   it('keeps an omission only with a transcript quote and a suggestion the note lacks', () => {
     const draft = buildVisitNoteDraft(
       {

@@ -24,7 +24,7 @@ Detailed history, moved verbatim on 2026-09-24:
 
 First slice of a consultation scribe, built offline from the idea of
 [MedScribe](https://github.com/Allmostkill/medscribe) (AGPL-3.0 server app: T-one ASR + a cloud LLM;
-no code taken, only the approach). Core and contracts only; no UI, no model call yet.
+no code taken, only the approach). Core, contracts and a local-model adapter; no UI yet.
 
 - **Contract** `packages/contracts/src/visit-note.ts`: eight fields (жалобы, anamnesis morbi/vitae,
   аллергии, осмотр, диагнозы, назначения, план), each `empty` / `supported` / `unsupported` with its
@@ -45,9 +45,27 @@ no code taken, only the approach). Core and contracts only; no UI, no model call
   meningeal signs, reflexes, Pasternatsky, pitting oedema) list the examination findings that a
   video or phone visit cannot have produced, with their spans; temperature, pressure and pulse are
   not listed (patients report them).
-- **Not done.** Prompt and local-model adapter (QVikhr 1.7B / Qwen3 via the existing controller), the
-  draft UI on the conversation card, qualification on real Russian consultations (field accuracy,
-  quote fidelity, abstention, latency on a phone). Tests: 17 unit cases with synthetic dialogue only.
+- **Items per statement.** A field may also be proposed as items `[{ text, quote }]`; only items
+  whose own quote is located stay (8 per field, 400 characters each, duplicates by wording or span
+  dropped), so a model-written field never carries a statement without its quote.
+- **Model pass** `packages/core/src/visit-note-model.ts` `draftVisitNoteWithModel(model, sources)`:
+  the transcript, then the earlier record, go to the `VisitNoteModel` port in windows of 1 600
+  characters (whole lines; a short last line opens the next window), because the bundled models read
+  2 048 tokens with a 512-token answer. One Russian system prompt asks for items with verbatim
+  quotes, a negated statement quoted from its negation; a remote visit adds that palpation,
+  percussion and auscultation did not happen. Answers are merged per field (model keys kept in a
+  `Map`), unreadable windows are counted, cancellation is checked between windows, model errors
+  propagate.
+- **Adapter** `apps/app/src/features/conversations/visit-note-model.ts` `localVisitNoteModel`: the
+  existing `LocalModelController.completeStructuredTask` with task `visit-note`, temperature 0; an
+  answer cut by the token limit keeps its finished items (`extractTruncatedJson`). The controller
+  itself is still the research harness that no screen creates since 0.6.33 (`docs/LOCAL_MODELS.md`).
+- **Not done.** Qualification of Qwen3 0.6B / QVikhr 1.7B on this prompt (the harness's own strict
+  JSON pass rate was 3–4 of 20), the draft UI on the conversation card with the model download
+  offered in place, an omission pass over the doctor's edited note, qualification on real Russian
+  consultations (field accuracy, quote fidelity, abstention, phone latency). Debug Android builds
+  log the native prompt to logcat (`ai_chat.cpp` `LOGd`, compiled out under `NDEBUG`): drop that
+  before a debug build reads a real consultation. Tests: synthetic dialogue and a scripted model only.
 
 ## Android test build: fingerprint-unlocked patient vault and native camera — 2026-10-31 (branch `test/native-camera-vault`)
 

@@ -96,10 +96,12 @@ export type RemoteExamFinding = z.infer<typeof RemoteExamFindingSchema>;
 export const VISIT_NOTE_REJECTION_CODES = [
   'not-an-object',
   'unknown-field',
+  'missing-text',
   'quote-too-short',
   'quote-not-found',
   'quote-negated',
   'duplicate-quote',
+  'duplicate-item',
   'too-many',
   'missing-suggestion',
   'already-in-note',

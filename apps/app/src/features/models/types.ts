@@ -16,7 +16,7 @@ export type LocalModelPhase =
   | 'benchmarking'
   | 'ready'
   | 'error';
-export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank' | 'relevance';
+export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank' | 'relevance' | 'visit-note';
 
 export interface LocalModelLicense {
   readonly id: string;
