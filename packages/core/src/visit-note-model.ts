@@ -6,10 +6,11 @@ import { visitNoteLineNumber } from './visit-note-lines';
 /**
  * Local-model pass of the visit-note draft (SCRIBE1). The sources go to the model window by window,
  * because the bundled models read about 2 000 tokens at a time; every window asks for statements
- * with their own verbatim quote, the answers are merged per field, and `buildVisitNoteDraft` then
- * keeps only what it can locate. The model never sees its earlier answers, so a window it misreads
- * costs that window only. With `citation: 'line'` the source lines go numbered and every statement
- * cites its line numbers instead of quoting (`locateLines`), for models that paraphrase quotes.
+ * that each cite where they come from, the answers are merged per field, and `buildVisitNoteDraft`
+ * then keeps only what it can locate. The model never sees its earlier answers, so a window it
+ * misreads costs that window only. By default the source lines go numbered and every statement
+ * cites its line numbers (`locateLines`): the bundled models paraphrase verbatim quotes (QVikhr 1.7B
+ * kept 7 of 23 facts quoting, 15 citing lines). `citation: 'quote'` asks for verbatim quotes.
  */
 
 /** One completion; resolves with the parsed JSON of the answer, or null when it had none. */
@@ -30,7 +31,7 @@ export interface VisitNoteModelOptions {
   readonly onProgress?: (done: number, total: number) => void;
   /** Source characters per window; the default fits a 2 048-token context with the answer. */
   readonly windowChars?: number;
-  /** How a statement points into the source: a verbatim quote (default) or line numbers. */
+  /** How a statement points into the source: line numbers (default) or a verbatim quote. */
   readonly citation?: VisitNoteCitation;
 }
 
@@ -72,7 +73,7 @@ const CITATION_RULES: Readonly<Record<VisitNoteCitation, readonly string[]>> = {
 
 export function visitNoteSystemPrompt(
   remote: boolean,
-  citation: VisitNoteCitation = 'quote',
+  citation: VisitNoteCitation = 'line',
 ): string {
   const lines = [
     'Ты составляешь черновик протокола приёма. Не рассуждай. Верни только один JSON-объект.',
@@ -148,7 +149,7 @@ export async function draftVisitNoteWithModel(
   options: VisitNoteModelOptions = {},
 ): Promise<VisitNoteModelResult> {
   const windowChars = options.windowChars ?? VISIT_NOTE_WINDOW_CHARS;
-  const citation = options.citation ?? 'quote';
+  const citation = options.citation ?? 'line';
   const promptLines = (source: VisitNoteQuoteSource, lines: readonly string[]) =>
     citation === 'quote'
       ? lines

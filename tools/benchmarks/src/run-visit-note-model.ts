@@ -4,7 +4,7 @@
 //
 //   llama-server -m <model.gguf> -c 2048 --host 127.0.0.1 --port 8090 --jinja --reasoning-format none
 //   bun src/run-visit-note-model.ts --server=http://127.0.0.1:8090 --label=<name> \
-//     [--no-think] [--citation=quote|line] [--window=<chars>] [--only=<id>] [--report=<path>]
+//     [--no-think] [--citation=line|quote] [--window=<chars>] [--only=<id>] [--report=<path>]
 //
 // `--reasoning-format none` keeps a «<think>» block in the answer text, as the app's runtimes see it;
 // without it llama-server moves an unclosed block, often the whole answer, out of `content`.
@@ -33,7 +33,7 @@ const label = option('label') ?? 'model';
 const only = option('only');
 const reportPath = option('report');
 const noThink = args.includes('--no-think');
-const citation: VisitNoteCitation = option('citation') === 'line' ? 'line' : 'quote';
+const citation: VisitNoteCitation = option('citation') === 'quote' ? 'quote' : 'line';
 const windowChars = option('window') ? Number(option('window')) : undefined;
 
 interface Pattern {

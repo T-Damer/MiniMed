@@ -23,7 +23,7 @@ The visit-note draft (SCRIBE1) has an adapter over this harness
 core locates every quote, and no screen runs it yet. On three synthetic consultations QVikhr 3 1.7B kept
 7 of 23 expected facts and Qwen3 0.6B 1 (`tools/benchmarks/src/run-visit-note-model.ts`; details in
 `CURRENT_STATE.md` SCRIBE1): small models paraphrase their quotes. Citing numbered source lines
-instead (`citation: 'line'`) lifts QVikhr to 15 of 23.
+instead lifts QVikhr to 15 of 23, so the adapter's pass cites lines by default.
 
 It does **not** yet:
 

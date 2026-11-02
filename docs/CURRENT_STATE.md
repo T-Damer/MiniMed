@@ -51,8 +51,9 @@ no code taken, only the approach). Core, contracts and a local-model adapter; no
 - **Model pass** `packages/core/src/visit-note-model.ts` `draftVisitNoteWithModel(model, sources)`:
   the transcript, then the earlier record, go to the `VisitNoteModel` port in windows of 1 600
   characters (whole lines; a short last line opens the next window), because the bundled models read
-  2 048 tokens with a 512-token answer. One Russian system prompt asks for items with verbatim
-  quotes, a negated statement quoted from its negation; a remote visit adds that palpation,
+  2 048 tokens with a 512-token answer. One Russian system prompt asks for items citing their
+  source lines (or, with `citation: 'quote'`, verbatim quotes, a negated statement quoted from its
+  negation); a remote visit adds that palpation,
   percussion and auscultation did not happen. Answers are merged per field (model keys kept in a
   `Map`), unreadable windows are counted, cancellation is checked between windows, model errors
   propagate.
@@ -71,8 +72,9 @@ no code taken, only the approach). Core, contracts and a local-model adapter; no
   Q8_0 (`/no_think`): 1 of 23; nearly every item lands under `examination`, with the doctor's
   questions as text, and one answer came as a `[{…}]` array. Neither is fit for the draft with
   verbatim quotes.
-- **Line citation** `packages/core/src/visit-note-lines.ts` `locateLines`, model pass option
-  `citation: 'line'` (default still `quote`): the source lines go numbered («12| …», the earlier
+- **Line citation, the default** `packages/core/src/visit-note-lines.ts` `locateLines`, model pass
+  option `citation` (`line` by default since 2026-11-02, owner decision; `quote` for verbatim
+  quotes): the source lines go numbered («12| …», the earlier
   record numbered on after the transcript) and an item cites `line`: one number, or up to three
   within three lines of each other (question and answer). Its quote is those lines as stored; the
   statement must share a content word with them (first five letters, words of four letters or more
@@ -86,8 +88,8 @@ no code taken, only the approach). Core, contracts and a local-model adapter; no
   Caught: «Аллергии нет» for the child allergic to amoxicillin (lines 7–12, too far apart) and
   «хронических болезней нет» for a hypertensive patient (no shared word). Missed by the stem rule:
   «Бросить курить» against «Курение нужно бросать». Absence statements («… нет») are the weak spot:
-  they rest on the model's wording and one shared word. Next: decide the default citation, field
-  filing, real consultations.
+  they rest on the model's wording and one shared word. Next: field filing, absence statements, real
+  consultations.
 - **Not done.** The draft UI on the conversation card with the model download
   offered in place, an omission pass over the doctor's edited note, qualification on real Russian
   consultations (field accuracy, quote fidelity, abstention, phone latency). Debug Android builds

@@ -77,7 +77,7 @@ describe('draftVisitNoteWithModel', () => {
         priorRecord: ['Диагноз: гипертоническая болезнь II стадии.'],
         remote: false,
       },
-      { windowChars: 120, onProgress: (done) => progress.push(done) },
+      { citation: 'quote', windowChars: 120, onProgress: (done) => progress.push(done) },
     );
 
     expect(result.windows).toBe(3);
@@ -160,10 +160,12 @@ describe('draftVisitNoteWithModel', () => {
         priorRecord: ['Диагноз: гипертоническая болезнь II стадии.'],
         remote: false,
       },
-      { citation: 'line', windowChars: 400 },
+      { windowChars: 400 },
     );
 
-    expect(model.requests[0]?.systemPrompt).toBe(visitNoteSystemPrompt(false, 'line'));
+    expect(model.requests[0]?.systemPrompt).toBe(visitNoteSystemPrompt(false));
+    expect(visitNoteSystemPrompt(false)).toContain('"line"');
+    expect(visitNoteSystemPrompt(false, 'quote')).toContain('"quote"');
     expect(model.requests[0]?.userPrompt).toContain('1| Врач: Что беспокоит?\n2| Пациент: Давит');
     expect(model.requests[1]?.userPrompt).toContain('5| Диагноз:');
     const fields = new Map(result.draft.fields.map((field) => [field.field, field]));
