@@ -292,6 +292,22 @@ were already marked and every revision is kept signed on the server; three gaps 
   dose kept across a newer link). Not tested: a real doctor edit reaching a paired phone end to end
   (the sync wiring in `patient-connection.ts` is not unit-testable today); no device test.
 
+## One shared demo account — 2026-11-02 (STATE DIARY-DEMO3)
+
+Owner: a lecture hall scanning the demo QR codes at once must get in, and seeing each other is fun.
+
+- «Демо» signs everybody in to one account, the access code `DEMO_ACCESS_CODE` (`DEMO-MINI-MED1`,
+  `packages/diary-sync/src/crypto.ts`, with `accessCodeEmail`, which the app and the service share).
+  Before, every device registered its own demo doctor, and open sign-up allows 12 new accounts a
+  minute for the whole service, so a hall got «Слишком много попыток».
+- The service gives sign-ins (`prelogin`, `login`) to that one address a cap of 600 a minute instead
+  of the 12 a minute per address that stops password guessing. The account is public by design.
+- `#demo` on the patient page adds a guest «Демо · Гость NN» with an animal and two weeks of history
+  to the shared account (`demoSelfPairing`); a demo doctor's dashboard removes guests older than a
+  day (`pruneDemoGuests`). The four demo patients are seeded once, by the first visitor.
+- Everybody sees and changes the same patients; archiving and deleting demo patients and guests stays
+  locked in the app.
+
 ## Diary demo links, the doctor's offline copy, dotted paper — 2026-11-02 (STATE DIARY-DEMO2)
 
 For the faculty slides (owner): two QR codes, a doctor's and a patient's, both open a working demo.

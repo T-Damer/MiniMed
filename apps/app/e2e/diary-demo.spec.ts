@@ -141,7 +141,7 @@ test('the demo links: the doctor’s opens on «Демо», the patient’s make
     waitUntil: 'domcontentloaded',
   });
   await expect(rows).toHaveCount(5, { timeout: 60_000 });
-  await expect(rows.filter({ hasText: 'Мой дневник' })).toHaveCount(1);
+  await expect(rows.filter({ hasText: 'Гость' })).toHaveCount(1);
   // The copy for work without a network is written a moment after the list loads.
   await page.waitForTimeout(3_000);
 

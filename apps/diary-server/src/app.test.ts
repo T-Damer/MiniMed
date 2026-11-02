@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import {
+  accessCodeEmail,
+  DEMO_ACCESS_CODE,
   deriveAccountSecrets,
   deriveRecoverySecrets,
   generateIdentity,
@@ -658,5 +660,17 @@ describe('diary server', () => {
     expect(
       (await call('POST', '/api/auth/login', { email: 'a@b.ru', authKey: next.authKey })).status,
     ).toBe(200);
+  });
+
+  it('lets a hall sign in to the shared demo account but keeps the guessing cap elsewhere', async () => {
+    const { call } = await setup();
+    const login = (email: string) =>
+      call('POST', '/api/auth/login', { email, authKey: 'a'.repeat(43) });
+    const demo = await accessCodeEmail(DEMO_ACCESS_CODE);
+    for (let index = 0; index < 40; index += 1) expect((await login(demo)).status).toBe(401);
+    for (let index = 0; index < 12; index += 1) {
+      expect((await login('doctor@clinic.ru')).status).toBe(401);
+    }
+    expect((await login('doctor@clinic.ru')).status).toBe(429);
   });
 });

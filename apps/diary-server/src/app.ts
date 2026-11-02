@@ -28,7 +28,14 @@ import {
   DiaryRemindersSchema,
   type DiaryRole,
 } from '@localmed/contracts';
-import { randomBytes, randomId, sha256, toBase64Url } from '@localmed/diary-sync';
+import {
+  accessCodeEmail,
+  DEMO_ACCESS_CODE,
+  randomBytes,
+  randomId,
+  sha256,
+  toBase64Url,
+} from '@localmed/diary-sync';
 import type { z } from 'zod';
 
 import { inviteCandidates } from './invites';
@@ -61,6 +68,8 @@ const PAIRING_HOURS = 72;
 const PAGE = 500;
 const ATTEMPT_WINDOW_MS = 60_000;
 const ATTEMPT_LIMIT = 12;
+/** Sign-ins a minute to the shared demo account: a lecture hall scanning the QR code at once. */
+const DEMO_SIGNIN_LIMIT = 600;
 
 class HttpError extends Error {
   constructor(
@@ -166,11 +175,16 @@ export function createApp(
     else await store.bumpChanges(ids);
   };
 
-  const limit = async (key: string): Promise<void> => {
-    if (!(await store.attempt(key, ATTEMPT_WINDOW_MS, ATTEMPT_LIMIT))) {
+  const limit = async (key: string, max = ATTEMPT_LIMIT): Promise<void> => {
+    if (!(await store.attempt(key, ATTEMPT_WINDOW_MS, max))) {
       throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
     }
   };
+
+  const demoEmail = accessCodeEmail(DEMO_ACCESS_CODE);
+  /** The shared demo account is public: its sign-ins get a hall-sized cap, not a guessing one. */
+  const signinLimit = async (email: string): Promise<number> =>
+    email === (await demoEmail) ? DEMO_SIGNIN_LIMIT : ATTEMPT_LIMIT;
 
   // --- presence --------------------------------------------------------------------------------
   // A phone is seen on every authenticated request (the diary syncs on open, when visible/online
@@ -358,7 +372,7 @@ export function createApp(
 
   route('POST', '/api/auth/prelogin', async (request) => {
     const { email } = await body(request, DiaryPreloginRequestSchema);
-    await limit(`prelogin:${email}`);
+    await limit(`prelogin:${email}`, await signinLimit(email));
     const row = await doctorByEmail(email);
     // Unknown e-mail: a stable decoy salt, so the answer does not reveal who has an account.
     const salt = row?.kdf_salt ?? (await sha256(`${config.secret}|${email}`)).slice(0, 22);
@@ -414,7 +428,7 @@ export function createApp(
 
   route('POST', '/api/auth/login', async (request) => {
     const { email, authKey } = await body(request, DiaryLoginRequestSchema);
-    await limit(`login:${email}`);
+    await limit(`login:${email}`, await signinLimit(email));
     const row = await doctorByEmail(email);
     if (!row || !(await passwords.verify(authKey, row.auth_hash))) {
       throw new HttpError(401, 'Неверный адрес или пароль.');

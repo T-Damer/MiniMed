@@ -5,6 +5,8 @@
  */
 import type { DiaryDoctorProfile } from '@localmed/contracts';
 import {
+  accessCodeEmail,
+  DEMO_ACCESS_CODE,
   deriveAccountSecrets,
   deriveRecoverySecrets,
   generateIdentity,
@@ -250,17 +252,8 @@ export function readAccessCode(typed: string): string | undefined {
   return letters.replaceAll(/(.{4})(?=.)/gu, '$1-');
 }
 
-/**
- * The account an access code stands for: a doctor without e-mail or name, whose code is the
- * password. The address is a digest, so colleagues who see it in a patient's access list do not
- * see the code.
- */
 async function accessCodeAccount(code: string): Promise<{ email: string; password: string }> {
-  const digest = new Uint8Array(
-    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`minimed-access-code:${code}`)),
-  );
-  const hex = [...digest.slice(0, 10)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  return { email: `${hex}@code.invalid`, password: code };
+  return { email: await accessCodeEmail(code), password: code };
 }
 
 /** The name patients see for a doctor who signed in by code alone. */
@@ -301,43 +294,30 @@ export async function signInWithCode(input: {
 }
 
 const DEMO_KEY = 'minimed.diary.demo.v1';
-const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 interface DemoRecord {
-  readonly code: string;
   readonly doctorId?: string;
 }
 
 function readDemo(): DemoRecord | undefined {
   const raw = localStorage.getItem(DEMO_KEY);
-  if (!raw) return undefined;
-  const parsed = JSON.parse(raw) as Partial<DemoRecord>;
-  return typeof parsed.code === 'string' ? (parsed as DemoRecord) : undefined;
+  return raw ? (JSON.parse(raw) as DemoRecord) : undefined;
 }
 
 /**
- * «Демо» without e-mail, password or code (owner 2026-11-02): this device's own demo doctor. A
- * random access code made once and kept on the device signs in through the code path, so the same
- * device returns to the same demo, and one visitor's edits never reach another's. Needs a service
- * with open sign-up.
+ * «Демо» without e-mail, password or code: the one shared demo account (`DEMO_ACCESS_CODE`, owner
+ * 2026-11-02 DIARY-DEMO3 — before, every device made its own). Everybody in a hall works in the same
+ * account and sees each other's edits live; the service creates nothing per visitor.
  */
 export async function signInDemo(input: {
   readonly rememberDevice: boolean;
 }): Promise<DoctorSession> {
-  let record = readDemo();
-  if (!record) {
-    const letters = [...crypto.getRandomValues(new Uint8Array(12))]
-      .map((byte) => CODE_ALPHABET[byte % CODE_ALPHABET.length])
-      .join('');
-    record = { code: letters.replaceAll(/(.{4})(?=.)/gu, '$1-') };
-    localStorage.setItem(DEMO_KEY, JSON.stringify(record));
-  }
   const session = await signInWithCode({
-    code: record.code,
+    code: DEMO_ACCESS_CODE,
     rememberDevice: input.rememberDevice,
     name: DEMO_DOCTOR_NAME,
   });
-  localStorage.setItem(DEMO_KEY, JSON.stringify({ ...record, doctorId: session.doctor.id }));
+  localStorage.setItem(DEMO_KEY, JSON.stringify({ doctorId: session.doctor.id }));
   return session;
 }
 

@@ -39,6 +39,7 @@ import { DoctorSignIn } from '@/features/diary/dashboard/DoctorSignIn';
 import {
   DEMO_LABEL_PREFIX,
   hasDemoSet,
+  pruneDemoGuests,
   seedDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { adherence } from '@/features/diary/dashboard/diary-insights';
@@ -220,6 +221,12 @@ export function DiaryDashboard(props: {
           diaries.patients().map((patient) => patient.replica.profile?.label),
         );
         if (isDemoSession(next) && !seeded) addDemo(diaries);
+        // The shared demo account keeps its guests a day, then lets them go.
+        if (isDemoSession(next)) {
+          pruneDemoGuests(diaries).catch((cause: unknown) => {
+            console.warn('Демо: старые гостевые дневники не убраны', cause);
+          });
+        }
       })
       .catch((cause: unknown) => {
         // The kept session expired on the server: back to the sign-in, not a list that never loads.

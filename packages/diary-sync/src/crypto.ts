@@ -59,6 +59,24 @@ export async function sha256(text: string): Promise<string> {
   return toBase64Url(new Uint8Array(await subtle.digest('SHA-256', encoder.encode(text))));
 }
 
+/**
+ * The account an access code stands for: `<digest>@code.invalid`, with the code as its password.
+ * A digest, so colleagues who see the address in a patient's access list do not see the code.
+ */
+export async function accessCodeEmail(code: string): Promise<string> {
+  const digest = new Uint8Array(
+    await subtle.digest('SHA-256', encoder.encode(`minimed-access-code:${code}`)),
+  );
+  const hex = [...digest.slice(0, 10)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex}@code.invalid`;
+}
+
+/**
+ * The one shared demo account (owner 2026-11-02, DIARY-DEMO3): every visitor's «Демо» signs in to
+ * it, so a hall sees each other's edits live and nobody creates an account. Public by design.
+ */
+export const DEMO_ACCESS_CODE = 'DEMO-MINI-MED1';
+
 // --- Account secrets --------------------------------------------------------------------------
 
 export interface KdfParams {

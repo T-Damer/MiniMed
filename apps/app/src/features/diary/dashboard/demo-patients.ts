@@ -396,34 +396,47 @@ export function hasDemoSet(labels: readonly (string | undefined)[]): boolean {
   return DEMO_PATIENTS.every((spec) => present.has(spec.label));
 }
 
-/** The demo diary a visitor keeps as the patient (`#demo` on the patient page). */
-export const DEMO_SELF_LABEL = `${DEMO_LABEL_PREFIX} Мой дневник`;
-const DEMO_SELF_DAYS = 14;
+/** Every visitor's own demo diary (`#demo` on the patient page) is labelled `Демо · Гость …`. */
+export const DEMO_GUEST_PREFIX = `${DEMO_LABEL_PREFIX} Гость`;
+const DEMO_GUEST_DAYS = 14;
+const GUEST_EMOJI = ['🦔', '🐨', '🐧', '🦦', '🐙', '🐝', '🦋', '🐞', '🐳', '🦜'];
+/** A guest diary older than this is taken out of the shared demo account. */
+const GUEST_TTL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * The patient's side of the demo (owner 2026-11-02, a QR code on the slides): this device's demo
- * doctor (the same one «Демо» signs in) gets one more patient with two weeks of history, and the
- * returned one-time code pairs this browser with it. A visitor who then opens the doctor's demo on
- * the same device finds their own diary among the demo patients, with what they marked.
+ * The patient's side of the demo (owner 2026-11-02, a QR code on the slides): in the shared demo
+ * account (`signInDemo`) a guest patient with two weeks of history, and a one-time code that pairs
+ * this browser with it. The demo doctor — anybody in the hall — sees the guest appear and every
+ * mark the visitor makes.
  */
 export async function demoSelfPairing(
   onProgress: (text: string) => void = () => undefined,
 ): Promise<PairingLink> {
   const workspace = new DoctorDiaries(await signInDemo({ rememberDevice: true }));
   await workspace.refresh();
-  const existing = workspace
-    .patients()
-    .find((patient) => patient.replica.profile?.label === DEMO_SELF_LABEL);
   const base = DEMO_PATIENTS[0];
   if (!base) throw new Error('Нет шаблона демо-пациента.');
-  const id =
-    existing?.summary.id ??
-    (await seedOne(
-      workspace,
-      { ...base, label: DEMO_SELF_LABEL, emoji: '🌱', days: DEMO_SELF_DAYS },
-      DEMO_PATIENTS.length,
-      { days: DEMO_SELF_DAYS, now: new Date(), report: onProgress },
-    ));
+  const [pick, number] = crypto.getRandomValues(new Uint8Array(2));
+  const emoji = GUEST_EMOJI[(pick ?? 0) % GUEST_EMOJI.length] ?? '🌱';
+  const label = `${DEMO_GUEST_PREFIX} ${((number ?? 0) % 90) + 10}`;
+  const id = await seedOne(
+    workspace,
+    { ...base, label, emoji, days: DEMO_GUEST_DAYS },
+    DEMO_PATIENTS.length,
+    { days: DEMO_GUEST_DAYS, now: new Date(), report: onProgress },
+  );
   // A new code for «this phone»: the throw-away device that wrote the history steps aside.
   return pairingOf(await workspace.pairingLink(id));
+}
+
+/** Guest diaries older than a day leave the shared demo account, so its list stays short. */
+export async function pruneDemoGuests(workspace: DoctorDiaries, now = Date.now()): Promise<void> {
+  const stale = workspace
+    .patients()
+    .filter(
+      (patient) =>
+        (patient.replica.profile?.label.startsWith(DEMO_GUEST_PREFIX) ?? false) &&
+        now - Date.parse(patient.summary.createdAt) > GUEST_TTL_MS,
+    );
+  for (const patient of stale) await workspace.removePatient(patient.summary.id);
 }
