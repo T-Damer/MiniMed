@@ -4,6 +4,7 @@ import {
   type DiaryResults,
   type DiaryValue,
   describeDiaryValue,
+  markedDose,
   planItem,
 } from '@/features/diary/diary-model';
 
@@ -98,6 +99,7 @@ export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()
       if (field.type === 'plan') {
         const plan = value as DiaryPlanValue;
         const item = planItem(invitation, plan.item);
+        const dose = markedDose(invitation, plan);
         if (field.trackDone && plan.done !== undefined) {
           resources.push({
             resourceType: 'MedicationStatement',
@@ -107,7 +109,7 @@ export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()
             medicationCodeableConcept: { text: item?.name ?? plan.other ?? field.label },
             effectiveDateTime: entry.at,
             informationSource: { display: 'Пациент' },
-            ...(item?.dose ? { dosage: [{ text: item.dose }] } : {}),
+            ...(dose ? { dosage: [{ text: dose }] } : {}),
             ...note,
           });
           continue;

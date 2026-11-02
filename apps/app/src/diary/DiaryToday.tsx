@@ -51,11 +51,14 @@ import {
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryResults,
+  intakeMark,
 } from '@/features/diary/diary-model';
 import {
   checkpointQuestionnaireAbout,
   loadCheckpointQuestionnaire,
 } from '@/features/diary/diary-questionnaires';
+import type { DiaryRemoval } from '@/features/diary/diary-storage';
+import type { DiaryPlanChange } from '@/features/diary/plan-changes';
 
 type Sheet =
   | {
@@ -106,6 +109,12 @@ const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
 
 function correctedMark(entry: DiaryEntry | undefined): string {
   return entry?.corrected ? ' · исправлено врачом' : '';
+}
+
+/** The dose shown on an intake row: the one a mark was made at, else what the plan asks now. */
+function taskDose(task: DoseTask): string | undefined {
+  const value = task.entry?.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
+  return value?.dose ?? task.time.dose ?? task.item.dose;
 }
 
 function doseStatus(task: DoseTask): string {
@@ -280,6 +289,11 @@ export function DiaryToday(props: {
   readonly sync?: SyncStatus | undefined;
   readonly notice?: string | undefined;
   readonly onDismissNotice?: () => void;
+  /** Connected diary: marks the doctor deleted, so an emptied intake says why. */
+  readonly removed?: readonly DiaryRemoval[] | undefined;
+  /** Connected diary: what the doctor's new plan changed, until the patient closes it. */
+  readonly planChange?: DiaryPlanChange | undefined;
+  readonly onDismissPlanChange?: () => void;
   /** An answer raised a schema alert (PHQ-9 item 9): tell the doctor. */
   readonly onUrgent?: () => void;
   /** The day to open first (`YYYY-MM-DD`); today by default. */
@@ -336,6 +350,16 @@ export function DiaryToday(props: {
 
   const tipFor = (...targets: readonly (string | undefined)[]) =>
     invitation().tips?.find((tip) => targets.includes(tip.target));
+  /** An intake left unmarked because the doctor deleted its mark: the row says so. */
+  const removedByDoctor = (task: DoseTask): boolean =>
+    !task.entry &&
+    (props.removed ?? []).some(
+      (removal) =>
+        removal.item === task.item.id &&
+        removal.slot === task.time.time &&
+        dayKey(removal.at) === day(),
+    );
+
   const unreadTip = (...targets: readonly (string | undefined)[]): boolean => {
     const tip = tipFor(...targets);
     return Boolean(tip && !props.tipsRead.includes(tip.id));
@@ -418,7 +442,7 @@ export function DiaryToday(props: {
     save({
       id: createDiaryId(),
       at: day() === today() ? new Date().toISOString() : atTime(day(), task.time.time),
-      values: { [CARE_DOSE_FIELD]: { item: task.item.id, done: true, slot: task.time.time } },
+      values: { [CARE_DOSE_FIELD]: intakeMark(task.item, true, task.time.time) },
     });
   };
 
@@ -513,6 +537,32 @@ export function DiaryToday(props: {
           </p>
         </Show>
 
+        <Show when={props.planChange}>
+          {(change) => (
+            <section
+              class="diary-today__notice diary-today__changes"
+              aria-label="Врач изменил план"
+            >
+              <div class="diary-today__notice-text">
+                <h3 class="diary-today__changes-title">Врач изменил план</h3>
+                <ul class="diary-today__changes-list">
+                  <For each={change().lines}>
+                    {(line) => <li class="diary-today__changes-line">{line}</li>}
+                  </For>
+                </ul>
+              </div>
+              <button
+                type="button"
+                class="diary-today__notice-close"
+                aria-label="Понятно"
+                onClick={() => props.onDismissPlanChange?.()}
+              >
+                <AppGlyph name="close" class="diary-today__icon-glyph" />
+              </button>
+            </section>
+          )}
+        </Show>
+
         <Show when={invitation().note}>
           <p class="diary-today__note">{invitation().note}</p>
         </Show>
@@ -532,12 +582,11 @@ export function DiaryToday(props: {
                         <CareRow
                           icon="pill"
                           time={task.time.time}
-                          title={[task.item.name, task.time.dose ?? task.item.dose]
-                            .filter(Boolean)
-                            .join(' ')}
+                          title={[task.item.name, taskDose(task)].filter(Boolean).join(' ')}
                           detail={
                             [
-                              doseStatus(task) ||
+                              (removedByDoctor(task) ? 'Отметку удалил врач' : '') ||
+                                doseStatus(task) ||
                                 (task.time.meal ? DIARY_MEAL_LABEL[task.time.meal] : ''),
                               courseLeft(task.item, day()),
                             ]

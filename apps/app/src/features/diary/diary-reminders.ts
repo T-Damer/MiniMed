@@ -11,6 +11,7 @@ import {
   createDiaryId,
   type DiaryInvitation,
   type DiaryResults,
+  intakeMark,
   parseDiaryEntry,
 } from '@/features/diary/diary-model';
 import { withEntry } from '@/features/diary/diary-storage';
@@ -143,7 +144,7 @@ export function applyReminderAction(results: DiaryResults, action: ReminderActio
       parseDiaryEntry(results.invitation, {
         id: createDiaryId(),
         at,
-        values: { [CARE_DOSE_FIELD]: { item: dose.item, done: true, slot: dose.slot } },
+        values: { [CARE_DOSE_FIELD]: intakeMark(task.item, true, dose.slot) },
       }),
     );
   }

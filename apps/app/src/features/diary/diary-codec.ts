@@ -198,6 +198,7 @@ function valueToWire(
       ? -1
       : (invitation.plan ?? []).findIndex((item) => item.id === plan.item);
   const wire = [index, plan.other ?? '', plan.done === undefined ? -1 : plan.done ? 1 : 0];
+  if (plan.dose) return [...wire, plan.slot ?? '', plan.dose];
   return plan.slot ? [...wire, plan.slot] : wire;
 }
 
@@ -217,15 +218,16 @@ function valueFromWire(invitation: DiaryInvitation, field: DiaryField, wire: unk
         ? wire.map((index) => (typeof index === 'number' ? field.options?.[index] : index))
         : wire;
     case 'plan': {
-      if (!Array.isArray(wire) || wire.length < 3 || wire.length > 4) return wire;
-      const [index, other, done, slot] = wire as unknown[];
+      if (!Array.isArray(wire) || wire.length < 3 || wire.length > 5) return wire;
+      const [index, other, done, slot, dose] = wire as unknown[];
       const item =
         typeof index === 'number' && index >= 0 ? invitation.plan?.[index]?.id : undefined;
       return {
         ...(item ? { item } : {}),
         ...(typeof other === 'string' && other ? { other } : {}),
         ...(done === 1 ? { done: true } : done === 0 ? { done: false } : {}),
-        ...(slot === undefined ? {} : { slot }),
+        ...(slot === undefined || slot === '' ? {} : { slot }),
+        ...(dose === undefined ? {} : { dose }),
       };
     }
   }

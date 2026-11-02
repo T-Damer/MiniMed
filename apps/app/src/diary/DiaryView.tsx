@@ -437,6 +437,7 @@ export function DiaryView(props: {
             }
             tabbed={tabbed()}
             connected={sync() !== undefined}
+            removed={meta().removedByDoctor}
             onWrite={() => startEntry(undefined, 'records')}
             onSend={() => navigate('send')}
             onEdit={(entry) => startEntry(entry, 'records')}
@@ -527,6 +528,9 @@ export function DiaryView(props: {
             sync={sync()}
             notice={notice()}
             onDismissNotice={() => setNotice(undefined)}
+            removed={meta().removedByDoctor}
+            planChange={meta().planChange}
+            onDismissPlanChange={() => updateMeta({ planChange: undefined })}
             onUrgent={() => {
               const current = connection();
               if (current) void current.raiseAlert().then(setSync);

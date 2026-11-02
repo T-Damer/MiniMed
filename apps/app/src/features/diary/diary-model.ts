@@ -184,6 +184,11 @@ export interface DiaryPlanValue {
   readonly done?: boolean;
   /** The scheduled intake `HH:MM` this mark answers; absent for an unscheduled intake. */
   readonly slot?: string;
+  /**
+   * The dose the plan asked for when the mark was made: a later plan change does not rewrite the
+   * past. Absent on marks made before doses were recorded (they show the current dose).
+   */
+  readonly dose?: string;
 }
 
 export type DiaryValue = number | string | boolean | readonly string[] | DiaryPlanValue;
@@ -876,11 +881,13 @@ function parseValue(field: DiaryField, value: unknown, invitation: DiaryInvitati
       }
       const slot =
         source['slot'] === undefined ? undefined : clockTime(source['slot'], field.label);
+      const dose = text(source['dose'], field.label, true);
       return {
         ...(typeof item === 'string' ? { item } : {}),
         ...(other && item === undefined ? { other } : {}),
         ...(typeof done === 'boolean' ? { done } : {}),
         ...(slot ? { slot } : {}),
+        ...(dose && typeof item === 'string' ? { dose } : {}),
       };
     }
   }
@@ -1031,6 +1038,28 @@ export function planItem(
   return id === undefined ? undefined : invitation.plan?.find((item) => item.id === id);
 }
 
+/** The dose of one intake of an item under the current plan: the time's own dose, else the item's. */
+export function intakeDose(item: DiaryPlanItem, slot?: string): string | undefined {
+  return item.times?.find((time) => time.time === slot)?.dose ?? item.dose;
+}
+
+/** A new intake mark of a plan item, carrying the dose the plan asks for now. */
+export function intakeMark(item: DiaryPlanItem, done: boolean, slot?: string): DiaryPlanValue {
+  const dose = intakeDose(item, slot);
+  return { item: item.id, done, ...(slot ? { slot } : {}), ...(dose ? { dose } : {}) };
+}
+
+/** The dose a mark was taken at: recorded with the mark, else the plan's current dose. */
+export function markedDose(
+  invitation: DiaryInvitation,
+  value: DiaryPlanValue | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  if (value.dose) return value.dose;
+  const item = planItem(invitation, value.item);
+  return item ? intakeDose(item, value.slot) : undefined;
+}
+
 /** Plan items the patient can still choose (the doctor has not ended them). */
 export function activePlanItems(invitation: DiaryInvitation): readonly DiaryPlanItem[] {
   return (invitation.plan ?? []).filter((item) => !item.ended);
@@ -1055,7 +1084,9 @@ export function describeDiaryValue(
   if (Array.isArray(value)) return `${field.label}: ${value.join(', ')}`;
   const plan = value as DiaryPlanValue;
   const item = planItem(invitation, plan.item);
-  const name = item ? [item.name, item.dose].filter(Boolean).join(' ') : (plan.other ?? '');
+  const name = item
+    ? [item.name, markedDose(invitation, plan)].filter(Boolean).join(' ')
+    : (plan.other ?? '');
   const done = plan.done === undefined ? '' : plan.done ? ' — выполнено' : ' — пропущено';
   return `${name}${done}`;
 }

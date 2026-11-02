@@ -277,10 +277,14 @@ function FieldInput(props: {
       const selected = () => plan().item ?? (plan().other !== undefined ? OTHER : '');
       const choose = (value: string): void => {
         const done = plan().done;
+        const item = items().find((candidate) => candidate.id === value);
+        // The dose goes with the mark; an edited mark of the same item keeps the one it was made at.
+        const dose = value === plan().item ? (plan().dose ?? item?.dose) : item?.dose;
         props.onChange({
-          ...(value && value !== OTHER ? { item: value } : {}),
+          ...(item ? { item: item.id } : {}),
           ...(value === OTHER ? { other: '' } : {}),
           ...(done === undefined ? {} : { done }),
+          ...(item && dose ? { dose } : {}),
         });
       };
       return (

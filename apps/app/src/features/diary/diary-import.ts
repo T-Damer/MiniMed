@@ -5,6 +5,7 @@ import {
   type DiaryPlanValue,
   type DiaryResults,
   describeDiaryValue,
+  markedDose,
   planItem,
 } from '@/features/diary/diary-model';
 import {
@@ -112,7 +113,7 @@ export function diaryImportEvents(
       if (!isTrackedPlan(field, value)) continue;
       const item = planItem(invitation, value.item);
       const name = item?.name ?? value.other ?? field.label;
-      const details = [item?.dose, entry.note].filter(Boolean).join('. ');
+      const details = [markedDose(invitation, value), entry.note].filter(Boolean).join('. ');
       const eventId = `${id}-${field.id}`;
       if (value.done) {
         events.push(

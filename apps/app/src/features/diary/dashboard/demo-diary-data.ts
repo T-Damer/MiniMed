@@ -12,6 +12,7 @@ import {
   type DiaryField,
   type DiaryInvitation,
   type DiaryValue,
+  intakeMark,
 } from '@/features/diary/diary-model';
 
 export type DemoTrend = 'improving' | 'fluctuating' | 'worsening' | 'stable';
@@ -274,7 +275,7 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
         const chance = clamp(0.2 + (7 - mood) * 0.04, 0.05, 0.6);
         if (random() < chance) {
           add(moment(day, '14:00', Math.round(between(random, 0, 480))), {
-            values: { [CARE_DOSE_FIELD]: { item: item.id, done: true } },
+            values: { [CARE_DOSE_FIELD]: intakeMark(item, true) },
           });
         }
         continue;
@@ -285,7 +286,7 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           const late = random() < 0.12;
           const shift = late ? between(random, 60, 150) : between(random, -5, 25);
           const values: Record<string, DiaryValue> = {
-            [CARE_DOSE_FIELD]: { item: item.id, done: true, slot: time.time },
+            [CARE_DOSE_FIELD]: intakeMark(item, true, time.time),
           };
           const effects = AFTER_EFFECTS.filter((effect) =>
             invitation.fields.find((field) => field.id === 'after')?.options?.includes(effect),
@@ -294,7 +295,7 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           add(moment(day, time.time, Math.round(shift)), { values });
         } else if (roll < adherence + (1 - adherence) * 0.55) {
           add(moment(day, time.time, Math.round(between(random, 0, 40))), {
-            values: { [CARE_DOSE_FIELD]: { item: item.id, done: false, slot: time.time } },
+            values: { [CARE_DOSE_FIELD]: intakeMark(item, false, time.time) },
             ...(random() < 0.5 ? { note: pick(random, SKIP_NOTES) } : {}),
           });
         }

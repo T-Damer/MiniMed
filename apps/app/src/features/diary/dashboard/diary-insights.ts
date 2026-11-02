@@ -18,6 +18,7 @@ import {
   type DiaryInvitation,
   type DiaryPlanValue,
   describeDiaryEntry,
+  markedDose,
 } from '@/features/diary/diary-model';
 import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
 import { type AssessmentLimit, scoreScaleLimit } from '@/state/assessment-limits';
@@ -222,7 +223,7 @@ export function exportRows(
       const what = plan
         ? [
             item?.name ?? plan.other,
-            item?.dose,
+            markedDose(invitation, plan),
             plan.slot ? `по плану ${plan.slot}` : '',
             slot?.meal ? DIARY_MEAL_LABEL[slot.meal] : '',
           ]

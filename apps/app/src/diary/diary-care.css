@@ -166,6 +166,28 @@ body:has(.diary-care-scope) {
   flex: 1;
 }
 
+/* «Врач изменил план» (DIARY19): what changed, until the patient closes it. */
+.diary-today__changes {
+  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-raised));
+}
+
+.diary-today__changes-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.diary-today__changes-list {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+}
+
+.diary-today__changes-line {
+  overflow-wrap: anywhere;
+}
+
 .diary-today__notice-close {
   display: inline-grid;
   flex: none;

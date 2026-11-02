@@ -788,6 +788,23 @@
   font-weight: 700;
 }
 
+/* The doctor's hand on an entry (DIARY19): corrected or deleted, never silently. */
+.diary-record__badge--doctor {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.diary-record--removed {
+  border-style: dashed;
+  background: transparent;
+}
+
+.diary-record__value--removed {
+  color: var(--theme-text-muted);
+  font-weight: 600;
+  text-decoration: line-through;
+}
+
 .diary-record__actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

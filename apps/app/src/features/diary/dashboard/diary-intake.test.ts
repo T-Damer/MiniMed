@@ -86,4 +86,19 @@ describe('medicine intake per day', () => {
       { day: '2026-10-20', taken: 0 },
     ]);
   });
+
+  it('counts a marked intake at the dose it was marked at, not at a later plan', () => {
+    const diary = invitation();
+    // Marked on the 18th at 25 мг (the dose then); the plan now says 50 мг.
+    const entries = [
+      mark(diary, 18, '08:05', { item: 'p1', done: true, slot: '08:00', dose: '25 мг' }),
+      mark(diary, 18, '20:10', { item: 'p1', done: false, slot: '20:00', dose: '12,5 мг' }),
+      mark(diary, 19, '14:00', { item: 'p2', done: true, dose: '12,5 мг' }),
+    ];
+    const [sertraline, hydroxyzine] = medicineIntake(diary, entries, 3, NOW);
+    expect(sertraline?.days[0]).toEqual({ day: '2026-10-18', taken: 25, prescribed: 37.5 });
+    // Unmarked days know only today's plan.
+    expect(sertraline?.days[1]).toEqual({ day: '2026-10-19', taken: 0, prescribed: 75 });
+    expect(hydroxyzine?.days[1]).toEqual({ day: '2026-10-19', taken: 12.5 });
+  });
 });

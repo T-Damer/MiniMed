@@ -269,6 +269,29 @@ address leads back to the files when it is off.
 - **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
   with a round «+» and the title, not a paper tool card.
 
+## Doctor edits leave a trace for the patient — 2026-11-02 (STATE DIARY19)
+
+Owner question: can the doctor change a dose or backfill without the patient noticing? Corrections
+were already marked and every revision is kept signed on the server; three gaps are closed.
+
+- **A mark keeps its dose.** `DiaryPlanValue.dose` records the dose the plan asked for when the
+  mark was made (`intakeMark`, time dose else item dose); display, export, FHIR, import and the
+  intake chart read it (`markedDose`, falling back to the current plan for older marks). An edited
+  mark keeps its dose; the QR/text transport carries it (`[index, other, done, slot, dose]`).
+  Before, raising a dose relabelled every past intake for patient and doctor.
+- **A deleted mark stays visible.** When a pull brings the doctor's deletion of a mark the phone
+  has, the phone keeps it (`DiaryMeta.removedByDoctor`, `removalOf` in `connected/doctor-trace.ts`):
+  «Записи» shows it struck out with «Удалено врачом», and the emptied intake on «Сегодня» says
+  «Отметку удалил врач». A corrected entry now also carries «Исправлено врачом» in «Записи».
+- **«Врач изменил план».** A new plan is compared with the one the phone had before the pull
+  (`planChanges` in `plan-changes.ts`: dose, intake times, course, signa, new/cancelled medicines,
+  checkpoints, note, contacts; tips left out) and shown as a card on «Сегодня» until «Понятно»
+  (`DiaryMeta.planChange`, lines merged and capped at 12). A fresh phone is told nothing.
+- Tests: `plan-changes.test.ts`, `connected/doctor-trace.test.ts` (dose, removal, trace, transport),
+  intake chart and reminders updated; e2e `diary-doctor-trace.spec.ts` (seeded phone state, the
+  dose kept across a newer link). Not tested: a real doctor edit reaching a paired phone end to end
+  (the sync wiring in `patient-connection.ts` is not unit-testable today); no device test.
+
 ## Diary demo links, the doctor's offline copy, dotted paper — 2026-11-02 (STATE DIARY-DEMO2)
 
 For the faculty slides (owner): two QR codes, a doctor's and a patient's, both open a working demo.
@@ -311,7 +334,8 @@ For the faculty slides (owner): two QR codes, a doctor's and a patient's, both o
   medicine, the dose taken each day (intakes summed, a skipped or missed intake = 0) as a line and
   the plan's dose that day as hollow dots; days before the diary began have no point. Doses are
   parsed from the plan text («10 мг», «½ таблетки»; words count as one intake). The diary keeps only
-  the latest plan, so a dose changed earlier shows at its new value. «Графики приёма по дням» on
+  the latest plan; since DIARY19 a marked intake counts at the dose it was marked at, an unmarked
+  one at the current plan's dose. «Графики приёма по дням» on
   the patient page opens all medicines stacked on the same days.
 
 ## Diary sign-in by code, bare login, wide settings — 2026-10-30 (STATE DIARY16)

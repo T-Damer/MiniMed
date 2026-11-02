@@ -17,6 +17,7 @@ import {
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryVoice,
+  intakeMark,
 } from '@/features/diary/diary-model';
 
 /** Saves an entry; returns the problem to show, or undefined when it was saved. */
@@ -114,8 +115,13 @@ function SheetFooter(props: {
   );
 }
 
-function doseTitle(item: DiaryPlanItem, time: DiaryDoseTime | undefined): string {
-  return [item.name, time?.dose ?? item.dose].filter(Boolean).join(' ');
+/** The item and its dose; a mark already made shows the dose it was made at. */
+function doseTitle(
+  item: DiaryPlanItem,
+  time: DiaryDoseTime | undefined,
+  marked: DiaryPlanValue | undefined,
+): string {
+  return [item.name, marked?.dose ?? time?.dose ?? item.dose].filter(Boolean).join(' ');
 }
 
 /**
@@ -156,10 +162,10 @@ export function DoseSheet(props: {
       id: props.entry?.id ?? createDiaryId(),
       at: atTime(props.day, time()),
       values: {
+        // An edited mark keeps the dose it was made at; a new one takes today's plan.
         [CARE_DOSE_FIELD]: {
-          item: props.item.id,
-          done: taken(),
-          ...(props.time ? { slot: props.time.time } : {}),
+          ...intakeMark(props.item, taken(), props.time?.time),
+          ...(previous?.dose ? { dose: previous.dose } : {}),
         },
         ...(taken() && after().length ? { after: after() } : {}),
       },
@@ -177,7 +183,7 @@ export function DoseSheet(props: {
 
   return (
     <DiarySheet
-      title={doseTitle(props.item, props.time)}
+      title={doseTitle(props.item, props.time, previous)}
       subtitle={subtitle()}
       onClose={props.onClose}
       footer={

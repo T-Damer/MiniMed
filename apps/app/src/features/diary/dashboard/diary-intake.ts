@@ -2,8 +2,9 @@
  * Medicine intake per day for the doctor's charts (owner 2026-11-02): for each plan item, the dose
  * taken that day (a skipped or missed intake counts as 0) and the dose the plan prescribes that
  * day (its intakes on course, each with its own dose when it has one). Days before the diary began
- * have no point at all: no data is not a 0. The plan is the current one: the diary keeps only the
- * latest prescription, so a dose changed earlier shows at its new value.
+ * have no point at all: no data is not a 0. A marked intake counts at the dose it was marked at
+ * (the mark records it), so a later dose change does not rewrite the past; an intake nobody marked
+ * counts at the current plan's dose, the only one known for it.
  */
 import { addDays, dayKey, dayPlan, diaryStarted, doseValue } from '@/features/diary/diary-care';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
@@ -68,7 +69,9 @@ export function medicineIntake(
     const plan = dayPlan(invitation, entries, day, now);
     const totals = new Map<string, { taken: number; prescribed?: number }>();
     for (const task of plan.doses) {
-      const dose = parseDose(task.time.dose ?? task.item.dose).amount;
+      const dose = parseDose(
+        (task.entry && doseValue(task.entry)?.dose) || (task.time.dose ?? task.item.dose),
+      ).amount;
       const total = totals.get(task.item.id) ?? { taken: 0, prescribed: 0 };
       totals.set(task.item.id, {
         taken: total.taken + (task.state === 'done' ? dose : 0),
@@ -77,9 +80,10 @@ export function medicineIntake(
       series(task.item.id, task.item.name, task.item.dose);
     }
     for (const { item, entries: taken } of plan.asNeeded) {
-      const dose = parseDose(item.dose).amount;
-      const count = taken.filter((entry) => doseValue(entry)?.done !== false).length;
-      totals.set(item.id, { taken: count * dose });
+      const amount = taken
+        .filter((entry) => doseValue(entry)?.done !== false)
+        .reduce((sum, entry) => sum + parseDose(doseValue(entry)?.dose ?? item.dose).amount, 0);
+      totals.set(item.id, { taken: amount });
       series(item.id, item.name, item.dose);
     }
     for (const [id, total] of totals) {

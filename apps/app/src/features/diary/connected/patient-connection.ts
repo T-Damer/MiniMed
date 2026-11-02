@@ -38,11 +38,15 @@ import {
   pendingReminderActions,
   writeReminderNotices,
 } from '@/features/diary/connected/reminder-cache';
+import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
 import { diaryServiceBase } from '@/features/diary/diary-links';
 import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
   type DiaryEntry,
   DiaryFormatError,
+  type DiaryInvitation,
+  type DiaryPlanValue,
+  describeDiaryEntry,
   parseDiaryEntry,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
@@ -52,7 +56,14 @@ import {
   reminderNotices,
   reminderSlots,
 } from '@/features/diary/diary-reminders';
-import { type DiaryStore, withEntry, withoutEntry } from '@/features/diary/diary-storage';
+import {
+  type DiaryRemoval,
+  type DiaryStore,
+  MAX_DIARY_REMOVALS,
+  withEntry,
+  withoutEntry,
+} from '@/features/diary/diary-storage';
+import { mergePlanChange, planChanges } from '@/features/diary/plan-changes';
 
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
 /** `poll` mode (ADR-0027): how often an open diary reads its change counter. */
@@ -305,6 +316,11 @@ export class PatientConnection {
   /** Applies what the server sent to the local store; local edits not yet sent are kept. */
   private apply(revisions: readonly { id: string; author: string; payload: unknown }[]): void {
     const synced = { ...this.connection.synced };
+    // The plan the phone had before this pull: a new plan is told against it once, however many
+    // revisions the pull brings (a fresh phone has none, so it is told nothing).
+    const planBefore = this.store.read(this.patientId)?.invitation;
+    const removals: DiaryRemoval[] = [];
+    const restored = new Set<string>();
     const ordered = [
       ...revisions.filter((revision) => revision.id === PLAN_RECORD),
       ...revisions.filter((revision) => revision.id !== PLAN_RECORD),
@@ -329,10 +345,23 @@ export class PatientConnection {
           const unchangedHere = !local || entryFingerprint(local) === synced[revision.id];
           if (payload['kind'] === 'deleted') {
             if (unchangedHere) {
+              // The doctor's deletion stays visible to the patient: what it said and when.
+              if (local && revision.author.startsWith('d:')) {
+                const mark = local.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
+                removals.push({
+                  id: entryId,
+                  at: local.at,
+                  line: describeDiaryEntry(results.invitation, local),
+                  ...(mark?.item ? { item: mark.item } : {}),
+                  ...(mark?.slot ? { slot: mark.slot } : {}),
+                  removedAt: new Date().toISOString(),
+                });
+              }
               this.store.save(withoutEntry(results, entryId));
               synced[revision.id] = 'deleted';
             }
           } else if (payload['kind'] === 'entry' && unchangedHere) {
+            restored.add(entryId);
             const entry: DiaryEntry = parseDiaryEntry(results.invitation, payload['entry']);
             if (entry.id !== entryId) continue;
             this.store.save(withEntry(withoutEntry(results, entryId), entry));
@@ -358,6 +387,30 @@ export class PatientConnection {
       }
     }
     this.save({ synced });
+    this.remember(planBefore, removals, restored);
+  }
+
+  /** Keeps what the doctor changed where the patient will see it (DIARY19). */
+  private remember(
+    planBefore: DiaryInvitation | undefined,
+    removals: readonly DiaryRemoval[],
+    restored: ReadonlySet<string>,
+  ): void {
+    const meta = this.store.meta(this.patientId);
+    const planAfter = this.store.read(this.patientId)?.invitation;
+    const lines = planBefore && planAfter ? planChanges(planBefore, planAfter) : [];
+    const planChange = mergePlanChange(meta.planChange, lines, new Date().toISOString());
+    const kept = (meta.removedByDoctor ?? []).filter(
+      (removal) => !restored.has(removal.id) && !removals.some((next) => next.id === removal.id),
+    );
+    const removedByDoctor = [...kept, ...removals].slice(-MAX_DIARY_REMOVALS);
+    const removalsChanged =
+      removals.length > 0 || kept.length !== (meta.removedByDoctor ?? []).length;
+    if (planChange === meta.planChange && !removalsChanged) return;
+    this.store.setMeta(this.patientId, {
+      ...(planChange ? { planChange } : {}),
+      ...(removalsChanged ? { removedByDoctor } : {}),
+    });
   }
 
   /** Pull, then push; one run at a time. Offline is a normal state, not an error. */
