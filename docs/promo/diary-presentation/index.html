@@ -580,13 +580,13 @@ ul.dot li::before { content: ""; position: absolute; left: 3px; top: 0.5em; widt
   <header class="head"><span class="kicker">Безопасность</span><h2>Сквозное шифрование</h2></header>
   <div class="body">
     <div class="diagram">
-      <div class="card node"><div class="e"><img class="ai" src="img/icons/phone.svg" alt=""></div><b>Телефон пациента</b><span class="key"><img class="emo" src="img/emoji/1f511.png" alt="🔑"> ключи дневника — только на телефоне</span><span class="small">записи шифруются до отправки</span></div>
-      <div class="link"><span class="lbl"><img class="emo" src="img/emoji/1f512.png" alt="🔒"> шифр + подпись<br>AES-GCM · ECDSA</span>
+      <div class="card node"><div class="e"><img class="ai" src="img/icons/phone.svg" alt=""></div><b>Телефон пациента</b><span class="key">ключи дневника — только на телефоне</span><span class="small">записи шифруются до отправки</span></div>
+      <div class="link"><span class="lbl">шифр + подпись<br>AES-GCM · ECDSA</span>
         <svg viewBox="0 0 200 22" preserveAspectRatio="none" aria-hidden="true"><path d="M10 11H190" stroke="#3c6478" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M2 11l11-8v16zM198 11l-11-8v16z" fill="#3c6478"/></svg></div>
       <div class="card node srv"><div class="e"><img class="ai" src="img/icons/cloud.svg" alt=""></div><b>Сервер</b><span class="cipher">9f3a·c7e1·b20d·44a8</span><span class="small">видит только шифротекст</span></div>
-      <div class="link"><span class="lbl"><img class="emo" src="img/emoji/1f512.png" alt="🔒"> шифр + подпись<br>AES-GCM · ECDSA</span>
+      <div class="link"><span class="lbl">шифр + подпись<br>AES-GCM · ECDSA</span>
         <svg viewBox="0 0 200 22" preserveAspectRatio="none" aria-hidden="true"><path d="M10 11H190" stroke="#3c6478" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M2 11l11-8v16zM198 11l-11-8v16z" fill="#3c6478"/></svg></div>
-      <div class="card node"><div class="e"><img class="ai" src="img/icons/doctor.svg" alt=""></div><b>Устройство врача</b><span class="key"><img class="emo" src="img/emoji/1f5dd.png" alt="🗝️"> пароль врача открывает его ключи</span><span class="small">расшифровывает только врач-куратор</span></div>
+      <div class="card node"><div class="e"><img class="ai" src="img/icons/doctor.svg" alt=""></div><b>Устройство врача</b><span class="key">пароль врача открывает его ключи</span><span class="small">расшифровывает только врач-куратор</span></div>
     </div>
     <div class="facts">
       <div class="card fact"><div class="ico pic"><img class="ai" src="img/icons/lock.svg" alt=""></div><p><b>Пароль врача не уходит</b>на сервер — из него на устройстве получаются ключи</p></div>

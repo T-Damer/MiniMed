@@ -16,6 +16,8 @@ const out = resolve(process.argv[3] ?? html.replace(/(\.full)?\.html$/u, '.pptx'
 const W = 1280;
 const H = 720;
 const IN = 13.333 / W;
+/** Type scale against the wider text of Keynote and PowerPoint. */
+const FIT = 0.95;
 
 const browser = await chromium.launch({ args: ['--mute-audio'] });
 const page = await browser.newPage({
@@ -142,7 +144,7 @@ for (let index = 0; index < count; index += 1) {
       const lines = Math.max(1, Math.round((bottom - top) / lineHeight));
       result.push({
         x: (lines > 1 || align !== 'left' ? box.left + padL : left) - origin.left,
-        right: (lines > 1 || align !== 'left' ? box.right - padR : right) - origin.left,
+        right: Math.max(box.right - padR, right) - origin.left,
         textLeft: left - origin.left,
         textRight: right - origin.left,
         y: top - (lineHeight - (bottom - top) / lines) / 2 - origin.top,
@@ -178,25 +180,17 @@ for (let index = 0; index < count; index += 1) {
         : /Code|mono|Consolas/iu.test(family)
           ? 'Consolas'
           : 'Arial';
-    // PowerPoint measures text a little wider than Chromium: give single lines room to grow.
-    const slack =
-      box.lines === 1
-        ? Math.max(14, (box.textRight - box.textLeft) * 0.12)
-        : (box.right - box.x) * 0.04;
-    let x = box.x;
-    let w = box.right - box.x + slack;
-    if (box.align === 'center') {
-      x -= slack / 2;
-    } else if (box.align === 'right') {
-      x -= slack;
-    }
+    // Keynote and PowerPoint set text a little wider than Chromium: the box keeps to its block (never
+    // past a card's padding) and the type is a touch smaller, so lines neither spill nor touch edges.
+    const x = box.align === 'left' ? box.textLeft : box.x;
+    const w = box.right - x;
     slide.addText(
       box.runs.map((run) => ({
         text: run.text,
         options: {
           breakLine: false,
           ...(run.breakBefore ? { softBreakBefore: true } : {}),
-          fontSize: run.size * 0.75,
+          fontSize: Math.round(run.size * 0.75 * FIT * 10) / 10,
           fontFace: font(run.font),
           bold: run.bold,
           italic: run.italic,
@@ -209,7 +203,7 @@ for (let index = 0; index < count; index += 1) {
         x: x * IN,
         y: box.y * IN,
         w: w * IN,
-        h: box.h * IN,
+        h: (box.h + 4) * IN,
         margin: 0,
         align: box.align,
         valign: 'top',
