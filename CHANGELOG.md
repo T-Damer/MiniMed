@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.79] - 2026-11-02
+
+- Demo: everybody who opens the demo now works in one shared demo account, so a whole room can scan the QR code at
+  once and watch each other's changes. The patient demo adds a guest diary to it, which leaves after a day.
+
 ## [0.6.78] - 2026-11-02
 
 - Demo links for slides: `med.1damer.com/demo` opens the doctor's sign-in already on «Демо» — one tap and the demo
