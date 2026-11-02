@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.78] - 2026-11-02
+
+- Demo links for slides: `med.1damer.com/demo` opens the doctor's sign-in already on «Демо» — one tap and the demo
+  patients are there; `med.1damer.com/demo/patient` makes a demo diary with two weeks of entries on the visitor's
+  phone. Opened on the same device, the doctor's demo shows that diary too, with whatever the visitor marks.
+- Patient diaries without a connection: the doctor's list opens from the last copy kept on this device (encrypted
+  with the device key, only on a computer marked «Мой компьютер») and updates by itself when the connection is back.
+- The doctor can export a patient's records as HL7 FHIR (JSON) next to Excel and CSV.
+- The fine dotted paper of the diary calendar now covers the main cards of the app and the patient diary.
+
 ## [0.6.77] - 2026-11-02
 
 - Patient diaries: «Демо — без регистрации» on the sign-in card opens a demo of the doctor's diaries on this device
