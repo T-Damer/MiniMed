@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-02 | claude-opus (PROMO1) | diary presentation in `docs/promo/diary-presentation/` (HTML + PPTX build), app-style illustration icons as a sprite in the app | `docs/promo/**`, `apps/app/src/assets/illustrations/**`, `scripts/build-illustration-sprite.ts` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
@@ -180,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-02 claude-opus PROMO1: diary presentation in `docs/promo/diary-presentation/` (public HTML, PPTX builder; the full version is gitignored), app-style illustrations + sprite in `apps/app/src/assets/illustrations/`
 - 2026-11-02 claude-opus REL 0.6.78 DIARY-DEMO2: demo links `/demo` and `/demo/patient`, the doctor's offline copy, doctor FHIR export, dotted paper on the app's cards
 - 2026-11-02 claude-opus REL 0.6.77: diary demo mode (per-device demo account, fixed demo patients) and medicine intake charts
 - 2026-11-02 claude-opus REL 0.6.76: UI-DIARY18 — wide new-patient form keeps its left column in view, today a dashed double frame in the calendar (start stays solid), hero emblem cut at the band and fading instead of flying beside the title (header buttons no longer fold early because of it), centred «Открываем дневник…» state

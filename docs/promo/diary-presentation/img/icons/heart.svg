@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Самочувствие</title>
+<defs>
+<linearGradient id="leather" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#3b5747"/><stop offset="1" stop-color="#223329"/></linearGradient>
+<linearGradient id="spine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2a21"/><stop offset="1" stop-color="#2a4033"/></linearGradient>
+<linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf7ea"/><stop offset="1" stop-color="#ece3cb"/></linearGradient>
+<linearGradient id="strap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8653d"/><stop offset="1" stop-color="#7c4428"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6c978"/><stop offset="1" stop-color="#b68b36"/></linearGradient>
+<linearGradient id="slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7589"/><stop offset="1" stop-color="#3c6478"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#c85840"/><stop offset="1" stop-color="#a23a28"/></linearGradient>
+<linearGradient id="hl" x1="0" y1="0" x2="0.7" y2="0.7"><stop offset="0" stop-color="#fff" stop-opacity="0.17"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="blur" x="-20%" y="-300%" width="140%" height="700%"><feGaussianBlur stdDeviation="7"/></filter>
+<clipPath id="hc"><path d="M256 356C188 304 144 266 144 216C144 176 174 150 208 150C231 150 248 163 256 182C264 163 281 150 304 150C338 150 368 176 368 216C368 266 324 304 256 356Z"/></clipPath></defs>
+<ellipse cx="252" cy="466" rx="160" ry="11" fill="#1b2a21" opacity="0.28" filter="url(#blur)"/>
+<circle cx="252" cy="248" r="206" fill="url(#leather)"/><circle cx="252" cy="248" r="206" fill="url(#hl)"/>
+<circle cx="252" cy="248" r="186" fill="none" stroke="#d9c9a3" stroke-width="4" stroke-dasharray="12 9" opacity="0.75"/>
+<rect x="420" y="214" width="54" height="68" rx="18" fill="url(#strap)"/><rect x="428" y="222" width="38" height="52" rx="12" fill="none" stroke="#d9b48a" stroke-width="2.5" stroke-dasharray="6 5" opacity="0.8"/><circle cx="447" cy="248" r="12" fill="url(#gold)" stroke="#8e6d2a" stroke-width="3"/>
+<circle cx="252" cy="248" r="152" fill="url(#paper)" stroke="#cbc0a7" stroke-width="3"/>
+<circle cx="252" cy="248" r="140" fill="none" stroke="#cbc0a7" stroke-width="2.5" stroke-dasharray="7 6"/>
+<g transform="translate(-4 0)">
+<path d="M110 266H192L212 226L238 312L262 206L284 290L298 262H402" fill="none" stroke="#2f4638" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M256 356C188 304 144 266 144 216C144 176 174 150 208 150C231 150 248 163 256 182C264 163 281 150 304 150C338 150 368 176 368 216C368 266 324 304 256 356Z" fill="#1b2a21" opacity="0.2" transform="translate(4 8)"/>
+<path d="M256 356C188 304 144 266 144 216C144 176 174 150 208 150C231 150 248 163 256 182C264 163 281 150 304 150C338 150 368 176 368 216C368 266 324 304 256 356Z" fill="url(#red)"/>
+<path d="M168 206C168 182 186 168 206 168" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity="0.35"/>
+<g clip-path="url(#hc)"><path d="M110 266H192L212 226L238 312L262 206L284 290L298 262H402" fill="none" stroke="#fbf7ea" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></g>
+</g>
+</svg>

@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дневник лечения MiniMed</title>
+<style>
+@font-face { font-family: "MiniMed Code"; src: url("fonts/CascadiaCode-Regular.woff2") format("woff2"); font-display: swap; }
+
+:root {
+  --paper: #fbf7ea; --paper-2: #f3ecd9; --muted: #e6dcc4; --border: #cbc0a7;
+  --text: #292720; --text-2: #5b5545;
+  --accent: #3c6478; --accent-text: #2f5466; --accent-soft: rgb(60 100 120 / 12%); --accent-dark: #2c4b5b;
+  --good: #2f7d5b; --check: #2f9e5b; --late: #b06a12; --alert: #d23b2e; --sun: #e8b931;
+  --desk: #8f7d57;
+  --serif: Georgia, "Times New Roman", Times, serif;
+  --sans: Arial, Helvetica, sans-serif;
+  --mono: "MiniMed Code", "SFMono-Regular", Consolas, monospace;
+  --dots: radial-gradient(color-mix(in srgb, #292720 5%, transparent) 0.6px, transparent 0.8px) 0 0 / 3px 3px;
+  --shadow: 0 1px 2px rgb(41 39 32 / 14%), 0 12px 24px -14px rgb(41 39 32 / 32%);
+}
+* { box-sizing: border-box; }
+html { background: var(--desk); }
+body {
+  margin: 0; color: var(--text); font: 19px/1.35 var(--sans); font-variant-numeric: tabular-nums slashed-zero;
+  background: radial-gradient(circle at 14% -10%, #a19a89 0, transparent 38rem), var(--desk);
+  print-color-adjust: exact; -webkit-print-color-adjust: exact;
+}
+.stage { display: flex; justify-content: center; padding: 28px 16px 60px; }
+.deck { width: 1280px; zoom: var(--k, 1); display: flex; flex-direction: column; gap: 28px; }
+::selection { background: #bfd873; color: #292720; }
+
+/* ---------- slide ---------- */
+.slide {
+  position: relative; width: 1280px; height: 720px; overflow: hidden; border-radius: 20px;
+  background: var(--dots), linear-gradient(180deg, #fdfaf0 0%, var(--paper) 55%, #f4eddb 100%);
+  border: 1px solid var(--border); box-shadow: 0 2px 4px rgb(0 0 0 / 20%), 0 24px 48px -20px rgb(41 30 10 / 55%);
+}
+.blob { position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; }
+.b-a { width: 520px; height: 520px; right: -170px; top: -230px; background: radial-gradient(circle, rgb(60 100 120 / 22%), transparent 68%); }
+.b-b { width: 460px; height: 460px; left: -190px; bottom: -200px; background: radial-gradient(circle, rgb(232 185 49 / 24%), transparent 68%); }
+.b-c { width: 360px; height: 360px; right: 120px; bottom: -190px; background: radial-gradient(circle, rgb(47 158 91 / 16%), transparent 68%); }
+
+.head { position: absolute; left: 56px; top: 32px; width: 1168px; z-index: 2; }
+.slide[data-corner="on"] .head { width: 880px; }
+.kicker { display: inline-block; padding: 4px 13px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text);
+  font: 700 14px/1.3 var(--sans); letter-spacing: 0.09em; text-transform: uppercase; }
+h2 { margin: 8px 0 0; font: 700 40px/1.1 var(--serif); color: var(--text); letter-spacing: -0.01em; }
+.body { position: absolute; left: 56px; right: 56px; top: 138px; bottom: 56px; z-index: 1; }
+
+/* ---------- identity band ---------- */
+.band {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 40px; z-index: 5; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 0 56px; border-top: 2px solid var(--accent); font-size: 14px; color: var(--text-2); letter-spacing: 0.02em;
+  background: linear-gradient(180deg, rgb(243 236 217 / 96%), rgb(230 220 196 / 96%));
+}
+.band-l { font-weight: 700; color: var(--accent-text); }
+.band-c { text-align: center; font-family: var(--serif); font-style: italic; }
+.band-r { text-align: right; font-family: var(--mono); font-size: 14px; }
+
+.band-l { display: flex; align-items: center; gap: 10px; }
+.band-ico { width: 26px; height: 26px; display: block; filter: drop-shadow(0 1px 1px rgb(41 39 32 / 25%)); }
+
+/* ---------- chart (slide 2) ---------- */
+.chart { position: relative; margin-top: 12px; margin-bottom: 22px; display: grid; gap: 9px; }
+.bar { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 10px; }
+.bar .lb { font: 14px/1.12 var(--sans); color: #eef4f6; }
+.bar .lb small { display: block; font-size: 12px; color: #b9d0db; }
+.bar .tr { position: relative; height: 26px; border-radius: 7px; background: rgb(255 255 255 / 12%); }
+.bar .fl { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: linear-gradient(90deg, #f3d36f, #e8b931); box-shadow: inset 0 -2px 0 rgb(0 0 0 / 12%); }
+.bar .fl.rng { background: linear-gradient(90deg, #f3d36f 0%, #e8b931 80%, rgb(232 185 49 / 45%) 80%); }
+.bar .fl b { position: absolute; right: 7px; top: 0; font: 700 14px/26px var(--sans); color: #3b2f0a; }
+.who-line { position: absolute; top: -8px; bottom: -6px; left: calc(180px + (100% - 180px) * 0.5); border-left: 2px dashed rgb(255 255 255 / 70%); }
+.who-line span { position: absolute; bottom: -20px; left: -40px; width: 80px; text-align: center; font: 700 12px/1.2 var(--sans); color: #fff; }
+
+/* ---------- slide: adaptation ---------- */
+.sa .blocks { position: absolute; left: 0; top: 0; width: 560px; bottom: 0; display: flex; flex-direction: column; gap: 14px; }
+.sa .blocks .card { padding: 16px 20px; }
+.sa .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.sa .tile2 { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 12px; background: var(--accent-soft); font-size: 14px; line-height: 1.2; text-align: center; }
+.sa .tile2 img { width: 32px; height: 32px; }
+.sa .tile2 em { font-style: normal; font-size: 24px; line-height: 32px; }
+.sa .spec { position: absolute; left: 584px; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; gap: 14px; }
+.sa .spec .card { padding: 16px 20px; }
+.sa .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.sa .sp { padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: #fffdf6; font-size: 15.5px; line-height: 1.3; }
+.sa .sp b { display: block; font-size: 16.5px; }
+.sa .quiz { display: flex; gap: 16px; align-items: flex-start; }
+.sa .qmock { flex: none; width: 210px; padding: 10px 12px; border-radius: 12px; border: 2px dashed rgb(60 100 120 / 45%); background: #fffdf6; font-size: 13.5px; line-height: 1.3; }
+.sa .qmock b { display: block; font-size: 14.5px; margin-bottom: 6px; }
+.sa .qmock .opt { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+.sa .qmock .opt i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); flex: none; }
+.sa .qmock .opt i.on { background: var(--accent); }
+
+.ico.pic { background: none; }
+.ai { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgb(41 39 32 / 18%)); }
+.s3 .task .e .ai { width: 60px; height: 60px; margin: -10px -6px -12px 0; }
+.s9 .node .e .ai { width: 64px; height: 64px; margin: 0 auto; }
+.s12 h3 .ai { display: inline-block; width: 34px; height: 34px; vertical-align: -8px; margin-right: 6px; }
+
+.emo { display: inline-block; height: 1.05em; width: auto; vertical-align: -0.15em; }
+
+/* ---------- corner QR ---------- */
+.corner-qr { position: absolute; top: 16px; right: 28px; display: flex; gap: 10px; z-index: 6; }
+.cq { width: 100px; padding: 5px 5px 4px; text-align: center; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.cq-img { width: 90px; height: 90px; }
+.cq .qr, .qrbox .qr { display: block; width: 100%; height: 100%; }
+.cq span { display: block; font: 700 13px/1.3 var(--sans); color: var(--accent-text); }
+
+/* ---------- common blocks ---------- */
+.card { position: relative; background: var(--dots), linear-gradient(180deg, #fdfaf0 0%, var(--paper) 60%, #f4eddb 100%);
+  border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow); }
+.card h3 { margin: 0 0 8px; font: 700 24px/1.2 var(--serif); }
+.card p { margin: 0; }
+.ico { flex: none; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: var(--accent-soft); font-size: 28px; }
+.num { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 17px/1 var(--sans); box-shadow: 0 2px 0 var(--accent-dark); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border); background: #fffdf6; font-size: 17px; line-height: 1.2; box-shadow: 0 1px 1px rgb(41 39 32 / 10%); }
+.chip.acc { background: var(--accent-soft); border-color: rgb(60 100 120 / 35%); color: var(--accent-text); font-weight: 700; }
+.chip.mono { font-family: var(--mono); font-size: 15px; }
+.small { font-size: 14px; color: var(--text-2); line-height: 1.35; }
+.mono { font-family: var(--mono); }
+.row { display: flex; } .col { display: flex; flex-direction: column; }
+.g12 { gap: 12px; } .g16 { gap: 16px; } .g24 { gap: 24px; } .g32 { gap: 32px; }
+[data-edit] { border-bottom: 2px dashed var(--accent); padding: 0 4px 1px; background: rgb(232 185 49 / 14%); border-radius: 3px; }
+[data-edit]:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+ul.tick { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+ul.tick li { position: relative; padding-left: 30px; }
+ul.tick li::before { content: "✓"; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--check); color: #fff; font: 700 14px/22px var(--sans); text-align: center; }
+ul.dot { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+ul.dot li { position: relative; padding-left: 22px; }
+ul.dot li::before { content: ""; position: absolute; left: 3px; top: 0.5em; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+
+/* ---------- screenshot frames ---------- */
+.shot { position: relative; width: 100%; height: 100%; overflow: hidden; background:
+  repeating-linear-gradient(45deg, #eee6d0 0 12px, #f6f0de 12px 24px); outline: 2px dashed rgb(60 100 120 / 45%); outline-offset: -8px; }
+.shot .ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; color: var(--accent-text); padding: 14px; }
+.shot .ph em { font-style: normal; font-size: 30px; line-height: 1; }
+.shot .ph b { font: 700 14px/1.3 var(--mono); word-break: break-all; }
+.shot .ph i { font: 13px/1.3 var(--sans); font-style: normal; color: var(--text-2); }
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; background: #fff; }
+
+.browser { border: 1px solid #a99d83; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: var(--shadow), 0 18px 30px -18px rgb(41 39 32 / 45%); }
+.bbar { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: linear-gradient(180deg, #efe8d4, #e3d9c0); border-bottom: 1px solid #b9ad92; }
+.dots { display: flex; gap: 5px; } .dots u { width: 9px; height: 9px; border-radius: 50%; background: #c6baa0; display: block; }
+.dots u:nth-child(1) { background: #e0796c; } .dots u:nth-child(2) { background: #e8b931; } .dots u:nth-child(3) { background: #6dbb88; }
+.url { flex: 1; height: 18px; border-radius: 9px; background: rgb(255 255 255 / 75%); font: 12px/18px var(--mono); color: var(--text-2); padding: 0 10px; overflow: hidden; white-space: nowrap; }
+.browser .shot { height: auto; aspect-ratio: 16 / 10; outline-offset: -6px; }
+.browser.wide .shot { aspect-ratio: 2 / 1; }
+
+.phone { position: relative; width: var(--pw, 236px); padding: 8px; border-radius: 34px; background: linear-gradient(145deg, #3a372f, #1d1b16); box-shadow: 0 2px 3px rgb(0 0 0 / 30%), 0 20px 30px -14px rgb(41 39 32 / 60%); }
+.phone::after { content: ""; position: absolute; z-index: 3; top: 15px; left: 50%; width: 54px; height: 14px; margin-left: -27px; border-radius: 8px; background: #1d1b16; }
+.phone .screen { aspect-ratio: 9 / 19.5; border-radius: 26px; overflow: hidden; background: #fff; }
+.phone .shot { outline-offset: -10px; }
+.cap { margin-top: 8px; text-align: center; font: 700 14px/1.2 var(--sans); color: var(--accent-text); }
+
+/* ---------- slide 1 ---------- */
+.s1 .uni { position: absolute; left: 56px; top: 44px; width: 860px; font: 700 18px/1.4 var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent-text); }
+.s1 .dept { position: absolute; left: 56px; top: 152px; font: 22px/1.4 var(--serif); }
+.s1 .title { position: absolute; left: 56px; top: 232px; width: 780px; }
+.s1 .title h1 { margin: 0; font: 700 64px/1.04 var(--serif); letter-spacing: -0.02em; }
+.s1 .title h1 span { color: var(--accent); }
+.s1 .title p { margin: 18px 0 0; font: 26px/1.3 var(--serif); font-style: italic; color: var(--text-2); }
+.s1 .who { position: absolute; left: 56px; bottom: 74px; font: 21px/1.9 var(--sans); }
+.s1 .city { position: absolute; right: 56px; bottom: 74px; font: 21px/1.9 var(--sans); }
+.s1 .hero { position: absolute; right: 70px; top: 196px; width: 330px; height: 360px; }
+.s1 .tile { position: absolute; left: 50px; top: 52px; width: 230px; height: 230px; border-radius: 52px; background: var(--dots), linear-gradient(160deg, #fff, var(--paper-2)); border: 1px solid var(--border); box-shadow: var(--shadow), 0 26px 40px -22px rgb(41 39 32 / 55%); display: grid; place-items: center; transform: rotate(-4deg); }
+.s1 .tile img { width: 150px; height: 150px; border-radius: 34px; display: block; }
+.bubble { position: absolute; display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; font-size: 40px; background: #fffdf6; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.bubble.b1 { right: 6px; top: 6px; background: #eaf1d2; transform: rotate(8deg); }
+.bubble.b2 { left: 0; top: 250px; background: #f7e3b8; transform: rotate(-8deg); }
+.bubble.b3 { right: 30px; top: 270px; background: #dcebf1; width: 90px; height: 90px; font-size: 48px; transform: rotate(6deg); }
+.bubble.b4 { left: 120px; top: 300px; width: 60px; height: 60px; font-size: 30px; background: #f6d6d0; }
+
+/* ---------- slide 2 ---------- */
+.s2 .hero { position: absolute; left: 0; top: 0; bottom: 0; width: 440px; padding: 26px 28px; display: flex; flex-direction: column; background: var(--dots), linear-gradient(165deg, #4a7489 0%, var(--accent) 55%, var(--accent-dark) 100%); color: #f4f7f8; border-color: var(--accent-dark); }
+.s2 .hero .big-unused { font: 700 150px/1 var(--serif); letter-spacing: -0.04em; margin-top: 6px; }
+.s2 .hero .big small { font-size: 70px; margin-left: 4px; }
+.s2 .hero p { font: 25px/1.3 var(--serif); margin-top: 8px; }
+.s2 .hero .src { margin-top: auto; font-size: 13px; line-height: 1.4; color: #cfe0e8; border-top: 1px solid rgb(255 255 255 / 30%); padding-top: 10px; }
+.s2 .hero .src { font-size: 11px; line-height: 1.3; padding-top: 8px; }
+.s2 .list { position: absolute; left: 464px; right: 0; top: 0; bottom: 0; display: grid; grid-template-rows: repeat(3, 1fr); gap: 16px; }
+.s2 .list .card { display: flex; gap: 20px; align-items: center; }
+.s2 .list .ico { width: 76px; height: 76px; font-size: 40px; }
+.s2 .list .card h3 { font-size: 26px; }
+.s2 .list .card.red .ico { background: rgb(210 59 46 / 14%); }
+.s2 .list .card.amb .ico { background: rgb(232 185 49 / 24%); }
+
+/* ---------- slide 3 ---------- */
+.s3 .goal { position: absolute; left: 0; right: 0; top: 0; height: 132px; padding: 18px 28px 18px 28px; display: flex; gap: 24px; align-items: center; color: #f4f7f8; border-color: var(--accent-dark);
+  background: var(--dots), linear-gradient(110deg, #4a7489 0%, var(--accent) 50%, var(--accent-dark) 100%); }
+.s3 .goal .tag { flex: none; font: 700 40px/1 var(--serif); }
+.s3 .goal p { font: 24px/1.3 var(--serif); }
+.s3 .tasks { position: absolute; left: 0; right: 0; top: 150px; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.s3 .task { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px; min-height: 0; }
+.s3 .task .top { display: flex; align-items: center; justify-content: space-between; }
+.s3 .task .e { font-size: 34px; line-height: 1; }
+.s3 .task p { font-size: 20px; line-height: 1.28; font-weight: 700; }
+.s3 .task p span { display: block; font-weight: 400; font-size: 17px; color: var(--text-2); margin-top: 4px; }
+.s3 .task.fox { background: var(--dots), linear-gradient(180deg, #fff4cf, #f7e3b8); border-style: dashed; justify-content: center; align-items: center; text-align: center; }
+.s3 .task.fox .e { font-size: 60px; }
+.s3 .task.fox p { font-weight: 400; font-size: 18px; }
+
+/* ---------- slide 4 ---------- */
+.s4 .pair { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.s4 .qcard { display: flex; flex-direction: column; padding: 20px 24px 20px; }
+.s4 .qcard .t { display: flex; align-items: center; gap: 14px; }
+.s4 .qcard .t h3 { margin: 0; font-size: 34px; }
+.s4 .qcard .desc { margin-top: 10px; font-size: 20px; line-height: 1.3; }
+.s4 .qcard .mid { margin-top: 14px; display: flex; gap: 22px; flex: 1; align-items: flex-start; }
+.qrbox { flex: none; width: 256px; }
+.qrbox .q { width: 256px; height: 256px; padding: 8px; background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
+.qrbox .u { margin-top: 10px; text-align: center; white-space: nowrap; font: 15.5px/1.2 var(--mono); color: var(--accent-text); font-weight: 700; word-break: break-all; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: st; }
+.steps li { position: relative; padding-left: 38px; counter-increment: st; font-size: 18px; line-height: 1.3; }
+.steps li::before { content: counter(st); position: absolute; left: 0; top: -1px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 15px/28px var(--sans); text-align: center; }
+.s4 .note { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--border); }
+
+/* ---------- slide 5 ---------- */
+.s5 .l { position: absolute; left: 0; top: 4px; width: 700px; }
+.s5 .r { position: absolute; left: 740px; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; gap: 12px; }
+.s5 .st { flex: 1; display: flex; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 14px; }
+.s5 .st p { font-size: 18px; line-height: 1.28; }
+.s5 .st p b { display: block; font-size: 19px; }
+.s5 .st.go { background: linear-gradient(180deg, #3f7f6a, var(--good)); border-color: #256448; color: #fff; }
+.s5 .st.go .num { background: #fff; color: var(--good); box-shadow: none; }
+.s5 .below { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.s5 .l.np { display: flex; gap: 24px; align-items: flex-start; --pw: 222px; }
+.s5 .nnote { align-self: center; width: 190px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 17px; line-height: 1.3; }
+.s5 .nnote .ico { width: 64px; height: 64px; }
+
+/* ---------- slide 6 ---------- */
+.s6 .phones { position: absolute; left: 0; top: 4px; display: flex; gap: 28px; --pw: 236px; }
+.s6 .phones > div:nth-child(1) { transform: rotate(-1.5deg); } .s6 .phones > div:nth-child(2) { transform: rotate(1.5deg); margin-top: 10px; }
+.s6 .info { position: absolute; left: 540px; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; gap: 14px; }
+.s6 .info .card { padding: 16px 22px; }
+.s6 .info .card h3 { display: flex; align-items: center; gap: 10px; font-size: 23px; margin-bottom: 8px; }
+.s6 .info .card h3 .num { width: 30px; height: 30px; font-size: 15px; }
+.s6 .info ul { font-size: 19px; }
+
+/* ---------- slide 7 ---------- */
+.s7 .ph1 { position: absolute; left: 0; top: 4px; --pw: 232px; }
+.s7 .flow { position: absolute; left: 266px; width: 292px; top: 0; bottom: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.s7 .flow .card { padding: 14px 18px; font-size: 18px; line-height: 1.3; }
+.s7 .flow .card b { display: block; font: 700 14px/1.3 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); margin-bottom: 4px; }
+.s7 .flow .card.help { background: linear-gradient(180deg, #e7f3ea, #d5ebdd); border-color: #9fc9b0; }
+.s7 .flow .card.help b { color: var(--good); }
+.s7 .flow .card.alert { background: linear-gradient(180deg, #fbe9e5, #f6d3cc); border-color: #e2a79d; }
+.s7 .flow .card.alert b { color: var(--alert); }
+.s7 .flow .arr { text-align: center; font-size: 24px; line-height: 1; color: var(--accent); }
+.s7 .rt { position: absolute; left: 590px; right: 0; top: 4px; }
+.s7 .rt .card { margin-top: 18px; padding: 14px 20px; display: flex; gap: 14px; align-items: center; font-size: 18px; }
+
+/* ---------- slide 8 ---------- */
+.s8 .big { position: absolute; left: 0; top: 0; width: 610px; }
+.s8 .big .card { margin-top: 10px; padding: 9px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.s8 .big .chip { font-size: 15.5px; padding: 5px 11px; }
+.s8 .sm { position: absolute; left: 642px; right: 0; top: 0; }
+.s8 .sm .lc { margin-top: 8px; font-size: 15px; line-height: 1.3; color: var(--text-2); }
+.s8 .sm .lc b { color: var(--text); }
+.s8 .sm .card { margin-top: 10px; padding: 12px 16px; }
+.s8 .sm .card > b { display: block; font-size: 16px; margin-bottom: 6px; }
+.s8 .tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.s8 .tools .chip { font-size: 15px; padding: 5px 11px; }
+
+/* ---------- slide 9 ---------- */
+.s9 .diagram { position: absolute; left: 0; right: 0; top: 0; height: 218px; display: grid; grid-template-columns: 250px 1fr 290px 1fr 250px; align-items: center; }
+.s9 .node { height: 202px; padding: 14px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.s9 .node .e { font-size: 44px; line-height: 1; }
+.s9 .node b { font: 700 21px/1.2 var(--serif); }
+.s9 .node .small { font-size: 14px; }
+.s9 .node.srv { background: var(--dots), linear-gradient(165deg, #46697b, var(--accent-dark)); color: #f4f7f8; border-color: #223a47; }
+.s9 .node.srv .small { color: #cfe0e8; }
+.s9 .node.srv .cipher { font: 14px/1.5 var(--mono); letter-spacing: 0.04em; color: #bcd5e0; background: rgb(0 0 0 / 22%); border-radius: 8px; padding: 6px 10px; }
+.s9 .node .key { font-size: 13px; line-height: 1.3; background: var(--accent-soft); border-radius: 8px; padding: 5px 8px; color: var(--accent-text); }
+.s9 .link { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0 6px; }
+.s9 .link .lbl { font: 700 13px/1.25 var(--sans); text-align: center; color: var(--good); background: #e7f3ea; border: 1px solid #9fc9b0; border-radius: 10px; padding: 5px 8px; }
+.s9 .link svg { width: 100%; height: 22px; }
+.s9 .facts { position: absolute; left: 0; right: 0; top: 232px; bottom: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 14px; }
+.s9 .fact { display: flex; gap: 16px; align-items: center; padding: 14px 18px; }
+.s9 .fact .ico { width: 56px; height: 56px; font-size: 29px; }
+.s9 .fact p { font-size: 19px; line-height: 1.3; }
+.s9 .fact p b { display: block; font-size: 21px; margin-bottom: 4px; }
+
+/* ---------- slide 10 ---------- */
+.s10 .cols { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr 1.18fr; gap: 18px; }
+.s10 .cols .card { display: flex; flex-direction: column; gap: 10px; padding: 20px 22px; }
+.s10 .cols .card .ico { width: 70px; height: 70px; font-size: 38px; }
+.s10 .cols .card h3 { margin: 0; font-size: 28px; }
+.s10 .cols .card ul { font-size: 19.5px; }
+.s10 .devs { display: flex; gap: 10px; margin-top: auto; }
+.s10 .devs .d { flex: 1; text-align: center; padding: 10px 4px; border-radius: 14px; background: var(--accent-soft); font-size: 15px; line-height: 1.25; }
+.s10 .devs .d em { display: block; font-style: normal; font-size: 32px; }
+.s10 .offl { display: grid; gap: 10px; }
+.s10 .offl .pill { padding: 10px 14px; border-radius: 14px; background: var(--accent-soft); font-size: 17.5px; line-height: 1.3; }
+.s10 .offl .pill b { display: block; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 2px; }
+.s10 .chips { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.s10 .ru { margin-top: auto; display: inline-flex; align-self: flex-start; gap: 8px; align-items: center; }
+
+.s10 .devs2 { margin-top: auto; display: grid; gap: 10px; }
+.s10 .dv { display: grid; grid-template-columns: 58px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; padding: 8px 12px; border-radius: 14px; background: var(--accent-soft); }
+.s10 .dv .ai { grid-row: 1 / 3; width: 58px; height: 58px; }
+.s10 .dv b { font-size: 19px; align-self: end; }
+.s10 .dv span { font-size: 15px; color: var(--text-2); align-self: start; }
+
+.s10-pub .cols { grid-template-columns: 1fr 1.3fr; }
+
+/* ---------- slide 11 ---------- */
+.s11 .l { position: absolute; left: 0; top: 0; bottom: 0; width: 600px; display: flex; flex-direction: column; gap: 16px; }
+.s11 .r { position: absolute; left: 624px; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; padding: 22px 24px; }
+.s11 .rw { display: flex; gap: 22px; flex: 1; }
+.s11 table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.s11 th { text-align: left; font: 700 12.5px/1.3 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); padding: 0 8px 6px 0; border-bottom: 1.5px solid var(--border); }
+.s11 td { padding: 6px 8px 6px 0; border-bottom: 1px dashed var(--border); vertical-align: baseline; }
+.s11 td.m { font-family: var(--mono); font-size: 15px; color: var(--accent-text); font-weight: 700; white-space: nowrap; }
+.s11 tr:last-child td { border-bottom: 0; }
+.s11 .l .card { padding: 18px 22px; }
+.s11 .scales { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
+.s11 .r h3 { margin-bottom: 12px; }
+.s11 .r ul { font-size: 20px; gap: 14px; }
+.s11 .r .txt { flex: 1; }
+.s11 .r .ph2 { flex: none; align-self: flex-end; --pw: 176px; }
+.s11 .l .card:last-child { flex: 1; }
+
+.s11 .r.ui { overflow: hidden; }
+.s11 .uiph { display: flex; gap: 22px; justify-content: center; margin-top: 12px; --pw: 196px; }
+
+/* ---------- slide 12 ---------- */
+.s12 .l { position: absolute; left: 0; top: 0; width: 590px; height: 352px; padding: 18px 26px; }
+.s12 .l h3 { margin-bottom: 10px; }
+.s12 .l ul { font-size: 19.5px; gap: 9px; }
+.s12 .rr { position: absolute; left: 614px; right: 0; top: 0; height: 352px; display: flex; flex-direction: column; gap: 14px; }
+.s12 .status { flex: 1; padding: 16px 22px; background: linear-gradient(180deg, #fff4cf, #f7e3b8); border-color: #d9bd70; }
+.s12 .status h3 { font-size: 22px; margin-bottom: 6px; }
+.s12 .status p { font-size: 18px; line-height: 1.32; }
+.s12 .status p + p { margin-top: 6px; }
+.s12 .next { padding: 14px 22px; }
+.s12 .next h3 { font-size: 22px; margin-bottom: 6px; }
+.s12 .next ul { font-size: 19px; gap: 6px; }
+.s12 .thanks { position: absolute; left: 0; right: 0; bottom: 0; height: 160px; display: flex; align-items: center; gap: 26px; padding: 14px 28px; color: #f4f7f8; border-color: var(--accent-dark); background: var(--dots), linear-gradient(110deg, #4a7489 0%, var(--accent) 50%, var(--accent-dark) 100%); }
+.s12 .thanks .tt { flex: 1; font: 700 40px/1.1 var(--serif); }
+.s12 .thanks .tt span { display: block; font: 18px/1.3 var(--sans); font-weight: 400; color: #d9e7ee; margin-top: 8px; }
+.s12 .qq { display: flex; align-items: center; gap: 12px; }
+.s12 .qq .q { width: 124px; height: 124px; padding: 5px; background: #fff; border-radius: 12px; box-shadow: var(--shadow); }
+.s12 .qq .q .qr { display: block; width: 100%; height: 100%; }
+.s12 .qq .u { font: 14px/1.3 var(--mono); color: #fff; }
+.s12 .qq .u b { display: block; font: 700 19px/1.3 var(--sans); }
+
+/* ---------- print ---------- */
+@page { size: 1280px 720px; margin: 0; }
+@media print {
+  html, body { background: none !important; margin: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .stage { padding: 0; display: block; }
+  .deck { zoom: 1 !important; gap: 0; display: block; width: 1280px; }
+  .slide { border-radius: 0; box-shadow: none; border: 0; break-after: page; page-break-after: always; }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+}
+</style>
+</head>
+<body>
+<main class="stage"><div class="deck" id="deck">
+
+<!-- 1. Титульный лист -->
+<section class="slide s1">
+  <div class="blob b-a"></div><div class="blob b-b"></div><div class="blob b-c"></div>
+  <div class="uni">MiniMed · модуль для врача и пациента</div>
+  <div class="title">
+    <h1>Дневник лечения <span>MiniMed</span></h1>
+    <p>Защищённая связь врача и пациента между визитами</p>
+  </div>
+  <div class="hero">
+    <div class="tile"><img src="img/icons/diary.svg" alt="Дневник лечения" style="border-radius:0"></div>
+    <span class="bubble b1"><img class="emo" src="img/emoji/1f98a.png" alt="🦊"></span><span class="bubble b2"><img class="emo" src="img/emoji/1f989.png" alt="🦉"></span><span class="bubble b3"><img class="emo" src="img/emoji/1f43c.png" alt="🐼"></span><span class="bubble b4" style="width:70px;height:70px;padding:8px"><img src="img/app-icon.png" alt="MiniMed" style="width:100%;height:100%;border-radius:12px"></span>
+  </div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">1 / 13</span></footer>
+</section>
+
+<!-- 2. Актуальность -->
+<section class="slide s2" data-corner="off">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Актуальность</span><h2>Между визитами врач ничего не видит</h2></header>
+  <div class="body">
+    <div class="card hero">
+      <span class="kicker" style="background:rgb(255 255 255 / 16%);color:#fff;align-self:flex-start">Российские исследования</span>
+      <p style="margin-top:8px;font-size:21px">Доля пациентов, которые <b>не соблюдают</b> назначенное лечение</p>
+      <div class="chart">
+        <div class="who-line"><span>ВОЗ ≈ 50 %</span></div>
+        <div class="bar"><span class="lb">Шизофрения<small>обзор литературы</small></span><span class="tr"><span class="fl rng" style="width:50%"><b>40–50 %</b></span></span></div>
+        <div class="bar"><span class="lb">Психиатрический учёт<small>2020 · n = 83</small></span><span class="tr"><span class="fl" style="width:28.9%"><b>29 %</b></span></span></div>
+        <div class="bar"><span class="lb">Депрессия: отказ от лечения в 1-й месяц<small>2016 · n = 240</small></span><span class="tr"><span class="fl" style="width:25.2%"><b>25 %</b></span></span></div>
+        <div class="bar"><span class="lb">Инсульт и когнитивные нарушения<small>2019 · n = 56</small></span><span class="tr"><span class="fl" style="width:48.5%"><b>49 %</b></span></span></div>
+        <div class="bar"><span class="lb">Мигрень<small>2021 · n = 1598</small></span><span class="tr"><span class="fl" style="width:62.4%"><b>62 %</b></span></span></div>
+        <div class="bar"><span class="lb">Гипертензия: пропуски<small>МММ19 · 2020</small></span><span class="tr"><span class="fl" style="width:38.6%"><b>39 %</b></span></span></div>
+      </div>
+      <div class="src">Светличная Т. Г. и соавт., 2020; Азимова Ю. Э. и соавт., 2016 — Журн. неврологии и психиатрии им. С. С. Корсакова · Боголепова А. Н., Коваленко Е. А., 2019; Ковальчук, Кирьянова, 2021 — по обзору: Терапия. 2023;№1 (прил.) · Ротарь О. П. и соавт. Рос. кардиол. журн. 2020 · обзор: Рос. мед.-биол. вестн. им. И. П. Павлова · ВОЗ, 2003.</div>
+    </div>
+    <div class="list">
+      <div class="card"><div class="ico pic"><img class="ai" src="img/icons/doctor.svg" alt=""></div><div><h3>Слепое окно между визитами</h3><p>Что происходит дома, врач узнаёт только на следующем приёме — со слов пациента.</p></div></div>
+      <div class="card amb"><div class="ico pic"><img class="ai" src="img/icons/phone.svg" alt=""></div><div><h3>Бумага и мессенджеры не годятся</h3><p>Бумажный дневник теряется или заполняется накануне визита. Мессенджер — небезопасное место для данных о здоровье.</p></div></div>
+      <div class="card red"><div class="ico pic"><img class="ai" src="img/icons/heart.svg" alt=""></div><div><h3>Ухудшение замечают поздно</h3><p>Побочные эффекты, скачки давления, плохие дни — врач узнаёт о них через недели, на приёме.</p></div></div>
+    </div>
+  </div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">2 / 13</span></footer>
+</section>
+
+<!-- 3. Цели и задачи -->
+<section class="slide s3" data-corner="off">
+  <div class="blob b-a"></div><div class="blob b-c"></div>
+  <header class="head"><span class="kicker">Цели и задачи</span><h2>Цель и задачи работы</h2></header>
+  <div class="body">
+    <div class="card goal"><div class="tag">Цель</div><p>Создать и испытать защищённый электронный дневник лечения, связывающий врача и пациента между визитами.</p></div>
+    <div class="tasks">
+      <div class="card task"><div class="top"><span class="num">1</span><span class="e"><img class="ai" src="img/icons/diary.svg" alt=""></span></div><p>План лечения для пациента за пару минут<span>лекарства и отметки</span></p></div>
+      <div class="card task"><div class="top"><span class="num">2</span><span class="e"><img class="ai" src="img/icons/pills.svg" alt=""></span></div><p>Ежедневные отметки одним касанием<span>приём, самочувствие, давление</span></p></div>
+      <div class="card task"><div class="top"><span class="num">3</span><span class="e"><img class="ai" src="img/icons/heart.svg" alt=""></span></div><p>Опросники и срочный сигнал врачу<span>PHQ-9, GAD-7, шкалы Цунга</span></p></div>
+      <div class="card task"><div class="top"><span class="num">4</span><span class="e"><img class="ai" src="img/icons/doctor.svg" alt=""></span></div><p>Панель врача с графиками<span>список, календарь, выгрузка</span></p></div>
+      <div class="card task"><div class="top"><span class="num">5</span><span class="e"><img class="ai" src="img/icons/lock.svg" alt=""></span></div><p>Сквозное шифрование и хранение в РФ<span>сервер не читает данные</span></p></div>
+      <div class="card task"><div class="top"><span class="num">6</span><span class="e"><img class="ai" src="img/icons/offline.svg" alt=""></span></div><p>Работа на любом устройстве и без сети<span>компьютер, телефон, офлайн</span></p></div>
+      <div class="card task"><div class="top"><span class="num">7</span><span class="e"><img class="ai" src="img/icons/fhir.svg" alt=""></span></div><p>Обмен данными по стандарту HL7 FHIR<span>выгрузка, понятная другим медицинским системам</span></p></div>
+      <div class="card task fox"><div class="e"><img class="emo" src="img/emoji/1f98a.png" alt="🦊"></div><p>Дальше — как это выглядит вживую</p></div>
+    </div>
+  </div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">3 / 13</span></footer>
+</section>
+
+<!-- 4. Попробуйте сами -->
+<section class="slide s4" data-corner="off">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Без регистрации</span><h2>Попробуйте сами — прямо сейчас</h2></header>
+  <div class="body"><div class="pair">
+    <div class="card qcard">
+      <div class="t"><div class="ico pic"><img class="ai" src="img/icons/doctor.svg" alt=""></div><h3>Врач</h3></div>
+      <p class="desc">Один клик — и вы в кабинете врача: пациенты с историей уже ждут.</p>
+      <div class="mid">
+        <div class="qrbox"><div class="q"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><div class="u">med.1damer.com/demo</div></div>
+        <ol class="steps"><li>Наведите камеру телефона на QR-код</li><li>Нажмите одну кнопку — без почты и пароля</li><li>Откройте любого пациента: календарь, графики</li></ol>
+      </div>
+      <div class="note small"><img class="emo" src="img/emoji/1f98a.png" alt="🦊"> Можно смело нажимать что угодно.</div>
+    </div>
+    <div class="card qcard">
+      <div class="t"><div class="ico pic"><img class="ai" src="img/icons/phone.svg" alt=""></div><h3>Пациент</h3></div>
+      <p class="desc">Дневник с историей за 2 недели прямо на вашем телефоне — глазами пациента.</p>
+      <div class="mid">
+        <div class="qrbox"><div class="q"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><div class="u">med.1damer.com/demo/patient</div></div>
+        <ol class="steps"><li>Наведите камеру телефона на QR-код</li><li>Откроется дневник с историей за 2 недели</li><li>Отметьте приём и самочувствие — врач увидит сразу</li></ol>
+      </div>
+      <div class="note small"><img class="emo" src="img/emoji/1f4a1.png" alt="💡"> Откройте оба QR на одном телефоне — увидите свой дневник у врача.</div>
+    </div>
+  </div></div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">4 / 13</span></footer>
+</section>
+
+<!-- 5. Врач: новый пациент -->
+<section class="slide s5" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Врач</span><h2>Новый пациент — за пару минут</h2></header>
+  <div class="body">
+    <div class="l np">
+      <div style="transform:rotate(-1.5deg)"><div class="phone"><div class="screen"><div class="shot"><img src="img/doctor-new-patient.png" alt=""></div></div></div><div class="cap">Карточка и экран пациента</div></div>
+      <div style="transform:rotate(1.5deg)"><div class="phone"><div class="screen"><div class="shot"><img src="img/doctor-new-patient-2.png" alt=""></div></div></div><div class="cap">Отметки, опросники, код</div></div>
+      <div class="card nnote"><div class="ico pic"><img class="ai" src="img/icons/phone.svg" alt=""></div><p>Врач видит <b>тот же экран, что и пациент</b>. Всё в пунктирной рамке меняется карандашом.</p></div>
+    </div>
+    <div class="r">
+      <div class="card st"><span class="num">1</span><p><b>Псевдоним и значок</b>имя не нужно</p></div>
+      <div class="card st"><span class="num">2</span><p><b>Лекарства</b>с подсказками, доза, время, связь с едой</p></div>
+      <div class="card st"><span class="num">3</span><p><b>Отметки самочувствия</b>давление, пульс, сатурация</p></div>
+      <div class="card st"><span class="num">4</span><p><b>Опросники</b>PHQ-9, GAD-7, шкалы Цунга</p></div>
+      <div class="card st go"><span class="num">5</span><p><b>«Создать и показать код»</b>пациент сканирует — и дневник готов</p></div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">5 / 13</span></footer>
+</section>
+
+<!-- 6. Пациент -->
+<section class="slide s6" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-c"></div>
+  <header class="head"><span class="kicker">Пациент</span><h2>Подключение и каждый день</h2></header>
+  <div class="body">
+    <div class="phones">
+      <div><div class="phone"><div class="screen"><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/patient-today.png</b><i>скриншот 9:19,5</i></span><img src="img/patient-today.png" alt=""></div></div></div><div class="cap">Сегодня</div></div>
+      <div><div class="phone"><div class="screen"><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/patient-consent.png</b><i>скриншот 9:19,5</i></span><img src="img/patient-consent.png" alt=""></div></div></div><div class="cap">«Если очень плохо»</div></div>
+    </div>
+    <div class="info">
+      <div class="card"><h3><span class="num">1</span>Подключение — один раз</h3>
+        <ul class="dot"><li>Сканирует QR-код врача</li><li>Читает 2 коротких согласия и экран «Если станет очень плохо»</li><li>Ставит дневник на экран «Домой»</li></ul></div>
+      <div class="card"><h3><span class="num">2</span>Каждый день — в одно касание</h3>
+        <ul class="dot"><li>Приём лекарства — одним касанием</li><li>Самочувствие 0–10</li><li>Давление, пульс, сатурация</li><li>Описание состояния своими словами</li></ul></div>
+      <div class="card"><h3><span class="num">3</span>Напоминания о приёме <img class="emo" src="img/emoji/1f514.png" alt="🔔"></h3>
+        <p style="font-size:19px">Телефон сам напомнит в нужное время — даже без интернета.</p></div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">6 / 13</span></footer>
+</section>
+
+<!-- 7. Опросники и срочный сигнал -->
+<section class="slide s7" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Безопасность пациента</span><h2>Опросники и срочный сигнал</h2></header>
+  <div class="body">
+    <div class="ph1"><div class="phone"><div class="screen"><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/patient-questionnaire.png</b><i>скриншот 9:19,5</i></span><img src="img/patient-questionnaire.png" alt=""></div></div></div><div class="cap">Отметки дня у пациента</div></div>
+    <div class="flow">
+      <div class="card"><b>Пациент отвечает</b>тревожный ответ в опроснике</div>
+      <div class="arr">↓</div>
+      <div class="card help"><b>Пациенту — сразу</b>экран помощи: что делать и кому позвонить</div>
+      <div class="arr">↓</div>
+      <div class="card alert"><b>Врачу — сразу</b>срочная отметка вверху списка и уведомление</div>
+    </div>
+    <div class="rt"><div class="browser"><div class="bbar"><span class="dots"><u></u><u></u><u></u></span><span class="url">med.1damer.com/demo</span></div><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/doctor-alert.png</b><i>скриншот 16:10</i></span><img src="img/doctor-alert.png" alt=""></div></div>
+      <div class="card"><div class="ico" style="width:46px;height:46px;font-size:24px"><img class="emo" src="img/emoji/1f514.png" alt="🔔"></div><div>Уведомление приходит <b>без текста</b> — само содержание записи видно только в приложении врача.</div></div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">7 / 13</span></footer>
+</section>
+
+<!-- 8. Что видит врач -->
+<section class="slide s8" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-c"></div>
+  <header class="head"><span class="kicker">Врач</span><h2>Что видит врач</h2></header>
+  <div class="body">
+    <div class="big"><div class="browser"><div class="bbar"><span class="dots"><u></u><u></u><u></u></span><span class="url">med.1damer.com/demo</span></div><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/doctor-patient.png</b><i>скриншот 16:10</i></span><img src="img/doctor-patient.png" alt=""></div></div>
+      <div class="card"><span class="chip"><img class="emo" src="img/emoji/1f4c5.png" alt="📅"> Календарь</span><span class="chip"><img class="emo" src="img/emoji/1f48a.png" alt="💊"> Приём каждого лекарства</span><span class="chip"><img class="emo" src="img/emoji/1f4c8.png" alt="📈"> Графики</span><span class="chip"><img class="emo" src="img/emoji/1f4dd.png" alt="📝"> Записи дня</span></div>
+    </div>
+    <div class="sm"><div class="browser wide"><div class="bbar"><span class="dots"><u></u><u></u><u></u></span><span class="url">med.1damer.com/demo</span></div><div class="shot"><span class="ph"><em><img class="emo" src="img/emoji/1f5bc.png" alt="🖼"></em><b>img/doctor-list.png</b><i>скриншот 2:1</i></span><img src="img/doctor-list.png" alt=""></div></div>
+      <div class="lc"><b>Список:</b> срочные сверху · последняя запись · выполнение плана за 7 дней</div>
+      <div class="card"><b>Инструменты врача</b>
+        <div class="tools"><span class="chip"><img class="emo" src="img/emoji/270f.png" alt="✏️"> Изменить лечение</span><span class="chip"><img class="emo" src="img/emoji/1f4a1.png" alt="💡"> Подсказки к лекарству</span><span class="chip"><img class="emo" src="img/emoji/1fa79.png" alt="🩹"> Исправить запись</span><span class="chip"><img class="emo" src="img/emoji/1f465.png" alt="👥"> Кураторы</span><span class="chip"><img class="emo" src="img/emoji/1f4e4.png" alt="📤"> Excel · CSV · FHIR</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">8 / 13</span></footer>
+</section>
+
+<!-- A. Адаптация и свои опросники -->
+<section class="slide sa" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Не только психиатрия</span><h2>Дневник под любую специальность</h2></header>
+  <div class="body">
+    <div class="blocks">
+      <div class="card"><h3 style="font-size:22px">Врач собирает дневник из блоков</h3>
+        <p style="font-size:16.5px">Психиатрия — лишь первый пример: экран пациента складывается из готовых блоков, без программиста.</p>
+        <div class="tiles">
+          <div class="tile2"><img src="img/icons/pills.svg" alt="">Лекарства</div>
+          <div class="tile2"><img src="img/icons/heart.svg" alt="">Самочув&shy;ствие</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/1fa7a.png" alt="🩺"></em>Давление, пульс, SpO₂</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/2696.png" alt="⚖️"></em>Вес и рост</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/1f60a.png" alt="😊"></em>Настроение</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/2611.png" alt="☑️"></em>Выбор из вариантов</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/270d.png" alt="✍️"></em>Описание словами</div>
+          <div class="tile2"><em><img class="emo" src="img/emoji/1f4cb.png" alt="📋"></em>Опросники</div>
+        </div></div>
+      <div class="card" style="flex:1"><h3 style="font-size:22px">Свои опросники</h3>
+        <div class="quiz">
+          <div><p style="font-size:17px">Конструктор в приложении: вопросы, варианты, баллы — и опросник кафедры уже в дневнике рядом с PHQ-9 и GAD-7.</p></div>
+          <div class="qmock"><b>Мой опросник · побочные эффекты</b>Сонливость днём?
+            <div class="opt"><i></i>нет</div><div class="opt"><i class="on"></i>немного</div><div class="opt"><i></i>сильно</div></div>
+        </div></div>
+    </div>
+    <div class="spec">
+      <div class="card" style="flex:1"><h3 style="font-size:22px">Примеры для других кафедр</h3>
+        <div class="specs">
+          <div class="sp"><b>Кардиология</b>давление, пульс, вес, приём препаратов</div>
+          <div class="sp"><b>Неврология</b>приступы мигрени, обезболивающие, дневник головной боли</div>
+          <div class="sp"><b>Эндокринология</b>вес, приём препаратов, свой опросник</div>
+          <div class="sp"><b>Пульмонология</b>сатурация, ингаляции, одышка по шкале</div>
+          <div class="sp"><b>Ревматология</b>боль 0–10, утренняя скованность</div>
+          <div class="sp"><b>Педиатрия</b>отмечают родители, напоминания по часам</div>
+        </div></div>
+      <div class="card" style="background:var(--dots),linear-gradient(180deg,#fff4cf,#f7e3b8);border-color:#d9bd70"><h3 style="font-size:20px">Или общий дневник</h3>
+        <p style="font-size:17px">Один дневник для всего отделения или поликлиники: каждый врач-куратор видит своих пациентов, коллег можно добавить к карте пациента как кураторов.</p></div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">9 / 13</span></footer>
+</section>
+
+<!-- 9. Безопасность -->
+<section class="slide s9" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Безопасность</span><h2>Сквозное шифрование</h2></header>
+  <div class="body">
+    <div class="diagram">
+      <div class="card node"><div class="e"><img class="ai" src="img/icons/phone.svg" alt=""></div><b>Телефон пациента</b><span class="key"><img class="emo" src="img/emoji/1f511.png" alt="🔑"> ключи дневника — только на телефоне</span><span class="small">записи шифруются до отправки</span></div>
+      <div class="link"><span class="lbl"><img class="emo" src="img/emoji/1f512.png" alt="🔒"> шифр + подпись<br>AES-GCM · ECDSA</span>
+        <svg viewBox="0 0 200 22" preserveAspectRatio="none" aria-hidden="true"><path d="M10 11H190" stroke="#3c6478" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M2 11l11-8v16zM198 11l-11-8v16z" fill="#3c6478"/></svg></div>
+      <div class="card node srv"><div class="e"><img class="ai" src="img/icons/cloud.svg" alt=""></div><b>Сервер</b><span class="cipher">9f3a·c7e1·b20d·44a8</span><span class="small">видит только шифротекст</span></div>
+      <div class="link"><span class="lbl"><img class="emo" src="img/emoji/1f512.png" alt="🔒"> шифр + подпись<br>AES-GCM · ECDSA</span>
+        <svg viewBox="0 0 200 22" preserveAspectRatio="none" aria-hidden="true"><path d="M10 11H190" stroke="#3c6478" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M2 11l11-8v16zM198 11l-11-8v16z" fill="#3c6478"/></svg></div>
+      <div class="card node"><div class="e"><img class="ai" src="img/icons/doctor.svg" alt=""></div><b>Устройство врача</b><span class="key"><img class="emo" src="img/emoji/1f5dd.png" alt="🗝️"> пароль врача открывает его ключи</span><span class="small">расшифровывает только врач-куратор</span></div>
+    </div>
+    <div class="facts">
+      <div class="card fact"><div class="ico pic"><img class="ai" src="img/icons/lock.svg" alt=""></div><p><b>Пароль врача не уходит</b>на сервер — из него на устройстве получаются ключи</p></div>
+      <div class="card fact"><div class="ico"><img class="emo" src="img/emoji/1f465.png" alt="👥"></div><p><b>Свой ключ у каждого пациента</b>отдельно зашифрован для каждого врача-куратора</p></div>
+      <div class="card fact"><div class="ico"><img class="emo" src="img/emoji/270d.png" alt="✍️"></div><p><b>Каждая запись</b>зашифрована и подписана — подделку видно сразу</p></div>
+      <div class="card fact"><div class="ico"><img class="emo" src="img/emoji/1f515.png" alt="🔕"></div><p><b>Уведомления без текста</b>на экране блокировки нет ни диагнозов, ни лекарств</p></div>
+      <div class="card fact"><div class="ico"><img class="emo" src="img/emoji/1f6df.png" alt="🛟"></div><p><b>Код восстановления</b>хранится только у врача</p></div>
+      <div class="card fact"><div class="ico"><img class="emo" src="img/emoji/1f648.png" alt="🙈"></div><p><b>Сервер слеп</b>не читает имена, лекарства и значения</p></div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">10 / 13</span></footer>
+</section>
+
+<!-- 10. Хостинг, устройства, без сети -->
+<section class="slide s10 s10-pub" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Эксплуатация</span><h2>Любые устройства и работа без сети</h2></header>
+  <div class="body"><div class="cols">
+    <div class="card"><div class="ico pic"><img class="ai" src="img/icons/phone.svg" alt=""></div><h3>Любое устройство</h3>
+      <p style="font-size:19px;line-height:1.3">В браузере или как приложение — на том, что уже есть у врача и пациента.</p>
+      <div class="devs2">
+        <div class="dv"><img class="ai" src="img/icons/doctor.svg" alt=""><b>Компьютер</b><span>Windows, macOS, Linux</span></div>
+        <div class="dv"><img class="ai" src="img/icons/android.svg" alt=""><b>Android</b><span>приложение или браузер</span></div>
+        <div class="dv"><img class="ai" src="img/icons/ios.svg" alt=""><b>iOS</b><span>iPhone и iPad</span></div>
+      </div></div>
+    <div class="card"><div class="ico pic"><img class="ai" src="img/icons/offline.svg" alt=""></div><h3>Работает без сети</h3>
+      <div class="offl">
+        <div class="pill"><b>Пациент</b>отмечает приём и самочувствие без интернета — записи копятся и уходят сами при подключении</div>
+        <div class="pill"><b>Врач</b>открывает последнюю сохранённую копию (зашифрована на устройстве); изменения подтягиваются при подключении</div>
+        <div class="pill"><b>Напоминания</b>работают на телефоне <img class="emo" src="img/emoji/1f514.png" alt="🔔"></div>
+      </div></div>
+  </div></div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">11 / 13</span></footer>
+</section>
+
+<!-- 11. Стандарты и интерфейс -->
+<section class="slide s11" data-corner="on">
+  <div class="blob b-a"></div><div class="blob b-c"></div>
+  <header class="head"><span class="kicker">Стандарты</span><h2>Стандарты и удобный интерфейс</h2></header>
+  <div class="body">
+    <div class="l">
+      <div class="card"><h3 style="font-size:22px"><img class="ai" src="img/icons/fhir.svg" alt="" style="display:inline-block;width:34px;height:34px;vertical-align:-9px;margin-right:6px">Международный стандарт HL7 FHIR</h3>
+        <p class="small" style="font-size:15.5px;margin-bottom:8px">Тот же «язык», что у современных медицинских информационных систем: файл из дневника можно загрузить в МИС без ручного переноса.</p>
+        <table>
+          <tr><th>Показатель</th><th>Международный код</th><th>Единицы</th></tr>
+          <tr><td>Систолическое давление</td><td class="m">8480-6</td><td>мм рт. ст.</td></tr>
+          <tr><td>Диастолическое давление</td><td class="m">8462-4</td><td>мм рт. ст.</td></tr>
+          <tr><td>Пульс</td><td class="m">8867-4</td><td>уд/мин</td></tr>
+          <tr><td>Сатурация SpO₂</td><td class="m">59408-5</td><td>%</td></tr>
+        </table>
+        <p class="small" style="margin-top:8px">Коды — из международного справочника LOINC. Имени пациента в файле нет: врач сам сопоставляет его с картой.</p></div>
+      <div class="card"><h3 style="font-size:22px">Проверенные шкалы и свои опросники</h3>
+        <div class="scales"><span class="chip acc">PHQ-9</span><span class="chip acc">GAD-7</span><span class="chip acc">и другие шкалы</span><span class="chip">+ свои опросники</span></div>
+        <p class="small">Выгрузка у врача: Excel, CSV и FHIR; у пациента — файл FHIR.</p></div>
+    </div>
+    <div class="card r ui">
+      <h3>Спокойный интерфейс</h3>
+      <p class="small" style="font-size:16px">Как бумажный дневник — только удобнее. Светлая и тёмная тема.</p>
+      <div class="uiph">
+        <div style="transform:rotate(-2deg)"><div class="phone"><div class="screen"><div class="shot"><img src="img/ui-light.png" alt=""></div></div></div></div>
+        <div style="transform:rotate(2deg);margin-top:14px"><div class="phone"><div class="screen"><div class="shot"><img src="img/ui-dark.png" alt=""></div></div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="corner-qr"><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Врач</span></div><div class="cq"><div class="cq-img"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><span>Пациент</span></div></div><footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">12 / 13</span></footer>
+</section>
+
+<!-- 12. Заключение -->
+<section class="slide s12" data-corner="off">
+  <div class="blob b-a"></div><div class="blob b-b"></div>
+  <header class="head"><span class="kicker">Заключение</span><h2>Итоги и дальнейшие шаги</h2></header>
+  <div class="body">
+    <div class="card l"><h3>Что сделано</h3>
+      <ul class="tick">
+        <li>Создан план лечения: пациенту — за пару минут</li>
+        <li>Реализованы ежедневные отметки одним касанием</li>
+        <li>Добавлены опросники и срочный сигнал врачу</li>
+        <li>Сделана панель врача с графиками</li>
+        <li>Обеспечены сквозное шифрование и хранение в РФ</li>
+        <li>Работает на любом устройстве и без сети</li>
+        <li>Реализован обмен по стандарту HL7 FHIR</li>
+        <li>Дневник собирается из блоков, есть свои опросники</li>
+      </ul></div>
+    <div class="rr">
+      <div class="card status"><h3>Сейчас</h3>
+        <p>Идёт внутреннее тестирование. Приложение доступно с любого устройства — в браузере и как приложение.</p>
+        <p>Данные пациентов защищены сквозным шифрованием и не покидают страну.</p></div>
+      <div class="card next"><h3>Дальше</h3>
+        <ul class="dot"><li>Интеграция с МИС через FHIR</li><li>Шаблоны дневников для других кафедр</li><li>Хранение данных на собственном сервере клиники</li></ul></div>
+    </div>
+    <div class="card thanks">
+      <div class="tt">Спасибо за внимание! <img class="emo" src="img/emoji/1f98a.png" alt="🦊"><span>Попробуйте сами — наведите камеру на QR-код</span></div>
+      <div class="qq"><div class="q"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для врача" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h1v1h-1zM14 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h4v1h-4zM17 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h3v1h-3zM15 4h1v1h-1zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM12 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h4v1h-4zM17 6h4v1h-4zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h4v1h-4zM15 7h2v1h-2zM18 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM14 9h2v1h-2zM21 9h2v1h-2zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM12 10h2v1h-2zM15 10h1v1h-1zM17 10h2v1h-2zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM2 11h4v1h-4zM7 11h1v1h-1zM9 11h4v1h-4zM14 11h1v1h-1zM18 11h1v1h-1zM21 11h4v1h-4zM29 11h2v1h-2zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h6v1h-6zM15 12h2v1h-2zM18 12h2v1h-2zM21 12h1v1h-1zM23 12h3v1h-3zM27 12h2v1h-2zM30 12h1v1h-1zM2 13h4v1h-4zM7 13h1v1h-1zM11 13h1v1h-1zM13 13h2v1h-2zM16 13h3v1h-3zM20 13h2v1h-2zM23 13h1v1h-1zM25 13h3v1h-3zM3 14h3v1h-3zM7 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM3 15h1v1h-1zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h1v1h-1zM29 15h2v1h-2zM3 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM11 16h1v1h-1zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h1v1h-1zM21 16h2v1h-2zM24 16h3v1h-3zM30 16h1v1h-1zM2 17h2v1h-2zM6 17h1v1h-1zM9 17h2v1h-2zM15 17h1v1h-1zM20 17h3v1h-3zM25 17h1v1h-1zM8 18h2v1h-2zM14 18h2v1h-2zM17 18h2v1h-2zM22 18h1v1h-1zM24 18h2v1h-2zM30 18h1v1h-1zM5 19h2v1h-2zM9 19h2v1h-2zM13 19h1v1h-1zM18 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM2 20h2v1h-2zM5 20h2v1h-2zM8 20h3v1h-3zM12 20h5v1h-5zM18 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM16 21h3v1h-3zM20 21h2v1h-2zM23 21h1v1h-1zM25 21h1v1h-1zM2 22h2v1h-2zM8 22h1v1h-1zM11 22h1v1h-1zM15 22h2v1h-2zM19 22h9v1h-9zM29 22h1v1h-1zM10 23h1v1h-1zM13 23h4v1h-4zM19 23h1v1h-1zM21 23h2v1h-2zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM12 24h3v1h-3zM17 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM13 25h3v1h-3zM19 25h1v1h-1zM21 25h2v1h-2zM26 25h1v1h-1zM29 25h2v1h-2zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM12 26h2v1h-2zM15 26h1v1h-1zM17 26h3v1h-3zM21 26h7v1h-7zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM21 27h1v1h-1zM23 27h1v1h-1zM26 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h3v1h-3zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h3v1h-3zM15 29h4v1h-4zM20 29h1v1h-1zM22 29h4v1h-4zM27 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM13 30h1v1h-1zM19 30h2v1h-2zM22 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM30 30h1v1h-1z" fill="#1f1d17"/></svg></div><div class="u"><b>Врач</b>med.1damer.com<br>/demo</div></div>
+      <div class="qq"><div class="q"><svg class="qr" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-код: демо для пациента" shape-rendering="crispEdges"><rect width="33" height="33" fill="#fff"/><path d="M2 2h7v1h-7zM11 2h2v1h-2zM17 2h5v1h-5zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h2v1h-2zM13 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM15 6h3v1h-3zM20 6h3v1h-3zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h4v1h-4zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h2v1h-2zM20 9h3v1h-3zM2 10h1v1h-1zM4 10h5v1h-5zM16 10h4v1h-4zM21 10h1v1h-1zM24 10h5v1h-5zM2 11h1v1h-1zM5 11h3v1h-3zM13 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM24 11h1v1h-1zM26 11h1v1h-1zM30 11h1v1h-1zM3 12h2v1h-2zM6 12h1v1h-1zM8 12h3v1h-3zM13 12h1v1h-1zM17 12h1v1h-1zM22 12h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM25 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h2v1h-2zM19 14h1v1h-1zM27 14h2v1h-2zM5 15h3v1h-3zM9 15h4v1h-4zM15 15h2v1h-2zM18 15h7v1h-7zM26 15h1v1h-1zM30 15h1v1h-1zM3 16h2v1h-2zM6 16h3v1h-3zM10 16h1v1h-1zM14 16h5v1h-5zM26 16h3v1h-3zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM9 17h2v1h-2zM14 17h2v1h-2zM17 17h2v1h-2zM21 17h3v1h-3zM25 17h2v1h-2zM29 17h1v1h-1zM3 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM10 18h2v1h-2zM13 18h1v1h-1zM16 18h2v1h-2zM19 18h1v1h-1zM21 18h1v1h-1zM27 18h2v1h-2zM2 19h1v1h-1zM7 19h1v1h-1zM11 19h3v1h-3zM18 19h4v1h-4zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM4 20h2v1h-2zM7 20h3v1h-3zM11 20h1v1h-1zM14 20h1v1h-1zM17 20h3v1h-3zM23 20h1v1h-1zM25 20h2v1h-2zM28 20h1v1h-1zM2 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM10 21h1v1h-1zM13 21h2v1h-2zM16 21h2v1h-2zM21 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM12 22h1v1h-1zM19 22h2v1h-2zM22 22h5v1h-5zM28 22h3v1h-3zM10 23h2v1h-2zM15 23h2v1h-2zM18 23h5v1h-5zM26 23h5v1h-5zM2 24h7v1h-7zM11 24h7v1h-7zM19 24h1v1h-1zM21 24h2v1h-2zM24 24h1v1h-1zM26 24h3v1h-3zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h3v1h-3zM15 25h1v1h-1zM17 25h2v1h-2zM21 25h2v1h-2zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM10 26h2v1h-2zM16 26h4v1h-4zM22 26h5v1h-5zM28 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM10 27h1v1h-1zM12 27h4v1h-4zM18 27h1v1h-1zM21 27h1v1h-1zM27 27h4v1h-4zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h5v1h-5zM16 28h3v1h-3zM20 28h2v1h-2zM23 28h7v1h-7zM2 29h1v1h-1zM8 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM16 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h4v1h-4zM29 29h1v1h-1zM2 30h7v1h-7zM10 30h1v1h-1zM12 30h1v1h-1zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1z" fill="#1f1d17"/></svg></div><div class="u"><b>Пациент</b>med.1damer.com<br>/demo/patient</div></div>
+    </div>
+  </div>
+  <footer class="band"><span class="band-l"><img class="band-ico" src="img/diary-icon.png" alt="">MiniMed</span><span class="band-c">Дневник лечения MiniMed</span><span class="band-r">13 / 13</span></footer>
+</section>
+
+</div></main>
+<script>
+(function () {
+  var deck = document.getElementById('deck');
+  function fit() {
+    var k = Math.min(1.6, Math.max(0.2, (window.innerWidth - 32) / 1280));
+    document.documentElement.style.setProperty('--k', k);
+  }
+  fit(); window.addEventListener('resize', fit);
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  function current() {
+    var best = 0, bd = 1e9;
+    slides.forEach(function (s, i) { var d = Math.abs(s.getBoundingClientRect().top - 24); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function go(i) { i = Math.max(0, Math.min(slides.length - 1, i)); slides[i].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  document.addEventListener('keydown', function (e) {
+    if (e.target && (e.target.isContentEditable || /INPUT|TEXTAREA/.test(e.target.tagName))) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var c = current();
+    if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].indexOf(e.key) >= 0 && !e.shiftKey) { e.preventDefault(); go(c + 1); }
+    else if (['ArrowUp', 'ArrowLeft', 'PageUp'].indexOf(e.key) >= 0 || (e.key === ' ' && e.shiftKey)) { e.preventDefault(); go(c - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>iPhone</title>
+<defs>
+<linearGradient id="ios-leather" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#eadcb9"/><stop offset="1" stop-color="#c8b189"/></linearGradient>
+<linearGradient id="ios-edge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b59d73"/><stop offset="1" stop-color="#cdb88f"/></linearGradient>
+<linearGradient id="ios-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf7ea"/><stop offset="1" stop-color="#ece3cb"/></linearGradient>
+<linearGradient id="ios-slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7589"/><stop offset="1" stop-color="#3c6478"/></linearGradient>
+<linearGradient id="ios-leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86bb80"/><stop offset="1" stop-color="#4f8650"/></linearGradient>
+<linearGradient id="ios-hl" x1="0" y1="0" x2="0.7" y2="0.7"><stop offset="0" stop-color="#fff" stop-opacity="0.35"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="ios-blur" x="-20%" y="-300%" width="140%" height="700%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<ellipse cx="256" cy="484" rx="120" ry="10" fill="#1b2a21" opacity="0.28" filter="url(#ios-blur)"/>
+<g transform="translate(-13 0)">
+<rect x="124" y="108" width="9" height="30" rx="4" fill="url(#ios-edge)"/><rect x="124" y="156" width="9" height="46" rx="4" fill="url(#ios-edge)"/><rect x="379" y="170" width="9" height="66" rx="4" fill="url(#ios-edge)"/>
+<rect x="128" y="34" width="256" height="444" rx="60" fill="url(#ios-leather)"/><rect x="128" y="34" width="256" height="444" rx="60" fill="url(#ios-hl)"/>
+<rect x="139" y="45" width="234" height="422" rx="50" fill="none" stroke="#8a6f45" stroke-width="4" stroke-dasharray="12 9" opacity="0.7"/>
+<rect x="156" y="60" width="200" height="392" rx="44" fill="#18241c"/>
+<rect x="166" y="70" width="180" height="372" rx="35" fill="#e9dfc4"/>
+<rect x="226" y="80" width="60" height="18" rx="9" fill="#18241c"/>
+<path d="M256 152C243 140 217 143 208 168C198 194 214 232 234 238C244 241 250 236 256 236C262 236 268 241 278 238C298 232 314 194 304 168C295 143 269 140 256 152z" fill="url(#ios-slate)"/>
+<path d="M219 178C222 168 227 162 235 159" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+<circle cx="308" cy="178" r="15" fill="#e9dfc4"/>
+<path d="M257 150C256 130 270 117 291 114C292 134 278 148 257 150z" fill="url(#ios-leaf)"/>
+<path d="M262 142C270 135 277 130 284 124" fill="none" stroke="#3f6e42" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+<rect x="180" y="262" width="152" height="76" rx="16" fill="url(#ios-paper)" stroke="#cbc0a7" stroke-width="3"/>
+<rect x="196" y="286" width="28" height="28" rx="6.6" fill="none" stroke="#2f4638" stroke-width="5.8"/><path d="M201.8 300l7.4 7.4 16.5 -19.8" fill="none" stroke="#2f4638" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M238 300H306" stroke="#8a8574" stroke-width="9" stroke-linecap="round" fill="none"/>
+<g transform="translate(256 392) scale(0.62)"><circle r="36" fill="#f3ecd9" stroke="#cbc0a7" stroke-width="3"/><circle r="28" fill="none" stroke="#cbc0a7" stroke-width="2.5" stroke-dasharray="6 5"/><path d="M-10-22h20v12h12v20h-12v12h-20v-12h-12v-20h12z" fill="#b5452f"/></g>
+</g>
+</svg>

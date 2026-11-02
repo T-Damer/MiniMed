@@ -1,0 +1,12 @@
+{
+  "name": "diary-presentation-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pptx": "bun build-pptx.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.62.1",
+    "pptxgenjs": "3.12.0"
+  }
+}
