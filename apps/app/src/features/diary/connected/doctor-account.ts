@@ -203,6 +203,8 @@ export const ACCESS_CODE_DOCTOR_NAME = 'Врач';
 export async function signInWithCode(input: {
   readonly code: string;
   readonly rememberDevice: boolean;
+  /** The name patients see; «Врач» by default. */
+  readonly name?: string;
 }): Promise<DoctorSession> {
   const code = readAccessCode(input.code);
   if (!code) throw new Error('Код выглядит как XXXX-XXXX-XXXX.');
@@ -215,7 +217,7 @@ export async function signInWithCode(input: {
   try {
     const { session } = await signUp({
       ...account,
-      name: ACCESS_CODE_DOCTOR_NAME,
+      name: input.name ?? ACCESS_CODE_DOCTOR_NAME,
       invite: input.code.trim(),
       rememberDevice: input.rememberDevice,
     });
@@ -226,6 +228,55 @@ export async function signInWithCode(input: {
     }
     throw cause;
   }
+}
+
+const DEMO_KEY = 'minimed.diary.demo.v1';
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+interface DemoRecord {
+  readonly code: string;
+  readonly doctorId?: string;
+}
+
+function readDemo(): DemoRecord | undefined {
+  const raw = localStorage.getItem(DEMO_KEY);
+  if (!raw) return undefined;
+  const parsed = JSON.parse(raw) as Partial<DemoRecord>;
+  return typeof parsed.code === 'string' ? (parsed as DemoRecord) : undefined;
+}
+
+/**
+ * «Демо» without e-mail, password or code (owner 2026-11-02): this device's own demo doctor. A
+ * random access code made once and kept on the device signs in through the code path, so the same
+ * device returns to the same demo, and one visitor's edits never reach another's. Needs a service
+ * with open sign-up.
+ */
+export async function signInDemo(input: {
+  readonly rememberDevice: boolean;
+}): Promise<DoctorSession> {
+  let record = readDemo();
+  if (!record) {
+    const letters = [...crypto.getRandomValues(new Uint8Array(12))]
+      .map((byte) => CODE_ALPHABET[byte % CODE_ALPHABET.length])
+      .join('');
+    record = { code: letters.replaceAll(/(.{4})(?=.)/gu, '$1-') };
+    localStorage.setItem(DEMO_KEY, JSON.stringify(record));
+  }
+  const session = await signInWithCode({
+    code: record.code,
+    rememberDevice: input.rememberDevice,
+    name: DEMO_DOCTOR_NAME,
+  });
+  localStorage.setItem(DEMO_KEY, JSON.stringify({ ...record, doctorId: session.doctor.id }));
+  return session;
+}
+
+/** The name patients see for the demo doctor. */
+export const DEMO_DOCTOR_NAME = 'Демо-врач';
+
+/** This device's demo doctor is the one signed in: its demo patients stay put. */
+export function isDemoSession(session: Pick<DoctorSession, 'doctor'>): boolean {
+  return readDemo()?.doctorId === session.doctor.id;
 }
 
 /** A new password from the recovery code; the keys (and so every patient) are kept. */

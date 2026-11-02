@@ -269,6 +269,21 @@ address leads back to the files when it is off.
 - **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
   with a round «+» and the title, not a paper tool card.
 
+## Diary demo mode and intake charts — 2026-11-02 (owner)
+
+- **«Демо — без регистрации»** on the doctor's sign-in (services with open sign-up): one tap opens
+  this device's own demo doctor («Демо-врач»). A random access code made once and kept on the device
+  (`minimed.diary.demo.v1`) signs in through the code path (`signInDemo`, `doctor-account.ts`), so
+  the device returns to the same demo and visitors never share edits; a server-free demo would need
+  a fake of the whole sync service. The first entry seeds the demo patients; in that account they
+  cannot be archived, so not deleted. Everything else works as in a real account.
+- **Intake per day** (`diary-intake.ts`, chart look in `diary-charts.ts` `INTAKE_CHART`): per
+  medicine, the dose taken each day (intakes summed, a skipped or missed intake = 0) as a line and
+  the plan's dose that day as hollow dots; days before the diary began have no point. Doses are
+  parsed from the plan text («10 мг», «½ таблетки»; words count as one intake). The diary keeps only
+  the latest plan, so a dose changed earlier shows at its new value. «Графики приёма по дням» on
+  the patient page opens all medicines stacked on the same days.
+
 ## Diary sign-in by code, bare login, wide settings — 2026-10-30 (STATE DIARY16)
 
 Owner demo fixes for the doctor's diary app (med.1damer.com):

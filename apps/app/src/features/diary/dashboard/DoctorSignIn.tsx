@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, type JSX, Match, Show, Switch } from 'solid-js';
 
 import { claimFullScreen } from '@/app/full-screen-routes';
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import { NavBack } from '@/components/NavBack';
@@ -11,6 +12,7 @@ import {
   readAccessCode,
   recoverAccount,
   signIn,
+  signInDemo,
   signInWithCode,
   signUp,
   signUpMode,
@@ -97,6 +99,19 @@ export function DoctorSignIn(props: {
   const choose = (next: Mode): void => {
     setMode(next);
     setError('');
+  };
+
+  /** «Демо»: this device's demo doctor, no e-mail, password or code. */
+  const openDemo = async (): Promise<void> => {
+    setError('');
+    setBusy(true);
+    try {
+      props.onSignedIn(await signInDemo({ rememberDevice: true }));
+    } catch (cause) {
+      setError(message(cause, 'Демо сейчас недоступно.'));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const submit = async (event: SubmitEvent): Promise<void> => {
@@ -287,6 +302,18 @@ export function DoctorSignIn(props: {
                 >
                   {mode() === 'recover' ? 'Вспомнили пароль? Войти' : 'Забыли пароль?'}
                 </button>
+              </Reveal>
+              {/* Try the diaries before any account: needs a service with open sign-up. */}
+              <Reveal open={mode() !== 'recover' && signup.latest === 'open'}>
+                <Button
+                  type="button"
+                  class="diary-signin__demo"
+                  icon={<AppGlyph name="play" class="diary-signin__demo-icon" />}
+                  disabled={busy()}
+                  onClick={() => void openDemo()}
+                >
+                  Демо — без регистрации
+                </Button>
               </Reveal>
             </form>
           }

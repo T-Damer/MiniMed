@@ -29,6 +29,7 @@ import { replicaResults } from '@/features/diary/connected/diary-replica';
 import {
   type DoctorSession,
   forgetDoctorSession,
+  isDemoSession,
   restoreDoctorSession,
   signOut,
 } from '@/features/diary/connected/doctor-account';
@@ -203,7 +204,14 @@ export function DiaryDashboard(props: {
     }
     diaries
       .refresh()
-      .then(() => diaries.connectLive())
+      .then(() => {
+        diaries.connectLive();
+        // The demo doctor finds the demo patients already there (owner 2026-11-02).
+        const seeded = diaries
+          .patients()
+          .some((patient) => patient.replica.profile?.label.startsWith(DEMO_LABEL_PREFIX));
+        if (isDemoSession(next) && !seeded) addDemo(diaries);
+      })
       .catch((cause: unknown) => {
         // The kept session expired on the server: back to the sign-in, not a list that never loads.
         if (cause instanceof DiaryApiError && cause.status === 401) {
@@ -251,6 +259,15 @@ export function DiaryDashboard(props: {
         setError(cause instanceof Error ? cause.message : 'Не удалось добавить демо-пациентов.');
       })
       .finally(() => setDemo(''));
+  };
+  /** In the demo account the demo patients stay: no archive, so no delete either. */
+  const demoLocked = (patient: DoctorPatient): boolean => {
+    const current = session();
+    return (
+      current !== undefined &&
+      isDemoSession(current) &&
+      (patient.replica.profile?.label.startsWith(DEMO_LABEL_PREFIX) ?? false)
+    );
   };
   const hasDemo = (): boolean =>
     patients().some((patient) => patient.replica.profile?.label.startsWith(DEMO_LABEL_PREFIX));
@@ -409,7 +426,7 @@ export function DiaryDashboard(props: {
                 },
               ]
             : []),
-          ...(patient.replica.profile && patient.summary.role !== 'reader'
+          ...(patient.replica.profile && patient.summary.role !== 'reader' && !demoLocked(patient)
             ? [
                 {
                   id: 'archive',
