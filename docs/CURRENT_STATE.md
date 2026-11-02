@@ -20,6 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Visit-note draft: every claim on a located quote — 2026-11-02 (STATE SCRIBE1, branch `scribe1`)
+
+First slice of a consultation scribe, built offline from the idea of
+[MedScribe](https://github.com/Allmostkill/medscribe) (AGPL-3.0 server app: T-one ASR + a cloud LLM;
+no code taken, only the approach). Core and contracts only; no UI, no model call yet.
+
+- **Contract** `packages/contracts/src/visit-note.ts`: eight fields (жалобы, anamnesis morbi/vitae,
+  аллергии, осмотр, диагнозы, назначения, план), each `empty` / `supported` / `unsupported` with its
+  located quotes; possible omissions (allergy, medication, diagnosis, timing, other), each on a
+  transcript quote; hands-on findings of a remote visit; rejections as codes only (no proposed text).
+- **Quote check** `packages/core/src/visit-note-quotes.ts`: whole words in order, case / «ё» /
+  punctuation / line breaks ignored, ≥ 8 normalized characters; a quote may span ASR lines; the
+  position (line + UTF-16 offsets) and the source's own wording are returned. An occurrence right
+  behind «не / нет / ни / без / отрицает» does not support the positive claim (punctuation in between
+  breaks the negation: «Нет, болит постоянно»). This catches invented quotes, not real quotes used
+  out of context: a semantic check stays with the model qualification below.
+- **Draft builder** `packages/core/src/visit-note-draft.ts` `buildVisitNoteDraft(proposal, sources)`:
+  takes an untrusted parsed proposal, files each quote by where its text is (transcript first, then
+  the earlier record the doctor supplied), drops duplicates, caps 3 quotes per field and 6 omissions;
+  an omission must quote today's conversation and suggest something the note does not already say.
+- **Remote-visit check** `packages/core/src/visit-note-remote-exam.ts`: declared patterns
+  (`REMOTE_EXAM_FINDINGS`: palpation, percussion, auscultation, abdomen, liver, lymph nodes,
+  meningeal signs, reflexes, Pasternatsky, pitting oedema) list the examination findings that a
+  video or phone visit cannot have produced, with their spans; temperature, pressure and pulse are
+  not listed (patients report them).
+- **Not done.** Prompt and local-model adapter (QVikhr 1.7B / Qwen3 via the existing controller), the
+  draft UI on the conversation card, qualification on real Russian consultations (field accuracy,
+  quote fidelity, abstention, latency on a phone). Tests: 17 unit cases with synthetic dialogue only.
+
 ## Android test build: fingerprint-unlocked patient vault and native camera — 2026-10-31 (branch `test/native-camera-vault`)
 
 **Implemented, compiled only in part, NOT tested on a device.** Both features exist for a test APK;
