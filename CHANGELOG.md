@@ -4,6 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.76] - 2026-11-02
+
+- New patient and the patient's screen on a wide window: the details and the button stay in view on the left while the
+  preview scrolls.
+- Diary calendar: today has a dashed double frame, the diary's first day a solid one, so the two no longer look alike.
+- Page headers: the faint large icon no longer sticks out past the dark band in a centred column, and it fades as the
+  header shrinks instead of moving next to the title.
+- Patient diary: while it opens, an icon and «Открываем дневник…» in the middle of the screen instead of a bare line.
+
 ## [0.6.75] - 2026-11-01
 
 - One date field everywhere instead of the phone's or browser's own picker: type «ДД.ММ.ГГГГ» (the dots come by

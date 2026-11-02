@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-02 | claude-opus (UI-DIARY18) | diary UI batch: sticky left column on the wide new-patient form, distinct today marker in the calendar, hero collapse without the clipped emblem flight, loading state for a patient diary; then release | `apps/app/src/diary/**`, `apps/app/src/features/diary/**`, `apps/app/src/components/PageHero*`, `apps/app/src/components/EmptyState*` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
@@ -180,6 +179,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-02 claude-opus REL 0.6.76: UI-DIARY18 — wide new-patient form keeps its left column in view, today a dashed double frame in the calendar (start stays solid), hero emblem cut at the band and fading instead of flying beside the title (header buttons no longer fold early because of it), centred «Открываем дневник…» state
 - 2026-11-01 claude-opus REL 0.6.75: UI-DIARY17 — DateField and the Kobalte time field instead of every native date/time input (rule + guard test), centred EmptyState (rule), wide new-patient form, smooth focus, no forced dark (Android shell, Dark Reader), pinned hero hides the pulse, themed scrollbars in the patient diary, course start framed in the calendar, wordless recordings kept as voice notes; self-host image workflow manual only
 - 2026-11-01 claude-opus REL 0.6.74: DIARY16 — the diary's API serverless on Yandex Cloud (ADR-0027), pages from the Pages app, native shells reach the diary; APK by the release workflow, Pages by CI, API by `scripts/diary-serverless-deploy.sh`, self-host image by `diary-image.yml`
 - 2026-11-01 claude-opus DIARY16: diary off the VM (ADR-0027): `DIARY_MODE=server|serverless` over a `DiaryStore` port (SQLite / YDB adapters, one storage contract passing on both, also through the live gateway), polled change counter instead of the event stream in serverless mode, Node entry `serverless.ts`; pilot API = Yandex Serverless Container + YDB + API Gateway at `med.1damer.com` (free tier), pages = the Pages app (`diaryServiceBase()` → med.1damer.com on github.io and native); self-host container stack + egress guard; VM and VM scripts retired (last DB kept in `data/diary-server/backups/`)
