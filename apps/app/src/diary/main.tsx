@@ -7,6 +7,7 @@ import '@/diary/diary-shell.css';
 import '@/styles/theme-dark-diary.css';
 import '@/diary/diary-page.css';
 import '@/diary/diary-care.css';
+import '@/styles/paper-dots.css';
 import '@/styles/scrollbars.css';
 
 // Thin theme-coloured page scrollbar like the main app's (scrollbars.css), not the browser's grey one.

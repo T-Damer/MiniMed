@@ -8,7 +8,8 @@
  */
 
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
-import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
+import { signInDemo } from '@/features/diary/connected/doctor-account';
+import { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import {
   type PairingLink,
   PatientConnection,
@@ -251,7 +252,12 @@ export function demoInvitation(
   now: Date,
   days = spec.days,
 ): DiaryInvitation {
-  const invitation = careInvitation({ id: patientId, draft: spec.draft(), doctor, note: '' });
+  const invitation = careInvitation({
+    id: patientId,
+    draft: spec.draft(),
+    doctor,
+    note: '',
+  });
   return parseDiaryInvitation({ ...invitation, issuedAt: demoIssuedAt(now, days) }, now.getTime());
 }
 
@@ -296,7 +302,11 @@ async function seedOne(
   workspace: DoctorDiaries,
   spec: DemoPatientSpec,
   index: number,
-  options: { readonly days: number; readonly now: Date; readonly report: (text: string) => void },
+  options: {
+    readonly days: number;
+    readonly now: Date;
+    readonly report: (text: string) => void;
+  },
 ): Promise<string> {
   const { days, now, report } = options;
   const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft()));
@@ -324,7 +334,11 @@ async function seedOne(
       seed: BASE_SEED + index * 7919,
     });
     report(`${spec.label}: записываем ${days} дн. (${diary.entries.length} записей)`);
-    store.save({ v: DIARY_FORMAT_VERSION, invitation: results.invitation, entries: diary.entries });
+    store.save({
+      v: DIARY_FORMAT_VERSION,
+      invitation: results.invitation,
+      entries: diary.entries,
+    });
     store.setMeta(id, { consentAt: diary.consentAt });
     const status = await connection.sync();
     if (status.phase !== 'idle' || status.pending > 0) {
@@ -374,4 +388,42 @@ export async function seedDemoPatients(
   }
   report('Готово');
   return ids;
+}
+
+/** Whether every demo patient of the set is in the list (the patient's own demo diary aside). */
+export function hasDemoSet(labels: readonly (string | undefined)[]): boolean {
+  const present = new Set(labels);
+  return DEMO_PATIENTS.every((spec) => present.has(spec.label));
+}
+
+/** The demo diary a visitor keeps as the patient (`#demo` on the patient page). */
+export const DEMO_SELF_LABEL = `${DEMO_LABEL_PREFIX} Мой дневник`;
+const DEMO_SELF_DAYS = 14;
+
+/**
+ * The patient's side of the demo (owner 2026-11-02, a QR code on the slides): this device's demo
+ * doctor (the same one «Демо» signs in) gets one more patient with two weeks of history, and the
+ * returned one-time code pairs this browser with it. A visitor who then opens the doctor's demo on
+ * the same device finds their own diary among the demo patients, with what they marked.
+ */
+export async function demoSelfPairing(
+  onProgress: (text: string) => void = () => undefined,
+): Promise<PairingLink> {
+  const workspace = new DoctorDiaries(await signInDemo({ rememberDevice: true }));
+  await workspace.refresh();
+  const existing = workspace
+    .patients()
+    .find((patient) => patient.replica.profile?.label === DEMO_SELF_LABEL);
+  const base = DEMO_PATIENTS[0];
+  if (!base) throw new Error('Нет шаблона демо-пациента.');
+  const id =
+    existing?.summary.id ??
+    (await seedOne(
+      workspace,
+      { ...base, label: DEMO_SELF_LABEL, emoji: '🌱', days: DEMO_SELF_DAYS },
+      DEMO_PATIENTS.length,
+      { days: DEMO_SELF_DAYS, now: new Date(), report: onProgress },
+    ));
+  // A new code for «this phone»: the throw-away device that wrote the history steps aside.
+  return pairingOf(await workspace.pairingLink(id));
 }

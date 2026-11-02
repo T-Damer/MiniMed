@@ -36,7 +36,11 @@ import {
 import { DoctorDiaries, type DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { DiaryPatientPage } from '@/features/diary/dashboard/DiaryPatientPage';
 import { DoctorSignIn } from '@/features/diary/dashboard/DoctorSignIn';
-import { DEMO_LABEL_PREFIX, seedDemoPatients } from '@/features/diary/dashboard/demo-patients';
+import {
+  DEMO_LABEL_PREFIX,
+  hasDemoSet,
+  seedDemoPatients,
+} from '@/features/diary/dashboard/demo-patients';
 import { adherence } from '@/features/diary/dashboard/diary-insights';
 import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
@@ -79,7 +83,10 @@ function relative(iso: string | null): string {
   if (minutes < 60) return `${minutes} мин назад`;
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours} ${pluralize(hours, 'час', 'часа', 'часов')} назад`;
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  return new Date(iso).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
 function percent(share: number | undefined): string {
@@ -105,7 +112,9 @@ function PatientRow(props: {
         <button
           type="button"
           class="diary-dash-row__open"
-          classList={{ 'diary-dash-row__open--alert': props.patient.summary.openAlerts > 0 }}
+          classList={{
+            'diary-dash-row__open--alert': props.patient.summary.openAlerts > 0,
+          }}
           onClick={() => (status() === 'pending' ? props.onAccept() : props.onOpen())}
         >
           <span class="diary-dash-row__avatar" aria-hidden="true">
@@ -207,9 +216,9 @@ export function DiaryDashboard(props: {
       .then(() => {
         diaries.connectLive();
         // The demo doctor finds the demo patients already there (owner 2026-11-02).
-        const seeded = diaries
-          .patients()
-          .some((patient) => patient.replica.profile?.label.startsWith(DEMO_LABEL_PREFIX));
+        const seeded = hasDemoSet(
+          diaries.patients().map((patient) => patient.replica.profile?.label),
+        );
         if (isDemoSession(next) && !seeded) addDemo(diaries);
       })
       .catch((cause: unknown) => {
@@ -234,6 +243,12 @@ export function DiaryDashboard(props: {
     if (found) start(found);
     return true;
   });
+
+  /** When the copy on screen was saved, without a network; undefined while live. */
+  const offlineSince = (): string | undefined => {
+    version();
+    return workspace()?.offlineSince();
+  };
 
   const patients = createMemo(() => {
     version();
@@ -270,7 +285,7 @@ export function DiaryDashboard(props: {
     );
   };
   const hasDemo = (): boolean =>
-    patients().some((patient) => patient.replica.profile?.label.startsWith(DEMO_LABEL_PREFIX));
+    hasDemoSet(patients().map((patient) => patient.replica.profile?.label));
 
   const leave = (current: DoctorSession): void => {
     void signOut(current).finally(() => {
@@ -667,6 +682,20 @@ export function DiaryDashboard(props: {
                 <p class="diary-dash__quiet" role="status">
                   {demo()}
                 </p>
+              </Show>
+              <Show when={offlineSince()}>
+                {(since) => (
+                  <p class="diary-dash__quiet" role="status" data-testid="diary-offline">
+                    Нет связи с сервером: показана копия от{' '}
+                    {new Date(since()).toLocaleString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    . Обновится сама, когда связь вернётся.
+                  </p>
+                )}
               </Show>
               <Show when={error()}>
                 <p class="diary-dash__error" role="alert">

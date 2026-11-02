@@ -27,8 +27,16 @@ function errorMessage(cause: unknown, fallback: string): string {
 }
 
 type State =
-  | { readonly kind: 'loading' }
-  | { readonly kind: 'error'; readonly message: string; readonly store: DiaryStore | undefined }
+  | {
+      readonly kind: 'loading';
+      readonly title?: string;
+      readonly text?: string;
+    }
+  | {
+      readonly kind: 'error';
+      readonly message: string;
+      readonly store: DiaryStore | undefined;
+    }
   | { readonly kind: 'list'; readonly store: DiaryStore }
   /** A connected diary's code waits in the address for the home-screen icon. */
   | { readonly kind: 'install-first' }
@@ -102,6 +110,11 @@ function syncAddress(results: DiaryResults): void {
     .catch(() => console.warn('Не удалось обновить адрес страницы дневника.'));
 }
 
+/** `#demo`: the patient's side of the demo, made on this device (see `demoSelfPairing`). */
+const DEMO_HASH = '#demo';
+/** The demo diary this device already has: the QR code opened again goes straight to it. */
+const DEMO_DIARY_KEY = 'minimed.diary.demo-self.v1';
+
 function clearAddress(): void {
   window.history.replaceState(null, '', window.location.href.split('#')[0] ?? '');
 }
@@ -156,6 +169,33 @@ export function DiaryApp(): JSX.Element {
     const ticket = ++latestOpen;
     try {
       store = createDiaryStore(openStorage());
+      if (window.location.hash === DEMO_HASH) {
+        const kept = window.localStorage.getItem(DEMO_DIARY_KEY);
+        if (kept && store.read(kept)) {
+          if (ticket === latestOpen) openFromList(store, kept);
+          clearAddress();
+          return;
+        }
+        const show = (text: string): void => {
+          if (ticket === latestOpen)
+            setState({ kind: 'loading', title: 'Готовим демо-дневник…', text });
+        };
+        show('Две недели записей — около десяти секунд.');
+        // The doctor's code is loaded only here: the patient's page does not carry it otherwise.
+        const { demoSelfPairing } = await import('@/features/diary/dashboard/demo-patients');
+        const link = await demoSelfPairing((step) => show(step.replace(/^Демо · /u, '')));
+        const connection = await PatientConnection.pair(window.localStorage, store, link);
+        window.localStorage.setItem(DEMO_DIARY_KEY, connection.patientId);
+        const results = store.read(connection.patientId);
+        if (ticket === latestOpen && results) {
+          showDiary(
+            store,
+            results,
+            'Демо-дневник: две недели записей уже здесь. Отмечайте как пациент — демо-врач увидит это у себя.',
+          );
+        }
+        return;
+      }
       const pairing = readPairingFragment(window.location.hash);
       if (
         pairing &&
@@ -222,8 +262,8 @@ export function DiaryApp(): JSX.Element {
               <main class="diary-page diary-page--status" aria-busy="true">
                 <EmptyState
                   glyph="notepad"
-                  title="Открываем дневник…"
-                  text="Это займёт пару секунд."
+                  title={current.title ?? 'Открываем дневник…'}
+                  text={current.text ?? 'Это займёт пару секунд.'}
                   class="diary-opening"
                   data-testid="diary-opening"
                 />

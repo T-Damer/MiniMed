@@ -3,6 +3,7 @@
 # amd64 image, pushes it, rolls out a container revision and updates the API Gateway.
 #
 #   scripts/diary-serverless-deploy.sh            # targets apps/diary-server/deploy/serverless/yandex.env
+#   GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh   # only the API Gateway spec (redirects, routes)
 #
 # Needs the yc CLI signed in and Docker (OrbStack). The database is never touched beyond the
 # numbered migrations the service runs itself on start.
@@ -17,6 +18,13 @@ VERSION="$(bun -e 'console.log(JSON.parse(require("fs").readFileSync("release.js
 TAG="cr.yandex/$YC_REGISTRY/diary-server:$VERSION-$(git -C "$ROOT" rev-parse --short=9 HEAD)"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
+
+if [[ "${GATEWAY_ONLY:-}" == 1 ]]; then
+  CONTAINER_ID="$YC_CONTAINER_ID" INVOKER_SA="$YC_INVOKER_SA" envsubst <"$DEPLOY/api-gateway.yaml" >"$STAGE/gateway.yaml"
+  yc serverless api-gateway update "$YC_GATEWAY" --folder-id "$YC_FOLDER" --spec "$STAGE/gateway.yaml" >/dev/null
+  echo "API Gateway updated"
+  exit 0
+fi
 
 bun build "$ROOT/apps/diary-server/src/serverless.ts" --target=node --format=esm --minify \
   --outfile "$STAGE/diary-serverless.mjs" >/dev/null

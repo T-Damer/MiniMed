@@ -25,6 +25,26 @@ paths:
           Location: https://t-damer.github.io/MiniMed/app/diary/
         content:
           text/plain: ""
+  # Short links for the QR codes on the slides (DIARY-DEMO2): the doctor's sign-in opened on «Демо»,
+  # and the patient's demo diary made on the visitor's device.
+  /demo:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 302
+        http_headers:
+          Location: https://t-damer.github.io/MiniMed/app/?profile=diaries&demo
+        content:
+          text/plain: ""
+  /demo/patient:
+    get:
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 302
+        http_headers:
+          Location: https://t-damer.github.io/MiniMed/app/diary/#demo
+        content:
+          text/plain: ""
   /api/{path+}:
     x-yc-apigateway-any-method:
       parameters:

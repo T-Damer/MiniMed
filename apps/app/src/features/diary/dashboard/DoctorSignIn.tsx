@@ -20,15 +20,30 @@ import {
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
 
-type Mode = 'login' | 'register' | 'recover';
+type Mode = 'login' | 'register' | 'recover' | 'demo';
 
-const MODES: readonly Mode[] = ['login', 'register', 'recover'];
+const MODES: readonly Mode[] = ['login', 'register', 'recover', 'demo'];
 
 const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: string }>> = {
   login: { title: 'С возвращением!', lead: 'Дневники пациентов уже ждут' },
-  register: { title: 'Добро пожаловать!', lead: 'Пара полей — и можно заводить первого пациента' },
-  recover: { title: 'Без паники', lead: 'Код восстановления вернёт доступ к пациентам' },
+  register: {
+    title: 'Добро пожаловать!',
+    lead: 'Пара полей — и можно заводить первого пациента',
+  },
+  recover: {
+    title: 'Без паники',
+    lead: 'Код восстановления вернёт доступ к пациентам',
+  },
+  demo: {
+    title: 'Загляните в демо',
+    lead: 'Без почты и пароля — пациенты с историей уже ждут',
+  },
 };
+
+/** `?demo` in the address (the doctor's QR code on the slides): the form opens on «Демо». */
+function demoRequested(): boolean {
+  return new URLSearchParams(window.location.search).has('demo');
+}
 
 function message(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -76,7 +91,7 @@ export function DoctorSignIn(props: {
   readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
   claimFullScreen();
-  const [mode, setMode] = createSignal<Mode>('login');
+  const [mode, setMode] = createSignal<Mode>(demoRequested() ? 'demo' : 'login');
   const [email, setEmail] = createSignal('');
   const [name, setName] = createSignal('');
   const [password, setPassword] = createSignal('');
@@ -86,7 +101,10 @@ export function DoctorSignIn(props: {
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [copied, setCopied] = createSignal(false);
-  const [recovery, setRecovery] = createSignal<{ code: string; session: DoctorSession }>();
+  const [recovery, setRecovery] = createSignal<{
+    code: string;
+    session: DoctorSession;
+  }>();
   // Open sign-up needs no invite code; while unknown (offline) the field stays, as before.
   const [signup] = createResource(() =>
     signUpMode().catch((cause: unknown) => {
@@ -116,6 +134,10 @@ export function DoctorSignIn(props: {
 
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
+    if (mode() === 'demo') {
+      await openDemo();
+      return;
+    }
     setError('');
     setBusy(true);
     try {
@@ -123,7 +145,11 @@ export function DoctorSignIn(props: {
         props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
       } else if (mode() === 'login') {
         props.onSignedIn(
-          await signIn({ email: email(), password: password(), rememberDevice: remember() }),
+          await signIn({
+            email: email(),
+            password: password(),
+            rememberDevice: remember(),
+          }),
         );
       } else if (mode() === 'register') {
         const result = await signUp({
@@ -199,7 +225,9 @@ export function DoctorSignIn(props: {
                   {(each) => (
                     <div
                       class="diary-signin__headline diary-signin__headline--stacked"
-                      classList={{ 'diary-signin__headline--hidden': mode() !== each }}
+                      classList={{
+                        'diary-signin__headline--hidden': mode() !== each,
+                      }}
                       aria-hidden={mode() === each ? undefined : 'true'}
                     >
                       <h1 class="diary-signin__title">{HEADLINES[each].title}</h1>
@@ -212,26 +240,32 @@ export function DoctorSignIn(props: {
                 <SegmentedControl
                   label="Вход или регистрация"
                   stretch
-                  value={mode() === 'register' ? 'register' : 'login'}
+                  value={mode() === 'recover' ? 'login' : mode()}
                   options={[
                     { value: 'login', label: 'Вход' },
                     { value: 'register', label: 'Регистрация' },
+                    // Demo needs open sign-up; a demo link shows it before the answer arrives.
+                    ...(signup.latest === 'open' || demoRequested()
+                      ? [{ value: 'demo' as const, label: 'Демо' }]
+                      : []),
                   ]}
                   onChange={choose}
                 />
               </Reveal>
-              <TextField
-                label={mode() === 'login' ? 'Почта или код доступа' : 'Почта'}
-                // Text, not e-mail: the same field takes «K2CM-R5AG-2M4R».
-                type={mode() === 'login' ? 'text' : 'email'}
-                inputMode="email"
-                autocomplete="username"
-                autocapitalize="off"
-                spellcheck={false}
-                required
-                value={email()}
-                onInput={(event) => setEmail(event.currentTarget.value)}
-              />
+              <Reveal open={mode() !== 'demo'}>
+                <TextField
+                  label={mode() === 'login' ? 'Почта или код доступа' : 'Почта'}
+                  // Text, not e-mail: the same field takes «K2CM-R5AG-2M4R».
+                  type={mode() === 'login' ? 'text' : 'email'}
+                  inputMode="email"
+                  autocomplete="username"
+                  autocapitalize="off"
+                  spellcheck={false}
+                  required={mode() !== 'demo'}
+                  value={email()}
+                  onInput={(event) => setEmail(event.currentTarget.value)}
+                />
+              </Reveal>
               <Reveal open={mode() === 'register'}>
                 <TextField
                   label="Как вас подписать для пациентов"
@@ -258,22 +292,24 @@ export function DoctorSignIn(props: {
                   onInput={(event) => setCode(event.currentTarget.value)}
                 />
               </Reveal>
-              <Reveal open={!byCode()}>
+              <Reveal open={!byCode() && mode() !== 'demo'}>
                 <TextField
                   label={mode() === 'login' ? 'Пароль' : 'Новый пароль (от 8 символов)'}
                   type="password"
                   autocomplete={mode() === 'login' ? 'current-password' : 'new-password'}
                   minLength={8}
-                  required={!byCode()}
+                  required={!byCode() && mode() !== 'demo'}
                   value={password()}
                   onInput={(event) => setPassword(event.currentTarget.value)}
                 />
               </Reveal>
-              <Checkbox
-                label={`Мой компьютер: не спрашивать ${byCode() ? 'код' : 'пароль'} снова`}
-                checked={remember()}
-                onChange={(event) => setRemember(event.currentTarget.checked)}
-              />
+              <Reveal open={mode() !== 'demo'}>
+                <Checkbox
+                  label={`Мой компьютер: не спрашивать ${byCode() ? 'код' : 'пароль'} снова`}
+                  checked={remember()}
+                  onChange={(event) => setRemember(event.currentTarget.checked)}
+                />
+              </Reveal>
               <Show when={error()}>
                 <p class="diary-signin__error" role="alert">
                   {error()}
@@ -287,14 +323,16 @@ export function DoctorSignIn(props: {
                 classList={{ 'diary-signin__submit--busy': busy() }}
               >
                 <Switch>
+                  <Match when={busy() && mode() === 'demo'}>Открываем демо…</Match>
                   <Match when={busy()}>Открываем ключи…</Match>
+                  <Match when={mode() === 'demo'}>Открыть демо</Match>
                   <Match when={byCode()}>Войти по коду</Match>
                   <Match when={mode() === 'login'}>Войти</Match>
                   <Match when={mode() === 'register'}>Создать аккаунт</Match>
                   <Match when={mode() === 'recover'}>Восстановить доступ</Match>
                 </Switch>
               </Button>
-              <Reveal open={mode() !== 'register' && !byCode()}>
+              <Reveal open={mode() === 'login' || mode() === 'recover' ? !byCode() : false}>
                 <button
                   type="button"
                   class="diary-signin__switch"
@@ -304,7 +342,7 @@ export function DoctorSignIn(props: {
                 </button>
               </Reveal>
               {/* Try the diaries before any account: needs a service with open sign-up. */}
-              <Reveal open={mode() !== 'recover' && signup.latest === 'open'}>
+              <Reveal open={mode() === 'login' && signup.latest === 'open'}>
                 <Button
                   type="button"
                   class="diary-signin__demo"

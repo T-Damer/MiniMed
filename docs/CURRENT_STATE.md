@@ -269,6 +269,36 @@ address leads back to the files when it is off.
 - **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
   with a round «+» and the title, not a paper tool card.
 
+## Diary demo links, the doctor's offline copy, dotted paper — 2026-11-02 (STATE DIARY-DEMO2)
+
+For the faculty slides (owner): two QR codes, a doctor's and a patient's, both open a working demo.
+
+- **Short links** on the API Gateway (`api-gateway.yaml`): `https://med.1damer.com/demo` →
+  `…/app/?profile=diaries&demo`, `https://med.1damer.com/demo/patient` → `…/app/diary/#demo`.
+  `GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh` updates the gateway alone (no image, no revision).
+- **`?demo`** opens the doctor's sign-in on a third segment «Демо» (`DoctorSignIn.tsx`): the account
+  fields fold away and «Открыть демо» signs in this device's demo doctor (`signInDemo`). The segment
+  shows with open sign-up, or always with `?demo`. The bottom «Демо — без регистрации» stays under «Вход».
+- **`#demo`** on the patient's page (`DiaryApp.tsx`) signs in the same device demo doctor (remembered),
+  adds «Демо · Мой дневник» with 14 days of history (`demoSelfPairing` in `demo-patients.ts`, the
+  throw-away device writes it) and pairs this browser with a fresh one-time code; no install-first
+  step. `minimed.diary.demo-self.v1` keeps the diary id, so the QR code again opens it straight away.
+  The doctor's demo on the same device lists that diary with the four demo patients, which are now
+  seeded until every one of them is there (`hasDemoSet`), not until any demo label exists.
+- **The doctor's offline copy** (`doctor-workspace.ts`, `doctor-account.ts`): after every full or
+  per-patient read the list (summaries, replicas, alerts) is saved, 2 s debounced, AES-GCM-sealed with
+  the device's non-extractable key in the doctor IndexedDB (`offline:<doctorId>`), only while the doctor
+  stays signed in on this device («Мой компьютер»). A first read that finds no network or a 502/503/504
+  restores it; the list says «Нет связи с сервером: показана копия от …» and retries every 30 s and on
+  `online`, then reconnects live updates. Writes still need the network. Signing out drops the copy.
+- **FHIR from the doctor**: «Выгрузить записи» adds «FHIR (JSON)», the same R4 bundle as the patient's.
+- **Dotted paper** (owner: the calendar card's texture everywhere): `--theme-paper-dots` in `theme.css`,
+  laid by `styles/paper-dots.css` over the main paper cards of the app and the patient diary (section
+  list, result groups, disclosures, diary rows, charts, timeline, care rows). Only the image layer is
+  set, so fills, hover and the dark theme stay each card's own.
+- e2e `diary-demo.spec.ts`: the `?demo` sign-in, `#demo` diary, the doctor seeing it (5 rows) and the
+  copy standing in with the API aborted.
+
 ## Diary demo mode and intake charts — 2026-11-02 (owner)
 
 - **«Демо — без регистрации»** on the doctor's sign-in (services with open sign-up): one tap opens

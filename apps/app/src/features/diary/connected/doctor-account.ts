@@ -101,6 +101,76 @@ export function forgetDoctorSession(): void {
   localStorage.removeItem(SESSION_KEY);
 }
 
+/** The doctor chose «Мой компьютер» for this session: its keys (and offline copy) stay here. */
+function rememberedHere(session: Pick<DoctorSession, 'token'>): boolean {
+  const raw = localStorage.getItem(SESSION_KEY);
+  return raw !== null && (JSON.parse(raw) as Partial<StoredSession>).token === session.token;
+}
+
+const offlineKey = (session: Pick<DoctorSession, 'doctor'>): string =>
+  `offline:${session.doctor.id}`;
+
+async function idbPut(key: string, value: unknown): Promise<void> {
+  const db = await idb();
+  await new Promise<void>((resolve, reject) => {
+    const request = db.transaction(DB_STORE, 'readwrite').objectStore(DB_STORE).put(value, key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB недоступна.'));
+  });
+}
+
+async function idbGet(key: string): Promise<unknown> {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(DB_STORE).objectStore(DB_STORE).get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB недоступна.'));
+  });
+}
+
+interface OfflineCopy {
+  readonly savedAt: string;
+  readonly iv: Uint8Array<ArrayBuffer>;
+  readonly data: ArrayBuffer;
+}
+
+/**
+ * Keeps the doctor's last loaded patients for work without a network (DIARY-DEMO2): sealed with
+ * this device's non-extractable key, and only while the doctor stays signed in on this device
+ * («Мой компьютер»); on someone else's computer nothing is kept.
+ */
+export async function keepOfflineCopy(session: DoctorSession, text: string): Promise<void> {
+  if (!rememberedHere(session)) return;
+  const key = await deviceKey(false);
+  if (!key) return;
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    new TextEncoder().encode(text),
+  );
+  const copy: OfflineCopy = { savedAt: new Date().toISOString(), iv, data };
+  await idbPut(offlineKey(session), copy);
+}
+
+/** The copy `keepOfflineCopy` made for this doctor on this device, if any. */
+export async function readOfflineCopy(
+  session: DoctorSession,
+): Promise<{ readonly savedAt: string; readonly text: string } | undefined> {
+  const copy = (await idbGet(offlineKey(session))) as OfflineCopy | undefined;
+  const key = copy ? await deviceKey(false) : undefined;
+  if (!copy || !key) return undefined;
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: copy.iv }, key, copy.data);
+  return { savedAt: copy.savedAt, text: new TextDecoder().decode(plain) };
+}
+
+/** Signing out takes the offline copy with it. */
+async function dropOfflineCopy(session: DoctorSession): Promise<void> {
+  await idbPut(offlineKey(session), undefined).catch((cause: unknown) => {
+    console.warn('Дневники: копия без сети не удалена', cause);
+  });
+}
+
 export function doctorApi(session: Pick<DoctorSession, 'token'> | undefined): DiaryApi {
   return createDiaryApi(() => session?.token, diaryServiceBase());
 }
@@ -307,5 +377,6 @@ export async function recoverAccount(input: {
 
 export async function signOut(session: DoctorSession): Promise<void> {
   forgetDoctorSession();
+  await dropOfflineCopy(session);
   await diaryAuth.logout(doctorApi(session));
 }

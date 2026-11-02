@@ -69,6 +69,7 @@ import {
   heatmapDays,
   heatParts,
 } from '@/features/diary/diary-care';
+import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import {
   type DiaryEntry,
   type DiaryInvitation,
@@ -384,12 +385,16 @@ export function DiaryPatientPage(props: {
     preset: series.preset,
   });
 
-  const exportAs = async (kind: 'csv' | 'xlsx'): Promise<void> => {
+  const exportAs = async (kind: 'csv' | 'xlsx' | 'fhir'): Promise<void> => {
     const current = results();
     if (!current) return;
     const rows = exportRows(current.invitation, current.entries);
     const name = `дневник-${props.patient.replica.profile?.label ?? props.patient.summary.id}`;
-    if (kind === 'csv') {
+    if (kind === 'fhir') {
+      // HL7 FHIR R4, the same bundle the patient's own export makes (no name in it).
+      const bundle = JSON.stringify(diaryToFhirBundle(current), null, 2);
+      download(new Blob([bundle], { type: 'application/fhir+json' }), `${name}.fhir.json`);
+    } else if (kind === 'csv') {
       download(new Blob([exportCsv(rows)], { type: 'text/csv;charset=utf-8' }), `${name}.csv`);
     } else {
       download(await exportXlsx(rows, name), `${name}.xlsx`);
@@ -785,6 +790,7 @@ export function DiaryPatientPage(props: {
           >
             <div class="diary-dash-form__actions">
               <Button onClick={() => void exportAs('csv')}>CSV</Button>
+              <Button onClick={() => void exportAs('fhir')}>FHIR (JSON)</Button>
               <Button variant="primary" onClick={() => void exportAs('xlsx')}>
                 Excel (XLSX)
               </Button>

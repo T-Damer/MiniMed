@@ -26,11 +26,13 @@ import {
 } from '@localmed/diary-sync';
 
 import {
+  DiaryApiError,
   diaryAlerts,
   diaryChanges,
   diaryDoctors,
   diaryLiveMode,
   diaryPatients,
+  isOffline,
 } from '@/features/diary/connected/diary-api';
 import {
   applyRevisions,
@@ -42,7 +44,12 @@ import {
   PROFILE_RECORD,
 } from '@/features/diary/connected/diary-replica';
 import { DiarySession, type Keyring } from '@/features/diary/connected/diary-session';
-import { type DoctorSession, doctorApi } from '@/features/diary/connected/doctor-account';
+import {
+  type DoctorSession,
+  doctorApi,
+  keepOfflineCopy,
+  readOfflineCopy,
+} from '@/features/diary/connected/doctor-account';
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
@@ -72,9 +79,70 @@ export interface DoctorPatient {
 
 type Listener = () => void;
 
+/** No network, or a gateway that cannot reach the service: the offline copy stands in. */
+function unreachable(cause: unknown): boolean {
+  return (
+    isOffline(cause) || (cause instanceof DiaryApiError && [502, 503, 504].includes(cause.status))
+  );
+}
+
+/** The offline copy's form: the replica's maps and sets as arrays. */
+interface OfflineSnapshot {
+  readonly v: 1;
+  readonly alerts: readonly DiaryAlert[];
+  readonly patients: readonly {
+    readonly summary: DiaryPatientSummary;
+    readonly refused: number;
+    readonly replica: Omit<DiaryReplica, 'entries' | 'entryAuthors' | 'tipsRead' | 'revs'> & {
+      readonly entries: readonly (readonly [string, DiaryEntry])[];
+      readonly entryAuthors: readonly (readonly [string, string])[];
+      readonly tipsRead: readonly string[];
+      readonly revs: readonly (readonly [string, number])[];
+    };
+  }[];
+}
+
+function toSnapshot(
+  patients: readonly DoctorPatient[],
+  alerts: readonly DiaryAlert[],
+): OfflineSnapshot {
+  return {
+    v: 1,
+    alerts,
+    patients: patients.map(({ summary, refused, replica }) => ({
+      summary,
+      refused,
+      replica: {
+        ...replica,
+        entries: [...replica.entries],
+        entryAuthors: [...replica.entryAuthors],
+        tipsRead: [...replica.tipsRead],
+        revs: [...replica.revs],
+      },
+    })),
+  };
+}
+
+function fromSnapshot(snapshot: OfflineSnapshot): readonly DoctorPatient[] {
+  return snapshot.patients.map(({ summary, refused, replica }) => ({
+    // Nobody is «online» in a copy: presence is only known live.
+    summary: { ...summary, online: false },
+    refused,
+    replica: {
+      ...replica,
+      entries: new Map(replica.entries),
+      entryAuthors: new Map(replica.entryAuthors),
+      tipsRead: new Set(replica.tipsRead),
+      revs: new Map(replica.revs),
+    },
+  }));
+}
+
 /** `poll` mode (ADR-0027): how often the change counter is read, and the full re-read for presence. */
 const POLL_MS = 20_000;
 const PRESENCE_MS = 3 * 60_000;
+/** How often a list shown from the offline copy tries the service again. */
+const OFFLINE_RETRY_MS = 30_000;
 
 export class DoctorDiaries {
   private readonly api;
@@ -86,6 +154,9 @@ export class DoctorDiaries {
   private live = false;
   private stopPolling: (() => void) | undefined;
   private loaded = false;
+  private offlineAt: string | undefined;
+  private copyTimer: number | undefined;
+  private stopRetry: (() => void) | undefined;
 
   constructor(readonly session: DoctorSession) {
     this.api = doctorApi(session);
@@ -180,14 +251,74 @@ export class DoctorDiaries {
     });
   }
 
+  /**
+   * Reads every patient again. Without a network the first read falls back to this device's
+   * offline copy (`offlineSince()` then says from when) and reads again once the network is back.
+   */
   async refresh(): Promise<void> {
-    const summaries = await diaryPatients.list(this.api);
-    const seen = new Set(summaries.map((summary) => summary.id));
-    for (const id of this.entries.keys()) if (!seen.has(id)) this.entries.delete(id);
-    await Promise.all(summaries.map((summary) => this.load(summary)));
-    this.alertList = await diaryAlerts.list(this.api);
+    try {
+      const summaries = await diaryPatients.list(this.api);
+      const seen = new Set(summaries.map((summary) => summary.id));
+      for (const id of this.entries.keys()) if (!seen.has(id)) this.entries.delete(id);
+      await Promise.all(summaries.map((summary) => this.load(summary)));
+      this.alertList = await diaryAlerts.list(this.api);
+    } catch (cause) {
+      if (!unreachable(cause) || this.loaded || !(await this.restoreOfflineCopy())) throw cause;
+      return;
+    }
     this.loaded = true;
+    this.offlineAt = undefined;
+    this.stopRetry?.();
+    this.stopRetry = undefined;
     this.emit();
+    this.keepCopy();
+  }
+
+  /** When the copy on screen was saved; undefined while the list is live. */
+  offlineSince(): string | undefined {
+    return this.offlineAt;
+  }
+
+  private async restoreOfflineCopy(): Promise<boolean> {
+    const copy = await readOfflineCopy(this.session).catch((cause: unknown) => {
+      console.warn('Дневники: копия без сети не открылась', cause);
+      return undefined;
+    });
+    if (!copy) return false;
+    const snapshot = JSON.parse(copy.text) as OfflineSnapshot;
+    if (snapshot.v !== 1) return false;
+    for (const patient of fromSnapshot(snapshot)) this.entries.set(patient.summary.id, patient);
+    this.alertList = snapshot.alerts;
+    this.loaded = true;
+    this.offlineAt = copy.savedAt;
+    this.emit();
+    const back = (): void => {
+      this.refresh()
+        .then(() => this.connectLive())
+        .catch((cause: unknown) => {
+          console.warn('Дневники: обновление после возвращения сети не удалось', cause);
+        });
+    };
+    // Back on the network, or the service up again: whichever comes first.
+    const timer = window.setInterval(back, OFFLINE_RETRY_MS);
+    window.addEventListener('online', back);
+    this.stopRetry = () => {
+      window.clearInterval(timer);
+      window.removeEventListener('online', back);
+    };
+    return true;
+  }
+
+  /** Saves the list for work without a network, at most once every few seconds. */
+  private keepCopy(): void {
+    if (this.copyTimer !== undefined) return;
+    this.copyTimer = window.setTimeout(() => {
+      this.copyTimer = undefined;
+      const text = JSON.stringify(toSnapshot(this.patients(), this.alertList));
+      keepOfflineCopy(this.session, text).catch((cause: unknown) => {
+        console.warn('Дневники: копия без сети не сохранена', cause);
+      });
+    }, 2000);
   }
 
   async refreshPatient(id: string): Promise<void> {
@@ -199,6 +330,7 @@ export class DoctorDiaries {
     }
     this.alertList = await diaryAlerts.list(this.api);
     this.emit();
+    this.keepCopy();
   }
 
   /**
@@ -283,6 +415,8 @@ export class DoctorDiaries {
   }
 
   disconnect(): void {
+    this.stopRetry?.();
+    this.stopRetry = undefined;
     this.live = false;
     this.events?.close();
     this.events = undefined;

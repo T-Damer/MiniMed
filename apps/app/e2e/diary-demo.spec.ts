@@ -106,3 +106,49 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await expect(rows).toHaveCount(4, { timeout: 60_000 });
   expect(await doctorId()).toBe(demoDoctor);
 });
+
+test('the demo links: the doctor’s opens on «Демо», the patient’s makes a diary here, the copy stands in offline', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 375, height: 812 });
+  let offline = false;
+  await page.route(`${E2E_ASSET_ORIGIN}/api/**`, (route) =>
+    offline
+      ? route.abort('internetdisconnected')
+      : route.continue({ url: route.request().url().replace(E2E_ASSET_ORIGIN, service) }),
+  );
+
+  // The doctor's QR code: the sign-in already on «Демо», one tap.
+  await page.goto(`${E2E_ASSET_ORIGIN}/?profile=diaries&demo#/notes/diaries`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await expect(page.getByRole('heading', { name: 'Загляните в демо' })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('demo-link-signin.png') });
+  await page.getByRole('button', { name: 'Открыть демо' }).click();
+  const rows = page.locator('.diary-dash-row');
+  await expect(rows).toHaveCount(4, { timeout: 120_000 });
+
+  // The patient's QR code: a demo diary with history on this device, connected to the demo doctor.
+  await page.goto(`${E2E_ASSET_ORIGIN}/diary/#demo`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText(/Демо-дневник: две недели записей/u)).toBeVisible({
+    timeout: 120_000,
+  });
+  await page.screenshot({ path: testInfo.outputPath('demo-link-patient.png') });
+
+  // The doctor sees it among the demo patients.
+  await page.goto(`${E2E_ASSET_ORIGIN}/?profile=diaries#/notes/diaries`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await expect(rows).toHaveCount(5, { timeout: 60_000 });
+  await expect(rows.filter({ hasText: 'Мой дневник' })).toHaveCount(1);
+  // The copy for work without a network is written a moment after the list loads.
+  await page.waitForTimeout(3_000);
+
+  // No network: the list comes from the copy on this device, and says from when.
+  offline = true;
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.getByTestId('diary-offline')).toBeVisible({ timeout: 30_000 });
+  await expect(rows).toHaveCount(5);
+  await page.screenshot({ path: testInfo.outputPath('demo-offline.png') });
+});
