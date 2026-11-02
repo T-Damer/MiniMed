@@ -106,6 +106,7 @@ WebView: `apps/app/**` boot, motion and reader work â€” claude-coordinator (W1â€
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
+| 2026-11-02 | claude-opus (UI-DIARY18) | diary UI batch: sticky left column on the wide new-patient form, distinct today marker in the calendar, hero collapse without the clipped emblem flight, loading state for a patient diary; then release | `apps/app/src/diary/**`, `apps/app/src/features/diary/**`, `apps/app/src/components/PageHero*`, `apps/app/src/components/EmptyState*` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
