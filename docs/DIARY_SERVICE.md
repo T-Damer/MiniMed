@@ -57,9 +57,14 @@ Live since 2026-11-01 (2026-10-27 – 11-01 on a VM); management, ids and costs:
 pushes the image to Container Registry, deploys a revision of the container `diary-api` and updates
 the API Gateway `diary` (`apps/diary-server/deploy/serverless/api-gateway.yaml`), which serves
 `https://med.1damer.com/api/…` with a Let's Encrypt certificate from Certificate Manager. The pages
-are the app on GitHub Pages: on `*.github.io` and in the native shells `diaryServiceBase()` is
-`https://med.1damer.com`, and the QR link reads `https://med.1damer.com/diary/#c=…`, which the gateway
-redirects to the Pages patient page with the fragment intact. Two short demo links for slides: `/demo` (the doctor's sign-in on «Демо») and
+are a static copy of the app, published where `DIARY_PAGES_URL` (`yandex.env`) says — since
+2026-11-03 GitVerse Pages, `https://t-damer.gitverse.site/minimed/` (opens reliably in Russia;
+github.io does not), published by `scripts/diary-gitverse-publish.sh`; the full app on GitHub Pages
+keeps working against the same service. On `*.github.io`, `*.gitverse.site` and in the native shells
+`diaryServiceBase()` is `https://med.1damer.com`. Every public link goes through the gateway: the QR
+link reads `https://med.1damer.com/diary/#c=…`, `/` opens the doctors' app, and the gateway redirects
+to `DIARY_PAGES_URL` with the fragment intact, so moving the pages is one variable and
+`GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh`; `DIARY_CORS_ORIGINS` lists both hosts. Two short demo links for slides: `/demo` (the doctor's sign-in on «Демо») and
 `/demo/patient` (a guest diary in the shared demo account, on the visitor's device); every visitor signs in to one
 public demo account, whose sign-ins are capped at 600 a minute; `GATEWAY_ONLY=1` redeploys only the gateway.
 The gateway also answers `/sw.js` with a service worker that retires itself (clears caches,

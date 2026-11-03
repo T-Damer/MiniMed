@@ -4,6 +4,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Patient diaries open from GitVerse Pages (`t-damer.gitverse.site/minimed`), which loads reliably in Russia;
+  `med.1damer.com`, its QR codes and the slides' links now lead there. Doctors sign in once on the new address;
+  diaries already kept on github.io keep working.
+
 ## [0.6.82] - 2026-11-03
 
 - Patient diaries: the doctor can ask a patient to mark substance use — alcohol, nicotine, cannabis, opioids,

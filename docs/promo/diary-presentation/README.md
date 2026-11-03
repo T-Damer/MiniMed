@@ -17,4 +17,6 @@ cd docs/promo/diary-presentation/tools && bun install
 bun build-pptx.mjs ../index.html ../diary-presentation.pptx
 ```
 
-QR codes point at `med.1damer.com/demo` (doctor) and `/demo/patient` (patient).
+QR codes point at `med.1damer.com/demo` (doctor) and `/demo/patient` (patient). These are the diary
+service's short links: the gateway redirects them to wherever the pages are published
+(`DIARY_PAGES_URL`, docs/DIARY_ADMIN.md), so the slides need no change when the pages move.

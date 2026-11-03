@@ -4,7 +4,7 @@
   "short_name": "Дневники",
   "description": "Дневники пациентов для врача: записи приходят вживую и зашифрованными, опросники, напоминания и графики.",
   "lang": "ru",
-  "start_url": "../?profile=diaries",
+  "start_url": "../index.html?profile=diaries",
   "scope": "../",
   "display": "standalone",
   "background_color": "#f3ecd9",

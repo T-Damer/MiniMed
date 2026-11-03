@@ -24,7 +24,16 @@ the repository on the owner's Mac with the `yc` CLI signed in. How the service w
 scripts/diary-admin.sh status    # health, active revision, certificate
 scripts/diary-admin.sh logs      # last 30 minutes: routes, status codes, times — never patient data
 scripts/diary-serverless-deploy.sh   # bundle, image, new revision, gateway spec
+scripts/diary-gitverse-publish.sh    # build the app, publish the pages to GitVerse
 ```
+
+The pages live on GitVerse Pages, repository `t_damer/minimed` (public; Settings → Страницы → source
+«Воркфлоу»). The script pushes one commit to its `pages` branch: the app build without content packs
+(≈125 MB of the 500 MB limit) in `site/` and the workflow that publishes it; the deploy takes about
+five minutes (`api.gitverse.ru/repos/t_damer/minimed/actions/runs`, token `GITVERSE_TOKEN` in `.env`).
+GitVerse answers a directory address with a query (`/minimed/?profile=diaries`) with its not-found
+page, so links with a query name `index.html`. To move the pages elsewhere, change `DIARY_PAGES_URL`
+and `DIARY_CORS_ORIGINS` in `apps/diary-server/deploy/serverless/yandex.env` and redeploy.
 
 Sign-up is open for the prototype (owner 2026-10-28). Invite codes (`DIARY_SIGNUP=invite`) are made
 only by the server mode's CLI today; switch sign-up back to invites together with a serverless

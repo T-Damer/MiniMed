@@ -20,6 +20,30 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Diary pages on GitVerse Pages — 2026-11-03 (STATE DIARY-GV)
+
+- **Why.** github.io loads unreliably from Russian networks; GitVerse Pages (`*.gitverse.site`, no
+  custom domains) does. The doctors' app and the patient page are now published at
+  `https://t-damer.gitverse.site/minimed/` (repository `t_damer/minimed`); GitHub Pages keeps the full
+  app, and both talk to the same service.
+- **One variable.** Every public link goes through `med.1damer.com` (`/`, `/diary/#…`, `/demo`,
+  `/demo/patient` — QR codes, the slides, the doctor guide). The gateway redirects to
+  `DIARY_PAGES_URL` (`apps/diary-server/deploy/serverless/yandex.env`); the native shells' patient
+  link is `https://med.1damer.com/diary/` too. `DIARY_CORS_ORIGINS` allows both hosts.
+- **The copy.** `scripts/diary-gitverse-publish.sh` publishes the app build without its content
+  packs (124 MB; the three boot files the service worker precaches stay), with a GitVerse workflow
+  (`actions/upload-pages-artifact@v1`, `actions/deploy-pages@v1`) that publishes it unprocessed. The
+  diaries profile needs no content: it boots, signs in and shows patients with none installed.
+- **GitVerse quirk.** A directory address with a query (`/minimed/?profile=diaries`) gets GitVerse's
+  not-found page (HTTP 200), so the redirects and the diaries manifest's `start_url` name
+  `index.html?profile=diaries` (the manifest `id` is unchanged, so installs keep their identity).
+  Missing files also answer 200 with that HTML page.
+- **Moving users.** Doctors sign in once on the new address (accounts live on the service). Patients
+  keep their diary where it is; new pairing links open on GitVerse. An app installed from github.io
+  stays there until reinstalled from `med.1damer.com`.
+- **Verified.** The served copy: the redirects, CORS for both origins, the demo sign-in loading
+  patients in a desktop browser, service worker install. Not checked on the phone (locked).
+
 ## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
 
 - **Substance use («Зависимости»).** A section the doctor adds on the patient's screen. The doctor ticks what to

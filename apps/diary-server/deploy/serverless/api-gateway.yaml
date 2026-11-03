@@ -1,7 +1,9 @@
 # API Gateway of the serverless diary (ADR-0027): /api/* goes to the container; the bare domain and
-# /diary send people to the pages on GitHub Pages (a fragment like #c=… survives the redirect).
+# /diary send people to the published pages, ${DIARY_PAGES_URL} (a fragment like #c=… survives the
+# redirect), so links and slide QR codes keep working when the pages move. A query goes after an
+# explicit index.html: GitVerse Pages answers «/?…» with its not-found page.
 # CORS is the container's (DIARY_CORS_ORIGINS): the gateway's own CORS refuses capacitor:// origins.
-# ${CONTAINER_ID} and ${INVOKER_SA} are filled by scripts/diary-serverless-deploy.sh.
+# ${DIARY_PAGES_URL}, ${CONTAINER_ID} and ${INVOKER_SA} are filled by scripts/diary-serverless-deploy.sh.
 openapi: 3.0.0
 info:
   title: minimed-diary
@@ -13,7 +15,7 @@ paths:
         type: dummy
         http_code: 302
         http_headers:
-          Location: https://t-damer.github.io/MiniMed/app/?profile=diaries
+          Location: ${DIARY_PAGES_URL}index.html?profile=diaries
         content:
           text/plain: ""
   /diary:
@@ -22,7 +24,7 @@ paths:
         type: dummy
         http_code: 302
         http_headers:
-          Location: https://t-damer.github.io/MiniMed/app/diary/
+          Location: ${DIARY_PAGES_URL}diary/
         content:
           text/plain: ""
   # Short links for the QR codes on the slides (DIARY-DEMO2): the doctor's sign-in opened on «Демо»,
@@ -33,7 +35,7 @@ paths:
         type: dummy
         http_code: 302
         http_headers:
-          Location: https://t-damer.github.io/MiniMed/app/?profile=diaries&demo
+          Location: ${DIARY_PAGES_URL}index.html?profile=diaries&demo
         content:
           text/plain: ""
   /demo/patient:
@@ -42,7 +44,7 @@ paths:
         type: dummy
         http_code: 302
         http_headers:
-          Location: https://t-damer.github.io/MiniMed/app/diary/#demo
+          Location: ${DIARY_PAGES_URL}diary/#demo
         content:
           text/plain: ""
   # The app was served from this domain on the VM (2026-10-27 – 11-01); browsers that installed it
