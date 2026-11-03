@@ -124,8 +124,9 @@ test.describe('diary: doctor and patient round trip', () => {
     await page.getByRole('button', { name: 'Обновить', exact: true }).click();
     await page.getByLabel('Инструкция пациенту').fill('Теперь измеряйте только утром');
     await page.getByRole('button', { name: 'Получить новую ссылку', exact: true }).click();
+    // The sheet animates in (DIARY21): wait for the new link rather than read the first frame.
+    await expect(page.locator('.patient-diary__link')).not.toHaveAttribute('href', link);
     const updatedLink = await page.locator('.patient-diary__link').getAttribute('href');
-    expect(updatedLink).not.toBe(link);
     await page.getByRole('button', { name: 'Готово', exact: true }).click();
     await expect(issued).toContainText('обновлён');
 
