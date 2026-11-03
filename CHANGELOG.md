@@ -14,6 +14,12 @@ All notable changes are documented here. The project follows Semantic Versioning
   each chart in detail. Days past a red line are painted red behind the lines; the prescribed dose is a dotted line
   that follows the plan in force on each day.
 - Editing in the dark theme uses calm accent-tinted frames instead of bright yellow.
+- «Опросники» in the doctors' diaries lists every questionnaire a diary can carry, then the doctor's own.
+- Faster diaries: the patient list comes back at once after a tab or page switch and refreshes quietly; the installed
+  diaries keep less on the phone (27 MB instead of 76 MB) and open from it; the patient's diary opens at once on a slow
+  network.
+- Sheets grow and shrink smoothly with their content; the QR sheet keeps its size while the code is made.
+- A «Наверх» button on long pages; a place the app scrolls to pulses once it is on screen.
 - The GitVerse copy carries only the diaries: it always opens as the doctors' «Дневники» (or the patient diary),
   never the MiniMed reference app. The slides' QR codes open GitVerse directly; the slides still print `med.1damer.com`.
 

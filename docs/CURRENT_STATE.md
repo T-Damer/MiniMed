@@ -82,6 +82,28 @@ Detailed history, moved verbatim on 2026-09-24:
   the plan in force on each day (`medicineIntake(…, planFor)`).
 - **Dark theme.** The editable frames' gaps and the editor header's fill are accent-tinted in the dark theme instead of
   bright yellow (`--care-edit-gap`, `.screen-editor__header`).
+- **«Опросники» tab.** The diaries profile lists every scale a diary can carry («Готовые опросники»:
+  `features/assessments/built-in-scales.ts`, the profile's `builtInScales` and one allowed route per scale), then the
+  doctor's own («Свой опросник» instead of «Локальный файл»). A scale page still needs the tool pack (one tap,
+  ~600 KB) when it is not installed.
+- **«Наверх» and the scroll pulse.** One shared `components/ScrollTop.tsx` (after 1.5 screens, above the bar) in the
+  app shell and the patient diary, replacing the shell's own; `components/reveal.ts` `revealElement()` scrolls to a
+  target and pulses it once it is really on screen (questionnaire, entry form, a chart opened from a signal).
+- **Caching and navigation.** One `DoctorDiaries` per signed-in doctor for the page's lifetime
+  (`dashboard/doctor-store.ts`): a returning list renders at once and refreshes quietly (at most every 15 s); the
+  first read of a session shows the offline copy while the service answers. Tab round trips went from ~1.1–1.3 s, 11
+  API calls and a skeleton to ~0.25 s, none (390×844, 4× CPU). `components/lazy-kept.ts` keeps lazy views mounted
+  without re-suspending; the list's garden plays once. The diaries copy precaches only its own chunks (27 MB instead of
+  76 MB); the patient diary's `sw.js` is cache-first for hashed files and stale-while-revalidate for the page (the
+  first open after a release still shows the old version once).
+- **Sheets.** `OverlayDialog` animates its height when the content changes (`components/sheet-height.ts`); the QR
+  sheet has its code's size from the first frame and fades the code in over a skeleton.
+- **Slides.** «Что видит врач» became «Демо-маршрут врача» (list → «Статистика» → a calendar day → «Всё вместе», from
+  the local demo), the registration shot shows the demo button, the note says «кнопка «Демо — без регистрации»».
+- **Open.** The first visit to «Настройки»/«Опросники» still freezes ~0.5 s at 4× CPU (both views import the
+  10.7 MB module catalog statically); the diaries copy still boots the search core (fetches `core-report.json` and
+  reference databases it never uses); the patient's own sheet (`diary/DiarySheet.tsx`) has no height animation; in
+  the Edge-installed app the status bar stays Edge's own dark grey in the dark theme (it ignores `theme-color`).
 
 ## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
 
