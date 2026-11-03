@@ -47,6 +47,12 @@ export interface PageProps {
    * bar that keeps its row (`app/page-heroes.ts`). Readers, forms and editors have none.
    */
   readonly hero?: PageHero | undefined;
+  /**
+   * A compact row in the band's own room, under the description (the header does not grow): the
+   * doctor's counters on the patient list. Fades with the description as the header shrinks. Only
+   * on a page with a `hero`.
+   */
+  readonly room?: JSX.Element;
 }
 
 /**
@@ -65,6 +71,7 @@ export function Page(props: PageProps): JSX.Element {
     breadcrumbs: children(() => props.breadcrumbs),
     description: children(() => props.description),
     icon: children(() => props.icon),
+    room: children(() => props.room),
   };
   let headerElement: HTMLElement | undefined;
   let rowElement: HTMLDivElement | undefined;
@@ -247,9 +254,16 @@ export function Page(props: PageProps): JSX.Element {
         {(hero) => (
           <div
             class="page__hero-room"
-            classList={{ 'page__hero-room--trace': hero().ambient === 'ecg' }}
-            aria-hidden="true"
-          />
+            classList={{
+              'page__hero-room--trace': hero().ambient === 'ecg',
+              'page__hero-room--filled': slot.room() !== undefined,
+            }}
+            aria-hidden={slot.room() === undefined ? 'true' : undefined}
+          >
+            <Show when={slot.room() !== undefined}>
+              <div class="page__hero-room-content">{slot.room()}</div>
+            </Show>
+          </div>
         )}
       </Show>
     </header>

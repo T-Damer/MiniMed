@@ -186,6 +186,22 @@
   height: calc(var(--page-hero-lip) + 2rem);
 }
 
+/* A row of the page's own in the room (`Page` `room`): it sits at the top of the room, clear of the
+   sheet's lip, and the header is no taller for it. */
+.page__hero-room.page__hero-room--filled {
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-start;
+  margin-top: -0.25rem;
+}
+
+.page__hero-room-content {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+}
+
 /* With a trace: a strip under the header's text for it, so it never runs through the words. */
 .page__hero-room.page__hero-room--trace {
   height: calc(var(--page-hero-lip) + 3.5rem);
@@ -262,6 +278,13 @@
     animation-range: var(--page-hero-start, 0px) var(--page-hero-fade-end, 1px);
   }
 
+  /* The room's row goes with the description, and stops taking taps once it is gone. */
+  .page__hero-room-content {
+    animation: page-hero-room-fade linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--page-hero-start, 0px) var(--page-hero-fade-end, 1px);
+  }
+
   /* Gone by the time the header is a bar: a small copy beside the title only repeated the
      header's own buttons. */
   .page-hero__emblem {
@@ -305,6 +328,13 @@
 @keyframes page-hero-fade {
   to {
     opacity: 0;
+  }
+}
+
+@keyframes page-hero-room-fade {
+  to {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
