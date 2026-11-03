@@ -56,7 +56,7 @@ export function playExitGhost(backdrop: HTMLElement, fallbackMs: number): boolea
   const progress = [
     ...(backdrop.classList.contains('overlay-backdrop--closing') ? backdrop.getAnimations() : []),
     ...(livePanel?.classList.contains('overlay-dialog--closing') ? livePanel.getAnimations() : []),
-  ].map((animation) => animation.currentTime);
+  ].map((animation) => ({ startTime: animation.startTime, currentTime: animation.currentTime }));
   document.body.append(ghost);
   copyCanvases(backdrop, ghost);
   if (offsets.length > 0) {
@@ -78,8 +78,12 @@ export function playExitGhost(backdrop: HTMLElement, fallbackMs: number): boolea
   const animations = [...ghost.getAnimations(), ...(panel?.getAnimations() ?? [])];
   if (progress.length === animations.length) {
     animations.forEach((animation, index) => {
-      const time = progress[index];
-      if (time !== null && time !== undefined) animation.currentTime = time;
+      const live = progress[index];
+      if (!live) return;
+      // The start time, not the current time: it is the same moment on the shared timeline, so
+      // a main thread that was busy for a while does not make the copy start behind the original.
+      if (live.startTime !== null) animation.startTime = live.startTime;
+      else if (live.currentTime !== null) animation.currentTime = live.currentTime;
     });
   }
   if (animations.length === 0) {

@@ -93,6 +93,8 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let exiting = false;
   /** The dialog was taken out after its exit: nothing is left to animate. */
   let ended = false;
+  /** What the UI's close does once the exit has played (step the history back, tell the owner). */
+  let afterExit: (() => void) | undefined;
   let exitControls:
     | { readonly settle: () => void; readonly revert: () => void; readonly end: () => void }
     | undefined;
@@ -118,6 +120,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       done = true;
       exiting = false;
       exitControls = undefined;
+      afterExit = undefined;
       window.clearTimeout(fallback);
       window.clearTimeout(hold);
       ended = true;
@@ -130,6 +133,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       done = true;
       exiting = false;
       exitControls = undefined;
+      afterExit = undefined;
       window.clearTimeout(fallback);
       window.clearTimeout(hold);
       setClosing(false);
@@ -150,6 +154,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     };
     const markPlayed = (): void => {
       played = true;
+      const run = afterExit;
+      afterExit = undefined;
+      run?.();
       settle();
     };
     exitControls = { settle, revert, end };
@@ -186,14 +193,36 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     ),
   );
 
-  const closeDialog = (): void => {
-    // The exit starts with the tap, not when the history step arrives (it can take a while).
+  /**
+   * Tells the owner the dialog is closed once its exit has played. The exit starts at once and
+   * plays alone: the owner's reaction (a page that re-renders without its dialog) can block the
+   * thread for many frames, which would stall an exit it lands in the middle of.
+   */
+  const closeAfterExit = (): void => {
     beginExit();
-    // A dialog that is a history layer closes by stepping the history back; the arrival closes it.
+    if (!exiting) {
+      // Nothing to play (the dialog is not on screen): the owner is told at once.
+      props.onClose();
+      return;
+    }
+    const earlier = afterExit;
+    afterExit = () => {
+      earlier?.();
+      props.onClose();
+    };
+  };
+
+  const closeDialog = (): void => {
+    beginExit();
+    // A dialog that is a history layer closes by stepping the history back at once (the history
+    // must be where the user will find it if they navigate during the exit); the arrival tells
+    // the owner after the exit.
     if (historyLayer) {
       historyLayer.pop();
       return;
     }
+    // Any other dialog tells its owner at once: the owner may hold the dialog's history layer
+    // itself (SheetPopover), and a layer that outlived the tap would swallow the next back.
     props.onClose();
   };
 
@@ -254,7 +283,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // A dialog nobody can dismiss (no close button, Escape and taps ignored) must not take back.
     if (tracksHistory() && dismissible()) {
-      historyLayer = openHistoryLayer({ onPop: () => props.onClose() });
+      historyLayer = openHistoryLayer({ onPop: closeAfterExit });
     }
     setDarkHeaderStatusBar(true);
     const releaseScroll = lockBodyScroll();
