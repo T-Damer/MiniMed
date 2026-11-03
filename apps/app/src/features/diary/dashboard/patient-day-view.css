@@ -1,0 +1,45 @@
+/*
+ * The doctor inside the patient's day (PatientDayView.tsx, DIARY21): the patient's screen in the
+ * doctor's own cooler paper, so the mode reads at a glance (owner 2026-11-03); the header band keeps
+ * the app's colours. Later than diary-care.css, which tints the same tokens for the patient's look.
+ */
+body:has(.diary-day-view) {
+  --desk: #d9e2e7;
+  --theme-background: #dfe7eb;
+  --theme-surface: #edf2f5;
+  --theme-surface-raised: #f6f9fa;
+  --theme-surface-muted: #e1e9ed;
+  --theme-border: #c0ccd4;
+  --theme-accent: #2f6684;
+  --theme-accent-text: #285a75;
+  --theme-accent-contrast: #ffffff;
+  --theme-accent-soft: rgb(47 102 132 / 12%);
+  --care-edit-gap: color-mix(in srgb, var(--theme-accent) 30%, var(--theme-surface-raised));
+}
+
+@media (prefers-color-scheme: dark) {
+  body:has(.diary-day-view) {
+    --desk: #192024;
+    --theme-background: #1c2327;
+    --theme-surface: #232c31;
+    --theme-surface-raised: #2a353b;
+    --theme-surface-muted: #20282c;
+    --theme-border: #3a4a53;
+    --theme-accent: #8fbcd2;
+    --theme-accent-text: #9ecbe0;
+    --theme-accent-contrast: #10181c;
+    --theme-accent-soft: rgb(143 188 210 / 15%);
+  }
+}
+
+.diary-day-view__mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.diary-day-view__mode-glyph {
+  width: 0.95rem;
+  height: 0.95rem;
+}

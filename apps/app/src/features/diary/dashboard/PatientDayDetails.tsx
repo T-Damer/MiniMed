@@ -3,8 +3,12 @@ import { createMemo, createResource, For, type JSX, Show } from 'solid-js';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
-import { dayKey, dayPlan, type TaskState } from '@/features/diary/diary-care';
-import type { DiaryResults } from '@/features/diary/diary-model';
+import { dayKey, dayPlan, entriesOfDay, type TaskState } from '@/features/diary/diary-care';
+import {
+  type DiaryEntry,
+  type DiaryResults,
+  describeDiaryEntry,
+} from '@/features/diary/diary-model';
 import { type PlanEdit, planOn } from '@/features/diary/plan-history';
 
 interface DayTask {
@@ -40,8 +44,8 @@ export function PatientDayDetails(props: {
   readonly results: DiaryResults;
   readonly day: string;
   readonly edits: readonly PlanEdit[];
-  /** The day's records, newest first, with their correction buttons. */
-  readonly records: JSX.Element;
+  /** A record's pencil: the correction sheet (absent for a curator who only reads). */
+  readonly onCorrect?: ((entry: DiaryEntry) => void) | undefined;
   readonly onFill: () => void;
 }): JSX.Element {
   const canEdit = (): boolean => props.patient.summary.role !== 'reader';
@@ -83,6 +87,7 @@ export function PatientDayDetails(props: {
         (left.time ?? '').localeCompare(right.time ?? ''),
     );
   });
+  const records = createMemo(() => entriesOfDay(props.results.entries, props.day).toReversed());
   const done = (): number => tasks().filter((task) => task.state === 'done').length;
   // Who changed the plan: the curators' names, fetched only when the day has a change.
   const [members] = createResource(
@@ -145,7 +150,41 @@ export function PatientDayDetails(props: {
         </section>
       </Show>
 
-      {props.records}
+      <Show
+        when={records().length}
+        fallback={<p class="diary-dash__quiet">В этот день записей нет.</p>}
+      >
+        <ul class="diary-timeline">
+          <For each={records()}>
+            {(entry) => (
+              <li class="diary-timeline__item">
+                <span class="diary-timeline__time">{time(entry.at)}</span>
+                <span class="diary-timeline__text">
+                  <span class="diary-timeline__line">
+                    {describeDiaryEntry(props.results.invitation, entry)}
+                  </span>
+                  <Show when={entry.note}>
+                    <span class="diary-timeline__note">{entry.note}</span>
+                  </Show>
+                  <Show when={entry.corrected}>
+                    <span class="diary-timeline__badge">исправлено врачом</span>
+                  </Show>
+                </span>
+                <Show when={canEdit() && props.onCorrect}>
+                  {(correct) => (
+                    <Button
+                      variant="icon"
+                      aria-label="Исправить запись"
+                      icon={<AppGlyph name="edit" class="diary-dash__glyph" />}
+                      onClick={() => correct()(entry)}
+                    />
+                  )}
+                </Show>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
 
       <Button
         class="diary-day-details__fill"

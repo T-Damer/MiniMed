@@ -561,11 +561,13 @@ export function DiaryDashboard(props: {
                 <Match when={props.view === 'charts' && replicaResults(patient().replica)}>
                   {(ready) => (
                     <PatientChartsPage
+                      workspace={diaries()}
                       patient={patient()}
                       results={ready()}
                       version={version()}
                       focus={props.chart}
                       onBack={() => navigateBack(diariesPath(patient().summary.id))}
+                      onFill={(day) => props.onOpenPatient(patient().summary.id, `day/${day}`)}
                     />
                   )}
                 </Match>

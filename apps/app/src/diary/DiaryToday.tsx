@@ -1,4 +1,14 @@
-import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  Match,
+  onMount,
+  Show,
+  Switch,
+} from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { CareIntro } from '@/diary/CareIntro';
@@ -309,6 +319,8 @@ export function DiaryToday(props: {
    * becomes a correction the patient sees marked.
    */
   readonly viewer?: 'doctor' | undefined;
+  /** The day shown changed (the doctor's header names it). */
+  readonly onDay?: ((day: string) => void) | undefined;
   /**
    * The page around the diary (the patient's shell, the doctor's day view) owns the header and its
    * buttons: it receives the openers of the contacts and crisis sheets, and of one entry's sheet
@@ -328,6 +340,7 @@ export function DiaryToday(props: {
   const [now, setNow] = createSignal(new Date());
   const today = () => dayKey(now());
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
+  createEffect(() => props.onDay?.(day()));
   const [sheet, setSheet] = createSignal<Sheet | undefined>(undefined);
   const [flash, setFlash] = createSignal('');
 
@@ -492,16 +505,19 @@ export function DiaryToday(props: {
       >
         {props.header}
 
-        <DiaryHeatmap
-          days={heat()}
-          selected={day()}
-          today={today()}
-          onSelect={setDay}
-          since={diaryStarted(invitation(), props.results.entries)}
-          parts={heatParts(invitation())}
-          include={include()}
-          onInclude={setInclude}
-        />
+        {/* The doctor came from their own calendar: the day's arrows are enough here (DIARY21). */}
+        <Show when={props.viewer !== 'doctor'}>
+          <DiaryHeatmap
+            days={heat()}
+            selected={day()}
+            today={today()}
+            onSelect={setDay}
+            since={diaryStarted(invitation(), props.results.entries)}
+            parts={heatParts(invitation())}
+            include={include()}
+            onInclude={setInclude}
+          />
+        </Show>
 
         <nav class="diary-today__day" aria-label="День">
           <button

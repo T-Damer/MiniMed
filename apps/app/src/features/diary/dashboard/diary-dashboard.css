@@ -1502,32 +1502,36 @@
   overflow: hidden;
 }
 
-/* The card's head: one big button to every chart, the brief rows hang under it. */
+/* The card's head (DIARY21): one row that folds the brief week open, and a button to every chart. */
+.diary-overview__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding-inline-end: 0.6rem;
+  background: var(--theme-accent-soft);
+}
+
 .diary-overview__stats {
   display: grid;
   width: 100%;
-  min-height: 4.25rem;
+  min-height: 4rem;
   box-sizing: border-box;
-  grid-template-columns: 2.75rem 1fr auto;
+  grid-template-columns: 2.6rem 1fr auto;
   align-items: center;
-  padding: 0.75rem 0.85rem;
+  padding: 0.65rem 0.5rem 0.65rem 0.85rem;
   gap: 0.75rem;
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
   color: var(--theme-text);
-  background: var(--theme-accent-soft);
+  background: transparent;
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition:
-    background-color var(--motion-fast) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease);
+  transition: transform var(--motion-fast) var(--motion-ease);
   -webkit-tap-highlight-color: transparent;
 }
 
 .diary-overview__stats:active {
-  background-color: color-mix(in srgb, var(--theme-accent) 22%, transparent);
-  transform: scale(0.99);
+  transform: scale(0.98);
 }
 
 .diary-overview__stats:focus-visible {
@@ -1537,8 +1541,8 @@
 
 .diary-overview__stats-icon {
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.6rem;
+  height: 2.6rem;
   place-items: center;
   border-radius: 50%;
   color: var(--theme-accent-contrast, #fff);
@@ -1546,14 +1550,45 @@
 }
 
 .diary-overview__stats-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .diary-overview__stats-note {
+  overflow: hidden;
   color: var(--theme-text-muted);
   font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-overview__fold {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-muted);
+  transition: transform var(--motion-base) var(--motion-ease-out);
+}
+
+.diary-overview--open .diary-overview__fold {
+  transform: rotate(180deg);
+}
+
+/* The brief rows fold to nothing and open to their height (a grid row from 0fr to 1fr). */
+.diary-overview__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-base) var(--motion-ease-out);
+}
+
+.diary-overview--open .diary-overview__body {
+  grid-template-rows: 1fr;
+  border-top: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
+}
+
+.diary-overview__body-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* The brief rows: tighter than a list of their own. */

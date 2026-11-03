@@ -1,7 +1,7 @@
 import type { Chart as ChartInstance } from 'chart.js';
 import ChartJs from 'chart.js/auto';
 import { createEffect, type JSX, onCleanup } from 'solid-js';
-
+import { dayAxis, tappedDay } from '@/features/diary/dashboard/chart-days';
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 import { alarmPlugin } from '@/features/diary/dashboard/TrendChart';
 
@@ -50,8 +50,8 @@ function token(name: string, fallback: string): string {
 /**
  * Everything at once (owner 2026-11-03: «a single one combining stats, many lines, no limit
  * lines»): every series on one time axis, each stretched to its own range so the shapes compare;
- * the tooltip gives the real values. Days past a red line are painted behind the lines; tapping a
- * name in the legend hides or shows its line.
+ * the tooltip gives the real values, a tap opens the day. Days past a red line are painted behind
+ * the lines; tapping a name in the legend hides or shows its line.
  */
 export function CombinedChart(props: {
   readonly series: readonly CombinedSeries[];
@@ -59,6 +59,8 @@ export function CombinedChart(props: {
   readonly to: number;
   /** Times of points past the doctor's red lines (any series). */
   readonly alarms: readonly number[];
+  /** A tap on the chart opens that day's details. */
+  readonly onDay?: ((day: string) => void) | undefined;
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number; value: number }[]> | undefined;
@@ -103,6 +105,10 @@ export function CombinedChart(props: {
         maintainAspectRatio: false,
         animation: false,
         interaction: { mode: 'nearest', axis: 'x', intersect: false },
+        onClick: (event, _elements, current) => {
+          const day = tappedDay(current, event.x);
+          if (day) props.onDay?.(day);
+        },
         plugins: {
           legend: {
             position: 'bottom',
@@ -126,21 +132,7 @@ export function CombinedChart(props: {
           },
         },
         scales: {
-          x: {
-            type: 'linear',
-            min: props.from,
-            max: props.to,
-            ticks: {
-              color: text,
-              maxTicksLimit: 6,
-              callback: (value) =>
-                new Date(Number(value)).toLocaleDateString('ru-RU', {
-                  day: 'numeric',
-                  month: 'short',
-                }),
-            },
-            grid: { color: grid },
-          },
+          x: dayAxis(props.from, props.to, text, grid),
           // Each line has its own scale: the shared axis has no numbers to read.
           y: { min: -4, max: 104, ticks: { display: false }, grid: { color: grid } },
         },

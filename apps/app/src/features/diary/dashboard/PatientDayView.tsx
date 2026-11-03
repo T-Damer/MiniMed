@@ -1,6 +1,7 @@
 import { createMemo, createSignal, type JSX, Show } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
@@ -11,10 +12,13 @@ import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/do
 import { parseDiaryEntry } from '@/features/diary/diary-model';
 import '@/diary/diary-page.css';
 import '@/diary/diary-care.css';
+import '@/features/diary/dashboard/patient-day-view.css';
 
 /**
  * One day of the patient's diary as the patient sees it, for the doctor: the same screen, opened
- * from the calendar. What the doctor saves or removes here becomes a correction the patient sees
+ * from the calendar, in the doctor's own cooler tones under the usual header, which says
+ * «Редактирование» and the day (DIARY21, owner 2026-11-03: «no difference between patient and
+ * doctor» before). What the doctor saves or removes here becomes a correction the patient sees
  * marked; a curator who may only read sees it without changing anything.
  */
 export function PatientDayView(props: {
@@ -26,6 +30,7 @@ export function PatientDayView(props: {
   readonly onBack: () => void;
 }): JSX.Element {
   const [error, setError] = createSignal('');
+  const [shown, setShown] = createSignal(props.day);
   const results = createMemo(() => {
     void props.version;
     return replicaResults(props.patient.replica);
@@ -68,6 +73,17 @@ export function PatientDayView(props: {
             {`${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim()}
           </Heading>
         }
+        description={
+          <span class="diary-day-view__mode">
+            <AppGlyph name="edit" class="diary-day-view__mode-glyph" />
+            {canEdit() ? 'Редактирование' : 'Просмотр'} ·{' '}
+            {new Date(`${shown()}T12:00:00`).toLocaleDateString('ru-RU', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}
+          </span>
+        }
         headerActions={actions()}
       />
       <Show when={error()}>
@@ -82,6 +98,7 @@ export function PatientDayView(props: {
         {(current) => (
           <DiaryToday
             viewer="doctor"
+            onDay={setShown}
             controls={(api) => {
               openers = api;
             }}

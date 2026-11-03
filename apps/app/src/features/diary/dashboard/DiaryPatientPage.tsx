@@ -197,45 +197,6 @@ export function DiaryPatientPage(props: {
     return planEditDays(props.patient.replica.planHistory);
   });
   const dayEntries = createMemo(() => entriesOfDay(results()?.entries ?? [], day()).toReversed());
-  /** The chosen day's records (or its empty state): on the page and in the day sheet. */
-  const dayRecords = (invitation: DiaryInvitation): JSX.Element => (
-    <Show
-      when={dayEntries().length}
-      fallback={<p class="diary-dash__quiet">В этот день записей нет.</p>}
-    >
-      <ul class="diary-timeline">
-        <For each={dayEntries()}>
-          {(entry) => (
-            <li class="diary-timeline__item">
-              <span class="diary-timeline__time">
-                {new Date(entry.at).toLocaleTimeString('ru-RU', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-              <span class="diary-timeline__text">
-                <span class="diary-timeline__line">{describeDiaryEntry(invitation, entry)}</span>
-                <Show when={entry.note}>
-                  <span class="diary-timeline__note">{entry.note}</span>
-                </Show>
-                <Show when={entry.corrected}>
-                  <span class="diary-timeline__badge">исправлено врачом</span>
-                </Show>
-              </span>
-              <Show when={canEdit()}>
-                <Button
-                  variant="icon"
-                  aria-label="Исправить запись"
-                  icon={<AppGlyph name="edit" class="diary-dash__glyph" />}
-                  onClick={() => setDialog({ correct: entry })}
-                />
-              </Show>
-            </li>
-          )}
-        </For>
-      </ul>
-    </Show>
-  );
   /** Before the diary began (a backfilled record moves the start back). */
   const beforeStart = (): boolean => {
     const current = results();
@@ -461,7 +422,7 @@ export function DiaryPatientPage(props: {
                 results={current()}
                 day={day()}
                 edits={edits().get(day()) ?? []}
-                records={dayRecords(current().invitation)}
+                onCorrect={(entry) => setDialog({ correct: entry })}
                 onFill={() => props.onOpen(`day/${day()}`)}
               />
             </OverlayDialog>

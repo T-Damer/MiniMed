@@ -18,7 +18,7 @@ import { Page } from '@/components/Page';
 import { revealElement } from '@/components/reveal';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
-import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
   CombinedChart,
   type CombinedSeries,
@@ -37,11 +37,13 @@ import {
 } from '@/features/diary/dashboard/diary-insights';
 import { medicineIntake } from '@/features/diary/dashboard/diary-intake';
 import { LimitDialog, type LimitTarget } from '@/features/diary/dashboard/LimitDialog';
-import { AlertNotices } from '@/features/diary/dashboard/PatientDialogs';
+import { PatientDayDetails } from '@/features/diary/dashboard/PatientDayDetails';
+import { AlertNotices, CorrectEntryDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { INTAKE_CHART_ID } from '@/features/diary/dashboard/patient-overview';
 import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
-import type { DiaryResults } from '@/features/diary/diary-model';
-import { planOn } from '@/features/diary/plan-history';
+import { dayKey } from '@/features/diary/diary-care';
+import type { DiaryEntry, DiaryResults } from '@/features/diary/diary-model';
+import { planEditDays, planOn } from '@/features/diary/plan-history';
 import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 import { motionMs } from '@/state/motion';
 
@@ -53,7 +55,9 @@ type Dialog =
         readonly point: QuestionnaireSeries['points'][number];
       };
     }
-  | { readonly limit: readonly LimitTarget[] };
+  | { readonly limit: readonly LimitTarget[] }
+  | { readonly day: string }
+  | { readonly correct: DiaryEntry };
 
 const DAY = 86_400_000;
 
@@ -110,6 +114,7 @@ function quizLimit(series: QuestionnaireSeries): LimitTarget {
  * from a signal, the page starts at that chart.
  */
 export function PatientChartsPage(props: {
+  readonly workspace: DoctorDiaries;
   readonly patient: DoctorPatient;
   readonly results: DiaryResults;
   /** Bumps when the workspace changes. */
@@ -117,6 +122,8 @@ export function PatientChartsPage(props: {
   /** The chart to start at (`DiaryChart.id`, `intake`, a questionnaire checkpoint id). */
   readonly focus?: string | undefined;
   readonly onBack: () => void;
+  /** The patient's screen of a day, to fill it in (`…/day/<date>`). */
+  readonly onFill: (day: string) => void;
 }): JSX.Element {
   const [period, setPeriod] = createSignal<Period>('30');
   const [dialog, setDialog] = createSignal<Dialog>();
@@ -161,7 +168,8 @@ export function PatientChartsPage(props: {
         return days;
       }, new Map<string, { taken: number; prescribed: number }>());
     const intakePoints = [...share]
-      .filter(([, total]) => total.prescribed > 0)
+      // Today is not over: its untaken doses are not missed yet.
+      .filter(([day, total]) => total.prescribed > 0 && day < dayKey(new Date()))
       .toSorted(([left], [right]) => left.localeCompare(right))
       .map(([day, total]) => ({
         at: new Date(`${day}T12:00:00`).toISOString(),
@@ -226,6 +234,9 @@ export function PatientChartsPage(props: {
   const courseOf = (itemId: string): string | undefined => {
     const course = props.results.invitation.plan?.find((item) => item.id === itemId)?.course;
     return course?.length ? describeRanges(course) : undefined;
+  };
+  const openDay = (day: string): void => {
+    setDialog({ day });
   };
   const openLimit = (targets: readonly LimitTarget[]) => () => setDialog({ limit: targets });
   /** The latest answers raised the schema's alerts or crossed the red line: why, one tap away. */
@@ -302,18 +313,16 @@ export function PatientChartsPage(props: {
       <Show when={combined().series.length > 1}>
         <section
           class="diary-patient__section diary-patient__section--card"
-          aria-label="Всё вместе"
+          aria-label="Статистика"
         >
-          <h2 class="diary-patient__heading">Всё вместе</h2>
-          <p class="diary-charts-page__hint">
-            Каждая линия — в своём масштабе: видно, что менялось одновременно. Красный фон — дни за
-            порогом тревоги. Название внизу скрывает или показывает линию.
-          </p>
+          <h2 class="diary-patient__heading">Статистика</h2>
+          <p class="diary-charts-page__hint">Нажмите на точку, чтобы открыть этот день</p>
           <CombinedChart
             series={combined().series}
             alarms={combined().alarms}
             from={from()}
             to={Date.now()}
+            onDay={openDay}
           />
         </section>
         <h2 class="diary-charts-page__details">Подробно</h2>
@@ -359,6 +368,7 @@ export function PatientChartsPage(props: {
             <For each={intake()}>
               {(chart) => (
                 <TrendChart
+                  onDay={openDay}
                   title={chart.title}
                   from={from()}
                   to={Date.now()}
@@ -378,6 +388,7 @@ export function PatientChartsPage(props: {
             <Show when={chartSeries(chart, recent()).length}>
               <div id={chartAnchor(chart.id)} class="diary-charts-page__anchor">
                 <TrendChart
+                  onDay={openDay}
                   from={from()}
                   to={Date.now()}
                   title={chart.title}
@@ -432,6 +443,7 @@ export function PatientChartsPage(props: {
                 class="diary-patient__quiz diary-charts-page__anchor"
               >
                 <TrendChart
+                  onDay={openDay}
                   from={from()}
                   to={Date.now()}
                   title={`${series.title}, сумма баллов`}
@@ -482,6 +494,50 @@ export function PatientChartsPage(props: {
         })()}
       >
         {(targets) => <LimitDialog targets={targets()} onClose={() => setDialog(undefined)} />}
+      </Show>
+      <Show
+        when={(() => {
+          const current = dialog();
+          return current && 'day' in current ? current.day : undefined;
+        })()}
+      >
+        {(day) => (
+          <OverlayDialog
+            open
+            title={new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}
+            onClose={() => setDialog(undefined)}
+          >
+            <PatientDayDetails
+              workspace={props.workspace}
+              patient={props.patient}
+              results={props.results}
+              day={day()}
+              edits={planEditDays(props.patient.replica.planHistory).get(day()) ?? []}
+              onCorrect={(entry) => setDialog({ correct: entry })}
+              onFill={() => props.onFill(day())}
+            />
+          </OverlayDialog>
+        )}
+      </Show>
+      <Show
+        when={(() => {
+          const current = dialog();
+          return current && 'correct' in current ? current.correct : undefined;
+        })()}
+      >
+        {(entry) => (
+          <CorrectEntryDialog
+            workspace={props.workspace}
+            patient={props.patient}
+            invitation={props.results.invitation}
+            entry={entry()}
+            onClose={() => setDialog(undefined)}
+          />
+        )}
       </Show>
     </div>
   );

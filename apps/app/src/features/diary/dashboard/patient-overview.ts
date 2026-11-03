@@ -248,3 +248,14 @@ export function overviewSignals(input: {
     )
     .map(({ signal }) => signal);
 }
+
+/** One line for the folded card: how many rows need a look, or that the week was calm. */
+export function overviewSummary(signals: readonly OverviewSignal[]): string {
+  const danger = signals.filter((signal) => signal.tone === 'danger').length;
+  const warn = signals.filter((signal) => signal.tone === 'warn').length;
+  const parts = [
+    danger ? `${danger} ${pluralize(danger, 'тревожный', 'тревожных', 'тревожных')}` : '',
+    warn ? `${warn} ${pluralize(warn, 'требует', 'требуют', 'требуют')} внимания` : '',
+  ].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'неделя спокойная';
+}

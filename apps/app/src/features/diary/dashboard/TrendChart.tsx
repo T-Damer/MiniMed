@@ -5,6 +5,7 @@ import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 
+import { dayAxis, tappedDay, zonePlugin } from '@/features/diary/dashboard/chart-days';
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 
 export interface TrendSeries {
@@ -26,7 +27,7 @@ export interface TrendLimit {
   readonly value: number;
   readonly label: string;
   readonly axis?: 'right';
-  /** Which side is the worry: a point there paints its day red behind the lines. */
+  /** Which side is the worry: that side of the line is always painted red behind the lines. */
   readonly kind?: 'above' | 'below';
 }
 
@@ -102,28 +103,13 @@ export function TrendChart(props: {
   readonly onLimit?: (() => void) | undefined;
   /** One value per day: the tooltip names the day without a time. */
   readonly daily?: boolean;
+  /** A tap on the chart opens that day (DIARY21). */
+  readonly onDay?: ((day: string) => void) | undefined;
   /** The latest value needs attention: a filled bell in the title row opens why. */
   readonly warning?: { readonly label: string; readonly onOpen: () => void } | undefined;
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number }[]> | undefined;
-  /** Times of the points past a red line on their own axis. */
-  const alarms = (): number[] =>
-    props.series
-      .filter((series) => series.style !== 'target')
-      .flatMap((series) =>
-        series.points
-          .filter((point) =>
-            (props.limits ?? []).some(
-              (limit) =>
-                limit.kind &&
-                (limit.axis ?? 'left') === (series.axis ?? 'left') &&
-                (limit.kind === 'above' ? point.value >= limit.value : point.value <= limit.value),
-            ),
-          )
-          .map((point) => Date.parse(point.at)),
-      );
-
   const render = (): void => {
     if (!canvas) return;
     const text = token('--theme-text-muted', '#6b6458');
@@ -181,12 +167,24 @@ export function TrendChart(props: {
     chart = new ChartJs(canvas, {
       type: 'line',
       data,
-      plugins: [alarmPlugin(alarms, () => danger)],
+      plugins: [
+        zonePlugin(
+          () =>
+            (props.limits ?? []).flatMap((limit) =>
+              limit.kind ? [{ value: limit.value, kind: limit.kind, axis: limit.axis }] : [],
+            ),
+          () => danger,
+        ),
+      ],
       options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
         interaction: { mode: 'nearest', intersect: false },
+        onClick: (event, _elements, current) => {
+          const day = tappedDay(current, event.x);
+          if (day) props.onDay?.(day);
+        },
         plugins: {
           legend: {
             display: props.series.length > 1,
@@ -208,21 +206,22 @@ export function TrendChart(props: {
           },
         },
         scales: {
-          x: {
-            type: 'linear',
-            ...(props.from === undefined ? {} : { min: props.from }),
-            ...(props.to === undefined ? {} : { max: props.to }),
-            ticks: {
-              color: text,
-              maxTicksLimit: 6,
-              callback: (value) =>
-                new Date(Number(value)).toLocaleDateString('ru-RU', {
-                  day: 'numeric',
-                  month: 'short',
-                }),
-            },
-            grid: { color: grid },
-          },
+          x:
+            props.from !== undefined && props.to !== undefined
+              ? dayAxis(props.from, props.to, text, grid)
+              : {
+                  type: 'linear',
+                  ticks: {
+                    color: text,
+                    maxTicksLimit: 6,
+                    callback: (value) =>
+                      new Date(Number(value)).toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short',
+                      }),
+                  },
+                  grid: { color: grid },
+                },
           y: {
             ...(props.min === undefined ? {} : { min: props.min }),
             ...(props.max === undefined ? {} : { max: props.max }),
