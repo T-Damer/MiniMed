@@ -47,12 +47,20 @@ const SKIPPED = /^(?:sw\.js|build-manifest\.json|diary\/|content\/|tessdata\/)/u
 const OPTIONAL_DIRECTORIES = /^(?:pdfjs|cornerstone-codecs|excalidraw)\//u;
 const OPTIONAL_ASSETS = /^assets\/(?:ort-|tesseract-core)/u;
 
-export function classifyBuildFile(file: BuildFile): BuildFileRole {
+/**
+ * `shell`: for a build made for one job (the diaries copy), the `assets/` files that job's screens
+ * need; every other asset is kept after its first use instead of being downloaded at install.
+ */
+export function classifyBuildFile(
+  file: BuildFile,
+  shell?: ReadonlySet<string> | undefined,
+): BuildFileRole {
   const { path } = file;
   if (BOOT_CONTENT_FILES.includes(path)) return 'precache';
   if (SKIPPED.test(path) || path.split('/').some((part) => part.startsWith('.'))) return 'skip';
   if (OPTIONAL_DIRECTORIES.test(path) || OPTIONAL_ASSETS.test(path)) return 'optional';
   if (path.startsWith('assets/')) {
+    if (shell && !shell.has(path)) return 'optional';
     return path.endsWith('.wasm') && file.bytes > PRECACHE_MAX_WASM_BYTES ? 'optional' : 'precache';
   }
   // diaries/: the diaries app's manifest, icons and boot icon (index.html swaps them in).
@@ -71,13 +79,14 @@ export function createServiceWorkerBuild(
   files: readonly BuildFile[],
   version: string,
   digestOf: (path: string) => string,
+  shell?: ReadonlySet<string> | undefined,
 ): ServiceWorkerBuild {
   const precache: string[] = [];
   const optional: string[] = [];
   const optionalPrefixes = new Set<string>();
   let precacheBytes = 0;
   for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
-    const role = classifyBuildFile(file);
+    const role = classifyBuildFile(file, shell);
     if (role === 'precache') {
       precache.push(file.path);
       precacheBytes += file.bytes;
@@ -143,12 +152,64 @@ function listBuildFiles(root: string): BuildFile[] {
   return files;
 }
 
+/** What the shell computation reads of an output chunk (a subset of the bundler's). */
+export interface ShellChunk {
+  readonly fileName: string;
+  /** Chunks this one imports statically. */
+  readonly imports: readonly string[];
+  readonly moduleIds: readonly string[];
+  /** The module the chunk was made for (an entry page, a lazily imported screen). */
+  readonly facadeModuleId: string | null | undefined;
+  readonly isEntry: boolean;
+  /** Styles and other assets (fonts, workers, wasm) the chunk pulls in. */
+  readonly files: readonly string[];
+}
+
+/**
+ * The `assets/` files a build for one job needs to show its screens: the main page's chunk, the
+ * chunks of the root modules the job's routes open (`rootModules`, absolute module ids), everything
+ * they import statically, and the styles and assets those pull in. Lazy chunks of other jobs'
+ * screens (drug tools, readers, viewers) are not in it.
+ */
+export function shellAssets(
+  chunks: readonly ShellChunk[],
+  mainPage: string,
+  rootModules: readonly string[],
+): ReadonlySet<string> {
+  const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+  const wanted = chunks.filter(
+    (chunk) =>
+      (chunk.isEntry && chunk.facadeModuleId === mainPage) ||
+      chunk.moduleIds.some((id) => rootModules.includes(id)),
+  );
+  const shell = new Set<string>();
+  const visit = (chunk: ShellChunk): void => {
+    if (shell.has(chunk.fileName)) return;
+    shell.add(chunk.fileName);
+    for (const file of chunk.files) shell.add(file);
+    for (const name of chunk.imports) {
+      const imported = byName.get(name);
+      if (imported) visit(imported);
+    }
+  };
+  for (const chunk of wanted) visit(chunk);
+  return shell;
+}
+
 /** Writes `build-manifest.json` and the precache list into `<outDir>/sw.js`. */
-export function writeServiceWorkerBuild(outDir: string, version: string): ServiceWorkerBuild {
-  const build = createServiceWorkerBuild(listBuildFiles(outDir), version, (path) =>
-    createHash('sha256')
-      .update(readFileSync(join(outDir, path)))
-      .digest('hex'),
+export function writeServiceWorkerBuild(
+  outDir: string,
+  version: string,
+  shell?: ReadonlySet<string> | undefined,
+): ServiceWorkerBuild {
+  const build = createServiceWorkerBuild(
+    listBuildFiles(outDir),
+    version,
+    (path) =>
+      createHash('sha256')
+        .update(readFileSync(join(outDir, path)))
+        .digest('hex'),
+    shell,
   );
   const workerPath = join(outDir, 'sw.js');
   writeFileSync(workerPath, injectServiceWorkerBuild(readFileSync(workerPath, 'utf8'), build));

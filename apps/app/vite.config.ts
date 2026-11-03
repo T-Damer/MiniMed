@@ -24,7 +24,11 @@ import {
   type ReleaseCacheTarget,
   resolveReleaseCacheTarget,
 } from './src/dev-server/release-cache';
-import { writeServiceWorkerBuild } from './src/dev-server/service-worker-precache';
+import {
+  type ShellChunk,
+  shellAssets,
+  writeServiceWorkerBuild,
+} from './src/dev-server/service-worker-precache';
 
 const require = createRequire(import.meta.url);
 
@@ -319,26 +323,90 @@ function excludeOptionalPublicAssets(): Plugin {
 }
 
 /**
+ * The screens a build for one job (`VITE_APP_PROFILE`) opens, as the modules (from the repository
+ * root) its root views and lazy routes start at: the service worker precaches their chunks and what
+ * they import, and keeps the rest of the app's lazy chunks after first use (about a third of the
+ * download at install). The last group is what the page imports while it starts or a screen scores
+ * answers, outside those chunks' static imports.
+ */
+const PROFILE_SHELL_MODULES: Readonly<Record<string, readonly string[]>> = {
+  diaries: [
+    'apps/app/src/features/notes/NotesView.tsx',
+    'apps/app/src/features/assessments/AssessmentsView.tsx',
+    'apps/app/src/features/settings/SettingsView.tsx',
+    'apps/app/src/features/diary/dashboard/DiaryDashboard.tsx',
+    'apps/app/src/features/downloads/restore-downloads.ts',
+    'apps/app/src/state/note-library-sync.ts',
+    'apps/app/src/state/web-theme-color.ts',
+    'content/tool-modules/psychology.json',
+    'content/tool-modules/obstetrics-gynecology.json',
+  ],
+};
+
+/** Workers a profile's start-up spawns (emitted as files of their own, not as chunks of the bundle). */
+const PROFILE_SHELL_FILES: Readonly<Record<string, readonly RegExp[]>> = {
+  diaries: [/^assets\/opfs-pack\.worker-/u],
+};
+
+/**
  * Production build only: lists the shell of this build (scripts, styles, fonts, small wasm) in
  * `sw.js`, so the service worker precaches exactly it, and writes `build-manifest.json` for the
  * Pages deploy. The Capacitor builds ship the same files; their shells never register the worker.
+ * A build for one job lists only that job's chunks as the shell (`PROFILE_SHELL_MODULES`).
  */
 function serviceWorkerPrecache(): Plugin {
   let outDir = 'dist';
+  let root = process.cwd();
+  let shell: ReadonlySet<string> | undefined;
   return {
     name: 'service-worker-precache',
     apply: 'build',
     configResolved(config) {
       // `resolve`: an absolute --outDir (the GitVerse copy builds into a temporary folder) stays as is.
       outDir = resolve(config.root, config.build.outDir);
+      root = config.root;
+    },
+    generateBundle(_options, bundle) {
+      const profile = process.env['VITE_APP_PROFILE'] ?? '';
+      const modules = PROFILE_SHELL_MODULES[profile];
+      if (!modules) return;
+      const chunks: ShellChunk[] = [];
+      for (const output of Object.values(bundle)) {
+        if (output.type !== 'chunk') continue;
+        const meta = (output as { viteMetadata?: ViteChunkMetadata }).viteMetadata;
+        chunks.push({
+          fileName: output.fileName,
+          imports: output.imports,
+          moduleIds: output.moduleIds,
+          facadeModuleId: output.facadeModuleId,
+          isEntry: output.isEntry,
+          files: [...(meta?.importedCss ?? []), ...(meta?.importedAssets ?? [])],
+        });
+      }
+      const repository = fileURLToPath(new URL('../../', import.meta.url));
+      const files = PROFILE_SHELL_FILES[profile] ?? [];
+      shell = new Set([
+        ...shellAssets(
+          chunks,
+          join(root, 'index.html'),
+          modules.map((module) => join(repository, module)),
+        ),
+        ...Object.keys(bundle).filter((name) => files.some((pattern) => pattern.test(name))),
+      ]);
     },
     closeBundle() {
       const release = JSON.parse(
         readFileSync(fileURLToPath(new URL('../../release.json', import.meta.url)), 'utf8'),
       ) as { version: string };
-      writeServiceWorkerBuild(outDir, release.version);
+      writeServiceWorkerBuild(outDir, release.version, shell);
     },
   };
+}
+
+/** What Vite records on each output chunk: the styles and assets it pulls in. */
+interface ViteChunkMetadata {
+  readonly importedCss?: ReadonlySet<string>;
+  readonly importedAssets?: ReadonlySet<string>;
 }
 
 export default defineConfig({
