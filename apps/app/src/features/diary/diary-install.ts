@@ -112,7 +112,7 @@ export const INSTALL_GUIDE_STEPS: Readonly<Record<InstallGuideKind, readonly str
     'Дневник откроется в браузере',
   ],
   android: [
-    'Нажмите «⋮» в Chrome',
+    'Нажмите «⋮» в браузере',
     'Выберите «Добавить на гл. экран»',
     'Нажмите «Установить»',
     'Значок появится на экране',

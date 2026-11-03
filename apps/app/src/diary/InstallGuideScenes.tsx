@@ -3,6 +3,9 @@ import { For, type JSX } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { InstallGlyph } from '@/diary/install-glyphs';
 import type { InstallGuideKind } from '@/features/diary/diary-install';
+// The very file the home screen shows (the iOS touch icon, public/diaries/): imported by path so
+// that the patient diary page, one folder deeper than the doctors' app, finds it as well.
+import homeScreenIcon from '../../public/diaries/apple-touch-icon.png';
 
 import '@/diary/install-guide.css';
 
@@ -36,7 +39,14 @@ function AppIcon(props: { readonly small?: boolean }): JSX.Element {
       class="install-scene__app"
       classList={{ 'install-scene__app--small': props.small ?? false }}
     >
-      <AppGlyph name="heartbeat" class="install-scene__app-glyph" />
+      <img
+        class="install-scene__app-image"
+        src={homeScreenIcon}
+        alt=""
+        width="180"
+        height="180"
+        decoding="async"
+      />
     </span>
   );
 }
