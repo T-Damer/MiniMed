@@ -252,11 +252,24 @@ export function useRootNavigation() {
   /** When the views' tree last changed: a page that mounted with the address change shows here. */
   let lastTreeChangeAt = Number.NEGATIVE_INFINITY;
   let treeWatcher: MutationObserver | undefined;
+  /** An entry waits for the page to mount: until this moment the next tree change starts it. */
+  let enterWaitsUntil = Number.NEGATIVE_INFINITY;
   const watchTree = (): void => {
     const main = document.querySelector('.app-main');
     if (!main || treeWatcher) return;
     treeWatcher = new MutationObserver(() => {
       lastTreeChangeAt = performance.now();
+      // The observer's callback runs right after the task that changed the tree, before the next
+      // frame is drawn: a page that mounts later than its address (a lazy chunk, a view the tabs
+      // reveal) starts its entry here, so the first frame that draws it is already the start.
+      if (lastTreeChangeAt > enterWaitsUntil) return;
+      const view = document.querySelector('.app-view.active');
+      // A skeleton is the page's placeholder: its entry is the real content's, when that arrives.
+      if (view?.querySelector('.page-skeleton__paper, .page-skeleton__bar')) return;
+      if (animatePageEnter(view)) {
+        enterWaitsUntil = Number.NEGATIVE_INFINITY;
+        stopEnter();
+      }
     });
     treeWatcher.observe(main, {
       childList: true,
@@ -271,11 +284,14 @@ export function useRootNavigation() {
   };
   /** The route listener that mounts the page may run just before this one: a little slack. */
   const MOUNT_SLACK_MS = 50;
+  /** How long after the address changes a tree change still counts as the arrival's mount. */
+  const ENTER_WAIT_MS = 800;
   const scheduleEnter = (): void => {
     if (consumePageEnterClaim()) return;
     if (isDocumentReadRoute(window.location.hash)) return;
     stopEnter();
     watchTree();
+    enterWaitsUntil = performance.now() + ENTER_WAIT_MS;
     // A page that mounted in the same turn as the address (a screen that mounts at once) is drawn
     // for the first time by the next frame: the entry starts there. A page that has not mounted by
     // then (a lazy chunk) is waited for, two frames at least, and tried again until it is there.
@@ -289,8 +305,10 @@ export function useRootNavigation() {
         return;
       }
       const started = animatePageEnter(document.querySelector('.app-view.active'));
-      if (started || frames >= 20) stopEnter();
-      else enterFrame = requestAnimationFrame(tick);
+      if (started || frames >= 20) {
+        enterWaitsUntil = Number.NEGATIVE_INFINITY;
+        stopEnter();
+      } else enterFrame = requestAnimationFrame(tick);
     };
     enterFrame = requestAnimationFrame(tick);
   };
