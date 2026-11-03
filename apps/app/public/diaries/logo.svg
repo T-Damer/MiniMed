@@ -1,48 +1,197 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8.51 28.76 493.48 493.48" >
   <title>Дневники пациентов</title>
   <defs>
-    <linearGradient id="leather" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0" stop-color="#3b5747"/>
-      <stop offset="1" stop-color="#223329"/>
+    <linearGradient id="leather" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0" stop-color="#436653"/>
+      <stop offset="0.55" stop-color="#2f4a3a"/>
+      <stop offset="1" stop-color="#1f3328"/>
+    </linearGradient>
+    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a4333"/>
+      <stop offset="1" stop-color="#16241c"/>
     </linearGradient>
     <linearGradient id="spine" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#1b2a21"/>
-      <stop offset="1" stop-color="#2a4033"/>
+      <stop offset="0" stop-color="#16251c"/>
+      <stop offset="0.45" stop-color="#2a4335"/>
+      <stop offset="1" stop-color="#1d3025"/>
     </linearGradient>
-    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fbf7ea"/>
-      <stop offset="1" stop-color="#ece3cb"/>
+    <linearGradient id="pages" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6efdc"/>
+      <stop offset="1" stop-color="#e2d6b6"/>
     </linearGradient>
-    <linearGradient id="strap" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#a8653d"/>
-      <stop offset="1" stop-color="#7c4428"/>
+    <linearGradient id="paper" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#fdf9ec"/>
+      <stop offset="1" stop-color="#ece2c6"/>
     </linearGradient>
+    <linearGradient id="elastic" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5b371f"/>
+      <stop offset="0.35" stop-color="#9a6439"/>
+      <stop offset="0.7" stop-color="#7d4b2a"/>
+      <stop offset="1" stop-color="#52311b"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8c2e1f"/>
+      <stop offset="0.4" stop-color="#c2492f"/>
+      <stop offset="1" stop-color="#9a331f"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cf5238"/>
+      <stop offset="1" stop-color="#a93a26"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.3"/>
+    </linearGradient>
+    <pattern id="grid" width="11" height="11" patternUnits="userSpaceOnUse">
+      <path d="M11 0H0V11" fill="none" stroke="#d8cbae" stroke-width="1"/>
+    </pattern>
+    <pattern id="gridmajor" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#c3b390" stroke-width="1.6"/>
+    </pattern>
+    <clipPath id="coverclip">
+      <path id="coverpath" d="M106 52H380A34 34 0 0 1 414 86V410A34 34 0 0 1 380 444H106A22 22 0 0 1 84 422V74A22 22 0 0 1 106 52Z"/>
+    </clipPath>
+    <clipPath id="labelclip">
+      <rect x="152" y="104" width="200" height="198" rx="14"/>
+    </clipPath>
+    <filter id="drop" x="-15%" y="-15%" width="135%" height="135%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+      <feOffset dx="3" dy="6" result="blur"/>
+      <feComponentTransfer in="blur" result="shadow"><feFuncA type="linear" slope="0.42"/></feComponentTransfer>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2"/>
+      <feOffset dx="1.2" dy="2.4" result="blur"/>
+      <feComponentTransfer in="blur" result="shadow"><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="floor" x="-20%" y="-200%" width="140%" height="500%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="pebble" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 2.6 -1.15"/>
+    </filter>
+    <filter id="pebblelight" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="23" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 0.9  0 0 0 2.4 -1.2"/>
+    </filter>
+    <filter id="mottle" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.03  0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 1.6 -0.55"/>
+    </filter>
+    <filter id="paperfibre" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.2  0 0 0 1.4 -0.7"/>
+    </filter>
   </defs>
-  <!-- Page block peeking out on the right and at the bottom -->
-  <rect x="124" y="84" width="314" height="378" rx="36" fill="#e8dfc5" stroke="#cbc0a7" stroke-width="4"/>
-  <path d="M418 120v300M402 446H160" stroke="#cbc0a7" stroke-width="3" fill="none" opacity="0.8"/>
-  <!-- Cover -->
-  <rect x="80" y="56" width="340" height="388" rx="42" fill="url(#leather)"/>
-  <path d="M122 56h-0c-23 0-42 19-42 42v304c0 23 19 42 42 42h14V56z" fill="url(#spine)"/>
-  <rect x="98" y="74" width="304" height="352" rx="30" fill="none" stroke="#d9c9a3" stroke-width="4" stroke-dasharray="12 9" opacity="0.75"/>
-  <!-- Checklist label -->
-  <rect x="162" y="112" width="208" height="228" rx="20" fill="url(#paper)" stroke="#cbc0a7" stroke-width="3"/>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="186" y="140" width="34" height="34" rx="8" stroke="#2f4638" stroke-width="7"/>
-    <path d="M193 157l9 9 20-24" stroke="#2f4638" stroke-width="9"/>
-    <path d="M240 157h104" stroke="#8a8574" stroke-width="11"/>
-    <rect x="186" y="208" width="34" height="34" rx="8" stroke="#2f4638" stroke-width="7"/>
-    <path d="M193 225l9 9 20-24" stroke="#2f4638" stroke-width="9"/>
-    <path d="M240 225h84" stroke="#8a8574" stroke-width="11"/>
-    <rect x="186" y="276" width="34" height="34" rx="8" stroke="#2f4638" stroke-width="7"/>
-    <path d="M240 293h96" stroke="#b9b29d" stroke-width="11"/>
+
+  <!-- Floor shadow -->
+  <ellipse cx="256" cy="476" rx="168" ry="11" fill="#2a2118" opacity="0.28" filter="url(#floor)"/>
+
+  <!-- Back board, page block, ribbon -->
+  <rect x="90" y="64" width="342" height="398" rx="36" fill="url(#back)"/>
+  <rect x="90" y="64" width="342" height="398" rx="36" fill="none" stroke="#3d5d4a" stroke-width="2" opacity="0.6"/>
+  <g filter="url(#soft)">
+    <path d="M92 58H392A34 34 0 0 1 426 92V420A34 34 0 0 1 392 454H108A16 16 0 0 1 92 438Z" fill="url(#pages)"/>
   </g>
+  <!-- Page edges: right and bottom -->
+  <g fill="none" stroke="#b9ab86" stroke-linecap="round" stroke-width="1.6">
+    <path d="M417 96V414M420.5 98V412M424 104V406" opacity="0.75"/>
+    <path d="M112 447H386M114 450.5H384M118 454H380" opacity="0.75"/>
+  </g>
+  <g fill="none" stroke="#fffaf0" stroke-linecap="round" stroke-width="1" opacity="0.7">
+    <path d="M418.8 96V414M422.2 98V412M112 448.6H386M114 452.1H384"/>
+  </g>
+  <!-- Ribbon bookmark -->
+  <g filter="url(#soft)">
+    <path d="M286 424H322V494L304 481L286 494Z" fill="url(#ribbon)"/>
+  </g>
+  <path d="M300 430V484" stroke="#e07a5f" stroke-width="2" opacity="0.45" stroke-linecap="round"/>
+  <path d="M286 424H322V440H286Z" fill="#000" opacity="0.18"/>
+
+  <!-- Front cover -->
+  <g filter="url(#drop)">
+    <use href="#coverpath" fill="url(#leather)"/>
+  </g>
+  <g clip-path="url(#coverclip)">
+    <rect x="84" y="52" width="330" height="392" fill="url(#leather)"/>
+    <rect x="84" y="52" width="330" height="392" filter="url(#mottle)" opacity="0.7"/>
+    <rect x="84" y="52" width="330" height="392" filter="url(#pebble)" opacity="0.36"/>
+    <rect x="84" y="52" width="330" height="392" filter="url(#pebblelight)" opacity="0.1"/>
+    <!-- Spine -->
+    <rect x="84" y="52" width="46" height="392" fill="url(#spine)"/>
+    <rect x="84" y="52" width="46" height="392" filter="url(#pebble)" opacity="0.3"/>
+    <g>
+      <rect x="84" y="112" width="46" height="5" fill="#ffffff" opacity="0.13"/>
+      <rect x="84" y="117" width="46" height="4" fill="#000000" opacity="0.32"/>
+      <rect x="84" y="375" width="46" height="5" fill="#ffffff" opacity="0.13"/>
+      <rect x="84" y="380" width="46" height="4" fill="#000000" opacity="0.32"/>
+    </g>
+    <path d="M107 146V346" stroke="#d6c79f" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="11 9" opacity="0.8"/>
+    <path d="M130 52V444" stroke="#0c1610" stroke-width="3.5" opacity="0.7"/>
+    <path d="M133.5 52V444" stroke="#8fb39c" stroke-width="1.4" opacity="0.3"/>
+    <rect x="84" y="52" width="330" height="392" fill="url(#sheen)" opacity="0.5"/>
+    <!-- Board stitching -->
+    <rect x="143.500" y="66" width="257" height="364" rx="22" fill="none" stroke="#0c1610" stroke-width="3.4" stroke-dasharray="10 8" stroke-linecap="round" opacity="0.5" transform="translate(1.200 1.800)"/>
+    <rect x="143.500" y="66" width="257" height="364" rx="22" fill="none" stroke="#dccda5" stroke-width="3.2" stroke-dasharray="10 8" stroke-linecap="round" opacity="0.92"/>
+  </g>
+  <use href="#coverpath" fill="none" stroke="#7da58d" stroke-width="2" opacity="0.38"/>
+  <path d="M110 53.500H380A33 33 0 0 1 413 86" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.28" stroke-linecap="round"/>
+
+  <!-- Elastic band -->
+  <g clip-path="url(#coverclip)">
+    <g filter="url(#soft)">
+      <rect x="370" y="46" width="28" height="404" fill="url(#elastic)"/>
+    </g>
+    <g stroke="#2d1a0d" stroke-width="1.1" opacity="0.4">
+      <path d="M375 46V450M380 46V450M385 46V450M390 46V450M394.500 46V450"/>
+    </g>
+    <path d="M371.500 46V450" stroke="#d6a373" stroke-width="1.3" opacity="0.5"/>
+  </g>
+
+  <!-- Label: ECG paper and the week -->
+  <g filter="url(#drop)">
+    <rect x="152" y="104" width="200" height="198" rx="14" fill="url(#paper)"/>
+  </g>
+  <g clip-path="url(#labelclip)">
+    <rect x="152" y="104" width="200" height="198" filter="url(#paperfibre)" opacity="0.35"/>
+    <rect x="164" y="118" width="176" height="114" rx="6" fill="#fbf6e6"/>
+    <rect x="164" y="118" width="176" height="114" fill="url(#grid)"/>
+    <rect x="164" y="118" width="176" height="114" fill="url(#gridmajor)"/>
+  </g>
+  <rect x="164" y="118" width="176" height="114" rx="6" fill="none" stroke="#b9a984" stroke-width="2"/>
+  <rect x="152.800" y="104.800" width="198.400" height="196.400" rx="13.400" fill="none" stroke="#c3b690" stroke-width="1.6"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M166 180H192L198 172L206 186L212 180H228L236 192L248 128L260 228L270 166L277 180H300L306 169L314 185L320 180H338" stroke="#ffffff" stroke-width="11" opacity="0.55"/>
+    <path d="M166 180H192L198 172L206 186L212 180H228L236 192L248 128L260 228L270 166L277 180H300L306 169L314 185L320 180H338" stroke="#2c4536" stroke-width="6.500"/>
+  </g>
+  <!-- A week of entries: calm, calm, calm, a mixed day, a bad day, today -->
+  <g>
+    <circle cx="172" cy="268" r="8.500" fill="#3f6a52"/>
+    <circle cx="198" cy="268" r="8.500" fill="#3f6a52"/>
+    <circle cx="224" cy="268" r="8.500" fill="#3f6a52"/>
+    <circle cx="250" cy="268" r="8.500" fill="#3f6a52"/>
+    <circle cx="276" cy="268" r="8.500" fill="#d1a13e"/>
+    <circle cx="302" cy="268" r="8.500" fill="#b5452f"/>
+    <circle cx="328" cy="268" r="7.500" fill="none" stroke="#8a8574" stroke-width="3" stroke-dasharray="4.500 3.500"/>
+    <g fill="#ffffff" opacity="0.28">
+      <circle cx="169.500" cy="265.500" r="2.800"/>
+      <circle cx="195.500" cy="265.500" r="2.800"/>
+      <circle cx="221.500" cy="265.500" r="2.800"/>
+      <circle cx="247.500" cy="265.500" r="2.800"/>
+      <circle cx="273.500" cy="265.500" r="2.800"/>
+      <circle cx="299.500" cy="265.500" r="2.800"/>
+    </g>
+  </g>
+
   <!-- Medical badge -->
-  <circle cx="266" cy="384" r="36" fill="#f3ecd9" stroke="#cbc0a7" stroke-width="3"/>
-  <circle cx="266" cy="384" r="28" fill="none" stroke="#cbc0a7" stroke-width="2.5" stroke-dasharray="6 5"/>
-  <path d="M256 362h20v12h12v20h-12v12h-20v-12h-12v-20h12z" fill="#b5452f"/>
-  <!-- Strap with a brass snap -->
-  <rect x="384" y="214" width="62" height="78" rx="20" fill="url(#strap)"/>
-  <rect x="392" y="222" width="46" height="62" rx="14" fill="none" stroke="#d9b48a" stroke-width="2.5" stroke-dasharray="6 5" opacity="0.8"/>
-  <circle cx="421" cy="253" r="13" fill="#c9a24e" stroke="#8e6d2a" stroke-width="3"/>
+  <g filter="url(#soft)">
+    <circle cx="252" cy="372" r="32" fill="#f4ecd6" stroke="#d3c6a4" stroke-width="2.500"/>
+  </g>
+  <circle cx="252" cy="372" r="25.500" fill="none" stroke="#bfae86" stroke-width="2.200" stroke-dasharray="5.500 4.500" stroke-linecap="round"/>
+  <path d="M246 357h12v9h9v12h-9v9h-12v-9h-9v-12h9z" fill="url(#red)" stroke="#8d2e1d" stroke-width="1.200" stroke-linejoin="round"/>
+  <path d="M247 358.500h10" stroke="#ffffff" stroke-width="1.400" opacity="0.4" stroke-linecap="round"/>
 </svg>

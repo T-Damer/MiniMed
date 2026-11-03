@@ -97,7 +97,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     await page.getByRole('button', { name: ADD_TO_HOME }).click();
     const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
     await expect(guide.locator('.install-guide__label')).toHaveText([
-      'Нажмите «⋮» в Chrome',
+      'Нажмите «⋮» в браузере',
       'Выберите «Добавить на гл. экран»',
       'Нажмите «Установить»',
       'Значок появится на экране',
