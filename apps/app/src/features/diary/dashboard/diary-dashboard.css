@@ -604,10 +604,6 @@
     border-color var(--motion-fast, 120ms) var(--motion-ease, ease);
 }
 
-.diary-dash-row__open:active {
-  transform: scale(0.98);
-}
-
 .diary-dash-row__open--alert {
   border-color: var(--theme-danger);
 }

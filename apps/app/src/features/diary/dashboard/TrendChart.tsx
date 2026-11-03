@@ -1,6 +1,6 @@
 import type { Chart as ChartInstance, Plugin } from 'chart.js';
 import ChartJs from 'chart.js/auto';
-import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, type JSX, onCleanup, onMount, Show, untrack } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -250,7 +250,37 @@ export function TrendChart(props: {
   };
 
   // Runs after the canvas is in the page and again whenever the series change.
-  createEffect(render);
+  // The first draw waits two frames: the canvas work blocked the page's entry animation, which
+  // then popped in (DIARY21). Later changes redraw at once.
+  let drawn = false;
+  createEffect(() => {
+    void [
+      props.series,
+      props.limits,
+      props.from,
+      props.to,
+      props.min,
+      props.max,
+      props.rightMin,
+      props.rightMax,
+      props.guides,
+      props.daily,
+    ];
+    if (drawn) untrack(render);
+  });
+  onMount(() => {
+    const frame = requestAnimationFrame(() => {
+      next = requestAnimationFrame(() => {
+        drawn = true;
+        render();
+      });
+    });
+    let next = 0;
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(next);
+    });
+  });
   onCleanup(() => chart?.destroy());
 
   return (

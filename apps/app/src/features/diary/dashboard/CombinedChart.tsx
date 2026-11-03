@@ -1,6 +1,6 @@
 import type { Chart as ChartInstance } from 'chart.js';
 import ChartJs from 'chart.js/auto';
-import { createEffect, type JSX, onCleanup } from 'solid-js';
+import { createEffect, type JSX, onCleanup, onMount, untrack } from 'solid-js';
 import { dayAxis, tappedDay } from '@/features/diary/dashboard/chart-days';
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 import { alarmPlugin } from '@/features/diary/dashboard/TrendChart';
@@ -140,7 +140,26 @@ export function CombinedChart(props: {
     });
   };
 
-  createEffect(render);
+  // The first draw waits two frames: the canvas work blocked the page's entry animation, which
+  // then popped in (DIARY21). Later changes redraw at once.
+  let drawn = false;
+  createEffect(() => {
+    void [props.series, props.alarms, props.from, props.to];
+    if (drawn) untrack(render);
+  });
+  onMount(() => {
+    const frame = requestAnimationFrame(() => {
+      next = requestAnimationFrame(() => {
+        drawn = true;
+        render();
+      });
+    });
+    let next = 0;
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(next);
+    });
+  });
   onCleanup(() => chart?.destroy());
 
   return (
