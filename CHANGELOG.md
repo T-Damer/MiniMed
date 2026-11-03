@@ -4,6 +4,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.84] - 2026-11-03
+
 - Doctor's patient page: a pencil on top («Редактировать») is the one way to change the patient's screen, plan and
   tips; a big «Статистика» button heads the week in brief; the calendar opens a day with what the patient did, what
   was missed and the day's records, and «Заполнить или изменить за пациента» opens that day's screen.

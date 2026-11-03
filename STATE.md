@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-03 21:00 | claude-opus (DIARY20) | doctor's patient page: calendar + edit entry, day view, stats disclosure, combined chart with targets and warning bands, versioned plan edits on the calendar; questionnaire tab, caching, sheets, scroll-up; dark-mode accent; promo deck demo route | `apps/app/src/features/diary/**`, `apps/app/src/diary/**`, `apps/app/src/features/assessments/AssessmentSpecialtyIndexPage.tsx`, `apps/app/src/components/OverlayDialog*`, `apps/app/src/components/ScrollTop*`, `docs/promo/diary-presentation/**` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -181,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus REL 0.6.84: DIARY20 (patient page: one edit pencil, «Статистика», calendar day; plan versions + merged concurrent edits; combined chart, red alarm days, dotted prescribed dose; questionnaire tab, caching, sheet heights, «Наверх»; slides' demo route)
 - 2026-11-03 claude-opus REL 0.6.83: DIARY-GV (diary pages on GitVerse Pages, med.1damer.com links through DIARY_PAGES_URL)
 - 2026-11-03 19:45 claude: DIARY-GV — diary pages on GitVerse Pages (`scripts/diary-gitverse-publish.sh`), `med.1damer.com` redirects via `DIARY_PAGES_URL`, CORS for both hosts.
 - 2026-11-03 claude-opus REL 0.6.82: DIARY17 (substance use, more questionnaires, doctor's week + charts page, standalone diary PWAs)
