@@ -90,6 +90,12 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   // bare counters; the charts live on a page of their own.
   await first.click();
   const overview = page.getByTestId('diary-overview');
+  // Folded at first (DIARY21: the page fits one screen): its verdict in a line, rows one tap away.
+  const fold = overview.getByRole('button', { name: /Статистика/u });
+  await expect(fold).toHaveAttribute('aria-expanded', 'false', { timeout: 30_000 });
+  await expect(overview.locator('.diary-overview__stats-note')).not.toHaveText(/считаем/u);
+  await page.screenshot({ path: testInfo.outputPath('demo-folded.png') });
+  await fold.click();
   await expect(overview.locator('.diary-overview__row').first()).toBeVisible({ timeout: 30_000 });
   await expect(overview).toContainText('Приём лекарств');
   await expect(page.locator('.stat-card')).toHaveCount(0);
@@ -119,13 +125,20 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await page.getByRole('button', { name: 'К пациенту' }).click();
   await expect(overview).toBeVisible();
 
-  // «Статистика» heads the brief week: the whole page, everything on one chart first
-  // (DIARY20), then each chart, questionnaires included.
-  await overview.getByRole('button', { name: /Статистика/u }).click();
+  // The expand button opens every chart full screen: «Статистика» on one chart first, then each
+  // chart, questionnaires included; a tap on the chart opens that day.
+  await overview.getByRole('button', { name: 'Все графики на весь экран' }).click();
   await expect(page).toHaveURL(/\/charts$/u);
   await expect(page.locator('.diary-chart--combined')).toBeVisible();
   await expect(page.locator('.diary-chart').nth(2)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('demo-charts.png'), fullPage: true });
+  const plot = page.locator('.diary-chart--combined canvas');
+  const box = await plot.boundingBox();
+  if (box) await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.4);
+  await expect(page.locator('.diary-day-details')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('demo-chart-day.png') });
+  await page.keyboard.press('Escape');
   await page.goBack();
   await page.goBack();
   await expect(rows).toHaveCount(4);

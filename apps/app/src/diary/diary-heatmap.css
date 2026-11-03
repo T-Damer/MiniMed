@@ -114,10 +114,6 @@
 .diary-heat__scroller {
   flex: 1;
   min-width: 0;
-  /* Room for the rings of today and the open day (outline + offset ≈ 4px): a horizontal scroller
-     clips vertically too, which cut them on the top and bottom rows (owner 2026-11-03). */
-  margin: -0.3rem;
-  padding: 0.3rem;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -316,15 +312,17 @@
   content: "";
 }
 
+/* Rings sit inside the cell: the horizontal scroller clips vertically too, and an outer ring was cut
+   on the top and bottom rows and at the month divider (owner 2026-11-03). */
 .diary-heat__day--today {
   outline: 2px solid var(--theme-text, #292720);
-  outline-offset: 1.5px;
+  outline-offset: -2px;
 }
 
 /* The open day (another than today): the same ring in the accent colour. */
 .diary-heat__day--selected {
   outline: 2px solid var(--theme-accent, #2f6b5b);
-  outline-offset: 1.5px;
+  outline-offset: -2px;
 }
 
 /* Today open (the usual case): today's ring, not the accent one. */
