@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.85] - 2026-11-03
+
+- The doctor's patient page fits one screen: «Статистика» is folded to one line and opens in place or full screen.
+- Charts: the red zone past every alarm level is always painted, every day or every other day is labelled, a tap opens
+  that day; the combined chart is called «Статистика».
+- Editing a patient's day looks like a mode of its own: «Редактирование» and the day under the name, cooler colours,
+  and the date opens the calendar.
+- The installed diaries open full screen again, without the page jumping when the system bars are pulled down.
+- New versions arrive by themselves: opening the app is enough. Vibration is off unless you turn it on.
+- A new diary icon, shown from the first frame; the install guide no longer names a browser.
+- Every questionnaire in the doctors' diaries opens at once and without a network.
+- Smoother everywhere: sheets and menus animate out, every button answers the press, pages no longer flash on arrival,
+  and a tap starts the transition at once.
+- The patient list has search, a greeting, counters for urgent, today and long-silent patients, and the curators of
+  each patient; a colleague's plan change is marked.
+
 ## [0.6.84] - 2026-11-03
 
 - Doctor's patient page: a pencil on top («Редактировать») is the one way to change the patient's screen, plan and

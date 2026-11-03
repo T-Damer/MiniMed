@@ -52,6 +52,56 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## One-screen patient page, full-screen diaries, updates by themselves, motion pass — 2026-11-03 (STATE DIARY21)
+
+- **Patient page on one screen.** `PatientOverview` is folded by default (its verdict «N тревожных · N требуют
+  внимания» / «неделя спокойная», `overviewSummary` in `patient-overview.ts`): the row unfolds the brief week in place
+  (grid 0fr→1fr, remembered per device), an expand button opens the charts page.
+- **Charts.** The combined chart is «Статистика» with one hint («Нажмите на точку…»); a tap on any chart opens that
+  day's sheet (`PatientDayDetails`, which now renders the day's records itself with an `onCorrect` callback) on the
+  charts page too. `chart-days.ts`: a tick per local noon, labels skipped to fit, the month on the first tick and the
+  1st; `zonePlugin` always paints the worrying side of each red line (replacing the per-point day columns on detail
+  charts; the combined chart keeps its day columns). Today is left out of the intake % line. Charts draw two frames
+  after mount, so the page's entry is not blocked.
+- **The doctor's day.** `PatientDayView` says «Редактирование · <день>» under the name, hides the patient's calendar
+  (`DiaryToday` `viewer="doctor"`), the date has a calendar mark and opens the calendar in a `SheetPopover`
+  (`DiaryHeatmap bare`), and the view has its own cool palette and folder (`patient-day-view.css`; `--route-desk-
+  gradient` restated since it resolves on :root), one surface without the inner card.
+- **Calendar.** Rings of today/the open day sit inside the cells (`outline-offset: -2px`): the horizontal scroller
+  clipped outer rings. The legend says «Заполненность». A negative-margin attempt broke the cell sizing (the JS fits
+  columns to the scroller's width) — don't pad the scroller.
+- **Full screen.** Both diary manifests ask for `fullscreen` again (Edge paints its own grey status bar over a
+  standalone app in the dark theme and ignores `theme-color`). `state/fullscreen-inset.ts` pins `--safe-top` to the
+  cutout inset read at start (and after a rotation), so the bars pulled down no longer move the page; the shell drops
+  its top padding in fullscreen as in standalone. An icon installed as standalone has to be reinstalled.
+- **Updates apply themselves.** `state/auto-update.ts` `applyWhenQuiet`: a new service worker found while the page is
+  untouched (first 8 s) is activated at once, else when the page is next hidden (`registerAppServiceWorker`). The
+  patient diary compares `build-manifest.json` with its version and reloads into the new build the same way, once per
+  version (its worker is stale-while-revalidate).
+- **Vibration off by default.** `AppPreferences.vibrationChosen`: a saved «on» without the user's own choice was the
+  old default and reads off.
+- **Icon.** The diaries icon was drawn by an image model (google/nano-banana-2 on Replicate, MiniMed's flat icon as
+  the style reference, prompt in the commit) and cut out with BiRefNet: a notebook in MiniMed's palette on
+  transparency; all sizes rebuilt from one 869 px master. The boot surface sets the diary icon before the first paint
+  (no wallet flash); the sign-in shows the diary icon; the install guide says «в браузере» and shows the home-screen
+  icon.
+- **Questionnaires offline.** The diaries profile registers its built-in scales from the bundled packs
+  (`registerBundledAssessment`; the diaries build cuts the packs to those scales), so every scale page opens without a
+  download; `skipSearchCore` keeps the diaries copy from opening the search core.
+- **Motion pass.** Sheets and dialogs always animate out (an inert copy plays the exit when a parent unmounts them;
+  the exit starts on the tap); context menus/popovers fade out; `components/press-feedback.ts` gives every tappable
+  control a press scale; route entry starts from the page's first painted frame (the old two-frame delay showed the
+  page whole, then blank, then regrowing); the click handler only starts the exit, the route changes two frames later
+  (tap → first frame 180–260 ms → ~80 ms on the Xiaomi 14). `HeaderActions` caches the title's natural width per
+  text/font (its clone forced a whole-page style pass every frame while a header resized).
+- **Patients list.** A search field with the order menu as an icon button; a greeting (one of 35, by time of day) and
+  three counters (Срочные / Сегодня / Давно нет, each filters) in the header band; curator avatars (initials, a hue
+  from the name; members cached 5 min, fetched near the screen); «изменил(а) коллега» for plan changes by another
+  doctor since you last opened the patient.
+- **Open.** The patient page mount is still ~100 ms on the phone (mount the heatmap a frame later); the main app's
+  module catalog is still imported statically by Settings/Assessments (a first-visit freeze); `assessments.spec`
+  «Создать опросник» expects a primary button the header no longer has (pre-existing).
+
 ## Doctor's patient page: one edit entry, the calendar day, plan versions, combined chart — 2026-11-03 (STATE DIARY20)
 
 - **One edit entry.** The patient page's header has a pencil «Редактировать» (priority 1, always on top) that opens
