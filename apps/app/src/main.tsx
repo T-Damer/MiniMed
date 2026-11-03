@@ -91,6 +91,12 @@ let stopThemeColor = (): void => undefined;
 if (!Capacitor.isNativePlatform()) {
   // Chrome offers its install prompt once, early: the diaries app's install row needs it.
   listenForInstallPrompt();
+  // Full screen installed app: the cutout inset pinned, so pulling the bars down moves nothing.
+  void import('@/state/fullscreen-inset')
+    .then(({ pinFullscreenTopInset }) => pinFullscreenTopInset())
+    .catch((cause: unknown) => {
+      console.warn('Отступ под вырез экрана не закреплён:', cause);
+    });
   void import('@/state/web-theme-color')
     .then(({ installWebThemeColor }) => {
       stopThemeColor = installWebThemeColor();

@@ -220,8 +220,9 @@ test.describe('patient diary: keeping it one tap away', () => {
       display: string;
       icons: { src: string; sizes: string }[];
     };
-    // Standalone with the system bars (owner 2026-11-03: full screen hid them and jumped).
-    expect(manifest.display).toBe('standalone');
+    // Full screen (owner 2026-11-03, DIARY21: Edge paints its own grey bar in standalone); the
+    // top inset is fixed at start, so pulling the bars down no longer moves the page.
+    expect(manifest.display).toBe('fullscreen');
     const start = new URL(manifest.start_url, manifestUrl);
     const scope = new URL(manifest.scope, manifestUrl);
     expect(start.href).toBe(new URL(DIARY_PAGE).href);

@@ -114,6 +114,10 @@
 .diary-heat__scroller {
   flex: 1;
   min-width: 0;
+  /* Room for the rings of today and the open day (outline + offset ≈ 4px): a horizontal scroller
+     clips vertically too, which cut them on the top and bottom rows (owner 2026-11-03). */
+  margin: -0.3rem;
+  padding: 0.3rem;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -134,8 +138,8 @@
 }
 
 .diary-heat__month--divided {
-  margin-inline-start: 0.4rem;
-  padding-inline-start: 0.4rem;
+  margin-inline-start: 0.45rem;
+  padding-inline-start: 0.55rem;
   border-inline-start: 1px solid color-mix(in srgb, var(--theme-border, #cbc0a7) 70%, transparent);
 }
 

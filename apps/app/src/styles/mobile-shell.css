@@ -53,7 +53,7 @@ body {
   padding-top: 0;
 }
 
-@media (display-mode: standalone) {
+@media (display-mode: standalone), (display-mode: fullscreen) {
   .app-shell {
     padding-top: 0;
   }

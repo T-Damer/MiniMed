@@ -2,6 +2,7 @@ import { render } from 'solid-js/web';
 
 import { DiaryApp } from '@/diary/DiaryApp';
 import { listenForInstallPrompt } from '@/diary/install-state';
+import { pinFullscreenTopInset } from '@/state/fullscreen-inset';
 import { installWebThemeColor } from '@/state/web-theme-color';
 import '@/styles/theme.css';
 import '@/diary/diary-shell.css';
@@ -21,6 +22,8 @@ if (!root) throw new Error('Diary root element is missing.');
 render(() => <DiaryApp />, root);
 // The status bar of the installed diary takes the header's colour (owner 2026-11-03).
 installWebThemeColor();
+// Full screen installed diary: the cutout inset pinned, so pulling the bars down moves nothing.
+pinFullscreenTopInset();
 
 // Sounds and haptics on every tap, with the same switches as the app («Ещё» → «Звуки», «Вибрация»).
 // Loaded after the first paint: the diary opens without waiting for the audio engine.
