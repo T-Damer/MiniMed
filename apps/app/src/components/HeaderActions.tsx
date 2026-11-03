@@ -86,6 +86,29 @@ function isPlaced(element: Element): boolean {
  * (so it inherits the same styles) is measured and removed again: `scrollWidth` of a wrapped title
  * reports the box, not the text.
  */
+const naturalWidths = new WeakMap<HTMLElement, { readonly key: string; readonly width: number }>();
+
+/**
+ * The same width, measured again only when the title's text or font changed: the clone forces a
+ * style pass over the whole page, and a header that resizes while a page slides in or its hero
+ * shrinks would otherwise pay it on every frame (owner 2026-11-03: «навигация дёргается»).
+ */
+function cachedNaturalWidth(element: HTMLElement): number {
+  // The heading inside shrinks with the hero's pinned bar: every node's font is part of the key.
+  const key = [element, ...Array.from(element.querySelectorAll<HTMLElement>('*'))]
+    .map((node) => {
+      const style = getComputedStyle(node);
+      return `${style.font}/${style.letterSpacing}/${style.paddingInline}/${style.display}`;
+    })
+    .concat(element.textContent ?? '')
+    .join('|');
+  const known = naturalWidths.get(element);
+  if (known?.key === key) return known.width;
+  const width = naturalWidth(element);
+  naturalWidths.set(element, { key, width });
+  return width;
+}
+
 function naturalWidth(element: HTMLElement): number {
   const parent = element.parentElement;
   if (!parent) return element.getBoundingClientRect().width;
@@ -174,7 +197,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
     // What shares the slot with the buttons (other tools of the same header group).
     const slotExtras =
       slot === host ? 0 : slot.getBoundingClientRect().width - host.getBoundingClientRect().width;
-    for (const title of titles) used += Math.ceil(naturalWidth(title)) + 1;
+    for (const title of titles) used += Math.ceil(cachedNaturalWidth(title)) + 1;
 
     const available = Math.floor(inner - used - rowGap * neighbours - slotExtras);
     const next = layoutHeaderActions({
