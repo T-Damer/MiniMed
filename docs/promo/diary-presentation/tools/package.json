@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "pptx": "bun build-pptx.mjs"
+    "pptx": "bun build-pptx.mjs",
+    "pdf": "bun build-pdf.mjs"
   },
   "dependencies": {
     "playwright": "1.62.1",

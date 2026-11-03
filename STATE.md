@@ -181,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 ## Recently done
 
 - 2026-11-03 claude-opus REL 0.6.85: DIARY21 (one-screen patient page, charts zones/day ticks/tap→day, doctor's day mode, full-screen diaries, updates apply themselves, vibration off by default, image-model diary icon, offline questionnaires, motion pass, patient list search/greeting/curators)
+- 2026-11-04 claude-opus PROMO3: diary deck reworked on user feedback — section + topic tags on every slide (technical part green), status bars on phone screenshots, collaboration slide (curators), own questionnaires first, tech part in two slides with anonymity, AI hints and adherence statistics in the outlook; Preview-safe `tools/build-pdf.mjs`; the full version is now generated from `index.html`
 - 2026-11-03 claude-opus REL 0.6.84: DIARY20 (patient page: one edit pencil, «Статистика», calendar day; plan versions + merged concurrent edits; combined chart, red alarm days, dotted prescribed dose; questionnaire tab, caching, sheet heights, «Наверх»; slides' demo route)
 - 2026-11-03 claude-opus REL 0.6.83: DIARY-GV (diary pages on GitVerse Pages, med.1damer.com links through DIARY_PAGES_URL)
 - 2026-11-03 19:45 claude: DIARY-GV — diary pages on GitVerse Pages (`scripts/diary-gitverse-publish.sh`), `med.1damer.com` redirects via `DIARY_PAGES_URL`, CORS for both hosts.

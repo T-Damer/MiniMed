@@ -116,7 +116,8 @@ for (let index = 0; index < count; index += 1) {
               el !== lastParent &&
               !el.contains(lastParent) &&
               getComputedStyle(el).display === 'block'));
-        let value = t.textContent.replace(/\s+/gu, ' ');
+        // Collapse spacing but keep no-break spaces («им. Н. Н. Бурденко» stays on one line).
+        let value = t.textContent.replace(/[ \t\n\r\f]+/gu, ' ');
         if (s.textTransform === 'uppercase') value = value.toUpperCase();
         const color = hex(s.color);
         runs.push({
