@@ -12,10 +12,12 @@ import { pluralize } from '@/diary/diary-format';
 import { assessmentDefinitionFromRecord } from '@/features/assessments/assessment-definition';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import type { DiaryCheckpoint } from '@/features/diary/diary-model';
+import {
+  DIARY_QUESTIONNAIRES,
+  type DiaryQuestionnaireOption,
+  type QuestionnairePack,
+} from '@/features/diary/diary-questionnaire-list';
 import { userQuestionnaireDefinition } from '@/state/user-questionnaire-format';
-
-/** The tool pack a built-in questionnaire comes from (content/tool-modules). */
-type QuestionnairePack = 'psychology' | 'obstetrics-gynecology';
 
 const PACKS: Readonly<Record<QuestionnairePack, () => Promise<{ readonly default: unknown }>>> = {
   psychology: () => import('../../../../../content/tool-modules/psychology.json'),
@@ -23,101 +25,43 @@ const PACKS: Readonly<Record<QuestionnairePack, () => Promise<{ readonly default
     import('../../../../../content/tool-modules/obstetrics-gynecology.json'),
 };
 
-export interface DiaryQuestionnaireOption {
-  readonly slug: string;
-  /** The section of «Тесты и опросники» the app's own page for the scale lives under (its route). */
-  readonly bank: 'psychiatry' | 'psychology' | 'obstetrics';
-  /** Short name on the patient's button and in the doctor's chips. */
-  readonly title: string;
-  /** What it measures, in plain words. */
-  readonly about: string;
-  readonly pack: QuestionnairePack;
-  /**
-   * A profile of several scales without one total (temperament, roles): the doctor sees each
-   * result's headline, not a line of totals.
-   */
-  readonly profile?: true;
+export { DIARY_QUESTIONNAIRES, type DiaryQuestionnaireOption };
+
+const packRecords = new Map<QuestionnairePack, Promise<readonly ToolDefinitionRecord[]>>();
+
+/**
+ * The tool records of one pack, loaded once. The diaries copy of the app carries only the scales
+ * of `DIARY_QUESTIONNAIRES` in them (`diaryPackSubset` in `vite.config.ts`), so nothing here needs
+ * the network or the downloadable tool module.
+ */
+function loadPackRecords(pack: QuestionnairePack): Promise<readonly ToolDefinitionRecord[]> {
+  const cached = packRecords.get(pack);
+  if (cached) return cached;
+  const promise = PACKS[pack]().then(
+    (loadedPack) =>
+      (loadedPack.default as { readonly tools: readonly ToolDefinitionRecord[] }).tools,
+  );
+  packRecords.set(pack, promise);
+  promise.catch(() => packRecords.delete(pack));
+  return promise;
 }
 
-export const DIARY_QUESTIONNAIRES: readonly DiaryQuestionnaireOption[] = [
-  { slug: 'phq-9', bank: 'psychiatry', title: 'PHQ-9', about: 'настроение', pack: 'psychology' },
-  { slug: 'gad-7', bank: 'psychiatry', title: 'GAD-7', about: 'тревога', pack: 'psychology' },
-  {
-    slug: 'zung-self-rating-depression',
-    bank: 'psychiatry',
-    title: 'Шкала Цунга',
-    about: 'депрессия',
-    pack: 'psychology',
-  },
-  {
-    slug: 'zung-self-rating-anxiety',
-    bank: 'psychiatry',
-    title: 'Шкала Цунга',
-    about: 'тревога',
-    pack: 'psychology',
-  },
-  {
-    slug: 'asthenic-state-shas',
-    bank: 'psychiatry',
-    title: 'ШАС',
-    about: 'астения',
-    pack: 'psychology',
-  },
-  {
-    slug: 'perinatal-mood-whooley',
-    bank: 'obstetrics',
-    title: 'Вопросы Whooley',
-    about: 'депрессия, 2 вопроса',
-    pack: 'obstetrics-gynecology',
-  },
-  {
-    slug: 'postnatal-mood-epds',
-    bank: 'obstetrics',
-    title: 'EPDS',
-    about: 'депрессия при беременности и после родов',
-    pack: 'obstetrics-gynecology',
-  },
-  {
-    slug: 'temperament-profile',
-    bank: 'psychology',
-    title: 'Темперамент',
-    about: 'черты характера',
-    pack: 'psychology',
-    profile: true,
-  },
-  {
-    slug: 'personal-egogram',
-    bank: 'psychology',
-    title: 'Эгопрограмма',
-    about: 'эго-состояния',
-    pack: 'psychology',
-    profile: true,
-  },
-  {
-    slug: 'braverman-behavioral-profile',
-    bank: 'psychology',
-    title: 'Профиль Бравермана',
-    about: 'поведенческий профиль',
-    pack: 'psychology',
-    profile: true,
-  },
-  {
-    slug: 'paei-work-style',
-    bank: 'psychology',
-    title: 'PAEI',
-    about: 'стиль работы',
-    pack: 'psychology',
-    profile: true,
-  },
-  {
-    slug: 'team-role-profile',
-    bank: 'psychology',
-    title: 'Командные роли',
-    about: 'роль в команде',
-    pack: 'psychology',
-    profile: true,
-  },
-];
+/**
+ * The records of the given built-in scales, from the bundled packs: the diaries profile registers
+ * them as installed assessments so their pages open at once and offline (no module download).
+ */
+export async function loadBuiltInScaleRecords(
+  scales: readonly Pick<DiaryQuestionnaireOption, 'slug' | 'pack'>[],
+): Promise<readonly ToolDefinitionRecord[]> {
+  const records = await Promise.all(
+    scales.map(async (scale) => {
+      const record = (await loadPackRecords(scale.pack)).find((tool) => tool.slug === scale.slug);
+      if (!record) throw new Error(`Опросник не найден: ${scale.slug}.`);
+      return record;
+    }),
+  );
+  return records;
+}
 
 export function diaryQuestionnaire(slug: string): DiaryQuestionnaireOption | undefined {
   return DIARY_QUESTIONNAIRES.find((option) => option.slug === slug);
@@ -155,8 +99,7 @@ export function loadDiaryQuestionnaire(slug: string): Promise<AssessmentDefiniti
   if (cached) return cached;
   const option = diaryQuestionnaire(slug);
   if (!option) return Promise.reject(new Error('Этот опросник не входит в дневник.'));
-  const promise = PACKS[option.pack]().then((pack) => {
-    const tools = (pack.default as { readonly tools: readonly ToolDefinitionRecord[] }).tools;
+  const promise = loadPackRecords(option.pack).then((tools) => {
     const record = tools.find((tool) => tool.slug === slug);
     if (!record) throw new Error('Опросник не найден.');
     const definition = assessmentDefinitionFromRecord(record);

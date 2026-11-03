@@ -24,6 +24,7 @@ import {
   getAssessmentCatalog,
   loadAssessmentDefinition,
   preloadAssessmentDefinitions,
+  registerBundledAssessment,
   registerDownloadedAssessment,
 } from '@/features/assessments/assessment-catalog';
 import {
@@ -64,7 +65,10 @@ import type {
 } from '@/features/assessments/assessment-types';
 import { builtInScaleCards } from '@/features/assessments/built-in-scales';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
-import type { DiaryQuestionnaireOption } from '@/features/diary/diary-questionnaires';
+import {
+  type DiaryQuestionnaireOption,
+  loadBuiltInScaleRecords,
+} from '@/features/diary/diary-questionnaires';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
@@ -230,6 +234,23 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       });
     return downloadedToolsRefresh;
   };
+  /**
+   * A narrowed profile's built-in scales come with the build, never from a module download: their
+   * definitions are registered as installed, so every page (info, run, results) opens at once and
+   * offline, and the downloaded-module machinery stays idle.
+   */
+  const registerProfileScales = async (
+    scales: readonly DiaryQuestionnaireOption[],
+  ): Promise<void> => {
+    const records = await loadBuiltInScaleRecords(scales);
+    batch(() => {
+      records.forEach(registerBundledAssessment);
+      setAssessmentCatalog(getAssessmentCatalog());
+      refreshPacks();
+      setToolsError('');
+      setToolsReady(true);
+    });
+  };
   const handleHashChange = (): void => {
     const route = window.location.hash.replace(/^#\/?/u, '');
     // Every root tab shares one global location.hash, and this view stays mounted (hidden, not
@@ -266,6 +287,13 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     window.addEventListener(ASSESSMENT_PACKS_EVENT, refreshPacks);
     window.addEventListener(USER_LIBRARY_EVENT, refreshUserQuestionnaires);
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
+    const bundledScales = profileScales();
+    if (bundledScales) {
+      void registerProfileScales(bundledScales).catch((cause: unknown) => {
+        setToolsError(cause instanceof Error ? cause.message : 'Не удалось открыть опросники.');
+      });
+      return;
+    }
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
       if (task.state === 'completed') {
         void refreshDownloadedTools().catch((cause: unknown) => setMessage(String(cause)));

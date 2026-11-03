@@ -99,6 +99,15 @@ export const ASSESSMENT_CATALOG: readonly AssessmentCatalogEntry[] = TOOL_CATALO
 
 const definitionPromises = new Map<string, Promise<AssessmentDefinition>>();
 const downloadedAssessments = new Map<string, AssessmentDefinition>();
+/**
+ * Definitions that ship inside the build (a narrowed profile's built-in scales): always on the
+ * device, so a refresh of the downloaded modules never drops them and no download is offered.
+ */
+const bundledAssessments = new Map<string, AssessmentDefinition>();
+
+function loadedDefinitionOf(id: string): AssessmentDefinition | undefined {
+  return bundledAssessments.get(id) ?? downloadedAssessments.get(id);
+}
 
 export function clearDownloadedAssessments(): void {
   downloadedAssessments.clear();
@@ -106,13 +115,22 @@ export function clearDownloadedAssessments(): void {
 }
 
 export function isAssessmentDefinitionLoaded(id: string): boolean {
-  return downloadedAssessments.has(id);
+  return loadedDefinitionOf(id) !== undefined;
+}
+
+/** The ids of the definitions the build carries itself (empty in the full app). */
+export function bundledAssessmentIds(): readonly string[] {
+  return [...bundledAssessments.keys()];
 }
 
 export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
   return [
     ...new Map<string, AssessmentCatalogEntry>(
-      [...ASSESSMENT_CATALOG, ...downloadedAssessments.values()].map((entry) => [entry.id, entry]),
+      [
+        ...ASSESSMENT_CATALOG,
+        ...downloadedAssessments.values(),
+        ...bundledAssessments.values(),
+      ].map((entry) => [entry.id, entry]),
     ).values(),
   ].map((definition) => ({
     id: definition.id,
@@ -134,6 +152,13 @@ export function registerDownloadedAssessment(record: ToolDefinitionRecord): void
   if (record.kind !== 'assessment') return;
   const definition = assessmentDefinitionFromRecord(record);
   downloadedAssessments.set(record.id, definition);
+  definitionPromises.delete(record.id);
+}
+
+/** Registers a definition the build carries (a profile's built-in scale), installed from the start. */
+export function registerBundledAssessment(record: ToolDefinitionRecord): void {
+  if (record.kind !== 'assessment') return;
+  bundledAssessments.set(record.id, assessmentDefinitionFromRecord(record));
   definitionPromises.delete(record.id);
 }
 
@@ -168,7 +193,7 @@ export function loadAssessmentDefinition(idOrSlug: string): Promise<AssessmentDe
   if (!entry) return Promise.reject(new Error(`Unknown assessment: ${idOrSlug}.`));
   const existing = definitionPromises.get(entry.id);
   if (existing) return existing;
-  const downloaded = downloadedAssessments.get(entry.id);
+  const downloaded = loadedDefinitionOf(entry.id);
   if (!downloaded) {
     return Promise.reject(new Error(`Assessment payload is unavailable: ${entry.id}.`));
   }
@@ -179,7 +204,7 @@ export function loadAssessmentDefinition(idOrSlug: string): Promise<AssessmentDe
 
 /** True when the questionnaire's definition is installed; the catalog entry alone is only a name. */
 export function hasAssessmentPayload(id: string): boolean {
-  return downloadedAssessments.has(id);
+  return loadedDefinitionOf(id) !== undefined;
 }
 
 export async function preloadAssessmentDefinitions(ids: readonly string[]): Promise<void> {

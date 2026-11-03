@@ -29,6 +29,7 @@ import {
   shellAssets,
   writeServiceWorkerBuild,
 } from './src/dev-server/service-worker-precache';
+import { DIARY_QUESTIONNAIRES } from './src/features/diary/diary-questionnaire-list';
 
 const require = createRequire(import.meta.url);
 
@@ -403,6 +404,36 @@ function serviceWorkerPrecache(): Plugin {
   };
 }
 
+const DIARY_PACK_FILE = /[\\/]content[\\/]tool-modules[\\/]([a-z-]+)\.json(?:\?|$)/u;
+
+/**
+ * The diaries copy carries only the built-in scales a diary can hold (`DIARY_QUESTIONNAIRES`),
+ * not whole tool packs: the psychology and obstetrics packs shrink to the questionnaires the app
+ * profile lists, which it registers as installed (no module download). Every other build keeps the
+ * packs whole.
+ */
+function diaryPackSubset(): Plugin {
+  return {
+    name: 'diary-pack-subset',
+    enforce: 'pre',
+    transform(code, id) {
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries') return undefined;
+      const pack = DIARY_PACK_FILE.exec(id)?.[1];
+      if (!pack) return undefined;
+      const slugs = DIARY_QUESTIONNAIRES.filter((scale) => scale.pack === pack).map(
+        (scale) => scale.slug,
+      );
+      if (slugs.length === 0) return undefined;
+      const parsed = JSON.parse(code) as { tools: { slug: string }[] };
+      const tools = parsed.tools.filter((tool) => slugs.includes(tool.slug));
+      const missing = slugs.filter((slug) => !tools.some((tool) => tool.slug === slug));
+      if (missing.length > 0)
+        this.error(`The ${pack} tool pack lacks the diary scales: ${missing.join(', ')}.`);
+      return { code: JSON.stringify({ ...parsed, tools }), map: null };
+    },
+  };
+}
+
 /** What Vite records on each output chunk: the styles and assets it pulls in. */
 interface ViteChunkMetadata {
   readonly importedCss?: ReadonlySet<string>;
@@ -414,6 +445,7 @@ export default defineConfig({
   plugins: [
     solid(),
     katexWoff2Only(),
+    diaryPackSubset(),
     excalidrawCjkFontStubs(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
