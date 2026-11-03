@@ -4,6 +4,7 @@
  * decrypted diary; scoring comes from the questionnaire schemas, not from code here.
  */
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   addDays,
   CARE_DOSE_FIELD,
@@ -14,13 +15,17 @@ import {
 } from '@/features/diary/diary-care';
 import {
   DIARY_MEAL_LABEL,
+  type DiaryCheckpoint,
   type DiaryEntry,
   type DiaryInvitation,
   type DiaryPlanValue,
   describeDiaryEntry,
   markedDose,
 } from '@/features/diary/diary-model';
-import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
+import {
+  loadCheckpointQuestionnaire,
+  readyCheckpointQuestionnaire,
+} from '@/features/diary/diary-questionnaires';
 import { type AssessmentLimit, scoreScaleLimit } from '@/state/assessment-limits';
 
 export interface Adherence {
@@ -130,52 +135,72 @@ export interface QuestionnaireSeries {
   readonly points: readonly QuestionnairePoint[];
 }
 
-/** Totals of every questionnaire checkpoint, scored with its schema (bands and alerts). */
-export async function questionnaireSeries(
-  invitation: DiaryInvitation,
-  entries: readonly DiaryEntry[],
-): Promise<QuestionnaireSeries[]> {
-  const series: QuestionnaireSeries[] = [];
-  for (const checkpoint of invitation.checkpoints ?? []) {
-    if (checkpoint.kind !== 'questionnaire' || !checkpoint.questionnaire) continue;
-    const answered = entries.filter((entry) => entry.check === checkpoint.id && entry.answers);
-    if (!answered.length) continue;
-    const definition = await loadCheckpointQuestionnaire(checkpoint);
-    const points: QuestionnairePoint[] = [];
-    for (const entry of answered) {
-      const scored = scoreAssessment(definition, entry.answers ?? {}, entry.at);
-      if (!scored.ok) continue;
-      const primary =
-        scored.value.scores.find((score) => scored.value.primaryScaleIds.includes(score.scaleId)) ??
-        scored.value.scores[0];
-      const main = definition.scales[0];
-      const total = scored.value.scores.find((score) => score.scaleId === main?.id) ?? primary;
-      if (!total) continue;
-      points.push({
-        at: entry.at,
-        entryId: entry.id,
-        total: total.rawScore,
-        max: total.maximumScore,
-        headline: scored.value.headline,
-        alerts: (scored.value.alerts ?? []).map((alert) => alert.title),
-        alertDetails: (scored.value.alerts ?? []).map((alert) => ({
-          title: alert.title,
-          message: alert.message,
-        })),
-      });
-    }
-    // A questionnaire the doctor made without scores has nothing to chart.
-    if (!points.length) continue;
-    series.push({
-      checkpointId: checkpoint.id,
-      limitId: checkpoint.questionnaire,
-      preset: scoreScaleLimit(definition),
-      title: definition.shortTitle,
-      profile: definition.scales.length > 1 && !definition.scoreScales?.length,
-      points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
+/** Scores one questionnaire checkpoint's answers with its definition; nothing when it has no totals. */
+function scoreSeries(
+  checkpoint: DiaryCheckpoint,
+  answered: readonly DiaryEntry[],
+  definition: AssessmentDefinition,
+): QuestionnaireSeries | undefined {
+  const points: QuestionnairePoint[] = [];
+  for (const entry of answered) {
+    const scored = scoreAssessment(definition, entry.answers ?? {}, entry.at);
+    if (!scored.ok) continue;
+    const primary =
+      scored.value.scores.find((score) => scored.value.primaryScaleIds.includes(score.scaleId)) ??
+      scored.value.scores[0];
+    const main = definition.scales[0];
+    const total = scored.value.scores.find((score) => score.scaleId === main?.id) ?? primary;
+    if (!total) continue;
+    points.push({
+      at: entry.at,
+      entryId: entry.id,
+      total: total.rawScore,
+      max: total.maximumScore,
+      headline: scored.value.headline,
+      alerts: (scored.value.alerts ?? []).map((alert) => alert.title),
+      alertDetails: (scored.value.alerts ?? []).map((alert) => ({
+        title: alert.title,
+        message: alert.message,
+      })),
     });
   }
-  return series;
+  // A questionnaire the doctor made without scores has nothing to chart.
+  if (!points.length) return undefined;
+  return {
+    checkpointId: checkpoint.id,
+    limitId: checkpoint.questionnaire ?? checkpoint.id,
+    preset: scoreScaleLimit(definition),
+    title: definition.shortTitle,
+    profile: definition.scales.length > 1 && !definition.scoreScales?.length,
+    points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
+  };
+}
+
+/**
+ * Totals of every questionnaire checkpoint, scored with its schema (bands and alerts). With every
+ * definition at hand the answer is the list itself, not a promise: a page that reads it as a
+ * resource then never suspends, so the page behind it is not swapped for a skeleton.
+ */
+export function questionnaireSeries(
+  invitation: DiaryInvitation,
+  entries: readonly DiaryEntry[],
+): QuestionnaireSeries[] | Promise<QuestionnaireSeries[]> {
+  const todo = (invitation.checkpoints ?? []).flatMap((checkpoint) => {
+    if (checkpoint.kind !== 'questionnaire' || !checkpoint.questionnaire) return [];
+    const answered = entries.filter((entry) => entry.check === checkpoint.id && entry.answers);
+    return answered.length ? [{ checkpoint, answered }] : [];
+  });
+  const score = (definitions: readonly AssessmentDefinition[]): QuestionnaireSeries[] =>
+    todo.flatMap(({ checkpoint, answered }, index) => {
+      const definition = definitions[index];
+      const series = definition ? scoreSeries(checkpoint, answered, definition) : undefined;
+      return series ? [series] : [];
+    });
+  const known = todo.map(({ checkpoint }) => readyCheckpointQuestionnaire(checkpoint));
+  if (known.every((definition) => definition !== undefined)) return score(known);
+  return Promise.all(todo.map(({ checkpoint }) => loadCheckpointQuestionnaire(checkpoint))).then(
+    score,
+  );
 }
 
 export interface ExportRow {

@@ -12,6 +12,7 @@ import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import '@/components/page-skeleton.css';
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { isOnline } from '@/features/diary/dashboard/presence';
@@ -48,6 +49,11 @@ export function PairingView(props: {
       image: await QRCode.toDataURL(url, { errorCorrectionLevel: 'M', margin: 2, width: 360 }),
     };
   });
+  // Read by state, not by `link()`: a pending resource read inside the sheet would swap the whole
+  // body for the sheet's own loading lines, and this view has its own placeholder of the code's size.
+  const ready = () => (link.state === 'ready' ? link() : undefined);
+  /** The code's picture has been decoded: the placeholder gives way to it. */
+  const [shown, setShown] = createSignal(false);
   return (
     <div class="diary-pair">
       <Show when={link.error}>
@@ -55,7 +61,59 @@ export function PairingView(props: {
           {link.error instanceof Error ? link.error.message : 'Не удалось создать код.'}
         </p>
       </Show>
-      <Show when={connected()}>
+      <Show
+        when={connected()}
+        fallback={
+          <>
+            {/* The code's own box from the first frame: the placeholder and the picture lie on one
+                another, so the picture fades in over it and nothing around moves. */}
+            <div class="diary-pair__code-box" aria-busy={ready() === undefined}>
+              <span
+                class="page-skeleton__bar diary-pair__skeleton"
+                classList={{ 'diary-pair__skeleton--gone': shown() }}
+                aria-hidden="true"
+                data-testid="pair-skeleton"
+              />
+              <Show when={ready()}>
+                {(code) => (
+                  <img
+                    class="diary-pair__code"
+                    classList={{ 'diary-pair__code--shown': shown() }}
+                    src={code().image}
+                    alt="Код для телефона пациента"
+                    onLoad={() => setShown(true)}
+                  />
+                )}
+              </Show>
+            </div>
+            <p class="diary-pair__hint">
+              Пациент наводит камеру телефона на код. Код одноразовый, действует 72 часа.
+            </p>
+            <p class="diary-pair__waiting">
+              <span class="diary-pair__waiting-dot" aria-hidden="true" />
+              Ждём телефон пациента
+            </p>
+            <div class="diary-pair__actions">
+              <Button
+                disabled={ready() === undefined}
+                onClick={() => {
+                  const url = ready()?.url;
+                  if (!url) return;
+                  void navigator.clipboard
+                    .writeText(url)
+                    .then(() => toast.success('Ссылка скопирована.'))
+                    .catch(() => toast.error('Не удалось скопировать.'));
+                }}
+              >
+                Копировать ссылку
+              </Button>
+              <Button variant="primary" onClick={props.onDone}>
+                Готово
+              </Button>
+            </div>
+          </>
+        }
+      >
         <div class="diary-pair__done" role="status">
           <span class="diary-pair__check" aria-hidden="true">
             <AppGlyph name="check" class="diary-pair__check-icon" />
@@ -68,42 +126,6 @@ export function PairingView(props: {
             Готово
           </Button>
         </div>
-      </Show>
-      <Show
-        when={!connected() && link()}
-        fallback={
-          <Show when={!connected()}>
-            <p class="diary-dash__quiet">Готовим код…</p>
-          </Show>
-        }
-      >
-        {(ready) => (
-          <>
-            <img class="diary-pair__code" src={ready().image} alt="Код для телефона пациента" />
-            <p class="diary-pair__hint">
-              Пациент наводит камеру телефона на код. Код одноразовый, действует 72 часа.
-            </p>
-            <p class="diary-pair__waiting">
-              <span class="diary-pair__waiting-dot" aria-hidden="true" />
-              Ждём телефон пациента
-            </p>
-            <div class="diary-pair__actions">
-              <Button
-                onClick={() => {
-                  void navigator.clipboard
-                    .writeText(ready().url)
-                    .then(() => toast.success('Ссылка скопирована.'))
-                    .catch(() => toast.error('Не удалось скопировать.'));
-                }}
-              >
-                Копировать ссылку
-              </Button>
-              <Button variant="primary" onClick={props.onDone}>
-                Готово
-              </Button>
-            </div>
-          </>
-        )}
       </Show>
     </div>
   );

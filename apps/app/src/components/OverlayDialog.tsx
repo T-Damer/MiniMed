@@ -15,6 +15,7 @@ import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { SkeletonLines } from '@/components/SkeletonLines';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
+import { followSheetHeight } from '@/components/sheet-height';
 import { type HistoryLayer, openHistoryLayer } from '@/state/history-layer';
 import { motionMs } from '@/state/motion';
 import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
@@ -181,6 +182,15 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     );
     return dialogs.item(dialogs.length - 1) === panel;
   };
+
+  // A sheet whose content changes height (it loads, a section opens) moves to the new height; a
+  // sheet that is being pulled or is leaving takes it at once. Viewers and editors that fill the
+  // screen have no height of their own to move.
+  createEffect(() => {
+    if (!mounted() || presentation() !== 'sheet') return;
+    if (!panel || !body) return;
+    onCleanup(followSheetHeight(panel, body, () => !dragging() && !closing()));
+  });
 
   createEffect(() => {
     if (!props.open) return;

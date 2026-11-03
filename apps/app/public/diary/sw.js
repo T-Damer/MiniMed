@@ -1,5 +1,5 @@
 // Diary page cache: keeps the page usable offline after the first visit. Scope: diary/ only.
-const CACHE_NAME = 'minimed-diary-v6';
+const CACHE_NAME = 'minimed-diary-v7';
 const STATIC_DESTINATIONS = new Set([
   'document',
   'script',
@@ -88,7 +88,35 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network first, so a new page version arrives when online; the cache answers offline.
+// A file with a hash in its name (`assets/diary-Ab12Cd34.js`) never changes: the cache answers
+// without asking the network. The page and the files without a hash (manifest, icons) are shown
+// from the cache at once and read again in the background, so the next open has the new version
+// and an open never waits for a slow or hanging network; with nothing cached the network answers,
+// and the cached page stands in when it cannot.
+const HASHED = /\/assets\/[^/]*-[\w-]{8}\.[a-z0-9]+$/u;
+
+async function answer(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request, { ignoreSearch: true, ignoreVary: true });
+  if (cached && HASHED.test(new URL(request.url).pathname)) return cached;
+  const fresh = fetch(request).then((response) => {
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  });
+  if (cached) {
+    // Kept running after the answer; its failure (offline) leaves the cached copy as it is.
+    event.waitUntil(fresh.catch(() => undefined));
+    return cached;
+  }
+  try {
+    return await fresh;
+  } catch {
+    const page = request.mode === 'navigate' ? await caches.match(BASE.href) : undefined;
+    return page ?? Response.error();
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (
@@ -98,24 +126,7 @@ self.addEventListener('fetch', (event) => {
   ) {
     return;
   }
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(() =>
-        caches
-          .match(request, { ignoreSearch: true, ignoreVary: true })
-          .then(
-            (cached) =>
-              cached ?? (request.mode === 'navigate' ? caches.match(BASE.href) : Response.error()),
-          ),
-      ),
-  );
+  event.respondWith(answer(event));
 });
 
 // Connected diary (ADR-0026). A push carries only what happened (`{ kind }`) or, for a reminder,

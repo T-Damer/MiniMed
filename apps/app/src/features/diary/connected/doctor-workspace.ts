@@ -144,20 +144,38 @@ const POLL_MS = 20_000;
 const PRESENCE_MS = 3 * 60_000;
 /** How often a list shown from the offline copy tries the service again. */
 const OFFLINE_RETRY_MS = 30_000;
+/** A list read this recently is not read again when the doctor comes back to it. */
+const QUIET_REFRESH_MS = 15_000;
+/** The event stream may have missed events while the page was hidden: after this long it is read again. */
+const RETURN_REFRESH_MS = 60_000;
 
 export class DoctorDiaries {
   private readonly api;
   private readonly entries = new Map<string, DoctorPatient>();
   private readonly sessions = new Map<string, DiarySession>();
+  /** Patients whose replica is built from this session's pulls (the offline copy's are not). */
+  private readonly pulled = new Set<string>();
   private readonly listeners = new Set<Listener>();
   private alertList: readonly DiaryAlert[] = [];
   private events: EventSource | undefined;
   private live = false;
   private stopPolling: (() => void) | undefined;
+  /** Something is on screen: the first network read, or the copy that stands in for it. */
   private loaded = false;
+  /** A network read has finished: what is on screen is live, not a copy. */
+  private fresh = false;
+  private refreshedAt = 0;
+  /** The read that is running or queued last: reads go one after another, never side by side. */
+  private reading: Promise<void> | undefined;
+  /** The copy kept on this device is being read (or was): one read serves every caller. */
+  private copy: Promise<boolean> | undefined;
+  /** When the copy was saved, while it stands in for a read that has not finished. */
+  private copyAt: string | undefined;
+  /** When the copy on screen was saved, once the service could not be reached. */
   private offlineAt: string | undefined;
   private copyTimer: number | undefined;
   private stopRetry: (() => void) | undefined;
+  private stopVisible: (() => void) | undefined;
 
   constructor(readonly session: DoctorSession) {
     this.api = doctorApi(session);
@@ -232,7 +250,8 @@ export class DoctorDiaries {
 
   /** Pulls one patient's new records into its replica. */
   private async load(summary: DiaryPatientSummary): Promise<void> {
-    const previous = this.entries.get(summary.id);
+    // A patient taken from the copy is only for looking at: the first pull starts from the records.
+    const previous = this.pulled.has(summary.id) ? this.entries.get(summary.id) : undefined;
     if (summary.status === 'pending' || summary.status === 'withdrawn') {
       this.entries.set(summary.id, {
         summary,
@@ -245,6 +264,7 @@ export class DoctorDiaries {
     }
     const session = await this.sessionFor(summary);
     const pulled = await session.pull();
+    this.pulled.add(summary.id);
     this.entries.set(summary.id, {
       summary,
       replica: applyRevisions(previous?.replica ?? EMPTY_REPLICA, pulled.revisions),
@@ -253,10 +273,26 @@ export class DoctorDiaries {
   }
 
   /**
-   * Reads every patient again. Without a network the first read falls back to this device's
-   * offline copy (`offlineSince()` then says from when) and reads again once the network is back.
+   * Reads every patient again. The first read of a session shows the copy kept on this device at
+   * once, when there is one, and replaces it when the service answers. Without a network the copy
+   * stays (`offlineSince()` then says from when) and the service is tried again later. A call
+   * while a read runs waits for it and then reads again.
    */
-  async refresh(): Promise<void> {
+  refresh(): Promise<void> {
+    const chain = (this.reading ?? Promise.resolve()).then(() => this.readAll());
+    const settled = chain.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.reading = settled;
+    // Cleared before the caller continues, so a call made right after this one is not held back.
+    return chain.finally(() => {
+      if (this.reading === settled) this.reading = undefined;
+    });
+  }
+
+  private async readAll(): Promise<void> {
+    if (!this.loaded) void this.showCopy();
     try {
       const summaries = await diaryPatients.list(this.api);
       const seen = new Set(summaries.map((summary) => summary.id));
@@ -264,15 +300,32 @@ export class DoctorDiaries {
       await Promise.all(summaries.map((summary) => this.load(summary)));
       this.alertList = await diaryAlerts.list(this.api);
     } catch (cause) {
-      if (!unreachable(cause) || this.loaded || !(await this.restoreOfflineCopy())) throw cause;
+      if (!unreachable(cause) || this.fresh || this.offlineAt !== undefined) throw cause;
+      if (!(await this.showCopy())) throw cause;
+      this.goOffline();
       return;
     }
+    this.fresh = true;
     this.loaded = true;
     this.offlineAt = undefined;
+    this.copyAt = undefined;
+    this.refreshedAt = Date.now();
     this.stopRetry?.();
     this.stopRetry = undefined;
     this.emit();
     this.keepCopy();
+  }
+
+  /**
+   * Reads again in the background, for a list the doctor comes back to: nothing happens before
+   * the first live read, while a read runs, or when one finished moments ago, and a failure leaves
+   * the list as it is.
+   */
+  refreshQuietly(maxAgeMs: number = QUIET_REFRESH_MS): void {
+    if (!this.fresh || this.reading || Date.now() - this.refreshedAt < maxAgeMs) return;
+    this.refresh().catch((cause: unknown) => {
+      console.warn('Дневники: тихое обновление не удалось', cause);
+    });
   }
 
   /** When the copy on screen was saved; undefined while the list is live. */
@@ -280,18 +333,36 @@ export class DoctorDiaries {
     return this.offlineAt;
   }
 
-  private async restoreOfflineCopy(): Promise<boolean> {
+  /** The copy kept on this device goes on screen, unless the live list got there first. */
+  private showCopy(): Promise<boolean> {
+    this.copy ??= this.readCopy();
+    return this.copy;
+  }
+
+  private async readCopy(): Promise<boolean> {
     const copy = await readOfflineCopy(this.session).catch((cause: unknown) => {
       console.warn('Дневники: копия без сети не открылась', cause);
       return undefined;
     });
-    if (!copy) return false;
-    const snapshot = JSON.parse(copy.text) as OfflineSnapshot;
-    if (snapshot.v !== 1) return false;
-    for (const patient of fromSnapshot(snapshot)) this.entries.set(patient.summary.id, patient);
-    this.alertList = snapshot.alerts;
+    if (!copy || this.fresh) return false;
+    try {
+      const snapshot = JSON.parse(copy.text) as OfflineSnapshot;
+      if (snapshot.v !== 1) return false;
+      for (const patient of fromSnapshot(snapshot)) this.entries.set(patient.summary.id, patient);
+      this.alertList = snapshot.alerts;
+    } catch (cause) {
+      console.warn('Дневники: копия без сети не разобрана', cause);
+      return false;
+    }
     this.loaded = true;
-    this.offlineAt = copy.savedAt;
+    this.copyAt = copy.savedAt;
+    this.emit();
+    return true;
+  }
+
+  /** The service could not be reached: the copy on screen says so, and the service is tried again. */
+  private goOffline(): void {
+    this.offlineAt = this.copyAt;
     this.emit();
     const back = (): void => {
       this.refresh()
@@ -307,7 +378,6 @@ export class DoctorDiaries {
       window.clearInterval(timer);
       window.removeEventListener('online', back);
     };
-    return true;
   }
 
   /** Saves the list for work without a network, at most once every few seconds. */
@@ -398,6 +468,12 @@ export class DoctorDiaries {
       else console.warn('Дневники: событие присутствия не разобрано');
     }) as EventListener);
     this.events = events;
+    // Events sent while the page was hidden may never arrive: a list left for a while is read again.
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') this.refreshQuietly(RETURN_REFRESH_MS);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    this.stopVisible = () => document.removeEventListener('visibilitychange', onVisible);
   }
 
   /** A patient went online/offline or was seen again (live `presence` event). */
@@ -421,6 +497,8 @@ export class DoctorDiaries {
     this.live = false;
     this.events?.close();
     this.events = undefined;
+    this.stopVisible?.();
+    this.stopVisible = undefined;
     this.stopPolling?.();
     this.stopPolling = undefined;
   }
@@ -443,6 +521,7 @@ export class DoctorDiaries {
       rebase && ((revisions) => rebase(applyRevisions(entry.replica, revisions))),
     );
     const after = await session.pull();
+    this.pulled.add(patientId);
     this.entries.set(patientId, {
       ...entry,
       replica: applyRevisions(entry.replica, [...pulled, ...after.revisions]),

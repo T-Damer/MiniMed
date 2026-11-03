@@ -165,6 +165,12 @@
   }
 }
 
+/* A garden shown again is already grown: no new growth, only the sway. */
+.diary-garden__stem.diary-garden__stem--grown {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
 .diary-garden__leaf {
   transform-box: view-box;
   transform-origin: 0 0;
@@ -179,6 +185,11 @@
   to {
     transform: scale(1);
   }
+}
+
+.diary-garden__leaf.diary-garden__leaf--grown {
+  transform: scale(1);
+  animation: diary-garden-sway 4.5s ease-in-out calc(var(--leaf-index) * 0.3s) infinite alternate;
 }
 
 @keyframes diary-garden-sway {
@@ -534,6 +545,7 @@
 @media (prefers-reduced-motion: reduce) {
   .diary-garden__stem,
   .diary-garden__leaf,
+  .diary-garden__leaf.diary-garden__leaf--grown,
   .diary-garden__drift,
   .diary-signin__card,
   .diary-signin__logo,
@@ -550,7 +562,8 @@
     stroke-dashoffset: 0;
   }
 
-  .diary-garden__leaf {
+  .diary-garden__leaf,
+  .diary-garden__leaf.diary-garden__leaf--grown {
     transform: none;
   }
 
@@ -743,11 +756,41 @@
   gap: 0.85rem;
 }
 
-.diary-pair__code {
+/* The code's place, kept from the first frame: the placeholder and the picture share its cell. */
+.diary-pair__code-box {
+  display: grid;
   width: min(20rem, 100%);
   aspect-ratio: 1;
+}
+
+.diary-pair__code,
+.page-skeleton__bar.diary-pair__skeleton {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
   border-radius: var(--theme-radius-panel);
+}
+
+.diary-pair__code {
   background: white;
+  opacity: 0;
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
+.diary-pair__code.diary-pair__code--shown {
+  opacity: 1;
+}
+
+/* Gives way to the picture, then stays out of the way (hidden after the fade). */
+.page-skeleton__bar.diary-pair__skeleton {
+  transition:
+    opacity var(--motion-base) var(--motion-ease),
+    visibility 0s linear var(--motion-base);
+}
+
+.page-skeleton__bar.diary-pair__skeleton.diary-pair__skeleton--gone {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .diary-pair__hint {

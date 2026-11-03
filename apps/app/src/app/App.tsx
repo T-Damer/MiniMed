@@ -130,9 +130,23 @@ const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
 /** The reader that fills the screen scrolls inside itself, so «Наверх» follows it, not the page. */
 const fullscreenReader = (): HTMLElement | null =>
   document.querySelector<HTMLElement>('.user-document-reader--fullscreen');
+/**
+ * Loads a root view's code ahead of its first visit. Through the lazy component's own `preload`,
+ * so that its first mount finds the code in and does not suspend for a tick (a skeleton frame).
+ */
+const rootViewComponents: Readonly<Record<RootView, { readonly preload: () => Promise<unknown> }>> =
+  {
+    search: SearchHome,
+    modules: KnowledgeBaseView,
+    assessments: AssessmentsView,
+    calculators: CalculatorsView,
+    notes: NotesView,
+    news: NewsView,
+    settings: SettingsView,
+  };
 
 function preloadRootView(view: RootView): void {
-  void rootViewLoaders[view]().catch(() => undefined);
+  void rootViewComponents[view].preload().catch(() => undefined);
 }
 
 export function App(): JSX.Element {
@@ -235,7 +249,6 @@ export function App(): JSX.Element {
   onMount(() => {
     if (statusCap) onCleanup(holdLightStatusBarWhileShown(statusCap));
   });
-
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
