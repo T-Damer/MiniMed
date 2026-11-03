@@ -353,8 +353,8 @@ export function DiaryDashboard(props: {
         ? [
             {
               id: 'screen',
-              label: 'Экран пациента',
-              icon: 'browsers' as const,
+              label: 'Редактировать',
+              icon: 'edit' as const,
               onSelect: () => props.onOpenPatient(id, 'screen'),
             },
           ]
