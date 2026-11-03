@@ -180,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus REL 0.6.81: DRUG-HDR2 (drug condition row, structures, «Состав» roles, line-wrap repair)
 - 2026-11-03 claude-opus DRUG-HDR2: drug card condition row (pregnancy/ГВ/children/elderly/liver/kidneys/driving, red→green + quote sheet), no «Разделы», page stamps folded, wrapped-line repair, compound structures (smiles-drawer) and «Состав» roles from Wikidata/ChEBI/ChEMBL, unified reader header buttons, more dotted paper
 - 2026-11-03 claude-opus WSP1: weight-space edit research — looping-direction ablation on Vikhr Qwen 2.5 0.5B halves held-out looping but 0/20 valid tester-box contracts either way, +2.5 % loss on source text: no-go; Qwen3 0.6B fails by content, not loops (`docs/research/weight-space-ablation-2026-11-03.md`, scripts `tools/benchmarks/weight_space/`; weights deleted)
 - 2026-11-03 claude-opus SW-RETIRE: gateway `/sw.js` retires the VM-era app cached on med.1damer.com (the owner's Edge PWA was stuck on 0.6.67)

@@ -4,6 +4,19 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.81] - 2026-11-03
+
+- Drug cards: a row of seven icons — pregnancy, breastfeeding, children, elderly, liver, kidneys, driving — red,
+  amber, green or grey from what the open instruction says; a tap shows the sentences behind the colour, each one
+  jumping to its place in the text. It replaces the «Беременность, ГВ, дети» fold; the «Разделы» button is gone
+  (the contents button already does that).
+- The active substance's structural formula sits beside the drug's name; a tap shows the structure, the formula,
+  how it acts and its molecular targets. «Состав» lists each component with its role (действующее, наполнитель,
+  разрыхлитель…), each opening the same card.
+- Instruction text reads as written: printed-line wraps no longer turn into «- 14,0 мг» bullets or break words,
+  and page stamps («ИНСТРУКЦИЯ», «МЗ РФ», «ЛП-№…») no longer appear as section headings.
+- The reader's header buttons share one style; dotted paper on more cards.
+
 ## [0.6.80] - 2026-11-02
 
 - Patient screen editor: each sheet shows what it edits with an icon next to its title. A medicine sheet can copy its
