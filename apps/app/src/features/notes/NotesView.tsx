@@ -26,6 +26,7 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { DateField } from '@/components/DateField';
+import { lazyKept } from '@/components/lazy-kept';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
@@ -444,7 +445,8 @@ const DrugInteractionWorkspace = lazy(() =>
     default: module.DrugInteractionWorkspace,
   })),
 );
-const DiaryDashboard = lazy(() =>
+// The dashboard mounts on every return to the diaries: `lazyKept` shows it on the spot after the first.
+const DiaryDashboard = lazyKept(() =>
   import('@/features/diary/dashboard/DiaryDashboard').then((module) => ({
     default: module.DiaryDashboard,
   })),
