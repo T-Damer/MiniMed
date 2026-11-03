@@ -18,6 +18,11 @@ export interface AppPreferences {
   readonly devLocalModuleArtifacts?: boolean;
   readonly splitNavigation: boolean;
   readonly vibrationEnabled: boolean;
+  /**
+   * The user turned «Вибрация» on or off themselves. Vibration is off by default (owner
+   * 2026-11-03); a `true` saved before without this mark was only the old default, so it reads off.
+   */
+  readonly vibrationChosen?: boolean;
   readonly rememberSearchMode: boolean;
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
@@ -41,7 +46,7 @@ export const DEFAULT_SOUND_VOLUME = 0.2;
 
 const DEFAULT_PREFERENCES: AppPreferences = {
   splitNavigation: false,
-  vibrationEnabled: true,
+  vibrationEnabled: false,
   rememberSearchMode: false,
   soundVolume: DEFAULT_SOUND_VOLUME,
   bookReadingMode: false,
@@ -64,6 +69,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly devLocalModuleArtifacts?: unknown;
     readonly splitNavigation?: unknown;
     readonly vibrationEnabled?: unknown;
+    readonly vibrationChosen?: unknown;
     readonly rememberSearchMode?: unknown;
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
@@ -87,9 +93,10 @@ function normalizePreferences(value: unknown): AppPreferences {
         ? candidate.moduleAutoUpdatesEnabled
         : DEFAULT_PREFERENCES.moduleAutoUpdatesEnabled,
     vibrationEnabled:
-      typeof candidate.vibrationEnabled === 'boolean'
+      candidate.vibrationChosen === true && typeof candidate.vibrationEnabled === 'boolean'
         ? candidate.vibrationEnabled
         : DEFAULT_PREFERENCES.vibrationEnabled,
+    ...(candidate.vibrationChosen === true ? { vibrationChosen: true } : {}),
     rememberSearchMode:
       typeof candidate.rememberSearchMode === 'boolean'
         ? candidate.rememberSearchMode
@@ -180,7 +187,11 @@ export function getVibrationEnabled(): boolean {
 }
 
 export function setVibrationEnabled(enabled: boolean): AppPreferences {
-  return saveAppPreferences({ ...loadAppPreferences(), vibrationEnabled: enabled });
+  return saveAppPreferences({
+    ...loadAppPreferences(),
+    vibrationEnabled: enabled,
+    vibrationChosen: true,
+  });
 }
 
 export function getRememberSearchMode(): boolean {
