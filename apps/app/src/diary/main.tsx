@@ -1,5 +1,6 @@
 import { render } from 'solid-js/web';
 
+import { installPressFeedback } from '@/components/press-feedback';
 import { DiaryApp } from '@/diary/DiaryApp';
 import { listenForInstallPrompt } from '@/diary/install-state';
 import { installWebThemeColor } from '@/state/web-theme-color';
@@ -15,6 +16,7 @@ import '@/styles/scrollbars.css';
 document.documentElement.classList.add('scrollbar-themed');
 // Chrome offers its install prompt once, early: listen before anything renders.
 listenForInstallPrompt();
+installPressFeedback();
 
 const root = document.getElementById('diary-root');
 if (!root) throw new Error('Diary root element is missing.');
