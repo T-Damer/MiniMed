@@ -2,6 +2,7 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
+import { ScrollTop } from '@/components/ScrollTop';
 import { DiaryList } from '@/diary/DiaryList';
 import { type DiaryScreen, DiaryView } from '@/diary/DiaryView';
 import { entriesLabel } from '@/diary/diary-format';
@@ -331,6 +332,7 @@ export function DiaryApp(): JSX.Element {
         }
       })()}
       <ScrollIndicator />
+      <ScrollTop />
     </>
   );
 }

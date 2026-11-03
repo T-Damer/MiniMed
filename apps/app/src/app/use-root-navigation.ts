@@ -45,10 +45,8 @@ export function useRootNavigation() {
   const [mountedViews, setMountedViews] = createSignal<ReadonlySet<RootView>>(
     new Set([viewFromLocation()]),
   );
-  const [showScrollTop, setShowScrollTop] = createSignal(false);
   const [chromeHidden, setChromeHidden] = createSignal(false);
 
-  let scrollFrame: number | undefined;
   let lastScrollTop = window.scrollY;
   let chromeHoldUntil = 0;
   const rootNavigationQueue: Array<{ readonly next: RootView; readonly commit: () => void }> = [];
@@ -208,25 +206,12 @@ export function useRootNavigation() {
     });
   };
 
-  const activeReaderScrollElement = (): HTMLElement | undefined =>
-    document.querySelector<HTMLElement>('.user-document-reader--fullscreen') || undefined;
-
   const readScrollTop = (event?: Event): number => {
     const target = event?.target;
     if (target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')) {
       return target.scrollTop;
     }
     return window.scrollY;
-  };
-
-  const scrollToTop = (): void => {
-    const reader = activeReaderScrollElement();
-    if (reader) {
-      reader.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    // Virtualized rows remeasure while scrolling; a smooth animation can lose its target.
-    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleScroll = (event?: Event): void => {
@@ -241,11 +226,6 @@ export function useRootNavigation() {
     } else if (scrollTop > CHROME_HIDE_AFTER && direction > CHROME_DIRECTION_THRESHOLD) {
       setChromeHidden(true);
     }
-    if (scrollFrame !== undefined) return;
-    scrollFrame = requestAnimationFrame(() => {
-      scrollFrame = undefined;
-      setShowScrollTop(scrollTop > 48);
-    });
   };
 
   const handleChromeHold = (event: Event): void => {
@@ -303,16 +283,13 @@ export function useRootNavigation() {
     document.removeEventListener('scroll', handleScroll, { capture: true });
     window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.documentElement.classList.remove('app-chrome-hidden');
-    if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
     if (settleTimer) clearTimeout(settleTimer);
   });
 
   return {
     view,
     documentReadActive,
-    showScrollTop,
     chromeHidden,
-    scrollToTop,
     navigate,
     rootViewClasses,
     isViewVisible,

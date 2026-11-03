@@ -1,4 +1,8 @@
 import type { RootViewItem } from '@/app/root-view';
+import {
+  DIARY_QUESTIONNAIRES,
+  type DiaryQuestionnaireOption,
+} from '@/features/diary/diary-questionnaires';
 import type { SettingsPageId } from '@/features/settings/settings-pages';
 
 /**
@@ -24,6 +28,11 @@ export interface AppProfile {
   readonly home: string;
   /** Route prefixes the profile allows (hash form). */
   readonly routes: readonly string[];
+  /**
+   * The built-in scales its questionnaire list offers next to the user's own; each one's page
+   * (and the drafts and results below it) is an allowed route, the rest of the catalog is not.
+   */
+  readonly builtInScales?: readonly DiaryQuestionnaireOption[];
   /** The bottom bar's items, in order; empty hides the bar. */
   readonly navigation: readonly AppProfileNavItem[];
   /** The settings pages the profile offers; all of them when absent. */
@@ -34,14 +43,26 @@ export interface AppProfile {
   readonly skipOnboarding: boolean;
 }
 
+/** The address of one built-in scale's page: its section and its slug. */
+export function builtInScaleRoute(scale: Pick<DiaryQuestionnaireOption, 'bank' | 'slug'>): string {
+  return `#/assessments/${scale.bank}/${scale.slug}`;
+}
+
 export const APP_PROFILES: readonly AppProfile[] = [
   {
     id: 'diaries',
     home: '#/notes/diaries',
-    routes: ['#/notes/diaries', '#/settings', '#/assessments/mine'],
+    routes: [
+      '#/notes/diaries',
+      '#/settings',
+      '#/assessments/mine',
+      ...DIARY_QUESTIONNAIRES.map(builtInScaleRoute),
+    ],
+    builtInScales: DIARY_QUESTIONNAIRES,
     navigation: [
       { id: 'notes', label: 'Пациенты', icon: 'users', hash: '#/notes/diaries' },
-      // The doctor's own questionnaires: the list, and from it the editor and the run page.
+      // Every questionnaire a diary can carry: the built-in scales and the doctor's own, with the
+      // editor and the run pages below the list.
       { id: 'assessments', label: 'Опросники', icon: 'list-checks', hash: '#/assessments/mine' },
       { id: 'settings', label: 'Настройки', icon: 'system', hash: '#/settings' },
     ],

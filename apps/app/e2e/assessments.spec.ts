@@ -95,7 +95,7 @@ test('completes a psychology questionnaire and writes the result to a patient no
       .evaluate((button) => button.style.getPropertyValue('--assessment-progress')),
   ).toBe('4.17%');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect(page.getByRole('button', { name: 'Вернуться наверх' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Наверх' })).toBeVisible();
   const ringCenterOffset = await page.getByTestId('assessment-next').evaluate((button) => {
     const ring = button.querySelector<SVGSVGElement>('.assessment-next-button__ring');
     if (!ring) throw new Error('assessment next-button ring missing');

@@ -22,6 +22,7 @@ import {
   moduleIdForAssessmentSpecialty,
 } from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
+import { type BuiltInScaleCard, scaleAboutLabel } from '@/features/assessments/built-in-scales';
 import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
 import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
 import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
@@ -61,6 +62,13 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly query: string;
   readonly recentRecords: readonly AssessmentRecord[];
   readonly userQuestionnaires: readonly StoredUserQuestionnaire[];
+  /**
+   * The built-in scales listed above the user's own (a narrowed profile's «Опросники» tab), the
+   * search and age choice already applied; null where the list is the user's own questionnaires only.
+   */
+  readonly builtInScales: readonly BuiltInScaleCard[] | null;
+  /** Built-in scales the age choice hides (counted next to the user's own). */
+  readonly builtInHiddenByAge: number;
   readonly onQuery: (value: string) => void;
   readonly onBack: () => void;
   /** The tools home the catalog root goes back to when it is not a tab of its own. */
@@ -69,6 +77,7 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly onOpenUserQuestionnaires: () => void;
   readonly onCreateUserQuestionnaire: () => void;
   readonly onOpenUserQuestionnaire: (fileId: string) => void;
+  readonly onOpenBuiltInScale: (card: BuiltInScaleCard) => void;
   readonly onEditUserQuestionnaire: (fileId: string) => void;
   readonly onExportUserQuestionnaire: (fileId: string) => void;
   readonly onDuplicateUserQuestionnaire: (fileId: string) => void;
@@ -153,7 +162,13 @@ export function AssessmentSpecialtyIndexPage(props: {
           <AppGlyph name={props.mineOnly ? 'notepad' : 'list-checks'} class="page__icon-glyph" />
         }
         title={
-          <Heading depth={1}>{props.mineOnly ? 'Мои опросники' : 'Тесты и опросники'}</Heading>
+          <Heading depth={1}>
+            {props.mineOnly
+              ? props.builtInScales
+                ? 'Опросники'
+                : 'Мои опросники'
+              : 'Тесты и опросники'}
+          </Heading>
         }
       />
 
@@ -164,7 +179,9 @@ export function AssessmentSpecialtyIndexPage(props: {
         onChange={props.onAgeFilter}
         hidden={
           props.mineOnly
-            ? props.userQuestionnaires.length - userQuestionnairesForAge().length
+            ? props.userQuestionnaires.length -
+              userQuestionnairesForAge().length +
+              props.builtInHiddenByAge
             : props.allDefinitions.length - props.definitions.length
         }
       />
@@ -250,8 +267,49 @@ export function AssessmentSpecialtyIndexPage(props: {
         </Show>
       </Show>
 
+      <Show when={props.mineOnly && props.builtInScales && props.builtInScales.length > 0}>
+        <section class="assessment-user-questionnaires" data-testid="assessment-built-in-scales">
+          <h2 class="assessment-user-questionnaires__heading">Готовые опросники</h2>
+          <div class="assessment-user-questionnaires__grid">
+            <For each={props.builtInScales}>
+              {(card) => (
+                <article class="assessment-user-questionnaire paper-card">
+                  <div class="assessment-user-questionnaire__topline">
+                    <span class="assessment-user-questionnaire__file">
+                      {scaleAboutLabel(card.scale)}
+                    </span>
+                  </div>
+                  <h3 class="assessment-user-questionnaire__title">{card.entry.title}</h3>
+                  <p class="assessment-user-questionnaire__description assessment-user-questionnaire__description--clamped">
+                    {card.entry.description}
+                  </p>
+                  <small class="assessment-user-questionnaire__meta">
+                    {card.entry.estimatedMinutes} мин
+                  </small>
+                  <ToolAgeBadge scope={card.entry.ageScope} />
+                  <Button
+                    type="button"
+                    class="assessment-user-questionnaire__open"
+                    aria-label={`Открыть «${card.entry.title}»`}
+                    onClick={() => props.onOpenBuiltInScale(card)}
+                    icon={
+                      <AppGlyph name="list-checks" class="assessment-user-questionnaire__icon" />
+                    }
+                  >
+                    Открыть
+                  </Button>
+                </article>
+              )}
+            </For>
+          </div>
+        </section>
+      </Show>
+
       <Show when={props.mineOnly}>
         <section class="assessment-user-questionnaires">
+          <Show when={props.builtInScales}>
+            <h2 class="assessment-user-questionnaires__heading">Мои опросники</h2>
+          </Show>
           <OverlayDialog
             open={importOpen()}
             title="Импорт опросника"
@@ -308,7 +366,7 @@ export function AssessmentSpecialtyIndexPage(props: {
                 return (
                   <article class="assessment-user-questionnaire paper-card">
                     <div class="assessment-user-questionnaire__topline">
-                      <span class="assessment-user-questionnaire__file">Локальный файл</span>
+                      <span class="assessment-user-questionnaire__file">Свой опросник</span>
                       <div class="assessment-user-questionnaire__actions">
                         <Button
                           type="button"

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   activeProfile,
+  builtInScaleRoute,
   profileAllows,
   profileHidesNavigation,
   resetProfileCache,
@@ -82,6 +83,26 @@ describe('app profiles', () => {
     expect(profileAllows('#/assessments/mine/abc/results/r1', profile)).toBe(true);
     expect(profileAllows('#/assessments', profile)).toBe(false);
     expect(profileAllows('#/assessments/mine-x', profile)).toBe(false);
+  });
+
+  it('allows the page of each built-in scale of its list, with drafts and results below it, and no other test', () => {
+    const profile = activeProfile('?profile=diaries');
+    expect(profile?.builtInScales?.length).toBeGreaterThan(0);
+    for (const scale of profile?.builtInScales ?? []) {
+      const page = builtInScaleRoute(scale);
+      expect(profileAllows(page, profile)).toBe(true);
+      expect(profileAllows(`${page}/resume/r1`, profile)).toBe(true);
+      expect(profileAllows(`${page}/results/r1`, profile)).toBe(true);
+    }
+    expect(profileAllows('#/assessments/psychiatry/phq-9', profile)).toBe(true);
+    expect(profileAllows('#/assessments/obstetrics/postnatal-mood-epds', profile)).toBe(true);
+    // The sections, the rest of the catalog and look-alike slugs stay out.
+    expect(profileAllows('#/assessments/psychiatry', profile)).toBe(false);
+    expect(profileAllows('#/assessments/psychiatry/phq-9-x', profile)).toBe(false);
+    expect(
+      profileAllows('#/assessments/psychiatry/hamilton-depression-rating-scale', profile),
+    ).toBe(false);
+    expect(profileAllows('#/assessments/obstetrics/pregnancy-due-date', profile)).toBe(false);
   });
 
   it('offers only the settings pages it declares', () => {

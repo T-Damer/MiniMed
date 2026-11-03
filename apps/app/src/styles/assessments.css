@@ -1162,6 +1162,11 @@ html:has(.assessment-next-button) .patient-notes-fab {
   margin: 0;
 }
 
+.assessment-user-questionnaires__heading {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .assessment-user-questionnaires__empty {
   margin: 0;
   color: var(--theme-text-muted);
@@ -1202,6 +1207,14 @@ html:has(.assessment-next-button) .patient-notes-fab {
 
 .assessment-user-questionnaire__description {
   color: var(--theme-text-muted);
+}
+
+.assessment-user-questionnaire__description--clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 .assessment-user-questionnaire__open {

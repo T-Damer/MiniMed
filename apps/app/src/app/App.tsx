@@ -37,6 +37,7 @@ import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { PatientVaultRecoveryHost } from '@/components/PatientVaultRecovery';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
+import { ScrollTop } from '@/components/ScrollTop';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
@@ -125,6 +126,10 @@ const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   news: loadNewsView,
   settings: loadSettingsView,
 };
+
+/** The reader that fills the screen scrolls inside itself, so «Наверх» follows it, not the page. */
+const fullscreenReader = (): HTMLElement | null =>
+  document.querySelector<HTMLElement>('.user-document-reader--fullscreen');
 
 function preloadRootView(view: RootView): void {
   void rootViewLoaders[view]().catch(() => undefined);
@@ -677,22 +682,8 @@ export function App(): JSX.Element {
             />
           </button>
         </Show>
-        <Show
-          when={
-            session.ready() &&
-            !embeddedFloatingWindow &&
-            !floatingWindows.fullscreenWindowId() &&
-            navigation.showScrollTop()
-          }
-        >
-          <button
-            class="scroll-top-button floating-window-controls__item"
-            type="button"
-            aria-label="Вернуться наверх"
-            onClick={navigation.scrollToTop}
-          >
-            <AppGlyph name="arrow-up" class="scroll-top-button__icon" />
-          </button>
+        <Show when={!embeddedFloatingWindow && !floatingWindows.fullscreenWindowId()}>
+          <ScrollTop scroller={fullscreenReader} />
         </Show>
       </div>
     </div>
