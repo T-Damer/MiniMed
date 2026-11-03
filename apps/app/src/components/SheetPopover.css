@@ -14,3 +14,34 @@
   background: transparent;
   box-shadow: none;
 }
+
+/* The wide-screen popover scales in from its button and out again before Kobalte unmounts it. */
+.sheet-popover__floating[data-expanded] {
+  animation: sheet-popover-in var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;
+}
+
+.sheet-popover__floating[data-closed] {
+  pointer-events: none;
+  animation: sheet-popover-out var(--motion-fast, 120ms) var(--motion-ease, ease-in) both;
+}
+
+@keyframes sheet-popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-0.2rem);
+  }
+}
+
+@keyframes sheet-popover-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98) translateY(-0.2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-popover__floating[data-expanded],
+  .sheet-popover__floating[data-closed] {
+    animation: none;
+  }
+}

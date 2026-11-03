@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { App } from '@/app/App';
 import { BootScreen } from '@/app/BootScreen';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
+import { installPressFeedback } from '@/components/press-feedback';
 import { listenForInstallPrompt } from '@/diary/install-state';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installChunkRecovery } from '@/state/chunk-recovery';
@@ -62,6 +63,7 @@ if (!root) throw new Error('Missing #root element.');
 
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
+const stopPressFeedback = installPressFeedback();
 const stopTheme = installTheme();
 // Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (scrollbars.css).
 document.documentElement.classList.add('scrollbar-themed');
@@ -108,6 +110,7 @@ if (!Capacitor.isNativePlatform()) {
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     stopMotionManager();
+    stopPressFeedback();
     stopTheme();
     stopNativeSafeBottomLock();
     stopReminderNotifications();
