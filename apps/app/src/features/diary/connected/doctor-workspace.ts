@@ -164,7 +164,8 @@ export class DoctorDiaries {
   /** A network read has finished: what is on screen is live, not a copy. */
   private fresh = false;
   private refreshedAt = 0;
-  private quiet: Promise<void> | undefined;
+  /** The read that is running or queued last: reads go one after another, never side by side. */
+  private reading: Promise<void> | undefined;
   /** The copy kept on this device is being read (or was): one read serves every caller. */
   private copy: Promise<boolean> | undefined;
   /** When the copy was saved, while it stands in for a read that has not finished. */
@@ -273,9 +274,23 @@ export class DoctorDiaries {
   /**
    * Reads every patient again. The first read of a session shows the copy kept on this device at
    * once, when there is one, and replaces it when the service answers. Without a network the copy
-   * stays (`offlineSince()` then says from when) and the service is tried again later.
+   * stays (`offlineSince()` then says from when) and the service is tried again later. A call
+   * while a read runs waits for it and then reads again.
    */
-  async refresh(): Promise<void> {
+  refresh(): Promise<void> {
+    const chain = (this.reading ?? Promise.resolve()).then(() => this.readAll());
+    const settled = chain.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.reading = settled;
+    // Cleared before the caller continues, so a call made right after this one is not held back.
+    return chain.finally(() => {
+      if (this.reading === settled) this.reading = undefined;
+    });
+  }
+
+  private async readAll(): Promise<void> {
     if (!this.loaded) void this.showCopy();
     try {
       const summaries = await diaryPatients.list(this.api);
@@ -301,18 +316,15 @@ export class DoctorDiaries {
   }
 
   /**
-   * Reads again in the background, for a list the doctor comes back to: nothing happens while a
-   * read runs or finished moments ago, and a failure leaves the list as it is.
+   * Reads again in the background, for a list the doctor comes back to: nothing happens before
+   * the first live read, while a read runs, or when one finished moments ago, and a failure leaves
+   * the list as it is.
    */
   refreshQuietly(maxAgeMs: number = QUIET_REFRESH_MS): void {
-    if (!this.loaded || this.quiet || Date.now() - this.refreshedAt < maxAgeMs) return;
-    this.quiet = this.refresh()
-      .catch((cause: unknown) => {
-        console.warn('Дневники: тихое обновление не удалось', cause);
-      })
-      .finally(() => {
-        this.quiet = undefined;
-      });
+    if (!this.fresh || this.reading || Date.now() - this.refreshedAt < maxAgeMs) return;
+    this.refresh().catch((cause: unknown) => {
+      console.warn('Дневники: тихое обновление не удалось', cause);
+    });
   }
 
   /** When the copy on screen was saved; undefined while the list is live. */

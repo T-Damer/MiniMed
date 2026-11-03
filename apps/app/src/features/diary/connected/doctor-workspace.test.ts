@@ -122,6 +122,29 @@ describe('the first read of a session', () => {
   });
 });
 
+describe('reads of the list', () => {
+  it('go one after another: a call while a read runs waits for it and reads again', async () => {
+    const answers: ((list: unknown[]) => void)[] = [];
+    listPatients.mockImplementation(
+      () => new Promise((resolve) => answers.push(resolve as (list: unknown[]) => void)),
+    );
+    readCopy.mockResolvedValue(undefined);
+    const diaries = new DoctorDiaries(SESSION);
+    const first = diaries.refresh();
+    const second = diaries.refresh();
+    await vi.waitFor(() => expect(answers).toHaveLength(1));
+    // The second read has not started: the first one has not answered.
+    await Promise.resolve();
+    expect(answers).toHaveLength(1);
+    answers[0]?.([]);
+    await first;
+    await vi.waitFor(() => expect(answers).toHaveLength(2));
+    answers[1]?.([]);
+    await second;
+    expect(listPatients).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('coming back to a list that is on screen', () => {
   it('reads again quietly, but not while a read runs or finished moments ago', async () => {
     listPatients.mockResolvedValue([]);

@@ -298,6 +298,15 @@ export function DiaryDashboard(props: {
     };
   });
 
+  const sameIds = (left: readonly string[], right: readonly string[]): boolean =>
+    left.length === right.length && left.every((id, index) => id === right[index]);
+  const activeIds = createMemo(() => listed().active.map((patient) => patient.summary.id), [], {
+    equals: sameIds,
+  });
+  const archivedIds = createMemo(() => listed().archived.map((patient) => patient.summary.id), [], {
+    equals: sameIds,
+  });
+
   const archive = (patient: DoctorPatient, archived: boolean): void => {
     const profile = patient.replica.profile;
     if (!profile) return;
@@ -328,82 +337,100 @@ export function DiaryDashboard(props: {
     }
   };
 
-  const row = (patient: DoctorPatient): JSX.Element => {
+  /** What the doctor can do with a patient (long press or right click on its row). */
+  const rowActions = (patient: DoctorPatient): readonly AppContextMenuAction[] => {
     const id = patient.summary.id;
     const phone = patient.replica.profile?.phone;
     const archived = patient.replica.profile?.archived === true;
+    return [
+      {
+        id: 'open',
+        label: 'Открыть',
+        icon: 'arrow-right',
+        onSelect: () => props.onOpenPatient(id),
+      },
+      ...(patient.summary.role !== 'reader' && patient.replica.invitation
+        ? [
+            {
+              id: 'screen',
+              label: 'Экран пациента',
+              icon: 'browsers' as const,
+              onSelect: () => props.onOpenPatient(id, 'screen'),
+            },
+          ]
+        : []),
+      ...(patient.summary.role !== 'reader' && patient.replica.invitation
+        ? [
+            {
+              id: 'pair',
+              label: 'QR-код и ссылка для пациента',
+              icon: 'qr-code' as const,
+              onSelect: () => setPairing(id),
+            },
+          ]
+        : []),
+      ...(phone
+        ? [
+            {
+              id: 'call',
+              label: 'Позвонить',
+              icon: 'phone' as const,
+              onSelect: () => window.location.assign(telHref(phone)),
+            },
+          ]
+        : []),
+      ...(patient.replica.profile && patient.summary.role !== 'reader' && !demoLocked(patient)
+        ? [
+            {
+              id: 'archive',
+              label: archived ? 'Вернуть из архива' : 'В архив',
+              icon: 'archive' as const,
+              onSelect: () => archive(patient, !archived),
+            },
+          ]
+        : []),
+      ...(archived && patient.summary.role === 'owner'
+        ? [
+            {
+              id: 'delete',
+              label: 'Удалить',
+              icon: 'trash' as const,
+              danger: true,
+              onSelect: () => setDeleting([patient]),
+            },
+          ]
+        : []),
+    ];
+  };
+
+  /**
+   * A row is made once per patient id and follows the patient it shows: a patient read again is a
+   * new object, and a row keyed by it would be built anew (its mark popping in again) on every live
+   * update or quiet refresh.
+   */
+  const row = (id: string): JSX.Element => {
+    const found = createMemo(() => {
+      version();
+      return workspace()?.patient(id);
+    });
     return (
-      <PatientRow
-        patient={patient}
-        onOpen={() => props.onOpenPatient(id)}
-        onAccept={() => {
-          void workspace()
-            ?.accept(id)
-            .then(() => props.onOpenPatient(id))
-            .catch((cause: unknown) =>
-              setError(cause instanceof Error ? cause.message : 'Не удалось принять.'),
-            );
-        }}
-        actions={[
-          {
-            id: 'open',
-            label: 'Открыть',
-            icon: 'arrow-right',
-            onSelect: () => props.onOpenPatient(id),
-          },
-          ...(patient.summary.role !== 'reader' && patient.replica.invitation
-            ? [
-                {
-                  id: 'screen',
-                  label: 'Экран пациента',
-                  icon: 'browsers' as const,
-                  onSelect: () => props.onOpenPatient(id, 'screen'),
-                },
-              ]
-            : []),
-          ...(patient.summary.role !== 'reader' && patient.replica.invitation
-            ? [
-                {
-                  id: 'pair',
-                  label: 'QR-код и ссылка для пациента',
-                  icon: 'qr-code' as const,
-                  onSelect: () => setPairing(id),
-                },
-              ]
-            : []),
-          ...(phone
-            ? [
-                {
-                  id: 'call',
-                  label: 'Позвонить',
-                  icon: 'phone' as const,
-                  onSelect: () => window.location.assign(telHref(phone)),
-                },
-              ]
-            : []),
-          ...(patient.replica.profile && patient.summary.role !== 'reader' && !demoLocked(patient)
-            ? [
-                {
-                  id: 'archive',
-                  label: archived ? 'Вернуть из архива' : 'В архив',
-                  icon: 'archive' as const,
-                  onSelect: () => archive(patient, !archived),
-                },
-              ]
-            : []),
-          ...(archived && patient.summary.role === 'owner'
-            ? [
-                {
-                  id: 'delete',
-                  label: 'Удалить',
-                  icon: 'trash' as const,
-                  danger: true,
-                  onSelect: () => setDeleting([patient]),
-                },
-              ]
-            : []),
-        ]}
-      />
+      <Show when={found()}>
+        {(patient) => (
+          <PatientRow
+            patient={patient()}
+            onOpen={() => props.onOpenPatient(id)}
+            onAccept={() => {
+              void workspace()
+                ?.accept(id)
+                .then(() => props.onOpenPatient(id))
+                .catch((cause: unknown) =>
+                  setError(cause instanceof Error ? cause.message : 'Не удалось принять.'),
+                );
+            }}
+            actions={rowActions(patient())}
+          />
+        )}
+      </Show>
     );
   };
 
@@ -433,26 +460,24 @@ export function DiaryDashboard(props: {
         />
       </Show>
       <Show when={session()}>
-        {(current) => (
-          <ConfirmationDialog
-            open={leaving()}
-            title="Выйти из дневников?"
-            description={
-              <p>
-                Ключи на этом устройстве закроются. Войти снова можно паролем или кодом
-                восстановления.
-              </p>
-            }
-            confirmLabel="Выйти"
-            icon="arrow-square-out"
-            danger
-            onConfirm={() => {
-              setLeaving(false);
-              leaveDoctor();
-            }}
-            onOpenChange={setLeaving}
-          />
-        )}
+        <ConfirmationDialog
+          open={leaving()}
+          title="Выйти из дневников?"
+          description={
+            <p>
+              Ключи на этом устройстве закроются. Войти снова можно паролем или кодом
+              восстановления.
+            </p>
+          }
+          confirmLabel="Выйти"
+          icon="arrow-square-out"
+          danger
+          onConfirm={() => {
+            setLeaving(false);
+            leaveDoctor();
+          }}
+          onOpenChange={setLeaving}
+        />
       </Show>
       <ConfirmationDialog
         open={deleting().length > 0}
@@ -710,7 +735,7 @@ export function DiaryDashboard(props: {
                     />
                   </div>
                   <ul class="diary-dash-list">
-                    <For each={listed().active}>{(patient) => row(patient)}</For>
+                    <For each={activeIds()}>{(id) => row(id)}</For>
                   </ul>
                   <Show when={listed().archived.length}>
                     <button
@@ -728,7 +753,7 @@ export function DiaryDashboard(props: {
                     </button>
                     <Show when={showArchive()}>
                       <ul class="diary-dash-list diary-dash-list--archive">
-                        <For each={listed().archived}>{(patient) => row(patient)}</For>
+                        <For each={archivedIds()}>{(id) => row(id)}</For>
                       </ul>
                       <Show when={deletable().length}>
                         <Button
