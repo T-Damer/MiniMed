@@ -59,4 +59,8 @@ describe('the diaries profile built-in scales', () => {
       });
     }
   });
+
+  it('declare that the profile needs no search core', () => {
+    expect(APP_PROFILES.find((candidate) => candidate.id === 'diaries')?.skipSearchCore).toBe(true);
+  });
 });

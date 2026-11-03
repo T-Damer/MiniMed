@@ -41,6 +41,11 @@ export interface AppProfile {
   readonly hiddenSettings?: readonly SettingsRowId[];
   /** The app's own first-run tour and base download are not part of this job. */
   readonly skipOnboarding: boolean;
+  /**
+   * Nothing in the profile searches the knowledge base, so the app neither opens nor downloads its
+   * search core (a 440 MB database) and does not read the downloadable-module catalog at start-up.
+   */
+  readonly skipSearchCore?: boolean;
 }
 
 /** The address of one built-in scale's page: its section and its slug. */
@@ -70,6 +75,7 @@ export const APP_PROFILES: readonly AppProfile[] = [
     // No search home, no section tabs and no documents to float in the diaries profile.
     hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows'],
     skipOnboarding: true,
+    skipSearchCore: true,
   },
 ];
 
