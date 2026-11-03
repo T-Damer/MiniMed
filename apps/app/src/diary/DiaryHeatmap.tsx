@@ -405,6 +405,8 @@ export function DiaryHeatmap(props: {
         </div>
       </div>
       <div class="diary-heat__legend" aria-hidden="true">
+        {/* What the colours mean (owner 2026-11-03): how much of the day's plan was marked. */}
+        <span class="diary-heat__legend-title">Заполненность</span>
         <span class="diary-heat__legend-text">Меньше</span>
         <For each={[0, 1, 2, 3, 4]}>
           {(level) => <span class={`diary-heat__swatch diary-heat__swatch--level-${level}`} />}

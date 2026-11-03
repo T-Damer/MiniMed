@@ -351,6 +351,11 @@
   font-size: 0.68rem;
 }
 
+.diary-heat__legend-title {
+  margin-inline-end: auto;
+  font-weight: 600;
+}
+
 .diary-heat__legend-text {
   padding-inline: 0.2rem;
 }
