@@ -126,9 +126,6 @@ const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   settings: loadSettingsView,
 };
 
-/** After the first screen has settled: a narrowed app loads its other tabs in the background. */
-const PROFILE_PRELOAD_DELAY_MS = 1500;
-
 /**
  * Loads a root view's code ahead of its first visit. Through the lazy component's own `preload`,
  * so that its first mount finds the code in and does not suspend for a tick (a skeleton frame).
@@ -248,18 +245,6 @@ export function App(): JSX.Element {
   onMount(() => {
     if (statusCap) onCleanup(holdLightStatusBarWhileShown(statusCap));
   });
-  // A narrowed app's other tabs load once the first screen is in, so a first visit to one shows
-  // its page and not a skeleton while the code arrives. «Настройки» stays out: it carries the whole
-  // module catalog (10 MB of script, a half-second of main thread on a phone) that this job never reads.
-  onMount(() => {
-    const profile = activeProfile();
-    if (!profile) return;
-    const timer = window.setTimeout(() => {
-      for (const item of profile.navigation) if (item.id !== 'settings') preloadRootView(item.id);
-    }, PROFILE_PRELOAD_DELAY_MS);
-    onCleanup(() => window.clearTimeout(timer));
-  });
-
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
