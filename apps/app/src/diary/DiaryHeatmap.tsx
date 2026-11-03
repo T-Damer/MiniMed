@@ -36,11 +36,17 @@ const ALL_PARTS: ReadonlySet<HeatPart> = new Set();
 const WEEKDAYS = ['', 'Пн', '', 'Ср', '', 'Пт', '', ''];
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
-export function heatDayLabel(day: HeatDay, since?: string, today?: string): string {
+export function heatDayLabel(
+  day: HeatDay,
+  since?: string,
+  today?: string,
+  changedDays?: ReadonlySet<string>,
+): string {
   const date =
     dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) +
     (today && day.day === today ? ', сегодня' : '') +
-    (since && day.day === since ? ', начало дневника' : '');
+    (since && day.day === since ? ', начало дневника' : '') +
+    (changedDays?.has(day.day) ? ', план изменён' : '');
   if (since && day.day < since && day.entries === 0) return `${date}: до начала дневника`;
   const symptoms = day.symptoms > 0 ? ', есть симптомы' : '';
   if (day.total > 0)
@@ -119,6 +125,8 @@ export function DiaryHeatmap(props: {
    * 2026-10-30), still tappable so a missed day can be filled in later.
    */
   readonly since?: string;
+  /** Days a doctor changed the plan (DIARY20): a yellow dot in the corner of the day. */
+  readonly changedDays?: ReadonlySet<string>;
 }): JSX.Element {
   let scroller: HTMLDivElement | undefined;
   let grid: HTMLDivElement | undefined;
@@ -365,11 +373,17 @@ export function DiaryHeatmap(props: {
                             'diary-heat__day--selected': day.day === props.selected,
                             'diary-heat__day--today': day.day === props.today,
                             'diary-heat__day--future': day.day > props.today,
+                            'diary-heat__day--changed': props.changedDays?.has(day.day) === true,
                           }}
                           disabled={day.day > props.today}
                           tabindex={day.day === props.selected ? 0 : -1}
-                          title={heatDayLabel(day, props.since, props.today)}
-                          aria-label={heatDayLabel(day, props.since, props.today)}
+                          title={heatDayLabel(day, props.since, props.today, props.changedDays)}
+                          aria-label={heatDayLabel(
+                            day,
+                            props.since,
+                            props.today,
+                            props.changedDays,
+                          )}
                           aria-pressed={day.day === props.selected}
                           onClick={() => props.onSelect(day.day)}
                         >

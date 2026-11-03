@@ -41,6 +41,8 @@ body:has(.diary-care-scope) {
     --care-check: #2f9e5b;
     --care-check-ink: #ffffff;
     --care-late: #e2a554;
+    /* Warm yellow gaps glare on the dark desk (owner 2026-11-03): calm accent-tinted dashes. */
+    --care-edit-gap: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-surface-raised));
   }
 }
 

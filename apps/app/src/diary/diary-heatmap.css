@@ -191,6 +191,24 @@
   transition: transform var(--heat-motion) var(--heat-ease);
 }
 
+/* A doctor changed the plan this day (DIARY20): a small yellow dot in the top corner. */
+.diary-heat__day--changed {
+  position: relative;
+}
+
+.diary-heat__day--changed::before {
+  position: absolute;
+  inset-block-start: 0.12rem;
+  inset-inline-end: 0.12rem;
+  width: max(0.3rem, calc(var(--heat-cell) * 0.2));
+  height: max(0.3rem, calc(var(--heat-cell) * 0.2));
+  border-radius: 50%;
+  background: var(--heat-changed, #e3b23c);
+  box-shadow: 0 0 0 1px var(--theme-surface, #fffaf0);
+  pointer-events: none;
+  content: "";
+}
+
 .diary-heat__day:active {
   transform: scale(0.9);
 }

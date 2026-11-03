@@ -121,6 +121,35 @@ describe('connected diary replica', () => {
     expect(deleted.entries.size).toBe(0);
   });
 
+  it('keeps every plan version with its author and time, oldest first', () => {
+    const plan = (rev: number, author: string, dose: string) => ({
+      id: 'plan',
+      rev,
+      author,
+      at: `2026-10-2${rev}T10:00:00.000Z`,
+      payload: {
+        kind: 'plan',
+        invitation: { ...invitation, plan: [{ ...invitation.plan[0], dose }] },
+      },
+    });
+    const first = applyRevisions(EMPTY_REPLICA, [plan(1, 'd:doctor0000001', '50 мг')]);
+    const replica = applyRevisions(first, [
+      plan(1, 'd:doctor0000001', '50 мг'),
+      plan(2, 'd:doctor0000002', '100 мг'),
+    ]);
+    expect(
+      replica.planHistory.map((version) => [
+        version.rev,
+        version.author,
+        version.invitation.plan?.[0]?.dose,
+      ]),
+    ).toEqual([
+      [1, 'd:doctor0000001', '50 мг'],
+      [2, 'd:doctor0000002', '100 мг'],
+    ]);
+    expect(replica.invitation?.plan?.[0]?.dose).toBe('100 мг');
+  });
+
   it('refuses a plan written by a patient device and unreadable entries', () => {
     const replica = applyRevisions(EMPTY_REPLICA, [
       {

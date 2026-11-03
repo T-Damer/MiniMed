@@ -35,6 +35,7 @@ import {
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
+import { PatientDayDetails } from '@/features/diary/dashboard/PatientDayDetails';
 import {
   AlertDialog,
   CorrectEntryDialog,
@@ -59,6 +60,7 @@ import {
   type DiaryInvitation,
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
+import { planEditDays } from '@/features/diary/plan-history';
 import type { DiarySub } from '@/features/notes/notes-routing';
 import { crossesLimit } from '@/state/assessment-limits';
 
@@ -100,13 +102,15 @@ export function DiaryPatientPage(props: {
   /** The day to show first (an alert opened from the list). */
   readonly initialDay?: string | undefined;
 }): JSX.Element {
-  const [dialog, setDialog] = createSignal<Dialog>();
+  // An alert opened from the list starts on its day.
+  const [dialog, setDialog] = createSignal<Dialog | undefined>(
+    props.initialDay ? 'day' : undefined,
+  );
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
-  let dayHeading: HTMLHeadingElement | undefined;
+  /** An alert's «open the day»: the day's sheet in place of the alert's. */
   const openDay = (next: string): void => {
-    setDialog(undefined);
     setDay(next);
-    requestAnimationFrame(() => dayHeading?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setDialog('day');
   };
   const results = createMemo(() => {
     void props.version;
@@ -187,23 +191,17 @@ export function DiaryPatientPage(props: {
       devices: props.patient.summary.devices,
     });
   });
+  /** Days a doctor changed the plan, with who and what (the calendar's yellow dots). */
+  const edits = createMemo(() => {
+    void props.version;
+    return planEditDays(props.patient.replica.planHistory);
+  });
   const dayEntries = createMemo(() => entriesOfDay(results()?.entries ?? [], day()).toReversed());
   /** The chosen day's records (or its empty state): on the page and in the day sheet. */
   const dayRecords = (invitation: DiaryInvitation): JSX.Element => (
     <Show
       when={dayEntries().length}
-      fallback={
-        <div class="diary-patient__day-empty">
-          <p class="diary-dash__quiet">В этот день записей нет.</p>
-          <Button
-            variant="secondary"
-            icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-            onClick={() => props.onOpen(`day/${day()}`)}
-          >
-            {canEdit() ? 'Открыть день и отметить' : 'Открыть день пациента'}
-          </Button>
-        </div>
-      }
+      fallback={<p class="diary-dash__quiet">В этот день записей нет.</p>}
     >
       <ul class="diary-timeline">
         <For each={dayEntries()}>
@@ -253,6 +251,19 @@ export function DiaryPatientPage(props: {
     const edit = canEdit();
     const ready = Boolean(results());
     return [
+      // The one way to change the patient's screen, plan and tips (DIARY20): a pencil on top.
+      ...(edit
+        ? [
+            {
+              id: 'edit',
+              label: 'Редактировать',
+              icon: 'edit' as const,
+              priority: 1 as const,
+              disabled: !ready,
+              onSelect: () => props.onOpen('screen'),
+            },
+          ]
+        : []),
       ...(phone()
         ? [
             {
@@ -266,14 +277,6 @@ export function DiaryPatientPage(props: {
         : []),
       ...(edit
         ? [
-            {
-              id: 'screen',
-              label: 'Экран пациента',
-              icon: 'browsers' as const,
-              priority: 2 as const,
-              disabled: !ready,
-              onSelect: () => props.onOpen('screen'),
-            },
             {
               id: 'pair',
               // Again whenever needed: a lost page, another device (owner 2026-10-30).
@@ -292,18 +295,6 @@ export function DiaryPatientPage(props: {
         disabled: !results()?.entries.length,
         onSelect: () => setDialog('export'),
       },
-      ...(edit
-        ? [
-            {
-              id: 'tips',
-              label: 'Подсказки пациенту',
-              icon: 'lightbulb' as const,
-              priority: 3 as const,
-              disabled: !ready,
-              onSelect: () => setDialog('tips'),
-            },
-          ]
-        : []),
       {
         id: 'curators',
         label: 'Кураторы',
@@ -362,15 +353,18 @@ export function DiaryPatientPage(props: {
           );
         })()}
         headerActions={actions()}
+        helpPriority={2}
         help={
           <>
             <p>
-              Записи пациента приходят сюда вживую. Календарь показывает выполнение плана по дням,
-              ниже — приём лекарств, графики и опросники за выбранный период.
+              Записи пациента приходят сюда вживую. «Статистика» открывает все графики, под ней —
+              кратко за неделю. Календарь показывает выполнение плана по дням; день открывается
+              нажатием: что сделано, что пропущено, записи. Жёлтая точка — в этот день меняли план.
             </p>
             <p>
-              «Экран пациента» — то, что он видит у себя: правьте разделы прямо там, изменения
-              придут на его телефон сами. Ошибочную запись можно исправить, пациент увидит отметку.
+              Карандаш сверху — «Редактировать»: экран пациента, назначения и подсказки. Изменения
+              придут на его телефон сами. Если коллега правил план в это же время, правки
+              объединятся. Ошибочную запись можно исправить, пациент увидит отметку.
             </p>
           </>
         }
@@ -442,28 +436,8 @@ export function DiaryPatientPage(props: {
               include={include()}
               onInclude={setInclude}
               symptomDays={symptomDays()}
+              changedDays={new Set(edits().keys())}
             />
-
-            <section class="diary-patient__section" aria-label="Записи дня">
-              <div class="diary-patient__day-head">
-                <h2 class="diary-patient__heading" ref={dayHeading}>
-                  {new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
-                </h2>
-                <Show when={dayEntries().length}>
-                  <Button
-                    variant="icon"
-                    aria-label="Экран пациента в этот день"
-                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-                    onClick={() => props.onOpen(`day/${day()}`)}
-                  />
-                </Show>
-              </div>
-              {dayRecords(current().invitation)}
-            </section>
           </>
         )}
       </Show>
@@ -479,19 +453,17 @@ export function DiaryPatientPage(props: {
                 month: 'long',
               })}
               {...(beforeStart() ? { subtitle: 'До начала дневника' } : {})}
-              headerEnd={
-                <Show when={dayEntries().length}>
-                  <Button
-                    variant="icon"
-                    aria-label="Экран пациента в этот день"
-                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-                    onClick={() => props.onOpen(`day/${day()}`)}
-                  />
-                </Show>
-              }
               onClose={() => setDialog(undefined)}
             >
-              {dayRecords(current().invitation)}
+              <PatientDayDetails
+                workspace={props.workspace}
+                patient={props.patient}
+                results={current()}
+                day={day()}
+                edits={edits().get(day()) ?? []}
+                records={dayRecords(current().invitation)}
+                onFill={() => props.onOpen(`day/${day()}`)}
+              />
             </OverlayDialog>
           )}
         </Match>

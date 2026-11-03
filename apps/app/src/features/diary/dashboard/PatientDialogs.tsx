@@ -294,7 +294,8 @@ export function TipsDialog(props: {
         tips,
       };
       if (!tips.length) delete (invitation as { tips?: unknown }).tips;
-      await props.workspace.writePlan(props.patient.summary.id, invitation);
+      // Tips only: a colleague's plan edits saved meanwhile stay (DIARY20).
+      await props.workspace.writePlan(props.patient.summary.id, invitation, props.invitation);
       props.onClose();
     } catch (cause) {
       setError(errorText(cause, 'Не удалось сохранить подсказки.'));

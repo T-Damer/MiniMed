@@ -19,6 +19,11 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
+  CombinedChart,
+  type CombinedSeries,
+  rangeOf,
+} from '@/features/diary/dashboard/CombinedChart';
+import {
   chartSeries,
   DIARY_CHARTS,
   type DiaryChart,
@@ -35,6 +40,7 @@ import { AlertNotices } from '@/features/diary/dashboard/PatientDialogs';
 import { INTAKE_CHART_ID } from '@/features/diary/dashboard/patient-overview';
 import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
 import type { DiaryResults } from '@/features/diary/diary-model';
+import { planOn } from '@/features/diary/plan-history';
 import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 import { motionMs } from '@/state/motion';
 
@@ -72,10 +78,22 @@ function limitsOf(targets: readonly LimitTarget[]): TrendLimit[] {
     return [
       ...(bounds.above === undefined
         ? []
-        : [{ value: bounds.above, label: `${target.label}: выше ${bounds.above}` }]),
+        : [
+            {
+              value: bounds.above,
+              label: `${target.label}: выше ${bounds.above}`,
+              kind: 'above' as const,
+            },
+          ]),
       ...(bounds.below === undefined
         ? []
-        : [{ value: bounds.below, label: `${target.label}: ниже ${bounds.below}` }]),
+        : [
+            {
+              value: bounds.below,
+              label: `${target.label}: ниже ${bounds.below}`,
+              kind: 'below' as const,
+            },
+          ]),
     ];
   });
 }
@@ -109,13 +127,99 @@ export function PatientChartsPage(props: {
   const medicines = createMemo(() =>
     medicineAdherence(props.results.invitation, props.results.entries, Number(period())),
   );
-  const intake = createMemo(() =>
-    intakeCharts(medicineIntake(props.results.invitation, props.results.entries, Number(period()))),
-  );
+  // The prescribed dose of each day from the plan then in force: an edit moves the dotted line
+  // from the day it was made (DIARY20).
+  const intakes = createMemo(() => {
+    void props.version;
+    const history = props.patient.replica.planHistory;
+    return medicineIntake(
+      props.results.invitation,
+      props.results.entries,
+      Number(period()),
+      new Date(),
+      (day) => planOn(history, day, props.results.invitation),
+    );
+  });
+  const intake = createMemo(() => intakeCharts(intakes()));
   const [quizzes] = createResource(
     () => ({ results: props.results, version: props.version }),
     ({ results }) => questionnaireSeries(results.invitation, results.entries),
   );
+  /** Every series on one chart, each on its own range, and the days past a red line. */
+  const combined = createMemo(() => {
+    const series: CombinedSeries[] = [];
+    const alarms: number[] = [];
+    const share = intakes()
+      .flatMap((medicine) => medicine.days)
+      .reduce((days, one) => {
+        const total = days.get(one.day) ?? { taken: 0, prescribed: 0 };
+        days.set(one.day, {
+          taken: total.taken + Math.min(one.taken, one.prescribed ?? one.taken),
+          prescribed: total.prescribed + (one.prescribed ?? 0),
+        });
+        return days;
+      }, new Map<string, { taken: number; prescribed: number }>());
+    const intakePoints = [...share]
+      .filter(([, total]) => total.prescribed > 0)
+      .toSorted(([left], [right]) => left.localeCompare(right))
+      .map(([day, total]) => ({
+        at: new Date(`${day}T12:00:00`).toISOString(),
+        value: Math.round((total.taken / total.prescribed) * 100),
+      }));
+    if (intakePoints.length) {
+      series.push({
+        label: 'Приём лекарств',
+        unit: '% плана',
+        points: intakePoints,
+        low: 0,
+        high: 100,
+      });
+    }
+    for (const chart of DIARY_CHARTS) {
+      const name = chart.title.split(/[,(]/u)[0]?.trim() ?? chart.title;
+      for (const one of chartSeries(chart, recent())) {
+        if (!one.points.length) continue;
+        const limit = chart.limits?.find((candidate) => candidate.id === one.field);
+        const fixed =
+          one.axis === 'right'
+            ? chart.rightMin !== undefined && chart.rightMax !== undefined
+              ? { low: chart.rightMin, high: chart.rightMax }
+              : undefined
+            : chart.min !== undefined && chart.max !== undefined
+              ? { low: chart.min, high: chart.max }
+              : undefined;
+        series.push({
+          label: chart.series.length > 1 ? `${name}: ${one.label.toLowerCase()}` : name,
+          ...(limit?.unit ? { unit: limit.unit } : {}),
+          points: one.points,
+          ...(fixed ?? rangeOf(one.points)),
+        });
+        if (limit) {
+          for (const point of one.points) {
+            if (crossesLimit(limit.id, point.value)) alarms.push(Date.parse(point.at));
+          }
+        }
+      }
+    }
+    for (const quiz of quizzes.latest ?? []) {
+      if (quiz.profile) continue;
+      const points = quiz.points
+        .filter((point) => Date.parse(point.at) >= from())
+        .map((point) => ({ at: point.at, value: point.total }));
+      if (!points.length) continue;
+      series.push({
+        label: quiz.title,
+        unit: 'баллов',
+        points,
+        low: 0,
+        high: quiz.points[0]?.max ?? Math.max(...points.map((point) => point.value)),
+      });
+      for (const point of points) {
+        if (crossesLimit(quiz.limitId, point.value, quiz.preset)) alarms.push(Date.parse(point.at));
+      }
+    }
+    return { series, alarms };
+  });
   const title = () =>
     `${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim();
   const courseOf = (itemId: string): string | undefined => {
@@ -168,8 +272,10 @@ export function PatientChartsPage(props: {
         description={title()}
         help={
           <p>
-            Линии — записи пациента за выбранный период. Красный пунктир — порог тревоги: карандаш у
-            графика меняет его для всех пациентов на этом устройстве.
+            Сверху — все показатели на одном графике, ниже — каждый подробно. Красный пунктир —
+            порог тревоги, красный фон — дни, когда значение его перешло; карандаш у графика меняет
+            порог для всех пациентов на этом устройстве. Пунктир «Назначено» — доза по плану,
+            действовавшему в тот день.
           </p>
         }
       />
@@ -183,6 +289,26 @@ export function PatientChartsPage(props: {
         ]}
         onChange={setPeriod}
       />
+
+      <Show when={combined().series.length > 1}>
+        <section
+          class="diary-patient__section diary-patient__section--card"
+          aria-label="Всё вместе"
+        >
+          <h2 class="diary-patient__heading">Всё вместе</h2>
+          <p class="diary-charts-page__hint">
+            Каждая линия — в своём масштабе: видно, что менялось одновременно. Красный фон — дни за
+            порогом тревоги. Название внизу скрывает или показывает линию.
+          </p>
+          <CombinedChart
+            series={combined().series}
+            alarms={combined().alarms}
+            from={from()}
+            to={Date.now()}
+          />
+        </section>
+        <h2 class="diary-charts-page__details">Подробно</h2>
+      </Show>
 
       <Show when={medicines().length}>
         <section

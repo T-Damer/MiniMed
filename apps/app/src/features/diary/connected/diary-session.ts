@@ -106,18 +106,26 @@ export class DiarySession {
    * took, or a newer epoch) is resolved by refreshing keys, pulling and retrying once with fresh
    * numbers; what that pull brought is returned so the caller can apply it.
    */
-  /** `notice`: what the patient's phone is told (a doctor's plan, tip or correction). */
+  /**
+   * `notice`: what the patient's phone is told (a doctor's plan, tip or correction). `rebase`, when
+   * given, remakes the items after a conflict from what the pull brought (a plan another doctor
+   * saved meanwhile is merged, not overwritten).
+   */
   async push(
     items: readonly { readonly id: string; readonly payload: unknown }[],
     notice?: DiaryRecordsNotice,
+    rebase?: (
+      pulled: readonly DiaryRecordRevision[],
+    ) => readonly { readonly id: string; readonly payload: unknown }[],
   ): Promise<readonly DiaryRecordRevision[]> {
     const pulled: DiaryRecordRevision[] = [];
     if (!items.length) return pulled;
+    let pending = items;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const key = this.keyring.keys.get(this.keyring.current);
       if (!key) throw new DiaryApiError(409, 'Нет ключа текущей эпохи.');
       const envelopes = await Promise.all(
-        items.map((item) =>
+        pending.map((item) =>
           sealRecord(
             {
               patientId: this.patientId,
@@ -149,6 +157,7 @@ export class DiarySession {
         if (!(cause instanceof DiaryApiError) || cause.status !== 409 || attempt === 1) throw cause;
         if (this.refreshKeys) this.keyring = await this.refreshKeys();
         pulled.push(...(await this.pull()).revisions);
+        if (rebase) pending = rebase(pulled);
       }
     }
     return pulled;

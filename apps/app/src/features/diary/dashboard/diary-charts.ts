@@ -135,7 +135,7 @@ export function chartSeries(chart: DiaryChart, entries: readonly DiaryEntry[]): 
 /** How one medicine's intake chart is drawn: its two series, declared like the charts above. */
 export const INTAKE_CHART = {
   taken: { label: 'Принято', color: '--theme-accent', style: 'line' },
-  prescribed: { label: 'Назначено', color: '--theme-warning', style: 'dots' },
+  prescribed: { label: 'Назначено', color: '--theme-text-muted', style: 'target' },
 } as const;
 
 export interface IntakeChart {
@@ -144,7 +144,7 @@ export interface IntakeChart {
   readonly series: readonly {
     readonly label: string;
     readonly color: string;
-    readonly style: 'line' | 'dots';
+    readonly style: 'line' | 'dots' | 'target';
     readonly points: readonly SeriesPoint[];
   }[];
 }
@@ -154,7 +154,7 @@ function middayOf(day: string): string {
   return new Date(`${day}T12:00:00`).toISOString();
 }
 
-/** One chart per medicine: the dose taken per day as a line, the prescribed dose as dots. */
+/** One chart per medicine: the dose taken per day as a line, the prescribed dose dotted. */
 export function intakeCharts(intakes: readonly MedicineIntake[]): IntakeChart[] {
   return intakes
     .filter((intake) => intake.days.length > 0)

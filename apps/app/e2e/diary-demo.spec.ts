@@ -96,6 +96,18 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath('demo-overview.png') });
 
+  // The pencil stays on top (DIARY20); a calendar day opens what the patient did that day.
+  await expect(page.getByRole('button', { name: 'Редактировать', exact: true })).toBeVisible();
+  await page.locator('.diary-heat__day--today').click();
+  const daySheet = page.locator('.diary-day-details');
+  await expect(daySheet).toBeVisible();
+  await expect(daySheet).toContainText(/Выполнено \d+ из \d+/u);
+  await expect(daySheet.getByRole('button', { name: /за пациента/u })).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('demo-day.png') });
+  await page.keyboard.press('Escape');
+  await expect(daySheet).toHaveCount(0);
+
   // A signal opens its chart: medicine intake, every medicine per day on the same days.
   await overview.locator('[data-signal="intake"]').click();
   await expect(page).toHaveURL(/\/charts\/intake$/u);
@@ -107,9 +119,11 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await page.getByRole('button', { name: 'К пациенту' }).click();
   await expect(overview).toBeVisible();
 
-  // «Все графики»: the whole page, questionnaires included.
-  await overview.getByRole('button', { name: 'Все графики' }).click();
+  // «Статистика» heads the brief week: the whole page, everything on one chart first
+  // (DIARY20), then each chart, questionnaires included.
+  await overview.getByRole('button', { name: /Статистика/u }).click();
   await expect(page).toHaveURL(/\/charts$/u);
+  await expect(page.locator('.diary-chart--combined')).toBeVisible();
   await expect(page.locator('.diary-chart').nth(2)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('demo-charts.png'), fullPage: true });
   await page.goBack();
@@ -126,7 +140,7 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await page.screenshot({ path: testInfo.outputPath('demo-substances.png') });
   await page.goBack();
   // The doctor edits the section on the patient's own screen.
-  await page.getByRole('button', { name: 'Экран пациента', exact: true }).click();
+  await page.getByRole('button', { name: 'Редактировать', exact: true }).click();
   const useRow = page.locator('.screen-editor').getByText('Употребление').first();
   await expect(useRow).toBeVisible({ timeout: 30_000 });
   await useRow.scrollIntoViewIfNeeded();

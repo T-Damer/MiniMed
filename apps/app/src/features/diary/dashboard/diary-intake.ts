@@ -4,7 +4,8 @@
  * day (its intakes on course, each with its own dose when it has one). Days before the diary began
  * have no point at all: no data is not a 0. A marked intake counts at the dose it was marked at
  * (the mark records it), so a later dose change does not rewrite the past; an intake nobody marked
- * counts at the current plan's dose, the only one known for it.
+ * counts at the dose of the plan in force that day (`planFor`, from the plan's versions, DIARY20),
+ * else at the current plan's dose.
  */
 import { addDays, dayKey, dayPlan, diaryStarted, doseValue } from '@/features/diary/diary-care';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
@@ -51,6 +52,7 @@ export function medicineIntake(
   entries: readonly DiaryEntry[],
   days: number,
   now: Date = new Date(),
+  planFor?: (day: string) => DiaryInvitation,
 ): MedicineIntake[] {
   const today = dayKey(now);
   const started = diaryStarted(invitation, entries);
@@ -66,7 +68,7 @@ export function medicineIntake(
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = addDays(today, -offset);
     if (day < started) continue;
-    const plan = dayPlan(invitation, entries, day, now);
+    const plan = dayPlan(planFor?.(day) ?? invitation, entries, day, now);
     const totals = new Map<string, { taken: number; prescribed?: number }>();
     for (const task of plan.doses) {
       const dose = parseDose(

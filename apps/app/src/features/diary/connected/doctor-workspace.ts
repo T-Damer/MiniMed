@@ -53,6 +53,7 @@ import {
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
+import { mergeInvitations, type PlanMerge } from '@/features/diary/plan-merge';
 
 /**
  * What a new plan tells the patient's phone: «tip» when it only adds tips to the plan the phone
@@ -429,11 +430,18 @@ export class DoctorDiaries {
     patientId: string,
     items: readonly { readonly id: string; readonly payload: unknown }[],
     notice?: DiaryRecordsNotice,
+    rebase?: (
+      replica: DiaryReplica,
+    ) => readonly { readonly id: string; readonly payload: unknown }[],
   ): Promise<void> {
     const entry = this.entries.get(patientId);
     if (!entry) throw new Error('Пациент не найден.');
     const session = await this.sessionFor(entry.summary);
-    const pulled = await session.push(items, notice);
+    const pulled = await session.push(
+      items,
+      notice,
+      rebase && ((revisions) => rebase(applyRevisions(entry.replica, revisions))),
+    );
     const after = await session.pull();
     this.entries.set(patientId, {
       ...entry,
@@ -463,14 +471,35 @@ export class DoctorDiaries {
     return id;
   }
 
-  /** A new plan; the patient hears «tip» when the change only adds tips, otherwise «plan». */
-  writePlan(patientId: string, invitation: DiaryInvitation): Promise<void> {
+  /**
+   * A new plan; the patient hears «tip» when the change only adds tips, otherwise «plan». `base` is
+   * the version the doctor started editing: when another doctor saved since, this save is merged
+   * onto theirs (DIARY20), and the result names what both changed.
+   */
+  async writePlan(
+    patientId: string,
+    invitation: DiaryInvitation,
+    base?: DiaryInvitation,
+  ): Promise<PlanMerge> {
     const before = this.entries.get(patientId)?.replica.invitation;
-    return this.write(
+    const onto = (theirs: DiaryInvitation | undefined): PlanMerge =>
+      base && theirs && JSON.stringify(theirs) !== JSON.stringify(base)
+        ? mergeInvitations(base, invitation, theirs)
+        : { invitation, conflicts: [] };
+    let outcome = onto(before);
+    const items = (plan: DiaryInvitation) => [
+      { id: PLAN_RECORD, payload: { kind: 'plan', invitation: plan } },
+    ];
+    await this.write(
       patientId,
-      [{ id: PLAN_RECORD, payload: { kind: 'plan', invitation } }],
-      planNotice(before, invitation),
+      items(outcome.invitation),
+      planNotice(before, outcome.invitation),
+      (replica) => {
+        outcome = onto(replica.invitation);
+        return items(outcome.invitation);
+      },
     );
+    return outcome;
   }
 
   writeProfile(patientId: string, profile: DiaryProfile): Promise<void> {

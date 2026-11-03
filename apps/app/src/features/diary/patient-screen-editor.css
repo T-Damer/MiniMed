@@ -251,6 +251,12 @@
   border-radius: 1rem;
 }
 
+@media (prefers-color-scheme: dark) {
+  .screen-editor__header {
+    --care-edit-fill: color-mix(in srgb, var(--theme-accent) 7%, var(--theme-surface-raised));
+  }
+}
+
 .screen-editor__title {
   min-width: 0;
 }

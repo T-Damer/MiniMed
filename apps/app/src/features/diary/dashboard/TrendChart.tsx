@@ -1,4 +1,4 @@
-import type { Chart as ChartInstance } from 'chart.js';
+import type { Chart as ChartInstance, Plugin } from 'chart.js';
 import ChartJs from 'chart.js/auto';
 import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
 
@@ -14,8 +14,11 @@ export interface TrendSeries {
   readonly color: string;
   /** Drawn against the right axis (another unit: saturation next to pulse). */
   readonly axis?: 'right';
-  /** `dots`: points only, hollow and larger (the prescribed dose next to the dose taken). */
-  readonly style?: 'line' | 'dots';
+  /**
+   * `target`: a dotted step line, no points — what the plan asks for (the prescribed dose next to
+   * the dose taken, owner 2026-11-03: «a dotted line, like the limits we set»). `dots`: points only.
+   */
+  readonly style?: 'line' | 'dots' | 'target';
 }
 
 /** A «red line»: the level above (or below) which a value is a reason to worry. */
@@ -23,6 +26,43 @@ export interface TrendLimit {
   readonly value: number;
   readonly label: string;
   readonly axis?: 'right';
+  /** Which side is the worry: a point there paints its day red behind the lines. */
+  readonly kind?: 'above' | 'below';
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Days painted red behind the lines (owner 2026-11-03: «when a dot hits a warning level»): one
+ * soft column per point past a red line, a day wide.
+ */
+export function alarmPlugin(
+  times: () => readonly number[],
+  color: () => string,
+  alpha = 0.16,
+): Plugin<'line'> {
+  return {
+    id: 'diary-alarms',
+    beforeDatasetsDraw(chart) {
+      const marks = times();
+      const x = chart.scales['x'];
+      if (!marks.length || !x) return;
+      const { ctx, chartArea } = chart;
+      const day = Math.abs(x.getPixelForValue(DAY_MS) - x.getPixelForValue(0));
+      const width = Math.max(6, Math.min(day * 0.9, 28));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color();
+      for (const time of marks) {
+        const center = x.getPixelForValue(time);
+        if (center < chartArea.left - width || center > chartArea.right + width) continue;
+        const left = Math.max(chartArea.left, center - width / 2);
+        const right = Math.min(chartArea.right, center + width / 2);
+        ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+      }
+      ctx.restore();
+    },
+  };
 }
 
 function token(name: string, fallback: string): string {
@@ -67,6 +107,22 @@ export function TrendChart(props: {
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number }[]> | undefined;
+  /** Times of the points past a red line on their own axis. */
+  const alarms = (): number[] =>
+    props.series
+      .filter((series) => series.style !== 'target')
+      .flatMap((series) =>
+        series.points
+          .filter((point) =>
+            (props.limits ?? []).some(
+              (limit) =>
+                limit.kind &&
+                (limit.axis ?? 'left') === (series.axis ?? 'left') &&
+                (limit.kind === 'above' ? point.value >= limit.value : point.value <= limit.value),
+            ),
+          )
+          .map((point) => Date.parse(point.at)),
+      );
 
   const render = (): void => {
     if (!canvas) return;
@@ -93,7 +149,15 @@ export function TrendChart(props: {
                 pointBorderWidth: 2,
                 pointBackgroundColor: 'transparent',
               }
-            : { pointRadius: 2.5, borderWidth: 2, tension: props.daily ? 0 : 0.25 }),
+            : series.style === 'target'
+              ? {
+                  borderDash: [5, 4],
+                  borderWidth: 2,
+                  stepped: 'middle' as const,
+                  pointRadius: 0,
+                  pointHitRadius: 8,
+                }
+              : { pointRadius: 2.5, borderWidth: 2, tension: props.daily ? 0 : 0.25 }),
           yAxisID: series.axis === 'right' ? 'y2' : 'y',
         })),
         ...(props.limits ?? []).map((limit) => ({
@@ -117,6 +181,7 @@ export function TrendChart(props: {
     chart = new ChartJs(canvas, {
       type: 'line',
       data,
+      plugins: [alarmPlugin(alarms, () => danger)],
       options: {
         responsive: true,
         maintainAspectRatio: false,

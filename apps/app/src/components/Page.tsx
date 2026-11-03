@@ -7,6 +7,7 @@ import {
   type HeaderAction,
   HeaderActions,
 } from '@/components/HeaderActions';
+import type { HeaderActionPriority } from '@/components/header-actions';
 import { type PageHero, PageHeroBand, useHeroBleed, useHeroScroll } from '@/components/PageHero';
 import { SheetPopover } from '@/components/SheetPopover';
 import { visitRoute } from '@/state/app-back';
@@ -36,6 +37,11 @@ export interface PageProps {
   readonly help?: JSX.Element;
   /** Heading of the help panel; «Как это работает» by default. */
   readonly helpTitle?: string;
+  /**
+   * How soon the «?» folds into «⋯» among `headerActions` (1 by default). A page whose main tool
+   * must stay on top (the patient page's pencil) lets the «?» fold first.
+   */
+  readonly helpPriority?: HeaderActionPriority;
   /**
    * The page's band: the header sits on it, the page slides over it, and the header shrinks into a
    * bar that keeps its row (`app/page-heroes.ts`). Readers, forms and editors have none.
@@ -89,7 +95,7 @@ export function Page(props: PageProps): JSX.Element {
         id: 'help',
         label: helpTitle(),
         icon: 'question',
-        priority: 1,
+        priority: props.helpPriority ?? 1,
         panel: {
           content: () => <div class="page__help-body">{props.help}</div>,
           contentClass: 'page__help-panel',

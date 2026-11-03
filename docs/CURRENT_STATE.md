@@ -52,6 +52,37 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Doctor's patient page: one edit entry, the calendar day, plan versions, combined chart — 2026-11-03 (STATE DIARY20)
+
+- **One edit entry.** The patient page's header has a pencil «Редактировать» (priority 1, always on top) that opens
+  `#/notes/diaries/<id>/screen` — the patient's screen, the plan, and now the tips («Подсказки пациенту» moved into
+  that page's header). The separate «Экран пациента» and «Подсказки пациенту» menu items are gone.
+- **Statistics first.** `PatientOverview` is headed by a big «Статистика» button (opens `…/charts`); the week's
+  signals hang under it in the same card, tighter. The «Все графики» row is gone.
+- **The calendar day.** Tapping a day opens a sheet (`PatientDayDetails.tsx`): the plan changes made that day and by
+  whom (curators' names from `detail()`, «вы» for oneself), the day's tasks from `dayPlan` on the plan then in force
+  (done first, then skipped by the patient, not marked, late, still ahead), the day's records with their correction
+  buttons, and «Заполнить или изменить за пациента», which opens `…/day/<date>` (the patient's screen of that day).
+  The page no longer repeats the day's records under the calendar.
+- **Plan versions.** The replica keeps every plan revision read (`DiaryReplica.planHistory`, up to 200, with rev,
+  author and server time; the server already kept every revision). `plan-history.ts`: `planOn(history, day)` is the
+  version in force at the end of a day; `planEdits`/`planEditDays` turn consecutive versions into `planChanges` lines
+  plus tip lines. `DiaryHeatmap` takes `changedDays` and puts a yellow dot on them (`::before`, the start ring keeps
+  `::after`).
+- **Concurrent edits.** `DoctorDiaries.writePlan(id, plan, base)` merges onto a newer plan instead of overwriting:
+  `plan-merge.ts` is a three-way merge from the version the editor opened — lists with `id` (plan, checkpoints,
+  contacts, tips, fields) item by item, everything else by value; where both doctors changed the same thing, the one
+  saving wins and the conflict is named. The merge runs before the push and again inside `DiarySession.push` after a
+  409 (`rebase`). The editor shows a toast when a colleague's changes were merged. TipsDialog saves the same way.
+- **Charts.** `…/charts` starts with «Всё вместе» (`CombinedChart.tsx`): every declared series, the daily medicine
+  intake as % of plan and questionnaire totals, each stretched to its own range (fixed chart ranges, else the values
+  seen, padded), real values in the tooltip, legend toggles lines, no limit lines; then «Подробно». `TrendLimit.kind`
+  (`above`/`below`) lets `TrendChart` paint a red column behind each day with a point past a red line
+  (`alarmPlugin`, shared by both charts). The prescribed dose is a dotted step line (`style: 'target'`) and comes from
+  the plan in force on each day (`medicineIntake(…, planFor)`).
+- **Dark theme.** The editable frames' gaps and the editor header's fill are accent-tinted in the dark theme instead of
+  bright yellow (`--care-edit-gap`, `.screen-editor__header`).
+
 ## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
 
 - **Substance use («Зависимости»).** A section the doctor adds on the patient's screen. The doctor ticks what to

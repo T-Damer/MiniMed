@@ -76,8 +76,23 @@ export interface DiaryRecordRevision {
   readonly payload: unknown;
 }
 
+/** One version of the plan as a doctor saved it (DIARY20: the calendar shows who changed what). */
+export interface DiaryPlanRevision {
+  readonly rev: number;
+  /** `d:<doctor id>`. */
+  readonly author: string;
+  /** Server time the version arrived. */
+  readonly at: string;
+  readonly invitation: DiaryInvitation;
+}
+
+/** Plan versions kept on the device: a long-running diary keeps its newest ones. */
+export const MAX_PLAN_HISTORY = 200;
+
 export interface DiaryReplica {
   readonly invitation: DiaryInvitation | undefined;
+  /** Every plan version read, oldest first (the last one is `invitation`). */
+  readonly planHistory: readonly DiaryPlanRevision[];
   readonly profile: DiaryProfile | undefined;
   /** Entry id → entry, without deleted ones. */
   readonly entries: ReadonlyMap<string, DiaryEntry>;
@@ -93,6 +108,7 @@ export interface DiaryReplica {
 
 export const EMPTY_REPLICA: DiaryReplica = {
   invitation: undefined,
+  planHistory: [],
   profile: undefined,
   entries: new Map(),
   entryAuthors: new Map(),
@@ -112,6 +128,8 @@ export function applyRevisions(
   revisions: readonly DiaryRecordRevision[],
 ): DiaryReplica {
   let invitation = replica.invitation;
+  // Copies saved before plan versions were kept have none.
+  const planHistory = [...(replica.planHistory ?? [])];
   let profile = replica.profile;
   let consentAt = replica.consentAt;
   let rejected = replica.rejected;
@@ -133,6 +151,12 @@ export function applyRevisions(
         // Only a doctor writes the plan.
         if (!revision.author.startsWith('d:')) throw new DiaryFormatError('План не от врача.');
         invitation = parseDiaryInvitation(payload['invitation']);
+        planHistory.push({
+          rev: revision.rev,
+          author: revision.author,
+          at: revision.at,
+          invitation,
+        });
       } else if (revision.id === PROFILE_RECORD && payload['kind'] === 'profile') {
         if (!revision.author.startsWith('d:')) throw new DiaryFormatError('Профиль не от врача.');
         const label = payload['label'];
@@ -177,7 +201,17 @@ export function applyRevisions(
       revs.set(revision.id, revision.rev);
     }
   }
-  return { invitation, profile, entries, entryAuthors, tipsRead, consentAt, revs, rejected };
+  return {
+    invitation,
+    planHistory: planHistory.slice(-MAX_PLAN_HISTORY),
+    profile,
+    entries,
+    entryAuthors,
+    tipsRead,
+    consentAt,
+    revs,
+    rejected,
+  };
 }
 
 /** The diary in the shape every existing screen reads. */

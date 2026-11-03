@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Doctor's patient page: a pencil on top («Редактировать») is the one way to change the patient's screen, plan and
+  tips; a big «Статистика» button heads the week in brief; the calendar opens a day with what the patient did, what
+  was missed and the day's records, and «Заполнить или изменить за пациента» opens that day's screen.
+- Plan versions: the calendar marks with a yellow dot the days a doctor changed the plan; the day says what changed
+  and who changed it. Two doctors editing one patient at once no longer overwrite each other: the second save is
+  merged onto the first, and where both changed the same thing the saving doctor is told.
+- Charts: «Статистика» starts with every measurement on one chart (each on its own scale, real values on tap), then
+  each chart in detail. Days past a red line are painted red behind the lines; the prescribed dose is a dotted line
+  that follows the plan in force on each day.
+- Editing in the dark theme uses calm accent-tinted frames instead of bright yellow.
 - The GitVerse copy carries only the diaries: it always opens as the doctors' «Дневники» (or the patient diary),
   never the MiniMed reference app. The slides' QR codes open GitVerse directly; the slides still print `med.1damer.com`.
 

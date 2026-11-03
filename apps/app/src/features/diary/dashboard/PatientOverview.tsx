@@ -5,9 +5,9 @@ import { SkeletonLines } from '@/components/SkeletonLines';
 import type { OverviewSignal, SignalTarget } from '@/features/diary/dashboard/patient-overview';
 
 /**
- * The top of the doctor's patient page: what changed this week, the worrying first, each row one
- * tap from its chart; «Все графики» opens the charts page. Renders `overviewSignals` as they come;
- * it never branches on a signal.
+ * The top of the doctor's patient page (DIARY20): a big «Статистика» button that opens the charts
+ * page, and under it, in the same card, the week in brief — the worrying first, each row one tap
+ * from its chart. Renders `overviewSignals` as they come; it never branches on a signal.
  */
 export function PatientOverview(props: {
   /** Undefined while the questionnaires are still being scored: one loading state. */
@@ -16,7 +16,17 @@ export function PatientOverview(props: {
   readonly onAll: () => void;
 }): JSX.Element {
   return (
-    <section class="diary-overview" aria-label="За неделю" data-testid="diary-overview">
+    <section class="diary-overview" aria-label="Статистика" data-testid="diary-overview">
+      <button type="button" class="diary-overview__stats" onClick={() => props.onAll()}>
+        <span class="diary-overview__stats-icon" aria-hidden="true">
+          <AppGlyph name="chart-line" class="diary-overview__glyph" />
+        </span>
+        <span class="diary-overview__text">
+          <span class="diary-overview__stats-title">Статистика</span>
+          <span class="diary-overview__stats-note">все графики · кратко за неделю ниже</span>
+        </span>
+        <AppGlyph name="caret-right" class="diary-overview__chevron" />
+      </button>
       <Show
         when={props.signals}
         fallback={<SkeletonLines lines={4} label="Считаем неделю пациента" />}
@@ -64,21 +74,6 @@ export function PatientOverview(props: {
                 </li>
               )}
             </For>
-            <li class="diary-overview__item">
-              <button
-                type="button"
-                class="diary-overview__row diary-overview__row--all"
-                onClick={() => props.onAll()}
-              >
-                <span class="diary-overview__icon" aria-hidden="true">
-                  <AppGlyph name="chart-line" class="diary-overview__glyph" />
-                </span>
-                <span class="diary-overview__text">
-                  <span class="diary-overview__title">Все графики</span>
-                </span>
-                <AppGlyph name="caret-right" class="diary-overview__chevron" />
-              </button>
-            </li>
           </ul>
         )}
       </Show>
