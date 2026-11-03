@@ -1,14 +1,4 @@
-import {
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  type JSX,
-  Match,
-  onCleanup,
-  Show,
-  Switch,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
@@ -25,26 +15,28 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import { pluralize } from '@/diary/diary-format';
 import { InstallWarning } from '@/diary/InstallWarning';
-import { DiaryApiError } from '@/features/diary/connected/diary-api';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
-import {
-  type DoctorSession,
-  forgetDoctorSession,
-  isDemoSession,
-  restoreDoctorSession,
-  signOut,
-} from '@/features/diary/connected/doctor-account';
-import { DoctorDiaries, type DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import { isDemoSession } from '@/features/diary/connected/doctor-account';
+import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { DiaryPatientPage } from '@/features/diary/dashboard/DiaryPatientPage';
 import { DoctorSignIn } from '@/features/diary/dashboard/DoctorSignIn';
-import {
-  DEMO_LABEL_PREFIX,
-  hasDemoSet,
-  pruneDemoGuests,
-  seedDemoPatients,
-} from '@/features/diary/dashboard/demo-patients';
+import { DEMO_LABEL_PREFIX, hasDemoSet } from '@/features/diary/dashboard/demo-patients';
 import { adherence } from '@/features/diary/dashboard/diary-insights';
 import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
+import {
+  addDemoPatients,
+  demoProgress,
+  doctorLoadError,
+  doctorPushState,
+  doctorRestored,
+  doctorSession,
+  doctorVersion,
+  doctorWorkspace,
+  leaveDoctor,
+  restoreDoctor,
+  setDoctorPushState,
+  startDoctor,
+} from '@/features/diary/dashboard/doctor-store';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
@@ -175,12 +167,15 @@ export function DiaryDashboard(props: {
   readonly onReplacePatient: (id: string) => void;
   readonly onList: () => void;
 }): JSX.Element {
-  const [session, setSession] = createSignal<DoctorSession | undefined>();
-  const [workspace, setWorkspace] = createSignal<DoctorDiaries | undefined>();
-  const [version, setVersion] = createSignal(0);
+  // The session, the workspace and its patients outlive this component (doctor-store.ts): a tab
+  // switch unmounts the dashboard, and coming back finds the list as it was left.
+  const session = doctorSession;
+  const workspace = doctorWorkspace;
+  const version = doctorVersion;
+  const restored = doctorRestored;
+  const pushState = doctorPushState;
+  const demo = demoProgress;
   const [error, setError] = createSignal('');
-  const [pushState, setPushState] = createSignal<'off' | 'on' | 'unsupported' | 'denied'>('off');
-  const [demo, setDemo] = createSignal('');
   const [order, setOrder] = createSignal<PatientOrder>(readOrder());
   const [showArchive, setShowArchive] = createSignal(false);
   const [leaving, setLeaving] = createSignal(false);
@@ -198,61 +193,10 @@ export function DiaryDashboard(props: {
     }
   };
 
-  let stopCurrent: (() => void) | undefined;
-  onCleanup(() => stopCurrent?.());
-  const start = (next: DoctorSession): void => {
-    stopCurrent?.();
-    setSession(next);
-    const diaries = new DoctorDiaries(next);
-    const unsubscribe = diaries.subscribe(() => setVersion((value) => value + 1));
-    stopCurrent = () => {
-      unsubscribe();
-      diaries.disconnect();
-    };
-    setWorkspace(diaries);
-    // Allowed on an earlier visit: re-send the subscription with its payload keys, no prompt.
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      void enableDoctorPush(next).then(setPushState, (cause: unknown) => {
-        console.warn('Дневники: подписка на уведомления не обновлена', cause);
-      });
-    }
-    diaries
-      .refresh()
-      .then(() => {
-        diaries.connectLive();
-        // The demo doctor finds the demo patients already there (owner 2026-11-02).
-        const seeded = hasDemoSet(
-          diaries.patients().map((patient) => patient.replica.profile?.label),
-        );
-        if (isDemoSession(next) && !seeded) addDemo(diaries);
-        // The shared demo account keeps its guests a day, then lets them go.
-        if (isDemoSession(next)) {
-          pruneDemoGuests(diaries).catch((cause: unknown) => {
-            console.warn('Демо: старые гостевые дневники не убраны', cause);
-          });
-        }
-      })
-      .catch((cause: unknown) => {
-        // The kept session expired on the server: back to the sign-in, not a list that never loads.
-        if (cause instanceof DiaryApiError && cause.status === 401) {
-          console.warn('Дневники: сохранённый вход больше не действует');
-          stopCurrent?.();
-          forgetDoctorSession();
-          setWorkspace(undefined);
-          setSession(undefined);
-          return;
-        }
-        setError(cause instanceof Error ? cause.message : 'Не удалось загрузить дневники.');
-      });
-  };
-
-  const [restored] = createResource(async () => {
-    const found = await restoreDoctorSession().catch((cause: unknown) => {
-      console.warn('Дневники: сохранённый вход не открылся', cause);
-      return undefined;
-    });
-    if (found) start(found);
-    return true;
+  // A list shown from memory is read again quietly; the first visit reads it once, with the sign-in.
+  onMount(() => {
+    void restoreDoctor();
+    workspace()?.refreshQuietly();
   });
 
   /** When the copy on screen was saved, without a network; undefined while live. */
@@ -277,14 +221,7 @@ export function DiaryDashboard(props: {
 
   const addDemo = (diaries: DoctorDiaries): void => {
     setError('');
-    setDemo('Готовим демо-пациентов…');
-    seedDemoPatients(diaries, { onProgress: setDemo })
-      .then(() => playFeedback(...FEEDBACK_MOMENTS.saved))
-      .catch((cause: unknown) => {
-        playFeedback(...FEEDBACK_MOMENTS.failed);
-        setError(cause instanceof Error ? cause.message : 'Не удалось добавить демо-пациентов.');
-      })
-      .finally(() => setDemo(''));
+    addDemoPatients(diaries);
   };
   /** In the demo account the demo patients stay: no archive, so no delete either. */
   const demoLocked = (patient: DoctorPatient): boolean => {
@@ -297,14 +234,6 @@ export function DiaryDashboard(props: {
   };
   const hasDemo = (): boolean =>
     hasDemoSet(patients().map((patient) => patient.replica.profile?.label));
-
-  const leave = (current: DoctorSession): void => {
-    void signOut(current).finally(() => {
-      workspace()?.disconnect();
-      setWorkspace(undefined);
-      setSession(undefined);
-    });
-  };
 
   const actions = createMemo((): readonly HeaderAction[] | undefined => {
     const current = session();
@@ -334,7 +263,7 @@ export function DiaryDashboard(props: {
                   return;
                 }
                 void enableDoctorPush(current).then((next) => {
-                  setPushState(next);
+                  setDoctorPushState(next);
                   if (next !== 'on') setPushHelp(true);
                 });
               },
@@ -519,7 +448,7 @@ export function DiaryDashboard(props: {
             danger
             onConfirm={() => {
               setLeaving(false);
-              leave(current());
+              leaveDoctor();
             }}
             onOpenChange={setLeaving}
           />
@@ -550,7 +479,7 @@ export function DiaryDashboard(props: {
           <PushHelpDialog
             session={current()}
             state={pushState()}
-            onState={setPushState}
+            onState={setDoctorPushState}
             onClose={() => setPushHelp(false)}
           />
         )}
@@ -691,7 +620,7 @@ export function DiaryDashboard(props: {
               }
             >
               <DoctorSignIn
-                onSignedIn={start}
+                onSignedIn={startDoctor}
                 // In the diaries-only app there is nowhere to go back to.
                 onBack={activeProfile() ? undefined : props.onBack}
               />
@@ -727,9 +656,9 @@ export function DiaryDashboard(props: {
                   title="Установите «Дневники» как приложение"
                 />
               </Show>
-              <Show when={error()}>
+              <Show when={error() || doctorLoadError()}>
                 <p class="diary-dash__error" role="alert">
-                  {error()}
+                  {error() || doctorLoadError()}
                 </p>
               </Show>
               {/* Alerts show as «!» on their rows and in full on the patient's page (owner 2026-10-30). */}
