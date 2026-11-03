@@ -11,10 +11,10 @@
 
 @keyframes reveal-pulse {
   0%,
-  35% {
+  40% {
     box-shadow:
-      0 0 0 0.1875rem color-mix(in srgb, var(--theme-accent) 45%, transparent),
-      inset 0 0 0 100vmax var(--theme-accent-soft);
+      0 0 0 0.1875rem color-mix(in srgb, var(--theme-accent) 85%, transparent),
+      inset 0 0 0 100vmax color-mix(in srgb, var(--theme-accent) 28%, transparent);
   }
 
   100% {
