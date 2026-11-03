@@ -180,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus REL 0.6.83: DIARY-GV (diary pages on GitVerse Pages, med.1damer.com links through DIARY_PAGES_URL)
 - 2026-11-03 19:45 claude: DIARY-GV — diary pages on GitVerse Pages (`scripts/diary-gitverse-publish.sh`), `med.1damer.com` redirects via `DIARY_PAGES_URL`, CORS for both hosts.
 - 2026-11-03 claude-opus REL 0.6.82: DIARY17 (substance use, more questionnaires, doctor's week + charts page, standalone diary PWAs)
 - 2026-11-03 claude-opus DIARY17: diary substance-use section, all self-report scales in diaries, doctor patient page = week signals + charts page, calendar start/today rings, standalone PWAs with header-coloured bars, doctor install row
