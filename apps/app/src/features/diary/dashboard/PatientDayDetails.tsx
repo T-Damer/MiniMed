@@ -105,11 +105,14 @@ export function PatientDayDetails(props: {
               <div class="diary-day-details__change">
                 <p class="diary-day-details__change-head">
                   <AppGlyph name="edit" class="diary-day-details__change-glyph" />
-                  План изменён · {time(edit.at)} · {authorName(edit.author)}
+                  {edit.first ? 'Дневник начат' : 'План изменён'} · {time(edit.at)} ·{' '}
+                  {authorName(edit.author)}
                 </p>
-                <ul class="diary-day-details__change-lines">
-                  <For each={edit.lines}>{(line) => <li>{line}</li>}</For>
-                </ul>
+                <Show when={!edit.first}>
+                  <ul class="diary-day-details__change-lines">
+                    <For each={edit.lines}>{(line) => <li>{line}</li>}</For>
+                  </ul>
+                </Show>
               </div>
             )}
           </For>

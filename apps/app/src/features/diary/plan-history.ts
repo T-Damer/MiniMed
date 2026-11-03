@@ -15,6 +15,8 @@ export interface PlanEdit {
   readonly rev: number;
   /** In the patient's words (`planChanges`), tips included; the first version says it began. */
   readonly lines: readonly string[];
+  /** The diary's first version (nothing to compare with). */
+  readonly first: boolean;
 }
 
 /** The version in force at the end of `day`; `fallback` (the current plan) before any is known. */
@@ -54,7 +56,7 @@ export function planEdits(history: readonly DiaryPlanRevision[]): PlanEdit[] {
       ? [...planChanges(before, version.invitation), ...tipLines(before, version.invitation)]
       : ['Дневник начат'];
     if (!lines.length) return;
-    edits.push({ at: version.at, author: version.author, rev: version.rev, lines });
+    edits.push({ at: version.at, author: version.author, rev: version.rev, lines, first: !before });
   });
   return edits;
 }
