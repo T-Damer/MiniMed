@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
+import { revealElement } from '@/components/reveal';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
@@ -241,24 +242,32 @@ export function PatientChartsPage(props: {
   };
 
   // Opened from a signal: start at its chart once it is there (questionnaires come later), and
-  // once more after the page has slid in, which moves the layout under a first scroll.
+  // once more after the page has slid in, which moves the layout under a first scroll; the chart
+  // pulses when it is really on screen (`revealElement`).
   onMount(() => {
     const focus = props.focus;
     if (!focus) return;
-    const scroll = (): boolean => {
-      const target = document.getElementById(chartAnchor(focus));
-      target?.scrollIntoView({ block: 'start' });
-      return Boolean(target);
-    };
+    const target = (): HTMLElement | null => document.getElementById(chartAnchor(focus));
+    let cancel: (() => void) | undefined;
     let tries = 0;
+    let settle: number | undefined;
     const timer = window.setInterval(() => {
       tries += 1;
-      if (scroll() || tries > 20) {
+      const found = target();
+      if (found) found.scrollIntoView({ block: 'start' });
+      if (found || tries > 20) {
         window.clearInterval(timer);
-        window.setTimeout(scroll, motionMs(320));
+        settle = window.setTimeout(() => {
+          const element = target();
+          if (element) cancel = revealElement(element, { block: 'start' });
+        }, motionMs(320));
       }
     }, 60);
-    onCleanup(() => window.clearInterval(timer));
+    onCleanup(() => {
+      window.clearInterval(timer);
+      window.clearTimeout(settle);
+      cancel?.();
+    });
   });
 
   return (
