@@ -2,6 +2,7 @@ import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
+import { revealElement } from '@/components/reveal';
 import { TimeField } from '@/components/TimeField';
 import { Field } from '@/diary/diary-fields';
 import { formatLongDateTime } from '@/diary/diary-format';
@@ -397,7 +398,10 @@ export function DiaryEntryForm(props: {
         ? document.getElementById(`${formId}-at`)
         : document.getElementById(`diary-field-${first ?? ''}`);
     if (target instanceof HTMLElement && target.matches('input, textarea')) target.focus();
-    else (target ?? document.querySelector('.diary-field--invalid'))?.scrollIntoView();
+    else {
+      const field = target ?? document.querySelector('.diary-field--invalid');
+      if (field) revealElement(field, { block: 'start' });
+    }
   };
 
   const submit = (event: SubmitEvent): void => {

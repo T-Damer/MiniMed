@@ -1,0 +1,35 @@
+/*
+ * The pulse `revealElement` plays on a scroll target once it is on screen (components/reveal.ts):
+ * a soft accent ring and wash that fade out in a second. The wash is an inset shadow, so the
+ * element keeps its own background. Theme tokens only, so dark themes and the patient diary
+ * follow. Without motion the class is never added; the rules below are the same guarantee for
+ * a class set by hand.
+ */
+.reveal-highlight {
+  animation: reveal-pulse 1000ms var(--motion-ease-out, ease-out) both;
+}
+
+@keyframes reveal-pulse {
+  0%,
+  35% {
+    box-shadow:
+      0 0 0 0.1875rem color-mix(in srgb, var(--theme-accent) 45%, transparent),
+      inset 0 0 0 100vmax var(--theme-accent-soft);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 0.1875rem transparent,
+      inset 0 0 0 100vmax transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-highlight {
+    animation: none;
+  }
+}
+
+html[data-motion="off"] .reveal-highlight {
+  animation: none;
+}
