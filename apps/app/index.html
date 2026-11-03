@@ -27,9 +27,13 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
       // The diaries-only app (`?profile=diaries`, remembered by state/app-profile.ts) installs and
-      // shows as itself: its own manifest, favicon, title and boot icon (public/diaries/).
+      // shows as itself: its own manifest, favicon, title and boot icon (public/diaries/). A build
+      // for one job (VITE_APP_PROFILE, the GitVerse copy) is always that profile.
       (() => {
-        let profile = new URLSearchParams(location.search).get('profile');
+        const locked = '%VITE_APP_PROFILE%';
+        let profile = locked.startsWith('%')
+          ? new URLSearchParams(location.search).get('profile')
+          : locked;
         if (!profile) {
           try {
             profile = localStorage.getItem('minimed.app-profile.v1');

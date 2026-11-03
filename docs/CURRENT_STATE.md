@@ -30,8 +30,11 @@ Detailed history, moved verbatim on 2026-09-24:
   `/demo/patient` — QR codes, the slides, the doctor guide). The gateway redirects to
   `DIARY_PAGES_URL` (`apps/diary-server/deploy/serverless/yandex.env`); the native shells' patient
   link is `https://med.1damer.com/diary/` too. `DIARY_CORS_ORIGINS` allows both hosts.
-- **The copy.** `scripts/diary-gitverse-publish.sh` publishes the app build without its content
-  packs (124 MB; the three boot files the service worker precaches stay), with a GitVerse workflow
+- **Only the diaries (owner 2026-11-03).** The copy is built with `VITE_APP_PROFILE=diaries`
+  (`state/app-profile.ts`, the profile swap in `index.html`): it is always the doctors' «Дневники»,
+  whatever the address or `?profile=off`, so the MiniMed reference app is not published there.
+- **The copy.** `scripts/diary-gitverse-publish.sh` builds it into a temporary folder and publishes
+  it without content packs (124 MB; the three boot files the service worker precaches stay), with a GitVerse workflow
   (`actions/upload-pages-artifact@v1`, `actions/deploy-pages@v1`) that publishes it unprocessed. The
   diaries profile needs no content: it boots, signs in and shows patients with none installed.
 - **GitVerse quirk.** A directory address with a query (`/minimed/?profile=diaries`) gets GitVerse's
@@ -41,8 +44,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Moving users.** Doctors sign in once on the new address (accounts live on the service). Patients
   keep their diary where it is; new pairing links open on GitVerse. An app installed from github.io
   stays there until reinstalled from `med.1damer.com`.
+- **Slides.** The QR codes open the GitVerse addresses directly (a whitelist-only network may not
+  resolve `med.1damer.com` through Cloudflare); the slides still print `med.1damer.com/demo`.
+  `docs/promo/diary-presentation/links.json` holds both, `tools/qr-links.ts` rebuilds and reads back
+  the codes. The API itself is still `med.1damer.com`.
 - **Verified.** The served copy: the redirects, CORS for both origins, the demo sign-in loading
-  patients in a desktop browser, service worker install. Not checked on the phone (locked).
+  patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
+  and `#/documents` into the diaries home. Not checked on the phone (locked).
 
 ## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
 

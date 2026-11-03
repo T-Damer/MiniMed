@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import { type Connect, defineConfig, type Plugin } from 'vite';
@@ -295,7 +295,7 @@ function excludeOptionalPublicAssets(): Plugin {
   return {
     name: 'exclude-optional-public-assets',
     configResolved(config) {
-      outDir = config.build.outDir;
+      outDir = resolve(config.root, config.build.outDir);
     },
     closeBundle() {
       // The unreviewed local reference is installed explicitly in DEV, never bundled for release.
@@ -329,7 +329,8 @@ function serviceWorkerPrecache(): Plugin {
     name: 'service-worker-precache',
     apply: 'build',
     configResolved(config) {
-      outDir = join(config.root, config.build.outDir);
+      // `resolve`: an absolute --outDir (the GitVerse copy builds into a temporary folder) stays as is.
+      outDir = resolve(config.root, config.build.outDir);
     },
     closeBundle() {
       const release = JSON.parse(

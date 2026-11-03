@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   activeProfile,
@@ -86,5 +86,19 @@ describe('app profiles', () => {
 
   it('offers only the settings pages it declares', () => {
     expect(activeProfile('?profile=diaries')?.settingsPages).toEqual(['clinician', 'appearance']);
+  });
+});
+
+describe('a build for one job', () => {
+  it('is always its profile, whatever the address asks', async () => {
+    vi.stubEnv('VITE_APP_PROFILE', 'diaries');
+    vi.resetModules();
+    const locked = await import('@/state/app-profile');
+    expect(locked.activeProfile('?profile=off')?.id).toBe('diaries');
+    locked.resetProfileCache();
+    expect(locked.activeProfile('')?.id).toBe('diaries');
+    expect(locked.profileAllows('#/search', locked.activeProfile())).toBe(false);
+    vi.unstubAllEnvs();
+    vi.resetModules();
   });
 });

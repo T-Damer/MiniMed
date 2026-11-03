@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Publishes the diaries mirror to GitVerse Pages (owner 2026-11-03: *.gitverse.site opens reliably
-# in Russia, github.io does not; GitVerse has no custom domains). The mirror is the app build
-# without its content packs — the diaries profile and the patient diary need none — plus the three
-# boot files the service worker precaches. It is pushed as a single-commit `pages` branch: the site
-# in `site/` and a workflow that uploads it as it is (Settings → Страницы → source «Воркфлоу»; no
-# Jekyll). GitVerse Pages serves it at https://<owner>.gitverse.site/<repo>/; the med.1damer.com
-# redirects (DIARY_PAGES_URL in apps/diary-server/deploy/serverless/yandex.env) point people there.
+# Publishes the diaries to GitVerse Pages (owner 2026-11-03: *.gitverse.site opens reliably in
+# Russia, github.io does not; GitVerse has no custom domains). Only the diaries go there, never the
+# MiniMed reference app: the copy is built with VITE_APP_PROFILE=diaries, so it always opens as the
+# doctors' «Дневники» (any address, `?profile=off` included), next to the patient page `diary/`. It
+# carries no content packs, only the three boot files the service worker precaches. It is pushed as
+# a single-commit `pages` branch: the site in `site/` and a workflow that uploads it as it is
+# (Settings → Страницы → source «Воркфлоу»; no Jekyll). GitVerse Pages serves it at
+# https://<owner>.gitverse.site/<repo>/; the med.1damer.com redirects (DIARY_PAGES_URL in
+# apps/diary-server/deploy/serverless/yandex.env) point people there.
 #
-#   scripts/diary-gitverse-publish.sh           # builds the app, then publishes
-#   SKIP_BUILD=1 scripts/diary-gitverse-publish.sh   # publishes apps/app/dist as it is
-#   SKIP_BUILD=1 OUT=<dir> scripts/diary-gitverse-publish.sh   # writes the site to <dir>, no push
+#   scripts/diary-gitverse-publish.sh             # builds the diaries copy, then publishes
+#   OUT=<dir> scripts/diary-gitverse-publish.sh   # writes the site to <dir>, no push
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DIST="$ROOT/apps/app/dist"
 REMOTE="${GITVERSE_REMOTE:-git@gitverse.ru:t_damer/minimed.git}"
 # GitVerse Pages refuses build artifacts over 500 MB.
 LIMIT_BYTES=$((450 * 1024 * 1024))
@@ -22,24 +22,25 @@ BOOT_CONTENT=(content/core-report.json content/reference.db content/regulatory.d
 version_of() { FILE="$1" bun -e 'console.log(JSON.parse(require("fs").readFileSync(process.env.FILE, "utf8")).version)'; }
 VERSION="$(version_of "$ROOT/release.json")"
 
-if [[ "${SKIP_BUILD:-}" != 1 ]]; then
-  # Sanitized environment (AGENTS.md «Local execution»): no provider or release credentials.
-  (cd "$ROOT" && env -i HOME="$HOME" PATH="$PATH" TERM="${TERM:-dumb}" bun run build:app)
-fi
-
-BUILT="$(version_of "$DIST/build-manifest.json")"
-if [[ "$BUILT" != "$VERSION" ]]; then
-  echo "apps/app/dist is $BUILT, release.json is $VERSION: build first" >&2
-  exit 1
-fi
-
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
+DIST="$STAGE/build"
+# Its own output folder: apps/app/dist stays the full app (e2e, previews). Sanitized environment
+# (AGENTS.md «Local execution»): no provider or release credentials.
+(cd "$ROOT/apps/app" && env -i HOME="$HOME" PATH="$PATH" TERM="${TERM:-dumb}" VITE_APP_PROFILE=diaries \
+  bun x vite build --outDir "$DIST" --emptyOutDir --logLevel warn)
+if [[ "$(version_of "$DIST/build-manifest.json")" != "$VERSION" ]] ||
+  ! grep -Eq "locked ?= ?['\"]diaries['\"]" "$DIST/index.html"; then
+  echo "the build is not the $VERSION diaries copy" >&2
+  exit 1
+fi
 REPO="$STAGE/repo"
 SITE="$REPO/site"
 rsync -a --exclude '/content/' "$DIST/" "$SITE/"
 mkdir -p "$SITE/content"
 for file in "${BOOT_CONTENT[@]}"; do cp "$DIST/$file" "$SITE/$file"; done
+# The build holds a copy of every content pack (public/ is copied whole): gone before the push.
+rm -rf "$DIST"
 mkdir -p "$REPO/.gitverse/workflows"
 cat >"$REPO/.gitverse/workflows/pages.yaml" <<'YAML'
 # Written by scripts/diary-gitverse-publish.sh in the MiniMed repository: publishes `site/` as it is.

@@ -52,6 +52,12 @@ export const APP_PROFILES: readonly AppProfile[] = [
   },
 ];
 
+/**
+ * A build for one job (`VITE_APP_PROFILE`): the GitVerse copy carries only the diaries (owner
+ * 2026-11-03), so it is always that profile, whatever the address or the device remembers.
+ */
+const LOCKED_PROFILE = import.meta.env.VITE_APP_PROFILE;
+
 let cached: AppProfile | null | undefined;
 
 /** Whether a settings row applies in the active profile (every row without one). */
@@ -70,6 +76,11 @@ function storage(): Storage | undefined {
 /** The active profile: from the address when given there, else the one remembered. */
 export function activeProfile(search = window.location.search): AppProfile | undefined {
   if (cached !== undefined) return cached ?? undefined;
+  const locked = APP_PROFILES.find((candidate) => candidate.id === LOCKED_PROFILE);
+  if (locked) {
+    cached = locked;
+    return locked;
+  }
   const requested = new URLSearchParams(search).get('profile');
   if (requested === 'off') {
     storage()?.removeItem(STORAGE_KEY);

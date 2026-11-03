@@ -81,8 +81,8 @@ After a deploy the first visit installs the new worker in the background; users 
 обновление — Обновить» and nothing reloads by itself.
 
 The diary pages people reach from `med.1damer.com` are a copy on GitVerse Pages (2026-11-03). After
-the release commit, run `scripts/diary-gitverse-publish.sh` locally: it builds the app and refuses a
-build whose version differs from `release.json` (docs/DIARY_ADMIN.md).
+the release commit, run `scripts/diary-gitverse-publish.sh` locally: it builds the diaries-only copy
+(`VITE_APP_PROFILE=diaries`) of that version and publishes it (docs/DIARY_ADMIN.md).
 
 ## Artifacts
 

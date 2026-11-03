@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- The GitVerse copy carries only the diaries: it always opens as the doctors' «Дневники» (or the patient diary),
+  never the MiniMed reference app. The slides' QR codes open GitVerse directly; the slides still print `med.1damer.com`.
+
 ## [0.6.83] - 2026-11-03
 
 - Patient diaries open from GitVerse Pages (`t-damer.gitverse.site/minimed`), which loads reliably in Russia;
