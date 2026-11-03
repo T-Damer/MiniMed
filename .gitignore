@@ -112,3 +112,4 @@ apps/app/public/models/skin/
 # Presentation: the full version carries personal details; PPTX is built from it locally
 docs/promo/**/*.full.html
 docs/promo/**/*.pptx
+docs/promo/**/*.pdf
