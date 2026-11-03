@@ -220,7 +220,7 @@ export function DoctorSignIn(props: {
       <div class="diary-signin__card">
         <img
           class="diary-signin__logo"
-          src={`${import.meta.env.BASE_URL}boot-icon.png`}
+          src={`${import.meta.env.BASE_URL}diaries/icon-192.png`}
           alt=""
           width="56"
           height="56"
