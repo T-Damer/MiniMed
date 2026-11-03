@@ -95,6 +95,12 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.93,
     urgentAlert: false,
     vitals: { pulse: 76, systolic: 118, diastolic: 76, spo2: 98 },
+    // Evening drinks that fade, a daily smoker who cuts down, rare sleeping pills.
+    use: {
+      'u-alcohol': { chance: 0.4, typical: 3 },
+      'u-nicotine': { chance: 0.9, typical: 9 },
+      'u-sedatives': { chance: 0.08, typical: 1 },
+    },
     draft: () =>
       careDraft([
         drug({
@@ -118,6 +124,11 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
           dose: '25 мг',
           signa: 'При сильной тревоге, не больше 2 раз в сутки',
         }),
+        {
+          ...newCareSection('use'),
+          substances: ['alcohol', 'nicotine', 'sedatives'],
+          craving: true,
+        },
         newCareSection('questionnaire', 'phq-9'),
       ]),
   },

@@ -23,23 +23,26 @@ import {
 /** Saves an entry; returns the problem to show, or undefined when it was saved. */
 export type CareSave = (value: Record<string, unknown>) => string | undefined;
 
-function pad(value: number): string {
+export function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-function clock(iso: string): string {
+export function clock(iso: string): string {
   const date = new Date(iso);
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** The time a new mark starts with: now on today, the planned time on another day. */
-function initialTime(day: string, planned: string | undefined): string {
+export function initialTime(day: string, planned: string | undefined): string {
   if (day === dayKey(new Date())) return clock(new Date().toISOString());
   return planned ?? '12:00';
 }
 
 /** The mark's time: the app's Kobalte time field (no native pickers, owner 2026-11-01). */
-function TimeField(props: { readonly value: string; readonly onInput: (value: string) => void }) {
+export function TimeField(props: {
+  readonly value: string;
+  readonly onInput: (value: string) => void;
+}) {
   return (
     <UiTimeField
       label="Время"
@@ -50,7 +53,7 @@ function TimeField(props: { readonly value: string; readonly onInput: (value: st
   );
 }
 
-function TipBox(props: { readonly text: string | undefined }) {
+export function TipBox(props: { readonly text: string | undefined }) {
   return (
     <Show when={props.text}>
       <p class="diary-care-tip">
@@ -63,7 +66,7 @@ function TipBox(props: { readonly text: string | undefined }) {
   );
 }
 
-function SheetFooter(props: {
+export function SheetFooter(props: {
   readonly error: string;
   readonly saveLabel?: string;
   /** Nothing to save yet: the button waits instead of an error after the tap. */
@@ -253,6 +256,39 @@ const SCORE_WORDS: Readonly<Record<number, string>> = {
   10: 'отлично',
 };
 
+/** A row of score buttons from `min` to `max`; the chosen one is filled. */
+export function ScorePicker(props: {
+  readonly label: string;
+  readonly min: number;
+  readonly max: number;
+  readonly value: number | undefined;
+  /** Spoken names of a few scores, read by screen readers with the number. */
+  readonly words?: Readonly<Record<number, string>>;
+  readonly onChange: (value: number) => void;
+}): JSX.Element {
+  const scores = (): number[] =>
+    Array.from({ length: props.max - props.min + 1 }, (_, index) => props.min + index);
+  return (
+    <fieldset class="diary-score">
+      <legend class="diary-hidden-label">{props.label}</legend>
+      <For each={scores()}>
+        {(value) => (
+          <button
+            type="button"
+            class={`diary-score__option diary-score__option--tone-${Math.round(((value - props.min) / (props.max - props.min)) * 4)}`}
+            classList={{ 'diary-score__option--on': props.value === value }}
+            aria-pressed={props.value === value}
+            aria-label={props.words?.[value] ? `${value}, ${props.words[value]}` : String(value)}
+            onClick={() => props.onChange(value)}
+          >
+            {value}
+          </button>
+        )}
+      </For>
+    </fieldset>
+  );
+}
+
 /** A 0–10 score (wellbeing in the morning or evening) with an optional comment. */
 export function ScoreSheet(props: {
   readonly day: string;
@@ -267,7 +303,6 @@ export function ScoreSheet(props: {
 }): JSX.Element {
   const min = props.field.min ?? 0;
   const max = props.field.max ?? 10;
-  const scores = Array.from({ length: max - min + 1 }, (_, index) => min + index);
   const previous = props.entry?.values[props.field.id];
   const [score, setScore] = createSignal<number | undefined>(
     typeof previous === 'number' ? previous : undefined,
@@ -309,23 +344,14 @@ export function ScoreSheet(props: {
       }
     >
       <TipBox text={props.tip} />
-      <fieldset class="diary-score">
-        <legend class="diary-hidden-label">{props.checkpoint.label}</legend>
-        <For each={scores}>
-          {(value) => (
-            <button
-              type="button"
-              class={`diary-score__option diary-score__option--tone-${Math.round(((value - min) / (max - min)) * 4)}`}
-              classList={{ 'diary-score__option--on': score() === value }}
-              aria-pressed={score() === value}
-              aria-label={SCORE_WORDS[value] ? `${value}, ${SCORE_WORDS[value]}` : String(value)}
-              onClick={() => setScore(value)}
-            >
-              {value}
-            </button>
-          )}
-        </For>
-      </fieldset>
+      <ScorePicker
+        label={props.checkpoint.label}
+        min={min}
+        max={max}
+        value={score()}
+        words={SCORE_WORDS}
+        onChange={setScore}
+      />
       <TimeField value={time()} onInput={setTime} />
       <GrowingText
         label="Комментарий"

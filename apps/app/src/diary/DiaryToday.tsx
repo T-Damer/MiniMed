@@ -20,6 +20,7 @@ import {
   PATIENT_HEAT_FILTER_KEY,
 } from '@/diary/heatmap-filter';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import { UseSheet } from '@/diary/use-sheet';
 import { VoiceClip } from '@/diary/VoiceClip';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import {
@@ -58,6 +59,7 @@ import {
   loadCheckpointQuestionnaire,
 } from '@/features/diary/diary-questionnaires';
 import type { DiaryRemoval } from '@/features/diary/diary-storage';
+import { substanceSummary } from '@/features/diary/diary-substances';
 import type { DiaryPlanChange } from '@/features/diary/plan-changes';
 
 type Sheet =
@@ -99,6 +101,7 @@ const CHECK_ICON: Readonly<Record<DiaryCheckpoint['kind'], AppGlyphName>> = {
   vitals: 'heartbeat',
   text: 'note-pencil',
   choice: 'list-checks',
+  use: 'drop',
   questionnaire: 'list-numbers',
 };
 
@@ -145,6 +148,9 @@ function checkStatus(task: CheckTask): string {
     const value = field ? values[field] : undefined;
     const said = typeof value === 'string' ? value.replaceAll('\n', ' ') : '';
     return `${said.length > 60 ? `${said.slice(0, 60)}…` : said} · ${formatTime(entry.at)}${correctedMark(entry)}`;
+  }
+  if (task.checkpoint.kind === 'use') {
+    return `${substanceSummary(values) || 'Заполнено'} · ${formatTime(entry.at)}${correctedMark(entry)}`;
   }
   if (task.checkpoint.kind === 'score') {
     const field = task.checkpoint.fields?.[0];
@@ -834,6 +840,22 @@ export function DiaryToday(props: {
                     onClose={close}
                   />
                 )}
+              </Match>
+              <Match when={current().task.checkpoint.kind === 'use'}>
+                <UseSheet
+                  invitation={invitation()}
+                  day={day()}
+                  checkpoint={current().task.checkpoint}
+                  time={current().task.time}
+                  entry={current().task.entry}
+                  tip={readTip(
+                    current().task.checkpoint.id,
+                    ...(current().task.checkpoint.fields ?? []),
+                  )}
+                  onSave={save}
+                  onRemove={remove}
+                  onClose={close}
+                />
               </Match>
             </Switch>
           )}

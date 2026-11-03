@@ -36,6 +36,7 @@ import caretUpBold from '@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw'
 import chartLineBold from '@phosphor-icons/core/assets/bold/chart-line-bold.svg?raw';
 import chatCircleBold from '@phosphor-icons/core/assets/bold/chat-circle-bold.svg?raw';
 import checkBold from '@phosphor-icons/core/assets/bold/check-bold.svg?raw';
+import cigaretteBold from '@phosphor-icons/core/assets/bold/cigarette-bold.svg?raw';
 import circleBold from '@phosphor-icons/core/assets/bold/circle-bold.svg?raw';
 import circleHalfBold from '@phosphor-icons/core/assets/bold/circle-half-bold.svg?raw';
 import clockBold from '@phosphor-icons/core/assets/bold/clock-bold.svg?raw';
@@ -130,6 +131,7 @@ import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
 import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import warningBold from '@phosphor-icons/core/assets/bold/warning-bold.svg?raw';
+import wineBold from '@phosphor-icons/core/assets/bold/wine-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
 import bellFill from '@phosphor-icons/core/assets/fill/bell-fill.svg?raw';
@@ -217,11 +219,13 @@ export type AppGlyphName =
   | 'skin-layers'
   | 'pregnant'
   | 'baby'
+  | 'cigarette'
   | 'drop'
   | 'elderly'
   | 'liver'
   | 'kidney'
   | 'steering-wheel'
+  | 'wine'
   | 'share-fat'
   | 'stop-circle'
   | 'binoculars'
@@ -407,11 +411,13 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'skin-layers': skinLayers,
   pregnant,
   baby: svgBody(babyBold),
+  cigarette: svgBody(cigaretteBold),
   drop: svgBody(dropBold),
   elderly,
   liver,
   kidney,
   'steering-wheel': svgBody(steeringWheelBold),
+  wine: svgBody(wineBold),
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),
   binoculars: svgBody(binocularsBold),

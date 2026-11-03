@@ -86,15 +86,58 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await expect(menu.getByRole('menuitem', { name: 'В архив' })).toHaveCount(0);
   await page.keyboard.press('Escape');
 
-  // The patient page: every medicine's intake per day on one sheet, the same days for all.
+  // The patient page leads with the week: rows that open their chart (owner 2026-11-03), no
+  // bare counters; the charts live on a page of their own.
   await first.click();
-  await page.getByRole('button', { name: 'Графики приёма по дням' }).click();
-  const sheet = page.getByRole('dialog', { name: 'Приём лекарств по дням' });
-  await expect(sheet.locator('.diary-chart').first()).toBeVisible();
-  expect(await sheet.locator('.diary-chart').count()).toBeGreaterThan(0);
-  await expect(sheet.locator('.diary-chart__title').first()).toContainText('в день');
+  const overview = page.getByTestId('diary-overview');
+  await expect(overview.locator('.diary-overview__row').first()).toBeVisible({ timeout: 30_000 });
+  await expect(overview).toContainText('Приём лекарств');
+  await expect(page.locator('.stat-card')).toHaveCount(0);
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('demo-overview.png') });
+
+  // A signal opens its chart: medicine intake, every medicine per day on the same days.
+  await overview.locator('[data-signal="intake"]').click();
+  await expect(page).toHaveURL(/\/charts\/intake$/u);
+  const intake = page.locator('#diary-chart-intake');
+  await expect(intake.locator('.diary-chart').first()).toBeVisible();
+  await expect(intake.locator('.diary-chart__title').first()).toContainText('в день');
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath('demo-intake.png') });
+  await page.getByRole('button', { name: 'К пациенту' }).click();
+  await expect(overview).toBeVisible();
+
+  // «Все графики»: the whole page, questionnaires included.
+  await overview.getByRole('button', { name: 'Все графики' }).click();
+  await expect(page).toHaveURL(/\/charts$/u);
+  await expect(page.locator('.diary-chart').nth(2)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('demo-charts.png'), fullPage: true });
+  await page.goBack();
+  await page.goBack();
+  await expect(rows).toHaveCount(4);
+
+  // The fox marks substance use: its craving and amounts are signals and charts too.
+  await rows.filter({ hasText: 'Лиса' }).locator('.diary-dash-row__open').click();
+  await expect(overview.locator('[data-signal="craving"]')).toBeVisible({ timeout: 30_000 });
+  await overview.locator('[data-signal="craving"]').click();
+  await expect(page.locator('#diary-chart-craving .diary-chart')).toBeVisible();
+  await expect(page.locator('[id^="diary-chart-use-"]').first()).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('demo-substances.png') });
+  await page.goBack();
+  // The doctor edits the section on the patient's own screen.
+  await page.getByRole('button', { name: 'Экран пациента', exact: true }).click();
+  const useRow = page.locator('.screen-editor').getByText('Употребление').first();
+  await expect(useRow).toBeVisible({ timeout: 30_000 });
+  await useRow.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath('demo-editor.png') });
+  await useRow.click();
+  await expect(page.getByText('Спрашивать про тягу')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('demo-editor-use.png') });
+  await page.goBack();
+  await page.goBack();
+  await page.goBack();
 
   // The same device returns to the same demo, not a fresh one.
   await page.evaluate(() => window.localStorage.removeItem('minimed.diary.doctor.v1'));

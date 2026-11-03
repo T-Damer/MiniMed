@@ -56,6 +56,7 @@ import {
   diaryQuestionnaire,
   questionnaireCheckpointId,
 } from '@/features/diary/diary-questionnaires';
+import { SUBSTANCES, substanceById } from '@/features/diary/diary-substances';
 import { DrugSearchField } from '@/features/drug-picker/DrugSearchField';
 import type { DrugSuggestionForm } from '@/features/drug-picker/drug-suggest';
 import {
@@ -75,6 +76,7 @@ const KIND_ICON: Readonly<Record<CareSectionKind, AppGlyphName>> = {
   body: 'scales',
   text: 'note-pencil',
   choice: 'list-checks',
+  use: 'drop',
   questionnaire: 'list-numbers',
 };
 
@@ -86,6 +88,7 @@ const KIND_ORDER: readonly CareSectionKind[] = [
   'body',
   'text',
   'choice',
+  'use',
   'questionnaire',
 ];
 
@@ -94,7 +97,7 @@ const GROUPS: readonly { readonly title: string; readonly kinds: readonly CareSe
   { title: 'Лекарства', kinds: ['drug'] },
   {
     title: 'Самочувствие и показатели',
-    kinds: ['score', 'mood', 'vitals', 'body', 'text', 'choice'],
+    kinds: ['score', 'mood', 'vitals', 'body', 'text', 'choice', 'use'],
   },
   { title: 'Опросники', kinds: ['questionnaire'] },
 ];
@@ -146,6 +149,13 @@ function sectionDetail(section: CareSectionDraft): string {
         .join(' · ');
     case 'choice':
       return section.options.filter((option) => option.trim()).join(' / ');
+    case 'use':
+      return [
+        section.substances.flatMap((id) => substanceById(id)?.short ?? []).join(', '),
+        section.craving ? 'тяга' : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
     case 'questionnaire':
       return `${diaryQuestionnaire(section.quiz)?.about ?? 'свой опросник'} · раз в ${section.everyDays} дн.`;
     default:
@@ -500,6 +510,45 @@ function ChoiceFields(props: {
   );
 }
 
+/** Which substances the patient marks, and whether the craving is asked too. */
+function UseFields(props: {
+  readonly section: CareSectionDraft;
+  readonly patch: (next: Partial<CareSectionDraft>) => void;
+}): JSX.Element {
+  const toggle = (id: string): void =>
+    props.patch({
+      substances: props.section.substances.includes(id)
+        ? props.section.substances.filter((chosen) => chosen !== id)
+        : [...props.section.substances, id],
+    });
+  return (
+    <>
+      <fieldset class="screen-editor__chips screen-editor__chips--set">
+        <legend class="visually-hidden">Что отмечает пациент</legend>
+        <For each={SUBSTANCES}>
+          {(substance) => (
+            <ChoiceChip
+              accent={props.section.substances.includes(substance.id)}
+              aria-pressed={props.section.substances.includes(substance.id)}
+              onClick={() => toggle(substance.id)}
+            >
+              {substance.label}
+            </ChoiceChip>
+          )}
+        </For>
+      </fieldset>
+      <div class="screen-editor__switch">
+        <Switch
+          aria-label="Спрашивать про тягу"
+          checked={props.section.craving}
+          onChange={(craving) => props.patch({ craving })}
+        />
+        <span class="screen-editor__switch-text">Спрашивать про тягу</span>
+      </div>
+    </>
+  );
+}
+
 /** The editor that opens in place of a row of the preview. */
 function SectionEditor(props: {
   readonly section: CareSectionDraft;
@@ -603,6 +652,9 @@ function SectionEditor(props: {
         />
         <Show when={props.section.kind === 'choice'}>
           <ChoiceFields section={props.section} patch={patch} />
+        </Show>
+        <Show when={props.section.kind === 'use'}>
+          <UseFields section={props.section} patch={patch} />
         </Show>
         <TimesEditor
           times={props.section.times}
@@ -773,6 +825,7 @@ const CHECK_KINDS: readonly CareSectionKind[] = [
   'body',
   'text',
   'choice',
+  'use',
 ];
 
 /**
@@ -831,6 +884,8 @@ export function PatientScreenEditor(props: {
       ),
   );
   const drugs = (): number => props.draft.sections.filter((s) => s.kind === 'drug').length;
+  /** One «Зависимости» section per diary: its button waits once there is one. */
+  const hasUse = (): boolean => props.draft.sections.some((s) => s.kind === 'use');
   /** «Копировать»: the same schedule for the next medicine, in a dialog of its own. */
   const copy = (section: CareSectionDraft): void => {
     const next = copyCareSection(section);
@@ -1031,7 +1086,12 @@ export function PatientScreenEditor(props: {
               <legend class="visually-hidden">Что добавить</legend>
               <For each={CHECK_KINDS}>
                 {(kind) => (
-                  <button type="button" class="screen-editor__kind" onClick={() => add(kind)}>
+                  <button
+                    type="button"
+                    class="screen-editor__kind"
+                    disabled={kind === 'use' && hasUse()}
+                    onClick={() => add(kind)}
+                  >
                     <AppGlyph name={KIND_ICON[kind]} class="screen-editor__kind-glyph" />
                     <span class="screen-editor__kind-text">{CARE_SECTION_LABEL[kind]}</span>
                   </button>

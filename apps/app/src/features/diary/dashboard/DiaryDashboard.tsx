@@ -24,6 +24,7 @@ import { PatientRowsSkeleton } from '@/components/PatientRowsSkeleton';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import { pluralize } from '@/diary/diary-format';
+import { InstallWarning } from '@/diary/InstallWarning';
 import { DiaryApiError } from '@/features/diary/connected/diary-api';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import {
@@ -47,6 +48,7 @@ import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
+import { PatientChartsPage } from '@/features/diary/dashboard/PatientChartsPage';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
 import { PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
 import { PushHelpDialog } from '@/features/diary/dashboard/PushHelpDialog';
@@ -59,7 +61,7 @@ import {
 } from '@/features/diary/dashboard/patient-order';
 import { isOnline } from '@/features/diary/dashboard/presence';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
-import { diariesPath } from '@/features/notes/notes-routing';
+import { type DiarySub, diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
 import '@/features/diary/dashboard/diary-dashboard.css';
@@ -162,11 +164,13 @@ function PatientRow(props: {
  */
 export function DiaryDashboard(props: {
   readonly patientId: string | undefined;
-  /** The patient view to edit, or one day as the patient saw it. */
-  readonly view?: 'screen' | 'day' | undefined;
+  /** The patient view to edit, one day as the patient saw it, or the patient's charts. */
+  readonly view?: 'screen' | 'day' | 'charts' | undefined;
   readonly day?: string | undefined;
+  /** The chart the charts page opens at. */
+  readonly chart?: string | undefined;
   readonly onBack: () => void;
-  readonly onOpenPatient: (id: string, sub?: 'screen' | `day/${string}`) => void;
+  readonly onOpenPatient: (id: string, sub?: DiarySub) => void;
   /** The new patient's page in place of «Новый пациент», so back returns to the list. */
   readonly onReplacePatient: (id: string) => void;
   readonly onList: () => void;
@@ -600,6 +604,17 @@ export function DiaryDashboard(props: {
                     />
                   )}
                 </Match>
+                <Match when={props.view === 'charts' && replicaResults(patient().replica)}>
+                  {(ready) => (
+                    <PatientChartsPage
+                      patient={patient()}
+                      results={ready()}
+                      version={version()}
+                      focus={props.chart}
+                      onBack={() => navigateBack(diariesPath(patient().summary.id))}
+                    />
+                  )}
+                </Match>
                 <Match when={props.view === 'day' && props.day}>
                   {(day) => (
                     <PatientDayView
@@ -703,6 +718,14 @@ export function DiaryDashboard(props: {
                     . Обновится сама, когда связь вернётся.
                   </p>
                 )}
+              </Show>
+              {/* The doctor keeps the diaries one tap away too: an app, not a site (owner 2026-11-03). */}
+              <Show when={activeProfile()}>
+                <InstallWarning
+                  entries={0}
+                  connected
+                  title="Установите «Дневники» как приложение"
+                />
               </Show>
               <Show when={error()}>
                 <p class="diary-dash__error" role="alert">

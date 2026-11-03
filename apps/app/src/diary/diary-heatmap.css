@@ -271,54 +271,43 @@
   color: #fff;
 }
 
-/* Before the diary began: an empty dashed cell, not a «nothing marked» day. */
+/* Before the diary began: an empty cell with a faint number, not a «nothing marked» day (no
+   dashes: those mark the day tracking started). */
 .diary-heat__day--before {
-  border: 1px dashed color-mix(in srgb, var(--theme-text-faint, #58534a) 45%, transparent);
-  color: var(--theme-text-faint, #58534a);
+  color: color-mix(in srgb, var(--theme-text-faint, #58534a) 70%, transparent);
   background: transparent;
   background-image: none;
 }
 
-/* Today: a dashed double frame, and the first day of the course a solid one (owner 2026-11-01,
-   2026-11-02: the two looked alike). Both are drawn inside the cell, so they add to the selection
-   outline instead of replacing it; on the day the course starts the outer ring is dashed and the
-   inner one solid. */
-.diary-heat__day--today {
+/* The first day of tracking: one dashed ring inside the cell; today: one plain ring around it
+   (owner 2026-11-03: the old double frames read as strange). */
+.diary-heat__day--start {
   position: relative;
 }
 
-.diary-heat__day--today::after {
+.diary-heat__day--start::after {
   position: absolute;
   inset: 0;
   border: 1.5px dashed var(--theme-text, #292720);
   border-radius: inherit;
-  outline: 1.5px dashed var(--theme-text, #292720);
-  outline-offset: -4.5px;
   pointer-events: none;
   content: "";
 }
 
-.diary-heat__day--start {
-  box-shadow:
-    inset 0 0 0 1.5px var(--theme-text, #292720),
-    inset 0 0 0 3px var(--theme-surface-raised, #f7f1e1),
-    inset 0 0 0 4.5px var(--theme-text, #292720);
-}
-
-.diary-heat__day--start.diary-heat__day--today {
-  box-shadow:
-    inset 0 0 0 3px var(--theme-surface-raised, #f7f1e1),
-    inset 0 0 0 4.5px var(--theme-text, #292720);
-}
-
-.diary-heat__day--start.diary-heat__day--today::after {
-  outline: none;
-}
-
-/* The open day: a frame outside the cell, a clear step away from today's and the start's rings. */
-.diary-heat__day--selected {
+.diary-heat__day--today {
   outline: 2px solid var(--theme-text, #292720);
-  outline-offset: 2px;
+  outline-offset: 1.5px;
+}
+
+/* The open day (another than today): the same ring in the accent colour. */
+.diary-heat__day--selected {
+  outline: 2px solid var(--theme-accent, #2f6b5b);
+  outline-offset: 1.5px;
+}
+
+/* Today open (the usual case): today's ring, not the accent one. */
+.diary-heat__day--selected.diary-heat__day--today {
+  outline-color: var(--theme-text, #292720);
 }
 
 .diary-heat__day--future {

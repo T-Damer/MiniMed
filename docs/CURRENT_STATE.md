@@ -20,6 +20,53 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
+
+- **Substance use («Зависимости»).** A section the doctor adds on the patient's screen. The doctor ticks what to
+  track (`SUBSTANCES` in `features/diary/diary-substances.ts`: алкоголь in 10 g portions, никотин, каннабис,
+  опиоиды, стимуляторы, снотворные/успокоительные без назначения, препараты без назначения with «что именно»),
+  whether to ask about craving 0–10, and the time (21:00).
+  - Data: checkpoint `kind: 'use'`, id `use`, one per diary. Its `count` fields are `u-<substance>`, plus `u-what`
+    (text) and `craving` (number).
+  - The patient sees one «Употребление» row. Its sheet has «Ничего не было», which saves zeros, a stepper per
+    substance and the craving picker.
+  - The doctor gets declared charts: «Тяга» with a preset line above 7, and per-substance daily amounts. There is a
+    «Зависимости» heatmap part, and day texts, CSV and FHIR quantities. The demo fox marks use.
+  - `DIARY_FORMAT_VERSION` is unchanged.
+- **Questionnaires.** Every self-report scale of the app's packs can go into a diary: ШАС, EPDS and Whooley
+  (obstetrics pack), plus the psychological profiles (temperament, egogram, Braverman, PAEI, team roles), next to
+  PHQ-9, GAD-7 and both Zung scales.
+  - HAM-D stays out because a clinician rates it.
+  - Profiles (several scales, no total) are shown by their result headline, not charted
+    (`QuestionnaireSeries.profile`).
+- **Doctor's patient page.**
+  - The three stat cards (share of plan, «N записей», «телефон подключён») are replaced by a «week» list
+    (`patient-overview.ts`, `PatientOverview.tsx`). The rows are derived from declared data: medicine intake with
+    the missed medicines, each declared chart with its latest values, red-line crossings and a week-on-week trend,
+    each questionnaire with its band and change, «Нет записей N дней», and «Телефон не подключён» (opens pairing).
+  - Worrying rows come first, and every row opens its chart.
+  - Charts, intake per day and questionnaires moved to `#/notes/diaries/<id>/charts[/<chart>]`
+    (`PatientChartsPage.tsx`, full screen, pinned header, period 14/30/90). The page leads with the week, then the
+    calendar and the day's records.
+- **Calendar.** The first day of tracking has one dashed ring and today one plain ring; the open day has an accent
+  ring. Days before tracking are faint numbers without a border.
+- **Installed web apps.**
+  - Both diary manifests ask for `standalone` instead of `fullscreen`. Full screen hid the status and navigation
+    bars, added the cutout inset to the header and jumped when the bars were pulled down.
+  - `state/web-theme-color.ts` keeps `theme-color` on the colour under the status bar: the hero band or pinned bar,
+    otherwise the first opaque background. It runs in the patient diary and in web builds of the app; the Android
+    app colours its bars natively.
+  - Installed detection also accepts `display-mode: fullscreen` for icons installed earlier.
+  - The doctor's diaries app shows the install row («Установите «Дневники» как приложение»), with the browser prompt
+    or the guide.
+- **Checks.**
+  - vitest: 19 278 passed.
+  - Typecheck and `bun run check` pass.
+  - Diary e2e: demo (overview, signal → chart, «Все графики», fox substances, editor), install, care, doctor and
+    screens.
+  - Not checked: a physical phone, the navigation-bar colour under Yandex Browser / Mi Browser PWAs (no web API
+    sets it; it follows the browser), the installed-app status-bar colour on iOS.
+
 ## Drug card: condition row, structures, «Состав» roles, wrapped-line repair — 2026-11-03 (STATE DRUG-HDR2)
 
 Owner's phone review of the glimepiride card. What changed on the drug/instruction reader:

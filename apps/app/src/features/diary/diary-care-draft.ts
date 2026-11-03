@@ -26,6 +26,13 @@ import {
   questionnaireCheckpointId,
 } from '@/features/diary/diary-questionnaires';
 import {
+  substanceFieldSet,
+  substancesOf,
+  USE_CHECKPOINT_ID,
+  USE_CRAVING_FIELD,
+  USE_DEFAULT_TIME,
+} from '@/features/diary/diary-substances';
+import {
   type UserQuestionnaire,
   withoutUserQuestionnaireImages,
 } from '@/state/user-questionnaire-format';
@@ -48,6 +55,7 @@ export type CareSectionKind =
   | 'body'
   | 'text'
   | 'choice'
+  | 'use'
   | 'questionnaire';
 
 export interface CareSectionDraft {
@@ -70,6 +78,10 @@ export interface CareSectionDraft {
   readonly course: readonly CareDayRange[];
   /** Choice only. */
   readonly options: readonly string[];
+  /** Substance use only: catalog ids (`diary-substances`) the patient marks. */
+  readonly substances: readonly string[];
+  /** Substance use only: also ask for the craving, 0–10. */
+  readonly craving: boolean;
   /** Questionnaire only: the built-in slug, or `own-…` for the doctor's own questionnaire. */
   readonly quiz: string;
   readonly everyDays: number;
@@ -98,6 +110,7 @@ export const CARE_SECTION_LABEL: Readonly<Record<CareSectionKind, string>> = {
   body: 'Вес и рост',
   text: 'Описание',
   choice: 'Выбор',
+  use: 'Зависимости',
   questionnaire: 'Опросник',
 };
 
@@ -119,6 +132,8 @@ const BLANK: Omit<CareSectionDraft, 'key' | 'kind'> = {
   asNeeded: false,
   course: [],
   options: [],
+  substances: [],
+  craving: true,
   quiz: '',
   everyDays: 7,
 };
@@ -161,6 +176,14 @@ export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSecti
         title: 'Сон',
         times: at('09:00'),
         options: ['хорошо', 'беспокойно', 'плохо'],
+      };
+    case 'use':
+      return {
+        ...BLANK,
+        key: sectionKey(),
+        kind,
+        title: 'Употребление',
+        times: at(USE_DEFAULT_TIME),
       };
     case 'questionnaire':
       return {
@@ -260,6 +283,12 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
         times: (checkpoint.times ?? []).map((time) => ({ time, meal: undefined })),
         tip: tipOf(checkpoint.id),
         options: checkpoint.kind === 'choice' ? (field?.options ?? []) : [],
+        ...(checkpoint.kind === 'use'
+          ? {
+              substances: substancesOf(checkpoint.fields ?? []),
+              craving: checkpoint.fields?.includes(USE_CRAVING_FIELD) === true,
+            }
+          : {}),
         quiz: checkpoint.questionnaire ?? '',
         everyDays: checkpoint.everyDays ?? 7,
         ...(checkpoint.custom ? { custom: checkpoint.custom } : {}),
@@ -285,7 +314,7 @@ function nextId(prefix: string, taken: Set<string>): string {
   return `${prefix}${number}`;
 }
 
-const ID_PREFIX: Readonly<Record<Exclude<CareSectionKind, 'questionnaire'>, string>> = {
+const ID_PREFIX: Readonly<Record<Exclude<CareSectionKind, 'questionnaire' | 'use'>, string>> = {
   drug: 'p',
   score: 's-',
   mood: 'm-',
@@ -394,6 +423,25 @@ export function careInvitationParts(
         ...(section.custom ? { custom: withoutUserQuestionnaireImages(section.custom) } : {}),
       });
       tipFor(id, section.tip);
+      continue;
+    }
+    if (section.kind === 'use') {
+      // One section: the second is left out, like a questionnaire chosen twice.
+      if (checkpoints.some((checkpoint) => checkpoint.kind === 'use')) continue;
+      const label = title || 'Употребление';
+      if (!section.substances.length)
+        throw new Error(`«${label}»: отметьте хотя бы одно вещество.`);
+      const used = substanceFieldSet(section.substances, section.craving);
+      for (const field of used.fields) fields.set(field.id, field);
+      const times = timesOf(section);
+      checkpoints.push({
+        id: USE_CHECKPOINT_ID,
+        kind: 'use',
+        label,
+        ...(times.length ? { times } : {}),
+        fields: used.ids,
+      });
+      tipFor(USE_CHECKPOINT_ID, section.tip);
       continue;
     }
     if (!title) continue;

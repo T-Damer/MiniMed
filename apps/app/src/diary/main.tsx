@@ -2,6 +2,7 @@ import { render } from 'solid-js/web';
 
 import { DiaryApp } from '@/diary/DiaryApp';
 import { listenForInstallPrompt } from '@/diary/install-state';
+import { installWebThemeColor } from '@/state/web-theme-color';
 import '@/styles/theme.css';
 import '@/diary/diary-shell.css';
 import '@/styles/theme-dark-diary.css';
@@ -18,6 +19,8 @@ listenForInstallPrompt();
 const root = document.getElementById('diary-root');
 if (!root) throw new Error('Diary root element is missing.');
 render(() => <DiaryApp />, root);
+// The status bar of the installed diary takes the header's colour (owner 2026-11-03).
+installWebThemeColor();
 
 // Sounds and haptics on every tap, with the same switches as the app («Ещё» → «Звуки», «Вибрация»).
 // Loaded after the first paint: the diary opens without waiting for the audio engine.

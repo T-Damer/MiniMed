@@ -806,6 +806,146 @@ body:has(.diary-care-scope) {
   text-align: start;
 }
 
+/* Substance use sheet: a stepper per substance, the craving score under them. */
+.diary-use__none {
+  width: 100%;
+  min-height: 3.5rem;
+  font-weight: 700;
+}
+
+.diary-use__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-use__row {
+  /* Name and hint over the full width, the stepper on its own line under them: on a phone the
+     three controls beside the text squeezed the name into a narrow column. */
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  grid-template-areas:
+    "glyph text"
+    "glyph stepper";
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.6rem 0.5rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.8rem;
+  background: var(--theme-surface-raised);
+}
+
+.diary-use__glyph {
+  grid-area: glyph;
+  align-self: start;
+  margin-top: 0.15rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--theme-accent);
+}
+
+.diary-use__text {
+  grid-area: text;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.diary-use__label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.diary-use__unit,
+.diary-use__hint {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+.diary-use__hint {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.diary-use__stepper {
+  grid-area: stepper;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.diary-use__step {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent-text, var(--theme-accent));
+  background: var(--theme-surface);
+  cursor: pointer;
+  transition:
+    background var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease),
+    opacity var(--care-fast) var(--care-ease);
+}
+
+.diary-use__step:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.diary-use__step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.diary-use__step-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.diary-use__value {
+  box-sizing: border-box;
+  width: 4.5rem;
+  min-height: 3rem;
+  padding: 0.3rem 0.2rem;
+  border: 0;
+  border-radius: 0.6rem;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+  appearance: none;
+}
+
+.diary-use__value::placeholder {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+.diary-use__step:focus-visible,
+.diary-use__value:focus-visible {
+  outline: 0.19rem solid var(--theme-accent);
+  outline-offset: 0.12rem;
+}
+
+.diary-use__craving {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-use__craving-title {
+  margin: 0;
+  font-weight: 700;
+}
+
 .diary-vitals {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));

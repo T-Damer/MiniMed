@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-03 | claude-opus (DIARY17) | diary: standalone PWA with themed bars, calendar start/today marks, substance-use section, more questionnaires, doctor patient page overview + charts page, doctor install offer | `apps/app/src/features/diary/**`, `apps/app/src/diary/**`, `apps/app/public/diary/**`, `apps/app/public/diaries/**`, `apps/app/diary/index.html` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -181,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus DIARY17: diary substance-use section, all self-report scales in diaries, doctor patient page = week signals + charts page, calendar start/today rings, standalone PWAs with header-coloured bars, doctor install row
 - 2026-11-03 claude-opus REL 0.6.81: DRUG-HDR2 (drug condition row, structures, «Состав» roles, line-wrap repair)
 - 2026-11-03 claude-opus DRUG-HDR2: drug card condition row (pregnancy/ГВ/children/elderly/liver/kidneys/driving, red→green + quote sheet), no «Разделы», page stamps folded, wrapped-line repair, compound structures (smiles-drawer) and «Состав» roles from Wikidata/ChEBI/ChEMBL, unified reader header buttons, more dotted paper
 - 2026-11-03 claude-opus WSP1: weight-space edit research — looping-direction ablation on Vikhr Qwen 2.5 0.5B halves held-out looping but 0/20 valid tester-box contracts either way, +2.5 % loss on source text: no-go; Qwen3 0.6B fails by content, not loops (`docs/research/weight-space-ablation-2026-11-03.md`, scripts `tools/benchmarks/weight_space/`; weights deleted)

@@ -125,6 +125,8 @@ export interface QuestionnaireSeries {
   /** The red line the questionnaire's schema declares (`scoreScaleLimit`). */
   readonly preset: AssessmentLimit | undefined;
   readonly title: string;
+  /** Several scales and no one total (temperament, roles): shown by headline, not charted. */
+  readonly profile: boolean;
   readonly points: readonly QuestionnairePoint[];
 }
 
@@ -169,6 +171,7 @@ export async function questionnaireSeries(
       limitId: checkpoint.questionnaire,
       preset: scoreScaleLimit(definition),
       title: definition.shortTitle,
+      profile: definition.scales.length > 1 && !definition.scoreScales?.length,
       points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
     });
   }

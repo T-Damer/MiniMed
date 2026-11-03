@@ -220,8 +220,8 @@ test.describe('patient diary: keeping it one tap away', () => {
       display: string;
       icons: { src: string; sizes: string }[];
     };
-    // Full screen, over the system bars (owner 2026-10-30); standalone where that is refused.
-    expect(manifest.display).toBe('fullscreen');
+    // Standalone with the system bars (owner 2026-11-03: full screen hid them and jumped).
+    expect(manifest.display).toBe('standalone');
     const start = new URL(manifest.start_url, manifestUrl);
     const scope = new URL(manifest.scope, manifestUrl);
     expect(start.href).toBe(new URL(DIARY_PAGE).href);

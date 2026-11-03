@@ -14,13 +14,15 @@ export type NotesRoute =
   | { readonly kind: 'saved' }
   /**
    * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`), one patient, its
-   * patient view to edit (`screen`) or one day as the patient saw it (`day`).
+   * patient view to edit (`screen`), one day as the patient saw it (`day`) or its charts
+   * (`charts`, optionally opened at one chart).
    */
   | {
       readonly kind: 'diaries';
       readonly patientId?: string;
-      readonly view?: 'screen' | 'day';
+      readonly view?: 'screen' | 'day' | 'charts';
       readonly day?: string;
+      readonly chart?: string;
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | { readonly kind: 'skin-photo' }
@@ -118,6 +120,13 @@ export function readNotesRoute(
     if (parts.length === 3) return { kind: 'diaries', patientId };
     if (parts[3] === 'screen' && parts.length === 4) {
       return { kind: 'diaries', patientId, view: 'screen' };
+    }
+    if (parts[3] === 'charts' && parts.length === 4) {
+      return { kind: 'diaries', patientId, view: 'charts' };
+    }
+    const chart = parts[4];
+    if (parts[3] === 'charts' && chart && CHART_ID.test(chart) && parts.length === 5) {
+      return { kind: 'diaries', patientId, view: 'charts', chart };
     }
     const day = parts[4];
     if (parts[3] === 'day' && day && /^\d{4}-\d{2}-\d{2}$/u.test(day) && parts.length === 5) {
@@ -318,11 +327,18 @@ export function withNotesFullscreen(hash: string, fullscreen: boolean): string {
   return nextQuery ? `${path}?${nextQuery}` : path;
 }
 
+/** A chart id in a diary address (`pressure`, `use-alcohol`, `q-phq-9`). */
+const CHART_ID = /^[a-z0-9][a-z0-9-]{0,39}$/u;
+
+/** A page under one patient: its view to edit, one day, its charts (at one chart). */
+export type DiarySub = 'screen' | `day/${string}` | 'charts' | `charts/${string}`;
+
 /**
  * `#/notes/diaries` lists connected diaries; `#/notes/diaries/<id>` opens one patient,
- * `…/<id>/screen` its patient view, `…/<id>/day/<YYYY-MM-DD>` one day as the patient saw it.
+ * `…/<id>/screen` its patient view, `…/<id>/day/<YYYY-MM-DD>` one day as the patient saw it,
+ * `…/<id>/charts[/<chart>]` its charts.
  */
-export function diariesPath(patientId?: string, sub?: 'screen' | `day/${string}`): string {
+export function diariesPath(patientId?: string, sub?: DiarySub): string {
   if (!patientId) return '#/notes/diaries';
   return sub ? `#/notes/diaries/${patientId}/${sub}` : `#/notes/diaries/${patientId}`;
 }

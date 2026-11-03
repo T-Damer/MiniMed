@@ -17,15 +17,19 @@ import '@/diary/install-guide.css';
  * row asks to open the diary in a browser instead.
  */
 export function InstallWarning(props: {
-  readonly store: DiaryStore;
+  readonly store?: DiaryStore;
   /** Entries already made: on iOS the home-screen icon keeps its own storage. */
   readonly entries: number;
   /** A connected diary (the iPhone note tells to ask the doctor for a new code). */
   readonly connected?: boolean | undefined;
+  /** The row's words outside a messenger (the doctor's diaries app has its own). */
+  readonly title?: string;
 }): JSX.Element {
   const [guideOpen, setGuideOpen] = createSignal(false);
   const [asking, setAsking] = createSignal(false);
   const messenger = (): boolean => insideMessenger();
+  const title = (): string =>
+    messenger() || !props.title ? installWarningTitle(messenger()) : props.title;
 
   const open = async (): Promise<void> => {
     if (currentInstallAdvice() === 'prompt' && !messenger()) {
@@ -49,11 +53,11 @@ export function InstallWarning(props: {
         onClick={() => void open()}
       >
         <InstallGlyph name="warning" class="install-warning__icon" />
-        <span class="install-warning__text">{installWarningTitle(messenger())}</span>
+        <span class="install-warning__text">{title()}</span>
         <AppGlyph name="caret-right" class="install-warning__chevron" />
       </button>
       <Show when={guideOpen()}>
-        <DiarySheet title={installWarningTitle(messenger())} onClose={() => setGuideOpen(false)}>
+        <DiarySheet title={title()} onClose={() => setGuideOpen(false)}>
           <InstallGuide
             entries={props.entries}
             connected={props.connected}

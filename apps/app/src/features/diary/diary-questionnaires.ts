@@ -1,9 +1,10 @@
 /**
- * Self-report questionnaires a doctor can put into a care diary. Only scales the patient fills
- * in themselves (clinician-rated ones such as HAM-D stay with the doctor), and only scales whose
- * rights notice in the psychology pack allows reproduction. The definitions come from the same
- * pack the app's assessments use and are loaded on first use. A doctor can also embed a
- * questionnaire of their own (main app «Мои опросники»): it travels inside the checkpoint
+ * Self-report questionnaires a doctor can put into a care diary: every scale of the app's tool
+ * packs that the patient fills in themselves (clinician-rated ones such as HAM-D stay with the
+ * doctor), psychiatric screening scales and psychological profiles alike (owner 2026-11-03), and
+ * only scales whose rights notice allows reproduction. The definitions come from the same packs
+ * the app's assessments use and are loaded on first use. A doctor can also embed a questionnaire
+ * of their own (main app «Мои опросники»): it travels inside the checkpoint
  * (`DiaryCheckpoint.custom`) and goes through the same conversion as the built-in ones.
  */
 import type { ToolDefinitionRecord } from '@localmed/contracts';
@@ -13,19 +14,87 @@ import type { AssessmentDefinition } from '@/features/assessments/assessment-typ
 import type { DiaryCheckpoint } from '@/features/diary/diary-model';
 import { userQuestionnaireDefinition } from '@/state/user-questionnaire-format';
 
+/** The tool pack a built-in questionnaire comes from (content/tool-modules). */
+type QuestionnairePack = 'psychology' | 'obstetrics-gynecology';
+
+const PACKS: Readonly<Record<QuestionnairePack, () => Promise<{ readonly default: unknown }>>> = {
+  psychology: () => import('../../../../../content/tool-modules/psychology.json'),
+  'obstetrics-gynecology': () =>
+    import('../../../../../content/tool-modules/obstetrics-gynecology.json'),
+};
+
 export interface DiaryQuestionnaireOption {
   readonly slug: string;
   /** Short name on the patient's button and in the doctor's chips. */
   readonly title: string;
   /** What it measures, in plain words. */
   readonly about: string;
+  readonly pack: QuestionnairePack;
+  /**
+   * A profile of several scales without one total (temperament, roles): the doctor sees each
+   * result's headline, not a line of totals.
+   */
+  readonly profile?: true;
 }
 
 export const DIARY_QUESTIONNAIRES: readonly DiaryQuestionnaireOption[] = [
-  { slug: 'phq-9', title: 'PHQ-9', about: 'настроение' },
-  { slug: 'gad-7', title: 'GAD-7', about: 'тревога' },
-  { slug: 'zung-self-rating-depression', title: 'Шкала Цунга', about: 'депрессия' },
-  { slug: 'zung-self-rating-anxiety', title: 'Шкала Цунга', about: 'тревога' },
+  { slug: 'phq-9', title: 'PHQ-9', about: 'настроение', pack: 'psychology' },
+  { slug: 'gad-7', title: 'GAD-7', about: 'тревога', pack: 'psychology' },
+  {
+    slug: 'zung-self-rating-depression',
+    title: 'Шкала Цунга',
+    about: 'депрессия',
+    pack: 'psychology',
+  },
+  { slug: 'zung-self-rating-anxiety', title: 'Шкала Цунга', about: 'тревога', pack: 'psychology' },
+  { slug: 'asthenic-state-shas', title: 'ШАС', about: 'астения', pack: 'psychology' },
+  {
+    slug: 'perinatal-mood-whooley',
+    title: 'Вопросы Whooley',
+    about: 'депрессия, 2 вопроса',
+    pack: 'obstetrics-gynecology',
+  },
+  {
+    slug: 'postnatal-mood-epds',
+    title: 'EPDS',
+    about: 'депрессия при беременности и после родов',
+    pack: 'obstetrics-gynecology',
+  },
+  {
+    slug: 'temperament-profile',
+    title: 'Темперамент',
+    about: 'черты характера',
+    pack: 'psychology',
+    profile: true,
+  },
+  {
+    slug: 'personal-egogram',
+    title: 'Эгопрограмма',
+    about: 'эго-состояния',
+    pack: 'psychology',
+    profile: true,
+  },
+  {
+    slug: 'braverman-behavioral-profile',
+    title: 'Профиль Бравермана',
+    about: 'поведенческий профиль',
+    pack: 'psychology',
+    profile: true,
+  },
+  {
+    slug: 'paei-work-style',
+    title: 'PAEI',
+    about: 'стиль работы',
+    pack: 'psychology',
+    profile: true,
+  },
+  {
+    slug: 'team-role-profile',
+    title: 'Командные роли',
+    about: 'роль в команде',
+    pack: 'psychology',
+    profile: true,
+  },
 ];
 
 export function diaryQuestionnaire(slug: string): DiaryQuestionnaireOption | undefined {
@@ -60,8 +129,9 @@ const loaded = new Map<string, Promise<AssessmentDefinition>>();
 export function loadDiaryQuestionnaire(slug: string): Promise<AssessmentDefinition> {
   const cached = loaded.get(slug);
   if (cached) return cached;
-  const promise = import('../../../../../content/tool-modules/psychology.json').then((pack) => {
-    if (!diaryQuestionnaire(slug)) throw new Error('Этот опросник не входит в дневник.');
+  const option = diaryQuestionnaire(slug);
+  if (!option) return Promise.reject(new Error('Этот опросник не входит в дневник.'));
+  const promise = PACKS[option.pack]().then((pack) => {
     const tools = (pack.default as { readonly tools: readonly ToolDefinitionRecord[] }).tools;
     const record = tools.find((tool) => tool.slug === slug);
     if (!record) throw new Error('Опросник не найден.');

@@ -36,7 +36,8 @@ function survey() {
 
 function answer(field: DiaryField, value: DiaryValue): Record<string, unknown> {
   if (typeof value === 'number') {
-    return field.type === 'count'
+    // A counted amount with a unit («порций», «сигарет») keeps it as a quantity.
+    return field.type === 'count' && !field.unit
       ? { valueInteger: value }
       : {
           valueQuantity: {

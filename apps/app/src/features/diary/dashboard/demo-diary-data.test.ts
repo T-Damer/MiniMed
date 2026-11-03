@@ -216,6 +216,34 @@ describe('demo diary data', () => {
   });
 });
 
+describe('demo substance use', () => {
+  it('gives the fox sparse use and a craving that fades as the mood improves', async () => {
+    const { invitation, diary } = await build(0);
+    const checkpoint = invitation.checkpoints?.find((one) => one.kind === 'use');
+    expect(checkpoint?.fields).toEqual(['u-alcohol', 'u-nicotine', 'u-sedatives', 'craving']);
+    const marks = diary.entries.filter((entry) => entry.check === checkpoint?.id);
+    expect(marks.length).toBeGreaterThan(18);
+    const amounts = (entry: DiaryEntry, field: string): number => Number(entry.values[field] ?? 0);
+    const alcoholDays = marks.filter((entry) => amounts(entry, 'u-alcohol') > 0);
+    expect(alcoholDays.length).toBeGreaterThan(0);
+    expect(alcoholDays.length).toBeLessThan(marks.length * 0.6);
+    expect(marks.some((entry) => amounts(entry, 'u-nicotine') === 0)).toBe(true);
+    const half = Math.floor(marks.length / 2);
+    const mean = (list: readonly DiaryEntry[], field: string): number =>
+      list.reduce((sum, entry) => sum + amounts(entry, field), 0) / Math.max(1, list.length);
+    expect(mean(marks.slice(half), 'craving')).toBeLessThan(mean(marks.slice(0, half), 'craving'));
+    expect(mean(marks.slice(half), 'u-nicotine')).toBeLessThan(
+      mean(marks.slice(0, half), 'u-nicotine'),
+    );
+    // The other patients do not have the section.
+    for (const index of [1, 2, 3]) {
+      expect((await build(index)).invitation.checkpoints?.some((one) => one.kind === 'use')).toBe(
+        false,
+      );
+    }
+  });
+});
+
 describe('demo patients', () => {
   it('reads the alert item and the extra question from the questionnaire schema', async () => {
     const phq = questionnaireShape(await loadDiaryQuestionnaire('phq-9'));

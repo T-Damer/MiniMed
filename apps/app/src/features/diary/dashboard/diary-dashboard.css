@@ -1447,3 +1447,156 @@
   display: grid;
   gap: 0.75rem;
 }
+
+/* What changed this week (PatientOverview.tsx): one card of rows, the worrying first, each row a
+   tap target that opens its chart; the tone tints the row's icon, a danger row its edge too. */
+.diary-overview {
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background-color: var(--theme-surface-raised);
+  background-image: var(--theme-paper-dots);
+  background-size: 3px 3px;
+  overflow: hidden;
+}
+
+.diary-overview__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-overview__item + .diary-overview__item {
+  border-top: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
+}
+
+.diary-overview__row {
+  --signal-tone: var(--theme-text-muted);
+  display: grid;
+  width: 100%;
+  min-height: 3.25rem;
+  box-sizing: border-box;
+  grid-template-columns: 2.25rem 1fr auto;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  gap: 0.65rem;
+  border: 0;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diary-overview__row:active {
+  background-color: color-mix(in srgb, var(--theme-text) 6%, transparent);
+  transform: scale(0.985);
+}
+
+.diary-overview__row:focus-visible {
+  outline: var(--theme-outline-width) solid var(--theme-accent);
+  outline-offset: calc(-1 * var(--theme-outline-width));
+}
+
+.diary-overview__row--good {
+  --signal-tone: var(--theme-success);
+}
+
+.diary-overview__row--warn {
+  --signal-tone: var(--theme-warning);
+}
+
+.diary-overview__row--danger {
+  --signal-tone: var(--theme-danger);
+  --signal-detail: var(--theme-danger);
+  box-shadow: inset 3px 0 0 var(--theme-danger);
+}
+
+.diary-overview__row--all {
+  --signal-tone: var(--theme-accent);
+}
+
+.diary-overview__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--signal-tone);
+  background: color-mix(in srgb, var(--signal-tone) 14%, transparent);
+}
+
+.diary-overview__glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.diary-overview__text {
+  display: grid;
+  min-width: 0;
+  gap: 0.05rem;
+}
+
+.diary-overview__title {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.diary-overview__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+
+.diary-overview__trend {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.diary-overview__detail {
+  overflow: hidden;
+  color: var(--signal-detail, var(--theme-text-muted));
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-overview__chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-faint, var(--theme-text-muted));
+}
+
+/* The charts page: a chart opened from a signal starts under the pinned header row. */
+.diary-charts-page__anchor {
+  scroll-margin-top: calc(var(--safe-top, 0px) + 4.5rem);
+}
+
+.diary-charts-page__results {
+  display: grid;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  gap: 0.35rem;
+  list-style: none;
+}
+
+.diary-charts-page__result {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.diary-charts-page__result-when {
+  color: var(--theme-text-muted);
+  font-variant-numeric: tabular-nums;
+}

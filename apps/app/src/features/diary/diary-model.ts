@@ -9,6 +9,7 @@
  * Everything that crosses a device boundary is validated here.
  */
 
+import { substanceSummary } from '@/features/diary/diary-substances';
 import {
   parseUserQuestionnaire,
   stripUntrustedQuestionnaireImages,
@@ -115,7 +116,7 @@ export interface DiaryPlanItem {
  * Something the doctor asks the patient to fill at set times: a score (wellbeing 0–10), a group of
  * measurements, or a questionnaire every few days.
  */
-export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire' | 'text' | 'choice';
+export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire' | 'text' | 'choice' | 'use';
 
 export interface DiaryCheckpoint {
   readonly id: string;
@@ -123,7 +124,10 @@ export interface DiaryCheckpoint {
   readonly label: string;
   /** Daily times `HH:MM` (score and vitals). Empty: once a day at any time. */
   readonly times?: readonly string[];
-  /** Fields this checkpoint fills (score: one number field; vitals: several). */
+  /**
+   * Fields this checkpoint fills (score: one number field; vitals: several; use: a `count` field
+   * per substance, a craving score and a «что именно» text).
+   */
   readonly fields?: readonly string[];
   /** Questionnaire slug (`phq-9`) for a questionnaire checkpoint; `own-…` for a doctor's own. */
   readonly questionnaire?: string;
@@ -504,8 +508,32 @@ const CHECKPOINT_KINDS: readonly DiaryCheckpointKind[] = [
   'questionnaire',
   'text',
   'choice',
+  'use',
 ];
 const CONTACT_KINDS: readonly DiaryContactKind[] = ['phone', 'telegram', 'link', 'email'];
+
+/**
+ * The fields of a substance-use checkpoint: counts (with a ceiling), a bounded score and a text,
+ * and at least one count; anything else could not be shown by the patient's use sheet.
+ */
+function checkUseFields(
+  label: string,
+  fieldIds: readonly string[],
+  fields: readonly DiaryField[],
+): void {
+  const chosen = fieldIds.flatMap((id) => fields.filter((field) => field.id === id));
+  for (const field of chosen) {
+    const bounded = field.min !== undefined && field.max !== undefined;
+    const ok =
+      field.type === 'text' ||
+      (field.type === 'count' && field.max !== undefined) ||
+      (field.type === 'number' && bounded);
+    if (!ok) throw new DiaryFormatError(`«${label}»: поле «${field.label}» не того вида.`);
+  }
+  if (!chosen.some((field) => field.type === 'count')) {
+    throw new DiaryFormatError(`«${label}»: нужно хотя бы одно вещество.`);
+  }
+}
 
 function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryCheckpoint[] {
   if (value === undefined) return [];
@@ -554,6 +582,7 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
     ) {
       throw new DiaryFormatError(`«${label}»: поле не того вида.`);
     }
+    if (kind === 'use') checkUseFields(label, fieldIds as string[], fields);
     const questionnaire = source['questionnaire'];
     if (
       kind === 'questionnaire' &&
@@ -589,6 +618,9 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
   });
   if (new Set(checkpoints.map((checkpoint) => checkpoint.id)).size !== checkpoints.length) {
     throw new DiaryFormatError('Отметки дневника повторяются.');
+  }
+  if (checkpoints.filter((item) => item.kind === 'use' && !item.ended).length > 1) {
+    throw new DiaryFormatError('Раздел «Употребление» может быть только один.');
   }
   const customChars = checkpoints.reduce(
     (total, checkpoint) =>
@@ -943,6 +975,10 @@ export function parseDiaryEntry(
   if (Object.keys(values).length === 0 && !note && !answers && !voice) {
     throw new DiaryFormatError('Заполните хотя бы одно поле.');
   }
+  const answered = invitation.checkpoints?.find((candidate) => candidate.id === check);
+  if (answered?.kind === 'use' && Object.keys(values).length === 0) {
+    throw new DiaryFormatError('Отметьте употребление или «Ничего не было».');
+  }
   return {
     id: identifier(source['id'], 'Запись'),
     at: timestamp(source['at'], 'Дата записи', now),
@@ -1094,20 +1130,24 @@ export function describeDiaryValue(
 /** One human-readable line per entry, shared by the patient page and the doctor preview. */
 export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntry): string {
   const byId = new Map(invitation.fields.map((field) => [field.id, field]));
+  const checkpoint = entry.check
+    ? invitation.checkpoints?.find((candidate) => candidate.id === entry.check)
+    : undefined;
+  // Substance use reads as one phrase («алкоголь 2 порции · тяга 6»), not a field per substance.
+  const use = checkpoint?.kind === 'use' ? substanceSummary(entry.values) : undefined;
   const pressure =
     typeof entry.values['systolic'] === 'number' && typeof entry.values['diastolic'] === 'number'
       ? `${entry.values['systolic']}/${entry.values['diastolic']} мм рт. ст.`
       : undefined;
-  const parts = invitation.fields.flatMap((field) => {
-    if (pressure && (field.id === 'systolic' || field.id === 'diastolic')) return [];
-    const value = entry.values[field.id];
-    return value === undefined
-      ? []
-      : [describeDiaryValue(invitation, byId.get(field.id) ?? field, value)];
-  });
-  const checkpoint = entry.check
-    ? invitation.checkpoints?.find((candidate) => candidate.id === entry.check)
-    : undefined;
+  const parts = use
+    ? []
+    : invitation.fields.flatMap((field) => {
+        if (pressure && (field.id === 'systolic' || field.id === 'diastolic')) return [];
+        const value = entry.values[field.id];
+        return value === undefined
+          ? []
+          : [describeDiaryValue(invitation, byId.get(field.id) ?? field, value)];
+      });
   const answers = entry.answers ? Object.keys(entry.answers).length : 0;
   const plan = entry.values['medication'] as DiaryPlanValue | undefined;
   return [
@@ -1116,6 +1156,7 @@ export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntr
     entry.voice ? `голосовая запись, ${entry.voice.seconds} с` : undefined,
     pressure,
     ...parts,
+    use,
     plan?.slot ? `по плану ${plan.slot}` : undefined,
   ]
     .filter(Boolean)

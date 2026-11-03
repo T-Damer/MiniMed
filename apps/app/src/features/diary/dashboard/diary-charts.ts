@@ -10,6 +10,7 @@
 import { fieldSeries, type SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 import type { MedicineIntake } from '@/features/diary/dashboard/diary-intake';
 import type { DiaryEntry } from '@/features/diary/diary-model';
+import { SUBSTANCES, USE_CRAVING_FIELD } from '@/features/diary/diary-substances';
 
 export interface DiaryChartSeries {
   /** Diary field charted. */
@@ -34,6 +35,8 @@ export interface DiaryChart {
   readonly title: string;
   readonly series: readonly DiaryChartSeries[];
   readonly limits?: readonly DiaryChartLimit[];
+  /** One value per day (substance amounts): straight lines and the day, not the time, in the tip. */
+  readonly daily?: boolean;
   readonly min?: number;
   readonly max?: number;
   readonly rightMin?: number;
@@ -93,6 +96,27 @@ export const DIARY_CHARTS: readonly DiaryChart[] = [
       { id: 'spo2', unit: '%', axis: 'right' },
     ],
   },
+  {
+    id: 'craving',
+    title: 'Тяга (0–10)',
+    min: 0,
+    max: 10,
+    series: [{ field: USE_CRAVING_FIELD, label: 'Тяга', color: '--theme-danger' }],
+    limits: [{ id: USE_CRAVING_FIELD }],
+  },
+  // One chart per substance from the catalog: amounts differ in unit, and a chart appears only
+  // when the patient has marked that substance.
+  ...SUBSTANCES.map(
+    (substance): DiaryChart => ({
+      id: `use-${substance.id}`,
+      title: `${substance.label}, ${substance.unit[2]} в день`,
+      daily: true,
+      min: 0,
+      series: [{ field: substance.field, label: substance.label, color: '--theme-warning' }],
+      // No usual cut-off: the doctor sets the patient's own line.
+      limits: [{ id: substance.field, unit: substance.unit[2] }],
+    }),
+  ),
 ];
 
 export interface ChartedSeries extends DiaryChartSeries {

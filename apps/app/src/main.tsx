@@ -1,8 +1,9 @@
+import { Capacitor } from '@capacitor/core';
 import { render } from 'solid-js/web';
-
 import { App } from '@/app/App';
 import { BootScreen } from '@/app/BootScreen';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
+import { listenForInstallPrompt } from '@/diary/install-state';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installChunkRecovery } from '@/state/chunk-recovery';
 import { installMotionManager } from '@/state/motion';
@@ -84,12 +85,27 @@ if (standby) {
 }
 const stopNativeSafeBottomLock = standby ? () => undefined : lockNativeSafeBottom();
 const stopReminderNotifications = standby ? () => undefined : startReminderNotifications();
+// The browser's bars take the header's colour (an installed diaries app above all); the Android
+// app colours its own.
+let stopThemeColor = (): void => undefined;
+if (!Capacitor.isNativePlatform()) {
+  // Chrome offers its install prompt once, early: the diaries app's install row needs it.
+  listenForInstallPrompt();
+  void import('@/state/web-theme-color')
+    .then(({ installWebThemeColor }) => {
+      stopThemeColor = installWebThemeColor();
+    })
+    .catch((cause: unknown) => {
+      console.warn('Цвет панели браузера не будет следовать странице:', cause);
+    });
+}
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     stopMotionManager();
     stopTheme();
     stopNativeSafeBottomLock();
     stopReminderNotifications();
+    stopThemeColor();
   });
 }
 
