@@ -62,7 +62,9 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { builtInScaleCards } from '@/features/assessments/built-in-scales';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
+import type { DiaryQuestionnaireOption } from '@/features/diary/diary-questionnaires';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
@@ -135,6 +137,20 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
   const [ageFilter, setAgeFilter] = createToolAgeFilter();
   /** The catalog without the tools the «Дети / Взрослые / Все» choice hides. */
   const ageFilteredCatalog = createMemo(() => filterByAge(assessmentCatalog(), ageFilter()));
+  /** The built-in scales a narrowed profile lists above the user's own; null in the full app. */
+  const profileScales = (): readonly DiaryQuestionnaireOption[] | null =>
+    activeProfile()?.builtInScales ?? null;
+  const builtInScales = createMemo(() => {
+    const scales = profileScales();
+    return scales ? builtInScaleCards(scales, ageFilteredCatalog(), query()) : null;
+  });
+  const builtInHiddenByAge = createMemo(() => {
+    const scales = profileScales();
+    return scales
+      ? builtInScaleCards(scales, assessmentCatalog(), query()).length -
+          (builtInScales()?.length ?? 0)
+      : 0;
+  });
   const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
   const [toolsReady, setToolsReady] = createSignal(false);
   const [toolsError, setToolsError] = createSignal('');
@@ -438,6 +454,14 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     window.location.hash = hash;
   };
   /**
+   * Where back from a built-in scale falls to without history: the questionnaire list when it is
+   * a tab of a narrowed profile, its section with split navigation, else the search home.
+   */
+  const builtInBackFallback = (slug: string): string => {
+    if (activeProfile()) return userQuestionnaireHomePath();
+    return getSplitNavigation() ? assessmentHomePath(slug) : '#/search';
+  };
+  /**
    * Where back from an own questionnaire falls to without history: its list when the list is a
    * tab (split navigation, a narrowed profile), else the search home.
    */
@@ -708,6 +732,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           query={query()}
           recentRecords={records().slice(0, 8)}
           userQuestionnaires={userQuestionnaires()}
+          builtInScales={builtInScales()}
+          builtInHiddenByAge={builtInHiddenByAge()}
           onQuery={setQuery}
           onBack={() => navigateBack(activeProfile()?.home ?? '#/assessments')}
           onHome={() => visitRoute('#/search')}
@@ -715,6 +741,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
           onCreateUserQuestionnaire={() => navigate(userQuestionnaireNewPath())}
           onOpenUserQuestionnaire={(fileId) => navigate(userQuestionnairePath(fileId))}
+          onOpenBuiltInScale={({ entry }) => navigate(assessmentPath(entry.bankId, entry.slug))}
           onEditUserQuestionnaire={(fileId) => navigate(userQuestionnaireEditPath(fileId))}
           onExportUserQuestionnaire={exportUserQuestionnaireFile}
           onDuplicateUserQuestionnaire={duplicateUserQuestionnaireFile}
@@ -998,9 +1025,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
               selected().bankLabel
             }
-            onBack={() =>
-              navigateBack(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
-            }
+            onBack={() => navigateBack(builtInBackFallback(selected().slug))}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -1030,9 +1055,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               selected().bankLabel
             }
             title={selected().title}
-            onBack={() =>
-              navigateBack(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
-            }
+            onBack={() => navigateBack(builtInBackFallback(selected().slug))}
             onInstall={() => installDefinition(selected().id)}
             installSize={installSizeOf({ definitionId: selected().id })}
           />
