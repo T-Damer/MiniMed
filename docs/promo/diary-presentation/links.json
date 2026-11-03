@@ -1,0 +1,15 @@
+{
+  "comment": "QR targets of the slides (tools/qr-links.ts). `text` is what a slide prints: the short domain people can type. `qr` is what the code opens: the pages themselves on GitVerse, which stays reachable when a network lets only listed domains through (med.1damer.com's DNS is on Cloudflare). Change a value and run `bun docs/promo/diary-presentation/tools/qr-links.ts` from the repository root.",
+  "links": [
+    {
+      "label": "демо для врача",
+      "text": "med.1damer.com/demo",
+      "qr": "https://t-damer.gitverse.site/minimed/index.html?profile=diaries&demo"
+    },
+    {
+      "label": "демо для пациента",
+      "text": "med.1damer.com/demo/patient",
+      "qr": "https://t-damer.gitverse.site/minimed/diary/#demo"
+    }
+  ]
+}

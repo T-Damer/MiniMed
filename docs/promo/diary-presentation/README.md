@@ -17,6 +17,12 @@ cd docs/promo/diary-presentation/tools && bun install
 bun build-pptx.mjs ../index.html ../diary-presentation.pptx
 ```
 
-QR codes point at `med.1damer.com/demo` (doctor) and `/demo/patient` (patient). These are the diary
-service's short links: the gateway redirects them to wherever the pages are published
-(`DIARY_PAGES_URL`, docs/DIARY_ADMIN.md), so the slides need no change when the pages move.
+The slides print the short links `med.1damer.com/demo` (doctor) and `/demo/patient` (patient), but
+the QR codes open the pages on GitVerse directly: `med.1damer.com` resolves through Cloudflare, which
+a network that lets only listed domains through may not reach. Both live in `links.json` (`text` —
+printed, `qr` — encoded); after changing them rebuild and verify the codes from the repository root:
+
+```bash
+bun docs/promo/diary-presentation/tools/qr-links.ts          # rewrite the QR codes in index.html
+bun docs/promo/diary-presentation/tools/qr-links.ts --check  # read every code back (jsQR)
+```
