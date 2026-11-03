@@ -15,6 +15,13 @@ body:has(.diary-day-view) {
   --theme-accent-contrast: #ffffff;
   --theme-accent-soft: rgb(47 102 132 / 12%);
   --care-edit-gap: color-mix(in srgb, var(--theme-accent) 30%, var(--theme-surface-raised));
+  /* The route's folder under the card, so the card does not sit in a brown card (owner 2026-11-03). */
+  --folder: #b9cad3;
+  --folder-light: #cfdbe1;
+  /* Declared on :root from the folder colours, so it is restated here to pick the new ones up. */
+  --route-desk-gradient:
+    linear-gradient(180deg, var(--folder-light), var(--folder)) 0 0 / 100% 100lvh no-repeat,
+    var(--folder);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +36,8 @@ body:has(.diary-day-view) {
     --theme-accent-text: #9ecbe0;
     --theme-accent-contrast: #10181c;
     --theme-accent-soft: rgb(143 188 210 / 15%);
+    --folder: #1d272c;
+    --folder-light: #24313a;
   }
 }
 
@@ -42,4 +51,16 @@ body:has(.diary-day-view) {
 .diary-day-view__mode-glyph {
   width: 0.95rem;
   height: 0.95rem;
+}
+
+/* One surface, not a card in a card (owner 2026-11-03): the patient's day lies straight on the
+   route's sheet, without its own paper, edge or rounded top. */
+.diary-day-view .diary-today--doctor {
+  max-width: none;
+  margin-top: 0;
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }

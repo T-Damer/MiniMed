@@ -1338,3 +1338,42 @@ body:has(.diary-care-scope) {
     animation: none;
   }
 }
+
+/* The doctor's date opens the calendar (DIARY21): the title with a calendar mark, a pressable row. */
+.diary-today__day-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease);
+}
+
+.diary-today__day-pick:hover,
+.diary-today__day-pick[aria-expanded="true"] {
+  background: var(--theme-accent-soft);
+}
+
+.diary-today__day-pick:active {
+  transform: scale(0.96);
+}
+
+.diary-today__day-pick-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--theme-accent);
+}
+
+.diary-today__calendar {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+}

@@ -127,6 +127,8 @@ export function DiaryHeatmap(props: {
   readonly since?: string;
   /** Days a doctor changed the plan (DIARY20): a yellow dot in the corner of the day. */
   readonly changedDays?: ReadonlySet<string>;
+  /** Inside a sheet or popover that is its own card: no frame or paper of its own. */
+  readonly bare?: boolean;
 }): JSX.Element {
   let scroller: HTMLDivElement | undefined;
   let grid: HTMLDivElement | undefined;
@@ -258,7 +260,11 @@ export function DiaryHeatmap(props: {
   };
 
   return (
-    <section class="diary-heat" aria-label="Календарь отметок">
+    <section
+      class="diary-heat"
+      classList={{ 'diary-heat--bare': props.bare === true }}
+      aria-label="Календарь отметок"
+    >
       <header class="diary-heat__head">
         <h3 class="diary-heat__title">{title()}</h3>
         <div class="diary-heat__tools">

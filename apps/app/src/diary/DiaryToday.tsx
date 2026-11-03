@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { SheetPopover } from '@/components/SheetPopover';
 import { CareIntro } from '@/diary/CareIntro';
 import { ContactsSheet, CrisisSheet } from '@/diary/care-contacts';
 import {
@@ -341,6 +342,7 @@ export function DiaryToday(props: {
   const today = () => dayKey(now());
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
   createEffect(() => props.onDay?.(day()));
+  const [calendarOpen, setCalendarOpen] = createSignal(false);
   const [sheet, setSheet] = createSignal<Sheet | undefined>(undefined);
   const [flash, setFlash] = createSignal('');
 
@@ -529,7 +531,41 @@ export function DiaryToday(props: {
             <AppGlyph name="caret-left" class="diary-today__step-icon" />
           </button>
           <div class="diary-today__day-text">
-            <h2 class="diary-today__day-title">{dayTitle(day(), today())}</h2>
+            <Show
+              when={props.viewer === 'doctor'}
+              fallback={<h2 class="diary-today__day-title">{dayTitle(day(), today())}</h2>}
+            >
+              {/* The doctor's way to another day: the date opens the calendar (DIARY21). */}
+              <SheetPopover
+                open={calendarOpen()}
+                onOpenChange={setCalendarOpen}
+                title="Выберите день"
+                triggerClass="diary-today__day-pick"
+                triggerLabel={`${dayTitle(day(), today())}: открыть календарь`}
+                trigger={
+                  <>
+                    <span class="diary-today__day-title">{dayTitle(day(), today())}</span>
+                    <AppGlyph name="calendar" class="diary-today__day-pick-icon" />
+                  </>
+                }
+                contentClass="diary-today__calendar"
+              >
+                <DiaryHeatmap
+                  bare
+                  days={heat()}
+                  selected={day()}
+                  today={today()}
+                  onSelect={(next) => {
+                    setDay(next);
+                    setCalendarOpen(false);
+                  }}
+                  since={diaryStarted(invitation(), props.results.entries)}
+                  parts={heatParts(invitation())}
+                  include={include()}
+                  onInclude={setInclude}
+                />
+              </SheetPopover>
+            </Show>
             <Show when={progress()}>
               <p class="diary-today__progress">{progress()}</p>
             </Show>
