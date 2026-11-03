@@ -1,5 +1,6 @@
 import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
+import { navigateWithMotion } from '@/app/route-motion';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -184,6 +185,12 @@ export function DiaryDashboard(props: {
   const [pushHelp, setPushHelp] = createSignal(false);
   /** The patient whose pairing code and link are shown again (a lost page, another device). */
   const [pairing, setPairing] = createSignal<string>();
+  // Taps that change the screen answer at once: the page on screen starts leaving, and the route
+  // changes two frames later (app/route-motion.ts).
+  const openPatient = (id: string, sub?: DiarySub): void =>
+    navigateWithMotion(() => props.onOpenPatient(id, sub));
+  const toList = (): void => navigateWithMotion(props.onList);
+  const toPatient = (id: string): void => navigateWithMotion(() => navigateBack(diariesPath(id)));
   const chooseOrder = (next: PatientOrder): void => {
     setOrder(next);
     try {
@@ -246,7 +253,7 @@ export function DiaryDashboard(props: {
         label: 'Новый пациент',
         icon: 'plus',
         priority: 1,
-        onSelect: () => props.onOpenPatient(NEW_PATIENT_ROUTE),
+        onSelect: () => openPatient(NEW_PATIENT_ROUTE),
       },
       ...(push === 'on'
         ? []
@@ -347,7 +354,7 @@ export function DiaryDashboard(props: {
         id: 'open',
         label: 'Открыть',
         icon: 'arrow-right',
-        onSelect: () => props.onOpenPatient(id),
+        onSelect: () => openPatient(id),
       },
       ...(patient.summary.role !== 'reader' && patient.replica.invitation
         ? [
@@ -355,7 +362,7 @@ export function DiaryDashboard(props: {
               id: 'screen',
               label: 'Редактировать',
               icon: 'edit' as const,
-              onSelect: () => props.onOpenPatient(id, 'screen'),
+              onSelect: () => openPatient(id, 'screen'),
             },
           ]
         : []),
@@ -418,7 +425,7 @@ export function DiaryDashboard(props: {
         {(patient) => (
           <PatientRow
             patient={patient()}
-            onOpen={() => props.onOpenPatient(id)}
+            onOpen={() => openPatient(id)}
             onAccept={() => {
               void workspace()
                 ?.accept(id)
@@ -456,7 +463,7 @@ export function DiaryDashboard(props: {
       <Show when={session() && !props.patientId}>
         <FloatingActionButton
           label="Новый пациент"
-          onClick={() => props.onOpenPatient(NEW_PATIENT_ROUTE)}
+          onClick={() => openPatient(NEW_PATIENT_ROUTE)}
         />
       </Show>
       <Show when={session()}>
@@ -528,7 +535,7 @@ export function DiaryDashboard(props: {
         {(diaries) => (
           <NewPatientScreen
             workspace={diaries()}
-            onBack={props.onList}
+            onBack={toList}
             onCreated={(id) => props.onReplacePatient(id)}
           />
         )}
@@ -543,8 +550,8 @@ export function DiaryDashboard(props: {
                     workspace={diaries()}
                     patient={patient()}
                     version={version()}
-                    onBack={props.onList}
-                    onOpen={(sub) => props.onOpenPatient(patient().summary.id, sub)}
+                    onBack={toList}
+                    onOpen={(sub) => openPatient(patient().summary.id, sub)}
                   />
                 }
               >
@@ -554,7 +561,7 @@ export function DiaryDashboard(props: {
                       workspace={diaries()}
                       patient={patient()}
                       invitation={ready().invitation}
-                      onClose={() => navigateBack(diariesPath(patient().summary.id))}
+                      onClose={() => toPatient(patient().summary.id)}
                     />
                   )}
                 </Match>
@@ -565,7 +572,7 @@ export function DiaryDashboard(props: {
                       results={ready()}
                       version={version()}
                       focus={props.chart}
-                      onBack={() => navigateBack(diariesPath(patient().summary.id))}
+                      onBack={() => toPatient(patient().summary.id)}
                     />
                   )}
                 </Match>
@@ -576,7 +583,7 @@ export function DiaryDashboard(props: {
                       patient={patient()}
                       version={version()}
                       day={day()}
-                      onBack={() => navigateBack(diariesPath(patient().summary.id))}
+                      onBack={() => toPatient(patient().summary.id)}
                     />
                   )}
                 </Match>
@@ -703,10 +710,7 @@ export function DiaryDashboard(props: {
                       data-testid="diary-empty"
                       actions={
                         <>
-                          <Button
-                            variant="primary"
-                            onClick={() => props.onOpenPatient(NEW_PATIENT_ROUTE)}
-                          >
+                          <Button variant="primary" onClick={() => openPatient(NEW_PATIENT_ROUTE)}>
                             Новый пациент
                           </Button>
                           <Show when={workspace()}>
