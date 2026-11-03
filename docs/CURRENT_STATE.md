@@ -20,6 +20,51 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Drug card: condition row, structures, «Состав» roles, wrapped-line repair — 2026-11-03 (STATE DRUG-HDR2)
+
+Owner's phone review of the glimepiride card. What changed on the drug/instruction reader:
+
+- **Condition row («как у Видаля»).** `medication-safety/drug-conditions.ts` (pure) reads the open
+  instruction for pregnancy, breastfeeding, children, the elderly, liver, kidneys and driving; each icon
+  is red (named in «Противопоказания» or forbidden in text), amber («С осторожностью», dose
+  adjustment, «данных недостаточно», a contraindication only for a stage — «тяжёлая печёночная
+  недостаточность», «до 3 лет», a trimester), green («коррекции дозы не требуется», «не влияет»,
+  «разрешён», a dose for children) or grey dashed (not said). List sentences are judged clause by
+  clause, cross references («см. раздел …») are ignored, untyped page-stamp sections continue the
+  section before them. A tap opens a sheet with the quoted sentences, grouped by section, each jumping
+  to its paragraph. Replaces the «Беременность, ГВ, дети» disclosure (`DrugSafetyBlock`, removed); the
+  search safety card (SAFE1) is unchanged. On the 1 217 instructions of the alimentary module:
+  pregnancy 513 red / 453 amber / 95 green / 156 grey; liver 152 / 403 / 8 / 654; driving 2 / 230 /
+  247 / 738. Levels are deterministic phrase rules, not reviewed by a physician; every level shows the
+  sentences it rests on.
+- **«Разделы N» button removed**: it duplicated the contents (≡) in the header.
+- **Page stamps fold away.** `foldPageStamps` (`library/document-display.ts`): untyped ГРЛС sections
+  titled with page stamps («ИНСТРУКЦИЯ», «ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА», «МЗ РФ»,
+  «СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ», «ЛП-№(…)», «(ПОСЛЕДОВАТЕЛЬНОСТЬ 0001)») are no longer headings;
+  their paragraphs continue the section they cut (none dropped). 96 stamp titles of the alimentary
+  module match; OCR-mangled variants may remain.
+- **Wrapped-line repair** (`library/instruction-text-repair.ts`, display only, stored text and anchors
+  unchanged): ГРЛС modules store every printed PDF line as a block, so «- 14,0 мг» lines became bullets
+  and «до-/децил» words broke. Measured over all 15 instruction modules (245 562 chunks): 43 380 hyphen
+  breaks → 20, wrongly bulleted lines 10 427 → 6 984 (mostly real lists). Not covered: words broken
+  without a hyphen, bullet-glyph continuations. The real fix is in the ingest (emit wraps as spaces);
+  once modules are rebuilt that way the repair is a no-op.
+- **Compound structures and roles.** `smiles-drawer` 2.4.1 (MIT, lazy chunk) draws the active
+  substance's 2D structure beside the drug title (found by name, the instruction's `inn`, or a
+  single-compound ATC code; none for combinations); a tap opens a sheet with the structure, formula,
+  up to two pharmacological roles and molecular targets. Under «Состав» one sideways row of chips
+  names each known component with its role («действующее», «наполнитель», «разрыхлитель», …), each
+  opening the same sheet. Data: lazy chunk `medications/compounds/compound-facts.json` (≈410 kB raw,
+  120 kB gzip) built by `tools/compounds/` from Wikidata (CC0), ChEBI (CC BY 4.0) and ChEMBL (CC BY-SA
+  3.0, share-alike) with a reviewed excipient list; rebuild: [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md)
+  «Compound facts». Coverage: 1 345 active substances (1 240 with a structure, 1 098 with roles, 825 with
+  targets) of 2 020 single-substance ЕСКЛП cards (the rest herbal, homeopathic, biological, vaccines);
+  237 excipients covering 77 % of excipient mentions in parsed «Состав» sections; functions marked
+  `curated` come from the reviewed glossary, not a source database. Roles are source terms without
+  clinical review (some are odd — ranked ATC-consistent first, only two shown).
+- **Header buttons** of the reader (‹, ≡, find, ⋯) share one raised round style; **dotted paper**
+  also on calculator, module and settings cards, the drug product panel and the new sheets.
+
 ## Android test build: fingerprint-unlocked patient vault and native camera — 2026-10-31 (branch `test/native-camera-vault`)
 
 **Implemented, compiled only in part, NOT tested on a device.** Both features exist for a test APK;

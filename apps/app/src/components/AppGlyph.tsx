@@ -16,6 +16,7 @@ import arrowsOutLineHorizontalBold from '@phosphor-icons/core/assets/bold/arrows
 import arrowsOutLineVerticalBold from '@phosphor-icons/core/assets/bold/arrows-out-line-vertical-bold.svg?raw';
 import arrowsOutSimpleBold from '@phosphor-icons/core/assets/bold/arrows-out-simple-bold.svg?raw';
 import atBold from '@phosphor-icons/core/assets/bold/at-bold.svg?raw';
+import babyBold from '@phosphor-icons/core/assets/bold/baby-bold.svg?raw';
 import bellBold from '@phosphor-icons/core/assets/bold/bell-bold.svg?raw';
 import binaryBold from '@phosphor-icons/core/assets/bold/binary-bold.svg?raw';
 import binocularsBold from '@phosphor-icons/core/assets/bold/binoculars-bold.svg?raw';
@@ -48,6 +49,7 @@ import discBold from '@phosphor-icons/core/assets/bold/disc-bold.svg?raw';
 import dotsThreeBold from '@phosphor-icons/core/assets/bold/dots-three-bold.svg?raw';
 import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-vertical-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
+import dropBold from '@phosphor-icons/core/assets/bold/drop-bold.svg?raw';
 import envelopeSimpleBold from '@phosphor-icons/core/assets/bold/envelope-simple-bold.svg?raw';
 import eraserBold from '@phosphor-icons/core/assets/bold/eraser-bold.svg?raw';
 import eyeSlashBold from '@phosphor-icons/core/assets/bold/eye-slash-bold.svg?raw';
@@ -118,6 +120,7 @@ import speakerHighBold from '@phosphor-icons/core/assets/bold/speaker-high-bold.
 import sphereBold from '@phosphor-icons/core/assets/bold/sphere-bold.svg?raw';
 import squaresFourBold from '@phosphor-icons/core/assets/bold/squares-four-bold.svg?raw';
 import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
+import steeringWheelBold from '@phosphor-icons/core/assets/bold/steering-wheel-bold.svg?raw';
 import textAaBold from '@phosphor-icons/core/assets/bold/text-aa-bold.svg?raw';
 import textBBold from '@phosphor-icons/core/assets/bold/text-b-bold.svg?raw';
 import textColumnsBold from '@phosphor-icons/core/assets/bold/text-columns-bold.svg?raw';
@@ -212,6 +215,13 @@ export type AppGlyphName =
   | 'qr-code'
   | 'chart-line'
   | 'skin-layers'
+  | 'pregnant'
+  | 'baby'
+  | 'drop'
+  | 'elderly'
+  | 'liver'
+  | 'kidney'
+  | 'steering-wheel'
   | 'share-fat'
   | 'stop-circle'
   | 'binoculars'
@@ -296,6 +306,23 @@ function svgBody(asset: string): string {
  * (redrawn after the owner's reference, in the 256 grid and bold stroke of the Phosphor set). */
 const skinLayers = `<g fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M128 36 228 76 128 116 28 76Z"/><path d="M28 76v100l100 46 100-46V76M128 116v106"/><path d="M28 112q12.5-8 25 10t25 10t25 10t25 10q12.5-18 25-10t25-10t25-10t25-10"/><path d="M28 146l100 44 100-44" opacity=".55"/></g><circle cx="62" cy="145" r="9"/><circle cx="98" cy="159" r="9"/><circle cx="190" cy="145" r="9"/>`;
 
+/** Drawn for the drug card's condition row (owner 2026-11-03), in the 256 grid and bold stroke of
+ * the Phosphor set: a pregnant woman in profile, an elderly person with a cane, a liver, a kidney. */
+const stroke = (body: string): string =>
+  `<g fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">${body}</g>`;
+const pregnant = stroke(
+  '<circle cx="118" cy="44" r="26"/><path d="M100 88c-14 34-12 74-4 98l-4 48"/><path d="M136 88c12 18 12 30 8 38 52 8 62 72 12 88l-4 20"/><path d="M122 114q-12 40 34 48"/>',
+);
+const elderly = stroke(
+  '<circle cx="106" cy="42" r="24"/><path d="M106 80q26 42 12 86l-22 70"/><path d="M118 166l28 70"/><path d="M112 108l60 34"/><path d="M172 142l12 94"/><path d="M172 142q4-24 28-16"/>',
+);
+const liver = stroke(
+  '<path d="M20 108c0-42 58-54 124-52s104 16 94 52c-10 40-64 62-110 86-40 22-80 24-96 0-14-22-12-52-12-86Z"/><path d="M144 56v52"/><path d="M106 158q34-40 74-20"/>',
+);
+const kidney = stroke(
+  '<path d="M118 28c-66-6-94 56-84 124 10 64 64 92 102 60 20-18 12-44-8-54-20-10-20-44 0-56 28-16 38-68-10-74Z"/><path d="M138 132h40q20 0 20 20v84"/>',
+);
+
 const glyphBodies: Record<AppGlyphName, string> = {
   'refresh-fill': svgBody(arrowsClockwiseFill),
   'image-fill': svgBody(imageSquareFill),
@@ -378,6 +405,13 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'qr-code': svgBody(qrCodeBold),
   'chart-line': svgBody(chartLineBold),
   'skin-layers': skinLayers,
+  pregnant,
+  baby: svgBody(babyBold),
+  drop: svgBody(dropBold),
+  elderly,
+  liver,
+  kidney,
+  'steering-wheel': svgBody(steeringWheelBold),
   'share-fat': svgBody(shareFatBold),
   'stop-circle': svgBody(stopCircleFill),
   binoculars: svgBody(binocularsBold),

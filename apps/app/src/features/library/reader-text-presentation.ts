@@ -1,5 +1,6 @@
 import { CLEANED_SECTION_TITLES } from '@/features/library/document-display';
 import { documentTextSearchText } from '@/features/library/document-text-search';
+import { markWrappedInstructionText } from '@/features/library/instruction-text-repair';
 import {
   isUnstatedValue,
   normalizePresentation,
@@ -72,7 +73,10 @@ export function presentReaderChunkText(
   for (const [pattern, replacement] of SOURCE_LINK_LINES) {
     result = result.replace(pattern, replacement);
   }
-  return dropRegistryIdentifiers(result);
+  result = dropRegistryIdentifiers(result);
+  // Lines of an official instruction that the PDF wrapped are one paragraph again. The marks keep
+  // the stored block count, so the PDF geometry of the later blocks still lines up.
+  return sourceType === 'official_drug_instruction' ? markWrappedInstructionText(result) : result;
 }
 
 /**

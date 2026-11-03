@@ -1,0 +1,19 @@
+/* A compound's 2D structure (StructureFormula.tsx): ink-coloured bonds on whatever surface it sits. */
+.structure-formula {
+  display: block;
+  color: var(--theme-text);
+  overflow: visible;
+}
+
+.structure-formula--thumb {
+  width: 3.75rem;
+  height: 2.75rem;
+}
+
+.structure-formula--large {
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  margin-inline: auto;
+}

@@ -83,6 +83,7 @@
     "remark-gfm": "4.0.1",
     "remark-math": "6.0.0",
     "remark-parse": "11.0.0",
+    "smiles-drawer": "2.4.1",
     "solid-js": "1.9.14",
     "solid-number-flow": "0.5.5",
     "solid-sonner": "0.3.1",

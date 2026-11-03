@@ -68,12 +68,15 @@ test('a pregnancy question shows the instruction sentences, never an answer of i
   // The quote opens the instruction at its place.
   await quote.locator('.safety-card__link').click();
   await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
-  // The open instruction carries the same sentences in a folded block of its own.
-  const block = page.getByTestId('drug-safety-block');
-  await expect(block).toBeVisible({ timeout: 60_000 });
-  await block.getByRole('button', { name: /Беременность, ГВ, дети/u }).click();
-  await expect(block.getByTestId('safety-quote').first()).toContainText(/беременн/iu);
+  // The open instruction carries the condition row; a tap opens the sentences behind its colour.
+  const row = page.getByTestId('drug-conditions');
+  await expect(row).toBeVisible({ timeout: 60_000 });
+  await row.locator('[data-condition="pregnancy"]').click();
+  const sheet = page.getByTestId('drug-conditions-sheet');
+  await expect(sheet).toContainText(/беременн/iu);
   await shoot(page, 'drug-block');
+  await page.goBack();
+  await expect(sheet).toBeHidden();
   await page.goBack();
   await expect(page.getByTestId('safety-card')).toBeVisible({ timeout: 60_000 });
 

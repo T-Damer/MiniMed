@@ -826,36 +826,3 @@ function compareLinkOf(
     product: product ? displayDrugName(product.tradeName) : null,
   };
 }
-
-/* ------------------------------------------------------------------------------------------ */
-/* Section index                                                                               */
-/* ------------------------------------------------------------------------------------------ */
-
-export interface DrugSectionIndexItem {
-  readonly anchor: string;
-  readonly label: string;
-  readonly number: string;
-}
-
-const SECTION_LABEL_LENGTH = 36;
-
-/** Top-level sections as a short row of jump links; a document with one section needs none. */
-export function drugSectionIndex(
-  sections: readonly Pick<MedicalSection, 'anchor' | 'title' | 'depth'>[],
-): readonly DrugSectionIndexItem[] {
-  if (sections.length === 0) return [];
-  const topDepth = Math.min(...sections.map((section) => section.depth));
-  const top = sections.filter((section) => section.depth === topDepth);
-  if (top.length < 2) return [];
-  return top.map((section, index) => {
-    const title = section.title.trim().replace(/\s+/gu, ' ');
-    return {
-      anchor: section.anchor,
-      label:
-        title.length > SECTION_LABEL_LENGTH
-          ? `${title.slice(0, SECTION_LABEL_LENGTH - 1)}…`
-          : title,
-      number: String(index + 1).padStart(2, '0'),
-    };
-  });
-}

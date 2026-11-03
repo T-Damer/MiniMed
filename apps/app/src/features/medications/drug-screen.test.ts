@@ -12,7 +12,6 @@ import {
   drugAtcSearchCodes,
   drugGroupLinks,
   drugRelatedProducts,
-  drugSectionIndex,
   drugShareText,
   formatSourceEdition,
   instructionIndexFromSummaries,
@@ -719,31 +718,5 @@ describe('buildDrugScreen', () => {
       buildDrugScreen({ ...baseInput, source: other, document: other, product: undefined }),
     ).toBeNull();
     expect(buildDrugScreen({ ...baseInput, source: undefined, product: undefined })).toBeNull();
-  });
-});
-
-describe('drugSectionIndex', () => {
-  const section = (anchor: string, title: string, depth = 1) => ({ anchor, title, depth });
-
-  it('numbers the top-level sections', () => {
-    expect(
-      drugSectionIndex([
-        section('a', 'Показания'),
-        section('a.1', 'Детям', 2),
-        section('b', 'Противопоказания'),
-      ]),
-    ).toEqual([
-      { anchor: 'a', label: 'Показания', number: '01' },
-      { anchor: 'b', label: 'Противопоказания', number: '02' },
-    ]);
-  });
-
-  it('shortens long titles and skips a document with one section', () => {
-    const long = 'Я'.repeat(80);
-    const [first] = drugSectionIndex([section('a', long), section('b', 'Б')]);
-    expect(first?.label).toHaveLength(36);
-    expect(first?.label.endsWith('…')).toBe(true);
-    expect(drugSectionIndex([section('a', 'Один')])).toEqual([]);
-    expect(drugSectionIndex([])).toEqual([]);
   });
 });

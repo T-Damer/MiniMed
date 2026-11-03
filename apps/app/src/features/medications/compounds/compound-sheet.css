@@ -1,0 +1,70 @@
+/* One compound (CompoundSheet.tsx): structure, formula, role chips, the source in one quiet line. */
+.compound-sheet__body {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.compound-sheet__structure {
+  padding: 0.5rem;
+  border-radius: var(--theme-radius-panel, 0.7rem);
+  background-color: var(--theme-surface-raised);
+  background-image: var(--theme-paper-dots);
+  background-size: 3px 3px;
+}
+
+.compound-sheet__formula {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.compound-sheet__group {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.compound-sheet__heading {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.compound-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  gap: 0.375rem;
+  list-style: none;
+}
+
+.compound-sheet__chip {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-raised);
+  font-size: 0.875rem;
+}
+
+.compound-sheet__targets {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.compound-sheet__target {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.compound-sheet__source {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}

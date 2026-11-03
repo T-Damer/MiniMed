@@ -5,6 +5,7 @@ import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
+  foldPageStamps,
   glossaryLast,
   hasFullTextSibling,
   isAdministrativeMedicationSection,
@@ -343,5 +344,37 @@ describe('a list with no query', () => {
       '1-(4-БРОМФЕНИЛ)ВИОЛУРОВАЯ КИСЛОТА',
       '[2-(тест)]',
     ]);
+  });
+});
+
+describe('foldPageStamps', () => {
+  const typed = (title: string, sectionType: string | null): MedicalSection => ({
+    ...section(title),
+    sectionType,
+  });
+
+  it('folds instruction page stamps into the text around them', () => {
+    const folded = foldPageStamps([
+      typed('ИНСТРУКЦИЯ', 'other'),
+      typed('ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА', 'other'),
+      typed('Регистрационный номер', 'registration'),
+      typed('Фармакокинетика', 'pharmacology'),
+      typed('ЛП-Nº(000403)-(PГ-RU)-281021', 'other'),
+      typed('СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ', 'other'),
+      typed('Дети и подростки', 'other'),
+    ]);
+    expect(folded.map((entry) => entry.title)).toEqual([
+      'Регистрационный номер',
+      'Фармакокинетика',
+      'Дети и подростки',
+    ]);
+    // No paragraph is lost: the title page opens the first section, a stamp continues the one
+    // before it.
+    expect(folded[0]?.chunks.map((chunk) => chunk.sectionId)).toEqual([
+      'ИНСТРУКЦИЯ',
+      'ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА',
+      'Регистрационный номер',
+    ]);
+    expect(folded[1]?.chunks).toHaveLength(3);
   });
 });
