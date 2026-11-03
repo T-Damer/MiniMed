@@ -120,7 +120,7 @@ test('the scroll-to-top button stands beside the navigation, over no control', a
   // The button belongs to a ready app (core open) and follows real scrolling.
   await page.mouse.move(180, 400);
   await page.mouse.wheel(0, 1500);
-  const button = page.getByRole('button', { name: 'Вернуться наверх' });
+  const button = page.getByRole('button', { name: 'Наверх' });
   await expect(button).toBeVisible();
   const box = await button.boundingBox();
   const bar = await page.locator('.app-bottom-nav').boundingBox();
