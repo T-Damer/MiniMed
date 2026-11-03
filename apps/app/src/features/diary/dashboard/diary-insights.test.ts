@@ -7,6 +7,7 @@ import {
   exportRows,
   fieldSeries,
   medicineAdherence,
+  missReasonsText,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { atTime } from '@/features/diary/diary-care';
@@ -53,7 +54,7 @@ const entries = [
   entry({
     id: 'dose00000002',
     at: atTime('2026-10-21', '09:00'),
-    values: { medication: { item: 'p1', done: false, slot: '08:00' } },
+    values: { medication: { item: 'p1', done: false, slot: '08:00', reason: 'ran-out' } },
     note: 'Забыл; таблетки "кончились"',
   }),
   entry({
@@ -94,8 +95,20 @@ describe('diary insights for the doctor', () => {
     expect(week.total).toBeGreaterThan(0);
     expect(week.done).toBeLessThanOrEqual(week.total);
     expect(medicineAdherence(invitation, entries, 2, NOW)).toEqual([
-      { itemId: 'p1', name: 'Сертралин 50 мг', taken: 1, skipped: 1, planned: 2 },
+      {
+        itemId: 'p1',
+        name: 'Сертралин 50 мг',
+        taken: 1,
+        skipped: 1,
+        planned: 2,
+        reasons: { 'ran-out': 1 },
+      },
     ]);
+  });
+
+  it('says why doses were missed, the most frequent first (DIARY22)', () => {
+    expect(missReasonsText({ forgot: 1, 'ran-out': 3 })).toBe('закончилось ×3, забыл(а)');
+    expect(missReasonsText({})).toBe('');
   });
 
   it('splits wellbeing into morning and evening series', () => {

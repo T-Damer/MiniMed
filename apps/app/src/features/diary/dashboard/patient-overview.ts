@@ -14,7 +14,9 @@ import {
 } from '@/features/diary/dashboard/diary-charts';
 import {
   adherence,
+  type MedicineAdherence,
   medicineAdherence,
+  missReasonsText,
   type QuestionnaireSeries,
   type SeriesPoint,
 } from '@/features/diary/dashboard/diary-insights';
@@ -145,6 +147,19 @@ function questionnaireSignal(series: QuestionnaireSeries): OverviewSignal | unde
   };
 }
 
+function mergeReasons(medicines: readonly MedicineAdherence[]): MedicineAdherence['reasons'] {
+  const total: Partial<Record<keyof MedicineAdherence['reasons'], number>> = {};
+  for (const medicine of medicines) {
+    for (const [reason, count] of Object.entries(medicine.reasons) as [
+      keyof MedicineAdherence['reasons'],
+      number,
+    ][]) {
+      total[reason] = (total[reason] ?? 0) + count;
+    }
+  }
+  return total;
+}
+
 function intakeSignal(
   invitation: DiaryInvitation,
   entries: readonly DiaryEntry[],
@@ -168,9 +183,15 @@ function intakeSignal(
     ...(share === undefined ? {} : { value: `${Math.round(share * 100)} % плана` }),
     ...(missedCount
       ? {
-          detail: `не отмечено ${missedCount} ${pluralize(missedCount, 'приём', 'приёма', 'приёмов')}: ${missed
-            .map((medicine) => medicine.name)
-            .join(', ')}`,
+          detail: [
+            `не отмечено ${missedCount} ${pluralize(missedCount, 'приём', 'приёма', 'приёмов')}: ${missed
+              .map((medicine) => medicine.name)
+              .join(', ')}`,
+            // Why, as the patient said (DIARY22).
+            missReasonsText(mergeReasons(medicines)),
+          ]
+            .filter(Boolean)
+            .join(' · '),
         }
       : { detail: 'всё по плану' }),
     tone:

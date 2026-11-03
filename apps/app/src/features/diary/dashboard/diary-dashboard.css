@@ -1861,3 +1861,10 @@
 .diary-chart__canvas-box--tall {
   height: 17rem;
 }
+
+/* Why the skipped doses were skipped (DIARY22), under the count. */
+.diary-adherence__why {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}

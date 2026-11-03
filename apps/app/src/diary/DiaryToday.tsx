@@ -79,6 +79,10 @@ type Sheet =
       readonly item: DiaryPlanItem;
       readonly time: DiaryDoseTime | undefined;
       readonly entry: DiaryEntry | undefined;
+      /** The intake's own day when it is not the shown one (a missed one from yesterday). */
+      readonly day?: string;
+      /** Asked «what happened?»: the sheet starts on «Пропустил(а)». */
+      readonly missed?: boolean;
     }
   | { readonly kind: 'check'; readonly task: CheckTask }
   | { readonly kind: 'quiz'; readonly task: QuestionnaireTask }
@@ -360,6 +364,20 @@ export function DiaryToday(props: {
   });
 
   const plan = createMemo(() => dayPlan(invitation(), props.results.entries, day(), now()));
+  /**
+   * Intakes of yesterday and today that passed unmarked (DIARY22, owner 2026-11-03: «ask why»): the
+   * patient's today screen asks about them until each is answered either way.
+   */
+  const missed = createMemo(() => {
+    if (props.viewer === 'doctor' || day() !== today()) return [];
+    return [addDays(today(), -1), today()].flatMap((target) =>
+      target < diaryStarted(invitation(), props.results.entries)
+        ? []
+        : dayPlan(invitation(), props.results.entries, target, now())
+            .doses.filter((task) => task.state === 'missed')
+            .map((task) => ({ task, day: target })),
+    );
+  });
   const [saved, setInclude] = createHeatFilter(
     props.viewer === 'doctor' ? DOCTOR_HEAT_FILTER_KEY : PATIENT_HEAT_FILTER_KEY,
   );
@@ -621,6 +639,63 @@ export function DiaryToday(props: {
           )}
         </Show>
 
+        <Show when={missed().length}>
+          <section class="diary-today__notice diary-today__missed" aria-label="Приём не отмечен">
+            <div class="diary-today__notice-text">
+              <h3 class="diary-today__changes-title">Приём не отмечен — что случилось?</h3>
+              <ul class="diary-today__missed-list">
+                <For each={missed()}>
+                  {(row) => (
+                    <li class="diary-today__missed-row">
+                      <span class="diary-today__missed-name">
+                        {[row.task.item.name, row.task.time.dose ?? row.task.item.dose]
+                          .filter(Boolean)
+                          .join(' ')}
+                        <span class="diary-today__missed-when">
+                          {row.day === today() ? 'сегодня' : 'вчера'} {row.task.time.time}
+                        </span>
+                      </span>
+                      <span class="diary-today__missed-actions">
+                        <button
+                          type="button"
+                          class="diary-today__missed-answer"
+                          onClick={() =>
+                            setSheet({
+                              kind: 'dose',
+                              item: row.task.item,
+                              time: row.task.time,
+                              entry: undefined,
+                              day: row.day,
+                            })
+                          }
+                        >
+                          Принял(а)
+                        </button>
+                        <button
+                          type="button"
+                          class="diary-today__missed-answer diary-today__missed-answer--skip"
+                          onClick={() =>
+                            setSheet({
+                              kind: 'dose',
+                              item: row.task.item,
+                              time: row.task.time,
+                              entry: undefined,
+                              day: row.day,
+                              missed: true,
+                            })
+                          }
+                        >
+                          Пропустил(а)
+                        </button>
+                      </span>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </section>
+        </Show>
+
         <Show when={invitation().note}>
           <p class="diary-today__note">{invitation().note}</p>
         </Show>
@@ -821,7 +896,8 @@ export function DiaryToday(props: {
           {(current) => (
             <DoseSheet
               invitation={invitation()}
-              day={day()}
+              day={current().day ?? day()}
+              missed={current().missed === true}
               item={current().item}
               time={current().time}
               entry={current().entry}

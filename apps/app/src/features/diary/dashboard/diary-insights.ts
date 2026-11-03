@@ -11,13 +11,16 @@ import {
   dayKey,
   dayPlan,
   diaryStarted,
+  doseValue,
   heatmapDays,
 } from '@/features/diary/diary-care';
 import {
   DIARY_MEAL_LABEL,
+  DIARY_MISS_REASON_SHORT,
   type DiaryCheckpoint,
   type DiaryEntry,
   type DiaryInvitation,
+  type DiaryMissReason,
   type DiaryPlanValue,
   describeDiaryEntry,
   markedDose,
@@ -58,6 +61,16 @@ export interface MedicineAdherence {
   readonly taken: number;
   readonly skipped: number;
   readonly planned: number;
+  /** Why the skipped ones were skipped, as the patient said (DIARY22); unanswered ones are absent. */
+  readonly reasons: Readonly<Partial<Record<DiaryMissReason, number>>>;
+}
+
+/** «забыл(а) ×2, закончилось» — the reasons, the most frequent first. */
+export function missReasonsText(reasons: MedicineAdherence['reasons']): string {
+  return (Object.entries(reasons) as [DiaryMissReason, number][])
+    .toSorted((left, right) => right[1] - left[1])
+    .map(([reason, count]) => `${DIARY_MISS_REASON_SHORT[reason]}${count > 1 ? ` ×${count}` : ''}`)
+    .join(', ');
 }
 
 /** Per medicine: planned intakes, taken and skipped over the last `days` days. */
@@ -80,12 +93,18 @@ export function medicineAdherence(
         taken: 0,
         skipped: 0,
         planned: 0,
+        reasons: {},
       };
+      const reason =
+        task.state === 'skipped' && task.entry ? doseValue(task.entry)?.reason : undefined;
       result.set(task.item.id, {
         ...current,
         planned: current.planned + (task.state === 'open' ? 0 : 1),
         taken: current.taken + (task.state === 'done' ? 1 : 0),
         skipped: current.skipped + (task.state === 'skipped' ? 1 : 0),
+        reasons: reason
+          ? { ...current.reasons, [reason]: (current.reasons[reason] ?? 0) + 1 }
+          : current.reasons,
       });
     }
   }

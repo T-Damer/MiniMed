@@ -190,6 +190,66 @@ body:has(.diary-care-scope) {
   overflow-wrap: anywhere;
 }
 
+/* «Приём не отмечен — что случилось?» (DIARY22): a warm notice, one row per missed intake. */
+.diary-today__missed {
+  background: color-mix(in srgb, var(--care-late) 13%, var(--theme-surface-raised));
+}
+
+.diary-today__missed-list {
+  display: grid;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  gap: 0.55rem;
+  list-style: none;
+}
+
+.diary-today__missed-row {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.diary-today__missed-name {
+  display: grid;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.diary-today__missed-when {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.diary-today__missed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.diary-today__missed-answer {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease);
+}
+
+.diary-today__missed-answer:active {
+  transform: scale(0.96);
+}
+
+.diary-today__missed-answer--skip {
+  border-color: color-mix(in srgb, var(--care-late) 45%, var(--theme-border));
+}
+
 .diary-today__notice-close {
   display: inline-grid;
   flex: none;
@@ -1150,8 +1210,11 @@ body:has(.diary-care-scope) {
   }
 }
 
-.diary-button--confirm {
-  color: var(--theme-accent-contrast, #fff);
+/* «Точно удалить?»: white on the danger red. Doubled class: the quiet button's own background
+   overrode a single one, leaving white text on light paper (DIARY22). */
+.diary-button--danger.diary-button--confirm {
+  border-color: var(--theme-danger);
+  color: #fff;
   background: var(--theme-danger);
 }
 

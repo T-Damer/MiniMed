@@ -32,6 +32,7 @@ import {
 } from '@/features/diary/dashboard/diary-charts';
 import {
   medicineAdherence,
+  missReasonsText,
   type QuestionnaireSeries,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
@@ -357,6 +358,9 @@ export function PatientChartsPage(props: {
                       <Show when={medicine.planned} fallback="приёмов ещё не было">
                         {medicine.taken} из {medicine.planned}
                         {medicine.skipped ? `, пропущено ${medicine.skipped}` : ''}
+                        <Show when={missReasonsText(medicine.reasons)}>
+                          {(why) => <span class="diary-adherence__why">{why()}</span>}
+                        </Show>
                       </Show>
                     </span>
                   </li>

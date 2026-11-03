@@ -3,8 +3,15 @@ import { createMemo, createResource, For, type JSX, Show } from 'solid-js';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
-import { dayKey, dayPlan, entriesOfDay, type TaskState } from '@/features/diary/diary-care';
 import {
+  dayKey,
+  dayPlan,
+  doseValue,
+  entriesOfDay,
+  type TaskState,
+} from '@/features/diary/diary-care';
+import {
+  DIARY_MISS_REASON_SHORT,
   type DiaryEntry,
   type DiaryResults,
   describeDiaryEntry,
@@ -16,6 +23,8 @@ interface DayTask {
   readonly text: string;
   readonly time: string | undefined;
   readonly state: TaskState;
+  /** Why a skipped intake was skipped, as the patient said (DIARY22). */
+  readonly why?: string;
 }
 
 const STATE: Readonly<
@@ -57,12 +66,17 @@ export function PatientDayDetails(props: {
     );
     const plan = dayPlan(invitation, props.results.entries, props.day);
     const all: DayTask[] = [
-      ...plan.doses.map((task) => ({
-        key: task.key,
-        text: [task.item.name, task.time.dose ?? task.item.dose].filter(Boolean).join(' '),
-        time: task.time.time,
-        state: task.state,
-      })),
+      ...plan.doses.map((task) => {
+        const reason =
+          task.state === 'skipped' && task.entry ? doseValue(task.entry)?.reason : undefined;
+        return {
+          key: task.key,
+          text: [task.item.name, task.time.dose ?? task.item.dose].filter(Boolean).join(' '),
+          time: task.time.time,
+          state: task.state,
+          ...(reason ? { why: DIARY_MISS_REASON_SHORT[reason] } : {}),
+        };
+      }),
       ...plan.checks.map((task) => ({
         key: task.key,
         text: task.checkpoint.label,
@@ -141,6 +155,7 @@ export function PatientDayDetails(props: {
                     <span class="diary-day-task__state">
                       {task.time ? `${task.time} · ` : ''}
                       {STATE[task.state].label}
+                      {task.why ? `: ${task.why}` : ''}
                     </span>
                   </span>
                 </li>

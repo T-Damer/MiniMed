@@ -1,4 +1,5 @@
 import {
+  DIARY_MISS_REASON_LABEL,
   type DiaryField,
   type DiaryPlanValue,
   type DiaryResults,
@@ -107,6 +108,10 @@ export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()
             id,
             meta,
             status: plan.done ? 'completed' : 'not-taken',
+            // FHIR R4 MedicationStatement.statusReason: why it was not taken, in words.
+            ...(!plan.done && plan.reason
+              ? { statusReason: [{ text: DIARY_MISS_REASON_LABEL[plan.reason] }] }
+              : {}),
             medicationCodeableConcept: { text: item?.name ?? plan.other ?? field.label },
             effectiveDateTime: entry.at,
             informationSource: { display: 'Пациент' },

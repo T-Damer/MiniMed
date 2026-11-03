@@ -181,6 +181,47 @@ export interface DiaryInvitation {
   readonly consent?: boolean;
 }
 
+/**
+ * Why an intake was missed (DIARY22, owner 2026-11-03: «when the patient didn't take it, ask why —
+ * this is important»): one tap in the patient's dose sheet; the doctor sees how often and why.
+ */
+export const DIARY_MISS_REASONS = [
+  'forgot',
+  'not-with-me',
+  'ran-out',
+  'side-effects',
+  'felt-better',
+  'doubts',
+  'other',
+] as const;
+
+export type DiaryMissReason = (typeof DIARY_MISS_REASONS)[number];
+
+export const DIARY_MISS_REASON_LABEL: Readonly<Record<DiaryMissReason, string>> = {
+  forgot: 'Забыл(а)',
+  'not-with-me': 'Не было с собой',
+  'ran-out': 'Закончилось',
+  'side-effects': 'Плохо переношу',
+  'felt-better': 'Стало лучше',
+  doubts: 'Сомневаюсь в лечении',
+  other: 'Другое',
+};
+
+/** The reason as the doctor reads it in a line (lower case). */
+export const DIARY_MISS_REASON_SHORT: Readonly<Record<DiaryMissReason, string>> = {
+  forgot: 'забыл(а)',
+  'not-with-me': 'не было с собой',
+  'ran-out': 'закончилось',
+  'side-effects': 'плохо переносит',
+  'felt-better': 'стало лучше',
+  doubts: 'сомневается в лечении',
+  other: 'другое',
+};
+
+export function isDiaryMissReason(value: unknown): value is DiaryMissReason {
+  return typeof value === 'string' && (DIARY_MISS_REASONS as readonly string[]).includes(value);
+}
+
 export interface DiaryPlanValue {
   /** Plan item id, absent when the patient typed something not in the plan. */
   readonly item?: string;
@@ -193,6 +234,8 @@ export interface DiaryPlanValue {
    * past. Absent on marks made before doses were recorded (they show the current dose).
    */
   readonly dose?: string;
+  /** Why it was not taken (only with `done: false`). */
+  readonly reason?: DiaryMissReason;
 }
 
 export type DiaryValue = number | string | boolean | readonly string[] | DiaryPlanValue;
@@ -914,12 +957,16 @@ function parseValue(field: DiaryField, value: unknown, invitation: DiaryInvitati
       const slot =
         source['slot'] === undefined ? undefined : clockTime(source['slot'], field.label);
       const dose = text(source['dose'], field.label, true);
+      // An unknown reason (a newer app's) is dropped, not refused: the mark itself still counts.
+      const reason =
+        done === false && isDiaryMissReason(source['reason']) ? source['reason'] : undefined;
       return {
         ...(typeof item === 'string' ? { item } : {}),
         ...(other && item === undefined ? { other } : {}),
         ...(typeof done === 'boolean' ? { done } : {}),
         ...(slot ? { slot } : {}),
         ...(dose && typeof item === 'string' ? { dose } : {}),
+        ...(reason ? { reason } : {}),
       };
     }
   }
@@ -1123,7 +1170,12 @@ export function describeDiaryValue(
   const name = item
     ? [item.name, markedDose(invitation, plan)].filter(Boolean).join(' ')
     : (plan.other ?? '');
-  const done = plan.done === undefined ? '' : plan.done ? ' — выполнено' : ' — пропущено';
+  const done =
+    plan.done === undefined
+      ? ''
+      : plan.done
+        ? ' — выполнено'
+        : ` — пропущено${plan.reason ? `: ${DIARY_MISS_REASON_SHORT[plan.reason]}` : ''}`;
   return `${name}${done}`;
 }
 

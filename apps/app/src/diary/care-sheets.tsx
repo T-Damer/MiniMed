@@ -9,11 +9,14 @@ import { atTime, CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import {
   createDiaryId,
   DIARY_MEAL_LABEL,
+  DIARY_MISS_REASON_LABEL,
+  DIARY_MISS_REASONS,
   type DiaryCheckpoint,
   type DiaryDoseTime,
   type DiaryEntry,
   type DiaryField,
   type DiaryInvitation,
+  type DiaryMissReason,
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryVoice,
@@ -141,10 +144,13 @@ export function DoseSheet(props: {
   readonly onSave: CareSave;
   readonly onRemove: (entry: DiaryEntry) => void;
   readonly onClose: () => void;
+  /** Opened from «what happened?» about a missed intake: starts on «Пропустил(а)». */
+  readonly missed?: boolean;
 }): JSX.Element {
   const previous = props.entry?.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
   const afterField = props.invitation.fields.find((field) => field.id === 'after');
-  const [taken, setTaken] = createSignal(previous?.done !== false);
+  const [taken, setTaken] = createSignal(props.missed ? false : previous?.done !== false);
+  const [reason, setReason] = createSignal<DiaryMissReason | undefined>(previous?.reason);
   const [time, setTime] = createSignal(
     props.entry ? clock(props.entry.at) : initialTime(props.day, props.time?.time),
   );
@@ -169,6 +175,7 @@ export function DoseSheet(props: {
         [CARE_DOSE_FIELD]: {
           ...intakeMark(props.item, taken(), props.time?.time),
           ...(previous?.dose ? { dose: previous.dose } : {}),
+          ...(!taken() && reason() ? { reason: reason() } : {}),
         },
         ...(taken() && after().length ? { after: after() } : {}),
       },
@@ -240,10 +247,37 @@ export function DoseSheet(props: {
           </div>
         </fieldset>
       </Show>
+      {/* Why it was missed, one tap (DIARY22): the doctor sees how often and why. */}
+      <Show when={!taken()}>
+        <fieldset class="diary-chips">
+          <legend class="diary-chips__legend">Что помешало?</legend>
+          <div class="diary-chips__list">
+            <For each={DIARY_MISS_REASONS}>
+              {(code) => (
+                <button
+                  type="button"
+                  class="diary-chip"
+                  classList={{ 'diary-chip--on': reason() === code }}
+                  aria-pressed={reason() === code}
+                  onClick={() => setReason(reason() === code ? undefined : code)}
+                >
+                  {DIARY_MISS_REASON_LABEL[code]}
+                </button>
+              )}
+            </For>
+          </div>
+        </fieldset>
+      </Show>
       <GrowingText
-        label={taken() ? 'Что ещё заметили' : 'Почему пропустили'}
+        label={taken() ? 'Что ещё заметили' : 'Расскажите подробнее'}
         value={note()}
-        placeholder={taken() ? 'Опишите ваши ощущения' : 'Например: забыл(а), закончились таблетки'}
+        placeholder={
+          taken()
+            ? 'Опишите ваши ощущения'
+            : reason() === 'side-effects'
+              ? 'Что именно беспокоит после приёма'
+              : 'Если хотите, напишите врачу пару слов'
+        }
         onInput={setNote}
       />
     </DiarySheet>

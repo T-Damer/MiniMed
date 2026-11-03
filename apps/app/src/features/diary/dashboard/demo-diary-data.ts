@@ -170,6 +170,17 @@ const DAY_TEXTS = {
   ],
 } as const;
 
+/** Why the demo patients miss doses: forgetting most often, as in life. */
+const DEMO_MISS_REASONS = [
+  'forgot',
+  'forgot',
+  'not-with-me',
+  'side-effects',
+  'forgot',
+  'ran-out',
+  'felt-better',
+] as const;
+
 const SKIP_NOTES = [
   'Пропуск: забылось.',
   'Пропуск: тошнило с утра.',
@@ -305,7 +316,15 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           add(moment(day, time.time, Math.round(shift)), { values });
         } else if (roll < adherence + (1 - adherence) * 0.55) {
           add(moment(day, time.time, Math.round(between(random, 0, 40))), {
-            values: { [CARE_DOSE_FIELD]: intakeMark(item, false, time.time) },
+            // Why it was missed (DIARY22), from the day, not the generator: the demo stays the same.
+            values: {
+              [CARE_DOSE_FIELD]: {
+                ...intakeMark(item, false, time.time),
+                reason:
+                  DEMO_MISS_REASONS[(index * 7 + time.time.length) % DEMO_MISS_REASONS.length] ??
+                  'forgot',
+              },
+            },
             ...(random() < 0.5 ? { note: pick(random, SKIP_NOTES) } : {}),
           });
         }
