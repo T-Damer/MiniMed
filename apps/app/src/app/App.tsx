@@ -346,12 +346,21 @@ export function App(): JSX.Element {
   createEffect(() => {
     // While the tour is on, its steps open «Мои файлы» and the other tabs before the core has
     // arrived: their code is fetched then, so a step never shows a bare spinner.
-    if (navViewsPrefetched || !(session.ready() || onboardingVisible()) || embeddedFloatingWindow)
+    // A profile without a search core has nothing to wait for: its tabs warm up at once.
+    const searchless = Boolean(activeProfile()?.skipSearchCore);
+    if (
+      navViewsPrefetched ||
+      !(session.ready() || onboardingVisible() || searchless) ||
+      embeddedFloatingWindow
+    )
       return;
     navViewsPrefetched = true;
     // The compact «Мои файлы» tab is the file list of the knowledge-base view.
     const pending = [
-      ...new Set<RootView>([...navItems().map((item) => item.id), 'modules']),
+      ...new Set<RootView>([
+        ...navItems().map((item) => item.id),
+        ...(searchless ? [] : (['modules'] as const)),
+      ]),
     ].filter((view) => view !== navigation.view());
     const idle = (run: () => void): void => {
       if (typeof window.requestIdleCallback === 'function') {

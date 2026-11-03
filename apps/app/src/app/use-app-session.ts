@@ -510,6 +510,9 @@ export function useAppSession() {
       syncInstalledCount();
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
+    // A profile that never searches (the doctors' diaries) opens no core and reads no module
+    // catalog: its screens do not need them, and the first would fetch a database it never uses.
+    if (activeProfile()?.skipSearchCore) return;
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
     const initialDataVersion = readInstalledDataVersion();
     const initializedPromise = initializeMedicalCore(createSessionCore);

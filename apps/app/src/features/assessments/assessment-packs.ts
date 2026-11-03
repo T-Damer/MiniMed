@@ -2,7 +2,10 @@ import type {
   AssessmentCatalogEntry,
   AssessmentCategory,
 } from '@/features/assessments/assessment-catalog';
-import { isAssessmentDefinitionLoaded } from '@/features/assessments/assessment-catalog';
+import {
+  bundledAssessmentIds,
+  isAssessmentDefinitionLoaded,
+} from '@/features/assessments/assessment-catalog';
 
 export type AssessmentSectionId = AssessmentCategory;
 
@@ -354,6 +357,8 @@ function installedIdsFromSnapshot(
   for (const dependency of Object.values(snapshot.moduleDependencies)) {
     for (const id of dependency.assessmentIds) installed.add(id);
   }
+  // Definitions the build carries are on the device whatever was downloaded or removed.
+  for (const id of bundledAssessmentIds()) installed.add(id);
   return new Set([...installed].filter(isAssessmentDefinitionLoaded));
 }
 
