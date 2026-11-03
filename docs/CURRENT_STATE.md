@@ -52,6 +52,27 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Why a dose was missed — 2026-11-04 (STATE DIARY22)
+
+- **Owner 2026-11-03:** «when the patient didn't take the prescription, ask them why — this is important».
+- **Data.** `DiaryPlanValue.reason` (`DIARY_MISS_REASONS` in `diary-model.ts`: forgot, not-with-me, ran-out,
+  side-effects, felt-better, doubts, other; labels `DIARY_MISS_REASON_LABEL`, the doctor's lower-case
+  `DIARY_MISS_REASON_SHORT`), kept only with `done: false`; a reason the app does not know is dropped, not refused
+  (`DIARY_FORMAT_VERSION` unchanged). QR text: the sixth element of a plan value (slot and dose hold their places as
+  ''). FHIR: `MedicationStatement.statusReason[].text`. `describeDiaryEntry` says «пропущено: забыл(а)».
+- **Patient.** The dose sheet on «Пропустил(а)» asks «Что помешало?» (one-tap chips, tap again to clear), the text
+  field becomes «Расскажите подробнее» with a hint fitted to the reason. The today screen asks «Приём не отмечен — что
+  случилось?» about yesterday's and today's intakes in state `missed` (past the late window, unmarked), with
+  «Принял(а)» / «Пропустил(а)» opening the dose sheet on that intake's own day (`Sheet.day`, `DoseSheet missed`); a
+  row leaves once it is answered either way. Not for the doctor's view of the day.
+- **Doctor.** The day sheet's tasks say «пропущено пациентом: закончилось»; `medicineAdherence` counts `reasons` per
+  medicine, shown under each count on the charts page (`missReasonsText`: «забыл(а) ×2, закончилось») and appended to
+  the week's intake signal. The demo's skips carry reasons (from the day, so the demo stays deterministic).
+- **Also.** «Точно удалить?» in the patient's sheets was white on light paper (the quiet button's background won over
+  `diary-button--confirm`); doubled the class.
+- **Checks.** vitest 14 446 passed; diary e2e 75 passed, new `diary-missed.spec.ts` (the reason chips, a removed mark
+  asked about on today, answered away).
+
 ## One-screen patient page, full-screen diaries, updates by themselves, motion pass — 2026-11-03 (STATE DIARY21)
 
 - **Patient page on one screen.** `PatientOverview` is folded by default (its verdict «N тревожных · N требуют

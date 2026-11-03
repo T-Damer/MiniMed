@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-04 00:10 | claude-opus (DIARY22) | a skipped dose asks the patient why (reasons in the entry), the doctor sees reasons in the day sheet and the intake statistics | `apps/app/src/features/diary/**`, `apps/app/src/diary/**` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -181,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-04 claude-opus REL 0.6.86: DIARY22 (a missed dose asks why: reasons in the mark, QR and FHIR; today asks about unmarked intakes; the doctor sees reasons in the day, the charts and the week)
 - 2026-11-03 claude-opus REL 0.6.85: DIARY21 (one-screen patient page, charts zones/day ticks/tap→day, doctor's day mode, full-screen diaries, updates apply themselves, vibration off by default, image-model diary icon, offline questionnaires, motion pass, patient list search/greeting/curators)
 - 2026-11-04 claude-opus PROMO3: diary deck reworked on user feedback — section + topic tags on every slide (technical part green), status bars on phone screenshots, collaboration slide (curators), own questionnaires first, tech part in two slides with anonymity, AI hints and adherence statistics in the outlook; Preview-safe `tools/build-pdf.mjs`; the full version is now generated from `index.html`
 - 2026-11-03 claude-opus REL 0.6.84: DIARY20 (patient page: one edit pencil, «Статистика», calendar day; plan versions + merged concurrent edits; combined chart, red alarm days, dotted prescribed dose; questionnaire tab, caching, sheet heights, «Наверх»; slides' demo route)

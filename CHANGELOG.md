@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.86] - 2026-11-04
+
+- Patient diaries ask why a dose was missed: «Что помешало?» with one tap (forgot, didn't have it, ran out, side
+  effects, felt better, doubts, other), and doses that passed unmarked are asked about on the today screen. The doctor
+  sees the reasons in the day, under each medicine's count and in the week's summary; exports carry them (FHIR
+  status reason).
+- The «Точно удалить?» button is readable again.
+
 ## [0.6.85] - 2026-11-03
 
 - The doctor's patient page fits one screen: «Статистика» is folded to one line and opens in place or full screen.
