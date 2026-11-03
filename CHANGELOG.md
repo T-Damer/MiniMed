@@ -4,6 +4,20 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.82] - 2026-11-03
+
+- Patient diaries: the doctor can ask a patient to mark substance use — alcohol, nicotine, cannabis, opioids,
+  stimulants, sleeping pills or sedatives and other medicines taken without a prescription, with craving 0–10. The
+  patient answers in one evening row, «Ничего не было» in one tap; the doctor sees craving and amounts as charts.
+- More questionnaires for diaries: ШАС, EPDS, the Whooley questions and the psychological profiles (temperament,
+  egogram, Braverman, PAEI, team roles) join PHQ-9, GAD-7 and the Zung scales.
+- The doctor's patient page leads with the week: missed medicines, values over the red lines, questionnaire bands
+  and changes, days without records, an unpaired phone — the worrying first, each opening its chart. The charts
+  have a page of their own («Все графики»).
+- Calendar: the first day of tracking has a dashed ring, today a plain one.
+- Installed diaries keep the phone's status and navigation bars (no more jumping when the bar is pulled down), and
+  the status bar takes the header's colour. The doctor's diaries offer to install themselves as an app.
+
 ## [0.6.81] - 2026-11-03
 
 - Drug cards: a row of seven icons — pregnancy, breastfeeding, children, elderly, liver, kidneys, driving — red,

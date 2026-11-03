@@ -180,6 +180,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-03 claude-opus REL 0.6.82: DIARY17 (substance use, more questionnaires, doctor's week + charts page, standalone diary PWAs)
 - 2026-11-03 claude-opus DIARY17: diary substance-use section, all self-report scales in diaries, doctor patient page = week signals + charts page, calendar start/today rings, standalone PWAs with header-coloured bars, doctor install row
 - 2026-11-03 claude-opus REL 0.6.81: DRUG-HDR2 (drug condition row, structures, «Состав» roles, line-wrap repair)
 - 2026-11-03 claude-opus DRUG-HDR2: drug card condition row (pregnancy/ГВ/children/elderly/liver/kidneys/driving, red→green + quote sheet), no «Разделы», page stamps folded, wrapped-line repair, compound structures (smiles-drawer) and «Состав» roles from Wikidata/ChEBI/ChEMBL, unified reader header buttons, more dotted paper
