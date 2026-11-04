@@ -5,10 +5,11 @@
  * have no point at all: no data is not a 0. A marked intake counts at the dose it was marked at
  * (the mark records it), so a later dose change does not rewrite the past; an intake nobody marked
  * counts at the dose of the plan in force that day (`planFor`, from the plan's versions, DIARY20),
- * else at the current plan's dose.
+ * else at the current plan's dose. An intake the patient marked as skipped is kept with its time,
+ * dose, reason and note (`skipped`): the charts cross it out in red (DIARY23).
  */
 import { addDays, dayKey, dayPlan, diaryStarted, doseValue } from '@/features/diary/diary-care';
-import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
+import type { DiaryEntry, DiaryInvitation, DiaryMissReason } from '@/features/diary/diary-model';
 
 export interface ParsedDose {
   readonly amount: number;
@@ -31,12 +32,23 @@ export function parseDose(text: string | undefined): ParsedDose {
   return { amount, unit: (match[4] ?? '').trim() || 'приём' };
 }
 
+/** An intake the patient marked as not taken (not one nobody marked). */
+export interface IntakeSkip {
+  /** Planned time `HH:MM`. */
+  readonly time: string;
+  readonly dose?: string;
+  readonly reason?: DiaryMissReason;
+  readonly note?: string;
+}
+
 export interface IntakeDay {
   /** Local day `YYYY-MM-DD`. */
   readonly day: string;
   readonly taken: number;
   /** What the plan asks for that day; absent for a medicine taken when needed or off course. */
   readonly prescribed?: number;
+  /** Intakes the patient marked as skipped that day; absent when none. */
+  readonly skipped?: readonly IntakeSkip[];
 }
 
 export interface MedicineIntake {
@@ -69,15 +81,31 @@ export function medicineIntake(
     const day = addDays(today, -offset);
     if (day < started) continue;
     const plan = dayPlan(planFor?.(day) ?? invitation, entries, day, now);
-    const totals = new Map<string, { taken: number; prescribed?: number }>();
+    const totals = new Map<
+      string,
+      { taken: number; prescribed?: number; skipped?: readonly IntakeSkip[] }
+    >();
     for (const task of plan.doses) {
-      const dose = parseDose(
-        (task.entry && doseValue(task.entry)?.dose) || (task.time.dose ?? task.item.dose),
-      ).amount;
+      const text =
+        (task.entry && doseValue(task.entry)?.dose) || (task.time.dose ?? task.item.dose);
+      const dose = parseDose(text).amount;
       const total = totals.get(task.item.id) ?? { taken: 0, prescribed: 0 };
+      const value = task.entry ? doseValue(task.entry) : undefined;
+      const note = task.entry?.note?.trim();
+      const skip: IntakeSkip | undefined =
+        task.state === 'skipped'
+          ? {
+              time: task.time.time,
+              ...(text ? { dose: text } : {}),
+              ...(value?.reason ? { reason: value.reason } : {}),
+              ...(note ? { note } : {}),
+            }
+          : undefined;
+      const skipped = skip ? [...(total.skipped ?? []), skip] : total.skipped;
       totals.set(task.item.id, {
         taken: total.taken + (task.state === 'done' ? dose : 0),
         prescribed: (total.prescribed ?? 0) + dose,
+        ...(skipped ? { skipped } : {}),
       });
       series(task.item.id, task.item.name, task.item.dose);
     }
@@ -93,6 +121,7 @@ export function medicineIntake(
         day,
         taken: total.taken,
         ...(total.prescribed === undefined ? {} : { prescribed: total.prescribed }),
+        ...(total.skipped ? { skipped: total.skipped } : {}),
       });
     }
   }

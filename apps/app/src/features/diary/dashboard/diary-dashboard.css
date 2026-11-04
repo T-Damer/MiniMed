@@ -976,6 +976,161 @@
   height: 100%;
 }
 
+/* A button over each red cross: the finger's target, a name and a keyboard stop. A soft ring
+   under the mouse or the finger tells the cross is a button. */
+.diary-chart__mark {
+  position: absolute;
+  z-index: 2;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  translate: -50% -50%;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    scale var(--motion-fast) var(--motion-ease);
+}
+
+.diary-chart__mark:hover,
+.diary-chart__mark[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--theme-danger) 14%, transparent);
+}
+
+.diary-chart__mark:active {
+  scale: 0.96;
+}
+
+.diary-chart__mark:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 0;
+}
+
+/* The card of a tapped day or red cross (DIARY23): under the plot, the day's band and points
+   left in view; its left edge kept inside the chart. It grows from the band. */
+.diary-mark-card {
+  position: absolute;
+  z-index: 3;
+  top: var(--mark-y);
+  left: clamp(0rem, calc(var(--mark-x) - 7.5rem), calc(100% - 15rem));
+  display: grid;
+  width: 15rem;
+  max-width: 100%;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--theme-danger) 30%, var(--theme-border));
+  border-radius: 0.85rem;
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0.6rem 1.6rem rgb(0 0 0 / 0.18);
+  translate: 0 0.35rem;
+  transform-origin: 50% 0%;
+  animation: diary-mark-card-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+.diary-mark-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.45rem;
+  margin: 0;
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-mark-card__cross {
+  position: relative;
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.diary-mark-card__cross::before,
+.diary-mark-card__cross::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0.16rem;
+  border-radius: 1px;
+  background: var(--theme-danger);
+  content: "";
+  rotate: 45deg;
+}
+
+.diary-mark-card__cross::after {
+  rotate: -45deg;
+}
+
+.diary-mark-card__date {
+  margin: 0;
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-mark-card__date::first-letter {
+  text-transform: uppercase;
+}
+
+/* A long day (every series on the combined chart) scrolls; «Подробнее» stays in view. */
+.diary-mark-card__values {
+  max-height: 8.5rem;
+  overflow-y: auto;
+}
+
+/* What the patient said about a missed dose, above the day's values. */
+.diary-mark-card__miss {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--theme-danger) 9%, transparent);
+}
+
+/* The tapped day (owner 2026-11-04): a see-through band a day wide through the plot. */
+.diary-chart__day-line {
+  position: absolute;
+  z-index: 1;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--theme-accent) 28%, transparent);
+  pointer-events: none;
+  translate: -50% 0;
+  animation: diary-mark-card-in var(--motion-fast) var(--motion-ease-out) both;
+}
+
+.diary-mark-card__lines {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.diary-mark-card__note {
+  color: var(--theme-text-muted);
+  font-style: italic;
+}
+
+.diary-mark-card__more {
+  --ui-button-height: 2.25rem;
+  justify-self: end;
+  color: var(--theme-link, var(--theme-accent-text));
+}
+
+@keyframes diary-mark-card-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-mark-card {
+    animation: none;
+  }
+}
+
 .diary-adherence__row {
   display: grid;
   grid-template-columns: minmax(8rem, 1fr) minmax(6rem, 2fr) auto;

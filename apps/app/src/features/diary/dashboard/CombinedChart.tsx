@@ -1,9 +1,18 @@
 import type { Chart as ChartInstance } from 'chart.js';
 import ChartJs from 'chart.js/auto';
-import { createEffect, type JSX, onCleanup, onMount, untrack } from 'solid-js';
-import { dayAxis, tappedDay } from '@/features/diary/dashboard/chart-days';
+import { createEffect, type JSX, onCleanup, onMount, Show, untrack } from 'solid-js';
+import { dayAxis } from '@/features/diary/dashboard/chart-days';
+import {
+  type ChartMark,
+  chartValue,
+  MARK_LABEL,
+  markDataset,
+  markLegendLabels,
+  useChartDays,
+} from '@/features/diary/dashboard/chart-marks';
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
 import { alarmPlugin } from '@/features/diary/dashboard/TrendChart';
+import { dayKey } from '@/features/diary/diary-care';
 
 /** One line of the combined chart: drawn on its own range, told in its own units. */
 export interface CombinedSeries {
@@ -59,14 +68,31 @@ export function CombinedChart(props: {
   readonly to: number;
   /** Times of points past the doctor's red lines (any series). */
   readonly alarms: readonly number[];
+  /** Days with intakes the patient marked as skipped, on the 0–100 scale (DIARY23). */
+  readonly marks?: readonly ChartMark[] | undefined;
   /** A tap on the chart opens that day's details. */
   readonly onDay?: ((day: string) => void) | undefined;
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number; value: number }[]> | undefined;
+  const card = useChartDays();
+  /** The day's values in their own units; the time first when a series has several that day. */
+  const dayValues = (day: string): string[] =>
+    props.series.flatMap((one) => {
+      const points = one.points.filter((point) => dayKey(point.at) === day);
+      return points.map((point) => {
+        const time =
+          points.length > 1
+            ? `${new Date(point.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} · `
+            : '';
+        return `${time}${one.label}: ${chartValue(point.value)}${one.unit ? ` ${one.unit}` : ''}`;
+      });
+    });
 
   const render = (): void => {
     if (!canvas) return;
+    card.close();
+    const marks = props.marks ?? [];
     const text = token('--theme-text-muted', '#6b6458');
     const grid = token('--theme-border', '#ddd4c2');
     const danger = token('--theme-danger', '#b3261e');
@@ -76,46 +102,67 @@ export function CombinedChart(props: {
     chart = new ChartJs(canvas, {
       type: 'line',
       data: {
-        datasets: series.map((one, index) => {
-          const color = PALETTE[index % PALETTE.length] ?? PALETTE[0];
-          const span = one.high - one.low || 1;
-          return {
-            label: one.label,
-            data: one.points.map((point) => ({
-              x: Date.parse(point.at),
-              y: ((point.value - one.low) / span) * 100,
-              value: point.value,
-            })),
-            borderColor: color,
-            backgroundColor: color,
-            borderWidth: 2,
-            pointRadius: 2,
-            tension: 0.25,
-          };
-        }),
+        datasets: [
+          ...series.map((one, index) => {
+            const color = PALETTE[index % PALETTE.length] ?? PALETTE[0];
+            const span = one.high - one.low || 1;
+            return {
+              label: one.label,
+              data: one.points.map((point) => ({
+                x: Date.parse(point.at),
+                y: ((point.value - one.low) / span) * 100,
+                value: point.value,
+              })),
+              borderColor: color,
+              backgroundColor: color,
+              borderWidth: 2,
+              pointRadius: 2,
+              tension: 0.25,
+            };
+          }),
+          // The crosses on the 0–100 scale of the intake line; drawn above every line.
+          ...(marks.length
+            ? [
+                {
+                  ...markDataset(marks, danger),
+                  data: marks.map((mark) => ({
+                    x: Date.parse(mark.at),
+                    y: mark.value,
+                    value: mark.value,
+                  })),
+                },
+              ]
+            : []),
+        ],
       },
       plugins: [
         alarmPlugin(
           () => alarms,
           () => danger,
         ),
+        card.plugin(() => (marks.length ? series.length : -1)),
       ],
       options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
         interaction: { mode: 'nearest', axis: 'x', intersect: false },
-        onClick: (event, _elements, current) => {
-          const day = tappedDay(current, event.x);
-          if (day) props.onDay?.(day);
-        },
+        onClick: (event, _elements, current) => card.tap(current, event),
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { color: text, boxWidth: 10, boxHeight: 10, font: { size: 11 } },
+            labels: {
+              color: text,
+              boxWidth: 10,
+              boxHeight: 10,
+              font: { size: 11 },
+              usePointStyle: marks.length > 0,
+              generateLabels: markLegendLabels,
+            },
           },
           tooltip: {
             mode: 'index',
+            filter: (item) => item.dataset.label !== MARK_LABEL,
             callbacks: {
               title: (items) =>
                 new Date(items[0]?.parsed.x ?? 0).toLocaleDateString('ru-RU', {
@@ -144,7 +191,7 @@ export function CombinedChart(props: {
   // then popped in (DIARY21). Later changes redraw at once.
   let drawn = false;
   createEffect(() => {
-    void [props.series, props.alarms, props.from, props.to];
+    void [props.series, props.alarms, props.marks, props.from, props.to];
     if (drawn) untrack(render);
   });
   onMount(() => {
@@ -160,6 +207,14 @@ export function CombinedChart(props: {
       cancelAnimationFrame(next);
     });
   });
+  // No tooltip over an open card: the card tells that day.
+  createEffect(() => {
+    const open = card.open() !== undefined;
+    const tooltip = chart?.options.plugins?.tooltip;
+    if (!chart || !tooltip || tooltip.enabled === !open) return;
+    tooltip.enabled = !open;
+    chart.update('none');
+  });
   onCleanup(() => chart?.destroy());
 
   return (
@@ -171,6 +226,7 @@ export function CombinedChart(props: {
           role="img"
           aria-label={`Все показатели вместе: ${props.series.map((one) => one.label).join(', ')}`}
         />
+        <card.Layer marks={props.marks ?? []} values={dayValues} onDay={props.onDay} />
       </div>
     </figure>
   );

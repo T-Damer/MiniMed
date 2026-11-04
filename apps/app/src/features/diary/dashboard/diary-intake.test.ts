@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { intakeCharts, skipMarks } from '@/features/diary/dashboard/diary-charts';
 import { medicineIntake, parseDose } from '@/features/diary/dashboard/diary-intake';
 import {
   DIARY_FORMAT_VERSION,
@@ -75,7 +76,8 @@ describe('medicine intake per day', () => {
     expect(sertraline?.unit).toBe('мг');
     expect(sertraline?.days).toEqual([
       { day: '2026-10-18', taken: 75, prescribed: 75 },
-      { day: '2026-10-19', taken: 50, prescribed: 75 },
+      // The evening intake marked as skipped is kept for the chart's red cross.
+      { day: '2026-10-19', taken: 50, prescribed: 75, skipped: [{ time: '20:00', dose: '25 мг' }] },
       // Nothing marked on the 20th: both intakes count as 0, the plan still asks for 75.
       { day: '2026-10-20', taken: 0, prescribed: 75 },
     ]);
@@ -96,9 +98,46 @@ describe('medicine intake per day', () => {
       mark(diary, 19, '14:00', { item: 'p2', done: true, dose: '12,5 мг' }),
     ];
     const [sertraline, hydroxyzine] = medicineIntake(diary, entries, 3, NOW);
-    expect(sertraline?.days[0]).toEqual({ day: '2026-10-18', taken: 25, prescribed: 37.5 });
+    expect(sertraline?.days[0]).toEqual({
+      day: '2026-10-18',
+      taken: 25,
+      prescribed: 37.5,
+      skipped: [{ time: '20:00', dose: '12,5 мг' }],
+    });
     // Unmarked days know only today's plan.
     expect(sertraline?.days[1]).toEqual({ day: '2026-10-19', taken: 0, prescribed: 75 });
     expect(hydroxyzine?.days[1]).toEqual({ day: '2026-10-19', taken: 12.5 });
+  });
+
+  it('crosses out the intakes the patient marked as skipped, with the reason and the note', () => {
+    const diary = invitation();
+    const skip = parseDiaryEntry(
+      diary,
+      {
+        id: 'skip19am',
+        at: new Date(2026, 9, 19, 9, 0).toISOString(),
+        values: { medication: { item: 'p1', done: false, slot: '08:00', reason: 'ran-out' } },
+        note: 'Аптека была закрыта',
+      },
+      NOW.getTime(),
+    );
+    const entries = [skip, mark(diary, 19, '20:10', { item: 'p1', done: true, slot: '20:00' })];
+    const intakes = medicineIntake(diary, entries, 3, NOW);
+    const [sertraline] = intakeCharts(intakes);
+    // One cross, on the 19th, at the dose taken that day; the unmarked 18th and 20th have none.
+    expect(sertraline?.marks).toEqual([
+      {
+        at: new Date(2026, 9, 19, 12, 0).toISOString(),
+        value: 25,
+        day: '2026-10-19',
+        title: 'Пропущен приём',
+        lines: ['08:00 · 50 мг — закончилось', '«Аптека была закрыта»'],
+      },
+    ]);
+    // On the combined chart the card names the medicine; the cross sits where it is told.
+    expect(skipMarks(intakes, () => 33)[0]).toMatchObject({
+      value: 33,
+      lines: ['Сертралин · 08:00 · 50 мг — закончилось', '«Аптека была закрыта»'],
+    });
   });
 });

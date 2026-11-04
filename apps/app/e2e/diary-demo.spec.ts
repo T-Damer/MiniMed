@@ -122,11 +122,28 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await expect(intake.locator('.diary-chart__title').first()).toContainText('в день');
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath('demo-intake.png') });
+  // A dose the patient marked as missed is a red cross: a tap tells what happened and why,
+  // «Подробнее» opens that day (DIARY23).
+  const cross = intake.locator('.diary-chart__mark').first();
+  await expect(cross).toHaveAccessibleName(/^Пропущен/u);
+  await cross.click();
+  const card = intake.locator('.diary-mark-card');
+  await expect(card).toContainText(/Пропущен/u);
+  await expect(card).toContainText(/\d\d:\d\d/u);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: testInfo.outputPath('demo-intake-cross.png') });
+  await card.getByRole('button', { name: 'Подробнее' }).click();
+  await expect(card).toHaveCount(0);
+  const crossDay = page.locator('.diary-day-details');
+  await expect(crossDay).toContainText('пропущено пациентом');
+  await page.keyboard.press('Escape');
+  await expect(crossDay).toHaveCount(0);
   await page.getByRole('button', { name: 'К пациенту' }).click();
   await expect(overview).toBeVisible();
 
   // The expand button opens every chart full screen: «Статистика» on one chart first, then each
-  // chart, questionnaires included; a tap on the chart opens that day.
+  // chart, questionnaires included; a tap on the chart shows that day's values under a band,
+  // «Подробнее» opens the day (DIARY23).
   await overview.getByRole('button', { name: 'Все графики на весь экран' }).click();
   await expect(page).toHaveURL(/\/charts$/u);
   await expect(page.locator('.diary-chart--combined')).toBeVisible();
@@ -135,6 +152,13 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   const plot = page.locator('.diary-chart--combined canvas');
   const box = await plot.boundingBox();
   if (box) await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.4);
+  const dayCard = page.locator('.diary-chart--combined .diary-mark-card');
+  await expect(dayCard).toContainText(/: \d/u);
+  await expect(page.locator('.diary-chart--combined .diary-chart__day-line')).toBeVisible();
+  await expect(page.locator('.diary-day-details')).toHaveCount(0);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: testInfo.outputPath('demo-chart-day-card.png') });
+  await dayCard.getByRole('button', { name: 'Подробнее' }).click();
   await expect(page.locator('.diary-day-details')).toBeVisible();
   await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath('demo-chart-day.png') });

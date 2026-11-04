@@ -7,9 +7,10 @@
  * Questionnaire charts come from the questionnaire schemas instead (`questionnaireSeries`).
  */
 
+import type { ChartMark } from '@/features/diary/dashboard/chart-marks';
 import { fieldSeries, type SeriesPoint } from '@/features/diary/dashboard/diary-insights';
-import type { MedicineIntake } from '@/features/diary/dashboard/diary-intake';
-import type { DiaryEntry } from '@/features/diary/diary-model';
+import type { IntakeSkip, MedicineIntake } from '@/features/diary/dashboard/diary-intake';
+import { DIARY_MISS_REASON_SHORT, type DiaryEntry } from '@/features/diary/diary-model';
 import { SUBSTANCES, USE_CRAVING_FIELD } from '@/features/diary/diary-substances';
 
 export interface DiaryChartSeries {
@@ -74,7 +75,8 @@ export const DIARY_CHARTS: readonly DiaryChart[] = [
     id: 'pressure',
     title: 'Давление, мм рт. ст.',
     series: [
-      { field: 'systolic', label: 'Верхнее', color: '--theme-danger' },
+      // Red is kept for the red lines and the days past them.
+      { field: 'systolic', label: 'Верхнее', color: '--theme-info' },
       { field: 'diastolic', label: 'Нижнее', color: '--theme-warning' },
     ],
     limits: [
@@ -147,11 +149,30 @@ export interface IntakeChart {
     readonly style: 'line' | 'dots' | 'target';
     readonly points: readonly SeriesPoint[];
   }[];
+  /** The intakes the patient marked as skipped: red crosses on the «Принято» line (DIARY23). */
+  readonly marks: readonly ChartMark[];
 }
 
 /** A point at the middle of a local day, so daily values sit between the date ticks. */
 function middayOf(day: string): string {
   return new Date(`${day}T12:00:00`).toISOString();
+}
+
+/** «Пропущен приём» or «Пропущено приёмов: 3». */
+export function skipTitle(count: number): string {
+  return count === 1 ? 'Пропущен приём' : `Пропущено приёмов: ${count}`;
+}
+
+/**
+ * The card lines of skipped intakes: «08:00 · 50 мг — закончилось» (the medicine first when the
+ * card is not about one medicine), then the patient's own words in quotes.
+ */
+export function skipLines(skips: readonly IntakeSkip[], name?: string): string[] {
+  return skips.flatMap((skip) => {
+    const what = [name, skip.time, skip.dose].filter(Boolean).join(' · ');
+    const line = skip.reason ? `${what} — ${DIARY_MISS_REASON_SHORT[skip.reason]}` : what;
+    return skip.note ? [line, `«${skip.note}»`] : [line];
+  });
 }
 
 /** One chart per medicine: the dose taken per day as a line, the prescribed dose dotted. */
@@ -173,5 +194,46 @@ export function intakeCharts(intakes: readonly MedicineIntake[]): IntakeChart[] 
           ),
         },
       ].filter((series) => series.points.length > 0),
+      marks: intake.days.flatMap((day) =>
+        day.skipped?.length
+          ? [
+              {
+                at: middayOf(day.day),
+                value: day.taken,
+                day: day.day,
+                title: skipTitle(day.skipped.length),
+                lines: skipLines(day.skipped),
+              },
+            ]
+          : [],
+      ),
+    }));
+}
+
+/**
+ * The skipped intakes of every medicine, one cross per day, for the combined chart: the cross sits
+ * at `heightOf(day)` (that day's share of the plan) and its card names each medicine.
+ */
+export function skipMarks(
+  intakes: readonly MedicineIntake[],
+  heightOf: (day: string) => number,
+): ChartMark[] {
+  const byDay = new Map<string, string[]>();
+  const counts = new Map<string, number>();
+  for (const intake of intakes) {
+    for (const day of intake.days) {
+      if (!day.skipped?.length) continue;
+      byDay.set(day.day, [...(byDay.get(day.day) ?? []), ...skipLines(day.skipped, intake.name)]);
+      counts.set(day.day, (counts.get(day.day) ?? 0) + day.skipped.length);
+    }
+  }
+  return [...byDay]
+    .toSorted(([left], [right]) => left.localeCompare(right))
+    .map(([day, lines]) => ({
+      at: middayOf(day),
+      value: heightOf(day),
+      day,
+      title: skipTitle(counts.get(day) ?? 1),
+      lines,
     }));
 }

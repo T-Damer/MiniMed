@@ -1211,8 +1211,10 @@ body:has(.diary-care-scope) {
 }
 
 /* «Точно удалить?»: white on the danger red. Doubled class: the quiet button's own background
-   overrode a single one, leaving white text on light paper (DIARY22). */
-.diary-button--danger.diary-button--confirm {
+   overrode a single one, leaving white text on light paper (DIARY22); its hover surface
+   (`.ui-button--quiet:hover:not(:disabled)`) did the same under the mouse (DIARY23). */
+.diary-button--danger.diary-button--confirm,
+.diary-button--danger.diary-button--confirm:hover:not(:disabled) {
   border-color: var(--theme-danger);
   color: #fff;
   background: var(--theme-danger);

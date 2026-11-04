@@ -5,8 +5,17 @@ import { createEffect, type JSX, onCleanup, onMount, Show, untrack } from 'solid
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 
-import { dayAxis, tappedDay, zonePlugin } from '@/features/diary/dashboard/chart-days';
+import { dayAxis, zonePlugin } from '@/features/diary/dashboard/chart-days';
+import {
+  type ChartMark,
+  chartValue,
+  MARK_LABEL,
+  markDataset,
+  markLegendLabels,
+  useChartDays,
+} from '@/features/diary/dashboard/chart-marks';
 import type { SeriesPoint } from '@/features/diary/dashboard/diary-insights';
+import { dayKey } from '@/features/diary/diary-care';
 
 export interface TrendSeries {
   readonly label: string;
@@ -29,6 +38,17 @@ export interface TrendLimit {
   readonly axis?: 'right';
   /** Which side is the worry: that side of the line is always painted red behind the lines. */
   readonly kind?: 'above' | 'below';
+  /**
+   * The series this line judges (its label); every series when absent. A line for one of several
+   * series paints no zone (the systolic zone would cover the diastolic line, DIARY23): the points
+   * past it turn red instead.
+   */
+  readonly series?: string;
+}
+
+/** The point is past the line, on its worry side (the line itself counts, as in `crossesLimit`). */
+function pastLimit(limit: TrendLimit, value: number): boolean {
+  return limit.kind === 'below' ? value <= limit.value : value >= limit.value;
 }
 
 const DAY_MS = 86_400_000;
@@ -105,13 +125,30 @@ export function TrendChart(props: {
   readonly daily?: boolean;
   /** A tap on the chart opens that day (DIARY21). */
   readonly onDay?: ((day: string) => void) | undefined;
+  /** Red crosses (intakes the patient marked as skipped); a tap opens a card (DIARY23). */
+  readonly marks?: readonly ChartMark[] | undefined;
   /** The latest value needs attention: a filled bell in the title row opens why. */
   readonly warning?: { readonly label: string; readonly onOpen: () => void } | undefined;
 }): JSX.Element {
   let canvas: HTMLCanvasElement | undefined;
   let chart: ChartInstance<'line', { x: number; y: number }[]> | undefined;
+  const card = useChartDays();
+  /** The values of a day, one line each: the time first when the chart is not one value a day. */
+  const dayValues = (day: string): string[] =>
+    props.series.flatMap((series) =>
+      series.points
+        .filter((point) => dayKey(point.at) === day)
+        .map((point) => {
+          const time = props.daily
+            ? ''
+            : `${new Date(point.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} · `;
+          return `${time}${series.label}: ${chartValue(point.value)}`;
+        }),
+    );
   const render = (): void => {
     if (!canvas) return;
+    card.close();
+    const marks = props.marks ?? [];
     const text = token('--theme-text-muted', '#6b6458');
     const grid = token('--theme-border', '#ddd4c2');
     const danger = token('--theme-danger', '#b3261e');
@@ -121,6 +158,15 @@ export function TrendChart(props: {
     const start = props.from ?? Math.min(...times);
     const end = props.to ?? Math.max(...times);
     const right = props.series.some((series) => series.axis === 'right');
+    const limits = props.limits ?? [];
+    const lines = props.series.filter((series) => series.style !== 'target').length;
+    // A zone only for a line that judges every series drawn; the others mark their own points.
+    const zoned = limits.filter((limit) => !limit.series || lines <= 1);
+    const judging = (series: TrendSeries) =>
+      limits.filter(
+        (limit) =>
+          limit.series === series.label && (limit.axis ?? 'left') === (series.axis ?? 'left'),
+      );
     const data = {
       datasets: [
         ...props.series.map((series) => ({
@@ -144,6 +190,24 @@ export function TrendChart(props: {
                   pointHitRadius: 8,
                 }
               : { pointRadius: 2.5, borderWidth: 2, tension: props.daily ? 0 : 0.25 }),
+          ...(judging(series).length && series.style !== 'target'
+            ? (() => {
+                const own = token(series.color, '#3c6478');
+                const bad = (context: { raw: unknown }) =>
+                  judging(series).some((limit) =>
+                    pastLimit(limit, (context.raw as { y: number }).y),
+                  );
+                // A bad day: a larger red dot in a paper ring, plain to see on any line colour.
+                const paper = token('--theme-surface-raised', '#fbf7ea');
+                return {
+                  pointBackgroundColor: (context: { raw: unknown }) =>
+                    bad(context) ? danger : own,
+                  pointBorderColor: (context: { raw: unknown }) => (bad(context) ? paper : own),
+                  pointBorderWidth: (context: { raw: unknown }) => (bad(context) ? 2 : 1),
+                  pointRadius: (context: { raw: unknown }) => (bad(context) ? 5 : 2.5),
+                };
+              })()
+            : {}),
           yAxisID: series.axis === 'right' ? 'y2' : 'y',
         })),
         ...(props.limits ?? []).map((limit) => ({
@@ -160,8 +224,10 @@ export function TrendChart(props: {
           pointHitRadius: 0,
           yAxisID: limit.axis === 'right' ? 'y2' : 'y',
         })),
+        ...(marks.length ? [markDataset(marks, danger)] : []),
       ],
     };
+    const markIndex = marks.length ? data.datasets.length - 1 : -1;
     const limitLabels = new Set((props.limits ?? []).map((limit) => limit.label));
     chart?.destroy();
     chart = new ChartJs(canvas, {
@@ -170,33 +236,35 @@ export function TrendChart(props: {
       plugins: [
         zonePlugin(
           () =>
-            (props.limits ?? []).flatMap((limit) =>
+            zoned.flatMap((limit) =>
               limit.kind ? [{ value: limit.value, kind: limit.kind, axis: limit.axis }] : [],
             ),
           () => danger,
         ),
+        card.plugin(() => markIndex),
       ],
       options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
         interaction: { mode: 'nearest', intersect: false },
-        onClick: (event, _elements, current) => {
-          const day = tappedDay(current, event.x);
-          if (day) props.onDay?.(day);
-        },
+        onClick: (event, _elements, current) => card.tap(current, event),
         plugins: {
           legend: {
-            display: props.series.length > 1,
+            display: props.series.length > 1 || marks.length > 0,
             labels: {
               color: text,
               boxWidth: 10,
               font: { size: 11 },
+              // The cross shows as a cross; the other series keep their squares.
+              usePointStyle: marks.length > 0,
+              generateLabels: markLegendLabels,
               filter: (item) => !limitLabels.has(item.text),
             },
           },
           tooltip: {
-            filter: (item) => !limitLabels.has(item.dataset.label ?? ''),
+            filter: (item) =>
+              !limitLabels.has(item.dataset.label ?? '') && item.dataset.label !== MARK_LABEL,
             callbacks: {
               title: (items) =>
                 (props.daily ? dayDate : shortDate)(
@@ -265,6 +333,7 @@ export function TrendChart(props: {
       props.rightMax,
       props.guides,
       props.daily,
+      props.marks,
     ];
     if (drawn) untrack(render);
   });
@@ -280,6 +349,14 @@ export function TrendChart(props: {
       cancelAnimationFrame(frame);
       cancelAnimationFrame(next);
     });
+  });
+  // No tooltip over an open card: the card tells that day.
+  createEffect(() => {
+    const open = card.open() !== undefined;
+    const tooltip = chart?.options.plugins?.tooltip;
+    if (!chart || !tooltip || tooltip.enabled === !open) return;
+    tooltip.enabled = !open;
+    chart.update('none');
   });
   onCleanup(() => chart?.destroy());
 
@@ -314,6 +391,7 @@ export function TrendChart(props: {
       </figcaption>
       <div class="diary-chart__canvas-box">
         <canvas class="diary-chart__canvas" ref={canvas} aria-label={props.title} role="img" />
+        <card.Layer marks={props.marks ?? []} values={dayValues} onDay={props.onDay} />
       </div>
     </figure>
   );

@@ -29,6 +29,7 @@ import {
   DIARY_CHARTS,
   type DiaryChart,
   intakeCharts,
+  skipMarks,
 } from '@/features/diary/dashboard/diary-charts';
 import {
   medicineAdherence,
@@ -158,13 +159,16 @@ export function PatientChartsPage(props: {
   const combined = createMemo(() => {
     const series: CombinedSeries[] = [];
     const alarms: number[] = [];
+    // The share of the plan: a medicine taken when needed has no plan to share (its doses once
+    // pushed a day past 100 %, off the chart, DIARY23).
     const share = intakes()
       .flatMap((medicine) => medicine.days)
       .reduce((days, one) => {
+        if (one.prescribed === undefined) return days;
         const total = days.get(one.day) ?? { taken: 0, prescribed: 0 };
         days.set(one.day, {
-          taken: total.taken + Math.min(one.taken, one.prescribed ?? one.taken),
-          prescribed: total.prescribed + (one.prescribed ?? 0),
+          taken: total.taken + Math.min(one.taken, one.prescribed),
+          prescribed: total.prescribed + one.prescribed,
         });
         return days;
       }, new Map<string, { taken: number; prescribed: number }>());
@@ -185,6 +189,12 @@ export function PatientChartsPage(props: {
         high: 100,
       });
     }
+    // A cross on the intake line where the patient marked a dose as skipped; today's (no point
+    // yet) sits at the day's share so far.
+    const marks = skipMarks(intakes(), (day) => {
+      const total = share.get(day);
+      return total?.prescribed ? Math.round((total.taken / total.prescribed) * 100) : 0;
+    });
     for (const chart of DIARY_CHARTS) {
       const name = chart.title.split(/[,(]/u)[0]?.trim() ?? chart.title;
       for (const one of chartSeries(chart, recent())) {
@@ -228,7 +238,7 @@ export function PatientChartsPage(props: {
         if (crossesLimit(quiz.limitId, point.value, quiz.preset)) alarms.push(Date.parse(point.at));
       }
     }
-    return { series, alarms };
+    return { series, alarms, marks };
   });
   const title = () =>
     `${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim();
@@ -317,10 +327,11 @@ export function PatientChartsPage(props: {
           aria-label="Статистика"
         >
           <h2 class="diary-patient__heading">Статистика</h2>
-          <p class="diary-charts-page__hint">Нажмите на точку, чтобы открыть этот день</p>
+          <p class="diary-charts-page__hint">Нажмите на день, чтобы увидеть его значения</p>
           <CombinedChart
             series={combined().series}
             alarms={combined().alarms}
+            marks={combined().marks}
             from={from()}
             to={Date.now()}
             onDay={openDay}
@@ -379,6 +390,7 @@ export function PatientChartsPage(props: {
                   min={0}
                   daily
                   series={chart.series}
+                  marks={chart.marks}
                 />
               )}
             </For>
@@ -402,11 +414,16 @@ export function PatientChartsPage(props: {
                   rightMax={chart.rightMax}
                   daily={chart.daily === true}
                   series={chartSeries(chart, recent())}
-                  limits={chartLimits(chart).flatMap((target) =>
-                    limitsOf([target]).map((limit) =>
-                      target.axis ? { ...limit, axis: target.axis } : limit,
-                    ),
-                  )}
+                  limits={chartLimits(chart).flatMap((target) => {
+                    // A line names the one series it judges when the chart has several.
+                    const judged = chart.series.filter((one) => one.field === target.id);
+                    const series = judged.length === 1 ? judged[0]?.label : undefined;
+                    return limitsOf([target]).map((limit) => ({
+                      ...limit,
+                      ...(target.axis ? { axis: target.axis } : {}),
+                      ...(series ? { series } : {}),
+                    }));
+                  })}
                   onLimit={chart.limits?.length ? openLimit(chartLimits(chart)) : undefined}
                 />
               </div>
