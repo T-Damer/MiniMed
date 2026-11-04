@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { PillMark } from '@/components/PillMark';
 import { SheetPopover } from '@/components/SheetPopover';
 import { CareIntro } from '@/diary/CareIntro';
 import { ContactsSheet, CrisisSheet } from '@/diary/care-contacts';
@@ -54,6 +55,7 @@ import {
   type QuestionnaireTask,
   type TaskState,
 } from '@/features/diary/diary-care';
+import { checkpointGlyph } from '@/features/diary/diary-glyphs';
 import type { DiaryShareStatus } from '@/features/diary/diary-merge';
 import {
   createDiaryId,
@@ -111,15 +113,6 @@ function dayTitle(day: string, today: string): string {
   const weekday = dayStart(day).toLocaleDateString('ru-RU', { weekday: 'long' });
   return `${weekday[0]?.toUpperCase() ?? ''}${weekday.slice(1)}, ${date}`;
 }
-
-const CHECK_ICON: Readonly<Record<DiaryCheckpoint['kind'], AppGlyphName>> = {
-  score: 'smiley',
-  vitals: 'heartbeat',
-  text: 'note-pencil',
-  choice: 'list-checks',
-  use: 'drop',
-  questionnaire: 'list-numbers',
-};
 
 const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
   late: 'Пора',
@@ -205,6 +198,8 @@ function quizStatus(task: QuestionnaireTask, today: string): string {
  */
 export function CareRow(props: {
   readonly icon: AppGlyphName;
+  /** Drawn before the title instead of `icon`: a medicine's tablet with its letter. */
+  readonly mark?: JSX.Element;
   readonly time?: string | undefined;
   readonly title: string;
   readonly detail?: string | undefined;
@@ -261,6 +256,10 @@ export function CareRow(props: {
           <Show when={props.time}>
             <span class="care-row__time">{props.time}</span>
           </Show>
+          {/* What the row is, at a glance (owner 2026-11-04): the box on the left only says done. */}
+          <span class="care-row__kind" aria-hidden="true">
+            {props.mark ?? <AppGlyph name={props.icon} class="care-row__kind-glyph" />}
+          </span>
           <span class="care-row__title">{props.title}</span>
           <Show when={props.tip}>
             <span class="care-row__tip">
@@ -715,6 +714,7 @@ export function DiaryToday(props: {
                       {(task) => (
                         <CareRow
                           icon="pill"
+                          mark={<PillMark name={task.item.name} />}
                           time={task.time.time}
                           title={[task.item.name, taskDose(task)].filter(Boolean).join(' ')}
                           detail={
@@ -753,6 +753,7 @@ export function DiaryToday(props: {
                   {(group) => (
                     <CareRow
                       icon="plus"
+                      mark={<PillMark name={group.item.name} />}
                       title={[group.item.name, group.item.dose].filter(Boolean).join(' ')}
                       detail={
                         group.entries.length
@@ -795,7 +796,7 @@ export function DiaryToday(props: {
               <For each={plan().checks}>
                 {(task) => (
                   <CareRow
-                    icon={CHECK_ICON[task.checkpoint.kind]}
+                    icon={checkpointGlyph(task.checkpoint)}
                     time={task.time}
                     title={task.checkpoint.label}
                     detail={checkStatus(task)}

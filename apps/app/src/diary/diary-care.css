@@ -467,6 +467,18 @@ body:has(.diary-care-scope) {
   gap: 0.55rem;
 }
 
+.care-row__kind {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  color: var(--theme-text-muted);
+}
+
+.care-row__kind-glyph {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .care-row__time {
   flex: none;
   color: var(--theme-accent-text);

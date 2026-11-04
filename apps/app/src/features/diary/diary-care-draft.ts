@@ -6,6 +6,8 @@
  * the patient's marks keep matching; removed sections stay in the plan as ended.
  */
 import {
+  ACTIVITY_FIELD,
+  APPETITE_FIELD,
   CARE_CHECKPOINTS,
   DIARY_FORMAT_VERSION,
   type DiaryCheckpoint,
@@ -18,8 +20,11 @@ import {
   type DiaryPlanItem,
   type DiaryTip,
   diaryTemplate,
+  GLUCOSE_FIELD,
   MAX_DIARY_OPTIONS,
+  MEALS_FIELD,
   parseDiaryInvitation,
+  STEPS_FIELD,
 } from '@/features/diary/diary-model';
 import {
   customQuestionnaireSlug,
@@ -54,6 +59,9 @@ export type CareSectionKind =
   | 'mood'
   | 'vitals'
   | 'body'
+  | 'glucose'
+  | 'activity'
+  | 'meals'
   | 'text'
   | 'choice'
   | 'use'
@@ -109,6 +117,9 @@ export const CARE_SECTION_LABEL: Readonly<Record<CareSectionKind, string>> = {
   mood: 'Настроение',
   vitals: 'Пульс и давление',
   body: 'Вес и рост',
+  glucose: 'Глюкоза',
+  activity: 'Активность',
+  meals: 'Питание',
   text: 'Описание',
   choice: 'Выбор',
   use: 'Зависимости',
@@ -159,6 +170,12 @@ export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSecti
       return { ...BLANK, key: sectionKey(), kind, title: 'Настроение', times: at('21:00') };
     case 'body':
       return { ...BLANK, key: sectionKey(), kind, title: 'Вес и рост', times: [] };
+    case 'glucose':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Глюкоза', times: at('08:00') };
+    case 'activity':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Активность', times: at('21:00') };
+    case 'meals':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Питание', times: at('21:00') };
     case 'vitals':
       return {
         ...BLANK,
@@ -276,9 +293,7 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
         kind:
           checkpoint.kind === 'score' && first === 'mood'
             ? 'mood'
-            : checkpoint.kind === 'vitals' && first === 'weight'
-              ? 'body'
-              : checkpoint.kind,
+            : (checkpoint.kind === 'vitals' && first && MEASURE_KIND[first]) || checkpoint.kind,
         id: checkpoint.id,
         title: checkpoint.label,
         times: (checkpoint.times ?? []).map((time) => ({ time, meal: undefined })),
@@ -321,12 +336,33 @@ const ID_PREFIX: Readonly<Record<Exclude<CareSectionKind, 'questionnaire' | 'use
   mood: 'm-',
   vitals: 'v-',
   body: 'b-',
+  glucose: 'g-',
+  activity: 'a-',
+  meals: 'f-',
   text: 'd-',
   choice: 'c-',
 };
 
 const VITAL_FIELDS =
   CARE_CHECKPOINTS.find((checkpoint) => checkpoint.kind === 'vitals')?.fields ?? [];
+
+/** Measurement sections and the fields each asks (a `vitals` checkpoint on the patient's side). */
+const MEASURE_FIELDS: Readonly<
+  Record<'body' | 'glucose' | 'activity' | 'meals', readonly DiaryField[]>
+> = {
+  body: [],
+  glucose: [GLUCOSE_FIELD],
+  activity: [STEPS_FIELD, ACTIVITY_FIELD],
+  meals: [MEALS_FIELD, APPETITE_FIELD],
+};
+
+/** The section a `vitals` checkpoint is, by its first field. */
+const MEASURE_KIND: Readonly<Partial<Record<string, CareSectionKind>>> = {
+  weight: 'body',
+  glucose: 'glucose',
+  steps: 'activity',
+  meals: 'meals',
+};
 
 export interface CareInvitationParts {
   readonly fields: readonly DiaryField[];
@@ -452,7 +488,17 @@ export function careInvitationParts(
     else if (section.kind === 'mood') fieldIds = ['mood'];
     else if (section.kind === 'vitals') fieldIds = VITAL_FIELDS;
     else if (section.kind === 'body') fieldIds = ['weight', 'height'];
-    else if (section.kind === 'text') {
+    else if (
+      section.kind === 'glucose' ||
+      section.kind === 'activity' ||
+      section.kind === 'meals'
+    ) {
+      const measured = MEASURE_FIELDS[section.kind];
+      // One section of each: the fields have fixed ids, like the base ones.
+      if (checkpoints.some((checkpoint) => checkpoint.fields?.[0] === measured[0]?.id)) continue;
+      for (const field of measured) fields.set(field.id, field);
+      fieldIds = measured.map((field) => field.id);
+    } else if (section.kind === 'text') {
       fields.set(id, { id, type: 'text', label: title });
       fieldIds = [id];
     } else {
@@ -469,7 +515,15 @@ export function careInvitationParts(
     checkpoints.push({
       id,
       // Mood is a score and weight with height are measurements to the patient's screen.
-      kind: section.kind === 'mood' ? 'score' : section.kind === 'body' ? 'vitals' : section.kind,
+      kind:
+        section.kind === 'mood'
+          ? 'score'
+          : section.kind === 'body' ||
+              section.kind === 'glucose' ||
+              section.kind === 'activity' ||
+              section.kind === 'meals'
+            ? 'vitals'
+            : section.kind,
       label: title,
       ...(times.length ? { times } : {}),
       fields: fieldIds,

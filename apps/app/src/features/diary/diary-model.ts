@@ -1274,6 +1274,57 @@ const MEDICATION_FIELD: DiaryField = {
   trackDone: true,
 };
 
+/**
+ * Glucose, activity and meals (owner 2026-11-04): measurements a section of the care diary adds
+ * when the doctor asks for them. They are `vitals` checkpoints of number fields, so a patient's
+ * diary that does not know them yet still asks them as numbers.
+ */
+export const GLUCOSE_FIELD: DiaryField = {
+  id: 'glucose',
+  type: 'number',
+  label: 'Глюкоза',
+  unit: 'ммоль/л',
+  min: 1,
+  max: 35,
+  step: 0.1,
+};
+export const STEPS_FIELD: DiaryField = {
+  id: 'steps',
+  type: 'number',
+  label: 'Шаги',
+  unit: 'шагов',
+  min: 0,
+  max: 100_000,
+  step: 1,
+};
+export const ACTIVITY_FIELD: DiaryField = {
+  id: 'activity',
+  type: 'number',
+  label: 'Активные минуты',
+  unit: 'мин',
+  min: 0,
+  max: 1440,
+  step: 1,
+};
+export const MEALS_FIELD: DiaryField = {
+  id: 'meals',
+  type: 'number',
+  label: 'Приёмов пищи',
+  unit: 'за день',
+  min: 0,
+  max: 10,
+  step: 1,
+};
+export const APPETITE_FIELD: DiaryField = {
+  id: 'appetite',
+  type: 'number',
+  label: 'Аппетит',
+  unit: 'из 10',
+  min: 0,
+  max: 10,
+  step: 1,
+};
+
 /** Vitals and wellbeing preset of the care diary (the doctor can switch checkpoints off). */
 export const CARE_CHECKPOINTS: readonly DiaryCheckpoint[] = [
   {

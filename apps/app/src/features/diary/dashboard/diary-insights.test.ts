@@ -127,6 +127,19 @@ describe('diary insights for the doctor', () => {
     expect(phq?.points[0]?.alertDetails[0]?.message).toBeTruthy();
   });
 
+  it('keeps every question with the answer chosen, for the whole test (DIARY27)', async () => {
+    const [phq] = await questionnaireSeries(invitation, entries);
+    const answers = phq?.points[0]?.answers ?? [];
+    // PHQ-9's nine items and the closing question on how hard it made things.
+    expect(answers).toHaveLength(10);
+    expect(answers.every((line) => line.prompt.length > 0)).toBe(true);
+    const answered = answers.filter((line) => line.answer !== undefined);
+    expect(answered.length).toBeGreaterThan(0);
+    // The nine items add up to the total; the closing question is scored apart.
+    const items = answers.slice(0, 9);
+    expect(items.reduce((sum, line) => sum + (line.points ?? 0), 0)).toBe(10);
+  });
+
   it('finds the answers behind an alert: the last alerting entry before it', async () => {
     const series = await questionnaireSeries(invitation, entries);
     const point = series[0]?.points[0];

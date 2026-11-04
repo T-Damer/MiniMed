@@ -7,6 +7,7 @@ import { ChoiceChip } from '@/components/ChoiceChip';
 import { DateRangeCalendar } from '@/components/DateRangeCalendar';
 import { countDays, describeRanges } from '@/components/date-ranges';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { PillMark } from '@/components/PillMark';
 import { SegmentedControl } from '@/components/SegmentedControl';
 import { SelectField } from '@/components/SelectField';
 import { Switch } from '@/components/Switch';
@@ -74,6 +75,9 @@ const KIND_ICON: Readonly<Record<CareSectionKind, AppGlyphName>> = {
   mood: 'brain',
   vitals: 'heartbeat',
   body: 'scales',
+  glucose: 'drop-half',
+  activity: 'sneaker-move',
+  meals: 'fork-knife',
   text: 'note-pencil',
   choice: 'list-checks',
   use: 'drop',
@@ -86,6 +90,9 @@ const KIND_ORDER: readonly CareSectionKind[] = [
   'mood',
   'vitals',
   'body',
+  'glucose',
+  'activity',
+  'meals',
   'text',
   'choice',
   'use',
@@ -97,7 +104,18 @@ const GROUPS: readonly { readonly title: string; readonly kinds: readonly CareSe
   { title: 'Лекарства', kinds: ['drug'] },
   {
     title: 'Самочувствие и показатели',
-    kinds: ['score', 'mood', 'vitals', 'body', 'text', 'choice', 'use'],
+    kinds: [
+      'score',
+      'mood',
+      'vitals',
+      'body',
+      'glucose',
+      'activity',
+      'meals',
+      'text',
+      'choice',
+      'use',
+    ],
   },
   { title: 'Опросники', kinds: ['questionnaire'] },
 ];
@@ -876,10 +894,15 @@ const CHECK_KINDS: readonly CareSectionKind[] = [
   'mood',
   'vitals',
   'body',
+  'glucose',
+  'activity',
+  'meals',
   'text',
   'choice',
   'use',
 ];
+
+const ONE_OF: readonly CareSectionKind[] = ['glucose', 'activity', 'meals'];
 
 /**
  * The patient's day screen as the doctor builds it: the patient's own header, month calendar,
@@ -935,6 +958,8 @@ export function PatientScreenEditor(props: {
       ),
   );
   const drugs = (): number => props.draft.sections.filter((s) => s.kind === 'drug').length;
+  /** Glucose, activity and meals ask fields with fixed ids: one section of each. */
+  const has = (kind: CareSectionKind): boolean => props.draft.sections.some((s) => s.kind === kind);
   /** One «Зависимости» section per diary: its button waits once there is one. */
   const hasUse = (): boolean => props.draft.sections.some((s) => s.kind === 'use');
   /** The copy made last: its sheet opens with the schedule shown before a medicine is chosen. */
@@ -1048,6 +1073,7 @@ export function PatientScreenEditor(props: {
                     {(row) => (
                       <CareRow
                         icon="pill"
+                        mark={<PillMark name={sectionOf(row.key)?.title ?? ''} />}
                         time={row.time.time}
                         title={drugTitle(sectionOf(row.key))}
                         detail={
@@ -1147,7 +1173,7 @@ export function PatientScreenEditor(props: {
                   <button
                     type="button"
                     class="screen-editor__kind"
-                    disabled={kind === 'use' && hasUse()}
+                    disabled={(ONE_OF.includes(kind) && has(kind)) || (kind === 'use' && hasUse())}
                     onClick={() => add(kind)}
                   >
                     <AppGlyph name={KIND_ICON[kind]} class="screen-editor__kind-glyph" />

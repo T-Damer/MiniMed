@@ -99,6 +99,38 @@ export const DIARY_CHARTS: readonly DiaryChart[] = [
     ],
   },
   {
+    id: 'glucose',
+    title: 'Глюкоза, ммоль/л',
+    series: [{ field: 'glucose', label: 'Глюкоза', color: '--theme-accent' }],
+    limits: [{ id: 'glucose', unit: 'ммоль/л' }],
+  },
+  {
+    id: 'activity',
+    title: 'Активность',
+    daily: true,
+    min: 0,
+    rightMin: 0,
+    series: [
+      { field: 'steps', label: 'Шаги', color: '--theme-accent' },
+      { field: 'activity', label: 'Активные минуты', color: '--theme-info', axis: 'right' },
+    ],
+    // No usual cut-off: the doctor sets the patient's own lines.
+    limits: [{ id: 'steps', unit: 'шагов' }],
+  },
+  {
+    id: 'meals',
+    title: 'Питание',
+    daily: true,
+    min: 0,
+    rightMin: 0,
+    rightMax: 10,
+    series: [
+      { field: 'meals', label: 'Приёмов пищи', color: '--theme-warning' },
+      { field: 'appetite', label: 'Аппетит (0–10)', color: '--theme-info', axis: 'right' },
+    ],
+    limits: [{ id: 'appetite', axis: 'right' }],
+  },
+  {
     id: 'craving',
     title: 'Тяга (0–10)',
     min: 0,

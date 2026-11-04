@@ -34,6 +34,9 @@ export const MEASUREMENT_LIMITS: Readonly<Record<string, AssessmentLimit>> = {
   spo2: { value: 94, direction: 'below' },
   wellbeing: { value: 3, direction: 'below' },
   mood: { value: 3, direction: 'below' },
+  // Above 10 mmol/l: the doctor moves it for the patient (fasting targets are lower).
+  glucose: { value: 10, direction: 'above' },
+  appetite: { value: 3, direction: 'below' },
   [USE_CRAVING_FIELD]: { value: 7, direction: 'above' },
 };
 
@@ -45,6 +48,9 @@ export const MEASUREMENT_LIMIT_LABEL: Readonly<Record<string, string>> = {
   spo2: 'Сатурация',
   wellbeing: 'Самочувствие',
   mood: 'Настроение',
+  glucose: 'Глюкоза',
+  steps: 'Шаги',
+  appetite: 'Аппетит',
   [USE_CRAVING_FIELD]: 'Тяга',
   ...Object.fromEntries(SUBSTANCES.map((substance) => [substance.field, substance.label])),
 };

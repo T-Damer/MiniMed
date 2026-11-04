@@ -1,0 +1,40 @@
+.pill-mark {
+  display: inline-block;
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  overflow: visible;
+}
+
+.pill-mark__body {
+  fill: hsl(var(--pill-hue) 70% 90%);
+  stroke: hsl(var(--pill-hue) 42% 46%);
+  stroke-width: 1.5;
+}
+
+.pill-mark__letter {
+  fill: hsl(var(--pill-hue) 50% 28%);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pill-mark__body {
+    fill: hsl(var(--pill-hue) 35% 26%);
+    stroke: hsl(var(--pill-hue) 45% 62%);
+  }
+
+  :root:not([data-theme="light"]) .pill-mark__letter {
+    fill: hsl(var(--pill-hue) 70% 88%);
+  }
+}
+
+:root[data-theme="dark"] .pill-mark__body {
+  fill: hsl(var(--pill-hue) 35% 26%);
+  stroke: hsl(var(--pill-hue) 45% 62%);
+}
+
+:root[data-theme="dark"] .pill-mark__letter {
+  fill: hsl(var(--pill-hue) 70% 88%);
+}
