@@ -4,7 +4,7 @@
  * (`ydb-store.ts`). Every method is one consistent step: the multi-row ones run in one transaction.
  * Record bodies, identity blobs and wrapped keys are ciphertext; what is plain is ADR-0026 §7.
  */
-import type { DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
 
 /** A unique key already exists (e-mail, patient id, record id + revision). */
 export class StoreConflict extends Error {
@@ -45,6 +45,7 @@ export interface KeyRow {
 
 export interface DeviceRow {
   id: string;
+  kind: DiaryDeviceKind;
   identity_wrap: string;
   identity_sign: string;
   created_at: string;
@@ -93,7 +94,15 @@ export interface PatientCounts {
   lastSeq: number;
   lastRecordAt: string | null;
   openAlerts: number;
+  /** The patient's own phones. */
   devices: number;
+  carers: number;
+}
+
+/** A dose moment kept for a carer's missed-dose notice (DIARY25). */
+export interface DoseCheckRow {
+  patient_id: string;
+  at: string;
 }
 
 export interface DiaryStore {
@@ -122,9 +131,11 @@ export interface DiaryStore {
   deleteSession(tokenHash: string): Promise<void>;
 
   /** An active (not revoked) device by its token hash. */
-  deviceByToken(tokenHash: string): Promise<{ id: string; patient_id: string } | undefined>;
+  deviceByToken(
+    tokenHash: string,
+  ): Promise<{ id: string; patient_id: string; kind: DiaryDeviceKind } | undefined>;
   touchDevice(id: string, at: string): Promise<void>;
-  /** Latest `last_seen_at` of the patient's active devices. */
+  /** Latest `last_seen_at` of the patient's own active phones (carers' are not the patient). */
   lastSeen(patientId: string): Promise<string | undefined>;
   activeDevices(patientId: string): Promise<DeviceRow[]>;
   /** Signing key of a device of this patient, revoked ones included (old records stay verifiable). */
@@ -136,10 +147,14 @@ export interface DiaryStore {
     patientId: string,
     sealedKeys: string,
     expiresAt: string,
+    kind: DiaryDeviceKind,
   ): Promise<void>;
   pairing(
     secretHash: string,
-  ): Promise<{ patient_id: string; sealed_keys: string; expires_at: string } | undefined>;
+  ): Promise<
+    | { patient_id: string; sealed_keys: string; expires_at: string; kind: DiaryDeviceKind }
+    | undefined
+  >;
   /** Adds the device and deletes the one-time pairing in the same step. */
   pairDevice(
     device: {
@@ -149,6 +164,7 @@ export interface DiaryStore {
       identity_wrap: string;
       identity_sign: string;
       created_at: string;
+      kind: DiaryDeviceKind;
     },
     secretHash: string,
   ): Promise<void>;
@@ -219,6 +235,19 @@ export interface DiaryStore {
   replaceReminders(deviceId: string, moments: readonly string[]): Promise<void>;
   /** Reminders at or before `at` of active devices, oldest first; all reminders up to `at` are forgotten. */
   takeDueReminders(at: string): Promise<{ device_id: string; at: string }[]>;
+
+  /**
+   * Missed-dose checks (DIARY25), times only. The patient's phone's open moments replace the
+   * patient's open ones after `after` (a listed moment is opened again even if it was taken).
+   */
+  replaceDoseChecks(patientId: string, moments: readonly string[], after: string): Promise<void>;
+  /** These moments are marked taken: no notice goes out for them. */
+  markDosesTaken(patientId: string, moments: readonly string[]): Promise<void>;
+  /**
+   * Open checks at or before `due`, oldest first, that are newer than `stale`; every check at or
+   * before `due` (open) or `stale` (taken) is forgotten.
+   */
+  takeMissedDoses(due: string, stale: string): Promise<DoseCheckRow[]>;
 }
 
 export function now(): string {

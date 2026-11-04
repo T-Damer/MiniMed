@@ -1,8 +1,11 @@
 /**
  * What the encrypted records of a connected diary mean, and the diary they add up to. A record id
- * names one thing (`plan`, `profile`, `consent`, `e-<entry id>`, `read-<tip id>`); its latest
+ * names one thing (`plan`, `profile`, `consent`, `e-<entry id>`, `read-<tip id>`, a carer's
+ * `member-<device id>`); its latest
  * revision wins. Payloads are validated here because they come from another device.
  */
+
+import { memberName } from '@/features/diary/connected/carer';
 import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
@@ -64,7 +67,8 @@ export type DiaryPayload =
   | { readonly kind: 'entry'; readonly entry: unknown }
   | { readonly kind: 'deleted' }
   | { readonly kind: 'consent'; readonly at: string; readonly version: string }
-  | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string };
+  | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string }
+  | { readonly kind: 'member'; readonly name: string };
 
 /** One decrypted record revision as the sync session hands it over. */
 export interface DiaryRecordRevision {
@@ -99,6 +103,8 @@ export interface DiaryReplica {
   /** Entry id → who wrote its latest revision (`d:` doctor, `p:` device). */
   readonly entryAuthors: ReadonlyMap<string, string>;
   readonly tipsRead: ReadonlySet<string>;
+  /** Carer's device id → the name the carer gave (DIARY25); copies saved before have none. */
+  readonly carerNames?: Readonly<Record<string, string>>;
   readonly consentAt: string | undefined;
   /** Record id → latest revision applied. */
   readonly revs: ReadonlyMap<string, number>;
@@ -113,6 +119,7 @@ export const EMPTY_REPLICA: DiaryReplica = {
   entries: new Map(),
   entryAuthors: new Map(),
   tipsRead: new Set(),
+  carerNames: {},
   consentAt: undefined,
   revs: new Map(),
   rejected: 0,
@@ -136,6 +143,7 @@ export function applyRevisions(
   const entries = new Map(replica.entries);
   const entryAuthors = new Map(replica.entryAuthors);
   const tipsRead = new Set(replica.tipsRead);
+  const carerNames: Record<string, string> = { ...replica.carerNames };
   const revs = new Map(replica.revs);
   // Plans first: entries are validated against the plan they answer.
   const ordered = [
@@ -177,6 +185,10 @@ export function applyRevisions(
       } else if (revision.id.startsWith('read-') && payload['kind'] === 'tip-read') {
         if (typeof payload['tip'] !== 'string') throw new DiaryFormatError('Подсказка.');
         tipsRead.add(payload['tip']);
+      } else if (revision.id.startsWith('member-')) {
+        const name = memberName(revision.id, revision.author, payload);
+        if (!name) throw new DiaryFormatError('Имя опекуна.');
+        carerNames[revision.id.slice(7)] = name;
       } else if (revision.id.startsWith('e-')) {
         const entryId = revision.id.slice(2);
         if (payload['kind'] === 'deleted') {
@@ -208,6 +220,7 @@ export function applyRevisions(
     entries,
     entryAuthors,
     tipsRead,
+    carerNames,
     consentAt,
     revs,
     rejected,

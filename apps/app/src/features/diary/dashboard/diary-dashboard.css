@@ -900,7 +900,8 @@
 }
 
 /* Curators ---------------------------------------------------------------------------------- */
-.diary-curators {
+/* Not `.diary-curators`: the patient list's avatar row (diary-list.css) has that name. */
+.diary-curators-dialog {
   display: grid;
   gap: 0.9rem;
 }
@@ -2013,8 +2014,9 @@
   font-size: 1.1rem;
 }
 
+/* Taller by a row for each medicine track under the lines (DIARY-CHARTS). */
 .diary-chart__canvas-box--tall {
-  height: 17rem;
+  height: calc(17rem + var(--combined-tracks, 0) * 1.9rem);
 }
 
 /* Why the skipped doses were skipped (DIARY22), under the count. */

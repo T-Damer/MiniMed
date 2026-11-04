@@ -46,6 +46,7 @@ and `apps/app/src/features/diary`.
 | `DIARY_STATIC` | — | built app (`apps/app/dist`) to serve next to the API |
 | `DIARY_SIGNUP` | `invite` | `open` lets any doctor register (the pilot since 2026-10-28; at most 12 new accounts a minute); `invite` needs a code from `bun run --cwd apps/diary-server invite`. `GET /api/info` tells the sign-in form, which then hides the code field |
 | `DIARY_PUSH_SUBJECT` | `mailto:admin@1damer.com` | VAPID contact |
+| `DIARY_TICK_TOKEN` | — | key of `POST /api/tick` (Bearer or `?key=`): sends due reminders and missed-dose notices for a scheduler outside the process — the `serverless` mode's timer trigger; the `server` mode ticks by itself every 20 s and needs it only for an outside scheduler. Unset: no such route |
 | `DIARY_CORS_ORIGINS` | — | origins (commas or semicolons) allowed cross-origin: the Pages app and the native shells; any other origin is answered with the first allowed one, so browsers refuse it |
 
 The decoy-salt secret and the VAPID key pair are generated on first start and kept in the database.
@@ -100,7 +101,8 @@ connections. Pilot patients use the VM above.
 - A doctor who loses both the password and the recovery code loses access unless another curator
   re-invites them.
 - Push carries no text: an encrypted payload (RFC 8291) names only the kind of event (`plan`, `tip`,
-  `correction`, `reminder`, `alert`, `withdrawn`, `invite`) and, for a reminder, its moment; the
+  `correction`, `reminder`, `alert`, `withdrawn`, `invite`, `missed`, `carer`) and, for a reminder or a
+  missed dose, its moment; the
   service workers write the text. Subscriptions saved before 2026-10-28 have no payload keys and
   get an empty push until the app re-sends them (it does so on open). On iPhone push needs the
   diary on the home screen; phones without Google services get changes when the diary is opened.
@@ -109,5 +111,13 @@ connections. Pilot patients use the VM above.
   within 20 s and drops one it could not send within 20 minutes. What is due, and the medicine
   names (only when the patient switches them on), stay on the phone in Cache Storage; «Принял» in
   an Android notification is queued there and marked when the diary is next open.
+- Carers (DIARY25): the doctor adds one with the patient's consent («Кураторы» → «Опекуны»); the carer's
+  phone pairs like a patient's and can mark doses, the patient sees and removes carers in «Настройки» →
+  «Доступ к дневнику». While a carer is there, the patient's phone sends its dose moments for the next 14
+  days (`checks`) and every phone the moments whose doses are all taken (`taken`) with `PUT
+  /api/device/reminders`; a moment still open `DIARY_MISSED_AFTER_MS` (30 min) after its time gets one
+  content-free `missed` push to the carers (dropped if the service could not send it within 20 more
+  minutes). Needs the tick: in `serverless` mode a timer trigger calling `/api/tick` (not set up yet).
+  A dose marked in a phone's notification («Принял») reaches the service only when the diary is next open.
 - Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is not covered — see the
   legal section of [DIARY_PLAN.md](DIARY_PLAN.md).

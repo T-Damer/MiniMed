@@ -6,6 +6,7 @@
  */
 import type {
   DiaryAlert,
+  DiaryDeviceKind,
   DiaryPatientDetail,
   DiaryPatientSummary,
   DiaryPresenceEvent,
@@ -609,18 +610,25 @@ export class DoctorDiaries {
     );
   }
 
-  /** A one-time code for the patient's phone, valid 72 hours. */
-  async pairingLink(patientId: string): Promise<string> {
+  /**
+   * A one-time code for the patient's phone, valid 72 hours; `carer`: for a carer's phone, made
+   * only with the patient's consent (DIARY25).
+   */
+  async pairingLink(patientId: string, kind: DiaryDeviceKind = 'patient'): Promise<string> {
     const entry = this.entries.get(patientId);
     if (!entry) throw new Error('Пациент не найден.');
     const keyring = await this.keyring(entry.summary);
     const secret = newPairingSecret();
-    await diaryPatients.pairing(
+    const made = await diaryPatients.pairing(
       this.api,
       patientId,
       await sha256(secret),
       await sealPairingKeys(keyring.keys, secret),
+      kind,
     );
+    if (kind === 'carer' && made.kind !== 'carer') {
+      throw new Error('Сервер дневников ещё не умеет подключать опекунов: его нужно обновить.');
+    }
     return pairingLink(connectedDiaryPageUrl(), { patientId, secret });
   }
 

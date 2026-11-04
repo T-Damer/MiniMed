@@ -140,6 +140,8 @@ const DOCTOR_TEXT = {
   plan: 'Врач изменил план лечения. Откройте, чтобы посмотреть.',
   tip: 'Врач оставил рекомендацию. Откройте, чтобы прочитать.',
   correction: 'Врач поправил запись в дневнике.',
+  // DIARY25: the patient's phone hears that a carer joined.
+  carer: 'К дневнику подключился опекун. Кто видит дневник: «Настройки» → «Доступ к дневнику».',
 };
 
 function payloadOf(event) {
@@ -189,10 +191,33 @@ async function showReminder(at) {
   });
 }
 
+/**
+ * To a carer (DIARY25): a dose of `at` is still not marked taken half an hour later. The medicine
+ * names come from this phone's own notices when it keeps them (reminders on); otherwise the text
+ * says only when.
+ */
+async function showMissed(at) {
+  const notices = await noticesAt(at);
+  const time = new Date(at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const names = notices.map((notice) => notice.body).filter(Boolean);
+  await self.registration.showNotification(`Приём в ${time} не отмечен`, {
+    body: names.length
+      ? `${names.join(' · ')}. Откройте дневник, чтобы узнать, всё ли в порядке.`
+      : 'Пациент не отметил приём лекарства. Откройте дневник, чтобы узнать, всё ли в порядке.',
+    tag: `minimed-diary-missed-${at}`,
+    icon: ICON,
+    data: { kind: 'missed', at },
+  });
+}
+
 self.addEventListener('push', (event) => {
   const payload = payloadOf(event);
   if (payload?.kind === 'reminder' && typeof payload.at === 'string') {
     event.waitUntil(showReminder(payload.at));
+    return;
+  }
+  if (payload?.kind === 'missed' && typeof payload.at === 'string') {
+    event.waitUntil(showMissed(payload.at));
     return;
   }
   event.waitUntil(

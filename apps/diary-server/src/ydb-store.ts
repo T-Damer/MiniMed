@@ -5,7 +5,7 @@
  * out here: an e-mail table, BigSerial keys and explicit deletes, each step in one serializable
  * transaction. Schema changes go through the numbered `MIGRATIONS` below.
  */
-import type { DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
 import type { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { Optional } from '@ydbjs/value/optional';
@@ -16,6 +16,7 @@ import {
   type DeviceRow,
   type DiaryStore,
   type DoctorRow,
+  type DoseCheckRow,
   type KeyRow,
   type MemberRow,
   type NewRecord,
@@ -68,6 +69,14 @@ const MIGRATIONS: readonly string[][] = [
        p256dh Utf8, auth Utf8, PRIMARY KEY (endpoint), INDEX by_owner GLOBAL ON (owner))`,
     'CREATE TABLE reminders (device_id Utf8 NOT NULL, at Utf8 NOT NULL, PRIMARY KEY (device_id, at))',
     'CREATE TABLE changes (owner Utf8 NOT NULL, n Int64 NOT NULL, PRIMARY KEY (owner))',
+  ],
+  // Carers' phones (DIARY25; a missing kind is the patient's phone) and the dose moments kept for
+  // their missed-dose notice.
+  [
+    'ALTER TABLE devices ADD COLUMN kind Utf8',
+    'ALTER TABLE pairings ADD COLUMN kind Utf8',
+    `CREATE TABLE dose_checks (patient_id Utf8 NOT NULL, at Utf8 NOT NULL, state Utf8 NOT NULL,
+       PRIMARY KEY (patient_id, at))`,
   ],
 ];
 
@@ -209,10 +218,12 @@ export class YdbStore implements DiaryStore {
     await this.sql`DELETE FROM sessions WHERE token_hash = ${tokenHash}`;
   }
 
-  async deviceByToken(tokenHash: string): Promise<{ id: string; patient_id: string } | undefined> {
+  async deviceByToken(
+    tokenHash: string,
+  ): Promise<{ id: string; patient_id: string; kind: DiaryDeviceKind } | undefined> {
     return first(
-      this
-        .sql`SELECT id, patient_id FROM devices VIEW by_token WHERE token_hash = ${tokenHash} AND revoked_at IS NULL`,
+      this.sql`SELECT id, patient_id, COALESCE(kind, 'patient') AS kind FROM devices VIEW by_token
+        WHERE token_hash = ${tokenHash} AND revoked_at IS NULL`,
     );
   }
 
@@ -223,7 +234,8 @@ export class YdbStore implements DiaryStore {
   async lastSeen(patientId: string): Promise<string | undefined> {
     const row = await first<{ at: string | null }>(
       this
-        .sql`SELECT MAX(last_seen_at) AS at FROM devices VIEW by_patient WHERE patient_id = ${patientId} AND revoked_at IS NULL`,
+        .sql`SELECT MAX(last_seen_at) AS at FROM devices VIEW by_patient WHERE patient_id = ${patientId}
+          AND revoked_at IS NULL AND COALESCE(kind, 'patient') = 'patient'`,
     );
     return row?.at ?? undefined;
   }
@@ -231,8 +243,8 @@ export class YdbStore implements DiaryStore {
   async activeDevices(patientId: string): Promise<DeviceRow[]> {
     return rows<DeviceRow>(
       this
-        .sql`SELECT id, identity_wrap, identity_sign, created_at, last_seen_at FROM devices VIEW by_patient
-        WHERE patient_id = ${patientId} AND revoked_at IS NULL`,
+        .sql`SELECT id, COALESCE(kind, 'patient') AS kind, identity_wrap, identity_sign, created_at,
+          last_seen_at FROM devices VIEW by_patient WHERE patient_id = ${patientId} AND revoked_at IS NULL`,
     );
   }
 
@@ -255,17 +267,21 @@ export class YdbStore implements DiaryStore {
     patientId: string,
     sealedKeys: string,
     expiresAt: string,
+    kind: DiaryDeviceKind,
   ): Promise<void> {
-    await this.sql`INSERT INTO pairings (secret_hash, patient_id, sealed_keys, expires_at)
-      VALUES (${secretHash}, ${patientId}, ${sealedKeys}, ${expiresAt})`;
+    await this.sql`INSERT INTO pairings (secret_hash, patient_id, sealed_keys, expires_at, kind)
+      VALUES (${secretHash}, ${patientId}, ${sealedKeys}, ${expiresAt}, ${kind})`;
   }
 
   async pairing(
     secretHash: string,
-  ): Promise<{ patient_id: string; sealed_keys: string; expires_at: string } | undefined> {
+  ): Promise<
+    | { patient_id: string; sealed_keys: string; expires_at: string; kind: DiaryDeviceKind }
+    | undefined
+  > {
     return first(
-      this
-        .sql`SELECT patient_id, sealed_keys, expires_at FROM pairings WHERE secret_hash = ${secretHash}`,
+      this.sql`SELECT patient_id, sealed_keys, expires_at, COALESCE(kind, 'patient') AS kind
+        FROM pairings WHERE secret_hash = ${secretHash}`,
     );
   }
 
@@ -277,13 +293,14 @@ export class YdbStore implements DiaryStore {
       identity_wrap: string;
       identity_sign: string;
       created_at: string;
+      kind: DiaryDeviceKind;
     },
     secretHash: string,
   ): Promise<void> {
     await this.sql.begin(async (tx) => {
-      await tx`INSERT INTO devices (id, patient_id, token_hash, identity_wrap, identity_sign, created_at)
+      await tx`INSERT INTO devices (id, patient_id, token_hash, identity_wrap, identity_sign, created_at, kind)
         VALUES (${device.id}, ${device.patient_id}, ${device.token_hash}, ${device.identity_wrap},
-          ${device.identity_sign}, ${device.created_at})`;
+          ${device.identity_sign}, ${device.created_at}, ${device.kind})`;
       await tx`DELETE FROM pairings WHERE secret_hash = ${secretHash}`;
     });
   }
@@ -319,6 +336,7 @@ export class YdbStore implements DiaryStore {
       await tx`DELETE FROM devices ON SELECT id FROM devices VIEW by_patient WHERE patient_id = ${id}`;
       await tx`DELETE FROM pairings ON SELECT secret_hash FROM pairings VIEW by_patient WHERE patient_id = ${id}`;
       await tx`DELETE FROM alerts ON SELECT id FROM alerts VIEW by_patient WHERE patient_id = ${id}`;
+      await tx`DELETE FROM dose_checks WHERE patient_id = ${id}`;
       await tx`DELETE FROM records WHERE patient_id = ${id}`;
       await tx`DELETE FROM record_revisions WHERE patient_id = ${id}`;
       await tx`DELETE FROM patient_keys WHERE patient_id = ${id}`;
@@ -343,13 +361,16 @@ export class YdbStore implements DiaryStore {
       await this
         .sql`SELECT MAX(seq) AS seq, MAX(at) AS at FROM records WHERE patient_id = ${patientId};
         SELECT COUNT(*) AS n FROM alerts VIEW by_patient WHERE patient_id = ${patientId} AND acked_at IS NULL;
-        SELECT COUNT(*) AS n FROM devices VIEW by_patient WHERE patient_id = ${patientId} AND revoked_at IS NULL;`
+        SELECT COUNT_IF(COALESCE(kind, 'patient') = 'patient') AS patients,
+          COUNT_IF(kind = 'carer') AS carers
+          FROM devices VIEW by_patient WHERE patient_id = ${patientId} AND revoked_at IS NULL;`
     ).map((set) => (set[0] ?? {}) as Record<string, unknown>);
     return {
       lastSeq: Number(last['seq'] ?? 0),
       lastRecordAt: (last['at'] as string | null | undefined) ?? null,
       openAlerts: Number(alerts['n'] ?? 0),
-      devices: Number(devices['n'] ?? 0),
+      devices: Number(devices['patients'] ?? 0),
+      carers: Number(devices['carers'] ?? 0),
     };
   }
 
@@ -530,6 +551,7 @@ export class YdbStore implements DiaryStore {
       await tx`DELETE FROM records WHERE patient_id = ${patientId}`;
       await tx`DELETE FROM record_revisions WHERE patient_id = ${patientId}`;
       await tx`DELETE FROM pairings ON SELECT secret_hash FROM pairings VIEW by_patient WHERE patient_id = ${patientId}`;
+      await tx`DELETE FROM dose_checks WHERE patient_id = ${patientId}`;
       await tx`DELETE FROM patient_keys WHERE patient_id = ${patientId} AND StartsWith(recipient, 'p:')`;
       await tx`UPDATE devices ON SELECT id, ${at} AS revoked_at FROM devices VIEW by_patient
         WHERE patient_id = ${patientId} AND revoked_at IS NULL`;
@@ -604,6 +626,39 @@ export class YdbStore implements DiaryStore {
       );
       await tx`DELETE FROM reminders WHERE at <= ${at}`;
       return due;
+    });
+  }
+
+  async replaceDoseChecks(
+    patientId: string,
+    moments: readonly string[],
+    after: string,
+  ): Promise<void> {
+    await this.sql.begin(async (tx) => {
+      await tx`DELETE FROM dose_checks
+        WHERE patient_id = ${patientId} AND at > ${after} AND state = 'open'`;
+      for (const at of moments)
+        await tx`UPSERT INTO dose_checks (patient_id, at, state) VALUES (${patientId}, ${at}, 'open')`;
+    });
+  }
+
+  async markDosesTaken(patientId: string, moments: readonly string[]): Promise<void> {
+    if (!moments.length) return;
+    await this.sql.begin(async (tx) => {
+      for (const at of moments)
+        await tx`UPSERT INTO dose_checks (patient_id, at, state) VALUES (${patientId}, ${at}, 'taken')`;
+    });
+  }
+
+  async takeMissedDoses(due: string, stale: string): Promise<DoseCheckRow[]> {
+    return this.sql.begin(async (tx) => {
+      const missed = await rows<DoseCheckRow>(
+        tx`SELECT patient_id, at FROM dose_checks
+          WHERE state = 'open' AND at <= ${due} AND at > ${stale} ORDER BY at`,
+      );
+      await tx`DELETE FROM dose_checks WHERE state = 'open' AND at <= ${due}`;
+      await tx`DELETE FROM dose_checks WHERE state = 'taken' AND at <= ${stale}`;
+      return missed;
     });
   }
 }

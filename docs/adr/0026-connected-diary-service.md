@@ -52,13 +52,21 @@ medical secrecy; the developer hosting the server should not be able to read it.
    reader can inject records unnoticed. Invitation → the doctor accepts → the patient confirms when the doctor is not
    covered by the signed consent. **Removing** a curator or a device starts a new epoch: the owner's device creates a
    new data key and wraps it for the remaining members. Past reads cannot be revoked.
+   *Carers (DIARY25, owner 2026-11-04).* An owner or editor adds a carer (опекун) after ticking that the patient
+   consents; the carer's phone pairs with a one-time code like the patient's (`kind: carer`), holds its own key copies,
+   reads and marks the whole diary, and names itself in an encrypted `member-<device>` record, so every mark shows who
+   made it. It cannot withdraw the patient's consent. The patient's phone lists who has access and removes a carer;
+   then the patient's phone itself starts the new epoch (the only epoch a device may create). A removed carer's phone
+   deletes its copy of the diary.
 6. **Alerts.** Red-flag rules live in the field and questionnaire schemas and in the plan. The patient's device
    evaluates them, shows the crisis screen, and posts a content-free alert `{patient, at}`; the server sends Web Push
    to the curators' subscribed devices with a fixed text («Срочная отметка у пациента») and the pseudonym emoji is
    resolved on the doctor's device.
 7. **What the server can see.** Doctors' e-mails, display names and auth hashes; random patient and device ids; the
-   membership graph and roles; record sizes and times; alert times; push endpoints. **Not**: names, pseudonyms, plans,
-   medicines, values, notes, questionnaire answers.
+   membership graph and roles; whether a device is the patient's or a carer's; record sizes and times; alert times;
+   push endpoints; reminder moments and, while the diary has a carer, its dose moments and which are marked taken
+   (the missed-dose notice, DIARY25). **Not**: names (carers' included), pseudonyms, plans, medicines, values, notes,
+   questionnaire answers.
 8. **Hosting.** Production on a Yandex Cloud VM in `ru-central1` (data stored in Russia, 152-ФЗ ст. 18 ч. 5) with TLS on
    the VM; DNS for `med.1damer.com` is Cloudflare **DNS only**. No proxy (Cloudflare or other foreign TLS terminator) in
    the patients' path: Russian ISPs have been cutting Cloudflare-proxied connections since June 2025, and a foreign

@@ -9,27 +9,44 @@ import {
   Show,
 } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
-
+import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { describeRanges } from '@/components/date-ranges';
 import { EmptyState } from '@/components/EmptyState';
+import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { revealElement } from '@/components/reveal';
-import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
-  CombinedChart,
-  type CombinedSeries,
-  rangeOf,
-} from '@/features/diary/dashboard/CombinedChart';
+  type BrushLine,
+  ChartBrush,
+  ChartDatesSheet,
+} from '@/features/diary/dashboard/ChartPeriod';
+import { ChartSettingsSheet } from '@/features/diary/dashboard/ChartSettingsSheet';
+import { CombinedChart } from '@/features/diary/dashboard/CombinedChart';
+import {
+  CHART_PRESETS,
+  type ChartPreset,
+  type ChartSpan,
+  presetSpan,
+  shiftSpan,
+  spanDays,
+  spanLabel,
+  spanName,
+  spanNow,
+  spanPreset,
+  spanTimes,
+} from '@/features/diary/dashboard/chart-period';
+import { createChartSettings } from '@/features/diary/dashboard/chart-settings';
+import { combinedSources, combinedView, rangeOf } from '@/features/diary/dashboard/combined-series';
 import {
   chartSeries,
   DIARY_CHARTS,
   type DiaryChart,
   intakeCharts,
-  skipMarks,
 } from '@/features/diary/dashboard/diary-charts';
 import {
   medicineAdherence,
@@ -43,13 +60,14 @@ import { PatientDayDetails } from '@/features/diary/dashboard/PatientDayDetails'
 import { AlertNotices, CorrectEntryDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { INTAKE_CHART_ID } from '@/features/diary/dashboard/patient-overview';
 import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
-import { dayKey } from '@/features/diary/diary-care';
+import { dayKey, diaryStarted } from '@/features/diary/diary-care';
 import type { DiaryEntry, DiaryResults } from '@/features/diary/diary-model';
 import { planEditDays, planOn } from '@/features/diary/plan-history';
 import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
+
+import '@/features/diary/dashboard/chart-settings.css';
 import { motionMs } from '@/state/motion';
 
-type Period = '14' | '30' | '90';
 type Dialog =
   | {
       readonly notice: {
@@ -59,9 +77,12 @@ type Dialog =
     }
   | { readonly limit: readonly LimitTarget[] }
   | { readonly day: string }
-  | { readonly correct: DiaryEntry };
+  | { readonly correct: DiaryEntry }
+  | { readonly settings: true }
+  | { readonly dates: true };
 
-const DAY = 86_400_000;
+/** The longest history the combined chart's overview reads, in days. */
+const HISTORY_DAYS = 400;
 
 /** The DOM id of a chart on this page, the target of the overview's signals. */
 export function chartAnchor(id: string): string {
@@ -127,118 +148,140 @@ export function PatientChartsPage(props: {
   /** The patient's screen of a day, to fill it in (`…/day/<date>`). */
   readonly onFill: (day: string) => void;
 }): JSX.Element {
-  const [period, setPeriod] = createSignal<Period>('30');
+  // The doctor's choice for this patient: what the combined chart shows and the period's length
+  // (DIARY-CHARTS); the period itself starts at the last N days every visit.
+  const [settings, changeSettings] = createChartSettings(
+    props.workspace.doctorId,
+    props.patient.summary.id,
+  );
+  const today = dayKey(new Date());
+  const [span, setSpan] = createSignal<ChartSpan>(presetSpan(settings().preset, today));
   const [dialog, setDialog] = createSignal<Dialog>();
-  const from = (): number => Date.now() - Number(period()) * DAY;
+  const times = createMemo(() => spanTimes(span()));
+  const from = (): number => times().from;
+  const to = (): number => times().to;
+  const first = createMemo(() => diaryStarted(props.results.invitation, props.results.entries));
   const recent = createMemo(() => {
-    const since = from();
-    return props.results.entries.filter((entry) => Date.parse(entry.at) >= since);
+    const { from: since, to: until } = times();
+    return props.results.entries.filter((entry) => {
+      const at = Date.parse(entry.at);
+      return at >= since && at <= until;
+    });
   });
   const medicines = createMemo(() =>
-    medicineAdherence(props.results.invitation, props.results.entries, Number(period())),
+    medicineAdherence(
+      props.results.invitation,
+      props.results.entries.filter((entry) => Date.parse(entry.at) <= to()),
+      spanDays(span()),
+      spanNow(span()),
+    ),
   );
-  // The prescribed dose of each day from the plan then in force: an edit moves the dotted line
-  // from the day it was made (DIARY20).
-  const intakes = createMemo(() => {
+  // Every day of the diary, with the prescribed dose of each day from the plan then in force: an
+  // edit moves the dotted line from the day it was made (DIARY20). The period's days are a slice.
+  const history = createMemo(() => {
     void props.version;
-    const history = props.patient.replica.planHistory;
+    const plans = props.patient.replica.planHistory;
     return medicineIntake(
       props.results.invitation,
       props.results.entries,
-      Number(period()),
+      Math.min(HISTORY_DAYS, spanDays({ from: first(), to: today })),
       new Date(),
-      (day) => planOn(history, day, props.results.invitation),
+      (day) => planOn(plans, day, props.results.invitation),
     );
+  });
+  const intakes = createMemo(() => {
+    const { from: since, to: until } = span();
+    return history().map((medicine) => ({
+      ...medicine,
+      days: medicine.days.filter((day) => day.day >= since && day.day <= until),
+    }));
   });
   const intake = createMemo(() => intakeCharts(intakes()));
   const [quizzes] = createResource(
     () => ({ results: props.results, version: props.version }),
     ({ results }) => questionnaireSeries(results.invitation, results.entries),
   );
-  /** Every series on one chart, each on its own range, and the days past a red line. */
-  const combined = createMemo(() => {
-    const series: CombinedSeries[] = [];
-    const alarms: number[] = [];
-    // The share of the plan: a medicine taken when needed has no plan to share (its doses once
-    // pushed a day past 100 %, off the chart, DIARY23).
-    const share = intakes()
-      .flatMap((medicine) => medicine.days)
-      .reduce((days, one) => {
-        if (one.prescribed === undefined) return days;
-        const total = days.get(one.day) ?? { taken: 0, prescribed: 0 };
-        days.set(one.day, {
-          taken: total.taken + Math.min(one.taken, one.prescribed),
-          prescribed: total.prescribed + one.prescribed,
-        });
-        return days;
-      }, new Map<string, { taken: number; prescribed: number }>());
-    const intakePoints = [...share]
-      // Today is not over: its untaken doses are not missed yet.
-      .filter(([day, total]) => total.prescribed > 0 && day < dayKey(new Date()))
-      .toSorted(([left], [right]) => left.localeCompare(right))
-      .map(([day, total]) => ({
-        at: new Date(`${day}T12:00:00`).toISOString(),
-        value: Math.round((total.taken / total.prescribed) * 100),
-      }));
-    if (intakePoints.length) {
-      series.push({
-        label: 'Приём лекарств',
-        unit: '% плана',
-        points: intakePoints,
-        low: 0,
-        high: 100,
+  /** Everything the combined chart can show, over the whole diary. */
+  const sources = createMemo(() =>
+    combinedSources({
+      intakes: history(),
+      entries: props.results.entries,
+      quizzes: quizzes.latest ?? [],
+      today,
+    }),
+  );
+  /** The period with the doctor's choice applied. */
+  const combined = createMemo(() =>
+    combinedView({
+      ...sources(),
+      intakes: history(),
+      hidden: settings().hidden,
+      span: span(),
+      alarms: settings().alarms,
+    }),
+  );
+  /** The shown lines over the whole diary, faint in the overview strip. */
+  const brushLines = createMemo((): BrushLine[] => {
+    const hidden = new Set(settings().hidden);
+    return sources()
+      .sources.filter((source) => !hidden.has(source.key))
+      .map((source) => {
+        const { low, high } = source.fixed ?? rangeOf(source.points);
+        return {
+          color: source.color,
+          points: source.points.map((point) => ({
+            at: point.at,
+            value: ((point.value - low) / (high - low || 1)) * 100,
+          })),
+        };
       });
-    }
-    // A cross on the intake line where the patient marked a dose as skipped; today's (no point
-    // yet) sits at the day's share so far.
-    const marks = skipMarks(intakes(), (day) => {
-      const total = share.get(day);
-      return total?.prescribed ? Math.round((total.taken / total.prescribed) * 100) : 0;
-    });
-    for (const chart of DIARY_CHARTS) {
-      const name = chart.title.split(/[,(]/u)[0]?.trim() ?? chart.title;
-      for (const one of chartSeries(chart, recent())) {
-        if (!one.points.length) continue;
-        const limit = chart.limits?.find((candidate) => candidate.id === one.field);
-        const fixed =
-          one.axis === 'right'
-            ? chart.rightMin !== undefined && chart.rightMax !== undefined
-              ? { low: chart.rightMin, high: chart.rightMax }
-              : undefined
-            : chart.min !== undefined && chart.max !== undefined
-              ? { low: chart.min, high: chart.max }
-              : undefined;
-        series.push({
-          label: chart.series.length > 1 ? `${name}: ${one.label.toLowerCase()}` : name,
-          ...(limit?.unit ? { unit: limit.unit } : {}),
-          points: one.points,
-          ...(fixed ?? rangeOf(one.points)),
-        });
-        if (limit) {
-          for (const point of one.points) {
-            if (crossesLimit(limit.id, point.value)) alarms.push(Date.parse(point.at));
-          }
-        }
-      }
-    }
-    for (const quiz of quizzes.latest ?? []) {
-      if (quiz.profile) continue;
-      const points = quiz.points
-        .filter((point) => Date.parse(point.at) >= from())
-        .map((point) => ({ at: point.at, value: point.total }));
-      if (!points.length) continue;
-      series.push({
-        label: quiz.title,
-        unit: 'баллов',
-        points,
-        low: 0,
-        high: quiz.points[0]?.max ?? Math.max(...points.map((point) => point.value)),
-      });
-      for (const point of points) {
-        if (crossesLimit(quiz.limitId, point.value, quiz.preset)) alarms.push(Date.parse(point.at));
-      }
-    }
-    return { series, alarms, marks };
+  });
+  const choices = (): number => sources().sources.length + sources().tracks.length;
+  const choosePreset = (preset: ChartPreset): void => {
+    setSpan(presetSpan(preset, today));
+    changeSettings({ preset });
+  };
+  // The period in the header, so it stays in reach while the page scrolls (owner 2026-11-04:
+  // «sticky, a settings button in the header with a context menu»); its name under the title.
+  const headerActions = createMemo((): readonly HeaderAction[] => {
+    const current = span();
+    const preset = spanPreset(current, today);
+    return [
+      {
+        id: 'period',
+        label: `Период: ${spanName(current, today)}`,
+        icon: 'calendar',
+        priority: 1,
+        testId: 'chart-period',
+        menu: [
+          ...CHART_PRESETS.map((one) => ({
+            id: `preset-${one.value}`,
+            label: one.label,
+            icon: one.value === preset ? ('check' as const) : ('calendar' as const),
+            onSelect: () => choosePreset(one.value),
+          })),
+          {
+            id: 'earlier',
+            label: 'Раньше',
+            icon: 'caret-left',
+            onSelect: () => setSpan(shiftSpan(current, -1, today)),
+          },
+          {
+            id: 'later',
+            label: 'Позже',
+            icon: 'caret-right',
+            disabled: current.to >= today,
+            onSelect: () => setSpan(shiftSpan(current, 1, today)),
+          },
+          {
+            id: 'dates',
+            label: 'Свои даты',
+            icon: 'calendar',
+            onSelect: () => setDialog({ dates: true }),
+          },
+        ],
+      },
+    ];
   });
   const title = () =>
     `${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim();
@@ -299,7 +342,15 @@ export function PatientChartsPage(props: {
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onBack} />
         }
-        title={<Heading depth={1}>Графики</Heading>}
+        title={
+          <Heading depth={1} class="diary-charts-page__title">
+            Графики
+            <span class="diary-charts-page__span" data-testid="chart-period-name">
+              {spanName(span(), today)}
+            </span>
+          </Heading>
+        }
+        headerActions={headerActions()}
         description={title()}
         help={
           <p>
@@ -310,32 +361,50 @@ export function PatientChartsPage(props: {
           </p>
         }
       />
-      <SegmentedControl
-        label="Период"
-        value={period()}
-        options={[
-          { value: '14', label: '14 дней' },
-          { value: '30', label: '30 дней' },
-          { value: '90', label: '90 дней' },
-        ]}
-        onChange={setPeriod}
-      />
 
-      <Show when={combined().series.length > 1}>
+      <Show when={choices() > 1}>
         <section
-          class="diary-patient__section diary-patient__section--card"
+          class="diary-patient__section diary-patient__section--card diary-combined"
           aria-label="Статистика"
         >
-          <h2 class="diary-patient__heading">Статистика</h2>
+          <div class="diary-combined__head">
+            <h2 class="diary-patient__heading diary-combined__title">Статистика</h2>
+            <Button
+              variant="quiet"
+              icon={<AppGlyph name="sliders-horizontal" />}
+              onClick={() => setDialog({ settings: true })}
+            >
+              Настроить
+            </Button>
+          </div>
           <p class="diary-charts-page__hint">Нажмите на день, чтобы увидеть его значения</p>
-          <CombinedChart
-            series={combined().series}
-            alarms={combined().alarms}
-            marks={combined().marks}
-            from={from()}
-            to={Date.now()}
-            onDay={openDay}
-          />
+          <Show
+            when={combined().series.length || combined().tracks.length}
+            fallback={
+              <p class="diary-charts-page__hint">
+                За {spanLabel(span(), today)} нет выбранных показателей — нажмите «Настроить»
+              </p>
+            }
+          >
+            <CombinedChart
+              view={combined()}
+              from={from()}
+              to={to()}
+              median={settings().median}
+              average={settings().average}
+              legend={settings().legend}
+              onDay={openDay}
+            />
+          </Show>
+          <Show when={spanDays({ from: first(), to: today }) > 7}>
+            <ChartBrush
+              first={first()}
+              today={today}
+              span={span()}
+              lines={brushLines()}
+              onSpan={setSpan}
+            />
+          </Show>
         </section>
         <h2 class="diary-charts-page__details">Подробно</h2>
       </Show>
@@ -386,7 +455,7 @@ export function PatientChartsPage(props: {
                   onDay={openDay}
                   title={chart.title}
                   from={from()}
-                  to={Date.now()}
+                  to={to()}
                   min={0}
                   daily
                   series={chart.series}
@@ -406,7 +475,7 @@ export function PatientChartsPage(props: {
                 <TrendChart
                   onDay={openDay}
                   from={from()}
-                  to={Date.now()}
+                  to={to()}
                   title={chart.title}
                   min={chart.min}
                   max={chart.max}
@@ -466,7 +535,7 @@ export function PatientChartsPage(props: {
                 <TrendChart
                   onDay={openDay}
                   from={from()}
-                  to={Date.now()}
+                  to={to()}
                   title={`${series.title}, сумма баллов`}
                   limits={limitsOf([quizLimit(series)])}
                   onLimit={openLimit([quizLimit(series)])}
@@ -487,7 +556,7 @@ export function PatientChartsPage(props: {
         </For>
       </div>
       <Show when={!recent().length && !medicines().length}>
-        <EmptyState glyph="chart-line" title={`За ${period()} дней записей нет`} />
+        <EmptyState glyph="chart-line" title={`За ${spanLabel(span(), today)} записей нет`} />
       </Show>
 
       <Show
@@ -543,6 +612,28 @@ export function PatientChartsPage(props: {
             />
           </OverlayDialog>
         )}
+      </Show>
+      <Show
+        when={(() => {
+          const current = dialog();
+          return current && 'settings' in current;
+        })()}
+      >
+        <ChartSettingsSheet
+          sources={sources().sources}
+          tracks={sources().tracks}
+          settings={settings()}
+          onChange={changeSettings}
+          onClose={() => setDialog(undefined)}
+        />
+      </Show>
+      <Show when={(() => dialog() && 'dates' in (dialog() ?? {}))()}>
+        <ChartDatesSheet
+          span={span()}
+          today={today}
+          onSpan={setSpan}
+          onClose={() => setDialog(undefined)}
+        />
       </Show>
       <Show
         when={(() => {

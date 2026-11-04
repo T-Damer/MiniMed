@@ -2,6 +2,7 @@ import { createMemo, createResource, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { carerLabel } from '@/features/diary/connected/carer';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
   dayKey,
@@ -102,6 +103,14 @@ export function PatientDayDetails(props: {
     );
   });
   const records = createMemo(() => entriesOfDay(props.results.entries, props.day).toReversed());
+  /** A mark a carer made (DIARY25): «опекун Ирина», from the name the carer gave. */
+  const carerOf = (entry: DiaryEntry): string | undefined => {
+    const author = props.patient.replica.entryAuthors.get(entry.id);
+    const name = author?.startsWith('p:')
+      ? props.patient.replica.carerNames?.[author.slice(2)]
+      : undefined;
+    return name ? carerLabel(name) : undefined;
+  };
   const done = (): number => tasks().filter((task) => task.state === 'done').length;
   // Who changed the plan: the curators' names, fetched only when the day has a change.
   const [members] = createResource(
@@ -183,6 +192,9 @@ export function PatientDayDetails(props: {
                   </Show>
                   <Show when={entry.corrected}>
                     <span class="diary-timeline__badge">исправлено врачом</span>
+                  </Show>
+                  <Show when={carerOf(entry)}>
+                    {(who) => <span class="diary-timeline__badge">отметил(а) {who()}</span>}
                   </Show>
                 </span>
                 <Show when={canEdit() && props.onCorrect}>

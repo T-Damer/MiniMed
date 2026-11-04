@@ -1,0 +1,217 @@
+/* The doctor's chart settings (DIARY-CHARTS): the period bar, the overview brush, the legend
+   under the combined chart and the «Что показать» sheet. */
+
+/* The period's name under the page title, in the header that stays on screen. */
+/* Two short lines that fit the header's shrunk bar: the title, then the period in its colour. */
+.diary-charts-page__title {
+  display: grid;
+  line-height: 1.05;
+}
+
+.diary-charts-page__span {
+  font-family: var(--theme-font-ui, system-ui, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.1;
+  opacity: 0.72;
+}
+
+.diary-chart-dates {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* The combined card's head: the title, then «Настроить». */
+.diary-combined__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.diary-combined__title {
+  margin: 0;
+}
+
+.diary-combined-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-combined-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.diary-combined-legend__line {
+  flex: none;
+  width: 0.875rem;
+  height: 0.1875rem;
+  border-radius: 999px;
+}
+
+.diary-combined-legend__square {
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}
+
+/* The overview: the whole diary faint, the shown period as a framed window. */
+.diary-chart-brush {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.diary-chart-brush__strip {
+  position: relative;
+  height: 2.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.5rem);
+  background: var(--theme-surface);
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.diary-chart-brush__lines {
+  position: absolute;
+  inset: 0.125rem 0;
+  width: 100%;
+  height: calc(100% - 0.25rem);
+  opacity: 0.55;
+}
+
+.diary-chart-brush__window {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  min-width: 0.75rem;
+  border: 2px solid var(--theme-accent);
+  border-radius: var(--theme-radius-control, 0.5rem);
+  background: color-mix(in srgb, var(--theme-accent) 12%, transparent);
+  cursor: grab;
+}
+
+.diary-chart-brush__window--dragging {
+  cursor: grabbing;
+}
+
+.diary-chart-brush__window:focus-visible {
+  outline: 2px solid var(--theme-focus, var(--theme-accent));
+  outline-offset: 2px;
+}
+
+/* Wide edges for a finger, a slim grip drawn in the middle of each. */
+.diary-chart-brush__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5rem;
+  cursor: ew-resize;
+}
+
+.diary-chart-brush__handle--from {
+  left: -0.75rem;
+}
+
+.diary-chart-brush__handle--to {
+  right: -0.75rem;
+}
+
+.diary-chart-brush__handle::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.3125rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--theme-accent);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.diary-chart-brush__label {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* The «Что показать» sheet. */
+.diary-chart-settings__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.diary-chart-settings__group {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.diary-chart-settings__legend {
+  margin-bottom: 0.25rem;
+  padding: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: var(--theme-weight-strong, 600);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.diary-chart-settings__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.diary-chart-settings__swatch {
+  flex: none;
+}
+
+.diary-chart-settings__swatch--line {
+  width: 1rem;
+  height: 0.1875rem;
+  border-radius: 999px;
+}
+
+.diary-chart-settings__swatch--square {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+}
+
+.diary-chart-settings__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.diary-chart-settings__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+}
+
+.diary-chart-settings__switch-text {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.diary-chart-settings__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}

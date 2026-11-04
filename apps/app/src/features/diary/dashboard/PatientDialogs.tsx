@@ -3,6 +3,7 @@ import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Checkbox } from '@/components/Checkbox';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SegmentedControl } from '@/components/SegmentedControl';
@@ -16,6 +17,7 @@ import {
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
+import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
 import { CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
@@ -41,7 +43,8 @@ const ROLE_LABEL: Readonly<Record<DiaryRole, string>> = {
 
 /**
  * Curators of one patient: names, access level (read / edit), pending invitations, removal and
- * hand-over. Only the owner changes anything; a removal rotates the patient's key.
+ * hand-over; then the patient's phones and carers (DIARY25). Only the owner changes curators; an
+ * owner or editor adds a carer with the patient's consent. A removal rotates the patient's key.
  */
 export function CuratorsDialog(props: {
   readonly workspace: DoctorDiaries;
@@ -69,16 +72,23 @@ export function CuratorsDialog(props: {
     }
   };
 
-  const devices = (current: DiaryPatientDetail) => current.devices;
+  const devices = (current: DiaryPatientDetail) =>
+    current.devices.filter((device) => device.kind === 'patient');
+  const carers = (current: DiaryPatientDetail) =>
+    current.devices.filter((device) => device.kind === 'carer');
+  const carerName = (deviceId: string) => props.patient.replica.carerNames?.[deviceId];
+  const canPair = () => props.patient.summary.role !== 'reader';
+  const [consent, setConsent] = createSignal(false);
+  const [carerCode, setCarerCode] = createSignal(false);
 
   return (
     <OverlayDialog
       open
       title="Кураторы"
-      subtitle="Кто видит дневник и что может менять"
+      subtitle="Кто видит дневник: врачи, телефоны пациента и опекуны"
       onClose={props.onClose}
     >
-      <div class="diary-curators">
+      <div class="diary-curators-dialog">
         <Show when={detail()} fallback={<p class="diary-dash__quiet">Загружаем…</p>}>
           {(current) => (
             <>
@@ -219,6 +229,84 @@ export function CuratorsDialog(props: {
                     )}
                   </For>
                 </ul>
+              </Show>
+              <h3 class="diary-curators__heading">Опекуны</h3>
+              <p class="diary-dash__quiet">
+                Близкий человек, который помогает с лечением: видит дневник пациента, отмечает
+                приёмы и узнаёт о пропущенной дозе. Пациент видит опекуна у себя и может отключить
+                его.
+              </p>
+              <Show when={carers(current()).length}>
+                <ul class="diary-curators__list">
+                  <For each={carers(current())}>
+                    {(device) => (
+                      <li class="diary-curator" data-testid="diary-carer">
+                        <span class="diary-curator__avatar" aria-hidden="true">
+                          <AppGlyph name="users" class="diary-dash__glyph" />
+                        </span>
+                        <span class="diary-curator__text">
+                          <span class="diary-curator__name">
+                            {carerName(device.id) ?? 'Опекун'}
+                          </span>
+                          <span class="diary-curator__meta">
+                            опекун · подключён{' '}
+                            {new Date(device.createdAt).toLocaleDateString('ru-RU')}
+                            {device.lastSeenAt
+                              ? ` · был в сети ${new Date(device.lastSeenAt).toLocaleString('ru-RU')}`
+                              : ''}
+                          </span>
+                        </span>
+                        <Show when={canPair()}>
+                          <Button
+                            variant="icon"
+                            aria-label={`Отключить опекуна: ${carerName(device.id) ?? 'опекун'}`}
+                            icon={<AppGlyph name="trash" class="diary-dash__glyph" />}
+                            disabled={busy()}
+                            onClick={() =>
+                              void run(
+                                () => props.workspace.revokeDevice(id(), device.id),
+                                'Не удалось отключить опекуна.',
+                              )
+                            }
+                          />
+                        </Show>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </Show>
+              <Show when={canPair()}>
+                <Show
+                  when={carerCode()}
+                  fallback={
+                    <div class="diary-curators__invite">
+                      <Checkbox
+                        label="Пациент согласен"
+                        hint="Опекун увидит весь дневник и сможет делать отметки за пациента."
+                        checked={consent()}
+                        onChange={(event) => setConsent(event.currentTarget.checked)}
+                      />
+                      <Button
+                        variant="primary"
+                        disabled={!consent()}
+                        onClick={() => setCarerCode(true)}
+                      >
+                        Добавить опекуна
+                      </Button>
+                    </div>
+                  }
+                >
+                  <PairingView
+                    workspace={props.workspace}
+                    patientId={id()}
+                    kind="carer"
+                    onDone={() => {
+                      setCarerCode(false);
+                      setConsent(false);
+                      void refetch();
+                    }}
+                  />
+                </Show>
               </Show>
             </>
           )}
