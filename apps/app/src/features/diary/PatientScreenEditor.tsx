@@ -27,13 +27,17 @@ import {
 } from '@/features/diary/diary-care';
 import {
   CARE_SECTION_LABEL,
+  type CareAppointmentDraft,
   type CareContactDraft,
   type CareDoseDraft,
   type CareDraft,
+  type CareLabDraft,
   type CareSectionDraft,
   type CareSectionKind,
   copyCareSection,
   EMPTY_CARE_CONTACT,
+  newCareAppointment,
+  newCareLab,
   newCareSection,
   newCustomQuestionnaireSection,
 } from '@/features/diary/diary-care-draft';
@@ -42,8 +46,10 @@ import {
   type DiaryCheckpoint,
   type DiaryContactKind,
   type DiaryMeal,
+  MAX_DIARY_APPOINTMENTS,
   MAX_DIARY_CONTACTS,
   MAX_DIARY_DOSE_TIMES,
+  MAX_DIARY_LABS,
   MAX_DIARY_OPTIONS,
   MAX_DIARY_PLAN_ITEMS,
 } from '@/features/diary/diary-model';
@@ -58,6 +64,8 @@ import {
   questionnaireCheckpointId,
 } from '@/features/diary/diary-questionnaires';
 import { SUBSTANCES, substanceById } from '@/features/diary/diary-substances';
+import { appointmentWhen, dayWords } from '@/features/diary/diary-visits';
+import { AppointmentEditor, LabEditor } from '@/features/diary/VisitEditors';
 import { DrugSearchField } from '@/features/drug-picker/DrugSearchField';
 import type { DrugSuggestionForm } from '@/features/drug-picker/drug-suggest';
 import {
@@ -985,6 +993,35 @@ export function PatientScreenEditor(props: {
     setAdding(false);
     setEditing(section.key);
   };
+  // Visits and lab tests (DIARY27): their own sheets, keyed like the sections.
+  const [visit, setVisit] = createSignal<string>();
+  const [labKey, setLabKey] = createSignal<string>();
+  const visitOf = (key: string | undefined): CareAppointmentDraft | undefined =>
+    key ? props.draft.appointments?.find((one) => one.key === key) : undefined;
+  const labOf = (key: string | undefined): CareLabDraft | undefined =>
+    key ? props.draft.labs?.find((one) => one.key === key) : undefined;
+  const visitTitle = (one: CareAppointmentDraft): string => {
+    if (!one.day) return 'Выберите день приёма';
+    const when = appointmentWhen(
+      { id: '', day: one.day, ...(one.time ? { time: one.time } : {}) },
+      today,
+    );
+    return `${when[0]?.toUpperCase() ?? ''}${when.slice(1)}`;
+  };
+  const labDetail = (one: CareLabDraft): string | undefined =>
+    [one.by ? `сдать до ${dayWords(one.by, today)}` : '', one.why.trim()]
+      .filter(Boolean)
+      .join(' · ') || undefined;
+  const addVisit = (): void => {
+    const next = newCareAppointment(addDays(today, 7));
+    patch({ appointments: [...(props.draft.appointments ?? []), next] });
+    setVisit(next.key);
+  };
+  const addLab = (): void => {
+    const next = newCareLab();
+    patch({ labs: [...(props.draft.labs ?? []), next] });
+    setLabKey(next.key);
+  };
   const contactCount = (): number =>
     props.draft.contacts.filter((contact) => contact.value.trim()).length;
   // Rows are keyed by section key (strings), so an edit updates a row in place instead of
@@ -1227,6 +1264,72 @@ export function PatientScreenEditor(props: {
         </section>
 
         <section class="care-section">
+          <h3 class="care-section__title">Приёмы у врача</h3>
+          <Show when={(props.draft.appointments ?? []).length}>
+            <ul class="care-section__list">
+              <For each={props.draft.appointments ?? []}>
+                {(visit) => (
+                  <CareRow
+                    icon="calendar-check"
+                    title={visitTitle(visit)}
+                    detail={visit.place.trim() || undefined}
+                    state="idle"
+                    checkLabel={`${visitTitle(visit)}: изменить`}
+                    tip={false}
+                    onCheck={() => setVisit(visit.key)}
+                    onOpen={() => setVisit(visit.key)}
+                    onEdit={() => setVisit(visit.key)}
+                    editLabel={`Изменить приём: ${visitTitle(visit)}`}
+                  />
+                )}
+              </For>
+            </ul>
+          </Show>
+          <button
+            type="button"
+            class="screen-editor__add care-editable care-editable--empty"
+            disabled={(props.draft.appointments ?? []).length >= MAX_DIARY_APPOINTMENTS}
+            onClick={addVisit}
+          >
+            <AppGlyph name="plus" class="screen-editor__add-glyph" />
+            <span class="screen-editor__add-text">Приём</span>
+          </button>
+        </section>
+
+        <section class="care-section">
+          <h3 class="care-section__title">Анализы</h3>
+          <Show when={(props.draft.labs ?? []).length}>
+            <ul class="care-section__list">
+              <For each={props.draft.labs ?? []}>
+                {(lab) => (
+                  <CareRow
+                    icon="test-tube"
+                    title={lab.name.trim() || 'Анализ'}
+                    detail={labDetail(lab)}
+                    state="open"
+                    checkLabel={`${lab.name.trim() || 'Анализ'}: изменить`}
+                    tip={false}
+                    onCheck={() => setLabKey(lab.key)}
+                    onOpen={() => setLabKey(lab.key)}
+                    onEdit={() => setLabKey(lab.key)}
+                    editLabel={`Изменить анализ: ${lab.name.trim() || 'анализ'}`}
+                  />
+                )}
+              </For>
+            </ul>
+          </Show>
+          <button
+            type="button"
+            class="screen-editor__add care-editable care-editable--empty"
+            disabled={(props.draft.labs ?? []).length >= MAX_DIARY_LABS}
+            onClick={addLab}
+          >
+            <AppGlyph name="plus" class="screen-editor__add-glyph" />
+            <span class="screen-editor__add-text">Анализ</span>
+          </button>
+        </section>
+
+        <section class="care-section">
           <h3 class="care-section__title">Своими словами</h3>
           <ul class="care-section__list">
             <CareRow
@@ -1243,6 +1346,68 @@ export function PatientScreenEditor(props: {
         </section>
       </div>
 
+      <Show when={visitOf(visit())}>
+        {(current) => (
+          <OverlayDialog
+            open
+            title="Приём у врача"
+            class="screen-editor__dialog"
+            onClose={() => setVisit(undefined)}
+          >
+            <AppointmentEditor
+              appointment={current()}
+              onChange={(next) =>
+                patch({
+                  appointments: (props.draft.appointments ?? []).map((one) =>
+                    one.key === next.key ? next : one,
+                  ),
+                })
+              }
+              onRemove={() => {
+                setVisit(undefined);
+                patch({
+                  appointments: (props.draft.appointments ?? []).filter(
+                    (one) => one.key !== current().key,
+                  ),
+                });
+              }}
+              onDone={() => setVisit(undefined)}
+            />
+          </OverlayDialog>
+        )}
+      </Show>
+      <Show when={labOf(labKey())}>
+        {(current) => (
+          <OverlayDialog
+            open
+            title="Анализ"
+            class="screen-editor__dialog"
+            onClose={() => setLabKey(undefined)}
+          >
+            <LabEditor
+              lab={current()}
+              medicines={props.draft.sections
+                .filter((section) => section.kind === 'drug' && section.title.trim())
+                .map((section) => section.title)}
+              asked={(props.draft.labs ?? [])
+                .filter((one) => one.key !== current().key)
+                .map((one) => one.name)}
+              onChange={(next) =>
+                patch({
+                  labs: (props.draft.labs ?? []).map((one) => (one.key === next.key ? next : one)),
+                })
+              }
+              onRemove={() => {
+                setLabKey(undefined);
+                patch({
+                  labs: (props.draft.labs ?? []).filter((one) => one.key !== current().key),
+                });
+              }}
+              onDone={() => setLabKey(undefined)}
+            />
+          </OverlayDialog>
+        )}
+      </Show>
       <Show when={editing() === 'contacts'}>
         <OverlayDialog
           open

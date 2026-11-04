@@ -10,11 +10,13 @@ import {
   APPETITE_FIELD,
   CARE_CHECKPOINTS,
   DIARY_FORMAT_VERSION,
+  type DiaryAppointment,
   type DiaryCheckpoint,
   type DiaryContact,
   type DiaryContactKind,
   type DiaryField,
   type DiaryInvitation,
+  type DiaryLabRequest,
   type DiaryMeal,
   type DiaryOperator,
   type DiaryPlanItem,
@@ -109,6 +111,43 @@ export interface CareDraft {
   readonly contacts: readonly CareContactDraft[];
   /** Help lines, one per line of text. */
   readonly crisis: string;
+  /** Visits the doctor booked (DIARY27). */
+  readonly appointments?: readonly CareAppointmentDraft[];
+  /** Lab tests the doctor asks for (DIARY27). */
+  readonly labs?: readonly CareLabDraft[];
+}
+
+export interface CareAppointmentDraft {
+  readonly key: string;
+  readonly id?: string;
+  /** `YYYY-MM-DD`; empty while the doctor has not chosen it. */
+  readonly day: string;
+  readonly time: string;
+  readonly place: string;
+  readonly note: string;
+}
+
+export interface CareLabDraft {
+  readonly key: string;
+  readonly id?: string;
+  readonly name: string;
+  readonly unit: string;
+  /** Take it by this day; empty: whenever the patient can. */
+  readonly by: string;
+  readonly why: string;
+}
+
+/** Field id of a lab request's result: `lab-` and the request's id. */
+export function labFieldId(id: string): string {
+  return `lab-${id}`;
+}
+
+export function newCareAppointment(day = ''): CareAppointmentDraft {
+  return { key: sectionKey(), day, time: '', place: '', note: '' };
+}
+
+export function newCareLab(next: Partial<Omit<CareLabDraft, 'key'>> = {}): CareLabDraft {
+  return { key: sectionKey(), name: '', unit: '', by: '', why: '', ...next };
 }
 
 export const CARE_SECTION_LABEL: Readonly<Record<CareSectionKind, string>> = {
@@ -310,8 +349,30 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
         ...(checkpoint.custom ? { custom: checkpoint.custom } : {}),
       };
     });
+  const appointments = (invitation.appointments ?? []).map(
+    (appointment): CareAppointmentDraft => ({
+      key: sectionKey(),
+      id: appointment.id,
+      day: appointment.day,
+      time: appointment.time ?? '',
+      place: appointment.place ?? '',
+      note: appointment.note ?? '',
+    }),
+  );
+  const labs = (invitation.labs ?? []).map(
+    (lab): CareLabDraft => ({
+      key: sectionKey(),
+      id: lab.id,
+      name: lab.name,
+      unit: invitation.fields.find((field) => field.id === lab.field)?.unit ?? '',
+      by: lab.by ?? '',
+      why: lab.why ?? '',
+    }),
+  );
   return {
     sections: [...drugs, ...checks],
+    ...(appointments.length ? { appointments } : {}),
+    ...(labs.length ? { labs } : {}),
     contacts: invitation.contacts?.length
       ? invitation.contacts.map((contact) => ({
           kind: contact.kind,
@@ -371,6 +432,8 @@ export interface CareInvitationParts {
   readonly contacts: readonly DiaryContact[];
   readonly tips: readonly DiaryTip[];
   readonly crisis: readonly string[];
+  readonly appointments: readonly DiaryAppointment[];
+  readonly labs: readonly DiaryLabRequest[];
 }
 
 function cleanOptions(options: readonly string[]): string[] {
@@ -539,6 +602,55 @@ export function careInvitationParts(
   for (const checkpoint of previous?.checkpoints ?? []) {
     if (!active.has(checkpoint.id)) checkpoints.push({ ...checkpoint, ended: true });
   }
+  // Ids already given (in this draft or the plan before it) are never handed out again.
+  for (const given of [
+    ...(previous?.appointments ?? []),
+    ...(previous?.labs ?? []),
+    ...(draft.appointments ?? []),
+    ...(draft.labs ?? []),
+  ]) {
+    if (given.id) taken.add(given.id);
+  }
+  const appointments = (draft.appointments ?? [])
+    .filter((appointment) => appointment.day)
+    .toSorted((left, right) =>
+      `${left.day}T${left.time}`.localeCompare(`${right.day}T${right.time}`),
+    )
+    .map(
+      (appointment): DiaryAppointment => ({
+        id: appointment.id ?? nextId('v', taken),
+        day: appointment.day,
+        ...(appointment.time ? { time: appointment.time } : {}),
+        ...(appointment.place.trim() ? { place: appointment.place.trim() } : {}),
+        ...(appointment.note.trim() ? { note: appointment.note.trim() } : {}),
+      }),
+    );
+  // Each result goes into a number field of its own; a lab taken off the list keeps its field, so
+  // the results already typed in keep their name.
+  const labs: DiaryLabRequest[] = [];
+  for (const lab of draft.labs ?? []) {
+    const name = lab.name.trim();
+    if (!name) continue;
+    const id = lab.id ?? nextId('l', taken);
+    const field = labFieldId(id);
+    fields.set(field, {
+      id: field,
+      type: 'number',
+      label: name,
+      ...(lab.unit.trim() ? { unit: lab.unit.trim() } : {}),
+      min: 0,
+      max: 1_000_000,
+      step: 0.01,
+    });
+    labs.push({
+      id,
+      name,
+      field,
+      ...(lab.by ? { by: lab.by } : {}),
+      ...(lab.why.trim() ? { why: lab.why.trim() } : {}),
+    });
+  }
+
   // Fields of ended sections stay so earlier answers keep their labels and validation.
   for (const [id, field] of previousFields) if (!fields.has(id)) fields.set(id, field);
 
@@ -566,6 +678,8 @@ export function careInvitationParts(
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean),
+    appointments,
+    labs,
   };
 }
 
@@ -605,6 +719,8 @@ export function careInvitation(input: {
     ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
     ...(parts.tips.length ? { tips: parts.tips } : {}),
     ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
+    ...(parts.appointments.length ? { appointments: parts.appointments } : {}),
+    ...(parts.labs.length ? { labs: parts.labs } : {}),
     consent: true,
     ...(operator ? { operator } : {}),
     ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),

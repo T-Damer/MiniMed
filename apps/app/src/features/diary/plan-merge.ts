@@ -25,6 +25,8 @@ const FIELD_LABEL: Readonly<Record<string, string>> = {
   planTitle: 'Название плана',
   crisis: 'Помощь в кризисе',
   operator: 'Реквизиты врача',
+  appointments: 'Приёмы',
+  labs: 'Анализы',
 };
 
 function same(left: unknown, right: unknown): boolean {

@@ -8,6 +8,7 @@ import {
   type DiaryInvitation,
   type DiaryPlanItem,
 } from '@/features/diary/diary-model';
+import { visitChanges } from '@/features/diary/diary-visits';
 
 /** Lines kept at most: a long run of edits keeps its newest lines. */
 export const MAX_PLAN_CHANGE_LINES = 12;
@@ -117,6 +118,7 @@ export function planChanges(before: DiaryInvitation, after: DiaryInvitation): st
     if (!nextChecks.has(check.id)) lines.push(`Больше не нужно: ${check.label}`);
   }
 
+  lines.push(...visitChanges(before, after));
   if ((after.note ?? '') !== (before.note ?? '') && after.note) lines.push('Новая заметка врача');
   if (JSON.stringify(after.contacts ?? []) !== JSON.stringify(before.contacts ?? [])) {
     lines.push('Контакты врача обновлены');

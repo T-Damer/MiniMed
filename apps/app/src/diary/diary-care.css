@@ -1454,3 +1454,70 @@ body:has(.diary-care-scope) {
   width: min(24rem, calc(100vw - 2rem));
   padding: 0.5rem;
 }
+
+/* The next visit, above the day (DIARY27): the date in words and a call. */
+.care-visit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem 0.8rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-border));
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-raised));
+  animation: diary-sheet-fade var(--care-base) var(--care-ease);
+}
+
+.care-visit__badge {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.care-visit__glyph {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.care-visit__text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.care-visit__title,
+.care-visit__detail {
+  margin: 0;
+}
+
+.care-visit__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.care-visit__detail {
+  color: var(--theme-text-muted);
+}
+
+.care-visit__call {
+  grid-column: 1 / -1;
+  text-decoration: none;
+}
+
+.care-visit__call-glyph {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+@media (width >= 30rem) {
+  .care-visit {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .care-visit__call {
+    grid-column: auto;
+  }
+}

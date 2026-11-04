@@ -181,6 +181,37 @@ export interface DiaryInvitation {
   readonly consent?: boolean;
   /** Who runs the follow-up, from the doctor's «Врач и организация»: filled into those documents. */
   readonly operator?: DiaryOperator;
+  /** Visits the doctor booked (DIARY27): shown above the patient's day, with a call button. */
+  readonly appointments?: readonly DiaryAppointment[];
+  /** Lab tests the doctor asks for (DIARY27); the patient types each result into its field. */
+  readonly labs?: readonly DiaryLabRequest[];
+}
+
+/** A visit to the doctor (owner 2026-11-04: «Завтра у вас приём в 14:30» and a call button). */
+export interface DiaryAppointment {
+  readonly id: string;
+  /** `YYYY-MM-DD`, the patient's local day. */
+  readonly day: string;
+  /** `HH:MM`; absent: the day only. */
+  readonly time?: string;
+  readonly place?: string;
+  readonly note?: string;
+}
+
+/**
+ * A lab test the doctor asks the patient to take (owner 2026-11-04: «some drugs increase hormone
+ * levels — prolactin»). The patient types the result in by hand into `field`, a number field of the
+ * diary, as an entry of its own on the day the blood was taken.
+ */
+export interface DiaryLabRequest {
+  readonly id: string;
+  readonly name: string;
+  /** Id of the number field the result goes into. */
+  readonly field: string;
+  /** Take it by this day, `YYYY-MM-DD`. */
+  readonly by?: string;
+  /** Why, in the doctor's words: «рисперидон может повышать пролактин». */
+  readonly why?: string;
 }
 
 /** The clinic and the doctor as the joining documents name them; every part may be missing. */
@@ -308,6 +339,8 @@ export const MAX_DIARY_CHECKPOINTS = 24;
 export const MAX_DIARY_CONTACTS = 6;
 export const MAX_DIARY_TIPS = 40;
 export const MAX_DIARY_DOSE_TIMES = 8;
+export const MAX_DIARY_APPOINTMENTS = 10;
+export const MAX_DIARY_LABS = 12;
 /** Free text the patient writes about their state, and the doctor's tips. */
 export const MAX_DIARY_NOTE = 4000;
 /**
@@ -754,6 +787,67 @@ function parseOperator(value: unknown): DiaryOperator | undefined {
   return Object.keys(operator).length ? operator : undefined;
 }
 
+function parseAppointments(value: unknown): DiaryAppointment[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_APPOINTMENTS) {
+    throw new DiaryFormatError('Приёмы у врача некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Приём ${index + 1}`);
+    const id = source['id'];
+    const day = source['day'];
+    const time = source['time'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректный идентификатор.`);
+    }
+    if (typeof day !== 'string' || !DAY_PATTERN.test(day)) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректная дата.`);
+    }
+    if (time !== undefined && (typeof time !== 'string' || !TIME_PATTERN.test(time))) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректное время.`);
+    }
+    const place = text(source['place'], 'Где приём', true);
+    const note = text(source['note'], 'О приёме', true);
+    return {
+      id,
+      day,
+      ...(time ? { time } : {}),
+      ...(place ? { place } : {}),
+      ...(note ? { note } : {}),
+    };
+  });
+}
+
+function parseLabs(value: unknown, fields: readonly DiaryField[]): DiaryLabRequest[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_LABS) {
+    throw new DiaryFormatError('Анализы некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Анализ ${index + 1}`);
+    const id = source['id'];
+    const field = source['field'];
+    const by = source['by'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: некорректный идентификатор.`);
+    }
+    if (!fields.some((one) => one.id === field && one.type === 'number')) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: нет поля для результата.`);
+    }
+    if (by !== undefined && (typeof by !== 'string' || !DAY_PATTERN.test(by))) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: некорректная дата.`);
+    }
+    const why = text(source['why'], 'Зачем анализ', true);
+    return {
+      id,
+      name: text(source['name'], `Анализ ${index + 1}`),
+      field: field as string,
+      ...(typeof by === 'string' ? { by } : {}),
+      ...(why ? { why } : {}),
+    };
+  });
+}
+
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.length > MAX_DIARY_PLAN_ITEMS) {
@@ -825,6 +919,8 @@ function parseInvitationV2(
   const tips = parseTips(source['tips']);
   const crisis = parseCrisis(source['crisis']);
   const operator = parseOperator(source['operator']);
+  const appointments = parseAppointments(source['appointments']);
+  const labs = parseLabs(source['labs'], fields);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -842,6 +938,8 @@ function parseInvitationV2(
     ...(crisis.length ? { crisis } : {}),
     ...(source['consent'] === true ? { consent: true } : {}),
     ...(operator ? { operator } : {}),
+    ...(appointments.length ? { appointments } : {}),
+    ...(labs.length ? { labs } : {}),
   };
 }
 

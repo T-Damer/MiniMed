@@ -13,12 +13,14 @@ import {
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { PillMark } from '@/components/PillMark';
 import { SheetPopover } from '@/components/SheetPopover';
+import { AppointmentCard } from '@/diary/AppointmentCard';
 import { CareIntro } from '@/diary/CareIntro';
 import { ContactsSheet, CrisisSheet } from '@/diary/care-contacts';
 import {
   AnswerSheet,
   type CareSave,
   DoseSheet,
+  LabSheet,
   NoteSheet,
   ScoreSheet,
   VitalsSheet,
@@ -63,6 +65,7 @@ import {
   type DiaryCheckpoint,
   type DiaryDoseTime,
   type DiaryEntry,
+  type DiaryLabRequest,
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryResults,
@@ -74,6 +77,7 @@ import {
 } from '@/features/diary/diary-questionnaires';
 import type { DiaryRemoval } from '@/features/diary/diary-storage';
 import { substanceSummary } from '@/features/diary/diary-substances';
+import { dayWords, labResult } from '@/features/diary/diary-visits';
 import type { DiaryPlanChange } from '@/features/diary/plan-changes';
 
 type Sheet =
@@ -90,6 +94,7 @@ type Sheet =
   | { readonly kind: 'check'; readonly task: CheckTask }
   | { readonly kind: 'quiz'; readonly task: QuestionnaireTask }
   | { readonly kind: 'note'; readonly entry: DiaryEntry | undefined }
+  | { readonly kind: 'lab'; readonly lab: DiaryLabRequest }
   | { readonly kind: 'contacts' }
   | { readonly kind: 'crisis'; readonly raised: boolean };
 
@@ -525,6 +530,8 @@ export function DiaryToday(props: {
       >
         {props.header}
 
+        <AppointmentCard invitation={invitation()} now={now()} />
+
         {/* The doctor came from their own calendar: the day's arrows are enough here (DIARY21). */}
         <Show when={props.viewer !== 'doctor'}>
           <DiaryHeatmap
@@ -841,6 +848,46 @@ export function DiaryToday(props: {
           </section>
         </Show>
 
+        <Show when={invitation().labs?.length}>
+          <section class="care-section" aria-labelledby="care-labs">
+            <h3 class="care-section__title" id="care-labs">
+              Анализы
+            </h3>
+            <ul class="care-section__list">
+              <For each={invitation().labs ?? []}>
+                {(lab) => {
+                  const result = () => labResult(lab, props.results.entries);
+                  const unit = () =>
+                    invitation().fields.find((field) => field.id === lab.field)?.unit ?? '';
+                  return (
+                    <CareRow
+                      icon="test-tube"
+                      title={lab.name}
+                      detail={(() => {
+                        const found = result();
+                        if (found) {
+                          return `${found.value} ${unit()}, ${dayWords(dayKey(found.at), today())}`.replace(
+                            /\s+,/u,
+                            ',',
+                          );
+                        }
+                        return lab.by
+                          ? `Сдать до ${dayWords(lab.by, today())}`
+                          : 'Сдайте, когда сможете, и впишите результат';
+                      })()}
+                      state={result() ? 'done' : lab.by && lab.by < today() ? 'late' : 'open'}
+                      checkLabel={`${lab.name}: вписать результат`}
+                      tip={false}
+                      onCheck={() => setSheet({ kind: 'lab', lab })}
+                      onOpen={() => setSheet({ kind: 'lab', lab })}
+                    />
+                  );
+                }}
+              </For>
+            </ul>
+          </section>
+        </Show>
+
         <section class="care-section" aria-labelledby="care-notes">
           <h3 class="care-section__title" id="care-notes">
             Своими словами
@@ -1004,6 +1051,22 @@ export function DiaryToday(props: {
               }}
               onClose={close}
             />
+          )}
+        </Match>
+        <Match when={sheet()?.kind === 'lab' && (sheet() as Extract<Sheet, { kind: 'lab' }>)}>
+          {(current) => (
+            <Show when={invitation().fields.find((field) => field.id === current().lab.field)}>
+              {(field) => (
+                <LabSheet
+                  lab={current().lab}
+                  field={field()}
+                  entry={labResult(current().lab, props.results.entries)?.entry}
+                  onSave={save}
+                  onRemove={remove}
+                  onClose={close}
+                />
+              )}
+            </Show>
           )}
         </Match>
         <Match when={sheet()?.kind === 'note' && (sheet() as Extract<Sheet, { kind: 'note' }>)}>

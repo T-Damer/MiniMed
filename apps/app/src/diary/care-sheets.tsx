@@ -16,6 +16,7 @@ import {
   type DiaryEntry,
   type DiaryField,
   type DiaryInvitation,
+  type DiaryLabRequest,
   type DiaryMissReason,
   type DiaryPlanItem,
   type DiaryPlanValue,
@@ -393,6 +394,92 @@ export function ScoreSheet(props: {
         placeholder="Опишите, что повлияло на самочувствие"
         onInput={setNote}
       />
+    </DiarySheet>
+  );
+}
+
+/**
+ * A lab result the patient types in from the lab's printout (DIARY27): the value in the doctor's
+ * units and the day the blood was taken. An entry of its own, not tied to a day's checkpoint.
+ */
+export function LabSheet(props: {
+  readonly lab: DiaryLabRequest;
+  readonly field: DiaryField;
+  readonly entry: DiaryEntry | undefined;
+  readonly onSave: CareSave;
+  readonly onRemove: (entry: DiaryEntry) => void;
+  readonly onClose: () => void;
+}): JSX.Element {
+  const today = dayKey(new Date());
+  const initial = props.entry?.values[props.field.id];
+  const [text, setText] = createSignal(typeof initial === 'number' ? String(initial) : '');
+  const [day, setDay] = createSignal(props.entry ? dayKey(props.entry.at) : today);
+  const [error, setError] = createSignal('');
+  const save = (): void => {
+    const problem = numberProblem(props.field, text());
+    const value = parseTypedNumber(text());
+    if (problem || value === undefined) {
+      setError(problem || 'Впишите результат.');
+      return;
+    }
+    if (!day() || day() > today) {
+      setError('Укажите день, когда сдавали анализ.');
+      return;
+    }
+    setError(
+      props.onSave({
+        id: props.entry?.id ?? createDiaryId(),
+        at:
+          props.entry && dayKey(props.entry.at) === day() ? props.entry.at : atTime(day(), '08:00'),
+        values: { [props.field.id]: value },
+      }) ?? '',
+    );
+  };
+  return (
+    <DiarySheet
+      title={props.lab.name}
+      subtitle="Перепишите результат с бланка лаборатории"
+      onClose={props.onClose}
+      footer={
+        <SheetFooter
+          error={error()}
+          onSave={save}
+          onRemove={props.entry ? () => props.entry && props.onRemove(props.entry) : undefined}
+        />
+      }
+    >
+      <TipBox text={props.lab.why} />
+      <div class="diary-vitals">
+        <label class="diary-vitals__field">
+          <span class="diary-vitals__label">
+            Результат
+            <Show when={props.field.unit}>
+              <span class="diary-vitals__unit">, {props.field.unit}</span>
+            </Show>
+          </span>
+          <span class="diary-vitals__row">
+            <input
+              class="diary-vitals__input"
+              inputmode="decimal"
+              enterkeyhint="done"
+              value={text()}
+              onInput={(event) => setText(event.currentTarget.value)}
+            />
+          </span>
+        </label>
+        <label class="diary-vitals__field">
+          <span class="diary-vitals__label">Когда сдавали</span>
+          <span class="diary-vitals__row">
+            <input
+              class="diary-vitals__input"
+              type="date"
+              max={today}
+              value={day()}
+              onInput={(event) => setDay(event.currentTarget.value)}
+            />
+          </span>
+        </label>
+      </div>
     </DiarySheet>
   );
 }
