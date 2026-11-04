@@ -1,6 +1,6 @@
 # Diary presentation
 
-A 16-slide deck about the patient diary module (16:9, 1280×720 per slide), in the app's paper style.
+A 17-slide deck about the patient diary module (16:9, 1280×720 per slide), in the app's paper style.
 Every content slide carries two tags: its part of the talk (Введение, Основная часть, Демо,
 Техническая часть in green, Заключение) and its topic. Phone screenshots sit under a drawn status
 bar, so the frame's camera cut-out never covers the app.
@@ -41,11 +41,13 @@ bun docs/promo/diary-presentation/tools/qr-links.ts --check  # read every code b
 Checked 2026-11-04 from the vendors' own pages and store listings; «—» on the slide means «no» or
 «not described anywhere we found». Product names on the slide link to these sites.
 
-- [Medsenger](https://medsenger.ai/) (ООО «Телепат», RU) — the closest one. Its agent «Опросники и
+- [Medsenger](https://about.medsenger.ru/ru/) (ООО «Телепат», RU) — the closest one. Its agent «Опросники и
   лекарства» sends questionnaires of arbitrary questions on a schedule, reminds about doses with
   confirmation and dose, plots charts and heat maps, and runs algorithms that warn the doctor
   ([docs](https://docs.telepat.online/steps/45)). The agents act on the data on the server, so it is
-  not end-to-end encrypted. No description of several doctors or relatives on one patient.
+  not end-to-end encrypted, and no HL7 FHIR is mentioned anywhere. It does have a consilium, consultants and a doctor's
+  assistant, and relatives/social workers in the channel (Medsenger.Care); a licence is 10 000 ₽ a month per doctor.
+  Full inventory: `docs/research/medsenger-2026-11.md`.
 - [СберЗдоровье](https://sberhealth.ru/) remote monitoring (RU) — a smart tonometer feeds a «Дневник
   наблюдений» that the patient and the doctor see; the doctor is alerted on deviations
   ([CNews](https://zoom.cnews.ru/news/item/565425)). No own questionnaires, no relatives.
@@ -57,10 +59,22 @@ Checked 2026-11-04 from the vendors' own pages and store listings; «—» on th
   30 min after a missed dose's last reminder
   ([help](https://medisafe.com/faq/what-is-a-medfriend)); doctors get reports or a one-time code,
   not a live view.
-- [Daylio](https://daylio.net/), [eMoods](https://emoodtracker.com/), [Bearable](https://bearable.app/)
+- Not on the slide (no doctor link, too far): [Daylio](https://daylio.net/), [eMoods](https://emoodtracker.com/), [Bearable](https://bearable.app/)
   — mood diaries; the doctor gets an exported PDF/CSV. The APA evaluation notes Daylio's shared files
   are not encrypted ([APA](https://psychiatry.org/psychiatrists/practice/mental-health-apps/evaluations/daylio-evaluation));
   eMoods keeps data on the device; Bearable says only the user holds the key (vendor claim).
 
 MiniMed's carer access (a guardian sees the intake log and helps keep to the treatment) is shown as
 «в планах»; it is not built yet.
+
+## Case (slide 4)
+
+«Новая жизнь», Оренбургский областной клинический наркологический диспансер (ГАУЗ «ООКНД»),
+03.2024–03.2025, on Medsenger: parents with alcohol dependence at risk of losing parental rights
+(the parents are the patients). Figures on the slide — 107 patients, 83,2 % keep sobriety, mean
+remission 5,4 months, 9 children returned to the family, 718 remote consultations (62 by video) —
+and the feedback (doctors: dynamics between visits, team work; patients: questionnaires take long
+and come too often; doctors: some filled them while drunk) are from the project's results
+presentation: <https://about.medsenger.ru/ru/docs/new-life-narcology-presentation.pdf>. The
+«Семья — часть лечения» card (a parent as carer of a teenager) is our own next step, not part of
+that project.
