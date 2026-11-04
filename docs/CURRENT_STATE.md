@@ -52,6 +52,36 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## The diaries site: the sign-in first, then the whole app — 2026-11-04 (STATE DIARY24)
+
+- **Owner 2026-11-04:** «ideally load the whole app (site) at once so there is no loading later — except before the user
+  is in: the first open should fetch only the sign-in/registration screen».
+- **Was.** Signed out, the GitVerse copy's page fetched ~18.5 MB (App, NotesView, the tabs App warms, the 10.5 MB
+  module catalog through Assessments/Settings, pdf.js, SQLite) and the service worker another 27.7 MB at install.
+- **Entry.** `main.tsx` mounts through `@/app/mount-app`; the diaries build (`VITE_APP_PROFILE=diaries`, vite plugin
+  `diariesEntry`, matched after the `@` alias) swaps in `app/mount-diaries.tsx`. With no kept doctor session
+  (`hasKeptDoctorSession`, localStorage only) on a diaries address (`diariesAddress`: bare page or `#/notes/diaries…`)
+  it renders `DoctorSignIn` alone in the app's frames and reveals the boot surface itself. Signing in
+  (`onSignedIn` may now return a promise; the busy button holds) loads App + NotesView + DiaryDashboard, calls
+  `startDoctor`, sets the bare hash to the profile home (App used to warm SearchHome on a bare hash) and mounts App;
+  a kept session or another address mounts App at once. App's own nav-tab warm-up reads the other tabs in.
+- **Service worker.** `ServiceWorkerBuild.app` (`JobShell.signIn` in `service-worker-precache.ts`): install stores
+  `precache` (the entry's closure plus `PROFILE_SIGN_IN` start-up modules, icons, fonts); `cacheWholeApp()` (sent when
+  App mounts) posts `CACHE_APP` and the worker stores `app` and the marker `__minimed-whole-app__`; a new build installs
+  whole when an older shell cache carries the marker. `PROFILE_LAZY_ROOTS` adds the diaries' own lazy modules to the
+  app set. A job with `noSearch` keeps no `content/` boot files and no onboarding pictures.
+- **Catalog.** `diaryCatalogSubset` loads `catalog.preview.json?raw` as the core plus the questionnaire tool modules
+  (`minimed.tools.<pack>.ru` for `DIARY_QUESTIONNAIRES`) and the terminology catalog as `[]`, diaries build only.
+- **Measured** (diaries build, clean browser, local preview): signed out 82 files cached / 52 fetched by the page,
+  2.3 MB (1.4 MB gzip), none of App, pdf.js, SQLite or the catalog; «Демо» → list in ~0.6 s; then 340 files cached
+  (9.9 MB more, 3.3 MB gzip) and the patient page, charts, «Опросники» and «Настройки» fetched nothing outside the
+  cache, the first-use cache stayed empty. Reload with the kept session opens the list directly.
+- **Not done.** The app set still holds pdf.js, SQLite, the module runtime and the forms registry (App and NotesView
+  import them statically); Excel export (exceljs) loads on first use. Not checked on a phone or offline in a browser
+  (the worker's offline paths are covered by `service-worker.test.ts`).
+- **Checks.** vitest 19 343 passed (new: two-stage install, `CACHE_APP`, whole install after an update, lazy roots,
+  `diariesAddress`); diary e2e 75 passed.
+
 ## A tap shows the day; missed doses are red crosses — 2026-11-04 (STATE DIARY23)
 
 - **Owner 2026-11-04:** «when the patient marks a dose as missed, show a red cross on the graph; on click you see some

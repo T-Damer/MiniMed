@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.88] - 2026-11-04
+
+- The doctors' diaries site opens on the sign-in alone: the first visit downloads 2.3 MB instead of over 40 MB. Once the
+  doctor is in, the whole app is fetched in the background, and every tab, patient page and chart opens without loading
+  anything; updates then arrive whole.
+- The diaries site carries only the questionnaire modules it uses, not the 10 MB catalog of all modules.
+
 ## [0.6.87] - 2026-11-04
 
 - Diary charts: a tap shows that day first — its values in a card under the chart and a band over the day;
