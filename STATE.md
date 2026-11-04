@@ -181,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-04 claude-opus PROMO9: diary deck — demo route centred (slide 12); curator mock without the subtitle, button off the edge (slide 13)
 - 2026-11-04 claude-opus PROMO8: diary deck analogues table — shared and distinguishing columns interleaved, so the differences do not read as invented
 - 2026-11-04 claude-opus REL 0.6.90: DIARY25 (carer access), DIARY-CHARTS (the doctor's «Статистика» settings, period menu), DIARY26 (joining documents: informed consent, personal-data consent, remote-care contract) in one release; diary API deployed with the carer routes; missed-dose tick for carers still needs a timer trigger (owner's call: reminders stay on the phone, ADR-0027)
 - 2026-11-04 claude-opus DIARY26: joining documents — the patient reads and accepts each of three template documents before the diary starts (the doctor's «Врач и организация» fills the operator), acceptances go in the encrypted consent record, nothing is sent before; the doctor's patient page shows when; carers keep skipping consent (DIARY25 request resolved in the merge)
