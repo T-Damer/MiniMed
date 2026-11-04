@@ -44,6 +44,11 @@ export interface HeaderAction {
   readonly onSelect?: () => void;
   /** Opens a panel (popover on wide screens, sheet when folded or on phones) instead of `onSelect`. */
   readonly panel?: HeaderActionPanel;
+  /**
+   * Opens a context menu of these items instead of `onSelect` (a choice such as the charts'
+   * period); folded into «⋯», they become its submenu.
+   */
+  readonly menu?: readonly AppContextMenuAction[];
   readonly disabled?: boolean;
   readonly danger?: boolean;
   /** Always in the «⋯» menu: account and rare actions (reminders, sign-out). */
@@ -153,6 +158,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
         ...(action.danger ? { danger: true } : {}),
         ...(action.disabled ? { disabled: true } : {}),
         ...(action.testId ? { testId: action.testId } : {}),
+        ...(action.menu ? { children: action.menu } : {}),
         onSelect: () => {
           if (action.panel) setOpenPanel(action.id);
           else action.onSelect?.();
@@ -288,7 +294,20 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
       <For each={props.actions}>
         {(action) => (
           <>
-            <Show when={!folded(action.id)}>
+            <Show when={!folded(action.id) && action.menu}>
+              {(menu) => (
+                <AppContextMenu
+                  actions={menu()}
+                  buttonLabel={action.label}
+                  buttonIcon={action.icon}
+                  buttonClass="header-actions__more"
+                  class="header-actions__menu"
+                >
+                  {null}
+                </AppContextMenu>
+              )}
+            </Show>
+            <Show when={!folded(action.id) && !action.menu}>
               <Show
                 when={action.panel}
                 fallback={

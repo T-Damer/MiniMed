@@ -14,11 +14,16 @@ export interface ChartSpan {
 
 export type ChartPreset = '7' | '14' | '30' | '90';
 
-export const CHART_PRESETS: readonly { readonly value: ChartPreset; readonly label: string }[] = [
-  { value: '7', label: 'Неделя' },
-  { value: '14', label: '2 нед.' },
-  { value: '30', label: 'Месяц' },
-  { value: '90', label: '3 мес.' },
+export const CHART_PRESETS: readonly {
+  readonly value: ChartPreset;
+  readonly label: string;
+  /** Under the page title: «Графики за месяц». */
+  readonly span: string;
+}[] = [
+  { value: '7', label: 'Неделя', span: 'за неделю' },
+  { value: '14', label: '2 недели', span: 'за 2 недели' },
+  { value: '30', label: 'Месяц', span: 'за месяц' },
+  { value: '90', label: '3 месяца', span: 'за 3 месяца' },
 ];
 
 export function isChartPreset(value: unknown): value is ChartPreset {
@@ -79,6 +84,12 @@ export function spanTimes(span: ChartSpan, now: Date = new Date()): { from: numb
 /** The span's last moment that counts, for plans and adherence («now» of a past span). */
 export function spanNow(span: ChartSpan, now: Date = new Date()): Date {
   return span.to >= dayKey(now) ? now : new Date(dayStart(addDays(span.to, 1)).getTime() - 1);
+}
+
+/** «за месяц» for a preset, the dates otherwise. */
+export function spanName(span: ChartSpan, today: string): string {
+  const preset = spanPreset(span, today);
+  return CHART_PRESETS.find((one) => one.value === preset)?.span ?? spanLabel(span, today);
 }
 
 /** «28 окт. – 3 нояб.», with the year when the span is not this year. */

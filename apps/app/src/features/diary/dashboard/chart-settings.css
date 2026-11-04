@@ -1,38 +1,24 @@
 /* The doctor's chart settings (DIARY-CHARTS): the period bar, the overview brush, the legend
    under the combined chart and the «Что показать» sheet. */
 
-.diary-chart-period {
+/* The period's name under the page title, in the header that stays on screen. */
+/* Two short lines that fit the header's shrunk bar: the title, then the period in its colour. */
+.diary-charts-page__title {
   display: grid;
-  gap: 0.5rem;
-  min-width: 0;
+  line-height: 1.05;
 }
 
-.diary-chart-period__presets {
-  min-width: 0;
+.diary-charts-page__span {
+  font-family: var(--theme-font-ui, system-ui, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.1;
+  opacity: 0.72;
 }
 
-.diary-chart-period__range {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.diary-chart-period__dates {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.diary-chart-period__sheet {
+.diary-chart-dates {
   display: grid;
   gap: 0.75rem;
-}
-
-@media (min-width: 52rem) {
-  .diary-chart-period {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
-    align-items: center;
-  }
 }
 
 /* The combined card's head: the title, then «Настроить». */
@@ -60,29 +46,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  min-height: 2rem;
-  padding: 0;
-  border: 0;
-  background: none;
+  min-height: 1.5rem;
   color: var(--theme-text-muted);
-  font: inherit;
   font-size: 0.8125rem;
-  text-align: start;
-  cursor: pointer;
-}
-
-.diary-combined-legend__item:hover {
-  color: var(--theme-text);
-  text-decoration: line-through;
-}
-
-.diary-combined-legend__item--static {
-  cursor: default;
-}
-
-.diary-combined-legend__item--static:hover {
-  color: var(--theme-text-muted);
-  text-decoration: none;
 }
 
 .diary-combined-legend__line {

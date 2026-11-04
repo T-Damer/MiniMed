@@ -13,24 +13,34 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { describeRanges } from '@/components/date-ranges';
 import { EmptyState } from '@/components/EmptyState';
+import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { revealElement } from '@/components/reveal';
 import { Heading } from '@/components/Text';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
-import { type BrushLine, ChartBrush, ChartPeriodBar } from '@/features/diary/dashboard/ChartPeriod';
+import {
+  type BrushLine,
+  ChartBrush,
+  ChartDatesSheet,
+} from '@/features/diary/dashboard/ChartPeriod';
 import { ChartSettingsSheet } from '@/features/diary/dashboard/ChartSettingsSheet';
 import { CombinedChart } from '@/features/diary/dashboard/CombinedChart';
 import {
+  CHART_PRESETS,
+  type ChartPreset,
   type ChartSpan,
   presetSpan,
+  shiftSpan,
   spanDays,
   spanLabel,
+  spanName,
   spanNow,
+  spanPreset,
   spanTimes,
 } from '@/features/diary/dashboard/chart-period';
-import { createChartSettings, toggleHidden } from '@/features/diary/dashboard/chart-settings';
+import { createChartSettings } from '@/features/diary/dashboard/chart-settings';
 import { combinedSources, combinedView, rangeOf } from '@/features/diary/dashboard/combined-series';
 import {
   chartSeries,
@@ -68,7 +78,8 @@ type Dialog =
   | { readonly limit: readonly LimitTarget[] }
   | { readonly day: string }
   | { readonly correct: DiaryEntry }
-  | { readonly settings: true };
+  | { readonly settings: true }
+  | { readonly dates: true };
 
 /** The longest history the combined chart's overview reads, in days. */
 const HISTORY_DAYS = 400;
@@ -226,6 +237,52 @@ export function PatientChartsPage(props: {
       });
   });
   const choices = (): number => sources().sources.length + sources().tracks.length;
+  const choosePreset = (preset: ChartPreset): void => {
+    setSpan(presetSpan(preset, today));
+    changeSettings({ preset });
+  };
+  // The period in the header, so it stays in reach while the page scrolls (owner 2026-11-04:
+  // «sticky, a settings button in the header with a context menu»); its name under the title.
+  const headerActions = createMemo((): readonly HeaderAction[] => {
+    const current = span();
+    const preset = spanPreset(current, today);
+    return [
+      {
+        id: 'period',
+        label: `Период: ${spanName(current, today)}`,
+        icon: 'calendar',
+        priority: 1,
+        testId: 'chart-period',
+        menu: [
+          ...CHART_PRESETS.map((one) => ({
+            id: `preset-${one.value}`,
+            label: one.label,
+            icon: one.value === preset ? ('check' as const) : ('calendar' as const),
+            onSelect: () => choosePreset(one.value),
+          })),
+          {
+            id: 'earlier',
+            label: 'Раньше',
+            icon: 'caret-left',
+            onSelect: () => setSpan(shiftSpan(current, -1, today)),
+          },
+          {
+            id: 'later',
+            label: 'Позже',
+            icon: 'caret-right',
+            disabled: current.to >= today,
+            onSelect: () => setSpan(shiftSpan(current, 1, today)),
+          },
+          {
+            id: 'dates',
+            label: 'Свои даты',
+            icon: 'calendar',
+            onSelect: () => setDialog({ dates: true }),
+          },
+        ],
+      },
+    ];
+  });
   const title = () =>
     `${props.patient.replica.profile?.emoji ?? ''} ${props.patient.replica.profile?.label ?? 'Пациент'}`.trim();
   const courseOf = (itemId: string): string | undefined => {
@@ -285,7 +342,15 @@ export function PatientChartsPage(props: {
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onBack} />
         }
-        title={<Heading depth={1}>Графики</Heading>}
+        title={
+          <Heading depth={1} class="diary-charts-page__title">
+            Графики
+            <span class="diary-charts-page__span" data-testid="chart-period-name">
+              {spanName(span(), today)}
+            </span>
+          </Heading>
+        }
+        headerActions={headerActions()}
         description={title()}
         help={
           <p>
@@ -295,15 +360,6 @@ export function PatientChartsPage(props: {
             действовавшему в тот день.
           </p>
         }
-      />
-      <ChartPeriodBar
-        span={span()}
-        today={today}
-        onPreset={(preset) => {
-          setSpan(presetSpan(preset, today));
-          changeSettings({ preset });
-        }}
-        onSpan={setSpan}
       />
 
       <Show when={choices() > 1}>
@@ -337,9 +393,6 @@ export function PatientChartsPage(props: {
               median={settings().median}
               average={settings().average}
               legend={settings().legend}
-              onHide={(key) =>
-                changeSettings({ hidden: toggleHidden(settings().hidden, key, false) })
-              }
               onDay={openDay}
             />
           </Show>
@@ -571,6 +624,14 @@ export function PatientChartsPage(props: {
           tracks={sources().tracks}
           settings={settings()}
           onChange={changeSettings}
+          onClose={() => setDialog(undefined)}
+        />
+      </Show>
+      <Show when={(() => dialog() && 'dates' in (dialog() ?? {}))()}>
+        <ChartDatesSheet
+          span={span()}
+          today={today}
+          onSpan={setSpan}
           onClose={() => setDialog(undefined)}
         />
       </Show>

@@ -101,19 +101,24 @@ Detailed history, moved verbatim on 2026-09-24:
 - **The choice** (`dashboard/chart-settings.ts`): «Настроить» opens «Что показать на графике» (`ChartSettingsSheet`) —
   the series grouped «Показатели» / «Опросники» / «Лекарства», «Показать всё» / «Снять все», and switches «Медиана»
   (dashed line per series), «Среднее за 7 дней» (the measurements faded behind it), «Красные дни», «Названия под
-  графиком». The names under the chart are our own legend: a tap hides that line. Saved per doctor and patient on
+  графиком». The names under the chart are a plain legend (owner: hiding by a tap on the legend was awkward; the
+  «Настроить» button by «Статистика» is the way). Saved per doctor and patient on
   this device (`minimed.diary.chart-settings.v1`, `doctorId:patientId`) as the hidden keys, so a value the patient
   starts recording later shows by itself; the preset length is saved too, a custom span is not.
-- **The period** (`dashboard/chart-period.ts`, `ChartPeriod.tsx`) drives the whole charts page: presets «Неделя»,
-  «2 нед.», «Месяц», «3 мес.»; ‹ › step the same length (forward stops at today); the dates button opens a sheet with
-  two `DateField`s. The brush under «Статистика» (`ChartBrush`, shown when the diary is longer than a week) draws the
-  shown lines over the whole diary faintly with the period as a window: drag it, drag its edges, tap the strip to
-  centre the period there, ← → move it a day. Adherence and the intake charts read the same period (`spanNow` for a
-  past span).
+- **The period** (`dashboard/chart-period.ts`) drives the whole charts page and sits in the header, which stays on
+  screen while the page scrolls (owner 2026-11-04: «sticky, a settings button in the header with a context menu»):
+  a calendar button opens a context menu — «Неделя», «2 недели», «Месяц», «3 месяца» (a tick on the current one),
+  «Раньше», «Позже» (stops at today), «Свои даты» (a sheet with two `DateField`s); the period's name («за месяц»,
+  or the dates) is a small second line of the title. `HeaderAction.menu` (new, `components/HeaderActions.tsx`) is
+  that kind of action: its own context menu inline, a submenu when folded into «⋯». The brush under «Статистика»
+  (`ChartBrush`, shown when the diary is longer than a week) draws the shown lines over the whole diary faintly with
+  the period as a window: drag it, drag its edges, tap the strip to centre the period there, ← → move it a day.
+  Adherence and the intake charts read the same period (`spanNow` for a past span).
 - **Checks.** Unit: `chart-period`, `chart-settings`, `combined-series` tests. e2e `diary-chart-settings.spec.ts` on the
   demo account at 375 and 1280 px: choose pressure, pulse and Кветиапин with the average, crosses on its track and their
-  card, the choice after a reload, hiding from the legend, week / back / brush key / dates sheet, no horizontal scroll;
-  screenshots `chart-settings-{sheet,phone,desktop}.png`.
+  card, the choice after a reload, the header menu (week / earlier / dates sheet / month) still in view after a scroll,
+  the brush key, no horizontal scroll; screenshots `chart-settings-{sheet,phone,desktop}.png`,
+  `chart-period-menu{,-scrolled}.png`.
 
 ## A tap shows the day; missed doses are red crosses — 2026-11-04 (STATE DIARY23)
 

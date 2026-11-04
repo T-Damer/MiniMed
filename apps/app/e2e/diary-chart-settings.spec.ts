@@ -122,32 +122,48 @@ test('the doctor picks what the combined chart shows, per patient, and its perio
   await page.reload();
   await expect(chart).toBeVisible({ timeout: 60_000 });
   await expect.poll(() => legend(page)).toEqual(chosen);
-  // A name under the chart hides its line.
-  await page.getByRole('button', { name: 'Скрыть: Давление: нижнее' }).click();
-  await expect.poll(() => legend(page)).not.toContain('Давление: нижнее');
 
-  // The period: a week, a week back, then a day back by the brush's arrow key.
-  const dates = page.locator('.diary-chart-period__dates');
-  await page.getByText('Неделя', { exact: true }).click();
-  const week = await dates.innerText();
-  await page.getByRole('button', { name: 'Предыдущий период' }).click();
-  await expect(dates).not.toHaveText(week);
-  const before = await dates.innerText();
+  // The period sits in the header, which stays on screen while the page scrolls (owner
+  // 2026-11-04): a menu of lengths, earlier and later, any dates; its name under the title.
+  const name = page.getByTestId('chart-period-name');
+  await expect(name).toHaveText('за месяц');
+  const period = page.getByRole('button', { name: /^Период: / });
+  // The menu closes on any scroll, and a redrawn chart can nudge the page: open it again then.
+  const pick = (item: string) =>
+    expect(async () => {
+      if (!(await page.getByRole('menu').isVisible())) await period.click();
+      await page.getByRole('menuitem', { name: item, exact: true }).click({ timeout: 2_000 });
+    }).toPass({ timeout: 20_000 });
+  await page.locator('.diary-patient__charts').scrollIntoViewIfNeeded();
+  await expect(period).toBeInViewport();
+  await pick('Неделя');
+  await expect(name).toHaveText('за неделю');
+  await pick('Раньше');
+  await expect(name).not.toHaveText('за неделю');
+  const before = await name.innerText();
+  // The brush's arrow key moves the period a day.
   const brush = page.getByRole('slider', { name: 'Период на графике' });
   await brush.focus();
   await page.keyboard.press('ArrowLeft');
-  await expect(dates).not.toHaveText(before);
-  await expect(brush).toHaveAttribute('aria-valuetext', await dates.innerText());
-  // Any dates: the sheet behind the dates button.
-  await dates.click();
-  const period = page.getByRole('dialog', { name: 'Период' });
-  await expect(period.getByText('С', { exact: true })).toBeVisible();
-  await period.getByRole('button', { name: 'Готово' }).click();
-  await expect(period).toHaveCount(0);
+  await expect(name).not.toHaveText(before);
+  await expect(brush).toHaveAttribute('aria-valuetext', await name.innerText());
+  await pick('Свои даты');
+  const dates = page.getByRole('dialog', { name: 'Период' });
+  await expect(dates.getByText('С', { exact: true })).toBeVisible();
+  await dates.getByRole('button', { name: 'Готово' }).click();
+  await expect(dates).toHaveCount(0);
+  await pick('Месяц');
+  await expect(name).toHaveText('за месяц');
+  await page.locator('.diary-patient__charts').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: testInfo.outputPath('chart-period-menu-scrolled.png') });
+  await period.click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: testInfo.outputPath('chart-period-menu.png') });
+  await page.keyboard.press('Escape');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByText('Месяц', { exact: true }).click();
   await chart.scrollIntoViewIfNeeded();
   await page.waitForTimeout(500);
   await page.screenshot({ path: testInfo.outputPath('chart-settings-desktop.png') });

@@ -77,7 +77,7 @@ function tracksPlugin(tracks: () => readonly MedicineTrack[], text: string): Plu
  * only in part), a red cross a day the patient marked a dose as missed (DIARY-CHARTS, owner
  * 2026-11-04: «did the pressure and the pulse fall after amlodipine began»). A median line or a
  * 7-day average on request; days past a red line painted behind. The tooltip gives the real
- * values, a tap opens the day; a name under the chart hides its line.
+ * values, a tap opens the day.
  */
 export function CombinedChart(props: {
   readonly view: CombinedView;
@@ -86,8 +86,6 @@ export function CombinedChart(props: {
   readonly median: boolean;
   readonly average: boolean;
   readonly legend: boolean;
-  /** A tap on a name under the chart hides that line or track. */
-  readonly onHide?: ((key: string) => void) | undefined;
   /** A tap on the chart opens that day's details. */
   readonly onDay?: ((day: string) => void) | undefined;
 }): JSX.Element {
@@ -338,43 +336,33 @@ export function CombinedChart(props: {
           <For each={props.view.series}>
             {(one) => (
               <li>
-                <button
-                  type="button"
-                  class="diary-combined-legend__item"
-                  aria-label={`Скрыть: ${one.label}`}
-                  onClick={() => props.onHide?.(one.key)}
-                >
+                <span class="diary-combined-legend__item">
                   <span
                     class="diary-combined-legend__line"
                     style={{ 'background-color': one.color }}
                     aria-hidden="true"
                   />
                   {one.label}
-                </button>
+                </span>
               </li>
             )}
           </For>
           <For each={props.view.tracks}>
             {(track) => (
               <li>
-                <button
-                  type="button"
-                  class="diary-combined-legend__item"
-                  aria-label={`Скрыть: ${track.label}`}
-                  onClick={() => props.onHide?.(track.key)}
-                >
+                <span class="diary-combined-legend__item">
                   <span
                     class="diary-combined-legend__square"
                     style={{ 'background-color': track.color }}
                     aria-hidden="true"
                   />
                   {track.label}
-                </button>
+                </span>
               </li>
             )}
           </For>
           <Show when={props.view.marks.length}>
-            <li class="diary-combined-legend__item diary-combined-legend__item--static">
+            <li class="diary-combined-legend__item">
               <span class="diary-mark-card__cross" aria-hidden="true" />
               {MARK_LABEL}
             </li>

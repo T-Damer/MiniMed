@@ -6,6 +6,7 @@ import {
   shiftSpan,
   spanDays,
   spanLabel,
+  spanName,
   spanNow,
   spanPreset,
   spanTimes,
@@ -68,6 +69,12 @@ describe('the charts period', () => {
       new Date(2026, 9, 8, 0, 0, 0, -1),
     );
     expect(spanNow({ from: '2026-11-01', to: TODAY }, now)).toBe(now);
+  });
+
+  it('names a preset by its length under the title, any other span by its dates', () => {
+    expect(spanName(presetSpan('30', TODAY), TODAY)).toBe('за месяц');
+    expect(spanName(presetSpan('7', TODAY), TODAY)).toBe('за неделю');
+    expect(spanName({ from: '2026-10-22', to: '2026-10-28' }, TODAY)).toBe('22 окт. – 28 окт.');
   });
 
   it('names the span in short dates, with the year only when it is not this one', () => {

@@ -1,94 +1,47 @@
 import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { SegmentedControl } from '@/components/SegmentedControl';
 import {
-  CHART_PRESETS,
-  type ChartPreset,
   type ChartSpan,
   clampSpan,
-  shiftSpan,
   spanDays,
   spanLabel,
-  spanPreset,
 } from '@/features/diary/dashboard/chart-period';
 import { addDays, dayStart } from '@/features/diary/diary-care';
 
 import '@/features/diary/dashboard/chart-settings.css';
 
-/**
- * The period of every chart on the page (DIARY-CHARTS): a preset length, or any dates picked in a
- * small sheet behind the dates button; the arrows step the same length back or forward, never
- * past today.
- */
-export function ChartPeriodBar(props: {
+/** Any dates for the charts' period: «С» and «По», each change applied at once. */
+export function ChartDatesSheet(props: {
   readonly span: ChartSpan;
   readonly today: string;
-  readonly onPreset: (preset: ChartPreset) => void;
   readonly onSpan: (span: ChartSpan) => void;
+  readonly onClose: () => void;
 }): JSX.Element {
-  const [picking, setPicking] = createSignal(false);
   const set = (span: ChartSpan): void => props.onSpan(clampSpan(span, props.today));
   return (
-    <div class="diary-chart-period">
-      <SegmentedControl
-        label="Период"
-        stretch
-        class="diary-chart-period__presets"
-        value={(spanPreset(props.span, props.today) ?? '') as ChartPreset}
-        options={CHART_PRESETS}
-        onChange={props.onPreset}
-      />
-      <div class="diary-chart-period__range">
-        <Button
-          variant="icon"
-          icon={<AppGlyph name="caret-left" />}
-          aria-label="Предыдущий период"
-          onClick={() => set(shiftSpan(props.span, -1, props.today))}
+    <OverlayDialog open title="Период" onClose={props.onClose}>
+      <div class="diary-chart-dates">
+        <DateField
+          label="С"
+          value={props.span.from}
+          max={props.span.to}
+          onChange={(from) => from && set({ from, to: props.span.to })}
         />
-        <Button
-          class="diary-chart-period__dates"
-          variant="secondary"
-          icon={<AppGlyph name="calendar" />}
-          aria-label={`Период: ${spanLabel(props.span, props.today)}. Выбрать даты`}
-          onClick={() => setPicking(true)}
-        >
-          {spanLabel(props.span, props.today)}
+        <DateField
+          label="По"
+          value={props.span.to}
+          min={props.span.from}
+          max={props.today}
+          onChange={(to) => to && set({ from: props.span.from, to })}
+        />
+        <Button variant="primary" onClick={props.onClose}>
+          Готово
         </Button>
-        <Button
-          variant="icon"
-          icon={<AppGlyph name="caret-right" />}
-          aria-label="Следующий период"
-          disabled={props.span.to >= props.today}
-          onClick={() => set(shiftSpan(props.span, 1, props.today))}
-        />
       </div>
-      <Show when={picking()}>
-        <OverlayDialog open title="Период" onClose={() => setPicking(false)}>
-          <div class="diary-chart-period__sheet">
-            <DateField
-              label="С"
-              value={props.span.from}
-              max={props.span.to}
-              onChange={(from) => from && set({ from, to: props.span.to })}
-            />
-            <DateField
-              label="По"
-              value={props.span.to}
-              min={props.span.from}
-              max={props.today}
-              onChange={(to) => to && set({ from: props.span.from, to })}
-            />
-            <Button variant="primary" onClick={() => setPicking(false)}>
-              Готово
-            </Button>
-          </div>
-        </OverlayDialog>
-      </Show>
-    </div>
+    </OverlayDialog>
   );
 }
 
