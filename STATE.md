@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-04 14:10 | claude-opus (PROMO4) | diary deck: competitor analysis slide (Medsenger, СберЗдоровье, mindLAMP, Medisafe/MyTherapy, mood diaries); missed-dose reasons now shipped (DIARY22) | `docs/promo/diary-presentation/**` |
 | 2026-11-04 13:40 | claude-opus (DIARY24) | diaries site: the first open loads only the sign-in screen; after sign-in the whole app is fetched and warmed, no later loading | `apps/app/src/features/diary/**`, `apps/app/src/diary/**`, `apps/app/public/sw.js`, `apps/app/vite.config.ts` (build manifest), `apps/app/src/state/lazy-kept.ts` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
@@ -182,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-04 claude-opus PROMO4: diary deck slide 3 «Что уже есть» — competitors table (Medsenger, СберЗдоровье, mindLAMP, Medisafe/MyTherapy, mood diaries) incl. doctor team and carer columns, linked names, sources in the deck README; missed-dose reasons (DIARY22) on the tracking and summary slides, carer access as the next step; 16 slides
 - 2026-11-04 claude-opus REL 0.6.87: DIARY23 (a chart tap shows the day's card and band, «Подробнее» opens it; marked missed doses are red crosses with the reason; no red zone over another series — red dots instead)
 - 2026-11-04 claude-opus REL 0.6.86: DIARY22 (a missed dose asks why: reasons in the mark, QR and FHIR; today asks about unmarked intakes; the doctor sees reasons in the day, the charts and the week)
 - 2026-11-03 claude-opus REL 0.6.85: DIARY21 (one-screen patient page, charts zones/day ticks/tap→day, doctor's day mode, full-screen diaries, updates apply themselves, vibration off by default, image-model diary icon, offline questionnaires, motion pass, patient list search/greeting/curators)

@@ -1,6 +1,6 @@
 # Diary presentation
 
-A 15-slide deck about the patient diary module (16:9, 1280×720 per slide), in the app's paper style.
+A 16-slide deck about the patient diary module (16:9, 1280×720 per slide), in the app's paper style.
 Every content slide carries two tags: its part of the talk (Введение, Основная часть, Демо,
 Техническая часть in green, Заключение) and its topic. Phone screenshots sit under a drawn status
 bar, so the frame's camera cut-out never covers the app.
@@ -35,3 +35,32 @@ printed, `qr` — encoded); after changing them rebuild and verify the codes fro
 bun docs/promo/diary-presentation/tools/qr-links.ts          # rewrite the QR codes in index.html
 bun docs/promo/diary-presentation/tools/qr-links.ts --check  # read every code back (jsQR)
 ```
+
+## Analogues (slide 3)
+
+Checked 2026-11-04 from the vendors' own pages and store listings; «—» on the slide means «no» or
+«not described anywhere we found». Product names on the slide link to these sites.
+
+- [Medsenger](https://medsenger.ai/) (ООО «Телепат», RU) — the closest one. Its agent «Опросники и
+  лекарства» sends questionnaires of arbitrary questions on a schedule, reminds about doses with
+  confirmation and dose, plots charts and heat maps, and runs algorithms that warn the doctor
+  ([docs](https://docs.telepat.online/steps/45)). The agents act on the data on the server, so it is
+  not end-to-end encrypted. No description of several doctors or relatives on one patient.
+- [СберЗдоровье](https://sberhealth.ru/) remote monitoring (RU) — a smart tonometer feeds a «Дневник
+  наблюдений» that the patient and the doctor see; the doctor is alerted on deviations
+  ([CNews](https://zoom.cnews.ru/news/item/565425)). No own questionnaires, no relatives.
+- [mindLAMP](https://www.digitalpsych.org/mindlamp) (BIDMC/Harvard, US, open source) — surveys
+  configurable without code, a clinician/researcher dashboard with notifications; research-oriented,
+  English.
+- [Medisafe](https://www.medisafe.com/), [MyTherapy](https://www.mytherapyapp.com/) — medication
+  reminders. Medisafe's Medfriend (a relative or carer) sees the schedule and history and is alerted
+  30 min after a missed dose's last reminder
+  ([help](https://medisafe.com/faq/what-is-a-medfriend)); doctors get reports or a one-time code,
+  not a live view.
+- [Daylio](https://daylio.net/), [eMoods](https://emoodtracker.com/), [Bearable](https://bearable.app/)
+  — mood diaries; the doctor gets an exported PDF/CSV. The APA evaluation notes Daylio's shared files
+  are not encrypted ([APA](https://psychiatry.org/psychiatrists/practice/mental-health-apps/evaluations/daylio-evaluation));
+  eMoods keeps data on the device; Bearable says only the user holds the key (vendor claim).
+
+MiniMed's carer access (a guardian sees the intake log and helps keep to the treatment) is shown as
+«в планах»; it is not built yet.
