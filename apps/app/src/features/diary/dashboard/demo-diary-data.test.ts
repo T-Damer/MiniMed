@@ -277,6 +277,31 @@ describe('demo patients', () => {
     );
   });
 
+  it('books the fox a visit tomorrow and asks the fox and the owl for lab tests', () => {
+    const [fox, owl] = [0, 1].map((index) =>
+      demoInvitation(
+        DEMO_PATIENTS[index] as (typeof DEMO_PATIENTS)[number],
+        'demopatient01',
+        'Д',
+        NOW,
+      ),
+    );
+    expect(fox?.appointments).toEqual([
+      expect.objectContaining({ day: '2026-10-28', time: '14:30', place: 'Кабинет 12' }),
+    ]);
+    expect(fox?.labs?.map((lab) => [lab.name, lab.by])).toEqual([
+      ['Глюкоза натощак', '2026-11-03'],
+    ]);
+    expect(owl?.labs?.map((lab) => lab.name)).toEqual(['Вальпроевая кислота в крови', 'АЛТ']);
+    // Each result has a number field of its own, labelled with the test.
+    for (const lab of owl?.labs ?? []) {
+      expect(owl?.fields.find((field) => field.id === lab.field)).toMatchObject({
+        type: 'number',
+        label: lab.name,
+      });
+    }
+  });
+
   it('does not create a patient whose label already exists', async () => {
     const existing = DEMO_PATIENTS.map((spec, index) => ({
       summary: { id: `existing${index}` },

@@ -22,11 +22,14 @@ import {
   generateDemoDiary,
   type QuestionnaireShape,
 } from '@/features/diary/dashboard/demo-diary-data';
+import { dayKey } from '@/features/diary/diary-care';
 import {
   type CareDraft,
   type CareSectionDraft,
   careInvitation,
   emptyCareDraft,
+  newCareAppointment,
+  newCareLab,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
 import {
@@ -46,7 +49,8 @@ export interface DemoPatientSpec extends DemoBehavior {
   readonly emoji: string;
   /** Days of history, today included. */
   readonly days: number;
-  readonly draft: () => CareDraft;
+  /** The plan; `now` is the end of the history, so a visit or a test is due from there. */
+  readonly draft: (now: Date) => CareDraft;
 }
 
 function drug(input: {
@@ -79,8 +83,17 @@ function presets(): CareSectionDraft[] {
   return found;
 }
 
-function careDraft(sections: readonly CareSectionDraft[]): CareDraft {
+/** The day `days` after `now`, `YYYY-MM-DD`. */
+function dayAfter(now: Date, days: number): string {
+  return dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 12));
+}
+
+function careDraft(
+  sections: readonly CareSectionDraft[],
+  visits: Pick<CareDraft, 'appointments' | 'labs'> = {},
+): CareDraft {
   return {
+    ...visits,
     sections: [...sections, ...presets()],
     contacts: [],
     crisis: '112 — экстренные службы\n103 — скорая помощь',
@@ -102,36 +115,51 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
       'u-nicotine': { chance: 0.9, typical: 9 },
       'u-sedatives': { chance: 0.08, typical: 1 },
     },
-    draft: () =>
-      careDraft([
-        drug({
-          title: 'Сертралин',
-          form: 'таблетки',
-          dose: '50 мг',
-          signa: 'По 1 таблетке утром после завтрака',
-          times: [['08:00', 'after']],
-        }),
-        drug({
-          title: 'Кветиапин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'По 1 таблетке за 30 минут до сна',
-          times: [['22:00']],
-          tip: 'Если утром остаётся сонливость, напишите мне: уменьшим дозу.',
-        }),
-        drug({
-          title: 'Гидроксизин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'При сильной тревоге, не больше 2 раз в сутки',
-        }),
+    draft: (now) =>
+      careDraft(
+        [
+          drug({
+            title: 'Сертралин',
+            form: 'таблетки',
+            dose: '50 мг',
+            signa: 'По 1 таблетке утром после завтрака',
+            times: [['08:00', 'after']],
+          }),
+          drug({
+            title: 'Кветиапин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'По 1 таблетке за 30 минут до сна',
+            times: [['22:00']],
+            tip: 'Если утром остаётся сонливость, напишите мне: уменьшим дозу.',
+          }),
+          drug({
+            title: 'Гидроксизин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'При сильной тревоге, не больше 2 раз в сутки',
+          }),
+          {
+            ...newCareSection('use'),
+            substances: ['alcohol', 'nicotine', 'sedatives'],
+            craving: true,
+          },
+          newCareSection('questionnaire', 'phq-9'),
+        ],
         {
-          ...newCareSection('use'),
-          substances: ['alcohol', 'nicotine', 'sedatives'],
-          craving: true,
+          appointments: [
+            { ...newCareAppointment(dayAfter(now, 1)), time: '14:30', place: 'Кабинет 12' },
+          ],
+          labs: [
+            newCareLab({
+              name: 'Глюкоза натощак',
+              unit: 'ммоль/л',
+              by: dayAfter(now, 7),
+              why: 'Кветиапин может менять обмен веществ',
+            }),
+          ],
         },
-        newCareSection('questionnaire', 'phq-9'),
-      ]),
+      ),
   },
   {
     label: `${DEMO_LABEL_PREFIX} Сова`,
@@ -141,29 +169,48 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.88,
     urgentAlert: false,
     vitals: { pulse: 82, systolic: 126, diastolic: 80, spo2: 97 },
-    draft: () =>
-      careDraft([
-        drug({
-          title: 'Вальпроевая кислота',
-          form: 'таблетки пролонгированного действия',
-          dose: '500 мг',
-          signa: 'По 1 таблетке 2 раза в день во время еды',
-          times: [
-            ['08:00', 'with'],
-            ['20:00', 'with'],
+    draft: (now) =>
+      careDraft(
+        [
+          drug({
+            title: 'Вальпроевая кислота',
+            form: 'таблетки пролонгированного действия',
+            dose: '500 мг',
+            signa: 'По 1 таблетке 2 раза в день во время еды',
+            times: [
+              ['08:00', 'with'],
+              ['20:00', 'with'],
+            ],
+          }),
+          drug({
+            title: 'Кветиапин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'По 1 таблетке на ночь',
+            times: [['22:30']],
+          }),
+          newCareSection('choice'),
+          newCareSection('text'),
+          newCareSection('questionnaire', 'phq-9'),
+        ],
+        {
+          appointments: [{ ...newCareAppointment(dayAfter(now, 5)), time: '10:00' }],
+          labs: [
+            newCareLab({
+              name: 'Вальпроевая кислота в крови',
+              unit: 'мкг/мл',
+              by: dayAfter(now, 4),
+              why: 'Вальпроевая кислота: нужна её концентрация в крови',
+            }),
+            newCareLab({
+              name: 'АЛТ',
+              unit: 'Ед/л',
+              by: dayAfter(now, 4),
+              why: 'Вальпроевая кислота: нужно следить за печенью',
+            }),
           ],
-        }),
-        drug({
-          title: 'Кветиапин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'По 1 таблетке на ночь',
-          times: [['22:30']],
-        }),
-        newCareSection('choice'),
-        newCareSection('text'),
-        newCareSection('questionnaire', 'phq-9'),
-      ]),
+        },
+      ),
   },
   {
     label: `${DEMO_LABEL_PREFIX} Медведь`,
@@ -266,7 +313,7 @@ export function demoInvitation(
 ): DiaryInvitation {
   const invitation = careInvitation({
     id: patientId,
-    draft: spec.draft(),
+    draft: spec.draft(now),
     doctor,
     note: '',
   });
@@ -321,7 +368,7 @@ async function seedOne(
   },
 ): Promise<string> {
   const { days, now, report } = options;
-  const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft()));
+  const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft(now)));
   report(`${spec.label}: создаём пациента`);
   const id = await workspace.createPatient({ label: spec.label, emoji: spec.emoji }, (patientId) =>
     demoInvitation(spec, patientId, workspace.session.doctor.name, now, days),
