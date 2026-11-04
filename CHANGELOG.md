@@ -4,6 +4,17 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.87] - 2026-11-04
+
+- Diary charts: a tap shows that day first — its values in a card under the chart and a band over the day;
+  «Подробнее» opens the day.
+- A dose the patient marked as missed is a red cross on the medicine's chart and on «Статистика»; its card says what
+  was missed, why and the patient's own words.
+- Pressure and pulse/saturation no longer paint a red zone over the other line: a value past its own alarm level is a
+  larger red dot instead, and the upper pressure is drawn blue.
+- «Статистика»: medicines taken when needed no longer push the intake share past 100 %.
+- «Точно удалить?» stays readable under the mouse.
+
 ## [0.6.86] - 2026-11-04
 
 - Patient diaries ask why a dose was missed: «Что помешало?» with one tap (forgot, didn't have it, ran out, side

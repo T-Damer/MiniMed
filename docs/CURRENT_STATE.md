@@ -52,6 +52,32 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## A tap shows the day; missed doses are red crosses — 2026-11-04 (STATE DIARY23)
+
+- **Owner 2026-11-04:** «when the patient marks a dose as missed, show a red cross on the graph; on click you see some
+  info and can dive deeper»; «for each day a double tap: first a tooltip with «Подробнее», which opens the day card»;
+  «when you select a day, draw a semi-transparent line for it»; the pressure and pulse/saturation red zones «are
+  strange».
+- **Day card** (`dashboard/chart-marks.tsx`, `useChartDays`): `TrendChart` and `CombinedChart` no longer open the day
+  on a tap. The tap's day (`tappedDay`) gets a band a day wide over the plot (`diary-chart__day-line`) and a card
+  under the plot (`diary-mark-card`) with the day's values (`values`, per chart: the time first when not one value a
+  day, units on the combined chart) and «Подробнее» → the day sheet. Escape, a tap outside and back close it (a
+  history layer); the tap that closes it opens nothing. Chart.js's tooltip is off while a card is open.
+- **Crosses.** `medicineIntake` keeps `IntakeDay.skipped` (time, dose, reason, note) for intakes the patient marked
+  as skipped — not for unmarked ones. `intakeCharts` gives each medicine's chart `marks` on the «Принято» line;
+  `skipMarks` puts one cross per day on «Статистика» at the day's share of the plan. `markDataset` draws them
+  (`crossRot`, unclipped, above the lines, legend «Пропущено» as a cross); a button over each cross (`spots` from an
+  `afterDraw` plugin) opens its day's card, which leads with «Пропущен приём», the lines «08:00 · 50 мг —
+  закончилось» and the note in quotes.
+- **Red zones.** `TrendLimit.series` names the series a line judges (declared charts: the series whose field is the
+  limit id). A zone is painted only for a line that judges every series drawn (or a single-series chart); on
+  pressure and pulse/saturation the points past their own line are larger red dots in a paper ring instead.
+  Systolic is `--theme-info` now: red is for alarms.
+- **Fixes.** «Статистика»'s intake share skipped medicines taken when needed (their doses had pushed days past 100 %,
+  off the chart); «Точно удалить?» kept its colours only without hover (`.ui-button--quiet:hover` won).
+- **Checks.** vitest 19 335 passed; diary e2e 75 passed (`diary-demo` taps a cross and a day: card, band,
+  «Подробнее»; `diary-doctor` reads the live link by role — the closing sheet's inert copy made it flaky).
+
 ## Why a dose was missed — 2026-11-04 (STATE DIARY22)
 
 - **Owner 2026-11-03:** «when the patient didn't take the prescription, ask them why — this is important».
