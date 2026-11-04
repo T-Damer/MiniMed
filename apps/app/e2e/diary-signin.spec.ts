@@ -140,7 +140,7 @@ test.describe('diary sign-in', () => {
     await expect(passwordRow(page)).toBeHidden();
     await page.getByRole('button', { name: 'Войти по коду' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Дневники пациентов' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Сигнум' })).toBeVisible();
     await expect(tabBar(page)).toBeVisible();
     // The first use spent the code on sign-up: no e-mail and no name were asked for.
     const [account] = [...service.accounts.values()];
@@ -153,7 +153,7 @@ test.describe('diary sign-in', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await codeField(page).fill(ISSUED_CODE);
     await page.getByRole('button', { name: 'Войти по коду' }).click();
-    await expect(page.getByRole('heading', { name: 'Дневники пациентов' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Сигнум' })).toBeVisible();
     expect(service.calls.filter((path) => path === '/api/auth/register')).toHaveLength(1);
     expect(service.accounts.size).toBe(1);
   });

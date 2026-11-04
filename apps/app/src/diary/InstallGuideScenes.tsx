@@ -368,7 +368,7 @@ function DesktopScene(props: { readonly step: StepFn }): JSX.Element {
         class="install-layer install-layer--pop install-scene__menu install-scene__menu--window"
         classList={{ 'install-layer--on': s() === 1 }}
       >
-        <span class="install-scene__dialog-title">Установить «Дневник»?</span>
+        <span class="install-scene__dialog-title">Установить «Сигнум»?</span>
         <span class="install-scene__actions">
           <span class="install-scene__action">Отмена</span>
           <span

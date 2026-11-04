@@ -220,7 +220,7 @@ test.describe('joining documents on a connected diary', () => {
     await doctor.getByLabel('Новый пароль (от 8 символов)').fill('consent-pass-2026');
     await doctor.getByRole('button', { name: 'Создать аккаунт' }).click();
     await doctor.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
-    await expect(doctor.getByRole('heading', { name: /Дневники пациентов/u })).toBeVisible();
+    await expect(doctor.getByRole('heading', { name: /Сигнум/u })).toBeVisible();
     await doctor.getByRole('button', { name: 'Новый пациент' }).first().click();
     await doctor.getByLabel('Имя или псевдоним').fill('Лиса');
     await doctor.getByRole('button', { name: 'Добавить пациента' }).click();

@@ -76,7 +76,7 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
     );
   const demoDoctor = await doctorId();
   expect(demoDoctor).toBeTruthy();
-  await expect(page.getByRole('heading', { name: /Дневники пациентов/u })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Сигнум/u })).toBeVisible();
 
   // A demo patient cannot be archived (and so not deleted); the other actions stay.
   const first = rows.first().locator('.diary-dash-row__open');

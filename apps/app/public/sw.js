@@ -221,7 +221,7 @@ self.addEventListener('push', (event) => {
     kind = undefined;
   }
   event.waitUntil(
-    self.registration.showNotification('Дневники пациентов', {
+    self.registration.showNotification('Сигнум', {
       body:
         DIARY_PUSH_TEXT[kind] ??
         'Срочная отметка или новое приглашение. Откройте, чтобы посмотреть.',

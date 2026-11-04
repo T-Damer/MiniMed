@@ -27,7 +27,7 @@ import { Page } from '@/components/Page';
 import { PatientRowsSkeleton } from '@/components/PatientRowsSkeleton';
 import { Heading } from '@/components/Text';
 import { pluralize } from '@/diary/diary-format';
-import { InstallWarning } from '@/diary/InstallWarning';
+import { InstallCard } from '@/diary/InstallWarning';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import { isDemoSession } from '@/features/diary/connected/doctor-account';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
@@ -741,7 +741,7 @@ export function DiaryDashboard(props: {
                   width="40"
                   height="40"
                 />
-                Дневники пациентов
+                Сигнум
               </Heading>
             }
             description={session() ? sessionGreetingLine() : undefined}
@@ -810,10 +810,10 @@ export function DiaryDashboard(props: {
               </Show>
               {/* The doctor keeps the diaries one tap away too: an app, not a site (owner 2026-11-03). */}
               <Show when={activeProfile()}>
-                <InstallWarning
-                  entries={0}
-                  connected
-                  title="Установите «Дневники» как приложение"
+                <InstallCard
+                  title="Установите «Сигнум» как приложение"
+                  text="Откроется одним нажатием, как программа, работает без сети и сообщит о срочной отметке."
+                  icon={`${import.meta.env.BASE_URL}diaries/logo.svg`}
                 />
               </Show>
               <Show when={error() || doctorLoadError()}>

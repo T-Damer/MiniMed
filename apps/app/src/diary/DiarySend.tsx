@@ -97,7 +97,7 @@ function QrCarousel(props: { readonly results: DiaryResults }): JSX.Element {
 async function resultsFile(results: DiaryResults): Promise<File> {
   const text = await encodeDiaryResultsText(results);
   const header = [
-    `Дневник MiniMed: ${results.invitation.title}.`,
+    `Сигнум: ${results.invitation.title}.`,
     `Записей: ${results.entries.length}.`,
     'Откройте этот файл в MiniMed у врача: «Принять данные» → «Выбрать файл».',
     'Файл можно хранить как копию своих записей.',
