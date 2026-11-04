@@ -49,6 +49,10 @@ import {
   pendingReminderActions,
   writeReminderNotices,
 } from '@/features/diary/connected/reminder-cache';
+import {
+  JOINING_SET_VERSION,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
 import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
 import { diaryServiceBase } from '@/features/diary/diary-links';
 import { entryFingerprint } from '@/features/diary/diary-merge';
@@ -79,7 +83,6 @@ import { mergePlanChange, planChanges } from '@/features/diary/plan-changes';
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
 /** `poll` mode (ADR-0027): how often an open diary reads its change counter. */
 const POLL_MS = 20_000;
-const CONSENT_VERSION = 'draft-2026-10-27';
 
 /** What the address of a connected diary carries: the patient id and the one-time secret. */
 export interface PairingLink {
@@ -180,11 +183,15 @@ function keyring(connection: StoredConnection): Keyring {
   };
 }
 
-/** The pending local changes: entries to send or delete, consent and tip reads. */
+/**
+ * The pending local changes: entries to send or delete, consent and tip reads. Nothing leaves the
+ * phone before the patient has accepted the joining documents of a plan that asks for them.
+ */
 function outbox(store: DiaryStore, connection: StoredConnection) {
   const results = store.read(connection.patientId);
   const meta = store.meta(connection.patientId);
   const items: { id: string; payload: unknown; fingerprint: string }[] = [];
+  if (results?.invitation.consent && !meta.consentAt) return items;
   const local = new Set<string>();
   for (const entry of results?.entries ?? []) {
     const id = entryRecordId(entry.id);
@@ -203,7 +210,12 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
   if (meta.consentAt && !connection.synced[CONSENT_RECORD] && connection.kind !== 'carer') {
     items.push({
       id: CONSENT_RECORD,
-      payload: { kind: 'consent', at: meta.consentAt, version: CONSENT_VERSION },
+      payload: {
+        kind: 'consent',
+        at: meta.consentAt,
+        version: JOINING_SET_VERSION,
+        documents: meta.consents ?? [],
+      },
       fingerprint: '1',
     });
   }
@@ -531,8 +543,13 @@ export class PatientConnection {
             else authors[entryId] = revision.author;
           }
         } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
+          // Accepted on another phone of this patient: the documents count here too.
           if (typeof payload['at'] === 'string' && !this.store.meta(this.patientId).consentAt) {
-            this.store.setMeta(this.patientId, { consentAt: payload['at'] });
+            const consents = parseJoiningAcceptances(payload['documents']);
+            this.store.setMeta(this.patientId, {
+              consentAt: payload['at'],
+              ...(consents.length ? { consents } : {}),
+            });
           }
           synced[revision.id] = '1';
         } else if (revision.id.startsWith('member-')) {

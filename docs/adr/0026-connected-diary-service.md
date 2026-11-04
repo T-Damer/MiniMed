@@ -95,7 +95,9 @@ medical secrecy; the developer hosting the server should not be able to read it.
 - Web Push depends on Google and Apple push services (payloads are encrypted by the Web Push protocol and content-free);
   phones without Google services get updates only when the app is opened.
 - Legal: the clinic is the operator and the developer its processor under a written agreement; consents are signed on
-  paper at the visit. Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is out of the pilot's
+  paper at the visit. As built (DIARY26): the patient also accepts the three joining documents (ИДС, personal-data
+  consent, remote-care contract) in the app before the first entry; each acceptance (document, wording version,
+  time) travels inside the encrypted `consent` record, so the server sees only that a record exists. Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is out of the pilot's
   scope and needs a separate decision.
 
 ## Delivery order

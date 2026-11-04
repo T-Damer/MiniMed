@@ -6,6 +6,7 @@ import {
   type DiaryContact,
   type DiaryDoseTime,
   type DiaryInvitation,
+  type DiaryOperator,
   diaryTemplate,
   parseDiaryInvitation,
 } from '../src/features/diary/diary-model';
@@ -28,6 +29,8 @@ export interface TestInvitationOptions {
     times?: readonly DiaryDoseTime[];
   }[];
   readonly contacts?: readonly DiaryContact[];
+  /** The patient accepts the joining documents first, naming this clinic and doctor (DIARY26). */
+  readonly consent?: { readonly operator?: DiaryOperator };
 }
 
 /** A built-in-template invitation exactly as the doctor's dialog would issue it. */
@@ -48,6 +51,12 @@ export function testInvitation(options: TestInvitationOptions = {}): DiaryInvita
     ...(options.note ? { note: options.note } : {}),
     ...(template.checkpoints ? { checkpoints: template.checkpoints } : {}),
     ...(options.contacts ? { contacts: options.contacts } : {}),
+    ...(options.consent
+      ? {
+          consent: true,
+          ...(options.consent.operator ? { operator: options.consent.operator } : {}),
+        }
+      : {}),
   });
 }
 

@@ -1,4 +1,8 @@
 import {
+  type JoiningAcceptance,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
+import {
   type DiarySent,
   type InvitationMergeOutcome,
   mergeInvitation,
@@ -30,8 +34,10 @@ const UI_KEY = 'minimed.diary.ui.v1';
 export interface DiaryMeta {
   readonly lastOpenedAt?: string;
   readonly sent?: DiarySent;
-  /** When the patient confirmed the consent summaries of a care diary. */
+  /** When the patient had accepted every joining document of a care diary. */
   readonly consentAt?: string;
+  /** Each joining document the patient accepted: its wording and when (DIARY26). */
+  readonly consents?: readonly JoiningAcceptance[];
   /** Doctor's tips the patient has opened (their «?» is gone). */
   readonly tipsRead?: readonly string[];
   /** Marks the doctor deleted (connected diary), kept so they do not vanish without a trace. */
@@ -208,12 +214,14 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       const sent = parseSent(value['sent']);
       const removed = parseRemovals(value['removedByDoctor']);
       const planChange = parsePlanChange(value['planChange']);
+      const consents = parseJoiningAcceptances(value['consents']);
       return {
         ...(typeof value['lastOpenedAt'] === 'string'
           ? { lastOpenedAt: value['lastOpenedAt'] }
           : {}),
         ...(sent ? { sent } : {}),
         ...(typeof value['consentAt'] === 'string' ? { consentAt: value['consentAt'] } : {}),
+        ...(consents.length ? { consents } : {}),
         ...(Array.isArray(value['tipsRead'])
           ? {
               tipsRead: value['tipsRead'].filter((tip): tip is string => typeof tip === 'string'),
