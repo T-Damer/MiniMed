@@ -778,7 +778,9 @@ export function DiaryDashboard(props: {
               }
             >
               <DoctorSignIn
-                onSignedIn={startDoctor}
+                onSignedIn={(next) => {
+                  startDoctor(next);
+                }}
                 // In the diaries-only app there is nowhere to go back to.
                 onBack={activeProfile() ? undefined : props.onBack}
               />

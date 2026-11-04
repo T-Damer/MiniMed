@@ -85,7 +85,8 @@ function Pulse(): JSX.Element {
  * also takes an access code: typed in full, the password folds away and the code alone signs in.
  */
 export function DoctorSignIn(props: {
-  readonly onSignedIn: (session: DoctorSession) => void;
+  /** May wait for the app to load (the diaries copy): the busy button holds until it is done. */
+  readonly onSignedIn: (session: DoctorSession) => void | Promise<void>;
   /** The way back in the full app; the diaries-only app has nowhere to go. */
   readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
@@ -139,7 +140,7 @@ export function DoctorSignIn(props: {
     setError('');
     setBusy(true);
     try {
-      props.onSignedIn(await signInDemo({ rememberDevice: true }));
+      await props.onSignedIn(await signInDemo({ rememberDevice: true }));
     } catch (cause) {
       setError(message(cause, 'Демо сейчас недоступно.'));
     } finally {
@@ -153,9 +154,9 @@ export function DoctorSignIn(props: {
     setBusy(true);
     try {
       if (byCode()) {
-        props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
+        await props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
       } else if (mode() === 'login') {
-        props.onSignedIn(
+        await props.onSignedIn(
           await signIn({
             email: email(),
             password: password(),
@@ -180,7 +181,7 @@ export function DoctorSignIn(props: {
           setClinicianProfile({ clinicianFullName: fullName });
         }
       } else {
-        props.onSignedIn(
+        await props.onSignedIn(
           await recoverAccount({
             email: email(),
             code: code(),
@@ -385,7 +386,13 @@ export function DoctorSignIn(props: {
               <Button
                 type="button"
                 variant="primary"
-                onClick={() => props.onSignedIn(created().session)}
+                disabled={busy()}
+                onClick={() => {
+                  setBusy(true);
+                  void Promise.resolve(props.onSignedIn(created().session))
+                    .catch((cause: unknown) => setError(message(cause, 'Дневники не открылись.')))
+                    .finally(() => setBusy(false));
+                }}
               >
                 Я сохранил(а) код
               </Button>

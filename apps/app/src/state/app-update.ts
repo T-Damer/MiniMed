@@ -268,6 +268,26 @@ export async function registerAppServiceWorker(): Promise<void> {
   watchForAppUpdates(registration);
 }
 
+/**
+ * The doctor is in (DIARY24): the service worker stores the rest of the app now, so no screen
+ * loads anything later. A build without a sign-in stored everything at install; its worker has
+ * nothing more to fetch.
+ */
+export function cacheWholeApp(): void {
+  if (
+    Capacitor.getPlatform() !== 'web' ||
+    !('serviceWorker' in navigator) ||
+    !import.meta.env.PROD
+  ) {
+    return;
+  }
+  void navigator.serviceWorker.ready
+    .then((registration) => registration.active?.postMessage({ type: 'CACHE_APP' }))
+    .catch((cause: unknown) => {
+      console.warn('Приложение не сохранено целиком: экраны догрузятся при открытии.', cause);
+    });
+}
+
 export function activateAppUpdate(
   worker: Pick<ServiceWorker, 'postMessage'>,
   serviceWorkers: Pick<ServiceWorkerContainer, 'addEventListener'> = navigator.serviceWorker,

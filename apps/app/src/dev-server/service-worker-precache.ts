@@ -15,18 +15,35 @@ export interface BuildFile {
   readonly bytes: number;
 }
 
-export type BuildFileRole = 'precache' | 'optional' | 'skip';
+export type BuildFileRole = 'precache' | 'app' | 'optional' | 'skip';
+
+/** What a build for one job keeps (`shellAssets`): its screens' assets, and when to fetch them. */
+export interface JobShell {
+  /** Every asset the job's screens need. */
+  readonly assets: ReadonlySet<string>;
+  /**
+   * The assets of the screen shown before sign-in (the doctors' diaries, DIARY24): stored at
+   * install, the rest of `assets` once the page says the user is in (`CACHE_APP` in sw.js). All of
+   * `assets` are stored at install when absent.
+   */
+  readonly signIn?: ReadonlySet<string>;
+  /** The job opens no search core: the core's boot content and the onboarding pictures stay out. */
+  readonly noSearch?: boolean;
+}
 
 export interface ServiceWorkerBuild {
   readonly id: string;
   readonly version: string;
-  /** Files stored at install: the whole UI works offline from them. */
+  /** Files stored at install: the whole UI works offline from them (or the sign-in, with `app`). */
   readonly precache: readonly string[];
+  /** Files stored once the user is signed in (`CACHE_APP`); empty for a build without sign-in. */
+  readonly app: readonly string[];
   /** Same-origin files kept after their first use only (large or rarely needed). */
   readonly optional: readonly string[];
   /** Directories whose files are kept after first use (pdf.js, DICOM codecs, Excalidraw fonts). */
   readonly optionalPrefixes: readonly string[];
   readonly precacheBytes: number;
+  readonly appBytes: number;
 }
 
 // Small files the app fetches on every start to open its core (core-report.json names the OPFS
@@ -51,22 +68,19 @@ const OPTIONAL_ASSETS = /^assets\/(?:ort-|tesseract-core)/u;
  * `shell`: for a build made for one job (the diaries copy), the `assets/` files that job's screens
  * need; every other asset is kept after its first use instead of being downloaded at install.
  */
-export function classifyBuildFile(
-  file: BuildFile,
-  shell?: ReadonlySet<string> | undefined,
-): BuildFileRole {
+export function classifyBuildFile(file: BuildFile, shell?: JobShell | undefined): BuildFileRole {
   const { path } = file;
-  if (BOOT_CONTENT_FILES.includes(path)) return 'precache';
+  if (BOOT_CONTENT_FILES.includes(path)) return shell?.noSearch ? 'skip' : 'precache';
   if (SKIPPED.test(path) || path.split('/').some((part) => part.startsWith('.'))) return 'skip';
   if (OPTIONAL_DIRECTORIES.test(path) || OPTIONAL_ASSETS.test(path)) return 'optional';
   if (path.startsWith('assets/')) {
-    if (shell && !shell.has(path)) return 'optional';
-    return path.endsWith('.wasm') && file.bytes > PRECACHE_MAX_WASM_BYTES ? 'optional' : 'precache';
+    if (shell && !shell.assets.has(path)) return 'optional';
+    if (path.endsWith('.wasm') && file.bytes > PRECACHE_MAX_WASM_BYTES) return 'optional';
+    return shell?.signIn && !shell.signIn.has(path) ? 'app' : 'precache';
   }
+  if (path.startsWith('onboarding/')) return shell?.noSearch ? 'skip' : 'precache';
   // diaries/: the diaries app's manifest, icons and boot icon (index.html swaps them in).
-  if (path.startsWith('fonts/') || path.startsWith('onboarding/') || path.startsWith('diaries/')) {
-    return 'precache';
-  }
+  if (path.startsWith('fonts/') || path.startsWith('diaries/')) return 'precache';
   // index.html, the manifest and the icons sit at the root of the build.
   return path.includes('/') ? 'skip' : 'precache';
 }
@@ -79,17 +93,22 @@ export function createServiceWorkerBuild(
   files: readonly BuildFile[],
   version: string,
   digestOf: (path: string) => string,
-  shell?: ReadonlySet<string> | undefined,
+  shell?: JobShell | undefined,
 ): ServiceWorkerBuild {
   const precache: string[] = [];
+  const app: string[] = [];
   const optional: string[] = [];
   const optionalPrefixes = new Set<string>();
   let precacheBytes = 0;
+  let appBytes = 0;
   for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
     const role = classifyBuildFile(file, shell);
     if (role === 'precache') {
       precache.push(file.path);
       precacheBytes += file.bytes;
+    } else if (role === 'app') {
+      app.push(file.path);
+      appBytes += file.bytes;
     } else if (role === 'optional') {
       const directory = OPTIONAL_DIRECTORIES.exec(file.path)?.[0];
       if (directory) optionalPrefixes.add(directory);
@@ -104,6 +123,7 @@ export function createServiceWorkerBuild(
   for (const path of precache) {
     hash.update(`\n${path}\0${path.startsWith('assets/') ? '' : digestOf(path)}`);
   }
+  for (const path of app) hash.update(`\nApp ${path}\0`);
   for (const path of optional) hash.update(`\n${path}\0`);
   const prefixes = [...optionalPrefixes].sort();
   for (const prefix of prefixes) hash.update(`\n${prefix}\0`);
@@ -111,9 +131,11 @@ export function createServiceWorkerBuild(
     id: hash.digest('hex').slice(0, 12),
     version,
     precache,
+    app,
     optional,
     optionalPrefixes: prefixes,
     precacheBytes,
+    appBytes,
   };
 }
 
@@ -168,19 +190,22 @@ export interface ShellChunk {
 /**
  * The `assets/` files a build for one job needs to show its screens: the main page's chunk, the
  * chunks of the root modules the job's routes open (`rootModules`, absolute module ids), everything
- * they import statically, and the styles and assets those pull in. Lazy chunks of other jobs'
- * screens (drug tools, readers, viewers) are not in it.
+ * they import statically, and the styles and assets those pull in; with `lazyRoots`, also every
+ * lazily imported module it matches (the job's own lazy parts, so nothing loads later). Lazy
+ * chunks of other jobs' screens (drug tools, readers, viewers) are not in it.
  */
 export function shellAssets(
   chunks: readonly ShellChunk[],
   mainPage: string,
   rootModules: readonly string[],
+  lazyRoots?: RegExp,
 ): ReadonlySet<string> {
   const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
   const wanted = chunks.filter(
     (chunk) =>
       (chunk.isEntry && chunk.facadeModuleId === mainPage) ||
-      chunk.moduleIds.some((id) => rootModules.includes(id)),
+      chunk.moduleIds.some((id) => rootModules.includes(id)) ||
+      Boolean(lazyRoots && chunk.facadeModuleId && lazyRoots.test(chunk.facadeModuleId)),
   );
   const shell = new Set<string>();
   const visit = (chunk: ShellChunk): void => {
@@ -200,7 +225,7 @@ export function shellAssets(
 export function writeServiceWorkerBuild(
   outDir: string,
   version: string,
-  shell?: ReadonlySet<string> | undefined,
+  shell?: JobShell | undefined,
 ): ServiceWorkerBuild {
   const build = createServiceWorkerBuild(
     listBuildFiles(outDir),

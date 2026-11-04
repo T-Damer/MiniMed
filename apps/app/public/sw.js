@@ -6,6 +6,11 @@
 // opens offline after the first visit, offline reloads included. Content packs, modules and models
 // are never cached here: they live in OPFS/IndexedDB and `content/` bypasses this worker.
 //
+// A build that opens on a sign-in (the doctors' diaries, DIARY24) lists only the sign-in's files
+// in `precache`; the rest of its app (`app`) is stored when the page says the doctor is in
+// (CACHE_APP). A cache that holds the whole app is marked, and the next build's install then
+// stores its whole app at once: an update never brings the loading back.
+//
 // Update flow: a new build is a new, byte-different sw.js with its own cache. It installs in the
 // background and waits; the page shows «Доступно обновление» and only then posts SKIP_WAITING. Old
 // caches are deleted on activation.
@@ -34,10 +39,12 @@ function isImmutable(path) {
 }
 
 const precacheUrls = new Map();
+const appUrls = new Map();
 const optionalUrls = new Set();
 const optionalPrefixes = [];
 if (BUILD) {
   for (const path of BUILD.precache) precacheUrls.set(absolute(path), path);
+  for (const path of BUILD.app ?? []) appUrls.set(absolute(path), path);
   for (const path of BUILD.optional) optionalUrls.add(absolute(path));
   for (const prefix of BUILD.optionalPrefixes) optionalPrefixes.push(absolute(prefix));
 }
@@ -46,6 +53,12 @@ function isOptional(url) {
   return optionalUrls.has(url) || optionalPrefixes.some((prefix) => url.startsWith(prefix));
 }
 const indexUrl = absolute('index.html');
+// Stored in a shell cache once it holds the whole app (`app` included).
+const wholeAppMarker = absolute('__minimed-whole-app__');
+
+function isShellUrl(url) {
+  return precacheUrls.has(url) || appUrls.has(url);
+}
 
 async function copyOrFetch(cache, url, path, previous) {
   if (await cache.match(url)) return;
@@ -65,22 +78,41 @@ async function copyOrFetch(cache, url, path, previous) {
   await cache.put(url, response);
 }
 
-async function precacheBuild() {
-  const cache = await caches.open(shellCacheName);
+async function previousShells() {
   const previous = [];
   for (const name of await caches.keys()) {
     if (name.startsWith(SHELL_PREFIX) && name !== shellCacheName)
       previous.push(await caches.open(name));
   }
-  const queue = [...precacheUrls];
-  // One failed file fails the install: the browser retries it, and a half-cached build would
-  // break offline in ways nobody can see. Files cached by an earlier attempt are kept.
+  return previous;
+}
+
+async function storeAll(cache, urls, previous) {
+  const queue = [...urls];
   const run = async () => {
     for (let next = queue.shift(); next; next = queue.shift()) {
       await copyOrFetch(cache, next[0], next[1], previous);
     }
   };
   await Promise.all(Array.from({ length: INSTALL_CONCURRENCY }, run));
+}
+
+async function precacheBuild() {
+  const cache = await caches.open(shellCacheName);
+  const previous = await previousShells();
+  // One failed file fails the install: the browser retries it, and a half-cached build would
+  // break offline in ways nobody can see. Files cached by an earlier attempt are kept.
+  await storeAll(cache, precacheUrls, previous);
+  // The doctor was in on the build before: this one comes whole, so nothing loads after it.
+  let whole = false;
+  for (const old of previous) whole ||= Boolean(await old.match(wholeAppMarker));
+  if (whole) await storeWholeApp(cache, previous);
+}
+
+async function storeWholeApp(cache, previous) {
+  if (appUrls.size === 0 || (await cache.match(wholeAppMarker))) return;
+  await storeAll(cache, appUrls, previous);
+  await cache.put(wholeAppMarker, new Response('1'));
 }
 
 async function removeStaleCaches() {
@@ -92,7 +124,7 @@ async function removeStaleCaches() {
   const runtime = await caches.open(RUNTIME_CACHE);
   for (const request of await runtime.keys()) {
     const url = request.url;
-    if (!precacheUrls.has(url) && !isOptional(url)) await runtime.delete(request);
+    if (!isShellUrl(url) && !isOptional(url)) await runtime.delete(request);
   }
 }
 
@@ -111,6 +143,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  // The doctor is in: the rest of the app now, while they look at the list.
+  if (event.data && event.data.type === 'CACHE_APP' && BUILD) {
+    event.waitUntil(
+      (async () => storeWholeApp(await caches.open(shellCacheName), await previousShells()))(),
+    );
+  }
 });
 
 function isShellNavigation(url) {
@@ -162,7 +200,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   const key = url.origin + url.pathname;
-  if (precacheUrls.has(key)) event.respondWith(serveFromShell(key, request));
+  if (isShellUrl(key)) event.respondWith(serveFromShell(key, request));
   else if (isOptional(key)) event.respondWith(serveRuntime(event, key, request));
 });
 

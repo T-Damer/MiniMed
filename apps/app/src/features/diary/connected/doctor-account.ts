@@ -99,6 +99,18 @@ export async function restoreDoctorSession(): Promise<DoctorSession | undefined>
   };
 }
 
+/**
+ * Whether a session is kept on this device, without opening it: the diaries copy starts on the
+ * sign-in alone when there is none (app/mount-diaries.tsx). Blocked storage keeps nothing.
+ */
+export function hasKeptDoctorSession(): boolean {
+  try {
+    return localStorage.getItem(SESSION_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function forgetDoctorSession(): void {
   localStorage.removeItem(SESSION_KEY);
 }

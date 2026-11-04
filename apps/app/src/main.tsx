@@ -1,8 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 import { render } from 'solid-js/web';
-import { App } from '@/app/App';
 import { BootScreen } from '@/app/BootScreen';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
+import { mountApp } from '@/app/mount-app';
 import { installPressFeedback } from '@/components/press-feedback';
 import { listenForInstallPrompt } from '@/diary/install-state';
 import { registerAppServiceWorker } from '@/state/app-update';
@@ -83,7 +83,8 @@ if (standby) {
     root,
   );
 } else {
-  render(() => <App />, root);
+  // The diaries copy mounts its sign-in alone when nobody is in (app/mount-diaries.tsx).
+  mountApp(root);
 }
 const stopNativeSafeBottomLock = standby ? () => undefined : lockNativeSafeBottom();
 const stopReminderNotifications = standby ? () => undefined : startReminderNotifications();

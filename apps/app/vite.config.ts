@@ -25,6 +25,7 @@ import {
   resolveReleaseCacheTarget,
 } from './src/dev-server/release-cache';
 import {
+  type JobShell,
   type ShellChunk,
   shellAssets,
   writeServiceWorkerBuild,
@@ -332,6 +333,8 @@ function excludeOptionalPublicAssets(): Plugin {
  */
 const PROFILE_SHELL_MODULES: Readonly<Record<string, readonly string[]>> = {
   diaries: [
+    // The page itself shows only the sign-in (app/mount-diaries.tsx); the app comes after it.
+    'apps/app/src/app/App.tsx',
     'apps/app/src/features/notes/NotesView.tsx',
     'apps/app/src/features/assessments/AssessmentsView.tsx',
     'apps/app/src/features/settings/SettingsView.tsx',
@@ -339,9 +342,25 @@ const PROFILE_SHELL_MODULES: Readonly<Record<string, readonly string[]>> = {
     'apps/app/src/features/downloads/restore-downloads.ts',
     'apps/app/src/state/note-library-sync.ts',
     'apps/app/src/state/web-theme-color.ts',
+    'apps/app/src/state/fullscreen-inset.ts',
     'content/tool-modules/psychology.json',
     'content/tool-modules/obstetrics-gynecology.json',
   ],
+};
+
+/** A profile's own lazily imported parts, kept with its shell so nothing loads after sign-in. */
+const PROFILE_LAZY_ROOTS: Readonly<Record<string, RegExp>> = {
+  diaries: /[\\/]src[\\/](?:features[\\/]diary|diary)[\\/]/u,
+};
+
+/**
+ * Profiles whose page opens on a sign-in (DIARY24, owner 2026-11-04: «the first open loads only the
+ * sign-in; after it, the whole app»): the service worker stores the sign-in's files at install and
+ * the rest once the page says the user is in. They also open no search core.
+ */
+const PROFILE_SIGN_IN: Readonly<Record<string, readonly string[]>> = {
+  // What the page imports while it starts, beside the sign-in's own chunks (main.tsx).
+  diaries: ['apps/app/src/state/web-theme-color.ts', 'apps/app/src/state/fullscreen-inset.ts'],
 };
 
 /** Workers a profile's start-up spawns (emitted as files of their own, not as chunks of the bundle). */
@@ -358,7 +377,7 @@ const PROFILE_SHELL_FILES: Readonly<Record<string, readonly RegExp[]>> = {
 function serviceWorkerPrecache(): Plugin {
   let outDir = 'dist';
   let root = process.cwd();
-  let shell: ReadonlySet<string> | undefined;
+  let shell: JobShell | undefined;
   return {
     name: 'service-worker-precache',
     apply: 'build',
@@ -386,20 +405,87 @@ function serviceWorkerPrecache(): Plugin {
       }
       const repository = fileURLToPath(new URL('../../', import.meta.url));
       const files = PROFILE_SHELL_FILES[profile] ?? [];
-      shell = new Set([
+      const page = join(root, 'index.html');
+      const assets = new Set([
         ...shellAssets(
           chunks,
-          join(root, 'index.html'),
+          page,
           modules.map((module) => join(repository, module)),
+          PROFILE_LAZY_ROOTS[profile],
         ),
         ...Object.keys(bundle).filter((name) => files.some((pattern) => pattern.test(name))),
       ]);
+      const signIn = PROFILE_SIGN_IN[profile];
+      shell = signIn
+        ? {
+            assets,
+            signIn: shellAssets(
+              chunks,
+              page,
+              signIn.map((module) => join(repository, module)),
+            ),
+            noSearch: true,
+          }
+        : { assets };
     },
     closeBundle() {
       const release = JSON.parse(
         readFileSync(fileURLToPath(new URL('../../release.json', import.meta.url)), 'utf8'),
       ) as { version: string };
       writeServiceWorkerBuild(outDir, release.version, shell);
+    },
+  };
+}
+
+/**
+ * The diaries copy starts on the sign-in alone (DIARY24): `main.tsx` mounts through
+ * `@/app/mount-app`, which in this build is `app/mount-diaries.tsx` — the sign-in when nobody is
+ * in, the app (loaded then) otherwise. Every other build mounts the app at once.
+ */
+const MOUNT_APP = /(?:^@|[\\/]src)[\\/]app[\\/]mount-app(?:\.tsx)?$/u;
+
+function diariesEntry(): Plugin {
+  const gate = fileURLToPath(new URL('./src/app/mount-diaries.tsx', import.meta.url));
+  return {
+    name: 'diaries-entry',
+    enforce: 'pre',
+    resolveId(source) {
+      // The `@` alias has already turned the import into an absolute path.
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries' || !MOUNT_APP.test(source))
+        return undefined;
+      return gate;
+    },
+  };
+}
+
+const MODULE_CATALOG_FILE =
+  /[\\/]features[\\/]modules[\\/]catalog\.(preview|terminology)\.json\?raw$/u;
+
+/**
+ * The diaries copy needs of the ~10 MB module catalog only the core and the tool modules holding
+ * its questionnaires (`DIARY_QUESTIONNAIRES`, built in and registered as installed): the release
+ * catalog shrinks to those entries and the bundled terminology to none (DIARY24: the catalog was
+ * half of what the diaries downloaded). Every other build keeps the catalog whole.
+ */
+function diaryCatalogSubset(): Plugin {
+  return {
+    name: 'diary-catalog-subset',
+    enforce: 'pre',
+    load(id) {
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries') return undefined;
+      const which = MODULE_CATALOG_FILE.exec(id)?.[1];
+      if (!which) return undefined;
+      if (which === 'terminology') return `export default ${JSON.stringify('[]')};`;
+      const catalog = JSON.parse(readFileSync(id.replace(/\?raw$/u, ''), 'utf8')) as {
+        modules: { id: string; kind: string }[];
+      };
+      const packs = new Set(DIARY_QUESTIONNAIRES.map((scale) => `minimed.tools.${scale.pack}.ru`));
+      const modules = catalog.modules.filter(
+        (module) => module.kind === 'core' || packs.has(module.id),
+      );
+      const missing = [...packs].filter((pack) => !modules.some((module) => module.id === pack));
+      if (missing.length > 0) this.error(`The module catalog lacks ${missing.join(', ')}.`);
+      return `export default ${JSON.stringify(JSON.stringify({ ...catalog, modules }))};`;
     },
   };
 }
@@ -445,6 +531,8 @@ export default defineConfig({
   plugins: [
     solid(),
     katexWoff2Only(),
+    diariesEntry(),
+    diaryCatalogSubset(),
     diaryPackSubset(),
     excalidrawCjkFontStubs(),
     ensurePdfJsAssets(),

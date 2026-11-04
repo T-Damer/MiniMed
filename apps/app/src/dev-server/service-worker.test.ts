@@ -15,7 +15,9 @@ function createBuild(id: string, overrides: Partial<ServiceWorkerBuild> = {}): S
     precache: ['index.html', 'manifest.webmanifest', `assets/main-${id}.js`, 'assets/shared-S1.js'],
     optional: ['assets/ort-wasm-X.wasm'],
     optionalPrefixes: ['pdfjs/'],
+    app: [],
     precacheBytes: 0,
+    appBytes: 0,
     ...overrides,
   };
 }
@@ -83,7 +85,8 @@ interface Harness {
   fetch(
     request: Partial<Request> & { url: string },
   ): Promise<{ response: Response | undefined; pending: Promise<unknown>[] }>;
-  message(data: unknown): void;
+  /** Resolves once the work the message started (`waitUntil`) is done. */
+  message(data: unknown): Promise<void>;
 }
 
 function createWorker(
@@ -140,12 +143,24 @@ function createWorker(
       await Promise.all(pending);
       return { response, pending };
     },
-    message: (data) => (listeners.get('message') as (event: unknown) => void)({ data }),
+    async message(data) {
+      const pending: Promise<unknown>[] = [];
+      (listeners.get('message') as (event: unknown) => void)({
+        data,
+        waitUntil: (promise: Promise<unknown>) => pending.push(promise),
+      });
+      await Promise.all(pending);
+    },
   };
 }
 
 function publish(network: Network, build: ServiceWorkerBuild, bodySuffix = ''): void {
-  for (const path of [...build.precache, ...build.optional, 'pdfjs/wasm/openjpeg.wasm']) {
+  for (const path of [
+    ...build.precache,
+    ...build.app,
+    ...build.optional,
+    'pdfjs/wasm/openjpeg.wasm',
+  ]) {
     network.files.set(url(path), `${path}${bodySuffix}`);
   }
 }
@@ -376,5 +391,59 @@ describe('service worker update', () => {
     expect([...caches.stores.keys()]).not.toContain('minimed-shell-a1');
     const current = await newWorker.fetch({ url: SCOPE, mode: 'navigate' });
     expect(await current.response?.text()).toBe('index.html-new');
+  });
+});
+
+describe('a build that opens on a sign-in (DIARY24)', () => {
+  const signIn = (id: string) =>
+    createBuild(id, { app: [`assets/App-${id}.js`, 'assets/charts-C1.js'] });
+
+  it('stores the sign-in at install and the rest of the app once the page says the doctor is in', async () => {
+    const build = signIn('a1');
+    const worker = await installed(build);
+    const cache = worker.caches.stores.get('minimed-shell-a1');
+    expect(await cache?.match(url('assets/App-a1.js'))).toBeUndefined();
+    // Before that, an app file comes from the network.
+    const early = await worker.fetch({ url: url('assets/App-a1.js') });
+    expect(await early.response?.text()).toBe('assets/App-a1.js');
+
+    await worker.message({ type: 'CACHE_APP' });
+    expect(await cache?.match(url('assets/App-a1.js'))).toBeDefined();
+    expect(await cache?.match(url('assets/charts-C1.js'))).toBeDefined();
+    // Served from the cache from now on, offline included.
+    worker.network.offline = true;
+    const later = await worker.fetch({ url: url('assets/charts-C1.js') });
+    expect(await later.response?.text()).toBe('assets/charts-C1.js');
+  });
+
+  it('installs the next build whole when the doctor was in on the last one', async () => {
+    const caches = new FakeCacheStorage();
+    const first = createWorker(signIn('a1'), caches);
+    publish(first.network, signIn('a1'));
+    await first.install();
+    await first.message({ type: 'CACHE_APP' });
+
+    const second = createWorker(signIn('b2'), caches);
+    publish(second.network, signIn('b2'));
+    await second.install();
+    const next = caches.stores.get('minimed-shell-b2');
+    expect(await next?.match(url('assets/App-b2.js'))).toBeDefined();
+    // An unchanged chunk is copied over, not downloaded again.
+    expect(second.network.requests.map((request) => request.url)).not.toContain(
+      url('assets/charts-C1.js'),
+    );
+  });
+
+  it('keeps a fresh visitor on the sign-in alone through an update', async () => {
+    const caches = new FakeCacheStorage();
+    const first = createWorker(signIn('a1'), caches);
+    publish(first.network, signIn('a1'));
+    await first.install();
+    const second = createWorker(signIn('b2'), caches);
+    publish(second.network, signIn('b2'));
+    await second.install();
+    expect(
+      await caches.stores.get('minimed-shell-b2')?.match(url('assets/App-b2.js')),
+    ).toBeUndefined();
   });
 });
