@@ -4,6 +4,18 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.90] - 2026-11-04
+
+- Patient diaries: before the diary starts, the patient reads and accepts three documents, each on its own — the
+  informed consent to remote follow-up, the consent to processing personal data and the remote-care contract (a short
+  summary and the full text; the clinic and doctor come from the doctor's «Врач и организация»). Nothing reaches the
+  doctor before that. The doctor's patient page shows when each was accepted; the patient re-reads them in
+  «Настройки». The texts are templates until the clinic's lawyer replaces them.
+- Carers (опекуны): the doctor adds a carer with the patient's consent; the carer's phone reads and marks the whole
+  diary, and every mark says who made it. The patient sees and removes carers in «Настройки» → «Доступ к дневнику».
+- Doctors' «Статистика»: «Настроить» chooses the lines, questionnaires, intake share and a track per medicine; the
+  period is a menu in the header that stays on screen, with any dates; the legend only names the lines.
+
 ## [0.6.89] - 2026-11-04
 
 - Alcohol questionnaires: RUS-AUDIT and its 3-question RUS-AUDIT-S, the WHO tests validated in Russia (2021), with the

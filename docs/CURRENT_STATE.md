@@ -52,6 +52,17 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Release 0.6.90 — 2026-11-04
+
+- **In it:** DIARY25 (carer access), DIARY-CHARTS (the doctor's «Статистика» settings and period menu) and DIARY26
+  (joining documents), merged from `diary26` onto main. In the merge a carer's phone still never sends the `consent`
+  record and skips the documents (consent is the patient's); it takes `consentAt` from the patient's record.
+- **Diary API** deployed with the carer routes (the container ran 0.6.82 before). `POST /api/tick` stays off: no
+  `DIARY_TICK_TOKEN` and no timer trigger, so missed-dose pushes to carers wait for a scheduler (ADR-0027 §5:
+  reminders on the phone, owner 2026-11-01).
+- **Checks.** `bun run check`, typecheck, secrets check; vitest 19 388 passed (the consent test now stubs the device
+  list DIARY25 reads on every sync); diary-server 15; e2e `diary-*` 78 passed.
+
 ## Alcohol questionnaires: RUS-AUDIT, RUS-AUDIT-S, OCDS — 2026-11-04 (STATE NARCO1)
 
 - **Owner 2026-11-04:** «we will have to include narcology: questionnaires on alcohol and on taking substances? Craving

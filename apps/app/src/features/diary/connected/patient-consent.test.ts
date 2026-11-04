@@ -31,6 +31,14 @@ vi.mock('@/features/diary/connected/diary-session', () => ({
   },
 }));
 vi.mock('@/features/diary/diary-links', () => ({ diaryServiceBase: () => '' }));
+// Who has the diary (DIARY25): the service answers with no doctors or carers yet.
+vi.mock('@/features/diary/connected/diary-api', async (original) => {
+  const actual = await original<typeof import('@/features/diary/connected/diary-api')>();
+  return {
+    ...actual,
+    diaryDevice: { ...actual.diaryDevice, detail: () => Promise.resolve({ devices: [] }) },
+  };
+});
 
 const ID = 'consentphone1';
 const AT = '2026-11-04T08:00:00.000Z';
