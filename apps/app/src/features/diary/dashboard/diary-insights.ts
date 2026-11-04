@@ -140,6 +140,37 @@ export interface QuestionnairePoint {
   readonly alerts: readonly string[];
   /** The schema's alert notices with their explanations. */
   readonly alertDetails: readonly { readonly title: string; readonly message: string }[];
+  /** Every question with the patient's answer (owner 2026-11-04: the whole test, not the score). */
+  readonly answers: readonly QuestionnaireAnswer[];
+}
+
+export interface QuestionnaireAnswer {
+  readonly prompt: string;
+  /** The answer's wording; absent for a question left unanswered. */
+  readonly answer: string | undefined;
+  /** The answer's points as the scale counts them; absent when the schema hides values. */
+  readonly points: number | undefined;
+}
+
+/** The questions in order, each with the answer given and its points. */
+export function questionnaireAnswers(
+  definition: AssessmentDefinition,
+  answers: Readonly<Record<string, number>>,
+): QuestionnaireAnswer[] {
+  return definition.questions.map((question) => {
+    const value = answers[question.id];
+    const options = question.responseOptions ?? definition.responseOptions;
+    const option = value === undefined ? undefined : options.find((one) => one.value === value);
+    if (value === undefined)
+      return { prompt: question.prompt, answer: undefined, points: undefined };
+    const values = options.map((one) => one.value);
+    const points = question.reverse ? Math.min(...values) + Math.max(...values) - value : value;
+    return {
+      prompt: question.prompt,
+      answer: option?.label ?? String(value),
+      points: option?.hideValue || definition.scoringMode === 'responses-only' ? undefined : points,
+    };
+  });
 }
 
 export interface QuestionnaireSeries {
@@ -181,6 +212,7 @@ function scoreSeries(
         title: alert.title,
         message: alert.message,
       })),
+      answers: questionnaireAnswers(definition, entry.answers ?? {}),
     });
   }
   // A questionnaire the doctor made without scores has nothing to chart.

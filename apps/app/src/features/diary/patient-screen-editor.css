@@ -390,11 +390,6 @@
   height: 1.4rem;
 }
 
-.screen-editor__dialog-copy {
-  flex: none;
-  margin-inline-end: 0.5rem;
-}
-
 /*
  * Fields in the editor read as text in a dashed two-colour frame with a pencil; focused, they turn
  * into a plain solid field (owner 2026-10-28). The frame stays dashed: its gaps (the background
@@ -454,4 +449,22 @@
 /* «Посмотреть вопросы» under the questionnaire chips: the chosen one as the patient sees it. */
 .screen-editor__preview {
   justify-self: start;
+}
+
+/* What follows the medicine's name slides in once it is chosen (owner 2026-11-04). */
+.screen-editor__reveal {
+  display: grid;
+  gap: inherit;
+  animation: screen-editor-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes screen-editor-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+.screen-editor__copy {
+  margin-inline-start: auto;
 }

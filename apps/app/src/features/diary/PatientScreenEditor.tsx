@@ -323,10 +323,16 @@ function TimesEditor(props: {
   );
 }
 
+/**
+ * A medicine: the name first; form, dose, times, signa and the course follow once a medicine is
+ * chosen from the list, or a name of the doctor's own is typed and left (owner 2026-11-04: a short
+ * sheet, no suggestions under an empty name).
+ */
 function DrugFields(props: {
   readonly section: CareSectionDraft;
-  readonly frequent: readonly string[];
   readonly patch: (next: Partial<CareSectionDraft>) => void;
+  readonly chosen: boolean;
+  readonly onChosen: () => void;
 }): JSX.Element {
   const [forms, setForms] = createSignal<readonly DrugSuggestionForm[]>([]);
   const [calendar, setCalendar] = createSignal(false);
@@ -334,125 +340,133 @@ function DrugFields(props: {
     forms().find((form) => form.form === props.section.form)?.strengths ?? [];
   return (
     <>
-      <DrugSearchField
-        label="Препарат"
-        placeholder="Начните вводить название"
-        value={props.section.title}
-        onInput={(title) => props.patch({ title })}
-        onPick={(picked) => {
-          setForms(picked.forms);
-          const first = picked.forms[0];
-          props.patch({
-            title: picked.product ?? picked.name,
-            form: first?.form ?? props.section.form,
-            dose: first?.strengths[0] ?? props.section.dose,
-          });
+      <div
+        class="screen-editor__drug-name"
+        onFocusOut={(event) => {
+          const next = event.relatedTarget;
+          if (next instanceof Node && event.currentTarget.contains(next)) return;
+          if (props.section.title.trim()) props.onChosen();
         }}
-      />
-      <Show when={!props.section.title.trim() && props.frequent.length}>
-        <fieldset class="screen-editor__chips screen-editor__chips--set">
-          <legend class="visually-hidden">Часто назначаете</legend>
-          <For each={props.frequent}>
-            {(name) => (
-              <ChoiceChip compact onClick={() => props.patch({ title: name })}>
-                {name}
-              </ChoiceChip>
-            )}
-          </For>
-        </fieldset>
-      </Show>
-      <div class="screen-editor__pair">
-        <TextField
-          inputClass="screen-editor__input"
-          label="Форма"
-          placeholder="таблетки"
-          value={props.section.form}
-          onInput={(event) => props.patch({ form: event.currentTarget.value })}
-        />
-        <TextField
-          inputClass="screen-editor__input"
-          label="Доза"
-          placeholder="50 мг"
-          value={props.section.dose}
-          onInput={(event) => props.patch({ dose: event.currentTarget.value })}
-        />
-      </div>
-      <Show when={forms().length > 1 || strengths().length > 1}>
-        <div class="screen-editor__chips">
-          <For each={forms().length > 1 ? forms() : []}>
-            {(form) => (
-              <ChoiceChip
-                compact
-                accent={props.section.form === form.form}
-                aria-pressed={props.section.form === form.form}
-                onClick={() =>
-                  props.patch({ form: form.form, dose: form.strengths[0] ?? props.section.dose })
-                }
-              >
-                {form.form}
-              </ChoiceChip>
-            )}
-          </For>
-          <For each={strengths().length > 1 ? strengths() : []}>
-            {(strength) => (
-              <ChoiceChip
-                compact
-                accent={props.section.dose === strength}
-                aria-pressed={props.section.dose === strength}
-                onClick={() => props.patch({ dose: strength })}
-              >
-                {strength}
-              </ChoiceChip>
-            )}
-          </For>
-        </div>
-      </Show>
-      <div class="screen-editor__switch">
-        <Switch
-          aria-label="При необходимости"
-          checked={props.section.asNeeded}
-          onChange={(asNeeded) => props.patch({ asNeeded })}
-        />
-        <span class="screen-editor__switch-text">При необходимости</span>
-      </div>
-      <Show when={!props.section.asNeeded}>
-        <TimesEditor
-          times={props.section.times}
-          meals
-          emptyText="Без времени — пациент отметит приём сам"
-          onChange={(times) => props.patch({ times })}
-        />
-      </Show>
-      <TextArea
-        textareaClass="screen-editor__input"
-        label="Signa — как принимать"
-        maxLength={300}
-        placeholder={suggestedSigna(props.section)}
-        value={props.section.signa}
-        onInput={(event) => props.patch({ signa: event.currentTarget.value })}
-      />
-      <Show when={!props.section.signa.trim()}>
-        <div class="screen-editor__chips">
-          <ChoiceChip compact onClick={() => props.patch({ signa: suggestedSigna(props.section) })}>
-            {suggestedSigna(props.section)}
-          </ChoiceChip>
-        </div>
-      </Show>
-      <button
-        type="button"
-        class="screen-editor__course"
-        aria-expanded={calendar()}
-        onClick={() => setCalendar(!calendar())}
       >
-        <AppGlyph name="calendar" class="screen-editor__glyph" />
-        <span class="screen-editor__course-text">{describeRanges(props.section.course)}</span>
-        <AppGlyph name={calendar() ? 'caret-up' : 'caret-down'} class="screen-editor__glyph" />
-      </button>
-      <Show when={calendar()}>
-        <DateRangeCalendar
-          value={props.section.course}
-          onChange={(course) => props.patch({ course })}
+        <DrugSearchField
+          label="Препарат"
+          placeholder="Начните вводить название"
+          value={props.section.title}
+          onInput={(title) => props.patch({ title })}
+          onPick={(picked) => {
+            setForms(picked.forms);
+            const first = picked.forms[0];
+            props.patch({
+              title: picked.product ?? picked.name,
+              form: first?.form ?? props.section.form,
+              dose: first?.strengths[0] ?? props.section.dose,
+            });
+            props.onChosen();
+          }}
         />
+      </div>
+      <Show when={props.chosen}>
+        <div class="screen-editor__reveal">
+          <div class="screen-editor__pair">
+            <TextField
+              inputClass="screen-editor__input"
+              label="Форма"
+              placeholder="таблетки"
+              value={props.section.form}
+              onInput={(event) => props.patch({ form: event.currentTarget.value })}
+            />
+            <TextField
+              inputClass="screen-editor__input"
+              label="Доза"
+              placeholder="50 мг"
+              value={props.section.dose}
+              onInput={(event) => props.patch({ dose: event.currentTarget.value })}
+            />
+          </div>
+          <Show when={forms().length > 1 || strengths().length > 1}>
+            <div class="screen-editor__chips">
+              <For each={forms().length > 1 ? forms() : []}>
+                {(form) => (
+                  <ChoiceChip
+                    compact
+                    accent={props.section.form === form.form}
+                    aria-pressed={props.section.form === form.form}
+                    onClick={() =>
+                      props.patch({
+                        form: form.form,
+                        dose: form.strengths[0] ?? props.section.dose,
+                      })
+                    }
+                  >
+                    {form.form}
+                  </ChoiceChip>
+                )}
+              </For>
+              <For each={strengths().length > 1 ? strengths() : []}>
+                {(strength) => (
+                  <ChoiceChip
+                    compact
+                    accent={props.section.dose === strength}
+                    aria-pressed={props.section.dose === strength}
+                    onClick={() => props.patch({ dose: strength })}
+                  >
+                    {strength}
+                  </ChoiceChip>
+                )}
+              </For>
+            </div>
+          </Show>
+          <div class="screen-editor__switch">
+            <Switch
+              aria-label="При необходимости"
+              checked={props.section.asNeeded}
+              onChange={(asNeeded) => props.patch({ asNeeded })}
+            />
+            <span class="screen-editor__switch-text">При необходимости</span>
+          </div>
+          <Show when={!props.section.asNeeded}>
+            <TimesEditor
+              times={props.section.times}
+              meals
+              emptyText="Без времени — пациент отметит приём сам"
+              onChange={(times) => props.patch({ times })}
+            />
+          </Show>
+          <TextArea
+            textareaClass="screen-editor__input"
+            label="Signa — как принимать"
+            maxLength={300}
+            placeholder={suggestedSigna(props.section)}
+            value={props.section.signa}
+            onInput={(event) => props.patch({ signa: event.currentTarget.value })}
+          />
+          <Show when={!props.section.signa.trim()}>
+            <div class="screen-editor__chips">
+              <ChoiceChip
+                compact
+                onClick={() => props.patch({ signa: suggestedSigna(props.section) })}
+              >
+                {suggestedSigna(props.section)}
+              </ChoiceChip>
+            </div>
+          </Show>
+          <button
+            type="button"
+            class="screen-editor__course"
+            aria-expanded={calendar()}
+            onClick={() => setCalendar(!calendar())}
+          >
+            <AppGlyph name="calendar" class="screen-editor__glyph" />
+            <span class="screen-editor__course-text">{describeRanges(props.section.course)}</span>
+            <AppGlyph name={calendar() ? 'caret-up' : 'caret-down'} class="screen-editor__glyph" />
+          </button>
+          <Show when={calendar()}>
+            <DateRangeCalendar
+              value={props.section.course}
+              onChange={(course) => props.patch({ course })}
+            />
+          </Show>
+        </div>
       </Show>
     </>
   );
@@ -552,16 +566,22 @@ function UseFields(props: {
 /** The editor that opens in place of a row of the preview. */
 function SectionEditor(props: {
   readonly section: CareSectionDraft;
-  readonly frequent: readonly string[];
+  /** A copy of another medicine's schedule: its fields show before a medicine is chosen. */
+  readonly copied: boolean;
   readonly taken: ReadonlySet<string>;
   readonly onChange: (section: CareSectionDraft) => void;
   readonly onRemove: () => void;
   readonly onDone: () => void;
   /** Opens the chosen questionnaire as the patient will see it (owner 2026-11-04). */
   readonly onPreview: () => void;
+  /** The same schedule for another medicine. */
+  readonly onCopy: () => void;
 }): JSX.Element {
   const patch = (next: Partial<CareSectionDraft>): void =>
     props.onChange({ ...props.section, ...next });
+  const [chosen, setChosen] = createSignal(
+    props.section.kind !== 'drug' || Boolean(props.section.title.trim()) || props.copied,
+  );
   // The doctor's own questionnaires from the main app's builder, read when a questionnaire opens.
   // A plain signal, not a resource: a resource read here suspended the whole page (a blink).
   const [own, setOwn] = createSignal<Awaited<ReturnType<typeof listOwnQuestionnaires>>>([]);
@@ -577,7 +597,12 @@ function SectionEditor(props: {
   return (
     <div class="screen-editor__sheet">
       <Show when={props.section.kind === 'drug'}>
-        <DrugFields section={props.section} frequent={props.frequent} patch={patch} />
+        <DrugFields
+          section={props.section}
+          patch={patch}
+          chosen={chosen()}
+          onChosen={() => setChosen(true)}
+        />
       </Show>
       <Show when={props.section.kind === 'questionnaire'}>
         <fieldset class="screen-editor__chips screen-editor__chips--set">
@@ -676,13 +701,16 @@ function SectionEditor(props: {
           onChange={(times) => patch({ times })}
         />
       </Show>
-      <TextField
-        inputClass="screen-editor__input"
-        label="Подсказка пациенту"
-        placeholder="Пациент увидит «?» рядом с разделом"
-        value={props.section.tip}
-        onInput={(event) => patch({ tip: event.currentTarget.value })}
-      />
+      <Show when={chosen()}>
+        <TextField
+          class="screen-editor__reveal"
+          inputClass="screen-editor__input"
+          label="Подсказка пациенту"
+          placeholder="Пациент увидит «?» рядом с разделом"
+          value={props.section.tip}
+          onInput={(event) => patch({ tip: event.currentTarget.value })}
+        />
+      </Show>
       <div class="screen-editor__sheet-actions">
         <Button
           type="button"
@@ -692,6 +720,18 @@ function SectionEditor(props: {
           icon={<AppGlyph name="trash" class="screen-editor__glyph" />}
           onClick={() => props.onRemove()}
         />
+        <Show when={props.section.kind === 'drug' && chosen()}>
+          <Button
+            type="button"
+            variant="secondary"
+            class="screen-editor__copy"
+            title="То же расписание для другого препарата"
+            icon={<AppGlyph name="copy-simple" class="screen-editor__glyph" />}
+            onClick={() => props.onCopy()}
+          >
+            Копия для другого
+          </Button>
+        </Show>
         <Button type="button" variant="primary" onClick={() => props.onDone()}>
           Готово
         </Button>
@@ -854,8 +894,6 @@ export function PatientScreenEditor(props: {
   readonly onDoctor: (value: string) => void;
   readonly note: string;
   readonly onNote: (value: string) => void;
-  /** Medicines this doctor prescribes most, offered while a medicine name is empty. */
-  readonly frequent?: readonly string[];
 }): JSX.Element {
   const [editing, setEditing] = createSignal<string>();
   const [preview, setPreview] = createSignal<Preview>();
@@ -899,14 +937,21 @@ export function PatientScreenEditor(props: {
   const drugs = (): number => props.draft.sections.filter((s) => s.kind === 'drug').length;
   /** One «Зависимости» section per diary: its button waits once there is one. */
   const hasUse = (): boolean => props.draft.sections.some((s) => s.kind === 'use');
-  /** «Копировать»: the same schedule for the next medicine, in a dialog of its own. */
+  /** The copy made last: its sheet opens with the schedule shown before a medicine is chosen. */
+  const [copiedKey, setCopiedKey] = createSignal<string>();
+  /** «Копия для другого»: the same schedule for the next medicine, in a sheet of its own. */
   const copy = (section: CareSectionDraft): void => {
     const next = copyCareSection(section);
     const at = props.draft.sections.findIndex((current) => current.key === section.key);
     const sections = [...props.draft.sections];
     sections.splice(at + 1, 0, next);
     patch({ sections });
+    setCopiedKey(next.key);
     setEditing(next.key);
+    toast.success('Назначение скопировано', {
+      id: 'care-section-copied',
+      description: `Расписание как у «${section.title.trim() || 'препарата'}» — выберите препарат.`,
+    });
   };
   const add = (kind: CareSectionKind): void => {
     const quiz = DIARY_QUESTIONNAIRES.find((option) => !quizzes().has(option.slug))?.slug;
@@ -1199,29 +1244,17 @@ export function PatientScreenEditor(props: {
                 <AppGlyph name={KIND_ICON[section().kind]} class="screen-editor__dialog-glyph" />
               </span>
             }
-            headerEnd={
-              <Show when={section().kind === 'drug'}>
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="screen-editor__dialog-copy"
-                  aria-label="Копировать назначение для другого препарата"
-                  title="Копировать назначение для другого препарата"
-                  icon={<AppGlyph name="copy" class="screen-editor__glyph" />}
-                  onClick={() => copy(section())}
-                />
-              </Show>
-            }
             onClose={() => setEditing(undefined)}
           >
             <SectionEditor
               section={section()}
-              frequent={props.frequent ?? []}
+              copied={copiedKey() === section().key}
               taken={quizzes()}
               onChange={(next) => replace(section().key, next)}
               onRemove={() => remove(section().key)}
               onDone={() => setEditing(undefined)}
               onPreview={() => setPreview({ kind: 'quiz', key: section().key })}
+              onCopy={() => copy(section())}
             />
           </OverlayDialog>
         )}

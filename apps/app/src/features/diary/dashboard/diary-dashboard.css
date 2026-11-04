@@ -2084,3 +2084,40 @@
   color: var(--theme-text-muted);
   font-size: 0.8125rem;
 }
+
+/* Every question and the answer the patient chose, folded under a result (owner 2026-11-04). */
+.diary-answers {
+  margin-top: 0.25rem;
+}
+
+.diary-answers__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.4rem;
+}
+
+.diary-answers__item {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.diary-answers__prompt {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.diary-answers__answer {
+  font-weight: 650;
+}
+
+.diary-answers__answer--none {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.diary-answers__points {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}

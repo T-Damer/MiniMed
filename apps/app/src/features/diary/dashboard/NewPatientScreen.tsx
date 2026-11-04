@@ -8,7 +8,6 @@ import { Heading } from '@/components/Text';
 import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
-import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
@@ -39,9 +38,6 @@ export function NewPatientScreen(props: {
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [created, setCreated] = createSignal<string>();
-  const frequent = frequentDrugs(
-    props.workspace.patients().map((patient) => patient.replica.invitation),
-  );
 
   const create = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
@@ -118,7 +114,6 @@ export function NewPatientScreen(props: {
                 onDoctor={setDoctor}
                 note={note()}
                 onNote={setNote}
-                frequent={frequent}
               />
             }
             footer={

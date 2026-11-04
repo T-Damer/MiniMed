@@ -17,10 +17,10 @@ import {
   alertCause,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
-import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
+import { QuestionnaireAnswers } from '@/features/diary/dashboard/QuestionnaireAnswers';
 import { CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
 import {
@@ -623,7 +623,8 @@ export function AlertNotices(props: { readonly cause: AlertCause }): JSX.Element
           )}
         </For>
       </ul>
-      <p class="diary-dash__quiet">Ответ дан {when(props.cause.point.at)}.</p>
+      {/* The date is in the dialog's subtitle: one date per screen (owner 2026-11-04). */}
+      <QuestionnaireAnswers answers={props.cause.point.answers} />
     </>
   );
 }

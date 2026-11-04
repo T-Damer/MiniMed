@@ -569,7 +569,12 @@ export function PatientChartsPage(props: {
           <OverlayDialog
             open
             title={notice().title}
-            subtitle={`${notice().point.total} из ${notice().point.max} · ${new Date(notice().point.at).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`}
+            subtitle={new Date(notice().point.at).toLocaleString('ru-RU', {
+              day: 'numeric',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
             class="diary-dash-dialog"
             onClose={() => setDialog(undefined)}
           >

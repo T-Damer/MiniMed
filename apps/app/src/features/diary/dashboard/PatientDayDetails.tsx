@@ -5,6 +5,11 @@ import { Button } from '@/components/Button';
 import { carerLabel } from '@/features/diary/connected/carer';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
+  type QuestionnaireAnswer,
+  questionnaireSeries,
+} from '@/features/diary/dashboard/diary-insights';
+import { QuestionnaireAnswers } from '@/features/diary/dashboard/QuestionnaireAnswers';
+import {
   dayKey,
   dayPlan,
   doseValue,
@@ -103,6 +108,22 @@ export function PatientDayDetails(props: {
     );
   });
   const records = createMemo(() => entriesOfDay(props.results.entries, props.day).toReversed());
+  // A questionnaire record opens to every question and answer (owner 2026-11-04), scored with its
+  // schema only when the day has one.
+  const [answered] = createResource(
+    () => {
+      const day = records().filter((entry) => entry.answers);
+      return day.length ? day : undefined;
+    },
+    async (day) => {
+      const series = await questionnaireSeries(props.results.invitation, day);
+      const byEntry = new Map<string, readonly QuestionnaireAnswer[]>();
+      for (const one of series) {
+        for (const point of one.points) byEntry.set(point.entryId, point.answers);
+      }
+      return byEntry;
+    },
+  );
   /** A mark a carer made (DIARY25): «опекун Ирина», from the name the carer gave. */
   const carerOf = (entry: DiaryEntry): string | undefined => {
     const author = props.patient.replica.entryAuthors.get(entry.id);
@@ -189,6 +210,9 @@ export function PatientDayDetails(props: {
                   </span>
                   <Show when={entry.note}>
                     <span class="diary-timeline__note">{entry.note}</span>
+                  </Show>
+                  <Show when={answered()?.get(entry.id)}>
+                    {(answers) => <QuestionnaireAnswers answers={answers()} />}
                   </Show>
                   <Show when={entry.corrected}>
                     <span class="diary-timeline__badge">исправлено врачом</span>
