@@ -129,7 +129,7 @@ export function NewPatientScreen(props: {
                   </p>
                 </Show>
                 <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
-                  {busy() ? 'Шифруем и сохраняем…' : 'Создать и показать код'}
+                  {busy() ? 'Шифруем и сохраняем…' : 'Добавить пациента'}
                 </Button>
               </>
             }

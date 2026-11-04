@@ -123,7 +123,7 @@ export function DiaryAccess(props: {
       const label = carerLabel(phone.name);
       return label.charAt(0).toUpperCase() + label.slice(1);
     }
-    return phone.self ? 'Этот телефон' : 'Телефон пациента';
+    return phone.self ? 'Этот девайс' : 'Девайс пациента';
   };
   const phoneStatus = (phone: DiaryPhone): string =>
     phone.self ? 'вы' : phone.kind === 'carer' ? since(phone.createdAt) : 'пациент';
@@ -149,7 +149,7 @@ export function DiaryAccess(props: {
               when={!carer() && phone.kind === 'carer'}
               fallback={
                 <StateRow
-                  icon={phone.kind === 'carer' ? 'users' : 'phone'}
+                  icon={phone.kind === 'carer' ? 'users' : 'device-mobile'}
                   tone={phone.kind === 'carer' ? 'purple' : 'green'}
                   title={phoneTitle(phone)}
                   status={phoneStatus(phone)}

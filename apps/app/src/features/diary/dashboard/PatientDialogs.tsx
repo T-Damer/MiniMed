@@ -1,6 +1,7 @@
 import type { DiaryAlert, DiaryPatientDetail, DiaryRole } from '@localmed/contracts';
 import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 
+import { AppContextMenu, requestContextMenu } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
@@ -41,6 +42,56 @@ const ROLE_LABEL: Readonly<Record<DiaryRole, string>> = {
   reader: 'Чтение',
 };
 
+type AccessMode = 'editor' | 'reader';
+
+const MODE_TEXT: Readonly<Record<AccessMode, string>> = {
+  reader: 'Чтение: видит дневник',
+  editor: 'Изменение: видит и меняет назначения',
+};
+
+/**
+ * A curator's access as one small key next to the e-mail or the name (owner 2026-11-04): an eye
+ * for «Чтение», a pencil for «Изменение», a gear that says it opens a choice.
+ */
+function AccessModeMenu(props: {
+  readonly value: AccessMode;
+  readonly label: string;
+  readonly disabled?: boolean;
+  readonly onChange: (next: AccessMode) => void;
+}): JSX.Element {
+  const action = (mode: AccessMode) => ({
+    id: mode,
+    label: MODE_TEXT[mode],
+    icon: mode === 'editor' ? ('edit' as const) : ('eye' as const),
+    ...(mode === props.value ? { iconClass: 'diary-access-mode__current' } : {}),
+    testId: `diary-access-${mode}`,
+    onSelect: () => props.onChange(mode),
+  });
+  return (
+    <AppContextMenu
+      hideButton
+      class="diary-access-mode"
+      actions={props.disabled ? [] : [action('reader'), action('editor')]}
+    >
+      <button
+        type="button"
+        class="diary-access-mode__button"
+        aria-label={`${props.label}: ${ROLE_LABEL[props.value]}`}
+        title={MODE_TEXT[props.value]}
+        disabled={props.disabled}
+        data-testid="diary-access-mode"
+        onClick={requestContextMenu}
+      >
+        <AppGlyph
+          name={props.value === 'editor' ? 'edit' : 'eye'}
+          class="diary-access-mode__icon"
+        />
+        <AppGlyph name="gear" class="diary-access-mode__gear" />
+      </button>
+    </AppContextMenu>
+  );
+}
+
 /**
  * Curators of one patient: names, access level (read / edit), pending invitations, removal and
  * hand-over; then the patient's phones and carers (DIARY25). Only the owner changes curators; an
@@ -55,7 +106,7 @@ export function CuratorsDialog(props: {
   const owner = () => props.patient.summary.role === 'owner';
   const [detail, { refetch }] = createResource(() => props.workspace.detail(id()));
   const [email, setEmail] = createSignal('');
-  const [role, setRole] = createSignal<'editor' | 'reader'>('reader');
+  const [role, setRole] = createSignal<AccessMode>('reader');
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
 
@@ -85,7 +136,7 @@ export function CuratorsDialog(props: {
     <OverlayDialog
       open
       title="Кураторы"
-      subtitle="Кто видит дневник: врачи, телефоны пациента и опекуны"
+      subtitle="Кто видит дневник: врачи, девайсы пациента и опекуны"
       onClose={props.onClose}
     >
       <div class="diary-curators-dialog">
@@ -115,13 +166,10 @@ export function CuratorsDialog(props: {
                           <span class="diary-curator__role">{ROLE_LABEL[member.role]}</span>
                         }
                       >
-                        <SegmentedControl
+                        <AccessModeMenu
                           label={`Доступ: ${member.doctor.name}`}
                           value={member.role === 'editor' ? 'editor' : 'reader'}
-                          options={[
-                            { value: 'reader', label: 'Чтение' },
-                            { value: 'editor', label: 'Изменение' },
-                          ]}
+                          disabled={busy()}
                           onChange={(next) =>
                             void run(
                               () => props.workspace.setRole(id(), member.doctor.id, next),
@@ -169,41 +217,36 @@ export function CuratorsDialog(props: {
                     }, 'Не удалось пригласить.');
                   }}
                 >
-                  <TextField
-                    label="Добавить куратора по почте"
-                    type="email"
-                    placeholder="colleague@clinic.ru"
-                    value={email()}
-                    onInput={(event) => setEmail(event.currentTarget.value)}
-                  />
-                  <SegmentedControl
-                    label="Доступ"
-                    value={role()}
-                    options={[
-                      { value: 'reader', label: 'Чтение' },
-                      { value: 'editor', label: 'Изменение' },
-                    ]}
-                    onChange={setRole}
-                  />
+                  <div class="diary-curators__invite-row">
+                    <TextField
+                      label="Добавить куратора по почте"
+                      type="email"
+                      placeholder="colleague@clinic.ru"
+                      value={email()}
+                      onInput={(event) => setEmail(event.currentTarget.value)}
+                    />
+                    <AccessModeMenu label="Доступ" value={role()} onChange={setRole} />
+                  </div>
+                  <p class="diary-dash__quiet diary-curators__mode-note">{MODE_TEXT[role()]}</p>
                   <Button type="submit" variant="primary" disabled={busy() || !email().trim()}>
                     Пригласить
                   </Button>
                 </form>
               </Show>
-              <h3 class="diary-curators__heading">Телефоны пациента</h3>
+              <h3 class="diary-curators__heading">Девайсы пациента</h3>
               <Show
                 when={devices(current()).length}
-                fallback={<p class="diary-dash__quiet">Телефон ещё не подключён.</p>}
+                fallback={<p class="diary-dash__quiet">Девайс ещё не подключён.</p>}
               >
                 <ul class="diary-curators__list">
                   <For each={devices(current())}>
                     {(device) => (
                       <li class="diary-curator">
                         <span class="diary-curator__avatar" aria-hidden="true">
-                          <AppGlyph name="phone" class="diary-dash__glyph" />
+                          <AppGlyph name="device-mobile" class="diary-dash__glyph" />
                         </span>
                         <span class="diary-curator__text">
-                          <span class="diary-curator__name">Телефон</span>
+                          <span class="diary-curator__name">Девайс</span>
                           <span class="diary-curator__meta">
                             подключён {new Date(device.createdAt).toLocaleDateString('ru-RU')}
                             {device.lastSeenAt
@@ -214,13 +257,13 @@ export function CuratorsDialog(props: {
                         <Show when={props.patient.summary.role !== 'reader'}>
                           <Button
                             variant="icon"
-                            aria-label="Отключить этот телефон"
+                            aria-label="Отключить этот девайс"
                             icon={<AppGlyph name="trash" class="diary-dash__glyph" />}
                             disabled={busy()}
                             onClick={() =>
                               void run(
                                 () => props.workspace.revokeDevice(id(), device.id),
-                                'Не удалось отключить телефон.',
+                                'Не удалось отключить девайс.',
                               )
                             }
                           />

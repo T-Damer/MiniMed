@@ -557,6 +557,8 @@ function SectionEditor(props: {
   readonly onChange: (section: CareSectionDraft) => void;
   readonly onRemove: () => void;
   readonly onDone: () => void;
+  /** Opens the chosen questionnaire as the patient will see it (owner 2026-11-04). */
+  readonly onPreview: () => void;
 }): JSX.Element {
   const patch = (next: Partial<CareSectionDraft>): void =>
     props.onChange({ ...props.section, ...next });
@@ -634,6 +636,17 @@ function SectionEditor(props: {
           <p class="screen-editor__muted" role="alert">
             {ownError()}
           </p>
+        </Show>
+        <Show when={props.section.quiz}>
+          <Button
+            type="button"
+            variant="secondary"
+            class="screen-editor__preview"
+            icon={<AppGlyph name="eye" class="screen-editor__glyph" />}
+            onClick={() => props.onPreview()}
+          >
+            Посмотреть вопросы
+          </Button>
         </Show>
         <SegmentedControl
           label="Как часто"
@@ -1143,13 +1156,14 @@ export function PatientScreenEditor(props: {
         </section>
 
         <section class="care-section">
-          <h3 class="care-section__title">Описание состояния</h3>
+          <h3 class="care-section__title">Своими словами</h3>
           <ul class="care-section__list">
             <CareRow
               icon="note-pencil"
-              title="Как вы себя чувствуете?"
+              title="Рассказать врачу"
+              detail="что беспокоит — текстом или голосом; есть у каждого пациента"
               state={state('note')}
-              checkLabel="Описать состояние"
+              checkLabel="Рассказать врачу своими словами"
               tip={false}
               onCheck={() => tick('note')}
               onOpen={() => tick('note')}
@@ -1207,6 +1221,7 @@ export function PatientScreenEditor(props: {
               onChange={(next) => replace(section().key, next)}
               onRemove={() => remove(section().key)}
               onDone={() => setEditing(undefined)}
+              onPreview={() => setPreview({ kind: 'quiz', key: section().key })}
             />
           </OverlayDialog>
         )}

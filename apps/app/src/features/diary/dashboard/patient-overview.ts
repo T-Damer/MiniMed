@@ -229,8 +229,8 @@ export function overviewSignals(input: {
   if (input.devices === 0) {
     signals.push({
       id: 'pair',
-      glyph: 'phone',
-      title: 'Телефон не подключён',
+      glyph: 'device-mobile',
+      title: 'Девайс не подключён',
       detail: 'покажите пациенту QR-код',
       tone: 'warn',
       target: { pair: true },

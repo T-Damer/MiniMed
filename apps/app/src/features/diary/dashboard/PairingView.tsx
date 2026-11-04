@@ -84,7 +84,7 @@ export function PairingView(props: {
                     class="diary-pair__code"
                     classList={{ 'diary-pair__code--shown': shown() }}
                     src={code().image}
-                    alt={carer ? 'Код для телефона опекуна' : 'Код для телефона пациента'}
+                    alt={carer ? 'Код для девайса опекуна' : 'Код для девайса пациента'}
                     onLoad={() => setShown(true)}
                   />
                 )}
@@ -97,7 +97,7 @@ export function PairingView(props: {
             </p>
             <p class="diary-pair__waiting">
               <span class="diary-pair__waiting-dot" aria-hidden="true" />
-              {carer ? 'Ждём телефон опекуна' : 'Ждём телефон пациента'}
+              {carer ? 'Ждём девайс опекуна' : 'Ждём девайс пациента'}
             </p>
             <div class="diary-pair__actions">
               <Button

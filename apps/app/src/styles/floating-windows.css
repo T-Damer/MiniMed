@@ -185,7 +185,7 @@
 
 /* No bottom bar to stand on: the controls sit at the screen edge and the page keeps their room
    below its last row (compact-release.css `.app-shell--no-nav`), so «↑» never covers a bottom
-   button such as «Создать и показать код». */
+   button such as «Добавить пациента». */
 .floating-window-controls--no-nav {
   bottom: max(0.75rem, calc(0.75rem + var(--safe-bottom)));
 }

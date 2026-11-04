@@ -27,6 +27,7 @@ import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import browsersBold from '@phosphor-icons/core/assets/bold/browsers-bold.svg?raw';
 import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
 import calendarBlankBold from '@phosphor-icons/core/assets/bold/calendar-blank-bold.svg?raw';
+import calendarCheckBold from '@phosphor-icons/core/assets/bold/calendar-check-bold.svg?raw';
 import cameraBold from '@phosphor-icons/core/assets/bold/camera-bold.svg?raw';
 import caretCircleDownBold from '@phosphor-icons/core/assets/bold/caret-circle-down-bold.svg?raw';
 import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw';
@@ -43,7 +44,9 @@ import clockBold from '@phosphor-icons/core/assets/bold/clock-bold.svg?raw';
 import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-counter-clockwise-bold.svg?raw';
 import codeBold from '@phosphor-icons/core/assets/bold/code-bold.svg?raw';
 import copyBold from '@phosphor-icons/core/assets/bold/copy-bold.svg?raw';
+import copySimpleBold from '@phosphor-icons/core/assets/bold/copy-simple-bold.svg?raw';
 import cubeBold from '@phosphor-icons/core/assets/bold/cube-bold.svg?raw';
+import deviceMobileBold from '@phosphor-icons/core/assets/bold/device-mobile-bold.svg?raw';
 import diamondsFourBold from '@phosphor-icons/core/assets/bold/diamonds-four-bold.svg?raw';
 import diceFiveBold from '@phosphor-icons/core/assets/bold/dice-five-bold.svg?raw';
 import discBold from '@phosphor-icons/core/assets/bold/disc-bold.svg?raw';
@@ -51,8 +54,10 @@ import dotsThreeBold from '@phosphor-icons/core/assets/bold/dots-three-bold.svg?
 import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-vertical-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
 import dropBold from '@phosphor-icons/core/assets/bold/drop-bold.svg?raw';
+import dropHalfBold from '@phosphor-icons/core/assets/bold/drop-half-bold.svg?raw';
 import envelopeSimpleBold from '@phosphor-icons/core/assets/bold/envelope-simple-bold.svg?raw';
 import eraserBold from '@phosphor-icons/core/assets/bold/eraser-bold.svg?raw';
+import eyeBold from '@phosphor-icons/core/assets/bold/eye-bold.svg?raw';
 import eyeSlashBold from '@phosphor-icons/core/assets/bold/eye-slash-bold.svg?raw';
 import fileArrowDownBold from '@phosphor-icons/core/assets/bold/file-arrow-down-bold.svg?raw';
 import fileDocBold from '@phosphor-icons/core/assets/bold/file-doc-bold.svg?raw';
@@ -67,6 +72,7 @@ import filmSlateBold from '@phosphor-icons/core/assets/bold/film-slate-bold.svg?
 import filmStripBold from '@phosphor-icons/core/assets/bold/film-strip-bold.svg?raw';
 import flaskBold from '@phosphor-icons/core/assets/bold/flask-bold.svg?raw';
 import folderOpenBold from '@phosphor-icons/core/assets/bold/folder-open-bold.svg?raw';
+import forkKnifeBold from '@phosphor-icons/core/assets/bold/fork-knife-bold.svg?raw';
 import frameCornersBold from '@phosphor-icons/core/assets/bold/frame-corners-bold.svg?raw';
 import gearSixBold from '@phosphor-icons/core/assets/bold/gear-six-bold.svg?raw';
 import globeBold from '@phosphor-icons/core/assets/bold/globe-bold.svg?raw';
@@ -117,11 +123,13 @@ import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?ra
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
 import slidersHorizontalBold from '@phosphor-icons/core/assets/bold/sliders-horizontal-bold.svg?raw';
 import smileyBold from '@phosphor-icons/core/assets/bold/smiley-bold.svg?raw';
+import sneakerMoveBold from '@phosphor-icons/core/assets/bold/sneaker-move-bold.svg?raw';
 import speakerHighBold from '@phosphor-icons/core/assets/bold/speaker-high-bold.svg?raw';
 import sphereBold from '@phosphor-icons/core/assets/bold/sphere-bold.svg?raw';
 import squaresFourBold from '@phosphor-icons/core/assets/bold/squares-four-bold.svg?raw';
 import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
 import steeringWheelBold from '@phosphor-icons/core/assets/bold/steering-wheel-bold.svg?raw';
+import testTubeBold from '@phosphor-icons/core/assets/bold/test-tube-bold.svg?raw';
 import textAaBold from '@phosphor-icons/core/assets/bold/text-aa-bold.svg?raw';
 import textBBold from '@phosphor-icons/core/assets/bold/text-b-bold.svg?raw';
 import textColumnsBold from '@phosphor-icons/core/assets/bold/text-columns-bold.svg?raw';
@@ -201,6 +209,15 @@ export type AppGlyphName =
   | 'edit-fill'
   | 'eraser'
   | 'eye-slash'
+  | 'eye'
+  | 'device-mobile'
+  | 'gear'
+  | 'fork-knife'
+  | 'sneaker-move'
+  | 'drop-half'
+  | 'calendar-check'
+  | 'test-tube'
+  | 'copy-simple'
   | 'leaf'
   | 'lightbulb'
   | 'trash'
@@ -393,6 +410,15 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'edit-fill': svgBody(pencilSimpleFill),
   eraser: svgBody(eraserBold),
   'eye-slash': svgBody(eyeSlashBold),
+  eye: svgBody(eyeBold),
+  'device-mobile': svgBody(deviceMobileBold),
+  gear: svgBody(gearSixBold),
+  'fork-knife': svgBody(forkKnifeBold),
+  'sneaker-move': svgBody(sneakerMoveBold),
+  'drop-half': svgBody(dropHalfBold),
+  'calendar-check': svgBody(calendarCheckBold),
+  'test-tube': svgBody(testTubeBold),
+  'copy-simple': svgBody(copySimpleBold),
   leaf: svgBody(leafBold),
   lightbulb: svgBody(lightbulbBold),
   trash: svgBody(trashBold),

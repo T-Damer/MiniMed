@@ -471,7 +471,7 @@ export function DiaryPatientPage(props: {
         <Match when={dialog() === 'pair'}>
           <OverlayDialog
             open
-            title="Подключить телефон пациента"
+            title="Подключить девайс пациента"
             onClose={() => setDialog(undefined)}
           >
             <PairingView

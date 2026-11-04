@@ -545,7 +545,7 @@ export function NoteSheet(props: {
 
   return (
     <DiarySheet
-      title={props.entry ? 'Описание состояния' : 'Добавить описание состояния'}
+      title={props.entry ? 'Своими словами' : 'Рассказать врачу'}
       onClose={props.onClose}
       footer={
         <SheetFooter

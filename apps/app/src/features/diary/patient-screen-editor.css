@@ -450,3 +450,8 @@
   background-color: var(--theme-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 22%, transparent);
 }
+
+/* «Посмотреть вопросы» under the questionnaire chips: the chosen one as the patient sees it. */
+.screen-editor__preview {
+  justify-self: start;
+}

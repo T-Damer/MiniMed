@@ -1,6 +1,8 @@
 /**
  * Pressed controls shrink a little while the finger is down (AGENTS.md «Motion»: ≈0.96) and spring
  * back when it lifts — every tappable thing in the app, without each component asking for it.
+ * Controls drawn as physical keys (a face on a ledge: `.ui-button` and the primary-depth ones) do
+ * not shrink: they sink onto their ledge, drawn in CSS from `data-pressed` (owner 2026-11-04).
  *
  * The scale is the independent `scale` property played with `Element.animate`, so it composes with
  * a control's own `transform` and `transition`, the AnimationManager retimes it (state/motion.ts)
@@ -28,6 +30,21 @@ const PRESSABLE = [
 ].join(', ');
 
 const NOT_PRESSABLE = '[disabled], [aria-disabled="true"], [data-no-press]';
+
+/** Keys on a ledge: CSS sinks them while `data-pressed` is set (Button.css, primary-depth.css). */
+const LEDGED = [
+  '.ui-button:not(.ui-button--quiet)',
+  '.ui-file-button--primary',
+  '.home-feature__action:not(.home-feature__action--secondary)',
+  '.assessment-card-actions__button--primary',
+  '.assessment-submit-panel__button',
+  '.assessment-panel-actions__button--primary',
+  '.package-row__button--primary',
+  '.search-quick-access__all',
+].join(', ');
+
+/** Set on the pressed control for as long as the press shows, at least {@link PRESS_HOLD_MS}. */
+export const PRESSED_ATTRIBUTE = 'data-pressed';
 
 /** The shortest time a press stays visible, so a quick tap is not over before it is seen. */
 export const PRESS_HOLD_MS = 120;
@@ -57,7 +74,8 @@ interface Press {
   readonly element: HTMLElement;
   readonly pointerId: number;
   readonly startedAt: number;
-  readonly animation: Animation;
+  /** Absent for a key on a ledge (it sinks in CSS) and with reduced motion (shade only). */
+  readonly animation: Animation | undefined;
   releaseTimer: number | undefined;
 }
 
@@ -67,6 +85,8 @@ function release(press: Press): void {
   if (current === press) current = undefined;
   window.clearTimeout(press.releaseTimer);
   const { element, animation } = press;
+  element.removeAttribute(PRESSED_ATTRIBUTE);
+  if (!animation) return;
   if (!element.isConnected) {
     animation.cancel();
     return;
@@ -82,19 +102,23 @@ function release(press: Press): void {
 
 function onPointerDown(event: PointerEvent): void {
   if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
-  if (motionRate() === 0) return;
   if (!(event.target instanceof Element)) return;
   const element = event.target.closest<HTMLElement>(PRESSABLE);
   if (!element || element.matches(NOT_PRESSABLE) || element.closest(NOT_PRESSABLE)) return;
   if (current) release(current);
   const box = element.getBoundingClientRect();
   const scale = pressScale(box.width, box.height, window.innerWidth, window.innerHeight);
-  if (scale === null) return;
-  const animation = element.animate([{ scale: '1' }, { scale: String(scale) }], {
-    duration: PRESS_IN_MS,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    fill: 'forwards',
-  });
+  const ledged = element.matches(LEDGED);
+  if (scale === null && !ledged) return;
+  element.setAttribute(PRESSED_ATTRIBUTE, '');
+  const animation =
+    ledged || scale === null || !moving()
+      ? undefined
+      : element.animate([{ scale: '1' }, { scale: String(scale) }], {
+          duration: PRESS_IN_MS,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards',
+        });
   current = {
     element,
     pointerId: event.pointerId,
@@ -119,10 +143,17 @@ function onPointerEnd(event: PointerEvent): void {
   press.releaseTimer = window.setTimeout(() => release(press), wait);
 }
 
+/** Scale animations run unless the app's animations are off or the system asks for less motion. */
+function moving(): boolean {
+  return (
+    motionRate() !== 0 &&
+    typeof Element.prototype.animate === 'function' &&
+    !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 /** Starts the press feedback for the whole document; returns the function that stops it. */
 export function installPressFeedback(root: Document = document): () => void {
-  if (typeof Element.prototype.animate !== 'function') return () => undefined;
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return () => undefined;
   const options = { capture: true, passive: true } as const;
   root.addEventListener('pointerdown', onPointerDown, options);
   root.addEventListener('pointerup', onPointerEnd, options);

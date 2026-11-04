@@ -18,13 +18,15 @@
     0 0.25rem 0.5rem rgb(0 0 0 / 22%);
   transition:
     background-color var(--theme-motion-control, 140ms ease-out),
-    box-shadow var(--theme-motion-control, 140ms ease-out);
+    box-shadow var(--theme-motion-control, 140ms ease-out),
+    translate var(--theme-motion-control, 140ms ease-out);
 }
 
 /*
- * The button box is the stable hover target and never transforms: a box that slides from under
- * the pointer ends its own hover and starts it again at the edge. Depth is the ledge and shadow
- * on the box, and the content (icon, label) is the inner layer that rises and sinks.
+ * Hover never moves the button box: a box that slides from under the pointer ends its own hover
+ * and starts it again at the edge, so a hover lift is the content (icon, label) rising. A press is
+ * a key going down (owner 2026-11-04): the whole face sinks by the ledge's height and the ledge is
+ * gone. `data-pressed` comes from components/press-feedback.ts and lasts at least a short tap.
  */
 .ui-button {
   --ui-button-shift: 0rem;
@@ -36,8 +38,8 @@
   transition: transform var(--theme-motion-control, 140ms ease-out);
 }
 
-.ui-button:active:not(:disabled) {
-  --ui-button-shift: 0.1rem;
+.ui-button:is(:active, [data-pressed]):not(:disabled) {
+  translate: 0 0.14rem;
   box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 18%);
 }
 
@@ -47,8 +49,7 @@
   box-shadow: var(--theme-primary-rest-shadow);
 }
 
-.ui-button--primary:active:not(:disabled) {
-  --ui-button-shift: 0.12rem;
+.ui-button--primary:is(:active, [data-pressed]):not(:disabled) {
   background: var(--theme-primary-active-background);
   box-shadow: var(--theme-primary-active-shadow);
 }
@@ -65,8 +66,8 @@
   box-shadow: none;
 }
 
-.ui-button--quiet:active:not(:disabled) {
-  --ui-button-shift: 0rem;
+.ui-button--quiet:is(:active, [data-pressed]):not(:disabled) {
+  translate: none;
 }
 
 .ui-button__icon {
@@ -99,7 +100,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   /* Primary lifts: a lighter face with a bright top edge and a larger, softer shadow. */
-  .ui-button--primary:hover:not(:disabled):not(:active) {
+  .ui-button--primary:hover:not(:disabled, :active, [data-pressed]) {
     background: var(--theme-primary-hover-background);
     --ui-button-shift: -0.06rem;
     box-shadow: var(--theme-primary-hover-shadow);

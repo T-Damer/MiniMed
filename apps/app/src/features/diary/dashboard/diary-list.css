@@ -101,10 +101,11 @@
   height: 1.2rem;
 }
 
-.diary-dash__nothing {
-  margin: 0.5rem 0;
-  color: var(--theme-text-muted);
-  text-align: center;
+/* Nothing matches: the shared empty state, but sized to its content under the search box — the
+   archived patients may follow it, so it does not take the rest of the screen. */
+.ui-empty-state.diary-dash__nothing {
+  min-height: 0;
+  padding-block: 2rem 1rem;
 }
 
 /* Rows: curators and the colleague mark ------------------------------------------------------ */

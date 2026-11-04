@@ -873,12 +873,27 @@ export function DiaryDashboard(props: {
                       filtering() && listed().active.length === 0 && listed().archived.length === 0
                     }
                   >
-                    <p class="diary-dash__nothing" role="status">
-                      Никого не нашли.{' '}
-                      <Button variant="quiet" onClick={clearFilters}>
-                        Показать всех
-                      </Button>
-                    </p>
+                    <div role="status">
+                      <EmptyState
+                        class="diary-dash__nothing"
+                        glyph="search"
+                        title="Никого не нашли"
+                        text={
+                          appliedQuery().trim()
+                            ? 'Проверьте, как записано имя: ищем по каждому слову.'
+                            : 'Под этот фильтр сейчас никто не подходит.'
+                        }
+                        actions={
+                          <Button
+                            variant="secondary"
+                            icon={<AppGlyph name="users" class="diary-dash__glyph" />}
+                            onClick={clearFilters}
+                          >
+                            Показать всех
+                          </Button>
+                        }
+                      />
+                    </div>
                   </Show>
                   <Show when={listed().archived.length}>
                     <button

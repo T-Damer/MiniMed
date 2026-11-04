@@ -74,12 +74,12 @@ test.describe('patient diary: the care diary with the tab bar', () => {
     // The other intake is still open.
     await expect(rows.nth(1).locator('.care-row__box')).toBeVisible();
 
-    // «Описание состояния» is a row like the others, not a button of its own.
+    // «Своими словами» is a row like the others, not a button of its own.
     await expect(page.getByRole('button', { name: 'Добавить описание состояния' })).toHaveCount(0);
-    const feeling = page.locator('.care-row').filter({ hasText: 'Как вы себя чувствуете?' });
+    const feeling = page.locator('.care-row').filter({ hasText: 'Рассказать врачу' });
     await expect(feeling.locator('.care-row__box')).toBeVisible();
-    await feeling.getByRole('button', { name: 'Как вы себя чувствуете?' }).click();
-    const sheet = page.getByRole('dialog', { name: 'Добавить описание состояния' });
+    await feeling.getByRole('button', { name: /^Рассказать врачу/u }).click();
+    const sheet = page.getByRole('dialog', { name: 'Рассказать врачу' });
     await expect(sheet.getByRole('button', { name: 'Сказать голосом' })).toBeVisible();
     await sheet.getByLabel('Что вы чувствуете').fill('Спокойно, давление в норме');
     await sheet.getByRole('button', { name: 'Сохранить' }).click();
@@ -106,9 +106,9 @@ test.describe('patient diary: the care diary with the tab bar', () => {
       if (request.url().includes('huggingface.co')) downloads.push(request.url());
     });
     await page.goto(await testInvitationLink(careInvitation()));
-    const feeling = page.locator('.care-row').filter({ hasText: 'Как вы себя чувствуете?' });
-    await feeling.getByRole('button', { name: 'Как вы себя чувствуете?' }).click();
-    const sheet = page.getByRole('dialog', { name: 'Добавить описание состояния' });
+    const feeling = page.locator('.care-row').filter({ hasText: 'Рассказать врачу' });
+    await feeling.getByRole('button', { name: /^Рассказать врачу/u }).click();
+    const sheet = page.getByRole('dialog', { name: 'Рассказать врачу' });
     await sheet.getByRole('button', { name: 'Сказать голосом' }).click();
     await expect(sheet.getByRole('status')).toContainText('Говорите');
     await page.waitForTimeout(1200);

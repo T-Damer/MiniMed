@@ -842,7 +842,7 @@ export function DiaryToday(props: {
 
         <section class="care-section" aria-labelledby="care-notes">
           <h3 class="care-section__title" id="care-notes">
-            Описание состояния
+            Своими словами
           </h3>
           <Show when={plan().notes.length}>
             <ul class="care-notes">
@@ -877,9 +877,10 @@ export function DiaryToday(props: {
           <ul class="care-section__list">
             <CareRow
               icon="note-pencil"
-              title={plan().notes.length ? 'Добавить ещё' : 'Как вы себя чувствуете?'}
+              title={plan().notes.length ? 'Добавить ещё' : 'Рассказать врачу'}
+              detail={plan().notes.length ? undefined : 'что беспокоит — текстом или голосом'}
               state={plan().notes.length ? 'done' : 'open'}
-              checkLabel="Описать состояние"
+              checkLabel="Рассказать врачу своими словами"
               tip={false}
               onCheck={() => setSheet({ kind: 'note', entry: undefined })}
               onOpen={() => setSheet({ kind: 'note', entry: undefined })}

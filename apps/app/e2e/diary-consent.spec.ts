@@ -223,7 +223,7 @@ test.describe('joining documents on a connected diary', () => {
     await expect(doctor.getByRole('heading', { name: /Дневники пациентов/u })).toBeVisible();
     await doctor.getByRole('button', { name: 'Новый пациент' }).first().click();
     await doctor.getByLabel('Имя или псевдоним').fill('Лиса');
-    await doctor.getByRole('button', { name: 'Создать и показать код' }).click();
+    await doctor.getByRole('button', { name: 'Добавить пациента' }).click();
     const copy = doctor.getByRole('button', { name: 'Копировать ссылку' });
     await expect(copy).toBeEnabled({ timeout: 60_000 });
     await copy.click();
