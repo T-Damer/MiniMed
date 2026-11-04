@@ -95,7 +95,8 @@ function careDraft(
   return {
     ...visits,
     sections: [...sections, ...presets()],
-    contacts: [],
+    // An invented number (owner 2026-11-04), so the visit card's «Позвонить» shows in the showcase.
+    contacts: [{ kind: 'phone', value: '+7 777 777-77-77', label: '' }],
     crisis: '112 — экстренные службы\n103 — скорая помощь',
   };
 }
@@ -460,6 +461,25 @@ export async function seedDemoPatients(
 export function hasDemoSet(labels: readonly (string | undefined)[]): boolean {
   const present = new Set(labels);
   return DEMO_PATIENTS.every((spec) => present.has(spec.label));
+}
+
+/**
+ * The demo doctor's four live a day, then they are made again (owner 2026-11-04: a showcase), so
+ * their history ends today and the fox's visit is still tomorrow.
+ */
+const DEMO_SET_TTL_MS = 24 * 60 * 60 * 1000;
+
+/** The demo patients of the set made more than a day ago, to be made again. */
+export function staleDemoPatients(workspace: DoctorDiaries, now = Date.now()): readonly string[] {
+  const labels = new Set(DEMO_PATIENTS.map((spec) => spec.label));
+  return workspace
+    .patients()
+    .filter(
+      (patient) =>
+        labels.has(patient.replica.profile?.label ?? '') &&
+        now - Date.parse(patient.summary.createdAt) > DEMO_SET_TTL_MS,
+    )
+    .map((patient) => patient.summary.id);
 }
 
 /** Every visitor's own demo diary (`#demo` on the patient page) is labelled `Демо · Гость …`. */

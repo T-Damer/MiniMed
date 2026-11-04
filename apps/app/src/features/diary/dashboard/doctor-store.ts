@@ -20,6 +20,7 @@ import {
   hasDemoSet,
   pruneDemoGuests,
   seedDemoPatients,
+  staleDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { enableDoctorPush, type PushState } from '@/features/diary/dashboard/doctor-push';
 import { warmQuestionnaires } from '@/features/diary/diary-questionnaires';
@@ -108,15 +109,33 @@ export function stopDoctor(): void {
 /** The first read of a session is over: live updates, the demo doctor's set and its upkeep. */
 function afterFirstRead(next: DoctorSession, diaries: DoctorDiaries): void {
   diaries.connectLive();
-  // The demo doctor finds the demo patients already there (owner 2026-11-02).
-  const seeded = hasDemoSet(diaries.patients().map((patient) => patient.replica.profile?.label));
-  if (isDemoSession(next) && !seeded) addDemoPatients(diaries);
-  // The shared demo account keeps its guests a day, then lets them go.
-  if (isDemoSession(next)) {
-    pruneDemoGuests(diaries).catch((cause: unknown) => {
-      console.warn('Демо: старые гостевые дневники не убраны', cause);
+  if (isDemoSession(next)) void keepDemoSet(diaries);
+}
+
+/**
+ * The demo doctor finds the demo patients already there (owner 2026-11-02), made within the last
+ * day (owner 2026-11-04); the shared demo account keeps its guests a day, then lets them go.
+ */
+async function keepDemoSet(diaries: DoctorDiaries): Promise<void> {
+  const stale = staleDemoPatients(diaries);
+  if (stale.length) setDemoStatus('Обновляем демо-пациентов…');
+  for (const id of stale) {
+    // Another visitor may be renewing the set at the same moment: a patient already gone is fine.
+    await diaries.removePatient(id).catch((cause: unknown) => {
+      console.warn('Демо: пациент не убран', cause);
     });
   }
+  if (stale.length) {
+    await diaries.refresh().catch((cause: unknown) => {
+      console.warn('Демо: список пациентов не обновлён', cause);
+    });
+  }
+  const seeded = hasDemoSet(diaries.patients().map((patient) => patient.replica.profile?.label));
+  if (seeded) setDemoStatus('');
+  else addDemoPatients(diaries);
+  await pruneDemoGuests(diaries).catch((cause: unknown) => {
+    console.warn('Демо: старые гостевые дневники не убраны', cause);
+  });
 }
 
 /**

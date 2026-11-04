@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-04 23:10 | claude-opus (DEMO-REFRESH) | the shared demo account's four patients are made again once a day (visits stay ahead, history ends today); demo doctor phone | `apps/app/src/features/diary/dashboard/demo-patients.ts`, `apps/app/src/features/diary/dashboard/doctor-store.ts`, `apps/app/src/features/diary/dashboard/demo-diary-data.test.ts` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -182,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-04 claude-opus DEMO-REFRESH: demo doctor's four remade daily (visit stays tomorrow), demo phone +7 777 777-77-77
 - 2026-11-04 claude-opus PROMO10: diary deck 19 slides («Сигнум», «Отметки о влечениях», visits and labs, new screenshots); demo visits/labs; lab sheet one-height fields + calendar above the sheet; dark toast description
 - 2026-11-04 claude-opus REL 0.6.91: DIARY27 (owner's list of ten: key press, medicine sheet, whole answers, curators' access key, «Девайсы», empty search, «Добавить пациента», install/update, glucose/activity/meals, drug-form marks, visits with a call, lab tests) and the name «Сигнум»
 - 2026-11-04 claude-opus PROMO9: diary deck — demo route centred (slide 12); curator mock without the subtitle, button off the edge (slide 13)

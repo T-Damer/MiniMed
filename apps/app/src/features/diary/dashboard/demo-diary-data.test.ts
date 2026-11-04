@@ -10,6 +10,7 @@ import {
   loadQuestionnaireShapes,
   questionnaireShape,
   seedDemoPatients,
+  staleDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { CARE_DOSE_FIELD, dayKey, dayPlan } from '@/features/diary/diary-care';
 import {
@@ -319,5 +320,36 @@ describe('demo patients', () => {
     const ids = await seedDemoPatients(workspace, { count: 3 });
     expect(ids).toEqual(['existing0', 'existing1', 'existing2']);
     expect(calls).toEqual([]);
+  });
+
+  it('makes the demo set again after a day, never a guest or another patient', () => {
+    const day = 24 * 60 * 60 * 1000;
+    const patient = (id: string, label: string, age: number) => ({
+      summary: { id, createdAt: new Date(NOW.getTime() - age).toISOString() },
+      replica: { profile: { label } },
+    });
+    const fox = DEMO_PATIENTS[0]?.label ?? '';
+    const owl = DEMO_PATIENTS[1]?.label ?? '';
+    const workspace = {
+      patients: () => [
+        patient('old-fox', fox, day + 60_000),
+        patient('new-owl', owl, day - 60_000),
+        patient('guest', `${DEMO_LABEL_PREFIX} Гость 12`, 3 * day),
+        patient('own', 'Иванов', 30 * day),
+      ],
+    } as unknown as DoctorDiaries;
+    expect(staleDemoPatients(workspace, NOW.getTime())).toEqual(['old-fox']);
+  });
+
+  it('gives the demo doctor a phone, so the visit card offers a call', () => {
+    const fox = demoInvitation(
+      DEMO_PATIENTS[0] as (typeof DEMO_PATIENTS)[number],
+      'demopatient01',
+      'Д',
+      NOW,
+    );
+    expect(fox.contacts).toEqual([
+      expect.objectContaining({ kind: 'phone', value: '+7 777 777-77-77' }),
+    ]);
   });
 });

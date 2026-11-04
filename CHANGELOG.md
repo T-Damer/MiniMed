@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Demo showcase: the demo doctor's four patients are made again once a day when the demo opens (history ends today,
+  the fox's visit stays «завтра»), and the demo doctor has a phone (+7 777 777-77-77), so the visit card offers a call.
+
 - Demo: the fox (and every visitor's own patient diary) has a visit tomorrow at 14:30 and a fasting glucose test; the
   owl has a valproate level and ALT to take.
 - Lab result sheet: the result and the day sit side by side at one height, the unit inside the box, the number written

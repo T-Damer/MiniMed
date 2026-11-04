@@ -31,7 +31,10 @@ Detailed history, moved verbatim on 2026-09-24:
   guest diary — has a visit tomorrow 14:30 «Кабинет 12» and «Глюкоза натощак» within a week; the owl has
   «Вальпроевая кислота в крови» and АЛТ within four days and a visit in five. The shared demo account keeps the demo
   patients it already has, so the doctor's four get these only when the set is made again; guest diaries get them now.
-  No phone contact in the demo, so «Позвонить» is not shown there.
+  The demo doctor's phone is +7 777 777-77-77 (invented, owner 2026-11-04), so «Позвонить» shows. The doctor's
+  four live a day: the first demo sign-in after that removes them and makes them again (`staleDemoPatients`,
+  `keepDemoSet` in `doctor-store.ts`) with the status «Обновляем демо-пациентов…»; two visitors renewing at the same
+  moment may briefly see a duplicate (STATE DEMO-REFRESH).
 - Patient diary: the lab sheet's result box takes the date field's frame and height (unit inside), the result is
   printed with a comma; the shared dialog frame (`OverlayDialog`, the date field's calendar on phones) is styled in
   `diary-shell.css` above the diary's sheets — before, the calendar opened beneath the lab sheet, unlaid.
