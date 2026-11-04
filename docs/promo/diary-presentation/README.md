@@ -64,8 +64,9 @@ Checked 2026-11-04 from the vendors' own pages and store listings; «—» on th
   are not encrypted ([APA](https://psychiatry.org/psychiatrists/practice/mental-health-apps/evaluations/daylio-evaluation));
   eMoods keeps data on the device; Bearable says only the user holds the key (vendor claim).
 
-MiniMed's carer access (a guardian sees the intake log and helps keep to the treatment) is shown as
-«в планах»; it is not built yet.
+MiniMed's carer access (DIARY25: the doctor adds a carer by QR with the patient's consent; the carer
+reads and marks the diary, every mark names who made it, a missed dose sends a content-free push
+after 30 minutes) is marked as done; smart watches are «в планах».
 
 ## Case (slide 4)
 
