@@ -20,6 +20,18 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Press shade — 2026-11-04 (STATE PRESS2)
+
+Owner asked whether a tap feels like a press (a calendar day). Measured in headless Chromium as a
+phone (390×844, touch, CPU 4×): the 0.6.91 press (`components/press-feedback.ts`) starts within
+8–20 ms, holds ≥ 120 ms and springs back, but on a transparent control it is only the ≈0.96 scale —
+2.2 px on a 54 px calendar day, under the fingertip — so a held day looked exactly like its
+neighbour. Now a held press also shades the control in its own text colour
+(`components/press-feedback.css`, 12 %), as iOS highlights a touched control: `data-pressed` is
+`shade`, `ledge` (keys that sink, unchanged) or empty for a control that paints its own background
+image (striped vaccination cells, the camera shutter), which only scales. CSS `:active` scale rules
+do not stack with it on touch (`:active` does not match a touch press in Chromium's mobile mode).
+
 ## Diary deck after 0.6.91, demo visits and lab tests — 2026-11-04 (STATE PROMO10)
 
 - `docs/promo/diary-presentation/`: 19 slides. The product is «Сигнум» (title, bands, analogues); new slides

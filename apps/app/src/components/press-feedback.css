@@ -1,0 +1,14 @@
+/*
+ * A held press shades the control in its own text colour (components/press-feedback.ts): on a
+ * transparent control — a calendar day, an icon button, a chip — the ≈0.96 scale alone is a pixel
+ * or two hidden under the fingertip. The text colour reads on light, dark and accent faces alike.
+ * Keys on a ledge (`data-pressed="ledge"`) sink instead (Button.css, primary-depth.css). The shade
+ * is an image layer over the control's own background colour, so it wins over the control's
+ * shorthand; a control with a background image of its own is not marked `shade` and only scales.
+ */
+[data-pressed="shade"] {
+  background-image: linear-gradient(
+    color-mix(in srgb, currentColor 12%, transparent),
+    color-mix(in srgb, currentColor 12%, transparent)
+  ) !important;
+}

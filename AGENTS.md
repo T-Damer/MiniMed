@@ -175,7 +175,8 @@ were not tested.
 - Animations, transitions and interactions follow iOS (UIKit/SwiftUI) behaviour, in a fast mode:
   content slides and fades instead of popping, state changes (idle → busy → result, empty →
   filled, pending → «Обновить») cross-fade or move rather than jump, sheets rise from below,
-  pressed controls give a short scale feedback (≈0.96).
+  pressed controls give a short scale feedback (≈0.96) and, while held, a shade of their own text
+  colour (keys on a ledge sink instead; `components/press-feedback.ts`).
 - Keep them quick: 120–260 ms through the theme tokens `--motion-fast`, `--motion-base`,
   `--motion-slow` and the curves `--motion-ease` / `--motion-ease-out` (`styles/global.css`); nothing
   longer than ~300 ms unless it follows a gesture.

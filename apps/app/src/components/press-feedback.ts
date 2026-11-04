@@ -1,8 +1,10 @@
 /**
  * Pressed controls shrink a little while the finger is down (AGENTS.md «Motion»: ≈0.96) and spring
  * back when it lifts — every tappable thing in the app, without each component asking for it.
- * Controls drawn as physical keys (a face on a ledge: `.ui-button` and the primary-depth ones) do
- * not shrink: they sink onto their ledge, drawn in CSS from `data-pressed` (owner 2026-11-04).
+ * Under a fingertip that scale is a pixel or two, so a held press also shades the control
+ * (press-feedback.css), as iOS highlights a touched control. Controls drawn as physical keys (a
+ * face on a ledge: `.ui-button` and the primary-depth ones) neither shrink nor shade: they sink
+ * onto their ledge, drawn in CSS from `data-pressed` (owner 2026-11-04).
  *
  * The scale is the independent `scale` property played with `Element.animate`, so it composes with
  * a control's own `transform` and `transition`, the AnimationManager retimes it (state/motion.ts)
@@ -11,6 +13,8 @@
  * does not hide it).
  */
 import { motionRate } from '@/state/motion';
+
+import '@/components/press-feedback.css';
 
 const PRESSABLE = [
   'button',
@@ -43,8 +47,14 @@ const LEDGED = [
   '.search-quick-access__all',
 ].join(', ');
 
-/** Set on the pressed control for as long as the press shows, at least {@link PRESS_HOLD_MS}. */
+/**
+ * Set on the pressed control for as long as the press shows, at least {@link PRESS_HOLD_MS}. Its
+ * value says how the press is drawn in CSS: a key on a ledge sinks, a control shades
+ * (press-feedback.css) unless it paints a background image of its own (a striped cell, a shutter),
+ * which the shade would cover — that one only scales.
+ */
 export const PRESSED_ATTRIBUTE = 'data-pressed';
+type PressLook = 'ledge' | 'shade' | '';
 
 /** The shortest time a press stays visible, so a quick tap is not over before it is seen. */
 export const PRESS_HOLD_MS = 120;
@@ -110,7 +120,12 @@ function onPointerDown(event: PointerEvent): void {
   const scale = pressScale(box.width, box.height, window.innerWidth, window.innerHeight);
   const ledged = element.matches(LEDGED);
   if (scale === null && !ledged) return;
-  element.setAttribute(PRESSED_ATTRIBUTE, '');
+  const look: PressLook = ledged
+    ? 'ledge'
+    : getComputedStyle(element).backgroundImage === 'none'
+      ? 'shade'
+      : '';
+  element.setAttribute(PRESSED_ATTRIBUTE, look);
   const animation =
     ledged || scale === null || !moving()
       ? undefined

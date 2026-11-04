@@ -12,6 +12,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 - Lab result sheet: the result and the day sit side by side at one height, the unit inside the box, the number written
   with a comma («5,4 ммоль/л»); the day's calendar opens above the sheet in the patient's diary (it opened beneath it).
 - Notifications: the second line reads in the dark theme (it kept sonner's light-theme grey).
+- A held press shows: a calendar day, an icon button, a chip or a row is shaded in its own text colour while the finger
+  is down (the ≈0.96 shrink alone was a pixel or two hidden under the fingertip); keys on a ledge still sink.
 - Diary deck: 19 slides — «Сигнум», «Отметки о влечениях» (substance use, craving, RUS-AUDIT/OCDS), visits and lab
   tests, new screenshots.
 
