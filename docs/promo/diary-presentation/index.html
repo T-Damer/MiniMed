@@ -93,7 +93,7 @@ h2 { margin: 8px 0 0; font: 700 40px/1.1 var(--serif); color: var(--text); lette
 .sa .qmock .opt i.on { background: var(--accent); }
 
 /* ---------- slide: analogues ---------- */
-.scmp .grid { display: grid; grid-template-columns: 250px repeat(9, 1fr); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: #fffdf6; box-shadow: var(--shadow); }
+.scmp .grid { display: grid; grid-template-columns: 250px repeat(10, 1fr); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: #fffdf6; box-shadow: var(--shadow); }
 .scmp .grid > div { display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 4px 6px; border-top: 1px solid var(--muted); text-align: center; }
 .scmp .grid > .th { min-height: 62px; border-top: 0; background: var(--paper-2); font: 700 13px/1.2 var(--sans); color: var(--text-2); }
 .scmp .grid > .nm { justify-content: flex-start; flex-direction: column; align-items: flex-start; text-align: left; padding-left: 18px; font: 700 17px/1.15 var(--sans); }
@@ -562,23 +562,25 @@ ul.dot li::before { content: ""; position: absolute; left: 3px; top: 0.5em; widt
   <div class="body">
     <div class="grid">
       <div class="th nm">Продукт</div>
-      <div class="th">Дневник и&nbsp;приём лекарств</div>
-      <div class="th">Врач видит дневник между визитами</div>
       <div class="th">Свои опросники</div>
       <div class="th">Сигнал врачу при ухудшении</div>
       <div class="th">Команда врачей</div>
       <div class="th">Опекун видит журнал</div>
       <div class="th">Умные часы и&nbsp;датчики</div>
       <div class="th">Сквозное шифрование</div>
-      <div class="th">Русский, данные в&nbsp;РФ</div>
+      <div class="th">Пациенту не нужен аккаунт</div>
+      <div class="th">Работает без интернета</div>
+      <div class="th">Обмен по HL7 FHIR</div>
+      <div class="th">Бесплатно</div>
       <div class="nm me"><span><a href="https://med.1damer.com/demo">MiniMed</a></span><small>назначения и отметки</small></div>
       <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m y"></i></div>
-      <div class="me"><i class="m y"></i></div>
-      <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m f"></i></div>
+      <div class="me"><i class="m y"></i></div>
+      <div class="me"><i class="m y"></i></div>
+      <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m y"></i></div>
       <div class="me"><i class="m y"></i></div>
       <div class="nm"><span><a href="https://about.medsenger.ru/ru/">Medsenger</a></span><small>РФ · медицинский мессенджер</small></div>
@@ -587,38 +589,42 @@ ul.dot li::before { content: ""; position: absolute; left: 3px; top: 0.5em; widt
       <div><i class="m y"></i></div>
       <div><i class="m y"></i></div>
       <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
       <div><i class="m n"></i></div>
-      <div><i class="m y"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
       <div class="nm"><span><a href="https://sberhealth.ru/">СберЗдоровье</a></span><small>РФ · тонометр + наблюдение врача</small></div>
-      <div><i class="m p"></i></div>
-      <div><i class="m y"></i></div>
       <div><i class="m n"></i></div>
       <div><i class="m y"></i></div>
       <div><i class="m n"></i></div>
       <div><i class="m n"></i></div>
       <div><i class="m p"></i></div>
       <div><i class="m n"></i></div>
-      <div><i class="m y"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
       <div class="nm"><span><a href="https://www.digitalpsych.org/mindlamp">mindLAMP</a></span><small>США, Гарвард · для исследований</small></div>
+      <div><i class="m y"></i></div>
+      <div><i class="m y"></i></div>
+      <div><i class="m y"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m y"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
       <div><i class="m p"></i></div>
       <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m n"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m n"></i></div>
-      <div><i class="m n"></i></div>
       <div class="nm"><span><a href="https://www.medisafe.com/">Medisafe</a>, <a href="https://www.mytherapyapp.com/">MyTherapy</a></span><small>напоминания о лекарствах</small></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
+      <div><i class="m n"></i></div>
       <div><i class="m y"></i></div>
+      <div><i class="m y"></i></div>
+      <div><i class="m n"></i></div>
       <div><i class="m p"></i></div>
-      <div><i class="m n"></i></div>
-      <div><i class="m n"></i></div>
-      <div><i class="m n"></i></div>
-      <div><i class="m y"></i></div>
-      <div><i class="m y"></i></div>
+      <div><i class="m p"></i></div>
       <div><i class="m n"></i></div>
       <div><i class="m p"></i></div>
     </div>
@@ -627,7 +633,7 @@ ul.dot li::before { content: ""; position: absolute; left: 3px; top: 0.5em; widt
         <div class="src">Аналоги — по их открытым описаниям, ноябрь 2026</div></div>
       <div class="cards">
         <div class="card"><h3>Medsenger — второй мессенджер</h3><p>Канал с врачом, родственники, консилиум — как платная услуга клиники, лицензия <b>10&nbsp;000&nbsp;₽ в месяц</b> за врача. Сквозного шифрования и HL7 FHIR не заявлено.</p></div>
-        <div class="card"><h3>Ещё у MiniMed</h3><ul class="dot"><li><b>Бесплатно</b> (пока) · обмен по стандарту <b>HL7 FHIR</b></li><li>Простота: <b>назначения и отметки</b>, шкалы PHQ-9 и GAD-7</li><li>Клинике — <b>свой сервер и модули</b>: платная консультация</li></ul></div>
+        <div class="card"><h3>Ещё у MiniMed</h3><ul class="dot"><li>Данные <b>в России</b> (152‑ФЗ), можно на сервере вуза</li><li>Простота: <b>назначения и отметки</b>, шкалы PHQ-9 и GAD-7</li><li>Клинике — <b>свой сервер и модули</b>: платная консультация</li></ul></div>
       </div>
     </div>
   </div>

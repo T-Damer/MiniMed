@@ -38,7 +38,9 @@ bun docs/promo/diary-presentation/tools/qr-links.ts --check  # read every code b
 
 ## Analogues (slide 3)
 
-Checked 2026-11-04 from the vendors' own pages and store listings; «—» on the slide means «no» or
+Columns are the ones where products differ (owner 11-04: show what Medsenger lacks — no patient
+account, offline, HL7 FHIR, free; MiniMed has no patient account and is offline-first per
+`docs/adr/0026-connected-diary-service.md`). Checked 2026-11-04 from the vendors' own pages and store listings; «—» on the slide means «no» or
 «not described anywhere we found». Product names on the slide link to these sites.
 
 - [Medsenger](https://about.medsenger.ru/ru/) (ООО «Телепат», RU) — the closest one. Its agent «Опросники и
