@@ -52,6 +52,32 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Joining documents: consent, personal data, remote-care contract — 2026-11-04 (STATE DIARY26)
+
+- **Owner 2026-11-04:** the patient joins as with other remote-monitoring services — «подписывает информированное
+  согласие, согласие на обработку персональных данных и договор на дистанционное сопровождение».
+- **Patient** (`diary/CareIntro.tsx`, replaces the two summary steps): step 1 «Документы для подключения» — three cards
+  (summary points, «Полный текст» unfolding in place, a «Шаблон» badge), each with its own «Принимаю» toggle; «Далее»
+  only with all three; step 2 is the crisis contacts as before. Re-read later: «Настройки» → «Принятые документы».
+- **Texts** (`features/diary/consent/joining-documents.ts`): template wordings with a `version` each
+  (`template-2026-11-04`); the connected and the offline diary differ only in the data paragraphs. The clinic and
+  doctor are filled from the plan's new `operator` (`DiaryInvitation.operator`: organization, address, ОГРН, doctor,
+  position), which `careInvitation` and the offline diary dialog take from the doctor's «Врач и организация»
+  (`state/clinician-profile`; the plan's signature stands in for the doctor's name). What nobody filled in, and what
+  only the clinic can set (cost, the doctor's hours, the processor), stays a dashed blank. Lawyer drafts with open
+  questions: `docs/diary-consent/` (new: `remote-care-contract.draft.md`).
+- **Stored.** Meta `consents: [{document, version, at}]`; `consentAt` is the last acceptance. The connected
+  `consent` record now carries `{at, version: joining-template-2026-11-04, documents}` — encrypted like every record,
+  the server sees only that a record exists. Before the documents are accepted on a plan that asks for them, a paired
+  phone's outbox is empty (no marks, tip reads or consent). The replica takes a consent only from a patient device
+  (`p:`), and another phone of the patient takes the documents from the record.
+- **Doctor** (`DiaryPatientPage`): a chip in the header line — «Документы приняты 4 нояб.» opens «Документы пациента»
+  (each document, «Принят 4 ноября 2026, 11:02 · шаблон от 04.11.2026», its full text with the plan's clinic);
+  «Документы ещё не приняты» while a phone is paired and waiting; «Согласие принято …» for diaries accepted with the
+  earlier two-summary intro (not asked again). Withdrawal works as before.
+- **Limits.** Pairing still happens on opening the link (the clinic's details are inside the encrypted plan, which
+  only a paired phone can read), but nothing reaches the doctor before the acceptance. Offline (QR/file) diaries keep
+  the acceptances on the phone only. Texts are templates until the clinic's lawyer replaces them (new `version`).
 ## The diaries site: the sign-in first, then the whole app — 2026-11-04 (STATE DIARY24)
 
 - **Owner 2026-11-04:** «ideally load the whole app (site) at once so there is no loading later — except before the user

@@ -8,6 +8,7 @@ import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { TipsDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
@@ -15,6 +16,7 @@ import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
 import type { DiaryInvitation } from '@/features/diary/diary-model';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
+import { getClinicianProfile } from '@/state/clinician-profile';
 
 function errorText(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -65,6 +67,7 @@ export function PatientScreenPage(props: {
         doctor: doctor(),
         note: note(),
         previous: props.invitation,
+        operator: operatorFromProfile(getClinicianProfile()),
       });
       // Merged onto a colleague's save made meanwhile (DIARY20); both changed → this one kept.
       const outcome = await props.workspace.writePlan(

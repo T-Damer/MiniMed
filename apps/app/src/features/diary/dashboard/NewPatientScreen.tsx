@@ -7,12 +7,14 @@ import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
+import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
 import { frequentDrugs } from '@/features/diary/dashboard/frequent-drugs';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careInvitation, emptyCareDraft } from '@/features/diary/diary-care-draft';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
+import { getClinicianProfile } from '@/state/clinician-profile';
 
 /** The address segment of the «Новый пациент» screen (patient ids are 20 random characters). */
 export const NEW_PATIENT_ROUTE = 'new';
@@ -66,7 +68,13 @@ export function NewPatientScreen(props: {
           ...(birthDate() ? { birthDate: birthDate() } : {}),
         },
         (patientId) =>
-          careInvitation({ id: patientId, draft: draft(), doctor: doctor(), note: note() }),
+          careInvitation({
+            id: patientId,
+            draft: draft(),
+            doctor: doctor(),
+            note: note(),
+            operator: operatorFromProfile(getClinicianProfile()),
+          }),
       );
       setCreated(id);
     } catch (cause) {

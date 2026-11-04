@@ -14,6 +14,7 @@ import {
   type DiaryField,
   type DiaryInvitation,
   type DiaryMeal,
+  type DiaryOperator,
   type DiaryPlanItem,
   type DiaryTip,
   diaryTemplate,
@@ -524,7 +525,10 @@ export function careInvitation(input: {
   readonly doctor: string;
   readonly note: string;
   readonly previous?: DiaryInvitation | undefined;
+  /** The clinic and doctor for the joining documents; absent keeps the previous plan's. */
+  readonly operator?: DiaryOperator | undefined;
 }): DiaryInvitation {
+  const operator = input.operator ?? input.previous?.operator;
   const template = diaryTemplate('care');
   const parts = careInvitationParts(input.draft, input.previous);
   const live =
@@ -548,6 +552,7 @@ export function careInvitation(input: {
     ...(parts.tips.length ? { tips: parts.tips } : {}),
     ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
     consent: true,
+    ...(operator ? { operator } : {}),
     ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),
     ...(input.note.trim() ? { note: input.note.trim() } : {}),
   });

@@ -28,6 +28,9 @@ import type { DiaryAlert } from '@localmed/contracts';
 import { patientRowSummary } from '@/components/patient-picker-summary';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
+import { consentDay, consentStatus } from '@/features/diary/consent/consent-status';
+import { diaryOperator } from '@/features/diary/consent/joining-documents';
 import {
   exportCsv,
   exportRows,
@@ -67,6 +70,7 @@ import { crossesLimit } from '@/state/assessment-limits';
 type Dialog =
   | 'day'
   | 'pair'
+  | 'consent'
   | 'curators'
   | 'tips'
   | 'export'
@@ -207,6 +211,17 @@ export function DiaryPatientPage(props: {
     return props.workspace.alerts().filter((alert) => alert.patientId === props.patient.summary.id);
   });
 
+  /** The joining documents (DIARY26): accepted and when, or still waited for on a paired phone. */
+  const consentState = createMemo(() => {
+    void props.version;
+    return consentStatus({
+      asks: props.patient.replica.invitation?.consent === true,
+      consentAt: props.patient.replica.consentAt,
+      consents: props.patient.replica.consents,
+      devices: props.patient.summary.devices,
+    });
+  });
+
   const phone = (): string | undefined => props.patient.replica.profile?.phone;
   const actions = createMemo((): readonly HeaderAction[] => {
     const edit = canEdit();
@@ -296,10 +311,35 @@ export function DiaryPatientPage(props: {
           const label = presenceLabel(props.patient.summary);
           const birth = props.patient.replica.profile?.birthDate;
           const born = birth ? patientRowSummary(birth, dayKey(new Date())) : undefined;
-          if (!label && !born) return undefined;
+          const consent = consentState();
+          if (!label && !born && !consent) return undefined;
           return (
             <span class="diary-patient__line">
               <Show when={born}>{(text) => <span class="diary-patient__born">{text()}</span>}</Show>
+              <Show when={consent}>
+                {(state) => (
+                  <button
+                    type="button"
+                    class="consent-chip"
+                    classList={{ 'consent-chip--waiting': state().kind === 'waiting' }}
+                    data-testid="patient-consent"
+                    disabled={state().kind !== 'accepted'}
+                    onClick={() => setDialog('consent')}
+                  >
+                    <AppGlyph
+                      name={state().kind === 'waiting' ? 'clock' : 'file-text'}
+                      class="consent-chip__glyph"
+                    />
+                    {(() => {
+                      const current = state();
+                      if (current.kind === 'waiting') return 'Документы ещё не приняты';
+                      return current.kind === 'accepted'
+                        ? `Документы приняты ${consentDay(current.at)}`
+                        : `Согласие принято ${consentDay(current.at)}`;
+                    })()}
+                  </button>
+                )}
+              </Show>
               <Show when={label}>
                 <span class="diary-presence">
                   <span
@@ -438,6 +478,19 @@ export function DiaryPatientPage(props: {
               workspace={props.workspace}
               patientId={props.patient.summary.id}
               onDone={() => setDialog(undefined)}
+            />
+          </OverlayDialog>
+        </Match>
+        <Match when={dialog() === 'consent'}>
+          <OverlayDialog open title="Документы пациента" onClose={() => setDialog(undefined)}>
+            <ConsentRecord
+              consents={props.patient.replica.consents ?? []}
+              operator={
+                props.patient.replica.invitation
+                  ? diaryOperator(props.patient.replica.invitation)
+                  : {}
+              }
+              connected
             />
           </OverlayDialog>
         </Match>

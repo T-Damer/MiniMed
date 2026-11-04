@@ -177,9 +177,29 @@ export interface DiaryInvitation {
   readonly tips?: readonly DiaryTip[];
   /** Where to turn in a crisis, besides the doctor's contacts and 112 (one line each). */
   readonly crisis?: readonly string[];
-  /** The patient confirms the consent summaries before the first entry. */
+  /** The patient accepts the joining documents before the first entry (`features/diary/consent`). */
   readonly consent?: boolean;
+  /** Who runs the follow-up, from the doctor's «Врач и организация»: filled into those documents. */
+  readonly operator?: DiaryOperator;
 }
+
+/** The clinic and the doctor as the joining documents name them; every part may be missing. */
+export interface DiaryOperator {
+  readonly organization?: string;
+  readonly address?: string;
+  /** ОГРН or ОГРНИП. */
+  readonly ogrn?: string;
+  readonly clinician?: string;
+  readonly position?: string;
+}
+
+export const DIARY_OPERATOR_KEYS = [
+  'organization',
+  'address',
+  'ogrn',
+  'clinician',
+  'position',
+] as const satisfies readonly (keyof DiaryOperator)[];
 
 /**
  * Why an intake was missed (DIARY22, owner 2026-11-03: «when the patient didn't take it, ask why —
@@ -723,6 +743,17 @@ function parseCrisis(value: unknown): string[] {
   return value.map((line, index) => text(line, `Экстренный контакт ${index + 1}`));
 }
 
+function parseOperator(value: unknown): DiaryOperator | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Реквизиты врача');
+  const operator: Partial<Record<keyof DiaryOperator, string>> = {};
+  for (const key of DIARY_OPERATOR_KEYS) {
+    const part = text(source[key], 'Реквизиты врача', true);
+    if (part) operator[key] = part;
+  }
+  return Object.keys(operator).length ? operator : undefined;
+}
+
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.length > MAX_DIARY_PLAN_ITEMS) {
@@ -793,6 +824,7 @@ function parseInvitationV2(
   const contacts = parseContacts(source['contacts']);
   const tips = parseTips(source['tips']);
   const crisis = parseCrisis(source['crisis']);
+  const operator = parseOperator(source['operator']);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -809,6 +841,7 @@ function parseInvitationV2(
     ...(tips.length ? { tips } : {}),
     ...(crisis.length ? { crisis } : {}),
     ...(source['consent'] === true ? { consent: true } : {}),
+    ...(operator ? { operator } : {}),
   };
 }
 

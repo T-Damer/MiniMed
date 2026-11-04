@@ -15,6 +15,7 @@ import {
   PatientConnection,
   readPairingFragment,
 } from '@/features/diary/connected/patient-connection';
+import { joiningDocuments } from '@/features/diary/consent/joining-documents';
 import {
   type DemoBehavior,
   demoIssuedAt,
@@ -350,7 +351,14 @@ async function seedOne(
       invitation: results.invitation,
       entries: diary.entries,
     });
-    store.setMeta(id, { consentAt: diary.consentAt });
+    store.setMeta(id, {
+      consentAt: diary.consentAt,
+      consents: joiningDocuments(true).map((document) => ({
+        document: document.id,
+        version: document.version,
+        at: diary.consentAt,
+      })),
+    });
     const status = await connection.sync();
     if (status.phase !== 'idle' || status.pending > 0) {
       throw new Error(status.message ?? 'Записи не отправились на сервер.');

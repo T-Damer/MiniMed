@@ -4,6 +4,10 @@
  * revision wins. Payloads are validated here because they come from another device.
  */
 import {
+  type JoiningAcceptance,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
+import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
   DiaryFormatError,
@@ -63,7 +67,12 @@ export type DiaryPayload =
   | ({ readonly kind: 'profile' } & DiaryProfile)
   | { readonly kind: 'entry'; readonly entry: unknown }
   | { readonly kind: 'deleted' }
-  | { readonly kind: 'consent'; readonly at: string; readonly version: string }
+  | {
+      readonly kind: 'consent';
+      readonly at: string;
+      readonly version: string;
+      readonly documents?: readonly JoiningAcceptance[];
+    }
   | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string };
 
 /** One decrypted record revision as the sync session hands it over. */
@@ -100,6 +109,8 @@ export interface DiaryReplica {
   readonly entryAuthors: ReadonlyMap<string, string>;
   readonly tipsRead: ReadonlySet<string>;
   readonly consentAt: string | undefined;
+  /** The joining documents the patient accepted, with wording and time (none before DIARY26). */
+  readonly consents?: readonly JoiningAcceptance[];
   /** Record id → latest revision applied. */
   readonly revs: ReadonlyMap<string, number>;
   /** Records that could not be read (bad payload); kept out of the diary. */
@@ -132,6 +143,7 @@ export function applyRevisions(
   const planHistory = [...(replica.planHistory ?? [])];
   let profile = replica.profile;
   let consentAt = replica.consentAt;
+  let consents = replica.consents ?? [];
   let rejected = replica.rejected;
   const entries = new Map(replica.entries);
   const entryAuthors = new Map(replica.entryAuthors);
@@ -173,7 +185,10 @@ export function applyRevisions(
         };
       } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
         if (typeof payload['at'] !== 'string') throw new DiaryFormatError('Согласие.');
+        if (!revision.author.startsWith('p:'))
+          throw new DiaryFormatError('Согласие не с телефона.');
         consentAt = payload['at'];
+        consents = parseJoiningAcceptances(payload['documents']);
       } else if (revision.id.startsWith('read-') && payload['kind'] === 'tip-read') {
         if (typeof payload['tip'] !== 'string') throw new DiaryFormatError('Подсказка.');
         tipsRead.add(payload['tip']);
@@ -209,6 +224,7 @@ export function applyRevisions(
     entryAuthors,
     tipsRead,
     consentAt,
+    ...(consents.length ? { consents } : {}),
     revs,
     rejected,
   };

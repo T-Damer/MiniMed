@@ -32,6 +32,7 @@ import {
   type ReminderSettings,
   type SyncStatus,
 } from '@/features/diary/connected/patient-connection';
+import { acceptedAt, diaryOperator } from '@/features/diary/consent/joining-documents';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import { markAllSent, shareStatus } from '@/features/diary/diary-merge';
 import {
@@ -462,6 +463,11 @@ export function DiaryView(props: {
             hasOtherDiaries={props.hasOtherDiaries}
             onPrint={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
             onFhir={() => downloadFhir(results())}
+            consents={
+              meta().consents?.length
+                ? { accepted: meta().consents ?? [], operator: diaryOperator(invitation()) }
+                : undefined
+            }
             onRestored={(id) => {
               if (id === invitation().id) setResults(props.store.read(id) ?? results());
             }}
@@ -523,7 +529,9 @@ export function DiaryView(props: {
             openOnMount={editTarget()}
             onSave={saveCare}
             onRemove={remove}
-            onConsent={() => updateMeta({ consentAt: new Date().toISOString() })}
+            onConsent={(consents) =>
+              updateMeta({ consentAt: acceptedAt(consents) ?? new Date().toISOString(), consents })
+            }
             onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
             sync={sync()}
             notice={notice()}

@@ -1,52 +1,105 @@
-import { createSignal, For, type JSX, Match, onMount, Switch } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { CrisisContent } from '@/diary/care-contacts';
-import type { DiaryInvitation } from '@/features/diary/diary-model';
+import { pluralize } from '@/diary/diary-format';
+import { ConsentFullText } from '@/features/diary/consent/ConsentDocumentText';
+import {
+  acceptedAll,
+  diaryOperator,
+  type JoiningAcceptance,
+  type JoiningDocument,
+  joiningDocuments,
+} from '@/features/diary/consent/joining-documents';
+import type { DiaryInvitation, DiaryOperator } from '@/features/diary/diary-model';
 
-/**
- * Plain summaries of the two documents the patient signed on paper at the visit. The full texts
- * are the clinic's (drafts: docs/diary-consent/); the app records that the patient read these.
- */
-const MONITORING_POINTS = [
-  'Вы отмечаете лекарства, самочувствие, показатели и опросники, которые назначил врач.',
-  'Записи видят только ваш врач и врачи, которых он подключит; список виден вам.',
-  'Врач читает записи в рабочее время; в опасной ситуации звоните 112.',
-  'Отказаться можно в любой момент — на лечение это не влияет.',
-];
+type Step = 'documents' | 'crisis';
 
-// The offline diary: entries stay on the phone until the patient sends them.
-const DATA_POINTS = [
-  'В дневнике нет вашего имени: кто вы, знает только врач.',
-  'Записи хранятся на вашем телефоне и уходят врачу, когда вы их отправите.',
-  'Удалить дневник можно в любой момент вместе со всеми записями.',
-];
-
-// The connected diary (ADR-0026): encrypted on the phone, kept on a server in Russia.
-const CONNECTED_DATA_POINTS = [
-  'В дневнике нет вашего имени: кто вы, знает только врач.',
-  'Записи шифруются на телефоне и уходят врачу сами; сервер хранит только шифр и прочитать его не может.',
-  'Данные хранятся в России. Отозвать согласие можно в «Ещё» — записи удалятся с сервера.',
-];
-
-type Step = 'monitoring' | 'data' | 'crisis';
-
-function Points(props: { readonly points: readonly string[] }): JSX.Element {
+function DocumentCard(props: {
+  readonly document: JoiningDocument;
+  readonly operator: DiaryOperator;
+  readonly accepted: boolean;
+  readonly onAccept: (accepted: boolean) => void;
+}): JSX.Element {
   return (
-    <ul class="diary-intro__points">
-      <For each={props.points}>{(point) => <li class="diary-intro__point">{point}</li>}</For>
-    </ul>
+    <li
+      class="consent-doc"
+      classList={{ 'consent-doc--accepted': props.accepted }}
+      data-document={props.document.id}
+    >
+      <div class="consent-doc__head">
+        <span class="consent-doc__icon" aria-hidden="true">
+          <AppGlyph name="file-text" class="consent-doc__glyph" />
+        </span>
+        <h2 class="consent-doc__title">{props.document.title}</h2>
+        <span class="consent-doc__badge">Шаблон</span>
+      </div>
+      <ul class="consent-doc__points">
+        <For each={props.document.summary}>
+          {(point) => <li class="consent-doc__point">{point}</li>}
+        </For>
+      </ul>
+      <ConsentFullText document={props.document} operator={props.operator} />
+      <button
+        type="button"
+        class="consent-accept"
+        classList={{ 'consent-accept--on': props.accepted }}
+        aria-pressed={props.accepted}
+        aria-label={`Принимаю: ${props.document.title}`}
+        onClick={() => props.onAccept(!props.accepted)}
+      >
+        <span
+          class="consent-accept__box"
+          classList={{ 'consent-accept__box--on': props.accepted }}
+          aria-hidden="true"
+        >
+          <AppGlyph
+            name="check"
+            class={
+              props.accepted
+                ? 'consent-accept__tick consent-accept__tick--on'
+                : 'consent-accept__tick'
+            }
+          />
+        </span>
+        <span class="consent-accept__label">Принимаю</span>
+      </button>
+    </li>
   );
 }
 
-/** Before the first entry: two consent summaries and where to turn when it is very bad. */
+/**
+ * Before the first entry of a care diary: the three joining documents, each accepted on its own
+ * (DIARY26), then where to turn when it is very bad. A connected diary sends nothing to the doctor
+ * before this is done (`patient-connection.ts`); the acceptances keep each document's wording.
+ */
 export function CareIntro(props: {
   readonly invitation: DiaryInvitation;
   /** The diary syncs through the service rather than being sent by hand. */
   readonly connected?: boolean;
-  readonly onDone: () => void;
+  readonly onDone: (consents: readonly JoiningAcceptance[]) => void;
 }): JSX.Element {
-  const [step, setStep] = createSignal<Step>('monitoring');
+  const [step, setStep] = createSignal<Step>('documents');
+  const [accepted, setAccepted] = createSignal<readonly JoiningAcceptance[]>([]);
+  const documents = createMemo(() => joiningDocuments(props.connected === true));
+  const operator = createMemo(() => diaryOperator(props.invitation));
+  const ready = (): boolean => acceptedAll(documents(), accepted());
+  const count = (): number => accepted().length;
+  const isAccepted = (document: JoiningDocument): boolean =>
+    accepted().some((item) => item.document === document.id);
+  const accept = (document: JoiningDocument, on: boolean): void => {
+    const others = accepted().filter((item) => item.document !== document.id);
+    setAccepted(
+      on
+        ? [
+            ...others,
+            { document: document.id, version: document.version, at: new Date().toISOString() },
+          ]
+        : others,
+    );
+  };
+
   let heading: HTMLHeadingElement | undefined;
   const go = (next: Step): void => {
     setStep(next);
@@ -54,42 +107,48 @@ export function CareIntro(props: {
     queueMicrotask(() => heading?.focus({ preventScroll: true }));
   };
   onMount(() => heading?.focus({ preventScroll: true }));
-  const number = (): number => ['monitoring', 'data', 'crisis'].indexOf(step()) + 1;
 
   return (
     <main class="diary-page diary-page--care diary-intro">
-      <p class="diary-intro__step">Шаг {number()} из 3</p>
+      <p class="diary-intro__step">Шаг {step() === 'documents' ? 1 : 2} из 2</p>
       <Switch>
-        <Match when={step() === 'monitoring'}>
+        <Match when={step() === 'documents'}>
           <h1 class="diary-intro__title" tabindex="-1" ref={heading}>
-            Согласие на наблюдение
+            Документы для подключения
           </h1>
           <p class="diary-intro__lead">
             {props.invitation.doctor
-              ? `${props.invitation.doctor} будет следить за лечением по этому дневнику.`
-              : 'Врач будет следить за лечением по этому дневнику.'}
+              ? `${props.invitation.doctor} подключает вас к наблюдению по этому дневнику. Примите каждый документ.`
+              : 'Врач подключает вас к наблюдению по этому дневнику. Примите каждый документ.'}
           </p>
-          <Points points={MONITORING_POINTS} />
-          <Button
-            class="diary-button diary-intro__next"
-            variant="primary"
-            onClick={() => go('data')}
-          >
-            Прочитал(а), согласен(на)
-          </Button>
-        </Match>
-        <Match when={step() === 'data'}>
-          <h1 class="diary-intro__title" tabindex="-1" ref={heading}>
-            Согласие на обработку данных
-          </h1>
-          <Points points={props.connected ? CONNECTED_DATA_POINTS : DATA_POINTS} />
-          <Button
-            class="diary-button diary-intro__next"
-            variant="primary"
-            onClick={() => go('crisis')}
-          >
-            Прочитал(а), согласен(на)
-          </Button>
+          <ol class="consent-docs">
+            <For each={documents()}>
+              {(document) => (
+                <DocumentCard
+                  document={document}
+                  operator={operator()}
+                  accepted={isAccepted(document)}
+                  onAccept={(on) => accept(document, on)}
+                />
+              )}
+            </For>
+          </ol>
+          <div class="consent-docs__footer">
+            <p class="consent-docs__count" aria-live="polite">
+              <Show when={!ready()} fallback="Все документы приняты">
+                Принято {count()} из {documents().length}{' '}
+                {pluralize(documents().length, 'документа', 'документов', 'документов')}
+              </Show>
+            </p>
+            <Button
+              class="diary-button diary-intro__next"
+              variant="primary"
+              disabled={!ready()}
+              onClick={() => go('crisis')}
+            >
+              Далее
+            </Button>
+          </div>
         </Match>
         <Match when={step() === 'crisis'}>
           <h1 class="diary-intro__title" tabindex="-1" ref={heading}>
@@ -97,7 +156,11 @@ export function CareIntro(props: {
           </h1>
           <CrisisContent invitation={props.invitation} />
           <p class="diary-intro__lead">Эти контакты всегда под кнопкой «Помощь» вверху дневника.</p>
-          <Button class="diary-button diary-intro__next" variant="primary" onClick={props.onDone}>
+          <Button
+            class="diary-button diary-intro__next"
+            variant="primary"
+            onClick={() => props.onDone(accepted())}
+          >
             Начать дневник
           </Button>
         </Match>

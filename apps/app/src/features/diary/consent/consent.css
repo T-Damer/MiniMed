@@ -1,0 +1,327 @@
+/*
+ * Joining documents (DIARY26): the patient's three cards before the diary starts, and the same
+ * texts in the doctor's patient page. The diary bundle has no global.css, so tokens carry
+ * fallbacks; motion goes through the theme tokens so «Анимации» retimes it.
+ */
+.consent-docs {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consent-doc {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1rem 0.85rem;
+  border: 1px solid var(--theme-border, #d8dee2);
+  border-radius: var(--theme-radius-panel, 1rem);
+  background: var(--theme-surface-raised, #ffffff);
+  transition:
+    border-color var(--motion-base, 180ms) var(--motion-ease, ease),
+    background-color var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.consent-doc--accepted {
+  border-color: color-mix(in srgb, var(--care-good, #2f7d5b) 45%, var(--theme-border, #d8dee2));
+  background: color-mix(in srgb, var(--care-good, #2f7d5b) 7%, var(--theme-surface-raised, #fff));
+}
+
+.consent-doc__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.consent-doc__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  color: var(--theme-accent, #3c6478);
+  background: var(--theme-accent-soft, rgb(60 100 120 / 12%));
+}
+
+.consent-doc__glyph {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.consent-doc__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.3;
+}
+
+.consent-doc__badge {
+  flex: none;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  color: var(--theme-text-muted, #5b6770);
+  background: var(--theme-surface-muted, #eef1f3);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.consent-doc__points {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.consent-doc__point {
+  line-height: 1.4;
+}
+
+/* «Полный текст»: a quiet text control that turns its caret. */
+.consent-more {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.1rem;
+  border: 0;
+  color: var(--theme-accent-text, var(--theme-accent, #2f5466));
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.consent-more:active {
+  transform: scale(0.96);
+}
+
+.consent-more__caret {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.consent-more__caret--open {
+  transform: rotate(180deg);
+}
+
+/* The full text folds to no height and fades; the grid row animates its height. */
+.consent-full {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--motion-slow, 240ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.consent-full--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.consent-full__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.consent-text {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: var(--theme-radius-control, 0.6rem);
+  background: var(--theme-surface-muted, #eef1f3);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.consent-text__section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.consent-text__heading {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.consent-text__paragraph {
+  margin: 0;
+}
+
+/* What the clinic has not filled in: a gap to fill, with what belongs there. */
+.consent-text__blank {
+  padding: 0 0.25rem;
+  border-bottom: 1px dashed currentColor;
+  color: var(--theme-text-muted, #5b6770);
+  background: color-mix(in srgb, var(--theme-accent, #3c6478) 8%, transparent);
+  font-style: italic;
+}
+
+/* «Принимаю»: one large tap target with a box that fills and ticks. */
+.consent-accept {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-border, #d8dee2);
+  border-radius: var(--theme-radius-control, 0.6rem);
+  color: var(--theme-text, #1d2529);
+  background: var(--theme-surface, #f7f9fa);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease),
+    border-color var(--motion-base, 180ms) var(--motion-ease, ease),
+    background-color var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.consent-accept:active {
+  transform: scale(0.96);
+}
+
+.consent-accept--on {
+  border-color: color-mix(in srgb, var(--care-check, #2f9e5b) 55%, transparent);
+  background: color-mix(in srgb, var(--care-check, #2f9e5b) 10%, var(--theme-surface, #f7f9fa));
+}
+
+.consent-accept__box {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--theme-text-faint, #9aa5ad);
+  border-radius: 0.45rem;
+  color: var(--care-check-ink, #ffffff);
+  transition:
+    background-color var(--motion-base, 180ms) var(--motion-ease, ease),
+    border-color var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.consent-accept__box--on {
+  border-color: var(--care-check, #2f9e5b);
+  background: var(--care-check, #2f9e5b);
+}
+
+.consent-accept__tick {
+  width: 1.05rem;
+  height: 1.05rem;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity var(--motion-fast, 120ms) var(--motion-ease, ease),
+    transform var(--motion-base, 180ms) var(--motion-ease-out, cubic-bezier(0.2, 0.9, 0.3, 1.3));
+}
+
+.consent-accept__tick--on {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.consent-docs__footer {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+.consent-docs__count {
+  margin: 0;
+  color: var(--theme-text-muted, #5b6770);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+/* The doctor's patient page: one tap from the header line to what the patient accepted. */
+.consent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.55rem 0.1rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--care-check, #2f9e5b) 40%, transparent);
+  border-radius: 999px;
+  color: inherit;
+  background: color-mix(in srgb, var(--care-check, #2f9e5b) 8%, transparent);
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.consent-chip:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.consent-chip:disabled {
+  cursor: default;
+}
+
+.consent-chip--waiting {
+  border-color: var(--theme-border, #d8dee2);
+  background: var(--theme-surface-muted, #eef1f3);
+}
+
+.consent-chip__glyph {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* The doctor's list of what the patient accepted. */
+.consent-record {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consent-record__item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--theme-border, #d8dee2);
+  border-radius: var(--theme-radius-control, 0.6rem);
+  background: var(--theme-surface-raised, #ffffff);
+}
+
+.consent-record__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.consent-record__tick {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.1rem;
+  color: var(--care-check, #2f9e5b);
+}
+
+.consent-record__tick--missing {
+  color: var(--theme-text-faint, #9aa5ad);
+}
+
+.consent-record__when {
+  margin: 0;
+  color: var(--theme-text-muted, #5b6770);
+  font-size: 0.88rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consent-full,
+  .consent-accept__tick,
+  .consent-more__caret {
+    transition: none;
+  }
+}

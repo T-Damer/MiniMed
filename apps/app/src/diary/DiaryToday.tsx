@@ -34,6 +34,7 @@ import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
 import { UseSheet } from '@/diary/use-sheet';
 import { VoiceClip } from '@/diary/VoiceClip';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
+import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
 import {
   addDays,
   atTime,
@@ -304,7 +305,7 @@ export function DiaryToday(props: {
   readonly tipsRead: readonly string[];
   readonly onSave: CareSave;
   readonly onRemove: (entry: DiaryEntry) => void;
-  readonly onConsent: () => void;
+  readonly onConsent: (consents: readonly JoiningAcceptance[]) => void;
   readonly onTipRead: (id: string) => void;
   /** Connected diary: where sending to the doctor stands; absent for a QR diary. */
   readonly sync?: SyncStatus | undefined;
