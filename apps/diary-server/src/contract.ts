@@ -36,7 +36,7 @@ function check(condition: unknown, message: string): asserts condition {
  * `store` is the one behind `app` (the missed-dose checks need moments in the past, which no route
  * accepts); the app is made with `tickToken: CONTRACT_TICK_TOKEN`.
  */
-export const CONTRACT_TICK_TOKEN = 'contract-tick-token';
+export const CONTRACT_TICK_TOKEN = 'tick-test';
 
 export async function runStoreContract(
   app: App,
