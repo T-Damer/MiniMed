@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.89] - 2026-11-04
+
+- Alcohol questionnaires: RUS-AUDIT and its 3-question RUS-AUDIT-S, the WHO tests validated in Russia (2021), with the
+  risk levels for women and men; and the Russian OCDS on thoughts about alcohol and craving, scored by its two factors.
+  The wording avoids blame. All three can be given to a patient in the doctors' diaries.
+
 ## [0.6.88] - 2026-11-04
 
 - The doctors' diaries site opens on the sign-in alone: the first visit downloads 2.3 MB instead of over 40 MB. Once the

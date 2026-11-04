@@ -52,6 +52,33 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Alcohol questionnaires: RUS-AUDIT, RUS-AUDIT-S, OCDS — 2026-11-04 (STATE NARCO1)
+
+- **Owner 2026-11-04:** «we will have to include narcology: questionnaires on alcohol and on taking substances? Craving
+  and thoughts; certainly use non-violent words».
+- **RUS-AUDIT / RUS-AUDIT-S** (psychology module, section «Употребление алкоголя», `substance-use`): WHO Europe,
+  «Отчет о реализации проекта RUS-AUDIT» (2021), tables 5 and 7 word for word (CC BY-NC-SA 3.0 IGO); item 2 carries
+  the standard-drink conversion table 6 in its answers. Table 8's cut-offs differ by sex, so a last question «Ваш пол»
+  feeds a `context` scale that the rules read as `score_<id>_sex` (AND as a product of comparisons) and the result does
+  not list. Levels: «Низкий риск», «Повышенный риск» (WHO: опасное), «Употребление сказывается на здоровье» (пагубное),
+  «Возможна зависимость», each with WHO's next step (памятка, краткий совет, краткое вмешательство, консультация
+  психиатра-нарколога с согласия человека). The short test advises the full one when positive (women ≥2, men ≥4).
+- **OCDS** (`ocds-alcohol-craving`): Klimanova et al., Обозрение психиатрии им. Бехтерева 2024;58(4-1):73-90,
+  appendix 1 (CC BY-NC-SA 4.0). Factors «Обсессии» (thoughts) and «Компульсии» (craving and use) by the appendix's
+  formulas, which take the larger answer of items 1–2, 7–8, 9–10 and 13–14; a sum of both (0–40) is charted first.
+  No norms: a neutral headline, evaluation `not-applicable`. Adapted, as the licence allows and the information says:
+  word forms for both genders, and item 12's last answer without the original's judgemental word.
+- **Engine.** `AssessmentScaleDefinition.formula` (an expression over `answer_<id>` with `max`/`min`; range = the formula
+  at all lowest and all highest answers) and `context` (fed to rules, kept out of `scores`); contract in
+  `packages/contracts/src/tool-modules.ts`. Module `minimed.tools.psychology.ru` 0.1.0-preview.9, 14 tools (256 in all).
+- **Diaries.** The three are in `DIARY_QUESTIONNAIRES` (bundled in the diaries copy).
+- **Not done.** No validated Russian self-report test for drugs was found (DUDIT, DAST-10, the WHO ASSIST is an
+  interview); drug use stays the diary's daily amounts and craving. E2E of an unpushed module pack needs
+  `E2E_LOCAL_MODULES=1`; `assessments.spec` «opens personal questionnaires…» fails on main as before.
+- **Checks.** vitest 19 376 passed (new `alcohol-scales.test.ts`: every boundary for women and men, OCDS pairs, no
+  blame words); e2e assessments / score-scale / diary-questionnaires-offline passed with local packs; RUS-AUDIT and OCDS
+  filled in the browser (375 px).
+
 ## The diaries site: the sign-in first, then the whole app — 2026-11-04 (STATE DIARY24)
 
 - **Owner 2026-11-04:** «ideally load the whole app (site) at once so there is no loading later — except before the user
