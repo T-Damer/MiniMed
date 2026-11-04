@@ -27,7 +27,7 @@ import {
 import { createApp } from './app';
 import { bunPasswords } from './passwords';
 import { loadVapid } from './push';
-import { sendDueReminders } from './reminders';
+import { sendDueReminders, sendMissedDoses } from './reminders';
 import { openDatabase, SqliteStore } from './sqlite-store';
 
 async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number) {
@@ -605,6 +605,114 @@ describe('diary server', () => {
     const vapid = await loadVapid(store, 'mailto:test@example.org');
     expect(await sendDueReminders(store, vapid, () => undefined, Date.parse(later) + 1000)).toBe(0);
     expect(deviceId).toBeTruthy();
+  });
+
+  it('tells a carer once about a dose not marked taken 30 minutes after its moment', async () => {
+    const { db, store, call } = await setup('open');
+    const owner = await register(call, 'carer@clinic.ru', 'Д-р Смирнова');
+    const patientId = randomId();
+    const key = newDataKey();
+    const ownerPublic = await publicIdentity(owner.identity);
+    await call(
+      'POST',
+      '/api/patients',
+      {
+        id: patientId,
+        key: {
+          epoch: 1,
+          recipient: `d:${owner.id}`,
+          wrapped: await wrapDataKey(key, ownerPublic.wrap),
+        },
+      },
+      owner.token,
+    );
+    const pair = async (kind?: 'carer') => {
+      const secret = newPairingSecret();
+      await call(
+        'POST',
+        `/api/patients/${patientId}/pairings`,
+        {
+          secretHash: await sha256(secret),
+          keys: await sealPairingKeys(new Map([[1, key]]), secret),
+          ...(kind ? { kind } : {}),
+        },
+        owner.token,
+      );
+      const paired = await call('POST', '/api/pair', {
+        patientId,
+        secret,
+        identity: await publicIdentity(await generateIdentity()),
+      });
+      return { token: paired.body['token'] as string, id: paired.body['deviceId'] as string };
+    };
+    const minutes = (n: number) => new Date(Date.now() + n * 60_000).toISOString();
+    const phone = await pair();
+    // No carer yet: the phone's dose moments are not kept.
+    await call('PUT', '/api/device/reminders', { at: [], checks: [minutes(10)] }, phone.token);
+    expect(db.query('SELECT COUNT(*) AS n FROM dose_checks').get()).toEqual({ n: 0 });
+    await call(
+      'POST',
+      '/api/push/subscriptions',
+      { endpoint: 'https://push.example/phone' },
+      phone.token,
+    );
+
+    const sent: string[] = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      sent.push(String(input));
+      return new Response(null, { status: 201 });
+    }) as typeof fetch;
+    try {
+      const carer = await pair('carer');
+      await call(
+        'POST',
+        '/api/push/subscriptions',
+        { endpoint: 'https://push.example/carer' },
+        carer.token,
+      );
+      // The patient's phone hears that a carer joined.
+      await Bun.sleep(20);
+      expect(sent).toEqual(['https://push.example/phone']);
+      sent.length = 0;
+
+      const [first, second] = [minutes(10), minutes(20)];
+      await call('PUT', '/api/device/reminders', { at: [], checks: [first, second] }, phone.token);
+      // A carer's phone only closes moments: its own times (another time zone) are not kept.
+      await call(
+        'PUT',
+        '/api/device/reminders',
+        { at: [], checks: [minutes(40)], taken: [second] },
+        carer.token,
+      );
+      expect(db.query('SELECT at, state FROM dose_checks ORDER BY at').all()).toEqual([
+        { at: first, state: 'open' },
+        { at: second, state: 'taken' },
+      ]);
+      const vapid = await loadVapid(store, 'mailto:test@example.org');
+      expect(await sendMissedDoses(store, vapid, () => undefined)).toBe(0);
+      const late = Date.parse(second) + 31 * 60_000;
+      expect(await sendMissedDoses(store, vapid, () => undefined, late)).toBe(1);
+      expect(await sendMissedDoses(store, vapid, () => undefined, late + 1000)).toBe(0);
+      await Bun.sleep(20);
+      expect(sent).toEqual(['https://push.example/carer']);
+
+      // The patient removes the carer: the open moments go, and no notice is sent any more.
+      const third = minutes(30);
+      await call('PUT', '/api/device/reminders', { at: [], checks: [third] }, phone.token);
+      expect(
+        (await call('DELETE', `/api/device/carers/${carer.id}`, undefined, phone.token)).status,
+      ).toBe(200);
+      expect(
+        await sendMissedDoses(store, vapid, () => undefined, Date.parse(third) + 31 * 60_000),
+      ).toBe(0);
+      await call('PUT', '/api/device/reminders', { at: [], checks: [minutes(50)] }, phone.token);
+      expect(db.query("SELECT COUNT(*) AS n FROM dose_checks WHERE state = 'open'").get()).toEqual({
+        n: 0,
+      });
+    } finally {
+      globalThis.fetch = realFetch;
+    }
   });
 
   it('asks for an invite when sign-up is closed and resets a password with the recovery code', async () => {

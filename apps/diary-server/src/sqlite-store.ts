@@ -4,13 +4,14 @@
  * what is plain is listed in ADR-0026 §7.
  */
 import { Database } from 'bun:sqlite';
-import type { DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
 
 import {
   type AlertRow,
   type DeviceRow,
   type DiaryStore,
   type DoctorRow,
+  type DoseCheckRow,
   type KeyRow,
   type MemberRow,
   type NewRecord,
@@ -123,6 +124,18 @@ const MIGRATIONS: readonly string[] = [
     PRIMARY KEY (device_id, at)
   );
   CREATE INDEX reminders_at ON reminders (at);
+  `,
+  // 3: carers' phones (DIARY25) and the dose moments kept for their missed-dose notice.
+  `
+  ALTER TABLE devices ADD COLUMN kind TEXT NOT NULL DEFAULT 'patient';
+  ALTER TABLE pairings ADD COLUMN kind TEXT NOT NULL DEFAULT 'patient';
+  CREATE TABLE dose_checks (
+    patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    at TEXT NOT NULL,
+    state TEXT NOT NULL,
+    PRIMARY KEY (patient_id, at)
+  );
+  CREATE INDEX dose_checks_at ON dose_checks (at);
   `,
 ];
 
@@ -271,11 +284,13 @@ export class SqliteStore implements DiaryStore {
     this.db.query('DELETE FROM sessions WHERE token_hash = ?').run(tokenHash);
   }
 
-  async deviceByToken(tokenHash: string): Promise<{ id: string; patient_id: string } | undefined> {
+  async deviceByToken(
+    tokenHash: string,
+  ): Promise<{ id: string; patient_id: string; kind: DiaryDeviceKind } | undefined> {
     return (
       this.db
-        .query<{ id: string; patient_id: string }, [string]>(
-          'SELECT id, patient_id FROM devices WHERE token_hash = ? AND revoked_at IS NULL',
+        .query<{ id: string; patient_id: string; kind: DiaryDeviceKind }, [string]>(
+          'SELECT id, patient_id, kind FROM devices WHERE token_hash = ? AND revoked_at IS NULL',
         )
         .get(tokenHash) ?? undefined
     );
@@ -289,7 +304,7 @@ export class SqliteStore implements DiaryStore {
     return (
       this.db
         .query<{ at: string | null }, [string]>(
-          'SELECT MAX(last_seen_at) AS at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
+          "SELECT MAX(last_seen_at) AS at FROM devices WHERE patient_id = ? AND revoked_at IS NULL AND kind = 'patient'",
         )
         .get(patientId)?.at ?? undefined
     );
@@ -298,7 +313,7 @@ export class SqliteStore implements DiaryStore {
   async activeDevices(patientId: string): Promise<DeviceRow[]> {
     return this.db
       .query<DeviceRow, [string]>(
-        'SELECT id, identity_wrap, identity_sign, created_at, last_seen_at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
+        'SELECT id, kind, identity_wrap, identity_sign, created_at, last_seen_at FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
       )
       .all(patientId);
   }
@@ -324,22 +339,27 @@ export class SqliteStore implements DiaryStore {
     patientId: string,
     sealedKeys: string,
     expiresAt: string,
+    kind: DiaryDeviceKind,
   ): Promise<void> {
     this.db
       .query(
-        'INSERT INTO pairings (secret_hash, patient_id, sealed_keys, expires_at) VALUES (?, ?, ?, ?)',
+        'INSERT INTO pairings (secret_hash, patient_id, sealed_keys, expires_at, kind) VALUES (?, ?, ?, ?, ?)',
       )
-      .run(secretHash, patientId, sealedKeys, expiresAt);
+      .run(secretHash, patientId, sealedKeys, expiresAt, kind);
   }
 
   async pairing(
     secretHash: string,
-  ): Promise<{ patient_id: string; sealed_keys: string; expires_at: string } | undefined> {
+  ): Promise<
+    | { patient_id: string; sealed_keys: string; expires_at: string; kind: DiaryDeviceKind }
+    | undefined
+  > {
     return (
       this.db
-        .query<{ patient_id: string; sealed_keys: string; expires_at: string }, [string]>(
-          'SELECT patient_id, sealed_keys, expires_at FROM pairings WHERE secret_hash = ?',
-        )
+        .query<
+          { patient_id: string; sealed_keys: string; expires_at: string; kind: DiaryDeviceKind },
+          [string]
+        >('SELECT patient_id, sealed_keys, expires_at, kind FROM pairings WHERE secret_hash = ?')
         .get(secretHash) ?? undefined
     );
   }
@@ -352,14 +372,15 @@ export class SqliteStore implements DiaryStore {
       identity_wrap: string;
       identity_sign: string;
       created_at: string;
+      kind: DiaryDeviceKind;
     },
     secretHash: string,
   ): Promise<void> {
     this.db.transaction(() => {
       this.db
         .query(
-          `INSERT INTO devices (id, patient_id, token_hash, identity_wrap, identity_sign, created_at)
-           VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO devices (id, patient_id, token_hash, identity_wrap, identity_sign, created_at, kind)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           device.id,
@@ -368,6 +389,7 @@ export class SqliteStore implements DiaryStore {
           device.identity_wrap,
           device.identity_sign,
           device.created_at,
+          device.kind,
         );
       // One-time: a photo of the QR code is useless afterwards.
       this.db.query('DELETE FROM pairings WHERE secret_hash = ?').run(secretHash);
@@ -433,15 +455,17 @@ export class SqliteStore implements DiaryStore {
       )
       .get(patientId);
     const devices = this.db
-      .query<{ count: number }, [string]>(
-        'SELECT COUNT(*) AS count FROM devices WHERE patient_id = ? AND revoked_at IS NULL',
+      .query<{ patients: number | null; carers: number | null }, [string]>(
+        `SELECT SUM(kind = 'patient') AS patients, SUM(kind = 'carer') AS carers
+         FROM devices WHERE patient_id = ? AND revoked_at IS NULL`,
       )
       .get(patientId);
     return {
       lastSeq: last?.seq ?? 0,
       lastRecordAt: last?.at ?? null,
       openAlerts: alerts?.count ?? 0,
-      devices: devices?.count ?? 0,
+      devices: devices?.patients ?? 0,
+      carers: devices?.carers ?? 0,
     };
   }
 
@@ -643,6 +667,7 @@ export class SqliteStore implements DiaryStore {
     this.db.transaction(() => {
       this.db.query('DELETE FROM records WHERE patient_id = ?').run(patientId);
       this.db.query('DELETE FROM pairings WHERE patient_id = ?').run(patientId);
+      this.db.query('DELETE FROM dose_checks WHERE patient_id = ?').run(patientId);
       this.db
         .query('DELETE FROM patient_keys WHERE patient_id = ? AND recipient LIKE ?')
         .run(patientId, 'p:%');
@@ -715,6 +740,47 @@ export class SqliteStore implements DiaryStore {
       .all(at);
     this.db.query('DELETE FROM reminders WHERE at <= ?').run(at);
     return due;
+  }
+
+  async replaceDoseChecks(
+    patientId: string,
+    moments: readonly string[],
+    after: string,
+  ): Promise<void> {
+    this.db.transaction(() => {
+      this.db
+        .query("DELETE FROM dose_checks WHERE patient_id = ? AND at > ? AND state = 'open'")
+        .run(patientId, after);
+      const upsert = this.db.query(
+        `INSERT INTO dose_checks (patient_id, at, state) VALUES (?, ?, 'open')
+         ON CONFLICT (patient_id, at) DO UPDATE SET state = 'open'`,
+      );
+      for (const at of moments) upsert.run(patientId, at);
+    })();
+  }
+
+  async markDosesTaken(patientId: string, moments: readonly string[]): Promise<void> {
+    this.db.transaction(() => {
+      const upsert = this.db.query(
+        `INSERT INTO dose_checks (patient_id, at, state) VALUES (?, ?, 'taken')
+         ON CONFLICT (patient_id, at) DO UPDATE SET state = 'taken'`,
+      );
+      for (const at of moments) upsert.run(patientId, at);
+    })();
+  }
+
+  async takeMissedDoses(due: string, stale: string): Promise<DoseCheckRow[]> {
+    return this.db.transaction(() => {
+      const missed = this.db
+        .query<DoseCheckRow, [string, string]>(
+          `SELECT patient_id, at FROM dose_checks
+           WHERE state = 'open' AND at <= ? AND at > ? ORDER BY at`,
+        )
+        .all(due, stale);
+      this.db.query("DELETE FROM dose_checks WHERE state = 'open' AND at <= ?").run(due);
+      this.db.query("DELETE FROM dose_checks WHERE state = 'taken' AND at <= ?").run(stale);
+      return missed;
+    })();
   }
 }
 

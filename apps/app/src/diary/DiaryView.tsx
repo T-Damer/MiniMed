@@ -16,6 +16,7 @@ import { useBottomNav } from '@/app/use-bottom-nav';
 import { BottomNav } from '@/components/BottomNav';
 import type { HeaderAction } from '@/components/HeaderActions';
 
+import { CarerNameSheet, DiaryAccess } from '@/diary/DiaryAccess';
 import { DiaryEntryForm } from '@/diary/DiaryEntryForm';
 import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
 import { DiaryMore } from '@/diary/DiaryMore';
@@ -26,6 +27,8 @@ import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallWarning } from '@/diary/InstallWarning';
 import { syncNeedsAction, syncWords } from '@/diary/sync-words';
+import '@/diary/carer.css';
+import { markAuthor, markLine } from '@/features/diary/connected/carer';
 import {
   isConnectedDiary,
   PatientConnection,
@@ -157,18 +160,53 @@ export function DiaryView(props: {
   );
   let syncTimer: number | undefined;
   let stopListening: (() => void) | undefined;
+  // Who has the diary may change with any sync (DIARY25): the access list and the marks re-read it.
+  const [people, setPeople] = createSignal(0);
+  const carer = (): boolean => connection()?.kind === 'carer';
+  // The carer names their phone once, right after pairing; «Позже» puts it off to «Настройки».
+  const [namePutOff, setNamePutOff] = createSignal(false);
   const reload = (): void => {
     const fresh = props.store.read(invitation().id);
     if (fresh) setResults(fresh);
     setMeta(props.store.meta(invitation().id));
+    setPeople((count) => count + 1);
   };
+  /** Who has the diary, read once per sync rather than once per entry. */
+  const access = createMemo(() => {
+    void people();
+    const current = connection();
+    return current
+      ? { connection: current, phones: current.phones(), names: current.names() }
+      : undefined;
+  });
+  /** «Отметил(а) опекун Ирина» under an entry, once the diary has a carer. */
+  const markedBy = (entry: DiaryEntry): string | undefined => {
+    const current = access();
+    if (!current) return undefined;
+    const who = markAuthor(
+      current.connection.authorOf(entry.id),
+      current.phones,
+      current.names,
+      current.connection.kind,
+    );
+    return who ? markLine(who) : undefined;
+  };
+  /** A carer's phone shows the diary as soon as it is paired: consent is the patient's. */
+  const consentAt = (): string | undefined => meta().consentAt ?? (carer() ? 'carer' : undefined);
   const runSync = async (): Promise<void> => {
     const current = connection();
     if (!current) return;
     // «Принял» pressed in a notification while the diary was closed.
     if (await current.applyReminderActions()) reload();
     setSync({ ...current.status(), phase: 'syncing' });
-    const status = await current.sync();
+    afterSync(await current.sync());
+  };
+  /** A removed carer's phone forgot the diary: back to the list. */
+  const afterSync = (status: SyncStatus): void => {
+    if (status.phase === 'ended' && !props.store.read(invitation().id)) {
+      props.onBack();
+      return;
+    }
     setSync(status);
     reload();
   };
@@ -190,10 +228,7 @@ export function DiaryView(props: {
           // Offline or the browser dropped the subscription: «Ещё» offers notifications again.
           console.warn('Подписка на уведомления не обновлена:', cause);
         });
-        stopListening = opened.listen((status) => {
-          setSync(status);
-          reload();
-        });
+        stopListening = opened.listen(afterSync);
       },
     );
     const onOnline = (): void => void runSync();
@@ -355,7 +390,11 @@ export function DiaryView(props: {
   });
   const homeLine = (): string | undefined => {
     const current = sync();
-    const parts = [invitation().doctor, current ? syncWords(current) : undefined].filter(Boolean);
+    const parts = [
+      carer() ? 'Вы опекун' : undefined,
+      invitation().doctor,
+      current ? syncWords(current) : undefined,
+    ].filter(Boolean);
     return parts.length ? parts.join(' · ') : undefined;
   };
 
@@ -438,6 +477,7 @@ export function DiaryView(props: {
             tabbed={tabbed()}
             connected={sync() !== undefined}
             removed={meta().removedByDoctor}
+            markedBy={markedBy}
             onWrite={() => startEntry(undefined, 'records')}
             onSend={() => navigate('send')}
             onEdit={(entry) => startEntry(entry, 'records')}
@@ -485,12 +525,22 @@ export function DiaryView(props: {
               setReminders(current.reminderSettings());
             }}
             onWithdraw={
-              connection()
+              connection() && !carer()
                 ? async () => {
                     await connection()?.withdraw();
                     props.onBack();
                   }
                 : undefined
+            }
+            access={
+              connection() ? (
+                <DiaryAccess
+                  connection={connection() as PatientConnection}
+                  revision={people()}
+                  onChanged={() => void runSync()}
+                  onLeft={props.onBack}
+                />
+              ) : undefined
             }
           />
         </Match>
@@ -515,7 +565,7 @@ export function DiaryView(props: {
             }
             results={results()}
             status={status()}
-            consentAt={meta().consentAt}
+            consentAt={consentAt()}
             tipsRead={meta().tipsRead ?? []}
             controls={(api) => {
               openers = api;
@@ -558,7 +608,18 @@ export function DiaryView(props: {
           />
         </Match>
       </Switch>
-      <Show when={tabbed() && screen() !== 'entry' && (!invitation().consent || meta().consentAt)}>
+      <Show when={connection()?.kind === 'carer' && !connection()?.name && !namePutOff()}>
+        <CarerNameSheet
+          name=""
+          onSave={async (name) => {
+            const current = connection();
+            if (current) setSync(await current.setName(name));
+            reload();
+          }}
+          onClose={() => setNamePutOff(true)}
+        />
+      </Show>
+      <Show when={tabbed() && screen() !== 'entry' && (!invitation().consent || consentAt())}>
         <Portal>
           <BottomNav
             view={() => (screen() === 'entry' ? 'home' : screen()) as Tab}

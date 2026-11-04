@@ -1,6 +1,6 @@
 /**
- * Server settings from the environment. Nothing secret is read from here: the decoy-salt secret and
- * the VAPID keys are generated on first start and kept in the database.
+ * Server settings from the environment. The decoy-salt secret and the VAPID keys are generated on
+ * first start and kept in the database; the only secret read here is the optional tick token.
  */
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -19,6 +19,8 @@ export interface ServerSettings {
   readonly corsOrigins: readonly string[];
   /** `serverless` only: YDB connection string (`grpcs://…?database=…`). */
   readonly ydb: string | undefined;
+  /** `POST /api/tick` key for an outside scheduler (a timer trigger in `serverless` mode); none: no route. */
+  readonly tickToken: string | undefined;
 }
 
 export function readSettings(
@@ -42,5 +44,6 @@ export function readSettings(
       .map((origin) => origin.trim())
       .filter(Boolean),
     ydb: env['DIARY_YDB'],
+    tickToken: env['DIARY_TICK_TOKEN'] || undefined,
   };
 }

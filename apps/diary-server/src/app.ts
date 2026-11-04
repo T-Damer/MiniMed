@@ -9,6 +9,7 @@ import {
   DIARY_ONLINE_WINDOW_MS,
   DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
+  type DiaryDeviceKind,
   DiaryEmailSchema,
   DiaryEpochCreateSchema,
   DiaryLoginRequestSchema,
@@ -41,7 +42,12 @@ import type { z } from 'zod';
 import { inviteCandidates } from './invites';
 import type { Passwords } from './passwords';
 import { pushToOwners, type Vapid } from './push';
-import { replaceReminders } from './reminders';
+import {
+  replaceDoseChecks,
+  replaceReminders,
+  sendDueReminders,
+  sendMissedDoses,
+} from './reminders';
 import { type DiaryStore, type DoctorRow, now, type PatientRow, StoreConflict } from './store';
 
 /** `server`: one long-running process with a live stream; `serverless`: stateless instances, clients poll. */
@@ -61,6 +67,11 @@ export interface AppConfig {
   readonly log?: (line: string) => void;
   /** Presence window; tests shorten it (default `DIARY_ONLINE_WINDOW_MS`). */
   readonly onlineWindowMs?: number;
+  /**
+   * Secret of `POST /api/tick` (due reminders and missed-dose notices), for a scheduler outside
+   * the process: a Yandex Cloud timer trigger in `serverless` mode. Absent: no such route.
+   */
+  readonly tickToken?: string;
 }
 
 const SESSION_DAYS = 30;
@@ -108,7 +119,13 @@ function bearer(request: Request, url: URL): string | undefined {
 
 type Caller =
   | { readonly kind: 'doctor'; readonly id: string }
-  | { readonly kind: 'device'; readonly id: string; readonly patientId: string };
+  | {
+      readonly kind: 'device';
+      readonly id: string;
+      readonly patientId: string;
+      /** The patient's own phone or a carer's (DIARY25). */
+      readonly device: DiaryDeviceKind;
+    };
 
 /** Live streams of signed-in doctors: doctor id → open SSE controllers. */
 class EventHub {
@@ -250,7 +267,7 @@ export function createApp(
     const device = await store.deviceByToken(hash);
     if (device) {
       await touchDevice(device.id, device.patient_id);
-      return { kind: 'device', id: device.id, patientId: device.patient_id };
+      return { kind: 'device', id: device.id, patientId: device.patient_id, device: device.kind };
     }
     throw new HttpError(401, 'Нужен вход.');
   };
@@ -300,6 +317,23 @@ export function createApp(
   const activeDeviceOwners = async (patientId: string): Promise<string[]> =>
     (await store.activeDevices(patientId)).map((row) => `p:${row.id}`);
 
+  const patientDeviceOwners = async (patientId: string): Promise<string[]> =>
+    (await store.activeDevices(patientId))
+      .filter((row) => row.kind === 'patient')
+      .map((row) => `p:${row.id}`);
+
+  /** A phone of the diary: the patient's or a carer's. */
+  const deviceOnly = (who: Caller): Extract<Caller, { kind: 'device' }> => {
+    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    return who;
+  };
+
+  /** Who sees the diary changed: its doctors and every phone (patient's and carers'). */
+  const announceMembers = async (patientId: string): Promise<void> => {
+    await notify(await activeDoctors(patientId), 'members', { patientId });
+    await notify(await activeDeviceOwners(patientId), 'members', {});
+  };
+
   const profile = (row: DoctorRow) => ({
     id: row.id,
     email: row.email,
@@ -336,6 +370,7 @@ export function createApp(
       lastRecordAt: counts.lastRecordAt,
       openAlerts: counts.openAlerts,
       devices: counts.devices,
+      carers: counts.carers,
       ...(await presenceOf(row.id)),
       createdAt: row.created_at,
     };
@@ -535,6 +570,7 @@ export function createApp(
       })),
       devices: devices.map((row) => ({
         id: row.id,
+        kind: row.kind,
         identity: { wrap: row.identity_wrap, sign: row.identity_sign },
         createdAt: row.created_at,
         lastSeenAt: row.last_seen_at,
@@ -570,8 +606,10 @@ export function createApp(
     await requireRole(await caller(request, url), id, ['owner', 'editor']);
     const input = await body(request, DiaryPairingCreateSchema);
     const expires = new Date(Date.now() + PAIRING_HOURS * 3_600_000).toISOString();
-    await store.createPairing(input.secretHash, id, input.keys, expires);
-    return json({ expiresAt: expires }, 201);
+    const kind = input.kind ?? 'patient';
+    await store.createPairing(input.secretHash, id, input.keys, expires, kind);
+    // The kind comes back so a client can tell a server that knows carers from an older one.
+    return json({ expiresAt: expires, kind }, 201);
   });
 
   route('POST', '/api/pair', async (request) => {
@@ -595,6 +633,7 @@ export function createApp(
         identity_wrap: input.identity.wrap,
         identity_sign: input.identity.sign,
         created_at: now(),
+        kind: pairing.kind,
       },
       hash,
     );
@@ -602,13 +641,20 @@ export function createApp(
       patientId: input.patientId,
       deviceId,
     });
-    return json({ deviceId, token, keys: pairing.sealed_keys }, 201);
+    if (pairing.kind === 'carer') {
+      // The patient sees who joined: the access list updates and the phone says so.
+      const phones = await patientDeviceOwners(input.patientId);
+      await notify(phones, 'members', {});
+      await pushTo(phones, { kind: 'carer' });
+    }
+    return json({ deviceId, token, keys: pairing.sealed_keys, kind: pairing.kind }, 201);
   });
 
   route('DELETE', '/api/patients/:id/devices/:device', async (request, url, params) => {
     const id = params['id'] as string;
     await requireRole(await caller(request, url), id, ['owner', 'editor']);
     await store.revokeDevice(params['device'] as string, id, now());
+    await notify(await activeDeviceOwners(id), 'members', {});
     return json({ ok: true });
   });
 
@@ -650,12 +696,11 @@ export function createApp(
       throw cause;
     }
     await notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
-    if (who.kind === 'doctor') {
-      const devices = await activeDeviceOwners(id);
-      await notify(devices, 'records', { seq: seqs.at(-1) });
-      // Only what the patient should look at rings the phone (a profile edit does not).
-      if (input.notice) await pushTo(devices, { kind: input.notice });
-    }
+    // The other phones of the diary sync too: the patient's sees a carer's mark and back (DIARY25).
+    const devices = (await activeDeviceOwners(id)).filter((owner) => owner !== author);
+    await notify(devices, 'records', { seq: seqs.at(-1) });
+    // Only what the patient should look at rings the phone (a profile edit does not).
+    if (who.kind === 'doctor' && input.notice) await pushTo(devices, { kind: input.notice });
     return json({ seqs }, 201);
   });
 
@@ -727,10 +772,19 @@ export function createApp(
     return json({ ok: true });
   });
 
-  /** A new data key after a removal: wrapped for every remaining member and device. */
+  /**
+   * A new data key after a removal: wrapped for every remaining member and device. The owner
+   * rotates after removing a curator or a phone; the patient's own phone after removing a carer.
+   */
   route('POST', '/api/patients/:id/epochs', async (request, url, params) => {
     const id = params['id'] as string;
-    await requireRole(await caller(request, url), id, ['owner']);
+    const who = await caller(request, url);
+    if (who.kind === 'device') {
+      if (who.patientId !== id || who.device !== 'patient')
+        throw new HttpError(403, 'Недостаточно прав.');
+    } else {
+      await requireRole(who, id, ['owner']);
+    }
     const input = await body(request, DiaryEpochCreateSchema);
     const patient = await patientRow(id);
     if (input.epoch !== patient.epoch + 1) throw new HttpError(409, 'Эпоха устарела.');
@@ -745,23 +799,21 @@ export function createApp(
       throw new HttpError(400, 'Новый ключ нужен каждому участнику и устройству.');
     }
     await store.addEpoch(id, input.epoch, input.keys);
-    await notify(await activeDoctors(id), 'members', { patientId: id });
+    await announceMembers(id);
     return json({ ok: true });
   });
 
   // --- device ----------------------------------------------------------------------------------
 
   route('GET', '/api/device/keys', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
     const keys = await store.keysFor(who.patientId, `p:${who.id}`);
     const patient = await patientRow(who.patientId);
     return json({ keys, epoch: patient.epoch, patientId: who.patientId, status: patient.status });
   });
 
   route('POST', '/api/device/alerts', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
     const alertId = await store.addAlert(who.patientId, 'urgent', now());
     const doctors = await activeDoctors(who.patientId);
     await notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
@@ -774,8 +826,10 @@ export function createApp(
 
   /** Consent withdrawn: the patient's records, keys and devices are deleted; doctors are told. */
   route('DELETE', '/api/device', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
+    if (who.device !== 'patient') {
+      throw new HttpError(403, 'Отозвать согласие может только сам пациент.');
+    }
     const doctors = await activeDoctors(who.patientId);
     await store.withdraw(who.patientId, now());
     await notify(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
@@ -783,6 +837,27 @@ export function createApp(
       doctors.map((id) => `d:${id}`),
       { kind: 'withdrawn' },
     );
+    return json({ ok: true });
+  });
+
+  /**
+   * A carer leaves (their own phone) or the patient's phone removes a carer (DIARY25). The patient's
+   * phone then rotates the key (`POST /api/patients/:id/epochs`), as the owner does for a curator.
+   */
+  route('DELETE', '/api/device/carers/:device', async (request, url, params) => {
+    const who = deviceOnly(await caller(request, url));
+    const target = params['device'] as string;
+    if (who.device !== 'patient' && target !== who.id) {
+      throw new HttpError(403, 'Опекун может отключить только себя.');
+    }
+    const carer = (await store.activeDevices(who.patientId)).find((row) => row.id === target);
+    if (carer?.kind !== 'carer') throw new HttpError(404, 'Такого опекуна нет.');
+    await store.revokeDevice(target, who.patientId, now());
+    await notify(await activeDoctors(who.patientId), 'device', {
+      patientId: who.patientId,
+      deviceId: target,
+    });
+    await notify(await activeDeviceOwners(who.patientId), 'members', {});
     return json({ ok: true });
   });
 
@@ -826,13 +901,39 @@ export function createApp(
     return json({ ok: true }, 201);
   });
 
-  /** The phone's next reminder moments (times only); replaces its earlier list. */
+  /**
+   * The phone's next reminder moments (times only); replaces its earlier list. While the diary has
+   * a carer, also the dose moments for the missed-dose notice (DIARY25): the patient's phone says
+   * which are open, any phone which are taken. Moments are computed in the patient's time zone on
+   * the patient's phone, so a carer's phone elsewhere only ever reports taken ones.
+   */
   route('PUT', '/api/device/reminders', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
-    const { at } = await body(request, DiaryRemindersSchema);
-    return json({ count: await replaceReminders(store, who.id, at) });
+    const who = deviceOnly(await caller(request, url));
+    const input = await body(request, DiaryRemindersSchema);
+    const count = await replaceReminders(store, who.id, input.at);
+    if (input.checks || input.taken) {
+      const carers = (await store.activeDevices(who.patientId)).some((row) => row.kind === 'carer');
+      await replaceDoseChecks(store, who.patientId, {
+        open: who.device === 'patient' && input.checks && carers ? input.checks : undefined,
+        taken: input.taken ?? [],
+        clear: !carers,
+      });
+    }
+    return json({ count });
   });
+
+  /** Due reminders and missed-dose notices, for a scheduler outside the process (see `tickToken`). */
+  if (config.tickToken) {
+    const tickHash = sha256(config.tickToken);
+    route('POST', '/api/tick', async (request, url) => {
+      const token = bearer(request, url) ?? url.searchParams.get('key') ?? '';
+      if ((await sha256(token)) !== (await tickHash)) throw new HttpError(401, 'Нужен ключ.');
+      await limit('tick', 10);
+      const reminders = await sendDueReminders(store, config.vapid, log);
+      const missed = await sendMissedDoses(store, config.vapid, log);
+      return json({ reminders, missed });
+    });
+  }
 
   /** Polling in `serverless` mode: the caller's change counter; re-read the data when it moves. */
   route('GET', '/api/changes', async (request, url) => {

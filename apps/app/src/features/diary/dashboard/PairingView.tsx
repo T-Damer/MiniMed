@@ -19,20 +19,24 @@ import { isOnline } from '@/features/diary/dashboard/presence';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
 
 /**
- * The one-time code that connects the patient's phone. It works once and for 72 hours; a photo of
- * it taken later opens nothing. The sheet watches the live stream: when a new phone of this patient
- * pairs, the code gives way to «Телефон подключён» with the phone's presence.
+ * The one-time code that connects the patient's phone (or, `carer`, a carer's: DIARY25). It works
+ * once and for 72 hours; a photo of it taken later opens nothing. The sheet watches the live
+ * stream: when a new phone of this patient pairs, the code gives way to «Телефон подключён» with
+ * the phone's presence.
  */
 export function PairingView(props: {
   readonly workspace: DoctorDiaries;
   readonly patientId: string;
+  readonly kind?: 'carer';
   readonly onDone: () => void;
 }): JSX.Element {
+  const carer = props.kind === 'carer';
   const summary = () => props.workspace.patient(props.patientId)?.summary;
   const [current, setCurrent] = createSignal(summary());
   onCleanup(props.workspace.subscribe(() => setCurrent(summary())));
-  const devicesBefore = current()?.devices ?? 0;
-  const connected = () => (current()?.devices ?? 0) > devicesBefore;
+  const count = () => (carer ? current()?.carers : current()?.devices) ?? 0;
+  const devicesBefore = count();
+  const connected = () => count() > devicesBefore;
   createEffect(
     on(
       connected,
@@ -43,7 +47,7 @@ export function PairingView(props: {
     ),
   );
   const [link] = createResource(async () => {
-    const url = await props.workspace.pairingLink(props.patientId);
+    const url = await props.workspace.pairingLink(props.patientId, props.kind);
     return {
       url,
       image: await QRCode.toDataURL(url, { errorCorrectionLevel: 'M', margin: 2, width: 360 }),
@@ -80,18 +84,20 @@ export function PairingView(props: {
                     class="diary-pair__code"
                     classList={{ 'diary-pair__code--shown': shown() }}
                     src={code().image}
-                    alt="Код для телефона пациента"
+                    alt={carer ? 'Код для телефона опекуна' : 'Код для телефона пациента'}
                     onLoad={() => setShown(true)}
                   />
                 )}
               </Show>
             </div>
             <p class="diary-pair__hint">
-              Пациент наводит камеру телефона на код. Код одноразовый, действует 72 часа.
+              {carer
+                ? 'Опекун наводит камеру телефона на код или открывает ссылку. Код одноразовый, действует 72 часа.'
+                : 'Пациент наводит камеру телефона на код. Код одноразовый, действует 72 часа.'}
             </p>
             <p class="diary-pair__waiting">
               <span class="diary-pair__waiting-dot" aria-hidden="true" />
-              Ждём телефон пациента
+              {carer ? 'Ждём телефон опекуна' : 'Ждём телефон пациента'}
             </p>
             <div class="diary-pair__actions">
               <Button
@@ -118,8 +124,12 @@ export function PairingView(props: {
           <span class="diary-pair__check" aria-hidden="true">
             <AppGlyph name="check" class="diary-pair__check-icon" />
           </span>
-          <p class="diary-pair__done-title">Телефон подключён</p>
-          <Show when={current() && isOnline(current() as NonNullable<ReturnType<typeof current>>)}>
+          <p class="diary-pair__done-title">{carer ? 'Опекун подключён' : 'Телефон подключён'}</p>
+          <Show
+            when={
+              !carer && current() && isOnline(current() as NonNullable<ReturnType<typeof current>>)
+            }
+          >
             <OnlineTag />
           </Show>
           <Button variant="primary" class="diary-pair__done-button" onClick={props.onDone}>

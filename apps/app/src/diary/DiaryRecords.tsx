@@ -46,6 +46,8 @@ export function DiaryRecords(props: {
   readonly connected?: boolean;
   /** Entries the doctor deleted (connected diary): they stay in the list, struck out. */
   readonly removed?: readonly DiaryRemoval[] | undefined;
+  /** Who made an entry, once the diary has a carer (DIARY25); undefined: no remark. */
+  readonly markedBy?: ((entry: DiaryEntry) => string | undefined) | undefined;
   readonly onWrite: () => void;
   readonly onSend: () => void;
   readonly onEdit: (entry: DiaryEntry) => void;
@@ -76,6 +78,9 @@ export function DiaryRecords(props: {
       <span class="diary-record__value">{describeDiaryEntry(invitation(), entry)}</span>
       <Show when={entry.note}>
         <span class="diary-record__note">{entry.note}</span>
+      </Show>
+      <Show when={props.markedBy?.(entry)}>
+        {(line) => <span class="diary-record__by">{line()}</span>}
       </Show>
       <Show when={entry.corrected}>
         <span class="diary-record__badge diary-record__badge--doctor">Исправлено врачом</span>

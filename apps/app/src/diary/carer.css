@@ -1,0 +1,47 @@
+/* Carer access in the patient's diary (DIARY25): «Доступ к дневнику» and the carer's name. */
+.diary-carer-access__title {
+  margin: 0.5rem 0 0;
+  padding-inline: 0.875rem;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.diary-carer-name {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.diary-carer-name__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.diary-carer-name__label {
+  color: var(--theme-text-muted);
+  font-size: 0.9375rem;
+}
+
+.diary-carer-name__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.6rem);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 1.2rem;
+  appearance: none;
+}
+
+.diary-carer-name__input[aria-invalid="true"] {
+  border-color: var(--theme-danger);
+}
+
+/* Who made a mark, once the diary has a carer: a quiet line under the entry. */
+.diary-record__by {
+  color: var(--theme-text-muted);
+  font-size: 0.9375rem;
+}

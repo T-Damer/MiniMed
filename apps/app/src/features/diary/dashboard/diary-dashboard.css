@@ -900,7 +900,8 @@
 }
 
 /* Curators ---------------------------------------------------------------------------------- */
-.diary-curators {
+/* Not `.diary-curators`: the patient list's avatar row (diary-list.css) has that name. */
+.diary-curators-dialog {
   display: grid;
   gap: 0.9rem;
 }

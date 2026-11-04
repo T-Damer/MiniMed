@@ -29,7 +29,7 @@ function Tile(props: { readonly icon: AppGlyphName; readonly tone: SettingsTileT
 }
 
 /** A row that opens something: the main Settings list's row with tile, title, state and chevron. */
-function ActionRow(props: {
+export function ActionRow(props: {
   readonly icon: AppGlyphName;
   readonly tone: SettingsTileTone;
   readonly title: string;
@@ -89,15 +89,19 @@ function SwitchRow(props: {
 }
 
 /** A row that only states something (notifications already on). */
-function StateRow(props: {
+export function StateRow(props: {
   readonly icon: AppGlyphName;
   readonly tone: SettingsTileTone;
   readonly title: string;
   readonly status: string;
+  readonly divided?: boolean;
 }): JSX.Element {
   return (
     <li class="settings-list__item">
-      <div class="settings-list__row">
+      <div
+        class="settings-list__row"
+        classList={{ 'settings-list__row--divided': Boolean(props.divided) }}
+      >
         <Tile icon={props.icon} tone={props.tone} />
         <span class="settings-list__title">{props.title}</span>
         <span class="settings-list__status diary-settings__status">{props.status}</span>
@@ -163,6 +167,8 @@ export function DiaryMore(props: {
   readonly hasOtherDiaries?: boolean;
   /** Connected diary: stop the observation and delete the records on the server. */
   readonly onWithdraw?: (() => Promise<void>) | undefined;
+  /** Connected diary: who has access (DIARY25), shown after the notifications. */
+  readonly access?: JSX.Element;
   /** Connected diary: notifications when the doctor changes something. */
   readonly onEnablePush?: (() => Promise<'on' | 'unsupported' | 'denied'>) | undefined;
   /** Notifications were allowed on an earlier visit. */
@@ -179,7 +185,7 @@ export function DiaryMore(props: {
   const [confirming, setConfirming] = createSignal(false);
   const [withdrawError, setWithdrawError] = createSignal('');
   const [sheet, setSheet] = createSignal<'restore' | 'link' | undefined>();
-  const connected = (): boolean => Boolean(props.onWithdraw);
+  const connected = (): boolean => Boolean(props.onWithdraw || props.access);
 
   return (
     <main class="diary-page diary-page--more diary-settings">
@@ -265,6 +271,8 @@ export function DiaryMore(props: {
           </section>
         )}
       </Show>
+
+      {props.access}
 
       <section class="diary-settings__section" aria-label="Звуки и вибрация">
         <ul class="settings-list__group">

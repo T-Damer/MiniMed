@@ -2,8 +2,9 @@
  * The `serverless` mode (ADR-0027): the same HTTP app on Node over YDB, for a Yandex Cloud
  * Serverless Container (it sets PORT; the container's service account signs in through the metadata
  * service, `YDB_METADATA_CREDENTIALS=1`; elsewhere `YDB_ACCESS_TOKEN_CREDENTIALS` works). Bundled
- * with `bun build --target=node`. No live stream (clients poll `/api/changes`), no reminder tick
- * (reminders stay on the phone) and no static files (the pages live on GitHub Pages).
+ * with `bun build --target=node`. No live stream (clients poll `/api/changes`), no reminder tick of
+ * its own (with `DIARY_TICK_TOKEN` a timer trigger calls `POST /api/tick`) and no static files (the
+ * pages live on GitHub Pages).
  */
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { toBase64Url } from '@localmed/diary-sync';
@@ -40,6 +41,7 @@ const app = createApp(store, {
   secret,
   vapid: await loadVapid(store, settings.pushSubject),
   corsOrigins: settings.corsOrigins,
+  ...(settings.tickToken ? { tickToken: settings.tickToken } : {}),
 });
 
 /** Request bodies are small JSON; anything bigger is refused before it is read. */
