@@ -5,7 +5,7 @@ import { Button } from '@/components/Button';
 import { carerLabel } from '@/features/diary/connected/carer';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
-  type QuestionnaireAnswer,
+  type QuestionnairePoint,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { QuestionnaireAnswers } from '@/features/diary/dashboard/QuestionnaireAnswers';
@@ -117,9 +117,12 @@ export function PatientDayDetails(props: {
     },
     async (day) => {
       const series = await questionnaireSeries(props.results.invitation, day);
-      const byEntry = new Map<string, readonly QuestionnaireAnswer[]>();
+      const byEntry = new Map<
+        string,
+        { readonly title: string; readonly point: QuestionnairePoint }
+      >();
       for (const one of series) {
-        for (const point of one.points) byEntry.set(point.entryId, point.answers);
+        for (const point of one.points) byEntry.set(point.entryId, { title: one.title, point });
       }
       return byEntry;
     },
@@ -212,7 +215,13 @@ export function PatientDayDetails(props: {
                     <span class="diary-timeline__note">{entry.note}</span>
                   </Show>
                   <Show when={answered()?.get(entry.id)}>
-                    {(answers) => <QuestionnaireAnswers answers={answers()} />}
+                    {(found) => (
+                      <QuestionnaireAnswers
+                        answers={found().point.answers}
+                        title={found().title}
+                        result={`${found().point.total} из ${found().point.max} · ${found().point.headline}`}
+                      />
+                    )}
                   </Show>
                   <Show when={entry.corrected}>
                     <span class="diary-timeline__badge">исправлено врачом</span>

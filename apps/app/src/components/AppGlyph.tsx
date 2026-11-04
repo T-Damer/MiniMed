@@ -129,7 +129,6 @@ import sphereBold from '@phosphor-icons/core/assets/bold/sphere-bold.svg?raw';
 import squaresFourBold from '@phosphor-icons/core/assets/bold/squares-four-bold.svg?raw';
 import stackBold from '@phosphor-icons/core/assets/bold/stack-bold.svg?raw';
 import steeringWheelBold from '@phosphor-icons/core/assets/bold/steering-wheel-bold.svg?raw';
-import testTubeBold from '@phosphor-icons/core/assets/bold/test-tube-bold.svg?raw';
 import textAaBold from '@phosphor-icons/core/assets/bold/text-aa-bold.svg?raw';
 import textBBold from '@phosphor-icons/core/assets/bold/text-b-bold.svg?raw';
 import textColumnsBold from '@phosphor-icons/core/assets/bold/text-columns-bold.svg?raw';
@@ -216,7 +215,6 @@ export type AppGlyphName =
   | 'sneaker-move'
   | 'drop-half'
   | 'calendar-check'
-  | 'test-tube'
   | 'copy-simple'
   | 'leaf'
   | 'lightbulb'
@@ -417,7 +415,6 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'sneaker-move': svgBody(sneakerMoveBold),
   'drop-half': svgBody(dropHalfBold),
   'calendar-check': svgBody(calendarCheckBold),
-  'test-tube': svgBody(testTubeBold),
   'copy-simple': svgBody(copySimpleBold),
   leaf: svgBody(leafBold),
   lightbulb: svgBody(lightbulbBold),

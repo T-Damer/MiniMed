@@ -164,8 +164,7 @@ export function useAppSession() {
       ...(web ? { description: 'Обновится сама, когда вы свернёте приложение.' } : {}),
       // Without the bottom bar (a narrowed app profile) and without the web's own apply there is
       // no lasting update badge: that notice stays until it is tapped.
-      duration:
-        !web && profileHidesNavigation(activeProfile()) ? Number.POSITIVE_INFINITY : 12_000,
+      duration: !web && profileHidesNavigation(activeProfile()) ? Number.POSITIVE_INFINITY : 12_000,
       action: {
         label: web ? 'Обновить сейчас' : 'Обновить',
         onClick: () => activateAnnouncedUpdate(),

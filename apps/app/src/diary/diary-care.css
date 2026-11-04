@@ -347,27 +347,47 @@ body:has(.diary-care-scope) {
   background: var(--theme-surface-muted);
 }
 
+/*
+ * The tick (owner 2026-11-04: the boxed column looked off): one rounded square on the row's own
+ * surface, no divider; a tick fills only the square.
+ */
 .care-row__check {
   display: grid;
   flex: none;
   place-items: center;
-  width: 3.5rem;
+  width: 3rem;
+  padding: 0 0 0 0.45rem;
   border: 0;
-  border-right: 1px solid var(--theme-border);
   color: var(--theme-accent-text);
   background: transparent;
   cursor: pointer;
   transition: transform var(--care-fast) var(--care-ease);
 }
 
-.care-row__check--done {
-  color: var(--care-check-ink);
-  background: var(--care-check);
-}
-
 .care-row__check-icon {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.care-row__check-icon--done,
+.care-row__check-icon--skipped {
+  box-sizing: border-box;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0.22rem;
+  border-radius: 0.5rem;
+}
+
+.care-row__check-icon--done {
+  color: var(--care-check-ink);
+  background: var(--care-check);
+  box-shadow: 0 0.06rem 0.12rem rgb(0 0 0 / 18%);
+}
+
+.care-row__check-icon--skipped {
+  border: 2px solid var(--theme-border);
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted, var(--theme-surface));
 }
 
 /* Just ticked: the check pops in. */
@@ -377,16 +397,26 @@ body:has(.diary-care-scope) {
 
 /* An open task: an empty box waiting for its tick. */
 .care-row__box {
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 70%, transparent);
+  box-sizing: border-box;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 55%, var(--theme-border));
   border-radius: 0.5rem;
   background: var(--theme-surface);
-  box-shadow: inset 0 0.08rem 0.15rem rgb(0 0 0 / 8%);
+  transition:
+    border-color var(--care-fast) var(--care-ease),
+    background-color var(--care-fast) var(--care-ease);
 }
 
 .care-row__box--late {
   border-color: var(--care-late, var(--theme-warning));
+  background: color-mix(in srgb, var(--care-late, var(--theme-warning)) 10%, var(--theme-surface));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .care-row__check:hover .care-row__box {
+    border-color: var(--theme-accent-text);
+  }
 }
 
 /* Scale only: a paused or skipped animation must never leave the tick transparent. */

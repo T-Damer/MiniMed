@@ -1,5 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
 import { TimeField as UiTimeField } from '@/components/TimeField';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
@@ -467,18 +468,7 @@ export function LabSheet(props: {
             />
           </span>
         </label>
-        <label class="diary-vitals__field">
-          <span class="diary-vitals__label">Когда сдавали</span>
-          <span class="diary-vitals__row">
-            <input
-              class="diary-vitals__input"
-              type="date"
-              max={today}
-              value={day()}
-              onInput={(event) => setDay(event.currentTarget.value)}
-            />
-          </span>
-        </label>
+        <DateField label="Когда сдавали" value={day()} max={today} onChange={setDay} />
       </div>
     </DiarySheet>
   );

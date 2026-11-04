@@ -21,7 +21,9 @@
 }
 
 .ui-file-button--primary:is(:active, [data-pressed]),
-.home-feature__action:not(.home-feature__action--secondary):is(:active, [data-pressed]):not(:disabled),
+.home-feature__action:not(.home-feature__action--secondary):is(:active, [data-pressed]):not(
+  :disabled
+),
 .assessment-card-actions__button--primary:is(:active, [data-pressed]):not(:disabled),
 .assessment-submit-panel__button:is(:active, [data-pressed]):not(:disabled),
 .assessment-panel-actions__button--primary:is(:active, [data-pressed]):not(:disabled),
@@ -34,7 +36,11 @@
 
 @media (hover: hover) and (pointer: fine) {
   .ui-file-button--primary:hover:not(:active, [data-pressed]),
-  .home-feature__action:not(.home-feature__action--secondary):hover:not(:disabled, :active, [data-pressed]),
+  .home-feature__action:not(.home-feature__action--secondary):hover:not(
+    :disabled,
+    :active,
+    [data-pressed]
+  ),
   .assessment-card-actions__button--primary:hover:not(:disabled, :active, [data-pressed]),
   .assessment-submit-panel__button:hover:not(:disabled, :active, [data-pressed]),
   .assessment-panel-actions__button--primary:hover:not(:disabled, :active, [data-pressed]),

@@ -624,7 +624,7 @@ export function AlertNotices(props: { readonly cause: AlertCause }): JSX.Element
         </For>
       </ul>
       {/* The date is in the dialog's subtitle: one date per screen (owner 2026-11-04). */}
-      <QuestionnaireAnswers answers={props.cause.point.answers} />
+      <QuestionnaireAnswers answers={props.cause.point.answers} title={props.cause.title} />
     </>
   );
 }

@@ -251,7 +251,11 @@ export function CareRow(props: {
           <AppGlyph
             name={done() ? 'check' : props.state === 'skipped' ? 'minus' : props.icon}
             class={
-              done() ? 'care-row__check-icon care-row__check-icon--done' : 'care-row__check-icon'
+              done()
+                ? 'care-row__check-icon care-row__check-icon--done'
+                : props.state === 'skipped'
+                  ? 'care-row__check-icon care-row__check-icon--skipped'
+                  : 'care-row__check-icon'
             }
           />
         </Show>
@@ -262,9 +266,12 @@ export function CareRow(props: {
             <span class="care-row__time">{props.time}</span>
           </Show>
           {/* What the row is, at a glance (owner 2026-11-04): the box on the left only says done. */}
-          <span class="care-row__kind" aria-hidden="true">
-            {props.mark ?? <AppGlyph name={props.icon} class="care-row__kind-glyph" />}
-          </span>
+          {/* An `idle` row already shows its icon in the round button. */}
+          <Show when={props.mark || props.state !== 'idle'}>
+            <span class="care-row__kind" aria-hidden="true">
+              {props.mark ?? <AppGlyph name={props.icon} class="care-row__kind-glyph" />}
+            </span>
+          </Show>
           <span class="care-row__title">{props.title}</span>
           <Show when={props.tip}>
             <span class="care-row__tip">
@@ -721,7 +728,7 @@ export function DiaryToday(props: {
                       {(task) => (
                         <CareRow
                           icon="pill"
-                          mark={<PillMark name={task.item.name} />}
+                          mark={<PillMark name={task.item.name} form={task.item.form} />}
                           time={task.time.time}
                           title={[task.item.name, taskDose(task)].filter(Boolean).join(' ')}
                           detail={
@@ -760,7 +767,7 @@ export function DiaryToday(props: {
                   {(group) => (
                     <CareRow
                       icon="plus"
-                      mark={<PillMark name={group.item.name} />}
+                      mark={<PillMark name={group.item.name} form={group.item.form} />}
                       title={[group.item.name, group.item.dose].filter(Boolean).join(' ')}
                       detail={
                         group.entries.length
@@ -861,7 +868,7 @@ export function DiaryToday(props: {
                     invitation().fields.find((field) => field.id === lab.field)?.unit ?? '';
                   return (
                     <CareRow
-                      icon="test-tube"
+                      icon="flask"
                       title={lab.name}
                       detail={(() => {
                         const found = result();

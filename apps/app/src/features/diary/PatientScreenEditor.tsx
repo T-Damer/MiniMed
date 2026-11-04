@@ -752,10 +752,11 @@ function SectionEditor(props: {
             variant="secondary"
             class="screen-editor__copy"
             title="То же расписание для другого препарата"
+            aria-label="Копия для другого препарата"
             icon={<AppGlyph name="copy-simple" class="screen-editor__glyph" />}
             onClick={() => props.onCopy()}
           >
-            Копия для другого
+            Копия
           </Button>
         </Show>
         <Button type="button" variant="primary" onClick={() => props.onDone()}>
@@ -1110,7 +1111,12 @@ export function PatientScreenEditor(props: {
                     {(row) => (
                       <CareRow
                         icon="pill"
-                        mark={<PillMark name={sectionOf(row.key)?.title ?? ''} />}
+                        mark={
+                          <PillMark
+                            name={sectionOf(row.key)?.title ?? ''}
+                            form={sectionOf(row.key)?.form}
+                          />
+                        }
                         time={row.time.time}
                         title={drugTitle(sectionOf(row.key))}
                         detail={
@@ -1303,7 +1309,7 @@ export function PatientScreenEditor(props: {
               <For each={props.draft.labs ?? []}>
                 {(lab) => (
                   <CareRow
-                    icon="test-tube"
+                    icon="flask"
                     title={lab.name.trim() || 'Анализ'}
                     detail={labDetail(lab)}
                     state="open"

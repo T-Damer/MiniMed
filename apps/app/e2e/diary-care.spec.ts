@@ -78,7 +78,7 @@ test.describe('patient diary: the care diary with the tab bar', () => {
     await expect(page.getByRole('button', { name: 'Добавить описание состояния' })).toHaveCount(0);
     const feeling = page.locator('.care-row').filter({ hasText: 'Рассказать врачу' });
     await expect(feeling.locator('.care-row__box')).toBeVisible();
-    await feeling.getByRole('button', { name: /^Рассказать врачу/u }).click();
+    await feeling.getByRole('button', { name: 'Рассказать врачу своими словами' }).click();
     const sheet = page.getByRole('dialog', { name: 'Рассказать врачу' });
     await expect(sheet.getByRole('button', { name: 'Сказать голосом' })).toBeVisible();
     await sheet.getByLabel('Что вы чувствуете').fill('Спокойно, давление в норме');
@@ -107,7 +107,7 @@ test.describe('patient diary: the care diary with the tab bar', () => {
     });
     await page.goto(await testInvitationLink(careInvitation()));
     const feeling = page.locator('.care-row').filter({ hasText: 'Рассказать врачу' });
-    await feeling.getByRole('button', { name: /^Рассказать врачу/u }).click();
+    await feeling.getByRole('button', { name: 'Рассказать врачу своими словами' }).click();
     const sheet = page.getByRole('dialog', { name: 'Рассказать врачу' });
     await sheet.getByRole('button', { name: 'Сказать голосом' }).click();
     await expect(sheet.getByRole('status')).toContainText('Говорите');
