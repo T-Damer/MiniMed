@@ -4,6 +4,27 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.91] - 2026-11-04
+
+- The diaries app is «Сигнум»: the doctors' site, the patient's diary and the joining documents carry the name.
+- Visits: the doctor books a visit in the patient's plan; the patient sees «Завтра у вас приём в 14:30» above the day,
+  where and what to bring, and a button that calls the doctor's phone.
+- Lab tests: the doctor asks for a test (prolactin on risperidone, lithium level, glucose and cholesterol on
+  olanzapine…) with a date and a reason; the editor offers the tests the plan's medicines call for. The patient types
+  the result in from the lab's printout; the doctor sees it in the day.
+- New measurements: glucose, activity (steps and active minutes) and meals with appetite, each with its own icon and
+  chart. Every row of the day shows what it is at a glance; a medicine shows its first letter on its form — a tablet,
+  a capsule, a bottle, an ampoule or a tube.
+- A questionnaire result opens every question with the patient's answer and its points; the result dialog shows one
+  date.
+- The medicine sheet is short: the name first, the rest slides in once a medicine is chosen; «Копия» copies the
+  schedule for the next medicine and says so.
+- Curators: the access (read or edit) is a small key beside the e-mail; «Девайсы пациента» with a phone icon.
+- «Никого не нашли» is a proper empty state; «Добавить пациента» spans the screen; «Описание состояния» is
+  «Своими словами»; the chosen questionnaire opens as the patient sees it.
+- Buttons with a ledge sink onto it when pressed; ticks are clean rounded squares; the install card invites instead of
+  warning; an update says it applies itself when the app is put away.
+
 ## [0.6.90] - 2026-11-04
 
 - Patient diaries: before the diary starts, the patient reads and accepts three documents, each on its own — the

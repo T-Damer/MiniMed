@@ -52,6 +52,40 @@ Detailed history, moved verbatim on 2026-09-24:
   patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
   and `#/documents` into the diaries home. Not checked on the phone (locked).
 
+## Owner's list of ten, «Сигнум» — 2026-11-04 (STATE DIARY27, release 0.6.91)
+
+- **Press.** `components/press-feedback.ts` sets `data-pressed` for at least 120 ms; keys on a ledge (`.ui-button`
+  but quiet, the primary-depth controls) sink by the ledge's height in CSS instead of shrinking; the rest keep the
+  0.96 scale.
+- **Medicine sheet** (`PatientScreenEditor` `DrugFields`): no «Часто назначаете» chips (`frequent-drugs.ts` removed);
+  form, dose, times, signa, course and tip slide in after a pick or a typed name left; «Копия» in the sheet's actions,
+  a toast «Назначение скопировано».
+- **Answers.** `QuestionnairePoint.answers` (`questionnaireAnswers`, reverse items scored as the scale does);
+  `QuestionnaireAnswers` is a button that opens a sheet — under an alert's result and under a questionnaire record in
+  the doctor's day. The charts' result dialog has the date in its subtitle only.
+- **Curators.** `AccessModeMenu` (eye / pencil + gear, a context menu) beside the e-mail and on each curator;
+  patient devices are «Девайсы» with `device-mobile` everywhere the devices are meant.
+- **Doctor list.** «Никого не нашли» uses `EmptyState` (sized to content); «Добавить пациента» full width;
+  «Описание состояния» → «Своими словами» / «Рассказать врачу»; «Посмотреть вопросы» in the questionnaire sheet.
+- **«Сигнум».** Manifests, titles, the install card, the push title, the joining documents (template version kept:
+  no patient had accepted them yet) and `docs/diary-consent/`.
+- **Install and update.** `InstallCard` for the doctor (icon, what it gives, «Установить» / «Не сейчас» for a week);
+  on the web the update toast says the build applies itself when the page is hidden, «Обновить сейчас».
+- **Measurements.** Sections `glucose`, `activity`, `meals` → `vitals` checkpoints of number fields
+  (`GLUCOSE_FIELD`, `STEPS_FIELD`, `ACTIVITY_FIELD`, `MEALS_FIELD`, `APPETITE_FIELD`), one of each; charts and red
+  lines (glucose above 10, appetite below 3). `checkpointGlyph` picks a row's icon by its first field; `CareRow`
+  shows it before the title; `PillMark` draws the medicine's letter on its form (`drugShape`: tablet, capsule,
+  liquid, ampoule, tube) with light, grain and shadow. Ticks are rounded squares, no divider column.
+- **Visits and labs.** `DiaryInvitation.appointments` (`day`, `time`, `place`, `note`) and `labs` (`name`, `field`,
+  `by`, `why`; the result is a number field `lab-<id>`, typed in as an entry without a checkpoint). Older patient
+  apps drop both keys. Editor sections «Приёмы у врача» and «Анализы» (`VisitEditors.tsx`; `diary-labs.ts` suggests
+  tests from the plan's medicines: prolactin, glucose, cholesterol, lithium, TSH, creatinine, valproate, ALT, sodium,
+  neutrophils); patient `AppointmentCard` above the day with a call to the first phone contact, «Анализы» rows and
+  `LabSheet`. Plan changes name them (`visitChanges`).
+- **Checks.** check, typecheck; vitest 19 4xx passed (new: measurement sections, answers, lab suggestions, drug shape,
+  pill letter); e2e `diary-*` 79 + new `diary-visits.spec.ts` passed; screens checked in Playwright Chromium at
+  390 px. `offline-shell` «a new build is offered» fails on main too (the DIARY21 self-apply reloads first).
+
 ## Release 0.6.90 — 2026-11-04
 
 - **In it:** DIARY25 (carer access), DIARY-CHARTS (the doctor's «Статистика» settings and period menu) and DIARY26
