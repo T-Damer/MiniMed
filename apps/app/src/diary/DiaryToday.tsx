@@ -873,7 +873,10 @@ export function DiaryToday(props: {
                       detail={(() => {
                         const found = result();
                         if (found) {
-                          return `${found.value} ${unit()}, ${dayWords(dayKey(found.at), today())}`.replace(
+                          const value = found.value.toLocaleString('ru-RU', {
+                            maximumFractionDigits: 2,
+                          });
+                          return `${value} ${unit()}, ${dayWords(dayKey(found.at), today())}`.replace(
                             /\s+,/u,
                             ',',
                           );

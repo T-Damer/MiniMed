@@ -450,25 +450,30 @@ export function LabSheet(props: {
       }
     >
       <TipBox text={props.lab.why} />
-      <div class="diary-vitals">
-        <label class="diary-vitals__field">
-          <span class="diary-vitals__label">
-            Результат
-            <Show when={props.field.unit}>
-              <span class="diary-vitals__unit">, {props.field.unit}</span>
-            </Show>
-          </span>
-          <span class="diary-vitals__row">
+      <div class="diary-vitals diary-vitals--lab">
+        <label class="diary-vitals__field diary-lab__field">
+          <span class="diary-vitals__label">Результат</span>
+          {/* The unit sits inside the box, so both labels stay on one line (owner 2026-11-04). */}
+          <span class="diary-lab__box">
             <input
-              class="diary-vitals__input"
+              class="diary-lab__input"
               inputmode="decimal"
               enterkeyhint="done"
               value={text()}
               onInput={(event) => setText(event.currentTarget.value)}
             />
+            <Show when={props.field.unit}>
+              <span class="diary-lab__unit">{props.field.unit}</span>
+            </Show>
           </span>
         </label>
-        <DateField label="Когда сдавали" value={day()} max={today} onChange={setDay} />
+        <DateField
+          class="diary-lab__date"
+          label="Когда сдавали"
+          value={day()}
+          max={today}
+          onChange={setDay}
+        />
       </div>
     </DiarySheet>
   );

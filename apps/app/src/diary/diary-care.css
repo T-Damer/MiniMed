@@ -1056,6 +1056,62 @@ body:has(.diary-care-scope) {
   gap: 0.8rem;
 }
 
+/*
+ * A lab result and the day it was taken, side by side (owner 2026-11-04: same heights): the
+ * result's box takes the date field's frame, height and type; the day field keeps its own width.
+ */
+.diary-vitals--lab {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.diary-lab__field {
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.diary-lab__date .ui-date-field__label {
+  color: var(--theme-text);
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+}
+
+.diary-lab__box {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.diary-lab__box:focus-within {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 0.125rem var(--theme-accent-soft);
+}
+
+.diary-lab__input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-field-target, 2.5rem);
+  padding: 0;
+  border: 0;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  outline: none;
+}
+
+.diary-lab__unit {
+  color: var(--theme-text-muted);
+  white-space: nowrap;
+}
+
 .diary-vitals__row {
   display: flex;
   align-items: center;
