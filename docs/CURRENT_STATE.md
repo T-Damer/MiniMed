@@ -82,6 +82,39 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Checks.** vitest 19 343 passed (new: two-stage install, `CACHE_APP`, whole install after an update, lazy roots,
   `diariesAddress`); diary e2e 75 passed.
 
+## The doctor chooses what «Статистика» shows — 2026-11-04 (STATE DIARY-CHARTS)
+
+- **Owner 2026-11-04** (after Medsenger's «Графики и отчёты»): the doctor picks what the combined chart shows to
+  compare a drug's intake with the curves («did pressure and pulse fall after amlodipine began»); a period of a week,
+  two weeks, a month or any dates with arrows, and an overview brush. Medsenger's median, 7-day moving average,
+  colour zones and legend toggle were taken; its PDF export and symptom triangles were not.
+- **What can be shown** (`dashboard/combined-series.ts`, `combinedSources`): every declared chart series the patient
+  recorded (`DIARY_CHARTS`), each questionnaire total, the share of the plan, and a track per medicine — all over the
+  whole diary, each with a stable key (`chart:<id>:<field>[:<check>]`, `quiz:<checkpoint>`, `intake-share`,
+  `med:<item>`) and colour. `combinedView` applies the doctor's choice and the period: lines on their own ranges, the
+  7-day average counted from the days before the period too, red days, and the crosses — on the medicine's own track
+  when tracks are shown, on the share line otherwise.
+- **Tracks.** Under the lines, on a stacked y axis (`tracks`, Chart.js `stack`/`stackWeight`), a row per medicine with
+  its name: a filled square a day taken in full (or any dose of one taken when needed), a hollow one taken in part,
+  nothing for an unmarked day, a red cross a day the patient marked a miss (its card names the medicine, the reason
+  and the note, DIARY22/23). Track colours are darker than the lines' and never red.
+- **The choice** (`dashboard/chart-settings.ts`): «Настроить» opens «Что показать на графике» (`ChartSettingsSheet`) —
+  the series grouped «Показатели» / «Опросники» / «Лекарства», «Показать всё» / «Снять все», and switches «Медиана»
+  (dashed line per series), «Среднее за 7 дней» (the measurements faded behind it), «Красные дни», «Названия под
+  графиком». The names under the chart are our own legend: a tap hides that line. Saved per doctor and patient on
+  this device (`minimed.diary.chart-settings.v1`, `doctorId:patientId`) as the hidden keys, so a value the patient
+  starts recording later shows by itself; the preset length is saved too, a custom span is not.
+- **The period** (`dashboard/chart-period.ts`, `ChartPeriod.tsx`) drives the whole charts page: presets «Неделя»,
+  «2 нед.», «Месяц», «3 мес.»; ‹ › step the same length (forward stops at today); the dates button opens a sheet with
+  two `DateField`s. The brush under «Статистика» (`ChartBrush`, shown when the diary is longer than a week) draws the
+  shown lines over the whole diary faintly with the period as a window: drag it, drag its edges, tap the strip to
+  centre the period there, ← → move it a day. Adherence and the intake charts read the same period (`spanNow` for a
+  past span).
+- **Checks.** Unit: `chart-period`, `chart-settings`, `combined-series` tests. e2e `diary-chart-settings.spec.ts` on the
+  demo account at 375 and 1280 px: choose pressure, pulse and Кветиапин with the average, crosses on its track and their
+  card, the choice after a reload, hiding from the legend, week / back / brush key / dates sheet, no horizontal scroll;
+  screenshots `chart-settings-{sheet,phone,desktop}.png`.
+
 ## A tap shows the day; missed doses are red crosses — 2026-11-04 (STATE DIARY23)
 
 - **Owner 2026-11-04:** «when the patient marks a dose as missed, show a red cross on the graph; on click you see some
