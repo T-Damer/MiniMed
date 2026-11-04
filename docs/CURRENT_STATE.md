@@ -20,6 +20,23 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Diary deck after 0.6.91, demo visits and lab tests — 2026-11-04 (STATE PROMO10)
+
+- `docs/promo/diary-presentation/`: 19 slides. The product is «Сигнум» (title, bands, analogues); new slides
+  «Отметки о влечениях» (the doctor picks substances and craving, the patient's evening sheet, the doctor's week) and
+  «Приёмы у врача и анализы» (lab suggestions by medicine, the visit card, the result sheet); new-patient, tracking,
+  curators (eye/gear key), building blocks and conclusion updated. Screenshots from a local build with the demo data
+  (`?profile=diaries` demo doctor, `/diary/#demo` guest, 390 px at 3×, the guest as an installed app).
+- Demo data (`demo-patients.ts`): a plan is drawn at the end of the history (`draft(now)`); the fox — base of every
+  guest diary — has a visit tomorrow 14:30 «Кабинет 12» and «Глюкоза натощак» within a week; the owl has
+  «Вальпроевая кислота в крови» and АЛТ within four days and a visit in five. The shared demo account keeps the demo
+  patients it already has, so the doctor's four get these only when the set is made again; guest diaries get them now.
+  No phone contact in the demo, so «Позвонить» is not shown there.
+- Patient diary: the lab sheet's result box takes the date field's frame and height (unit inside), the result is
+  printed with a comma; the shared dialog frame (`OverlayDialog`, the date field's calendar on phones) is styled in
+  `diary-shell.css` above the diary's sheets — before, the calendar opened beneath the lab sheet, unlaid.
+- Notifications: the description takes `--ink-soft` (sonner painted it #3f3f3f in both themes).
+
 ## Diary pages on GitVerse Pages — 2026-11-03 (STATE DIARY-GV)
 
 - **Why.** github.io loads unreliably from Russian networks; GitVerse Pages (`*.gitverse.site`, no

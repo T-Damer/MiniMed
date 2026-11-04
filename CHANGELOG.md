@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Demo: the fox (and every visitor's own patient diary) has a visit tomorrow at 14:30 and a fasting glucose test; the
+  owl has a valproate level and ALT to take.
+- Lab result sheet: the result and the day sit side by side at one height, the unit inside the box, the number written
+  with a comma («5,4 ммоль/л»); the day's calendar opens above the sheet in the patient's diary (it opened beneath it).
+- Notifications: the second line reads in the dark theme (it kept sonner's light-theme grey).
+- Diary deck: 19 slides — «Сигнум», «Отметки о влечениях» (substance use, craving, RUS-AUDIT/OCDS), visits and lab
+  tests, new screenshots.
+
 ## [0.6.91] - 2026-11-04
 
 - The diaries app is «Сигнум»: the doctors' site, the patient's diary and the joining documents carry the name.

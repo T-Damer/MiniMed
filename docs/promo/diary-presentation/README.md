@@ -1,6 +1,6 @@
 # Diary presentation
 
-A 17-slide deck about the patient diary module (16:9, 1280×720 per slide), in the app's paper style.
+A 19-slide deck about the patient diary module «Сигнум» (16:9, 1280×720 per slide), in the app's paper style.
 Every content slide carries two tags: its part of the talk (Введение, Основная часть, Демо,
 Техническая часть in green, Заключение) and its topic. Phone screenshots sit under a drawn status
 bar, so the frame's camera cut-out never covers the app.
