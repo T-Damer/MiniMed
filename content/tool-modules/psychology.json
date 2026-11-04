@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.8",
+  "version": "0.1.0-preview.9",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-20T00:00:00Z",
@@ -4145,6 +4145,1349 @@
           "documentId": null,
           "url": "https://pubmed.ncbi.nlm.nih.gov/23759278/",
           "reviewedAt": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.rus-audit",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "rus-audit",
+      "title": "Тест RUS-AUDIT: употребление алкоголя за последний год",
+      "shortTitle": "RUS-AUDIT",
+      "aliases": [
+        "RUS-AUDIT",
+        "AUDIT",
+        "Alcohol Use Disorders Identification Test",
+        "тест AUDIT ВОЗ",
+        "АУДИТ",
+        "тест на употребление алкоголя"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "substance-use",
+      "description": "Тест ВОЗ, адаптированный и проверенный в России (2021): 10 вопросов об употреблении алкоголя, сумма 0–40 баллов и уровень риска по порогам для женщин и мужчин.",
+      "estimatedMinutes": 4,
+      "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+      "definition": {
+        "id": "minimed.assessment.rus-audit",
+        "slug": "rus-audit",
+        "title": "Тест RUS-AUDIT: употребление алкоголя за последний год",
+        "shortTitle": "RUS-AUDIT",
+        "aliases": [
+          "RUS-AUDIT",
+          "AUDIT",
+          "Alcohol Use Disorders Identification Test",
+          "тест AUDIT ВОЗ",
+          "АУДИТ",
+          "тест на употребление алкоголя"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Тест ВОЗ, адаптированный и проверенный в России (2021): 10 вопросов об употреблении алкоголя, сумма 0–40 баллов и уровень риска по порогам для женщин и мужчин.",
+        "estimatedMinutes": 4,
+        "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Никогда"
+          },
+          {
+            "value": 1,
+            "label": "Реже одного раза в месяц"
+          },
+          {
+            "value": 2,
+            "label": "Ежемесячно"
+          },
+          {
+            "value": 3,
+            "label": "Еженедельно"
+          },
+          {
+            "value": 4,
+            "label": "Ежедневно или почти ежедневно"
+          }
+        ],
+        "scales": [
+          {
+            "id": "rus-audit-total",
+            "label": "Сумма баллов RUS-AUDIT",
+            "shortLabel": "RUS-AUDIT",
+            "description": "Сумма 10 вопросов (0–40). Уровни риска (таблица 8 отчёта ВОЗ, 2021): у женщин 0–4 — низкий, 5–9 — повышенный, 10 — употребление сказывается на здоровье, 11 и больше — возможна зависимость; у мужчин 0–8, 9–13, 14–16 и 17 и больше."
+          },
+          {
+            "id": "rus-audit-sex",
+            "label": "Пол",
+            "shortLabel": "Пол",
+            "description": "Не балл: выбирает пороги риска для женщин или для мужчин (таблица 8 отчёта ВОЗ).",
+            "context": true
+          }
+        ],
+        "questions": [
+          {
+            "id": "rus-audit-01",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто Вы употребляете алкогольные напитки?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 1,
+                "label": "Раз в месяц или реже"
+              },
+              {
+                "value": 2,
+                "label": "2–4 раза в месяц"
+              },
+              {
+                "value": 3,
+                "label": "2–3 раза в неделю"
+              },
+              {
+                "value": 4,
+                "label": "4 раза в неделю и чаще"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-02",
+            "scaleId": "rus-audit-total",
+            "prompt": "Сколько алкогольных напитков (стандартных порций) Вы употребляете в типичный день, когда выпиваете? Одна стандартная порция (СП) содержит 10 граммов этилового спирта: маленький бокал вина или шампанского (100 мл, 12–13 %), половина кружки пива (250 мл, 4,5–5 %), бокал крепленого вина (60 мл, 16–22 %), маленькая рюмка крепкого алкоголя (30 мл, 40 %). Если в типичный день Вы употребляете несколько разных алкогольных напитков, то суммируйте число СП.",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "1–2 СП: вино или шампанское до 250 мл, пиво до 650 мл, крепленое вино до 170 мл, крепкий алкоголь до 80 мл"
+              },
+              {
+                "value": 1,
+                "label": "3–4 СП: вино 251–450 мл, пиво 651–1200 мл, крепленое вино 171–300 мл, крепкий алкоголь 81–140 мл"
+              },
+              {
+                "value": 2,
+                "label": "5–6 СП: вино 451–660 мл, пиво 1201–1750 мл, крепленое вино 301–430 мл, крепкий алкоголь 141–210 мл"
+              },
+              {
+                "value": 3,
+                "label": "7–9 СП: вино 661–970 мл, пиво 1751–2500 мл, крепленое вино 431–640 мл, крепкий алкоголь 211–300 мл"
+              },
+              {
+                "value": 4,
+                "label": "10 СП и больше: вино более 970 мл, пиво более 2500 мл, крепленое вино более 640 мл, крепкий алкоголь более 300 мл"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-03",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто Вы употребляете как минимум полтора литра пива, или как минимум 180 мл крепкого алкоголя, или как минимум бутылку вина или шампанского (750 мл) в течение 24 часов?"
+          },
+          {
+            "id": "rus-audit-04",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто за последние 12 месяцев Вы не могли остановиться, начав употреблять алкогольные напитки?"
+          },
+          {
+            "id": "rus-audit-05",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто за последние 12 месяцев из-за выпивки Вы не сделали то, что от Вас обычно ожидалось?"
+          },
+          {
+            "id": "rus-audit-06",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто за последние 12 месяцев Вам необходимо было выпить утром, чтобы прийти в себя после выпивки (опохмелиться)?"
+          },
+          {
+            "id": "rus-audit-07",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто за последние 12 месяцев Вы испытывали чувство вины или сожаления после выпивки?"
+          },
+          {
+            "id": "rus-audit-08",
+            "scaleId": "rus-audit-total",
+            "prompt": "Как часто за последние 12 месяцев Вы были неспособны вспомнить, что было накануне, из-за того, что Вы выпивали?"
+          },
+          {
+            "id": "rus-audit-09",
+            "scaleId": "rus-audit-total",
+            "prompt": "Являлось ли Ваше употребление алкогольных напитков причиной травмы у Вас или у других людей?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 2,
+                "label": "Да, более 12 месяцев назад"
+              },
+              {
+                "value": 4,
+                "label": "Да, в течение последних 12 месяцев"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-10",
+            "scaleId": "rus-audit-total",
+            "prompt": "Случалось ли, что Ваш близкий человек или родственник, друг или врач беспокоился насчет употребления Вами алкоголя или советовал выпивать меньше?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 2,
+                "label": "Да, более 12 месяцев назад"
+              },
+              {
+                "value": 4,
+                "label": "Да, в течение последних 12 месяцев"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-sex",
+            "scaleId": "rus-audit-sex",
+            "prompt": "Ваш пол (в баллы не входит: пороги риска у женщин и мужчин разные)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Женщина"
+              },
+              {
+                "value": 1,
+                "label": "Мужчина"
+              }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 0) * (score_rus_audit_total <= 4)",
+            "headline": "Низкий риск",
+            "message": "0–4 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год."
+          },
+          {
+            "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 5) * (score_rus_audit_total <= 9)",
+            "headline": "Повышенный риск",
+            "message": "5–9 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту."
+          },
+          {
+            "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 10) * (score_rus_audit_total <= 10)",
+            "headline": "Употребление сказывается на здоровье",
+            "message": "10 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача."
+          },
+          {
+            "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 11)",
+            "headline": "Возможна зависимость",
+            "message": "11 баллов и больше для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога."
+          },
+          {
+            "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 0) * (score_rus_audit_total <= 8)",
+            "headline": "Низкий риск",
+            "message": "0–8 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год."
+          },
+          {
+            "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 9) * (score_rus_audit_total <= 13)",
+            "headline": "Повышенный риск",
+            "message": "9–13 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту."
+          },
+          {
+            "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 14) * (score_rus_audit_total <= 16)",
+            "headline": "Употребление сказывается на здоровье",
+            "message": "14–16 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача."
+          },
+          {
+            "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 17)",
+            "headline": "Возможна зависимость",
+            "message": "17 баллов и больше для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога."
+          }
+        ],
+        "disclaimer": "Тест оценивает риск по ответам о последних 12 месяцах; расстройство, связанное с употреблением алкоголя, устанавливает врач при очной оценке.",
+        "evidenceNote": "Русский текст — таблица 5 отчёта ВОЗ «RUS-AUDIT» (2021), вопрос 2 с таблицей перевода в стандартные порции (таблица 6). Тест проверен на 2000 пациентах первичного звена в 9 регионах России. Пороги для женщин и мужчин — таблица 8; ВОЗ предлагает начинать с краткой версии RUS-AUDIT-S и при положительном результате проходить полную.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Тест AUDIT: Babor T. F., Higgins-Biddle J. C., Saunders J. B., Monteiro M. G., ВОЗ, 2001. Русская валидированная версия RUS-AUDIT и краткая RUS-AUDIT-S: Европейское региональное бюро ВОЗ, «Отчет о реализации проекта RUS-AUDIT» (2021), таблицы 5 и 7; лицензия CC BY-NC-SA 3.0 IGO. Вопросы приведены дословно; вопрос о поле добавлен, чтобы применить пороги таблицы 8, и в баллы не входит.",
+          "sourceUrl": "https://www.who.int/europe/ru/publications/i/item/9789289055765"
+        },
+        "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_rus_audit_total",
+            "valueId": "rus-audit-total",
+            "label": "Сумма RUS-AUDIT",
+            "minimum": 0,
+            "maximum": 40,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0
+              }
+            ]
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 0) * (score_rus_audit_total <= 4)",
+              "verdict": {
+                "rangeId": "low-women",
+                "title": "Низкий риск",
+                "explanation": "0–4 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 4
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 5) * (score_rus_audit_total <= 9)",
+              "verdict": {
+                "rangeId": "hazardous-women",
+                "title": "Повышенный риск",
+                "explanation": "5–9 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту.",
+                "attentionLevel": "low",
+                "lowerBound": 5,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 9
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 10) * (score_rus_audit_total <= 10)",
+              "verdict": {
+                "rangeId": "harmful-women",
+                "title": "Употребление сказывается на здоровье",
+                "explanation": "10 баллов для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача.",
+                "attentionLevel": "moderate",
+                "lowerBound": 10,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 10
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex < 1) * (score_rus_audit_total >= 11)",
+              "verdict": {
+                "rangeId": "dependence-women",
+                "title": "Возможна зависимость",
+                "explanation": "11 баллов и больше для женщин по RUS-AUDIT (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога.",
+                "attentionLevel": "high",
+                "lowerBound": 11,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"]
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 0) * (score_rus_audit_total <= 8)",
+              "verdict": {
+                "rangeId": "low-men",
+                "title": "Низкий риск",
+                "explanation": "0–8 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 8
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 9) * (score_rus_audit_total <= 13)",
+              "verdict": {
+                "rangeId": "hazardous-men",
+                "title": "Повышенный риск",
+                "explanation": "9–13 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту.",
+                "attentionLevel": "low",
+                "lowerBound": 9,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 13
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 14) * (score_rus_audit_total <= 16)",
+              "verdict": {
+                "rangeId": "harmful-men",
+                "title": "Употребление сказывается на здоровье",
+                "explanation": "14–16 баллов для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача.",
+                "attentionLevel": "moderate",
+                "lowerBound": 14,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"],
+                "upperBound": 16
+              }
+            },
+            {
+              "when": "(score_rus_audit_sex >= 1) * (score_rus_audit_total >= 17)",
+              "verdict": {
+                "rangeId": "dependence-men",
+                "title": "Возможна зависимость",
+                "explanation": "17 баллов и больше для мужчин по RUS-AUDIT (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога.",
+                "attentionLevel": "high",
+                "lowerBound": 17,
+                "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["rus-audit-who-2021", "rus-audit-bwho-2021"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.rus-audit.rus-audit-total",
+            "label": "Сумма баллов RUS-AUDIT",
+            "unit": "баллы",
+            "scaleId": "rus-audit-total",
+            "method": "assessment:minimed.assessment.rus-audit"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "rus-audit-who-2021",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "ВОЗ, Европейское региональное бюро. Отчет о реализации проекта RUS-AUDIT: адаптация и валидация теста AUDIT для выявления расстройств, обусловленных употреблением алкоголя, в Российской Федерации (2021), таблицы 5, 7 и 8, рис. 3",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.who.int/europe/ru/publications/i/item/9789289055765",
+          "reviewedAt": "2026-11-04"
+        },
+        {
+          "id": "rus-audit-bwho-2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Neufeld M, Bunova A, Ferreira-Borges C, et al. Validation of a screening test for alcohol use, the Russian Federation. Bull World Health Organ. 2021;99(7):496-505",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8243036/",
+          "reviewedAt": "2026-11-04"
+        },
+        {
+          "id": "audit-who-2001",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Babor TF, Higgins-Biddle JC, Saunders JB, Monteiro MG. AUDIT: The Alcohol Use Disorders Identification Test. Guidelines for use in primary care. 2nd ed. WHO; 2001 (WHO/MSD/MSB/01.6a)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.who.int/publications/i/item/WHO-MSD-MSB-01.6a",
+          "reviewedAt": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.rus-audit-s",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "rus-audit-s",
+      "title": "Тест RUS-AUDIT-S: употребление алкоголя, 3 вопроса",
+      "shortTitle": "RUS-AUDIT-S",
+      "aliases": [
+        "RUS-AUDIT-S",
+        "AUDIT-S",
+        "краткий AUDIT",
+        "краткий тест на употребление алкоголя"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "substance-use",
+      "description": "Краткая версия RUS-AUDIT (ВОЗ, 2021): вопросы 3, 9 и 10 полного теста, сумма 0–12 баллов и уровень риска по порогам для женщин и мужчин.",
+      "estimatedMinutes": 1,
+      "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+      "definition": {
+        "id": "minimed.assessment.rus-audit-s",
+        "slug": "rus-audit-s",
+        "title": "Тест RUS-AUDIT-S: употребление алкоголя, 3 вопроса",
+        "shortTitle": "RUS-AUDIT-S",
+        "aliases": [
+          "RUS-AUDIT-S",
+          "AUDIT-S",
+          "краткий AUDIT",
+          "краткий тест на употребление алкоголя"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Краткая версия RUS-AUDIT (ВОЗ, 2021): вопросы 3, 9 и 10 полного теста, сумма 0–12 баллов и уровень риска по порогам для женщин и мужчин.",
+        "estimatedMinutes": 1,
+        "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "Никогда"
+          },
+          {
+            "value": 1,
+            "label": "Реже одного раза в месяц"
+          },
+          {
+            "value": 2,
+            "label": "Ежемесячно"
+          },
+          {
+            "value": 3,
+            "label": "Еженедельно"
+          },
+          {
+            "value": 4,
+            "label": "Ежедневно или почти ежедневно"
+          }
+        ],
+        "scales": [
+          {
+            "id": "rus-audit-s-total",
+            "label": "Сумма баллов RUS-AUDIT-S",
+            "shortLabel": "RUS-AUDIT-S",
+            "description": "Сумма 3 вопросов (0–12). Уровни риска (таблица 8 отчёта ВОЗ, 2021): у женщин 0–1 — низкий, 2–4 — повышенный, 5 — употребление сказывается на здоровье, 6 и больше — возможна зависимость; у мужчин 0–3, 4–6, 7 и 8 и больше. Положительный результат (у женщин от 2, у мужчин от 4) — повод пройти полный RUS-AUDIT."
+          },
+          {
+            "id": "rus-audit-s-sex",
+            "label": "Пол",
+            "shortLabel": "Пол",
+            "description": "Не балл: выбирает пороги риска для женщин или для мужчин (таблица 8 отчёта ВОЗ).",
+            "context": true
+          }
+        ],
+        "questions": [
+          {
+            "id": "rus-audit-s-01",
+            "scaleId": "rus-audit-s-total",
+            "prompt": "Как часто Вы употребляете как минимум полтора литра пива, или как минимум 180 мл крепкого алкоголя, или как минимум бутылку вина или шампанского (750 мл) в течение 24 часов?"
+          },
+          {
+            "id": "rus-audit-s-02",
+            "scaleId": "rus-audit-s-total",
+            "prompt": "Являлось ли Ваше употребление алкогольных напитков причиной травмы у Вас или у других людей?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 2,
+                "label": "Да, более 12 месяцев назад"
+              },
+              {
+                "value": 4,
+                "label": "Да, в течение последних 12 месяцев"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-s-03",
+            "scaleId": "rus-audit-s-total",
+            "prompt": "Случалось ли, что Ваш близкий человек или родственник, друг или врач беспокоился насчет употребления Вами алкоголя или советовал выпивать меньше?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 2,
+                "label": "Да, более 12 месяцев назад"
+              },
+              {
+                "value": 4,
+                "label": "Да, в течение последних 12 месяцев"
+              }
+            ]
+          },
+          {
+            "id": "rus-audit-s-sex",
+            "scaleId": "rus-audit-s-sex",
+            "prompt": "Ваш пол (в баллы не входит: пороги риска у женщин и мужчин разные)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Женщина"
+              },
+              {
+                "value": 1,
+                "label": "Мужчина"
+              }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 0) * (score_rus_audit_s_total <= 1)",
+            "headline": "Низкий риск",
+            "message": "0–1 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год."
+          },
+          {
+            "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 2) * (score_rus_audit_s_total <= 4)",
+            "headline": "Повышенный риск",
+            "message": "2–4 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          },
+          {
+            "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 5) * (score_rus_audit_s_total <= 5)",
+            "headline": "Употребление сказывается на здоровье",
+            "message": "5 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          },
+          {
+            "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 6)",
+            "headline": "Возможна зависимость",
+            "message": "6 баллов и больше для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          },
+          {
+            "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 0) * (score_rus_audit_s_total <= 3)",
+            "headline": "Низкий риск",
+            "message": "0–3 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год."
+          },
+          {
+            "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 4) * (score_rus_audit_s_total <= 6)",
+            "headline": "Повышенный риск",
+            "message": "4–6 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          },
+          {
+            "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 7) * (score_rus_audit_s_total <= 7)",
+            "headline": "Употребление сказывается на здоровье",
+            "message": "7 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          },
+          {
+            "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 8)",
+            "headline": "Возможна зависимость",
+            "message": "8 баллов и больше для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT."
+          }
+        ],
+        "disclaimer": "Краткий тест отбирает тех, кому стоит пройти полный RUS-AUDIT; расстройство, связанное с употреблением алкоголя, устанавливает врач при очной оценке.",
+        "evidenceNote": "Русский текст — таблица 7 отчёта ВОЗ «RUS-AUDIT» (2021): вопросы 3, 9 и 10 полной версии. Эта комбинация точнее всего предсказывала сумму полного теста (r = 0,923) и работала лучше AUDIT-C. Пороги для женщин и мужчин — таблица 8 и рис. 3.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Тест AUDIT: Babor T. F., Higgins-Biddle J. C., Saunders J. B., Monteiro M. G., ВОЗ, 2001. Русская валидированная версия RUS-AUDIT и краткая RUS-AUDIT-S: Европейское региональное бюро ВОЗ, «Отчет о реализации проекта RUS-AUDIT» (2021), таблицы 5 и 7; лицензия CC BY-NC-SA 3.0 IGO. Вопросы приведены дословно; вопрос о поле добавлен, чтобы применить пороги таблицы 8, и в баллы не входит.",
+          "sourceUrl": "https://www.who.int/europe/ru/publications/i/item/9789289055765"
+        },
+        "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_rus_audit_s_total",
+            "valueId": "rus-audit-s-total",
+            "label": "Сумма RUS-AUDIT-S",
+            "minimum": 0,
+            "maximum": 12,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0
+              }
+            ]
+          }
+        ],
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 0) * (score_rus_audit_s_total <= 1)",
+              "verdict": {
+                "rangeId": "low-women",
+                "title": "Низкий риск",
+                "explanation": "0–1 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 1
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 2) * (score_rus_audit_s_total <= 4)",
+              "verdict": {
+                "rangeId": "hazardous-women",
+                "title": "Повышенный риск",
+                "explanation": "2–4 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "low",
+                "lowerBound": 2,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 4
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 5) * (score_rus_audit_s_total <= 5)",
+              "verdict": {
+                "rangeId": "harmful-women",
+                "title": "Употребление сказывается на здоровье",
+                "explanation": "5 баллов для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "moderate",
+                "lowerBound": 5,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 5
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex < 1) * (score_rus_audit_s_total >= 6)",
+              "verdict": {
+                "rangeId": "dependence-women",
+                "title": "Возможна зависимость",
+                "explanation": "6 баллов и больше для женщин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "high",
+                "lowerBound": 6,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"]
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 0) * (score_rus_audit_s_total <= 3)",
+              "verdict": {
+                "rangeId": "low-men",
+                "title": "Низкий риск",
+                "explanation": "0–3 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). ВОЗ советует дать памятку о влиянии алкоголя на здоровье и повторять тест раз в год.",
+                "attentionLevel": "none",
+                "lowerBound": 0,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 3
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 4) * (score_rus_audit_s_total <= 6)",
+              "verdict": {
+                "rangeId": "hazardous-men",
+                "title": "Повышенный риск",
+                "explanation": "4–6 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «опасного употребления»: рекомендуется короткий разговор о том, как снизить количество и частоту. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "low",
+                "lowerBound": 4,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 6
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 7) * (score_rus_audit_s_total <= 7)",
+              "verdict": {
+                "rangeId": "harmful-men",
+                "title": "Употребление сказывается на здоровье",
+                "explanation": "7 баллов для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). В отчёте ВОЗ это уровень «пагубного употребления»: рекомендуется краткое консультирование и наблюдение у лечащего врача. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "moderate",
+                "lowerBound": 7,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"],
+                "upperBound": 7
+              }
+            },
+            {
+              "when": "(score_rus_audit_s_sex >= 1) * (score_rus_audit_s_total >= 8)",
+              "verdict": {
+                "rangeId": "dependence-men",
+                "title": "Возможна зависимость",
+                "explanation": "8 баллов и больше для мужчин по RUS-AUDIT-S (ВОЗ, 2021, таблица 8). Нужна дополнительная оценка; с согласия человека — консультация психиатра-нарколога. ВОЗ советует при таком результате пройти полный тест RUS-AUDIT.",
+                "attentionLevel": "high",
+                "lowerBound": 8,
+                "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": ["rus-audit-s-who-2021", "rus-audit-s-bwho-2021"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.rus-audit-s.rus-audit-s-total",
+            "label": "Сумма баллов RUS-AUDIT-S",
+            "unit": "баллы",
+            "scaleId": "rus-audit-s-total",
+            "method": "assessment:minimed.assessment.rus-audit-s"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "rus-audit-s-who-2021",
+          "kind": "guideline",
+          "relation": "methodology",
+          "title": "ВОЗ, Европейское региональное бюро. Отчет о реализации проекта RUS-AUDIT: адаптация и валидация теста AUDIT для выявления расстройств, обусловленных употреблением алкоголя, в Российской Федерации (2021), таблицы 5, 7 и 8, рис. 3",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.who.int/europe/ru/publications/i/item/9789289055765",
+          "reviewedAt": "2026-11-04"
+        },
+        {
+          "id": "rus-audit-s-bwho-2021",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Neufeld M, Bunova A, Ferreira-Borges C, et al. Validation of a screening test for alcohol use, the Russian Federation. Bull World Health Organ. 2021;99(7):496-505",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8243036/",
+          "reviewedAt": "2026-11-04"
+        },
+        {
+          "id": "audit-s-who-2001",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Babor TF, Higgins-Biddle JC, Saunders JB, Monteiro MG. AUDIT: The Alcohol Use Disorders Identification Test. Guidelines for use in primary care. 2nd ed. WHO; 2001 (WHO/MSD/MSB/01.6a)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://www.who.int/publications/i/item/WHO-MSD-MSB-01.6a",
+          "reviewedAt": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.ocds-ru",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "ocds-alcohol-craving",
+      "title": "Шкала обсессивно-компульсивного употребления алкоголя (OCDS): мысли об алкоголе и тяга",
+      "shortTitle": "OCDS",
+      "aliases": [
+        "OCDS",
+        "Obsessive-Compulsive Drinking Scale",
+        "шкала влечения к алкоголю",
+        "тяга к алкоголю",
+        "мысли об алкоголе"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "substance-use",
+      "description": "Следующие вопросы касаются употребления Вами алкоголя и попыток контролировать его. Выберите ответ, который подходит Вам больше всего. 14 вопросов: мысли об алкоголе и тяга к нему.",
+      "estimatedMinutes": 6,
+      "audience": "Взрослые, которые лечатся или наблюдаются в связи с употреблением алкоголя; заполняет пациент; динамика влечения",
+      "definition": {
+        "id": "minimed.assessment.ocds-ru",
+        "slug": "ocds-alcohol-craving",
+        "title": "Шкала обсессивно-компульсивного употребления алкоголя (OCDS): мысли об алкоголе и тяга",
+        "shortTitle": "OCDS",
+        "aliases": [
+          "OCDS",
+          "Obsessive-Compulsive Drinking Scale",
+          "шкала влечения к алкоголю",
+          "тяга к алкоголю",
+          "мысли об алкоголе"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Следующие вопросы касаются употребления Вами алкоголя и попыток контролировать его. Выберите ответ, который подходит Вам больше всего. 14 вопросов: мысли об алкоголе и тяга к нему.",
+        "estimatedMinutes": 6,
+        "audience": "Взрослые, которые лечатся или наблюдаются в связи с употреблением алкоголя; заполняет пациент; динамика влечения",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
+        "responseOptions": [
+          {
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "value": 1,
+            "label": "1"
+          },
+          {
+            "value": 2,
+            "label": "2"
+          },
+          {
+            "value": 3,
+            "label": "3"
+          },
+          {
+            "value": 4,
+            "label": "4"
+          }
+        ],
+        "scales": [
+          {
+            "id": "ocds-total",
+            "label": "Сумма двух факторов OCDS",
+            "shortLabel": "OCDS",
+            "description": "Сумма факторов «Обсессии» и «Компульсии» (0–40) — для слежения за динамикой; в статье факторы оцениваются отдельно, нормативов и порогов нет.",
+            "formula": "max(answer_ocds_01, answer_ocds_02) + answer_ocds_03 + answer_ocds_04 + answer_ocds_05 + answer_ocds_06 + max(answer_ocds_07, answer_ocds_08) + max(answer_ocds_09, answer_ocds_10) + answer_ocds_11 + answer_ocds_12 + max(answer_ocds_13, answer_ocds_14)"
+          },
+          {
+            "id": "ocds-obsessions",
+            "label": "Мысли об алкоголе (фактор «Обсессии»)",
+            "shortLabel": "Мысли",
+            "description": "Наибольший из вопросов 1 и 2 плюс вопросы 3–6 (0–20): сколько места мысли об алкоголе занимают в жизни и как трудно от них отвлечься.",
+            "formula": "max(answer_ocds_01, answer_ocds_02) + answer_ocds_03 + answer_ocds_04 + answer_ocds_05 + answer_ocds_06"
+          },
+          {
+            "id": "ocds-compulsions",
+            "label": "Тяга и употребление (фактор «Компульсии»)",
+            "shortLabel": "Тяга",
+            "description": "Наибольший из вопросов 7 и 8, наибольший из 9 и 10, вопросы 11 и 12 и наибольший из 13 и 14 (0–20): количество, последствия, выраженность потребности и контроль.",
+            "formula": "max(answer_ocds_07, answer_ocds_08) + max(answer_ocds_09, answer_ocds_10) + answer_ocds_11 + answer_ocds_12 + max(answer_ocds_13, answer_ocds_14)"
+          }
+        ],
+        "questions": [
+          {
+            "id": "ocds-01",
+            "scaleId": "ocds-obsessions",
+            "prompt": "В период, когда Вы не употребляли алкоголь, сколько времени было занято идеями, мыслями, побуждениями или образами, связанными с употреблением алкоголя?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Нисколько"
+              },
+              {
+                "value": 1,
+                "label": "Меньше 1 часа в день"
+              },
+              {
+                "value": 2,
+                "label": "1–3 часа в день"
+              },
+              {
+                "value": 3,
+                "label": "4–8 часов в день"
+              },
+              {
+                "value": 4,
+                "label": "Больше 8 часов в день"
+              }
+            ]
+          },
+          {
+            "id": "ocds-02",
+            "scaleId": "ocds-obsessions",
+            "prompt": "Как часто случались эти мысли?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Никогда"
+              },
+              {
+                "value": 1,
+                "label": "Не более 8 раз в день"
+              },
+              {
+                "value": 2,
+                "label": "Более 8 раз в день, но большая часть дня была свободна от этих мыслей"
+              },
+              {
+                "value": 3,
+                "label": "Более 8 раз в день, занимали большую часть дня"
+              },
+              {
+                "value": 4,
+                "label": "Мысли постоянные, почти что ни часа не проходило без этих мыслей"
+              }
+            ]
+          },
+          {
+            "id": "ocds-03",
+            "scaleId": "ocds-obsessions",
+            "prompt": "Насколько эти идеи, мысли, побуждения или образы, связанные с употреблением алкоголя, мешали Вашей общественной жизни, работе, нормальному функционированию? Случалось ли, что Вы чего-либо не сделали или не могли сделать из-за этого? (Если Вы в настоящее время не работаете, в какой мере Ваша профессиональная деятельность пострадала бы под влиянием этих мыслей в случае, если бы Вы работали?)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Мысли о выпивке никогда не мешали — я мог(ла) нормально функционировать"
+              },
+              {
+                "value": 1,
+                "label": "Мысли о выпивке незначительно влияли на мою общественную или профессиональную активность, но в целом моя деятельность не была нарушена"
+              },
+              {
+                "value": 2,
+                "label": "Мысли о выпивке определенно влияли на мою общественную или профессиональную активность, но я сохранял(а) способность контролировать ситуацию"
+              },
+              {
+                "value": 3,
+                "label": "Мысли о выпивке существенно мешали моей общественной и профессиональной деятельности"
+              },
+              {
+                "value": 4,
+                "label": "Мысли о выпивке полностью нарушали мою общественную и профессиональную деятельность"
+              }
+            ]
+          },
+          {
+            "id": "ocds-04",
+            "scaleId": "ocds-obsessions",
+            "prompt": "Насколько эти идеи, мысли, побуждения или образы, связанные с употреблением алкоголя, вызывали у Вас стресс или беспокойство в то время, когда Вы не употребляли спиртных напитков?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Не вызывали"
+              },
+              {
+                "value": 1,
+                "label": "Незначительно, не часто, не причиняли особого беспокойства"
+              },
+              {
+                "value": 2,
+                "label": "Умеренно, достаточно часто, вызывали беспокойство, но я мог(ла) контролировать себя"
+              },
+              {
+                "value": 3,
+                "label": "Значительно, очень часто, вызывали сильное беспокойство"
+              },
+              {
+                "value": 4,
+                "label": "Были крайне выражены, практически постоянно, лишали возможности нормально функционировать"
+              }
+            ]
+          },
+          {
+            "id": "ocds-05",
+            "scaleId": "ocds-obsessions",
+            "prompt": "Сколько усилий Вы прилагали, чтобы противостоять этим мыслям, не обращать на них внимания или отвлечься от этих мыслей, в то время, когда Вы не употребляли спиртное? (Обозначьте степень приложенных усилий, независимо от того, увенчались они успехом или нет)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Подобных мыслей у меня было крайне мало, не было необходимости им активно противостоять. Если они появлялись, я всегда старался(-ась) противостоять им"
+              },
+              {
+                "value": 1,
+                "label": "Я пытался(-ась) противостоять им большую часть времени"
+              },
+              {
+                "value": 2,
+                "label": "Я делал(а) некоторые попытки противостоять им"
+              },
+              {
+                "value": 3,
+                "label": "Я сдавался(-ась) без попыток противостоять этим мыслям, но совершал(а) это с некоторыми колебаниями"
+              },
+              {
+                "value": 4,
+                "label": "Я полностью и охотно подчинялся(-ась) этим мыслям"
+              }
+            ]
+          },
+          {
+            "id": "ocds-06",
+            "scaleId": "ocds-obsessions",
+            "prompt": "Насколько успешно Вам удавалось не думать об этом или отвлекаться от мыслей, связанных с употреблением алкоголя, в то время, когда Вы были трезвы (не употребляли спиртное)?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Мне легко удавалось не думать об этом или отвлекаться от этих мыслей"
+              },
+              {
+                "value": 1,
+                "label": "Обычно мне удавалось не думать об этом или отвлекаться от этих мыслей, если я прилагал(а) определенные усилия и концентрировался(-ась)"
+              },
+              {
+                "value": 2,
+                "label": "Иногда я был(а) способен(-на) не думать об этом или отвлекаться от этих мыслей"
+              },
+              {
+                "value": 3,
+                "label": "Я редко был(а) способен(-на) перестать думать об этом, мне с трудом удавалось отвлекаться от этих мыслей"
+              },
+              {
+                "value": 4,
+                "label": "Мне редко удавалось отвлечься от этих мыслей даже на мгновение"
+              }
+            ]
+          },
+          {
+            "id": "ocds-07",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Сколько стандартных порций спиртного Вы употребляли ежедневно? Стандартная порция — это маленький бокал вина или шампанского (100 мл, 12–13 %), половина кружки пива (250 мл, 4,5–5 %), бокал крепленого вина (60 мл, 16–22 %) или маленькая рюмка крепкого алкоголя (30 мл, 40 %).",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Не употреблял(а) вообще"
+              },
+              {
+                "value": 1,
+                "label": "Меньше 1 порции в день"
+              },
+              {
+                "value": 2,
+                "label": "1–2 порции в день"
+              },
+              {
+                "value": 3,
+                "label": "3–7 порций в день"
+              },
+              {
+                "value": 4,
+                "label": "8 порций в день и больше"
+              }
+            ]
+          },
+          {
+            "id": "ocds-08",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Сколько дней в неделю Вы употребляли спиртное?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Не употреблял(а) вообще"
+              },
+              {
+                "value": 1,
+                "label": "Не более 1 дня в неделю"
+              },
+              {
+                "value": 2,
+                "label": "2–3 дня в неделю"
+              },
+              {
+                "value": 3,
+                "label": "4–5 дней в неделю"
+              },
+              {
+                "value": 4,
+                "label": "6–7 дней в неделю"
+              }
+            ]
+          },
+          {
+            "id": "ocds-09",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Насколько употребление алкоголя мешало Вашей профессиональной деятельности? Случалось ли, что Вы чего-либо не делали или не могли сделать из-за этого? (Если Вы в настоящее время не работаете, в какой мере употребление алкоголя мешало бы Вашей профессиональной деятельности в случае, если бы Вы работали?)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Употребление алкоголя никогда не мешало — я мог(ла) нормально функционировать"
+              },
+              {
+                "value": 1,
+                "label": "Употребление алкоголя незначительно влияло на мою профессиональную активность, но в целом моя деятельность не была нарушена"
+              },
+              {
+                "value": 2,
+                "label": "Употребление алкоголя определенно негативно влияло на мою профессиональную активность, но я все же мог(ла) справляться с работой"
+              },
+              {
+                "value": 3,
+                "label": "Употребление алкоголя существенно нарушало мою профессиональную деятельность"
+              },
+              {
+                "value": 4,
+                "label": "Употребление алкоголя полностью нарушало мою профессиональную деятельность"
+              }
+            ]
+          },
+          {
+            "id": "ocds-10",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Насколько мешало употребление алкоголя Вашей жизни в обществе? Случалось ли, что Вы чего-либо не делали или не могли сделать из-за употребления алкоголя?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Употребление алкоголя никогда не мешало — я мог(ла) нормально функционировать в обществе"
+              },
+              {
+                "value": 1,
+                "label": "Употребление алкоголя незначительно влияло на мою жизнь в обществе, но в целом моя деятельность не была нарушена"
+              },
+              {
+                "value": 2,
+                "label": "Употребление алкоголя определенно негативно влияло на мою жизнь в обществе, но я все же мог(ла) справляться с ситуацией"
+              },
+              {
+                "value": 3,
+                "label": "Употребление алкоголя существенно мешало моей жизни в обществе"
+              },
+              {
+                "value": 4,
+                "label": "Употребление алкоголя полностью нарушало мою жизнь в обществе"
+              }
+            ]
+          },
+          {
+            "id": "ocds-11",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Если бы Вам помешали употребить спиртное, когда Вы хотели это сделать, в какой мере это вызвало бы у Вас тревогу и раздражение?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Я не испытал(а) бы тревоги и раздражения"
+              },
+              {
+                "value": 1,
+                "label": "Это вызвало бы легкую тревогу и раздражение"
+              },
+              {
+                "value": 2,
+                "label": "Это вызвало бы тревогу и раздражение, но я был(а) бы в состоянии справиться с этим"
+              },
+              {
+                "value": 3,
+                "label": "Я испытал(а) бы значительную тревогу или раздражение, которые всерьез бы мне мешали"
+              },
+              {
+                "value": 4,
+                "label": "Я испытал(а) бы крайне выраженную тревогу и раздражение"
+              }
+            ]
+          },
+          {
+            "id": "ocds-12",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Сколько усилий Вам приходилось прилагать, чтобы противостоять употреблению спиртных напитков? (Обозначьте выраженность ваших усилий, независимо от того, оказались они успешными или нет)",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Я употреблял(а) алкоголь крайне мало, не было необходимости активно противостоять этому. Если я употреблял(а) алкоголь, я всегда старался(-ась) противостоять этому"
+              },
+              {
+                "value": 1,
+                "label": "Я пытался(-ась) противостоять этому в большинстве случаев"
+              },
+              {
+                "value": 2,
+                "label": "Я делал(а) некоторые попытки противостоять этому"
+              },
+              {
+                "value": 3,
+                "label": "Я почти всегда сдавался(-ась) без попыток контролировать употребление алкоголя, но совершал(а) это с некоторыми колебаниями"
+              },
+              {
+                "value": 4,
+                "label": "Я всегда полностью и добровольно продолжал(а) употреблять алкоголь"
+              }
+            ]
+          },
+          {
+            "id": "ocds-13",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Насколько сильно была выражена у Вас потребность употреблять спиртное?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Не было потребности"
+              },
+              {
+                "value": 1,
+                "label": "Была незначительная потребность употреблять алкоголь"
+              },
+              {
+                "value": 2,
+                "label": "Была выраженная потребность употреблять алкоголь"
+              },
+              {
+                "value": 3,
+                "label": "Была очень выраженная потребность употреблять алкоголь"
+              },
+              {
+                "value": 4,
+                "label": "Потребность употреблять алкоголь была совершенно непреодолима"
+              }
+            ]
+          },
+          {
+            "id": "ocds-14",
+            "scaleId": "ocds-compulsions",
+            "prompt": "Насколько Вы были способны контролировать употребление спиртного?",
+            "responseOptions": [
+              {
+                "value": 0,
+                "label": "Полностью контролировал(а)"
+              },
+              {
+                "value": 1,
+                "label": "Обычно я был(а) способен(-на) осуществлять сознательный контроль над употреблением спиртного"
+              },
+              {
+                "value": 2,
+                "label": "Я с трудом мог(ла) контролировать употребление спиртного"
+              },
+              {
+                "value": 3,
+                "label": "Я не мог(ла) не выпивать и был(а) способен(-на) лишь с трудом отсрочить прием спиртного"
+              },
+              {
+                "value": 4,
+                "label": "Мне редко удавалось отсрочить прием спиртного даже на короткое время"
+              }
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "when": "score_ocds_total >= 0",
+            "headline": "Мысли об алкоголе и тяга",
+            "message": "Ниже — мысли об алкоголе (0–20) и тяга и употребление (0–20). Нормативов у русской версии нет: сравнивайте с прошлыми заполнениями — снижение баллов показывает, что влечение слабеет."
+          }
+        ],
+        "disclaimer": "Шкала показывает выраженность мыслей об алкоголе и тяги и их изменения; нормативов и порогов у русской версии нет.",
+        "evidenceNote": "Русская версия — приложение 1 статьи Климановой и соавт. (2024): 222 пациента на стационарном лечении, двухфакторная структура подтверждена, внутренняя согласованность приемлемая (α = 0,80 для «Обсессий» и 0,86 для «Компульсий»). Подсчёт по факторам — по формулам из приложения: в пары вопросов 1–2, 7–8, 9–10 и 13–14 входит больший ответ. Изменения MiniMed: формы слов для обоих полов («употреблял(а)») и последний ответ вопроса 12, сказанный без оценочного слова: «продолжал(а) употреблять алкоголь»; баллы не изменены.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Оригинальная шкала: Anton R. F., Moak D. H., Latham P. (1995). Русская версия: Климанова С. Г., Борновалова М. А., Эммануэль П., Заарур А., Березина А. А., Трусова А. В., Рыбакова К. В., Крупицкий Е. М. Обозрение психиатрии и медицинской психологии им. В. М. Бехтерева. 2024;58(4-1):73-90, приложение 1; лицензия CC BY-NC-SA 4.0. Изменено: формы слов для обоих полов и формулировка последнего ответа вопроса 12.",
+          "sourceUrl": "https://doi.org/10.31363/2313-7053-2024-981"
+        },
+        "schemaVersion": 2,
+        "scoreScales": [
+          {
+            "id": "scale_ocds_total",
+            "valueId": "ocds-total",
+            "label": "Сумма OCDS",
+            "minimum": 0,
+            "maximum": 40,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0
+              }
+            ]
+          },
+          {
+            "id": "scale_ocds_obsessions",
+            "valueId": "ocds-obsessions",
+            "label": "Мысли об алкоголе",
+            "minimum": 0,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0
+              }
+            ]
+          },
+          {
+            "id": "scale_ocds_compulsions",
+            "valueId": "ocds-compulsions",
+            "label": "Тяга и употребление",
+            "minimum": 0,
+            "maximum": 20,
+            "step": 1,
+            "layout": "proportional",
+            "bands": [
+              {
+                "from": 0
+              }
+            ]
+          }
+        ],
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "У русской версии OCDS нет нормативов и клинических порогов: баллы показывают выраженность мыслей и тяги у этого человека и их изменения.",
+          "sourceIds": ["ocds-klimanova-2024"]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.ocds-ru.ocds-total",
+            "label": "Сумма двух факторов OCDS",
+            "unit": "баллы",
+            "scaleId": "ocds-total",
+            "method": "assessment:minimed.assessment.ocds-ru"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "ocds-klimanova-2024",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Климанова С. Г., Борновалова М. А., Эммануэль П. и др. Адаптация русскоязычной версии Шкалы обсессивно-компульсивного употребления алкоголя (Obsessive-Compulsive Drinking Scale). Обозрение психиатрии и медицинской психологии им. В. М. Бехтерева. 2024;58(4-1):73-90, приложение 1",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://doi.org/10.31363/2313-7053-2024-981",
+          "reviewedAt": "2026-11-04"
+        },
+        {
+          "id": "ocds-anton-1995",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Anton RF, Moak DH, Latham P. The Obsessive Compulsive Drinking Scale: a self-rated instrument for the quantification of thoughts about alcohol and drinking behavior. Alcohol Clin Exp Res. 1995;19(1):92-99",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://doi.org/10.1111/j.1530-0277.1995.tb01475.x",
+          "reviewedAt": "2026-11-04"
         }
       ]
     }

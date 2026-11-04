@@ -47,6 +47,28 @@ export const DIARY_QUESTIONNAIRES: readonly DiaryQuestionnaireOption[] = [
     about: 'астения',
     pack: 'psychology',
   },
+  // Alcohol (NARCO1, owner 2026-11-04): the WHO risk tests and the craving and thoughts scale.
+  {
+    slug: 'rus-audit-s',
+    bank: 'psychiatry',
+    title: 'RUS-AUDIT-S',
+    about: 'алкоголь, 3 вопроса',
+    pack: 'psychology',
+  },
+  {
+    slug: 'rus-audit',
+    bank: 'psychiatry',
+    title: 'RUS-AUDIT',
+    about: 'алкоголь за год',
+    pack: 'psychology',
+  },
+  {
+    slug: 'ocds-alcohol-craving',
+    bank: 'psychiatry',
+    title: 'OCDS',
+    about: 'мысли об алкоголе и тяга',
+    pack: 'psychology',
+  },
   {
     slug: 'perinatal-mood-whooley',
     bank: 'obstetrics',

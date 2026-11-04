@@ -103,6 +103,11 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Опросники для оценки выраженности астенических жалоб.',
   },
   {
+    id: 'substance-use',
+    title: 'Употребление алкоголя',
+    description: 'Тесты ВОЗ на риск, связанный с алкоголем, и шкала мыслей об алкоголе и тяги.',
+  },
+  {
     id: 'newborn-screening',
     title: 'Оценка новорождённого',
     description: 'Стандартизированная оценка состояния новорождённого сразу после рождения.',
@@ -167,6 +172,7 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'team-role': 'minimed.tools.psychology.ru',
     temperament: 'minimed.tools.psychology.ru',
     asthenia: 'minimed.tools.psychology.ru',
+    'substance-use': 'minimed.tools.psychology.ru',
     'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',
     'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
     'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',
