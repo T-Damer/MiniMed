@@ -10,6 +10,9 @@ All notable changes are documented here. The project follows Semantic Versioning
   («Психический статус» in the recording window) or pasted text proposes phrases, each with the quoted words of the
   conversation; a tap on a quote shows it in the text; nothing is added until the doctor accepts it. Catalog from a
   friend's offline constructor 1.0.0, credited in «?».
+- Background: the page grounds (the desk, every route page, the patient diary's paper) carry a fine, still paper
+  grain instead of a flat colour, in light and dark; cards, sheets and buttons stay flat on it. With «less
+  transparency» or «more contrast» asked for on the device, the grounds are plain again.
 
 ## [0.6.92] - 2026-11-05
 

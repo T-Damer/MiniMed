@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 27 October 2026
+> Updated: 5 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -162,6 +162,23 @@ it on 2026-11-05 (`packages/core/src/psy-status/NOTICE.md`). Credited in the scr
   `psy-status-record.test.ts`; browser: paste → proposals → quote sheet → accept / dismiss → edit →
   text at 1280 px and 375 px. Not checked: saving into a real vault, the recording-window button with
   a real recording, a phone.
+
+## Background grain — 2026-11-05 (STATE BG1)
+
+The flat page colour read as unfinished. The grounds now carry a fine two-tone paper grain: one
+static 180 px SVG tile (`feTurbulence`, darker fibres and lighter flecks at a few percent alpha),
+`--theme-grain` in `styles/theme.css` with its own dark-theme value in `theme-dark.css`.
+`--theme-grain-layer` is put first in the `background` of the grounds only — `body` (the desk),
+`.page-surface` and the hero sheets, `.search-home`, `.model-status-view`, the knowledge/notes
+pages, `.diary-body` / `.diary-page`. Cards, sheets, lists and controls keep their flat fills, so
+they stand off the ground as before, and the press shade still finds them (press-feedback.ts skips a
+control with a background image of its own). No animation, no blur, no extra layer: the tile is
+rasterised once and scrolls with the page. `prefers-reduced-transparency: reduce` or
+`prefers-contrast: more` set the token to `none`. Text contrast is unchanged (the e2e contrast
+checks read background colours; the grain's flecks peak near 13 % alpha and average far below).
+`e2e/diary-background-grain.spec.ts` holds it: grain on the grounds in light and dark, on no
+control, the diary row still shaded when held, plain grounds with more contrast. No e2e spec
+compares pixels, so there were no reference images to update. Not checked on a physical phone.
 
 ## Release 0.6.92 — 2026-11-05
 

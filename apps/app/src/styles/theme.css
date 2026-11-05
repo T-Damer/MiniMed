@@ -158,6 +158,14 @@
   --theme-assessment-response-safe-space: 3.25rem;
   --theme-assessment-legend-overlap: -1.8rem;
   --theme-assessment-legend-padding: 0.45rem 0.7rem 0.45rem 0.35rem;
+  /* Background grain (BG1, 2026-11-05): a fine two-tone paper fibre over the page grounds only —
+     the desk (body), the route pages and the diary page; cards, sheets and controls stay flat, so
+     they still stand off the ground, and the press shade (press-feedback.css) still finds them
+     without an image of their own. One 180px SVG tile, static, rasterised once; a few percent
+     alpha, so text contrast does not move. `--theme-grain-layer` is a whole background layer, put
+     first in a ground's `background`; `none` (reduced transparency, more contrast) leaves it out. */
+  --theme-grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.227 0 0 0 0 0.173 0 0 0 0 0.094 0.5 0 0 0 -0.24' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 0.988 0 0 0 0 0.941 0 0.5 0 0 -0.26'/%3E%3CfeMerge%3E%3CfeMergeNode in='d'/%3E%3CfeMergeNode/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --theme-grain-layer: var(--theme-grain) 0 0 / 180px 180px repeat;
   --page-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.27' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.27'/%3E%3C/svg%3E");
   --masked-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='luminanceToAlpha' result='alpha'/%3E%3CfeFlood flood-color='white' result='light'/%3E%3CfeComposite in='light' in2='alpha' operator='in'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
 
@@ -177,4 +185,12 @@
   font-family: "MiniMed Code", var(--font-mono);
   font-feature-settings: "zero" 1;
   font-variant-numeric: tabular-nums;
+}
+
+/* The grain is texture, not information: people who ask for less transparency or more contrast get
+   the plain grounds (BG1). Doubled `:root` to win over the dark theme's token. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root:root {
+    --theme-grain: none;
+  }
 }
