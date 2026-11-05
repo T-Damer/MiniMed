@@ -10,6 +10,7 @@ export * from './diary-sync';
 export * from './documents';
 export * from './dose-rules';
 export * from './errors';
+export * from './form-fill';
 export * from './form-schema';
 export * from './prescription';
 export * from './psy-status';

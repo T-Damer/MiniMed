@@ -16,7 +16,12 @@ export type LocalModelPhase =
   | 'benchmarking'
   | 'ready'
   | 'error';
-export type LocalModelStructuredTaskKind = 'query-plan' | 'rerank' | 'relevance' | 'visit-note';
+export type LocalModelStructuredTaskKind =
+  | 'query-plan'
+  | 'rerank'
+  | 'relevance'
+  | 'visit-note'
+  | 'form-fill';
 
 export interface LocalModelLicense {
   readonly id: string;
@@ -136,6 +141,11 @@ export interface LocalModelStructuredRequest {
   readonly userPrompt: string;
   readonly maxTokens: number;
   readonly temperature?: number;
+  /**
+   * JSON Schema the answer must follow. Runtimes that can constrain generation (wllama, through
+   * llama.cpp's grammar) do; the others ignore it and the caller validates the parsed answer.
+   */
+  readonly responseSchema?: Readonly<Record<string, unknown>>;
 }
 
 export interface LocalModelStructuredResponse {

@@ -45,6 +45,10 @@ interface WllamaInstance {
     readonly max_tokens: number;
     readonly temperature: number;
     readonly top_p: number;
+    readonly response_format?: {
+      readonly type: 'json_schema';
+      readonly json_schema: { readonly name: string; readonly schema: unknown };
+    };
   }): Promise<WllamaCompletion>;
   exit?(): Promise<void> | void;
   unloadModel?(): Promise<void> | void;
@@ -162,6 +166,14 @@ class BrowserWllamaSession implements LocalModelSession {
       max_tokens: Math.max(32, Math.min(512, Math.round(request.maxTokens))),
       temperature: Math.max(0, Math.min(0.4, request.temperature ?? 0)),
       top_p: 1,
+      ...(request.responseSchema
+        ? {
+            response_format: {
+              type: 'json_schema' as const,
+              json_schema: { name: request.task, schema: request.responseSchema },
+            },
+          }
+        : {}),
     });
     const rawText = result.choices?.[0]?.message?.content?.trim() ?? '';
     return {

@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./psy-status": "./src/psy-status/index.ts"
+    "./psy-status": "./src/psy-status/index.ts",
+    "./form-fill": "./src/form-fill/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

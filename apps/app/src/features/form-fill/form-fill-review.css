@@ -1,0 +1,87 @@
+.form-fill-review {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-fill-review__count {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-fill-review__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.form-fill-review__item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  background: var(--theme-surface);
+  transition:
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease),
+    border-color var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.form-fill-review__item--accepted {
+  border-color: var(--theme-accent);
+}
+
+.form-fill-review__item--rejected {
+  opacity: 0.55;
+}
+
+.form-fill-review__label {
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8rem);
+}
+
+.form-fill-review__value {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.form-fill-review__quotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.form-fill-review__quote {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--theme-text);
+  background: var(--theme-accent-soft);
+  font: inherit;
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: start;
+  cursor: pointer;
+}
+
+.form-fill-review__speaker {
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8rem);
+  font-style: normal;
+}
+
+.form-fill-review__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}

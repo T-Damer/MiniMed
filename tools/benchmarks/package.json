@@ -34,7 +34,8 @@
     "benchmark:typo-correction": "bun src/run-typo-correction.ts",
     "benchmark:retrieval:build": "bun src/build-retrieval-benchmark.ts",
     "benchmark:retrieval": "bun src/run-retrieval-benchmark.ts",
-    "benchmark:owner-queries": "bun src/run-owner-queries.ts"
+    "benchmark:owner-queries": "bun src/run-owner-queries.ts",
+    "benchmark:form-fill": "bun src/run-form-fill.ts"
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
