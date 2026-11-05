@@ -41,7 +41,7 @@ test('opens personal questionnaires from the compact row after the catalog', asy
   expect(await heading.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(
     await search.evaluate((element) => element.getBoundingClientRect().top),
   );
-  // Import is a secondary header action (an icon button); creating stays the primary action.
+  // Import and create are header actions (icon buttons); create folds into «⋯» last.
   await expect(page.getByRole('button', { name: 'Импортировать опросник' })).toHaveClass(
     /ui-button--icon/u,
   );
@@ -49,7 +49,7 @@ test('opens personal questionnaires from the compact row after the catalog', asy
   const create = page
     .locator('.assessment-catalog-page-header')
     .getByRole('button', { name: 'Создать опросник' });
-  await expect(create).toHaveClass(/ui-button--primary/u);
+  await expect(create).toHaveClass(/ui-button--icon/u);
   await create.click();
   await expect(page).toHaveURL(/#\/assessments\/mine\/[^/]+\/edit$/u);
 });
