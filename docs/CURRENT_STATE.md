@@ -20,11 +20,11 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1, branch `psy-status`)
+## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1)
 
-**Not in `main`.** The phrase catalog comes from a friend's offline «Конструктор психиатрического
-статуса» 1.0.0 that has no licence, terms or author name; `main` deploys to GitHub Pages, so the branch
-waits for the author's written terms and credit (`packages/core/src/psy-status/NOTICE.md`).
+The phrase catalog comes from a friend's offline «Конструктор психиатрического статуса» 1.0.0, written
+for his own use without a licence; he gave it to the owner for MiniMed and the owner confirmed shipping
+it on 2026-11-05 (`packages/core/src/psy-status/NOTICE.md`). Credited in the screen's «?», no name.
 
 - **Data.** `packages/core/src/psy-status/catalog.ru.json`: the constructor's 3 modules, 23 sections,
   127 phrases (code, text, tags, evidence: observed / reported / documented), the 5 section statuses,

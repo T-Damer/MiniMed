@@ -6,10 +6,11 @@
 and given to the owner on 2026-11-04. Texts, phrase codes, evidence kinds, section statuses and
 rules are converted unchanged; only the generated `p1…` ids are dropped (codes are the ids).
 
-**Terms: not settled.** The original package carries no licence, no terms and no author name. Until
-the author agrees to terms in writing and says how they want to be credited, this catalog must not
-be published (no merge to `main`, which deploys to GitHub Pages, and no release). Record the author,
-the credit line and the licence here when they are known.
+**Terms.** The author wrote it for his own use and attached no licence or terms. He gave it to the
+MiniMed owner on 2026-11-04 for use in MiniMed; the owner confirmed on 2026-11-05 that it may ship in
+MiniMed (app and Pages). Credit, without the author's name unless he asks for it: «Конструктор
+психиатрического статуса» 1.0.0 — shown in the screen's «?». Record any terms or a name the author
+gives later here.
 
 The original README asks for expert clinical, legal and information-security review of the built-in
 wording and rules before use with real patients.
