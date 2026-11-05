@@ -4,10 +4,10 @@ import { createApp } from './app';
 import { readSettings } from './config';
 import { bunPasswords } from './passwords';
 import { loadVapid } from './push';
-import { sendDueReminders } from './reminders';
+import { sendDueReminders, sendMissedDoses } from './reminders';
 import { openDatabase, SqliteStore } from './sqlite-store';
 
-/** How often due reminders are looked for; a reminder arrives within this of its moment. */
+/** How often due reminders and missed doses are looked for; a push arrives within this of its moment. */
 const REMINDER_TICK_MS = 20_000;
 
 /** The `server` mode (ADR-0027): one Bun process over SQLite; the serverless entry is serverless.ts. */
@@ -29,6 +29,7 @@ const app = createApp(store, {
   vapid,
   ...(settings.staticDir ? { staticDir: settings.staticDir } : {}),
   corsOrigins: settings.corsOrigins,
+  ...(settings.tickToken ? { tickToken: settings.tickToken } : {}),
 });
 
 const server = Bun.serve({
@@ -36,6 +37,8 @@ const server = Bun.serve({
   port: settings.port,
   // Live streams stay open; Bun's default idle timeout would cut them.
   idleTimeout: 0,
+  // The diary sends text only; the serverless entry has the same cap (SEC-AUDIT1, Bun's own is 128 MB).
+  maxRequestBodySize: 2 * 1024 * 1024,
   fetch: app,
 });
 console.info(
@@ -43,7 +46,10 @@ console.info(
 );
 
 setInterval(() => {
-  sendDueReminders(store, vapid, (line) => console.info(line)).catch((cause: unknown) =>
-    console.error(`reminders failed: ${cause instanceof Error ? cause.name : 'error'}`),
-  );
+  const log = (line: string) => console.info(line);
+  sendDueReminders(store, vapid, log)
+    .then(() => sendMissedDoses(store, vapid, log))
+    .catch((cause: unknown) =>
+      console.error(`reminders failed: ${cause instanceof Error ? cause.name : 'error'}`),
+    );
 }, REMINDER_TICK_MS);

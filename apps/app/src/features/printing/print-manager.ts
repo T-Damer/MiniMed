@@ -7,6 +7,7 @@ import {
   type MedicalImagePrintFrame,
   type MedicalImagePrintOptions,
 } from '@/features/library/medical-image-print';
+import { EPUB_ACTIVE_SELECTOR, epubAttributeIsActive } from '@/features/printing/epub-sanitize';
 import { printHtmlInNativeShell } from '@/features/printing/native-print';
 import { shareSystemFile } from '@/state/native-share';
 
@@ -150,14 +151,14 @@ function prepareEpubSection(markup: string): {
   readonly styles: readonly string[];
 } {
   const parsed = new DOMParser().parseFromString(markup, 'text/html');
-  parsed.querySelectorAll('script, iframe, object, embed').forEach((node) => {
+  // The book is someone else's file and lands in the app's own page (SEC-AUDIT1): nothing that
+  // runs, submits, redirects or re-bases survives.
+  parsed.querySelectorAll(EPUB_ACTIVE_SELECTOR).forEach((node) => {
     node.remove();
   });
   parsed.querySelectorAll('*').forEach((node) => {
     for (const attribute of Array.from(node.attributes)) {
-      const name = attribute.name.toLowerCase();
-      const value = attribute.value.trim().toLowerCase();
-      if (name.startsWith('on') || value.startsWith('javascript:')) {
+      if (epubAttributeIsActive(attribute.name, attribute.value)) {
         node.removeAttribute(attribute.name);
       }
     }

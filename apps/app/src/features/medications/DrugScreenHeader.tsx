@@ -19,6 +19,8 @@ export function DrugScreenHeader(props: {
   readonly header: DrugHeaderModel;
   /** The title element: the reader draws it so that «find in document» can mark it. */
   readonly title: JSX.Element;
+  /** Beside the title: the active substance's structure, when it is known. */
+  readonly aside?: JSX.Element;
 }): JSX.Element {
   const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
 
@@ -61,7 +63,10 @@ export function DrugScreenHeader(props: {
         <Show when={props.header.kind === 'substance'}>
           <p class="drug-header__kicker">{props.header.kicker}</p>
         </Show>
-        <h1 class="drug-header__title">{props.title}</h1>
+        <div class="drug-header__title-row">
+          <h1 class="drug-header__title">{props.title}</h1>
+          {props.aside}
+        </div>
         <Show when={props.header.latinName || props.header.country || props.header.meta.length > 0}>
           <p class="drug-header__meta">
             <Show when={props.header.latinName}>

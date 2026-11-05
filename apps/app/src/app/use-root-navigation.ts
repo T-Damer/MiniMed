@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
-import { animatePageEnter } from '@/app/page-enter';
+import { animatePageEnter, consumePageEnterClaim } from '@/app/page-enter';
 
 import {
   bootstrapDocumentReadLocation,
@@ -45,10 +45,8 @@ export function useRootNavigation() {
   const [mountedViews, setMountedViews] = createSignal<ReadonlySet<RootView>>(
     new Set([viewFromLocation()]),
   );
-  const [showScrollTop, setShowScrollTop] = createSignal(false);
   const [chromeHidden, setChromeHidden] = createSignal(false);
 
-  let scrollFrame: number | undefined;
   let lastScrollTop = window.scrollY;
   let chromeHoldUntil = 0;
   const rootNavigationQueue: Array<{ readonly next: RootView; readonly commit: () => void }> = [];
@@ -208,25 +206,12 @@ export function useRootNavigation() {
     });
   };
 
-  const activeReaderScrollElement = (): HTMLElement | undefined =>
-    document.querySelector<HTMLElement>('.user-document-reader--fullscreen') || undefined;
-
   const readScrollTop = (event?: Event): number => {
     const target = event?.target;
     if (target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')) {
       return target.scrollTop;
     }
     return window.scrollY;
-  };
-
-  const scrollToTop = (): void => {
-    const reader = activeReaderScrollElement();
-    if (reader) {
-      reader.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    // Virtualized rows remeasure while scrolling; a smooth animation can lose its target.
-    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleScroll = (event?: Event): void => {
@@ -241,11 +226,6 @@ export function useRootNavigation() {
     } else if (scrollTop > CHROME_HIDE_AFTER && direction > CHROME_DIRECTION_THRESHOLD) {
       setChromeHidden(true);
     }
-    if (scrollFrame !== undefined) return;
-    scrollFrame = requestAnimationFrame(() => {
-      scrollFrame = undefined;
-      setShowScrollTop(scrollTop > 48);
-    });
   };
 
   const handleChromeHold = (event: Event): void => {
@@ -264,21 +244,71 @@ export function useRootNavigation() {
     document.documentElement.classList.toggle('app-chrome-hidden', canHideChrome && chromeHidden());
   });
 
-  // The arrived page's blocks grow in (app/page-enter.ts) once it has laid out, two frames on, or
-  // a few frames later for a page still mounting; readers keep their own chrome and start at once.
+  // The arrived page's blocks grow in (app/page-enter.ts) from the first frame that draws them: a
+  // start a frame later showed the whole page for one frame, then blanked it and grew it back. A
+  // page still mounting (a lazy chunk) is tried again for a few frames; readers keep their own
+  // chrome and start at once.
   let enterFrame: number | undefined;
-  const scheduleEnter = (): void => {
-    if (isDocumentReadRoute(window.location.hash)) return;
+  /** When the views' tree last changed: a page that mounted with the address change shows here. */
+  let lastTreeChangeAt = Number.NEGATIVE_INFINITY;
+  let treeWatcher: MutationObserver | undefined;
+  /** An entry waits for the page to mount: until this moment the next tree change starts it. */
+  let enterWaitsUntil = Number.NEGATIVE_INFINITY;
+  const watchTree = (): void => {
+    const main = document.querySelector('.app-main');
+    if (!main || treeWatcher) return;
+    treeWatcher = new MutationObserver(() => {
+      lastTreeChangeAt = performance.now();
+      // The observer's callback runs right after the task that changed the tree, before the next
+      // frame is drawn: a page that mounts later than its address (a lazy chunk, a view the tabs
+      // reveal) starts its entry here, so the first frame that draws it is already the start.
+      if (lastTreeChangeAt > enterWaitsUntil) return;
+      const view = document.querySelector('.app-view.active');
+      // A skeleton is the page's placeholder: its entry is the real content's, when that arrives.
+      if (view?.querySelector('.page-skeleton__paper, .page-skeleton__bar')) return;
+      if (animatePageEnter(view)) {
+        enterWaitsUntil = Number.NEGATIVE_INFINITY;
+        stopEnter();
+      }
+    });
+    treeWatcher.observe(main, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'hidden'],
+    });
+  };
+  const stopEnter = (): void => {
     if (enterFrame !== undefined) cancelAnimationFrame(enterFrame);
+    enterFrame = undefined;
+  };
+  /** The route listener that mounts the page may run just before this one: a little slack. */
+  const MOUNT_SLACK_MS = 50;
+  /** How long after the address changes a tree change still counts as the arrival's mount. */
+  const ENTER_WAIT_MS = 800;
+  const scheduleEnter = (): void => {
+    if (consumePageEnterClaim()) return;
+    if (isDocumentReadRoute(window.location.hash)) return;
+    stopEnter();
+    watchTree();
+    enterWaitsUntil = performance.now() + ENTER_WAIT_MS;
+    // A page that mounted in the same turn as the address (a screen that mounts at once) is drawn
+    // for the first time by the next frame: the entry starts there. A page that has not mounted by
+    // then (a lazy chunk) is waited for, two frames at least, and tried again until it is there.
+    const changedAt = performance.now();
     let frames = 0;
     const tick = (): void => {
       frames += 1;
-      if (frames < 2) {
+      const mounted = lastTreeChangeAt >= changedAt - MOUNT_SLACK_MS;
+      if (!mounted && frames < 2) {
         enterFrame = requestAnimationFrame(tick);
         return;
       }
       const started = animatePageEnter(document.querySelector('.app-view.active'));
-      enterFrame = started || frames >= 20 ? undefined : requestAnimationFrame(tick);
+      if (started || frames >= 20) {
+        enterWaitsUntil = Number.NEGATIVE_INFINITY;
+        stopEnter();
+      } else enterFrame = requestAnimationFrame(tick);
     };
     enterFrame = requestAnimationFrame(tick);
   };
@@ -287,6 +317,7 @@ export function useRootNavigation() {
     redirectLegacySettingsRoutes();
     applyDocumentReadState();
     setView(viewFromLocation());
+    watchTree();
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('hashchange', scheduleEnter);
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -298,21 +329,19 @@ export function useRootNavigation() {
   onCleanup(() => {
     window.removeEventListener('hashchange', handleHashChange);
     window.removeEventListener('hashchange', scheduleEnter);
-    if (enterFrame !== undefined) cancelAnimationFrame(enterFrame);
+    stopEnter();
+    treeWatcher?.disconnect();
     window.removeEventListener('scroll', handleScroll);
     document.removeEventListener('scroll', handleScroll, { capture: true });
     window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.documentElement.classList.remove('app-chrome-hidden');
-    if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
     if (settleTimer) clearTimeout(settleTimer);
   });
 
   return {
     view,
     documentReadActive,
-    showScrollTop,
     chromeHidden,
-    scrollToTop,
     navigate,
     rootViewClasses,
     isViewVisible,

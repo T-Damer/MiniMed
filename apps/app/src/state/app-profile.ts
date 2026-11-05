@@ -1,4 +1,8 @@
 import type { RootViewItem } from '@/app/root-view';
+import {
+  DIARY_QUESTIONNAIRES,
+  type DiaryQuestionnaireOption,
+} from '@/features/diary/diary-questionnaires';
 import type { SettingsPageId } from '@/features/settings/settings-pages';
 
 /**
@@ -24,6 +28,11 @@ export interface AppProfile {
   readonly home: string;
   /** Route prefixes the profile allows (hash form). */
   readonly routes: readonly string[];
+  /**
+   * The built-in scales its questionnaire list offers next to the user's own; each one's page
+   * (and the drafts and results below it) is an allowed route, the rest of the catalog is not.
+   */
+  readonly builtInScales?: readonly DiaryQuestionnaireOption[];
   /** The bottom bar's items, in order; empty hides the bar. */
   readonly navigation: readonly AppProfileNavItem[];
   /** The settings pages the profile offers; all of them when absent. */
@@ -32,16 +41,33 @@ export interface AppProfile {
   readonly hiddenSettings?: readonly SettingsRowId[];
   /** The app's own first-run tour and base download are not part of this job. */
   readonly skipOnboarding: boolean;
+  /**
+   * Nothing in the profile searches the knowledge base, so the app neither opens nor downloads its
+   * search core (a 440 MB database) and does not read the downloadable-module catalog at start-up.
+   */
+  readonly skipSearchCore?: boolean;
+}
+
+/** The address of one built-in scale's page: its section and its slug. */
+export function builtInScaleRoute(scale: Pick<DiaryQuestionnaireOption, 'bank' | 'slug'>): string {
+  return `#/assessments/${scale.bank}/${scale.slug}`;
 }
 
 export const APP_PROFILES: readonly AppProfile[] = [
   {
     id: 'diaries',
     home: '#/notes/diaries',
-    routes: ['#/notes/diaries', '#/settings', '#/assessments/mine'],
+    routes: [
+      '#/notes/diaries',
+      '#/settings',
+      '#/assessments/mine',
+      ...DIARY_QUESTIONNAIRES.map(builtInScaleRoute),
+    ],
+    builtInScales: DIARY_QUESTIONNAIRES,
     navigation: [
       { id: 'notes', label: 'Пациенты', icon: 'users', hash: '#/notes/diaries' },
-      // The doctor's own questionnaires: the list, and from it the editor and the run page.
+      // Every questionnaire a diary can carry: the built-in scales and the doctor's own, with the
+      // editor and the run pages below the list.
       { id: 'assessments', label: 'Опросники', icon: 'list-checks', hash: '#/assessments/mine' },
       { id: 'settings', label: 'Настройки', icon: 'system', hash: '#/settings' },
     ],
@@ -49,8 +75,15 @@ export const APP_PROFILES: readonly AppProfile[] = [
     // No search home, no section tabs and no documents to float in the diaries profile.
     hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows'],
     skipOnboarding: true,
+    skipSearchCore: true,
   },
 ];
+
+/**
+ * A build for one job (`VITE_APP_PROFILE`): the GitVerse copy carries only the diaries (owner
+ * 2026-11-03), so it is always that profile, whatever the address or the device remembers.
+ */
+const LOCKED_PROFILE = import.meta.env.VITE_APP_PROFILE;
 
 let cached: AppProfile | null | undefined;
 
@@ -70,6 +103,11 @@ function storage(): Storage | undefined {
 /** The active profile: from the address when given there, else the one remembered. */
 export function activeProfile(search = window.location.search): AppProfile | undefined {
   if (cached !== undefined) return cached ?? undefined;
+  const locked = APP_PROFILES.find((candidate) => candidate.id === LOCKED_PROFILE);
+  if (locked) {
+    cached = locked;
+    return locked;
+  }
   const requested = new URLSearchParams(search).get('profile');
   if (requested === 'off') {
     storage()?.removeItem(STORAGE_KEY);

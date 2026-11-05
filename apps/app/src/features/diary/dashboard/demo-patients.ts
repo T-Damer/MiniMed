@@ -8,23 +8,28 @@
  */
 
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
-import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
+import { signInDemo } from '@/features/diary/connected/doctor-account';
+import { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import {
   type PairingLink,
   PatientConnection,
   readPairingFragment,
 } from '@/features/diary/connected/patient-connection';
+import { joiningDocuments } from '@/features/diary/consent/joining-documents';
 import {
   type DemoBehavior,
   demoIssuedAt,
   generateDemoDiary,
   type QuestionnaireShape,
 } from '@/features/diary/dashboard/demo-diary-data';
+import { dayKey } from '@/features/diary/diary-care';
 import {
   type CareDraft,
   type CareSectionDraft,
   careInvitation,
   emptyCareDraft,
+  newCareAppointment,
+  newCareLab,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
 import {
@@ -44,7 +49,8 @@ export interface DemoPatientSpec extends DemoBehavior {
   readonly emoji: string;
   /** Days of history, today included. */
   readonly days: number;
-  readonly draft: () => CareDraft;
+  /** The plan; `now` is the end of the history, so a visit or a test is due from there. */
+  readonly draft: (now: Date) => CareDraft;
 }
 
 function drug(input: {
@@ -77,10 +83,20 @@ function presets(): CareSectionDraft[] {
   return found;
 }
 
-function careDraft(sections: readonly CareSectionDraft[]): CareDraft {
+/** The day `days` after `now`, `YYYY-MM-DD`. */
+function dayAfter(now: Date, days: number): string {
+  return dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 12));
+}
+
+function careDraft(
+  sections: readonly CareSectionDraft[],
+  visits: Pick<CareDraft, 'appointments' | 'labs'> = {},
+): CareDraft {
   return {
+    ...visits,
     sections: [...sections, ...presets()],
-    contacts: [],
+    // An invented number (owner 2026-11-04), so the visit card's «Позвонить» shows in the showcase.
+    contacts: [{ kind: 'phone', value: '+7 777 777-77-77', label: '' }],
     crisis: '112 — экстренные службы\n103 — скорая помощь',
   };
 }
@@ -94,31 +110,57 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.93,
     urgentAlert: false,
     vitals: { pulse: 76, systolic: 118, diastolic: 76, spo2: 98 },
-    draft: () =>
-      careDraft([
-        drug({
-          title: 'Сертралин',
-          form: 'таблетки',
-          dose: '50 мг',
-          signa: 'По 1 таблетке утром после завтрака',
-          times: [['08:00', 'after']],
-        }),
-        drug({
-          title: 'Кветиапин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'По 1 таблетке за 30 минут до сна',
-          times: [['22:00']],
-          tip: 'Если утром остаётся сонливость, напишите мне: уменьшим дозу.',
-        }),
-        drug({
-          title: 'Гидроксизин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'При сильной тревоге, не больше 2 раз в сутки',
-        }),
-        newCareSection('questionnaire', 'phq-9'),
-      ]),
+    // Evening drinks that fade, a daily smoker who cuts down, rare sleeping pills.
+    use: {
+      'u-alcohol': { chance: 0.4, typical: 3 },
+      'u-nicotine': { chance: 0.9, typical: 9 },
+      'u-sedatives': { chance: 0.08, typical: 1 },
+    },
+    draft: (now) =>
+      careDraft(
+        [
+          drug({
+            title: 'Сертралин',
+            form: 'таблетки',
+            dose: '50 мг',
+            signa: 'По 1 таблетке утром после завтрака',
+            times: [['08:00', 'after']],
+          }),
+          drug({
+            title: 'Кветиапин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'По 1 таблетке за 30 минут до сна',
+            times: [['22:00']],
+            tip: 'Если утром остаётся сонливость, напишите мне: уменьшим дозу.',
+          }),
+          drug({
+            title: 'Гидроксизин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'При сильной тревоге, не больше 2 раз в сутки',
+          }),
+          {
+            ...newCareSection('use'),
+            substances: ['alcohol', 'nicotine', 'sedatives'],
+            craving: true,
+          },
+          newCareSection('questionnaire', 'phq-9'),
+        ],
+        {
+          appointments: [
+            { ...newCareAppointment(dayAfter(now, 1)), time: '14:30', place: 'Кабинет 12' },
+          ],
+          labs: [
+            newCareLab({
+              name: 'Глюкоза натощак',
+              unit: 'ммоль/л',
+              by: dayAfter(now, 7),
+              why: 'Кветиапин может менять обмен веществ',
+            }),
+          ],
+        },
+      ),
   },
   {
     label: `${DEMO_LABEL_PREFIX} Сова`,
@@ -128,29 +170,48 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.88,
     urgentAlert: false,
     vitals: { pulse: 82, systolic: 126, diastolic: 80, spo2: 97 },
-    draft: () =>
-      careDraft([
-        drug({
-          title: 'Вальпроевая кислота',
-          form: 'таблетки пролонгированного действия',
-          dose: '500 мг',
-          signa: 'По 1 таблетке 2 раза в день во время еды',
-          times: [
-            ['08:00', 'with'],
-            ['20:00', 'with'],
+    draft: (now) =>
+      careDraft(
+        [
+          drug({
+            title: 'Вальпроевая кислота',
+            form: 'таблетки пролонгированного действия',
+            dose: '500 мг',
+            signa: 'По 1 таблетке 2 раза в день во время еды',
+            times: [
+              ['08:00', 'with'],
+              ['20:00', 'with'],
+            ],
+          }),
+          drug({
+            title: 'Кветиапин',
+            form: 'таблетки',
+            dose: '25 мг',
+            signa: 'По 1 таблетке на ночь',
+            times: [['22:30']],
+          }),
+          newCareSection('choice'),
+          newCareSection('text'),
+          newCareSection('questionnaire', 'phq-9'),
+        ],
+        {
+          appointments: [{ ...newCareAppointment(dayAfter(now, 5)), time: '10:00' }],
+          labs: [
+            newCareLab({
+              name: 'Вальпроевая кислота в крови',
+              unit: 'мкг/мл',
+              by: dayAfter(now, 4),
+              why: 'Вальпроевая кислота: нужна её концентрация в крови',
+            }),
+            newCareLab({
+              name: 'АЛТ',
+              unit: 'Ед/л',
+              by: dayAfter(now, 4),
+              why: 'Вальпроевая кислота: нужно следить за печенью',
+            }),
           ],
-        }),
-        drug({
-          title: 'Кветиапин',
-          form: 'таблетки',
-          dose: '25 мг',
-          signa: 'По 1 таблетке на ночь',
-          times: [['22:30']],
-        }),
-        newCareSection('choice'),
-        newCareSection('text'),
-        newCareSection('questionnaire', 'phq-9'),
-      ]),
+        },
+      ),
   },
   {
     label: `${DEMO_LABEL_PREFIX} Медведь`,
@@ -251,7 +312,12 @@ export function demoInvitation(
   now: Date,
   days = spec.days,
 ): DiaryInvitation {
-  const invitation = careInvitation({ id: patientId, draft: spec.draft(), doctor, note: '' });
+  const invitation = careInvitation({
+    id: patientId,
+    draft: spec.draft(now),
+    doctor,
+    note: '',
+  });
   return parseDiaryInvitation({ ...invitation, issuedAt: demoIssuedAt(now, days) }, now.getTime());
 }
 
@@ -296,10 +362,14 @@ async function seedOne(
   workspace: DoctorDiaries,
   spec: DemoPatientSpec,
   index: number,
-  options: { readonly days: number; readonly now: Date; readonly report: (text: string) => void },
+  options: {
+    readonly days: number;
+    readonly now: Date;
+    readonly report: (text: string) => void;
+  },
 ): Promise<string> {
   const { days, now, report } = options;
-  const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft()));
+  const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft(now)));
   report(`${spec.label}: создаём пациента`);
   const id = await workspace.createPatient({ label: spec.label, emoji: spec.emoji }, (patientId) =>
     demoInvitation(spec, patientId, workspace.session.doctor.name, now, days),
@@ -324,8 +394,19 @@ async function seedOne(
       seed: BASE_SEED + index * 7919,
     });
     report(`${spec.label}: записываем ${days} дн. (${diary.entries.length} записей)`);
-    store.save({ v: DIARY_FORMAT_VERSION, invitation: results.invitation, entries: diary.entries });
-    store.setMeta(id, { consentAt: diary.consentAt });
+    store.save({
+      v: DIARY_FORMAT_VERSION,
+      invitation: results.invitation,
+      entries: diary.entries,
+    });
+    store.setMeta(id, {
+      consentAt: diary.consentAt,
+      consents: joiningDocuments(true).map((document) => ({
+        document: document.id,
+        version: document.version,
+        at: diary.consentAt,
+      })),
+    });
     const status = await connection.sync();
     if (status.phase !== 'idle' || status.pending > 0) {
       throw new Error(status.message ?? 'Записи не отправились на сервер.');
@@ -374,4 +455,74 @@ export async function seedDemoPatients(
   }
   report('Готово');
   return ids;
+}
+
+/** Whether every demo patient of the set is in the list (the patient's own demo diary aside). */
+export function hasDemoSet(labels: readonly (string | undefined)[]): boolean {
+  const present = new Set(labels);
+  return DEMO_PATIENTS.every((spec) => present.has(spec.label));
+}
+
+/**
+ * The demo doctor's four live a day, then they are made again (owner 2026-11-04: a showcase), so
+ * their history ends today and the fox's visit is still tomorrow.
+ */
+const DEMO_SET_TTL_MS = 24 * 60 * 60 * 1000;
+
+/** The demo patients of the set made more than a day ago, to be made again. */
+export function staleDemoPatients(workspace: DoctorDiaries, now = Date.now()): readonly string[] {
+  const labels = new Set(DEMO_PATIENTS.map((spec) => spec.label));
+  return workspace
+    .patients()
+    .filter(
+      (patient) =>
+        labels.has(patient.replica.profile?.label ?? '') &&
+        now - Date.parse(patient.summary.createdAt) > DEMO_SET_TTL_MS,
+    )
+    .map((patient) => patient.summary.id);
+}
+
+/** Every visitor's own demo diary (`#demo` on the patient page) is labelled `Демо · Гость …`. */
+export const DEMO_GUEST_PREFIX = `${DEMO_LABEL_PREFIX} Гость`;
+const DEMO_GUEST_DAYS = 14;
+const GUEST_EMOJI = ['🦔', '🐨', '🐧', '🦦', '🐙', '🐝', '🦋', '🐞', '🐳', '🦜'];
+/** A guest diary older than this is taken out of the shared demo account. */
+const GUEST_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The patient's side of the demo (owner 2026-11-02, a QR code on the slides): in the shared demo
+ * account (`signInDemo`) a guest patient with two weeks of history, and a one-time code that pairs
+ * this browser with it. The demo doctor — anybody in the hall — sees the guest appear and every
+ * mark the visitor makes.
+ */
+export async function demoSelfPairing(
+  onProgress: (text: string) => void = () => undefined,
+): Promise<PairingLink> {
+  const workspace = new DoctorDiaries(await signInDemo({ rememberDevice: true }));
+  await workspace.refresh();
+  const base = DEMO_PATIENTS[0];
+  if (!base) throw new Error('Нет шаблона демо-пациента.');
+  const [pick, number] = crypto.getRandomValues(new Uint8Array(2));
+  const emoji = GUEST_EMOJI[(pick ?? 0) % GUEST_EMOJI.length] ?? '🌱';
+  const label = `${DEMO_GUEST_PREFIX} ${((number ?? 0) % 90) + 10}`;
+  const id = await seedOne(
+    workspace,
+    { ...base, label, emoji, days: DEMO_GUEST_DAYS },
+    DEMO_PATIENTS.length,
+    { days: DEMO_GUEST_DAYS, now: new Date(), report: onProgress },
+  );
+  // A new code for «this phone»: the throw-away device that wrote the history steps aside.
+  return pairingOf(await workspace.pairingLink(id));
+}
+
+/** Guest diaries older than a day leave the shared demo account, so its list stays short. */
+export async function pruneDemoGuests(workspace: DoctorDiaries, now = Date.now()): Promise<void> {
+  const stale = workspace
+    .patients()
+    .filter(
+      (patient) =>
+        (patient.replica.profile?.label.startsWith(DEMO_GUEST_PREFIX) ?? false) &&
+        now - Date.parse(patient.summary.createdAt) > GUEST_TTL_MS,
+    );
+  for (const patient of stale) await workspace.removePatient(patient.summary.id);
 }

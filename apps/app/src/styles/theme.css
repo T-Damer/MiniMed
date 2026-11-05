@@ -25,6 +25,12 @@
   --theme-background: #8f7d57;
   --theme-surface: #f3ecd9;
   --theme-surface-raised: #fbf7ea;
+  /* Dotted paper (owner 2026-11-02, from the diary calendar card): a fine dot grid over a paper
+     surface; paper-dots.css lays it on the main cards. Ink-coloured, so it follows the theme. */
+  --theme-paper-dots: radial-gradient(
+    color-mix(in srgb, var(--theme-text) 5%, transparent) 0.6px,
+    transparent 0.8px
+  );
   --theme-surface-muted: #e6dcc4;
   --theme-border: #cbc0a7;
   --theme-text: #292720;

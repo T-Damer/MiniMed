@@ -104,7 +104,13 @@
   background: var(--theme-surface-raised);
   box-shadow: var(--theme-card-hover-shadow);
   transform-origin: var(--kb-menu-content-transform-origin);
-  animation: app-context-menu-in 120ms ease-out;
+  animation: app-context-menu-in var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;
+}
+
+/* Kobalte keeps the menu mounted until this exit has played (its content is in `data-closed`). */
+.app-context-menu[data-closed] {
+  pointer-events: none;
+  animation: app-context-menu-out var(--motion-fast, 120ms) var(--motion-ease, ease-in) both;
 }
 
 .app-context-menu--sub {
@@ -231,8 +237,16 @@
   }
 }
 
+@keyframes app-context-menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-0.1rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .app-context-menu {
+  .app-context-menu,
+  .app-context-menu[data-closed] {
     animation: none;
   }
 }

@@ -19,6 +19,10 @@
 			header_up -Cookie
 		}
 	}
+	# The diary sends text only; the app refuses bodies over 2 MiB too.
+	request_body {
+		max_size 2MB
+	}
 	handle {
 		reverse_proxy diary:8790 {
 			# Live updates (server-sent events) must not be buffered.

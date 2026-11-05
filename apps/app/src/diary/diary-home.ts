@@ -66,17 +66,20 @@ export function whenLabel(iso: string, now: Date): string {
   return `${formatDate(iso)} в ${time}`;
 }
 
-export interface EntryDay {
+export interface EntryDay<T extends { readonly at: string } = DiaryEntry> {
   readonly key: string;
   readonly label: DayLabel;
   /** Newest first. */
-  readonly entries: readonly DiaryEntry[];
+  readonly entries: readonly T[];
 }
 
 /** Days newest first, entries inside a day newest first: the order a patient looks for them. */
-export function groupEntriesByDay(entries: readonly DiaryEntry[], now: Date): EntryDay[] {
+export function groupEntriesByDay<T extends { readonly at: string } = DiaryEntry>(
+  entries: readonly T[],
+  now: Date,
+): EntryDay<T>[] {
   const sorted = entries.toSorted((left, right) => right.at.localeCompare(left.at));
-  const days: { key: string; label: DayLabel; entries: DiaryEntry[] }[] = [];
+  const days: { key: string; label: DayLabel; entries: T[] }[] = [];
   for (const entry of sorted) {
     const date = new Date(entry.at);
     const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;

@@ -10,7 +10,7 @@ import {
 } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import { type Connect, defineConfig, type Plugin } from 'vite';
@@ -24,7 +24,13 @@ import {
   type ReleaseCacheTarget,
   resolveReleaseCacheTarget,
 } from './src/dev-server/release-cache';
-import { writeServiceWorkerBuild } from './src/dev-server/service-worker-precache';
+import {
+  type JobShell,
+  type ShellChunk,
+  shellAssets,
+  writeServiceWorkerBuild,
+} from './src/dev-server/service-worker-precache';
+import { DIARY_QUESTIONNAIRES } from './src/features/diary/diary-questionnaire-list';
 
 const require = createRequire(import.meta.url);
 
@@ -295,7 +301,7 @@ function excludeOptionalPublicAssets(): Plugin {
   return {
     name: 'exclude-optional-public-assets',
     configResolved(config) {
-      outDir = config.build.outDir;
+      outDir = resolve(config.root, config.build.outDir);
     },
     closeBundle() {
       // The unreviewed local reference is installed explicitly in DEV, never bundled for release.
@@ -319,25 +325,205 @@ function excludeOptionalPublicAssets(): Plugin {
 }
 
 /**
+ * The screens a build for one job (`VITE_APP_PROFILE`) opens, as the modules (from the repository
+ * root) its root views and lazy routes start at: the service worker precaches their chunks and what
+ * they import, and keeps the rest of the app's lazy chunks after first use (about a third of the
+ * download at install). The last group is what the page imports while it starts or a screen scores
+ * answers, outside those chunks' static imports.
+ */
+const PROFILE_SHELL_MODULES: Readonly<Record<string, readonly string[]>> = {
+  diaries: [
+    // The page itself shows only the sign-in (app/mount-diaries.tsx); the app comes after it.
+    'apps/app/src/app/App.tsx',
+    'apps/app/src/features/notes/NotesView.tsx',
+    'apps/app/src/features/assessments/AssessmentsView.tsx',
+    'apps/app/src/features/settings/SettingsView.tsx',
+    'apps/app/src/features/diary/dashboard/DiaryDashboard.tsx',
+    'apps/app/src/features/downloads/restore-downloads.ts',
+    'apps/app/src/state/note-library-sync.ts',
+    'apps/app/src/state/web-theme-color.ts',
+    'apps/app/src/state/fullscreen-inset.ts',
+    'content/tool-modules/psychology.json',
+    'content/tool-modules/obstetrics-gynecology.json',
+  ],
+};
+
+/** A profile's own lazily imported parts, kept with its shell so nothing loads after sign-in. */
+const PROFILE_LAZY_ROOTS: Readonly<Record<string, RegExp>> = {
+  diaries: /[\\/]src[\\/](?:features[\\/]diary|diary)[\\/]/u,
+};
+
+/**
+ * Profiles whose page opens on a sign-in (DIARY24, owner 2026-11-04: «the first open loads only the
+ * sign-in; after it, the whole app»): the service worker stores the sign-in's files at install and
+ * the rest once the page says the user is in. They also open no search core.
+ */
+const PROFILE_SIGN_IN: Readonly<Record<string, readonly string[]>> = {
+  // What the page imports while it starts, beside the sign-in's own chunks (main.tsx).
+  diaries: ['apps/app/src/state/web-theme-color.ts', 'apps/app/src/state/fullscreen-inset.ts'],
+};
+
+/** Workers a profile's start-up spawns (emitted as files of their own, not as chunks of the bundle). */
+const PROFILE_SHELL_FILES: Readonly<Record<string, readonly RegExp[]>> = {
+  diaries: [/^assets\/opfs-pack\.worker-/u],
+};
+
+/**
  * Production build only: lists the shell of this build (scripts, styles, fonts, small wasm) in
  * `sw.js`, so the service worker precaches exactly it, and writes `build-manifest.json` for the
  * Pages deploy. The Capacitor builds ship the same files; their shells never register the worker.
+ * A build for one job lists only that job's chunks as the shell (`PROFILE_SHELL_MODULES`).
  */
 function serviceWorkerPrecache(): Plugin {
   let outDir = 'dist';
+  let root = process.cwd();
+  let shell: JobShell | undefined;
   return {
     name: 'service-worker-precache',
     apply: 'build',
     configResolved(config) {
-      outDir = join(config.root, config.build.outDir);
+      // `resolve`: an absolute --outDir (the GitVerse copy builds into a temporary folder) stays as is.
+      outDir = resolve(config.root, config.build.outDir);
+      root = config.root;
+    },
+    generateBundle(_options, bundle) {
+      const profile = process.env['VITE_APP_PROFILE'] ?? '';
+      const modules = PROFILE_SHELL_MODULES[profile];
+      if (!modules) return;
+      const chunks: ShellChunk[] = [];
+      for (const output of Object.values(bundle)) {
+        if (output.type !== 'chunk') continue;
+        const meta = (output as { viteMetadata?: ViteChunkMetadata }).viteMetadata;
+        chunks.push({
+          fileName: output.fileName,
+          imports: output.imports,
+          moduleIds: output.moduleIds,
+          facadeModuleId: output.facadeModuleId,
+          isEntry: output.isEntry,
+          files: [...(meta?.importedCss ?? []), ...(meta?.importedAssets ?? [])],
+        });
+      }
+      const repository = fileURLToPath(new URL('../../', import.meta.url));
+      const files = PROFILE_SHELL_FILES[profile] ?? [];
+      const page = join(root, 'index.html');
+      const assets = new Set([
+        ...shellAssets(
+          chunks,
+          page,
+          modules.map((module) => join(repository, module)),
+          PROFILE_LAZY_ROOTS[profile],
+        ),
+        ...Object.keys(bundle).filter((name) => files.some((pattern) => pattern.test(name))),
+      ]);
+      const signIn = PROFILE_SIGN_IN[profile];
+      shell = signIn
+        ? {
+            assets,
+            signIn: shellAssets(
+              chunks,
+              page,
+              signIn.map((module) => join(repository, module)),
+            ),
+            noSearch: true,
+          }
+        : { assets };
     },
     closeBundle() {
       const release = JSON.parse(
         readFileSync(fileURLToPath(new URL('../../release.json', import.meta.url)), 'utf8'),
       ) as { version: string };
-      writeServiceWorkerBuild(outDir, release.version);
+      writeServiceWorkerBuild(outDir, release.version, shell);
     },
   };
+}
+
+/**
+ * The diaries copy starts on the sign-in alone (DIARY24): `main.tsx` mounts through
+ * `@/app/mount-app`, which in this build is `app/mount-diaries.tsx` — the sign-in when nobody is
+ * in, the app (loaded then) otherwise. Every other build mounts the app at once.
+ */
+const MOUNT_APP = /(?:^@|[\\/]src)[\\/]app[\\/]mount-app(?:\.tsx)?$/u;
+
+function diariesEntry(): Plugin {
+  const gate = fileURLToPath(new URL('./src/app/mount-diaries.tsx', import.meta.url));
+  return {
+    name: 'diaries-entry',
+    enforce: 'pre',
+    resolveId(source) {
+      // The `@` alias has already turned the import into an absolute path.
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries' || !MOUNT_APP.test(source))
+        return undefined;
+      return gate;
+    },
+  };
+}
+
+const MODULE_CATALOG_FILE =
+  /[\\/]features[\\/]modules[\\/]catalog\.(preview|terminology)\.json\?raw$/u;
+
+/**
+ * The diaries copy needs of the ~10 MB module catalog only the core and the tool modules holding
+ * its questionnaires (`DIARY_QUESTIONNAIRES`, built in and registered as installed): the release
+ * catalog shrinks to those entries and the bundled terminology to none (DIARY24: the catalog was
+ * half of what the diaries downloaded). Every other build keeps the catalog whole.
+ */
+function diaryCatalogSubset(): Plugin {
+  return {
+    name: 'diary-catalog-subset',
+    enforce: 'pre',
+    load(id) {
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries') return undefined;
+      const which = MODULE_CATALOG_FILE.exec(id)?.[1];
+      if (!which) return undefined;
+      if (which === 'terminology') return `export default ${JSON.stringify('[]')};`;
+      const catalog = JSON.parse(readFileSync(id.replace(/\?raw$/u, ''), 'utf8')) as {
+        modules: { id: string; kind: string }[];
+      };
+      const packs = new Set(DIARY_QUESTIONNAIRES.map((scale) => `minimed.tools.${scale.pack}.ru`));
+      const modules = catalog.modules.filter(
+        (module) => module.kind === 'core' || packs.has(module.id),
+      );
+      const missing = [...packs].filter((pack) => !modules.some((module) => module.id === pack));
+      if (missing.length > 0) this.error(`The module catalog lacks ${missing.join(', ')}.`);
+      return `export default ${JSON.stringify(JSON.stringify({ ...catalog, modules }))};`;
+    },
+  };
+}
+
+const DIARY_PACK_FILE = /[\\/]content[\\/]tool-modules[\\/]([a-z-]+)\.json(?:\?|$)/u;
+
+/**
+ * The diaries copy carries only the built-in scales a diary can hold (`DIARY_QUESTIONNAIRES`),
+ * not whole tool packs: the psychology and obstetrics packs shrink to the questionnaires the app
+ * profile lists, which it registers as installed (no module download). Every other build keeps the
+ * packs whole.
+ */
+function diaryPackSubset(): Plugin {
+  return {
+    name: 'diary-pack-subset',
+    enforce: 'pre',
+    transform(code, id) {
+      if (process.env['VITE_APP_PROFILE'] !== 'diaries') return undefined;
+      const pack = DIARY_PACK_FILE.exec(id)?.[1];
+      if (!pack) return undefined;
+      const slugs = DIARY_QUESTIONNAIRES.filter((scale) => scale.pack === pack).map(
+        (scale) => scale.slug,
+      );
+      if (slugs.length === 0) return undefined;
+      const parsed = JSON.parse(code) as { tools: { slug: string }[] };
+      const tools = parsed.tools.filter((tool) => slugs.includes(tool.slug));
+      const missing = slugs.filter((slug) => !tools.some((tool) => tool.slug === slug));
+      if (missing.length > 0)
+        this.error(`The ${pack} tool pack lacks the diary scales: ${missing.join(', ')}.`);
+      return { code: JSON.stringify({ ...parsed, tools }), map: null };
+    },
+  };
+}
+
+/** What Vite records on each output chunk: the styles and assets it pulls in. */
+interface ViteChunkMetadata {
+  readonly importedCss?: ReadonlySet<string>;
+  readonly importedAssets?: ReadonlySet<string>;
 }
 
 export default defineConfig({
@@ -345,6 +531,9 @@ export default defineConfig({
   plugins: [
     solid(),
     katexWoff2Only(),
+    diariesEntry(),
+    diaryCatalogSubset(),
+    diaryPackSubset(),
     excalidrawCjkFontStubs(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),

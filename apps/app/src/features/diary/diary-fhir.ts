@@ -1,9 +1,11 @@
 import {
+  DIARY_MISS_REASON_LABEL,
   type DiaryField,
   type DiaryPlanValue,
   type DiaryResults,
   type DiaryValue,
   describeDiaryValue,
+  markedDose,
   planItem,
 } from '@/features/diary/diary-model';
 
@@ -35,7 +37,8 @@ function survey() {
 
 function answer(field: DiaryField, value: DiaryValue): Record<string, unknown> {
   if (typeof value === 'number') {
-    return field.type === 'count'
+    // A counted amount with a unit («порций», «сигарет») keeps it as a quantity.
+    return field.type === 'count' && !field.unit
       ? { valueInteger: value }
       : {
           valueQuantity: {
@@ -98,16 +101,21 @@ export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()
       if (field.type === 'plan') {
         const plan = value as DiaryPlanValue;
         const item = planItem(invitation, plan.item);
+        const dose = markedDose(invitation, plan);
         if (field.trackDone && plan.done !== undefined) {
           resources.push({
             resourceType: 'MedicationStatement',
             id,
             meta,
             status: plan.done ? 'completed' : 'not-taken',
+            // FHIR R4 MedicationStatement.statusReason: why it was not taken, in words.
+            ...(!plan.done && plan.reason
+              ? { statusReason: [{ text: DIARY_MISS_REASON_LABEL[plan.reason] }] }
+              : {}),
             medicationCodeableConcept: { text: item?.name ?? plan.other ?? field.label },
             effectiveDateTime: entry.at,
             informationSource: { display: 'Пациент' },
-            ...(item?.dose ? { dosage: [{ text: item.dose }] } : {}),
+            ...(dose ? { dosage: [{ text: dose }] } : {}),
             ...note,
           });
           continue;

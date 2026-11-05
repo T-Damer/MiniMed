@@ -75,7 +75,7 @@ describe('app-preferences', () => {
   it('loads defaults when storage is empty', () => {
     expect(loadAppPreferences()).toEqual({
       splitNavigation: false,
-      vibrationEnabled: true,
+      vibrationEnabled: false,
       rememberSearchMode: false,
       soundVolume: 0.2,
       bookReadingMode: false,
@@ -101,7 +101,7 @@ describe('app-preferences', () => {
     );
     expect(loadAppPreferences()).toEqual({
       splitNavigation: false,
-      vibrationEnabled: true,
+      vibrationEnabled: false,
       rememberSearchMode: false,
       soundVolume: 1,
       bookReadingMode: false,
@@ -151,6 +151,14 @@ describe('app-preferences', () => {
       expect.objectContaining({ moduleAutoUpdatesEnabled: true }),
     );
     unsubscribe();
+  });
+
+  it('keeps vibration off until the user turns it on themselves (owner 2026-11-03)', () => {
+    window.localStorage.setItem(APP_PREFERENCES_KEY, JSON.stringify({ vibrationEnabled: true }));
+    expect(getVibrationEnabled()).toBe(false);
+    setVibrationEnabled(true);
+    expect(getVibrationEnabled()).toBe(true);
+    expect(loadAppPreferences().vibrationChosen).toBe(true);
   });
 
   it('dispatches change events and updates getters', () => {

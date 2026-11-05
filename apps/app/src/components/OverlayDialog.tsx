@@ -12,9 +12,11 @@ import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
+import { playExitGhost } from '@/components/overlay-ghost';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { SkeletonLines } from '@/components/SkeletonLines';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
+import { followSheetHeight } from '@/components/sheet-height';
 import { type HistoryLayer, openHistoryLayer } from '@/state/history-layer';
 import { motionMs } from '@/state/motion';
 import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
@@ -87,6 +89,88 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   // The dialog stays mounted after `open` turns false until its exit animation has played.
   const [mounted, setMounted] = createSignal(props.open);
   const [closing, setClosing] = createSignal(false);
+  /** The exit has started and not ended: a second start would only double the waiting. */
+  let exiting = false;
+  /** The dialog was taken out after its exit: nothing is left to animate. */
+  let ended = false;
+  /** What the UI's close does once the exit has played (step the history back, tell the owner). */
+  let afterExit: (() => void) | undefined;
+  let exitControls:
+    | { readonly settle: () => void; readonly revert: () => void; readonly end: () => void }
+    | undefined;
+
+  /**
+   * Starts the exit now and unmounts once it has played. Idempotent. When the owner still wants the
+   * dialog open after the exit (a close it refused), the dialog is simply shown again.
+   */
+  const beginExit = (): void => {
+    if (exiting) {
+      // The exit began at the tap and the owner has agreed since: nothing left to wait for.
+      if (!props.open) exitControls?.settle();
+      return;
+    }
+    if (!mounted()) return;
+    exiting = true;
+    setClosing(true);
+    let done = false;
+    let played = false;
+    let hold: number | undefined;
+    const end = (): void => {
+      if (done) return;
+      done = true;
+      exiting = false;
+      exitControls = undefined;
+      afterExit = undefined;
+      window.clearTimeout(fallback);
+      window.clearTimeout(hold);
+      ended = true;
+      setMounted(false);
+      setClosing(false);
+      setDragOffset(0);
+    };
+    const revert = (): void => {
+      if (done) return;
+      done = true;
+      exiting = false;
+      exitControls = undefined;
+      afterExit = undefined;
+      window.clearTimeout(fallback);
+      window.clearTimeout(hold);
+      setClosing(false);
+    };
+    // Called when the exit has played and when the owner closes: ends the dialog once both are true.
+    const settle = (): void => {
+      if (done || !played) return;
+      if (!props.open) {
+        end();
+        return;
+      }
+      // Closed from the UI but not yet by the owner (the history step is on its way): hold the
+      // finished exit for a moment, then give up and show the dialog again.
+      hold ??= window.setTimeout(() => {
+        if (props.open) revert();
+        else end();
+      }, 600);
+    };
+    const markPlayed = (): void => {
+      played = true;
+      const run = afterExit;
+      afterExit = undefined;
+      run?.();
+      settle();
+    };
+    exitControls = { settle, revert, end };
+    const fallback = window.setTimeout(
+      markPlayed,
+      Math.max(EXIT_FALLBACK_MS, motionMs(EXIT_FALLBACK_MS)),
+    );
+    // The closing class starts the exit animations on the next style pass.
+    requestAnimationFrame(() => {
+      // Only the backdrop's and the panel's own exits: content may hold endless spinners.
+      const animations = [...(backdrop?.getAnimations() ?? []), ...(panel?.getAnimations() ?? [])];
+      void Promise.allSettled(animations.map((animation) => animation.finished)).then(markPlayed);
+    });
+  };
 
   // A render effect, not createEffect: the views sit inside <Suspense>, and while a resource there
   // is pending user effects are held back, so an `open` change never mounted the dialog.
@@ -95,48 +179,50 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       () => props.open,
       (open) => {
         if (open) {
+          // Opened again while leaving: the exit is given up and the dialog stays.
+          exitControls?.revert();
+          ended = false;
           setDragOffset(0);
           setClosing(false);
           setMounted(true);
           return;
         }
-        if (!mounted()) return;
-        setClosing(true);
-        let done = false;
-        const unmount = (): void => {
-          if (done) return;
-          done = true;
-          window.clearTimeout(fallback);
-          if (props.open) return;
-          setMounted(false);
-          setClosing(false);
-          setDragOffset(0);
-        };
-        const fallback = window.setTimeout(
-          unmount,
-          Math.max(EXIT_FALLBACK_MS, motionMs(EXIT_FALLBACK_MS)),
-        );
-        // The closing class starts the exit animations on the next style pass.
-        requestAnimationFrame(() => {
-          // Only the backdrop's and the panel's own exits: content may hold endless spinners.
-          const animations = [
-            ...(backdrop?.getAnimations() ?? []),
-            ...(panel?.getAnimations() ?? []),
-          ];
-          void Promise.allSettled(animations.map((animation) => animation.finished)).then(unmount);
-        });
-        onCleanup(unmount);
+        beginExit();
       },
       { defer: true },
     ),
   );
 
+  /**
+   * Tells the owner the dialog is closed once its exit has played. The exit starts at once and
+   * plays alone: the owner's reaction (a page that re-renders without its dialog) can block the
+   * thread for many frames, which would stall an exit it lands in the middle of.
+   */
+  const closeAfterExit = (): void => {
+    beginExit();
+    if (!exiting) {
+      // Nothing to play (the dialog is not on screen): the owner is told at once.
+      props.onClose();
+      return;
+    }
+    const earlier = afterExit;
+    afterExit = () => {
+      earlier?.();
+      props.onClose();
+    };
+  };
+
   const closeDialog = (): void => {
-    // A dialog that is a history layer closes by stepping the history back; the arrival closes it.
+    beginExit();
+    // A dialog that is a history layer closes by stepping the history back at once (the history
+    // must be where the user will find it if they navigate during the exit); the arrival tells
+    // the owner after the exit.
     if (historyLayer) {
       historyLayer.pop();
       return;
     }
+    // Any other dialog tells its owner at once: the owner may hold the dialog's history layer
+    // itself (SheetPopover), and a layer that outlived the tap would swallow the next back.
     props.onClose();
   };
 
@@ -182,13 +268,22 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     return dialogs.item(dialogs.length - 1) === panel;
   };
 
+  // A sheet whose content changes height (it loads, a section opens) moves to the new height; a
+  // sheet that is being pulled or is leaving takes it at once. Viewers and editors that fill the
+  // screen have no height of their own to move.
+  createEffect(() => {
+    if (!mounted() || presentation() !== 'sheet') return;
+    if (!panel || !body) return;
+    onCleanup(followSheetHeight(panel, body, () => !dragging() && !closing()));
+  });
+
   createEffect(() => {
     if (!props.open) return;
     const previouslyFocused =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // A dialog nobody can dismiss (no close button, Escape and taps ignored) must not take back.
     if (tracksHistory() && dismissible()) {
-      historyLayer = openHistoryLayer({ onPop: () => props.onClose() });
+      historyLayer = openHistoryLayer({ onPop: closeAfterExit });
     }
     setDarkHeaderStatusBar(true);
     const releaseScroll = lockBodyScroll();
@@ -249,6 +344,12 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
         <div
           ref={(element) => {
             backdrop = element;
+            // The owner can drop the dialog while it is open (a parent's `<Show>`, a page that
+            // goes away): its exit then plays on a copy, before the portal takes the real one out.
+            onCleanup(() => {
+              if (ended || backdrop !== element) return;
+              playExitGhost(element, motionMs(EXIT_FALLBACK_MS));
+            });
           }}
           class={`overlay-backdrop overlay-backdrop--${presentation()}`}
           classList={{ 'overlay-backdrop--closing': closing() }}

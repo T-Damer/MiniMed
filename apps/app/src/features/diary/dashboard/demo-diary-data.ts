@@ -12,9 +12,18 @@ import {
   type DiaryField,
   type DiaryInvitation,
   type DiaryValue,
+  intakeMark,
 } from '@/features/diary/diary-model';
 
 export type DemoTrend = 'improving' | 'fluctuating' | 'worsening' | 'stable';
+
+/** How often a demo patient uses a substance and how much on such a day. */
+export interface DemoUse {
+  /** Chance of a day with use at the start of the history, 0–1. */
+  readonly chance: number;
+  /** A typical amount on a day with use. */
+  readonly typical: number;
+}
 
 /** Average vital signs of a patient; the generator scatters them around these. */
 export interface DemoVitals {
@@ -32,6 +41,8 @@ export interface DemoBehavior {
   readonly vitals: DemoVitals;
   /** The latest PHQ-9 gets a positive item 9, to show the urgent alert. */
   readonly urgentAlert: boolean;
+  /** Use of substances by diary field (`u-alcohol`); what the plan asks about and is not here is 0. */
+  readonly use?: Readonly<Record<string, DemoUse>>;
 }
 
 /** The questions of a questionnaire the generator fills: summed items and any extra questions. */
@@ -159,6 +170,17 @@ const DAY_TEXTS = {
   ],
 } as const;
 
+/** Why the demo patients miss doses: forgetting most often, as in life. */
+const DEMO_MISS_REASONS = [
+  'forgot',
+  'forgot',
+  'not-with-me',
+  'side-effects',
+  'forgot',
+  'ran-out',
+  'felt-better',
+] as const;
+
 const SKIP_NOTES = [
   'Пропуск: забылось.',
   'Пропуск: тошнило с утра.',
@@ -274,7 +296,7 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
         const chance = clamp(0.2 + (7 - mood) * 0.04, 0.05, 0.6);
         if (random() < chance) {
           add(moment(day, '14:00', Math.round(between(random, 0, 480))), {
-            values: { [CARE_DOSE_FIELD]: { item: item.id, done: true } },
+            values: { [CARE_DOSE_FIELD]: intakeMark(item, true) },
           });
         }
         continue;
@@ -285,7 +307,7 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           const late = random() < 0.12;
           const shift = late ? between(random, 60, 150) : between(random, -5, 25);
           const values: Record<string, DiaryValue> = {
-            [CARE_DOSE_FIELD]: { item: item.id, done: true, slot: time.time },
+            [CARE_DOSE_FIELD]: intakeMark(item, true, time.time),
           };
           const effects = AFTER_EFFECTS.filter((effect) =>
             invitation.fields.find((field) => field.id === 'after')?.options?.includes(effect),
@@ -294,7 +316,15 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           add(moment(day, time.time, Math.round(shift)), { values });
         } else if (roll < adherence + (1 - adherence) * 0.55) {
           add(moment(day, time.time, Math.round(between(random, 0, 40))), {
-            values: { [CARE_DOSE_FIELD]: { item: item.id, done: false, slot: time.time } },
+            // Why it was missed (DIARY22), from the day, not the generator: the demo stays the same.
+            values: {
+              [CARE_DOSE_FIELD]: {
+                ...intakeMark(item, false, time.time),
+                reason:
+                  DEMO_MISS_REASONS[(index * 7 + time.time.length) % DEMO_MISS_REASONS.length] ??
+                  'forgot',
+              },
+            },
             ...(random() < 0.5 ? { note: pick(random, SKIP_NOTES) } : {}),
           });
         }
@@ -363,6 +393,35 @@ export function generateDemoDiary(input: DemoDiaryInput): DemoDiary {
           add(moment(day, checkpoint.times?.[0] ?? '21:00', Math.round(between(random, 0, 70))), {
             check: checkpoint.id,
             values: { [field.id]: pick(random, DAY_TEXTS[tier(mood)]) },
+          });
+          break;
+        }
+        case 'use': {
+          if (random() > 0.88) break;
+          // Use follows the mood: more on a bad day, and it fades as the patient improves.
+          const strain = clamp((7.5 - mood) / 5, 0, 1.2);
+          const progress = days > 1 ? index / (days - 1) : 1;
+          const values: Record<string, DiaryValue> = {};
+          for (const id of checkpoint.fields ?? []) {
+            const one = invitation.fields.find((candidate) => candidate.id === id);
+            if (!one) continue;
+            if (one.type === 'count') {
+              const habit = behavior.use?.[id];
+              const chance = habit
+                ? clamp(habit.chance * (0.55 + 0.45 * strain) * (1 - 0.4 * progress), 0, 0.95)
+                : 0;
+              const size = habit ? habit.typical * (1 - 0.35 * progress) : 0;
+              values[id] =
+                habit && random() < chance
+                  ? Math.round(clamp(size * between(random, 0.6, 1.4), 1, one.max ?? 30))
+                  : 0;
+            } else if (one.type === 'number') {
+              values[id] = Math.round(clamp(8.5 - mood + gauss(random) * 1.2, 0, 10));
+            }
+          }
+          add(moment(day, checkpoint.times?.[0] ?? '21:00', Math.round(between(random, 0, 50))), {
+            check: checkpoint.id,
+            values,
           });
           break;
         }

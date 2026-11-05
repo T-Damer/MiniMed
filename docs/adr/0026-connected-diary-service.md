@@ -40,6 +40,15 @@ medical secrecy; the developer hosting the server should not be able to read it.
    As built: the QR carries only the patient id and the secret (84-character link); the epoch keys
    travel sealed with a key derived from the secret, uploaded by the doctor with the pairing and
    deleted by the server when the phone pairs.
+   Since 2026-11-05 (SEC-AUDIT1) the phone shows the server only a proof of the secret (HKDF with
+   its own label) and the server keeps `sha256(proof)`; before, the phone sent the secret itself,
+   which let the server open the sealed epoch keys. Phones from before still send the secret and
+   the server derives the proof, so their codes keep working.
+   - Sign-in by **access code**: the code is the account's password (e-mail = a digest of it). The
+     server receives and keeps only `sha256` of the code's proof (`inviteProof`), never the code
+     (SEC-AUDIT1; plain codes stored before are re-keyed on the next registration). The operator who
+     mints a code still knows it, and the e-mail digest lets someone with the database try all
+     ~2^59 codes offline: code accounts are end-to-end against the server, not against those two.
    - Every member (curator or device) receives each epoch key **wrapped to its public key**. That is how a doctor on any
      device decrypts: login → unlock the private keys → unwrap the patient keys → decrypt records → build charts locally.
 4. **Records.** Append-only envelopes `{patient, id, rev, epoch, author, body (iv.ciphertext), sig}` with a server
@@ -52,13 +61,21 @@ medical secrecy; the developer hosting the server should not be able to read it.
    reader can inject records unnoticed. Invitation → the doctor accepts → the patient confirms when the doctor is not
    covered by the signed consent. **Removing** a curator or a device starts a new epoch: the owner's device creates a
    new data key and wraps it for the remaining members. Past reads cannot be revoked.
+   *Carers (DIARY25, owner 2026-11-04).* An owner or editor adds a carer (опекун) after ticking that the patient
+   consents; the carer's phone pairs with a one-time code like the patient's (`kind: carer`), holds its own key copies,
+   reads and marks the whole diary, and names itself in an encrypted `member-<device>` record, so every mark shows who
+   made it. It cannot withdraw the patient's consent. The patient's phone lists who has access and removes a carer;
+   then the patient's phone itself starts the new epoch (the only epoch a device may create). A removed carer's phone
+   deletes its copy of the diary.
 6. **Alerts.** Red-flag rules live in the field and questionnaire schemas and in the plan. The patient's device
    evaluates them, shows the crisis screen, and posts a content-free alert `{patient, at}`; the server sends Web Push
    to the curators' subscribed devices with a fixed text («Срочная отметка у пациента») and the pseudonym emoji is
    resolved on the doctor's device.
 7. **What the server can see.** Doctors' e-mails, display names and auth hashes; random patient and device ids; the
-   membership graph and roles; record sizes and times; alert times; push endpoints. **Not**: names, pseudonyms, plans,
-   medicines, values, notes, questionnaire answers.
+   membership graph and roles; whether a device is the patient's or a carer's; record sizes and times; alert times;
+   push endpoints; reminder moments and, while the diary has a carer, its dose moments and which are marked taken
+   (the missed-dose notice, DIARY25). **Not**: names (carers' included), pseudonyms, plans, medicines, values, notes,
+   questionnaire answers.
 8. **Hosting.** Production on a Yandex Cloud VM in `ru-central1` (data stored in Russia, 152-ФЗ ст. 18 ч. 5) with TLS on
    the VM; DNS for `med.1damer.com` is Cloudflare **DNS only**. No proxy (Cloudflare or other foreign TLS terminator) in
    the patients' path: Russian ISPs have been cutting Cloudflare-proxied connections since June 2025, and a foreign
@@ -87,7 +104,9 @@ medical secrecy; the developer hosting the server should not be able to read it.
 - Web Push depends on Google and Apple push services (payloads are encrypted by the Web Push protocol and content-free);
   phones without Google services get updates only when the app is opened.
 - Legal: the clinic is the operator and the developer its processor under a written agreement; consents are signed on
-  paper at the visit. Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is out of the pilot's
+  paper at the visit. As built (DIARY26): the patient also accepts the three joining documents (ИДС, personal-data
+  consent, remote-care contract) in the app before the first entry; each acceptance (document, wording version,
+  time) travels inside the encrypted `consent` record, so the server sees only that a record exists. Formal remote monitoring under order 193н (ЕСИА, the clinic's МИС, УКЭП) is out of the pilot's
   scope and needs a separate decision.
 
 ## Delivery order

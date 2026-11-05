@@ -1,9 +1,10 @@
 /**
- * Self-report questionnaires a doctor can put into a care diary. Only scales the patient fills
- * in themselves (clinician-rated ones such as HAM-D stay with the doctor), and only scales whose
- * rights notice in the psychology pack allows reproduction. The definitions come from the same
- * pack the app's assessments use and are loaded on first use. A doctor can also embed a
- * questionnaire of their own (main app «Мои опросники»): it travels inside the checkpoint
+ * Self-report questionnaires a doctor can put into a care diary: every scale of the app's tool
+ * packs that the patient fills in themselves (clinician-rated ones such as HAM-D stay with the
+ * doctor), psychiatric screening scales and psychological profiles alike (owner 2026-11-03), and
+ * only scales whose rights notice allows reproduction. The definitions come from the same packs
+ * the app's assessments use and are loaded on first use. A doctor can also embed a questionnaire
+ * of their own (main app «Мои опросники»): it travels inside the checkpoint
  * (`DiaryCheckpoint.custom`) and goes through the same conversion as the built-in ones.
  */
 import type { ToolDefinitionRecord } from '@localmed/contracts';
@@ -11,22 +12,56 @@ import { pluralize } from '@/diary/diary-format';
 import { assessmentDefinitionFromRecord } from '@/features/assessments/assessment-definition';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import type { DiaryCheckpoint } from '@/features/diary/diary-model';
+import {
+  DIARY_QUESTIONNAIRES,
+  type DiaryQuestionnaireOption,
+  type QuestionnairePack,
+} from '@/features/diary/diary-questionnaire-list';
 import { userQuestionnaireDefinition } from '@/state/user-questionnaire-format';
 
-export interface DiaryQuestionnaireOption {
-  readonly slug: string;
-  /** Short name on the patient's button and in the doctor's chips. */
-  readonly title: string;
-  /** What it measures, in plain words. */
-  readonly about: string;
+const PACKS: Readonly<Record<QuestionnairePack, () => Promise<{ readonly default: unknown }>>> = {
+  psychology: () => import('../../../../../content/tool-modules/psychology.json'),
+  'obstetrics-gynecology': () =>
+    import('../../../../../content/tool-modules/obstetrics-gynecology.json'),
+};
+
+export { DIARY_QUESTIONNAIRES, type DiaryQuestionnaireOption };
+
+const packRecords = new Map<QuestionnairePack, Promise<readonly ToolDefinitionRecord[]>>();
+
+/**
+ * The tool records of one pack, loaded once. The diaries copy of the app carries only the scales
+ * of `DIARY_QUESTIONNAIRES` in them (`diaryPackSubset` in `vite.config.ts`), so nothing here needs
+ * the network or the downloadable tool module.
+ */
+function loadPackRecords(pack: QuestionnairePack): Promise<readonly ToolDefinitionRecord[]> {
+  const cached = packRecords.get(pack);
+  if (cached) return cached;
+  const promise = PACKS[pack]().then(
+    (loadedPack) =>
+      (loadedPack.default as { readonly tools: readonly ToolDefinitionRecord[] }).tools,
+  );
+  packRecords.set(pack, promise);
+  promise.catch(() => packRecords.delete(pack));
+  return promise;
 }
 
-export const DIARY_QUESTIONNAIRES: readonly DiaryQuestionnaireOption[] = [
-  { slug: 'phq-9', title: 'PHQ-9', about: 'настроение' },
-  { slug: 'gad-7', title: 'GAD-7', about: 'тревога' },
-  { slug: 'zung-self-rating-depression', title: 'Шкала Цунга', about: 'депрессия' },
-  { slug: 'zung-self-rating-anxiety', title: 'Шкала Цунга', about: 'тревога' },
-];
+/**
+ * The records of the given built-in scales, from the bundled packs: the diaries profile registers
+ * them as installed assessments so their pages open at once and offline (no module download).
+ */
+export async function loadBuiltInScaleRecords(
+  scales: readonly Pick<DiaryQuestionnaireOption, 'slug' | 'pack'>[],
+): Promise<readonly ToolDefinitionRecord[]> {
+  const records = await Promise.all(
+    scales.map(async (scale) => {
+      const record = (await loadPackRecords(scale.pack)).find((tool) => tool.slug === scale.slug);
+      if (!record) throw new Error(`Опросник не найден: ${scale.slug}.`);
+      return record;
+    }),
+  );
+  return records;
+}
 
 export function diaryQuestionnaire(slug: string): DiaryQuestionnaireOption | undefined {
   return DIARY_QUESTIONNAIRES.find((option) => option.slug === slug);
@@ -56,16 +91,20 @@ export function customQuestionnaireSlug(sourceId: string): string {
 }
 
 const loaded = new Map<string, Promise<AssessmentDefinition>>();
+/** The loaded definitions themselves, for a reader that cannot wait (`readyCheckpointQuestionnaire`). */
+const ready = new Map<string, AssessmentDefinition>();
 
 export function loadDiaryQuestionnaire(slug: string): Promise<AssessmentDefinition> {
   const cached = loaded.get(slug);
   if (cached) return cached;
-  const promise = import('../../../../../content/tool-modules/psychology.json').then((pack) => {
-    if (!diaryQuestionnaire(slug)) throw new Error('Этот опросник не входит в дневник.');
-    const tools = (pack.default as { readonly tools: readonly ToolDefinitionRecord[] }).tools;
+  const option = diaryQuestionnaire(slug);
+  if (!option) return Promise.reject(new Error('Этот опросник не входит в дневник.'));
+  const promise = loadPackRecords(option.pack).then((tools) => {
     const record = tools.find((tool) => tool.slug === slug);
     if (!record) throw new Error('Опросник не найден.');
-    return assessmentDefinitionFromRecord(record);
+    const definition = assessmentDefinitionFromRecord(record);
+    ready.set(slug, definition);
+    return definition;
   });
   loaded.set(slug, promise);
   promise.catch(() => loaded.delete(slug));
@@ -94,6 +133,40 @@ export function loadCheckpointQuestionnaire(
   }
   if (!checkpoint.questionnaire) return Promise.reject(new Error('Не указан опросник.'));
   return loadDiaryQuestionnaire(checkpoint.questionnaire);
+}
+
+/**
+ * The definition behind a questionnaire checkpoint when it is at hand — a doctor's own, or a
+ * built-in one that was loaded before — else nothing. A page that scores answers with it does not
+ * wait a tick for a definition it already has, so a page opened again draws at once.
+ */
+export function readyCheckpointQuestionnaire(
+  checkpoint: Pick<DiaryCheckpoint, 'questionnaire' | 'custom'>,
+): AssessmentDefinition | undefined {
+  if (checkpoint.custom) {
+    try {
+      return userQuestionnaireDefinition(checkpoint.custom, {
+        id: checkpoint.questionnaire ?? 'own',
+        title: checkpoint.custom.title,
+      });
+    } catch {
+      // The loading path reports it.
+      return undefined;
+    }
+  }
+  return checkpoint.questionnaire ? ready.get(checkpoint.questionnaire) : undefined;
+}
+
+/** Loads the built-in questionnaires of a diary in the background, so its charts draw at once. */
+export function warmQuestionnaires(checkpoints: readonly DiaryCheckpoint[] | undefined): void {
+  for (const checkpoint of checkpoints ?? []) {
+    if (checkpoint.kind !== 'questionnaire' || checkpoint.custom || !checkpoint.questionnaire) {
+      continue;
+    }
+    loadDiaryQuestionnaire(checkpoint.questionnaire).catch((cause: unknown) => {
+      console.warn('Дневники: опросник не загрузился заранее', cause);
+    });
+  }
 }
 
 /** A few words on what the questionnaire measures, for the list row. */

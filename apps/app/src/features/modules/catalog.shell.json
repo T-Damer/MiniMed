@@ -8110,6 +8110,90 @@
       }
     },
     {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.rus-audit",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "rus-audit",
+        "title": "Тест RUS-AUDIT: употребление алкоголя за последний год",
+        "shortTitle": "RUS-AUDIT",
+        "aliases": [
+          "RUS-AUDIT",
+          "AUDIT",
+          "Alcohol Use Disorders Identification Test",
+          "тест AUDIT ВОЗ",
+          "АУДИТ",
+          "тест на употребление алкоголя"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Тест ВОЗ, адаптированный и проверенный в России (2021): 10 вопросов об употреблении алкоголя, сумма 0–40 баллов и уровень риска по порогам для женщин и мужчин.",
+        "estimatedMinutes": 4,
+        "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.rus-audit-s",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "rus-audit-s",
+        "title": "Тест RUS-AUDIT-S: употребление алкоголя, 3 вопроса",
+        "shortTitle": "RUS-AUDIT-S",
+        "aliases": [
+          "RUS-AUDIT-S",
+          "AUDIT-S",
+          "краткий AUDIT",
+          "краткий тест на употребление алкоголя"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Краткая версия RUS-AUDIT (ВОЗ, 2021): вопросы 3, 9 и 10 полного теста, сумма 0–12 баллов и уровень риска по порогам для женщин и мужчин.",
+        "estimatedMinutes": 1,
+        "audience": "Взрослые; заполняет пациент или медработник во время беседы; скрининг и динамика",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.ocds-ru",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "ocds-alcohol-craving",
+        "title": "Шкала обсессивно-компульсивного употребления алкоголя (OCDS): мысли об алкоголе и тяга",
+        "shortTitle": "OCDS",
+        "aliases": [
+          "OCDS",
+          "Obsessive-Compulsive Drinking Scale",
+          "шкала влечения к алкоголю",
+          "тяга к алкоголю",
+          "мысли об алкоголе"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "substance-use",
+        "description": "Следующие вопросы касаются употребления Вами алкоголя и попыток контролировать его. Выберите ответ, который подходит Вам больше всего. 14 вопросов: мысли об алкоголе и тяга к нему.",
+        "estimatedMinutes": 6,
+        "audience": "Взрослые, которые лечатся или наблюдаются в связи с употреблением алкоголя; заполняет пациент; динамика влечения",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
       "moduleId": "minimed.tools.cardiology.ru",
       "tool": {
         "id": "minimed.calculator.wells-pe",

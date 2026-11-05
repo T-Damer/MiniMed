@@ -11,6 +11,8 @@ import {
   injectServiceWorkerBuild,
   PRECACHE_MAX_WASM_BYTES,
   SERVICE_WORKER_BUILD_PLACEHOLDER,
+  type ShellChunk,
+  shellAssets,
   writeServiceWorkerBuild,
 } from './service-worker-precache';
 
@@ -119,6 +121,149 @@ describe('the build id', () => {
     expect(() =>
       createServiceWorkerBuild([{ path: 'assets/main-A1.js', bytes: 1 }], '0.6.60', digestOf),
     ).toThrow(/index\.html/u);
+  });
+});
+
+describe('a build for one job', () => {
+  const chunk = (fileName: string, rest: Partial<ShellChunk> = {}): ShellChunk => ({
+    fileName,
+    imports: [],
+    moduleIds: [],
+    facadeModuleId: undefined,
+    isEntry: false,
+    files: [],
+    ...rest,
+  });
+  const chunks = [
+    chunk('assets/main-A.js', {
+      isEntry: true,
+      facadeModuleId: '/app/index.html',
+      imports: ['assets/shared-A.js'],
+      files: ['assets/main-A.css'],
+    }),
+    chunk('assets/diary-A.js', { isEntry: true, facadeModuleId: '/app/diary/index.html' }),
+    chunk('assets/shared-A.js'),
+    chunk('assets/NotesView-A.js', {
+      moduleIds: ['/app/src/NotesView.tsx'],
+      imports: ['assets/shared-A.js', 'assets/notes-only-A.js'],
+      files: ['assets/Notes-A.css', 'assets/KaTeX-A.woff2'],
+    }),
+    chunk('assets/notes-only-A.js'),
+    chunk('assets/Prescription-A.js', { moduleIds: ['/app/src/Prescription.tsx'] }),
+  ];
+
+  it('takes the main page, the job’s screens and what they import statically', () => {
+    const shell = shellAssets(chunks, '/app/index.html', ['/app/src/NotesView.tsx']);
+    expect([...shell].toSorted()).toEqual([
+      'assets/KaTeX-A.woff2',
+      'assets/Notes-A.css',
+      'assets/NotesView-A.js',
+      'assets/main-A.css',
+      'assets/main-A.js',
+      'assets/notes-only-A.js',
+      'assets/shared-A.js',
+    ]);
+  });
+
+  it('keeps other assets for their first use and leaves every other file as it was', () => {
+    const shell = { assets: new Set(['assets/main-A.js']) };
+    expect(role('assets/main-A.js')).toBe('precache');
+    expect(classifyBuildFile({ path: 'assets/main-A.js', bytes: 1 }, shell)).toBe('precache');
+    expect(classifyBuildFile({ path: 'assets/Prescription-A.js', bytes: 1 }, shell)).toBe(
+      'optional',
+    );
+    expect(classifyBuildFile({ path: 'index.html', bytes: 1 }, shell)).toBe('precache');
+    expect(classifyBuildFile({ path: 'fonts/a.woff2', bytes: 1 }, shell)).toBe('precache');
+    expect(classifyBuildFile({ path: 'content/core.db', bytes: 1 }, shell)).toBe('skip');
+  });
+
+  it('lists the first-use assets as optional, and changes the build id with them', () => {
+    const files = [
+      { path: 'index.html', bytes: 1 },
+      { path: 'assets/main-A.js', bytes: 10 },
+      { path: 'assets/Prescription-A.js', bytes: 90 },
+    ];
+    const digestOf = () => 'same';
+    const whole = createServiceWorkerBuild(files, '0.6.84', digestOf);
+    const job = createServiceWorkerBuild(files, '0.6.84', digestOf, {
+      assets: new Set(['assets/main-A.js']),
+    });
+    expect(whole.precache).toEqual(['assets/main-A.js', 'assets/Prescription-A.js', 'index.html']);
+    expect(job.precache).toEqual(['assets/main-A.js', 'index.html']);
+    expect(job.optional).toEqual(['assets/Prescription-A.js']);
+    expect(job.precacheBytes).toBe(11);
+    expect(job.app).toEqual([]);
+    expect(job.id).not.toBe(whole.id);
+  });
+
+  it('with a sign-in, stores its screen at install and the rest once the user is in (DIARY24)', () => {
+    const files = [
+      { path: 'index.html', bytes: 1 },
+      { path: 'assets/main-A.js', bytes: 10 },
+      { path: 'assets/App-A.js', bytes: 50 },
+      { path: 'assets/Prescription-A.js', bytes: 90 },
+      { path: 'content/reference.db', bytes: 1000 },
+      { path: 'onboarding/mri/a.webp', bytes: 20 },
+      { path: 'diaries/icon-192.png', bytes: 2 },
+    ];
+    const shell = {
+      assets: new Set(['assets/main-A.js', 'assets/App-A.js']),
+      signIn: new Set(['assets/main-A.js']),
+      noSearch: true,
+    };
+    const build = createServiceWorkerBuild(files, '0.6.88', () => 'same', shell);
+    expect(build.precache).toEqual(['assets/main-A.js', 'diaries/icon-192.png', 'index.html']);
+    expect(build.app).toEqual(['assets/App-A.js']);
+    expect(build.appBytes).toBe(50);
+    // No search: the core's boot content and the onboarding pictures are not kept.
+    expect(build.optional).toEqual(['assets/Prescription-A.js']);
+    const atOnce = createServiceWorkerBuild(files, '0.6.88', () => 'same', {
+      ...shell,
+      signIn: shell.assets,
+    });
+    expect(atOnce.id).not.toBe(build.id);
+  });
+
+  it('follows the lazy parts a job names, not other lazy screens', () => {
+    const chunks = [
+      {
+        fileName: 'assets/main-A.js',
+        imports: [],
+        moduleIds: ['/app/src/main.tsx'],
+        facadeModuleId: '/app/index.html',
+        isEntry: true,
+        files: [],
+      },
+      {
+        fileName: 'assets/LimitDialog-A.js',
+        imports: ['assets/shared-A.js'],
+        moduleIds: ['/app/src/features/diary/LimitDialog.tsx'],
+        facadeModuleId: '/app/src/features/diary/LimitDialog.tsx',
+        isEntry: false,
+        files: [],
+      },
+      {
+        fileName: 'assets/shared-A.js',
+        imports: [],
+        moduleIds: ['/app/src/shared.ts'],
+        facadeModuleId: null,
+        isEntry: false,
+        files: [],
+      },
+      {
+        fileName: 'assets/Prescription-A.js',
+        imports: [],
+        moduleIds: ['/app/src/features/prescription/Prescription.tsx'],
+        facadeModuleId: '/app/src/features/prescription/Prescription.tsx',
+        isEntry: false,
+        files: [],
+      },
+    ];
+    expect([...shellAssets(chunks, '/app/index.html', [], /\/features\/diary\//u)].sort()).toEqual([
+      'assets/LimitDialog-A.js',
+      'assets/main-A.js',
+      'assets/shared-A.js',
+    ]);
   });
 });
 

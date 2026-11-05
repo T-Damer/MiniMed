@@ -11,14 +11,17 @@ import {
   newPairingSecret,
   newRecoveryCode,
   openPairingKeys,
+  pairingProof,
+  pairingProofHash,
   publicIdentity,
   randomId,
   sealIdentity,
   sealPairingKeys,
   sealRecord,
-  sha256,
   wrapDataKey,
 } from '@localmed/diary-sync';
+
+import { type DiaryStore, InviteSpent } from './store';
 
 type App = (request: Request) => Promise<Response>;
 // biome-ignore lint/suspicious/noExplicitAny: the scenario reads answers as loose JSON.
@@ -30,7 +33,17 @@ function check(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(`contract: ${message}`);
 }
 
-export async function runStoreContract(app: App, mode: 'server' | 'serverless'): Promise<string[]> {
+/**
+ * `store` is the one behind `app` (the missed-dose checks need moments in the past, which no route
+ * accepts); the app is made with `tickToken: CONTRACT_TICK_TOKEN`.
+ */
+export const CONTRACT_TICK_TOKEN = 'tick-test';
+
+export async function runStoreContract(
+  app: App,
+  mode: 'server' | 'serverless',
+  store: DiaryStore,
+): Promise<string[]> {
   const steps: string[] = [];
   const step = (name: string) => steps.push(name);
   const call = async (method: string, path: string, body?: unknown, token?: string) => {
@@ -104,6 +117,43 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
   );
   step('register');
 
+  // Invites (SEC-AUDIT1): plain codes are re-keyed, a code is spent once even by a race.
+  const plainCode = `PLAIN-${run}`;
+  await store.createInvite(plainCode, new Date().toISOString());
+  check((await store.plainInvites()).includes(plainCode), 'plain invites are listed');
+  const inviteKey = `h1:contract-${run}`;
+  await store.rekeyInvite(plainCode, inviteKey);
+  check(!(await store.plainInvites()).includes(plainCode), 'a re-keyed invite is no longer plain');
+  check((await store.invite(plainCode)) === undefined, 'the plain code is gone');
+  check((await store.invite(inviteKey))?.used_by === null, 'the re-keyed invite is unused');
+  const inviteDoctor = (email: string) => ({
+    id: randomId(),
+    email,
+    name: 'Приглашённый',
+    auth_hash: 'h',
+    kdf_salt: KDF.salt,
+    kdf_iterations: KDF.iterations,
+    identity_wrap: 'w',
+    identity_sign: 's',
+    identity_blob: 'b',
+    recovery_hash: 'h',
+    recovery_blob: 'b',
+    created_at: new Date().toISOString(),
+  });
+  await store.createDoctor(inviteDoctor(`invited-${run}@clinic.test`), inviteKey);
+  let spent = false;
+  try {
+    await store.createDoctor(inviteDoctor(`invited2-${run}@clinic.test`), inviteKey);
+  } catch (cause) {
+    spent = cause instanceof InviteSpent;
+  }
+  check(spent, 'a spent invite creates no second account');
+  check(
+    (await store.doctorByEmail(`invited2-${run}@clinic.test`)) === undefined,
+    'nothing is left of the refused account',
+  );
+  step('invites');
+
   const secrets = await deriveAccountSecrets('password-1', KDF);
   const login = await expectStatus(
     200,
@@ -174,7 +224,7 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
         'POST',
         `/api/patients/${patientId}/pairings`,
         {
-          secretHash: await sha256(secret),
+          secretHash: await pairingProofHash(secret),
           keys: await sealPairingKeys(new Map([[1, key1]]), secret),
         },
         owner.token,
@@ -182,7 +232,12 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
       'pairing',
     );
     const device = await generateIdentity();
-    const body = { patientId, secret, identity: await publicIdentity(device) };
+    // The phone proves it holds the secret without sending it (SEC-AUDIT1).
+    const body = {
+      patientId,
+      proof: await pairingProof(secret),
+      identity: await publicIdentity(device),
+    };
     const paired = await expectStatus(201, call('POST', '/api/pair', body), 'pair');
     check(
       (await openPairingKeys(paired['keys'], secret)).get(1) !== undefined,
@@ -390,6 +445,133 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
   );
   step('curators and epochs');
 
+  // A carer (DIARY25): pairs like a phone, writes, cannot withdraw consent or remove the patient's
+  // phone; dose checks; the patient's phone removes the carer and rotates the key itself.
+  const carerSecret = newPairingSecret();
+  await expectStatus(
+    201,
+    call(
+      'POST',
+      `/api/patients/${patientId}/pairings`,
+      {
+        secretHash: await pairingProofHash(carerSecret),
+        keys: await sealPairingKeys(new Map([[2, key2]]), carerSecret),
+        kind: 'carer',
+      },
+      owner.token,
+    ),
+    'carer pairing',
+  );
+  const carerDevice = await generateIdentity();
+  const carerPaired = await expectStatus(
+    201,
+    call('POST', '/api/pair', {
+      patientId,
+      proof: await pairingProof(carerSecret),
+      identity: await publicIdentity(carerDevice),
+    }),
+    'carer pair',
+  );
+  check(carerPaired['kind'] === 'carer', 'the pairing says it is a carer');
+  const carer = { token: carerPaired['token'] as string, id: carerPaired['deviceId'] as string };
+  const withCarer = await expectStatus(
+    200,
+    call('GET', `/api/patients/${patientId}`, undefined, phone.token),
+    'details with a carer',
+  );
+  check(
+    withCarer['devices']
+      .map((device: Body) => device['kind'])
+      .toSorted()
+      .join() === 'carer,patient',
+    'details tell the carer from the patient',
+  );
+  const carerSummary = (
+    await expectStatus(200, call('GET', '/api/patients', undefined, owner.token), 'summary')
+  )['patients'][0];
+  check(carerSummary.devices === 1 && carerSummary.carers === 1, 'summary counts the carer apart');
+  const carerEntry = await sealRecord(
+    { patientId, id: 'e-carer1', rev: 1, epoch: 2, author: `p:${carer.id}` },
+    { kind: 'entry' },
+    key2,
+    carerDevice.sign.privateKey,
+  );
+  await expectStatus(
+    201,
+    call('POST', `/api/patients/${patientId}/records`, { records: [carerEntry] }, carer.token),
+    'carer record',
+  );
+  await expectStatus(403, call('DELETE', '/api/device', undefined, carer.token), 'carer withdraws');
+  await expectStatus(
+    403,
+    call('DELETE', `/api/device/carers/${phone.id}`, undefined, carer.token),
+    'carer removes the phone',
+  );
+  const soon = new Date(Date.now() + 3_600_000).toISOString();
+  await expectStatus(
+    200,
+    call('PUT', '/api/device/reminders', { at: [], checks: [soon] }, phone.token),
+    'dose checks',
+  );
+  await expectStatus(
+    200,
+    call('PUT', '/api/device/reminders', { at: [], taken: [soon] }, carer.token),
+    'taken by the carer',
+  );
+  const hour = 3_600_000;
+  const ago = (ms: number) => new Date(Date.now() - ms).toISOString();
+  const [stale, taken, open] = [ago(2 * hour), ago(1.5 * hour), ago(hour)];
+  await store.replaceDoseChecks(patientId, [stale, taken, open], ago(3 * hour));
+  await store.markDosesTaken(patientId, [taken]);
+  const missed = await store.takeMissedDoses(ago(0.5 * hour), ago(1.8 * hour));
+  check(
+    missed.length === 1 && missed[0]?.at === open && missed[0]?.patient_id === patientId,
+    'one open dose is due (the older is stale, the other taken)',
+  );
+  check(
+    (await store.takeMissedDoses(ago(0.5 * hour), ago(1.8 * hour))).length === 0,
+    'a missed dose is told once',
+  );
+  const tick = await expectStatus(
+    200,
+    call('POST', '/api/tick', undefined, CONTRACT_TICK_TOKEN),
+    'tick',
+  );
+  check(typeof tick['missed'] === 'number', 'the tick reports what it sent');
+  await expectStatus(401, call('POST', '/api/tick', undefined, 'wrong'), 'tick without the key');
+  await expectStatus(
+    200,
+    call('DELETE', `/api/device/carers/${carer.id}`, undefined, phone.token),
+    'the patient removes the carer',
+  );
+  await expectStatus(401, call('GET', '/api/device/keys', undefined, carer.token), 'removed carer');
+  const key3 = newDataKey();
+  await expectStatus(
+    200,
+    call(
+      'POST',
+      `/api/patients/${patientId}/epochs`,
+      {
+        epoch: 3,
+        keys: [
+          {
+            epoch: 3,
+            recipient: `d:${owner.id}`,
+            wrapped: await wrapDataKey(key3, ownerPublic.wrap),
+          },
+          {
+            epoch: 3,
+            recipient: `p:${phone.id}`,
+            wrapped: await wrapDataKey(key3, phonePublic.wrap),
+          },
+        ],
+      },
+      phone.token,
+    ),
+    'the patient’s phone rotates the key',
+  );
+  step('carer');
+
   // Revoke the phone; a second phone withdraws consent; another patient is deleted.
   await expectStatus(
     200,
@@ -405,7 +587,7 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
         'POST',
         `/api/patients/${patientId}/pairings`,
         {
-          secretHash: await sha256(secret),
+          secretHash: await pairingProofHash(secret),
           keys: await sealPairingKeys(new Map([[2, key2]]), secret),
         },
         owner.token,
@@ -413,6 +595,7 @@ export async function runStoreContract(app: App, mode: 'server' | 'serverless'):
       'pairing 2',
     );
     const device = await generateIdentity();
+    // A phone from before SEC-AUDIT1 still sends the secret; the server derives the proof.
     return expectStatus(
       201,
       call('POST', '/api/pair', { patientId, secret, identity: await publicIdentity(device) }),

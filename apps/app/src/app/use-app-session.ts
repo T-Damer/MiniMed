@@ -147,8 +147,9 @@ export function useAppSession() {
   let observedApkTaskId: string | undefined;
   let disposed = false;
 
-  // A new web build was installed in the background: say so once, quietly. Nothing reloads until
-  // the doctor taps «Обновить» here or in Settings.
+  // A new web build was installed in the background: say so once, quietly. On the web it applies
+  // itself when the page is next hidden (state/app-update.ts), so the notice only offers «now»;
+  // the APK build waits for «Обновить» here or in Settings.
   let announcedUpdateWorker: ServiceWorker | undefined;
   let activateAnnouncedUpdate: () => void = () => undefined;
   const handleAppUpdate = (event: Event): void => {
@@ -157,12 +158,17 @@ export function useAppSession() {
     setAppUpdateUpToDate(false);
     if (announcedUpdateWorker === worker) return;
     announcedUpdateWorker = worker;
-    toast('Доступно обновление', {
+    const web = Capacitor.getPlatform() === 'web';
+    toast(web ? 'Новая версия готова' : 'Доступно обновление', {
       id: 'app-update-ready',
-      // Without the bottom bar (a narrowed app profile) there is no lasting update badge: the
-      // notice stays until it is tapped.
-      duration: profileHidesNavigation(activeProfile()) ? Number.POSITIVE_INFINITY : 12_000,
-      action: { label: 'Обновить', onClick: () => activateAnnouncedUpdate() },
+      ...(web ? { description: 'Обновится сама, когда вы свернёте приложение.' } : {}),
+      // Without the bottom bar (a narrowed app profile) and without the web's own apply there is
+      // no lasting update badge: that notice stays until it is tapped.
+      duration: !web && profileHidesNavigation(activeProfile()) ? Number.POSITIVE_INFINITY : 12_000,
+      action: {
+        label: web ? 'Обновить сейчас' : 'Обновить',
+        onClick: () => activateAnnouncedUpdate(),
+      },
     });
   };
 
@@ -510,6 +516,9 @@ export function useAppSession() {
       syncInstalledCount();
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
+    // A profile that never searches (the doctors' diaries) opens no core and reads no module
+    // catalog: its screens do not need them, and the first would fetch a database it never uses.
+    if (activeProfile()?.skipSearchCore) return;
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
     const initialDataVersion = readInstalledDataVersion();
     const initializedPromise = initializeMedicalCore(createSessionCore);

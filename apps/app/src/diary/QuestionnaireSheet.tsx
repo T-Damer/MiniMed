@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
+import { revealElement } from '@/components/reveal';
 import type { CareSave } from '@/diary/care-sheets';
 import { DiarySheet } from '@/diary/DiarySheet';
 import { DiarySkeleton } from '@/diary/diary-ui';
@@ -46,7 +47,8 @@ export function QuestionnaireSheet(props: {
     const missing = current.questions.find((question) => answers()[question.id] === undefined);
     if (missing) {
       setError('Ответьте на все вопросы.');
-      document.getElementById(`question-${missing.id}`)?.scrollIntoView({ block: 'center' });
+      const question = document.getElementById(`question-${missing.id}`);
+      if (question) revealElement(question);
       return;
     }
     const scored = scoreAssessment(current, answers());

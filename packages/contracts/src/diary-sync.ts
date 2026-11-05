@@ -36,7 +36,10 @@ export const DiaryRegisterRequestSchema = z.object({
   identity: DiaryPublicIdentitySchema,
   identityBlob: sealed.max(8000),
   recovery: z.object({ authKey: base64Url.max(100), identityBlob: sealed.max(8000) }),
+  /** The sign-up code as typed: only clients before SEC-AUDIT1 send it. */
   invite: z.string().trim().max(64).optional(),
+  /** `inviteProof(code)`: the code itself never reaches the server (SEC-AUDIT1). */
+  inviteProof: base64Url.max(100).optional(),
 });
 export type DiaryRegisterRequest = z.infer<typeof DiaryRegisterRequestSchema>;
 
@@ -130,8 +133,10 @@ export const DiaryPatientSummarySchema = z.object({
   lastSeq: z.number().int().min(0),
   lastRecordAt: z.string().nullable(),
   openAlerts: z.number().int().min(0),
+  /** The patient's own phones (carers' are counted in `carers`). */
   devices: z.number().int().min(0),
-  /** Latest authenticated request of any of the patient's phones (presence metadata only). */
+  carers: z.number().int().min(0).default(0),
+  /** Latest authenticated request of any of the patient's own phones (presence metadata only). */
   lastSeenAt: z.string().optional(),
   /** A phone made a request within `DIARY_ONLINE_WINDOW_MS`. */
   online: z.boolean(),
@@ -147,21 +152,39 @@ export const DiaryPresenceEventSchema = z.object({
 });
 export type DiaryPresenceEvent = z.infer<typeof DiaryPresenceEventSchema>;
 
+/**
+ * Who a paired device belongs to: the patient, or a carer (опекун, DIARY25) whom the doctor added
+ * with the patient's consent. A carer's phone reads and marks the diary like the patient's; it
+ * cannot withdraw the patient's consent, and it is told when a dose goes unmarked.
+ */
+export const DiaryDeviceKindSchema = z.enum(['patient', 'carer']);
+export type DiaryDeviceKind = z.infer<typeof DiaryDeviceKindSchema>;
+
 export const DiaryPairingCreateSchema = z.object({
   secretHash: base64Url.max(100),
   /** The device's key copies for every epoch, sealed with a key derived from the secret. */
   keys: sealed.max(20_000),
+  /** Absent: the patient's own phone. */
+  kind: DiaryDeviceKindSchema.optional(),
 });
 
-export const DiaryPairRequestSchema = z.object({
-  patientId: DiaryIdSchema,
-  secret: base64Url.max(100),
-  identity: DiaryPublicIdentitySchema,
-});
+export const DiaryPairRequestSchema = z
+  .object({
+    patientId: DiaryIdSchema,
+    /** `pairingProof(secret)` (SEC-AUDIT1); the secret seals the keys and stays on the phone. */
+    proof: base64Url.max(100).optional(),
+    /** The secret itself: only phones before SEC-AUDIT1 send it. */
+    secret: base64Url.max(100).optional(),
+    identity: DiaryPublicIdentitySchema,
+  })
+  .refine((input) => (input.proof === undefined) !== (input.secret === undefined), {
+    message: 'proof or secret',
+  });
 export const DiaryPairResponseSchema = z.object({
   deviceId: DiaryIdSchema,
   token: base64Url,
   keys: sealed,
+  kind: DiaryDeviceKindSchema.default('patient'),
 });
 
 /**
@@ -176,10 +199,14 @@ export const DIARY_PUSH_KINDS = [
   'alert',
   'withdrawn',
   'invite',
+  /** To a carer: a dose was not marked taken `DIARY_MISSED_AFTER_MS` after its moment `at`. */
+  'missed',
+  /** To the patient's phones: a carer joined the diary. */
+  'carer',
 ] as const;
 export const DiaryPushPayloadSchema = z.object({
   kind: z.enum(DIARY_PUSH_KINDS),
-  /** The reminder's moment (ISO). */
+  /** The reminder's (or the missed dose's) moment (ISO). */
   at: z.string().datetime().optional(),
 });
 export type DiaryPushPayload = z.infer<typeof DiaryPushPayloadSchema>;
@@ -208,6 +235,7 @@ export type DiaryMember = z.infer<typeof DiaryMemberSchema>;
 
 export const DiaryDeviceSchema = z.object({
   id: DiaryIdSchema,
+  kind: DiaryDeviceKindSchema.default('patient'),
   identity: DiaryPublicIdentitySchema,
   createdAt: z.string(),
   lastSeenAt: z.string().nullable(),
@@ -243,12 +271,29 @@ export const DiaryAlertSchema = z.object({
 });
 export type DiaryAlert = z.infer<typeof DiaryAlertSchema>;
 
+/**
+ * A push service address the server may POST to (SEC-AUDIT1): https on the default port, a public
+ * host name, no credentials. Push services (FCM, Mozilla, Apple, Microsoft, browser vendors) all
+ * look like that; loopback, private and metadata addresses, IP literals and local names do not, so
+ * a subscription cannot point the server at its own network.
+ */
+export function isPushEndpoint(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) return false;
+  if (url.port !== '' && url.port !== '443') return false;
+  const host = url.hostname.toLowerCase().replace(/\.$/u, '');
+  if (!host.includes('.') || host.startsWith('[')) return false;
+  if (/^[\d.]+$/u.test(host) || /^0x/u.test(host)) return false;
+  return !/(^|\.)(localhost|local|internal|intranet|lan|home\.arpa|test)$/u.test(host);
+}
+
 export const DiaryPushSubscriptionSchema = z.object({
-  endpoint: z
-    .string()
-    .url()
-    .max(1000)
-    .refine((url) => url.startsWith('https://'), 'https only'),
+  endpoint: z.string().url().max(1000).refine(isPushEndpoint, 'https push service only'),
   /** The browser's payload keys (`PushSubscription.toJSON().keys`); without them pushes are empty. */
   keys: z.object({ p256dh: base64Url.max(120), auth: base64Url.max(40) }).optional(),
 });
@@ -261,8 +306,17 @@ export const DIARY_REMINDER_DAYS = 14;
 export const DIARY_REMINDER_MAX = 400;
 /** A reminder the server could not send this long after its moment is dropped. */
 export const DIARY_REMINDER_GRACE_MS = 20 * 60_000;
+/** A carer hears of a dose that is still not marked taken this long after its moment. */
+export const DIARY_MISSED_AFTER_MS = 30 * 60_000;
 export const DiaryRemindersSchema = z.object({
   at: z.array(z.string().datetime()).max(DIARY_REMINDER_MAX),
+  /**
+   * Only while the diary has a carer (DIARY25). From the patient's phone: the dose moments of the
+   * coming days not all marked taken, kept for the missed-dose notice (this list replaces the
+   * earlier one). From any phone: the moments whose doses are all marked taken.
+   */
+  checks: z.array(z.string().datetime()).max(DIARY_REMINDER_MAX).optional(),
+  taken: z.array(z.string().datetime()).max(DIARY_REMINDER_MAX).optional(),
 });
 
 /** What the service tells a client before sign-in. */

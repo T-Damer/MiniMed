@@ -12,16 +12,12 @@ import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { describeRanges } from '@/components/date-ranges';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
-import { SegmentedControl } from '@/components/SegmentedControl';
-import { StatCard, StatGrid } from '@/components/StatCard';
 import { Heading } from '@/components/Text';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
-import { pluralize } from '@/diary/diary-format';
 import {
   createHeatFilter,
   DOCTOR_HEAT_FILTER_KEY,
@@ -32,33 +28,27 @@ import type { DiaryAlert } from '@localmed/contracts';
 import { patientRowSummary } from '@/components/patient-picker-summary';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
+import { consentDay, consentStatus } from '@/features/diary/consent/consent-status';
+import { diaryOperator } from '@/features/diary/consent/joining-documents';
 import {
-  chartSeries,
-  DIARY_CHARTS,
-  type DiaryChart,
-} from '@/features/diary/dashboard/diary-charts';
-import {
-  type AlertCause,
-  adherence,
   exportCsv,
   exportRows,
   exportXlsx,
-  medicineAdherence,
-  type QuestionnaireSeries,
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
-import { LimitDialog, type LimitTarget } from '@/features/diary/dashboard/LimitDialog';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
+import { PatientDayDetails } from '@/features/diary/dashboard/PatientDayDetails';
 import {
   AlertDialog,
-  AlertNotices,
   CorrectEntryDialog,
   CuratorsDialog,
   TipsDialog,
 } from '@/features/diary/dashboard/PatientDialogs';
+import { PatientOverview } from '@/features/diary/dashboard/PatientOverview';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
+import { overviewSignals } from '@/features/diary/dashboard/patient-overview';
 import { isOnline, presenceLabel } from '@/features/diary/dashboard/presence';
-import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
 import {
   dayKey,
   diaryStarted,
@@ -67,24 +57,25 @@ import {
   heatmapDays,
   heatParts,
 } from '@/features/diary/diary-care';
+import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import {
   type DiaryEntry,
   type DiaryInvitation,
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
-import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
+import { planEditDays } from '@/features/diary/plan-history';
+import type { DiarySub } from '@/features/notes/notes-routing';
+import { crossesLimit } from '@/state/assessment-limits';
 
 type Dialog =
   | 'day'
   | 'pair'
+  | 'consent'
   | 'curators'
   | 'tips'
   | 'export'
   | { readonly correct: DiaryEntry }
-  | { readonly alert: DiaryAlert }
-  | { readonly notice: AlertCause }
-  | { readonly limit: readonly LimitTarget[] };
-type Period = '14' | '30' | '90';
+  | { readonly alert: DiaryAlert };
 
 function download(blob: Blob, name: string): void {
   const url = URL.createObjectURL(blob);
@@ -97,23 +88,8 @@ function download(blob: Blob, name: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function within(entries: readonly DiaryEntry[], days: number): DiaryEntry[] {
-  const since = Date.now() - days * 86_400_000;
-  return entries.filter((entry) => Date.parse(entry.at) >= since);
-}
-
 const MEASURED_VITALS = ['systolic', 'diastolic', 'pulse', 'spo2', 'weight'] as const;
-const MEASURED_SCORES = ['wellbeing', 'mood'] as const;
-
-/** The red lines a declared chart draws, as the «Порог тревоги» dialog edits them. */
-function chartLimits(chart: DiaryChart): (LimitTarget & { readonly axis?: 'right' })[] {
-  return (chart.limits ?? []).map((limit) => ({
-    id: limit.id,
-    label: MEASUREMENT_LIMIT_LABEL[limit.id] ?? limit.id,
-    ...(limit.unit ? { unit: limit.unit } : {}),
-    ...(limit.axis ? { axis: limit.axis } : {}),
-  }));
-}
+const MEASURED_SCORES = ['wellbeing', 'mood', 'craving'] as const;
 
 /**
  * One connected patient for the doctor: the month calendar, adherence, charts of wellbeing, pressure,
@@ -126,19 +102,20 @@ export function DiaryPatientPage(props: {
   readonly version: number;
   readonly onBack: () => void;
   /** Opens the patient view to edit, or one day as the patient saw it. */
-  readonly onOpen: (sub: 'screen' | `day/${string}`) => void;
+  readonly onOpen: (sub: DiarySub) => void;
   /** The day to show first (an alert opened from the list). */
   readonly initialDay?: string | undefined;
 }): JSX.Element {
-  const [dialog, setDialog] = createSignal<Dialog>();
+  // An alert opened from the list starts on its day.
+  const [dialog, setDialog] = createSignal<Dialog | undefined>(
+    props.initialDay ? 'day' : undefined,
+  );
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
-  let dayHeading: HTMLHeadingElement | undefined;
+  /** An alert's «open the day»: the day's sheet in place of the alert's. */
   const openDay = (next: string): void => {
-    setDialog(undefined);
     setDay(next);
-    requestAnimationFrame(() => dayHeading?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setDialog('day');
   };
-  const [period, setPeriod] = createSignal<Period>('30');
   const results = createMemo(() => {
     void props.version;
     return replicaResults(props.patient.replica);
@@ -167,15 +144,6 @@ export function DiaryPatientPage(props: {
       new Date(),
       include(),
     );
-  });
-  const recent = createMemo(() => within(results()?.entries ?? [], Number(period())));
-  const week = createMemo(() => {
-    const current = results();
-    return current ? adherence(current.invitation, current.entries, 7) : undefined;
-  });
-  const medicines = createMemo(() => {
-    const current = results();
-    return current ? medicineAdherence(current.invitation, current.entries, Number(period())) : [];
   });
   const [quizzes] = createResource(
     () => {
@@ -215,57 +183,24 @@ export function DiaryPatientPage(props: {
     }
     return days;
   });
+  /** What changed this week; undefined until the questionnaires are scored (one loading state). */
+  const signals = createMemo(() => {
+    const current = results();
+    const scored = quizzes.latest;
+    if (!current || !scored) return undefined;
+    return overviewSignals({
+      invitation: current.invitation,
+      entries: current.entries,
+      questionnaires: scored,
+      devices: props.patient.summary.devices,
+    });
+  });
+  /** Days a doctor changed the plan, with who and what (the calendar's yellow dots). */
+  const edits = createMemo(() => {
+    void props.version;
+    return planEditDays(props.patient.replica.planHistory);
+  });
   const dayEntries = createMemo(() => entriesOfDay(results()?.entries ?? [], day()).toReversed());
-  /** The chosen day's records (or its empty state): on the page and in the day sheet. */
-  const dayRecords = (invitation: DiaryInvitation): JSX.Element => (
-    <Show
-      when={dayEntries().length}
-      fallback={
-        <div class="diary-patient__day-empty">
-          <p class="diary-dash__quiet">В этот день записей нет.</p>
-          <Button
-            variant="secondary"
-            icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-            onClick={() => props.onOpen(`day/${day()}`)}
-          >
-            {canEdit() ? 'Открыть день и отметить' : 'Открыть день пациента'}
-          </Button>
-        </div>
-      }
-    >
-      <ul class="diary-timeline">
-        <For each={dayEntries()}>
-          {(entry) => (
-            <li class="diary-timeline__item">
-              <span class="diary-timeline__time">
-                {new Date(entry.at).toLocaleTimeString('ru-RU', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-              <span class="diary-timeline__text">
-                <span class="diary-timeline__line">{describeDiaryEntry(invitation, entry)}</span>
-                <Show when={entry.note}>
-                  <span class="diary-timeline__note">{entry.note}</span>
-                </Show>
-                <Show when={entry.corrected}>
-                  <span class="diary-timeline__badge">исправлено врачом</span>
-                </Show>
-              </span>
-              <Show when={canEdit()}>
-                <Button
-                  variant="icon"
-                  aria-label="Исправить запись"
-                  icon={<AppGlyph name="edit" class="diary-dash__glyph" />}
-                  onClick={() => setDialog({ correct: entry })}
-                />
-              </Show>
-            </li>
-          )}
-        </For>
-      </ul>
-    </Show>
-  );
   /** Before the diary began (a backfilled record moves the start back). */
   const beforeStart = (): boolean => {
     const current = results();
@@ -276,11 +211,35 @@ export function DiaryPatientPage(props: {
     return props.workspace.alerts().filter((alert) => alert.patientId === props.patient.summary.id);
   });
 
+  /** The joining documents (DIARY26): accepted and when, or still waited for on a paired phone. */
+  const consentState = createMemo(() => {
+    void props.version;
+    return consentStatus({
+      asks: props.patient.replica.invitation?.consent === true,
+      consentAt: props.patient.replica.consentAt,
+      consents: props.patient.replica.consents,
+      devices: props.patient.summary.devices,
+    });
+  });
+
   const phone = (): string | undefined => props.patient.replica.profile?.phone;
   const actions = createMemo((): readonly HeaderAction[] => {
     const edit = canEdit();
     const ready = Boolean(results());
     return [
+      // The one way to change the patient's screen, plan and tips (DIARY20): a pencil on top.
+      ...(edit
+        ? [
+            {
+              id: 'edit',
+              label: 'Редактировать',
+              icon: 'edit' as const,
+              priority: 1 as const,
+              disabled: !ready,
+              onSelect: () => props.onOpen('screen'),
+            },
+          ]
+        : []),
       ...(phone()
         ? [
             {
@@ -294,14 +253,6 @@ export function DiaryPatientPage(props: {
         : []),
       ...(edit
         ? [
-            {
-              id: 'screen',
-              label: 'Экран пациента',
-              icon: 'browsers' as const,
-              priority: 2 as const,
-              disabled: !ready,
-              onSelect: () => props.onOpen('screen'),
-            },
             {
               id: 'pair',
               // Again whenever needed: a lost page, another device (owner 2026-10-30).
@@ -320,18 +271,6 @@ export function DiaryPatientPage(props: {
         disabled: !results()?.entries.length,
         onSelect: () => setDialog('export'),
       },
-      ...(edit
-        ? [
-            {
-              id: 'tips',
-              label: 'Подсказки пациенту',
-              icon: 'lightbulb' as const,
-              priority: 3 as const,
-              disabled: !ready,
-              onSelect: () => setDialog('tips'),
-            },
-          ]
-        : []),
       {
         id: 'curators',
         label: 'Кураторы',
@@ -342,51 +281,16 @@ export function DiaryPatientPage(props: {
     ];
   });
 
-  /** Course dates of a medicine: «20 окт. – 2 нояб. · 14 дней». */
-  const courseOf = (itemId: string): string | undefined => {
-    const course = results()?.invitation.plan?.find((item) => item.id === itemId)?.course;
-    return course?.length ? describeRanges(course) : undefined;
-  };
-
-  /** The doctor's red lines for these measurements or questionnaires. */
-  const limitsOf = (targets: readonly LimitTarget[]): TrendLimit[] =>
-    targets.flatMap((target) => {
-      const bounds = assessmentBounds(target.id, target.preset);
-      return [
-        ...(bounds.above === undefined
-          ? []
-          : [{ value: bounds.above, label: `${target.label}: выше ${bounds.above}` }]),
-        ...(bounds.below === undefined
-          ? []
-          : [{ value: bounds.below, label: `${target.label}: ниже ${bounds.below}` }]),
-      ];
-    });
-  const openLimit = (targets: readonly LimitTarget[]) => () => setDialog({ limit: targets });
-  /** The latest answers raised the schema's alerts or crossed the red line: why, one tap away. */
-  const quizWarning = (series: QuestionnaireSeries) => {
-    const last = series.points.at(-1);
-    if (!last) return undefined;
-    if (!last.alerts.length && !crossesLimit(series.limitId, last.total, series.preset)) {
-      return undefined;
-    }
-    return {
-      label: `${series.title}: ${last.total} из ${last.max}, ${last.headline}`,
-      onOpen: () => setDialog({ notice: { title: series.title, point: last } }),
-    };
-  };
-  const quizLimit = (series: QuestionnaireSeries): LimitTarget => ({
-    id: series.limitId,
-    label: series.title,
-    unit: 'баллов',
-    preset: series.preset,
-  });
-
-  const exportAs = async (kind: 'csv' | 'xlsx'): Promise<void> => {
+  const exportAs = async (kind: 'csv' | 'xlsx' | 'fhir'): Promise<void> => {
     const current = results();
     if (!current) return;
     const rows = exportRows(current.invitation, current.entries);
     const name = `дневник-${props.patient.replica.profile?.label ?? props.patient.summary.id}`;
-    if (kind === 'csv') {
+    if (kind === 'fhir') {
+      // HL7 FHIR R4, the same bundle the patient's own export makes (no name in it).
+      const bundle = JSON.stringify(diaryToFhirBundle(current), null, 2);
+      download(new Blob([bundle], { type: 'application/fhir+json' }), `${name}.fhir.json`);
+    } else if (kind === 'csv') {
       download(new Blob([exportCsv(rows)], { type: 'text/csv;charset=utf-8' }), `${name}.csv`);
     } else {
       download(await exportXlsx(rows, name), `${name}.xlsx`);
@@ -407,10 +311,35 @@ export function DiaryPatientPage(props: {
           const label = presenceLabel(props.patient.summary);
           const birth = props.patient.replica.profile?.birthDate;
           const born = birth ? patientRowSummary(birth, dayKey(new Date())) : undefined;
-          if (!label && !born) return undefined;
+          const consent = consentState();
+          if (!label && !born && !consent) return undefined;
           return (
             <span class="diary-patient__line">
               <Show when={born}>{(text) => <span class="diary-patient__born">{text()}</span>}</Show>
+              <Show when={consent}>
+                {(state) => (
+                  <button
+                    type="button"
+                    class="consent-chip"
+                    classList={{ 'consent-chip--waiting': state().kind === 'waiting' }}
+                    data-testid="patient-consent"
+                    disabled={state().kind !== 'accepted'}
+                    onClick={() => setDialog('consent')}
+                  >
+                    <AppGlyph
+                      name={state().kind === 'waiting' ? 'clock' : 'file-text'}
+                      class="consent-chip__glyph"
+                    />
+                    {(() => {
+                      const current = state();
+                      if (current.kind === 'waiting') return 'Документы ещё не приняты';
+                      return current.kind === 'accepted'
+                        ? `Документы приняты ${consentDay(current.at)}`
+                        : `Согласие принято ${consentDay(current.at)}`;
+                    })()}
+                  </button>
+                )}
+              </Show>
               <Show when={label}>
                 <span class="diary-presence">
                   <span
@@ -425,15 +354,18 @@ export function DiaryPatientPage(props: {
           );
         })()}
         headerActions={actions()}
+        helpPriority={2}
         help={
           <>
             <p>
-              Записи пациента приходят сюда вживую. Календарь показывает выполнение плана по дням,
-              ниже — приём лекарств, графики и опросники за выбранный период.
+              Записи пациента приходят сюда вживую. «Статистика» открывает все графики, под ней —
+              кратко за неделю. Календарь показывает выполнение плана по дням; день открывается
+              нажатием: что сделано, что пропущено, записи. Жёлтая точка — в этот день меняли план.
             </p>
             <p>
-              «Экран пациента» — то, что он видит у себя: правьте разделы прямо там, изменения
-              придут на его телефон сами. Ошибочную запись можно исправить, пациент увидит отметку.
+              Карандаш сверху — «Редактировать»: экран пациента, назначения и подсказки. Изменения
+              придут на его телефон сами. Если коллега правил план в это же время, правки
+              объединятся. Ошибочную запись можно исправить, пациент увидит отметку.
             </p>
           </>
         }
@@ -483,58 +415,13 @@ export function DiaryPatientPage(props: {
       <Show when={results()}>
         {(current) => (
           <>
-            <StatGrid columns={3}>
-              <StatCard
-                compact
-                value={
-                  week()?.share === undefined ? '—' : `${Math.round((week()?.share ?? 0) * 100)} %`
-                }
-                label="плана за 7 дней"
-                icon="check"
-                tone={
-                  week()?.share === undefined
-                    ? 'default'
-                    : (week()?.share ?? 0) >= 0.8
-                      ? 'good'
-                      : (week()?.share ?? 0) >= 0.5
-                        ? 'warn'
-                        : 'danger'
-                }
-              />
-              <StatCard
-                compact
-                value={current().entries.length}
-                label={pluralize(current().entries.length, 'запись', 'записи', 'записей')}
-                icon="notes"
-              />
-              <Show
-                when={props.patient.summary.devices > 0}
-                fallback={
-                  <StatCard
-                    compact
-                    value="—"
-                    label="Подключить телефон"
-                    icon="share"
-                    tone="warn"
-                    disabled={!canEdit()}
-                    onClick={() => setDialog('pair')}
-                  />
-                }
-              >
-                <StatCard
-                  compact
-                  value={props.patient.summary.devices}
-                  label={pluralize(
-                    props.patient.summary.devices,
-                    'телефон подключён',
-                    'телефона подключено',
-                    'телефонов подключено',
-                  )}
-                  icon="phone"
-                  tone="accent"
-                />
-              </Show>
-            </StatGrid>
+            <PatientOverview
+              signals={signals()}
+              onOpen={(target) =>
+                'pair' in target ? setDialog('pair') : props.onOpen(`charts/${target.chart}`)
+              }
+              onAll={() => props.onOpen('charts')}
+            />
 
             <DiaryHeatmap
               days={heat()}
@@ -550,129 +437,8 @@ export function DiaryPatientPage(props: {
               include={include()}
               onInclude={setInclude}
               symptomDays={symptomDays()}
+              changedDays={new Set(edits().keys())}
             />
-
-            <SegmentedControl
-              label="Период"
-              value={period()}
-              options={[
-                { value: '14', label: '14 дней' },
-                { value: '30', label: '30 дней' },
-                { value: '90', label: '90 дней' },
-              ]}
-              onChange={setPeriod}
-            />
-
-            <Show when={medicines().length}>
-              <section
-                class="diary-patient__section diary-patient__section--card"
-                aria-label="Приём лекарств"
-              >
-                <h2 class="diary-patient__heading">Приём лекарств</h2>
-                <ul class="diary-adherence">
-                  <For each={medicines()}>
-                    {(medicine) => {
-                      const share = () =>
-                        medicine.planned ? medicine.taken / medicine.planned : 0;
-                      return (
-                        <li class="diary-adherence__row">
-                          <span class="diary-adherence__name">
-                            {medicine.name}
-                            <Show when={courseOf(medicine.itemId)}>
-                              {(text) => <span class="diary-adherence__course">{text()}</span>}
-                            </Show>
-                          </span>
-                          <span class="diary-adherence__bar" aria-hidden="true">
-                            <span
-                              class="diary-adherence__fill"
-                              style={{ width: `${Math.round(share() * 100)}%` }}
-                            />
-                          </span>
-                          <span class="diary-adherence__value">
-                            <Show when={medicine.planned} fallback="приёмов ещё не было">
-                              {medicine.taken} из {medicine.planned}
-                              {medicine.skipped ? `, пропущено ${medicine.skipped}` : ''}
-                            </Show>
-                          </span>
-                        </li>
-                      );
-                    }}
-                  </For>
-                </ul>
-              </section>
-            </Show>
-
-            <div class="diary-patient__charts">
-              <For each={DIARY_CHARTS}>
-                {(chart) => (
-                  <Show when={chartSeries(chart, recent()).length}>
-                    <TrendChart
-                      from={Date.now() - Number(period()) * 86_400_000}
-                      to={Date.now()}
-                      title={chart.title}
-                      min={chart.min}
-                      max={chart.max}
-                      rightMin={chart.rightMin}
-                      rightMax={chart.rightMax}
-                      series={chartSeries(chart, recent())}
-                      limits={chartLimits(chart).flatMap((target) =>
-                        limitsOf([target]).map((limit) =>
-                          target.axis ? { ...limit, axis: target.axis } : limit,
-                        ),
-                      )}
-                      onLimit={chart.limits?.length ? openLimit(chartLimits(chart)) : undefined}
-                    />
-                  </Show>
-                )}
-              </For>
-              <For each={quizzes.latest ?? []}>
-                {(series) => (
-                  <section class="diary-patient__quiz">
-                    <TrendChart
-                      from={Date.now() - Number(period()) * 86_400_000}
-                      to={Date.now()}
-                      title={`${series.title}, сумма баллов`}
-                      limits={limitsOf([quizLimit(series)])}
-                      onLimit={openLimit([quizLimit(series)])}
-                      warning={quizWarning(series)}
-                      min={0}
-                      max={series.points[0]?.max}
-                      series={[
-                        {
-                          label: series.title,
-                          points: series.points.map((point) => ({
-                            at: point.at,
-                            value: point.total,
-                          })),
-                          color: '--theme-accent',
-                        },
-                      ]}
-                    />
-                  </section>
-                )}
-              </For>
-            </div>
-
-            <section class="diary-patient__section" aria-label="Записи дня">
-              <div class="diary-patient__day-head">
-                <h2 class="diary-patient__heading" ref={dayHeading}>
-                  {new Date(`${day()}T12:00:00`).toLocaleDateString('ru-RU', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
-                </h2>
-                <Show when={dayEntries().length}>
-                  <Button
-                    variant="icon"
-                    aria-label="Экран пациента в этот день"
-                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-                    onClick={() => props.onOpen(`day/${day()}`)}
-                  />
-                </Show>
-              </div>
-              {dayRecords(current().invitation)}
-            </section>
           </>
         )}
       </Show>
@@ -688,32 +454,43 @@ export function DiaryPatientPage(props: {
                 month: 'long',
               })}
               {...(beforeStart() ? { subtitle: 'До начала дневника' } : {})}
-              headerEnd={
-                <Show when={dayEntries().length}>
-                  <Button
-                    variant="icon"
-                    aria-label="Экран пациента в этот день"
-                    icon={<AppGlyph name="browsers" class="diary-dash__glyph" />}
-                    onClick={() => props.onOpen(`day/${day()}`)}
-                  />
-                </Show>
-              }
               onClose={() => setDialog(undefined)}
             >
-              {dayRecords(current().invitation)}
+              <PatientDayDetails
+                workspace={props.workspace}
+                patient={props.patient}
+                results={current()}
+                day={day()}
+                edits={edits().get(day()) ?? []}
+                onCorrect={(entry) => setDialog({ correct: entry })}
+                onFill={() => props.onOpen(`day/${day()}`)}
+              />
             </OverlayDialog>
           )}
         </Match>
         <Match when={dialog() === 'pair'}>
           <OverlayDialog
             open
-            title="Подключить телефон пациента"
+            title="Подключить девайс пациента"
             onClose={() => setDialog(undefined)}
           >
             <PairingView
               workspace={props.workspace}
               patientId={props.patient.summary.id}
               onDone={() => setDialog(undefined)}
+            />
+          </OverlayDialog>
+        </Match>
+        <Match when={dialog() === 'consent'}>
+          <OverlayDialog open title="Документы пациента" onClose={() => setDialog(undefined)}>
+            <ConsentRecord
+              consents={props.patient.replica.consents ?? []}
+              operator={
+                props.patient.replica.invitation
+                  ? diaryOperator(props.patient.replica.invitation)
+                  : {}
+              }
+              connected
             />
           </OverlayDialog>
         </Match>
@@ -743,6 +520,7 @@ export function DiaryPatientPage(props: {
           >
             <div class="diary-dash-form__actions">
               <Button onClick={() => void exportAs('csv')}>CSV</Button>
+              <Button onClick={() => void exportAs('fhir')}>FHIR (JSON)</Button>
               <Button variant="primary" onClick={() => void exportAs('xlsx')}>
                 Excel (XLSX)
               </Button>
@@ -771,24 +549,6 @@ export function DiaryPatientPage(props: {
         <Match
           when={(() => {
             const current = dialog();
-            return typeof current === 'object' && 'notice' in current ? current.notice : undefined;
-          })()}
-        >
-          {(notice) => (
-            <OverlayDialog
-              open
-              title={notice().title}
-              subtitle={`${notice().point.total} из ${notice().point.max} · ${new Date(notice().point.at).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`}
-              class="diary-dash-dialog"
-              onClose={() => setDialog(undefined)}
-            >
-              <AlertNotices cause={notice()} />
-            </OverlayDialog>
-          )}
-        </Match>
-        <Match
-          when={(() => {
-            const current = dialog();
             return typeof current === 'object' && 'alert' in current ? current.alert : undefined;
           })()}
         >
@@ -800,14 +560,6 @@ export function DiaryPatientPage(props: {
               onClose={() => setDialog(undefined)}
             />
           )}
-        </Match>
-        <Match
-          when={(() => {
-            const current = dialog();
-            return typeof current === 'object' && 'limit' in current ? current.limit : undefined;
-          })()}
-        >
-          {(targets) => <LimitDialog targets={targets()} onClose={() => setDialog(undefined)} />}
         </Match>
       </Switch>
     </div>

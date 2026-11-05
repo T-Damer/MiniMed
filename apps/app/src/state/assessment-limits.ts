@@ -11,6 +11,7 @@
 import { createSignal } from 'solid-js';
 
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
+import { SUBSTANCES, USE_CRAVING_FIELD } from '@/features/diary/diary-substances';
 
 const STORAGE_KEY = 'minimed.assessment-limits.v2';
 
@@ -22,7 +23,9 @@ export interface AssessmentLimit {
 
 /**
  * Measurements of the care diary: office hypertension from 140/90 (ESH 2023), tachycardia over
- * 100/min at rest, SpO₂ 94 % and lower, 0–10 self-ratings of 3 and lower.
+ * 100/min at rest, SpO₂ 94 % and lower, 0–10 self-ratings of 3 and lower, a craving of 7 and
+ * more (the upper part of the 0–10 scale). Amounts of a substance have no usual cut-off: the
+ * doctor sets the patient's own line.
  */
 export const MEASUREMENT_LIMITS: Readonly<Record<string, AssessmentLimit>> = {
   systolic: { value: 140, direction: 'above' },
@@ -31,6 +34,10 @@ export const MEASUREMENT_LIMITS: Readonly<Record<string, AssessmentLimit>> = {
   spo2: { value: 94, direction: 'below' },
   wellbeing: { value: 3, direction: 'below' },
   mood: { value: 3, direction: 'below' },
+  // Above 10 mmol/l: the doctor moves it for the patient (fasting targets are lower).
+  glucose: { value: 10, direction: 'above' },
+  appetite: { value: 3, direction: 'below' },
+  [USE_CRAVING_FIELD]: { value: 7, direction: 'above' },
 };
 
 export const MEASUREMENT_LIMIT_LABEL: Readonly<Record<string, string>> = {
@@ -41,6 +48,11 @@ export const MEASUREMENT_LIMIT_LABEL: Readonly<Record<string, string>> = {
   spo2: 'Сатурация',
   wellbeing: 'Самочувствие',
   mood: 'Настроение',
+  glucose: 'Глюкоза',
+  steps: 'Шаги',
+  appetite: 'Аппетит',
+  [USE_CRAVING_FIELD]: 'Тяга',
+  ...Object.fromEntries(SUBSTANCES.map((substance) => [substance.field, substance.label])),
 };
 
 const WORRYING = new Set(['moderate', 'high', 'urgent']);

@@ -1,5 +1,5 @@
 // Diary page cache: keeps the page usable offline after the first visit. Scope: diary/ only.
-const CACHE_NAME = 'minimed-diary-v6';
+const CACHE_NAME = 'minimed-diary-v7';
 const STATIC_DESTINATIONS = new Set([
   'document',
   'script',
@@ -88,7 +88,35 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network first, so a new page version arrives when online; the cache answers offline.
+// A file with a hash in its name (`assets/diary-Ab12Cd34.js`) never changes: the cache answers
+// without asking the network. The page and the files without a hash (manifest, icons) are shown
+// from the cache at once and read again in the background, so the next open has the new version
+// and an open never waits for a slow or hanging network; with nothing cached the network answers,
+// and the cached page stands in when it cannot.
+const HASHED = /\/assets\/[^/]*-[\w-]{8}\.[a-z0-9]+$/u;
+
+async function answer(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request, { ignoreSearch: true, ignoreVary: true });
+  if (cached && HASHED.test(new URL(request.url).pathname)) return cached;
+  const fresh = fetch(request).then((response) => {
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  });
+  if (cached) {
+    // Kept running after the answer; its failure (offline) leaves the cached copy as it is.
+    event.waitUntil(fresh.catch(() => undefined));
+    return cached;
+  }
+  try {
+    return await fresh;
+  } catch {
+    const page = request.mode === 'navigate' ? await caches.match(BASE.href) : undefined;
+    return page ?? Response.error();
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (
@@ -98,24 +126,7 @@ self.addEventListener('fetch', (event) => {
   ) {
     return;
   }
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(() =>
-        caches
-          .match(request, { ignoreSearch: true, ignoreVary: true })
-          .then(
-            (cached) =>
-              cached ?? (request.mode === 'navigate' ? caches.match(BASE.href) : Response.error()),
-          ),
-      ),
-  );
+  event.respondWith(answer(event));
 });
 
 // Connected diary (ADR-0026). A push carries only what happened (`{ kind }`) or, for a reminder,
@@ -129,6 +140,8 @@ const DOCTOR_TEXT = {
   plan: 'Врач изменил план лечения. Откройте, чтобы посмотреть.',
   tip: 'Врач оставил рекомендацию. Откройте, чтобы прочитать.',
   correction: 'Врач поправил запись в дневнике.',
+  // DIARY25: the patient's phone hears that a carer joined.
+  carer: 'К дневнику подключился опекун. Кто видит дневник: «Настройки» → «Доступ к дневнику».',
 };
 
 function payloadOf(event) {
@@ -178,10 +191,33 @@ async function showReminder(at) {
   });
 }
 
+/**
+ * To a carer (DIARY25): a dose of `at` is still not marked taken half an hour later. The medicine
+ * names come from this phone's own notices when it keeps them (reminders on); otherwise the text
+ * says only when.
+ */
+async function showMissed(at) {
+  const notices = await noticesAt(at);
+  const time = new Date(at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const names = notices.map((notice) => notice.body).filter(Boolean);
+  await self.registration.showNotification(`Приём в ${time} не отмечен`, {
+    body: names.length
+      ? `${names.join(' · ')}. Откройте дневник, чтобы узнать, всё ли в порядке.`
+      : 'Пациент не отметил приём лекарства. Откройте дневник, чтобы узнать, всё ли в порядке.',
+    tag: `minimed-diary-missed-${at}`,
+    icon: ICON,
+    data: { kind: 'missed', at },
+  });
+}
+
 self.addEventListener('push', (event) => {
   const payload = payloadOf(event);
   if (payload?.kind === 'reminder' && typeof payload.at === 'string') {
     event.waitUntil(showReminder(payload.at));
+    return;
+  }
+  if (payload?.kind === 'missed' && typeof payload.at === 'string') {
+    event.waitUntil(showMissed(payload.at));
     return;
   }
   event.waitUntil(

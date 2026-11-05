@@ -35,6 +35,48 @@ export type AssessmentScoringResult =
   | { readonly ok: true; readonly value: ScoredAssessment }
   | { readonly ok: false; readonly error: string };
 
+interface ScaleTotal {
+  readonly rawScore: number;
+  readonly minimumScore: number;
+  readonly maximumScore: number;
+}
+
+/**
+ * Scores of the scales counted by a formula (`AssessmentScaleDefinition.formula`), with their
+ * range: the formula at every answer's lowest and at its highest value. Throws on a broken one.
+ */
+function scaleFormulaTotals(
+  definition: AssessmentDefinition,
+  answers: AssessmentAnswers,
+): ReadonlyMap<string, ScaleTotal> {
+  const totals = new Map<string, ScaleTotal>();
+  const formulas = definition.scales.filter((scale) => scale.formula);
+  if (formulas.length === 0) return totals;
+  const lowest: Record<string, number> = {};
+  const highest: Record<string, number> = {};
+  for (const question of definition.questions) {
+    const values = questionResponseOptions(definition, question).map((option) => option.value);
+    lowest[question.id] = Math.min(...values);
+    highest[question.id] = Math.max(...values);
+  }
+  const at = (formula: string, given: AssessmentAnswers): number => {
+    const value = evaluateCalculatorExpression(formula, assessmentScoreScope([], given));
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(`The formula ${formula} gives no number.`);
+    }
+    return value;
+  };
+  for (const scale of formulas) {
+    const formula = scale.formula as string;
+    totals.set(scale.id, {
+      rawScore: at(formula, answers),
+      minimumScore: at(formula, lowest),
+      maximumScore: at(formula, highest),
+    });
+  }
+  return totals;
+}
+
 function scoreForResponse(
   value: AssessmentResponseValue,
   reverse: boolean,
@@ -347,9 +389,16 @@ export function scoreAssessment(
     });
   }
 
+  let formulaTotals: ReadonlyMap<string, ScaleTotal>;
+  try {
+    formulaTotals = scaleFormulaTotals(definition, answers);
+  } catch {
+    return { ok: false, error: 'В схеме опросника неверно настроена формула шкалы.' };
+  }
   const scores = definition.scales
     .map((scale): AssessmentScaleScore => {
-      const total = totals.get(scale.id) ?? { rawScore: 0, minimumScore: 0, maximumScore: 0 };
+      const total = formulaTotals.get(scale.id) ??
+        totals.get(scale.id) ?? { rawScore: 0, minimumScore: 0, maximumScore: 0 };
       const { minimumScore, maximumScore } = total;
       const percent =
         maximumScore === minimumScore
@@ -369,8 +418,13 @@ export function scoreAssessment(
       (left, right) => right.percent - left.percent || left.label.localeCompare(right.label),
     );
 
-  const highest = scores[0]?.percent ?? 0;
-  const primaryScaleIds = scores
+  // A context answer (sex) feeds the rules below, but is no score of the result.
+  const context = new Set(
+    definition.scales.filter((scale) => scale.context).map((scale) => scale.id),
+  );
+  const shown = scores.filter((score) => !context.has(score.scaleId));
+  const highest = shown[0]?.percent ?? 0;
+  const primaryScaleIds = shown
     .filter((score) => highest - score.percent <= 5)
     .slice(0, 2)
     .map((score) => score.scaleId);
@@ -396,10 +450,10 @@ export function scoreAssessment(
     value: {
       assessmentId: definition.id,
       completedAt,
-      scores,
+      scores: shown,
       primaryScaleIds,
-      headline: clinical?.headline ?? genericHeadline(scores),
-      summary: buildSummary(scores, clinical),
+      headline: clinical?.headline ?? genericHeadline(shown),
+      summary: buildSummary(shown, clinical),
       disclaimer: definition.disclaimer,
       ...(visuals.length > 0 ? { visuals } : {}),
       ...(scales.length > 0 ? { scales } : {}),

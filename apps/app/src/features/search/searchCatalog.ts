@@ -21,6 +21,7 @@ import {
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
+import { PSY_STATUS_TOOL } from '@/features/psy-status/psy-status-tool';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -194,6 +195,18 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
       group: 'medication',
       href: PRESCRIPTION_TOOL.href,
       ageScope: PRESCRIPTION_TOOL.ageScope,
+    },
+    // The psychiatric status constructor, filled by hand or from a recorded conversation.
+    {
+      id: PSY_STATUS_TOOL.id,
+      scope: 'calculators',
+      icon: PSY_STATUS_TOOL.icon,
+      title: PSY_STATUS_TOOL.title,
+      description: PSY_STATUS_TOOL.description,
+      aliases: PSY_STATUS_TOOL.aliases,
+      group: 'psychiatry',
+      href: PSY_STATUS_TOOL.href,
+      ageScope: PSY_STATUS_TOOL.ageScope,
     },
   ];
 }

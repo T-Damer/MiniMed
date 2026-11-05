@@ -5,10 +5,13 @@
  */
 import type { DiaryDoctorProfile } from '@localmed/contracts';
 import {
+  accessCodeEmail,
+  DEMO_ACCESS_CODE,
   deriveAccountSecrets,
   deriveRecoverySecrets,
   generateIdentity,
   type IdentityKeys,
+  inviteProof,
   newKdfParams,
   newRecoveryCode,
   openIdentity,
@@ -97,8 +100,118 @@ export async function restoreDoctorSession(): Promise<DoctorSession | undefined>
   };
 }
 
+/**
+ * Whether a session is kept on this device, without opening it: the diaries copy starts on the
+ * sign-in alone when there is none (app/mount-diaries.tsx). Blocked storage keeps nothing.
+ */
+export function hasKeptDoctorSession(): boolean {
+  try {
+    return localStorage.getItem(SESSION_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function forgetDoctorSession(): void {
   localStorage.removeItem(SESSION_KEY);
+}
+
+/** The doctor chose «Мой компьютер» for this session: its keys (and offline copy) stay here. */
+function rememberedHere(session: Pick<DoctorSession, 'token'>): boolean {
+  const raw = localStorage.getItem(SESSION_KEY);
+  return raw !== null && (JSON.parse(raw) as Partial<StoredSession>).token === session.token;
+}
+
+async function idbPut(key: string, value: unknown): Promise<void> {
+  const db = await idb();
+  await new Promise<void>((resolve, reject) => {
+    const request = db.transaction(DB_STORE, 'readwrite').objectStore(DB_STORE).put(value, key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB недоступна.'));
+  });
+}
+
+async function idbGet(key: string): Promise<unknown> {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(DB_STORE).objectStore(DB_STORE).get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB недоступна.'));
+  });
+}
+
+interface OfflineCopy {
+  readonly savedAt: string;
+  readonly iv: Uint8Array<ArrayBuffer>;
+  readonly data: ArrayBuffer;
+}
+
+/** One text this device keeps for a doctor, sealed (the offline list, new-patient drafts). */
+type KeptSlot = 'offline' | 'new-patients';
+
+const keptKey = (session: Pick<DoctorSession, 'doctor'>, slot: KeptSlot): string =>
+  `${slot}:${session.doctor.id}`;
+
+async function keepSealed(session: DoctorSession, slot: KeptSlot, text: string): Promise<void> {
+  if (!rememberedHere(session)) return;
+  const key = await deviceKey(false);
+  if (!key) return;
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    new TextEncoder().encode(text),
+  );
+  const copy: OfflineCopy = { savedAt: new Date().toISOString(), iv, data };
+  await idbPut(keptKey(session, slot), copy);
+}
+
+async function readSealed(
+  session: DoctorSession,
+  slot: KeptSlot,
+): Promise<{ readonly savedAt: string; readonly text: string } | undefined> {
+  const copy = (await idbGet(keptKey(session, slot))) as OfflineCopy | undefined;
+  const key = copy ? await deviceKey(false) : undefined;
+  if (!copy || !key) return undefined;
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: copy.iv }, key, copy.data);
+  return { savedAt: copy.savedAt, text: new TextDecoder().decode(plain) };
+}
+
+/**
+ * Keeps the doctor's last loaded patients for work without a network (DIARY-DEMO2): sealed with
+ * this device's non-extractable key, and only while the doctor stays signed in on this device
+ * («Мой компьютер»); on someone else's computer nothing is kept.
+ */
+export function keepOfflineCopy(session: DoctorSession, text: string): Promise<void> {
+  return keepSealed(session, 'offline', text);
+}
+
+/** The copy `keepOfflineCopy` made for this doctor on this device, if any. */
+export function readOfflineCopy(
+  session: DoctorSession,
+): Promise<{ readonly savedAt: string; readonly text: string } | undefined> {
+  return readSealed(session, 'offline');
+}
+
+/**
+ * The new patients the doctor began and has not created yet (`new-patient-drafts.ts`), sealed
+ * like the offline copy and kept under the same rule: only on the doctor's own computer.
+ */
+export function keepNewPatientDrafts(session: DoctorSession, text: string): Promise<void> {
+  return keepSealed(session, 'new-patients', text);
+}
+
+export async function readNewPatientDrafts(session: DoctorSession): Promise<string | undefined> {
+  return (await readSealed(session, 'new-patients'))?.text;
+}
+
+/** Signing out takes the offline copy and the drafts with it. */
+async function dropKeptCopies(session: DoctorSession): Promise<void> {
+  for (const slot of ['offline', 'new-patients'] as const) {
+    await idbPut(keptKey(session, slot), undefined).catch((cause: unknown) => {
+      console.warn('Дневники: копия на устройстве не удалена', cause);
+    });
+  }
 }
 
 export function doctorApi(session: Pick<DoctorSession, 'token'> | undefined): DiaryApi {
@@ -142,7 +255,8 @@ export async function signUp(input: {
       authKey: recovery.authKey,
       identityBlob: await sealIdentity(identity, recovery.wrapKey),
     },
-    ...(input.invite?.trim() ? { invite: input.invite.trim() } : {}),
+    // Only the code's proof goes to the server: an access code is also the account's password.
+    ...(input.invite?.trim() ? { inviteProof: await inviteProof(input.invite) } : {}),
   });
   const session = { token: answer.token, doctor: answer.doctor, identity };
   if (input.rememberDevice) await remember(session);
@@ -180,17 +294,8 @@ export function readAccessCode(typed: string): string | undefined {
   return letters.replaceAll(/(.{4})(?=.)/gu, '$1-');
 }
 
-/**
- * The account an access code stands for: a doctor without e-mail or name, whose code is the
- * password. The address is a digest, so colleagues who see it in a patient's access list do not
- * see the code.
- */
 async function accessCodeAccount(code: string): Promise<{ email: string; password: string }> {
-  const digest = new Uint8Array(
-    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`minimed-access-code:${code}`)),
-  );
-  const hex = [...digest.slice(0, 10)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-  return { email: `${hex}@code.invalid`, password: code };
+  return { email: await accessCodeEmail(code), password: code };
 }
 
 /** The name patients see for a doctor who signed in by code alone. */
@@ -203,6 +308,8 @@ export const ACCESS_CODE_DOCTOR_NAME = 'Врач';
 export async function signInWithCode(input: {
   readonly code: string;
   readonly rememberDevice: boolean;
+  /** The name patients see; «Врач» by default. */
+  readonly name?: string;
 }): Promise<DoctorSession> {
   const code = readAccessCode(input.code);
   if (!code) throw new Error('Код выглядит как XXXX-XXXX-XXXX.');
@@ -215,7 +322,7 @@ export async function signInWithCode(input: {
   try {
     const { session } = await signUp({
       ...account,
-      name: ACCESS_CODE_DOCTOR_NAME,
+      name: input.name ?? ACCESS_CODE_DOCTOR_NAME,
       invite: input.code.trim(),
       rememberDevice: input.rememberDevice,
     });
@@ -226,6 +333,42 @@ export async function signInWithCode(input: {
     }
     throw cause;
   }
+}
+
+const DEMO_KEY = 'minimed.diary.demo.v1';
+
+interface DemoRecord {
+  readonly doctorId?: string;
+}
+
+function readDemo(): DemoRecord | undefined {
+  const raw = localStorage.getItem(DEMO_KEY);
+  return raw ? (JSON.parse(raw) as DemoRecord) : undefined;
+}
+
+/**
+ * «Демо» without e-mail, password or code: the one shared demo account (`DEMO_ACCESS_CODE`, owner
+ * 2026-11-02 DIARY-DEMO3 — before, every device made its own). Everybody in a hall works in the same
+ * account and sees each other's edits live; the service creates nothing per visitor.
+ */
+export async function signInDemo(input: {
+  readonly rememberDevice: boolean;
+}): Promise<DoctorSession> {
+  const session = await signInWithCode({
+    code: DEMO_ACCESS_CODE,
+    rememberDevice: input.rememberDevice,
+    name: DEMO_DOCTOR_NAME,
+  });
+  localStorage.setItem(DEMO_KEY, JSON.stringify({ doctorId: session.doctor.id }));
+  return session;
+}
+
+/** The name patients see for the demo doctor. */
+export const DEMO_DOCTOR_NAME = 'Демо-врач';
+
+/** This device's demo doctor is the one signed in: its demo patients stay put. */
+export function isDemoSession(session: Pick<DoctorSession, 'doctor'>): boolean {
+  return readDemo()?.doctorId === session.doctor.id;
 }
 
 /** A new password from the recovery code; the keys (and so every patient) are kept. */
@@ -256,5 +399,6 @@ export async function recoverAccount(input: {
 
 export async function signOut(session: DoctorSession): Promise<void> {
   forgetDoctorSession();
+  await dropKeptCopies(session);
   await diaryAuth.logout(doctorApi(session));
 }

@@ -82,19 +82,31 @@
   transform-origin: 85% 0;
 }
 
-.page-hero__emblem {
+/* The emblem's box: as wide as the band and cutting it at the band's edges. In a centred column on a
+   wide screen the band ends before the window does, and the emblem stuck out past it (owner
+   2026-11-02). Clip, not hidden: only sideways, the emblem still reaches above the row. */
+.page-hero__emblem-clip {
   position: absolute;
   /* In the row, under its controls and over its pinned fill. */
   z-index: -1;
   top: calc(-1.5rem - var(--page-hero-row-offset, 0px));
-  right: calc(-1 * (var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)) + 1.75rem));
+  right: calc(-1 * var(--page-hero-inset-right, var(--page-hero-bleed-x, 0px)));
+  left: calc(-1 * var(--page-hero-inset-left, var(--page-hero-bleed-x, 0px)));
+  height: 9.5rem;
+  overflow-x: clip;
+  /* Decoration: taps go to what is under it (a toolbar's scroll arrows sat beneath it). */
+  pointer-events: none;
+}
+
+.page-hero__emblem {
+  position: absolute;
+  top: 0;
+  right: -1.75rem;
   width: 9.5rem;
   height: 9.5rem;
   color: var(--page-hero-ink);
   opacity: 0.08;
-  transform: translate(0, 0) scale(1) rotate(-12deg);
-  /* Decoration: taps go to what is under it (a toolbar's scroll arrows sat beneath it). */
-  pointer-events: none;
+  transform: rotate(-12deg);
 }
 
 .page-hero__ecg {
@@ -174,6 +186,22 @@
   height: calc(var(--page-hero-lip) + 2rem);
 }
 
+/* A row of the page's own in the room (`Page` `room`): it sits at the top of the room, clear of the
+   sheet's lip, and the header is no taller for it. */
+.page__hero-room.page__hero-room--filled {
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-start;
+  margin-top: -0.25rem;
+}
+
+.page__hero-room-content {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+}
+
 /* With a trace: a strip under the header's text for it, so it never runs through the words. */
 .page__hero-room.page__hero-room--trace {
   height: calc(var(--page-hero-lip) + 3.5rem);
@@ -203,8 +231,8 @@
 }
 
 /* The header sticks with its bottom strip on screen and its row sticks under the status bar (both
-   native sticky, so they move with the scroll itself); scroll-driven, the description fades and
-   the emblem flies into a small icon beside the bar's title (`useHeroScroll` measures where).
+   native sticky, so they move with the scroll itself); scroll-driven, the description and the
+   emblem fade (`useHeroScroll` measures the ranges).
    The ranges are measured once per layout, never during a scroll: re-measuring mid-scroll made
    the header flash its end state. Without scroll-driven animations the header scrolls away. */
 @supports (animation-timeline: scroll()) {
@@ -250,8 +278,17 @@
     animation-range: var(--page-hero-start, 0px) var(--page-hero-fade-end, 1px);
   }
 
+  /* The room's row goes with the description, and stops taking taps once it is gone. */
+  .page__hero-room-content {
+    animation: page-hero-room-fade linear both;
+    animation-timeline: scroll(root);
+    animation-range: var(--page-hero-start, 0px) var(--page-hero-fade-end, 1px);
+  }
+
+  /* Gone by the time the header is a bar: a small copy beside the title only repeated the
+     header's own buttons. */
   .page-hero__emblem {
-    animation: page-hero-emblem linear both;
+    animation: page-hero-fade linear both;
     animation-timeline: scroll(root);
     animation-range: var(--page-hero-start, 0px) var(--page-hero-end, 1px);
   }
@@ -294,12 +331,10 @@
   }
 }
 
-/* The same function list at both ends, so the steps interpolate one by one (no matrix blend). */
-@keyframes page-hero-emblem {
+@keyframes page-hero-room-fade {
   to {
-    opacity: var(--page-hero-emblem-opacity, 0);
-    transform: translate(var(--page-hero-emblem-x, 0px), var(--page-hero-emblem-y, 0px))
-      scale(var(--page-hero-emblem-scale, 0.2)) rotate(0deg);
+    opacity: 0;
+    pointer-events: none;
   }
 }
 

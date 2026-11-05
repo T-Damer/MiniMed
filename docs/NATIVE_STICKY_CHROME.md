@@ -38,8 +38,9 @@ the same through `ScreenHeader` (inner screens get the plain band). Readers keep
   row jumped. The room under the header's text is an element (`page__hero-room`), not padding: a
   sticky child may only travel within its parent's content box. Scroll-driven
   (`animation-timeline: scroll(root)`, cosmetic only): the description fades before the row reaches
-  it, the band's art fades, and the emblem (drawn in the row, over the row's pinned fill) flies into a
-  small icon just after the title, or fades where the row has no room. `useHeroScroll` measures on
+  it, the band's art fades, and the emblem (drawn in the row, over the row's pinned fill, cut at the
+  band's edges) fades. It no longer flies into a small icon beside the title (owner 2026-11-02: in a
+  centred column it stuck out past the band and landed apart from the title). `useHeroScroll` measures on
   the header's resize and when the width or `--safe-top` changes — never during a scroll (a
   toolbar-collapse `resize` re-measured mid-scroll and the header flashed its end state) — writes
   only changed lengths, and always reads the unstuck box. Scroll-driven animations are never retimed

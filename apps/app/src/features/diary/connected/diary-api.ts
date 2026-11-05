@@ -6,6 +6,8 @@ import {
   type DiaryAlert,
   DiaryAlertSchema,
   DiaryDeviceKeysSchema,
+  type DiaryDeviceKind,
+  DiaryDeviceKindSchema,
   type DiaryDoctorProfile,
   DiaryDoctorProfileSchema,
   type DiaryEnvelope,
@@ -153,11 +155,25 @@ export const diaryPatients = {
   remove: (api: DiaryApi, id: string) => api.call('DELETE', `/api/patients/${id}`, Ok),
   authors: async (api: DiaryApi, id: string): Promise<Readonly<Record<string, string>>> =>
     (await api.call('GET', `/api/patients/${id}/authors`, Authors)).authors,
-  pairing: (api: DiaryApi, id: string, secretHash: string, keys: string) =>
-    api.call('POST', `/api/patients/${id}/pairings`, z.object({ expiresAt: z.string() }), {
-      secretHash,
-      keys,
-    }),
+  /** A one-time code for the patient's phone, or (`kind: 'carer'`) for a carer's (DIARY25). */
+  pairing: (
+    api: DiaryApi,
+    id: string,
+    secretHash: string,
+    keys: string,
+    kind: DiaryDeviceKind = 'patient',
+  ) =>
+    api.call(
+      'POST',
+      `/api/patients/${id}/pairings`,
+      // Servers before DIARY25 answer without a kind (and pair everyone as the patient).
+      z.object({ expiresAt: z.string(), kind: DiaryDeviceKindSchema.optional() }),
+      {
+        secretHash,
+        keys,
+        ...(kind === 'carer' ? { kind } : {}),
+      },
+    ),
   revokeDevice: (api: DiaryApi, id: string, deviceId: string) =>
     api.call('DELETE', `/api/patients/${id}/devices/${deviceId}`, Ok),
   invite: (
@@ -194,11 +210,21 @@ export const diaryRecords = {
 };
 
 export const diaryDevice = {
-  pair: (api: DiaryApi, patientId: string, secret: string, identity: DiaryPublicIdentity) =>
-    api.call('POST', '/api/pair', DiaryPairResponseSchema, { patientId, secret, identity }),
+  /** `proof`: `pairingProof(secret)`; the secret itself never leaves the phone (SEC-AUDIT1). */
+  pair: (api: DiaryApi, patientId: string, proof: string, identity: DiaryPublicIdentity) =>
+    api.call('POST', '/api/pair', DiaryPairResponseSchema, { patientId, proof, identity }),
   keys: (api: DiaryApi) => api.call('GET', '/api/device/keys', DeviceKeys),
   alert: (api: DiaryApi) => api.call('POST', '/api/device/alerts', Ok, {}),
   withdraw: (api: DiaryApi) => api.call('DELETE', '/api/device', Ok),
+  /** Who has the diary: its doctors and phones (the device reads its own patient). */
+  detail: (api: DiaryApi, patientId: string): Promise<DiaryPatientDetail> =>
+    api.call('GET', `/api/patients/${patientId}`, DiaryPatientDetailSchema),
+  /** The patient's phone removes a carer, or a carer's phone leaves (DIARY25). */
+  removeCarer: (api: DiaryApi, deviceId: string) =>
+    api.call('DELETE', `/api/device/carers/${deviceId}`, Ok),
+  /** The patient's phone's new data key after removing a carer. */
+  rotate: (api: DiaryApi, patientId: string, epoch: number, keys: readonly DiaryWrappedKey[]) =>
+    api.call('POST', `/api/patients/${patientId}/epochs`, Ok, { epoch, keys }),
 };
 
 export const diaryAlerts = {
@@ -219,9 +245,20 @@ export const diaryPush = {
         : {}),
     });
   },
-  /** The phone's next reminder moments (ISO), replacing its earlier list. */
-  reminders: (api: DiaryApi, at: readonly string[]) =>
-    api.call('PUT', '/api/device/reminders', z.object({ count: z.number().int() }), { at }),
+  /**
+   * The phone's next reminder moments (ISO), replacing its earlier list; with a carer, the dose
+   * moments for the missed-dose notice too (`DiaryRemindersSchema`).
+   */
+  reminders: (
+    api: DiaryApi,
+    at: readonly string[],
+    doses?: { readonly checks?: readonly string[]; readonly taken: readonly string[] },
+  ) =>
+    api.call('PUT', '/api/device/reminders', z.object({ count: z.number().int() }), {
+      at,
+      ...(doses?.checks ? { checks: doses.checks } : {}),
+      ...(doses ? { taken: doses.taken } : {}),
+    }),
 };
 
 /** Sign-up mode of the service, before an account exists. */

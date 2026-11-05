@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["bun"],
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "allowImportingTsExtensions": true,
+    "jsx": "preserve"
+  },
+  "include": [
+    "./*.ts",
+    "../../apps/app/src/features/medications/compounds/compound-*.ts",
+    "../../apps/app/src/features/medications/compounds/composition-items.ts"
+  ],
+  "exclude": ["./*.test.ts"]
+}

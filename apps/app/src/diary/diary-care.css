@@ -41,6 +41,8 @@ body:has(.diary-care-scope) {
     --care-check: #2f9e5b;
     --care-check-ink: #ffffff;
     --care-late: #e2a554;
+    /* Warm yellow gaps glare on the dark desk (owner 2026-11-03): calm accent-tinted dashes. */
+    --care-edit-gap: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-surface-raised));
   }
 }
 
@@ -166,6 +168,88 @@ body:has(.diary-care-scope) {
   flex: 1;
 }
 
+/* «Врач изменил план» (DIARY19): what changed, until the patient closes it. */
+.diary-today__changes {
+  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-raised));
+}
+
+.diary-today__changes-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.diary-today__changes-list {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+}
+
+.diary-today__changes-line {
+  overflow-wrap: anywhere;
+}
+
+/* «Приём не отмечен — что случилось?» (DIARY22): a warm notice, one row per missed intake. */
+.diary-today__missed {
+  background: color-mix(in srgb, var(--care-late) 13%, var(--theme-surface-raised));
+}
+
+.diary-today__missed-list {
+  display: grid;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  gap: 0.55rem;
+  list-style: none;
+}
+
+.diary-today__missed-row {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.diary-today__missed-name {
+  display: grid;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.diary-today__missed-when {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.diary-today__missed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.diary-today__missed-answer {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease);
+}
+
+.diary-today__missed-answer:active {
+  transform: scale(0.96);
+}
+
+.diary-today__missed-answer--skip {
+  border-color: color-mix(in srgb, var(--care-late) 45%, var(--theme-border));
+}
+
 .diary-today__notice-close {
   display: inline-grid;
   flex: none;
@@ -263,27 +347,47 @@ body:has(.diary-care-scope) {
   background: var(--theme-surface-muted);
 }
 
+/*
+ * The tick (owner 2026-11-04: the boxed column looked off): one rounded square on the row's own
+ * surface, no divider; a tick fills only the square.
+ */
 .care-row__check {
   display: grid;
   flex: none;
   place-items: center;
-  width: 3.5rem;
+  width: 3rem;
+  padding: 0 0 0 0.45rem;
   border: 0;
-  border-right: 1px solid var(--theme-border);
   color: var(--theme-accent-text);
   background: transparent;
   cursor: pointer;
   transition: transform var(--care-fast) var(--care-ease);
 }
 
-.care-row__check--done {
-  color: var(--care-check-ink);
-  background: var(--care-check);
-}
-
 .care-row__check-icon {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.care-row__check-icon--done,
+.care-row__check-icon--skipped {
+  box-sizing: border-box;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0.22rem;
+  border-radius: 0.5rem;
+}
+
+.care-row__check-icon--done {
+  color: var(--care-check-ink);
+  background: var(--care-check);
+  box-shadow: 0 0.06rem 0.12rem rgb(0 0 0 / 18%);
+}
+
+.care-row__check-icon--skipped {
+  border: 2px solid var(--theme-border);
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted, var(--theme-surface));
 }
 
 /* Just ticked: the check pops in. */
@@ -293,16 +397,26 @@ body:has(.diary-care-scope) {
 
 /* An open task: an empty box waiting for its tick. */
 .care-row__box {
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 70%, transparent);
+  box-sizing: border-box;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 55%, var(--theme-border));
   border-radius: 0.5rem;
   background: var(--theme-surface);
-  box-shadow: inset 0 0.08rem 0.15rem rgb(0 0 0 / 8%);
+  transition:
+    border-color var(--care-fast) var(--care-ease),
+    background-color var(--care-fast) var(--care-ease);
 }
 
 .care-row__box--late {
   border-color: var(--care-late, var(--theme-warning));
+  background: color-mix(in srgb, var(--care-late, var(--theme-warning)) 10%, var(--theme-surface));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .care-row__check:hover .care-row__box {
+    border-color: var(--theme-accent-text);
+  }
 }
 
 /* Scale only: a paused or skipped animation must never leave the tick transparent. */
@@ -381,6 +495,18 @@ body:has(.diary-care-scope) {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
+}
+
+.care-row__kind {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  color: var(--theme-text-muted);
+}
+
+.care-row__kind-glyph {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .care-row__time {
@@ -784,10 +910,206 @@ body:has(.diary-care-scope) {
   text-align: start;
 }
 
+/* Substance use sheet: a stepper per substance, the craving score under them. */
+.diary-use__none {
+  width: 100%;
+  min-height: 3.5rem;
+  font-weight: 700;
+}
+
+.diary-use__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-use__row {
+  /* Name and hint over the full width, the stepper on its own line under them: on a phone the
+     three controls beside the text squeezed the name into a narrow column. */
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  grid-template-areas:
+    "glyph text"
+    "glyph stepper";
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.6rem 0.5rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.8rem;
+  background: var(--theme-surface-raised);
+}
+
+.diary-use__glyph {
+  grid-area: glyph;
+  align-self: start;
+  margin-top: 0.15rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--theme-accent);
+}
+
+.diary-use__text {
+  grid-area: text;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.diary-use__label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.diary-use__unit,
+.diary-use__hint {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+.diary-use__hint {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.diary-use__stepper {
+  grid-area: stepper;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.diary-use__step {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent-text, var(--theme-accent));
+  background: var(--theme-surface);
+  cursor: pointer;
+  transition:
+    background var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease),
+    opacity var(--care-fast) var(--care-ease);
+}
+
+.diary-use__step:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.diary-use__step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.diary-use__step-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.diary-use__value {
+  box-sizing: border-box;
+  width: 4.5rem;
+  min-height: 3rem;
+  padding: 0.3rem 0.2rem;
+  border: 0;
+  border-radius: 0.6rem;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+  appearance: none;
+}
+
+.diary-use__value::placeholder {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
+.diary-use__step:focus-visible,
+.diary-use__value:focus-visible {
+  outline: 0.19rem solid var(--theme-accent);
+  outline-offset: 0.12rem;
+}
+
+.diary-use__craving {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-use__craving-title {
+  margin: 0;
+  font-weight: 700;
+}
+
 .diary-vitals {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: 0.8rem;
+}
+
+/*
+ * A lab result and the day it was taken, side by side (owner 2026-11-04: same heights): the
+ * result's box takes the date field's frame, height and type; the day field keeps its own width.
+ */
+.diary-vitals--lab {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.diary-lab__field {
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.diary-lab__date .ui-date-field__label {
+  color: var(--theme-text);
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+}
+
+.diary-lab__box {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.diary-lab__box:focus-within {
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 0.125rem var(--theme-accent-soft);
+}
+
+.diary-lab__input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-field-target, 2.5rem);
+  padding: 0;
+  border: 0;
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  outline: none;
+}
+
+.diary-lab__unit {
+  color: var(--theme-text-muted);
+  white-space: nowrap;
 }
 
 .diary-vitals__row {
@@ -986,8 +1308,13 @@ body:has(.diary-care-scope) {
   }
 }
 
-.diary-button--confirm {
-  color: var(--theme-accent-contrast, #fff);
+/* «Точно удалить?»: white on the danger red. Doubled class: the quiet button's own background
+   overrode a single one, leaving white text on light paper (DIARY22); its hover surface
+   (`.ui-button--quiet:hover:not(:disabled)`) did the same under the mouse (DIARY23). */
+.diary-button--danger.diary-button--confirm,
+.diary-button--danger.diary-button--confirm:hover:not(:disabled) {
+  border-color: var(--theme-danger);
+  color: #fff;
   background: var(--theme-danger);
 }
 
@@ -1172,5 +1499,111 @@ body:has(.diary-care-scope) {
   .diary-voice__button--busy,
   .diary-voice__offer {
     animation: none;
+  }
+}
+
+/* The doctor's date opens the calendar (DIARY21): the title with a calendar mark, a pressable row. */
+.diary-today__day-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--care-fast) var(--care-ease),
+    transform var(--care-fast) var(--care-ease);
+}
+
+.diary-today__day-pick:hover,
+.diary-today__day-pick[aria-expanded="true"] {
+  background: var(--theme-accent-soft);
+}
+
+.diary-today__day-pick:active {
+  transform: scale(0.96);
+}
+
+.diary-today__day-pick-icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--theme-accent);
+}
+
+.diary-today__calendar {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+}
+
+/* The next visit, above the day (DIARY27): the date in words and a call. */
+.care-visit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem 0.8rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-border));
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-raised));
+  animation: diary-sheet-fade var(--care-base) var(--care-ease);
+}
+
+.care-visit__badge {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.care-visit__glyph {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.care-visit__text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.care-visit__title,
+.care-visit__detail {
+  margin: 0;
+}
+
+.care-visit__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.care-visit__detail {
+  color: var(--theme-text-muted);
+}
+
+.care-visit__call {
+  grid-column: 1 / -1;
+  text-decoration: none;
+}
+
+.care-visit__call-glyph {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+@media (width >= 30rem) {
+  .care-visit {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .care-visit__call {
+    grid-column: auto;
   }
 }

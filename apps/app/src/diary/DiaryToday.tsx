@@ -1,12 +1,26 @@
-import { createMemo, createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  Match,
+  onMount,
+  Show,
+  Switch,
+} from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { PillMark } from '@/components/PillMark';
+import { SheetPopover } from '@/components/SheetPopover';
+import { AppointmentCard } from '@/diary/AppointmentCard';
 import { CareIntro } from '@/diary/CareIntro';
 import { ContactsSheet, CrisisSheet } from '@/diary/care-contacts';
 import {
   AnswerSheet,
   type CareSave,
   DoseSheet,
+  LabSheet,
   NoteSheet,
   ScoreSheet,
   VitalsSheet,
@@ -20,8 +34,10 @@ import {
   PATIENT_HEAT_FILTER_KEY,
 } from '@/diary/heatmap-filter';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import { UseSheet } from '@/diary/use-sheet';
 import { VoiceClip } from '@/diary/VoiceClip';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
+import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
 import {
   addDays,
   atTime,
@@ -41,6 +57,7 @@ import {
   type QuestionnaireTask,
   type TaskState,
 } from '@/features/diary/diary-care';
+import { checkpointGlyph } from '@/features/diary/diary-glyphs';
 import type { DiaryShareStatus } from '@/features/diary/diary-merge';
 import {
   createDiaryId,
@@ -48,14 +65,20 @@ import {
   type DiaryCheckpoint,
   type DiaryDoseTime,
   type DiaryEntry,
+  type DiaryLabRequest,
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryResults,
+  intakeMark,
 } from '@/features/diary/diary-model';
 import {
   checkpointQuestionnaireAbout,
   loadCheckpointQuestionnaire,
 } from '@/features/diary/diary-questionnaires';
+import type { DiaryRemoval } from '@/features/diary/diary-storage';
+import { substanceSummary } from '@/features/diary/diary-substances';
+import { dayWords, labResult } from '@/features/diary/diary-visits';
+import type { DiaryPlanChange } from '@/features/diary/plan-changes';
 
 type Sheet =
   | {
@@ -63,10 +86,15 @@ type Sheet =
       readonly item: DiaryPlanItem;
       readonly time: DiaryDoseTime | undefined;
       readonly entry: DiaryEntry | undefined;
+      /** The intake's own day when it is not the shown one (a missed one from yesterday). */
+      readonly day?: string;
+      /** Asked «what happened?»: the sheet starts on «Пропустил(а)». */
+      readonly missed?: boolean;
     }
   | { readonly kind: 'check'; readonly task: CheckTask }
   | { readonly kind: 'quiz'; readonly task: QuestionnaireTask }
   | { readonly kind: 'note'; readonly entry: DiaryEntry | undefined }
+  | { readonly kind: 'lab'; readonly lab: DiaryLabRequest }
   | { readonly kind: 'contacts' }
   | { readonly kind: 'crisis'; readonly raised: boolean };
 
@@ -91,14 +119,6 @@ function dayTitle(day: string, today: string): string {
   return `${weekday[0]?.toUpperCase() ?? ''}${weekday.slice(1)}, ${date}`;
 }
 
-const CHECK_ICON: Readonly<Record<DiaryCheckpoint['kind'], AppGlyphName>> = {
-  score: 'smiley',
-  vitals: 'heartbeat',
-  text: 'note-pencil',
-  choice: 'list-checks',
-  questionnaire: 'list-numbers',
-};
-
 const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
   late: 'Пора',
   missed: 'Не отмечено',
@@ -106,6 +126,12 @@ const STATE_WORD: Readonly<Partial<Record<TaskState, string>>> = {
 
 function correctedMark(entry: DiaryEntry | undefined): string {
   return entry?.corrected ? ' · исправлено врачом' : '';
+}
+
+/** The dose shown on an intake row: the one a mark was made at, else what the plan asks now. */
+function taskDose(task: DoseTask): string | undefined {
+  const value = task.entry?.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
+  return value?.dose ?? task.time.dose ?? task.item.dose;
 }
 
 function doseStatus(task: DoseTask): string {
@@ -136,6 +162,9 @@ function checkStatus(task: CheckTask): string {
     const value = field ? values[field] : undefined;
     const said = typeof value === 'string' ? value.replaceAll('\n', ' ') : '';
     return `${said.length > 60 ? `${said.slice(0, 60)}…` : said} · ${formatTime(entry.at)}${correctedMark(entry)}`;
+  }
+  if (task.checkpoint.kind === 'use') {
+    return `${substanceSummary(values) || 'Заполнено'} · ${formatTime(entry.at)}${correctedMark(entry)}`;
   }
   if (task.checkpoint.kind === 'score') {
     const field = task.checkpoint.fields?.[0];
@@ -174,6 +203,8 @@ function quizStatus(task: QuestionnaireTask, today: string): string {
  */
 export function CareRow(props: {
   readonly icon: AppGlyphName;
+  /** Drawn before the title instead of `icon`: a medicine's tablet with its letter. */
+  readonly mark?: JSX.Element;
   readonly time?: string | undefined;
   readonly title: string;
   readonly detail?: string | undefined;
@@ -220,7 +251,11 @@ export function CareRow(props: {
           <AppGlyph
             name={done() ? 'check' : props.state === 'skipped' ? 'minus' : props.icon}
             class={
-              done() ? 'care-row__check-icon care-row__check-icon--done' : 'care-row__check-icon'
+              done()
+                ? 'care-row__check-icon care-row__check-icon--done'
+                : props.state === 'skipped'
+                  ? 'care-row__check-icon care-row__check-icon--skipped'
+                  : 'care-row__check-icon'
             }
           />
         </Show>
@@ -229,6 +264,13 @@ export function CareRow(props: {
         <span class="care-row__line">
           <Show when={props.time}>
             <span class="care-row__time">{props.time}</span>
+          </Show>
+          {/* What the row is, at a glance (owner 2026-11-04): the box on the left only says done. */}
+          {/* An `idle` row already shows its icon in the round button. */}
+          <Show when={props.mark || props.state !== 'idle'}>
+            <span class="care-row__kind" aria-hidden="true">
+              {props.mark ?? <AppGlyph name={props.icon} class="care-row__kind-glyph" />}
+            </span>
           </Show>
           <span class="care-row__title">{props.title}</span>
           <Show when={props.tip}>
@@ -274,12 +316,17 @@ export function DiaryToday(props: {
   readonly tipsRead: readonly string[];
   readonly onSave: CareSave;
   readonly onRemove: (entry: DiaryEntry) => void;
-  readonly onConsent: () => void;
+  readonly onConsent: (consents: readonly JoiningAcceptance[]) => void;
   readonly onTipRead: (id: string) => void;
   /** Connected diary: where sending to the doctor stands; absent for a QR diary. */
   readonly sync?: SyncStatus | undefined;
   readonly notice?: string | undefined;
   readonly onDismissNotice?: () => void;
+  /** Connected diary: marks the doctor deleted, so an emptied intake says why. */
+  readonly removed?: readonly DiaryRemoval[] | undefined;
+  /** Connected diary: what the doctor's new plan changed, until the patient closes it. */
+  readonly planChange?: DiaryPlanChange | undefined;
+  readonly onDismissPlanChange?: () => void;
   /** An answer raised a schema alert (PHQ-9 item 9): tell the doctor. */
   readonly onUrgent?: () => void;
   /** The day to open first (`YYYY-MM-DD`); today by default. */
@@ -289,6 +336,8 @@ export function DiaryToday(props: {
    * becomes a correction the patient sees marked.
    */
   readonly viewer?: 'doctor' | undefined;
+  /** The day shown changed (the doctor's header names it). */
+  readonly onDay?: ((day: string) => void) | undefined;
   /**
    * The page around the diary (the patient's shell, the doctor's day view) owns the header and its
    * buttons: it receives the openers of the contacts and crisis sheets, and of one entry's sheet
@@ -308,6 +357,8 @@ export function DiaryToday(props: {
   const [now, setNow] = createSignal(new Date());
   const today = () => dayKey(now());
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
+  createEffect(() => props.onDay?.(day()));
+  const [calendarOpen, setCalendarOpen] = createSignal(false);
   const [sheet, setSheet] = createSignal<Sheet | undefined>(undefined);
   const [flash, setFlash] = createSignal('');
 
@@ -325,6 +376,20 @@ export function DiaryToday(props: {
   });
 
   const plan = createMemo(() => dayPlan(invitation(), props.results.entries, day(), now()));
+  /**
+   * Intakes of yesterday and today that passed unmarked (DIARY22, owner 2026-11-03: «ask why»): the
+   * patient's today screen asks about them until each is answered either way.
+   */
+  const missed = createMemo(() => {
+    if (props.viewer === 'doctor' || day() !== today()) return [];
+    return [addDays(today(), -1), today()].flatMap((target) =>
+      target < diaryStarted(invitation(), props.results.entries)
+        ? []
+        : dayPlan(invitation(), props.results.entries, target, now())
+            .doses.filter((task) => task.state === 'missed')
+            .map((task) => ({ task, day: target })),
+    );
+  });
   const [saved, setInclude] = createHeatFilter(
     props.viewer === 'doctor' ? DOCTOR_HEAT_FILTER_KEY : PATIENT_HEAT_FILTER_KEY,
   );
@@ -336,6 +401,16 @@ export function DiaryToday(props: {
 
   const tipFor = (...targets: readonly (string | undefined)[]) =>
     invitation().tips?.find((tip) => targets.includes(tip.target));
+  /** An intake left unmarked because the doctor deleted its mark: the row says so. */
+  const removedByDoctor = (task: DoseTask): boolean =>
+    !task.entry &&
+    (props.removed ?? []).some(
+      (removal) =>
+        removal.item === task.item.id &&
+        removal.slot === task.time.time &&
+        dayKey(removal.at) === day(),
+    );
+
   const unreadTip = (...targets: readonly (string | undefined)[]): boolean => {
     const tip = tipFor(...targets);
     return Boolean(tip && !props.tipsRead.includes(tip.id));
@@ -418,7 +493,7 @@ export function DiaryToday(props: {
     save({
       id: createDiaryId(),
       at: day() === today() ? new Date().toISOString() : atTime(day(), task.time.time),
-      values: { [CARE_DOSE_FIELD]: { item: task.item.id, done: true, slot: task.time.time } },
+      values: { [CARE_DOSE_FIELD]: intakeMark(task.item, true, task.time.time) },
     });
   };
 
@@ -462,16 +537,21 @@ export function DiaryToday(props: {
       >
         {props.header}
 
-        <DiaryHeatmap
-          days={heat()}
-          selected={day()}
-          today={today()}
-          onSelect={setDay}
-          since={diaryStarted(invitation(), props.results.entries)}
-          parts={heatParts(invitation())}
-          include={include()}
-          onInclude={setInclude}
-        />
+        <AppointmentCard invitation={invitation()} now={now()} />
+
+        {/* The doctor came from their own calendar: the day's arrows are enough here (DIARY21). */}
+        <Show when={props.viewer !== 'doctor'}>
+          <DiaryHeatmap
+            days={heat()}
+            selected={day()}
+            today={today()}
+            onSelect={setDay}
+            since={diaryStarted(invitation(), props.results.entries)}
+            parts={heatParts(invitation())}
+            include={include()}
+            onInclude={setInclude}
+          />
+        </Show>
 
         <nav class="diary-today__day" aria-label="День">
           <button
@@ -483,7 +563,41 @@ export function DiaryToday(props: {
             <AppGlyph name="caret-left" class="diary-today__step-icon" />
           </button>
           <div class="diary-today__day-text">
-            <h2 class="diary-today__day-title">{dayTitle(day(), today())}</h2>
+            <Show
+              when={props.viewer === 'doctor'}
+              fallback={<h2 class="diary-today__day-title">{dayTitle(day(), today())}</h2>}
+            >
+              {/* The doctor's way to another day: the date opens the calendar (DIARY21). */}
+              <SheetPopover
+                open={calendarOpen()}
+                onOpenChange={setCalendarOpen}
+                title="Выберите день"
+                triggerClass="diary-today__day-pick"
+                triggerLabel={`${dayTitle(day(), today())}: открыть календарь`}
+                trigger={
+                  <>
+                    <span class="diary-today__day-title">{dayTitle(day(), today())}</span>
+                    <AppGlyph name="calendar" class="diary-today__day-pick-icon" />
+                  </>
+                }
+                contentClass="diary-today__calendar"
+              >
+                <DiaryHeatmap
+                  bare
+                  days={heat()}
+                  selected={day()}
+                  today={today()}
+                  onSelect={(next) => {
+                    setDay(next);
+                    setCalendarOpen(false);
+                  }}
+                  since={diaryStarted(invitation(), props.results.entries)}
+                  parts={heatParts(invitation())}
+                  include={include()}
+                  onInclude={setInclude}
+                />
+              </SheetPopover>
+            </Show>
             <Show when={progress()}>
               <p class="diary-today__progress">{progress()}</p>
             </Show>
@@ -513,6 +627,89 @@ export function DiaryToday(props: {
           </p>
         </Show>
 
+        <Show when={props.planChange}>
+          {(change) => (
+            <section
+              class="diary-today__notice diary-today__changes"
+              aria-label="Врач изменил план"
+            >
+              <div class="diary-today__notice-text">
+                <h3 class="diary-today__changes-title">Врач изменил план</h3>
+                <ul class="diary-today__changes-list">
+                  <For each={change().lines}>
+                    {(line) => <li class="diary-today__changes-line">{line}</li>}
+                  </For>
+                </ul>
+              </div>
+              <button
+                type="button"
+                class="diary-today__notice-close"
+                aria-label="Понятно"
+                onClick={() => props.onDismissPlanChange?.()}
+              >
+                <AppGlyph name="close" class="diary-today__icon-glyph" />
+              </button>
+            </section>
+          )}
+        </Show>
+
+        <Show when={missed().length}>
+          <section class="diary-today__notice diary-today__missed" aria-label="Приём не отмечен">
+            <div class="diary-today__notice-text">
+              <h3 class="diary-today__changes-title">Приём не отмечен — что случилось?</h3>
+              <ul class="diary-today__missed-list">
+                <For each={missed()}>
+                  {(row) => (
+                    <li class="diary-today__missed-row">
+                      <span class="diary-today__missed-name">
+                        {[row.task.item.name, row.task.time.dose ?? row.task.item.dose]
+                          .filter(Boolean)
+                          .join(' ')}
+                        <span class="diary-today__missed-when">
+                          {row.day === today() ? 'сегодня' : 'вчера'} {row.task.time.time}
+                        </span>
+                      </span>
+                      <span class="diary-today__missed-actions">
+                        <button
+                          type="button"
+                          class="diary-today__missed-answer"
+                          onClick={() =>
+                            setSheet({
+                              kind: 'dose',
+                              item: row.task.item,
+                              time: row.task.time,
+                              entry: undefined,
+                              day: row.day,
+                            })
+                          }
+                        >
+                          Принял(а)
+                        </button>
+                        <button
+                          type="button"
+                          class="diary-today__missed-answer diary-today__missed-answer--skip"
+                          onClick={() =>
+                            setSheet({
+                              kind: 'dose',
+                              item: row.task.item,
+                              time: row.task.time,
+                              entry: undefined,
+                              day: row.day,
+                              missed: true,
+                            })
+                          }
+                        >
+                          Пропустил(а)
+                        </button>
+                      </span>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </section>
+        </Show>
+
         <Show when={invitation().note}>
           <p class="diary-today__note">{invitation().note}</p>
         </Show>
@@ -531,13 +728,13 @@ export function DiaryToday(props: {
                       {(task) => (
                         <CareRow
                           icon="pill"
+                          mark={<PillMark name={task.item.name} form={task.item.form} />}
                           time={task.time.time}
-                          title={[task.item.name, task.time.dose ?? task.item.dose]
-                            .filter(Boolean)
-                            .join(' ')}
+                          title={[task.item.name, taskDose(task)].filter(Boolean).join(' ')}
                           detail={
                             [
-                              doseStatus(task) ||
+                              (removedByDoctor(task) ? 'Отметку удалил врач' : '') ||
+                                doseStatus(task) ||
                                 (task.time.meal ? DIARY_MEAL_LABEL[task.time.meal] : ''),
                               courseLeft(task.item, day()),
                             ]
@@ -570,6 +767,7 @@ export function DiaryToday(props: {
                   {(group) => (
                     <CareRow
                       icon="plus"
+                      mark={<PillMark name={group.item.name} form={group.item.form} />}
                       title={[group.item.name, group.item.dose].filter(Boolean).join(' ')}
                       detail={
                         group.entries.length
@@ -612,7 +810,7 @@ export function DiaryToday(props: {
               <For each={plan().checks}>
                 {(task) => (
                   <CareRow
-                    icon={CHECK_ICON[task.checkpoint.kind]}
+                    icon={checkpointGlyph(task.checkpoint)}
                     time={task.time}
                     title={task.checkpoint.label}
                     detail={checkStatus(task)}
@@ -657,9 +855,52 @@ export function DiaryToday(props: {
           </section>
         </Show>
 
+        <Show when={invitation().labs?.length}>
+          <section class="care-section" aria-labelledby="care-labs">
+            <h3 class="care-section__title" id="care-labs">
+              Анализы
+            </h3>
+            <ul class="care-section__list">
+              <For each={invitation().labs ?? []}>
+                {(lab) => {
+                  const result = () => labResult(lab, props.results.entries);
+                  const unit = () =>
+                    invitation().fields.find((field) => field.id === lab.field)?.unit ?? '';
+                  return (
+                    <CareRow
+                      icon="flask"
+                      title={lab.name}
+                      detail={(() => {
+                        const found = result();
+                        if (found) {
+                          const value = found.value.toLocaleString('ru-RU', {
+                            maximumFractionDigits: 2,
+                          });
+                          return `${value} ${unit()}, ${dayWords(dayKey(found.at), today())}`.replace(
+                            /\s+,/u,
+                            ',',
+                          );
+                        }
+                        return lab.by
+                          ? `Сдать до ${dayWords(lab.by, today())}`
+                          : 'Сдайте, когда сможете, и впишите результат';
+                      })()}
+                      state={result() ? 'done' : lab.by && lab.by < today() ? 'late' : 'open'}
+                      checkLabel={`${lab.name}: вписать результат`}
+                      tip={false}
+                      onCheck={() => setSheet({ kind: 'lab', lab })}
+                      onOpen={() => setSheet({ kind: 'lab', lab })}
+                    />
+                  );
+                }}
+              </For>
+            </ul>
+          </section>
+        </Show>
+
         <section class="care-section" aria-labelledby="care-notes">
           <h3 class="care-section__title" id="care-notes">
-            Описание состояния
+            Своими словами
           </h3>
           <Show when={plan().notes.length}>
             <ul class="care-notes">
@@ -694,9 +935,10 @@ export function DiaryToday(props: {
           <ul class="care-section__list">
             <CareRow
               icon="note-pencil"
-              title={plan().notes.length ? 'Добавить ещё' : 'Как вы себя чувствуете?'}
+              title={plan().notes.length ? 'Добавить ещё' : 'Рассказать врачу'}
+              detail={plan().notes.length ? undefined : 'что беспокоит — текстом или голосом'}
               state={plan().notes.length ? 'done' : 'open'}
-              checkLabel="Описать состояние"
+              checkLabel="Рассказать врачу своими словами"
               tip={false}
               onCheck={() => setSheet({ kind: 'note', entry: undefined })}
               onOpen={() => setSheet({ kind: 'note', entry: undefined })}
@@ -714,7 +956,8 @@ export function DiaryToday(props: {
           {(current) => (
             <DoseSheet
               invitation={invitation()}
-              day={day()}
+              day={current().day ?? day()}
+              missed={current().missed === true}
               item={current().item}
               time={current().time}
               entry={current().entry}
@@ -786,6 +1029,22 @@ export function DiaryToday(props: {
                   />
                 )}
               </Match>
+              <Match when={current().task.checkpoint.kind === 'use'}>
+                <UseSheet
+                  invitation={invitation()}
+                  day={day()}
+                  checkpoint={current().task.checkpoint}
+                  time={current().task.time}
+                  entry={current().task.entry}
+                  tip={readTip(
+                    current().task.checkpoint.id,
+                    ...(current().task.checkpoint.fields ?? []),
+                  )}
+                  onSave={save}
+                  onRemove={remove}
+                  onClose={close}
+                />
+              </Match>
             </Switch>
           )}
         </Match>
@@ -802,6 +1061,22 @@ export function DiaryToday(props: {
               }}
               onClose={close}
             />
+          )}
+        </Match>
+        <Match when={sheet()?.kind === 'lab' && (sheet() as Extract<Sheet, { kind: 'lab' }>)}>
+          {(current) => (
+            <Show when={invitation().fields.find((field) => field.id === current().lab.field)}>
+              {(field) => (
+                <LabSheet
+                  lab={current().lab}
+                  field={field()}
+                  entry={labResult(current().lab, props.results.entries)?.entry}
+                  onSave={save}
+                  onRemove={remove}
+                  onClose={close}
+                />
+              )}
+            </Show>
           )}
         </Match>
         <Match when={sheet()?.kind === 'note' && (sheet() as Extract<Sheet, { kind: 'note' }>)}>

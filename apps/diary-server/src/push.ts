@@ -5,7 +5,7 @@
  * Crypto, so no library is needed; subscriptions stored before their keys get an empty push. The
  * VAPID key pair lives in the settings table.
  */
-import type { DiaryPushPayload } from '@localmed/contracts';
+import { type DiaryPushPayload, isPushEndpoint } from '@localmed/contracts';
 import { fromBase64Url, randomBytes, toBase64Url } from '@localmed/diary-sync';
 
 import type { DiaryStore, PushTarget } from './store';
@@ -65,6 +65,11 @@ export type PushOutcome = 'sent' | 'gone' | 'failed';
 
 /** A stored subscription; the keys are absent for one saved before payloads existed. */
 export type { PushTarget };
+
+/** How long one push service may take to answer before the push counts as failed. */
+const PUSH_TIMEOUT_MS = 10_000;
+/** Pushes sent at once for one event. */
+const PUSH_BATCH = 8;
 
 export interface PushOptions {
   /** Seconds the push service keeps an undelivered push (a late reminder is useless). */
@@ -166,9 +171,12 @@ export async function sendPush(
     headers['Content-Type'] = 'application/octet-stream';
   }
   headers['Content-Length'] = String(content?.length ?? 0);
+  // A push service answers at once; it is never followed elsewhere (SEC-AUDIT1).
   const response = await fetch(url, {
     method: 'POST',
     headers,
+    redirect: 'manual',
+    signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),
     ...(content ? { body: content } : {}),
   });
   if (response.status === 404 || response.status === 410) return 'gone';
@@ -189,18 +197,25 @@ export async function pushToOwners(
   options: PushOptions = {},
 ): Promise<void> {
   if (!owners.length) return;
-  const targets = await store.pushTargets(owners);
-  await Promise.all(
-    targets.map(async (target) => {
-      try {
-        if ((await sendPush(vapid, target, payload, options)) === 'gone') {
-          await store.deletePushSubscription(target.endpoint);
+  const targets: PushTarget[] = [];
+  for (const target of await store.pushTargets(owners)) {
+    // Subscriptions saved before SEC-AUDIT1 may name any https address: those are dropped.
+    if (isPushEndpoint(target.endpoint)) targets.push(target);
+    else await store.deletePushSubscription(target.endpoint);
+  }
+  for (let start = 0; start < targets.length; start += PUSH_BATCH) {
+    await Promise.all(
+      targets.slice(start, start + PUSH_BATCH).map(async (target) => {
+        try {
+          if ((await sendPush(vapid, target, payload, options)) === 'gone') {
+            await store.deletePushSubscription(target.endpoint);
+          }
+        } catch (cause) {
+          log(`push failed: ${cause instanceof Error ? cause.name : 'error'}`);
         }
-      } catch (cause) {
-        log(`push failed: ${cause instanceof Error ? cause.name : 'error'}`);
-      }
-    }),
-  );
+      }),
+    );
+  }
 }
 
 /** Checks that a stored public key decodes; used by tests. */

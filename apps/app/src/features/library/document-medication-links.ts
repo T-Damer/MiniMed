@@ -6,6 +6,11 @@ import {
   documentRenderBlockSearchText,
 } from '@/features/library/document-rich-block-data';
 import { documentVersionLabel } from '@/features/library/document-version-label';
+import {
+  resolveWrapMarks,
+  SOURCE_BLOCK_SEPARATOR,
+  storedBlockCount,
+} from '@/features/library/instruction-text-repair';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -114,7 +119,7 @@ export function parseDocumentText(
       parseDocumentText(
         value.slice(start, end),
         Array.isArray(sourceSpans)
-          ? sourceSpans.slice(value.slice(0, start).split(/\r?\n(?:\s*\r?\n)+/u).length - 1)
+          ? sourceSpans.slice(storedBlockCount(value.slice(0, start)) - 1)
           : sourceSpans,
       );
     for (const item of tables) {
@@ -129,13 +134,18 @@ export function parseDocumentText(
     blocks.push(...prose(cursor, value.length));
     return blocks;
   }
-  const lines = value.split(/\r?\n(?:\s*\r?\n)+/u).flatMap((line, sourceIndex) =>
-    line
+  // A block the instruction repair made of several stored blocks counts for all of them, so the
+  // PDF geometry of the blocks after it still lines up.
+  let nextSourceIndex = 0;
+  const lines = value.split(SOURCE_BLOCK_SEPARATOR).flatMap((block) => {
+    const sourceIndex = nextSourceIndex;
+    nextSourceIndex += storedBlockCount(block);
+    return resolveWrapMarks(block)
       .trim()
       .replace(/\s*([•▪◦●○])\s*/gu, '\n$1 ')
       .split('\n')
-      .map((text) => ({ sourceIndex, text: text.trim() })),
-  );
+      .map((text) => ({ sourceIndex, text: text.trim() }));
+  });
   const implicitList = implicitListStarts(lines);
   let activeListIndent: number | undefined;
   let previousSourceIndex: number | undefined;

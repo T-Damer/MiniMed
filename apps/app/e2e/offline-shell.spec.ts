@@ -163,7 +163,7 @@ test.describe('a new build is offered, never forced', () => {
         await registration?.update();
       });
 
-      await expect(page.getByText('Доступно обновление')).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText('Новая версия готова')).toBeVisible({ timeout: 60_000 });
       await expect(page.locator('.app-nav-badge--app-update')).toBeVisible();
       // Both builds are cached side by side; the page keeps running the old one.
       expect(await page.evaluate(() => caches.keys())).toEqual(
@@ -172,7 +172,7 @@ test.describe('a new build is offered, never forced', () => {
       await page.waitForTimeout(2_000);
       expect(await page.evaluate(() => performance.timeOrigin)).toBe(loadedAt);
 
-      await page.getByRole('button', { name: 'Обновить', exact: true }).click();
+      await page.getByRole('button', { name: 'Обновить сейчас', exact: true }).click();
       await page.waitForFunction((before) => performance.timeOrigin !== before, loadedAt, {
         timeout: 60_000,
       });

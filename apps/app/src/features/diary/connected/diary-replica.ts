@@ -1,8 +1,15 @@
 /**
  * What the encrypted records of a connected diary mean, and the diary they add up to. A record id
- * names one thing (`plan`, `profile`, `consent`, `e-<entry id>`, `read-<tip id>`); its latest
+ * names one thing (`plan`, `profile`, `consent`, `e-<entry id>`, `read-<tip id>`, a carer's
+ * `member-<device id>`); its latest
  * revision wins. Payloads are validated here because they come from another device.
  */
+
+import { memberName } from '@/features/diary/connected/carer';
+import {
+  type JoiningAcceptance,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
 import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
@@ -63,8 +70,14 @@ export type DiaryPayload =
   | ({ readonly kind: 'profile' } & DiaryProfile)
   | { readonly kind: 'entry'; readonly entry: unknown }
   | { readonly kind: 'deleted' }
-  | { readonly kind: 'consent'; readonly at: string; readonly version: string }
-  | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string };
+  | {
+      readonly kind: 'consent';
+      readonly at: string;
+      readonly version: string;
+      readonly documents?: readonly JoiningAcceptance[];
+    }
+  | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string }
+  | { readonly kind: 'member'; readonly name: string };
 
 /** One decrypted record revision as the sync session hands it over. */
 export interface DiaryRecordRevision {
@@ -76,15 +89,34 @@ export interface DiaryRecordRevision {
   readonly payload: unknown;
 }
 
+/** One version of the plan as a doctor saved it (DIARY20: the calendar shows who changed what). */
+export interface DiaryPlanRevision {
+  readonly rev: number;
+  /** `d:<doctor id>`. */
+  readonly author: string;
+  /** Server time the version arrived. */
+  readonly at: string;
+  readonly invitation: DiaryInvitation;
+}
+
+/** Plan versions kept on the device: a long-running diary keeps its newest ones. */
+export const MAX_PLAN_HISTORY = 200;
+
 export interface DiaryReplica {
   readonly invitation: DiaryInvitation | undefined;
+  /** Every plan version read, oldest first (the last one is `invitation`). */
+  readonly planHistory: readonly DiaryPlanRevision[];
   readonly profile: DiaryProfile | undefined;
   /** Entry id → entry, without deleted ones. */
   readonly entries: ReadonlyMap<string, DiaryEntry>;
   /** Entry id → who wrote its latest revision (`d:` doctor, `p:` device). */
   readonly entryAuthors: ReadonlyMap<string, string>;
   readonly tipsRead: ReadonlySet<string>;
+  /** Carer's device id → the name the carer gave (DIARY25); copies saved before have none. */
+  readonly carerNames?: Readonly<Record<string, string>>;
   readonly consentAt: string | undefined;
+  /** The joining documents the patient accepted, with wording and time (none before DIARY26). */
+  readonly consents?: readonly JoiningAcceptance[];
   /** Record id → latest revision applied. */
   readonly revs: ReadonlyMap<string, number>;
   /** Records that could not be read (bad payload); kept out of the diary. */
@@ -93,10 +125,12 @@ export interface DiaryReplica {
 
 export const EMPTY_REPLICA: DiaryReplica = {
   invitation: undefined,
+  planHistory: [],
   profile: undefined,
   entries: new Map(),
   entryAuthors: new Map(),
   tipsRead: new Set(),
+  carerNames: {},
   consentAt: undefined,
   revs: new Map(),
   rejected: 0,
@@ -112,12 +146,16 @@ export function applyRevisions(
   revisions: readonly DiaryRecordRevision[],
 ): DiaryReplica {
   let invitation = replica.invitation;
+  // Copies saved before plan versions were kept have none.
+  const planHistory = [...(replica.planHistory ?? [])];
   let profile = replica.profile;
   let consentAt = replica.consentAt;
+  let consents = replica.consents ?? [];
   let rejected = replica.rejected;
   const entries = new Map(replica.entries);
   const entryAuthors = new Map(replica.entryAuthors);
   const tipsRead = new Set(replica.tipsRead);
+  const carerNames: Record<string, string> = { ...replica.carerNames };
   const revs = new Map(replica.revs);
   // Plans first: entries are validated against the plan they answer.
   const ordered = [
@@ -133,6 +171,12 @@ export function applyRevisions(
         // Only a doctor writes the plan.
         if (!revision.author.startsWith('d:')) throw new DiaryFormatError('План не от врача.');
         invitation = parseDiaryInvitation(payload['invitation']);
+        planHistory.push({
+          rev: revision.rev,
+          author: revision.author,
+          at: revision.at,
+          invitation,
+        });
       } else if (revision.id === PROFILE_RECORD && payload['kind'] === 'profile') {
         if (!revision.author.startsWith('d:')) throw new DiaryFormatError('Профиль не от врача.');
         const label = payload['label'];
@@ -149,10 +193,17 @@ export function applyRevisions(
         };
       } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
         if (typeof payload['at'] !== 'string') throw new DiaryFormatError('Согласие.');
+        if (!revision.author.startsWith('p:'))
+          throw new DiaryFormatError('Согласие не с телефона.');
         consentAt = payload['at'];
+        consents = parseJoiningAcceptances(payload['documents']);
       } else if (revision.id.startsWith('read-') && payload['kind'] === 'tip-read') {
         if (typeof payload['tip'] !== 'string') throw new DiaryFormatError('Подсказка.');
         tipsRead.add(payload['tip']);
+      } else if (revision.id.startsWith('member-')) {
+        const name = memberName(revision.id, revision.author, payload);
+        if (!name) throw new DiaryFormatError('Имя опекуна.');
+        carerNames[revision.id.slice(7)] = name;
       } else if (revision.id.startsWith('e-')) {
         const entryId = revision.id.slice(2);
         if (payload['kind'] === 'deleted') {
@@ -173,11 +224,24 @@ export function applyRevisions(
       revs.set(revision.id, revision.rev);
     } catch (cause) {
       if (!(cause instanceof DiaryFormatError)) throw cause;
+      // A refused revision does not move the id on (SEC-AUDIT1): otherwise a phone's plan at a
+      // huge revision would hide every later plan of the doctors.
       rejected += 1;
-      revs.set(revision.id, revision.rev);
     }
   }
-  return { invitation, profile, entries, entryAuthors, tipsRead, consentAt, revs, rejected };
+  return {
+    invitation,
+    planHistory: planHistory.slice(-MAX_PLAN_HISTORY),
+    profile,
+    entries,
+    entryAuthors,
+    tipsRead,
+    carerNames,
+    consentAt,
+    ...(consents.length ? { consents } : {}),
+    revs,
+    rejected,
+  };
 }
 
 /** The diary in the shape every existing screen reads. */

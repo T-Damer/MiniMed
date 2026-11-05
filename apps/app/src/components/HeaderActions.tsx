@@ -44,6 +44,11 @@ export interface HeaderAction {
   readonly onSelect?: () => void;
   /** Opens a panel (popover on wide screens, sheet when folded or on phones) instead of `onSelect`. */
   readonly panel?: HeaderActionPanel;
+  /**
+   * Opens a context menu of these items instead of `onSelect` (a choice such as the charts'
+   * period); folded into «⋯», they become its submenu.
+   */
+  readonly menu?: readonly AppContextMenuAction[];
   readonly disabled?: boolean;
   readonly danger?: boolean;
   /** Always in the «⋯» menu: account and rare actions (reminders, sign-out). */
@@ -75,11 +80,40 @@ function isRendered(element: Element): boolean {
   return element.getClientRects().length > 0;
 }
 
+/** Out of the row's flow (the hero's emblem): it takes no width from the buttons. */
+function isPlaced(element: Element): boolean {
+  const position = getComputedStyle(element).position;
+  return position === 'absolute' || position === 'fixed';
+}
+
 /**
  * Width a title block wants with all its text on one line. A hidden clone placed beside the original
  * (so it inherits the same styles) is measured and removed again: `scrollWidth` of a wrapped title
  * reports the box, not the text.
  */
+const naturalWidths = new WeakMap<HTMLElement, { readonly key: string; readonly width: number }>();
+
+/**
+ * The same width, measured again only when the title's text or font changed: the clone forces a
+ * style pass over the whole page, and a header that resizes while a page slides in or its hero
+ * shrinks would otherwise pay it on every frame (owner 2026-11-03: «навигация дёргается»).
+ */
+function cachedNaturalWidth(element: HTMLElement): number {
+  // The heading inside shrinks with the hero's pinned bar: every node's font is part of the key.
+  const key = [element, ...Array.from(element.querySelectorAll<HTMLElement>('*'))]
+    .map((node) => {
+      const style = getComputedStyle(node);
+      return `${style.font}/${style.letterSpacing}/${style.paddingInline}/${style.display}`;
+    })
+    .concat(element.textContent ?? '')
+    .join('|');
+  const known = naturalWidths.get(element);
+  if (known?.key === key) return known.width;
+  const width = naturalWidth(element);
+  naturalWidths.set(element, { key, width });
+  return width;
+}
+
 function naturalWidth(element: HTMLElement): number {
   const parent = element.parentElement;
   if (!parent) return element.getBoundingClientRect().width;
@@ -124,6 +158,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
         ...(action.danger ? { danger: true } : {}),
         ...(action.disabled ? { disabled: true } : {}),
         ...(action.testId ? { testId: action.testId } : {}),
+        ...(action.menu ? { children: action.menu } : {}),
         onSelect: () => {
           if (action.panel) setOpenPanel(action.id);
           else action.onSelect?.();
@@ -153,7 +188,14 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
     let neighbours = 0;
     const titles: HTMLElement[] = [];
     for (const child of Array.from(row.children)) {
-      if (child === slot || !(child instanceof HTMLElement) || !isRendered(child)) continue;
+      if (
+        child === slot ||
+        !(child instanceof HTMLElement) ||
+        !isRendered(child) ||
+        isPlaced(child)
+      ) {
+        continue;
+      }
       neighbours += 1;
       if (child.hasAttribute(HEADER_TITLE_ATTRIBUTE)) titles.push(child);
       else used += child.getBoundingClientRect().width;
@@ -161,7 +203,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
     // What shares the slot with the buttons (other tools of the same header group).
     const slotExtras =
       slot === host ? 0 : slot.getBoundingClientRect().width - host.getBoundingClientRect().width;
-    for (const title of titles) used += Math.ceil(naturalWidth(title)) + 1;
+    for (const title of titles) used += Math.ceil(cachedNaturalWidth(title)) + 1;
 
     const available = Math.floor(inner - used - rowGap * neighbours - slotExtras);
     const next = layoutHeaderActions({
@@ -252,7 +294,20 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
       <For each={props.actions}>
         {(action) => (
           <>
-            <Show when={!folded(action.id)}>
+            <Show when={!folded(action.id) && action.menu}>
+              {(menu) => (
+                <AppContextMenu
+                  actions={menu()}
+                  buttonLabel={action.label}
+                  buttonIcon={action.icon}
+                  buttonClass="header-actions__more"
+                  class="header-actions__menu"
+                >
+                  {null}
+                </AppContextMenu>
+              )}
+            </Show>
+            <Show when={!folded(action.id) && !action.menu}>
               <Show
                 when={action.panel}
                 fallback={

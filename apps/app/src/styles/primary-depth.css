@@ -1,8 +1,8 @@
 /*
  * Primary (filled accent) controls that are not the shared Button: the same ledge, lift on hover
  * and press-in on click as `.ui-button--primary`, drawn from the `--theme-primary-*` tokens.
- * The control never transforms: it is the hover target, and a box that moves away from the
- * pointer ends its own hover. Depth is shadow and colour only.
+ * Hover never moves the control (a box that moves away from the pointer ends its own hover); a press
+ * sinks it onto its ledge, as Button.css does.
  */
 .ui-file-button--primary,
 .home-feature__action:not(.home-feature__action--secondary),
@@ -16,28 +16,36 @@
   box-shadow: var(--theme-primary-rest-shadow);
   transition:
     background-color var(--theme-motion-control, 140ms ease-out),
-    box-shadow var(--theme-motion-control, 140ms ease-out);
+    box-shadow var(--theme-motion-control, 140ms ease-out),
+    translate var(--theme-motion-control, 140ms ease-out);
 }
 
-.ui-file-button--primary:active,
-.home-feature__action:not(.home-feature__action--secondary):active:not(:disabled),
-.assessment-card-actions__button--primary:active:not(:disabled),
-.assessment-submit-panel__button:active:not(:disabled),
-.assessment-panel-actions__button--primary:active:not(:disabled),
-.package-row__button--primary:active:not(:disabled),
-.search-quick-access__all:active {
+.ui-file-button--primary:is(:active, [data-pressed]),
+.home-feature__action:not(.home-feature__action--secondary):is(:active, [data-pressed]):not(
+  :disabled
+),
+.assessment-card-actions__button--primary:is(:active, [data-pressed]):not(:disabled),
+.assessment-submit-panel__button:is(:active, [data-pressed]):not(:disabled),
+.assessment-panel-actions__button--primary:is(:active, [data-pressed]):not(:disabled),
+.package-row__button--primary:is(:active, [data-pressed]):not(:disabled),
+.search-quick-access__all:is(:active, [data-pressed]) {
+  translate: 0 0.14rem;
   background: var(--theme-primary-active-background);
   box-shadow: var(--theme-primary-active-shadow);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .ui-file-button--primary:hover:not(:active),
-  .home-feature__action:not(.home-feature__action--secondary):hover:not(:disabled, :active),
-  .assessment-card-actions__button--primary:hover:not(:disabled, :active),
-  .assessment-submit-panel__button:hover:not(:disabled, :active),
-  .assessment-panel-actions__button--primary:hover:not(:disabled, :active),
-  .package-row__button--primary:hover:not(:disabled, :active),
-  .search-quick-access__all:hover:not(:active) {
+  .ui-file-button--primary:hover:not(:active, [data-pressed]),
+  .home-feature__action:not(.home-feature__action--secondary):hover:not(
+    :disabled,
+    :active,
+    [data-pressed]
+  ),
+  .assessment-card-actions__button--primary:hover:not(:disabled, :active, [data-pressed]),
+  .assessment-submit-panel__button:hover:not(:disabled, :active, [data-pressed]),
+  .assessment-panel-actions__button--primary:hover:not(:disabled, :active, [data-pressed]),
+  .package-row__button--primary:hover:not(:disabled, :active, [data-pressed]),
+  .search-quick-access__all:hover:not(:active, [data-pressed]) {
     background: var(--theme-primary-hover-background);
     box-shadow: var(--theme-primary-hover-shadow);
   }

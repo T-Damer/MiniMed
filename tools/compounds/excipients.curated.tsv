@@ -1,0 +1,281 @@
+# Reviewed excipient list. Columns: id | ru | en (Wikidata label lookup) | ru aliases (;) | functions (,)
+# Functions are `basis: curated` unless Wikidata/ChEBI roles supply them (see build.ts). Function ids: excipient-functions.json.
+# Spellings that differ only by word order, case ending, grade number, E-number or brackets collapse in normalizeCompoundName and need no alias.
+magnesium-stearate|магния стеарат|magnesium stearate|стеарат магния|lubricant
+titanium-dioxide|титана диоксид|titanium dioxide|диоксид титана;титан диоксид|colorant,opacifier
+talc|тальк|talc|тальк очищенный;тальк медицинский|glidant,lubricant
+water-for-injection|вода для инъекций|water|вода для иньекций;вода для инъекций апирогенная;апирогенная вода|solvent
+purified-water|вода очищенная|water|вода;вода деминерализованная;вода дистиллированная;вода питьевая|solvent
+lactose|лактоза|lactose|лактоза моногидрат;лактоза безводная;сахар молочный;молочный сахар;лактозы моногидрат|filler,binder
+macrogol|макрогол|polyethylene glycol|полиэтиленгликоль;ПЭГ;полиэтиленгликоль 6000;макрогол 4000;макрогол 6000;макрогол 3350;макрогол 400;макрогол-3350;полиэтиленгликоль 400|plasticizer,solvent,film-former
+povidone|повидон|povidone|поливинилпирролидон;поливидон;поливинилпирролидон низкомолекулярный медицинский;низкомолекулярный медицинский поливинилпирролидон;поливинилпирролидон медицинский низкомолекулярный;PVP;повидон К 25;повидон К 30;повидон К 90;повидон низкомолекулярный;низкомолекулярный повидон;повидон-К17;пласдон К-17|binder
+microcrystalline-cellulose|целлюлоза микрокристаллическая|microcrystalline cellulose|МКЦ;авицел;целлюлоза;микрокристаллическая|filler,binder,disintegrant
+hypromellose|гипромеллоза|hypromellose|гидроксипропилметилцеллюлоза;ГПМЦ;гипромеллозы;гипромеллоза 2910;гипромеллоза 6 сПз;метоцел|film-former,binder,thickener
+colloidal-silicon-dioxide|кремния диоксид коллоидный|silicon dioxide|аэросил;кремния диоксид;диоксид кремния;кремния диоксид безводный;аэросил А-380;силика коллоидная;кремния диоксид коллоидный безводный|glidant,adsorbent
+sodium-chloride|натрия хлорид|sodium chloride|хлорид натрия;поваренная соль;соль поваренная|tonicity
+potato-starch|крахмал картофельный|potato starch|картофельный крахмал|filler,binder,disintegrant
+maize-starch|крахмал кукурузный|maize starch|кукурузный крахмал;крахмал маисовый|filler,binder,disintegrant
+starch|крахмал|starch|крахмал пшеничный;рисовый крахмал;пшеничный крахмал;крахмал рисовый;крахмал растворимый|filler,binder,disintegrant
+pregelatinized-starch|крахмал прежелатинизированный|pregelatinized starch|прежелатинизированный крахмал;крахмал частично прежелатинизированный;крахмал кукурузный прежелатинизированный;старч 1500;крахмал модифицированный;прегелатинизированный крахмал|binder,disintegrant,filler
+croscarmellose-sodium|кроскармеллоза натрия|croscarmellose sodium|кроскармеллоза;кроскармеллоза натриевая;примеллоза;ac-di-sol|disintegrant
+carmellose-sodium|кармеллоза натрия|carboxymethylcellulose|натрия карбоксиметилцеллюлоза;карбоксиметилцеллюлоза натрия;КМЦ;натрий-карбоксиметилцеллюлоза;карбоксиметилцеллюлоза|thickener,binder,stabilizer
+carmellose-calcium|кармеллоза кальция|carmellose calcium|кальция карбоксиметилцеллюлоза;карбоксиметилцеллюлоза кальция|disintegrant
+gelatin|желатин|gelatin|желатина;желатин пищевой;желатин медицинский;капсулы твердые желатиновые;желатиновая капсула;желатиновых капсул;твердая желатиновая капсула;капсулы желатиновые;корпус капсулы желатин;крышечка капсулы желатин;желатин корпус;желатин крышечка;корпус желатин;крышечка желатин|capsule-shell,binder,stabilizer
+polysorbate|полисорбат|polysorbate 80|полисорбат 80;полисорбат-80;твин-80;твин 80;твин;полисорбат 20;полисорбат 60;полисорбат-20;твин-20|surfactant,emulsifier,solubilizer
+ethanol|этанол|ethanol|спирт этиловый;этиловый спирт;спирт этиловый 95 %;спирт;винный спирт;этанол 96 %;спирт этиловый 96 %;этанол безводный;этанол спирт этиловый;этанол (спирт этиловый|solvent,preservative
+calcium-stearate|кальция стеарат|calcium stearate|стеарат кальция;кальция стеарата моногидрат|lubricant
+sucrose|сахароза|sucrose|сахар;сахар-песок;сахар белый;сахар рафинированный;сахарный сироп;сироп сахарный;сахарный сироп (сахароза)|sweetener,filler,binder
+sodium-starch-glycolate|натрия крахмала гликолят|sodium starch glycolate|карбоксиметилкрахмал натрия;натрия крахмалгликолят;примогель;explotab;натрия гликолят крахмала;крахмалгликолят натрия;карбоксиметилкрахмал;натрия карбоксиметилкрахмал;натриевая соль карбоксиметилкрахмала|disintegrant
+crospovidone|кросповидон|crospovidone|кросповидон XL;поливинилполипирролидон;полиплазидон XL;кросповидон тип А;кросповидон тип B|disintegrant
+propylene-glycol|пропиленгликоль|propylene glycol|1,2-пропандиол;пропиленгликоль безводный|solvent,humectant
+iron-oxide-yellow|железа оксид желтый|iron(III) oxide-hydroxide|краситель железа оксид желтый;оксид железа желтый;краситель оксид железа желтый;краситель железа окись желтая;железа оксид желтый Е172;краситель железа оксид желтый Е172;краситель железа (III) оксид желтый;краситель оксид железа (III) желтый|colorant
+iron-oxide-red|железа оксид красный|iron(III) oxide|краситель железа оксид красный;оксид железа красный;краситель оксид железа красный;краситель железа окись красная;краситель железа (III) оксид красный;краситель оксид железа (III) красный;железа оксид красный Е172|colorant
+iron-oxide-black|железа оксид черный|iron(II,III) oxide|краситель железа оксид черный;оксид железа черный;краситель оксид железа черный;краситель железа окись черная|colorant
+iron-oxide|железа оксид|iron oxide|краситель железа оксид;краситель оксид железа;краситель железа;железа окись;краситель железа оксид Е172|colorant
+mannitol|маннитол|mannitol|манит;маннит;D-маннитол;d-маннитол|filler,sweetener
+methylparaben|метилпарагидроксибензоат|methylparaben|метилпарабен;нипагин;метил-4-гидроксибензоат;метилгидроксибензоат;метилпарагидроксибензоат натрия;метилпарабен натрия;натрия метилпарагидроксибензоат|preservative
+propylparaben|пропилпарагидроксибензоат|propylparaben|пропилпарабен;нипазол;пропилгидроксибензоат;пропилпарагидроксибензоат натрия;натрия пропилпарагидроксибензоат;пропилпарабен натрия|preservative
+glycerol|глицерол|glycerol|глицерин;глицерол безводный;глицерин безводный;глицерин 85 %;глицерол 85 %|humectant,solvent,sweetener
+polyvinyl-alcohol|поливиниловый спирт|polyvinyl alcohol|поливиниловый спирт частично гидролизованный;спирт поливиниловый;ПВС;частично гидролизованный поливиниловый спирт;поливиниловый спирт гидролизованный|film-former,film-coating
+hyprolose|гипролоза|hyprolose|гидроксипропилцеллюлоза;оксипропилцеллюлоза;гипролоза-H;клюцел|binder,thickener
+low-substituted-hyprolose|гипролоза низкозамещенная|low-substituted hydroxypropyl cellulose|низкозамещенная гидроксипропилцеллюлоза;L-HPC;гидроксипропилцеллюлоза низкозамещенная|disintegrant,binder
+stearic-acid|стеариновая кислота|stearic acid|кислота стеариновая|lubricant,emulsifier
+citric-acid|лимонная кислота|citric acid|лимонной кислоты моногидрат;кислота лимонная;лимонная кислота безводная;кислота лимонная безводная|ph-regulator,buffer
+edetate-disodium|динатрия эдетат|disodium edetate|динатрия эдетата дигидрат;трилон Б;эдетат динатрия;натрия эдетат;динатриевая соль этилендиаминтетрауксусной кислоты;ЭДТА;динатриевая соль ЭДТА;динатрия эдетат дигидрат;этилендиаминтетрауксусной кислоты динатриевая соль;трилон|chelator,stabilizer
+sodium-hydroxide|натрия гидроксид|sodium hydroxide|натрия гидроксида раствор;едкий натр;натр едкий;натрия гидроксид раствор;натрия гидроксида раствор 1 М;натрия гидроксид (для коррекции рН)|ph-regulator
+sodium-bicarbonate|натрия гидрокарбонат|sodium bicarbonate|натрия бикарбонат;сода пищевая;натрий двууглекислый;бикарбонат натрия;гидрокарбонат натрия|ph-regulator,buffer
+benzalkonium-chloride|бензалкония хлорид|benzalkonium chloride|бензалкония хлорида раствор;бензалкония хлорид раствор|preservative,surfactant
+quinoline-yellow|краситель хинолиновый желтый|quinoline yellow WS|хинолиновый желтый;хинолин желтый;хинолиновый желтый Е 104;краситель хинолиновый желтый Е104;желтый хинолиновый|colorant
+carbomer|карбомер|carbomer|карбопол;карбомер 940;карбомер 934;карбомер 974P;карбомеры|thickener,gelling
+sodium-saccharin|натрия сахаринат|saccharin sodium|сахаринат натрия;сахарин;сахарин натрия;натрия сахаринат дигидрат;натрия сахарината дигидрат|sweetener
+petrolatum|вазелин|petroleum jelly|вазелин белый;вазелин медицинский;вазелин желтый;парафин мягкий белый;парафин мягкий;парафин мягкий желтый;вазелин белый медицинский|ointment-base,emollient
+sorbitol|сорбитол|sorbitol|сорбит;сорбитола раствор;сорбитол жидкий;сорбитол жидкий некристаллизующийся;раствор сорбитола;сорбитол 70 %;сорбитол жидкий (некристаллизующийся);сорбитол некристаллизующийся|sweetener,filler,humectant
+sodium-benzoate|натрия бензоат|sodium benzoate|бензоат натрия|preservative
+copovidone|коповидон|copovidone|винилпирролидон-винилацетат сополимер;коповидон К 28;плазидон S630;винилпирролидона и винилацетата сополимер;повидон-винилацетат|binder
+sodium-stearyl-fumarate|натрия стеарилфумарат|sodium stearyl fumarate|стеарилфумарат натрия;натрия стеарил фумарат|lubricant
+benzyl-alcohol|бензиловый спирт|benzyl alcohol|спирт бензиловый|preservative,solvent
+sunset-yellow|краситель солнечный закат желтый|sunset yellow FCF|солнечный закат желтый;краситель желтый солнечный закат;желтый закат;желтый солнечный закат;краситель желтый «солнечный закат»;краситель солнечный закат|colorant
+liquid-paraffin|парафин жидкий|mineral oil|вазелиновое масло;масло вазелиновое;парафиновое масло;жидкий парафин;масло минеральное|ointment-base,solvent,emollient
+hard-paraffin|парафин твердый|paraffin wax|парафин;парафин твёрдый;церезин;озокерит;парафин нефтяной твердый;нефтяной парафин твердый|thickener,ointment-base
+sodium-metabisulfite|натрия метабисульфит|sodium metabisulfite|натрия пиросульфит;метабисульфит натрия;натрия дисульфит;дисульфит натрия|antioxidant
+sodium-sulfite|натрия сульфит|sodium sulfite|натрия сульфит безводный;сульфит натрия|antioxidant
+boric-acid|борная кислота|boric acid|кислота борная|preservative,buffer
+methacrylic-acid-ethyl-acrylate-copolymer|метакриловой кислоты и этилакрилата сополимер|methacrylic acid - ethyl acrylate copolymer|сополимер метакриловой кислоты и этилакрилата;метакриловой кислоты этилакрилата сополимер;кислоты метакриловой и этилакрилата сополимер;кополимер метакриловой кислоты и этилакрилата|enteric-coating
+methacrylic-acid-methyl-methacrylate-copolymer|метакриловой кислоты и метилметакрилата сополимер|methacrylic acid - methyl methacrylate copolymer|сополимер метакриловой кислоты и метилметакрилата;кислоты метакриловой и метилметакрилата сополимер|enteric-coating
+sodium-dihydrogen-phosphate|натрия дигидрофосфат|sodium dihydrogen phosphate|натрия дигидрофосфата дигидрат;натрия дигидрофосфата моногидрат;натрия фосфат однозамещенный;натрия дигидрофосфат дигидрат;натрия дигидрофосфат моногидрат;мононатрия фосфат|buffer,ph-regulator
+sodium-hydrogen-phosphate|натрия гидрофосфат|disodium hydrogen phosphate|динатрия гидрофосфат;натрия гидрофосфата додекагидрат;натрия гидрофосфата дигидрат;динатрия гидрофосфат додекагидрат;натрия фосфат двузамещенный;динатрия фосфат;натрия гидрофосфат додекагидрат;натрия гидрофосфат безводный|buffer,ph-regulator
+potassium-dihydrogen-phosphate|калия дигидрофосфат|potassium dihydrogen phosphate|калия фосфат однозамещенный;монокалия фосфат|buffer,ph-regulator
+sodium-citrate|натрия цитрат|trisodium citrate|натрия цитрата дигидрат;натрия цитрат дигидрат;тринатрия цитрат;натрия цитрата тригидрат;натрия цитрат тригидрат;цитрат натрия|buffer,ph-regulator
+triethyl-citrate|триэтилцитрат|triethyl citrate||plasticizer
+hard-fat|жир твердый|hard fat|витепсол;суппоцир;жир твердый (витепсол);жир твердый для суппозиториев;витепсол Н15;витепсол W35|suppository-base
+opadry|Опадрай|Opadry|Опадри;Opadry II;Опадрай белый;Опадрай желтый;Опадрай розовый;Опадрай оранжевый;Опадрай красный;Опадрай зеленый;Опадрай синий;Опадрай коричневый;Опадрай серый;Опадрай черный;Опадрай прозрачный;Опадрай II;опадрай (смесь для пленочного покрытия);пленочное покрытие|film-coating,colorant
+sugar-spheres|гранулы сахарные|sugar spheres|сахарные сферы;нонпарель;сферы сахарные;сахарные гранулы;гранулы сахарные (нонпарель)|carrier
+triacetin|триацетин|triacetin||plasticizer
+sodium-acetate|натрия ацетат|sodium acetate|натрия ацетата тригидрат;ацетат натрия;натрия ацетат тригидрат;натрия ацетат безводный|buffer,ph-regulator
+aspartame|аспартам|aspartame||sweetener
+hydrochloric-acid|хлористоводородная кислота|hydrogen chloride|кислота хлористоводородная;соляная кислота;кислота соляная;хлористоводородной кислоты раствор;кислоты хлористоводородной раствор;раствор кислоты хлористоводородной;кислота хлористоводородная разведенная;хлористоводородной кислоты раствор 1 М;кислота хлористоводородная концентрированная;кислота хлористоводородная 1 М;кислота хлористоводородная (для коррекции рН);кислота хлороводородная;хлороводородной кислоты раствор;раствор хлороводородной кислоты|ph-regulator
+calcium-hydrogen-phosphate|кальция гидрофосфат|calcium hydrogen phosphate|кальция гидрофосфата дигидрат;кальция гидрофосфат безводный;дикальцийфосфат;кальция гидрофосфат дигидрат;кальция фосфат двузамещенный|filler,binder
+indigo-carmine|индигокармин|indigo carmine|краситель индигокармин;индигокармин Е132;краситель индигокармин (Е132);краситель индиго кармин;индиготин|colorant
+indigo-carmine-lake|индигокармин алюминиевый лак|indigo carmine aluminium lake|алюминиевый лак на основе индигокармина;краситель индигокармин алюминиевый лак;алюминиевый индигокармин лак;алюминиевый лак индигокармина;краситель алюминиевый лак индигокармин;алюминиевый лак на основе красителя индигокармина;лак алюминиевый на основе красителя индигокармина;алюминиевый лак на основе красителя индигокармин|colorant
+quinoline-yellow-lake|хинолиновый желтый алюминиевый лак|quinoline yellow aluminium lake|алюминиевый лак на основе хинолинового желтого;краситель хинолиновый желтый алюминиевый лак;алюминиевый лак хинолинового желтого;краситель алюминиевый лак хинолиновый желтый;лак алюминиевый на основе красителя хинолинового желтого;алюминиевый лак на основе красителя хинолинового желтого;лак алюминиевый на основе красителя хинолиновый желтый|colorant
+sunset-yellow-lake|солнечный закат желтый алюминиевый лак|sunset yellow aluminium lake|алюминиевый лак на основе солнечного заката желтого;краситель алюминиевый лак солнечный закат желтый;алюминиевый лак красителя солнечный закат желтый;алюминиевый лак на основе красителя солнечного заката желтого;лак алюминиевый на основе красителя солнечного заката желтого;краситель солнечный закат желтый алюминиевый лак|colorant
+cetyl-alcohol|цетиловый спирт|cetyl alcohol|спирт цетиловый|emulsifier,thickener
+cetostearyl-alcohol|цетостеариловый спирт|cetostearyl alcohol|спирт цетостеариловый|emulsifier,thickener
+stearyl-alcohol|стеариловый спирт|stearyl alcohol|спирт стеариловый|emulsifier,thickener
+azorubine|азорубин|azorubine|краситель азорубин;кармуазин;азорубин (кармуазин);азорубин Е122;краситель азорубин Е122|colorant
+tromethamine|трометамол|tris(hydroxymethyl)aminomethane|трометамин;трис;трис(гидроксиметил)аминометан;трисамин|buffer,ph-regulator
+flavouring|ароматизатор|flavour|вкусовая добавка;ароматическая добавка;вкусоароматическая добавка|flavour
+beeswax|воск пчелиный|beeswax|воск белый;воск пчелиный белый;воск пчелиный желтый;воск|thickener,glazing
+vanillin|ванилин|vanillin||flavour
+poloxamer|полоксамер|poloxamer|полоксамер 188;полоксамер 407;проксанол 268;плюроник;полоксамер-188;полоксамер-407|surfactant,solubilizer,emulsifier
+butylhydroxytoluene|бутилгидрокситолуол|butylated hydroxytoluene|ионол;дибунол;бутилокситолуол;БГТ;агидол;бутилгидрокситолуол Е321;бутилокситолуол (ионол)|antioxidant
+butylhydroxyanisole|бутилгидроксианизол|butylated hydroxyanisole|бутилокси анизол;бутилоксианизол;БГА|antioxidant
+tartaric-acid|винная кислота|tartaric acid|кислота винная|ph-regulator
+dimethicone|диметикон|dimethicone|полидиметилсилоксан;силикон;полиметилсилоксан;диметикон 350;эмульсия диметикона|antifoam,emollient
+xanthan-gum|ксантановая камедь|xanthan gum|камедь ксантановая;ксантан;ксантановая смола|thickener,stabilizer
+methylcellulose|метилцеллюлоза|methylcellulose|метилцеллюлозы|thickener,binder
+macrogol-glycerol-hydroxystearate|макрогола глицерилгидроксистеарат|macrogolglycerol hydroxystearate|макроголглицерола гидроксистеарат;кремофор RH 40;макрогола глицерилгидроксистеарат 40;полиоксил 40 гидрогенизированное касторовое масло;макроголглицерол гидроксистеарат|solubilizer,surfactant,emulsifier
+macrogol-glycerol-ricinoleate|макрогола глицерилрицинолеат|macrogolglycerol ricinoleate|макроголглицерола рицинолеат;кремофор EL;макрогола глицерилрицинолеат 35;полиоксил 35 касторовое масло;макроголглицерол рицинолеат|solubilizer,surfactant,emulsifier
+lanolin|ланолин|lanolin|ланолин безводный;шерстный жир;вулфеджир;ланолин безводный (ланолин)|ointment-base,emulsifier
+potassium-sorbate|калия сорбат|potassium sorbate|сорбат калия|preservative
+sorbic-acid|сорбиновая кислота|sorbic acid|кислота сорбиновая|preservative
+brilliant-blue|краситель бриллиантовый голубой|brilliant blue FCF|бриллиантовый голубой;бриллиантовый синий;краситель бриллиантовый синий;бриллиантовый голубой Е133;краситель бриллиантовый голубой Е133|colorant
+ponceau-4r|краситель пунцовый|ponceau 4R|понсо 4R;пунцовый 4R;пунцовый;краситель пунцовый Понсо 4R;краситель пунцовый [Понсо 4R];краситель Понсо 4R;краситель пунцовый 4R;понсо|colorant
+patent-blue|краситель синий патентованный|patent blue V|синий патентованный;патентованный синий;краситель патентованный синий;краситель синий патентованный V|colorant
+allura-red|краситель очаровательный красный|allura red AC|очаровательный красный;краситель красный очаровательный;очаровательный красный Е129;краситель очаровательный красный АС|colorant
+tartrazine|тартразин|tartrazine|краситель тартразин;краситель желтый тартразин;тартразин Е102|colorant
+erythrosine|эритрозин|erythrosine|краситель эритрозин;эритрозин Е127|colorant
+carmine|кармин|carmine|краситель кармин|colorant
+glycine|глицин|glycine||buffer,stabilizer
+dextrose|декстроза|glucose|глюкоза;декстрозы моногидрат;виноградный сахар;декстроза безводная|filler,sweetener,tonicity
+polyethylene-oxide|полиэтиленоксид|polyethylene oxide|полиокс;полиэтиленоксид 6000;полиэтиленоксид 400;полиэтиленоксид 1500|sustained-release,thickener
+ethylcellulose|этилцеллюлоза|ethyl cellulose|этилцеллюлозы|sustained-release,film-coating
+shellac|шеллак|shellac||glazing,film-coating
+isopropanol|изопропанол|isopropyl alcohol|спирт изопропиловый;изопропиловый спирт;пропанол-2|solvent,preservative
+isopropyl-myristate|изопропилмиристат|isopropyl myristate|изопропил миристат|penetration-enhancer,emollient,solvent
+magnesium-carbonate|магния карбонат|magnesium carbonate|магния карбонат основной;магния гидроксикарбонат;карбонат магния;магния карбонат тяжелый;магния карбонат легкий|filler,glidant
+lactic-acid|молочная кислота|lactic acid|кислота молочная|ph-regulator,buffer
+zinc-oxide|цинка оксид|zinc oxide|оксид цинка|opacifier,colorant
+polydextrose|полидекстроза|polydextrose||filler,humectant
+hyetellose|гиэтеллоза|hyetellose|гидроксиэтилцеллюлоза;оксиэтилцеллюлоза;гидроксиэтилцеллюлоза|thickener,gelling
+castor-oil|касторовое масло|castor oil|масло касторовое;клещевины обыкновенной семян масло;клещевины масло;масло клещевины|solvent,emollient
+sodium-lauryl-sulfate|натрия лаурилсульфат|sodium dodecyl sulfate|натрия додецилсульфат;лаурилсульфат натрия;лаурилсульфат;ЛСН|surfactant
+medium-chain-triglycerides|среднецепочечные триглицериды|medium-chain triglyceride|триглицериды среднецепочечные;триглицериды средней цепи;миглиол;триглицериды жирных кислот среднецепочечные|solvent,emollient
+lecithin|лецитин|lecithin|лецитин соевый;соевый лецитин;фосфолипиды;лецитин яичный;яичный лецитин|emulsifier,surfactant
+cocoa-butter|масло какао|cocoa butter|какао-масло|suppository-base,ointment-base
+acacia|акации камедь|gum arabic|гуммиарабик;камедь акации;камедь аравийская;аравийская камедь|thickener,emulsifier,binder
+carnauba-wax|воск карнаубский|carnauba wax|карнаубский воск|glazing
+emulsifying-wax|воск эмульсионный|emulsifying wax|эмульсионный воск|emulsifier
+diethyl-phthalate|диэтилфталат|diethyl phthalate||plasticizer
+dibutyl-phthalate|дибутилфталат|dibutyl phthalate||plasticizer
+sodium-carbonate|натрия карбонат|sodium carbonate|натрия карбонат безводный;карбонат натрия;натрия карбонат моногидрат|ph-regulator,buffer
+maltitol|мальтитол|maltitol||sweetener,filler
+xylitol|ксилитол|xylitol||sweetener,filler
+sucralose|сукралоза|sucralose||sweetener
+acesulfame-potassium|ацесульфам калия|acesulfame potassium|ацесульфам К;ацесульфам;ацесульфам-калий|sweetener
+maltodextrin|мальтодекстрин|maltodextrin||filler,binder,carrier
+cellacefate|целлацефат|cellulose acetate phthalate|целлюлозы ацетатфталат;ацетилфталилцеллюлоза;целлюлозы ацетат фталат|enteric-coating
+hypromellose-phthalate|гипромеллозы фталат|hypromellose phthalate|гидроксипропилметилцеллюлозы фталат;фталат гипромеллозы|enteric-coating
+sodium-tetraborate|натрия тетраборат|sodium tetraborate|натрия тетрабората декагидрат;бура;натрия тетраборат декагидрат;натрия тетраборат безводный;динатрия тетраборат|buffer,preservative
+benzoic-acid|бензойная кислота|benzoic acid|кислота бензойная|preservative
+acetic-acid|уксусная кислота|acetic acid|кислота уксусная;уксусная кислота ледяная;кислота уксусная ледяная;уксусной кислоты раствор;уксусная кислота разведенная;кислота уксусная разведенная;уксусной кислоты разведенной раствор;кислота уксусная 30 %|ph-regulator,buffer
+tetrafluoroethane|тетрафторэтан|norflurane|хладон 134а;HFA-134a;1,1,1,2-тетрафторэтан;норфлуран;гидрофторалкан 134а;тетрафторэтан (хладон 134а)|propellant
+cyclodextrin|бетадекс|betadex|бета-циклодекстрин;β-циклодекстрин;циклодекстрин|solubilizer,stabilizer
+hydroxypropyl-betadex|гидроксипропилбетадекс|hydroxypropyl-beta-cyclodextrin|гидроксипропил-бета-циклодекстрин;2-гидроксипропил-β-циклодекстрин;гидроксипропилбетадекс|solubilizer,stabilizer
+sodium-alginate|натрия альгинат|sodium alginate|альгинат натрия|thickener,gelling
+pectin|пектин|pectin|пектин цитрусовый|gelling,thickener
+agar|агар|agar|агар-агар|gelling,thickener
+guar-gum|гуаровая камедь|guar gum|камедь гуара;гуаран|thickener
+chitosan|хитозан|chitosan|хитозана гидрохлорид|binder,thickener
+sodium-phosphate-tribasic|натрия фосфат|trisodium phosphate|тринатрия фосфат;натрия фосфат трехзамещенный|buffer,ph-regulator
+potassium-hydroxide|калия гидроксид|potassium hydroxide|едкое кали;калия гидроксид раствор;калий едкий|ph-regulator
+ammonia|аммиак|ammonia|аммиака раствор;раствор аммиака;аммиак раствор;аммиак водный;аммиака раствор концентрированный;аммиак водный концентрированный|ph-regulator
+phosphoric-acid|фосфорная кислота|phosphoric acid|кислота фосфорная;ортофосфорная кислота;кислота ортофосфорная;кислота фосфорная разведенная|ph-regulator
+sulfuric-acid|серная кислота|sulfuric acid|кислота серная|ph-regulator
+nitrogen|азот|nitrogen|азот медицинский|carrier
+calcium-carbonate|кальция карбонат|calcium carbonate|карбонат кальция;мел;мел осажденный;кальция карбонат осажденный|filler,colorant
+calcium-sulfate|кальция сульфат|calcium sulfate|кальция сульфата дигидрат;кальция сульфат дигидрат;гипс|filler
+calcium-silicate|кальция силикат|calcium silicate||glidant,adsorbent
+magnesium-silicate|магния силикат|magnesium silicate|магния трисиликат;магния алюмосиликат|glidant,adsorbent
+magnesium-oxide|магния оксид|magnesium oxide|оксид магния;магния окись|filler,ph-regulator
+aluminium-hydroxide|алюминия гидроксид|aluminium hydroxide|алюминия гидроксид гель;гидроксид алюминия|stabilizer
+dextrin|декстрин|dextrin||binder,filler
+cellulose-powdered|целлюлоза порошкообразная|cellulose|целлюлоза порошковая|filler,binder
+hydrogenated-castor-oil|касторовое масло гидрогенизированное|hydrogenated castor oil|масло касторовое гидрогенизированное;гидрогенизированное касторовое масло|lubricant,thickener
+hydrogenated-vegetable-oil|масло растительное гидрогенизированное|hydrogenated vegetable oil|гидрогенизированное растительное масло;масло хлопковое гидрогенизированное|lubricant,binder
+sunflower-oil|масло подсолнечное|sunflower oil|подсолнечника масло;масло подсолнечника;подсолнечное масло;масло подсолнечное рафинированное;масло подсолнечное рафинированное дезодорированное|solvent,emollient
+soybean-oil|соевое масло|soybean oil|масло соевое;соевого бобов масло;масло соевых бобов|solvent,emollient
+peanut-oil|арахисовое масло|peanut oil|масло арахисовое|solvent
+olive-oil|оливковое масло|olive oil|масло оливковое|solvent,emollient
+peach-oil|персиковое масло|peach kernel oil|масло персиковое|solvent
+almond-oil|миндальное масло|almond oil|масло миндальное|solvent
+sesame-oil|кунжутное масло|sesame oil|масло кунжутное|solvent
+glyceryl-monostearate|глицерилмоностеарат|glyceryl monostearate|глицерила моностеарат;моностеарат глицерина;глицерол моностеарат;глицерил стеарат|emulsifier,thickener
+macrogol-cetostearyl-ether|макрогола цетостеариловый эфир|cetomacrogol|макрогола цетостеарилового эфира;цетомакрогол;макрогол цетостеариловый эфир;макрогола 25 цетостеариловый эфир|emulsifier,surfactant
+sorbitan-oleate|сорбитана олеат|sorbitan monooleate|сорбитан моноолеат;сорбитана моноолеат|emulsifier,surfactant
+sorbitan-stearate|сорбитана стеарат|sorbitan monostearate|сорбитан моностеарат;сорбитана моностеарат|emulsifier,surfactant
+menthol|ментол|menthol|ментол рацемический|flavour,penetration-enhancer
+camphor|камфора|camphor|камфора рацемическая;камфора синтетическая|penetration-enhancer
+eucalyptus-oil|эвкалиптовое масло|eucalyptus oil|масло эвкалиптовое;эвкалипта масло|flavour
+peppermint-oil|мяты перечной масло|peppermint oil|масло мяты перечной;мятное масло;масло мятное;мяты перечной листьев масло;масло мяты перечной листьев|flavour
+lavender-oil|лаванды масло|lavender oil|масло лаванды;лавандовое масло|flavour
+threonine|треонин|threonine||stabilizer
+silicon-dioxide-hydrate|кремния диоксида гидрат|hydrated silica|кремния диоксид гидратированный;гидратированный кремния диоксид|glidant,adsorbent
+ascorbyl-palmitate|аскорбил пальмитат|ascorbyl palmitate|аскорбила пальмитат;аскорбиновой кислоты пальмитат|antioxidant
+tocopherol|токоферол|alpha-tocopherol|альфа-токоферол;α-токоферол;dl-альфа-токоферол|antioxidant
+tocopherol-acetate|токоферола ацетат|alpha-tocopheryl acetate|альфа-токоферола ацетат;токоферил ацетат;α-токоферола ацетат|antioxidant
+ascorbic-acid|аскорбиновая кислота|ascorbic acid|кислота аскорбиновая|antioxidant
+trolamine|троламин|triethanolamine|триэтаноламин;триэтаноламин;тринатрия;троламин (триэтаноламин)|ph-regulator,emulsifier
+meglumine|меглюмин|meglumine|N-метилглюкамин;метилглюкамин;мегулюмин|solubilizer,ph-regulator
+chlorhexidine|хлоргексидин|chlorhexidine|хлоргексидина биглюконат;хлоргексидина биглюконат раствор;хлоргексидина диглюконат;хлоргексидин биглюконат|preservative
+simethicone|симетикон|simethicone|симетикона эмульсия;эмульсия симетикона;полидиметилсилоксан активированный;симетикон эмульсия|antifoam
+suppository-base|основа для суппозиториев|suppository base|основа суппозиторная;основа для свечей;основа суппозиторная жировая;основа для суппозиториев (витепсол)|suppository-base
+emulsifier-t2|эмульгатор Т-2|emulsifier T-2|эмульгатор Т;эмульгатор Nº 1;эмульгатор №1;эмульгатор Т 2;эмульгатор № 1;эмульгатор|emulsifier
+starch-syrup|патока крахмальная|glucose syrup|патока;патока картофельная;патока глюкозная|sweetener,binder,thickener
+wheat-flour|мука пшеничная|wheat flour|мука;мука пшеничная высшего сорта|filler,binder
+cholesterol|холестерол|cholesterol|холестерин|stabilizer,emulsifier
+m-cresol|метакрезол|m-cresol|м-крезол;крезол;метакрезол (м-крезол)|preservative
+acryl-eze|Акрил-из|Acryl-EZ|акрил-из белый;Акрил-Из;акрилиз;Acryl-EZ;акрил-из|film-coating,enteric-coating
+film-coating-mix|смесь для пленочного покрытия|film coating mix|готовая смесь для пленочной оболочки;готовая пленочная оболочка;сухая смесь для пленочного покрытия;готовая смесь для пленочного покрытия;смесь для пленочной оболочки;готовая смесь для пленочной оболочки белая;смесь для пленочной оболочки сухая;пленочная оболочка готовая|film-coating
+sodium-lactate|натрия лактат|sodium lactate|лактат натрия|buffer,ph-regulator
+cetyl-palmitate|цетилпальмитат|cetyl palmitate|цетиловый эфир пальмитиновой кислоты|thickener,ointment-base
+macrogol-stearyl-ether|макрогола стеариловый эфир|macrogol stearyl ether|макрогол стеариловый эфир;полиоксиэтилен стеариловый эфир|emulsifier,surfactant
+dye|краситель|dye|красители;краситель пищевой;пигмент|colorant
+brilliant-green|бриллиантовый зеленый|brilliant green|зеленка;краситель бриллиантовый зеленый|colorant,preservative
+povidone-iodine|повидон-йод|povidone-iodine|повидон йод|preservative
+sodium-hydrogen-sulfite|натрия гидросульфит|sodium bisulfite|натрия бисульфит;натрия гидросульфит;бисульфит натрия|antioxidant
+potassium-metabisulfite|калия метабисульфит|potassium metabisulfite|калия пиросульфит;калия дисульфит|antioxidant
+sodium-thiosulfate|натрия тиосульфат|sodium thiosulfate|натрия тиосульфат пентагидрат;тиосульфат натрия|antioxidant
+thiourea|тиомочевина|thiourea||antioxidant
+sodium-formaldehyde-sulfoxylate|натрия формальдегидсульфоксилат|sodium formaldehyde sulfoxylate|ронгалит;натрия сульфоксилат формальдегид|antioxidant
+chlorobutanol|хлорбутанол|chlorobutanol|хлорбутанола гемигидрат;хлорбутанол гемигидрат;хлоробутанол|preservative
+phenol|фенол|phenol|фенол кристаллический;фенол жидкий|preservative
+phenoxyethanol|феноксиэтанол|phenoxyethanol|2-феноксиэтанол|preservative
+chlorocresol|хлорокрезол|chlorocresol|парахлорметакрезол;хлоркрезол|preservative
+thiomersal|тиомерсал|thiomersal|мертиолят;мерьтиолят;тимеросал|preservative
+benzethonium-chloride|бензетония хлорид|benzethonium chloride|бензетон;бензетония хлорид раствор|preservative,surfactant
+cetylpyridinium-chloride|цетилпиридиния хлорид|cetylpyridinium chloride|цетилпиридиний хлорид;цетилпиридиния хлорид моногидрат|preservative,surfactant
+sodium-propionate|натрия пропионат|sodium propionate|пропионат натрия|preservative
+calcium-propionate|кальция пропионат|calcium propionate|пропионат кальция|preservative
+glycerol-formal|глицерина формаль|glycerol formal||solvent
+dimethylacetamide|диметилацетамид|dimethylacetamide|N,N-диметилацетамид|solvent
+benzyl-benzoate|бензилбензоат|benzyl benzoate|бензил бензоат|solvent
+ethyl-oleate|этилолеат|ethyl oleate|этиловый эфир олеиновой кислоты|solvent
+oleic-acid|олеиновая кислота|oleic acid|кислота олеиновая|emulsifier,penetration-enhancer
+palmitic-acid|пальмитиновая кислота|palmitic acid|кислота пальмитиновая|lubricant
+lauric-acid|лауриновая кислота|lauric acid|кислота лауриновая|emulsifier
+linoleic-acid|линолевая кислота|linoleic acid|кислота линолевая|emollient
+glyceryl-palmitostearate|глицерилпальмитостеарат|glyceryl palmitostearate|глицерола пальмитостеарат;прециролг ато 5|lubricant,binder
+glyceryl-dibehenate|глицерил дибегенат|glyceryl behenate|глицерила дибегенат;компритол;компритол 888 АТО|lubricant
+sucrose-esters|эфиры сахарозы и жирных кислот|sucrose esters|сахарозы эфиры жирных кислот;сахарозоглицериды|emulsifier,surfactant
+polyoxyl-stearate|макрогола стеарат|macrogol stearate|полиоксил стеарат;макрогол стеарат;полиоксиэтилен стеарат|emulsifier,surfactant
+propylene-glycol-alginate|пропиленгликоля альгинат|propylene glycol alginate||thickener,stabilizer
+carrageenan|каррагенан|carrageenan|каррагинан|gelling,thickener
+gellan-gum|геллановая камедь|gellan gum|камедь геллановая|gelling,thickener
+locust-bean-gum|камедь рожкового дерева|locust bean gum|камедь бобов рожкового дерева;ксантан и камедь рожкового дерева|thickener
+tragacanth|трагакант|tragacanth|камедь трагаканта|thickener,binder
+alginic-acid|альгиновая кислота|alginic acid|кислота альгиновая|thickener,disintegrant
+silicified-microcrystalline-cellulose|целлюлоза микрокристаллическая силицифицированная|silicified microcrystalline cellulose|силицифицированная микрокристаллическая целлюлоза|filler,binder
+cellulose-acetate|целлюлозы ацетат|cellulose acetate|ацетат целлюлозы|sustained-release,film-coating
+hypromellose-acetate-succinate|гипромеллозы ацетатсукцинат|hypromellose acetate succinate|гипромеллозы ацетат сукцинат|enteric-coating
+polyvinyl-acetate-phthalate|поливинилацетатфталат|polyvinyl acetate phthalate||enteric-coating
+polyvinyl-acetate|поливинилацетат|polyvinyl acetate|поливинилацетата дисперсия 30 %|film-former,sustained-release
+ammonio-methacrylate-copolymer|аммонийметакрилата сополимер|ammonio methacrylate copolymer|эудрагит RS;эудрагит RL;аммонио метакрилатный сополимер|sustained-release,film-coating
+basic-butylated-methacrylate-copolymer|бутилметакрилат-диметиламиноэтилметакрилат-метилметакрилата сополимер|basic butylated methacrylate copolymer|основной бутилированный метакрилатный сополимер|film-coating,taste-masking
+ethyl-acrylate-methyl-methacrylate-copolymer|этилакрилата и метилметакрилата сополимер|ethyl acrylate and methyl methacrylate copolymer|эудрагит NE 30 D;эудрагит NE;этилакрилат метилметакрилат сополимер|sustained-release,film-coating
+eudragit|эудрагит|Eudragit||film-coating
+polacrilin-potassium|полакрилин калия|polacrilin potassium|амберлит IRP 88|disintegrant
+sodium-polystyrene|натрия полистиролсульфонат|sodium polystyrene sulfonate||carrier
+ion-exchange-resin|смола ионообменная|ion-exchange resin|ионообменная смола;холестирамин|carrier
+corn-oil|кукурузное масло|corn oil|масло кукурузное;масло кукурузы|solvent
+cottonseed-oil|хлопковое масло|cottonseed oil|масло хлопковое|solvent
+palm-oil|пальмовое масло|palm oil|масло пальмовое|ointment-base
+coconut-oil|кокосовое масло|coconut oil|масло кокосовое|ointment-base,suppository-base
+sea-buckthorn-oil|облепиховое масло|sea buckthorn oil|облепихи масло;масло облепихи|solvent
+fish-oil|рыбий жир|fish oil||solvent
+squalane|сквалан|squalane|сквален|emollient
+cetyl-esters-wax|цетиловых эфиров воск|cetyl esters wax|воск цетиловых эфиров|thickener
+paraffin-liquid-light|парафин жидкий легкий|light mineral oil||solvent,emollient
+polysiloxane|полисилоксан|silicone|силиконовая жидкость;полиорганосилоксан|antifoam,emollient
+urea|мочевина|urea|карбамид|humectant,penetration-enhancer
+lactobionic-acid|лактобионовая кислота|lactobionic acid||stabilizer
+sodium-gluconate|натрия глюконат|sodium gluconate|глюконат натрия|chelator,stabilizer
+glucono-delta-lactone|глюконо-дельта-лактон|gluconolactone|глюконолактон;D-глюконо-1,5-лактон|ph-regulator
+calcium-chloride|кальция хлорид|calcium chloride|кальция хлорид гексагидрат;кальция хлорида гексагидрат;хлорид кальция|tonicity,stabilizer
+potassium-chloride|калия хлорид|potassium chloride|хлорид калия|tonicity
+magnesium-chloride|магния хлорид|magnesium chloride|магния хлорида гексагидрат;магния хлорид гексагидрат;хлорид магния|tonicity,stabilizer
+magnesium-sulfate|магния сульфат|magnesium sulfate|магния сульфат гептагидрат|stabilizer
+sodium-sulfate|натрия сульфат|sodium sulfate|натрия сульфат безводный;сульфат натрия;глауберова соль|filler,tonicity
+potassium-phosphate-dibasic|калия гидрофосфат|dipotassium hydrogen phosphate|калия фосфат двузамещенный;дикалия гидрофосфат|buffer,ph-regulator
+potassium-hydrogen-carbonate|калия гидрокарбонат|potassium bicarbonate|калия бикарбонат|ph-regulator,buffer
+calcium-phosphate-tribasic|кальция фосфат|tricalcium phosphate|трикальция фосфат;кальция фосфат трехзамещенный|filler,glidant
+calcium-lactate|кальция лактат|calcium lactate|кальция лактата пентагидрат;лактат кальция|buffer,filler
+calcium-gluconate|кальция глюконат|calcium gluconate|кальция глюконат моногидрат;глюконат кальция|stabilizer
+zinc-stearate|цинка стеарат|zinc stearate|стеарат цинка|lubricant
+aluminium-stearate|алюминия стеарат|aluminium stearate||thickener
+stearyl-macrogol-glycerides|стеароил макроглицериды|stearoyl polyoxylglycerides||solubilizer,surfactant
+lauroyl-macrogolglycerides|лауроил макроглицериды|lauroyl polyoxylglycerides||solubilizer,surfactant
+d-alpha-tocopheryl-peg-succinate|токоферсолан|tocofersolan|витамин Е ПЭГ сукцинат;токоферола полиэтиленгликоля сукцинат|solubilizer,surfactant
+azorubine-lake|азорубин алюминиевый лак|azorubine aluminium lake|алюминиевый лак на основе красителя азорубин;алюминиевый лак на основе красителя азорубина;алюминиевый лак на основе красителя азорубин (кармуазин);краситель азорубин алюминиевый лак|colorant
+ethylenediamine|этилендиамин|ethylenediamine||stabilizer
+acetone|ацетон|acetone||solvent

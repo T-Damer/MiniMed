@@ -36,10 +36,17 @@ const ALL_PARTS: ReadonlySet<HeatPart> = new Set();
 const WEEKDAYS = ['', 'Пн', '', 'Ср', '', 'Пт', '', ''];
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
 
-export function heatDayLabel(day: HeatDay, since?: string): string {
+export function heatDayLabel(
+  day: HeatDay,
+  since?: string,
+  today?: string,
+  changedDays?: ReadonlySet<string>,
+): string {
   const date =
     dayStart(day.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) +
-    (since && day.day === since ? ', начало дневника' : '');
+    (today && day.day === today ? ', сегодня' : '') +
+    (since && day.day === since ? ', начало дневника' : '') +
+    (changedDays?.has(day.day) ? ', план изменён' : '');
   if (since && day.day < since && day.entries === 0) return `${date}: до начала дневника`;
   const symptoms = day.symptoms > 0 ? ', есть симптомы' : '';
   if (day.total > 0)
@@ -118,6 +125,10 @@ export function DiaryHeatmap(props: {
    * 2026-10-30), still tappable so a missed day can be filled in later.
    */
   readonly since?: string;
+  /** Days a doctor changed the plan (DIARY20): a yellow dot in the corner of the day. */
+  readonly changedDays?: ReadonlySet<string>;
+  /** Inside a sheet or popover that is its own card: no frame or paper of its own. */
+  readonly bare?: boolean;
 }): JSX.Element {
   let scroller: HTMLDivElement | undefined;
   let grid: HTMLDivElement | undefined;
@@ -249,7 +260,11 @@ export function DiaryHeatmap(props: {
   };
 
   return (
-    <section class="diary-heat" aria-label="Календарь отметок">
+    <section
+      class="diary-heat"
+      classList={{ 'diary-heat--bare': props.bare === true }}
+      aria-label="Календарь отметок"
+    >
       <header class="diary-heat__head">
         <h3 class="diary-heat__title">{title()}</h3>
         <div class="diary-heat__tools">
@@ -364,11 +379,17 @@ export function DiaryHeatmap(props: {
                             'diary-heat__day--selected': day.day === props.selected,
                             'diary-heat__day--today': day.day === props.today,
                             'diary-heat__day--future': day.day > props.today,
+                            'diary-heat__day--changed': props.changedDays?.has(day.day) === true,
                           }}
                           disabled={day.day > props.today}
                           tabindex={day.day === props.selected ? 0 : -1}
-                          title={heatDayLabel(day, props.since)}
-                          aria-label={heatDayLabel(day, props.since)}
+                          title={heatDayLabel(day, props.since, props.today, props.changedDays)}
+                          aria-label={heatDayLabel(
+                            day,
+                            props.since,
+                            props.today,
+                            props.changedDays,
+                          )}
                           aria-pressed={day.day === props.selected}
                           onClick={() => props.onSelect(day.day)}
                         >
@@ -384,6 +405,8 @@ export function DiaryHeatmap(props: {
         </div>
       </div>
       <div class="diary-heat__legend" aria-hidden="true">
+        {/* What the colours mean (owner 2026-11-03): how much of the day's plan was marked. */}
+        <span class="diary-heat__legend-title">Заполненность</span>
         <span class="diary-heat__legend-text">Меньше</span>
         <For each={[0, 1, 2, 3, 4]}>
           {(level) => <span class={`diary-heat__swatch diary-heat__swatch--level-${level}`} />}

@@ -4,6 +4,212 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- «Психический статус» (Инструменты, `#/notes/psy-status`): a constructor of the mental and somatic status and the
+  pharmacological history — phrases by section, each section's status, the doctor's own wording, contradiction checks,
+  the text at three levels of detail, «Сохранить» into the patient's card. Filled from a conversation: a recording
+  («Психический статус» in the recording window) or pasted text proposes phrases, each with the quoted words of the
+  conversation; a tap on a quote shows it in the text; nothing is added until the doctor accepts it. Catalog from a
+  friend's offline constructor 1.0.0, credited in «?».
+
+## [0.6.92] - 2026-11-05
+
+- Security: access codes and pairing secrets no longer reach the server (it gets only proofs); an invite code is
+  stored hashed and works once; only the owner makes a code for the patient's own phone, and removing a curator voids
+  their unused codes; the server checks who may write a plan, a profile or consent; push addresses, sign-in attempts
+  and request sizes are limited; links in DOCX and EPUB documents keep only safe addresses.
+- Doctor's list: «Создать пациента» sits at the top of the list, also when it has patients. A patient begun and not
+  yet added stays as a «Черновик» card under it — the card opens the form where it was left, also after a reload; adding
+  the patient or the card's trash button removes it. Drafts stay on this device only, sealed, and go with sign-out.
+
+- Demo showcase: the demo doctor's four patients are made again once a day when the demo opens (history ends today,
+  the fox's visit stays «завтра»), and the demo doctor has a phone (+7 777 777-77-77), so the visit card offers a call.
+
+- Demo: the fox (and every visitor's own patient diary) has a visit tomorrow at 14:30 and a fasting glucose test; the
+  owl has a valproate level and ALT to take.
+- Lab result sheet: the result and the day sit side by side at one height, the unit inside the box, the number written
+  with a comma («5,4 ммоль/л»); the day's calendar opens above the sheet in the patient's diary (it opened beneath it).
+- Notifications: the second line reads in the dark theme (it kept sonner's light-theme grey).
+- A held press shows: a calendar day, an icon button, a chip or a row is shaded in its own text colour while the finger
+  is down (the ≈0.96 shrink alone was a pixel or two hidden under the fingertip); keys on a ledge still sink.
+- Diary deck: 19 slides — «Сигнум», «Отметки о влечениях» (substance use, craving, RUS-AUDIT/OCDS), visits and lab
+  tests, new screenshots.
+
+## [0.6.91] - 2026-11-04
+
+- The diaries app is «Сигнум»: the doctors' site, the patient's diary and the joining documents carry the name.
+- Visits: the doctor books a visit in the patient's plan; the patient sees «Завтра у вас приём в 14:30» above the day,
+  where and what to bring, and a button that calls the doctor's phone.
+- Lab tests: the doctor asks for a test (prolactin on risperidone, lithium level, glucose and cholesterol on
+  olanzapine…) with a date and a reason; the editor offers the tests the plan's medicines call for. The patient types
+  the result in from the lab's printout; the doctor sees it in the day.
+- New measurements: glucose, activity (steps and active minutes) and meals with appetite, each with its own icon and
+  chart. Every row of the day shows what it is at a glance; a medicine shows its first letter on its form — a tablet,
+  a capsule, a bottle, an ampoule or a tube.
+- A questionnaire result opens every question with the patient's answer and its points; the result dialog shows one
+  date.
+- The medicine sheet is short: the name first, the rest slides in once a medicine is chosen; «Копия» copies the
+  schedule for the next medicine and says so.
+- Curators: the access (read or edit) is a small key beside the e-mail; «Девайсы пациента» with a phone icon.
+- «Никого не нашли» is a proper empty state; «Добавить пациента» spans the screen; «Описание состояния» is
+  «Своими словами»; the chosen questionnaire opens as the patient sees it.
+- Buttons with a ledge sink onto it when pressed; ticks are clean rounded squares; the install card invites instead of
+  warning; an update says it applies itself when the app is put away.
+
+## [0.6.90] - 2026-11-04
+
+- Patient diaries: before the diary starts, the patient reads and accepts three documents, each on its own — the
+  informed consent to remote follow-up, the consent to processing personal data and the remote-care contract (a short
+  summary and the full text; the clinic and doctor come from the doctor's «Врач и организация»). Nothing reaches the
+  doctor before that. The doctor's patient page shows when each was accepted; the patient re-reads them in
+  «Настройки». The texts are templates until the clinic's lawyer replaces them.
+- Carers (опекуны): the doctor adds a carer with the patient's consent; the carer's phone reads and marks the whole
+  diary, and every mark says who made it. The patient sees and removes carers in «Настройки» → «Доступ к дневнику».
+- Doctors' «Статистика»: «Настроить» chooses the lines, questionnaires, intake share and a track per medicine; the
+  period is a menu in the header that stays on screen, with any dates; the legend only names the lines.
+
+## [0.6.89] - 2026-11-04
+
+- Alcohol questionnaires: RUS-AUDIT and its 3-question RUS-AUDIT-S, the WHO tests validated in Russia (2021), with the
+  risk levels for women and men; and the Russian OCDS on thoughts about alcohol and craving, scored by its two factors.
+  The wording avoids blame. All three can be given to a patient in the doctors' diaries.
+
+## [0.6.88] - 2026-11-04
+
+- The doctors' diaries site opens on the sign-in alone: the first visit downloads 2.3 MB instead of over 40 MB. Once the
+  doctor is in, the whole app is fetched in the background, and every tab, patient page and chart opens without loading
+  anything; updates then arrive whole.
+- The diaries site carries only the questionnaire modules it uses, not the 10 MB catalog of all modules.
+
+## [0.6.87] - 2026-11-04
+
+- Diary charts: a tap shows that day first — its values in a card under the chart and a band over the day;
+  «Подробнее» opens the day.
+- A dose the patient marked as missed is a red cross on the medicine's chart and on «Статистика»; its card says what
+  was missed, why and the patient's own words.
+- Pressure and pulse/saturation no longer paint a red zone over the other line: a value past its own alarm level is a
+  larger red dot instead, and the upper pressure is drawn blue.
+- «Статистика»: medicines taken when needed no longer push the intake share past 100 %.
+- «Точно удалить?» stays readable under the mouse.
+
+## [0.6.86] - 2026-11-04
+
+- Patient diaries ask why a dose was missed: «Что помешало?» with one tap (forgot, didn't have it, ran out, side
+  effects, felt better, doubts, other), and doses that passed unmarked are asked about on the today screen. The doctor
+  sees the reasons in the day, under each medicine's count and in the week's summary; exports carry them (FHIR
+  status reason).
+- The «Точно удалить?» button is readable again.
+
+## [0.6.85] - 2026-11-03
+
+- The doctor's patient page fits one screen: «Статистика» is folded to one line and opens in place or full screen.
+- Charts: the red zone past every alarm level is always painted, every day or every other day is labelled, a tap opens
+  that day; the combined chart is called «Статистика».
+- Editing a patient's day looks like a mode of its own: «Редактирование» and the day under the name, cooler colours,
+  and the date opens the calendar.
+- The installed diaries open full screen again, without the page jumping when the system bars are pulled down.
+- New versions arrive by themselves: opening the app is enough. Vibration is off unless you turn it on.
+- A new diary icon, shown from the first frame; the install guide no longer names a browser.
+- Every questionnaire in the doctors' diaries opens at once and without a network.
+- Smoother everywhere: sheets and menus animate out, every button answers the press, pages no longer flash on arrival,
+  and a tap starts the transition at once.
+- The patient list has search, a greeting, counters for urgent, today and long-silent patients, and the curators of
+  each patient; a colleague's plan change is marked.
+
+## [0.6.84] - 2026-11-03
+
+- Doctor's patient page: a pencil on top («Редактировать») is the one way to change the patient's screen, plan and
+  tips; a big «Статистика» button heads the week in brief; the calendar opens a day with what the patient did, what
+  was missed and the day's records, and «Заполнить или изменить за пациента» opens that day's screen.
+- Plan versions: the calendar marks with a yellow dot the days a doctor changed the plan; the day says what changed
+  and who changed it. Two doctors editing one patient at once no longer overwrite each other: the second save is
+  merged onto the first, and where both changed the same thing the saving doctor is told.
+- Charts: «Статистика» starts with every measurement on one chart (each on its own scale, real values on tap), then
+  each chart in detail. Days past a red line are painted red behind the lines; the prescribed dose is a dotted line
+  that follows the plan in force on each day.
+- Editing in the dark theme uses calm accent-tinted frames instead of bright yellow.
+- «Опросники» in the doctors' diaries lists every questionnaire a diary can carry, then the doctor's own.
+- Faster diaries: the patient list comes back at once after a tab or page switch and refreshes quietly; the installed
+  diaries keep less on the phone (27 MB instead of 76 MB) and open from it; the patient's diary opens at once on a slow
+  network.
+- Sheets grow and shrink smoothly with their content; the QR sheet keeps its size while the code is made.
+- A «Наверх» button on long pages; a place the app scrolls to pulses once it is on screen.
+- The GitVerse copy carries only the diaries: it always opens as the doctors' «Дневники» (or the patient diary),
+  never the MiniMed reference app. The slides' QR codes open GitVerse directly; the slides still print `med.1damer.com`.
+
+## [0.6.83] - 2026-11-03
+
+- Patient diaries open from GitVerse Pages (`t-damer.gitverse.site/minimed`), which loads reliably in Russia;
+  `med.1damer.com`, its QR codes and the slides' links now lead there. Doctors sign in once on the new address;
+  diaries already kept on github.io keep working.
+
+## [0.6.82] - 2026-11-03
+
+- Patient diaries: the doctor can ask a patient to mark substance use — alcohol, nicotine, cannabis, opioids,
+  stimulants, sleeping pills or sedatives and other medicines taken without a prescription, with craving 0–10. The
+  patient answers in one evening row, «Ничего не было» in one tap; the doctor sees craving and amounts as charts.
+- More questionnaires for diaries: ШАС, EPDS, the Whooley questions and the psychological profiles (temperament,
+  egogram, Braverman, PAEI, team roles) join PHQ-9, GAD-7 and the Zung scales.
+- The doctor's patient page leads with the week: missed medicines, values over the red lines, questionnaire bands
+  and changes, days without records, an unpaired phone — the worrying first, each opening its chart. The charts
+  have a page of their own («Все графики»).
+- Calendar: the first day of tracking has a dashed ring, today a plain one.
+- Installed diaries keep the phone's status and navigation bars (no more jumping when the bar is pulled down), and
+  the status bar takes the header's colour. The doctor's diaries offer to install themselves as an app.
+
+## [0.6.81] - 2026-11-03
+
+- Drug cards: a row of seven icons — pregnancy, breastfeeding, children, elderly, liver, kidneys, driving — red,
+  amber, green or grey from what the open instruction says; a tap shows the sentences behind the colour, each one
+  jumping to its place in the text. It replaces the «Беременность, ГВ, дети» fold; the «Разделы» button is gone
+  (the contents button already does that).
+- The active substance's structural formula sits beside the drug's name; a tap shows the structure, the formula,
+  how it acts and its molecular targets. «Состав» lists each component with its role (действующее, наполнитель,
+  разрыхлитель…), each opening the same card.
+- Instruction text reads as written: printed-line wraps no longer turn into «- 14,0 мг» bullets or break words,
+  and page stamps («ИНСТРУКЦИЯ», «МЗ РФ», «ЛП-№…») no longer appear as section headings.
+- The reader's header buttons share one style; dotted paper on more cards.
+
+## [0.6.80] - 2026-11-02
+
+- Patient screen editor: each sheet shows what it edits with an icon next to its title. A medicine sheet can copy its
+  schedule for the next medicine — same form, times and meals, a new drug — in a sheet of its own.
+- New patient on a phone: «Создать и показать код» stays at the bottom of the screen while you scroll.
+- Doctor sign-in: «Демо — без регистрации» is a highlighted button instead of a separate tab; «Войти» and «Создать
+  аккаунт» switch on once the form is filled.
+
+## [0.6.79] - 2026-11-02
+
+- Demo: everybody who opens the demo now works in one shared demo account, so a whole room can scan the QR code at
+  once and watch each other's changes. The patient demo adds a guest diary to it, which leaves after a day.
+
+## [0.6.78] - 2026-11-02
+
+- Demo links for slides: `med.1damer.com/demo` opens the doctor's sign-in already on «Демо» — one tap and the demo
+  patients are there; `med.1damer.com/demo/patient` makes a demo diary with two weeks of entries on the visitor's
+  phone. Opened on the same device, the doctor's demo shows that diary too, with whatever the visitor marks.
+- Patient diaries without a connection: the doctor's list opens from the last copy kept on this device (encrypted
+  with the device key, only on a computer marked «Мой компьютер») and updates by itself when the connection is back.
+- The doctor can export a patient's records as HL7 FHIR (JSON) next to Excel and CSV.
+- The fine dotted paper of the diary calendar now covers the main cards of the app and the patient diary.
+
+## [0.6.77] - 2026-11-02
+
+- Patient diaries: «Демо — без регистрации» on the sign-in card opens a demo of the doctor's diaries on this device
+  without an e-mail or password: four demo patients are already there and cannot be archived; adding patients, changing
+  prescriptions, the day sheet and the patient's QR code work as usual. The same device returns to the same demo.
+- Medicine intake charts: from «Приём лекарств», «Графики приёма по дням» shows every medicine on the same days —
+  the dose taken each day (a skipped dose counts as 0) with dots for the prescribed dose; days before the diary began
+  stay empty.
+
+## [0.6.76] - 2026-11-02
+
+- New patient and the patient's screen on a wide window: the details and the button stay in view on the left while the
+  preview scrolls.
+- Diary calendar: today has a dashed double frame, the diary's first day a solid one, so the two no longer look alike.
+- Page headers: the faint large icon no longer sticks out past the dark band in a centred column, and it fades as the
+  header shrinks instead of moving next to the title.
+- Patient diary: while it opens, an icon and «Открываем дневник…» in the middle of the screen instead of a bare line.
+
 ## [0.6.75] - 2026-11-01
 
 - One date field everywhere instead of the phone's or browser's own picker: type «ДД.ММ.ГГГГ» (the dots come by

@@ -20,6 +20,588 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1)
+
+The phrase catalog comes from a friend's offline «Конструктор психиатрического статуса» 1.0.0, written
+for his own use without a licence; he gave it to the owner for MiniMed and the owner confirmed shipping
+it on 2026-11-05 (`packages/core/src/psy-status/NOTICE.md`). Credited in the screen's «?», no name.
+
+- **Data.** `packages/core/src/psy-status/catalog.ru.json`: the constructor's 3 modules, 23 sections,
+  127 phrases (code, text, tags, evidence: observed / reported / documented), the 5 section statuses,
+  17 conflict rules and 7 «also document» rules, converted unchanged. Contract
+  `packages/contracts/src/psy-status.ts` (document, entry, suggestion, quote). The core part is a
+  subpath export, `@localmed/core/psy-status`, so the catalog loads only with the screen's lazy chunk
+  (72 KB), not with the search worker or the core index.
+- **Generation and checks** (`document.ts`) follow the constructor: nothing normal is added by itself;
+  brief / standard / detailed text; conflicts, duplicates and missing companions listed.
+- **Filling from a transcript** (`fill.ts`, cues in `cues.ts`): deterministic, offline, no model.
+  Each cue names a phrase, an optional denial phrase and Russian word patterns. A statement is quoted
+  as its clause; a negation up to three words before or two after makes it a denial (no denial phrase →
+  nothing proposed); a question is a fact only when the next line starts with «да» / «нет», and the
+  quote then runs from the question to the answer. Each proposal carries up to three quotes in SCRIBE1's
+  `VisitNoteQuote` shape (line, UTF-16 offsets, the transcript's own wording); a phrase and its
+  opposite may both be proposed, and the conflict rules name it. Observed phrases are proposed only
+  from words a doctor dictates aloud («ориентирован во времени», «контакт продуктивный»).
+- **Screen** `apps/app/src/features/psy-status/`: patient row, «Заполнить по беседе» (a recording on
+  this device or pasted text), proposals with quotes (tap → the transcript sheet, quoted words marked),
+  «В статус» / ✕ / «Принять все», then modules → section chips → status chips → phrase list → own
+  wording; entries can be edited or removed and keep «из беседы» with their quotes; the text with
+  copy and «Сохранить». The recording window («Добавить в карту») has a «Психический статус» button.
+  Listed in tools search (group psychiatry, adults).
+- **Storage.** The status and transcript stay in memory for the app session and are dropped when the
+  patient vault locks. «Сохранить» adds a note «Психический статус» to the card and, as an encrypted
+  card file `psy-status-<eventId>`, the structured status with every quote and the recording id.
+- **Not done.** No vault-backed draft (closing the app loses an unsaved status), no free editing of
+  the final text with versions (the constructor had one), no user phrase library, no model proposer
+  (SCRIBE1's line citations would check one). The card does not yet show the stored quotes. Cue
+  coverage is a first set (≈45 phrases); measured only on made-up transcripts.
+- **Checks.** Core tests `packages/core/src/psy-status/*.test.ts` (filling from transcripts, quotes
+  equal their source spans, negations, answers, conflicts, text levels), app test
+  `psy-status-record.test.ts`; browser: paste → proposals → quote sheet → accept / dismiss → edit →
+  text at 1280 px and 375 px. Not checked: saving into a real vault, the recording-window button with
+  a real recording, a phone.
+
+## Release 0.6.92 — 2026-11-05
+
+- **In it:** SEC-AUDIT1 (security audit fixes), DIARY-DRAFT («Создать пациента», draft cards) and PRESS2 (press
+  shade). The diary API with the audit fixes was deployed before this release (0.6.91-e3e42d214), as SEC-AUDIT1 asks.
+- **CI fix.** `diary-substances.test.ts` issued its invitations with the real clock and checked them against a fixed
+  NOW (2026-11-03), so from 11-05 `issuedAt` was more than a day «in the future»; `issue()` now pins the clock to
+  2026-11-01 like `diary-miss-reasons.test.ts`.
+- **Checks.** `bun run check`, typecheck; vitest 19 405 passed; diary-server 24; e2e `diary-*` 80 passed on the
+  merged head. Not checked on a phone.
+
+## Security audit fixes — 2026-11-05 (STATE SEC-AUDIT1)
+
+Fixes for every finding of the quick security audit of the diary and the app (Cloudflare
+security-audit skill, run-1, report outside the repository in `~/security-audit-skill/MiniMed/run-1`).
+Server tests: `apps/diary-server/src/sec-audit.test.ts` and the storage contract («invites» step).
+
+- **Access codes never reach the server.** Sign-up sends `inviteProof(code)`; invites are stored as
+  `h1:` + `sha256(proof)`; plain codes stored before (used ones included) are re-keyed at the next
+  registration; the CLI stores the hash and prints the code. Old clients that send the code still
+  work. One code is spent once: the consume is conditional (`used_by IS NULL`) in both stores.
+- **Pairing secrets never reach the server.** The doctor stores `sha256(pairingProof(secret))`, the
+  phone sends the proof; the secret seals the epoch keys and stays in the link. Old phones that send
+  the secret still pair (the server derives the proof); codes made by old doctors' apps need old
+  phones or a new code. **Deploy the API before the pages**: new pages talk proofs only.
+- **Pairing roles.** Only the owner makes a code for the patient's own phone (it can withdraw consent
+  and wipe the diary); editors make carer codes. Removing a curator deletes the diary's unused codes.
+- **Record rules on the server.** `plan`/`profile` only from doctors, `consent` only from the
+  patient's own phone, `member-<id>` only from that phone; the replica no longer lets a refused
+  revision move an id on (a carer could block plan saves with revision 1 000 000).
+- **Push.** Endpoints must be https on port 443 with a public host name (no IP literals, local names
+  or credentials), at most 10 per person; sends do not follow redirects, time out after 10 s and go
+  8 at a time; old subscriptions that fail the rule are dropped at the next push. Alerts: 6 a minute
+  per phone.
+- **Sign-in limits.** Every attempt counts per account and caller address (12/min; the address is the
+  last `X-Forwarded-For` entry, appended by API Gateway or Caddy), only failures count per account
+  over all addresses (60/min), and 60 password checks a minute per address. A stranger can no longer
+  lock a doctor out from one address. The public demo password is checked with argon2 once per
+  instance, then by its digest.
+- **Body size.** 2 MiB in server mode too (`maxRequestBodySize`) and `request_body max_size 2MB` in
+  the Caddyfiles, as the serverless entry already had.
+- **Documents.** DOCX links keep only http(s)/mailto/tel/`#` addresses
+  (`features/library/document-links.ts`); the EPUB print path drops forms, buttons, `base`,
+  `meta http-equiv` and every attribute with a script address, tabs inside the scheme included
+  (`features/printing/epub-sanitize.ts`). Not checked in a WebView: no DOM in unit tests, and the
+  e2e suites were not run.
+- **Left as they were:** no CSP on the app shell yet (the strongest guard for both document paths);
+  the other hardening notes of the report.
+
+## «Создать пациента» and new-patient drafts — 2026-11-05 (STATE DIARY-DRAFT)
+
+Owner: a top-level «Создать пациента» also when the list has patients, and a patient begun on
+«Новый пациент» is a draft card in the list that continues the editing. The doctor's list now starts
+with `NewPatientShelf` (`features/diary/dashboard/NewPatientShelf.tsx`): the button, then one dashed
+card per draft (emoji, pseudonym or «Без имени», «Черновик» + when edited, a trash button that asks
+first). The round «+» FAB of the list is gone (the button replaces it; the header «+» stays), and the
+empty state keeps only «Посмотреть на демо». The first change on an empty form makes it a draft:
+`new-patient-drafts.ts` keeps every field (pseudonym, emoji, phone, birth date, the patient's screen,
+doctor, instruction) after each change, and the address becomes `#/notes/diaries/new/<draft>` in
+place, so a reload on the form, the browser back/forward and the card all reopen it. An untouched
+form leaves no draft. «Добавить пациента» removes the draft once the server has the patient; the
+form's header trash («Удалить черновик») and the card's trash remove it too. Storage: in memory for
+the page, and on the doctor's own computer («Мой компьютер») sealed with the device's
+non-extractable AES-GCM key next to the offline copy (IndexedDB `minimed-diary-doctor`, key
+`new-patients:<doctor id>`; `keepNewPatientDrafts` in `connected/doctor-account.ts`); sign-out drops
+it. Nothing of a draft goes to the server. On someone else's computer drafts last until the page is
+closed. Covered by `e2e/diary-new-draft.spec.ts` (create → leave → reload → card → reload on the
+form → create; discard from the card). Not tested on Android or iOS devices.
+
+## Press shade — 2026-11-04 (STATE PRESS2)
+
+Owner asked whether a tap feels like a press (a calendar day). Measured in headless Chromium as a
+phone (390×844, touch, CPU 4×): the 0.6.91 press (`components/press-feedback.ts`) starts within
+8–20 ms, holds ≥ 120 ms and springs back, but on a transparent control it is only the ≈0.96 scale —
+2.2 px on a 54 px calendar day, under the fingertip — so a held day looked exactly like its
+neighbour. Now a held press also shades the control in its own text colour
+(`components/press-feedback.css`, 12 %), as iOS highlights a touched control: `data-pressed` is
+`shade`, `ledge` (keys that sink, unchanged) or empty for a control that paints its own background
+image (striped vaccination cells, the camera shutter), which only scales. CSS `:active` scale rules
+do not stack with it on touch (`:active` does not match a touch press in Chromium's mobile mode).
+
+## Diary deck after 0.6.91, demo visits and lab tests — 2026-11-04 (STATE PROMO10)
+
+- `docs/promo/diary-presentation/`: 19 slides. The product is «Сигнум» (title, bands, analogues); new slides
+  «Отметки о влечениях» (the doctor picks substances and craving, the patient's evening sheet, the doctor's week) and
+  «Приёмы у врача и анализы» (lab suggestions by medicine, the visit card, the result sheet); new-patient, tracking,
+  curators (eye/gear key), building blocks and conclusion updated. Screenshots from a local build with the demo data
+  (`?profile=diaries` demo doctor, `/diary/#demo` guest, 390 px at 3×, the guest as an installed app).
+- Demo data (`demo-patients.ts`): a plan is drawn at the end of the history (`draft(now)`); the fox — base of every
+  guest diary — has a visit tomorrow 14:30 «Кабинет 12» and «Глюкоза натощак» within a week; the owl has
+  «Вальпроевая кислота в крови» and АЛТ within four days and a visit in five. The shared demo account keeps the demo
+  patients it already has, so the doctor's four get these only when the set is made again; guest diaries get them now.
+  The demo doctor's phone is +7 777 777-77-77 (invented, owner 2026-11-04), so «Позвонить» shows. The doctor's
+  four live a day: the first demo sign-in after that removes them and makes them again (`staleDemoPatients`,
+  `keepDemoSet` in `doctor-store.ts`) with the status «Обновляем демо-пациентов…»; two visitors renewing at the same
+  moment may briefly see a duplicate (STATE DEMO-REFRESH).
+- Patient diary: the lab sheet's result box takes the date field's frame and height (unit inside), the result is
+  printed with a comma; the shared dialog frame (`OverlayDialog`, the date field's calendar on phones) is styled in
+  `diary-shell.css` above the diary's sheets — before, the calendar opened beneath the lab sheet, unlaid.
+- Notifications: the description takes `--ink-soft` (sonner painted it #3f3f3f in both themes).
+
+## Diary pages on GitVerse Pages — 2026-11-03 (STATE DIARY-GV)
+
+- **Why.** github.io loads unreliably from Russian networks; GitVerse Pages (`*.gitverse.site`, no
+  custom domains) does. The doctors' app and the patient page are now published at
+  `https://t-damer.gitverse.site/minimed/` (repository `t_damer/minimed`); GitHub Pages keeps the full
+  app, and both talk to the same service.
+- **One variable.** Every public link goes through `med.1damer.com` (`/`, `/diary/#…`, `/demo`,
+  `/demo/patient` — QR codes, the slides, the doctor guide). The gateway redirects to
+  `DIARY_PAGES_URL` (`apps/diary-server/deploy/serverless/yandex.env`); the native shells' patient
+  link is `https://med.1damer.com/diary/` too. `DIARY_CORS_ORIGINS` allows both hosts.
+- **Only the diaries (owner 2026-11-03).** The copy is built with `VITE_APP_PROFILE=diaries`
+  (`state/app-profile.ts`, the profile swap in `index.html`): it is always the doctors' «Дневники»,
+  whatever the address or `?profile=off`, so the MiniMed reference app is not published there.
+- **The copy.** `scripts/diary-gitverse-publish.sh` builds it into a temporary folder and publishes
+  it without content packs (124 MB; the three boot files the service worker precaches stay), with a GitVerse workflow
+  (`actions/upload-pages-artifact@v1`, `actions/deploy-pages@v1`) that publishes it unprocessed. The
+  diaries profile needs no content: it boots, signs in and shows patients with none installed.
+- **GitVerse quirk.** A directory address with a query (`/minimed/?profile=diaries`) gets GitVerse's
+  not-found page (HTTP 200), so the redirects and the diaries manifest's `start_url` name
+  `index.html?profile=diaries` (the manifest `id` is unchanged, so installs keep their identity).
+  Missing files also answer 200 with that HTML page.
+- **Moving users.** Doctors sign in once on the new address (accounts live on the service). Patients
+  keep their diary where it is; new pairing links open on GitVerse. An app installed from github.io
+  stays there until reinstalled from `med.1damer.com`.
+- **Slides.** The QR codes open the GitVerse addresses directly (a whitelist-only network may not
+  resolve `med.1damer.com` through Cloudflare); the slides still print `med.1damer.com/demo`.
+  `docs/promo/diary-presentation/links.json` holds both, `tools/qr-links.ts` rebuilds and reads back
+  the codes. The API itself is still `med.1damer.com`.
+- **Verified.** The served copy: the redirects, CORS for both origins, the demo sign-in loading
+  patients in a desktop browser, service worker install; the locked copy turning `?profile=off#/search`
+  and `#/documents` into the diaries home. Not checked on the phone (locked).
+
+## Owner's list of ten, «Сигнум» — 2026-11-04 (STATE DIARY27, release 0.6.91)
+
+- **Press.** `components/press-feedback.ts` sets `data-pressed` for at least 120 ms; keys on a ledge (`.ui-button`
+  but quiet, the primary-depth controls) sink by the ledge's height in CSS instead of shrinking; the rest keep the
+  0.96 scale.
+- **Medicine sheet** (`PatientScreenEditor` `DrugFields`): no «Часто назначаете» chips (`frequent-drugs.ts` removed);
+  form, dose, times, signa, course and tip slide in after a pick or a typed name left; «Копия» in the sheet's actions,
+  a toast «Назначение скопировано».
+- **Answers.** `QuestionnairePoint.answers` (`questionnaireAnswers`, reverse items scored as the scale does);
+  `QuestionnaireAnswers` is a button that opens a sheet — under an alert's result and under a questionnaire record in
+  the doctor's day. The charts' result dialog has the date in its subtitle only.
+- **Curators.** `AccessModeMenu` (eye / pencil + gear, a context menu) beside the e-mail and on each curator;
+  patient devices are «Девайсы» with `device-mobile` everywhere the devices are meant.
+- **Doctor list.** «Никого не нашли» uses `EmptyState` (sized to content); «Добавить пациента» full width;
+  «Описание состояния» → «Своими словами» / «Рассказать врачу»; «Посмотреть вопросы» in the questionnaire sheet.
+- **«Сигнум».** Manifests, titles, the install card, the push title, the joining documents (template version kept:
+  no patient had accepted them yet) and `docs/diary-consent/`.
+- **Install and update.** `InstallCard` for the doctor (icon, what it gives, «Установить» / «Не сейчас» for a week);
+  on the web the update toast says the build applies itself when the page is hidden, «Обновить сейчас».
+- **Measurements.** Sections `glucose`, `activity`, `meals` → `vitals` checkpoints of number fields
+  (`GLUCOSE_FIELD`, `STEPS_FIELD`, `ACTIVITY_FIELD`, `MEALS_FIELD`, `APPETITE_FIELD`), one of each; charts and red
+  lines (glucose above 10, appetite below 3). `checkpointGlyph` picks a row's icon by its first field; `CareRow`
+  shows it before the title; `PillMark` draws the medicine's letter on its form (`drugShape`: tablet, capsule,
+  liquid, ampoule, tube) with light, grain and shadow. Ticks are rounded squares, no divider column.
+- **Visits and labs.** `DiaryInvitation.appointments` (`day`, `time`, `place`, `note`) and `labs` (`name`, `field`,
+  `by`, `why`; the result is a number field `lab-<id>`, typed in as an entry without a checkpoint). Older patient
+  apps drop both keys. Editor sections «Приёмы у врача» and «Анализы» (`VisitEditors.tsx`; `diary-labs.ts` suggests
+  tests from the plan's medicines: prolactin, glucose, cholesterol, lithium, TSH, creatinine, valproate, ALT, sodium,
+  neutrophils); patient `AppointmentCard` above the day with a call to the first phone contact, «Анализы» rows and
+  `LabSheet`. Plan changes name them (`visitChanges`).
+- **Checks.** check, typecheck; vitest 19 4xx passed (new: measurement sections, answers, lab suggestions, drug shape,
+  pill letter); e2e `diary-*` 79 + new `diary-visits.spec.ts` passed; screens checked in Playwright Chromium at
+  390 px. `offline-shell` «a new build is offered» fails on main too (the DIARY21 self-apply reloads first).
+
+## Release 0.6.90 — 2026-11-04
+
+- **In it:** DIARY25 (carer access), DIARY-CHARTS (the doctor's «Статистика» settings and period menu) and DIARY26
+  (joining documents), merged from `diary26` onto main. In the merge a carer's phone still never sends the `consent`
+  record and skips the documents (consent is the patient's); it takes `consentAt` from the patient's record.
+- **Diary API** deployed with the carer routes (the container ran 0.6.82 before). `POST /api/tick` stays off: no
+  `DIARY_TICK_TOKEN` and no timer trigger, so missed-dose pushes to carers wait for a scheduler (ADR-0027 §5:
+  reminders on the phone, owner 2026-11-01).
+- **Checks.** `bun run check`, typecheck, secrets check; vitest 19 388 passed (the consent test now stubs the device
+  list DIARY25 reads on every sync); diary-server 15; e2e `diary-*` 78 passed.
+
+## Alcohol questionnaires: RUS-AUDIT, RUS-AUDIT-S, OCDS — 2026-11-04 (STATE NARCO1)
+
+- **Owner 2026-11-04:** «we will have to include narcology: questionnaires on alcohol and on taking substances? Craving
+  and thoughts; certainly use non-violent words».
+- **RUS-AUDIT / RUS-AUDIT-S** (psychology module, section «Употребление алкоголя», `substance-use`): WHO Europe,
+  «Отчет о реализации проекта RUS-AUDIT» (2021), tables 5 and 7 word for word (CC BY-NC-SA 3.0 IGO); item 2 carries
+  the standard-drink conversion table 6 in its answers. Table 8's cut-offs differ by sex, so a last question «Ваш пол»
+  feeds a `context` scale that the rules read as `score_<id>_sex` (AND as a product of comparisons) and the result does
+  not list. Levels: «Низкий риск», «Повышенный риск» (WHO: опасное), «Употребление сказывается на здоровье» (пагубное),
+  «Возможна зависимость», each with WHO's next step (памятка, краткий совет, краткое вмешательство, консультация
+  психиатра-нарколога с согласия человека). The short test advises the full one when positive (women ≥2, men ≥4).
+- **OCDS** (`ocds-alcohol-craving`): Klimanova et al., Обозрение психиатрии им. Бехтерева 2024;58(4-1):73-90,
+  appendix 1 (CC BY-NC-SA 4.0). Factors «Обсессии» (thoughts) and «Компульсии» (craving and use) by the appendix's
+  formulas, which take the larger answer of items 1–2, 7–8, 9–10 and 13–14; a sum of both (0–40) is charted first.
+  No norms: a neutral headline, evaluation `not-applicable`. Adapted, as the licence allows and the information says:
+  word forms for both genders, and item 12's last answer without the original's judgemental word.
+- **Engine.** `AssessmentScaleDefinition.formula` (an expression over `answer_<id>` with `max`/`min`; range = the formula
+  at all lowest and all highest answers) and `context` (fed to rules, kept out of `scores`); contract in
+  `packages/contracts/src/tool-modules.ts`. Module `minimed.tools.psychology.ru` 0.1.0-preview.9, 14 tools (256 in all).
+- **Diaries.** The three are in `DIARY_QUESTIONNAIRES` (bundled in the diaries copy).
+- **Not done.** No validated Russian self-report test for drugs was found (DUDIT, DAST-10, the WHO ASSIST is an
+  interview); drug use stays the diary's daily amounts and craving. E2E of an unpushed module pack needs
+  `E2E_LOCAL_MODULES=1`; `assessments.spec` «opens personal questionnaires…» fails on main as before.
+- **Checks.** vitest 19 376 passed (new `alcohol-scales.test.ts`: every boundary for women and men, OCDS pairs, no
+  blame words); e2e assessments / score-scale / diary-questionnaires-offline passed with local packs; RUS-AUDIT and OCDS
+  filled in the browser (375 px).
+
+## Joining documents: consent, personal data, remote-care contract — 2026-11-04 (STATE DIARY26)
+
+- **Owner 2026-11-04:** the patient joins as with other remote-monitoring services — «подписывает информированное
+  согласие, согласие на обработку персональных данных и договор на дистанционное сопровождение».
+- **Patient** (`diary/CareIntro.tsx`, replaces the two summary steps): step 1 «Документы для подключения» — three cards
+  (summary points, «Полный текст» unfolding in place, a «Шаблон» badge), each with its own «Принимаю» toggle; «Далее»
+  only with all three; step 2 is the crisis contacts as before. Re-read later: «Настройки» → «Принятые документы».
+- **Texts** (`features/diary/consent/joining-documents.ts`): template wordings with a `version` each
+  (`template-2026-11-04`); the connected and the offline diary differ only in the data paragraphs. The clinic and
+  doctor are filled from the plan's new `operator` (`DiaryInvitation.operator`: organization, address, ОГРН, doctor,
+  position), which `careInvitation` and the offline diary dialog take from the doctor's «Врач и организация»
+  (`state/clinician-profile`; the plan's signature stands in for the doctor's name). What nobody filled in, and what
+  only the clinic can set (cost, the doctor's hours, the processor), stays a dashed blank. Lawyer drafts with open
+  questions: `docs/diary-consent/` (new: `remote-care-contract.draft.md`).
+- **Stored.** Meta `consents: [{document, version, at}]`; `consentAt` is the last acceptance. The connected
+  `consent` record now carries `{at, version: joining-template-2026-11-04, documents}` — encrypted like every record,
+  the server sees only that a record exists. Before the documents are accepted on a plan that asks for them, a paired
+  phone's outbox is empty (no marks, tip reads or consent). The replica takes a consent only from a patient device
+  (`p:`), and another phone of the patient takes the documents from the record.
+- **Doctor** (`DiaryPatientPage`): a chip in the header line — «Документы приняты 4 нояб.» opens «Документы пациента»
+  (each document, «Принят 4 ноября 2026, 11:02 · шаблон от 04.11.2026», its full text with the plan's clinic);
+  «Документы ещё не приняты» while a phone is paired and waiting; «Согласие принято …» for diaries accepted with the
+  earlier two-summary intro (not asked again). Withdrawal works as before.
+- **Limits.** Pairing still happens on opening the link (the clinic's details are inside the encrypted plan, which
+  only a paired phone can read), but nothing reaches the doctor before the acceptance. Offline (QR/file) diaries keep
+  the acceptances on the phone only. Texts are templates until the clinic's lawyer replaces them (new `version`).
+
+## The diaries site: the sign-in first, then the whole app — 2026-11-04 (STATE DIARY24)
+
+- **Owner 2026-11-04:** «ideally load the whole app (site) at once so there is no loading later — except before the user
+  is in: the first open should fetch only the sign-in/registration screen».
+- **Was.** Signed out, the GitVerse copy's page fetched ~18.5 MB (App, NotesView, the tabs App warms, the 10.5 MB
+  module catalog through Assessments/Settings, pdf.js, SQLite) and the service worker another 27.7 MB at install.
+- **Entry.** `main.tsx` mounts through `@/app/mount-app`; the diaries build (`VITE_APP_PROFILE=diaries`, vite plugin
+  `diariesEntry`, matched after the `@` alias) swaps in `app/mount-diaries.tsx`. With no kept doctor session
+  (`hasKeptDoctorSession`, localStorage only) on a diaries address (`diariesAddress`: bare page or `#/notes/diaries…`)
+  it renders `DoctorSignIn` alone in the app's frames and reveals the boot surface itself. Signing in
+  (`onSignedIn` may now return a promise; the busy button holds) loads App + NotesView + DiaryDashboard, calls
+  `startDoctor`, sets the bare hash to the profile home (App used to warm SearchHome on a bare hash) and mounts App;
+  a kept session or another address mounts App at once. App's own nav-tab warm-up reads the other tabs in.
+- **Service worker.** `ServiceWorkerBuild.app` (`JobShell.signIn` in `service-worker-precache.ts`): install stores
+  `precache` (the entry's closure plus `PROFILE_SIGN_IN` start-up modules, icons, fonts); `cacheWholeApp()` (sent when
+  App mounts) posts `CACHE_APP` and the worker stores `app` and the marker `__minimed-whole-app__`; a new build installs
+  whole when an older shell cache carries the marker. `PROFILE_LAZY_ROOTS` adds the diaries' own lazy modules to the
+  app set. A job with `noSearch` keeps no `content/` boot files and no onboarding pictures.
+- **Catalog.** `diaryCatalogSubset` loads `catalog.preview.json?raw` as the core plus the questionnaire tool modules
+  (`minimed.tools.<pack>.ru` for `DIARY_QUESTIONNAIRES`) and the terminology catalog as `[]`, diaries build only.
+- **Measured** (diaries build, clean browser, local preview): signed out 82 files cached / 52 fetched by the page,
+  2.3 MB (1.4 MB gzip), none of App, pdf.js, SQLite or the catalog; «Демо» → list in ~0.6 s; then 340 files cached
+  (9.9 MB more, 3.3 MB gzip) and the patient page, charts, «Опросники» and «Настройки» fetched nothing outside the
+  cache, the first-use cache stayed empty. Reload with the kept session opens the list directly.
+- **Not done.** The app set still holds pdf.js, SQLite, the module runtime and the forms registry (App and NotesView
+  import them statically); Excel export (exceljs) loads on first use. Not checked on a phone or offline in a browser
+  (the worker's offline paths are covered by `service-worker.test.ts`).
+- **Checks.** vitest 19 343 passed (new: two-stage install, `CACHE_APP`, whole install after an update, lazy roots,
+  `diariesAddress`); diary e2e 75 passed.
+
+## The doctor chooses what «Статистика» shows — 2026-11-04 (STATE DIARY-CHARTS)
+
+- **Owner 2026-11-04** (after Medsenger's «Графики и отчёты»): the doctor picks what the combined chart shows to
+  compare a drug's intake with the curves («did pressure and pulse fall after amlodipine began»); a period of a week,
+  two weeks, a month or any dates with arrows, and an overview brush. Medsenger's median, 7-day moving average,
+  colour zones and legend toggle were taken; its PDF export and symptom triangles were not.
+- **What can be shown** (`dashboard/combined-series.ts`, `combinedSources`): every declared chart series the patient
+  recorded (`DIARY_CHARTS`), each questionnaire total, the share of the plan, and a track per medicine — all over the
+  whole diary, each with a stable key (`chart:<id>:<field>[:<check>]`, `quiz:<checkpoint>`, `intake-share`,
+  `med:<item>`) and colour. `combinedView` applies the doctor's choice and the period: lines on their own ranges, the
+  7-day average counted from the days before the period too, red days, and the crosses — on the medicine's own track
+  when tracks are shown, on the share line otherwise.
+- **Tracks.** Under the lines, on a stacked y axis (`tracks`, Chart.js `stack`/`stackWeight`), a row per medicine with
+  its name: a filled square a day taken in full (or any dose of one taken when needed), a hollow one taken in part,
+  nothing for an unmarked day, a red cross a day the patient marked a miss (its card names the medicine, the reason
+  and the note, DIARY22/23). Track colours are darker than the lines' and never red.
+- **The choice** (`dashboard/chart-settings.ts`): «Настроить» opens «Что показать на графике» (`ChartSettingsSheet`) —
+  the series grouped «Показатели» / «Опросники» / «Лекарства», «Показать всё» / «Снять все», and switches «Медиана»
+  (dashed line per series), «Среднее за 7 дней» (the measurements faded behind it), «Красные дни», «Названия под
+  графиком». The names under the chart are a plain legend (owner: hiding by a tap on the legend was awkward; the
+  «Настроить» button by «Статистика» is the way). Saved per doctor and patient on
+  this device (`minimed.diary.chart-settings.v1`, `doctorId:patientId`) as the hidden keys, so a value the patient
+  starts recording later shows by itself; the preset length is saved too, a custom span is not.
+- **The period** (`dashboard/chart-period.ts`) drives the whole charts page and sits in the header, which stays on
+  screen while the page scrolls (owner 2026-11-04: «sticky, a settings button in the header with a context menu»):
+  a calendar button opens a context menu — «Неделя», «2 недели», «Месяц», «3 месяца» (a tick on the current one),
+  «Раньше», «Позже» (stops at today), «Свои даты» (a sheet with two `DateField`s); the period's name («за месяц»,
+  or the dates) is a small second line of the title. `HeaderAction.menu` (new, `components/HeaderActions.tsx`) is
+  that kind of action: its own context menu inline, a submenu when folded into «⋯». The brush under «Статистика»
+  (`ChartBrush`, shown when the diary is longer than a week) draws the shown lines over the whole diary faintly with
+  the period as a window: drag it, drag its edges, tap the strip to centre the period there, ← → move it a day.
+  Adherence and the intake charts read the same period (`spanNow` for a past span).
+- **Checks.** Unit: `chart-period`, `chart-settings`, `combined-series` tests. e2e `diary-chart-settings.spec.ts` on the
+  demo account at 375 and 1280 px: choose pressure, pulse and Кветиапин with the average, crosses on its track and their
+  card, the choice after a reload, the header menu (week / earlier / dates sheet / month) still in view after a scroll,
+  the brush key, no horizontal scroll; screenshots `chart-settings-{sheet,phone,desktop}.png`,
+  `chart-period-menu{,-scrolled}.png`.
+
+## A tap shows the day; missed doses are red crosses — 2026-11-04 (STATE DIARY23)
+
+- **Owner 2026-11-04:** «when the patient marks a dose as missed, show a red cross on the graph; on click you see some
+  info and can dive deeper»; «for each day a double tap: first a tooltip with «Подробнее», which opens the day card»;
+  «when you select a day, draw a semi-transparent line for it»; the pressure and pulse/saturation red zones «are
+  strange».
+- **Day card** (`dashboard/chart-marks.tsx`, `useChartDays`): `TrendChart` and `CombinedChart` no longer open the day
+  on a tap. The tap's day (`tappedDay`) gets a band a day wide over the plot (`diary-chart__day-line`) and a card
+  under the plot (`diary-mark-card`) with the day's values (`values`, per chart: the time first when not one value a
+  day, units on the combined chart) and «Подробнее» → the day sheet. Escape, a tap outside and back close it (a
+  history layer); the tap that closes it opens nothing. Chart.js's tooltip is off while a card is open.
+- **Crosses.** `medicineIntake` keeps `IntakeDay.skipped` (time, dose, reason, note) for intakes the patient marked
+  as skipped — not for unmarked ones. `intakeCharts` gives each medicine's chart `marks` on the «Принято» line;
+  `skipMarks` puts one cross per day on «Статистика» at the day's share of the plan. `markDataset` draws them
+  (`crossRot`, unclipped, above the lines, legend «Пропущено» as a cross); a button over each cross (`spots` from an
+  `afterDraw` plugin) opens its day's card, which leads with «Пропущен приём», the lines «08:00 · 50 мг —
+  закончилось» and the note in quotes.
+- **Red zones.** `TrendLimit.series` names the series a line judges (declared charts: the series whose field is the
+  limit id). A zone is painted only for a line that judges every series drawn (or a single-series chart); on
+  pressure and pulse/saturation the points past their own line are larger red dots in a paper ring instead.
+  Systolic is `--theme-info` now: red is for alarms.
+- **Fixes.** «Статистика»'s intake share skipped medicines taken when needed (their doses had pushed days past 100 %,
+  off the chart); «Точно удалить?» kept its colours only without hover (`.ui-button--quiet:hover` won).
+- **Checks.** vitest 19 335 passed; diary e2e 75 passed (`diary-demo` taps a cross and a day: card, band,
+  «Подробнее»; `diary-doctor` reads the live link by role — the closing sheet's inert copy made it flaky).
+
+## Why a dose was missed — 2026-11-04 (STATE DIARY22)
+
+- **Owner 2026-11-03:** «when the patient didn't take the prescription, ask them why — this is important».
+- **Data.** `DiaryPlanValue.reason` (`DIARY_MISS_REASONS` in `diary-model.ts`: forgot, not-with-me, ran-out,
+  side-effects, felt-better, doubts, other; labels `DIARY_MISS_REASON_LABEL`, the doctor's lower-case
+  `DIARY_MISS_REASON_SHORT`), kept only with `done: false`; a reason the app does not know is dropped, not refused
+  (`DIARY_FORMAT_VERSION` unchanged). QR text: the sixth element of a plan value (slot and dose hold their places as
+  ''). FHIR: `MedicationStatement.statusReason[].text`. `describeDiaryEntry` says «пропущено: забыл(а)».
+- **Patient.** The dose sheet on «Пропустил(а)» asks «Что помешало?» (one-tap chips, tap again to clear), the text
+  field becomes «Расскажите подробнее» with a hint fitted to the reason. The today screen asks «Приём не отмечен — что
+  случилось?» about yesterday's and today's intakes in state `missed` (past the late window, unmarked), with
+  «Принял(а)» / «Пропустил(а)» opening the dose sheet on that intake's own day (`Sheet.day`, `DoseSheet missed`); a
+  row leaves once it is answered either way. Not for the doctor's view of the day.
+- **Doctor.** The day sheet's tasks say «пропущено пациентом: закончилось»; `medicineAdherence` counts `reasons` per
+  medicine, shown under each count on the charts page (`missReasonsText`: «забыл(а) ×2, закончилось») and appended to
+  the week's intake signal. The demo's skips carry reasons (from the day, so the demo stays deterministic).
+- **Also.** «Точно удалить?» in the patient's sheets was white on light paper (the quiet button's background won over
+  `diary-button--confirm`); doubled the class.
+- **Checks.** vitest 14 446 passed; diary e2e 75 passed, new `diary-missed.spec.ts` (the reason chips, a removed mark
+  asked about on today, answered away).
+
+## One-screen patient page, full-screen diaries, updates by themselves, motion pass — 2026-11-03 (STATE DIARY21)
+
+- **Patient page on one screen.** `PatientOverview` is folded by default (its verdict «N тревожных · N требуют
+  внимания» / «неделя спокойная», `overviewSummary` in `patient-overview.ts`): the row unfolds the brief week in place
+  (grid 0fr→1fr, remembered per device), an expand button opens the charts page.
+- **Charts.** The combined chart is «Статистика» with one hint («Нажмите на точку…»); a tap on any chart opens that
+  day's sheet (`PatientDayDetails`, which now renders the day's records itself with an `onCorrect` callback) on the
+  charts page too. `chart-days.ts`: a tick per local noon, labels skipped to fit, the month on the first tick and the
+  1st; `zonePlugin` always paints the worrying side of each red line (replacing the per-point day columns on detail
+  charts; the combined chart keeps its day columns). Today is left out of the intake % line. Charts draw two frames
+  after mount, so the page's entry is not blocked.
+- **The doctor's day.** `PatientDayView` says «Редактирование · <день>» under the name, hides the patient's calendar
+  (`DiaryToday` `viewer="doctor"`), the date has a calendar mark and opens the calendar in a `SheetPopover`
+  (`DiaryHeatmap bare`), and the view has its own cool palette and folder (`patient-day-view.css`; `--route-desk-
+  gradient` restated since it resolves on :root), one surface without the inner card.
+- **Calendar.** Rings of today/the open day sit inside the cells (`outline-offset: -2px`): the horizontal scroller
+  clipped outer rings. The legend says «Заполненность». A negative-margin attempt broke the cell sizing (the JS fits
+  columns to the scroller's width) — don't pad the scroller.
+- **Full screen.** Both diary manifests ask for `fullscreen` again (Edge paints its own grey status bar over a
+  standalone app in the dark theme and ignores `theme-color`). `state/fullscreen-inset.ts` pins `--safe-top` to the
+  cutout inset read at start (and after a rotation), so the bars pulled down no longer move the page; the shell drops
+  its top padding in fullscreen as in standalone. An icon installed as standalone has to be reinstalled.
+- **Updates apply themselves.** `state/auto-update.ts` `applyWhenQuiet`: a new service worker found while the page is
+  untouched (first 8 s) is activated at once, else when the page is next hidden (`registerAppServiceWorker`). The
+  patient diary compares `build-manifest.json` with its version and reloads into the new build the same way, once per
+  version (its worker is stale-while-revalidate).
+- **Vibration off by default.** `AppPreferences.vibrationChosen`: a saved «on» without the user's own choice was the
+  old default and reads off.
+- **Icon.** The diaries icon was drawn by an image model (google/nano-banana-2 on Replicate, MiniMed's flat icon as
+  the style reference, prompt in the commit) and cut out with BiRefNet: a notebook in MiniMed's palette on
+  transparency; all sizes rebuilt from one 869 px master. The boot surface sets the diary icon before the first paint
+  (no wallet flash); the sign-in shows the diary icon; the install guide says «в браузере» and shows the home-screen
+  icon.
+- **Questionnaires offline.** The diaries profile registers its built-in scales from the bundled packs
+  (`registerBundledAssessment`; the diaries build cuts the packs to those scales), so every scale page opens without a
+  download; `skipSearchCore` keeps the diaries copy from opening the search core.
+- **Motion pass.** Sheets and dialogs always animate out (an inert copy plays the exit when a parent unmounts them;
+  the exit starts on the tap); context menus/popovers fade out; `components/press-feedback.ts` gives every tappable
+  control a press scale; route entry starts from the page's first painted frame (the old two-frame delay showed the
+  page whole, then blank, then regrowing); the click handler only starts the exit, the route changes two frames later
+  (tap → first frame 180–260 ms → ~80 ms on the Xiaomi 14). `HeaderActions` caches the title's natural width per
+  text/font (its clone forced a whole-page style pass every frame while a header resized).
+- **Patients list.** A search field with the order menu as an icon button; a greeting (one of 35, by time of day) and
+  three counters (Срочные / Сегодня / Давно нет, each filters) in the header band; curator avatars (initials, a hue
+  from the name; members cached 5 min, fetched near the screen); «изменил(а) коллега» for plan changes by another
+  doctor since you last opened the patient.
+- **Open.** The patient page mount is still ~100 ms on the phone (mount the heatmap a frame later); the main app's
+  module catalog is still imported statically by Settings/Assessments (a first-visit freeze); `assessments.spec`
+  «Создать опросник» expects a primary button the header no longer has (pre-existing).
+
+## Doctor's patient page: one edit entry, the calendar day, plan versions, combined chart — 2026-11-03 (STATE DIARY20)
+
+- **One edit entry.** The patient page's header has a pencil «Редактировать» (priority 1, always on top) that opens
+  `#/notes/diaries/<id>/screen` — the patient's screen, the plan, and now the tips («Подсказки пациенту» moved into
+  that page's header). The separate «Экран пациента» and «Подсказки пациенту» menu items are gone.
+- **Statistics first.** `PatientOverview` is headed by a big «Статистика» button (opens `…/charts`); the week's
+  signals hang under it in the same card, tighter. The «Все графики» row is gone.
+- **The calendar day.** Tapping a day opens a sheet (`PatientDayDetails.tsx`): the plan changes made that day and by
+  whom (curators' names from `detail()`, «вы» for oneself), the day's tasks from `dayPlan` on the plan then in force
+  (done first, then skipped by the patient, not marked, late, still ahead), the day's records with their correction
+  buttons, and «Заполнить или изменить за пациента», which opens `…/day/<date>` (the patient's screen of that day).
+  The page no longer repeats the day's records under the calendar.
+- **Plan versions.** The replica keeps every plan revision read (`DiaryReplica.planHistory`, up to 200, with rev,
+  author and server time; the server already kept every revision). `plan-history.ts`: `planOn(history, day)` is the
+  version in force at the end of a day; `planEdits`/`planEditDays` turn consecutive versions into `planChanges` lines
+  plus tip lines. `DiaryHeatmap` takes `changedDays` and puts a yellow dot on them (`::before`, the start ring keeps
+  `::after`).
+- **Concurrent edits.** `DoctorDiaries.writePlan(id, plan, base)` merges onto a newer plan instead of overwriting:
+  `plan-merge.ts` is a three-way merge from the version the editor opened — lists with `id` (plan, checkpoints,
+  contacts, tips, fields) item by item, everything else by value; where both doctors changed the same thing, the one
+  saving wins and the conflict is named. The merge runs before the push and again inside `DiarySession.push` after a
+  409 (`rebase`). The editor shows a toast when a colleague's changes were merged. TipsDialog saves the same way.
+- **Charts.** `…/charts` starts with «Всё вместе» (`CombinedChart.tsx`): every declared series, the daily medicine
+  intake as % of plan and questionnaire totals, each stretched to its own range (fixed chart ranges, else the values
+  seen, padded), real values in the tooltip, legend toggles lines, no limit lines; then «Подробно». `TrendLimit.kind`
+  (`above`/`below`) lets `TrendChart` paint a red column behind each day with a point past a red line
+  (`alarmPlugin`, shared by both charts). The prescribed dose is a dotted step line (`style: 'target'`) and comes from
+  the plan in force on each day (`medicineIntake(…, planFor)`).
+- **Dark theme.** The editable frames' gaps and the editor header's fill are accent-tinted in the dark theme instead of
+  bright yellow (`--care-edit-gap`, `.screen-editor__header`).
+- **«Опросники» tab.** The diaries profile lists every scale a diary can carry («Готовые опросники»:
+  `features/assessments/built-in-scales.ts`, the profile's `builtInScales` and one allowed route per scale), then the
+  doctor's own («Свой опросник» instead of «Локальный файл»). A scale page still needs the tool pack (one tap,
+  ~600 KB) when it is not installed.
+- **«Наверх» and the scroll pulse.** One shared `components/ScrollTop.tsx` (after 1.5 screens, above the bar) in the
+  app shell and the patient diary, replacing the shell's own; `components/reveal.ts` `revealElement()` scrolls to a
+  target and pulses it once it is really on screen (questionnaire, entry form, a chart opened from a signal).
+- **Caching and navigation.** One `DoctorDiaries` per signed-in doctor for the page's lifetime
+  (`dashboard/doctor-store.ts`): a returning list renders at once and refreshes quietly (at most every 15 s); the
+  first read of a session shows the offline copy while the service answers. Tab round trips went from ~1.1–1.3 s, 11
+  API calls and a skeleton to ~0.25 s, none (390×844, 4× CPU). `components/lazy-kept.ts` keeps lazy views mounted
+  without re-suspending; the list's garden plays once. The diaries copy precaches only its own chunks (27 MB instead of
+  76 MB); the patient diary's `sw.js` is cache-first for hashed files and stale-while-revalidate for the page (the
+  first open after a release still shows the old version once).
+- **Sheets.** `OverlayDialog` animates its height when the content changes (`components/sheet-height.ts`); the QR
+  sheet has its code's size from the first frame and fades the code in over a skeleton.
+- **Slides.** «Что видит врач» became «Демо-маршрут врача» (list → «Статистика» → a calendar day → «Всё вместе», from
+  the local demo), the registration shot shows the demo button, the note says «кнопка «Демо — без регистрации»».
+- **Open.** The first visit to «Настройки»/«Опросники» still freezes ~0.5 s at 4× CPU (both views import the
+  10.7 MB module catalog statically); the diaries copy still boots the search core (fetches `core-report.json` and
+  reference databases it never uses); the patient's own sheet (`diary/DiarySheet.tsx`) has no height animation; in
+  the Edge-installed app the status bar stays Edge's own dark grey in the dark theme (it ignores `theme-color`).
+
+## Care diary: substance use, more questionnaires, the doctor's week, installed-app bars — 2026-11-03 (STATE DIARY17)
+
+- **Substance use («Зависимости»).** A section the doctor adds on the patient's screen. The doctor ticks what to
+  track (`SUBSTANCES` in `features/diary/diary-substances.ts`: алкоголь in 10 g portions, никотин, каннабис,
+  опиоиды, стимуляторы, снотворные/успокоительные без назначения, препараты без назначения with «что именно»),
+  whether to ask about craving 0–10, and the time (21:00).
+  - Data: checkpoint `kind: 'use'`, id `use`, one per diary. Its `count` fields are `u-<substance>`, plus `u-what`
+    (text) and `craving` (number).
+  - The patient sees one «Употребление» row. Its sheet has «Ничего не было», which saves zeros, a stepper per
+    substance and the craving picker.
+  - The doctor gets declared charts: «Тяга» with a preset line above 7, and per-substance daily amounts. There is a
+    «Зависимости» heatmap part, and day texts, CSV and FHIR quantities. The demo fox marks use.
+  - `DIARY_FORMAT_VERSION` is unchanged.
+- **Questionnaires.** Every self-report scale of the app's packs can go into a diary: ШАС, EPDS and Whooley
+  (obstetrics pack), plus the psychological profiles (temperament, egogram, Braverman, PAEI, team roles), next to
+  PHQ-9, GAD-7 and both Zung scales.
+  - HAM-D stays out because a clinician rates it.
+  - Profiles (several scales, no total) are shown by their result headline, not charted
+    (`QuestionnaireSeries.profile`).
+- **Doctor's patient page.**
+  - The three stat cards (share of plan, «N записей», «телефон подключён») are replaced by a «week» list
+    (`patient-overview.ts`, `PatientOverview.tsx`). The rows are derived from declared data: medicine intake with
+    the missed medicines, each declared chart with its latest values, red-line crossings and a week-on-week trend,
+    each questionnaire with its band and change, «Нет записей N дней», and «Телефон не подключён» (opens pairing).
+  - Worrying rows come first, and every row opens its chart.
+  - Charts, intake per day and questionnaires moved to `#/notes/diaries/<id>/charts[/<chart>]`
+    (`PatientChartsPage.tsx`, full screen, pinned header, period 14/30/90). The page leads with the week, then the
+    calendar and the day's records.
+- **Calendar.** The first day of tracking has one dashed ring and today one plain ring; the open day has an accent
+  ring. Days before tracking are faint numbers without a border.
+- **Installed web apps.**
+  - Both diary manifests ask for `standalone` instead of `fullscreen`. Full screen hid the status and navigation
+    bars, added the cutout inset to the header and jumped when the bars were pulled down.
+  - `state/web-theme-color.ts` keeps `theme-color` on the colour under the status bar: the hero band or pinned bar,
+    otherwise the first opaque background. It runs in the patient diary and in web builds of the app; the Android
+    app colours its bars natively.
+  - Installed detection also accepts `display-mode: fullscreen` for icons installed earlier.
+  - The doctor's diaries app shows the install row («Установите «Дневники» как приложение»), with the browser prompt
+    or the guide.
+- **Checks.**
+  - vitest: 19 278 passed.
+  - Typecheck and `bun run check` pass.
+  - Diary e2e: demo (overview, signal → chart, «Все графики», fox substances, editor), install, care, doctor and
+    screens.
+  - Not checked: a physical phone, the navigation-bar colour under Yandex Browser / Mi Browser PWAs (no web API
+    sets it; it follows the browser), the installed-app status-bar colour on iOS.
+
+## Drug card: condition row, structures, «Состав» roles, wrapped-line repair — 2026-11-03 (STATE DRUG-HDR2)
+
+Owner's phone review of the glimepiride card. What changed on the drug/instruction reader:
+
+- **Condition row («как у Видаля»).** `medication-safety/drug-conditions.ts` (pure) reads the open
+  instruction for pregnancy, breastfeeding, children, the elderly, liver, kidneys and driving; each icon
+  is red (named in «Противопоказания» or forbidden in text), amber («С осторожностью», dose
+  adjustment, «данных недостаточно», a contraindication only for a stage — «тяжёлая печёночная
+  недостаточность», «до 3 лет», a trimester), green («коррекции дозы не требуется», «не влияет»,
+  «разрешён», a dose for children) or grey dashed (not said). List sentences are judged clause by
+  clause, cross references («см. раздел …») are ignored, untyped page-stamp sections continue the
+  section before them. A tap opens a sheet with the quoted sentences, grouped by section, each jumping
+  to its paragraph. Replaces the «Беременность, ГВ, дети» disclosure (`DrugSafetyBlock`, removed); the
+  search safety card (SAFE1) is unchanged. On the 1 217 instructions of the alimentary module:
+  pregnancy 513 red / 453 amber / 95 green / 156 grey; liver 152 / 403 / 8 / 654; driving 2 / 230 /
+  247 / 738. Levels are deterministic phrase rules, not reviewed by a physician; every level shows the
+  sentences it rests on.
+- **«Разделы N» button removed**: it duplicated the contents (≡) in the header.
+- **Page stamps fold away.** `foldPageStamps` (`library/document-display.ts`): untyped ГРЛС sections
+  titled with page stamps («ИНСТРУКЦИЯ», «ПО МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА», «МЗ РФ»,
+  «СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ», «ЛП-№(…)», «(ПОСЛЕДОВАТЕЛЬНОСТЬ 0001)») are no longer headings;
+  their paragraphs continue the section they cut (none dropped). 96 stamp titles of the alimentary
+  module match; OCR-mangled variants may remain.
+- **Wrapped-line repair** (`library/instruction-text-repair.ts`, display only, stored text and anchors
+  unchanged): ГРЛС modules store every printed PDF line as a block, so «- 14,0 мг» lines became bullets
+  and «до-/децил» words broke. Measured over all 15 instruction modules (245 562 chunks): 43 380 hyphen
+  breaks → 20, wrongly bulleted lines 10 427 → 6 984 (mostly real lists). Not covered: words broken
+  without a hyphen, bullet-glyph continuations. The real fix is in the ingest (emit wraps as spaces);
+  once modules are rebuilt that way the repair is a no-op.
+- **Compound structures and roles.** `smiles-drawer` 2.4.1 (MIT, lazy chunk) draws the active
+  substance's 2D structure beside the drug title (found by name, the instruction's `inn`, or a
+  single-compound ATC code; none for combinations); a tap opens a sheet with the structure, formula,
+  up to two pharmacological roles and molecular targets. Under «Состав» one sideways row of chips
+  names each known component with its role («действующее», «наполнитель», «разрыхлитель», …), each
+  opening the same sheet. Data: lazy chunk `medications/compounds/compound-facts.json` (≈410 kB raw,
+  120 kB gzip) built by `tools/compounds/` from Wikidata (CC0), ChEBI (CC BY 4.0) and ChEMBL (CC BY-SA
+  3.0, share-alike) with a reviewed excipient list; rebuild: [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md)
+  «Compound facts». Coverage: 1 345 active substances (1 240 with a structure, 1 098 with roles, 825 with
+  targets) of 2 020 single-substance ЕСКЛП cards (the rest herbal, homeopathic, biological, vaccines);
+  237 excipients covering 77 % of excipient mentions in parsed «Состав» sections; functions marked
+  `curated` come from the reviewed glossary, not a source database. Roles are source terms without
+  clinical review (some are odd — ranked ATC-consistent first, only two shown).
+- **Header buttons** of the reader (‹, ≡, find, ⋯) share one raised round style; **dotted paper**
+  also on calculator, module and settings cards, the drug product panel and the new sheets.
+
 ## Visit-note draft: every claim on a located quote — 2026-11-02 (STATE SCRIBE1, branch `scribe1`)
 
 First slice of a consultation scribe, built offline from the idea of
@@ -345,6 +927,104 @@ address leads back to the files when it is off.
 - **«Создать свой …» tiles** in the calculator and questionnaire catalogs are a dashed «add» tile
   with a round «+» and the title, not a paper tool card.
 
+## Doctor edits leave a trace for the patient — 2026-11-02 (STATE DIARY19)
+
+Owner question: can the doctor change a dose or backfill without the patient noticing? Corrections
+were already marked and every revision is kept signed on the server; three gaps are closed.
+
+- **A mark keeps its dose.** `DiaryPlanValue.dose` records the dose the plan asked for when the
+  mark was made (`intakeMark`, time dose else item dose); display, export, FHIR, import and the
+  intake chart read it (`markedDose`, falling back to the current plan for older marks). An edited
+  mark keeps its dose; the QR/text transport carries it (`[index, other, done, slot, dose]`).
+  Before, raising a dose relabelled every past intake for patient and doctor.
+- **A deleted mark stays visible.** When a pull brings the doctor's deletion of a mark the phone
+  has, the phone keeps it (`DiaryMeta.removedByDoctor`, `removalOf` in `connected/doctor-trace.ts`):
+  «Записи» shows it struck out with «Удалено врачом», and the emptied intake on «Сегодня» says
+  «Отметку удалил врач». A corrected entry now also carries «Исправлено врачом» in «Записи».
+- **«Врач изменил план».** A new plan is compared with the one the phone had before the pull
+  (`planChanges` in `plan-changes.ts`: dose, intake times, course, signa, new/cancelled medicines,
+  checkpoints, note, contacts; tips left out) and shown as a card on «Сегодня» until «Понятно»
+  (`DiaryMeta.planChange`, lines merged and capped at 12). A fresh phone is told nothing.
+- Tests: `plan-changes.test.ts`, `connected/doctor-trace.test.ts` (dose, removal, trace, transport),
+  intake chart and reminders updated; e2e `diary-doctor-trace.spec.ts` (seeded phone state, the
+  dose kept across a newer link). Not tested: a real doctor edit reaching a paired phone end to end
+  (the sync wiring in `patient-connection.ts` is not unit-testable today); no device test.
+
+## Diary editor sheets, sticky create, demo button — 2026-11-02 (STATE UI-DIARY19)
+
+- Every sheet of the patient-screen editor names what it edits with the section's icon in a round
+  badge before the title (`KIND_ICON`; contacts: a phone).
+- A medicine sheet has «Копировать назначение» in its header: `copyCareSection` (diary-care-draft.ts)
+  adds a new medicine right after it with the same form, times, meals, duration and patient hint,
+  without the drug, dose and signa, and opens it in its own sheet — one sheet per medicine.
+- New patient / patient screen on narrow screens: the footer with «Создать и показать код» is sticky at
+  the bottom (`.diary-new__footer--sticky`, as wide as its button).
+- Doctor sign-in: no «Демо» tab any more. «Демо — без регистрации» shows under «Вход» and
+  «Регистрация» (open sign-up, or always with `?demo`) as the primary button while the account fields
+  are empty; the submit button stays off until the form is filled (`filled()`), then becomes the
+  primary one. `?demo` opens the form on «Регистрация».
+
+## One shared demo account — 2026-11-02 (STATE DIARY-DEMO3)
+
+Owner: a lecture hall scanning the demo QR codes at once must get in, and seeing each other is fun.
+
+- «Демо» signs everybody in to one account, the access code `DEMO_ACCESS_CODE` (`DEMO-MINI-MED1`,
+  `packages/diary-sync/src/crypto.ts`, with `accessCodeEmail`, which the app and the service share).
+  Before, every device registered its own demo doctor, and open sign-up allows 12 new accounts a
+  minute for the whole service, so a hall got «Слишком много попыток».
+- The service gives sign-ins (`prelogin`, `login`) to that one address a cap of 600 a minute instead
+  of the 12 a minute per address that stops password guessing. The account is public by design.
+- `#demo` on the patient page adds a guest «Демо · Гость NN» with an animal and two weeks of history
+  to the shared account (`demoSelfPairing`); a demo doctor's dashboard removes guests older than a
+  day (`pruneDemoGuests`). The four demo patients are seeded once, by the first visitor.
+- Everybody sees and changes the same patients; archiving and deleting demo patients and guests stays
+  locked in the app.
+
+## Diary demo links, the doctor's offline copy, dotted paper — 2026-11-02 (STATE DIARY-DEMO2)
+
+For the faculty slides (owner): two QR codes, a doctor's and a patient's, both open a working demo.
+
+- **Short links** on the API Gateway (`api-gateway.yaml`): `https://med.1damer.com/demo` →
+  `…/app/?profile=diaries&demo`, `https://med.1damer.com/demo/patient` → `…/app/diary/#demo`.
+  `GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh` updates the gateway alone (no image, no revision).
+- **`?demo`** opens the doctor's sign-in on «Регистрация» with «Демо — без регистрации» as the
+  primary button (UI-DIARY19; at first a third «Демо» segment).
+- **`#demo`** on the patient's page (`DiaryApp.tsx`) signs in the same device demo doctor (remembered),
+  adds «Демо · Мой дневник» with 14 days of history (`demoSelfPairing` in `demo-patients.ts`, the
+  throw-away device writes it) and pairs this browser with a fresh one-time code; no install-first
+  step. `minimed.diary.demo-self.v1` keeps the diary id, so the QR code again opens it straight away.
+  The doctor's demo on the same device lists that diary with the four demo patients, which are now
+  seeded until every one of them is there (`hasDemoSet`), not until any demo label exists.
+- **The doctor's offline copy** (`doctor-workspace.ts`, `doctor-account.ts`): after every full or
+  per-patient read the list (summaries, replicas, alerts) is saved, 2 s debounced, AES-GCM-sealed with
+  the device's non-extractable key in the doctor IndexedDB (`offline:<doctorId>`), only while the doctor
+  stays signed in on this device («Мой компьютер»). A first read that finds no network or a 502/503/504
+  restores it; the list says «Нет связи с сервером: показана копия от …» and retries every 30 s and on
+  `online`, then reconnects live updates. Writes still need the network. Signing out drops the copy.
+- **FHIR from the doctor**: «Выгрузить записи» adds «FHIR (JSON)», the same R4 bundle as the patient's.
+- **Dotted paper** (owner: the calendar card's texture everywhere): `--theme-paper-dots` in `theme.css`,
+  laid by `styles/paper-dots.css` over the main paper cards of the app and the patient diary (section
+  list, result groups, disclosures, diary rows, charts, timeline, care rows). Only the image layer is
+  set, so fills, hover and the dark theme stay each card's own.
+- e2e `diary-demo.spec.ts`: the `?demo` sign-in, `#demo` diary, the doctor seeing it (5 rows) and the
+  copy standing in with the API aborted.
+
+## Diary demo mode and intake charts — 2026-11-02 (owner)
+
+- **«Демо — без регистрации»** on the doctor's sign-in (services with open sign-up): one tap opens
+  this device's own demo doctor («Демо-врач»). A random access code made once and kept on the device
+  (`minimed.diary.demo.v1`) signs in through the code path (`signInDemo`, `doctor-account.ts`), so
+  the device returns to the same demo and visitors never share edits; a server-free demo would need
+  a fake of the whole sync service. The first entry seeds the demo patients; in that account they
+  cannot be archived, so not deleted. Everything else works as in a real account.
+- **Intake per day** (`diary-intake.ts`, chart look in `diary-charts.ts` `INTAKE_CHART`): per
+  medicine, the dose taken each day (intakes summed, a skipped or missed intake = 0) as a line and
+  the plan's dose that day as hollow dots; days before the diary began have no point. Doses are
+  parsed from the plan text («10 мг», «½ таблетки»; words count as one intake). The diary keeps only
+  the latest plan; since DIARY19 a marked intake counts at the dose it was marked at, an unmarked
+  one at the current plan's dose. «Графики приёма по дням» on
+  the patient page opens all medicines stacked on the same days.
+
 ## Diary sign-in by code, bare login, wide settings — 2026-10-30 (STATE DIARY16)
 
 Owner demo fixes for the doctor's diary app (med.1damer.com):
@@ -369,6 +1049,24 @@ Owner demo fixes for the doctor's diary app (med.1damer.com):
 Checked in the browser at 375×812 and 1280×800 against a local service (invite and open sign-up):
 code sign-in, second sign-in to the same account, a refused code, adding a patient and the demo
 patients. e2e `diary-signin.spec.ts`, wide case in `settings-list.spec.ts`.
+
+## Diary polish: sticky form column, today in the calendar, hero emblem — 2026-11-02 (STATE UI-DIARY18)
+
+Owner screenshots after 0.6.75:
+
+- **New-patient / patient-screen form on a wide screen**: the left column (details and button)
+  stays in view under the pinned header while the long preview scrolls
+  (`features/diary/dashboard/PatientFormColumns.tsx`: the button moves into the left column on a
+  wide screen and after the preview on a phone, the details and the editor keep their state).
+- **Calendar**: today is a dashed double frame, the course's first day a solid one; on the day the
+  course starts the outer ring is dashed and the inner solid; the open day's frame sits 2px out.
+  The day's label says «сегодня».
+- **Hero emblem**: cut at the band's edges (in the diaries' centred column it stuck out past the
+  band) and fades as the header collapses instead of flying beside the title (shared `PageHero`).
+  `HeaderActions` no longer counts out-of-flow row children (the emblem) as taken width: the emblem's
+  9.5rem used to fold buttons into «Ещё» early.
+- **Opening a diary** (patient): the empty-state layout with the diary icon breathing, «Открываем
+  дневник…», shown only when opening takes over 0.25 s.
 
 ## Interface batch: date fields, empty states, wide forms — 2026-11-01 (STATE UI-DIARY17)
 
@@ -4056,9 +4754,10 @@ scrolls away instead of sticking).
   style and the header re-measured on every one (lifting the sticky class mid-scroll and restarting
   the ranges). `watchInsets` re-measures only when the width or the status bar's inset changes, and
   measured lengths are written only when they change (`setLength`).
-- *The emblem* flies with the scroll into a small icon just after the bar's title, where no button
-  covers it; it fades instead when the row has no room (a search field, a long title). It is drawn in
-  the row, which is already stuck while it moves, so nothing lags behind the scroll. The pinned row is
+- *The emblem* fades with the scroll (until 2026-11-02 it flew into a small icon after the bar's
+  title; in the diaries' centred column it stuck out past the band and landed apart from the title).
+  It is drawn in the row, which is already stuck while it fades, in a box as wide as the band that
+  cuts it at the band's edges (`.page-hero__emblem-clip`, `overflow-x: clip`). The pinned row is
   filled with the band's colour (Safari tints the strip under the status bar from an opaque sticky
   bar; a clear row let the page show through there), and the band goes on above a pinned bar to the
   screen top. The large title no longer scales.

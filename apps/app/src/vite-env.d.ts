@@ -14,6 +14,8 @@ interface ImportMetaEnv {
   readonly VITE_LOCAL_MODEL_ALLOW_AUTOMATION_DOWNLOADS?: string;
   readonly VITE_LOCAL_MODEL_AUTOLOAD?: string;
   readonly VITE_USE_LOCAL_MODULE_ARTIFACTS?: string;
+  /** A build for one job: always this app profile (`diaries` for the GitVerse copy of the diaries). */
+  readonly VITE_APP_PROFILE?: string;
 }
 
 interface ImportMeta {

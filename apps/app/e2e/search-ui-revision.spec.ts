@@ -122,7 +122,7 @@ for (const width of [375, 1280]) {
       )
       .toBe(true);
     await page.screenshot({ path: test.info().outputPath('long-catalog.png') });
-    await page.getByRole('button', { name: 'Вернуться наверх' }).click();
+    await page.getByRole('button', { name: 'Наверх' }).click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
     await expect(input).toBeInViewport();
 

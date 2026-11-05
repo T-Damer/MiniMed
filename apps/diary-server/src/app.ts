@@ -9,6 +9,7 @@ import {
   DIARY_ONLINE_WINDOW_MS,
   DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
+  type DiaryDeviceKind,
   DiaryEmailSchema,
   DiaryEpochCreateSchema,
   DiaryLoginRequestSchema,
@@ -28,14 +29,35 @@ import {
   DiaryRemindersSchema,
   type DiaryRole,
 } from '@localmed/contracts';
-import { randomBytes, randomId, sha256, toBase64Url } from '@localmed/diary-sync';
+import {
+  accessCodeEmail,
+  DEMO_ACCESS_CODE,
+  inviteProof,
+  inviteStorageKey,
+  pairingProof,
+  randomBytes,
+  randomId,
+  sha256,
+  toBase64Url,
+} from '@localmed/diary-sync';
 import type { z } from 'zod';
 
-import { inviteCandidates } from './invites';
 import type { Passwords } from './passwords';
 import { pushToOwners, type Vapid } from './push';
-import { replaceReminders } from './reminders';
-import { type DiaryStore, type DoctorRow, now, type PatientRow, StoreConflict } from './store';
+import {
+  replaceDoseChecks,
+  replaceReminders,
+  sendDueReminders,
+  sendMissedDoses,
+} from './reminders';
+import {
+  type DiaryStore,
+  type DoctorRow,
+  InviteSpent,
+  now,
+  type PatientRow,
+  StoreConflict,
+} from './store';
 
 /** `server`: one long-running process with a live stream; `serverless`: stateless instances, clients poll. */
 export type DiaryMode = 'server' | 'serverless';
@@ -54,6 +76,11 @@ export interface AppConfig {
   readonly log?: (line: string) => void;
   /** Presence window; tests shorten it (default `DIARY_ONLINE_WINDOW_MS`). */
   readonly onlineWindowMs?: number;
+  /**
+   * Secret of `POST /api/tick` (due reminders and missed-dose notices), for a scheduler outside
+   * the process: a Yandex Cloud timer trigger in `serverless` mode. Absent: no such route.
+   */
+  readonly tickToken?: string;
 }
 
 const SESSION_DAYS = 30;
@@ -61,6 +88,22 @@ const PAIRING_HOURS = 72;
 const PAGE = 500;
 const ATTEMPT_WINDOW_MS = 60_000;
 const ATTEMPT_LIMIT = 12;
+/** Sign-ins a minute to the shared demo account: a lecture hall scanning the QR code at once. */
+const DEMO_SIGNIN_LIMIT = 600;
+/**
+ * Failed sign-ins (or recovery checks) a minute for one account from all addresses together. Every
+ * attempt counts per account and address (ATTEMPT_LIMIT), only failures count here: a stranger can
+ * no longer lock the owner out from one address, and guessing stays slow from many (SEC-AUDIT1).
+ */
+const ACCOUNT_FAILURE_LIMIT = 60;
+/** Password checks a minute from one address over all accounts: argon2id is 64 MiB each. */
+const ADDRESS_CHECK_LIMIT = 60;
+/** Push subscriptions per doctor or phone; the oldest-listed one makes room for a new one. */
+const MAX_PUSH_SUBSCRIPTIONS = 10;
+/** Urgent alerts a minute from one phone. */
+const ALERT_LIMIT = 6;
+/** Record ids only a doctor writes (the replica refuses them from phones too). */
+const DOCTOR_RECORDS = new Set(['plan', 'profile']);
 
 class HttpError extends Error {
   constructor(
@@ -90,6 +133,15 @@ async function body<T extends z.ZodType>(request: Request, schema: T): Promise<z
   return parsed.data;
 }
 
+/**
+ * The caller's address for rate limits: the last `X-Forwarded-For` entry, which the hop in front
+ * appends (Yandex API Gateway, Caddy) and a client cannot forge. `-` without a proxy (tests).
+ */
+function clientAddress(request: Request): string {
+  const last = request.headers.get('X-Forwarded-For')?.split(',').at(-1)?.trim();
+  return last && last.length <= 64 ? last : '-';
+}
+
 function bearer(request: Request, url: URL): string | undefined {
   const header = request.headers.get('Authorization');
   if (header?.startsWith('Bearer ')) return header.slice(7);
@@ -99,7 +151,13 @@ function bearer(request: Request, url: URL): string | undefined {
 
 type Caller =
   | { readonly kind: 'doctor'; readonly id: string }
-  | { readonly kind: 'device'; readonly id: string; readonly patientId: string };
+  | {
+      readonly kind: 'device';
+      readonly id: string;
+      readonly patientId: string;
+      /** The patient's own phone or a carer's (DIARY25). */
+      readonly device: DiaryDeviceKind;
+    };
 
 /** Live streams of signed-in doctors: doctor id → open SSE controllers. */
 class EventHub {
@@ -166,9 +224,68 @@ export function createApp(
     else await store.bumpChanges(ids);
   };
 
-  const limit = async (key: string): Promise<void> => {
-    if (!(await store.attempt(key, ATTEMPT_WINDOW_MS, ATTEMPT_LIMIT))) {
+  const limit = async (key: string, max = ATTEMPT_LIMIT): Promise<void> => {
+    if (!(await store.attempt(key, ATTEMPT_WINDOW_MS, max))) {
       throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
+    }
+  };
+
+  const demoEmail = accessCodeEmail(DEMO_ACCESS_CODE);
+  /** The shared demo account is public: its sign-ins get a hall-sized cap, not a guessing one. */
+  const signinLimit = async (email: string): Promise<number> =>
+    email === (await demoEmail) ? DEMO_SIGNIN_LIMIT : ATTEMPT_LIMIT;
+  /**
+   * The demo account's secret is public, so after one argon2id check its digest is enough: a hall
+   * of sign-ins (or a flood of wrong ones) costs a hash each, not 64 MiB each. Keyed by the stored
+   * hash, so a changed password is checked again.
+   */
+  const demoChecked = new Map<string, string>();
+
+  /**
+   * One sign-in or recovery check (SEC-AUDIT1): limits per account and address, then per address,
+   * then failures per account; the row when `secret` matches, otherwise undefined.
+   */
+  const checkSecret = async (
+    scope: 'login' | 'recover',
+    request: Request,
+    email: string,
+    secret: string,
+    hashOf: (row: DoctorRow) => string,
+  ): Promise<DoctorRow | undefined> => {
+    const demo = email === (await demoEmail);
+    const address = clientAddress(request);
+    await limit(`${scope}:${email}:${address}`, demo ? DEMO_SIGNIN_LIMIT : ATTEMPT_LIMIT);
+    const failures = `${scope}-fail:${email}`;
+    if (!demo) {
+      await limit(`check:${address}`, ADDRESS_CHECK_LIMIT);
+      if (!(await store.attempt(failures, ATTEMPT_WINDOW_MS, ACCOUNT_FAILURE_LIMIT, false))) {
+        throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
+      }
+    }
+    const row = await doctorByEmail(email);
+    let ok = false;
+    if (row) {
+      const stored = hashOf(row);
+      const digest = demo ? await sha256(secret) : '';
+      const known = demo ? demoChecked.get(stored) : undefined;
+      if (known !== undefined) ok = known === digest;
+      else {
+        ok = await passwords.verify(secret, stored);
+        if (ok && demo) demoChecked.set(stored, digest);
+      }
+    }
+    if (!ok && !demo) await store.attempt(failures, ATTEMPT_WINDOW_MS, Number.MAX_SAFE_INTEGER);
+    return ok ? row : undefined;
+  };
+
+  /**
+   * Invites made before SEC-AUDIT1 (or put in by hand) are plain codes, and an access code is also
+   * its account's password: each registration re-keys them to the hash of their proof first, so
+   * the database keeps no code, used ones included. The invites table is small.
+   */
+  const keyInvites = async (): Promise<void> => {
+    for (const code of await store.plainInvites()) {
+      await store.rekeyInvite(code, await inviteStorageKey(await inviteProof(code)));
     }
   };
 
@@ -236,7 +353,7 @@ export function createApp(
     const device = await store.deviceByToken(hash);
     if (device) {
       await touchDevice(device.id, device.patient_id);
-      return { kind: 'device', id: device.id, patientId: device.patient_id };
+      return { kind: 'device', id: device.id, patientId: device.patient_id, device: device.kind };
     }
     throw new HttpError(401, 'Нужен вход.');
   };
@@ -286,6 +403,23 @@ export function createApp(
   const activeDeviceOwners = async (patientId: string): Promise<string[]> =>
     (await store.activeDevices(patientId)).map((row) => `p:${row.id}`);
 
+  const patientDeviceOwners = async (patientId: string): Promise<string[]> =>
+    (await store.activeDevices(patientId))
+      .filter((row) => row.kind === 'patient')
+      .map((row) => `p:${row.id}`);
+
+  /** A phone of the diary: the patient's or a carer's. */
+  const deviceOnly = (who: Caller): Extract<Caller, { kind: 'device' }> => {
+    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    return who;
+  };
+
+  /** Who sees the diary changed: its doctors and every phone (patient's and carers'). */
+  const announceMembers = async (patientId: string): Promise<void> => {
+    await notify(await activeDoctors(patientId), 'members', { patientId });
+    await notify(await activeDeviceOwners(patientId), 'members', {});
+  };
+
   const profile = (row: DoctorRow) => ({
     id: row.id,
     email: row.email,
@@ -322,6 +456,7 @@ export function createApp(
       lastRecordAt: counts.lastRecordAt,
       openAlerts: counts.openAlerts,
       devices: counts.devices,
+      carers: counts.carers,
       ...(await presenceOf(row.id)),
       createdAt: row.created_at,
     };
@@ -358,7 +493,7 @@ export function createApp(
 
   route('POST', '/api/auth/prelogin', async (request) => {
     const { email } = await body(request, DiaryPreloginRequestSchema);
-    await limit(`prelogin:${email}`);
+    await limit(`prelogin:${email}:${clientAddress(request)}`, await signinLimit(email));
     const row = await doctorByEmail(email);
     // Unknown e-mail: a stable decoy salt, so the answer does not reveal who has an account.
     const salt = row?.kdf_salt ?? (await sha256(`${config.secret}|${email}`)).slice(0, 22);
@@ -368,14 +503,18 @@ export function createApp(
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
     await limit(`register:${input.email}`);
+    await limit(`register-from:${clientAddress(request)}`);
     // Open sign-up: a cap on new accounts for the whole service, not only per address.
     if (config.signup === 'open') await limit('register');
     let inviteCode: string | undefined;
     if (config.signup === 'invite') {
+      // New clients send only the proof; older ones the code, which is turned into the same proof.
+      const proof =
+        input.inviteProof ?? (input.invite ? await inviteProof(input.invite) : undefined);
       let invite: { code: string; used_by: string | null } | undefined;
-      for (const code of input.invite ? inviteCandidates(input.invite) : []) {
-        invite = await store.invite(code);
-        if (invite) break;
+      if (proof) {
+        await keyInvites();
+        invite = await store.invite(await inviteStorageKey(proof));
       }
       if (!invite || invite.used_by) {
         throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
@@ -401,6 +540,8 @@ export function createApp(
     try {
       await store.createDoctor(row, inviteCode);
     } catch (cause) {
+      if (cause instanceof InviteSpent)
+        throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
       if (cause instanceof StoreConflict)
         throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
       throw cause;
@@ -414,11 +555,8 @@ export function createApp(
 
   route('POST', '/api/auth/login', async (request) => {
     const { email, authKey } = await body(request, DiaryLoginRequestSchema);
-    await limit(`login:${email}`);
-    const row = await doctorByEmail(email);
-    if (!row || !(await passwords.verify(authKey, row.auth_hash))) {
-      throw new HttpError(401, 'Неверный адрес или пароль.');
-    }
+    const row = await checkSecret('login', request, email, authKey, (found) => found.auth_hash);
+    if (!row) throw new HttpError(401, 'Неверный адрес или пароль.');
     return json({
       token: await newSession(row.id),
       doctor: profile(row),
@@ -440,21 +578,27 @@ export function createApp(
 
   route('POST', '/api/auth/recover/fetch', async (request) => {
     const input = await body(request, DiaryRecoverFetchRequestSchema);
-    await limit(`recover:${input.email}`);
-    const row = await doctorByEmail(input.email);
-    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
-      throw new HttpError(401, 'Неверный адрес или код восстановления.');
-    }
+    const row = await checkSecret(
+      'recover',
+      request,
+      input.email,
+      input.recoveryAuthKey,
+      (found) => found.recovery_hash,
+    );
+    if (!row) throw new HttpError(401, 'Неверный адрес или код восстановления.');
     return json({ identityBlob: row.recovery_blob });
   });
 
   route('POST', '/api/auth/recover/reset', async (request) => {
     const input = await body(request, DiaryRecoverResetRequestSchema);
-    await limit(`recover:${input.email}`);
-    const row = await doctorByEmail(input.email);
-    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
-      throw new HttpError(401, 'Неверный адрес или код восстановления.');
-    }
+    const row = await checkSecret(
+      'recover',
+      request,
+      input.email,
+      input.recoveryAuthKey,
+      (found) => found.recovery_hash,
+    );
+    if (!row) throw new HttpError(401, 'Неверный адрес или код восстановления.');
     await store.resetDoctorAuth(
       row.id,
       await passwords.hash(input.authKey),
@@ -521,6 +665,7 @@ export function createApp(
       })),
       devices: devices.map((row) => ({
         id: row.id,
+        kind: row.kind,
         identity: { wrap: row.identity_wrap, sign: row.identity_sign },
         createdAt: row.created_at,
         lastSeenAt: row.last_seen_at,
@@ -553,18 +698,38 @@ export function createApp(
 
   route('POST', '/api/patients/:id/pairings', async (request, url, params) => {
     const id = params['id'] as string;
-    await requireRole(await caller(request, url), id, ['owner', 'editor']);
+    const who = await caller(request, url);
+    await requireRole(who, id, ['owner', 'editor']);
     const input = await body(request, DiaryPairingCreateSchema);
     const expires = new Date(Date.now() + PAIRING_HOURS * 3_600_000).toISOString();
-    await store.createPairing(input.secretHash, id, input.keys, expires);
-    return json({ expiresAt: expires }, 201);
+    const kind = input.kind ?? 'patient';
+    // The patient's own phone can withdraw consent and wipe the diary: only the owner connects it.
+    if (kind === 'patient') await requireRole(who, id, ['owner']);
+    await store.createPairing(input.secretHash, id, input.keys, expires, kind);
+    // The kind comes back so a client can tell a server that knows carers from an older one.
+    return json({ expiresAt: expires, kind }, 201);
   });
 
   route('POST', '/api/pair', async (request) => {
     const input = await body(request, DiaryPairRequestSchema);
-    await limit(`pair:${input.patientId}`);
-    const hash = await sha256(input.secret);
-    const pairing = await store.pairing(hash);
+    await limit(`pair:${input.patientId}:${clientAddress(request)}`);
+    // The phone proves it holds the secret without sending it (SEC-AUDIT1): the secret also seals
+    // the data keys. Phones before that send the secret; its proof is derived here. Codes made by
+    // doctors' apps before SEC-AUDIT1 were stored under sha256(secret).
+    let hash: string;
+    let pairing: Awaited<ReturnType<typeof store.pairing>>;
+    if (input.proof) {
+      hash = await sha256(input.proof);
+      pairing = await store.pairing(hash);
+    } else {
+      const secret = input.secret as string;
+      hash = await sha256(await pairingProof(secret));
+      pairing = await store.pairing(hash);
+      if (!pairing) {
+        hash = await sha256(secret);
+        pairing = await store.pairing(hash);
+      }
+    }
     if (!pairing || pairing.patient_id !== input.patientId || pairing.expires_at < now()) {
       throw new HttpError(404, 'Код недействителен: попросите врача показать новый.');
     }
@@ -581,6 +746,7 @@ export function createApp(
         identity_wrap: input.identity.wrap,
         identity_sign: input.identity.sign,
         created_at: now(),
+        kind: pairing.kind,
       },
       hash,
     );
@@ -588,13 +754,20 @@ export function createApp(
       patientId: input.patientId,
       deviceId,
     });
-    return json({ deviceId, token, keys: pairing.sealed_keys }, 201);
+    if (pairing.kind === 'carer') {
+      // The patient sees who joined: the access list updates and the phone says so.
+      const phones = await patientDeviceOwners(input.patientId);
+      await notify(phones, 'members', {});
+      await pushTo(phones, { kind: 'carer' });
+    }
+    return json({ deviceId, token, keys: pairing.sealed_keys, kind: pairing.kind }, 201);
   });
 
   route('DELETE', '/api/patients/:id/devices/:device', async (request, url, params) => {
     const id = params['id'] as string;
     await requireRole(await caller(request, url), id, ['owner', 'editor']);
     await store.revokeDevice(params['device'] as string, id, now());
+    await notify(await activeDeviceOwners(id), 'members', {});
     return json({ ok: true });
   });
 
@@ -625,6 +798,15 @@ export function createApp(
     const input = await body(request, DiaryRecordsPushSchema);
     for (const record of input.records) {
       if (record.author !== author) throw new HttpError(403, 'Автор записи не совпадает.');
+      // Who may write which record (SEC-AUDIT1): the plan and profile are doctors', consent is the
+      // patient's own phone's, a carer names only itself. A phone that wrote them could block the
+      // doctors' edits (a huge revision) or accept the joining documents for the patient.
+      if (DOCTOR_RECORDS.has(record.id) && who.kind !== 'doctor')
+        throw new HttpError(403, 'Эту запись пишет только врач.');
+      if (record.id === 'consent' && (who.kind !== 'device' || who.device !== 'patient'))
+        throw new HttpError(403, 'Согласие даёт только телефон пациента.');
+      if (record.id.startsWith('member-') && record.id !== `member-${who.id}`)
+        throw new HttpError(403, 'Имя пишет только его телефон.');
       if (record.epoch !== patient.epoch)
         throw new HttpError(409, 'Ключ устарел: обновите данные.');
     }
@@ -636,12 +818,11 @@ export function createApp(
       throw cause;
     }
     await notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });
-    if (who.kind === 'doctor') {
-      const devices = await activeDeviceOwners(id);
-      await notify(devices, 'records', { seq: seqs.at(-1) });
-      // Only what the patient should look at rings the phone (a profile edit does not).
-      if (input.notice) await pushTo(devices, { kind: input.notice });
-    }
+    // The other phones of the diary sync too: the patient's sees a carer's mark and back (DIARY25).
+    const devices = (await activeDeviceOwners(id)).filter((owner) => owner !== author);
+    await notify(devices, 'records', { seq: seqs.at(-1) });
+    // Only what the patient should look at rings the phone (a profile edit does not).
+    if (who.kind === 'doctor' && input.notice) await pushTo(devices, { kind: input.notice });
     return json({ seqs }, 201);
   });
 
@@ -713,10 +894,19 @@ export function createApp(
     return json({ ok: true });
   });
 
-  /** A new data key after a removal: wrapped for every remaining member and device. */
+  /**
+   * A new data key after a removal: wrapped for every remaining member and device. The owner
+   * rotates after removing a curator or a phone; the patient's own phone after removing a carer.
+   */
   route('POST', '/api/patients/:id/epochs', async (request, url, params) => {
     const id = params['id'] as string;
-    await requireRole(await caller(request, url), id, ['owner']);
+    const who = await caller(request, url);
+    if (who.kind === 'device') {
+      if (who.patientId !== id || who.device !== 'patient')
+        throw new HttpError(403, 'Недостаточно прав.');
+    } else {
+      await requireRole(who, id, ['owner']);
+    }
     const input = await body(request, DiaryEpochCreateSchema);
     const patient = await patientRow(id);
     if (input.epoch !== patient.epoch + 1) throw new HttpError(409, 'Эпоха устарела.');
@@ -731,23 +921,22 @@ export function createApp(
       throw new HttpError(400, 'Новый ключ нужен каждому участнику и устройству.');
     }
     await store.addEpoch(id, input.epoch, input.keys);
-    await notify(await activeDoctors(id), 'members', { patientId: id });
+    await announceMembers(id);
     return json({ ok: true });
   });
 
   // --- device ----------------------------------------------------------------------------------
 
   route('GET', '/api/device/keys', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
     const keys = await store.keysFor(who.patientId, `p:${who.id}`);
     const patient = await patientRow(who.patientId);
     return json({ keys, epoch: patient.epoch, patientId: who.patientId, status: patient.status });
   });
 
   route('POST', '/api/device/alerts', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
+    await limit(`alert:${who.id}`, ALERT_LIMIT);
     const alertId = await store.addAlert(who.patientId, 'urgent', now());
     const doctors = await activeDoctors(who.patientId);
     await notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
@@ -760,8 +949,10 @@ export function createApp(
 
   /** Consent withdrawn: the patient's records, keys and devices are deleted; doctors are told. */
   route('DELETE', '/api/device', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
+    const who = deviceOnly(await caller(request, url));
+    if (who.device !== 'patient') {
+      throw new HttpError(403, 'Отозвать согласие может только сам пациент.');
+    }
     const doctors = await activeDoctors(who.patientId);
     await store.withdraw(who.patientId, now());
     await notify(doctors, 'alert', { patientId: who.patientId, kind: 'withdrawn' });
@@ -769,6 +960,27 @@ export function createApp(
       doctors.map((id) => `d:${id}`),
       { kind: 'withdrawn' },
     );
+    return json({ ok: true });
+  });
+
+  /**
+   * A carer leaves (their own phone) or the patient's phone removes a carer (DIARY25). The patient's
+   * phone then rotates the key (`POST /api/patients/:id/epochs`), as the owner does for a curator.
+   */
+  route('DELETE', '/api/device/carers/:device', async (request, url, params) => {
+    const who = deviceOnly(await caller(request, url));
+    const target = params['device'] as string;
+    if (who.device !== 'patient' && target !== who.id) {
+      throw new HttpError(403, 'Опекун может отключить только себя.');
+    }
+    const carer = (await store.activeDevices(who.patientId)).find((row) => row.id === target);
+    if (carer?.kind !== 'carer') throw new HttpError(404, 'Такого опекуна нет.');
+    await store.revokeDevice(target, who.patientId, now());
+    await notify(await activeDoctors(who.patientId), 'device', {
+      patientId: who.patientId,
+      deviceId: target,
+    });
+    await notify(await activeDeviceOwners(who.patientId), 'members', {});
     return json({ ok: true });
   });
 
@@ -802,6 +1014,13 @@ export function createApp(
     const who = await caller(request, url);
     const { endpoint, keys } = await body(request, DiaryPushSubscriptionSchema);
     const owner = who.kind === 'doctor' ? `d:${who.id}` : `p:${who.id}`;
+    // A few browsers per person; each event pushes to all of them (SEC-AUDIT1).
+    const mine = await store.pushTargets([owner]);
+    if (mine.length >= MAX_PUSH_SUBSCRIPTIONS && !mine.some((t) => t.endpoint === endpoint)) {
+      for (const extra of mine.slice(0, mine.length - MAX_PUSH_SUBSCRIPTIONS + 1)) {
+        await store.deletePushSubscription(extra.endpoint);
+      }
+    }
     await store.savePushSubscription(
       endpoint,
       owner,
@@ -812,13 +1031,39 @@ export function createApp(
     return json({ ok: true }, 201);
   });
 
-  /** The phone's next reminder moments (times only); replaces its earlier list. */
+  /**
+   * The phone's next reminder moments (times only); replaces its earlier list. While the diary has
+   * a carer, also the dose moments for the missed-dose notice (DIARY25): the patient's phone says
+   * which are open, any phone which are taken. Moments are computed in the patient's time zone on
+   * the patient's phone, so a carer's phone elsewhere only ever reports taken ones.
+   */
   route('PUT', '/api/device/reminders', async (request, url) => {
-    const who = await caller(request, url);
-    if (who.kind !== 'device') throw new HttpError(403, 'Только для устройства пациента.');
-    const { at } = await body(request, DiaryRemindersSchema);
-    return json({ count: await replaceReminders(store, who.id, at) });
+    const who = deviceOnly(await caller(request, url));
+    const input = await body(request, DiaryRemindersSchema);
+    const count = await replaceReminders(store, who.id, input.at);
+    if (input.checks || input.taken) {
+      const carers = (await store.activeDevices(who.patientId)).some((row) => row.kind === 'carer');
+      await replaceDoseChecks(store, who.patientId, {
+        open: who.device === 'patient' && input.checks && carers ? input.checks : undefined,
+        taken: input.taken ?? [],
+        clear: !carers,
+      });
+    }
+    return json({ count });
   });
+
+  /** Due reminders and missed-dose notices, for a scheduler outside the process (see `tickToken`). */
+  if (config.tickToken) {
+    const tickHash = sha256(config.tickToken);
+    route('POST', '/api/tick', async (request, url) => {
+      const token = bearer(request, url) ?? url.searchParams.get('key') ?? '';
+      if ((await sha256(token)) !== (await tickHash)) throw new HttpError(401, 'Нужен ключ.');
+      await limit('tick', 10);
+      const reminders = await sendDueReminders(store, config.vapid, log);
+      const missed = await sendMissedDoses(store, config.vapid, log);
+      return json({ reminders, missed });
+    });
+  }
 
   /** Polling in `serverless` mode: the caller's change counter; re-read the data when it moves. */
   route('GET', '/api/changes', async (request, url) => {

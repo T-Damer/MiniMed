@@ -111,9 +111,9 @@ export function PageHeroBand(props: {
 /**
  * The header shrinks into a bar as the page scrolls (owner 2026-10-28): it is sticky with its
  * bottom strip left on screen and its row (back, title, actions) sticky under the status bar;
- * scroll-driven, the description fades and the emblem shrinks into a small icon beside the bar's
- * title, where nothing covers it (it fades instead when the row has no room). Only headers
- * with a row do this: a bar with nothing to tap is not worth its room. The distances are measured
+ * scroll-driven, the description and the emblem fade (the emblem no longer flies into a small icon
+ * beside the title: on a wide screen it was cut and landed apart from it, owner 2026-11-02). Only
+ * headers with a row do this: a bar with nothing to tap is not worth its room. The distances are measured
  * here (on resize, never per frame) and handed to CSS (`--page-hero-*`); without scroll-driven
  * animations the header simply scrolls away (components/PageHero.css).
  */
@@ -151,7 +151,7 @@ export function useHeroScroll(
       const block = element.querySelector<HTMLElement>('.page__header');
       const clear = block ? block.offsetTop - (pinned.offsetTop + rowHeight) : end - start;
       setLength(element, '--page-hero-fade-end', start + Math.max(4, clear));
-      measureEmblem(element, pinned, rowHeight);
+      measureEmblem(element, pinned);
       element.classList.add('page--hero-sticky');
       pinned.classList.add('page__above-header--sticky');
     };
@@ -165,49 +165,10 @@ export function useHeroScroll(
   });
 }
 
-/** The emblem's size at rest (PageHero.css) and in the bar. */
-const EMBLEM_REST_REM = 9.5;
-const EMBLEM_BAR_REM = 1.375;
-
-/**
- * Where the emblem ends: a small icon just after the row's title, in the row's middle, where no
- * button covers it. A row with no room there (a search field, a long title, the actions), or whose
- * title has its own icon, lets the emblem fade instead.
- */
-function measureEmblem(header: HTMLElement, row: HTMLElement, rowHeight: number): void {
-  const emblem = row.querySelector<HTMLElement>('.page-hero__emblem');
-  if (!emblem) return;
-  // It is drawn in the row (above the row's pinned fill), placed from the header's top.
+/** The emblem is drawn in the row (above the row's pinned fill), placed from the header's top. */
+function measureEmblem(header: HTMLElement, row: HTMLElement): void {
+  if (!row.querySelector('.page-hero__emblem')) return;
   setLength(header, '--page-hero-row-offset', row.offsetTop);
-  const rest = remToPx(EMBLEM_REST_REM);
-  const size = remToPx(EMBLEM_BAR_REM);
-  const gap = remToPx(0.5);
-  const headerBox = header.getBoundingClientRect();
-  // The emblem's centre at rest, from its declared place (PageHero.css): its box sits 1.5rem above
-  // the header's top and 1.75rem past the band's right edge. The row is already stuck under the
-  // status bar while the emblem moves (it sticks before the header does), so the flight is
-  // measured in the row, which stands still meanwhile.
-  const insetRight = Number.parseFloat(header.style.getPropertyValue('--page-hero-inset-right'));
-  const restX =
-    headerBox.right + (Number.isFinite(insetRight) ? insetRight : 0) + remToPx(1.75) - rest / 2;
-  const restY = rest / 2 - remToPx(1.5) - row.offsetTop;
-  const title = row.querySelector<HTMLElement>('.page__title');
-  const actions = row.querySelector<HTMLElement>('.page__right-actions');
-  const titleRight = title?.getBoundingClientRect().right;
-  const limit = actions?.getBoundingClientRect().left ?? headerBox.right;
-  // A title that already carries its own icon or avatar (the feed's newspaper, a source's logo)
-  // would show the emblem twice side by side: it fades there instead.
-  const ownIcon = title?.querySelector('svg, img') != null;
-  const room = !ownIcon && titleRight !== undefined && titleRight + gap + size + gap <= limit;
-  const endX = room && titleRight !== undefined ? titleRight + gap + size / 2 : restX;
-  const endY = rowHeight / 2;
-  setLength(header, '--page-hero-emblem-x', endX - restX);
-  setLength(header, '--page-hero-emblem-y', endY - restY);
-  header.style.setProperty(
-    '--page-hero-emblem-scale',
-    String(Math.round((size / rest) * 1000) / 1000),
-  );
-  header.style.setProperty('--page-hero-emblem-opacity', room ? '0.7' : '0');
 }
 
 /** One watcher for every header: each kept its own observer, listener and probe layout. */

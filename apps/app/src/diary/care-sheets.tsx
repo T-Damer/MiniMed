@@ -1,5 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { Button } from '@/components/Button';
+import { DateField } from '@/components/DateField';
 import { TimeField as UiTimeField } from '@/components/TimeField';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
@@ -9,36 +10,44 @@ import { atTime, CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
 import {
   createDiaryId,
   DIARY_MEAL_LABEL,
+  DIARY_MISS_REASON_LABEL,
+  DIARY_MISS_REASONS,
   type DiaryCheckpoint,
   type DiaryDoseTime,
   type DiaryEntry,
   type DiaryField,
   type DiaryInvitation,
+  type DiaryLabRequest,
+  type DiaryMissReason,
   type DiaryPlanItem,
   type DiaryPlanValue,
   type DiaryVoice,
+  intakeMark,
 } from '@/features/diary/diary-model';
 
 /** Saves an entry; returns the problem to show, or undefined when it was saved. */
 export type CareSave = (value: Record<string, unknown>) => string | undefined;
 
-function pad(value: number): string {
+export function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-function clock(iso: string): string {
+export function clock(iso: string): string {
   const date = new Date(iso);
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /** The time a new mark starts with: now on today, the planned time on another day. */
-function initialTime(day: string, planned: string | undefined): string {
+export function initialTime(day: string, planned: string | undefined): string {
   if (day === dayKey(new Date())) return clock(new Date().toISOString());
   return planned ?? '12:00';
 }
 
 /** The mark's time: the app's Kobalte time field (no native pickers, owner 2026-11-01). */
-function TimeField(props: { readonly value: string; readonly onInput: (value: string) => void }) {
+export function TimeField(props: {
+  readonly value: string;
+  readonly onInput: (value: string) => void;
+}) {
   return (
     <UiTimeField
       label="Время"
@@ -49,7 +58,7 @@ function TimeField(props: { readonly value: string; readonly onInput: (value: st
   );
 }
 
-function TipBox(props: { readonly text: string | undefined }) {
+export function TipBox(props: { readonly text: string | undefined }) {
   return (
     <Show when={props.text}>
       <p class="diary-care-tip">
@@ -62,7 +71,7 @@ function TipBox(props: { readonly text: string | undefined }) {
   );
 }
 
-function SheetFooter(props: {
+export function SheetFooter(props: {
   readonly error: string;
   readonly saveLabel?: string;
   /** Nothing to save yet: the button waits instead of an error after the tap. */
@@ -114,8 +123,13 @@ function SheetFooter(props: {
   );
 }
 
-function doseTitle(item: DiaryPlanItem, time: DiaryDoseTime | undefined): string {
-  return [item.name, time?.dose ?? item.dose].filter(Boolean).join(' ');
+/** The item and its dose; a mark already made shows the dose it was made at. */
+function doseTitle(
+  item: DiaryPlanItem,
+  time: DiaryDoseTime | undefined,
+  marked: DiaryPlanValue | undefined,
+): string {
+  return [item.name, marked?.dose ?? time?.dose ?? item.dose].filter(Boolean).join(' ');
 }
 
 /**
@@ -132,10 +146,13 @@ export function DoseSheet(props: {
   readonly onSave: CareSave;
   readonly onRemove: (entry: DiaryEntry) => void;
   readonly onClose: () => void;
+  /** Opened from «what happened?» about a missed intake: starts on «Пропустил(а)». */
+  readonly missed?: boolean;
 }): JSX.Element {
   const previous = props.entry?.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
   const afterField = props.invitation.fields.find((field) => field.id === 'after');
-  const [taken, setTaken] = createSignal(previous?.done !== false);
+  const [taken, setTaken] = createSignal(props.missed ? false : previous?.done !== false);
+  const [reason, setReason] = createSignal<DiaryMissReason | undefined>(previous?.reason);
   const [time, setTime] = createSignal(
     props.entry ? clock(props.entry.at) : initialTime(props.day, props.time?.time),
   );
@@ -156,10 +173,11 @@ export function DoseSheet(props: {
       id: props.entry?.id ?? createDiaryId(),
       at: atTime(props.day, time()),
       values: {
+        // An edited mark keeps the dose it was made at; a new one takes today's plan.
         [CARE_DOSE_FIELD]: {
-          item: props.item.id,
-          done: taken(),
-          ...(props.time ? { slot: props.time.time } : {}),
+          ...intakeMark(props.item, taken(), props.time?.time),
+          ...(previous?.dose ? { dose: previous.dose } : {}),
+          ...(!taken() && reason() ? { reason: reason() } : {}),
         },
         ...(taken() && after().length ? { after: after() } : {}),
       },
@@ -177,7 +195,7 @@ export function DoseSheet(props: {
 
   return (
     <DiarySheet
-      title={doseTitle(props.item, props.time)}
+      title={doseTitle(props.item, props.time, previous)}
       subtitle={subtitle()}
       onClose={props.onClose}
       footer={
@@ -231,10 +249,37 @@ export function DoseSheet(props: {
           </div>
         </fieldset>
       </Show>
+      {/* Why it was missed, one tap (DIARY22): the doctor sees how often and why. */}
+      <Show when={!taken()}>
+        <fieldset class="diary-chips">
+          <legend class="diary-chips__legend">Что помешало?</legend>
+          <div class="diary-chips__list">
+            <For each={DIARY_MISS_REASONS}>
+              {(code) => (
+                <button
+                  type="button"
+                  class="diary-chip"
+                  classList={{ 'diary-chip--on': reason() === code }}
+                  aria-pressed={reason() === code}
+                  onClick={() => setReason(reason() === code ? undefined : code)}
+                >
+                  {DIARY_MISS_REASON_LABEL[code]}
+                </button>
+              )}
+            </For>
+          </div>
+        </fieldset>
+      </Show>
       <GrowingText
-        label={taken() ? 'Что ещё заметили' : 'Почему пропустили'}
+        label={taken() ? 'Что ещё заметили' : 'Расскажите подробнее'}
         value={note()}
-        placeholder={taken() ? 'Опишите ваши ощущения' : 'Например: забыл(а), закончились таблетки'}
+        placeholder={
+          taken()
+            ? 'Опишите ваши ощущения'
+            : reason() === 'side-effects'
+              ? 'Что именно беспокоит после приёма'
+              : 'Если хотите, напишите врачу пару слов'
+        }
         onInput={setNote}
       />
     </DiarySheet>
@@ -246,6 +291,39 @@ const SCORE_WORDS: Readonly<Record<number, string>> = {
   5: 'средне',
   10: 'отлично',
 };
+
+/** A row of score buttons from `min` to `max`; the chosen one is filled. */
+export function ScorePicker(props: {
+  readonly label: string;
+  readonly min: number;
+  readonly max: number;
+  readonly value: number | undefined;
+  /** Spoken names of a few scores, read by screen readers with the number. */
+  readonly words?: Readonly<Record<number, string>>;
+  readonly onChange: (value: number) => void;
+}): JSX.Element {
+  const scores = (): number[] =>
+    Array.from({ length: props.max - props.min + 1 }, (_, index) => props.min + index);
+  return (
+    <fieldset class="diary-score">
+      <legend class="diary-hidden-label">{props.label}</legend>
+      <For each={scores()}>
+        {(value) => (
+          <button
+            type="button"
+            class={`diary-score__option diary-score__option--tone-${Math.round(((value - props.min) / (props.max - props.min)) * 4)}`}
+            classList={{ 'diary-score__option--on': props.value === value }}
+            aria-pressed={props.value === value}
+            aria-label={props.words?.[value] ? `${value}, ${props.words[value]}` : String(value)}
+            onClick={() => props.onChange(value)}
+          >
+            {value}
+          </button>
+        )}
+      </For>
+    </fieldset>
+  );
+}
 
 /** A 0–10 score (wellbeing in the morning or evening) with an optional comment. */
 export function ScoreSheet(props: {
@@ -261,7 +339,6 @@ export function ScoreSheet(props: {
 }): JSX.Element {
   const min = props.field.min ?? 0;
   const max = props.field.max ?? 10;
-  const scores = Array.from({ length: max - min + 1 }, (_, index) => min + index);
   const previous = props.entry?.values[props.field.id];
   const [score, setScore] = createSignal<number | undefined>(
     typeof previous === 'number' ? previous : undefined,
@@ -303,23 +380,14 @@ export function ScoreSheet(props: {
       }
     >
       <TipBox text={props.tip} />
-      <fieldset class="diary-score">
-        <legend class="diary-hidden-label">{props.checkpoint.label}</legend>
-        <For each={scores}>
-          {(value) => (
-            <button
-              type="button"
-              class={`diary-score__option diary-score__option--tone-${Math.round(((value - min) / (max - min)) * 4)}`}
-              classList={{ 'diary-score__option--on': score() === value }}
-              aria-pressed={score() === value}
-              aria-label={SCORE_WORDS[value] ? `${value}, ${SCORE_WORDS[value]}` : String(value)}
-              onClick={() => setScore(value)}
-            >
-              {value}
-            </button>
-          )}
-        </For>
-      </fieldset>
+      <ScorePicker
+        label={props.checkpoint.label}
+        min={min}
+        max={max}
+        value={score()}
+        words={SCORE_WORDS}
+        onChange={setScore}
+      />
       <TimeField value={time()} onInput={setTime} />
       <GrowingText
         label="Комментарий"
@@ -327,6 +395,86 @@ export function ScoreSheet(props: {
         placeholder="Опишите, что повлияло на самочувствие"
         onInput={setNote}
       />
+    </DiarySheet>
+  );
+}
+
+/**
+ * A lab result the patient types in from the lab's printout (DIARY27): the value in the doctor's
+ * units and the day the blood was taken. An entry of its own, not tied to a day's checkpoint.
+ */
+export function LabSheet(props: {
+  readonly lab: DiaryLabRequest;
+  readonly field: DiaryField;
+  readonly entry: DiaryEntry | undefined;
+  readonly onSave: CareSave;
+  readonly onRemove: (entry: DiaryEntry) => void;
+  readonly onClose: () => void;
+}): JSX.Element {
+  const today = dayKey(new Date());
+  const initial = props.entry?.values[props.field.id];
+  const [text, setText] = createSignal(typeof initial === 'number' ? String(initial) : '');
+  const [day, setDay] = createSignal(props.entry ? dayKey(props.entry.at) : today);
+  const [error, setError] = createSignal('');
+  const save = (): void => {
+    const problem = numberProblem(props.field, text());
+    const value = parseTypedNumber(text());
+    if (problem || value === undefined) {
+      setError(problem || 'Впишите результат.');
+      return;
+    }
+    if (!day() || day() > today) {
+      setError('Укажите день, когда сдавали анализ.');
+      return;
+    }
+    setError(
+      props.onSave({
+        id: props.entry?.id ?? createDiaryId(),
+        at:
+          props.entry && dayKey(props.entry.at) === day() ? props.entry.at : atTime(day(), '08:00'),
+        values: { [props.field.id]: value },
+      }) ?? '',
+    );
+  };
+  return (
+    <DiarySheet
+      title={props.lab.name}
+      subtitle="Перепишите результат с бланка лаборатории"
+      onClose={props.onClose}
+      footer={
+        <SheetFooter
+          error={error()}
+          onSave={save}
+          onRemove={props.entry ? () => props.entry && props.onRemove(props.entry) : undefined}
+        />
+      }
+    >
+      <TipBox text={props.lab.why} />
+      <div class="diary-vitals diary-vitals--lab">
+        <label class="diary-vitals__field diary-lab__field">
+          <span class="diary-vitals__label">Результат</span>
+          {/* The unit sits inside the box, so both labels stay on one line (owner 2026-11-04). */}
+          <span class="diary-lab__box">
+            <input
+              class="diary-lab__input"
+              inputmode="decimal"
+              enterkeyhint="done"
+              value={text()}
+              onInput={(event) => setText(event.currentTarget.value)}
+            />
+            <Show when={props.field.unit}>
+              <span class="diary-lab__unit">{props.field.unit}</span>
+            </Show>
+          </span>
+        </label>
+        <DateField
+          class="diary-lab__date"
+          label="Когда сдавали"
+          value={day()}
+          max={today}
+          onChange={setDay}
+        />
+      </div>
     </DiarySheet>
   );
 }
@@ -479,7 +627,7 @@ export function NoteSheet(props: {
 
   return (
     <DiarySheet
-      title={props.entry ? 'Описание состояния' : 'Добавить описание состояния'}
+      title={props.entry ? 'Своими словами' : 'Рассказать врачу'}
       onClose={props.onClose}
       footer={
         <SheetFooter

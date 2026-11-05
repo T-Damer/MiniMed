@@ -19,8 +19,7 @@
 }
 
 .clinical-glyph,
-.archive-search__icon,
-.scroll-top-button__icon {
+.archive-search__icon {
   width: 1.125rem;
   height: 1.125rem;
 }
@@ -146,17 +145,6 @@
 
 .reader-search-hidden {
   display: none;
-}
-
-.scroll-top-button {
-  display: grid;
-  place-items: center;
-  border: 1px solid rgb(246 238 219 / 25%);
-  border-radius: 50%;
-  color: #f6eedb;
-  background: rgb(71 69 63 / 92%);
-  box-shadow: 0 0.625rem 1.5625rem rgb(24 22 19 / 27%);
-  cursor: pointer;
 }
 
 .app-nav-button {

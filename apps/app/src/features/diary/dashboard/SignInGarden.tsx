@@ -37,18 +37,30 @@ const LEAVES: readonly Leaf[] = [
 const LEAF_BLADE = 'M0 0 C 6 -9, 22 -12, 34 -2 C 24 8, 8 9, 0 0 Z';
 const LEAF_RIB = 'M3 -0.5 C 12 -2, 20 -2.5, 29 -2.5';
 
-function Vine(props: { readonly corner: 'start' | 'end' }): JSX.Element {
+/** The vines grow once per page: a garden that is shown again (the list, after a tab) is already grown. */
+let grown = false;
+
+function Vine(props: { readonly corner: 'start' | 'end'; readonly settled: boolean }): JSX.Element {
   return (
     <svg
       class={`diary-garden__vine diary-garden__vine--${props.corner}`}
       viewBox="0 0 220 320"
       aria-hidden="true"
     >
-      <path class="diary-garden__stem" d={STEM} pathLength="1" />
+      <path
+        class="diary-garden__stem"
+        classList={{ 'diary-garden__stem--grown': props.settled }}
+        d={STEM}
+        pathLength="1"
+      />
       <For each={LEAVES}>
         {(leaf, index) => (
           <g transform={`translate(${leaf.x} ${leaf.y}) rotate(${leaf.turn}) scale(${leaf.size})`}>
-            <g class="diary-garden__leaf" style={{ '--leaf-index': String(index()) }}>
+            <g
+              class="diary-garden__leaf"
+              classList={{ 'diary-garden__leaf--grown': props.settled }}
+              style={{ '--leaf-index': String(index()) }}
+            >
               <path
                 class={`diary-garden__blade diary-garden__blade--${leaf.tone}`}
                 d={LEAF_BLADE}
@@ -71,10 +83,12 @@ const DRIFTERS: readonly { readonly lane: string; readonly tone: Tone }[] = [
 ];
 
 export function SignInGarden(): JSX.Element {
+  const settled = grown;
+  grown = true;
   return (
     <div class="diary-garden" aria-hidden="true">
-      <Vine corner="start" />
-      <Vine corner="end" />
+      <Vine corner="start" settled={settled} />
+      <Vine corner="end" settled={settled} />
       <For each={DRIFTERS}>
         {(drifter) => (
           <svg

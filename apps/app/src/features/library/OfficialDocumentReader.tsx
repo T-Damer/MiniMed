@@ -97,16 +97,19 @@ import {
   OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS,
   UserDocumentHighlights,
 } from '@/features/library/UserDocumentHighlights';
-import { DrugSafetyBlock } from '@/features/medication-safety/DrugSafetyBlock';
+import { DrugConditionRow } from '@/features/medication-safety/DrugConditionRow';
+import { textOf } from '@/features/medication-safety/safety-metadata';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
+import {
+  CompositionComponents,
+  DrugCompoundAside,
+} from '@/features/medications/compounds/DrugCompounds';
 import { DrugIndexAtc, esklpCardSlug } from '@/features/medications/DrugIndexAtc';
 import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
 import { DrugScreenHeader } from '@/features/medications/DrugScreenHeader';
-import { DrugSectionIndex } from '@/features/medications/DrugSectionIndex';
 import {
   buildDrugScreen,
   displayDrugName,
-  drugSectionIndex,
   drugShareText,
   instructionIndexFromSummaries,
   instructionSourceClassIndexFromSummaries,
@@ -518,8 +521,6 @@ function MedicationProductPanel(props: {
   readonly instructionOfferProgress?: number | null | undefined;
   readonly instructionOfferError?: string | null | undefined;
   readonly onInstallInstructionModule?: (() => void) | undefined;
-  /** The «Разделы» button, at the end of the switch row. */
-  readonly trailing?: JSX.Element;
 }): JSX.Element {
   const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
   const presentationList = () => (
@@ -557,7 +558,6 @@ function MedicationProductPanel(props: {
             value={props.mode}
             onChange={props.onModeChange}
           />
-          {props.trailing}
         </div>
         <Show when={props.instructionOffer ? offerNote(props.instructionOffer) : choices().note}>
           {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
@@ -825,7 +825,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     const target = parseModulePointerMetadata(props.document?.metadata)?.targetDocumentId;
     return target ? esklpCardSlug(target) : null;
   });
-  const drugSections = createMemo(() => (drugScreen() ? drugSectionIndex(orderedSections()) : []));
 
   const findUnits = createMemo((): readonly DocumentFindUnit[] => {
     const document = props.document;
@@ -1474,7 +1473,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   fallback={
                     <>
                       <ReaderHero picture={heroPicture()} onSource={setHeroImageSource}>
-                        <ReaderTitleRow>
+                        <ReaderTitleRow
+                          aside={
+                            <Show when={documentValue().sourceType === 'official_drug_instruction'}>
+                              <DrugCompoundAside
+                                screen={null}
+                                inn={textOf(documentValue().metadata['inn'])}
+                              />
+                            </Show>
+                          }
+                        >
                           <h1
                             class="document-overlay-paper__title"
                             classList={{
@@ -1630,6 +1638,12 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     <>
                       <DrugScreenHeader
                         header={screen().header}
+                        aside={
+                          <DrugCompoundAside
+                            screen={screen()}
+                            inn={textOf(documentValue().metadata['inn'])}
+                          />
+                        }
                         title={
                           <QueryHighlightedText
                             text={screen().header.title}
@@ -1715,7 +1729,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 <RlsMedicationPackagingPanel document={documentValue()} />
 
                 <Show when={documentValue().sourceType === 'official_drug_instruction'}>
-                  <DrugSafetyBlock document={documentValue()} />
+                  <DrugConditionRow document={documentValue()} />
                 </Show>
 
                 <Show when={isIcd11Document(documentValue())}>
@@ -1737,16 +1751,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       instructionOfferProgress={props.instructionOfferProgress}
                       instructionOfferError={props.instructionOfferError}
                       onInstallInstructionModule={props.onInstallInstructionModule}
-                      trailing={
-                        <Show when={drugSections().length > 0}>
-                          <DrugSectionIndex
-                            count={drugSections().length}
-                            onOpen={() => {
-                              if (!chrome.outlineOpen()) chrome.toggleOutline();
-                            }}
-                          />
-                        </Show>
-                      }
                     />
                   )}
                 </Show>
@@ -1812,15 +1816,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   )}
                 >
                   {(info) => <InstructionSourcePanel info={info()} compact={!!drugScreen()} />}
-                </Show>
-
-                <Show when={drugSections().length > 0 && !props.medicationProduct}>
-                  <DrugSectionIndex
-                    count={drugSections().length}
-                    onOpen={() => {
-                      if (!chrome.outlineOpen()) chrome.toggleOutline();
-                    }}
-                  />
                 </Show>
 
                 <ReaderSectionPath />
@@ -1891,6 +1886,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                               matchClass="document-overlay-match"
                             />
                           </Dynamic>
+                          <Show
+                            when={
+                              section.sectionType === 'composition' &&
+                              documentValue().sourceType === 'official_drug_instruction'
+                            }
+                          >
+                            <CompositionComponents
+                              text={section.chunks.map((chunk) => chunk.originalText).join('\n\n')}
+                            />
+                          </Show>
                           <For each={resolveDocumentChunkItems(section.chunks)}>
                             {(item) => {
                               const activeStart = () =>

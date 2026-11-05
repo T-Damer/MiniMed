@@ -69,10 +69,15 @@ export function ReaderActionsMenu(props: {
 }
 
 /** The document's title row; saving lives in the header's «⋯» menu. */
-export function ReaderTitleRow(props: { readonly children: JSX.Element }): JSX.Element {
+export function ReaderTitleRow(props: {
+  readonly children: JSX.Element;
+  /** Beside the title, e.g. a drug's structure. */
+  readonly aside?: JSX.Element;
+}): JSX.Element {
   return (
     <div class="reader-title-row">
       <div class="reader-title-row__title">{props.children}</div>
+      {props.aside}
     </div>
   );
 }

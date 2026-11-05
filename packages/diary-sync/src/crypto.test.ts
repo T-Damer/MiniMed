@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest';
-
 import {
+  canonicalInviteCode,
   DiaryCryptoError,
   deriveAccountSecrets,
   deriveRecoverySecrets,
+  newPairingSecret as freshPairingSecret,
   generateIdentity,
+  inviteProof,
+  inviteStorageKey,
   newDataKey,
   newPairingSecret,
   newRecoveryCode,
   openIdentity,
   openPairingKeys,
   openRecord,
+  openPairingKeys as openSealedPairingKeys,
+  pairingProof,
   publicIdentity,
   sealIdentity,
+  sealPairingKeys as sealKeysForPairing,
   sealPairingKeys,
   sealRecord,
   unwrapDataKey,
@@ -112,5 +118,28 @@ describe('diary end-to-end crypto', () => {
     await expect(openPairingKeys(sealed, newPairingSecret())).rejects.toBeInstanceOf(
       DiaryCryptoError,
     );
+  });
+});
+
+describe('proofs instead of secrets (SEC-AUDIT1)', () => {
+  it('gives the server a pairing proof that cannot open the sealed keys', async () => {
+    const secret = freshPairingSecret();
+    const key = new Uint8Array(32).fill(7);
+    const sealed = await sealKeysForPairing(new Map([[1, key]]), secret);
+    const proof = await pairingProof(secret);
+    expect(proof).not.toBe(secret);
+    expect(await pairingProof(secret)).toBe(proof);
+    expect((await openSealedPairingKeys(sealed, secret)).get(1)).toEqual(key);
+    await expect(openSealedPairingKeys(sealed, proof)).rejects.toThrow();
+  });
+
+  it('gives one invite proof however a code is typed, and never the code itself', async () => {
+    expect(canonicalInviteCode(' k7mp 2qxr-9htn ')).toBe('K7MP2QXR9HTN');
+    const proof = await inviteProof('K7MP-2QXR-9HTN');
+    expect(await inviteProof('k7mp2qxr9htn')).toBe(proof);
+    expect(proof).not.toContain('K7MP');
+    const key = await inviteStorageKey(proof);
+    expect(key.startsWith('h1:')).toBe(true);
+    expect(key).not.toContain(proof);
   });
 });

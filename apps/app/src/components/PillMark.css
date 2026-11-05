@@ -1,0 +1,89 @@
+/* A pressed tablet: tints from `--pill-hue`, light from the top left (components/PillMark.tsx). */
+.pill-mark {
+  --pill-light: hsl(var(--pill-hue) 60% 98%);
+  --pill-mid: hsl(var(--pill-hue) 62% 89%);
+  --pill-dark: hsl(var(--pill-hue) 42% 78%);
+  --pill-edge: hsl(var(--pill-hue) 30% 62%);
+  --pill-ink: hsl(var(--pill-hue) 45% 30%);
+  --pill-ink-light: rgb(255 255 255 / 70%);
+  display: inline-block;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  overflow: visible;
+  filter: drop-shadow(0 0.06rem 0.05rem rgb(0 0 0 / 28%))
+    drop-shadow(0 0.12rem 0.18rem rgb(0 0 0 / 14%));
+}
+
+.pill-mark__stop-light {
+  stop-color: var(--pill-light);
+}
+
+.pill-mark__stop-mid {
+  stop-color: var(--pill-mid);
+}
+
+.pill-mark__stop-dark {
+  stop-color: var(--pill-dark);
+}
+
+.pill-mark__body {
+  stroke: var(--pill-edge);
+  stroke-width: 0.55;
+}
+
+.pill-mark__grain {
+  fill: #fff;
+  mix-blend-mode: multiply;
+}
+
+/* The bevel: a faint ring where the flat face meets the rounded edge. */
+.pill-mark__bevel {
+  fill: none;
+  stroke: rgb(255 255 255 / 55%);
+  stroke-width: 0.7;
+}
+
+.pill-mark__letter,
+.pill-mark__letter-light {
+  font-family: inherit;
+  font-weight: 800;
+}
+
+/* A capsule's other half and the liquid behind glass. */
+.pill-mark__half {
+  fill: rgb(255 255 255 / 55%);
+}
+
+.pill-mark__liquid {
+  fill: hsl(var(--pill-hue) 55% 62% / 55%);
+}
+
+.pill-mark__letter {
+  fill: var(--pill-ink);
+}
+
+/* Pressed in: a light rim under the letter. */
+.pill-mark__letter-light {
+  fill: var(--pill-ink-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pill-mark {
+    --pill-light: hsl(var(--pill-hue) 30% 62%);
+    --pill-mid: hsl(var(--pill-hue) 30% 44%);
+    --pill-dark: hsl(var(--pill-hue) 32% 30%);
+    --pill-edge: hsl(var(--pill-hue) 35% 22%);
+    --pill-ink: hsl(var(--pill-hue) 60% 94%);
+    --pill-ink-light: rgb(0 0 0 / 35%);
+  }
+}
+
+:root[data-theme="dark"] .pill-mark {
+  --pill-light: hsl(var(--pill-hue) 30% 62%);
+  --pill-mid: hsl(var(--pill-hue) 30% 44%);
+  --pill-dark: hsl(var(--pill-hue) 32% 30%);
+  --pill-edge: hsl(var(--pill-hue) 35% 22%);
+  --pill-ink: hsl(var(--pill-hue) 60% 94%);
+  --pill-ink-light: rgb(0 0 0 / 35%);
+}

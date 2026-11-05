@@ -62,6 +62,12 @@ html:has(.conversation-bar) [data-sonner-toaster].app-notification-host[data-y-p
   pointer-events: auto;
 }
 
+/* sonner paints the description its light theme's #3f3f3f, unreadable on the dark paper: take the
+   paper's own muted ink, which follows the theme. */
+[data-sonner-toast][data-styled="true"].app-notification [data-description] {
+  color: var(--ink-soft);
+}
+
 [data-sonner-toast][data-styled="true"].app-notification[data-type="success"] {
   --app-notification-paper: color-mix(in srgb, var(--theme-accent) 9%, var(--paper-light));
   border-color: var(--success-border);

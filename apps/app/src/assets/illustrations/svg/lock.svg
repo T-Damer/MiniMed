@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Замок</title>
+<defs>
+<linearGradient id="leather" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#3b5747"/><stop offset="1" stop-color="#223329"/></linearGradient>
+<linearGradient id="spine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2a21"/><stop offset="1" stop-color="#2a4033"/></linearGradient>
+<linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf7ea"/><stop offset="1" stop-color="#ece3cb"/></linearGradient>
+<linearGradient id="strap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8653d"/><stop offset="1" stop-color="#7c4428"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6c978"/><stop offset="1" stop-color="#b68b36"/></linearGradient>
+<linearGradient id="slate" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d7589"/><stop offset="1" stop-color="#3c6478"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#c85840"/><stop offset="1" stop-color="#a23a28"/></linearGradient>
+<linearGradient id="hl" x1="0" y1="0" x2="0.7" y2="0.7"><stop offset="0" stop-color="#fff" stop-opacity="0.17"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="blur" x="-20%" y="-300%" width="140%" height="700%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<ellipse cx="256" cy="486" rx="150" ry="10" fill="#1b2a21" opacity="0.28" filter="url(#blur)"/>
+<path d="M170 224V168a86 86 0 0 1 172 0v56" fill="none" stroke="#8e6d2a" stroke-width="46"/>
+<path d="M170 224V168a86 86 0 0 1 172 0v56" fill="none" stroke="url(#gold)" stroke-width="36"/>
+<path d="M162 214V168a94 94 0 0 1 62-88" fill="none" stroke="#f6e3a8" stroke-width="5" stroke-linecap="round" opacity="0.65"/>
+<rect x="104" y="214" width="304" height="250" rx="48" fill="url(#leather)"/><rect x="104" y="214" width="304" height="250" rx="48" fill="url(#hl)"/>
+<rect x="120" y="230" width="272" height="218" rx="34" fill="none" stroke="#d9c9a3" stroke-width="4" stroke-dasharray="12 9" opacity="0.75"/>
+<circle cx="256" cy="338" r="68" fill="#f3ecd9" stroke="#cbc0a7" stroke-width="3"/>
+<circle cx="256" cy="338" r="58" fill="none" stroke="#cbc0a7" stroke-width="2.5" stroke-dasharray="6 5"/>
+<g transform="translate(256 338) scale(1.58)"><path d="M-10-22h20v12h12v20h-12v12h-20v-12h-12v-20h12z" fill="#b5452f"/></g>
+<circle cx="256" cy="333" r="10.5" fill="#223329"/><path d="M251 338h10l5 27h-20z" fill="#223329"/>
+</svg>

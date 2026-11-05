@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Дневник самоконтроля MiniMed",
-  "short_name": "Дневник",
+  "name": "Сигнум — дневник самоконтроля",
+  "short_name": "Сигнум",
   "description": "Дневник лечения от вашего врача: приём лекарств, самочувствие, давление и пульс, опросники и напоминания. Работает без интернета; записи уходят врачу зашифрованными.",
   "lang": "ru",
   "start_url": "./",
@@ -9,7 +9,7 @@
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
   "background_color": "#f3ecd9",
-  "theme_color": "#f3ecd9",
+  "theme_color": "#47453f",
   "icons": [
     {
       "src": "../diaries/icon-192.png",

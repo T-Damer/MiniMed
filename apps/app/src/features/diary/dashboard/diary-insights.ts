@@ -4,22 +4,31 @@
  * decrypted diary; scoring comes from the questionnaire schemas, not from code here.
  */
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   addDays,
   CARE_DOSE_FIELD,
   dayKey,
   dayPlan,
   diaryStarted,
+  doseValue,
   heatmapDays,
 } from '@/features/diary/diary-care';
 import {
   DIARY_MEAL_LABEL,
+  DIARY_MISS_REASON_SHORT,
+  type DiaryCheckpoint,
   type DiaryEntry,
   type DiaryInvitation,
+  type DiaryMissReason,
   type DiaryPlanValue,
   describeDiaryEntry,
+  markedDose,
 } from '@/features/diary/diary-model';
-import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
+import {
+  loadCheckpointQuestionnaire,
+  readyCheckpointQuestionnaire,
+} from '@/features/diary/diary-questionnaires';
 import { type AssessmentLimit, scoreScaleLimit } from '@/state/assessment-limits';
 
 export interface Adherence {
@@ -52,6 +61,16 @@ export interface MedicineAdherence {
   readonly taken: number;
   readonly skipped: number;
   readonly planned: number;
+  /** Why the skipped ones were skipped, as the patient said (DIARY22); unanswered ones are absent. */
+  readonly reasons: Readonly<Partial<Record<DiaryMissReason, number>>>;
+}
+
+/** «забыл(а) ×2, закончилось» — the reasons, the most frequent first. */
+export function missReasonsText(reasons: MedicineAdherence['reasons']): string {
+  return (Object.entries(reasons) as [DiaryMissReason, number][])
+    .toSorted((left, right) => right[1] - left[1])
+    .map(([reason, count]) => `${DIARY_MISS_REASON_SHORT[reason]}${count > 1 ? ` ×${count}` : ''}`)
+    .join(', ');
 }
 
 /** Per medicine: planned intakes, taken and skipped over the last `days` days. */
@@ -74,12 +93,18 @@ export function medicineAdherence(
         taken: 0,
         skipped: 0,
         planned: 0,
+        reasons: {},
       };
+      const reason =
+        task.state === 'skipped' && task.entry ? doseValue(task.entry)?.reason : undefined;
       result.set(task.item.id, {
         ...current,
         planned: current.planned + (task.state === 'open' ? 0 : 1),
         taken: current.taken + (task.state === 'done' ? 1 : 0),
         skipped: current.skipped + (task.state === 'skipped' ? 1 : 0),
+        reasons: reason
+          ? { ...current.reasons, [reason]: (current.reasons[reason] ?? 0) + 1 }
+          : current.reasons,
       });
     }
   }
@@ -115,6 +140,37 @@ export interface QuestionnairePoint {
   readonly alerts: readonly string[];
   /** The schema's alert notices with their explanations. */
   readonly alertDetails: readonly { readonly title: string; readonly message: string }[];
+  /** Every question with the patient's answer (owner 2026-11-04: the whole test, not the score). */
+  readonly answers: readonly QuestionnaireAnswer[];
+}
+
+export interface QuestionnaireAnswer {
+  readonly prompt: string;
+  /** The answer's wording; absent for a question left unanswered. */
+  readonly answer: string | undefined;
+  /** The answer's points as the scale counts them; absent when the schema hides values. */
+  readonly points: number | undefined;
+}
+
+/** The questions in order, each with the answer given and its points. */
+export function questionnaireAnswers(
+  definition: AssessmentDefinition,
+  answers: Readonly<Record<string, number>>,
+): QuestionnaireAnswer[] {
+  return definition.questions.map((question) => {
+    const value = answers[question.id];
+    const options = question.responseOptions ?? definition.responseOptions;
+    const option = value === undefined ? undefined : options.find((one) => one.value === value);
+    if (value === undefined)
+      return { prompt: question.prompt, answer: undefined, points: undefined };
+    const values = options.map((one) => one.value);
+    const points = question.reverse ? Math.min(...values) + Math.max(...values) - value : value;
+    return {
+      prompt: question.prompt,
+      answer: option?.label ?? String(value),
+      points: option?.hideValue || definition.scoringMode === 'responses-only' ? undefined : points,
+    };
+  });
 }
 
 export interface QuestionnaireSeries {
@@ -124,54 +180,78 @@ export interface QuestionnaireSeries {
   /** The red line the questionnaire's schema declares (`scoreScaleLimit`). */
   readonly preset: AssessmentLimit | undefined;
   readonly title: string;
+  /** Several scales and no one total (temperament, roles): shown by headline, not charted. */
+  readonly profile: boolean;
   readonly points: readonly QuestionnairePoint[];
 }
 
-/** Totals of every questionnaire checkpoint, scored with its schema (bands and alerts). */
-export async function questionnaireSeries(
-  invitation: DiaryInvitation,
-  entries: readonly DiaryEntry[],
-): Promise<QuestionnaireSeries[]> {
-  const series: QuestionnaireSeries[] = [];
-  for (const checkpoint of invitation.checkpoints ?? []) {
-    if (checkpoint.kind !== 'questionnaire' || !checkpoint.questionnaire) continue;
-    const answered = entries.filter((entry) => entry.check === checkpoint.id && entry.answers);
-    if (!answered.length) continue;
-    const definition = await loadCheckpointQuestionnaire(checkpoint);
-    const points: QuestionnairePoint[] = [];
-    for (const entry of answered) {
-      const scored = scoreAssessment(definition, entry.answers ?? {}, entry.at);
-      if (!scored.ok) continue;
-      const primary =
-        scored.value.scores.find((score) => scored.value.primaryScaleIds.includes(score.scaleId)) ??
-        scored.value.scores[0];
-      const main = definition.scales[0];
-      const total = scored.value.scores.find((score) => score.scaleId === main?.id) ?? primary;
-      if (!total) continue;
-      points.push({
-        at: entry.at,
-        entryId: entry.id,
-        total: total.rawScore,
-        max: total.maximumScore,
-        headline: scored.value.headline,
-        alerts: (scored.value.alerts ?? []).map((alert) => alert.title),
-        alertDetails: (scored.value.alerts ?? []).map((alert) => ({
-          title: alert.title,
-          message: alert.message,
-        })),
-      });
-    }
-    // A questionnaire the doctor made without scores has nothing to chart.
-    if (!points.length) continue;
-    series.push({
-      checkpointId: checkpoint.id,
-      limitId: checkpoint.questionnaire,
-      preset: scoreScaleLimit(definition),
-      title: definition.shortTitle,
-      points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
+/** Scores one questionnaire checkpoint's answers with its definition; nothing when it has no totals. */
+function scoreSeries(
+  checkpoint: DiaryCheckpoint,
+  answered: readonly DiaryEntry[],
+  definition: AssessmentDefinition,
+): QuestionnaireSeries | undefined {
+  const points: QuestionnairePoint[] = [];
+  for (const entry of answered) {
+    const scored = scoreAssessment(definition, entry.answers ?? {}, entry.at);
+    if (!scored.ok) continue;
+    const primary =
+      scored.value.scores.find((score) => scored.value.primaryScaleIds.includes(score.scaleId)) ??
+      scored.value.scores[0];
+    const main = definition.scales[0];
+    const total = scored.value.scores.find((score) => score.scaleId === main?.id) ?? primary;
+    if (!total) continue;
+    points.push({
+      at: entry.at,
+      entryId: entry.id,
+      total: total.rawScore,
+      max: total.maximumScore,
+      headline: scored.value.headline,
+      alerts: (scored.value.alerts ?? []).map((alert) => alert.title),
+      alertDetails: (scored.value.alerts ?? []).map((alert) => ({
+        title: alert.title,
+        message: alert.message,
+      })),
+      answers: questionnaireAnswers(definition, entry.answers ?? {}),
     });
   }
-  return series;
+  // A questionnaire the doctor made without scores has nothing to chart.
+  if (!points.length) return undefined;
+  return {
+    checkpointId: checkpoint.id,
+    limitId: checkpoint.questionnaire ?? checkpoint.id,
+    preset: scoreScaleLimit(definition),
+    title: definition.shortTitle,
+    profile: definition.scales.length > 1 && !definition.scoreScales?.length,
+    points: points.toSorted((left, right) => left.at.localeCompare(right.at)),
+  };
+}
+
+/**
+ * Totals of every questionnaire checkpoint, scored with its schema (bands and alerts). With every
+ * definition at hand the answer is the list itself, not a promise: a page that reads it as a
+ * resource then never suspends, so the page behind it is not swapped for a skeleton.
+ */
+export function questionnaireSeries(
+  invitation: DiaryInvitation,
+  entries: readonly DiaryEntry[],
+): QuestionnaireSeries[] | Promise<QuestionnaireSeries[]> {
+  const todo = (invitation.checkpoints ?? []).flatMap((checkpoint) => {
+    if (checkpoint.kind !== 'questionnaire' || !checkpoint.questionnaire) return [];
+    const answered = entries.filter((entry) => entry.check === checkpoint.id && entry.answers);
+    return answered.length ? [{ checkpoint, answered }] : [];
+  });
+  const score = (definitions: readonly AssessmentDefinition[]): QuestionnaireSeries[] =>
+    todo.flatMap(({ checkpoint, answered }, index) => {
+      const definition = definitions[index];
+      const series = definition ? scoreSeries(checkpoint, answered, definition) : undefined;
+      return series ? [series] : [];
+    });
+  const known = todo.map(({ checkpoint }) => readyCheckpointQuestionnaire(checkpoint));
+  if (known.every((definition) => definition !== undefined)) return score(known);
+  return Promise.all(todo.map(({ checkpoint }) => loadCheckpointQuestionnaire(checkpoint))).then(
+    score,
+  );
 }
 
 export interface ExportRow {
@@ -222,7 +302,7 @@ export function exportRows(
       const what = plan
         ? [
             item?.name ?? plan.other,
-            item?.dose,
+            markedDose(invitation, plan),
             plan.slot ? `по плану ${plan.slot}` : '',
             slot?.meal ? DIARY_MEAL_LABEL[slot.meal] : '',
           ]

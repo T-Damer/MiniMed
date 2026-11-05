@@ -4,15 +4,27 @@
  * the local diary store and sends the patient's marks. The local store stays the source the
  * screens read, so the diary keeps working offline; sync runs whenever there is a network.
  */
+import type { DiaryDeviceKind, DiaryPatientDetail, DiaryWrappedKey } from '@localmed/contracts';
 import {
   fromBase64Url,
   generateIdentity,
+  newDataKey,
   openPairingKeys,
+  pairingProof,
   publicIdentity,
   toBase64Url,
   unwrapDataKey,
+  wrapDataKey,
 } from '@localmed/diary-sync';
 
+import {
+  carerName,
+  type DiaryPhone,
+  diaryPhones,
+  doseMoments,
+  memberName,
+  memberRecordId,
+} from '@/features/diary/connected/carer';
 import {
   createDiaryApi,
   type DiaryApi,
@@ -38,11 +50,19 @@ import {
   pendingReminderActions,
   writeReminderNotices,
 } from '@/features/diary/connected/reminder-cache';
+import {
+  JOINING_SET_VERSION,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
+import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
 import { diaryServiceBase } from '@/features/diary/diary-links';
 import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
   type DiaryEntry,
   DiaryFormatError,
+  type DiaryInvitation,
+  type DiaryPlanValue,
+  describeDiaryEntry,
   parseDiaryEntry,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
@@ -52,12 +72,18 @@ import {
   reminderNotices,
   reminderSlots,
 } from '@/features/diary/diary-reminders';
-import { type DiaryStore, withEntry, withoutEntry } from '@/features/diary/diary-storage';
+import {
+  type DiaryRemoval,
+  type DiaryStore,
+  MAX_DIARY_REMOVALS,
+  withEntry,
+  withoutEntry,
+} from '@/features/diary/diary-storage';
+import { mergePlanChange, planChanges } from '@/features/diary/plan-changes';
 
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
 /** `poll` mode (ADR-0027): how often an open diary reads its change counter. */
 const POLL_MS = 20_000;
-const CONSENT_VERSION = 'draft-2026-10-27';
 
 /** What the address of a connected diary carries: the patient id and the one-time secret. */
 export interface PairingLink {
@@ -100,6 +126,17 @@ interface StoredConnection {
   readonly reminderNames?: boolean;
   /** The moments the server has, joined, so an unchanged list is not sent again. */
   readonly remindersSent?: string;
+  /** A carer's phone (DIARY25); absent: the patient's own. */
+  readonly kind?: 'carer';
+  /** The name this carer's phone shows to the patient and the doctor. */
+  readonly name?: string;
+  /** Who has the diary, as last read: doctors and phones. */
+  readonly detail?: DiaryPatientDetail;
+  readonly detailAt?: string;
+  /** Device id → the name a carer gave (their `member-` records). */
+  readonly names?: Readonly<Record<string, string>>;
+  /** Entry id → who wrote it, when that was not this phone (`p:<device>`, `d:<doctor>`). */
+  readonly authors?: Readonly<Record<string, string>>;
 }
 
 export interface ReminderSettings {
@@ -116,6 +153,9 @@ export interface SyncStatus {
   readonly pending: number;
   readonly message?: string;
 }
+
+/** Who has the diary is read again at least this often while it is open (and on every change). */
+const PEOPLE_MS = 10 * 60_000;
 
 const ECDH = { name: 'ECDH', namedCurve: 'P-256' } as const;
 const ECDSA = { name: 'ECDSA', namedCurve: 'P-256' } as const;
@@ -144,11 +184,15 @@ function keyring(connection: StoredConnection): Keyring {
   };
 }
 
-/** The pending local changes: entries to send or delete, consent and tip reads. */
+/**
+ * The pending local changes: entries to send or delete, consent and tip reads. Nothing leaves the
+ * phone before the patient has accepted the joining documents of a plan that asks for them.
+ */
 function outbox(store: DiaryStore, connection: StoredConnection) {
   const results = store.read(connection.patientId);
   const meta = store.meta(connection.patientId);
   const items: { id: string; payload: unknown; fingerprint: string }[] = [];
+  if (results?.invitation.consent && !meta.consentAt) return items;
   const local = new Set<string>();
   for (const entry of results?.entries ?? []) {
     const id = entryRecordId(entry.id);
@@ -163,12 +207,28 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
       items.push({ id, payload: { kind: 'deleted' }, fingerprint: 'deleted' });
     }
   }
-  if (meta.consentAt && !connection.synced[CONSENT_RECORD]) {
+  // Consent is the patient's own: a carer's phone only reads it.
+  if (meta.consentAt && !connection.synced[CONSENT_RECORD] && connection.kind !== 'carer') {
     items.push({
       id: CONSENT_RECORD,
-      payload: { kind: 'consent', at: meta.consentAt, version: CONSENT_VERSION },
+      payload: {
+        kind: 'consent',
+        at: meta.consentAt,
+        version: JOINING_SET_VERSION,
+        documents: meta.consents ?? [],
+      },
       fingerprint: '1',
     });
+  }
+  if (connection.kind === 'carer' && connection.name) {
+    const id = memberRecordId(connection.deviceId);
+    if (connection.synced[id] !== connection.name) {
+      items.push({
+        id,
+        payload: { kind: 'member', name: connection.name },
+        fingerprint: connection.name,
+      });
+    }
   }
   for (const tip of meta.tipsRead ?? []) {
     const id = tipReadRecordId(tip);
@@ -186,6 +246,8 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
 export class PatientConnection {
   private readonly api: DiaryApi;
   private running: Promise<SyncStatus> | undefined;
+  /** Who has the diary may have changed (opened, or the service said so): read it with the next sync. */
+  private peopleStale = true;
 
   private constructor(
     private readonly storage: Storage,
@@ -229,12 +291,13 @@ export class PatientConnection {
     const paired = await diaryDevice.pair(
       api,
       link.patientId,
-      link.secret,
+      await pairingProof(link.secret),
       await publicIdentity(identity),
     );
     const keys = await openPairingKeys(paired.keys, link.secret);
     const connection: StoredConnection = {
       v: 1,
+      ...(paired.kind === 'carer' ? { kind: 'carer' as const } : {}),
       patientId: link.patientId,
       deviceId: paired.deviceId,
       token: paired.token,
@@ -267,6 +330,124 @@ export class PatientConnection {
 
   get patientId(): string {
     return this.connection.patientId;
+  }
+
+  /** The patient's own phone or a carer's. */
+  get kind(): DiaryDeviceKind {
+    return this.connection.kind ?? 'patient';
+  }
+
+  get deviceId(): string {
+    return this.connection.deviceId;
+  }
+
+  /** The name this carer's phone shows; empty until the carer gives one. */
+  get name(): string {
+    return this.connection.name ?? '';
+  }
+
+  /** The carer names this phone; the next sync tells the patient and the doctor. */
+  setName(name: string): Promise<SyncStatus> {
+    const clean = carerName(name);
+    if (!clean) return Promise.resolve(this.status());
+    this.save({ name: clean });
+    return this.sync();
+  }
+
+  /** The phones with access as last read (this one included). */
+  phones(): DiaryPhone[] {
+    this.refresh();
+    return diaryPhones(
+      this.connection.detail,
+      this.connection.names ?? {},
+      this.connection.deviceId,
+    );
+  }
+
+  /** The doctors with access as last read. */
+  doctors(): DiaryPatientDetail['members'] {
+    this.refresh();
+    return this.connection.detail?.members ?? [];
+  }
+
+  /** Carers' names by device id, removed carers included (their old marks keep a name). */
+  names(): Readonly<Record<string, string>> {
+    return this.connection.names ?? {};
+  }
+
+  /** Who wrote an entry, when not this phone: `p:<device>` or `d:<doctor>`. */
+  authorOf(entryId: string): string | undefined {
+    return this.connection.authors?.[entryId];
+  }
+
+  private carers(): number {
+    return (this.connection.detail?.devices ?? []).filter((device) => device.kind === 'carer')
+      .length;
+  }
+
+  private async refreshPeople(force = false): Promise<void> {
+    const at = this.connection.detailAt ? Date.parse(this.connection.detailAt) : 0;
+    if (!force && !this.peopleStale && Date.now() - at < PEOPLE_MS) return;
+    const detail = await diaryDevice.detail(this.api, this.patientId);
+    this.peopleStale = false;
+    this.save({ detail, detailAt: new Date().toISOString() });
+  }
+
+  /**
+   * The patient's phone removes a carer and locks the diary with a new key wrapped for everyone
+   * left (the owner does the same after removing a curator), so the removed phone's key opens
+   * nothing written from now on. A carer's phone removing itself leaves the diary instead.
+   */
+  async removeCarer(deviceId: string): Promise<void> {
+    await diaryDevice.removeCarer(this.api, deviceId);
+    if (deviceId === this.connection.deviceId) {
+      this.forget();
+      return;
+    }
+    await this.rotate();
+    await this.refreshPeople(true);
+  }
+
+  private async rotate(): Promise<void> {
+    for (let attempt = 0; ; attempt += 1) {
+      const current = await this.refreshKeys();
+      const detail = await diaryDevice.detail(this.api, this.patientId);
+      const key = newDataKey();
+      const epoch = current.current + 1;
+      const keys: DiaryWrappedKey[] = [];
+      for (const member of detail.members) {
+        keys.push({
+          epoch,
+          recipient: `d:${member.doctor.id}`,
+          wrapped: await wrapDataKey(key, member.doctor.identity.wrap),
+        });
+      }
+      for (const device of detail.devices) {
+        keys.push({
+          epoch,
+          recipient: `p:${device.id}`,
+          wrapped: await wrapDataKey(key, device.identity.wrap),
+        });
+      }
+      try {
+        await diaryDevice.rotate(this.api, this.patientId, epoch, keys);
+        break;
+      } catch (cause) {
+        // Someone else rotated meanwhile (the doctor): read the keys again and lock once more.
+        if (!(cause instanceof DiaryApiError && cause.status === 409) || attempt > 0) throw cause;
+      }
+    }
+    await this.refreshKeys();
+  }
+
+  /** A carer leaves the diary: the service forgets this phone, and so does the phone. */
+  leave(): Promise<void> {
+    return this.removeCarer(this.connection.deviceId);
+  }
+
+  private forget(): void {
+    this.storage.removeItem(CONNECTION_PREFIX + this.patientId);
+    this.store.remove(this.patientId);
   }
 
   status(): SyncStatus {
@@ -305,6 +486,14 @@ export class PatientConnection {
   /** Applies what the server sent to the local store; local edits not yet sent are kept. */
   private apply(revisions: readonly { id: string; author: string; payload: unknown }[]): void {
     const synced = { ...this.connection.synced };
+    const names = { ...this.connection.names };
+    const authors = { ...this.connection.authors };
+    const self = `p:${this.connection.deviceId}`;
+    // The plan the phone had before this pull: a new plan is told against it once, however many
+    // revisions the pull brings (a fresh phone has none, so it is told nothing).
+    const planBefore = this.store.read(this.patientId)?.invitation;
+    const removals: DiaryRemoval[] = [];
+    const restored = new Set<string>();
     const ordered = [
       ...revisions.filter((revision) => revision.id === PLAN_RECORD),
       ...revisions.filter((revision) => revision.id !== PLAN_RECORD),
@@ -329,20 +518,47 @@ export class PatientConnection {
           const unchangedHere = !local || entryFingerprint(local) === synced[revision.id];
           if (payload['kind'] === 'deleted') {
             if (unchangedHere) {
+              // The doctor's deletion stays visible to the patient: what it said and when.
+              if (local && revision.author.startsWith('d:')) {
+                const mark = local.values[CARE_DOSE_FIELD] as DiaryPlanValue | undefined;
+                removals.push({
+                  id: entryId,
+                  at: local.at,
+                  line: describeDiaryEntry(results.invitation, local),
+                  ...(mark?.item ? { item: mark.item } : {}),
+                  ...(mark?.slot ? { slot: mark.slot } : {}),
+                  removedAt: new Date().toISOString(),
+                });
+              }
               this.store.save(withoutEntry(results, entryId));
               synced[revision.id] = 'deleted';
+              delete authors[entryId];
             }
           } else if (payload['kind'] === 'entry' && unchangedHere) {
+            restored.add(entryId);
             const entry: DiaryEntry = parseDiaryEntry(results.invitation, payload['entry']);
             if (entry.id !== entryId) continue;
             this.store.save(withEntry(withoutEntry(results, entryId), entry));
             synced[revision.id] = entryFingerprint(entry);
+            if (revision.author === self) delete authors[entryId];
+            else authors[entryId] = revision.author;
           }
         } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
+          // Accepted on another phone of this patient: the documents count here too.
           if (typeof payload['at'] === 'string' && !this.store.meta(this.patientId).consentAt) {
-            this.store.setMeta(this.patientId, { consentAt: payload['at'] });
+            const consents = parseJoiningAcceptances(payload['documents']);
+            this.store.setMeta(this.patientId, {
+              consentAt: payload['at'],
+              ...(consents.length ? { consents } : {}),
+            });
           }
           synced[revision.id] = '1';
+        } else if (revision.id.startsWith('member-')) {
+          const name = memberName(revision.id, revision.author, payload);
+          if (name) {
+            names[revision.id.slice(7)] = name;
+            synced[revision.id] = name;
+          }
         } else if (revision.id.startsWith('read-') && payload['kind'] === 'tip-read') {
           const tip = payload['tip'];
           const read = this.store.meta(this.patientId).tipsRead ?? [];
@@ -357,7 +573,31 @@ export class PatientConnection {
         console.warn('Запись дневника с сервера пропущена:', cause.message);
       }
     }
-    this.save({ synced });
+    this.save({ synced, names, authors });
+    this.remember(planBefore, removals, restored);
+  }
+
+  /** Keeps what the doctor changed where the patient will see it (DIARY19). */
+  private remember(
+    planBefore: DiaryInvitation | undefined,
+    removals: readonly DiaryRemoval[],
+    restored: ReadonlySet<string>,
+  ): void {
+    const meta = this.store.meta(this.patientId);
+    const planAfter = this.store.read(this.patientId)?.invitation;
+    const lines = planBefore && planAfter ? planChanges(planBefore, planAfter) : [];
+    const planChange = mergePlanChange(meta.planChange, lines, new Date().toISOString());
+    const kept = (meta.removedByDoctor ?? []).filter(
+      (removal) => !restored.has(removal.id) && !removals.some((next) => next.id === removal.id),
+    );
+    const removedByDoctor = [...kept, ...removals].slice(-MAX_DIARY_REMOVALS);
+    const removalsChanged =
+      removals.length > 0 || kept.length !== (meta.removedByDoctor ?? []).length;
+    if (planChange === meta.planChange && !removalsChanged) return;
+    this.store.setMeta(this.patientId, {
+      ...(planChange ? { planChange } : {}),
+      ...(removalsChanged ? { removedByDoctor } : {}),
+    });
   }
 
   /** Pull, then push; one run at a time. Offline is a normal state, not an error. */
@@ -397,18 +637,27 @@ export class PatientConnection {
       const items = outbox(this.store, this.connection);
       const conflicts = await session.push(items.map(({ id, payload }) => ({ id, payload })));
       const synced = { ...this.connection.synced };
-      for (const item of items) synced[item.id] = item.fingerprint;
-      this.save({ synced, session: session.snapshot() });
+      const authors = { ...this.connection.authors };
+      for (const item of items) {
+        synced[item.id] = item.fingerprint;
+        // This phone wrote the latest revision now, whoever wrote the one before.
+        if (item.id.startsWith('e-')) delete authors[item.id.slice(2)];
+      }
+      this.save({ synced, authors, session: session.snapshot() });
       if (conflicts.length) this.apply(conflicts);
       while (this.connection.pendingAlerts > 0) {
         await diaryDevice.alert(this.api);
         this.save({ pendingAlerts: this.connection.pendingAlerts - 1 });
       }
+      await this.refreshPeople();
       // The plan may have changed with this pull: work the moments out again before sending.
       const fresh = this.connection.reminders ? await this.refreshNotices() : moments;
-      const joined = fresh.join(',');
+      const doses = this.doseReport();
+      const joined = [fresh.join(','), doses?.checks?.join(',') ?? '', doses?.taken.join(',') ?? '']
+        .join('|')
+        .replace(/\|+$/u, '');
       if (joined !== (this.connection.remindersSent ?? '')) {
-        await diaryPush.reminders(this.api, fresh);
+        await diaryPush.reminders(this.api, fresh, doses);
         this.save({ remindersSent: joined });
       }
       this.save({ lastSyncAt: new Date().toISOString() });
@@ -417,6 +666,15 @@ export class PatientConnection {
       this.save({ session: session.snapshot() });
       if (isOffline(cause)) return { ...this.status(), phase: 'offline' };
       if (cause instanceof DiaryApiError && (cause.status === 401 || cause.status === 410)) {
+        if (this.kind === 'carer') {
+          // A removed carer keeps nothing of the patient's diary on this phone.
+          this.forget();
+          return {
+            ...this.status(),
+            phase: 'ended',
+            message: 'Вас отключили от этого дневника: записи пациента удалены с этого телефона.',
+          };
+        }
         this.save({ ended: true });
         return {
           ...this.status(),
@@ -430,6 +688,20 @@ export class PatientConnection {
         message: cause instanceof Error ? cause.message : 'Не удалось синхронизировать.',
       };
     }
+  }
+
+  /**
+   * While the diary has a carer: the dose moments for the missed-dose notice. The patient's phone
+   * says which are still open (in the patient's time zone); every phone which are all taken.
+   */
+  private doseReport(): { checks?: readonly string[]; taken: readonly string[] } | undefined {
+    if (this.carers() === 0) return undefined;
+    const results = this.store.read(this.patientId);
+    if (!results) return undefined;
+    const moments = doseMoments(results.invitation, results.entries);
+    return this.kind === 'patient'
+      ? { checks: moments.open, taken: moments.taken }
+      : { taken: moments.taken };
   }
 
   /**
@@ -461,6 +733,11 @@ export class PatientConnection {
     events.addEventListener('records', () => {
       void this.sync().then(onSynced);
     });
+    // A carer joined or left, or the key changed: read who has the diary again.
+    events.addEventListener('members', () => {
+      this.peopleStale = true;
+      void this.sync().then(onSynced);
+    });
     return () => events.close();
   }
 
@@ -469,7 +746,10 @@ export class PatientConnection {
     const tick = async (): Promise<void> => {
       if (document.visibilityState !== 'visible' || this.connection.ended) return;
       const n = await diaryChanges(this.api);
-      if (seen !== undefined && n !== seen) onSynced(await this.sync());
+      if (seen !== undefined && n !== seen) {
+        this.peopleStale = true;
+        onSynced(await this.sync());
+      }
       seen = n;
     };
     const run = (): void => {
@@ -506,7 +786,8 @@ export class PatientConnection {
         applicationServerKey: fromBase64Url(publicKey),
       }));
     await diaryPush.subscribe(this.api, subscription);
-    if (this.connection.reminders === undefined) this.save({ reminders: true });
+    // A carer hears of missed doses; reminders at dose times are the patient's unless switched on.
+    if (this.connection.reminders === undefined) this.save({ reminders: this.kind === 'patient' });
     void this.sync();
     return 'on';
   }
@@ -581,7 +862,6 @@ export class PatientConnection {
   /** Consent withdrawn: the server deletes the records; this phone forgets the diary. */
   async withdraw(): Promise<void> {
     await diaryDevice.withdraw(this.api);
-    this.storage.removeItem(CONNECTION_PREFIX + this.patientId);
-    this.store.remove(this.patientId);
+    this.forget();
   }
 }

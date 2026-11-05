@@ -41,6 +41,13 @@
     0 1px 2px color-mix(in srgb, var(--theme-text, #292720) 12%, transparent);
 }
 
+.diary-heat--bare {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
 .diary-heat__head {
   display: flex;
   align-items: center;
@@ -134,8 +141,8 @@
 }
 
 .diary-heat__month--divided {
-  margin-inline-start: 0.4rem;
-  padding-inline-start: 0.4rem;
+  margin-inline-start: 0.45rem;
+  padding-inline-start: 0.55rem;
   border-inline-start: 1px solid color-mix(in srgb, var(--theme-border, #cbc0a7) 70%, transparent);
 }
 
@@ -189,6 +196,24 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: transform var(--heat-motion) var(--heat-ease);
+}
+
+/* A doctor changed the plan this day (DIARY20): a small yellow dot in the top corner. */
+.diary-heat__day--changed {
+  position: relative;
+}
+
+.diary-heat__day--changed::before {
+  position: absolute;
+  inset-block-start: 0.12rem;
+  inset-inline-end: 0.12rem;
+  width: max(0.3rem, calc(var(--heat-cell) * 0.2));
+  height: max(0.3rem, calc(var(--heat-cell) * 0.2));
+  border-radius: 50%;
+  background: var(--heat-changed, #e3b23c);
+  box-shadow: 0 0 0 1px var(--theme-surface, #fffaf0);
+  pointer-events: none;
+  content: "";
 }
 
 .diary-heat__day:active {
@@ -271,30 +296,45 @@
   color: #fff;
 }
 
-/* Before the diary began: an empty dashed cell, not a «nothing marked» day. */
+/* Before the diary began: an empty cell with a faint number, not a «nothing marked» day (no
+   dashes: those mark the day tracking started). */
 .diary-heat__day--before {
-  border: 1px dashed color-mix(in srgb, var(--theme-text-faint, #58534a) 45%, transparent);
-  color: var(--theme-text-faint, #58534a);
+  color: color-mix(in srgb, var(--theme-text-faint, #58534a) 70%, transparent);
   background: transparent;
   background-image: none;
 }
 
-.diary-heat__day--today {
-  box-shadow: inset 0 0 0 1.5px var(--theme-text-muted, #524d43);
-}
-
-/* The first day of the course: a double frame (owner 2026-11-01), drawn inside the cell so it adds
-   to today's ring and the selection outline instead of replacing them. */
+/* The first day of tracking: one dashed ring inside the cell; today: one plain ring around it
+   (owner 2026-11-03: the old double frames read as strange). */
 .diary-heat__day--start {
-  box-shadow:
-    inset 0 0 0 1.5px var(--theme-text, #292720),
-    inset 0 0 0 3px var(--theme-surface-raised, #f7f1e1),
-    inset 0 0 0 4.5px var(--theme-text, #292720);
+  position: relative;
 }
 
-.diary-heat__day--selected {
+.diary-heat__day--start::after {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--theme-text, #292720);
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+}
+
+/* Rings sit inside the cell: the horizontal scroller clips vertically too, and an outer ring was cut
+   on the top and bottom rows and at the month divider (owner 2026-11-03). */
+.diary-heat__day--today {
   outline: 2px solid var(--theme-text, #292720);
-  outline-offset: 1px;
+  outline-offset: -2px;
+}
+
+/* The open day (another than today): the same ring in the accent colour. */
+.diary-heat__day--selected {
+  outline: 2px solid var(--theme-accent, #2f6b5b);
+  outline-offset: -2px;
+}
+
+/* Today open (the usual case): today's ring, not the accent one. */
+.diary-heat__day--selected.diary-heat__day--today {
+  outline-color: var(--theme-text, #292720);
 }
 
 .diary-heat__day--future {
@@ -309,6 +349,11 @@
   gap: 0.15rem;
   color: var(--theme-text-faint, #58534a);
   font-size: 0.68rem;
+}
+
+.diary-heat__legend-title {
+  margin-inline-end: auto;
+  font-weight: 600;
 }
 
 .diary-heat__legend-text {

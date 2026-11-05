@@ -121,8 +121,9 @@ describe('diary reminders', () => {
     };
     const marked = applyReminderAction(results, action);
     expect(marked.entries.map((entry) => entry.values[CARE_DOSE_FIELD])).toEqual([
-      { item: 'p1', done: true, slot: '21:00' },
-      { item: 'p2', done: true, slot: '21:00' },
+      // Each mark carries the dose the plan asked for then.
+      { item: 'p1', done: true, slot: '21:00', dose: '25 мг' },
+      { item: 'p2', done: true, slot: '21:00', dose: '25 мг' },
     ]);
     expect(marked.entries.every((entry) => entry.at === action.takenAt)).toBe(true);
     // Applied twice (the worker queued it while the diary was open): nothing new.

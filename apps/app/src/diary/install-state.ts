@@ -26,7 +26,12 @@ function browserFacts(): BrowserFacts {
 /** Running from the home-screen icon (iOS `navigator.standalone`, or an installed web app). */
 export function isStandaloneApp(): boolean {
   const iosStandalone = (navigator as Navigator & { readonly standalone?: boolean }).standalone;
-  return iosStandalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  // Full screen too: icons installed while the manifest asked for it keep that mode until the
+  // browser refreshes the installed app.
+  return (
+    iosStandalone === true ||
+    window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches
+  );
 }
 
 const [promptEvent, setPromptEvent] = createSignal<InstallPromptEvent | null>(null);

@@ -13,17 +13,24 @@ export type NotesRoute =
     }
   | { readonly kind: 'saved' }
   /**
-   * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`), one patient, its
-   * patient view to edit (`screen`) or one day as the patient saw it (`day`).
+   * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`, or `new/<draft>` to
+   * continue a draft), one patient, its
+   * patient view to edit (`screen`), one day as the patient saw it (`day`) or its charts
+   * (`charts`, optionally opened at one chart).
    */
   | {
       readonly kind: 'diaries';
       readonly patientId?: string;
-      readonly view?: 'screen' | 'day';
+      readonly view?: 'screen' | 'day' | 'charts';
       readonly day?: string;
+      readonly chart?: string;
+      /** «Новый пациент» continued from this draft (`new-patient-drafts.ts`). */
+      readonly draft?: string;
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | { readonly kind: 'skin-photo' }
+  /** «Психический статус»; `recordingId` (`rec`) fills it from that conversation recording. */
+  | { readonly kind: 'psy-status'; readonly recordingId?: string }
   | {
       readonly kind: 'drug-interactions';
       /** Names typed in a search query (`d`), looked up in the drug search when the tool opens. */
@@ -114,10 +121,21 @@ export function readNotesRoute(
   if (parts[1] === 'diaries') {
     const patientId = parts[2];
     if (patientId === 'new' && parts.length === 3) return { kind: 'diaries', patientId };
+    const draft = parts[3];
+    if (patientId === 'new' && draft && /^[a-z0-9]{8,32}$/u.test(draft) && parts.length === 4) {
+      return { kind: 'diaries', patientId, draft };
+    }
     if (!patientId || !/^[a-z0-9]{12,32}$/u.test(patientId)) return { kind: 'diaries' };
     if (parts.length === 3) return { kind: 'diaries', patientId };
     if (parts[3] === 'screen' && parts.length === 4) {
       return { kind: 'diaries', patientId, view: 'screen' };
+    }
+    if (parts[3] === 'charts' && parts.length === 4) {
+      return { kind: 'diaries', patientId, view: 'charts' };
+    }
+    const chart = parts[4];
+    if (parts[3] === 'charts' && chart && CHART_ID.test(chart) && parts.length === 5) {
+      return { kind: 'diaries', patientId, view: 'charts', chart };
     }
     const day = parts[4];
     if (parts[3] === 'day' && day && /^\d{4}-\d{2}-\d{2}$/u.test(day) && parts.length === 5) {
@@ -130,6 +148,10 @@ export function readNotesRoute(
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
   }
   if (parts[1] === 'skin-photo') return { kind: 'skin-photo' };
+  if (parts[1] === 'psy-status') {
+    const recordingId = new URLSearchParams(query).get('rec');
+    return recordingId ? { kind: 'psy-status', recordingId } : { kind: 'psy-status' };
+  }
   if (parts[1] === 'drug-interactions') {
     const params = new URLSearchParams(query);
     return { kind: 'drug-interactions', names: params.getAll('d'), cards: params.getAll('c') };
@@ -238,6 +260,13 @@ export function notesVaccinationPath(part?: string): string {
     : '#/notes/vaccination';
 }
 
+/** `#/notes/psy-status` opens «Психический статус»; with a recording id it is filled from it. */
+export function notesPsyStatusPath(recordingId?: string): string {
+  return recordingId
+    ? `#/notes/psy-status?rec=${encodeURIComponent(recordingId)}`
+    : '#/notes/psy-status';
+}
+
 /** `#/notes/skin-photo` opens «Кожа по фото» (experimental modules only). */
 export function notesSkinPhotoPath(): string {
   return '#/notes/skin-photo';
@@ -318,11 +347,23 @@ export function withNotesFullscreen(hash: string, fullscreen: boolean): string {
   return nextQuery ? `${path}?${nextQuery}` : path;
 }
 
+/** A chart id in a diary address (`pressure`, `use-alcohol`, `q-phq-9`). */
+const CHART_ID = /^[a-z0-9][a-z0-9-]{0,39}$/u;
+
+/** A page under one patient: its view to edit, one day, its charts (at one chart). */
+export type DiarySub = 'screen' | `day/${string}` | 'charts' | `charts/${string}`;
+
 /**
  * `#/notes/diaries` lists connected diaries; `#/notes/diaries/<id>` opens one patient,
- * `…/<id>/screen` its patient view, `…/<id>/day/<YYYY-MM-DD>` one day as the patient saw it.
+ * `…/<id>/screen` its patient view, `…/<id>/day/<YYYY-MM-DD>` one day as the patient saw it,
+ * `…/<id>/charts[/<chart>]` its charts.
  */
-export function diariesPath(patientId?: string, sub?: 'screen' | `day/${string}`): string {
+export function diariesPath(patientId?: string, sub?: DiarySub): string {
   if (!patientId) return '#/notes/diaries';
   return sub ? `#/notes/diaries/${patientId}/${sub}` : `#/notes/diaries/${patientId}`;
+}
+
+/** «Новый пациент»: an empty form, or the draft `draft` to continue. */
+export function diaryNewPatientPath(draft?: string): string {
+  return draft ? `#/notes/diaries/new/${draft}` : '#/notes/diaries/new';
 }

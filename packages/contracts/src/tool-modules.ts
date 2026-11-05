@@ -82,6 +82,13 @@ export const AssessmentDefinitionSchema = z
         label: z.string().min(1),
         shortLabel: z.string().min(1),
         description: z.string().min(1),
+        /**
+         * The score as an expression over the answers (`answer_<question id>`, `max`, `min`) in
+         * place of the sum of the scale's questions: some instruments count the larger of two items.
+         */
+        formula: z.string().min(1).optional(),
+        /** An answer that only picks the thresholds (sex for RUS-AUDIT): not a score to show. */
+        context: z.literal(true).optional(),
       }),
     ),
     questions: z.array(

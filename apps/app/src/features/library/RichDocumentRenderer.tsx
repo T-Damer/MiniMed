@@ -1,5 +1,6 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { disarmDocumentLinks } from '@/features/library/document-links';
 import {
   createUserScrollTracker,
   isScrollKey,
@@ -429,6 +430,7 @@ export function RichDocumentRenderer(props: {
               breakPages: true,
               ignoreLastRenderedPageBreak: false,
             });
+            disarmDocumentLinks(host);
             const wrapper = host.querySelector<HTMLElement>('.docx-wrapper');
             wrapper?.classList.add('rich-docx__wrapper');
             wrapper?.querySelectorAll<HTMLElement>('section.docx').forEach((page, index) => {

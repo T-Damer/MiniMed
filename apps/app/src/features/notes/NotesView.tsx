@@ -26,6 +26,7 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { DateField } from '@/components/DateField';
+import { lazyKept } from '@/components/lazy-kept';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
@@ -59,6 +60,7 @@ import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-draw
 import { flushNoteEditors } from '@/features/notes/note-editor-flush';
 import {
   diariesPath,
+  diaryNewPatientPath,
   notesFormsPath,
   notesNewPatientPath,
   notesPath,
@@ -434,6 +436,11 @@ const PrescriptionWorkspace = lazy(() =>
     default: module.PrescriptionWorkspace,
   })),
 );
+const PsyStatusWorkspace = lazy(() =>
+  import('@/features/psy-status/PsyStatusWorkspace').then((module) => ({
+    default: module.PsyStatusWorkspace,
+  })),
+);
 const SkinPhotoWorkspace = lazy(() =>
   import('@/features/skin/SkinPhotoWorkspace').then((module) => ({
     default: module.SkinPhotoWorkspace,
@@ -444,7 +451,8 @@ const DrugInteractionWorkspace = lazy(() =>
     default: module.DrugInteractionWorkspace,
   })),
 );
-const DiaryDashboard = lazy(() =>
+// The dashboard mounts on every return to the diaries: `lazyKept` shows it on the spot after the first.
+const DiaryDashboard = lazyKept(() =>
   import('@/features/diary/dashboard/DiaryDashboard').then((module) => ({
     default: module.DiaryDashboard,
   })),
@@ -988,6 +996,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'prescription' ? current : null;
   });
+  const psyStatusRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'psy-status' ? current : null;
+  });
   /** An experimental tool: without the setting its address leads back to the files. */
   const skinPhotoRoute = createMemo(() => {
     const current = route();
@@ -1339,10 +1351,14 @@ export function NotesView(props: {
               patientId={current().patientId}
               view={current().view}
               day={current().day}
+              chart={current().chart}
+              draft={current().draft}
               onBack={() => navigateBack(notesPath())}
               onList={() => navigateBack(diariesPath())}
               onOpenPatient={(id, sub) => pushRoute(diariesPath(id, sub))}
               onReplacePatient={(id) => replaceRoute(diariesPath(id))}
+              onDraft={(id) => replaceRoute(diaryNewPatientPath(id))}
+              onOpenDraft={(id) => pushRoute(diaryNewPatientPath(id))}
             />
           </Suspense>
         )}
@@ -1379,6 +1395,23 @@ export function NotesView(props: {
               {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               initialNames={current().names}
               initialDrugs={current().drugs}
+              onBack={() => navigateBack(notesPath())}
+            />
+          </Suspense>
+        )}
+      </Show>
+      <Show when={props.active && psyStatusRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем «Психический статус»…</p>}
+              />
+            }
+          >
+            <PsyStatusWorkspace
+              recordingId={current().recordingId}
               onBack={() => navigateBack(notesPath())}
             />
           </Suspense>

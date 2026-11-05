@@ -108,3 +108,8 @@ apps/app/public/content/core.db.restoring
 
 # Skin photo model: weights trained on local-only data (tools/derm-cnn/stage_model.sh)
 apps/app/public/models/skin/
+
+# Presentation: the full version carries personal details; PPTX is built from it locally
+docs/promo/**/*.full.html
+docs/promo/**/*.pptx
+docs/promo/**/*.pdf

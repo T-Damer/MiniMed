@@ -77,6 +77,11 @@
   scroll-padding-block-end: 1.5rem;
 }
 
+/* While the sheet's height moves to follow its content, clipped content shows no scrollbar. */
+.overlay-dialog-body.overlay-dialog-body--resizing {
+  overflow: hidden;
+}
+
 @media (max-width: 760px) {
   .overlay-backdrop.overlay-backdrop--sheet {
     align-items: end;

@@ -7,6 +7,7 @@ import {
   type HeaderAction,
   HeaderActions,
 } from '@/components/HeaderActions';
+import type { HeaderActionPriority } from '@/components/header-actions';
 import { type PageHero, PageHeroBand, useHeroBleed, useHeroScroll } from '@/components/PageHero';
 import { SheetPopover } from '@/components/SheetPopover';
 import { visitRoute } from '@/state/app-back';
@@ -37,10 +38,21 @@ export interface PageProps {
   /** Heading of the help panel; «Как это работает» by default. */
   readonly helpTitle?: string;
   /**
+   * How soon the «?» folds into «⋯» among `headerActions` (1 by default). A page whose main tool
+   * must stay on top (the patient page's pencil) lets the «?» fold first.
+   */
+  readonly helpPriority?: HeaderActionPriority;
+  /**
    * The page's band: the header sits on it, the page slides over it, and the header shrinks into a
    * bar that keeps its row (`app/page-heroes.ts`). Readers, forms and editors have none.
    */
   readonly hero?: PageHero | undefined;
+  /**
+   * A compact row in the band's own room, under the description (the header does not grow): the
+   * doctor's counters on the patient list. Fades with the description as the header shrinks. Only
+   * on a page with a `hero`.
+   */
+  readonly room?: JSX.Element;
 }
 
 /**
@@ -59,6 +71,7 @@ export function Page(props: PageProps): JSX.Element {
     breadcrumbs: children(() => props.breadcrumbs),
     description: children(() => props.description),
     icon: children(() => props.icon),
+    room: children(() => props.room),
   };
   let headerElement: HTMLElement | undefined;
   let rowElement: HTMLDivElement | undefined;
@@ -89,7 +102,7 @@ export function Page(props: PageProps): JSX.Element {
         id: 'help',
         label: helpTitle(),
         icon: 'question',
-        priority: 1,
+        priority: props.helpPriority ?? 1,
         panel: {
           content: () => <div class="page__help-body">{props.help}</div>,
           contentClass: 'page__help-panel',
@@ -165,10 +178,14 @@ export function Page(props: PageProps): JSX.Element {
           classList={{ 'page__above-header--hero': props.hero !== undefined }}
           {...{ [HEADER_ROW_ATTRIBUTE]: '' }}
         >
-          {/* The route's emblem: large and faint on the band at rest, a small icon beside the
-              title once the header is a bar (components/PageHero.tsx `useHeroScroll`). */}
+          {/* The route's emblem: large and faint on the band at rest, cut at the band's edges, and
+              gone by the time the header is a bar (components/PageHero.css). */}
           <Show when={props.hero?.emblem}>
-            {(name) => <AppGlyph name={name()} class="page-hero__emblem" />}
+            {(name) => (
+              <span class="page-hero__emblem-clip" aria-hidden="true">
+                <AppGlyph name={name()} class="page-hero__emblem" />
+              </span>
+            )}
           </Show>
           <Show when={slot.navigation() !== undefined}>
             <div class={className('page__left-actions', props.navigationClass)}>
@@ -237,9 +254,16 @@ export function Page(props: PageProps): JSX.Element {
         {(hero) => (
           <div
             class="page__hero-room"
-            classList={{ 'page__hero-room--trace': hero().ambient === 'ecg' }}
-            aria-hidden="true"
-          />
+            classList={{
+              'page__hero-room--trace': hero().ambient === 'ecg',
+              'page__hero-room--filled': slot.room() !== undefined,
+            }}
+            aria-hidden={slot.room() === undefined ? 'true' : undefined}
+          >
+            <Show when={slot.room() !== undefined}>
+              <div class="page__hero-room-content">{slot.room()}</div>
+            </Show>
+          </div>
         )}
       </Show>
     </header>

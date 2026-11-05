@@ -6,25 +6,40 @@
  * the patient's marks keep matching; removed sections stay in the plan as ended.
  */
 import {
+  ACTIVITY_FIELD,
+  APPETITE_FIELD,
   CARE_CHECKPOINTS,
   DIARY_FORMAT_VERSION,
+  type DiaryAppointment,
   type DiaryCheckpoint,
   type DiaryContact,
   type DiaryContactKind,
   type DiaryField,
   type DiaryInvitation,
+  type DiaryLabRequest,
   type DiaryMeal,
+  type DiaryOperator,
   type DiaryPlanItem,
   type DiaryTip,
   diaryTemplate,
+  GLUCOSE_FIELD,
   MAX_DIARY_OPTIONS,
+  MEALS_FIELD,
   parseDiaryInvitation,
+  STEPS_FIELD,
 } from '@/features/diary/diary-model';
 import {
   customQuestionnaireSlug,
   diaryQuestionnaire,
   questionnaireCheckpointId,
 } from '@/features/diary/diary-questionnaires';
+import {
+  substanceFieldSet,
+  substancesOf,
+  USE_CHECKPOINT_ID,
+  USE_CRAVING_FIELD,
+  USE_DEFAULT_TIME,
+} from '@/features/diary/diary-substances';
 import {
   type UserQuestionnaire,
   withoutUserQuestionnaireImages,
@@ -46,8 +61,12 @@ export type CareSectionKind =
   | 'mood'
   | 'vitals'
   | 'body'
+  | 'glucose'
+  | 'activity'
+  | 'meals'
   | 'text'
   | 'choice'
+  | 'use'
   | 'questionnaire';
 
 export interface CareSectionDraft {
@@ -70,6 +89,10 @@ export interface CareSectionDraft {
   readonly course: readonly CareDayRange[];
   /** Choice only. */
   readonly options: readonly string[];
+  /** Substance use only: catalog ids (`diary-substances`) the patient marks. */
+  readonly substances: readonly string[];
+  /** Substance use only: also ask for the craving, 0–10. */
+  readonly craving: boolean;
   /** Questionnaire only: the built-in slug, or `own-…` for the doctor's own questionnaire. */
   readonly quiz: string;
   readonly everyDays: number;
@@ -88,6 +111,43 @@ export interface CareDraft {
   readonly contacts: readonly CareContactDraft[];
   /** Help lines, one per line of text. */
   readonly crisis: string;
+  /** Visits the doctor booked (DIARY27). */
+  readonly appointments?: readonly CareAppointmentDraft[];
+  /** Lab tests the doctor asks for (DIARY27). */
+  readonly labs?: readonly CareLabDraft[];
+}
+
+export interface CareAppointmentDraft {
+  readonly key: string;
+  readonly id?: string;
+  /** `YYYY-MM-DD`; empty while the doctor has not chosen it. */
+  readonly day: string;
+  readonly time: string;
+  readonly place: string;
+  readonly note: string;
+}
+
+export interface CareLabDraft {
+  readonly key: string;
+  readonly id?: string;
+  readonly name: string;
+  readonly unit: string;
+  /** Take it by this day; empty: whenever the patient can. */
+  readonly by: string;
+  readonly why: string;
+}
+
+/** Field id of a lab request's result: `lab-` and the request's id. */
+export function labFieldId(id: string): string {
+  return `lab-${id}`;
+}
+
+export function newCareAppointment(day = ''): CareAppointmentDraft {
+  return { key: sectionKey(), day, time: '', place: '', note: '' };
+}
+
+export function newCareLab(next: Partial<Omit<CareLabDraft, 'key'>> = {}): CareLabDraft {
+  return { key: sectionKey(), name: '', unit: '', by: '', why: '', ...next };
 }
 
 export const CARE_SECTION_LABEL: Readonly<Record<CareSectionKind, string>> = {
@@ -96,8 +156,12 @@ export const CARE_SECTION_LABEL: Readonly<Record<CareSectionKind, string>> = {
   mood: 'Настроение',
   vitals: 'Пульс и давление',
   body: 'Вес и рост',
+  glucose: 'Глюкоза',
+  activity: 'Активность',
+  meals: 'Питание',
   text: 'Описание',
   choice: 'Выбор',
+  use: 'Зависимости',
   questionnaire: 'Опросник',
 };
 
@@ -119,11 +183,21 @@ const BLANK: Omit<CareSectionDraft, 'key' | 'kind'> = {
   asNeeded: false,
   course: [],
   options: [],
+  substances: [],
+  craving: true,
   quiz: '',
   everyDays: 7,
 };
 
 /** A new section of the kind, with the defaults a doctor most often keeps. */
+/**
+ * A copy of a drug section for the next medicine (owner 2026-11-02): same form, times, meals,
+ * duration and patient hint, without the drug itself, its dose and signa, which belong to it alone.
+ */
+export function copyCareSection(section: CareSectionDraft): CareSectionDraft {
+  return { ...section, key: sectionKey(), title: '', dose: '', signa: '' };
+}
+
 export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSectionDraft {
   const at = (time: string): CareDoseDraft[] => [{ time, meal: undefined }];
   switch (kind) {
@@ -135,6 +209,12 @@ export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSecti
       return { ...BLANK, key: sectionKey(), kind, title: 'Настроение', times: at('21:00') };
     case 'body':
       return { ...BLANK, key: sectionKey(), kind, title: 'Вес и рост', times: [] };
+    case 'glucose':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Глюкоза', times: at('08:00') };
+    case 'activity':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Активность', times: at('21:00') };
+    case 'meals':
+      return { ...BLANK, key: sectionKey(), kind, title: 'Питание', times: at('21:00') };
     case 'vitals':
       return {
         ...BLANK,
@@ -153,6 +233,14 @@ export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSecti
         title: 'Сон',
         times: at('09:00'),
         options: ['хорошо', 'беспокойно', 'плохо'],
+      };
+    case 'use':
+      return {
+        ...BLANK,
+        key: sectionKey(),
+        kind,
+        title: 'Употребление',
+        times: at(USE_DEFAULT_TIME),
       };
     case 'questionnaire':
       return {
@@ -244,21 +332,47 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
         kind:
           checkpoint.kind === 'score' && first === 'mood'
             ? 'mood'
-            : checkpoint.kind === 'vitals' && first === 'weight'
-              ? 'body'
-              : checkpoint.kind,
+            : (checkpoint.kind === 'vitals' && first && MEASURE_KIND[first]) || checkpoint.kind,
         id: checkpoint.id,
         title: checkpoint.label,
         times: (checkpoint.times ?? []).map((time) => ({ time, meal: undefined })),
         tip: tipOf(checkpoint.id),
         options: checkpoint.kind === 'choice' ? (field?.options ?? []) : [],
+        ...(checkpoint.kind === 'use'
+          ? {
+              substances: substancesOf(checkpoint.fields ?? []),
+              craving: checkpoint.fields?.includes(USE_CRAVING_FIELD) === true,
+            }
+          : {}),
         quiz: checkpoint.questionnaire ?? '',
         everyDays: checkpoint.everyDays ?? 7,
         ...(checkpoint.custom ? { custom: checkpoint.custom } : {}),
       };
     });
+  const appointments = (invitation.appointments ?? []).map(
+    (appointment): CareAppointmentDraft => ({
+      key: sectionKey(),
+      id: appointment.id,
+      day: appointment.day,
+      time: appointment.time ?? '',
+      place: appointment.place ?? '',
+      note: appointment.note ?? '',
+    }),
+  );
+  const labs = (invitation.labs ?? []).map(
+    (lab): CareLabDraft => ({
+      key: sectionKey(),
+      id: lab.id,
+      name: lab.name,
+      unit: invitation.fields.find((field) => field.id === lab.field)?.unit ?? '',
+      by: lab.by ?? '',
+      why: lab.why ?? '',
+    }),
+  );
   return {
     sections: [...drugs, ...checks],
+    ...(appointments.length ? { appointments } : {}),
+    ...(labs.length ? { labs } : {}),
     contacts: invitation.contacts?.length
       ? invitation.contacts.map((contact) => ({
           kind: contact.kind,
@@ -277,18 +391,39 @@ function nextId(prefix: string, taken: Set<string>): string {
   return `${prefix}${number}`;
 }
 
-const ID_PREFIX: Readonly<Record<Exclude<CareSectionKind, 'questionnaire'>, string>> = {
+const ID_PREFIX: Readonly<Record<Exclude<CareSectionKind, 'questionnaire' | 'use'>, string>> = {
   drug: 'p',
   score: 's-',
   mood: 'm-',
   vitals: 'v-',
   body: 'b-',
+  glucose: 'g-',
+  activity: 'a-',
+  meals: 'f-',
   text: 'd-',
   choice: 'c-',
 };
 
 const VITAL_FIELDS =
   CARE_CHECKPOINTS.find((checkpoint) => checkpoint.kind === 'vitals')?.fields ?? [];
+
+/** Measurement sections and the fields each asks (a `vitals` checkpoint on the patient's side). */
+const MEASURE_FIELDS: Readonly<
+  Record<'body' | 'glucose' | 'activity' | 'meals', readonly DiaryField[]>
+> = {
+  body: [],
+  glucose: [GLUCOSE_FIELD],
+  activity: [STEPS_FIELD, ACTIVITY_FIELD],
+  meals: [MEALS_FIELD, APPETITE_FIELD],
+};
+
+/** The section a `vitals` checkpoint is, by its first field. */
+const MEASURE_KIND: Readonly<Partial<Record<string, CareSectionKind>>> = {
+  weight: 'body',
+  glucose: 'glucose',
+  steps: 'activity',
+  meals: 'meals',
+};
 
 export interface CareInvitationParts {
   readonly fields: readonly DiaryField[];
@@ -297,6 +432,8 @@ export interface CareInvitationParts {
   readonly contacts: readonly DiaryContact[];
   readonly tips: readonly DiaryTip[];
   readonly crisis: readonly string[];
+  readonly appointments: readonly DiaryAppointment[];
+  readonly labs: readonly DiaryLabRequest[];
 }
 
 function cleanOptions(options: readonly string[]): string[] {
@@ -388,6 +525,25 @@ export function careInvitationParts(
       tipFor(id, section.tip);
       continue;
     }
+    if (section.kind === 'use') {
+      // One section: the second is left out, like a questionnaire chosen twice.
+      if (checkpoints.some((checkpoint) => checkpoint.kind === 'use')) continue;
+      const label = title || 'Употребление';
+      if (!section.substances.length)
+        throw new Error(`«${label}»: отметьте хотя бы одно вещество.`);
+      const used = substanceFieldSet(section.substances, section.craving);
+      for (const field of used.fields) fields.set(field.id, field);
+      const times = timesOf(section);
+      checkpoints.push({
+        id: USE_CHECKPOINT_ID,
+        kind: 'use',
+        label,
+        ...(times.length ? { times } : {}),
+        fields: used.ids,
+      });
+      tipFor(USE_CHECKPOINT_ID, section.tip);
+      continue;
+    }
     if (!title) continue;
     let id = section.id ?? nextId(ID_PREFIX[section.kind], taken);
     let fieldIds: readonly string[];
@@ -395,7 +551,17 @@ export function careInvitationParts(
     else if (section.kind === 'mood') fieldIds = ['mood'];
     else if (section.kind === 'vitals') fieldIds = VITAL_FIELDS;
     else if (section.kind === 'body') fieldIds = ['weight', 'height'];
-    else if (section.kind === 'text') {
+    else if (
+      section.kind === 'glucose' ||
+      section.kind === 'activity' ||
+      section.kind === 'meals'
+    ) {
+      const measured = MEASURE_FIELDS[section.kind];
+      // One section of each: the fields have fixed ids, like the base ones.
+      if (checkpoints.some((checkpoint) => checkpoint.fields?.[0] === measured[0]?.id)) continue;
+      for (const field of measured) fields.set(field.id, field);
+      fieldIds = measured.map((field) => field.id);
+    } else if (section.kind === 'text') {
       fields.set(id, { id, type: 'text', label: title });
       fieldIds = [id];
     } else {
@@ -412,7 +578,15 @@ export function careInvitationParts(
     checkpoints.push({
       id,
       // Mood is a score and weight with height are measurements to the patient's screen.
-      kind: section.kind === 'mood' ? 'score' : section.kind === 'body' ? 'vitals' : section.kind,
+      kind:
+        section.kind === 'mood'
+          ? 'score'
+          : section.kind === 'body' ||
+              section.kind === 'glucose' ||
+              section.kind === 'activity' ||
+              section.kind === 'meals'
+            ? 'vitals'
+            : section.kind,
       label: title,
       ...(times.length ? { times } : {}),
       fields: fieldIds,
@@ -428,6 +602,55 @@ export function careInvitationParts(
   for (const checkpoint of previous?.checkpoints ?? []) {
     if (!active.has(checkpoint.id)) checkpoints.push({ ...checkpoint, ended: true });
   }
+  // Ids already given (in this draft or the plan before it) are never handed out again.
+  for (const given of [
+    ...(previous?.appointments ?? []),
+    ...(previous?.labs ?? []),
+    ...(draft.appointments ?? []),
+    ...(draft.labs ?? []),
+  ]) {
+    if (given.id) taken.add(given.id);
+  }
+  const appointments = (draft.appointments ?? [])
+    .filter((appointment) => appointment.day)
+    .toSorted((left, right) =>
+      `${left.day}T${left.time}`.localeCompare(`${right.day}T${right.time}`),
+    )
+    .map(
+      (appointment): DiaryAppointment => ({
+        id: appointment.id ?? nextId('v', taken),
+        day: appointment.day,
+        ...(appointment.time ? { time: appointment.time } : {}),
+        ...(appointment.place.trim() ? { place: appointment.place.trim() } : {}),
+        ...(appointment.note.trim() ? { note: appointment.note.trim() } : {}),
+      }),
+    );
+  // Each result goes into a number field of its own; a lab taken off the list keeps its field, so
+  // the results already typed in keep their name.
+  const labs: DiaryLabRequest[] = [];
+  for (const lab of draft.labs ?? []) {
+    const name = lab.name.trim();
+    if (!name) continue;
+    const id = lab.id ?? nextId('l', taken);
+    const field = labFieldId(id);
+    fields.set(field, {
+      id: field,
+      type: 'number',
+      label: name,
+      ...(lab.unit.trim() ? { unit: lab.unit.trim() } : {}),
+      min: 0,
+      max: 1_000_000,
+      step: 0.01,
+    });
+    labs.push({
+      id,
+      name,
+      field,
+      ...(lab.by ? { by: lab.by } : {}),
+      ...(lab.why.trim() ? { why: lab.why.trim() } : {}),
+    });
+  }
+
   // Fields of ended sections stay so earlier answers keep their labels and validation.
   for (const [id, field] of previousFields) if (!fields.has(id)) fields.set(id, field);
 
@@ -455,6 +678,8 @@ export function careInvitationParts(
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean),
+    appointments,
+    labs,
   };
 }
 
@@ -468,7 +693,10 @@ export function careInvitation(input: {
   readonly doctor: string;
   readonly note: string;
   readonly previous?: DiaryInvitation | undefined;
+  /** The clinic and doctor for the joining documents; absent keeps the previous plan's. */
+  readonly operator?: DiaryOperator | undefined;
 }): DiaryInvitation {
+  const operator = input.operator ?? input.previous?.operator;
   const template = diaryTemplate('care');
   const parts = careInvitationParts(input.draft, input.previous);
   const live =
@@ -491,7 +719,10 @@ export function careInvitation(input: {
     ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
     ...(parts.tips.length ? { tips: parts.tips } : {}),
     ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
+    ...(parts.appointments.length ? { appointments: parts.appointments } : {}),
+    ...(parts.labs.length ? { labs: parts.labs } : {}),
     consent: true,
+    ...(operator ? { operator } : {}),
     ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),
     ...(input.note.trim() ? { note: input.note.trim() } : {}),
   });

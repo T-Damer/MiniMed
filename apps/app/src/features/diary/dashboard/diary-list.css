@@ -1,0 +1,323 @@
+/*
+ * The doctor's patient list (owner 2026-11-03): the title centred with the header's buttons, the
+ * day's counters in the band's room, the search with the order menu, the curators' avatars and the
+ * colleague mark on the rows. Loaded after diary-dashboard.css, so the two-class selectors below
+ * only need to outrank a single class there.
+ */
+
+/* The title's box is as tall as the header's buttons and centred in the row: the logo overhangs
+   the line, and an inline box left the text above the buttons' middle. */
+.diary-dash__title.diary-dash__title {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
+/* The counters ------------------------------------------------------------------------------- */
+
+.diary-counters {
+  display: flex;
+  min-width: 0;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.diary-counters__chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--page-hero-ink, currentColor) 30%, transparent);
+  border-radius: 999px;
+  color: var(--page-hero-ink, inherit);
+  background: color-mix(in srgb, var(--page-hero-ink, currentColor) 10%, transparent);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    border-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.diary-counters__chip.diary-counters__chip--urgent {
+  border-color: color-mix(in srgb, var(--theme-danger, #c0392b) 70%, transparent);
+  background: color-mix(in srgb, var(--theme-danger, #c0392b) 38%, transparent);
+}
+
+.diary-counters__chip.diary-counters__chip--empty {
+  opacity: 0.62;
+}
+
+.diary-counters__chip.diary-counters__chip--active {
+  border-color: var(--page-hero-ink, currentColor);
+  color: var(--page-hero-band, #47453f);
+  background: var(--page-hero-ink, currentColor);
+}
+
+.diary-counters__count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Search and order --------------------------------------------------------------------------- */
+
+.diary-list-tools {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.diary-list-tools__search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.diary-list-tools__menu {
+  display: flex;
+  flex: none;
+}
+
+.diary-list-tools__sort {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+}
+
+.diary-list-tools__sort-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Nothing matches: the shared empty state, but sized to its content under the search box — the
+   archived patients may follow it, so it does not take the rest of the screen. */
+.ui-empty-state.diary-dash__nothing {
+  min-height: 0;
+  padding-block: 2rem 1rem;
+}
+
+/* Rows: curators and the colleague mark ------------------------------------------------------ */
+
+.diary-curators {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+
+.diary-curators__avatar {
+  display: inline-grid;
+  box-sizing: border-box;
+  width: 1.625rem;
+  height: 1.625rem;
+  place-items: center;
+  margin-inline-start: -0.5rem;
+  border: 2px solid var(--theme-surface-raised);
+  border-radius: 50%;
+  color: #fff;
+  background: hsl(var(--curator-hue, 200) 36% 36%);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  animation: diary-curator-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out) backwards;
+  animation-delay: calc(var(--curator-index, 0) * 45ms);
+}
+
+.diary-curators__avatar:first-child {
+  margin-inline-start: 0;
+}
+
+.diary-curators__avatar.diary-curators__avatar--more {
+  color: var(--theme-text-muted);
+  background: var(--theme-hover-surface, var(--theme-surface));
+}
+
+@keyframes diary-curator-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.diary-dash-row__changed {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-accent, #3f6b4f) 22%, transparent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  animation: diary-curator-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out) backwards;
+}
+
+.diary-dash-row__changed-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--theme-accent, #3f6b4f);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-curators__avatar,
+  .diary-dash-row__changed {
+    animation: none;
+  }
+}
+
+/* «Создать пациента» and the drafts (owner 2026-11-05) -------------------------------------- */
+
+.diary-new-shelf {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-new-shelf__create {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 35%, transparent);
+  border-radius: var(--theme-radius-panel);
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+  font: inherit;
+  font-weight: var(--theme-weight-strong, 600);
+  text-align: left;
+  cursor: pointer;
+}
+
+.diary-new-shelf__create-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--theme-surface-raised);
+  background: var(--theme-accent);
+}
+
+.diary-new-shelf__create-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.diary-new-shelf__drafts {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-new-draft {
+  display: flex;
+  align-items: stretch;
+  border: 1px dashed color-mix(in srgb, var(--theme-text) 30%, transparent);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+}
+
+.diary-new-draft__open {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  min-height: 4rem;
+  padding: 0.65rem 0.4rem 0.65rem 0.9rem;
+  border: 0;
+  border-radius: var(--theme-radius-panel) 0 0 var(--theme-radius-panel);
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.diary-new-draft__avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  font-size: 1.35rem;
+}
+
+.diary-new-draft__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-new-draft__name {
+  overflow: hidden;
+  min-width: 0;
+  font-weight: var(--theme-weight-strong, 600);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-new-draft__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.diary-new-draft__badge {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-text) 10%, transparent);
+  font-size: 0.78rem;
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-new-draft__glyph {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-faint);
+}
+
+.diary-new-draft__discard {
+  display: grid;
+  flex: none;
+  width: 3rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--theme-radius-panel) var(--theme-radius-panel) 0;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.diary-new-draft__discard-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}

@@ -11,6 +11,7 @@ import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { captureStartErrorMessage } from '@/features/conversations/recording-errors';
+import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
 import {
   type CareDraft,
   careDraftFrom,
@@ -61,6 +62,7 @@ import { diaryPrintHtml } from '@/features/diary/diary-print';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
 import { decodeQrFromSource } from '@/features/diary/qr-decode';
 import { PrintManager } from '@/features/printing/print-manager';
+import { getClinicianProfile } from '@/state/clinician-profile';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import { readPatientVault, updatePatientVault } from '@/state/patient-vault';
 import '@/styles/patient-diary.css';
@@ -237,6 +239,11 @@ function IssueDiaryDialog(props: {
   const custom = () => templateId() === CUSTOM;
   /** A day-plan diary: its own editor replaces the plain plan list. */
   const isCare = () => (editing ? isCareDiary(editing) : template()?.care === true);
+  /** The clinic and doctor named in the joining documents: «Врач и организация», else as issued. */
+  const withOperator = () => {
+    const operator = operatorFromProfile(getClinicianProfile()) ?? editing?.operator;
+    return operator ? { operator } : {};
+  };
   /** Plan, checkpoints, contacts, tips and help lines of a care diary. */
   const careParts = () => {
     const parts = careInvitationParts(care(), editing);
@@ -255,6 +262,7 @@ function IssueDiaryDialog(props: {
       ...(parts.tips.length ? { tips: parts.tips } : {}),
       ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
       consent: true,
+      ...withOperator(),
     };
   };
   const hasPlan = () =>

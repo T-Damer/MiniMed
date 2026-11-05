@@ -629,3 +629,7 @@
   display: flex;
   gap: 0.35rem;
 }
+
+.conversation-dialog__psy-status {
+  justify-self: start;
+}

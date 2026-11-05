@@ -1,4 +1,8 @@
 import {
+  type JoiningAcceptance,
+  parseJoiningAcceptances,
+} from '@/features/diary/consent/joining-documents';
+import {
   type DiarySent,
   type InvitationMergeOutcome,
   mergeInvitation,
@@ -16,6 +20,7 @@ import {
   parseDiaryInvitation,
   parseDiaryResults,
 } from '@/features/diary/diary-model';
+import { type DiaryPlanChange, MAX_PLAN_CHANGE_LINES } from '@/features/diary/plan-changes';
 
 /** Entries live only in the patient's browser; there is no server copy. */
 const KEY_PREFIX = 'minimed.diary.v1.';
@@ -29,11 +34,38 @@ const UI_KEY = 'minimed.diary.ui.v1';
 export interface DiaryMeta {
   readonly lastOpenedAt?: string;
   readonly sent?: DiarySent;
-  /** When the patient confirmed the consent summaries of a care diary. */
+  /** When the patient had accepted every joining document of a care diary. */
   readonly consentAt?: string;
+  /** Each joining document the patient accepted: its wording and when (DIARY26). */
+  readonly consents?: readonly JoiningAcceptance[];
   /** Doctor's tips the patient has opened (their «?» is gone). */
   readonly tipsRead?: readonly string[];
+  /** Marks the doctor deleted (connected diary), kept so they do not vanish without a trace. */
+  readonly removedByDoctor?: readonly DiaryRemoval[];
+  /** What the doctor's latest plan changed, until the patient closes it on «Сегодня». */
+  readonly planChange?: DiaryPlanChange;
 }
+
+/** A patient's mark the doctor deleted: what it said and when, shown struck out in «Записи». */
+export interface DiaryRemoval {
+  /** The deleted entry's id. */
+  readonly id: string;
+  /** The entry's own time. */
+  readonly at: string;
+  /** How the entry read before it was deleted. */
+  readonly line: string;
+  /** Plan item and intake time of a deleted intake mark, so «Сегодня» can say what happened. */
+  readonly item?: string;
+  readonly slot?: string;
+  /** When the patient's phone learned of the deletion. */
+  readonly removedAt: string;
+}
+
+/** Removals kept at most, newest last. */
+export const MAX_DIARY_REMOVALS = 200;
+
+/** A meta update; a key set to `undefined` is cleared. */
+export type DiaryMetaPatch = { readonly [K in keyof DiaryMeta]?: DiaryMeta[K] | undefined };
 
 /** Page-level state that is not tied to one diary. */
 export interface DiaryUiState {
@@ -71,7 +103,7 @@ export interface DiaryStore {
   save(results: DiaryResults): void;
   remove(id: string): void;
   meta(id: string): DiaryMeta;
-  setMeta(id: string, patch: Partial<DiaryMeta>): void;
+  setMeta(id: string, patch: DiaryMetaPatch): void;
   ui(): DiaryUiState;
   setUi(patch: Partial<DiaryUiState>): void;
 }
@@ -90,6 +122,41 @@ function scanDiaryIds(storage: Storage): string[] {
     if (id && !found.includes(id)) found.push(id);
   }
   return found;
+}
+
+function parseRemovals(value: unknown): DiaryRemoval[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    if (!isRecord(item)) return [];
+    const { id, at, line, item: planItem, slot, removedAt } = item;
+    if (
+      typeof id !== 'string' ||
+      typeof at !== 'string' ||
+      typeof line !== 'string' ||
+      typeof removedAt !== 'string'
+    )
+      return [];
+    return [
+      {
+        id,
+        at,
+        line,
+        ...(typeof planItem === 'string' ? { item: planItem } : {}),
+        ...(typeof slot === 'string' ? { slot } : {}),
+        removedAt,
+      },
+    ];
+  });
+}
+
+function parsePlanChange(value: unknown): DiaryPlanChange | undefined {
+  if (!isRecord(value) || typeof value['at'] !== 'string' || !Array.isArray(value['lines'])) {
+    return undefined;
+  }
+  const lines = value['lines']
+    .filter((line): line is string => typeof line === 'string')
+    .slice(-MAX_PLAN_CHANGE_LINES);
+  return lines.length ? { at: value['at'], lines } : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -145,17 +212,23 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       const value = readJson(storage, META_PREFIX + id);
       if (!isRecord(value)) return {};
       const sent = parseSent(value['sent']);
+      const removed = parseRemovals(value['removedByDoctor']);
+      const planChange = parsePlanChange(value['planChange']);
+      const consents = parseJoiningAcceptances(value['consents']);
       return {
         ...(typeof value['lastOpenedAt'] === 'string'
           ? { lastOpenedAt: value['lastOpenedAt'] }
           : {}),
         ...(sent ? { sent } : {}),
         ...(typeof value['consentAt'] === 'string' ? { consentAt: value['consentAt'] } : {}),
+        ...(consents.length ? { consents } : {}),
         ...(Array.isArray(value['tipsRead'])
           ? {
               tipsRead: value['tipsRead'].filter((tip): tip is string => typeof tip === 'string'),
             }
           : {}),
+        ...(removed.length ? { removedByDoctor: removed.slice(-MAX_DIARY_REMOVALS) } : {}),
+        ...(planChange ? { planChange } : {}),
       };
     } catch {
       return {};
@@ -224,7 +297,7 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
     }
   };
 
-  const setMeta = (id: string, patch: Partial<DiaryMeta>): void => {
+  const setMeta = (id: string, patch: DiaryMetaPatch): void => {
     try {
       storage.setItem(META_PREFIX + id, JSON.stringify({ ...meta(id), ...patch }));
     } catch {

@@ -10,6 +10,7 @@ import {
   loadQuestionnaireShapes,
   questionnaireShape,
   seedDemoPatients,
+  staleDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { CARE_DOSE_FIELD, dayKey, dayPlan } from '@/features/diary/diary-care';
 import {
@@ -216,6 +217,34 @@ describe('demo diary data', () => {
   });
 });
 
+describe('demo substance use', () => {
+  it('gives the fox sparse use and a craving that fades as the mood improves', async () => {
+    const { invitation, diary } = await build(0);
+    const checkpoint = invitation.checkpoints?.find((one) => one.kind === 'use');
+    expect(checkpoint?.fields).toEqual(['u-alcohol', 'u-nicotine', 'u-sedatives', 'craving']);
+    const marks = diary.entries.filter((entry) => entry.check === checkpoint?.id);
+    expect(marks.length).toBeGreaterThan(18);
+    const amounts = (entry: DiaryEntry, field: string): number => Number(entry.values[field] ?? 0);
+    const alcoholDays = marks.filter((entry) => amounts(entry, 'u-alcohol') > 0);
+    expect(alcoholDays.length).toBeGreaterThan(0);
+    expect(alcoholDays.length).toBeLessThan(marks.length * 0.6);
+    expect(marks.some((entry) => amounts(entry, 'u-nicotine') === 0)).toBe(true);
+    const half = Math.floor(marks.length / 2);
+    const mean = (list: readonly DiaryEntry[], field: string): number =>
+      list.reduce((sum, entry) => sum + amounts(entry, field), 0) / Math.max(1, list.length);
+    expect(mean(marks.slice(half), 'craving')).toBeLessThan(mean(marks.slice(0, half), 'craving'));
+    expect(mean(marks.slice(half), 'u-nicotine')).toBeLessThan(
+      mean(marks.slice(0, half), 'u-nicotine'),
+    );
+    // The other patients do not have the section.
+    for (const index of [1, 2, 3]) {
+      expect((await build(index)).invitation.checkpoints?.some((one) => one.kind === 'use')).toBe(
+        false,
+      );
+    }
+  });
+});
+
 describe('demo patients', () => {
   it('reads the alert item and the extra question from the questionnaire schema', async () => {
     const phq = questionnaireShape(await loadDiaryQuestionnaire('phq-9'));
@@ -249,6 +278,31 @@ describe('demo patients', () => {
     );
   });
 
+  it('books the fox a visit tomorrow and asks the fox and the owl for lab tests', () => {
+    const [fox, owl] = [0, 1].map((index) =>
+      demoInvitation(
+        DEMO_PATIENTS[index] as (typeof DEMO_PATIENTS)[number],
+        'demopatient01',
+        'Д',
+        NOW,
+      ),
+    );
+    expect(fox?.appointments).toEqual([
+      expect.objectContaining({ day: '2026-10-28', time: '14:30', place: 'Кабинет 12' }),
+    ]);
+    expect(fox?.labs?.map((lab) => [lab.name, lab.by])).toEqual([
+      ['Глюкоза натощак', '2026-11-03'],
+    ]);
+    expect(owl?.labs?.map((lab) => lab.name)).toEqual(['Вальпроевая кислота в крови', 'АЛТ']);
+    // Each result has a number field of its own, labelled with the test.
+    for (const lab of owl?.labs ?? []) {
+      expect(owl?.fields.find((field) => field.id === lab.field)).toMatchObject({
+        type: 'number',
+        label: lab.name,
+      });
+    }
+  });
+
   it('does not create a patient whose label already exists', async () => {
     const existing = DEMO_PATIENTS.map((spec, index) => ({
       summary: { id: `existing${index}` },
@@ -266,5 +320,36 @@ describe('demo patients', () => {
     const ids = await seedDemoPatients(workspace, { count: 3 });
     expect(ids).toEqual(['existing0', 'existing1', 'existing2']);
     expect(calls).toEqual([]);
+  });
+
+  it('makes the demo set again after a day, never a guest or another patient', () => {
+    const day = 24 * 60 * 60 * 1000;
+    const patient = (id: string, label: string, age: number) => ({
+      summary: { id, createdAt: new Date(NOW.getTime() - age).toISOString() },
+      replica: { profile: { label } },
+    });
+    const fox = DEMO_PATIENTS[0]?.label ?? '';
+    const owl = DEMO_PATIENTS[1]?.label ?? '';
+    const workspace = {
+      patients: () => [
+        patient('old-fox', fox, day + 60_000),
+        patient('new-owl', owl, day - 60_000),
+        patient('guest', `${DEMO_LABEL_PREFIX} Гость 12`, 3 * day),
+        patient('own', 'Иванов', 30 * day),
+      ],
+    } as unknown as DoctorDiaries;
+    expect(staleDemoPatients(workspace, NOW.getTime())).toEqual(['old-fox']);
+  });
+
+  it('gives the demo doctor a phone, so the visit card offers a call', () => {
+    const fox = demoInvitation(
+      DEMO_PATIENTS[0] as (typeof DEMO_PATIENTS)[number],
+      'demopatient01',
+      'Д',
+      NOW,
+    );
+    expect(fox.contacts).toEqual([
+      expect.objectContaining({ kind: 'phone', value: '+7 777 777-77-77' }),
+    ]);
   });
 });

@@ -12,6 +12,7 @@ import type {
   DiaryPlanValue,
 } from '@/features/diary/diary-model';
 import { activePlanItems } from '@/features/diary/diary-model';
+import { substanceDayScore } from '@/features/diary/diary-substances';
 
 /** Field of the care template that holds intake marks. */
 export const CARE_DOSE_FIELD = 'medication';
@@ -131,7 +132,8 @@ export function dayPeriod(time: string): DayPeriod {
   return 'night';
 }
 
-function doseValue(entry: DiaryEntry): DiaryPlanValue | undefined {
+/** The intake mark an entry carries, if it is one. */
+export function doseValue(entry: DiaryEntry): DiaryPlanValue | undefined {
   const value = entry.values[CARE_DOSE_FIELD];
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? (value as DiaryPlanValue)
@@ -293,12 +295,20 @@ export function heatLevel(done: number, total: number, entries: number): HeatDay
 }
 
 /** A part of the day plan the heatmap can count (the doctor's and the patient's filter). */
-export type HeatPart = 'doses' | 'scores' | 'vitals' | 'answers' | 'questionnaires' | 'notes';
+export type HeatPart =
+  | 'doses'
+  | 'scores'
+  | 'vitals'
+  | 'substances'
+  | 'answers'
+  | 'questionnaires'
+  | 'notes';
 
 export const HEAT_PART_LABEL: Readonly<Record<HeatPart, string>> = {
   doses: 'Лекарства',
   scores: 'Самочувствие',
   vitals: 'Показатели',
+  substances: 'Зависимости',
   answers: 'Описания',
   questionnaires: 'Опросники',
   notes: 'Заметки',
@@ -308,6 +318,7 @@ const HEAT_PART_ORDER: readonly HeatPart[] = [
   'doses',
   'scores',
   'vitals',
+  'substances',
   'answers',
   'questionnaires',
   'notes',
@@ -318,6 +329,7 @@ const CHECK_PART: Readonly<Record<DiaryCheckpoint['kind'], HeatPart>> = {
   vitals: 'vitals',
   text: 'answers',
   choice: 'answers',
+  use: 'substances',
   questionnaire: 'questionnaires',
 };
 
@@ -400,9 +412,14 @@ export function heatmapDays(
     if (only && !only.has(entryPart(entry, kinds))) continue;
     const key = dayKey(entry.at);
     counts.set(key, (counts.get(key) ?? 0) + 1);
-    // Low mood is a symptom the same way a low wellbeing score is.
-    for (const field of ['wellbeing', 'mood']) {
-      const score = entry.values[field];
+    // Low mood is a symptom the same way a low wellbeing score is; so are a day of use and craving.
+    const scores = [
+      ...['wellbeing', 'mood'].map((field) => entry.values[field]),
+      entry.check !== undefined && kinds.get(entry.check) === 'use'
+        ? substanceDayScore(entry.values)
+        : undefined,
+    ];
+    for (const score of scores) {
       if (typeof score === 'number') wellbeing.set(key, [...(wellbeing.get(key) ?? []), score]);
     }
   }

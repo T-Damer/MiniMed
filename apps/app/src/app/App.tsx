@@ -37,6 +37,7 @@ import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { PatientVaultRecoveryHost } from '@/components/PatientVaultRecovery';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
+import { ScrollTop } from '@/components/ScrollTop';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
@@ -126,8 +127,26 @@ const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   settings: loadSettingsView,
 };
 
+/** The reader that fills the screen scrolls inside itself, so «Наверх» follows it, not the page. */
+const fullscreenReader = (): HTMLElement | null =>
+  document.querySelector<HTMLElement>('.user-document-reader--fullscreen');
+/**
+ * Loads a root view's code ahead of its first visit. Through the lazy component's own `preload`,
+ * so that its first mount finds the code in and does not suspend for a tick (a skeleton frame).
+ */
+const rootViewComponents: Readonly<Record<RootView, { readonly preload: () => Promise<unknown> }>> =
+  {
+    search: SearchHome,
+    modules: KnowledgeBaseView,
+    assessments: AssessmentsView,
+    calculators: CalculatorsView,
+    notes: NotesView,
+    news: NewsView,
+    settings: SettingsView,
+  };
+
 function preloadRootView(view: RootView): void {
-  void rootViewLoaders[view]().catch(() => undefined);
+  void rootViewComponents[view].preload().catch(() => undefined);
 }
 
 export function App(): JSX.Element {
@@ -230,7 +249,6 @@ export function App(): JSX.Element {
   onMount(() => {
     if (statusCap) onCleanup(holdLightStatusBarWhileShown(statusCap));
   });
-
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
@@ -328,12 +346,21 @@ export function App(): JSX.Element {
   createEffect(() => {
     // While the tour is on, its steps open «Мои файлы» and the other tabs before the core has
     // arrived: their code is fetched then, so a step never shows a bare spinner.
-    if (navViewsPrefetched || !(session.ready() || onboardingVisible()) || embeddedFloatingWindow)
+    // A profile without a search core has nothing to wait for: its tabs warm up at once.
+    const searchless = Boolean(activeProfile()?.skipSearchCore);
+    if (
+      navViewsPrefetched ||
+      !(session.ready() || onboardingVisible() || searchless) ||
+      embeddedFloatingWindow
+    )
       return;
     navViewsPrefetched = true;
     // The compact «Мои файлы» tab is the file list of the knowledge-base view.
     const pending = [
-      ...new Set<RootView>([...navItems().map((item) => item.id), 'modules']),
+      ...new Set<RootView>([
+        ...navItems().map((item) => item.id),
+        ...(searchless ? [] : (['modules'] as const)),
+      ]),
     ].filter((view) => view !== navigation.view());
     const idle = (run: () => void): void => {
       if (typeof window.requestIdleCallback === 'function') {
@@ -677,22 +704,8 @@ export function App(): JSX.Element {
             />
           </button>
         </Show>
-        <Show
-          when={
-            session.ready() &&
-            !embeddedFloatingWindow &&
-            !floatingWindows.fullscreenWindowId() &&
-            navigation.showScrollTop()
-          }
-        >
-          <button
-            class="scroll-top-button floating-window-controls__item"
-            type="button"
-            aria-label="Вернуться наверх"
-            onClick={navigation.scrollToTop}
-          >
-            <AppGlyph name="arrow-up" class="scroll-top-button__icon" />
-          </button>
+        <Show when={!embeddedFloatingWindow && !floatingWindows.fullscreenWindowId()}>
+          <ScrollTop scroller={fullscreenReader} />
         </Show>
       </div>
     </div>

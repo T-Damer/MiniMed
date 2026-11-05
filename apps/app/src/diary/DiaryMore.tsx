@@ -9,6 +9,9 @@ import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallWarning } from '@/diary/InstallWarning';
 import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
+import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
+import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
+import type { DiaryOperator } from '@/features/diary/diary-model';
 import type { DiaryOpenResult, DiaryStore } from '@/features/diary/diary-storage';
 import type { SettingsTileTone } from '@/features/settings/settings-pages';
 import {
@@ -29,7 +32,7 @@ function Tile(props: { readonly icon: AppGlyphName; readonly tone: SettingsTileT
 }
 
 /** A row that opens something: the main Settings list's row with tile, title, state and chevron. */
-function ActionRow(props: {
+export function ActionRow(props: {
   readonly icon: AppGlyphName;
   readonly tone: SettingsTileTone;
   readonly title: string;
@@ -89,15 +92,19 @@ function SwitchRow(props: {
 }
 
 /** A row that only states something (notifications already on). */
-function StateRow(props: {
+export function StateRow(props: {
   readonly icon: AppGlyphName;
   readonly tone: SettingsTileTone;
   readonly title: string;
   readonly status: string;
+  readonly divided?: boolean;
 }): JSX.Element {
   return (
     <li class="settings-list__item">
-      <div class="settings-list__row">
+      <div
+        class="settings-list__row"
+        classList={{ 'settings-list__row--divided': Boolean(props.divided) }}
+      >
         <Tile icon={props.icon} tone={props.tone} />
         <span class="settings-list__title">{props.title}</span>
         <span class="settings-list__status diary-settings__status">{props.status}</span>
@@ -163,6 +170,8 @@ export function DiaryMore(props: {
   readonly hasOtherDiaries?: boolean;
   /** Connected diary: stop the observation and delete the records on the server. */
   readonly onWithdraw?: (() => Promise<void>) | undefined;
+  /** Connected diary: who has access (DIARY25), shown after the notifications. */
+  readonly access?: JSX.Element;
   /** Connected diary: notifications when the doctor changes something. */
   readonly onEnablePush?: (() => Promise<'on' | 'unsupported' | 'denied'>) | undefined;
   /** Notifications were allowed on an earlier visit. */
@@ -172,14 +181,18 @@ export function DiaryMore(props: {
   readonly onReminders?:
     | ((patch: { readonly on?: boolean; readonly names?: boolean }) => void)
     | undefined;
+  /** The joining documents the patient accepted, to read again (DIARY26). */
+  readonly consents?:
+    | { readonly accepted: readonly JoiningAcceptance[]; readonly operator: DiaryOperator }
+    | undefined;
 }): JSX.Element {
   const [push, setPush] = createSignal<PushState>(props.pushOn ? 'on' : 'off');
   const [sounds, setSounds] = createSignal(getSoundsEnabled());
   const [vibration, setVibration] = createSignal(getVibrationEnabled());
   const [confirming, setConfirming] = createSignal(false);
   const [withdrawError, setWithdrawError] = createSignal('');
-  const [sheet, setSheet] = createSignal<'restore' | 'link' | undefined>();
-  const connected = (): boolean => Boolean(props.onWithdraw);
+  const [sheet, setSheet] = createSignal<'restore' | 'link' | 'documents' | undefined>();
+  const connected = (): boolean => Boolean(props.onWithdraw || props.access);
 
   return (
     <main class="diary-page diary-page--more diary-settings">
@@ -266,6 +279,8 @@ export function DiaryMore(props: {
         )}
       </Show>
 
+      {props.access}
+
       <section class="diary-settings__section" aria-label="Звуки и вибрация">
         <ul class="settings-list__group">
           <SwitchRow
@@ -331,6 +346,19 @@ export function DiaryMore(props: {
         </ul>
       </section>
 
+      <Show when={props.consents}>
+        <section class="diary-settings__section" aria-label="Документы">
+          <ul class="settings-list__group">
+            <ActionRow
+              icon="file-text"
+              tone="blue"
+              title="Принятые документы"
+              onClick={() => setSheet('documents')}
+            />
+          </ul>
+        </section>
+      </Show>
+
       <Show when={props.onWithdraw}>
         {(withdraw) => (
           <section class="diary-settings__section" aria-label="Согласие на наблюдение">
@@ -373,6 +401,18 @@ export function DiaryMore(props: {
               onOpenChange={setConfirming}
             />
           </section>
+        )}
+      </Show>
+
+      <Show when={sheet() === 'documents' && props.consents}>
+        {(consents) => (
+          <DiarySheet title="Принятые документы" onClose={() => setSheet(undefined)}>
+            <ConsentRecord
+              consents={consents().accepted}
+              operator={consents().operator}
+              connected={connected()}
+            />
+          </DiarySheet>
         )}
       </Show>
 

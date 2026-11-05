@@ -943,3 +943,36 @@
   margin-top: 0.25rem;
   color: var(--theme-danger, var(--theme-text, var(--ink)));
 }
+
+/* The reader header's round buttons — back, contents, find, «⋯» — share one look: the raised
+   ledge of `.ui-button`, one size (owner 2026-11-03: two styles in one row looked unfinished). */
+.ui-button.document-page__back,
+.document-overlay-outline-toggle,
+.ui-button.document-find__toggle,
+.app-context-menu__more.reader-actions__button {
+  width: 2.6rem;
+  height: 2.6rem;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 50%;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 10%),
+    0 0.14rem 0 0 color-mix(in srgb, currentColor 28%, transparent),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--theme-motion-control, 140ms ease-out),
+    box-shadow var(--theme-motion-control, 140ms ease-out);
+}
+
+.ui-button.document-page__back:active:not(:disabled),
+.document-overlay-outline-toggle:active:not(:disabled),
+.ui-button.document-find__toggle:active:not(:disabled),
+.app-context-menu__more.reader-actions__button:active {
+  box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 18%);
+  transform: scale(0.96);
+}

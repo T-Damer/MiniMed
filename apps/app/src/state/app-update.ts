@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
+import { applyWhenQuiet } from '@/state/auto-update';
+
 import { RELEASE_VERSION } from '../../../../release';
 
 export const APP_UPDATE_READY_EVENT = 'minimed:app-update-ready';
@@ -227,7 +229,7 @@ function browserUpdateCheckPage(): UpdateCheckPage {
 /**
  * Asks the server for a new service worker when the page is shown or the network returns, at most
  * every {@link APP_UPDATE_RECHECK_MS}. A found update installs in the background and is announced
- * through the usual `statechange`; nothing here reloads the page.
+ * through the usual `statechange`; `registerAppServiceWorker` then applies it when the page is quiet.
  */
 export function watchForAppUpdates(
   registration: UpdateCheckTarget,
@@ -248,15 +250,42 @@ export function watchForAppUpdates(
 export async function registerAppServiceWorker(): Promise<void> {
   if (Capacitor.getPlatform() !== 'web') return;
   const registration = await navigator.serviceWorker.register(`./sw.js?v=${RELEASE_VERSION}`);
-  if (registration.waiting) announceUpdate(registration.waiting);
+  // A new build applies itself (DIARY21): at start, or when the page is next hidden; the «Обновить»
+  // row stays for the meantime.
+  const arrived = (worker: ServiceWorker): void => {
+    if (!navigator.serviceWorker.controller) return;
+    announceUpdate(worker);
+    applyWhenQuiet(() => activateAppUpdate(worker));
+  };
+  if (registration.waiting) arrived(registration.waiting);
   registration.addEventListener('updatefound', () => {
     const worker = registration.installing;
     if (!worker) return;
     worker.addEventListener('statechange', () => {
-      if (worker.state === 'installed') announceUpdate(worker);
+      if (worker.state === 'installed') arrived(worker);
     });
   });
   watchForAppUpdates(registration);
+}
+
+/**
+ * The doctor is in (DIARY24): the service worker stores the rest of the app now, so no screen
+ * loads anything later. A build without a sign-in stored everything at install; its worker has
+ * nothing more to fetch.
+ */
+export function cacheWholeApp(): void {
+  if (
+    Capacitor.getPlatform() !== 'web' ||
+    !('serviceWorker' in navigator) ||
+    !import.meta.env.PROD
+  ) {
+    return;
+  }
+  void navigator.serviceWorker.ready
+    .then((registration) => registration.active?.postMessage({ type: 'CACHE_APP' }))
+    .catch((cause: unknown) => {
+      console.warn('Приложение не сохранено целиком: экраны догрузятся при открытии.', cause);
+    });
 }
 
 export function activateAppUpdate(

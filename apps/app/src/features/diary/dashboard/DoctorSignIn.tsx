@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, type JSX, Match, Show, Switch } from 'solid-js';
 
 import { claimFullScreen } from '@/app/full-screen-routes';
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import { NavBack } from '@/components/NavBack';
@@ -11,6 +12,7 @@ import {
   readAccessCode,
   recoverAccount,
   signIn,
+  signInDemo,
   signInWithCode,
   signUp,
   signUpMode,
@@ -24,9 +26,23 @@ const MODES: readonly Mode[] = ['login', 'register', 'recover'];
 
 const HEADLINES: Readonly<Record<Mode, { readonly title: string; readonly lead: string }>> = {
   login: { title: 'С возвращением!', lead: 'Дневники пациентов уже ждут' },
-  register: { title: 'Добро пожаловать!', lead: 'Пара полей — и можно заводить первого пациента' },
-  recover: { title: 'Без паники', lead: 'Код восстановления вернёт доступ к пациентам' },
+  register: {
+    title: 'Добро пожаловать!',
+    lead: 'Пара полей — и можно заводить первого пациента',
+  },
+  recover: {
+    title: 'Без паники',
+    lead: 'Код восстановления вернёт доступ к пациентам',
+  },
 };
+
+/**
+ * `?demo` in the address (the doctor's QR code on the slides): the form opens on «Регистрация» with
+ * the demo button in front — one tap and the visitor is in (owner 2026-11-02: no demo tab).
+ */
+function demoRequested(): boolean {
+  return new URLSearchParams(window.location.search).has('demo');
+}
 
 function message(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -69,12 +85,13 @@ function Pulse(): JSX.Element {
  * also takes an access code: typed in full, the password folds away and the code alone signs in.
  */
 export function DoctorSignIn(props: {
-  readonly onSignedIn: (session: DoctorSession) => void;
+  /** May wait for the app to load (the diaries copy): the busy button holds until it is done. */
+  readonly onSignedIn: (session: DoctorSession) => void | Promise<void>;
   /** The way back in the full app; the diaries-only app has nowhere to go. */
   readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
   claimFullScreen();
-  const [mode, setMode] = createSignal<Mode>('login');
+  const [mode, setMode] = createSignal<Mode>(demoRequested() ? 'register' : 'login');
   const [email, setEmail] = createSignal('');
   const [name, setName] = createSignal('');
   const [password, setPassword] = createSignal('');
@@ -84,7 +101,10 @@ export function DoctorSignIn(props: {
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [copied, setCopied] = createSignal(false);
-  const [recovery, setRecovery] = createSignal<{ code: string; session: DoctorSession }>();
+  const [recovery, setRecovery] = createSignal<{
+    code: string;
+    session: DoctorSession;
+  }>();
   // Open sign-up needs no invite code; while unknown (offline) the field stays, as before.
   const [signup] = createResource(() =>
     signUpMode().catch((cause: unknown) => {
@@ -99,16 +119,49 @@ export function DoctorSignIn(props: {
     setError('');
   };
 
+  /** The fields the chosen form needs are there: until then «Войти» stays off. */
+  const filled = (): boolean => {
+    if (byCode()) return true;
+    const strong = password().length >= 8;
+    if (mode() === 'login') return email().trim() !== '' && password() !== '';
+    if (mode() === 'register') {
+      return (
+        email().trim() !== '' &&
+        name().trim() !== '' &&
+        strong &&
+        (signup.latest === 'open' || invite().trim() !== '')
+      );
+    }
+    return email().trim() !== '' && code().trim() !== '' && strong;
+  };
+
+  /** «Демо»: the shared demo account, no e-mail, password or code. */
+  const openDemo = async (): Promise<void> => {
+    setError('');
+    setBusy(true);
+    try {
+      await props.onSignedIn(await signInDemo({ rememberDevice: true }));
+    } catch (cause) {
+      setError(message(cause, 'Демо сейчас недоступно.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const submit = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
     setError('');
     setBusy(true);
     try {
       if (byCode()) {
-        props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
+        await props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
       } else if (mode() === 'login') {
-        props.onSignedIn(
-          await signIn({ email: email(), password: password(), rememberDevice: remember() }),
+        await props.onSignedIn(
+          await signIn({
+            email: email(),
+            password: password(),
+            rememberDevice: remember(),
+          }),
         );
       } else if (mode() === 'register') {
         const result = await signUp({
@@ -128,7 +181,7 @@ export function DoctorSignIn(props: {
           setClinicianProfile({ clinicianFullName: fullName });
         }
       } else {
-        props.onSignedIn(
+        await props.onSignedIn(
           await recoverAccount({
             email: email(),
             code: code(),
@@ -168,7 +221,7 @@ export function DoctorSignIn(props: {
       <div class="diary-signin__card">
         <img
           class="diary-signin__logo"
-          src={`${import.meta.env.BASE_URL}boot-icon.png`}
+          src={`${import.meta.env.BASE_URL}diaries/icon-192.png`}
           alt=""
           width="56"
           height="56"
@@ -184,7 +237,9 @@ export function DoctorSignIn(props: {
                   {(each) => (
                     <div
                       class="diary-signin__headline diary-signin__headline--stacked"
-                      classList={{ 'diary-signin__headline--hidden': mode() !== each }}
+                      classList={{
+                        'diary-signin__headline--hidden': mode() !== each,
+                      }}
                       aria-hidden={mode() === each ? undefined : 'true'}
                     >
                       <h1 class="diary-signin__title">{HEADLINES[each].title}</h1>
@@ -267,7 +322,7 @@ export function DoctorSignIn(props: {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={busy()}
+                disabled={busy() || !filled()}
                 class="diary-signin__submit"
                 classList={{ 'diary-signin__submit--busy': busy() }}
               >
@@ -287,6 +342,20 @@ export function DoctorSignIn(props: {
                 >
                   {mode() === 'recover' ? 'Вспомнили пароль? Войти' : 'Забыли пароль?'}
                 </button>
+              </Reveal>
+              {/* Try the diaries before any account: needs a service with open sign-up. In front while
+                  the account fields are empty; once they are filled, the submit button takes over. */}
+              <Reveal open={mode() !== 'recover' && (signup.latest === 'open' || demoRequested())}>
+                <Button
+                  type="button"
+                  variant={filled() ? 'secondary' : 'primary'}
+                  class="diary-signin__demo"
+                  icon={<AppGlyph name="play" class="diary-signin__demo-icon" />}
+                  disabled={busy()}
+                  onClick={() => void openDemo()}
+                >
+                  Демо — без регистрации
+                </Button>
               </Reveal>
             </form>
           }
@@ -317,7 +386,13 @@ export function DoctorSignIn(props: {
               <Button
                 type="button"
                 variant="primary"
-                onClick={() => props.onSignedIn(created().session)}
+                disabled={busy()}
+                onClick={() => {
+                  setBusy(true);
+                  void Promise.resolve(props.onSignedIn(created().session))
+                    .catch((cause: unknown) => setError(message(cause, 'Дневники не открылись.')))
+                    .finally(() => setBusy(false));
+                }}
               >
                 Я сохранил(а) код
               </Button>

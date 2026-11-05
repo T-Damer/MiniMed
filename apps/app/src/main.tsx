@@ -1,8 +1,10 @@
+import { Capacitor } from '@capacitor/core';
 import { render } from 'solid-js/web';
-
-import { App } from '@/app/App';
 import { BootScreen } from '@/app/BootScreen';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
+import { mountApp } from '@/app/mount-app';
+import { installPressFeedback } from '@/components/press-feedback';
+import { listenForInstallPrompt } from '@/diary/install-state';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installChunkRecovery } from '@/state/chunk-recovery';
 import { installMotionManager } from '@/state/motion';
@@ -54,12 +56,14 @@ import '@/styles/floating-windows.css';
 import '@/styles/primary-depth.css';
 import '@/styles/readability.css';
 import '@/styles/scrollbars.css';
+import '@/styles/paper-dots.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
+const stopPressFeedback = installPressFeedback();
 const stopTheme = installTheme();
 // Thin theme-coloured page scrollbar in WebKit engines without `scrollbar-width` (scrollbars.css).
 document.documentElement.classList.add('scrollbar-themed');
@@ -79,16 +83,39 @@ if (standby) {
     root,
   );
 } else {
-  render(() => <App />, root);
+  // The diaries copy mounts its sign-in alone when nobody is in (app/mount-diaries.tsx).
+  mountApp(root);
 }
 const stopNativeSafeBottomLock = standby ? () => undefined : lockNativeSafeBottom();
 const stopReminderNotifications = standby ? () => undefined : startReminderNotifications();
+// The browser's bars take the header's colour (an installed diaries app above all); the Android
+// app colours its own.
+let stopThemeColor = (): void => undefined;
+if (!Capacitor.isNativePlatform()) {
+  // Chrome offers its install prompt once, early: the diaries app's install row needs it.
+  listenForInstallPrompt();
+  // Full screen installed app: the cutout inset pinned, so pulling the bars down moves nothing.
+  void import('@/state/fullscreen-inset')
+    .then(({ pinFullscreenTopInset }) => pinFullscreenTopInset())
+    .catch((cause: unknown) => {
+      console.warn('Отступ под вырез экрана не закреплён:', cause);
+    });
+  void import('@/state/web-theme-color')
+    .then(({ installWebThemeColor }) => {
+      stopThemeColor = installWebThemeColor();
+    })
+    .catch((cause: unknown) => {
+      console.warn('Цвет панели браузера не будет следовать странице:', cause);
+    });
+}
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     stopMotionManager();
+    stopPressFeedback();
     stopTheme();
     stopNativeSafeBottomLock();
     stopReminderNotifications();
+    stopThemeColor();
   });
 }
 

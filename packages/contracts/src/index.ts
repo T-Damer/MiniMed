@@ -12,6 +12,7 @@ export * from './dose-rules';
 export * from './errors';
 export * from './form-schema';
 export * from './prescription';
+export * from './psy-status';
 export * from './result';
 export * from './search';
 export * from './semantic';

@@ -3,6 +3,7 @@
 # amd64 image, pushes it, rolls out a container revision and updates the API Gateway.
 #
 #   scripts/diary-serverless-deploy.sh            # targets apps/diary-server/deploy/serverless/yandex.env
+#   GATEWAY_ONLY=1 scripts/diary-serverless-deploy.sh   # only the API Gateway spec (redirects, routes)
 #
 # Needs the yc CLI signed in and Docker (OrbStack). The database is never touched beyond the
 # numbered migrations the service runs itself on start.
@@ -18,6 +19,19 @@ TAG="cr.yandex/$YC_REGISTRY/diary-server:$VERSION-$(git -C "$ROOT" rev-parse --s
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
+# The gateway spec with its placeholders filled; only these three, the spec's other text stays.
+gateway_spec() {
+  DIARY_PAGES_URL="$DIARY_PAGES_URL" CONTAINER_ID="$YC_CONTAINER_ID" INVOKER_SA="$YC_INVOKER_SA" \
+    envsubst '$DIARY_PAGES_URL $CONTAINER_ID $INVOKER_SA' <"$DEPLOY/api-gateway.yaml"
+}
+
+if [[ "${GATEWAY_ONLY:-}" == 1 ]]; then
+  gateway_spec >"$STAGE/gateway.yaml"
+  yc serverless api-gateway update "$YC_GATEWAY" --folder-id "$YC_FOLDER" --spec "$STAGE/gateway.yaml" >/dev/null
+  echo "API Gateway updated"
+  exit 0
+fi
+
 bun build "$ROOT/apps/diary-server/src/serverless.ts" --target=node --format=esm --minify \
   --outfile "$STAGE/diary-serverless.mjs" >/dev/null
 cp "$DEPLOY/Dockerfile" "$STAGE/"
@@ -32,7 +46,7 @@ yc serverless container revision deploy --folder-id "$YC_FOLDER" --container-nam
   --environment "DIARY_MODE=serverless,DIARY_YDB=$DIARY_YDB,YDB_METADATA_CREDENTIALS=1,DIARY_SIGNUP=$DIARY_SIGNUP,DIARY_PUSH_SUBJECT=$DIARY_PUSH_SUBJECT,DIARY_CORS_ORIGINS=$DIARY_CORS_ORIGINS" \
   >/dev/null
 
-CONTAINER_ID="$YC_CONTAINER_ID" INVOKER_SA="$YC_INVOKER_SA" envsubst <"$DEPLOY/api-gateway.yaml" >"$STAGE/gateway.yaml"
+gateway_spec >"$STAGE/gateway.yaml"
 yc serverless api-gateway update "$YC_GATEWAY" --folder-id "$YC_FOLDER" --spec "$STAGE/gateway.yaml" >/dev/null
 
 # Older images stay in the registry until removed: keep the newest three.

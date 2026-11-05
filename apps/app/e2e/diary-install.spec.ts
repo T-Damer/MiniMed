@@ -97,7 +97,7 @@ test.describe('patient diary: keeping it one tap away', () => {
     await page.getByRole('button', { name: ADD_TO_HOME }).click();
     const guide = page.getByRole('dialog', { name: ADD_TO_HOME });
     await expect(guide.locator('.install-guide__label')).toHaveText([
-      'Нажмите «⋮» в Chrome',
+      'Нажмите «⋮» в браузере',
       'Выберите «Добавить на гл. экран»',
       'Нажмите «Установить»',
       'Значок появится на экране',
@@ -220,7 +220,8 @@ test.describe('patient diary: keeping it one tap away', () => {
       display: string;
       icons: { src: string; sizes: string }[];
     };
-    // Full screen, over the system bars (owner 2026-10-30); standalone where that is refused.
+    // Full screen (owner 2026-11-03, DIARY21: Edge paints its own grey bar in standalone); the
+    // top inset is fixed at start, so pulling the bars down no longer moves the page.
     expect(manifest.display).toBe('fullscreen');
     const start = new URL(manifest.start_url, manifestUrl);
     const scope = new URL(manifest.scope, manifestUrl);

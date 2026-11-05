@@ -1,0 +1,34 @@
+/*
+ * Dotted paper on the main paper cards of the app and the patient's diary (owner 2026-11-02: the
+ * texture of the diary calendar card, everywhere; 2026-11-03: calculators, modules, settings and the
+ * drug card). Only the image is laid over each card's own
+ * fill, so colours, hover and dark theme stay theirs. `:root` lifts the rule over the cards' own
+ * `background` shorthand, wherever their stylesheet loads.
+ */
+:root
+:is(
+  .search-sections__list,
+  .result-group,
+  .ui-disclosure,
+  .patient-picker-row,
+  .assessment-message,
+  .form-progress,
+  .skin-result,
+  .drug-comparison__matrix,
+  .drug-interactions__item,
+  .onboarding-hint,
+  .diary-dash-row__open,
+  .diary-chart,
+  .diary-timeline__item,
+  .diary-patient__section--card,
+  .care-row,
+  .care-note,
+  .calculator-card,
+  .module-card,
+  .settings-list,
+  .document-medication-product,
+  .drug-conditions-sheet__quote
+) {
+  background-image: var(--theme-paper-dots);
+  background-size: 3px 3px;
+}

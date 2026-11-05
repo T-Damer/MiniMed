@@ -5,6 +5,7 @@ import {
   type CareSectionDraft,
   careDraftFrom,
   careInvitation,
+  copyCareSection,
   emptyCareDraft,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
@@ -148,5 +149,53 @@ describe('care diary editor', () => {
         sections: [{ ...newCareSection('choice'), options: ['да'] }],
       }),
     ).toThrow('два варианта');
+  });
+
+  it('asks glucose, activity and meals as numbers and reads them back as their sections', () => {
+    const base = emptyCareDraft();
+    const draft: CareDraft = {
+      ...base,
+      sections: [
+        ...base.sections,
+        newCareSection('glucose'),
+        newCareSection('activity'),
+        newCareSection('meals'),
+        // A second glucose section is left out: its field has a fixed id.
+        newCareSection('glucose'),
+      ],
+    };
+    const invitation = issue(draft);
+    const measured = (invitation.checkpoints ?? []).filter((checkpoint) =>
+      ['glucose', 'steps', 'meals'].includes(checkpoint.fields?.[0] ?? ''),
+    );
+    expect(measured.map((checkpoint) => [checkpoint.kind, checkpoint.fields])).toEqual([
+      ['vitals', ['glucose']],
+      ['vitals', ['steps', 'activity']],
+      ['vitals', ['meals', 'appetite']],
+    ]);
+    expect(invitation.fields.find((field) => field.id === 'glucose')).toMatchObject({
+      type: 'number',
+      unit: 'ммоль/л',
+    });
+    const back = careDraftFrom(invitation).sections.map((section) => section.kind);
+    expect(back).toEqual(expect.arrayContaining(['glucose', 'activity', 'meals']));
+    expect(back.filter((kind) => kind === 'glucose')).toHaveLength(1);
+  });
+
+  it('copies a medicine schedule for the next drug without the drug itself', () => {
+    const source = {
+      ...newCareSection('drug'),
+      title: 'Сертралин',
+      form: 'таблетки',
+      dose: '50 мг',
+      signa: 'По 1 таблетке утром',
+      times: [{ time: '08:00', meal: 'after' as const }],
+      tip: 'Пейте после завтрака',
+    };
+    const copy = copyCareSection(source);
+    expect(copy.key).not.toBe(source.key);
+    expect(copy).toMatchObject({ kind: 'drug', title: '', dose: '', signa: '', form: 'таблетки' });
+    expect(copy.times).toEqual(source.times);
+    expect(copy.tip).toBe(source.tip);
   });
 });

@@ -9,6 +9,7 @@
  * Everything that crosses a device boundary is validated here.
  */
 
+import { substanceSummary } from '@/features/diary/diary-substances';
 import {
   parseUserQuestionnaire,
   stripUntrustedQuestionnaireImages,
@@ -115,7 +116,7 @@ export interface DiaryPlanItem {
  * Something the doctor asks the patient to fill at set times: a score (wellbeing 0–10), a group of
  * measurements, or a questionnaire every few days.
  */
-export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire' | 'text' | 'choice';
+export type DiaryCheckpointKind = 'score' | 'vitals' | 'questionnaire' | 'text' | 'choice' | 'use';
 
 export interface DiaryCheckpoint {
   readonly id: string;
@@ -123,7 +124,10 @@ export interface DiaryCheckpoint {
   readonly label: string;
   /** Daily times `HH:MM` (score and vitals). Empty: once a day at any time. */
   readonly times?: readonly string[];
-  /** Fields this checkpoint fills (score: one number field; vitals: several). */
+  /**
+   * Fields this checkpoint fills (score: one number field; vitals: several; use: a `count` field
+   * per substance, a craving score and a «что именно» text).
+   */
   readonly fields?: readonly string[];
   /** Questionnaire slug (`phq-9`) for a questionnaire checkpoint; `own-…` for a doctor's own. */
   readonly questionnaire?: string;
@@ -173,8 +177,100 @@ export interface DiaryInvitation {
   readonly tips?: readonly DiaryTip[];
   /** Where to turn in a crisis, besides the doctor's contacts and 112 (one line each). */
   readonly crisis?: readonly string[];
-  /** The patient confirms the consent summaries before the first entry. */
+  /** The patient accepts the joining documents before the first entry (`features/diary/consent`). */
   readonly consent?: boolean;
+  /** Who runs the follow-up, from the doctor's «Врач и организация»: filled into those documents. */
+  readonly operator?: DiaryOperator;
+  /** Visits the doctor booked (DIARY27): shown above the patient's day, with a call button. */
+  readonly appointments?: readonly DiaryAppointment[];
+  /** Lab tests the doctor asks for (DIARY27); the patient types each result into its field. */
+  readonly labs?: readonly DiaryLabRequest[];
+}
+
+/** A visit to the doctor (owner 2026-11-04: «Завтра у вас приём в 14:30» and a call button). */
+export interface DiaryAppointment {
+  readonly id: string;
+  /** `YYYY-MM-DD`, the patient's local day. */
+  readonly day: string;
+  /** `HH:MM`; absent: the day only. */
+  readonly time?: string;
+  readonly place?: string;
+  readonly note?: string;
+}
+
+/**
+ * A lab test the doctor asks the patient to take (owner 2026-11-04: «some drugs increase hormone
+ * levels — prolactin»). The patient types the result in by hand into `field`, a number field of the
+ * diary, as an entry of its own on the day the blood was taken.
+ */
+export interface DiaryLabRequest {
+  readonly id: string;
+  readonly name: string;
+  /** Id of the number field the result goes into. */
+  readonly field: string;
+  /** Take it by this day, `YYYY-MM-DD`. */
+  readonly by?: string;
+  /** Why, in the doctor's words: «рисперидон может повышать пролактин». */
+  readonly why?: string;
+}
+
+/** The clinic and the doctor as the joining documents name them; every part may be missing. */
+export interface DiaryOperator {
+  readonly organization?: string;
+  readonly address?: string;
+  /** ОГРН or ОГРНИП. */
+  readonly ogrn?: string;
+  readonly clinician?: string;
+  readonly position?: string;
+}
+
+export const DIARY_OPERATOR_KEYS = [
+  'organization',
+  'address',
+  'ogrn',
+  'clinician',
+  'position',
+] as const satisfies readonly (keyof DiaryOperator)[];
+
+/**
+ * Why an intake was missed (DIARY22, owner 2026-11-03: «when the patient didn't take it, ask why —
+ * this is important»): one tap in the patient's dose sheet; the doctor sees how often and why.
+ */
+export const DIARY_MISS_REASONS = [
+  'forgot',
+  'not-with-me',
+  'ran-out',
+  'side-effects',
+  'felt-better',
+  'doubts',
+  'other',
+] as const;
+
+export type DiaryMissReason = (typeof DIARY_MISS_REASONS)[number];
+
+export const DIARY_MISS_REASON_LABEL: Readonly<Record<DiaryMissReason, string>> = {
+  forgot: 'Забыл(а)',
+  'not-with-me': 'Не было с собой',
+  'ran-out': 'Закончилось',
+  'side-effects': 'Плохо переношу',
+  'felt-better': 'Стало лучше',
+  doubts: 'Сомневаюсь в лечении',
+  other: 'Другое',
+};
+
+/** The reason as the doctor reads it in a line (lower case). */
+export const DIARY_MISS_REASON_SHORT: Readonly<Record<DiaryMissReason, string>> = {
+  forgot: 'забыл(а)',
+  'not-with-me': 'не было с собой',
+  'ran-out': 'закончилось',
+  'side-effects': 'плохо переносит',
+  'felt-better': 'стало лучше',
+  doubts: 'сомневается в лечении',
+  other: 'другое',
+};
+
+export function isDiaryMissReason(value: unknown): value is DiaryMissReason {
+  return typeof value === 'string' && (DIARY_MISS_REASONS as readonly string[]).includes(value);
 }
 
 export interface DiaryPlanValue {
@@ -184,6 +280,13 @@ export interface DiaryPlanValue {
   readonly done?: boolean;
   /** The scheduled intake `HH:MM` this mark answers; absent for an unscheduled intake. */
   readonly slot?: string;
+  /**
+   * The dose the plan asked for when the mark was made: a later plan change does not rewrite the
+   * past. Absent on marks made before doses were recorded (they show the current dose).
+   */
+  readonly dose?: string;
+  /** Why it was not taken (only with `done: false`). */
+  readonly reason?: DiaryMissReason;
 }
 
 export type DiaryValue = number | string | boolean | readonly string[] | DiaryPlanValue;
@@ -236,6 +339,8 @@ export const MAX_DIARY_CHECKPOINTS = 24;
 export const MAX_DIARY_CONTACTS = 6;
 export const MAX_DIARY_TIPS = 40;
 export const MAX_DIARY_DOSE_TIMES = 8;
+export const MAX_DIARY_APPOINTMENTS = 10;
+export const MAX_DIARY_LABS = 12;
 /** Free text the patient writes about their state, and the doctor's tips. */
 export const MAX_DIARY_NOTE = 4000;
 /**
@@ -499,8 +604,32 @@ const CHECKPOINT_KINDS: readonly DiaryCheckpointKind[] = [
   'questionnaire',
   'text',
   'choice',
+  'use',
 ];
 const CONTACT_KINDS: readonly DiaryContactKind[] = ['phone', 'telegram', 'link', 'email'];
+
+/**
+ * The fields of a substance-use checkpoint: counts (with a ceiling), a bounded score and a text,
+ * and at least one count; anything else could not be shown by the patient's use sheet.
+ */
+function checkUseFields(
+  label: string,
+  fieldIds: readonly string[],
+  fields: readonly DiaryField[],
+): void {
+  const chosen = fieldIds.flatMap((id) => fields.filter((field) => field.id === id));
+  for (const field of chosen) {
+    const bounded = field.min !== undefined && field.max !== undefined;
+    const ok =
+      field.type === 'text' ||
+      (field.type === 'count' && field.max !== undefined) ||
+      (field.type === 'number' && bounded);
+    if (!ok) throw new DiaryFormatError(`«${label}»: поле «${field.label}» не того вида.`);
+  }
+  if (!chosen.some((field) => field.type === 'count')) {
+    throw new DiaryFormatError(`«${label}»: нужно хотя бы одно вещество.`);
+  }
+}
 
 function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryCheckpoint[] {
   if (value === undefined) return [];
@@ -549,6 +678,7 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
     ) {
       throw new DiaryFormatError(`«${label}»: поле не того вида.`);
     }
+    if (kind === 'use') checkUseFields(label, fieldIds as string[], fields);
     const questionnaire = source['questionnaire'];
     if (
       kind === 'questionnaire' &&
@@ -584,6 +714,9 @@ function parseCheckpoints(value: unknown, fields: readonly DiaryField[]): DiaryC
   });
   if (new Set(checkpoints.map((checkpoint) => checkpoint.id)).size !== checkpoints.length) {
     throw new DiaryFormatError('Отметки дневника повторяются.');
+  }
+  if (checkpoints.filter((item) => item.kind === 'use' && !item.ended).length > 1) {
+    throw new DiaryFormatError('Раздел «Употребление» может быть только один.');
   }
   const customChars = checkpoints.reduce(
     (total, checkpoint) =>
@@ -641,6 +774,78 @@ function parseCrisis(value: unknown): string[] {
     throw new DiaryFormatError('Экстренные контакты некорректны.');
   }
   return value.map((line, index) => text(line, `Экстренный контакт ${index + 1}`));
+}
+
+function parseOperator(value: unknown): DiaryOperator | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Реквизиты врача');
+  const operator: Partial<Record<keyof DiaryOperator, string>> = {};
+  for (const key of DIARY_OPERATOR_KEYS) {
+    const part = text(source[key], 'Реквизиты врача', true);
+    if (part) operator[key] = part;
+  }
+  return Object.keys(operator).length ? operator : undefined;
+}
+
+function parseAppointments(value: unknown): DiaryAppointment[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_APPOINTMENTS) {
+    throw new DiaryFormatError('Приёмы у врача некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Приём ${index + 1}`);
+    const id = source['id'];
+    const day = source['day'];
+    const time = source['time'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректный идентификатор.`);
+    }
+    if (typeof day !== 'string' || !DAY_PATTERN.test(day)) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректная дата.`);
+    }
+    if (time !== undefined && (typeof time !== 'string' || !TIME_PATTERN.test(time))) {
+      throw new DiaryFormatError(`Приём ${index + 1}: некорректное время.`);
+    }
+    const place = text(source['place'], 'Где приём', true);
+    const note = text(source['note'], 'О приёме', true);
+    return {
+      id,
+      day,
+      ...(time ? { time } : {}),
+      ...(place ? { place } : {}),
+      ...(note ? { note } : {}),
+    };
+  });
+}
+
+function parseLabs(value: unknown, fields: readonly DiaryField[]): DiaryLabRequest[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_LABS) {
+    throw new DiaryFormatError('Анализы некорректны.');
+  }
+  return value.map((item, index) => {
+    const source = record(item, `Анализ ${index + 1}`);
+    const id = source['id'];
+    const field = source['field'];
+    const by = source['by'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: некорректный идентификатор.`);
+    }
+    if (!fields.some((one) => one.id === field && one.type === 'number')) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: нет поля для результата.`);
+    }
+    if (by !== undefined && (typeof by !== 'string' || !DAY_PATTERN.test(by))) {
+      throw new DiaryFormatError(`Анализ ${index + 1}: некорректная дата.`);
+    }
+    const why = text(source['why'], 'Зачем анализ', true);
+    return {
+      id,
+      name: text(source['name'], `Анализ ${index + 1}`),
+      field: field as string,
+      ...(typeof by === 'string' ? { by } : {}),
+      ...(why ? { why } : {}),
+    };
+  });
 }
 
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
@@ -713,6 +918,9 @@ function parseInvitationV2(
   const contacts = parseContacts(source['contacts']);
   const tips = parseTips(source['tips']);
   const crisis = parseCrisis(source['crisis']);
+  const operator = parseOperator(source['operator']);
+  const appointments = parseAppointments(source['appointments']);
+  const labs = parseLabs(source['labs'], fields);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -729,6 +937,9 @@ function parseInvitationV2(
     ...(tips.length ? { tips } : {}),
     ...(crisis.length ? { crisis } : {}),
     ...(source['consent'] === true ? { consent: true } : {}),
+    ...(operator ? { operator } : {}),
+    ...(appointments.length ? { appointments } : {}),
+    ...(labs.length ? { labs } : {}),
   };
 }
 
@@ -876,11 +1087,17 @@ function parseValue(field: DiaryField, value: unknown, invitation: DiaryInvitati
       }
       const slot =
         source['slot'] === undefined ? undefined : clockTime(source['slot'], field.label);
+      const dose = text(source['dose'], field.label, true);
+      // An unknown reason (a newer app's) is dropped, not refused: the mark itself still counts.
+      const reason =
+        done === false && isDiaryMissReason(source['reason']) ? source['reason'] : undefined;
       return {
         ...(typeof item === 'string' ? { item } : {}),
         ...(other && item === undefined ? { other } : {}),
         ...(typeof done === 'boolean' ? { done } : {}),
         ...(slot ? { slot } : {}),
+        ...(dose && typeof item === 'string' ? { dose } : {}),
+        ...(reason ? { reason } : {}),
       };
     }
   }
@@ -935,6 +1152,10 @@ export function parseDiaryEntry(
   }
   if (Object.keys(values).length === 0 && !note && !answers && !voice) {
     throw new DiaryFormatError('Заполните хотя бы одно поле.');
+  }
+  const answered = invitation.checkpoints?.find((candidate) => candidate.id === check);
+  if (answered?.kind === 'use' && Object.keys(values).length === 0) {
+    throw new DiaryFormatError('Отметьте употребление или «Ничего не было».');
   }
   return {
     id: identifier(source['id'], 'Запись'),
@@ -1031,6 +1252,28 @@ export function planItem(
   return id === undefined ? undefined : invitation.plan?.find((item) => item.id === id);
 }
 
+/** The dose of one intake of an item under the current plan: the time's own dose, else the item's. */
+export function intakeDose(item: DiaryPlanItem, slot?: string): string | undefined {
+  return item.times?.find((time) => time.time === slot)?.dose ?? item.dose;
+}
+
+/** A new intake mark of a plan item, carrying the dose the plan asks for now. */
+export function intakeMark(item: DiaryPlanItem, done: boolean, slot?: string): DiaryPlanValue {
+  const dose = intakeDose(item, slot);
+  return { item: item.id, done, ...(slot ? { slot } : {}), ...(dose ? { dose } : {}) };
+}
+
+/** The dose a mark was taken at: recorded with the mark, else the plan's current dose. */
+export function markedDose(
+  invitation: DiaryInvitation,
+  value: DiaryPlanValue | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  if (value.dose) return value.dose;
+  const item = planItem(invitation, value.item);
+  return item ? intakeDose(item, value.slot) : undefined;
+}
+
 /** Plan items the patient can still choose (the doctor has not ended them). */
 export function activePlanItems(invitation: DiaryInvitation): readonly DiaryPlanItem[] {
   return (invitation.plan ?? []).filter((item) => !item.ended);
@@ -1055,28 +1298,39 @@ export function describeDiaryValue(
   if (Array.isArray(value)) return `${field.label}: ${value.join(', ')}`;
   const plan = value as DiaryPlanValue;
   const item = planItem(invitation, plan.item);
-  const name = item ? [item.name, item.dose].filter(Boolean).join(' ') : (plan.other ?? '');
-  const done = plan.done === undefined ? '' : plan.done ? ' — выполнено' : ' — пропущено';
+  const name = item
+    ? [item.name, markedDose(invitation, plan)].filter(Boolean).join(' ')
+    : (plan.other ?? '');
+  const done =
+    plan.done === undefined
+      ? ''
+      : plan.done
+        ? ' — выполнено'
+        : ` — пропущено${plan.reason ? `: ${DIARY_MISS_REASON_SHORT[plan.reason]}` : ''}`;
   return `${name}${done}`;
 }
 
 /** One human-readable line per entry, shared by the patient page and the doctor preview. */
 export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntry): string {
   const byId = new Map(invitation.fields.map((field) => [field.id, field]));
+  const checkpoint = entry.check
+    ? invitation.checkpoints?.find((candidate) => candidate.id === entry.check)
+    : undefined;
+  // Substance use reads as one phrase («алкоголь 2 порции · тяга 6»), not a field per substance.
+  const use = checkpoint?.kind === 'use' ? substanceSummary(entry.values) : undefined;
   const pressure =
     typeof entry.values['systolic'] === 'number' && typeof entry.values['diastolic'] === 'number'
       ? `${entry.values['systolic']}/${entry.values['diastolic']} мм рт. ст.`
       : undefined;
-  const parts = invitation.fields.flatMap((field) => {
-    if (pressure && (field.id === 'systolic' || field.id === 'diastolic')) return [];
-    const value = entry.values[field.id];
-    return value === undefined
-      ? []
-      : [describeDiaryValue(invitation, byId.get(field.id) ?? field, value)];
-  });
-  const checkpoint = entry.check
-    ? invitation.checkpoints?.find((candidate) => candidate.id === entry.check)
-    : undefined;
+  const parts = use
+    ? []
+    : invitation.fields.flatMap((field) => {
+        if (pressure && (field.id === 'systolic' || field.id === 'diastolic')) return [];
+        const value = entry.values[field.id];
+        return value === undefined
+          ? []
+          : [describeDiaryValue(invitation, byId.get(field.id) ?? field, value)];
+      });
   const answers = entry.answers ? Object.keys(entry.answers).length : 0;
   const plan = entry.values['medication'] as DiaryPlanValue | undefined;
   return [
@@ -1085,6 +1339,7 @@ export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntr
     entry.voice ? `голосовая запись, ${entry.voice.seconds} с` : undefined,
     pressure,
     ...parts,
+    use,
     plan?.slot ? `по плану ${plan.slot}` : undefined,
   ]
     .filter(Boolean)
@@ -1115,6 +1370,57 @@ const MEDICATION_FIELD: DiaryField = {
   type: 'plan',
   label: 'Препарат',
   trackDone: true,
+};
+
+/**
+ * Glucose, activity and meals (owner 2026-11-04): measurements a section of the care diary adds
+ * when the doctor asks for them. They are `vitals` checkpoints of number fields, so a patient's
+ * diary that does not know them yet still asks them as numbers.
+ */
+export const GLUCOSE_FIELD: DiaryField = {
+  id: 'glucose',
+  type: 'number',
+  label: 'Глюкоза',
+  unit: 'ммоль/л',
+  min: 1,
+  max: 35,
+  step: 0.1,
+};
+export const STEPS_FIELD: DiaryField = {
+  id: 'steps',
+  type: 'number',
+  label: 'Шаги',
+  unit: 'шагов',
+  min: 0,
+  max: 100_000,
+  step: 1,
+};
+export const ACTIVITY_FIELD: DiaryField = {
+  id: 'activity',
+  type: 'number',
+  label: 'Активные минуты',
+  unit: 'мин',
+  min: 0,
+  max: 1440,
+  step: 1,
+};
+export const MEALS_FIELD: DiaryField = {
+  id: 'meals',
+  type: 'number',
+  label: 'Приёмов пищи',
+  unit: 'за день',
+  min: 0,
+  max: 10,
+  step: 1,
+};
+export const APPETITE_FIELD: DiaryField = {
+  id: 'appetite',
+  type: 'number',
+  label: 'Аппетит',
+  unit: 'из 10',
+  min: 0,
+  max: 10,
+  step: 1,
 };
 
 /** Vitals and wellbeing preset of the care diary (the doctor can switch checkpoints off). */

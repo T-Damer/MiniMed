@@ -77,8 +77,12 @@ so ordinary pushes and PRs do not build a duplicate release APK.
   previous build had and this one dropped into `app/assets/` (one build back, ≤ 120 MB, best
   effort). It needs the live site to answer; a first deploy or an outage carries nothing.
 
-A release does not need extra steps. After a deploy the first visit installs the new worker in the
-background; users see «Доступно обновление — Обновить» and nothing reloads by itself.
+After a deploy the first visit installs the new worker in the background; users see «Доступно
+обновление — Обновить» and nothing reloads by itself.
+
+The diary pages people reach from `med.1damer.com` are a copy on GitVerse Pages (2026-11-03). After
+the release commit, run `scripts/diary-gitverse-publish.sh` locally: it builds the diaries-only copy
+(`VITE_APP_PROFILE=diaries`) of that version and publishes it (docs/DIARY_ADMIN.md).
 
 ## Artifacts
 

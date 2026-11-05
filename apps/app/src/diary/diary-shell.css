@@ -26,6 +26,51 @@
   --ui-field-target: 3rem;
 }
 
+/*
+ * The shared dialog's frame (OverlayDialog: the calendar of a date field on a phone), which the main
+ * app styles in doctor-ux.css and the diary does not load: without it the calendar opened under the
+ * diary's own sheet with its heading out of place. It sits above the diary's sheets (--z-dialog).
+ */
+.overlay-backdrop {
+  position: fixed;
+  z-index: calc(var(--z-dialog, 80) + 10);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, var(--safe-top, 0px)) max(0.75rem, var(--safe-right, 0px))
+    max(1rem, var(--safe-bottom, 0px)) max(0.75rem, var(--safe-left, 0px));
+  background: rgb(35 33 29 / 72%);
+  backdrop-filter: blur(0.5rem);
+}
+
+.overlay-dialog {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.overlay-dialog-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.125rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.overlay-dialog-title {
+  min-width: 0;
+  flex: 1;
+}
+
+.overlay-dialog__heading {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+}
+
 /* The dialog close button: the main app styles it in doctor-ux.css, which the diary does not load;
    the same round 2.6rem button here (owner 2026-10-28: main-app sizes in patient mode). */
 .overlay-dialog__close-button {

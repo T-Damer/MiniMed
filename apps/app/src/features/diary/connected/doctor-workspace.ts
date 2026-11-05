@@ -6,6 +6,7 @@
  */
 import type {
   DiaryAlert,
+  DiaryDeviceKind,
   DiaryPatientDetail,
   DiaryPatientSummary,
   DiaryPresenceEvent,
@@ -17,20 +18,22 @@ import { DiaryPresenceEventSchema } from '@localmed/contracts';
 import {
   newDataKey,
   newPairingSecret,
+  pairingProofHash,
   publicIdentity,
   randomId,
   sealPairingKeys,
-  sha256,
   unwrapDataKey,
   wrapDataKey,
 } from '@localmed/diary-sync';
 
 import {
+  DiaryApiError,
   diaryAlerts,
   diaryChanges,
   diaryDoctors,
   diaryLiveMode,
   diaryPatients,
+  isOffline,
 } from '@/features/diary/connected/diary-api';
 import {
   applyRevisions,
@@ -42,10 +45,16 @@ import {
   PROFILE_RECORD,
 } from '@/features/diary/connected/diary-replica';
 import { DiarySession, type Keyring } from '@/features/diary/connected/diary-session';
-import { type DoctorSession, doctorApi } from '@/features/diary/connected/doctor-account';
+import {
+  type DoctorSession,
+  doctorApi,
+  keepOfflineCopy,
+  readOfflineCopy,
+} from '@/features/diary/connected/doctor-account';
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
+import { mergeInvitations, type PlanMerge } from '@/features/diary/plan-merge';
 
 /**
  * What a new plan tells the patient's phone: «tip» when it only adds tips to the plan the phone
@@ -72,20 +81,102 @@ export interface DoctorPatient {
 
 type Listener = () => void;
 
+/** No network, or a gateway that cannot reach the service: the offline copy stands in. */
+function unreachable(cause: unknown): boolean {
+  return (
+    isOffline(cause) || (cause instanceof DiaryApiError && [502, 503, 504].includes(cause.status))
+  );
+}
+
+/** The offline copy's form: the replica's maps and sets as arrays. */
+interface OfflineSnapshot {
+  readonly v: 1;
+  readonly alerts: readonly DiaryAlert[];
+  readonly patients: readonly {
+    readonly summary: DiaryPatientSummary;
+    readonly refused: number;
+    readonly replica: Omit<DiaryReplica, 'entries' | 'entryAuthors' | 'tipsRead' | 'revs'> & {
+      readonly entries: readonly (readonly [string, DiaryEntry])[];
+      readonly entryAuthors: readonly (readonly [string, string])[];
+      readonly tipsRead: readonly string[];
+      readonly revs: readonly (readonly [string, number])[];
+    };
+  }[];
+}
+
+function toSnapshot(
+  patients: readonly DoctorPatient[],
+  alerts: readonly DiaryAlert[],
+): OfflineSnapshot {
+  return {
+    v: 1,
+    alerts,
+    patients: patients.map(({ summary, refused, replica }) => ({
+      summary,
+      refused,
+      replica: {
+        ...replica,
+        entries: [...replica.entries],
+        entryAuthors: [...replica.entryAuthors],
+        tipsRead: [...replica.tipsRead],
+        revs: [...replica.revs],
+      },
+    })),
+  };
+}
+
+function fromSnapshot(snapshot: OfflineSnapshot): readonly DoctorPatient[] {
+  return snapshot.patients.map(({ summary, refused, replica }) => ({
+    // Nobody is «online» in a copy: presence is only known live.
+    summary: { ...summary, online: false },
+    refused,
+    replica: {
+      ...replica,
+      entries: new Map(replica.entries),
+      entryAuthors: new Map(replica.entryAuthors),
+      tipsRead: new Set(replica.tipsRead),
+      revs: new Map(replica.revs),
+    },
+  }));
+}
+
 /** `poll` mode (ADR-0027): how often the change counter is read, and the full re-read for presence. */
 const POLL_MS = 20_000;
 const PRESENCE_MS = 3 * 60_000;
+/** How often a list shown from the offline copy tries the service again. */
+const OFFLINE_RETRY_MS = 30_000;
+/** A list read this recently is not read again when the doctor comes back to it. */
+const QUIET_REFRESH_MS = 15_000;
+/** The event stream may have missed events while the page was hidden: after this long it is read again. */
+const RETURN_REFRESH_MS = 60_000;
 
 export class DoctorDiaries {
   private readonly api;
   private readonly entries = new Map<string, DoctorPatient>();
   private readonly sessions = new Map<string, DiarySession>();
+  /** Patients whose replica is built from this session's pulls (the offline copy's are not). */
+  private readonly pulled = new Set<string>();
   private readonly listeners = new Set<Listener>();
   private alertList: readonly DiaryAlert[] = [];
   private events: EventSource | undefined;
   private live = false;
   private stopPolling: (() => void) | undefined;
+  /** Something is on screen: the first network read, or the copy that stands in for it. */
   private loaded = false;
+  /** A network read has finished: what is on screen is live, not a copy. */
+  private fresh = false;
+  private refreshedAt = 0;
+  /** The read that is running or queued last: reads go one after another, never side by side. */
+  private reading: Promise<void> | undefined;
+  /** The copy kept on this device is being read (or was): one read serves every caller. */
+  private copy: Promise<boolean> | undefined;
+  /** When the copy was saved, while it stands in for a read that has not finished. */
+  private copyAt: string | undefined;
+  /** When the copy on screen was saved, once the service could not be reached. */
+  private offlineAt: string | undefined;
+  private copyTimer: number | undefined;
+  private stopRetry: (() => void) | undefined;
+  private stopVisible: (() => void) | undefined;
 
   constructor(readonly session: DoctorSession) {
     this.api = doctorApi(session);
@@ -160,7 +251,8 @@ export class DoctorDiaries {
 
   /** Pulls one patient's new records into its replica. */
   private async load(summary: DiaryPatientSummary): Promise<void> {
-    const previous = this.entries.get(summary.id);
+    // A patient taken from the copy is only for looking at: the first pull starts from the records.
+    const previous = this.pulled.has(summary.id) ? this.entries.get(summary.id) : undefined;
     if (summary.status === 'pending' || summary.status === 'withdrawn') {
       this.entries.set(summary.id, {
         summary,
@@ -173,6 +265,7 @@ export class DoctorDiaries {
     }
     const session = await this.sessionFor(summary);
     const pulled = await session.pull();
+    this.pulled.add(summary.id);
     this.entries.set(summary.id, {
       summary,
       replica: applyRevisions(previous?.replica ?? EMPTY_REPLICA, pulled.revisions),
@@ -180,14 +273,124 @@ export class DoctorDiaries {
     });
   }
 
-  async refresh(): Promise<void> {
-    const summaries = await diaryPatients.list(this.api);
-    const seen = new Set(summaries.map((summary) => summary.id));
-    for (const id of this.entries.keys()) if (!seen.has(id)) this.entries.delete(id);
-    await Promise.all(summaries.map((summary) => this.load(summary)));
-    this.alertList = await diaryAlerts.list(this.api);
+  /**
+   * Reads every patient again. The first read of a session shows the copy kept on this device at
+   * once, when there is one, and replaces it when the service answers. Without a network the copy
+   * stays (`offlineSince()` then says from when) and the service is tried again later. A call
+   * while a read runs waits for it and then reads again.
+   */
+  refresh(): Promise<void> {
+    const chain = (this.reading ?? Promise.resolve()).then(() => this.readAll());
+    const settled = chain.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.reading = settled;
+    // Cleared before the caller continues, so a call made right after this one is not held back.
+    return chain.finally(() => {
+      if (this.reading === settled) this.reading = undefined;
+    });
+  }
+
+  private async readAll(): Promise<void> {
+    if (!this.loaded) void this.showCopy();
+    try {
+      const summaries = await diaryPatients.list(this.api);
+      const seen = new Set(summaries.map((summary) => summary.id));
+      for (const id of this.entries.keys()) if (!seen.has(id)) this.entries.delete(id);
+      await Promise.all(summaries.map((summary) => this.load(summary)));
+      this.alertList = await diaryAlerts.list(this.api);
+    } catch (cause) {
+      if (!unreachable(cause) || this.fresh || this.offlineAt !== undefined) throw cause;
+      if (!(await this.showCopy())) throw cause;
+      this.goOffline();
+      return;
+    }
+    this.fresh = true;
     this.loaded = true;
+    this.offlineAt = undefined;
+    this.copyAt = undefined;
+    this.refreshedAt = Date.now();
+    this.stopRetry?.();
+    this.stopRetry = undefined;
     this.emit();
+    this.keepCopy();
+  }
+
+  /**
+   * Reads again in the background, for a list the doctor comes back to: nothing happens before
+   * the first live read, while a read runs, or when one finished moments ago, and a failure leaves
+   * the list as it is.
+   */
+  refreshQuietly(maxAgeMs: number = QUIET_REFRESH_MS): void {
+    if (!this.fresh || this.reading || Date.now() - this.refreshedAt < maxAgeMs) return;
+    this.refresh().catch((cause: unknown) => {
+      console.warn('Дневники: тихое обновление не удалось', cause);
+    });
+  }
+
+  /** When the copy on screen was saved; undefined while the list is live. */
+  offlineSince(): string | undefined {
+    return this.offlineAt;
+  }
+
+  /** The copy kept on this device goes on screen, unless the live list got there first. */
+  private showCopy(): Promise<boolean> {
+    this.copy ??= this.readCopy();
+    return this.copy;
+  }
+
+  private async readCopy(): Promise<boolean> {
+    const copy = await readOfflineCopy(this.session).catch((cause: unknown) => {
+      console.warn('Дневники: копия без сети не открылась', cause);
+      return undefined;
+    });
+    if (!copy || this.fresh) return false;
+    try {
+      const snapshot = JSON.parse(copy.text) as OfflineSnapshot;
+      if (snapshot.v !== 1) return false;
+      for (const patient of fromSnapshot(snapshot)) this.entries.set(patient.summary.id, patient);
+      this.alertList = snapshot.alerts;
+    } catch (cause) {
+      console.warn('Дневники: копия без сети не разобрана', cause);
+      return false;
+    }
+    this.loaded = true;
+    this.copyAt = copy.savedAt;
+    this.emit();
+    return true;
+  }
+
+  /** The service could not be reached: the copy on screen says so, and the service is tried again. */
+  private goOffline(): void {
+    this.offlineAt = this.copyAt;
+    this.emit();
+    const back = (): void => {
+      this.refresh()
+        .then(() => this.connectLive())
+        .catch((cause: unknown) => {
+          console.warn('Дневники: обновление после возвращения сети не удалось', cause);
+        });
+    };
+    // Back on the network, or the service up again: whichever comes first.
+    const timer = window.setInterval(back, OFFLINE_RETRY_MS);
+    window.addEventListener('online', back);
+    this.stopRetry = () => {
+      window.clearInterval(timer);
+      window.removeEventListener('online', back);
+    };
+  }
+
+  /** Saves the list for work without a network, at most once every few seconds. */
+  private keepCopy(): void {
+    if (this.copyTimer !== undefined) return;
+    this.copyTimer = window.setTimeout(() => {
+      this.copyTimer = undefined;
+      const text = JSON.stringify(toSnapshot(this.patients(), this.alertList));
+      keepOfflineCopy(this.session, text).catch((cause: unknown) => {
+        console.warn('Дневники: копия без сети не сохранена', cause);
+      });
+    }, 2000);
   }
 
   async refreshPatient(id: string): Promise<void> {
@@ -199,6 +402,7 @@ export class DoctorDiaries {
     }
     this.alertList = await diaryAlerts.list(this.api);
     this.emit();
+    this.keepCopy();
   }
 
   /**
@@ -265,6 +469,12 @@ export class DoctorDiaries {
       else console.warn('Дневники: событие присутствия не разобрано');
     }) as EventListener);
     this.events = events;
+    // Events sent while the page was hidden may never arrive: a list left for a while is read again.
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') this.refreshQuietly(RETURN_REFRESH_MS);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    this.stopVisible = () => document.removeEventListener('visibilitychange', onVisible);
   }
 
   /** A patient went online/offline or was seen again (live `presence` event). */
@@ -283,9 +493,13 @@ export class DoctorDiaries {
   }
 
   disconnect(): void {
+    this.stopRetry?.();
+    this.stopRetry = undefined;
     this.live = false;
     this.events?.close();
     this.events = undefined;
+    this.stopVisible?.();
+    this.stopVisible = undefined;
     this.stopPolling?.();
     this.stopPolling = undefined;
   }
@@ -295,12 +509,20 @@ export class DoctorDiaries {
     patientId: string,
     items: readonly { readonly id: string; readonly payload: unknown }[],
     notice?: DiaryRecordsNotice,
+    rebase?: (
+      replica: DiaryReplica,
+    ) => readonly { readonly id: string; readonly payload: unknown }[],
   ): Promise<void> {
     const entry = this.entries.get(patientId);
     if (!entry) throw new Error('Пациент не найден.');
     const session = await this.sessionFor(entry.summary);
-    const pulled = await session.push(items, notice);
+    const pulled = await session.push(
+      items,
+      notice,
+      rebase && ((revisions) => rebase(applyRevisions(entry.replica, revisions))),
+    );
     const after = await session.pull();
+    this.pulled.add(patientId);
     this.entries.set(patientId, {
       ...entry,
       replica: applyRevisions(entry.replica, [...pulled, ...after.revisions]),
@@ -329,14 +551,35 @@ export class DoctorDiaries {
     return id;
   }
 
-  /** A new plan; the patient hears «tip» when the change only adds tips, otherwise «plan». */
-  writePlan(patientId: string, invitation: DiaryInvitation): Promise<void> {
+  /**
+   * A new plan; the patient hears «tip» when the change only adds tips, otherwise «plan». `base` is
+   * the version the doctor started editing: when another doctor saved since, this save is merged
+   * onto theirs (DIARY20), and the result names what both changed.
+   */
+  async writePlan(
+    patientId: string,
+    invitation: DiaryInvitation,
+    base?: DiaryInvitation,
+  ): Promise<PlanMerge> {
     const before = this.entries.get(patientId)?.replica.invitation;
-    return this.write(
+    const onto = (theirs: DiaryInvitation | undefined): PlanMerge =>
+      base && theirs && JSON.stringify(theirs) !== JSON.stringify(base)
+        ? mergeInvitations(base, invitation, theirs)
+        : { invitation, conflicts: [] };
+    let outcome = onto(before);
+    const items = (plan: DiaryInvitation) => [
+      { id: PLAN_RECORD, payload: { kind: 'plan', invitation: plan } },
+    ];
+    await this.write(
       patientId,
-      [{ id: PLAN_RECORD, payload: { kind: 'plan', invitation } }],
-      planNotice(before, invitation),
+      items(outcome.invitation),
+      planNotice(before, outcome.invitation),
+      (replica) => {
+        outcome = onto(replica.invitation);
+        return items(outcome.invitation);
+      },
     );
+    return outcome;
   }
 
   writeProfile(patientId: string, profile: DiaryProfile): Promise<void> {
@@ -367,18 +610,26 @@ export class DoctorDiaries {
     );
   }
 
-  /** A one-time code for the patient's phone, valid 72 hours. */
-  async pairingLink(patientId: string): Promise<string> {
+  /**
+   * A one-time code for the patient's phone, valid 72 hours; `carer`: for a carer's phone, made
+   * only with the patient's consent (DIARY25).
+   */
+  async pairingLink(patientId: string, kind: DiaryDeviceKind = 'patient'): Promise<string> {
     const entry = this.entries.get(patientId);
     if (!entry) throw new Error('Пациент не найден.');
     const keyring = await this.keyring(entry.summary);
     const secret = newPairingSecret();
-    await diaryPatients.pairing(
+    const made = await diaryPatients.pairing(
       this.api,
       patientId,
-      await sha256(secret),
+      // The server keeps the hash of the proof; the secret seals the keys and stays in the link.
+      await pairingProofHash(secret),
       await sealPairingKeys(keyring.keys, secret),
+      kind,
     );
+    if (kind === 'carer' && made.kind !== 'carer') {
+      throw new Error('Сервер дневников ещё не умеет подключать опекунов: его нужно обновить.');
+    }
     return pairingLink(connectedDiaryPageUrl(), { patientId, secret });
   }
 

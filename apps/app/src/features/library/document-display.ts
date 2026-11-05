@@ -274,14 +274,82 @@ function reordered(
   ];
 }
 
+/**
+ * Page stamps the PDF text kept as headings of an official instruction: «ИНСТРУКЦИЯ», «ПО
+ * МЕДИЦИНСКОМУ ПРИМЕНЕНИЮ ЛЕКАРСТВЕННОГО ПРЕПАРАТА», «МЗ РФ», «СООТВЕТСТВУЕТ ЭКСПЕРТНОМУ ОТЧЕТУ»,
+ * «ЛП-№(000403)-(РГ-RU)-281021», «(ПОСЛЕДОВАТЕЛЬНОСТЬ 0001)». They are not sections: each cut the
+ * section it fell into in two.
+ */
+const PAGE_STAMP_TITLE = new RegExp(
+  [
+    '\\(?\\s*ПОСЛЕДОВАТЕЛЬНОСТЬ\\s+\\d+\\s*\\)?',
+    'ИНСТРУКЦИЯ\\s*\\(?\\s*(?:ПО)?СЛЕДОВАТЕЛЬНОСТЬ\\s+\\d+\\s*\\)?',
+    'ИНСТРУКЦИЯ\\s*(?:\\(?\\s*ПОСЛЕДОВАТЕЛЬНОСТЬ\\s+\\d+\\s*\\)?)?(?:\\s*ПО\\s+МЕДИЦИНСКОМУ\\s+ПРИМЕНЕНИЮ(?:\\s+ЛЕКАРСТВЕННОГО(?:\\s+ПРЕПАРАТА)?)?)?',
+    'ПО\\s+МЕДИЦИНСКОМУ\\s+ПРИМЕНЕНИЮ(?:\\s+ЛЕКАРСТВЕННОГО(?:\\s+ПРЕПАРАТА)?)?',
+    'ЛЕКАРСТВЕННОГО\\s+ПРЕПАРАТА',
+    'МИНИСТЕРСТВО\\s+ЗДРАВООХРАНЕНИЯ(?:\\s+[А-ЯЁ\\s]+)?',
+    'МИНЗДРАВ\\s+РОССИ[ИЙ]',
+    '[МM]\\s?[З3]\\s+РФ',
+    'СОГЛАСОВАНО',
+    '(?:[А-ЯЁA-Z.•]+\\s*){0,2}ЭКС[А-ЯЁ]*\\s+ОТЧ[ЕЁ]Т[А-ЯЁ]*',
+    'ДЕЙСТВИТЕЛЕН\\s+ДЛЯ\\s+ДАННОЙ',
+    'В?\\s*ДЕЙСТВУТЕЛЕН\\s+ДЛЯ\\s+ДАННОЙ',
+    'ВЕРСИИ\\s+ДОКУМЕНТА',
+    'НЦЭСМП',
+    '[ЛJ][ПTIІЛJ]{1,3}\\s*-?\\s*[NМM#№G][\\s\\S]*',
+  ]
+    .map((pattern) => `(?:${pattern})`)
+    .join('|')
+    .replace(/^/u, '^(?:')
+    .concat(')$'),
+  'iu',
+);
+
+function isPageStamp(section: MedicalSection): boolean {
+  return (
+    (section.sectionType === null || section.sectionType === 'other') &&
+    PAGE_STAMP_TITLE.test(section.title.trim().replace(/\s+/gu, ' '))
+  );
+}
+
+/**
+ * An instruction's page stamps fold into the text around them: their paragraphs continue the
+ * section before them (the ones before the first section open it). No paragraph is dropped.
+ */
+export function foldPageStamps(sections: readonly MedicalSection[]): readonly MedicalSection[] {
+  if (!sections.some(isPageStamp)) return sections;
+  const folded: MedicalSection[] = [];
+  let leading: MedicalSection['chunks'][number][] = [];
+  for (const section of sections) {
+    if (isPageStamp(section)) {
+      const previous = folded.at(-1);
+      if (!previous) leading = [...leading, ...section.chunks];
+      else if (section.chunks.length > 0)
+        folded[folded.length - 1] = {
+          ...previous,
+          chunks: [...previous.chunks, ...section.chunks],
+        };
+      continue;
+    }
+    if (folded.length === 0 && leading.length > 0) {
+      folded.push({ ...section, chunks: [...leading, ...section.chunks] });
+      leading = [];
+      continue;
+    }
+    folded.push(section);
+  }
+  return folded;
+}
+
 export function visibleReaderSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
+  const source = sourceType === 'official_drug_instruction' ? foldPageStamps(sections) : sections;
   const ordered = (
     isClinicalRecommendationSource(sourceType)
-      ? glossaryLast(orderDocumentSections(sections, sourceType))
-      : orderDocumentSections(sections, sourceType)
+      ? glossaryLast(orderDocumentSections(source, sourceType))
+      : orderDocumentSections(source, sourceType)
   ).filter(
     (section) =>
       section.title.trim() !== COVERAGE_NOTE_SECTION_TITLE &&

@@ -8,7 +8,7 @@ import { EnvironCredentialsProvider } from '@ydbjs/auth/environ';
 import { Driver } from '@ydbjs/core';
 
 import { createApp } from './app';
-import { runStoreContract } from './contract';
+import { CONTRACT_TICK_TOKEN, runStoreContract } from './contract';
 import { nodePasswords } from './passwords-node';
 import { loadVapid } from './push';
 import { YdbStore } from './ydb-store';
@@ -30,12 +30,13 @@ const app = createApp(store, {
   signup: 'open',
   secret: 'contract-secret',
   vapid: await loadVapid(store, 'mailto:test@example.org'),
+  tickToken: CONTRACT_TICK_TOKEN,
   log: (line) => {
     if (line.includes(' 500 ') || line.startsWith('error')) console.error(line);
   },
 });
 try {
-  for (const step of await runStoreContract(app, 'serverless')) console.info(`ok  ${step}`);
+  for (const step of await runStoreContract(app, 'serverless', store)) console.info(`ok  ${step}`);
   console.info(`contract passed on YDB in ${Math.round(performance.now() - started)} ms`);
 } finally {
   await driver.close();

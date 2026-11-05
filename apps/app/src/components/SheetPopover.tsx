@@ -65,7 +65,7 @@ export function SheetPopover(props: {
           <Popover.Portal>
             <Popover.Content
               ref={(element: HTMLElement) => props.contentRef?.(element)}
-              class={props.contentClass}
+              class={`${props.contentClass} sheet-popover__floating`}
               aria-label={props.title}
               {...(props.onOpenAutoFocus ? { onOpenAutoFocus: props.onOpenAutoFocus } : {})}
             >

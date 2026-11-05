@@ -27,9 +27,13 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
       // The diaries-only app (`?profile=diaries`, remembered by state/app-profile.ts) installs and
-      // shows as itself: its own manifest, favicon, title and boot icon (public/diaries/).
+      // shows as itself: its own manifest, favicon, title and boot icon (public/diaries/). A build
+      // for one job (VITE_APP_PROFILE, the GitVerse copy) is always that profile.
       (() => {
-        let profile = new URLSearchParams(location.search).get('profile');
+        const locked = '%VITE_APP_PROFILE%';
+        let profile = locked.startsWith('%')
+          ? new URLSearchParams(location.search).get('profile')
+          : locked;
         if (!profile) {
           try {
             profile = localStorage.getItem('minimed.app-profile.v1');
@@ -47,7 +51,7 @@
         set('link[rel="icon"][sizes="32x32"]', './diaries/favicon-32.png');
         set('link[rel="icon"][sizes="64x64"]', './diaries/favicon-64.png');
         set('link[rel="apple-touch-icon"]', './diaries/apple-touch-icon.png');
-        document.title = 'Дневники пациентов';
+        document.title = 'Сигнум';
       })();
     </script>
     <meta
@@ -109,15 +113,20 @@
   <body>
     <noscript>Для запуска MiniMed нужен JavaScript.</noscript>
     <div id="boot-surface" class="boot-surface" aria-hidden="true">
-      <img class="boot-surface__icon" src="./boot-icon.png" alt="" width="190" height="190" />
+      <!-- No src in the markup: the script below picks the app's own icon before the first paint,
+           so the diaries never flash the wallet (a src here is fetched and shown first). -->
+      <img class="boot-surface__icon" alt="" width="190" height="190" />
     </div>
     <script>
       // On Android the splash icon is centred on the screen, the WebView sits between the system
       // bars: move ours to the same spot (MiniMedBoot comes from LocalMedSystemUiPlugin).
       (() => {
         const icon = document.querySelector('.boot-surface__icon');
-        if (icon && document.documentElement.dataset.appIdentity === 'diaries') {
-          icon.src = './diaries/boot-icon.png';
+        if (icon) {
+          icon.src =
+            document.documentElement.dataset.appIdentity === 'diaries'
+              ? './diaries/boot-icon.png'
+              : './boot-icon.png';
         }
         const bridge = window.MiniMedBoot;
         if (!bridge || !icon) return;

@@ -31,6 +31,17 @@ export interface AssessmentScaleDefinition {
   readonly label: string;
   readonly shortLabel: string;
   readonly description: string;
+  /**
+   * The score as an expression over the answers (`answer_<question id>`, `max`, `min`) in place
+   * of the sum of the scale's questions (the Russian OCDS counts the larger of items 1 and 2).
+   * Its range is the formula at every answer's lowest and highest value.
+   */
+  readonly formula?: string;
+  /**
+   * An answer that only picks the thresholds (sex for RUS-AUDIT): its value reaches the rules as
+   * `score_<id>`, but it is not listed among the result's scores.
+   */
+  readonly context?: true;
 }
 
 export interface AssessmentQuestion {

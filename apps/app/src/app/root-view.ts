@@ -87,6 +87,7 @@ const SEARCH_TOOL_NOTES_ROUTES = [
   '#/notes/drug-comparison',
   '#/notes/vaccination',
   '#/notes/skin-photo',
+  '#/notes/psy-status',
 ] as const;
 
 /**

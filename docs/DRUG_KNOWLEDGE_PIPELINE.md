@@ -411,6 +411,47 @@ Judge every changed class membership against the product's own instruction (docs
 the wrong ones as exceptions, rebuild, and update the review JSON that `atc-index.data.test.ts` reads. The index is an app asset
 (committed, ships with the app release); there is no mirror tag for it.
 
+## Compound facts: structure, targets, excipient functions (DRUG-HDR2, 2026-11-03)
+
+`apps/app/src/features/medications/compounds/compound-facts.json` is a lazy chunk (`compound-facts.ts`
+loads and validates it; `normalizeCompoundName` and `splitCompositionItems` read instruction text).
+It holds SMILES, formula, ids, pharmacological roles and molecular targets of active substances
+and the function of the excipients that «Состав» sections list. Built locally by `tools/compounds/`
+from cached raw responses in `data/raw/compounds/` (gitignored); nothing is fetched at run time.
+
+```bash
+bun tools/compounds/extract-actives.ts      # ЕСКЛП cards + НСИ АТХ → actives-universe.json
+bun tools/compounds/extract-excipients.ts   # GRLS instruction modules (zstd) → «Состав» name counts
+bun tools/compounds/fetch-wikidata-actives.ts && bun tools/compounds/fetch-chembl.ts
+bun tools/compounds/fetch-wikidata-excipients.ts
+bun tools/compounds/build.ts --report       # writes compound-facts.json, prints coverage and worklists
+bunx tsc -p tools/compounds/tsconfig.json   # type check of the tools
+```
+
+- **Sources and licences** are listed in the chunk (`sources`): Wikidata CC0 (SMILES, formula, ids,
+  `P2868` roles, `P129` protein targets), ChEBI CC BY 4.0 (`has role`, from `chebi_lite.obo.gz`),
+  ChEMBL CC BY-SA 3.0 (mechanisms of action and targets; share-alike applies to the chunk), НСИ
+  «АТХ» (names of level-5 codes). Requests are one at a time, with a User-Agent and backoff.
+- **Matching an active** (`build.ts`): level-5 ATC code first, then English ATC name, then Russian
+  label; an ATC code from a ЕСКЛП card counts only when the НСИ name of that code, or the
+  Wikidata item's Russian label, names the same substance (`atc-trust.ts`): cards carry stale codes
+  and a wrong code would show another molecule. The structure is that of the active moiety (the
+  salt word is ignored).
+- **Roles** are shown only from the reviewed glossary `role-glossary.json` (ChEBI/Wikidata English
+  role → Russian, ordered by importance; metabolite, toxicity and industrial roles are left out);
+  `atc-role-hints.json` puts the roles that fit the substance's ATC group first.
+- **Excipients** come from the reviewed list `excipients.curated.tsv` (id, Russian name, English
+  name for the Wikidata lookup, aliases, function ids of `excipient-functions.json`). A function
+  that ChEBI/Wikidata state is source-backed (`function-sources.json` maps their role labels);
+  `basis: "curated"` marks a record that has any function only the glossary gives. Entries that no
+  instruction of the corpus mentions are left out of the chunk. `token-aliases.json` maps families
+  named by one word («ароматизатор …», «Опадрай …»).
+- **Compact format**: label tables, bare numeric ids, defaults left out (`encode.ts` writes,
+  `parseCompoundFacts` expands and validates). The file is excluded from Biome so that one
+  compound stays on one line.
+- After a corpus or ЕСКЛП refresh: rerun the commands above, read the `--report` worklists
+  (unmatched frequent names, untranslated roles), extend the TSV/glossary, rebuild.
+
 ## Update policy
 
 Each update should produce a new immutable source snapshot and content-pack checksum. Do not overwrite historical source text or review metadata. On change:

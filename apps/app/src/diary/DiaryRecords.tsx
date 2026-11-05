@@ -13,6 +13,12 @@ import {
   type DiaryResults,
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
+import type { DiaryRemoval } from '@/features/diary/diary-storage';
+
+/** A line of «Записи»: the patient's entry, or one the doctor deleted (shown struck out). */
+type RecordRow =
+  | { readonly at: string; readonly entry: DiaryEntry }
+  | { readonly at: string; readonly removed: DiaryRemoval };
 
 /** What the doctor does not have yet for this entry, if anything. */
 function entryBadge(entry: DiaryEntry, sent: DiarySent | undefined): string | undefined {
@@ -38,14 +44,97 @@ export function DiaryRecords(props: {
    */
   readonly tabbed?: boolean;
   readonly connected?: boolean;
+  /** Entries the doctor deleted (connected diary): they stay in the list, struck out. */
+  readonly removed?: readonly DiaryRemoval[] | undefined;
+  /** Who made an entry, once the diary has a carer (DIARY25); undefined: no remark. */
+  readonly markedBy?: ((entry: DiaryEntry) => string | undefined) | undefined;
   readonly onWrite: () => void;
   readonly onSend: () => void;
   readonly onEdit: (entry: DiaryEntry) => void;
   readonly onDelete: (entry: DiaryEntry) => void;
 }): JSX.Element {
   const [confirming, setConfirming] = createSignal<string | undefined>(undefined);
-  const days = createMemo(() => groupEntriesByDay(props.results.entries, new Date()));
+  const days = createMemo(() =>
+    groupEntriesByDay<RecordRow>(
+      [
+        ...props.results.entries.map((entry) => ({ at: entry.at, entry })),
+        ...(props.removed ?? []).map((removed) => ({ at: removed.at, removed })),
+      ],
+      new Date(),
+    ),
+  );
   const invitation = () => props.results.invitation;
+
+  /** One of the patient's entries, with its change and delete actions. */
+  const recordRow = (entry: DiaryEntry, today: boolean): JSX.Element => (
+    <li
+      class="diary-record"
+      classList={{
+        'diary-record--today': today,
+        'diary-record--fresh': props.saved?.entry.id === entry.id,
+      }}
+    >
+      <span class="diary-record__time">{formatTime(entry.at)}</span>
+      <span class="diary-record__value">{describeDiaryEntry(invitation(), entry)}</span>
+      <Show when={entry.note}>
+        <span class="diary-record__note">{entry.note}</span>
+      </Show>
+      <Show when={props.markedBy?.(entry)}>
+        {(line) => <span class="diary-record__by">{line()}</span>}
+      </Show>
+      <Show when={entry.corrected}>
+        <span class="diary-record__badge diary-record__badge--doctor">Исправлено врачом</span>
+      </Show>
+      <Show when={!props.connected && entryBadge(entry, props.sent)}>
+        {(badge) => <span class="diary-record__badge">{badge()}</span>}
+      </Show>
+      <Show
+        when={confirming() === entry.id}
+        fallback={
+          <div class="diary-record__actions">
+            <Button
+              class="diary-button"
+              type="button"
+              icon={<AppGlyph name="edit" class="diary-record__icon" />}
+              aria-label={`Изменить запись от ${whenLabel(entry.at, new Date())}`}
+              onClick={() => props.onEdit(entry)}
+            >
+              Изменить
+            </Button>
+            <Button
+              class="diary-button"
+              type="button"
+              icon={<AppGlyph name="trash" class="diary-record__icon" />}
+              aria-label={`Удалить запись от ${whenLabel(entry.at, new Date())}`}
+              onClick={() => setConfirming(entry.id)}
+            >
+              Удалить
+            </Button>
+          </div>
+        }
+      >
+        <div class="diary-record__confirm" role="alert">
+          <p class="diary-record__question">Удалить эту запись насовсем?</p>
+          <div class="diary-record__actions">
+            <Button
+              class="diary-button diary-button--danger"
+              type="button"
+              variant="danger"
+              onClick={() => {
+                setConfirming(undefined);
+                props.onDelete(entry);
+              }}
+            >
+              Да, удалить
+            </Button>
+            <Button class="diary-button" type="button" onClick={() => setConfirming(undefined)}>
+              Нет, оставить
+            </Button>
+          </div>
+        </div>
+      </Show>
+    </li>
+  );
 
   return (
     <main class="diary-page diary-page--records">
@@ -70,7 +159,7 @@ export function DiaryRecords(props: {
         )}
       </Show>
       <Show
-        when={props.results.entries.length > 0}
+        when={props.results.entries.length > 0 || (props.removed ?? []).length > 0}
         fallback={
           <section class="diary-card" aria-label="Записей пока нет">
             <h2 class="diary-card__title">Записей пока нет</h2>
@@ -95,75 +184,21 @@ export function DiaryRecords(props: {
                 </h2>
                 <ul class="diary-day__list">
                   <For each={day.entries}>
-                    {(entry) => (
-                      <li
-                        class="diary-record"
-                        classList={{
-                          'diary-record--today': day.label.today,
-                          'diary-record--fresh': props.saved?.entry.id === entry.id,
-                        }}
-                      >
-                        <span class="diary-record__time">{formatTime(entry.at)}</span>
-                        <span class="diary-record__value">
-                          {describeDiaryEntry(invitation(), entry)}
-                        </span>
-                        <Show when={entry.note}>
-                          <span class="diary-record__note">{entry.note}</span>
-                        </Show>
-                        <Show when={!props.connected && entryBadge(entry, props.sent)}>
-                          {(badge) => <span class="diary-record__badge">{badge()}</span>}
-                        </Show>
-                        <Show
-                          when={confirming() === entry.id}
-                          fallback={
-                            <div class="diary-record__actions">
-                              <Button
-                                class="diary-button"
-                                type="button"
-                                icon={<AppGlyph name="edit" class="diary-record__icon" />}
-                                aria-label={`Изменить запись от ${whenLabel(entry.at, new Date())}`}
-                                onClick={() => props.onEdit(entry)}
-                              >
-                                Изменить
-                              </Button>
-                              <Button
-                                class="diary-button"
-                                type="button"
-                                icon={<AppGlyph name="trash" class="diary-record__icon" />}
-                                aria-label={`Удалить запись от ${whenLabel(entry.at, new Date())}`}
-                                onClick={() => setConfirming(entry.id)}
-                              >
-                                Удалить
-                              </Button>
-                            </div>
-                          }
-                        >
-                          <div class="diary-record__confirm" role="alert">
-                            <p class="diary-record__question">Удалить эту запись насовсем?</p>
-                            <div class="diary-record__actions">
-                              <Button
-                                class="diary-button diary-button--danger"
-                                type="button"
-                                variant="danger"
-                                onClick={() => {
-                                  setConfirming(undefined);
-                                  props.onDelete(entry);
-                                }}
-                              >
-                                Да, удалить
-                              </Button>
-                              <Button
-                                class="diary-button"
-                                type="button"
-                                onClick={() => setConfirming(undefined)}
-                              >
-                                Нет, оставить
-                              </Button>
-                            </div>
-                          </div>
-                        </Show>
-                      </li>
-                    )}
+                    {(row) =>
+                      'removed' in row ? (
+                        <li class="diary-record diary-record--removed">
+                          <span class="diary-record__time">{formatTime(row.removed.at)}</span>
+                          <span class="diary-record__value diary-record__value--removed">
+                            {row.removed.line}
+                          </span>
+                          <span class="diary-record__badge diary-record__badge--doctor">
+                            Удалено врачом
+                          </span>
+                        </li>
+                      ) : (
+                        recordRow(row.entry, day.label.today)
+                      )
+                    }
                   </For>
                 </ul>
               </section>
