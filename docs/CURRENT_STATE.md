@@ -157,12 +157,13 @@ or a value with the transcript words it rests on and who said them. Built on SCR
   - Not measured: phones (QVikhr is ~2–4 s per call on the Mac; a consultation × a 10-field form is
     6–12 calls), wllama's schema path in the browser, real consultations.
 
-- **Not done.** The local model on these screens (no screen creates the model controller; the
-  sheet would run `fillFormWithModel` through `localFormFillModel`) and its download offered there;
-  PHQ-9 and other questionnaires (no cues, so no entry yet); opening a quote in the transcript; the Android plugin taking a
-  grammar (`common_sampler` with `json_schema_to_grammar`); real consultations; field-specific value
-  checks for dates and free text beyond the shared-word line check; telling the patient's history from
-  a relative's (the quote check cannot; the doctor reads the quote).
+- **Not done.** The local model on these screens: no screen creates the model controller yet, so the
+  sheet runs the word cues; wiring it means `fillFormWithModel` through `localFormFillModel`, the
+  model download offered in place, and a progress line (a 10-field form is 6–12 calls). A phone run
+  of the native grammar path (only the emulator, at under 1 token/s). Real de-identified
+  consultations (none in git; asked of the owner 2026-11-06). Opening a quote in the transcript; date
+  and free-text value checks beyond the shared-word line check; telling the patient's history from a
+  relative's (the doctor reads the quote).
 
 ## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1)
 
