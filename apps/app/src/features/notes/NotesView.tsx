@@ -436,6 +436,11 @@ const PrescriptionWorkspace = lazy(() =>
     default: module.PrescriptionWorkspace,
   })),
 );
+const PsyStatusWorkspace = lazy(() =>
+  import('@/features/psy-status/PsyStatusWorkspace').then((module) => ({
+    default: module.PsyStatusWorkspace,
+  })),
+);
 const SkinPhotoWorkspace = lazy(() =>
   import('@/features/skin/SkinPhotoWorkspace').then((module) => ({
     default: module.SkinPhotoWorkspace,
@@ -991,6 +996,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'prescription' ? current : null;
   });
+  const psyStatusRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'psy-status' ? current : null;
+  });
   /** An experimental tool: without the setting its address leads back to the files. */
   const skinPhotoRoute = createMemo(() => {
     const current = route();
@@ -1386,6 +1395,23 @@ export function NotesView(props: {
               {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
               initialNames={current().names}
               initialDrugs={current().drugs}
+              onBack={() => navigateBack(notesPath())}
+            />
+          </Suspense>
+        )}
+      </Show>
+      <Show when={props.active && psyStatusRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <PageSkeleton
+                fallbackHash={notesPath()}
+                notice={<p class="vax-loading">Открываем «Психический статус»…</p>}
+              />
+            }
+          >
+            <PsyStatusWorkspace
+              recordingId={current().recordingId}
               onBack={() => navigateBack(notesPath())}
             />
           </Suspense>

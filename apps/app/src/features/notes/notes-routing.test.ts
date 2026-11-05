@@ -8,6 +8,7 @@ import {
   notesNewPatientPath,
   notesPath,
   notesPatientsPath,
+  notesPsyStatusPath,
   notesSkinPhotoPath,
   notesTemplatesPath,
   notesVaccinationPath,
@@ -33,6 +34,11 @@ describe('notes routing', () => {
   it('opens «Кожа по фото» at its own address', () => {
     expect(readNotesRoute(notesSkinPhotoPath())).toEqual({ kind: 'skin-photo' });
     expect(readNotesRoute('#/notes/skin-photo?x=1')).toEqual({ kind: 'skin-photo' });
+    expect(readNotesRoute(notesPsyStatusPath())).toEqual({ kind: 'psy-status' });
+    expect(readNotesRoute(notesPsyStatusPath('rec 1'))).toEqual({
+      kind: 'psy-status',
+      recordingId: 'rec 1',
+    });
   });
 
   it('opens the drug comparison with typed names and exact drugs', () => {

@@ -29,6 +29,8 @@ export type NotesRoute =
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | { readonly kind: 'skin-photo' }
+  /** «Психический статус»; `recordingId` (`rec`) fills it from that conversation recording. */
+  | { readonly kind: 'psy-status'; readonly recordingId?: string }
   | {
       readonly kind: 'drug-interactions';
       /** Names typed in a search query (`d`), looked up in the drug search when the tool opens. */
@@ -146,6 +148,10 @@ export function readNotesRoute(
     return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
   }
   if (parts[1] === 'skin-photo') return { kind: 'skin-photo' };
+  if (parts[1] === 'psy-status') {
+    const recordingId = new URLSearchParams(query).get('rec');
+    return recordingId ? { kind: 'psy-status', recordingId } : { kind: 'psy-status' };
+  }
   if (parts[1] === 'drug-interactions') {
     const params = new URLSearchParams(query);
     return { kind: 'drug-interactions', names: params.getAll('d'), cards: params.getAll('c') };
@@ -252,6 +258,13 @@ export function notesVaccinationPath(part?: string): string {
   return part
     ? `#/notes/vaccination?${VACCINATION_PART_QUERY_KEY}=${encodeURIComponent(part)}`
     : '#/notes/vaccination';
+}
+
+/** `#/notes/psy-status` opens «Психический статус»; with a recording id it is filled from it. */
+export function notesPsyStatusPath(recordingId?: string): string {
+  return recordingId
+    ? `#/notes/psy-status?rec=${encodeURIComponent(recordingId)}`
+    : '#/notes/psy-status';
 }
 
 /** `#/notes/skin-photo` opens «Кожа по фото» (experimental modules only). */

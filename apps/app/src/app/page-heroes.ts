@@ -27,6 +27,7 @@ export const PAGE_HEROES = {
   notes: { emblem: 'notes' },
   prescription: { emblem: 'prescription' },
   skinPhoto: { emblem: 'skin-layers' },
+  psyStatus: { emblem: 'brain' },
   comparison: { emblem: 'scales' },
   diaryToday: { emblem: 'calendar', ambient: 'ecg' },
   diaryRecords: { emblem: 'check' },

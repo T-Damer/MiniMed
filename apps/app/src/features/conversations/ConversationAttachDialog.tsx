@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -14,7 +15,8 @@ import {
 import { openEncryptedVault } from '@/features/conversations/conversation-transcript';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { resolveRecordedDuration } from '@/features/conversations/recorded-duration';
-import { notesPatientsPath } from '@/features/notes/notes-routing';
+import { notesPatientsPath, notesPsyStatusPath } from '@/features/notes/notes-routing';
+import { pushRoute } from '@/state/app-back';
 import { type ConversationRecording, readConversationAudio } from '@/state/conversation-recordings';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
@@ -135,6 +137,19 @@ export function ConversationAttachDialog(props: {
           <For each={lines()}>{(line) => <p class="conversation-dialog__line">{line}</p>}</For>
           <Show when={held?.settling()}>
             <PulseDots label="Дочитываем запись" working />
+          </Show>
+          <Show when={lines().length > 0 && !held?.settling()}>
+            <Button
+              variant="quiet"
+              class="conversation-dialog__psy-status"
+              icon={<AppGlyph name="brain" />}
+              onClick={() => {
+                props.onClose();
+                pushRoute(notesPsyStatusPath(props.recording.id));
+              }}
+            >
+              Психический статус
+            </Button>
           </Show>
         </section>
       </Show>

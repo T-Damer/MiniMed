@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- «Психический статус» (Инструменты, `#/notes/psy-status`): a constructor of the mental and somatic status and the
+  pharmacological history — phrases by section, each section's status, the doctor's own wording, contradiction checks,
+  the text at three levels of detail, «Сохранить» into the patient's card. Filled from a conversation: a recording
+  («Психический статус» in the recording window) or pasted text proposes phrases, each with the quoted words of the
+  conversation; a tap on a quote shows it in the text; nothing is added until the doctor accepts it. Catalog from a
+  friend's offline constructor 1.0.0 (terms not settled yet — this branch is not merged).
+
 ## [0.6.92] - 2026-11-05
 
 - Security: access codes and pairing secrets no longer reach the server (it gets only proofs); an invite code is

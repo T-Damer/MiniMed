@@ -20,6 +20,47 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1, branch `psy-status`)
+
+**Not in `main`.** The phrase catalog comes from a friend's offline «Конструктор психиатрического
+статуса» 1.0.0 that has no licence, terms or author name; `main` deploys to GitHub Pages, so the branch
+waits for the author's written terms and credit (`packages/core/src/psy-status/NOTICE.md`).
+
+- **Data.** `packages/core/src/psy-status/catalog.ru.json`: the constructor's 3 modules, 23 sections,
+  127 phrases (code, text, tags, evidence: observed / reported / documented), the 5 section statuses,
+  17 conflict rules and 7 «also document» rules, converted unchanged. Contract
+  `packages/contracts/src/psy-status.ts` (document, entry, suggestion, quote). The core part is a
+  subpath export, `@localmed/core/psy-status`, so the catalog loads only with the screen's lazy chunk
+  (72 KB), not with the search worker or the core index.
+- **Generation and checks** (`document.ts`) follow the constructor: nothing normal is added by itself;
+  brief / standard / detailed text; conflicts, duplicates and missing companions listed.
+- **Filling from a transcript** (`fill.ts`, cues in `cues.ts`): deterministic, offline, no model.
+  Each cue names a phrase, an optional denial phrase and Russian word patterns. A statement is quoted
+  as its clause; a negation up to three words before or two after makes it a denial (no denial phrase →
+  nothing proposed); a question is a fact only when the next line starts with «да» / «нет», and the
+  quote then runs from the question to the answer. Each proposal carries up to three quotes in SCRIBE1's
+  `VisitNoteQuote` shape (line, UTF-16 offsets, the transcript's own wording); a phrase and its
+  opposite may both be proposed, and the conflict rules name it. Observed phrases are proposed only
+  from words a doctor dictates aloud («ориентирован во времени», «контакт продуктивный»).
+- **Screen** `apps/app/src/features/psy-status/`: patient row, «Заполнить по беседе» (a recording on
+  this device or pasted text), proposals with quotes (tap → the transcript sheet, quoted words marked),
+  «В статус» / ✕ / «Принять все», then modules → section chips → status chips → phrase list → own
+  wording; entries can be edited or removed and keep «из беседы» with their quotes; the text with
+  copy and «Сохранить». The recording window («Добавить в карту») has a «Психический статус» button.
+  Listed in tools search (group psychiatry, adults).
+- **Storage.** The status and transcript stay in memory for the app session and are dropped when the
+  patient vault locks. «Сохранить» adds a note «Психический статус» to the card and, as an encrypted
+  card file `psy-status-<eventId>`, the structured status with every quote and the recording id.
+- **Not done.** No vault-backed draft (closing the app loses an unsaved status), no free editing of
+  the final text with versions (the constructor had one), no user phrase library, no model proposer
+  (SCRIBE1's line citations would check one). The card does not yet show the stored quotes. Cue
+  coverage is a first set (≈45 phrases); measured only on made-up transcripts.
+- **Checks.** Core tests `packages/core/src/psy-status/*.test.ts` (filling from transcripts, quotes
+  equal their source spans, negations, answers, conflicts, text levels), app test
+  `psy-status-record.test.ts`; browser: paste → proposals → quote sheet → accept / dismiss → edit →
+  text at 1280 px and 375 px. Not checked: saving into a real vault, the recording-window button with
+  a real recording, a phone.
+
 ## Release 0.6.92 — 2026-11-05
 
 - **In it:** SEC-AUDIT1 (security audit fixes), DIARY-DRAFT («Создать пациента», draft cards) and PRESS2 (press
