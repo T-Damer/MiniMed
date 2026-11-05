@@ -16,7 +16,9 @@
 // Precision = right / proposed, recall = right / expected. «No quote» = model values dropped because
 // their citation failed the quote check (or the quote did not carry the value), over all non-null
 // values the model proposed; the cue fallback quotes spans of the transcript, so it has none.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { resolve } from 'node:path';
 
 import {
@@ -29,6 +31,7 @@ import type { VisitNoteCitation } from '@localmed/core';
 import {
   type FormFillBinding,
   type FormFillModel,
+  type FormFillModelRequest,
   fillFormWithCues,
   fillFormWithModel,
   formFillFromAssessment,
@@ -46,7 +49,11 @@ const args = process.argv.slice(2);
 const option = (name: string) =>
   args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const server = option('server');
-const label = option('label') ?? (server ? 'model' : 'cues');
+const wllamaModel = option('wllama');
+const webview = option('webview');
+const deviceModel = option('device-model');
+const usesModel = Boolean(server || wllamaModel || webview);
+const label = option('label') ?? (usesModel ? 'model' : 'cues');
 const only = option('only');
 const reportPath = option('report');
 const noThink = args.includes('--no-think');
@@ -108,38 +115,14 @@ interface Answer {
   readonly seconds: number;
 }
 
-function serverModel(url: string, answers: Answer[]): FormFillModel {
+/** One completion as raw text; the runtime differs, the request and the parsing do not. */
+type Complete = (request: FormFillModelRequest) => Promise<string>;
+
+function recordingModel(complete: Complete, answers: Answer[]): FormFillModel {
   return {
     async complete(request) {
       const startedAt = performance.now();
-      const response = await fetch(`${url}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: request.systemPrompt },
-            { role: 'user', content: `${noThink ? '/no_think\n' : ''}${request.userPrompt}` },
-          ],
-          max_tokens: request.maxTokens,
-          temperature: 0,
-          top_p: 1,
-          ...(noSchema
-            ? {}
-            : {
-                response_format: {
-                  type: 'json_schema',
-                  json_schema: { name: 'form_fill', schema: request.responseSchema },
-                },
-              }),
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`llama-server answered ${response.status}: ${await response.text()}`);
-      }
-      const body = (await response.json()) as {
-        readonly choices?: readonly { readonly message?: { readonly content?: string } }[];
-      };
-      const rawText = body.choices?.[0]?.message?.content?.trim() ?? '';
+      const rawText = (await complete(request)).trim();
       answers.push({
         prompt: (request.responseSchema['required'] as string[]).join(','),
         rawText,
@@ -149,6 +132,218 @@ function serverModel(url: string, answers: Answer[]): FormFillModel {
     },
   };
 }
+
+const messages = (request: FormFillModelRequest) => [
+  { role: 'system', content: request.systemPrompt },
+  { role: 'user', content: `${noThink ? '/no_think\n' : ''}${request.userPrompt}` },
+];
+
+const responseFormat = (request: FormFillModelRequest) =>
+  noSchema
+    ? {}
+    : {
+        response_format: {
+          type: 'json_schema',
+          json_schema: { name: 'form_fill', schema: request.responseSchema },
+        },
+      };
+
+/** llama.cpp's llama-server, as in SCRIBE1's qualification. */
+function serverCompletion(url: string): Complete {
+  return async (request) => {
+    const response = await fetch(`${url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        messages: messages(request),
+        max_tokens: request.maxTokens,
+        temperature: 0,
+        top_p: 1,
+        ...responseFormat(request),
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`llama-server answered ${response.status}: ${await response.text()}`);
+    }
+    const body = (await response.json()) as {
+      readonly choices?: readonly { readonly message?: { readonly content?: string } }[];
+    };
+    return body.choices?.[0]?.message?.content ?? '';
+  };
+}
+
+/**
+ * The browser runtime the app ships (wllama 3.5.1 from the catalog's CDN URLs) in headless Chromium,
+ * the GGUF served from this machine; the request goes the way `BrowserWllamaSession` sends it.
+ */
+async function wllamaCompletion(
+  modelPath: string,
+): Promise<{ complete: Complete; close: () => Promise<void> }> {
+  const catalog = readJson('apps/app/src/features/models/catalog.preview.json') as {
+    readonly runtime: { readonly wllamaModuleUrl: string; readonly wllamaWasmUrl: string };
+  };
+  const files = createServer((request, response) => {
+    if (request.url === '/model.gguf') {
+      response.writeHead(200, {
+        'content-type': 'application/octet-stream',
+        'content-length': statSync(modelPath).size,
+        'cross-origin-resource-policy': 'same-origin',
+      });
+      createReadStream(modelPath).pipe(response);
+      return;
+    }
+    // Cross-origin isolated like the app's own servers (vite.config.ts), so wllama runs threads;
+    // `credentialless` lets the page load wllama from the catalog's CDN.
+    response.writeHead(200, {
+      'content-type': 'text/html',
+      'cross-origin-opener-policy': 'same-origin',
+      'cross-origin-embedder-policy': 'credentialless',
+    });
+    response.end('<!doctype html><title>wllama</title>');
+  });
+  await new Promise<void>((resolve) => files.listen(0, '127.0.0.1', resolve));
+  const port = (files.address() as AddressInfo).port;
+  const { chromium } = await import('@playwright/test');
+  const browser = await chromium.launch({ args: ['--mute-audio'] });
+  const page = await browser.newPage();
+  await page.goto(`http://127.0.0.1:${port}/`);
+  const loadSeconds = await page.evaluate(
+    async ({ moduleUrl, wasmUrl }) => {
+      const startedAt = performance.now();
+      const module = (await import(moduleUrl)) as {
+        Wllama: new (
+          paths: Record<string, string>,
+          config: object,
+        ) => {
+          loadModel(blobs: Blob[], options: object): Promise<void>;
+        };
+      };
+      const wllama = new module.Wllama({ default: wasmUrl }, { suppressNativeLog: true });
+      const blob = await (await fetch('/model.gguf')).blob();
+      await wllama.loadModel([blob], {
+        n_ctx: 2048,
+        n_threads: Math.max(1, Math.min(6, navigator.hardwareConcurrency - 1)),
+        n_gpu_layers: 0,
+      });
+      (window as unknown as { wllama: unknown }).wllama = wllama;
+      return { seconds: (performance.now() - startedAt) / 1000, isolated: crossOriginIsolated };
+    },
+    { moduleUrl: catalog.runtime.wllamaModuleUrl, wasmUrl: catalog.runtime.wllamaWasmUrl },
+  );
+  console.log(
+    `wllama: model loaded in ${loadSeconds.seconds.toFixed(1)} s, cross-origin isolated: ${loadSeconds.isolated}`,
+  );
+  return {
+    complete: (request) =>
+      page.evaluate(
+        async (body) => {
+          const wllama = (
+            window as unknown as {
+              wllama: {
+                createChatCompletion(
+                  options: object,
+                ): Promise<{ choices?: { message?: { content?: string } }[] }>;
+              };
+            }
+          ).wllama;
+          const result = await wllama.createChatCompletion(body);
+          return result.choices?.[0]?.message?.content ?? '';
+        },
+        {
+          messages: messages(request),
+          max_tokens: request.maxTokens,
+          temperature: 0,
+          top_p: 1,
+          ...responseFormat(request),
+        },
+      ),
+    close: async () => {
+      await browser.close();
+      await new Promise<void>((resolve) => files.close(() => resolve()));
+    },
+  };
+}
+
+/**
+ * The Android app's native runtime on a device or emulator: the WebView's DevTools socket
+ * (`adb forward tcp:<port> localabstract:webview_devtools_remote_<pid>`, then its page's
+ * `webSocketDebuggerUrl`) and the `LlamaInference` plugin the app calls, schema as `responseSchema`.
+ */
+async function webviewCompletion(
+  socketUrl: string,
+): Promise<{ complete: Complete; close: () => Promise<void> }> {
+  const socket = new WebSocket(socketUrl);
+  await new Promise<void>((resolve, reject) => {
+    socket.addEventListener('open', () => resolve(), { once: true });
+    socket.addEventListener('error', () => reject(new Error('DevTools socket did not open')), {
+      once: true,
+    });
+  });
+  let nextId = 1;
+  const pending = new Map<number, (value: unknown) => void>();
+  socket.addEventListener('message', (event) => {
+    const message = JSON.parse(String(event.data)) as {
+      id?: number;
+      result?: unknown;
+      error?: unknown;
+    };
+    if (message.id !== undefined) pending.get(message.id)?.(message);
+  });
+  const evaluate = (expression: string): Promise<unknown> =>
+    new Promise((resolve, reject) => {
+      const id = nextId++;
+      pending.set(id, (raw) => {
+        pending.delete(id);
+        const message = raw as {
+          result?: {
+            result?: { value?: unknown };
+            exceptionDetails?: { exception?: { description?: string } };
+          };
+          error?: { message?: string };
+        };
+        const failure =
+          message.error?.message ?? message.result?.exceptionDetails?.exception?.description;
+        if (failure) reject(new Error(failure));
+        else resolve(message.result?.result?.value);
+      });
+      socket.send(
+        JSON.stringify({
+          id,
+          method: 'Runtime.evaluate',
+          params: { expression, awaitPromise: true, returnByValue: true },
+        }),
+      );
+    });
+  const plugin = 'window.Capacitor.Plugins.LlamaInference';
+  if (deviceModel) {
+    const startedAt = performance.now();
+    await evaluate(`${plugin}.initializeModel(${JSON.stringify({ path: deviceModel })})`);
+    console.log(`device: model loaded in ${((performance.now() - startedAt) / 1000).toFixed(1)} s`);
+  }
+  return {
+    complete: async (request) => {
+      const options = {
+        systemPrompt: request.systemPrompt,
+        userPrompt: `${noThink ? '/no_think\n' : ''}${request.userPrompt}`,
+        maxTokens: request.maxTokens,
+        ...(noSchema ? {} : { responseSchema: JSON.stringify(request.responseSchema) }),
+      };
+      const value = await evaluate(
+        `${plugin}.complete(${JSON.stringify(options)}).then((r) => r.text)`,
+      );
+      return typeof value === 'string' ? value : '';
+    },
+    close: async () => socket.close(),
+  };
+}
+
+const runtime: { complete: Complete; close: () => Promise<void> } | undefined = server
+  ? { complete: serverCompletion(server), close: async () => undefined }
+  : wllamaModel
+    ? await wllamaCompletion(wllamaModel)
+    : webview
+      ? await webviewCompletion(webview)
+      : undefined;
 
 function matches(expected: Expected, value: FormFillValue): boolean {
   if (typeof expected === 'object' && !Array.isArray(expected)) {
@@ -186,9 +381,9 @@ for (const item of fixture.transcripts) {
   let result: FormFillResult;
   let calls = 0;
   let itemProposed = 0;
-  if (server) {
+  if (runtime) {
     const run = await fillFormWithModel(
-      serverModel(server, answers),
+      recordingModel(runtime.complete, answers),
       binding.form,
       item.transcript,
       {
@@ -224,14 +419,14 @@ for (const item of fixture.transcripts) {
   proposed += itemValues;
   expectedTotal += itemExpected;
   modelProposed += itemProposed;
-  noQuote += server ? itemNoQuote : 0;
+  noQuote += usesModel ? itemNoQuote : 0;
   const rejections: Record<string, number> = {};
   for (const rejection of result.rejected) {
     rejections[rejection.code] = (rejections[rejection.code] ?? 0) + 1;
   }
   console.log(
     `${item.id}: right ${itemRight}, proposed ${itemValues}, expected ${itemExpected}` +
-      (server ? `, model values ${itemProposed}, calls ${calls}` : '') +
+      (usesModel ? `, model values ${itemProposed}, calls ${calls}` : '') +
       `, rejected ${JSON.stringify(rejections)}, ${itemSeconds.toFixed(1)} s`,
   );
   if (wrong.length > 0) console.log(`  wrong: ${wrong.join(' ')}`);
@@ -242,11 +437,19 @@ for (const item of fixture.transcripts) {
 const ratio = (a: number, b: number) => (b === 0 ? 'n/a' : (a / b).toFixed(2));
 console.log(
   `${label}: precision ${ratio(right, proposed)} (${right}/${proposed}), recall ${ratio(right, expectedTotal)} (${right}/${expectedTotal})` +
-    (server
+    (usesModel
       ? `, no quote ${ratio(noQuote, modelProposed)} (${noQuote}/${modelProposed} model values)`
       : '') +
     `, ${seconds.toFixed(1)} s`,
 );
+await runtime?.close();
+const seconds_per_call = results.flatMap((r) => r.answers.map((a) => a.seconds));
+if (seconds_per_call.length > 0) {
+  const sorted = seconds_per_call.toSorted((a, b) => a - b);
+  console.log(
+    `per call: median ${(sorted[Math.floor(sorted.length / 2)] ?? 0).toFixed(2)} s, max ${(sorted.at(-1) ?? 0).toFixed(2)} s over ${sorted.length} calls`,
+  );
+}
 if (reportPath) {
   writeFileSync(
     reportPath,

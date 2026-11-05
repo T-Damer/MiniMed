@@ -111,6 +111,8 @@ class LlamaInferencePlugin : Plugin() {
         val systemPrompt = call.getString("systemPrompt") ?: ""
         val userPrompt = call.getString("userPrompt") ?: ""
         val maxTokens = call.getInt("maxTokens") ?: 256
+        // A JSON Schema the answer must follow (FORMFILL1); absent means free text.
+        val responseSchema = call.getString("responseSchema") ?: ""
 
         val instance = synchronized(modelLock) { engine }
         if (instance == null) {
@@ -120,6 +122,7 @@ class LlamaInferencePlugin : Plugin() {
         try {
             val text = runBlocking {
                 if (systemPrompt.isNotBlank()) instance.setSystemPrompt(systemPrompt)
+                instance.useResponseSchema(responseSchema)
                 val builder = StringBuilder()
                 instance.sendUserPrompt(userPrompt, maxTokens).collect { token -> builder.append(token) }
                 builder.toString().trim()

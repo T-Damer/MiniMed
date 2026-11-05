@@ -20,6 +20,8 @@ export interface LlamaCompleteOptions {
   readonly systemPrompt: string;
   readonly userPrompt: string;
   readonly maxTokens: number;
+  /** JSON Schema text the answer must follow (a llama.cpp grammar on the native side). */
+  readonly responseSchema?: string;
 }
 
 export interface LlamaCompleteResult {

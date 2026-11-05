@@ -54,6 +54,8 @@ class LlamaNativeSession implements LocalModelSession {
       systemPrompt: request.systemPrompt,
       userPrompt: `${noThinking}${request.userPrompt}`,
       maxTokens: Math.max(32, Math.min(512, Math.round(request.maxTokens))),
+      // The plugin turns it into a llama.cpp grammar (FORMFILL1); absent means free text.
+      ...(request.responseSchema ? { responseSchema: JSON.stringify(request.responseSchema) } : {}),
     });
     const rawText = result.text.trim();
     return {

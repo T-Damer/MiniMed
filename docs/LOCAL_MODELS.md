@@ -27,8 +27,12 @@ instead lifts QVikhr to 15 of 23, so the adapter's pass cites lines by default.
 
 The form filler (FORMFILL1) has one too (`features/form-fill/form-fill-model.ts`, task `form-fill`):
 each request carries a JSON Schema (`responseSchema`), which the wllama runtime sends as
-`response_format` so llama.cpp constrains generation to it; the Android llama.cpp plugin ignores it
-for now. Without the schema QVikhr 1.7B kept 2 of 32 values, with it 15 of 32
+`response_format` so llama.cpp constrains generation to it, and the Android llama.cpp plugin turns it
+into a grammar too (`LlamaInference.complete({responseSchema})` → JNI `setResponseSchema`,
+`json_schema_to_grammar`, a fresh sampler per completion; 2026-11-06). Without the schema QVikhr 1.7B
+kept 2 of 32 values, with it 15 of 32. wllama needs a cross-origin isolated page for threads:
+~13 s per call isolated, ~2 min without, against 0.5 s for llama-server on the same Mac. The native
+side logs prompt sizes and token ids only, never prompt or answer text
 (`tools/benchmarks/src/run-form-fill.ts`; `CURRENT_STATE.md` «A form filled from a conversation»).
 
 It does **not** yet:

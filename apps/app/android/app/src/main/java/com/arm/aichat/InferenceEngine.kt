@@ -26,6 +26,11 @@ interface InferenceEngine {
     suspend fun setSystemPrompt(systemPrompt: String)
 
     /**
+     * The next answer follows this JSON Schema; an empty string means free text (MiniMed patch).
+     */
+    suspend fun useResponseSchema(schema: String)
+
+    /**
      * Sends a user prompt to the loaded model and returns a Flow of generated tokens.
      */
     fun sendUserPrompt(message: String, predictLength: Int = DEFAULT_PREDICT_LENGTH): Flow<String>

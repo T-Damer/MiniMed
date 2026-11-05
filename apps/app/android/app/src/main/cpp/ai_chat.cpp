@@ -3,11 +3,14 @@
 #include <iomanip>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <unistd.h>
 #include <sampling.h>
 
 #include "logging.h"
 #include "chat.h"
+#include "json-schema-to-grammar.h"
+#include <nlohmann/json.hpp>
 #include "common.h"
 #include "llama.h"
 
@@ -104,10 +107,52 @@ static llama_context *init_context(llama_model *model, const int n_ctx = DEFAULT
     return context;
 }
 
-static common_sampler *new_sampler(float temp) {
+static common_sampler *new_sampler(float temp, const std::string &grammar = "") {
     common_params_sampling sparams;
     sparams.temp = temp;
+    if (!grammar.empty()) {
+        sparams.grammar = common_grammar(COMMON_GRAMMAR_TYPE_OUTPUT_FORMAT, grammar);
+    }
     return common_sampler_init(g_model, sparams);
+}
+
+/**
+ * MiniMed patch (FORMFILL1): the next completion follows this JSON Schema. The schema becomes a
+ * llama.cpp grammar (json_schema_to_grammar, as llama-server's `json_schema` does) on a fresh
+ * sampler, so the answer always parses and enums stay inside their values. An empty schema means
+ * free text. Returns 0, 1 when the schema could not be read (free text then), 2 when no sampler
+ * could be made (the previous one is kept).
+ */
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_arm_aichat_internal_InferenceEngineImpl_setResponseSchema(
+        JNIEnv *env,
+        jobject /*unused*/,
+        jstring jschema
+) {
+    const char *schema_chars = env->GetStringUTFChars(jschema, nullptr);
+    const std::string schema(schema_chars);
+    env->ReleaseStringUTFChars(jschema, schema_chars);
+
+    int status = 0;
+    std::string grammar;
+    if (!schema.empty()) {
+        try {
+            grammar = json_schema_to_grammar(nlohmann::ordered_json::parse(schema));
+        } catch (const std::exception &error) {
+            LOGe("%s: response schema not usable: %s", __func__, error.what());
+            grammar.clear();
+            status = 1;
+        }
+    }
+    auto *next = new_sampler(DEFAULT_SAMPLER_TEMP, grammar);
+    if (next == nullptr) {
+        LOGe("%s: sampler with the response grammar could not be made", __func__);
+        return 2;
+    }
+    common_sampler_free(g_sampler);
+    g_sampler = next;
+    return status;
 }
 
 extern "C"
@@ -293,7 +338,8 @@ static std::string chat_add_and_format(const std::string &role, const std::strin
     auto formatted = common_chat_format_single(
             g_chat_templates.get(), chat_msgs, new_msg, role == ROLE_USER, /* use_jinja */ false);
     chat_msgs.push_back(new_msg);
-    LOGi("%s: Formatted and added %s message: \n%s\n", __func__, role.c_str(), formatted.c_str());
+    // MiniMed: prompts carry patient words; log their size only (shipped APKs are debug builds).
+    LOGi("%s: Formatted and added %s message (%zu bytes)", __func__, role.c_str(), formatted.size());
     return formatted;
 }
 
@@ -363,7 +409,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processSystemPrompt(
 
     // Obtain system prompt from JEnv
     const auto *system_prompt = env->GetStringUTFChars(jsystem_prompt, nullptr);
-    LOGd("%s: System prompt received: \n%s", __func__, system_prompt);
+    LOGd("%s: System prompt received (%zu bytes)", __func__, strlen(system_prompt));
     std::string formatted_system_prompt(system_prompt);
 
     // Format system prompt if applicable
@@ -377,7 +423,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processSystemPrompt(
     const auto system_tokens = common_tokenize(g_context, formatted_system_prompt,
                                                has_chat_template, has_chat_template);
     for (auto id: system_tokens) {
-        LOGv("token: `%s`\t -> `%d`", common_token_to_piece(g_context, id).c_str(), id);
+        LOGv("token -> `%d`", id);
     }
 
     // Handle context overflow
@@ -412,7 +458,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
 
     // Obtain and tokenize user prompt
     const auto *const user_prompt = env->GetStringUTFChars(juser_prompt, nullptr);
-    LOGd("%s: User prompt received: \n%s", __func__, user_prompt);
+    LOGd("%s: User prompt received (%zu bytes)", __func__, strlen(user_prompt));
     std::string formatted_user_prompt(user_prompt);
 
     // Format user prompt if applicable
@@ -425,7 +471,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
     // Decode formatted user prompts
     auto user_tokens = common_tokenize(g_context, formatted_user_prompt, has_chat_template, has_chat_template);
     for (auto id: user_tokens) {
-        LOGv("token: `%s`\t -> `%d`", common_token_to_piece(g_context, id).c_str(), id);
+        LOGv("token -> `%d`", id);
     }
 
     // Ensure user prompt doesn't exceed the context size by truncating if necessary.
@@ -531,7 +577,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_generateNextToken(
     jstring result = nullptr;
     if (is_valid_utf8(cached_token_chars.c_str())) {
         result = env->NewStringUTF(cached_token_chars.c_str());
-        LOGv("id: %d,\tcached: `%s`,\tnew: `%s`", new_token_id, cached_token_chars.c_str(), new_token_chars.c_str());
+        LOGv("id: %d,\tcached %zu bytes", new_token_id, cached_token_chars.size());
 
         assistant_ss << cached_token_chars;
         cached_token_chars.clear();

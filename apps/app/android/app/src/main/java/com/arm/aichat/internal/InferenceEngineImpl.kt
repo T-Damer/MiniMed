@@ -101,6 +101,9 @@ internal class InferenceEngineImpl private constructor(
     private external fun processUserPrompt(userPrompt: String, predictLength: Int): Int
 
     @FastNative
+    private external fun setResponseSchema(schema: String): Int
+
+    @FastNative
     private external fun generateNextToken(): String?
 
     @FastNative
@@ -214,6 +217,24 @@ internal class InferenceEngineImpl private constructor(
             }
             Log.i(TAG, "System prompt processed! Awaiting user prompt...")
             _state.value = InferenceEngine.State.ModelReady
+        }
+
+    /**
+     * MiniMed patch (FORMFILL1): the next answer follows this JSON Schema (a llama.cpp grammar);
+     * an empty string means free text. A schema the native side cannot read falls back to free text.
+     */
+    override suspend fun useResponseSchema(schema: String): Unit =
+        withContext(llamaDispatcher) {
+            check(_state.value is InferenceEngine.State.ModelReady) {
+                "Cannot set a response schema in ${_state.value.javaClass.simpleName}!"
+            }
+            when (val result = setResponseSchema(schema)) {
+                0 -> Unit
+                1 -> {
+                    Log.w(TAG, "Response schema not usable; answering as free text.")
+                }
+                else -> throw RuntimeException("Failed to set the response schema: $result")
+            }
         }
 
     /**

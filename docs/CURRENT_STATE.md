@@ -20,7 +20,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## A form filled from a conversation — 2026-11-05 (STATE FORMFILL1, branch `form-fill` on `scribe1`)
+## A form filled from a conversation — 2026-11-05 (STATE FORMFILL1; in main with SCRIBE1 since 93d77cfe9)
 
 Any form — a questionnaire, a calculator, an official blank — can take its values from a recorded
 conversation: transcript lines + the form's fields → JSON where each field is `null` (not discussed)
@@ -52,8 +52,34 @@ or a value with the transcript words it rests on and who said them. Built on SCR
   cited lines as an enum of the window's line numbers, number ranges, ISO date pattern. The app's
   adapter `apps/app/src/features/form-fill/form-fill-model.ts` sends it as `responseSchema`; the
   browser runtime passes it to wllama 3.5.1 as `response_format: json_schema` (llama.cpp grammar).
-  **The Android llama.cpp plugin does not take a schema yet** (`ai_chat.cpp` builds its sampler
-  without a grammar): there the answer is parsed as text and only the core checks hold.
+  The Android llama.cpp plugin takes it too since 2026-11-06: `LlamaInference.complete({responseSchema})`
+  → `InferenceEngine.useResponseSchema` → JNI `setResponseSchema` in `ai_chat.cpp`, which builds a
+  fresh sampler with `json_schema_to_grammar(schema)` (the same converter llama-server uses) before
+  every completion; an empty schema is free text, an unreadable one falls back to free text.
+  Measured 2026-11-06 (QVikhr 3 1.7B Q4_K_M): on the emulator (`minimed_spike_120hz`, 4 vCPU, 4 GB,
+  swapping) the same short request answered `{"diabetes": null}` under the schema in 141–145 s, and
+  without it spent 291 s on a «<think>» block and never reached JSON: the grammar holds on Android
+  and cuts the answer short. The emulator decodes prompts at under 1 token/s, so its seconds say
+  nothing about a phone; a phone run is still open. The build that ran it was the debug APK as
+  `org.med.web.formfill` (`-PlocalmedApplicationId`), beside the emulator's own 0.6.65.
+  The native side no longer writes prompts or tokens to logcat: `chat_add_and_format` logged every
+  formatted message (the transcript) at INFO, which release flags keep, and shipped APKs are debug
+  builds that also kept the per-token VERBOSE lines; they log sizes and token ids now.
+  The browser path ran once end to end (`run-form-fill.ts --wllama=<gguf>`: wllama 3.5.1 from the
+  catalog's CDN in headless Chromium, `response_format` as `BrowserWllamaSession` sends it): every
+  answer followed the schema. QVikhr 1.7B on the 7-consultation set, Mac M-series CPU:
+
+  | Runtime | Precision | Recall | No quote | Per call (median / max) |
+  | --- | --- | --- | --- | --- |
+  | llama-server (native) | 0.84 (16/19) | 0.44 (16/36) | 0.39 (12/31) | 0.5 s / 1.1 s |
+  | wllama, cross-origin isolated (threads) | 0.88 (15/17) | 0.42 (15/36) | 0.35 (9/26) | 12.7 s / 25.9 s |
+  | wllama, not isolated (one thread), 1 consultation | 1.00 (3/3) | 0.60 (3/5) | 0.00 (0/3) | 110–132 s |
+  | Word cues, same set | 0.97 (29/30) | 0.81 (29/36) | — | < 0.1 s total |
+
+  The app's dev and preview servers are cross-origin isolated (`vite.config.ts`); whether the
+  deployed page is decides between ~13 s and ~2 min per call, i.e. a 10-field form from a
+  consultation (6–12 calls) in 1–3 minutes or 10–25. The runner also drives the Android plugin
+  (`--webview=<DevTools socket> --device-model=<path>`).
 - **Fallback without a model** `packages/core/src/form-fill/cues.ts` `fillFormWithCues`: the declared
   cues, read with PSY1's rules, now shared in `packages/core/src/transcript-cues.ts` (PSY1's matcher
   uses the same module, behaviour unchanged): a statement is its clause, a negation next to the words
@@ -78,6 +104,17 @@ or a value with the transcript words it rests on and who said them. Built on SCR
   into the tool's own inputs (`toSourceValue`); on a form they are one draft edit, autosaved as usual.
   Patient words stay in memory while the sheet is open. e2e `form-fill-conversation.spec.ts` (070/у,
   390 px). Checked in the dev build on the calculator (desktop) and 070/у (375 px).
+- **From a finished recording** (2026-11-06): the «Запись сохранена» dialog has «Заполнить форму»
+  under the transcript, a list declared in `features/form-fill/conversation-forms.ts`: Психический
+  статус (its own screen with the recording), CHA₂DS₂-VASc, PHQ-9, 070/у. A picked form opens with
+  its «Беседа» sheet already on the recording's values: the transcript is handed over in memory
+  (`form-fill-handoff.ts`, taken once, dropped when the vault locks). The dialog now navigates after
+  its history layer has closed and reads the recording before it unmounts; the old «Психический
+  статус» button there threw «Stale read from <Show>» and did not navigate. e2e
+  `form-fill-recording.spec.ts` (scripted fake speech → stop → 070/у → reject one → accept the rest),
+  screenshots at 375 px light/dark in `output/formfill-screens/` (local). PHQ-9 now has word cues: a
+  choice with its own topic words takes an option only when said about that topic, in the same
+  sentence or as the reply to a question on it, so «почти каждый день» never fills an item by itself.
 - **Benchmark** `tools/benchmarks/src/run-form-fill.ts` (`bun run --filter @localmed/benchmarks
   benchmark:form-fill`, `--server=` for a model) over `form-fill-transcripts.json`: six synthetic
   consultations (three CHA₂DS₂-VASc, two 070/у, one PHQ-9; 32 expected values) with distractors (a
@@ -101,7 +138,12 @@ or a value with the transcript words it rests on and who said them. Built on SCR
   - The schema is what makes the model pass work: without it QVikhr answered one field shape for the
     whole chunk (`{"value": "72", "lines": [2, 10, 12]}`) or invented keys — 22 of 37 values had no
     field. Two fields per call instead of four: precision 0.63, recall 0.38.
-  - The cues are precise but narrow: they cannot fill PHQ-9 (frequencies per question), miss phrasings
+  - 2026-11-06, PHQ-9 cues added and a 7th consultation (a second PHQ-9 interview in other words,
+    expected values written before running it): cues **P 0.97 (29/30), R 0.81 (29/36)**; the first
+    PHQ-9 interview 5/5, the second 3/4 («Сил нет совсем, почти каждый день так» — the frequency is
+    in the reply, but «устаёте?» is not among item 4's topic words). The PHQ-9 cues were written with
+    the first interview in view, so its 5/5 is optimistic.
+  - Until 2026-11-06 the cues were precise but narrow: they could not fill PHQ-9 (frequencies per question), miss phrasings
     they do not list («сколько вам полных лет», «противопоказаний к лечению нет», a text statement
     asked as a question), and take every season said (070/у: «летом там жарко» → лето).
   - Measuring changed the checks twice. (1) PHQ-9 item 9 («мысли о смерти») came back «Почти каждый
