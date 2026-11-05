@@ -161,8 +161,8 @@ describe('adapters', () => {
     ]);
     expect(phq9.toSourceValue('phq9-01', '3')).toBe(3);
     expect(formFillChunks(phq9.form).map((chunk) => chunk.length)).toEqual([4, 4, 1, 1]);
-    // No cues: the conversation entry is offered only where the fallback can fill something.
-    expect(formFillHasCues(phq9.form)).toBe(false);
+    // The conversation entry is offered only where the fallback can fill something.
+    expect(formFillHasCues(phq9.form)).toBe(true);
     expect(formFillHasCues(cha2ds2.form)).toBe(true);
     expect(formFillHasCues(form070.form)).toBe(true);
   });
@@ -233,6 +233,33 @@ describe('cue fallback', () => {
         expect(source.replaceAll('\n', ' ')).toContain(quote.text);
       }
     }
+  });
+
+  it('fills a questionnaire item only with an answer about its topic', () => {
+    const phq9 = formFillFromAssessment(
+      toolDefinition('psychology', 'minimed.assessment.phq-9') as never,
+      formFillOverlayFor('minimed.assessment.phq-9'),
+    );
+    const lines = [
+      'Врач: Как часто за две недели было плохое настроение?',
+      'Пациент: Почти каждый день.',
+      'Врач: Со сном что?',
+      'Пациент: Засыпаю плохо, но это несколько дней было, не постоянно.',
+      'Пациент: Аппетит нормальный, ни разу не пропадал.',
+      'Врач: Мысли о смерти бывали?',
+      'Пациент: Не знаю, сложно сказать.',
+    ];
+    const result = fillFormWithCues(phq9.form, lines);
+    const values = Object.fromEntries(
+      Object.entries(result.fields).flatMap(([id, proposal]) =>
+        proposal ? [[id, proposal.value]] : [],
+      ),
+    );
+    // «не постоянно» is not «постоянно»; item 9 got no frequency, so it stays empty.
+    expect(values).toEqual({ 'phq9-02': '3', 'phq9-03': '1', 'phq9-05': '0' });
+    expect(result.fields['phq9-02']?.evidence[0]?.quote.text).toBe(
+      'Как часто за две недели было плохое настроение? Пациент: Почти каждый день',
+    );
   });
 
   it('fills 070/у text, choice and multi-choice fields', () => {

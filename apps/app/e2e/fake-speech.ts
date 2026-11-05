@@ -5,9 +5,12 @@ import type { Page } from '@playwright/test';
  * «downloads» the model in a moment and answers every stretch of audio with a numbered phrase.
  * Everything else — recorder, live transcriber, autosave, vault encryption — is the built app.
  */
-export async function installDeviceKeyAndSpeech(page: Page): Promise<void> {
+export async function installDeviceKeyAndSpeech(
+  page: Page,
+  phrases?: readonly string[],
+): Promise<void> {
   await installDeviceKey(page);
-  await installFakeSpeech(page);
+  await installFakeSpeech(page, phrases);
 }
 
 /** The Android bridge alone: a Keystore that wraps the vault key. */
@@ -46,9 +49,12 @@ export async function installDeviceKey(page: Page): Promise<void> {
   });
 }
 
-/** The speech worker stand-in alone: the browser build with a model that «downloads» in a moment. */
-export async function installFakeSpeech(page: Page): Promise<void> {
-  await page.addInitScript(() => {
+/**
+ * The speech worker stand-in alone: the browser build with a model that «downloads» in a moment.
+ * With `phrases`, the stretches of audio are heard as those lines in order, then as silence.
+ */
+export async function installFakeSpeech(page: Page, phrases?: readonly string[]): Promise<void> {
+  await page.addInitScript((script: readonly string[] | null) => {
     const RealWorker = window.Worker;
     class FakeSpeechWorker {
       onmessage: ((event: { data: unknown }) => void) | null = null;
@@ -64,10 +70,8 @@ export async function installFakeSpeech(page: Page): Promise<void> {
           reply({ type: 'ready', modelId: message.modelId }, 1_200);
         } else if (message.type === 'transcribe') {
           this.phrases += 1;
-          reply(
-            { type: 'result', requestId: message.requestId, text: `Фраза номер ${this.phrases}` },
-            50,
-          );
+          const text = script ? (script[this.phrases - 1] ?? '') : `Фраза номер ${this.phrases}`;
+          reply({ type: 'result', requestId: message.requestId, text }, 50);
         }
       }
       terminate(): void {}
@@ -79,5 +83,5 @@ export async function installFakeSpeech(page: Page): Promise<void> {
         ? (new FakeSpeechWorker() as unknown as Worker)
         : new RealWorker(url, options);
     } as unknown as typeof Worker;
-  });
+  }, phrases ?? null);
 }

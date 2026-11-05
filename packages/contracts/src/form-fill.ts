@@ -67,7 +67,8 @@ export const FormFillFieldSchema = z
     /**
      * Topic words of the field: boolean — said → true, said with a denial or answered «нет» → false;
      * number — the number said in the same clause, or in the answer to a question with these words;
-     * text — the rest of the sentence after the words («Диагноз: …»).
+     * text — the rest of the sentence after the words («Диагноз: …»); choice — the topic: an option's
+     * words count only when said about it (same sentence, or the reply to a question on it).
      */
     cues: CuePatternsSchema.optional(),
   })

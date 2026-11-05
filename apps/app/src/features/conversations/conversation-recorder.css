@@ -630,6 +630,63 @@
   gap: 0.35rem;
 }
 
-.conversation-dialog__psy-status {
+.conversation-dialog__fill {
   justify-self: start;
+}
+
+.conversation-dialog__forms {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: conversation-dialog-forms-in var(--motion-base, 180ms) var(--motion-ease-out, ease-out)
+    both;
+}
+
+.conversation-dialog__form {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.conversation-dialog__form:active {
+  transform: scale(0.96);
+}
+
+.conversation-dialog__form-glyph {
+  flex: none;
+  color: var(--theme-text-muted);
+}
+
+.conversation-dialog__form-text {
+  display: grid;
+  min-width: 0;
+  gap: 0.05rem;
+}
+
+.conversation-dialog__form-title {
+  font-weight: 650;
+}
+
+.conversation-dialog__form-subtitle {
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+}
+
+@keyframes conversation-dialog-forms-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
 }

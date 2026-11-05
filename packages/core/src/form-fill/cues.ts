@@ -25,7 +25,8 @@ import { buildFormFillResult, type FormFillCandidate } from './result';
  *
  * - boolean: the words said → true, with a denial or answered «нет» → false;
  * - choice / multi-choice: an option's words said without a denial → that option (all of them for a
- *   multi-choice); a question answered «да» counts as said;
+ *   multi-choice); a question answered «да» counts as said. A choice with its own words (a
+ *   questionnaire item) takes an option only when it is said about that topic;
  * - number: the first number in the clause of the words, or at the start of the answer to a
  *   question with the words («Сколько вам лет? — Семьдесят два»);
  * - text: the rest of the sentence after the words, as said («Диагноз: …»);
@@ -231,14 +232,10 @@ function fieldCandidates(
     case 'boolean':
       return field.cues ? yesNo(lines, folded, field, field.cues, (yes) => yes) : [];
     case 'choice':
+      if (field.cues) return topicChoiceCandidates(lines, folded, field);
+      return optionCandidates(lines, folded, field);
     case 'multi-choice':
-      return (field.options ?? []).flatMap((option) =>
-        option.cues
-          ? yesNo(lines, folded, field, option.cues, (yes) =>
-              yes ? (field.type === 'choice' ? option.value : [option.value]) : null,
-            )
-          : [],
-      );
+      return optionCandidates(lines, folded, field);
     case 'number':
       return numberCandidates(lines, folded, field);
     case 'text':
@@ -246,6 +243,86 @@ function fieldCandidates(
     case 'date':
       return [];
   }
+}
+
+function optionCandidates(
+  lines: readonly string[],
+  folded: readonly string[],
+  field: FormFillField,
+): FormFillCandidate[] {
+  return (field.options ?? []).flatMap((option) =>
+    option.cues
+      ? yesNo(lines, folded, field, option.cues, (yes) =>
+          yes ? (field.type === 'choice' ? option.value : [option.value]) : null,
+        )
+      : [],
+  );
+}
+
+interface OptionMatch {
+  readonly value: string;
+  readonly start: number;
+}
+
+/** The earliest option said between `from` and `to` without a denial next to it. */
+function firstOption(
+  text: string,
+  from: number,
+  to: number,
+  options: readonly { readonly value: string; readonly pattern: RegExp }[],
+): OptionMatch | undefined {
+  let best: OptionMatch | undefined;
+  for (const option of options) {
+    for (const match of text.slice(from, to).matchAll(option.pattern)) {
+      const span = { start: from + match.index, end: from + match.index + match[0].length };
+      if (negatedAround(text, clauseAround(text, span.start, span.end), span)) continue;
+      if (!best || span.start < best.start) best = { value: option.value, start: span.start };
+      break;
+    }
+  }
+  return best;
+}
+
+/**
+ * A choice tied to its topic, as a questionnaire item is: the field's words name the topic, an
+ * option's words the answer, and only an answer to that topic counts — in the same sentence
+ * («Сплю плохо почти каждый день») or opening the reply to a question on it («Со сном как? —
+ * Несколько дней было»). The scale's words alone («почти каждый день») never fill an item.
+ */
+function topicChoiceCandidates(
+  lines: readonly string[],
+  folded: readonly string[],
+  field: FormFillField,
+): FormFillCandidate[] {
+  const options = (field.options ?? []).flatMap((option) =>
+    option.cues ? [{ value: option.value, pattern: compileCuePatterns(option.cues) }] : [],
+  );
+  if (options.length === 0) return [];
+  const found: FormFillCandidate[] = [];
+  for (const match of matches(folded, field.cues ?? [])) {
+    const text = folded[match.line] as string;
+    const start = sentenceStart(text, match.span.start);
+    const end = sentenceEnd(text, match.span.end);
+    const ending = sentenceEnding(text, match.span.end);
+    if (ending !== 'question') {
+      const said = firstOption(text, start, end, options);
+      if (said) {
+        found.push(spanCandidate(lines, field.id, said.value, match.line, start, match.line, end));
+        continue;
+      }
+    }
+    if (ending === 'statement') continue;
+    const reply = replyAfter(folded, match.line);
+    if (!reply) continue;
+    const replyText = folded[reply.line] as string;
+    const replyEnd = sentenceEnd(replyText, reply.start);
+    const answer = firstOption(replyText, reply.start, replyEnd, options);
+    if (!answer) continue;
+    found.push(
+      spanCandidate(lines, field.id, answer.value, match.line, start, reply.line, replyEnd),
+    );
+  }
+  return found;
 }
 
 /** Candidates in transcript order, so the first value said is the one kept. */

@@ -15,9 +15,15 @@ import {
 import { openEncryptedVault } from '@/features/conversations/conversation-transcript';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { resolveRecordedDuration } from '@/features/conversations/recorded-duration';
-import { notesPatientsPath, notesPsyStatusPath } from '@/features/notes/notes-routing';
+import {
+  CONVERSATION_FORMS,
+  type ConversationFormEntry,
+} from '@/features/form-fill/conversation-forms';
+import { handOffConversation } from '@/features/form-fill/form-fill-handoff';
+import { notesPatientsPath } from '@/features/notes/notes-routing';
 import { pushRoute } from '@/state/app-back';
 import { type ConversationRecording, readConversationAudio } from '@/state/conversation-recordings';
+import { afterLayersClosed } from '@/state/history-layer';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
   isPatientVaultUnlocked,
@@ -39,9 +45,26 @@ export function ConversationAttachDialog(props: {
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal('');
   const [storedLines, setStoredLines] = createSignal<readonly string[]>([]);
+  const [pickingForm, setPickingForm] = createSignal(false);
   /** The text still in memory from this session, else what the vault holds for the recording. */
   const held = conversationSession.transcript(props.recording.id);
   const lines = (): readonly string[] => held?.lines() ?? storedLines();
+
+  /** Opens the picked form; a handed-over transcript opens its «Беседа» sheet on the values. */
+  const openForm = (form: ConversationFormEntry): void => {
+    // Read everything before closing: the dialog's props go stale once it unmounts.
+    const route = form.route(props.recording.id);
+    if (form.handOff) {
+      handOffConversation({
+        sourceId: form.id,
+        label: conversationTitle(props.recording),
+        lines: lines(),
+      });
+    }
+    props.onClose();
+    // The dialog's history entry goes first; the form then opens on the page's own entry.
+    afterLayersClosed(() => pushRoute(route));
+  };
 
   const loadVault = (): void => {
     if (!isPatientVaultUnlocked()) {
@@ -138,20 +161,39 @@ export function ConversationAttachDialog(props: {
           <Show when={held?.settling()}>
             <PulseDots label="Дочитываем запись" working />
           </Show>
-          <Show when={lines().length > 0 && !held?.settling()}>
-            <Button
-              variant="quiet"
-              class="conversation-dialog__psy-status"
-              icon={<AppGlyph name="brain" />}
-              onClick={() => {
-                props.onClose();
-                pushRoute(notesPsyStatusPath(props.recording.id));
-              }}
-            >
-              Психический статус
-            </Button>
-          </Show>
         </section>
+      </Show>
+      <Show when={lines().length > 0 && !held?.settling()}>
+        <Button
+          variant="quiet"
+          class="conversation-dialog__fill"
+          icon={<AppGlyph name="note-pencil" />}
+          aria-expanded={pickingForm()}
+          onClick={() => setPickingForm((open) => !open)}
+        >
+          Заполнить форму
+        </Button>
+        <Show when={pickingForm()}>
+          <ul class="conversation-dialog__forms" aria-label="Форма по беседе">
+            <For each={CONVERSATION_FORMS}>
+              {(form) => (
+                <li class="conversation-dialog__form-item">
+                  <button
+                    type="button"
+                    class="conversation-dialog__form"
+                    onClick={() => openForm(form)}
+                  >
+                    <AppGlyph name={form.glyph} class="conversation-dialog__form-glyph" />
+                    <span class="conversation-dialog__form-text">
+                      <span class="conversation-dialog__form-title">{form.title}</span>
+                      <span class="conversation-dialog__form-subtitle">{form.subtitle}</span>
+                    </span>
+                  </button>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
       </Show>
       <div class="conversation-dialog__attach">
         <PatientPickerRow

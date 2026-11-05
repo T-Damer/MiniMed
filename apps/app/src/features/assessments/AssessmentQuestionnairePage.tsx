@@ -1,4 +1,13 @@
-import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
 import NumberFlow from 'solid-number-flow';
 import { PAGE_HEROES } from '@/app/page-heroes';
@@ -30,6 +39,8 @@ import type {
   AssessmentResponseValue,
   IncompleteAssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { FormFillFromConversation } from '@/features/form-fill/FormFillFromConversation';
+import { assessmentConversationBinding } from '@/features/form-fill/form-fill-bindings';
 import { PatientAgeNotice } from '@/features/tools/PatientAgeNotice';
 import { pluralRu } from '@/i18n/labels';
 import {
@@ -182,6 +193,8 @@ export function AssessmentQuestionnairePage(props: {
     },
   ];
 
+  // «Заполнить по беседе» where the questionnaire declares how a conversation fills it.
+  const conversationBinding = createMemo(() => assessmentConversationBinding(props.definition));
   const saveDraft = (
     nextAnswers: Record<string, AssessmentResponseValue>,
     nextSubjectLabel = subjectLabel(),
@@ -455,6 +468,22 @@ export function AssessmentQuestionnairePage(props: {
           </label>
         </Show>
       </div>
+
+      <Show when={conversationBinding()}>
+        {(binding) => (
+          <FormFillFromConversation
+            binding={binding()}
+            onApply={(values) => {
+              const next = { ...answers() };
+              for (const [questionId, value] of values) {
+                if (typeof value === 'number') next[questionId] = value;
+              }
+              setAnswers(next);
+              saveDraft(next);
+            }}
+          />
+        )}
+      </Show>
 
       <PatientAgeNotice
         scope={props.definition.ageScope}

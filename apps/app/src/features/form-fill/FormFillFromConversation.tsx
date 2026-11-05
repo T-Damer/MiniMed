@@ -8,7 +8,7 @@ import {
   fillFormWithCues,
   formFillReviewItems,
 } from '@localmed/core/form-fill';
-import { createSignal, For, type JSX, Match, Show, Switch } from 'solid-js';
+import { createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -26,8 +26,8 @@ import {
   listConversationRecordings,
 } from '@/state/conversation-recordings';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
-
 import { FormFillReviewList } from './FormFillReviewList';
+import { takeHandedConversation } from './form-fill-handoff';
 
 import './form-fill-review.css';
 
@@ -43,6 +43,8 @@ interface Source {
  * recording (or pastes its text), the values it gives are listed with the words they rest on, and
  * only the accepted ones are put into the form. The word cues declared for the form propose the
  * values; no screen loads a local model yet. Patient words stay in memory while the sheet is open.
+ * A recording's dialog can hand its transcript over (`form-fill-handoff.ts`): the sheet then opens
+ * on the values as soon as the form is on screen.
  */
 export function FormFillFromConversation(props: {
   readonly binding: FormFillBinding;
@@ -78,6 +80,13 @@ export function FormFillFromConversation(props: {
     setReview(emptyFormFillReview(filled));
     setStep('review');
   };
+  // A recording handed over from its «Запись сохранена» dialog opens straight on the values.
+  onMount(() => {
+    const handed = takeHandedConversation(props.binding.form.id);
+    if (!handed) return;
+    fill({ label: handed.label, lines: handed.lines });
+    setOpen(true);
+  });
   const pickRecording = (recording: ConversationRecording): void => {
     setMessage('');
     void loadConversationLines(recording)
