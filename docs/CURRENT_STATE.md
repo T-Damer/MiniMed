@@ -20,6 +20,100 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## A form filled from a conversation — 2026-11-05 (STATE FORMFILL1, branch `form-fill` on `scribe1`)
+
+Any form — a questionnaire, a calculator, an official blank — can take its values from a recorded
+conversation: transcript lines + the form's fields → JSON where each field is `null` (not discussed)
+or a value with the transcript words it rests on and who said them. Built on SCRIBE1's quote check
+(branch `scribe1`, not in main) and PSY1's word cues; core, contracts, a model adapter and an unmounted
+review list, no screen yet.
+
+- **Contract** `packages/contracts/src/form-fill.ts`: a form is sections of typed fields (`text`,
+  `number`, `date`, `choice`, `multi-choice`, `boolean`; options with labels, range, `maxLength`, a
+  one-line `hint`, optional word `cues` per field and per option). The result has every field id as a
+  key: `null` or `{value, evidence: [{quote, speaker}], origin: model|cues}`. Quotes are SCRIBE1's
+  `VisitNoteQuote` (line + UTF-16 offsets + the source's wording); `speaker` is the label the line
+  starts with («Врач:», «Мама:», «Спикер 1:») and its role (clinician / patient / companion /
+  unknown), the last line's for a question + answer quote. Rejections carry only codes. The review is
+  `{decisions: {fieldId: accepted|rejected}}`; only accepted values reach the form.
+- **Checks** `packages/core/src/form-fill/result.ts` `buildFormFillResult`: every candidate, from a
+  model or from cues, must fit its field type (choices by label or value, numbers in range, ISO dates,
+  «да»/«нет» booleans) and pass SCRIBE1's quote check — `locateLines` for cited line numbers (the
+  statement is the text value, or the field label + hint + value), `locateQuote` for verbatim quotes, a
+  span equal to the transcript for the cues. Then the quote must carry the value where words can show
+  it: a number must be said in it (digits or words, `numbers.ts` reads «семьдесят два», «сто пятьдесят
+  на девяносто»); a «нет» needs a negation in the quote; a «да» cannot rest on a line that opens with
+  «нет» («Инфаркт переносили? — Нет»). Same value again adds a quote (3 at most), a multi-choice adds
+  options, a different value is dropped as `conflicting-value` (the first one said stays).
+- **Model pass** `packages/core/src/form-fill/model.ts` `fillFormWithModel(model, form, transcript)`:
+  SCRIBE1's numbered windows (1 600 characters) × the form's sections cut into chunks of 4 fields, so
+  a small model weighs a few fields at a time. Each call carries a JSON Schema built from its fields:
+  every key required and nullable, `{value, lines}` otherwise, choices as an enum of option labels,
+  cited lines as an enum of the window's line numbers, number ranges, ISO date pattern. The app's
+  adapter `apps/app/src/features/form-fill/form-fill-model.ts` sends it as `responseSchema`; the
+  browser runtime passes it to wllama 3.5.1 as `response_format: json_schema` (llama.cpp grammar).
+  **The Android llama.cpp plugin does not take a schema yet** (`ai_chat.cpp` builds its sampler
+  without a grammar): there the answer is parsed as text and only the core checks hold.
+- **Fallback without a model** `packages/core/src/form-fill/cues.ts` `fillFormWithCues`: the declared
+  cues, read with PSY1's rules, now shared in `packages/core/src/transcript-cues.ts` (PSY1's matcher
+  uses the same module, behaviour unchanged): a statement is its clause, a negation next to the words
+  is a denial, a question decides only with the «да»/«нет» (or the number) that answers it. Booleans,
+  choices, multi-choices, numbers and «Диагноз: …»-style text; dates are left to the model. A form
+  can bring its own matcher instead (PSY1 is one).
+- **Real forms** `packages/core/src/form-fill/adapters.ts`: `formFillFromCalculator` (any calculator
+  definition; a select of exactly «Да»/«Нет» becomes a boolean), `formFillFromAssessment` (a
+  questionnaire: one section per scale, one choice per question), `formFillFromOfficialForm` (an
+  official blank: fields not prefilled from the card, doctor or organization; ICD codes, signatures,
+  stamps never). Each returns `toSourceValue` to map an accepted value back into the tool's input.
+  Overlays with hints and cues (`forms/*.ts`): CHA₂DS₂-VASc, PHQ-9 (hints only: a frequency per
+  question is beyond word cues), 070/у (diagnoses, no contraindications, treatment setting, place,
+  seasons, escort).
+- **Review list** `apps/app/src/features/form-fill/FormFillReviewList.tsx`: one row per proposed value
+  — field, value, quoted words with who said them, ✕ / ✓ (a second tap takes the answer back).
+  **Not mounted on any screen**: where «Заполнить из беседы» goes (calculator, questionnaire, form
+  screens, a finished recording) is the owner's call.
+- **Benchmark** `tools/benchmarks/src/run-form-fill.ts` (`bun run --filter @localmed/benchmarks
+  benchmark:form-fill`, `--server=` for a model) over `form-fill-transcripts.json`: six synthetic
+  consultations (three CHA₂DS₂-VASc, two 070/у, one PHQ-9; 32 expected values) with distractors (a
+  father's stroke, unanswered questions, denials, «лет тридцать курю»). The cue set was written before
+  the fixtures and not tuned on them.
+
+  **Results (Mac, llama-server, 2 048-token context, temperature 0, 2026-11-05; 32 expected values):**
+
+  | Filler | Precision | Recall | No quote¹ | Time, 6 consultations |
+  | --- | --- | --- | --- | --- |
+  | Word cues (no model) | 0.95 (21/22) | 0.66 (21/32) | — | < 0.1 s |
+  | QVikhr 3 1.7B Q4_K_M, schema, line citation | 0.83 (15/18) | 0.47 (15/32) | 0.25 (6/24) | 8 s |
+  | QVikhr 1.7B, schema, verbatim quotes | 1.00 (5/5) | 0.16 (5/32) | 0.55 (6/11) | 7 s |
+  | QVikhr 1.7B, no schema | 1.00 (2/2) | 0.06 (2/32) | 0.43 (16/37) | 5 s |
+  | Qwen3 0.6B Q8_0 (`/no_think`), schema | 0.71 (5/7) | 0.16 (5/32) | 0.70 (16/23) | 6 s |
+  | Qwen3 0.6B, no schema | — (0/0) | 0.00 | 0.79 (34/43) | 5 s |
+
+  ¹ Non-null values the model proposed that were dropped because their citation failed the quote
+  check or the quote did not carry the value. The cue fallback quotes the transcript itself.
+
+  - The schema is what makes the model pass work: without it QVikhr answered one field shape for the
+    whole chunk (`{"value": "72", "lines": [2, 10, 12]}`) or invented keys — 22 of 37 values had no
+    field. Two fields per call instead of four: precision 0.63, recall 0.38.
+  - The cues are precise but narrow: they cannot fill PHQ-9 (frequencies per question), miss phrasings
+    they do not list («сколько вам полных лет», «противопоказаний к лечению нет», a text statement
+    asked as a question), and take every season said (070/у: «летом там жарко» → лето).
+  - Measuring changed the checks twice. (1) PHQ-9 item 9 («мысли о смерти») came back «Почти каждый
+    день» on the answer to item 1: the option wording matched the line. Option labels that several
+    fields share no longer count as the field's subject; a single cited line right after a «?» line is
+    read with that question. (2) A value on a doctor's question with no answer in the quote is dropped.
+    QVikhr's remaining errors are filing (070/у: the disability under «сопутствующие», «санаторий» as
+    the preferred place). Hint words count as the field's subject in the line check, so hints name the
+    topic and give no instructions (the PHQ-9 hint «если частоту не назвали» tied item 9 to «Как
+    часто…»).
+  - Not measured: phones (QVikhr is ~2–4 s per call on the Mac; a consultation × a 10-field form is
+    6–12 calls), wllama's schema path in the browser, real consultations.
+
+- **Not done.** A screen entry point and the model download offered there; the Android plugin taking a
+  grammar (`common_sampler` with `json_schema_to_grammar`); real consultations; field-specific value
+  checks for dates and free text beyond the shared-word line check; telling the patient's history from
+  a relative's (the quote check cannot; the doctor reads the quote).
+
 ## «Психический статус», filled from a conversation — 2026-11-05 (STATE PSY1)
 
 The phrase catalog comes from a friend's offline «Конструктор психиатрического статуса» 1.0.0, written

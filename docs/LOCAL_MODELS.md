@@ -25,6 +25,12 @@ core locates every quote, and no screen runs it yet. On three synthetic consulta
 `CURRENT_STATE.md` SCRIBE1): small models paraphrase their quotes. Citing numbered source lines
 instead lifts QVikhr to 15 of 23, so the adapter's pass cites lines by default.
 
+The form filler (FORMFILL1) has one too (`features/form-fill/form-fill-model.ts`, task `form-fill`):
+each request carries a JSON Schema (`responseSchema`), which the wllama runtime sends as
+`response_format` so llama.cpp constrains generation to it; the Android llama.cpp plugin ignores it
+for now. Without the schema QVikhr 1.7B kept 2 of 32 values, with it 15 of 32
+(`tools/benchmarks/src/run-form-fill.ts`; `CURRENT_STATE.md` «A form filled from a conversation»).
+
 It does **not** yet:
 
 - use generated text in medical search or answers;
