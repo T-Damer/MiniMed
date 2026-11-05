@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { chartSeries, DIARY_CHARTS } from '@/features/diary/dashboard/diary-charts';
 import { exportRows } from '@/features/diary/dashboard/diary-insights';
@@ -50,7 +50,14 @@ function use(next: Partial<CareSectionDraft> = {}): CareSectionDraft {
 
 function issue(sections: readonly CareSectionDraft[], previous?: DiaryInvitation): DiaryInvitation {
   const draft: CareDraft = { ...emptyCareDraft(), sections };
-  return careInvitation({ id: 'carediary02', draft, doctor: '', note: '', previous });
+  // careInvitation stamps issuedAt with the clock; pin it before NOW, or the plan is "from the future".
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(2026, 10, 1, 9, 0));
+  try {
+    return careInvitation({ id: 'carediary02', draft, doctor: '', note: '', previous });
+  } finally {
+    vi.useRealTimers();
+  }
 }
 
 const base = emptyCareDraft().sections.filter((section) => section.id === 'am');
