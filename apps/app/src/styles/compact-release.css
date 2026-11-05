@@ -42,7 +42,8 @@
 /* Under a hero the page is one flat sheet (its rounded lip over the band is the same colour). */
 .page-surface:has(.page--hero) {
   --page-hero-sheet:
-    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%), var(--folder-light);
+    var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
+    var(--folder-light);
   background: var(--page-hero-sheet);
 }
 
@@ -72,7 +73,8 @@
 .search-home {
   /* The hero band behind the top row and the field's upper half; the page is a flat sheet. */
   --page-hero-sheet:
-    linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%), var(--folder-light);
+    var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%),
+    var(--folder-light);
   position: relative;
   min-height: calc(100dvh - 3.25rem - var(--safe-bottom));
   margin-top: calc(-1 * var(--safe-top));
@@ -865,7 +867,8 @@
   align-content: start;
   gap: 0.625rem;
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%), var(--route-desk-gradient);
+    var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%),
+    var(--route-desk-gradient);
 }
 
 .settings-intro {
@@ -2457,7 +2460,8 @@ html.native-print-active #root {
 .knowledge-base-page,
 .patient-notes-view {
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%), var(--route-desk-gradient);
+    var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 5%), transparent 16%),
+    var(--route-desk-gradient);
 }
 
 /* Flat sticker cards open into a focused timeline instead of expanding the whole grid. */

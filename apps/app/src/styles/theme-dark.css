@@ -66,6 +66,8 @@
       0 1px 0 rgb(255 255 255 / 5%) inset, 0 0.25rem 0.75rem rgb(0 0 0 / 20%),
       0 1.375rem 2.875rem rgb(0 0 0 / 30%);
     --shadow-folder: 0 0.25rem 0.75rem rgb(0 0 0 / 24%), 0 1.625rem 4.0625rem rgb(0 0 0 / 38%);
+    /* Background grain in the dark: lighter flecks over darker fibres (theme.css, BG1). */
+    --theme-grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.000 0 0 0 0 0.000 0 0 0 0 0.000 0.55 0 0 0 -0.26' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1.000 0 0 0 0 0.925 0 0 0 0 0.804 0 0.4 0 0 -0.205'/%3E%3CfeMerge%3E%3CfeMergeNode in='d'/%3E%3CfeMergeNode/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     --page-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.27' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='luminanceToAlpha'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
     --masked-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='luminanceToAlpha'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.62'/%3E%3C/svg%3E");
     --herbarium-sheet-filter: brightness(0.8) saturate(0.92);
@@ -125,6 +127,7 @@
 
   body {
     background:
+      var(--theme-grain-layer),
       linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,
       linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,
       radial-gradient(circle at 14% -10%, #363933 0, transparent 38rem),
@@ -202,7 +205,8 @@
   .model-status-view {
     color: var(--ink);
     background:
-      linear-gradient(90deg, rgb(255 255 255 / 3%), transparent 17%), var(--route-desk-gradient);
+      var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 3%), transparent 17%),
+      var(--route-desk-gradient);
   }
 
   :where(.search-home, .page-surface, .model-status-view, .overlay-dialog, .reader-card)

@@ -6,7 +6,8 @@
  */
 .diary-body {
   margin: 0;
-  background: var(--theme-surface);
+  /* The paper ground carries the theme's grain (theme.css, BG1); the cards on it stay flat. */
+  background: var(--theme-grain-layer), var(--theme-surface);
 }
 
 /* The main app's floating tab bar is over the page (a care diary): pages leave room for it. */
@@ -24,7 +25,7 @@
   /* For the tab screens' hero band (components/PageHero.css): it reaches the edges and the top. */
   --page-hero-bleed-top: calc(0.75rem + env(safe-area-inset-top, 0px));
   --page-hero-bleed-x: max(1rem, env(safe-area-inset-left, 0px));
-  --page-hero-sheet: var(--theme-surface);
+  --page-hero-sheet: var(--theme-grain-layer), var(--theme-surface);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -38,7 +39,7 @@
     var(--diary-pad-bottom) var(--page-hero-bleed-x);
   gap: 1rem;
   color: var(--theme-text);
-  background: var(--theme-surface);
+  background: var(--theme-grain-layer), var(--theme-surface);
   /* The main app's type (theme.css :root), so the patient mode reads as the same app. */
   font-size: 1.0625rem;
   line-height: 1.45;
