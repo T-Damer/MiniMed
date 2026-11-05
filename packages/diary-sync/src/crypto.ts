@@ -413,9 +413,54 @@ async function pairingKey(secret: string): Promise<CryptoKey> {
   return subtle.importKey('raw', bits, 'AES-GCM', false, ['encrypt', 'decrypt']);
 }
 
-/** A one-time pairing secret for the QR code (the server keeps only its hash). */
+/** A one-time pairing secret for the QR code; it never leaves the doctor's and the phone's apps. */
 export function newPairingSecret(): string {
   return toBase64Url(randomBytes(24));
+}
+
+const PAIRING_PROOF_INFO = encoder.encode('minimed-diary-pairing-proof-v1');
+
+/**
+ * What the phone shows the server instead of the pairing secret (SEC-AUDIT1): an HKDF output with
+ * its own label, so the server can check it against `sha256(proof)` but cannot derive the key that
+ * seals the data keys. Before, the phone sent the secret itself and the server could open them.
+ */
+export async function pairingProof(secret: string): Promise<string> {
+  const master = await subtle.importKey('raw', fromBase64Url(secret), 'HKDF', false, [
+    'deriveBits',
+  ]);
+  return toBase64Url(await hkdfBytes(master, new Uint8Array(32), PAIRING_PROOF_INFO));
+}
+
+/** The hash the server stores for a pairing: of the proof, never of the secret. */
+export async function pairingProofHash(secret: string): Promise<string> {
+  return sha256(await pairingProof(secret));
+}
+
+/**
+ * The canonical form of a sign-up or access code: capitals and digits only (`K7MP2QXR9HTN`), so a
+ * code typed in any case and with any separators gives the same proof.
+ */
+export function canonicalInviteCode(typed: string): string {
+  return typed
+    .trim()
+    .toUpperCase()
+    .replaceAll(/[^A-Z0-9]/gu, '');
+}
+
+/**
+ * What a client sends instead of an invite or access code (SEC-AUDIT1). An access code is also the
+ * password of its account, so the server must never see it: it gets this digest and stores only
+ * `sha256(proof)` (`inviteStorageKey`). Codes issued before kept working: the server derives the
+ * same proof from what it stored.
+ */
+export async function inviteProof(code: string): Promise<string> {
+  return sha256(`minimed-invite-v1:${canonicalInviteCode(code)}`);
+}
+
+/** How the server keeps an invite: the hash of its proof, marked so old plain codes stand out. */
+export async function inviteStorageKey(proof: string): Promise<string> {
+  return `h1:${await sha256(proof)}`;
 }
 
 /** Epoch → raw data key, sealed with the pairing secret; handed to the device once. */

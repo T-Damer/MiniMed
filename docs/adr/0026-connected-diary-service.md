@@ -40,6 +40,15 @@ medical secrecy; the developer hosting the server should not be able to read it.
    As built: the QR carries only the patient id and the secret (84-character link); the epoch keys
    travel sealed with a key derived from the secret, uploaded by the doctor with the pairing and
    deleted by the server when the phone pairs.
+   Since 2026-11-05 (SEC-AUDIT1) the phone shows the server only a proof of the secret (HKDF with
+   its own label) and the server keeps `sha256(proof)`; before, the phone sent the secret itself,
+   which let the server open the sealed epoch keys. Phones from before still send the secret and
+   the server derives the proof, so their codes keep working.
+   - Sign-in by **access code**: the code is the account's password (e-mail = a digest of it). The
+     server receives and keeps only `sha256` of the code's proof (`inviteProof`), never the code
+     (SEC-AUDIT1; plain codes stored before are re-keyed on the next registration). The operator who
+     mints a code still knows it, and the e-mail digest lets someone with the database try all
+     ~2^59 codes offline: code accounts are end-to-end against the server, not against those two.
    - Every member (curator or device) receives each epoch key **wrapped to its public key**. That is how a doctor on any
      device decrypts: login → unlock the private keys → unwrap the patient keys → decrypt records → build charts locally.
 4. **Records.** Append-only envelopes `{patient, id, rev, epoch, author, body (iv.ciphertext), sig}` with a server

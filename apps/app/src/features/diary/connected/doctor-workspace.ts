@@ -18,10 +18,10 @@ import { DiaryPresenceEventSchema } from '@localmed/contracts';
 import {
   newDataKey,
   newPairingSecret,
+  pairingProofHash,
   publicIdentity,
   randomId,
   sealPairingKeys,
-  sha256,
   unwrapDataKey,
   wrapDataKey,
 } from '@localmed/diary-sync';
@@ -622,7 +622,8 @@ export class DoctorDiaries {
     const made = await diaryPatients.pairing(
       this.api,
       patientId,
-      await sha256(secret),
+      // The server keeps the hash of the proof; the secret seals the keys and stays in the link.
+      await pairingProofHash(secret),
       await sealPairingKeys(keyring.keys, secret),
       kind,
     );

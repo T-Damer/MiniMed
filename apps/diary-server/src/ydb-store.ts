@@ -17,6 +17,7 @@ import {
   type DiaryStore,
   type DoctorRow,
   type DoseCheckRow,
+  InviteSpent,
   type KeyRow,
   type MemberRow,
   type NewRecord,
@@ -141,13 +142,14 @@ export class YdbStore implements DiaryStore {
     await this.sql`UPSERT INTO settings (key, value) VALUES (${key}, ${value})`;
   }
 
-  async attempt(key: string, windowMs: number, limit: number): Promise<boolean> {
+  async attempt(key: string, windowMs: number, limit: number, record = true): Promise<boolean> {
     const since = new Date(Date.now() - windowMs);
     return this.sql.begin(async (tx) => {
       const row = await first<{ n: number }>(
         tx`SELECT COUNT(*) AS n FROM attempts WHERE key = ${key} AND at > CAST(${since.toISOString()} AS Timestamp)`,
       );
       if ((row?.n ?? 0) >= limit) return false;
+      if (!record) return true;
       await tx`INSERT INTO attempts (key, at, nonce) VALUES (${key}, CurrentUtcTimestamp(), ${crypto.randomUUID()})`;
       return true;
     });
@@ -173,9 +175,17 @@ export class YdbStore implements DiaryStore {
           VALUES (${row.id}, ${row.email}, ${row.name}, ${row.auth_hash}, ${row.kdf_salt},
             ${BigInt(row.kdf_iterations)}, ${row.identity_wrap}, ${row.identity_sign}, ${row.identity_blob},
             ${row.recovery_hash}, ${row.recovery_blob}, ${row.created_at})`;
-        if (inviteCode) await tx`UPDATE invites SET used_by = ${row.id} WHERE code = ${inviteCode}`;
+        if (inviteCode) {
+          // Spent only if still unused: of two registrations racing for one code, one wins.
+          const invite = await first<{ used_by: string | null }>(
+            tx`SELECT used_by FROM invites WHERE code = ${inviteCode}`,
+          );
+          if (!invite || invite.used_by) throw new InviteSpent();
+          await tx`UPDATE invites SET used_by = ${row.id} WHERE code = ${inviteCode}`;
+        }
       });
     } catch (cause) {
+      if (cause instanceof InviteSpent) throw cause;
       if (isKeyConflict(cause)) throw new StoreConflict('e-mail');
       throw cause;
     }
@@ -201,6 +211,25 @@ export class YdbStore implements DiaryStore {
 
   async createInvite(code: string, at: string): Promise<void> {
     await this.sql`INSERT INTO invites (code, created_at) VALUES (${code}, ${at})`;
+  }
+
+  async plainInvites(): Promise<string[]> {
+    return (
+      await rows<{ code: string }>(
+        this.sql`SELECT code FROM invites WHERE NOT StartsWith(code, 'h1:')`,
+      )
+    ).map((row) => row.code);
+  }
+
+  async rekeyInvite(code: string, key: string): Promise<void> {
+    await this.sql.begin(async (tx) => {
+      const row = await first<{ created_at: string; used_by: string | null }>(
+        tx`SELECT created_at, used_by FROM invites WHERE code = ${code}`,
+      );
+      if (!row) return;
+      await tx`UPSERT INTO invites (code, created_at, used_by) VALUES (${key}, ${row.created_at}, ${maybe(row.used_by)})`;
+      await tx`DELETE FROM invites WHERE code = ${code}`;
+    });
   }
 
   async createSession(tokenHash: string, doctorId: string, expiresAt: string): Promise<void> {
@@ -448,6 +477,8 @@ export class YdbStore implements DiaryStore {
     await this.sql.begin(async (tx) => {
       await tx`DELETE FROM members WHERE patient_id = ${patientId} AND doctor_id = ${doctorId}`;
       await tx`DELETE FROM patient_keys WHERE patient_id = ${patientId} AND recipient = ${`d:${doctorId}`}`;
+      // Pairings carry no issuer: unused codes of the diary go with any removed curator (SEC-AUDIT1).
+      await tx`DELETE FROM pairings ON SELECT secret_hash FROM pairings VIEW by_patient WHERE patient_id = ${patientId}`;
     });
   }
 

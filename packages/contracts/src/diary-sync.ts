@@ -36,7 +36,10 @@ export const DiaryRegisterRequestSchema = z.object({
   identity: DiaryPublicIdentitySchema,
   identityBlob: sealed.max(8000),
   recovery: z.object({ authKey: base64Url.max(100), identityBlob: sealed.max(8000) }),
+  /** The sign-up code as typed: only clients before SEC-AUDIT1 send it. */
   invite: z.string().trim().max(64).optional(),
+  /** `inviteProof(code)`: the code itself never reaches the server (SEC-AUDIT1). */
+  inviteProof: base64Url.max(100).optional(),
 });
 export type DiaryRegisterRequest = z.infer<typeof DiaryRegisterRequestSchema>;
 
@@ -165,11 +168,18 @@ export const DiaryPairingCreateSchema = z.object({
   kind: DiaryDeviceKindSchema.optional(),
 });
 
-export const DiaryPairRequestSchema = z.object({
-  patientId: DiaryIdSchema,
-  secret: base64Url.max(100),
-  identity: DiaryPublicIdentitySchema,
-});
+export const DiaryPairRequestSchema = z
+  .object({
+    patientId: DiaryIdSchema,
+    /** `pairingProof(secret)` (SEC-AUDIT1); the secret seals the keys and stays on the phone. */
+    proof: base64Url.max(100).optional(),
+    /** The secret itself: only phones before SEC-AUDIT1 send it. */
+    secret: base64Url.max(100).optional(),
+    identity: DiaryPublicIdentitySchema,
+  })
+  .refine((input) => (input.proof === undefined) !== (input.secret === undefined), {
+    message: 'proof or secret',
+  });
 export const DiaryPairResponseSchema = z.object({
   deviceId: DiaryIdSchema,
   token: base64Url,
@@ -261,12 +271,29 @@ export const DiaryAlertSchema = z.object({
 });
 export type DiaryAlert = z.infer<typeof DiaryAlertSchema>;
 
+/**
+ * A push service address the server may POST to (SEC-AUDIT1): https on the default port, a public
+ * host name, no credentials. Push services (FCM, Mozilla, Apple, Microsoft, browser vendors) all
+ * look like that; loopback, private and metadata addresses, IP literals and local names do not, so
+ * a subscription cannot point the server at its own network.
+ */
+export function isPushEndpoint(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) return false;
+  if (url.port !== '' && url.port !== '443') return false;
+  const host = url.hostname.toLowerCase().replace(/\.$/u, '');
+  if (!host.includes('.') || host.startsWith('[')) return false;
+  if (/^[\d.]+$/u.test(host) || /^0x/u.test(host)) return false;
+  return !/(^|\.)(localhost|local|internal|intranet|lan|home\.arpa|test)$/u.test(host);
+}
+
 export const DiaryPushSubscriptionSchema = z.object({
-  endpoint: z
-    .string()
-    .url()
-    .max(1000)
-    .refine((url) => url.startsWith('https://'), 'https only'),
+  endpoint: z.string().url().max(1000).refine(isPushEndpoint, 'https push service only'),
   /** The browser's payload keys (`PushSubscription.toJSON().keys`); without them pushes are empty. */
   keys: z.object({ p256dh: base64Url.max(120), auth: base64Url.max(40) }).optional(),
 });

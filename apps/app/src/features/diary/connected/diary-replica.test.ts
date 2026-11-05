@@ -170,4 +170,27 @@ describe('connected diary replica', () => {
     expect(replica.invitation).toBeUndefined();
     expect(replica.rejected).toBe(2);
   });
+
+  it('does not let a refused revision hide the doctors’ later plans (SEC-AUDIT1)', () => {
+    const poisoned = applyRevisions(EMPTY_REPLICA, [
+      {
+        id: 'plan',
+        rev: 1_000_000,
+        author: 'p:device0000001',
+        at: 't',
+        payload: { kind: 'plan', invitation },
+      },
+    ]);
+    expect(poisoned.rejected).toBe(1);
+    const fixed = applyRevisions(poisoned, [
+      {
+        id: 'plan',
+        rev: 2,
+        author: 'd:doctor000001',
+        at: 't',
+        payload: { kind: 'plan', invitation },
+      },
+    ]);
+    expect(fixed.invitation).toBeDefined();
+  });
 });

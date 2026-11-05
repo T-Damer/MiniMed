@@ -32,6 +32,9 @@ import {
 import {
   accessCodeEmail,
   DEMO_ACCESS_CODE,
+  inviteProof,
+  inviteStorageKey,
+  pairingProof,
   randomBytes,
   randomId,
   sha256,
@@ -39,7 +42,6 @@ import {
 } from '@localmed/diary-sync';
 import type { z } from 'zod';
 
-import { inviteCandidates } from './invites';
 import type { Passwords } from './passwords';
 import { pushToOwners, type Vapid } from './push';
 import {
@@ -48,7 +50,14 @@ import {
   sendDueReminders,
   sendMissedDoses,
 } from './reminders';
-import { type DiaryStore, type DoctorRow, now, type PatientRow, StoreConflict } from './store';
+import {
+  type DiaryStore,
+  type DoctorRow,
+  InviteSpent,
+  now,
+  type PatientRow,
+  StoreConflict,
+} from './store';
 
 /** `server`: one long-running process with a live stream; `serverless`: stateless instances, clients poll. */
 export type DiaryMode = 'server' | 'serverless';
@@ -81,6 +90,20 @@ const ATTEMPT_WINDOW_MS = 60_000;
 const ATTEMPT_LIMIT = 12;
 /** Sign-ins a minute to the shared demo account: a lecture hall scanning the QR code at once. */
 const DEMO_SIGNIN_LIMIT = 600;
+/**
+ * Failed sign-ins (or recovery checks) a minute for one account from all addresses together. Every
+ * attempt counts per account and address (ATTEMPT_LIMIT), only failures count here: a stranger can
+ * no longer lock the owner out from one address, and guessing stays slow from many (SEC-AUDIT1).
+ */
+const ACCOUNT_FAILURE_LIMIT = 60;
+/** Password checks a minute from one address over all accounts: argon2id is 64 MiB each. */
+const ADDRESS_CHECK_LIMIT = 60;
+/** Push subscriptions per doctor or phone; the oldest-listed one makes room for a new one. */
+const MAX_PUSH_SUBSCRIPTIONS = 10;
+/** Urgent alerts a minute from one phone. */
+const ALERT_LIMIT = 6;
+/** Record ids only a doctor writes (the replica refuses them from phones too). */
+const DOCTOR_RECORDS = new Set(['plan', 'profile']);
 
 class HttpError extends Error {
   constructor(
@@ -108,6 +131,15 @@ async function body<T extends z.ZodType>(request: Request, schema: T): Promise<z
   const parsed = schema.safeParse(value);
   if (!parsed.success) throw new HttpError(400, 'Некорректный запрос.');
   return parsed.data;
+}
+
+/**
+ * The caller's address for rate limits: the last `X-Forwarded-For` entry, which the hop in front
+ * appends (Yandex API Gateway, Caddy) and a client cannot forge. `-` without a proxy (tests).
+ */
+function clientAddress(request: Request): string {
+  const last = request.headers.get('X-Forwarded-For')?.split(',').at(-1)?.trim();
+  return last && last.length <= 64 ? last : '-';
 }
 
 function bearer(request: Request, url: URL): string | undefined {
@@ -202,6 +234,60 @@ export function createApp(
   /** The shared demo account is public: its sign-ins get a hall-sized cap, not a guessing one. */
   const signinLimit = async (email: string): Promise<number> =>
     email === (await demoEmail) ? DEMO_SIGNIN_LIMIT : ATTEMPT_LIMIT;
+  /**
+   * The demo account's secret is public, so after one argon2id check its digest is enough: a hall
+   * of sign-ins (or a flood of wrong ones) costs a hash each, not 64 MiB each. Keyed by the stored
+   * hash, so a changed password is checked again.
+   */
+  const demoChecked = new Map<string, string>();
+
+  /**
+   * One sign-in or recovery check (SEC-AUDIT1): limits per account and address, then per address,
+   * then failures per account; the row when `secret` matches, otherwise undefined.
+   */
+  const checkSecret = async (
+    scope: 'login' | 'recover',
+    request: Request,
+    email: string,
+    secret: string,
+    hashOf: (row: DoctorRow) => string,
+  ): Promise<DoctorRow | undefined> => {
+    const demo = email === (await demoEmail);
+    const address = clientAddress(request);
+    await limit(`${scope}:${email}:${address}`, demo ? DEMO_SIGNIN_LIMIT : ATTEMPT_LIMIT);
+    const failures = `${scope}-fail:${email}`;
+    if (!demo) {
+      await limit(`check:${address}`, ADDRESS_CHECK_LIMIT);
+      if (!(await store.attempt(failures, ATTEMPT_WINDOW_MS, ACCOUNT_FAILURE_LIMIT, false))) {
+        throw new HttpError(429, 'Слишком много попыток. Подождите минуту.');
+      }
+    }
+    const row = await doctorByEmail(email);
+    let ok = false;
+    if (row) {
+      const stored = hashOf(row);
+      const digest = demo ? await sha256(secret) : '';
+      const known = demo ? demoChecked.get(stored) : undefined;
+      if (known !== undefined) ok = known === digest;
+      else {
+        ok = await passwords.verify(secret, stored);
+        if (ok && demo) demoChecked.set(stored, digest);
+      }
+    }
+    if (!ok && !demo) await store.attempt(failures, ATTEMPT_WINDOW_MS, Number.MAX_SAFE_INTEGER);
+    return ok ? row : undefined;
+  };
+
+  /**
+   * Invites made before SEC-AUDIT1 (or put in by hand) are plain codes, and an access code is also
+   * its account's password: each registration re-keys them to the hash of their proof first, so
+   * the database keeps no code, used ones included. The invites table is small.
+   */
+  const keyInvites = async (): Promise<void> => {
+    for (const code of await store.plainInvites()) {
+      await store.rekeyInvite(code, await inviteStorageKey(await inviteProof(code)));
+    }
+  };
 
   // --- presence --------------------------------------------------------------------------------
   // A phone is seen on every authenticated request (the diary syncs on open, when visible/online
@@ -407,7 +493,7 @@ export function createApp(
 
   route('POST', '/api/auth/prelogin', async (request) => {
     const { email } = await body(request, DiaryPreloginRequestSchema);
-    await limit(`prelogin:${email}`, await signinLimit(email));
+    await limit(`prelogin:${email}:${clientAddress(request)}`, await signinLimit(email));
     const row = await doctorByEmail(email);
     // Unknown e-mail: a stable decoy salt, so the answer does not reveal who has an account.
     const salt = row?.kdf_salt ?? (await sha256(`${config.secret}|${email}`)).slice(0, 22);
@@ -417,14 +503,18 @@ export function createApp(
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
     await limit(`register:${input.email}`);
+    await limit(`register-from:${clientAddress(request)}`);
     // Open sign-up: a cap on new accounts for the whole service, not only per address.
     if (config.signup === 'open') await limit('register');
     let inviteCode: string | undefined;
     if (config.signup === 'invite') {
+      // New clients send only the proof; older ones the code, which is turned into the same proof.
+      const proof =
+        input.inviteProof ?? (input.invite ? await inviteProof(input.invite) : undefined);
       let invite: { code: string; used_by: string | null } | undefined;
-      for (const code of input.invite ? inviteCandidates(input.invite) : []) {
-        invite = await store.invite(code);
-        if (invite) break;
+      if (proof) {
+        await keyInvites();
+        invite = await store.invite(await inviteStorageKey(proof));
       }
       if (!invite || invite.used_by) {
         throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
@@ -450,6 +540,8 @@ export function createApp(
     try {
       await store.createDoctor(row, inviteCode);
     } catch (cause) {
+      if (cause instanceof InviteSpent)
+        throw new HttpError(403, 'Код приглашения не подошёл или уже использован.');
       if (cause instanceof StoreConflict)
         throw new HttpError(409, 'Этот адрес уже зарегистрирован.');
       throw cause;
@@ -463,11 +555,8 @@ export function createApp(
 
   route('POST', '/api/auth/login', async (request) => {
     const { email, authKey } = await body(request, DiaryLoginRequestSchema);
-    await limit(`login:${email}`, await signinLimit(email));
-    const row = await doctorByEmail(email);
-    if (!row || !(await passwords.verify(authKey, row.auth_hash))) {
-      throw new HttpError(401, 'Неверный адрес или пароль.');
-    }
+    const row = await checkSecret('login', request, email, authKey, (found) => found.auth_hash);
+    if (!row) throw new HttpError(401, 'Неверный адрес или пароль.');
     return json({
       token: await newSession(row.id),
       doctor: profile(row),
@@ -489,21 +578,27 @@ export function createApp(
 
   route('POST', '/api/auth/recover/fetch', async (request) => {
     const input = await body(request, DiaryRecoverFetchRequestSchema);
-    await limit(`recover:${input.email}`);
-    const row = await doctorByEmail(input.email);
-    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
-      throw new HttpError(401, 'Неверный адрес или код восстановления.');
-    }
+    const row = await checkSecret(
+      'recover',
+      request,
+      input.email,
+      input.recoveryAuthKey,
+      (found) => found.recovery_hash,
+    );
+    if (!row) throw new HttpError(401, 'Неверный адрес или код восстановления.');
     return json({ identityBlob: row.recovery_blob });
   });
 
   route('POST', '/api/auth/recover/reset', async (request) => {
     const input = await body(request, DiaryRecoverResetRequestSchema);
-    await limit(`recover:${input.email}`);
-    const row = await doctorByEmail(input.email);
-    if (!row || !(await passwords.verify(input.recoveryAuthKey, row.recovery_hash))) {
-      throw new HttpError(401, 'Неверный адрес или код восстановления.');
-    }
+    const row = await checkSecret(
+      'recover',
+      request,
+      input.email,
+      input.recoveryAuthKey,
+      (found) => found.recovery_hash,
+    );
+    if (!row) throw new HttpError(401, 'Неверный адрес или код восстановления.');
     await store.resetDoctorAuth(
       row.id,
       await passwords.hash(input.authKey),
@@ -603,10 +698,13 @@ export function createApp(
 
   route('POST', '/api/patients/:id/pairings', async (request, url, params) => {
     const id = params['id'] as string;
-    await requireRole(await caller(request, url), id, ['owner', 'editor']);
+    const who = await caller(request, url);
+    await requireRole(who, id, ['owner', 'editor']);
     const input = await body(request, DiaryPairingCreateSchema);
     const expires = new Date(Date.now() + PAIRING_HOURS * 3_600_000).toISOString();
     const kind = input.kind ?? 'patient';
+    // The patient's own phone can withdraw consent and wipe the diary: only the owner connects it.
+    if (kind === 'patient') await requireRole(who, id, ['owner']);
     await store.createPairing(input.secretHash, id, input.keys, expires, kind);
     // The kind comes back so a client can tell a server that knows carers from an older one.
     return json({ expiresAt: expires, kind }, 201);
@@ -614,9 +712,24 @@ export function createApp(
 
   route('POST', '/api/pair', async (request) => {
     const input = await body(request, DiaryPairRequestSchema);
-    await limit(`pair:${input.patientId}`);
-    const hash = await sha256(input.secret);
-    const pairing = await store.pairing(hash);
+    await limit(`pair:${input.patientId}:${clientAddress(request)}`);
+    // The phone proves it holds the secret without sending it (SEC-AUDIT1): the secret also seals
+    // the data keys. Phones before that send the secret; its proof is derived here. Codes made by
+    // doctors' apps before SEC-AUDIT1 were stored under sha256(secret).
+    let hash: string;
+    let pairing: Awaited<ReturnType<typeof store.pairing>>;
+    if (input.proof) {
+      hash = await sha256(input.proof);
+      pairing = await store.pairing(hash);
+    } else {
+      const secret = input.secret as string;
+      hash = await sha256(await pairingProof(secret));
+      pairing = await store.pairing(hash);
+      if (!pairing) {
+        hash = await sha256(secret);
+        pairing = await store.pairing(hash);
+      }
+    }
     if (!pairing || pairing.patient_id !== input.patientId || pairing.expires_at < now()) {
       throw new HttpError(404, 'Код недействителен: попросите врача показать новый.');
     }
@@ -685,6 +798,15 @@ export function createApp(
     const input = await body(request, DiaryRecordsPushSchema);
     for (const record of input.records) {
       if (record.author !== author) throw new HttpError(403, 'Автор записи не совпадает.');
+      // Who may write which record (SEC-AUDIT1): the plan and profile are doctors', consent is the
+      // patient's own phone's, a carer names only itself. A phone that wrote them could block the
+      // doctors' edits (a huge revision) or accept the joining documents for the patient.
+      if (DOCTOR_RECORDS.has(record.id) && who.kind !== 'doctor')
+        throw new HttpError(403, 'Эту запись пишет только врач.');
+      if (record.id === 'consent' && (who.kind !== 'device' || who.device !== 'patient'))
+        throw new HttpError(403, 'Согласие даёт только телефон пациента.');
+      if (record.id.startsWith('member-') && record.id !== `member-${who.id}`)
+        throw new HttpError(403, 'Имя пишет только его телефон.');
       if (record.epoch !== patient.epoch)
         throw new HttpError(409, 'Ключ устарел: обновите данные.');
     }
@@ -814,6 +936,7 @@ export function createApp(
 
   route('POST', '/api/device/alerts', async (request, url) => {
     const who = deviceOnly(await caller(request, url));
+    await limit(`alert:${who.id}`, ALERT_LIMIT);
     const alertId = await store.addAlert(who.patientId, 'urgent', now());
     const doctors = await activeDoctors(who.patientId);
     await notify(doctors, 'alert', { id: alertId, patientId: who.patientId });
@@ -891,6 +1014,13 @@ export function createApp(
     const who = await caller(request, url);
     const { endpoint, keys } = await body(request, DiaryPushSubscriptionSchema);
     const owner = who.kind === 'doctor' ? `d:${who.id}` : `p:${who.id}`;
+    // A few browsers per person; each event pushes to all of them (SEC-AUDIT1).
+    const mine = await store.pushTargets([owner]);
+    if (mine.length >= MAX_PUSH_SUBSCRIPTIONS && !mine.some((t) => t.endpoint === endpoint)) {
+      for (const extra of mine.slice(0, mine.length - MAX_PUSH_SUBSCRIPTIONS + 1)) {
+        await store.deletePushSubscription(extra.endpoint);
+      }
+    }
     await store.savePushSubscription(
       endpoint,
       owner,

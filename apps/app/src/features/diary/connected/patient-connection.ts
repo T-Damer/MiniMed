@@ -10,6 +10,7 @@ import {
   generateIdentity,
   newDataKey,
   openPairingKeys,
+  pairingProof,
   publicIdentity,
   toBase64Url,
   unwrapDataKey,
@@ -290,7 +291,7 @@ export class PatientConnection {
     const paired = await diaryDevice.pair(
       api,
       link.patientId,
-      link.secret,
+      await pairingProof(link.secret),
       await publicIdentity(identity),
     );
     const keys = await openPairingKeys(paired.keys, link.secret);

@@ -224,8 +224,9 @@ export function applyRevisions(
       revs.set(revision.id, revision.rev);
     } catch (cause) {
       if (!(cause instanceof DiaryFormatError)) throw cause;
+      // A refused revision does not move the id on (SEC-AUDIT1): otherwise a phone's plan at a
+      // huge revision would hide every later plan of the doctors.
       rejected += 1;
-      revs.set(revision.id, revision.rev);
     }
   }
   return {

@@ -37,6 +37,8 @@ const server = Bun.serve({
   port: settings.port,
   // Live streams stay open; Bun's default idle timeout would cut them.
   idleTimeout: 0,
+  // The diary sends text only; the serverless entry has the same cap (SEC-AUDIT1, Bun's own is 128 MB).
+  maxRequestBodySize: 2 * 1024 * 1024,
   fetch: app,
 });
 console.info(

@@ -11,16 +11,17 @@ import {
   newPairingSecret,
   newRecoveryCode,
   openPairingKeys,
+  pairingProof,
+  pairingProofHash,
   publicIdentity,
   randomId,
   sealIdentity,
   sealPairingKeys,
   sealRecord,
-  sha256,
   wrapDataKey,
 } from '@localmed/diary-sync';
 
-import type { DiaryStore } from './store';
+import { type DiaryStore, InviteSpent } from './store';
 
 type App = (request: Request) => Promise<Response>;
 // biome-ignore lint/suspicious/noExplicitAny: the scenario reads answers as loose JSON.
@@ -116,6 +117,43 @@ export async function runStoreContract(
   );
   step('register');
 
+  // Invites (SEC-AUDIT1): plain codes are re-keyed, a code is spent once even by a race.
+  const plainCode = `PLAIN-${run}`;
+  await store.createInvite(plainCode, new Date().toISOString());
+  check((await store.plainInvites()).includes(plainCode), 'plain invites are listed');
+  const inviteKey = `h1:contract-${run}`;
+  await store.rekeyInvite(plainCode, inviteKey);
+  check(!(await store.plainInvites()).includes(plainCode), 'a re-keyed invite is no longer plain');
+  check((await store.invite(plainCode)) === undefined, 'the plain code is gone');
+  check((await store.invite(inviteKey))?.used_by === null, 'the re-keyed invite is unused');
+  const inviteDoctor = (email: string) => ({
+    id: randomId(),
+    email,
+    name: 'Приглашённый',
+    auth_hash: 'h',
+    kdf_salt: KDF.salt,
+    kdf_iterations: KDF.iterations,
+    identity_wrap: 'w',
+    identity_sign: 's',
+    identity_blob: 'b',
+    recovery_hash: 'h',
+    recovery_blob: 'b',
+    created_at: new Date().toISOString(),
+  });
+  await store.createDoctor(inviteDoctor(`invited-${run}@clinic.test`), inviteKey);
+  let spent = false;
+  try {
+    await store.createDoctor(inviteDoctor(`invited2-${run}@clinic.test`), inviteKey);
+  } catch (cause) {
+    spent = cause instanceof InviteSpent;
+  }
+  check(spent, 'a spent invite creates no second account');
+  check(
+    (await store.doctorByEmail(`invited2-${run}@clinic.test`)) === undefined,
+    'nothing is left of the refused account',
+  );
+  step('invites');
+
   const secrets = await deriveAccountSecrets('password-1', KDF);
   const login = await expectStatus(
     200,
@@ -186,7 +224,7 @@ export async function runStoreContract(
         'POST',
         `/api/patients/${patientId}/pairings`,
         {
-          secretHash: await sha256(secret),
+          secretHash: await pairingProofHash(secret),
           keys: await sealPairingKeys(new Map([[1, key1]]), secret),
         },
         owner.token,
@@ -194,7 +232,12 @@ export async function runStoreContract(
       'pairing',
     );
     const device = await generateIdentity();
-    const body = { patientId, secret, identity: await publicIdentity(device) };
+    // The phone proves it holds the secret without sending it (SEC-AUDIT1).
+    const body = {
+      patientId,
+      proof: await pairingProof(secret),
+      identity: await publicIdentity(device),
+    };
     const paired = await expectStatus(201, call('POST', '/api/pair', body), 'pair');
     check(
       (await openPairingKeys(paired['keys'], secret)).get(1) !== undefined,
@@ -411,7 +454,7 @@ export async function runStoreContract(
       'POST',
       `/api/patients/${patientId}/pairings`,
       {
-        secretHash: await sha256(carerSecret),
+        secretHash: await pairingProofHash(carerSecret),
         keys: await sealPairingKeys(new Map([[2, key2]]), carerSecret),
         kind: 'carer',
       },
@@ -424,7 +467,7 @@ export async function runStoreContract(
     201,
     call('POST', '/api/pair', {
       patientId,
-      secret: carerSecret,
+      proof: await pairingProof(carerSecret),
       identity: await publicIdentity(carerDevice),
     }),
     'carer pair',
@@ -544,7 +587,7 @@ export async function runStoreContract(
         'POST',
         `/api/patients/${patientId}/pairings`,
         {
-          secretHash: await sha256(secret),
+          secretHash: await pairingProofHash(secret),
           keys: await sealPairingKeys(new Map([[2, key2]]), secret),
         },
         owner.token,
@@ -552,6 +595,7 @@ export async function runStoreContract(
       'pairing 2',
     );
     const device = await generateIdentity();
+    // A phone from before SEC-AUDIT1 still sends the secret; the server derives the proof.
     return expectStatus(
       201,
       call('POST', '/api/pair', { patientId, secret, identity: await publicIdentity(device) }),

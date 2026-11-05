@@ -11,6 +11,7 @@ import {
   deriveRecoverySecrets,
   generateIdentity,
   type IdentityKeys,
+  inviteProof,
   newKdfParams,
   newRecoveryCode,
   openIdentity,
@@ -254,7 +255,8 @@ export async function signUp(input: {
       authKey: recovery.authKey,
       identityBlob: await sealIdentity(identity, recovery.wrapKey),
     },
-    ...(input.invite?.trim() ? { invite: input.invite.trim() } : {}),
+    // Only the code's proof goes to the server: an access code is also the account's password.
+    ...(input.invite?.trim() ? { inviteProof: await inviteProof(input.invite) } : {}),
   });
   const session = { token: answer.token, doctor: answer.doctor, identity };
   if (input.rememberDevice) await remember(session);

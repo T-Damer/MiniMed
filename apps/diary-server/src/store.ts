@@ -6,6 +6,14 @@
  */
 import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
 
+/** The sign-up invite was spent meanwhile (two registrations raced for one code, SEC-AUDIT1). */
+export class InviteSpent extends Error {
+  constructor() {
+    super('invite spent');
+    this.name = 'InviteSpent';
+  }
+}
+
 /** A unique key already exists (e-mail, patient id, record id + revision). */
 export class StoreConflict extends Error {
   constructor(message = 'conflict') {
@@ -108,12 +116,18 @@ export interface DoseCheckRow {
 export interface DiaryStore {
   setting(key: string): Promise<string | undefined>;
   setSetting(key: string, value: string): Promise<void>;
-  /** Records one attempt under `key`; false (and nothing recorded) when `limit` were made within `windowMs`. */
-  attempt(key: string, windowMs: number, limit: number): Promise<boolean>;
+  /**
+   * Records one attempt under `key`; false (and nothing recorded) when `limit` were made within
+   * `windowMs`. `record: false` only checks (sign-in failures are counted after the check).
+   */
+  attempt(key: string, windowMs: number, limit: number, record?: boolean): Promise<boolean>;
 
   doctorById(id: string): Promise<DoctorRow | undefined>;
   doctorByEmail(email: string): Promise<DoctorRow | undefined>;
-  /** StoreConflict when the e-mail is taken; marks the invite used in the same step. */
+  /**
+   * StoreConflict when the e-mail is taken; marks the invite used in the same step, and throws
+   * InviteSpent (creating nothing) when another registration used it first.
+   */
   createDoctor(row: DoctorRow, inviteCode?: string): Promise<void>;
   /** New password material; every session of the doctor ends. */
   resetDoctorAuth(
@@ -124,7 +138,12 @@ export interface DiaryStore {
     identityBlob: string,
   ): Promise<void>;
   invite(code: string): Promise<{ code: string; used_by: string | null } | undefined>;
+  /** `code` is the storage key (`inviteStorageKey`); plain codes are only ever legacy rows. */
   createInvite(code: string, at: string): Promise<void>;
+  /** Invites still stored as plain codes (made before SEC-AUDIT1), to be re-keyed. */
+  plainInvites(): Promise<string[]>;
+  /** Replaces a plain code by its storage key, keeping its date and use. */
+  rekeyInvite(code: string, key: string): Promise<void>;
 
   createSession(tokenHash: string, doctorId: string, expiresAt: string): Promise<void>;
   session(tokenHash: string): Promise<{ doctor_id: string; expires_at: string } | undefined>;

@@ -12,6 +12,7 @@ import {
   type DiaryStore,
   type DoctorRow,
   type DoseCheckRow,
+  InviteSpent,
   type KeyRow,
   type MemberRow,
   type NewRecord,
@@ -178,12 +179,19 @@ export class SqliteStore implements DiaryStore {
       .run(key, value);
   }
 
-  async attempt(key: string, windowMs: number, limit: number): Promise<boolean> {
+  async attempt(key: string, windowMs: number, limit: number, record = true): Promise<boolean> {
     const time = Date.now();
     const recent = (this.attempts.get(key) ?? []).filter((at) => time - at < windowMs);
     if (recent.length >= limit) return false;
+    if (!record) return true;
     recent.push(time);
     this.attempts.set(key, recent);
+    // Keys are addresses and e-mails anyone can make up: drop the ones whose window has passed.
+    if (this.attempts.size > 10_000) {
+      for (const [other, times] of this.attempts) {
+        if (!times.some((at) => time - at < windowMs)) this.attempts.delete(other);
+      }
+    }
     return true;
   }
 
@@ -224,10 +232,15 @@ export class SqliteStore implements DiaryStore {
             row.created_at,
           );
         if (inviteCode) {
-          this.db.query('UPDATE invites SET used_by = ? WHERE code = ?').run(row.id, inviteCode);
+          // Spent only if still unused: of two registrations racing for one code, one wins.
+          const spent = this.db
+            .query('UPDATE invites SET used_by = ? WHERE code = ? AND used_by IS NULL')
+            .run(row.id, inviteCode);
+          if (spent.changes !== 1) throw new InviteSpent();
         }
       })();
     } catch (cause) {
+      if (cause instanceof InviteSpent) throw cause;
       if (isUniqueViolation(cause)) throw new StoreConflict('e-mail');
       throw cause;
     }
@@ -262,6 +275,24 @@ export class SqliteStore implements DiaryStore {
 
   async createInvite(code: string, at: string): Promise<void> {
     this.db.query('INSERT INTO invites (code, created_at) VALUES (?, ?)').run(code, at);
+  }
+
+  async plainInvites(): Promise<string[]> {
+    return this.db
+      .query<{ code: string }, []>("SELECT code FROM invites WHERE code NOT LIKE 'h1:%'")
+      .all()
+      .map((row) => row.code);
+  }
+
+  async rekeyInvite(code: string, key: string): Promise<void> {
+    this.db.transaction(() => {
+      this.db
+        .query(
+          'INSERT OR IGNORE INTO invites (code, created_at, used_by) SELECT ?, created_at, used_by FROM invites WHERE code = ?',
+        )
+        .run(key, code);
+      this.db.query('DELETE FROM invites WHERE code = ?').run(code);
+    })();
   }
 
   async createSession(tokenHash: string, doctorId: string, expiresAt: string): Promise<void> {
@@ -548,6 +579,8 @@ export class SqliteStore implements DiaryStore {
       this.db
         .query('DELETE FROM patient_keys WHERE patient_id = ? AND recipient = ?')
         .run(patientId, `d:${doctorId}`);
+      // Pairings carry no issuer: unused codes of the diary go with any removed curator (SEC-AUDIT1).
+      this.db.query('DELETE FROM pairings WHERE patient_id = ?').run(patientId);
     })();
   }
 

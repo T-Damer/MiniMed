@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { expect, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
@@ -8,6 +10,10 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ISSUED_CODE = 'K2CM-R5AG-2M4R';
 const SALT = 'c2lnbmluLXNwZWMtc2FsdA';
+/** `inviteProof(ISSUED_CODE)`: what the app sends instead of the code (SEC-AUDIT1). */
+const ISSUED_PROOF = createHash('sha256')
+  .update(`minimed-invite-v1:${ISSUED_CODE.replaceAll('-', '')}`)
+  .digest('base64url');
 
 interface Account {
   readonly email: string;
@@ -23,6 +29,7 @@ async function fakeDiaryService(page: Page) {
   const accounts = new Map<string, Account>();
   const used = new Set<string>();
   const calls: string[] = [];
+  const sent: string[] = [];
   const profile = (account: Account) => ({
     id: 'doctor0000001',
     email: account.email,
@@ -36,6 +43,7 @@ async function fakeDiaryService(page: Page) {
     const body = (request.postDataJSON() ?? {}) as Record<string, unknown>;
     const reply = (status: number, json: unknown) => route.fulfill({ status, json });
     calls.push(path);
+    sent.push(request.postData() ?? '');
     switch (path) {
       case '/api/info':
         return reply(200, { signup: 'invite' });
@@ -44,11 +52,9 @@ async function fakeDiaryService(page: Page) {
         return reply(200, { kdf: account?.kdf ?? { salt: SALT, iterations: 100_000 } });
       }
       case '/api/auth/register': {
-        const invite = String(body['invite'] ?? '')
-          .toUpperCase()
-          .replaceAll(/[^A-Z0-9]/gu, '')
-          .replaceAll(/(.{4})(?=.)/gu, '$1-');
-        if (invite !== ISSUED_CODE || used.has(invite)) {
+        // The code is the account's password: only its proof reaches the service.
+        const invite = String(body['inviteProof'] ?? '');
+        if (invite !== ISSUED_PROOF || used.has(invite)) {
           return reply(403, { error: 'Код приглашения не подошёл или уже использован.' });
         }
         used.add(invite);
@@ -79,7 +85,7 @@ async function fakeDiaryService(page: Page) {
         return reply(200, { ok: true });
     }
   });
-  return { accounts, calls };
+  return { accounts, calls, sent };
 }
 
 async function openSignedOut(page: Page): Promise<void> {
@@ -156,6 +162,8 @@ test.describe('diary sign-in', () => {
     await expect(page.getByRole('heading', { name: 'Сигнум' })).toBeVisible();
     expect(service.calls.filter((path) => path === '/api/auth/register')).toHaveLength(1);
     expect(service.accounts.size).toBe(1);
+    // Neither request carried the code itself.
+    expect(service.sent.some((text) => text.toUpperCase().includes('K2CM'))).toBe(false);
   });
 
   test('a code the service did not issue is refused', async ({ page }) => {

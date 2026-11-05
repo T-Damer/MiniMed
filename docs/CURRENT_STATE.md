@@ -20,6 +20,44 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Security audit fixes — 2026-11-05 (STATE SEC-AUDIT1)
+
+Fixes for every finding of the quick security audit of the diary and the app (Cloudflare
+security-audit skill, run-1, report outside the repository in `~/security-audit-skill/MiniMed/run-1`).
+Server tests: `apps/diary-server/src/sec-audit.test.ts` and the storage contract («invites» step).
+
+- **Access codes never reach the server.** Sign-up sends `inviteProof(code)`; invites are stored as
+  `h1:` + `sha256(proof)`; plain codes stored before (used ones included) are re-keyed at the next
+  registration; the CLI stores the hash and prints the code. Old clients that send the code still
+  work. One code is spent once: the consume is conditional (`used_by IS NULL`) in both stores.
+- **Pairing secrets never reach the server.** The doctor stores `sha256(pairingProof(secret))`, the
+  phone sends the proof; the secret seals the epoch keys and stays in the link. Old phones that send
+  the secret still pair (the server derives the proof); codes made by old doctors' apps need old
+  phones or a new code. **Deploy the API before the pages**: new pages talk proofs only.
+- **Pairing roles.** Only the owner makes a code for the patient's own phone (it can withdraw consent
+  and wipe the diary); editors make carer codes. Removing a curator deletes the diary's unused codes.
+- **Record rules on the server.** `plan`/`profile` only from doctors, `consent` only from the
+  patient's own phone, `member-<id>` only from that phone; the replica no longer lets a refused
+  revision move an id on (a carer could block plan saves with revision 1 000 000).
+- **Push.** Endpoints must be https on port 443 with a public host name (no IP literals, local names
+  or credentials), at most 10 per person; sends do not follow redirects, time out after 10 s and go
+  8 at a time; old subscriptions that fail the rule are dropped at the next push. Alerts: 6 a minute
+  per phone.
+- **Sign-in limits.** Every attempt counts per account and caller address (12/min; the address is the
+  last `X-Forwarded-For` entry, appended by API Gateway or Caddy), only failures count per account
+  over all addresses (60/min), and 60 password checks a minute per address. A stranger can no longer
+  lock a doctor out from one address. The public demo password is checked with argon2 once per
+  instance, then by its digest.
+- **Body size.** 2 MiB in server mode too (`maxRequestBodySize`) and `request_body max_size 2MB` in
+  the Caddyfiles, as the serverless entry already had.
+- **Documents.** DOCX links keep only http(s)/mailto/tel/`#` addresses
+  (`features/library/document-links.ts`); the EPUB print path drops forms, buttons, `base`,
+  `meta http-equiv` and every attribute with a script address, tabs inside the scheme included
+  (`features/printing/epub-sanitize.ts`). Not checked in a WebView: no DOM in unit tests, and the
+  e2e suites were not run.
+- **Left as they were:** no CSP on the app shell yet (the strongest guard for both document paths);
+  the other hardening notes of the report.
+
 ## «Создать пациента» and new-patient drafts — 2026-11-05 (STATE DIARY-DRAFT)
 
 Owner: a top-level «Создать пациента» also when the list has patients, and a patient begun on

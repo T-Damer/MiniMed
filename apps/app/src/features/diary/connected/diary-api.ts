@@ -210,8 +210,9 @@ export const diaryRecords = {
 };
 
 export const diaryDevice = {
-  pair: (api: DiaryApi, patientId: string, secret: string, identity: DiaryPublicIdentity) =>
-    api.call('POST', '/api/pair', DiaryPairResponseSchema, { patientId, secret, identity }),
+  /** `proof`: `pairingProof(secret)`; the secret itself never leaves the phone (SEC-AUDIT1). */
+  pair: (api: DiaryApi, patientId: string, proof: string, identity: DiaryPublicIdentity) =>
+    api.call('POST', '/api/pair', DiaryPairResponseSchema, { patientId, proof, identity }),
   keys: (api: DiaryApi) => api.call('GET', '/api/device/keys', DeviceKeys),
   alert: (api: DiaryApi) => api.call('POST', '/api/device/alerts', Ok, {}),
   withdraw: (api: DiaryApi) => api.call('DELETE', '/api/device', Ok),

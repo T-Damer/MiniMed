@@ -10,14 +10,3 @@ export function newInviteCode(): string {
   const characters = [...randomBytes(12)].map((byte) => ALPHABET[byte % ALPHABET.length]);
   return characters.join('').replaceAll(/(.{4})(?=.)/gu, '$1-');
 }
-
-/**
- * The forms a typed code may be stored under: as typed (codes issued before 2026-10-27 were
- * mixed-case) and normalised to the grouped capitals of `newInviteCode`.
- */
-export function inviteCandidates(typed: string): readonly string[] {
-  const exact = typed.trim();
-  const letters = exact.toUpperCase().replaceAll(/[^A-Z0-9]/gu, '');
-  const grouped = letters.replaceAll(/(.{4})(?=.)/gu, '$1-');
-  return [...new Set([exact, grouped])];
-}
