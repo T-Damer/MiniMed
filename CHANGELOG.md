@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.92] - 2026-11-05
+
+- Security: access codes and pairing secrets no longer reach the server (it gets only proofs); an invite code is
+  stored hashed and works once; only the owner makes a code for the patient's own phone, and removing a curator voids
+  their unused codes; the server checks who may write a plan, a profile or consent; push addresses, sign-in attempts
+  and request sizes are limited; links in DOCX and EPUB documents keep only safe addresses.
 - Doctor's list: «Создать пациента» sits at the top of the list, also when it has patients. A patient begun and not
   yet added stays as a «Черновик» card under it — the card opens the form where it was left, also after a reload; adding
   the patient or the card's trash button removes it. Drafts stay on this device only, sealed, and go with sign-out.

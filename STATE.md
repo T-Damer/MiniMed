@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-05 20:13 | claude-opus (REL92) | release 0.6.92: fix the 2 date-bound tests in `diary-substances.test.ts` (CI red since 11-05), then release DIARY-DRAFT + SEC-AUDIT1 + PRESS2, republish GitVerse | `apps/app/src/features/diary/diary-substances.test.ts`, `release.json`, `CHANGELOG.md`, `docs/CURRENT_STATE.md` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -182,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-05 claude-opus REL 0.6.92: SEC-AUDIT1 + DIARY-DRAFT + PRESS2; CI green again (`diary-substances.test.ts` pinned its clock — its fixtures expired on 11-05); GitVerse republished
 - 2026-11-05 claude-opus SEC-AUDIT1: security audit fixes — access codes and pairing secrets reach the server only as proofs, invites stored hashed and spent once, owner-only patient-phone codes, curator removal drops pending codes, record id rules on the server, push endpoint/fan-out limits, per-address sign-in limits, 2 MiB bodies, DOCX/EPUB link sanitising (CURRENT_STATE «Security audit fixes»); deploy the diary API before the pages
 - 2026-11-05 claude-opus DIARY-DRAFT: «Создать пациента» at the top of the doctor's list (also with patients; list FAB removed); a new patient begun is a «Черновик» card that reopens the form (`#/notes/diaries/new/<draft>`), sealed on the device, gone once created or discarded; e2e `diary-new-draft.spec.ts`
 - 2026-11-04 claude-opus PRESS2: a held press shades transparent controls (calendar days, icon buttons, chips) in their own text colour; keys on a ledge still sink

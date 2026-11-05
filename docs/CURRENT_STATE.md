@@ -20,6 +20,16 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Release 0.6.92 — 2026-11-05
+
+- **In it:** SEC-AUDIT1 (security audit fixes), DIARY-DRAFT («Создать пациента», draft cards) and PRESS2 (press
+  shade). The diary API with the audit fixes was deployed before this release (0.6.91-e3e42d214), as SEC-AUDIT1 asks.
+- **CI fix.** `diary-substances.test.ts` issued its invitations with the real clock and checked them against a fixed
+  NOW (2026-11-03), so from 11-05 `issuedAt` was more than a day «in the future»; `issue()` now pins the clock to
+  2026-11-01 like `diary-miss-reasons.test.ts`.
+- **Checks.** `bun run check`, typecheck; vitest 19 405 passed; diary-server 24; e2e `diary-*` 80 passed on the
+  merged head. Not checked on a phone.
+
 ## Security audit fixes — 2026-11-05 (STATE SEC-AUDIT1)
 
 Fixes for every finding of the quick security audit of the diary and the app (Cloudflare
