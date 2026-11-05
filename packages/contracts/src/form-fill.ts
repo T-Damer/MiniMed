@@ -54,7 +54,10 @@ export const FormFillFieldSchema = z
     id: fieldId,
     label: z.string().min(1).max(300),
     type: FormFillFieldTypeSchema,
-    /** One short line for the model: what counts, synonyms, what to leave out. */
+    /**
+     * One short line for the model: synonyms, what counts. Its words also count as the field's subject
+     * when cited lines are checked, so it names the topic and gives no instructions.
+     */
     hint: z.string().min(1).max(300).optional(),
     options: z.array(FormFillOptionSchema).min(2).max(120).optional(),
     minimum: z.number().optional(),

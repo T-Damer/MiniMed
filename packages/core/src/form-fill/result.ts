@@ -160,10 +160,40 @@ export function formFillValueText(field: FormFillField, value: FormFillValue): s
   return String(value);
 }
 
-/** The statement a cited line must share a word with: the value itself for text, else the field. */
-function statement(field: FormFillField, value: FormFillValue): string {
+/**
+ * The statement cited lines must share a word with: the value itself for text; otherwise the field's
+ * own label and hint, so the lines are about this field, plus the number in words and the chosen
+ * options' wording. An option label several fields share is left out: «почти каждый день» answers
+ * every PHQ-9 question alike and says nothing about which one. A «нет» value states its negation,
+ * so a denial in the lines supports it.
+ */
+function statement(
+  field: FormFillField,
+  value: FormFillValue,
+  sharedLabels: ReadonlySet<string>,
+): string {
   if (field.type === 'text') return String(value);
-  return [field.label, field.hint ?? '', formFillValueText(field, value)].join(' ');
+  const valueWords =
+    field.type === 'number' || field.type === 'choice' || field.type === 'multi-choice'
+      ? formFillValueText(field, value)
+          .split(', ')
+          .filter((label) => !sharedLabels.has(fold(label)))
+          .join(' ')
+      : '';
+  return [field.label, field.hint ?? '', valueWords, saysNo(field, value) ? 'нет' : ''].join(' ');
+}
+
+/** Option labels that more than one field offers (a questionnaire's answer scale). */
+function sharedOptionLabels(form: FormFillForm): Set<string> {
+  const seen = new Set<string>();
+  const shared = new Set<string>();
+  for (const field of form.fields) {
+    for (const label of new Set((field.options ?? []).map((option) => fold(option.label)))) {
+      if (seen.has(label)) shared.add(label);
+      seen.add(label);
+    }
+  }
+  return shared;
 }
 
 function saysNo(field: FormFillField, value: FormFillValue): boolean {
@@ -193,6 +223,8 @@ function valueInQuote(
   quote: VisitNoteQuote,
   lastLine: string,
 ): boolean {
+  // A question nobody answered in the quote is not a fact («Мысли навредить себе?»).
+  if (lastLine.trim().endsWith('?')) return false;
   if (field.type === 'number' && typeof value === 'number')
     return mentionsNumber(quote.text, value);
   if (saysNo(field, value)) return hasNegation(quote.text);
@@ -201,18 +233,34 @@ function valueInQuote(
   return true;
 }
 
+/**
+ * One cited line right after a line that ends with «?» is read as that question's answer: models cite
+ * the answer («Почти каждый день») without the question that says what it answers.
+ */
+function withQuestion(transcript: readonly string[], lines: unknown): unknown {
+  const single = Array.isArray(lines) && lines.length === 1 ? lines[0] : lines;
+  if (typeof single !== 'number' || !Number.isInteger(single) || single < 2) return lines;
+  const question = transcript[single - 2]?.trim() ?? '';
+  return question.endsWith('?') ? [single - 1, single] : lines;
+}
+
 function locate(
   transcript: readonly string[],
   index: QuoteSourceIndex,
   citation: FormFillCitation,
   field: FormFillField,
   value: FormFillValue,
+  sharedLabels: ReadonlySet<string>,
 ): Checked<VisitNoteQuote> {
   if (citation.kind === 'lines') {
     if (citation.lines === undefined || citation.lines === null) {
       return { ok: false, code: 'missing-citation' };
     }
-    const found = locateLines({ transcript }, citation.lines, statement(field, value));
+    const found = locateLines(
+      { transcript },
+      withQuestion(transcript, citation.lines),
+      statement(field, value, sharedLabels),
+    );
     return found.ok ? { ok: true, value: found.quote } : { ok: false, code: found.code };
   }
   if (citation.kind === 'quote') {
@@ -256,6 +304,7 @@ export function buildFormFillResult(
   const filled = new Map<string, FormFillProposal>();
   const rejected: FormFillRejection[] = [];
   const index = indexQuoteSource('transcript', transcript);
+  const sharedLabels = sharedOptionLabels(form);
   const reject = (code: FormFillRejectionCode, fieldId?: string) =>
     rejected.push(fieldId === undefined ? { code } : { fieldId, code });
 
@@ -270,7 +319,7 @@ export function buildFormFillResult(
       reject(value.code, field.id);
       continue;
     }
-    const quote = locate(transcript, index, candidate.citation, field, value.value);
+    const quote = locate(transcript, index, candidate.citation, field, value.value, sharedLabels);
     if (!quote.ok) {
       reject(quote.code, field.id);
       continue;

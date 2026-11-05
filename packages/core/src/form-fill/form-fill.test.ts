@@ -160,6 +160,42 @@ describe('adapters', () => {
     expect(phq9.toSourceValue('phq9-01', '3')).toBe(3);
     expect(formFillChunks(phq9.form).map((chunk) => chunk.length)).toEqual([4, 4, 1, 1]);
   });
+
+  it('does not let a shared answer scale tie an answer to another question', () => {
+    const phq9 = formFillFromAssessment(
+      toolDefinition('psychology', 'minimed.assessment.phq-9') as never,
+      formFillOverlayFor('minimed.assessment.phq-9'),
+    );
+    const lines = [
+      'Врач: Как часто вам не хотелось ничего делать?',
+      'Пациент: Почти каждый день, ничего не радует.',
+      'Врач: Мысли, что лучше было бы умереть?',
+      'Пациент: Нет, ни разу.',
+    ];
+    const result = buildFormFillResult(
+      phq9.form,
+      lines,
+      [
+        {
+          fieldId: 'phq9-01',
+          value: 'Почти каждый день',
+          citation: { kind: 'lines', lines: [1, 2] },
+        },
+        // The scale's wording matches line 2, but line 2 is not about item 9.
+        { fieldId: 'phq9-09', value: 'Почти каждый день', citation: { kind: 'lines', lines: [2] } },
+        // The question alone, unanswered in the quote.
+        { fieldId: 'phq9-09', value: 'Несколько дней', citation: { kind: 'lines', lines: [3] } },
+        { fieldId: 'phq9-09', value: 'Ни разу', citation: { kind: 'lines', lines: [3, 4] } },
+      ],
+      'model',
+    );
+    expect(result.fields['phq9-01']?.value).toBe('3');
+    expect(result.fields['phq9-09']?.value).toBe('0');
+    expect(result.rejected).toEqual([
+      { fieldId: 'phq9-09', code: 'line-unrelated' },
+      { fieldId: 'phq9-09', code: 'value-not-in-quote' },
+    ]);
+  });
 });
 
 describe('cue fallback', () => {
