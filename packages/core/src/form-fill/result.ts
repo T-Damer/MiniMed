@@ -144,6 +144,13 @@ export function normalizeFormFillValue(
   }
 }
 
+/** A value as the doctor reads it: option labels, «Да»/«Нет», the number, the text. */
+export function formFillValueLabel(field: FormFillField, value: FormFillValue): string {
+  if (field.type === 'boolean') return value ? 'Да' : 'Нет';
+  if (field.type === 'number') return String(value).replace('.', ',');
+  return formFillValueText(field, value);
+}
+
 /** How a value reads in words, for the label/value statement the line check compares with lines. */
 export function formFillValueText(field: FormFillField, value: FormFillValue): string {
   if (field.type === 'boolean') return value ? 'да' : 'нет';

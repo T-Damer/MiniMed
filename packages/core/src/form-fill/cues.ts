@@ -269,6 +269,13 @@ export function formFillCueCandidates(
     .map(({ candidate }) => candidate);
 }
 
+/** True when the form declares word cues, so the fallback can fill something without a model. */
+export function formFillHasCues(form: FormFillForm): boolean {
+  return form.fields.some(
+    (field) => Boolean(field.cues) || Boolean(field.options?.some((option) => option.cues)),
+  );
+}
+
 export function fillFormWithCues(
   form: FormFillForm,
   transcript: readonly string[],

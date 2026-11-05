@@ -1,12 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import {
-  CalculatorSchemaSchema,
-  type FormFillForm,
-  FormFillResultSchema,
-  parseFormSchema,
-} from '@localmed/contracts';
+import { CalculatorSchemaSchema, FormFillResultSchema, parseFormSchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -22,8 +17,10 @@ import {
   formFillFromAssessment,
   formFillFromCalculator,
   formFillFromOfficialForm,
+  formFillHasCues,
   formFillOverlayFor,
   formFillReviewItems,
+  formFillValueLabel,
   mentionsNumber,
   russianNumberWords,
   speakerOfLine,
@@ -84,6 +81,11 @@ describe('spoken numbers', () => {
     expect(russianNumberWords(72)).toBe('семьдесят два');
     expect(russianNumberWords(115)).toBe('сто пятнадцать');
     expect(russianNumberWords(1000)).toBeNull();
+    const age = cha2ds2.form.fields[0];
+    const diabetes = cha2ds2.form.fields[3];
+    if (!age || !diabetes) throw new Error('fields');
+    expect(formFillValueLabel(age, 72.5)).toBe('72,5');
+    expect(formFillValueLabel(diabetes, false)).toBe('Нет');
   });
 });
 
@@ -159,6 +161,10 @@ describe('adapters', () => {
     ]);
     expect(phq9.toSourceValue('phq9-01', '3')).toBe(3);
     expect(formFillChunks(phq9.form).map((chunk) => chunk.length)).toEqual([4, 4, 1, 1]);
+    // No cues: the conversation entry is offered only where the fallback can fill something.
+    expect(formFillHasCues(phq9.form)).toBe(false);
+    expect(formFillHasCues(cha2ds2.form)).toBe(true);
+    expect(formFillHasCues(form070.form)).toBe(true);
   });
 
   it('does not let a shared answer scale tie an answer to another question', () => {
@@ -446,5 +452,3 @@ describe('review', () => {
     expect([...acceptedFormFillValues(result, review)]).toEqual([['ageYears', 72]]);
   });
 });
-
-export type { FormFillForm };

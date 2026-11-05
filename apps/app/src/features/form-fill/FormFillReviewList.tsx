@@ -6,7 +6,7 @@ import type {
   FormFillSpeakerRole,
   VisitNoteQuote,
 } from '@localmed/contracts';
-import { formFillReviewItems, formFillValueText } from '@localmed/core/form-fill';
+import { formFillReviewItems, formFillValueLabel } from '@localmed/core/form-fill';
 import { createMemo, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -41,7 +41,7 @@ export function FormFillReviewList(props: {
     props.onDecide(fieldId, current === next ? null : next);
   return (
     <section class="form-fill-review" aria-label="Значения из беседы">
-      <Show when={items().length > 0}>
+      <Show when={pending() > 0}>
         <p class="form-fill-review__count">
           {pending()} {pluralRu(pending(), 'значение ждёт', 'значения ждут', 'значений ждут')}{' '}
           решения
@@ -63,7 +63,7 @@ export function FormFillReviewList(props: {
                 <span class="form-fill-review__value">
                   {(() => {
                     const own = field();
-                    return own ? formFillValueText(own, item.proposal.value) : '';
+                    return own ? formFillValueLabel(own, item.proposal.value) : '';
                   })()}
                 </span>
                 <span class="form-fill-review__quotes">

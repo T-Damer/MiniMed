@@ -26,7 +26,7 @@ Any form — a questionnaire, a calculator, an official blank — can take its v
 conversation: transcript lines + the form's fields → JSON where each field is `null` (not discussed)
 or a value with the transcript words it rests on and who said them. Built on SCRIBE1's quote check
 (branch `scribe1`, not in main) and PSY1's word cues; core, contracts, a model adapter and an unmounted
-review list, no screen yet.
+«Заполнить по беседе» sheet on CHA₂DS₂-VASc and 070/у.
 
 - **Contract** `packages/contracts/src/form-fill.ts`: a form is sections of typed fields (`text`,
   `number`, `date`, `choice`, `multi-choice`, `boolean`; options with labels, range, `maxLength`, a
@@ -68,10 +68,16 @@ review list, no screen yet.
   Overlays with hints and cues (`forms/*.ts`): CHA₂DS₂-VASc, PHQ-9 (hints only: a frequency per
   question is beyond word cues), 070/у (diagnoses, no contraindications, treatment setting, place,
   seasons, escort).
-- **Review list** `apps/app/src/features/form-fill/FormFillReviewList.tsx`: one row per proposed value
-  — field, value, quoted words with who said them, ✕ / ✓ (a second tap takes the answer back).
-  **Not mounted on any screen**: where «Заполнить из беседы» goes (calculator, questionnaire, form
-  screens, a finished recording) is the owner's call.
+- **«Заполнить по беседе»** `apps/app/src/features/form-fill/FormFillFromConversation.tsx`: a compact
+  row «Беседа — Подставить значения из записи» like the patient row, on the calculator form and the
+  official-form screen, shown where the form's overlay declares word cues (`form-fill-bindings.ts`,
+  decided by data, not by tool id): today CHA₂DS₂-VASc and 070/у. Its sheet takes a conversation
+  recording from this device or pasted text, runs the cue fallback (no screen loads a local model yet)
+  and shows `FormFillReviewList.tsx`: per value the field, the value, the quoted words with who said
+  them, ✕ / ✓ (a second tap takes the answer back), «Принять все», «Подставить». Accepted values go
+  into the tool's own inputs (`toSourceValue`); on a form they are one draft edit, autosaved as usual.
+  Patient words stay in memory while the sheet is open. e2e `form-fill-conversation.spec.ts` (070/у,
+  390 px). Checked in the dev build on the calculator (desktop) and 070/у (375 px).
 - **Benchmark** `tools/benchmarks/src/run-form-fill.ts` (`bun run --filter @localmed/benchmarks
   benchmark:form-fill`, `--server=` for a model) over `form-fill-transcripts.json`: six synthetic
   consultations (three CHA₂DS₂-VASc, two 070/у, one PHQ-9; 32 expected values) with distractors (a
@@ -109,7 +115,9 @@ review list, no screen yet.
   - Not measured: phones (QVikhr is ~2–4 s per call on the Mac; a consultation × a 10-field form is
     6–12 calls), wllama's schema path in the browser, real consultations.
 
-- **Not done.** A screen entry point and the model download offered there; the Android plugin taking a
+- **Not done.** The local model on these screens (no screen creates the model controller; the
+  sheet would run `fillFormWithModel` through `localFormFillModel`) and its download offered there;
+  PHQ-9 and other questionnaires (no cues, so no entry yet); opening a quote in the transcript; the Android plugin taking a
   grammar (`common_sampler` with `json_schema_to_grammar`); real consultations; field-specific value
   checks for dates and free text beyond the shared-word line check; telling the patient's history from
   a relative's (the quote check cannot; the doctor reads the quote).

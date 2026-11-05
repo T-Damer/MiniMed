@@ -1,4 +1,5 @@
 import type { FormSchema } from '@localmed/contracts';
+import type { FormFillToolValue } from '@localmed/core/form-fill';
 import {
   createEffect,
   createMemo,
@@ -19,6 +20,8 @@ import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
 import { SelectField } from '@/components/SelectField';
 import { Heading } from '@/components/Text';
+import { FormFillFromConversation } from '@/features/form-fill/FormFillFromConversation';
+import { officialFormConversationBinding } from '@/features/form-fill/form-fill-bindings';
 import { FormFieldControl } from '@/features/forms/FormFieldControl';
 import { FormPreviewDialog } from '@/features/forms/FormPreviewDialog';
 import { FormProgress } from '@/features/forms/FormProgress';
@@ -301,6 +304,17 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
     editedSinceLoad = true;
     commit({ ...edits(), [fieldId]: value }, 'draft');
   };
+  /** Values the doctor accepted from a conversation, written as one edit. */
+  const applyConversationValues = (values: ReadonlyMap<string, FormFillToolValue>): void => {
+    if (values.size === 0) return;
+    editedSinceLoad = true;
+    const next: Record<string, FormValue> = { ...edits() };
+    for (const [fieldId, value] of values) {
+      next[fieldId] = typeof value === 'number' ? String(value) : value;
+    }
+    commit(next, 'draft');
+  };
+  const conversationBinding = createMemo(() => officialFormConversationBinding(props.schema));
   const resetEdits = (): void => {
     editedSinceLoad = true;
     setAttempted(false);
@@ -412,6 +426,14 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
           </p>
         </Show>
       </div>
+
+      <Show when={conversationBinding()}>
+        {(binding) => (
+          <div class="forms-workspace__conversation">
+            <FormFillFromConversation binding={binding()} onApply={applyConversationValues} />
+          </div>
+        )}
+      </Show>
 
       <Show when={needsVault() && !vault.unlocked()}>
         <PatientVaultUnlock

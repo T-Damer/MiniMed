@@ -11,6 +11,10 @@
   gap: 0.6rem;
 }
 
+.forms-workspace__conversation {
+  display: grid;
+}
+
 .forms-workspace__muted {
   margin: 0;
   color: var(--theme-text-muted);

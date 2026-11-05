@@ -105,6 +105,8 @@ import {
   userCalculatorNewPath,
   userCalculatorsPath,
 } from '@/features/calculators/user-calculator/user-calculator-routing';
+import { FormFillFromConversation } from '@/features/form-fill/FormFillFromConversation';
+import { calculatorConversationBinding } from '@/features/form-fill/form-fill-bindings';
 import {
   contentModuleNeedsInstall,
   isModuleReleased,
@@ -622,6 +624,10 @@ function CalculatorForm(props: {
     );
   };
   const schemaDefinitionId = createMemo(() => props.definition.id);
+  // «Заполнить по беседе» where the calculator declares how a conversation fills it.
+  const conversationBinding = createMemo(() =>
+    calculatorConversationBinding(getCalculatorSchema(props.definition.id)),
+  );
   // A <select> shows its first <option> by default without firing onChange, so the reactive store never
   // learns that value on its own — without this, submitting before touching every dropdown reports the
   // untouched ones as missing. Reset to each select input's first option whenever the calculator changes.
@@ -813,6 +819,17 @@ function CalculatorForm(props: {
             </For>
           </select>
         </label>
+      </Show>
+
+      <Show when={conversationBinding()}>
+        {(binding) => (
+          <FormFillFromConversation
+            binding={binding()}
+            onApply={(values) => {
+              for (const [id, value] of values) setSchemaValue(id, String(value));
+            }}
+          />
+        )}
       </Show>
 
       {/* Every declarative calculator (CALCULATOR_SCHEMA_BY_ID) renders its form here from
