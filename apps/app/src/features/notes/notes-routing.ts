@@ -13,7 +13,8 @@ export type NotesRoute =
     }
   | { readonly kind: 'saved' }
   /**
-   * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`), one patient, its
+   * Connected patient diaries (ADR-0026): the list, «Новый пациент» (`new`, or `new/<draft>` to
+   * continue a draft), one patient, its
    * patient view to edit (`screen`), one day as the patient saw it (`day`) or its charts
    * (`charts`, optionally opened at one chart).
    */
@@ -23,6 +24,8 @@ export type NotesRoute =
       readonly view?: 'screen' | 'day' | 'charts';
       readonly day?: string;
       readonly chart?: string;
+      /** «Новый пациент» continued from this draft (`new-patient-drafts.ts`). */
+      readonly draft?: string;
     }
   | { readonly kind: 'vaccination'; readonly part?: string }
   | { readonly kind: 'skin-photo' }
@@ -116,6 +119,10 @@ export function readNotesRoute(
   if (parts[1] === 'diaries') {
     const patientId = parts[2];
     if (patientId === 'new' && parts.length === 3) return { kind: 'diaries', patientId };
+    const draft = parts[3];
+    if (patientId === 'new' && draft && /^[a-z0-9]{8,32}$/u.test(draft) && parts.length === 4) {
+      return { kind: 'diaries', patientId, draft };
+    }
     if (!patientId || !/^[a-z0-9]{12,32}$/u.test(patientId)) return { kind: 'diaries' };
     if (parts.length === 3) return { kind: 'diaries', patientId };
     if (parts[3] === 'screen' && parts.length === 4) {
@@ -341,4 +348,9 @@ export type DiarySub = 'screen' | `day/${string}` | 'charts' | `charts/${string}
 export function diariesPath(patientId?: string, sub?: DiarySub): string {
   if (!patientId) return '#/notes/diaries';
   return sub ? `#/notes/diaries/${patientId}/${sub}` : `#/notes/diaries/${patientId}`;
+}
+
+/** «Новый пациент»: an empty form, or the draft `draft` to continue. */
+export function diaryNewPatientPath(draft?: string): string {
+  return draft ? `#/notes/diaries/new/${draft}` : '#/notes/diaries/new';
 }

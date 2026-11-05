@@ -121,9 +121,6 @@ function rememberedHere(session: Pick<DoctorSession, 'token'>): boolean {
   return raw !== null && (JSON.parse(raw) as Partial<StoredSession>).token === session.token;
 }
 
-const offlineKey = (session: Pick<DoctorSession, 'doctor'>): string =>
-  `offline:${session.doctor.id}`;
-
 async function idbPut(key: string, value: unknown): Promise<void> {
   const db = await idb();
   await new Promise<void>((resolve, reject) => {
@@ -148,12 +145,13 @@ interface OfflineCopy {
   readonly data: ArrayBuffer;
 }
 
-/**
- * Keeps the doctor's last loaded patients for work without a network (DIARY-DEMO2): sealed with
- * this device's non-extractable key, and only while the doctor stays signed in on this device
- * («Мой компьютер»); on someone else's computer nothing is kept.
- */
-export async function keepOfflineCopy(session: DoctorSession, text: string): Promise<void> {
+/** One text this device keeps for a doctor, sealed (the offline list, new-patient drafts). */
+type KeptSlot = 'offline' | 'new-patients';
+
+const keptKey = (session: Pick<DoctorSession, 'doctor'>, slot: KeptSlot): string =>
+  `${slot}:${session.doctor.id}`;
+
+async function keepSealed(session: DoctorSession, slot: KeptSlot, text: string): Promise<void> {
   if (!rememberedHere(session)) return;
   const key = await deviceKey(false);
   if (!key) return;
@@ -164,25 +162,55 @@ export async function keepOfflineCopy(session: DoctorSession, text: string): Pro
     new TextEncoder().encode(text),
   );
   const copy: OfflineCopy = { savedAt: new Date().toISOString(), iv, data };
-  await idbPut(offlineKey(session), copy);
+  await idbPut(keptKey(session, slot), copy);
 }
 
-/** The copy `keepOfflineCopy` made for this doctor on this device, if any. */
-export async function readOfflineCopy(
+async function readSealed(
   session: DoctorSession,
+  slot: KeptSlot,
 ): Promise<{ readonly savedAt: string; readonly text: string } | undefined> {
-  const copy = (await idbGet(offlineKey(session))) as OfflineCopy | undefined;
+  const copy = (await idbGet(keptKey(session, slot))) as OfflineCopy | undefined;
   const key = copy ? await deviceKey(false) : undefined;
   if (!copy || !key) return undefined;
   const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: copy.iv }, key, copy.data);
   return { savedAt: copy.savedAt, text: new TextDecoder().decode(plain) };
 }
 
-/** Signing out takes the offline copy with it. */
-async function dropOfflineCopy(session: DoctorSession): Promise<void> {
-  await idbPut(offlineKey(session), undefined).catch((cause: unknown) => {
-    console.warn('Дневники: копия без сети не удалена', cause);
-  });
+/**
+ * Keeps the doctor's last loaded patients for work without a network (DIARY-DEMO2): sealed with
+ * this device's non-extractable key, and only while the doctor stays signed in on this device
+ * («Мой компьютер»); on someone else's computer nothing is kept.
+ */
+export function keepOfflineCopy(session: DoctorSession, text: string): Promise<void> {
+  return keepSealed(session, 'offline', text);
+}
+
+/** The copy `keepOfflineCopy` made for this doctor on this device, if any. */
+export function readOfflineCopy(
+  session: DoctorSession,
+): Promise<{ readonly savedAt: string; readonly text: string } | undefined> {
+  return readSealed(session, 'offline');
+}
+
+/**
+ * The new patients the doctor began and has not created yet (`new-patient-drafts.ts`), sealed
+ * like the offline copy and kept under the same rule: only on the doctor's own computer.
+ */
+export function keepNewPatientDrafts(session: DoctorSession, text: string): Promise<void> {
+  return keepSealed(session, 'new-patients', text);
+}
+
+export async function readNewPatientDrafts(session: DoctorSession): Promise<string | undefined> {
+  return (await readSealed(session, 'new-patients'))?.text;
+}
+
+/** Signing out takes the offline copy and the drafts with it. */
+async function dropKeptCopies(session: DoctorSession): Promise<void> {
+  for (const slot of ['offline', 'new-patients'] as const) {
+    await idbPut(keptKey(session, slot), undefined).catch((cause: unknown) => {
+      console.warn('Дневники: копия на устройстве не удалена', cause);
+    });
+  }
 }
 
 export function doctorApi(session: Pick<DoctorSession, 'token'> | undefined): DiaryApi {
@@ -369,6 +397,6 @@ export async function recoverAccount(input: {
 
 export async function signOut(session: DoctorSession): Promise<void> {
   forgetDoctorSession();
-  await dropOfflineCopy(session);
+  await dropKeptCopies(session);
   await diaryAuth.logout(doctorApi(session));
 }

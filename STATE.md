@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-05 17:00 | claude-opus (DIARY-DRAFT) | doctor patient list: «Создать пациента» button above the list (also with patients), new-patient draft kept on the device and shown as a card to continue | `apps/app/src/features/diary/dashboard/NewPatientScreen.tsx`, `DiaryDashboard.tsx`, new `new-patient-draft.ts`, `diary-list.css`, `e2e/diary-new-draft.spec.ts` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; no UI, no LLM yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note/**` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -182,6 +181,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-05 claude-opus DIARY-DRAFT: «Создать пациента» at the top of the doctor's list (also with patients; list FAB removed); a new patient begun is a «Черновик» card that reopens the form (`#/notes/diaries/new/<draft>`), sealed on the device, gone once created or discarded; e2e `diary-new-draft.spec.ts`
 - 2026-11-04 claude-opus PRESS2: a held press shades transparent controls (calendar days, icon buttons, chips) in their own text colour; keys on a ledge still sink
 - 2026-11-04 claude-opus DEMO-REFRESH: demo doctor's four remade daily (visit stays tomorrow), demo phone +7 777 777-77-77
 - 2026-11-04 claude-opus PROMO10: diary deck 19 slides («Сигнум», «Отметки о влечениях», visits and labs, new screenshots); demo visits/labs; lab sheet one-height fields + calendar above the sheet; dark toast description

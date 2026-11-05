@@ -23,6 +23,7 @@ import {
   staleDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { enableDoctorPush, type PushState } from '@/features/diary/dashboard/doctor-push';
+import { forgetNewPatientDrafts } from '@/features/diary/dashboard/new-patient-drafts';
 import { warmQuestionnaires } from '@/features/diary/diary-questionnaires';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
 
@@ -202,6 +203,7 @@ export function restoreDoctor(): Promise<void> {
 export function leaveDoctor(): void {
   const current = session();
   if (!current) return;
+  forgetNewPatientDrafts();
   void signOut(current)
     .catch((cause: unknown) => {
       console.warn('Дневники: выход на сервере не удался', cause);

@@ -60,6 +60,7 @@ import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-draw
 import { flushNoteEditors } from '@/features/notes/note-editor-flush';
 import {
   diariesPath,
+  diaryNewPatientPath,
   notesFormsPath,
   notesNewPatientPath,
   notesPath,
@@ -1342,10 +1343,13 @@ export function NotesView(props: {
               view={current().view}
               day={current().day}
               chart={current().chart}
+              draft={current().draft}
               onBack={() => navigateBack(notesPath())}
               onList={() => navigateBack(diariesPath())}
               onOpenPatient={(id, sub) => pushRoute(diariesPath(id, sub))}
               onReplacePatient={(id) => replaceRoute(diariesPath(id))}
+              onDraft={(id) => replaceRoute(diaryNewPatientPath(id))}
+              onOpenDraft={(id) => pushRoute(diaryNewPatientPath(id))}
             />
           </Suspense>
         )}

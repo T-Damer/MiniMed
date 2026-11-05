@@ -179,3 +179,145 @@
     animation: none;
   }
 }
+
+/* «Создать пациента» and the drafts (owner 2026-11-05) -------------------------------------- */
+
+.diary-new-shelf {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diary-new-shelf__create {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 35%, transparent);
+  border-radius: var(--theme-radius-panel);
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+  font: inherit;
+  font-weight: var(--theme-weight-strong, 600);
+  text-align: left;
+  cursor: pointer;
+}
+
+.diary-new-shelf__create-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--theme-surface-raised);
+  background: var(--theme-accent);
+}
+
+.diary-new-shelf__create-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.diary-new-shelf__drafts {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-new-draft {
+  display: flex;
+  align-items: stretch;
+  border: 1px dashed color-mix(in srgb, var(--theme-text) 30%, transparent);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface-raised);
+}
+
+.diary-new-draft__open {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  min-height: 4rem;
+  padding: 0.65rem 0.4rem 0.65rem 0.9rem;
+  border: 0;
+  border-radius: var(--theme-radius-panel) 0 0 var(--theme-radius-panel);
+  color: var(--theme-text);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.diary-new-draft__avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--theme-text) 8%, transparent);
+  font-size: 1.35rem;
+}
+
+.diary-new-draft__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-new-draft__name {
+  overflow: hidden;
+  min-width: 0;
+  font-weight: var(--theme-weight-strong, 600);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-new-draft__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.diary-new-draft__badge {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-text) 10%, transparent);
+  font-size: 0.78rem;
+  font-weight: var(--theme-weight-strong, 600);
+}
+
+.diary-new-draft__glyph {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--theme-text-faint);
+}
+
+.diary-new-draft__discard {
+  display: grid;
+  flex: none;
+  width: 3rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--theme-radius-panel) var(--theme-radius-panel) 0;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.diary-new-draft__discard-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}

@@ -4,6 +4,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Doctor's list: «Создать пациента» sits at the top of the list, also when it has patients. A patient begun and not
+  yet added stays as a «Черновик» card under it — the card opens the form where it was left, also after a reload; adding
+  the patient or the card's trash button removes it. Drafts stay on this device only, sealed, and go with sign-out.
+
 - Demo showcase: the demo doctor's four patients are made again once a day when the demo opens (history ends today,
   the fox's visit stays «завтра»), and the demo doctor has a phone (+7 777 777-77-77), so the visit card offers a call.
 

@@ -20,6 +20,26 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «Создать пациента» and new-patient drafts — 2026-11-05 (STATE DIARY-DRAFT)
+
+Owner: a top-level «Создать пациента» also when the list has patients, and a patient begun on
+«Новый пациент» is a draft card in the list that continues the editing. The doctor's list now starts
+with `NewPatientShelf` (`features/diary/dashboard/NewPatientShelf.tsx`): the button, then one dashed
+card per draft (emoji, pseudonym or «Без имени», «Черновик» + when edited, a trash button that asks
+first). The round «+» FAB of the list is gone (the button replaces it; the header «+» stays), and the
+empty state keeps only «Посмотреть на демо». The first change on an empty form makes it a draft:
+`new-patient-drafts.ts` keeps every field (pseudonym, emoji, phone, birth date, the patient's screen,
+doctor, instruction) after each change, and the address becomes `#/notes/diaries/new/<draft>` in
+place, so a reload on the form, the browser back/forward and the card all reopen it. An untouched
+form leaves no draft. «Добавить пациента» removes the draft once the server has the patient; the
+form's header trash («Удалить черновик») and the card's trash remove it too. Storage: in memory for
+the page, and on the doctor's own computer («Мой компьютер») sealed with the device's
+non-extractable AES-GCM key next to the offline copy (IndexedDB `minimed-diary-doctor`, key
+`new-patients:<doctor id>`; `keepNewPatientDrafts` in `connected/doctor-account.ts`); sign-out drops
+it. Nothing of a draft goes to the server. On someone else's computer drafts last until the page is
+closed. Covered by `e2e/diary-new-draft.spec.ts` (create → leave → reload → card → reload on the
+form → create; discard from the card). Not tested on Android or iOS devices.
+
 ## Press shade — 2026-11-04 (STATE PRESS2)
 
 Owner asked whether a tap feels like a press (a calendar day). Measured in headless Chromium as a

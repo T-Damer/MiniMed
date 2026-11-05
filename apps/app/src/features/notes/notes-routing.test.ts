@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  diaryNewPatientPath,
   isNotesFullscreenRoute,
   notesDrugComparisonPath,
   notesFormsPath,
@@ -16,6 +17,19 @@ import {
 } from '@/features/notes/notes-routing';
 
 describe('notes routing', () => {
+  it('opens «Новый пациент» empty or at a draft to continue', () => {
+    expect(diaryNewPatientPath()).toBe('#/notes/diaries/new');
+    expect(readNotesRoute(diaryNewPatientPath())).toEqual({ kind: 'diaries', patientId: 'new' });
+    const path = diaryNewPatientPath('k3v9q0a1b2c3d4e5f6g7');
+    expect(readNotesRoute(path)).toEqual({
+      kind: 'diaries',
+      patientId: 'new',
+      draft: 'k3v9q0a1b2c3d4e5f6g7',
+    });
+    // Not a draft id: the list, not an empty form under a name that is no draft.
+    expect(readNotesRoute('#/notes/diaries/new/Не-id')).toEqual({ kind: 'diaries' });
+  });
+
   it('opens «Кожа по фото» at its own address', () => {
     expect(readNotesRoute(notesSkinPhotoPath())).toEqual({ kind: 'skin-photo' });
     expect(readNotesRoute('#/notes/skin-photo?x=1')).toEqual({ kind: 'skin-photo' });

@@ -6,7 +6,7 @@ import { createSignal, onCleanup } from 'solid-js';
  * the shell never branches on a feature.
  */
 export const FULL_SCREEN_ROUTES: readonly RegExp[] = [
-  /^#\/notes\/diaries\/new$/u,
+  /^#\/notes\/diaries\/new(?:\/[a-z0-9]{8,32})?$/u,
   /^#\/notes\/diaries\/[a-z0-9]{12,32}\/(?:screen|day\/\d{4}-\d{2}-\d{2}|charts(?:\/[a-z0-9-]{1,40})?)$/u,
 ];
 

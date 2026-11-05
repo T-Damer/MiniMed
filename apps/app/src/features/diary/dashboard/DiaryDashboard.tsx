@@ -19,7 +19,6 @@ import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { createDebouncer } from '@/components/debounced-value';
 import { EmptyState } from '@/components/EmptyState';
-import { FloatingActionButton } from '@/components/FloatingActionButton';
 import type { HeaderAction } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -54,6 +53,12 @@ import {
 import { sessionGreetingLine } from '@/features/diary/dashboard/greetings';
 import { HeaderCounters } from '@/features/diary/dashboard/HeaderCounters';
 import { NEW_PATIENT_ROUTE, NewPatientScreen } from '@/features/diary/dashboard/NewPatientScreen';
+import { NewPatientShelf } from '@/features/diary/dashboard/NewPatientShelf';
+import {
+  discardNewPatientDraft,
+  loadNewPatientDrafts,
+  newPatientDrafts,
+} from '@/features/diary/dashboard/new-patient-drafts';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientChartsPage } from '@/features/diary/dashboard/PatientChartsPage';
@@ -201,6 +206,12 @@ export function DiaryDashboard(props: {
   readonly onOpenPatient: (id: string, sub?: DiarySub) => void;
   /** The new patient's page in place of «Новый пациент», so back returns to the list. */
   readonly onReplacePatient: (id: string) => void;
+  /** «Новый пациент» continued from this draft (`new-patient-drafts.ts`). */
+  readonly draft?: string | undefined;
+  /** The empty form became a draft: the address takes its id, in place. */
+  readonly onDraft: (id: string) => void;
+  /** A draft card in the list: «Новый пациент» where the doctor left it. */
+  readonly onOpenDraft: (id: string) => void;
   readonly onList: () => void;
 }): JSX.Element {
   // The session, the workspace and its patients outlive this component (doctor-store.ts): a tab
@@ -225,6 +236,7 @@ export function DiaryDashboard(props: {
   const openPatient = (id: string, sub?: DiarySub): void =>
     navigateWithMotion(() => props.onOpenPatient(id, sub));
   const toList = (): void => navigateWithMotion(props.onList);
+  const openDraft = (id: string): void => navigateWithMotion(() => props.onOpenDraft(id));
   const toPatient = (id: string): void => navigateWithMotion(() => navigateBack(diariesPath(id)));
   const chooseOrder = (next: PatientOrder): void => {
     setOrder(next);
@@ -239,6 +251,11 @@ export function DiaryDashboard(props: {
   onMount(() => {
     void restoreDoctor();
     workspace()?.refreshQuietly();
+  });
+  // The new patients begun on this device show at the top of the list once the doctor is in.
+  createEffect(() => {
+    const current = session();
+    if (current) void loadNewPatientDrafts(current);
   });
 
   /** When the copy on screen was saved, without a network; undefined while live. */
@@ -586,12 +603,6 @@ export function DiaryDashboard(props: {
           <SignInGarden />
         </div>
       </Show>
-      <Show when={session() && !props.patientId}>
-        <FloatingActionButton
-          label="Новый пациент"
-          onClick={() => openPatient(NEW_PATIENT_ROUTE)}
-        />
-      </Show>
       <Show when={session()}>
         <ConfirmationDialog
           open={leaving()}
@@ -661,6 +672,8 @@ export function DiaryDashboard(props: {
         {(diaries) => (
           <NewPatientScreen
             workspace={diaries()}
+            draftId={props.draft}
+            onDraft={props.onDraft}
             onBack={toList}
             onCreated={(id) => props.onReplacePatient(id)}
           />
@@ -828,6 +841,16 @@ export function DiaryDashboard(props: {
                   <PatientRowsSkeleton label="Загружаем дневники" testId="patient-list-skeleton" />
                 }
               >
+                {/* «Создать пациента» stays above the list, however long (owner 2026-11-05). */}
+                <NewPatientShelf
+                  drafts={newPatientDrafts()}
+                  onCreate={() => openPatient(NEW_PATIENT_ROUTE)}
+                  onOpen={openDraft}
+                  onDiscard={(id) => {
+                    const current = session();
+                    if (current) discardNewPatientDraft(current, id);
+                  }}
+                />
                 <Show
                   when={patients().length}
                   fallback={
@@ -837,18 +860,13 @@ export function DiaryDashboard(props: {
                       text="Соберите экран дневника и покажите пациенту QR-код."
                       data-testid="diary-empty"
                       actions={
-                        <>
-                          <Button variant="primary" onClick={() => openPatient(NEW_PATIENT_ROUTE)}>
-                            Новый пациент
-                          </Button>
-                          <Show when={workspace()}>
-                            {(diaries) => (
-                              <Button disabled={Boolean(demo())} onClick={() => addDemo(diaries())}>
-                                Посмотреть на демо
-                              </Button>
-                            )}
-                          </Show>
-                        </>
+                        <Show when={workspace()}>
+                          {(diaries) => (
+                            <Button disabled={Boolean(demo())} onClick={() => addDemo(diaries())}>
+                              Посмотреть на демо
+                            </Button>
+                          )}
+                        </Show>
                       }
                     />
                   }
