@@ -152,3 +152,25 @@ def test_drug_codes_written_with_cyrillic_look_alikes_are_spelled_in_latin() -> 
         ["ВОIАC06", "B01AC06"],
     ]
     assert fix_codes("Латинский CYP3A4 и слово ПРЕПАРАТ")[1] == []
+
+
+def test_a_running_page_header_read_as_a_heading_becomes_a_page_mark() -> None:
+    source = _source(
+        [
+            _block(0, "heading", "КЛОЗАПИН АВЕКСИМА"),
+            _block(1, "heading", "Состав"),
+            _block(2, "paragraph", "Клозапин 25 мг."),
+            _block(3, "heading", "КЛОЗАПИН АВЕКСИМА"),
+            _block(4, "paragraph", "Текст следующей страницы."),
+        ],
+        "ocr",
+    )
+    prepared = _prepared(source).replace(
+        "id: doc\n", "id: doc\nmetadata:\n  tradeName: Клозапин Авексима\n"
+    )
+    result = rerender_repaired("doc", prepared, source)
+    assert result is not None
+    assert result.running_headers == 1
+    body = result.markdown.split("\n---\n", 1)[1]
+    assert body.count("# КЛОЗАПИН АВЕКСИМА") == 1
+    assert "localmed:page-mark" in body

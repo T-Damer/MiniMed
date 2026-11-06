@@ -14,6 +14,9 @@ The rules (an OCR audit of the 2 306 OCR texts by Haiku agents, 2026-11-06; FIX-
   applies when it prepares a new OCR text («08103m90 • ОГРН 112189 Г. ЯРОС!»). Nothing is dropped.
   Also stamp words of the ministry copy, registration numbers printed as page headers, table rows
   (cells apart by « | ») and sentences starting in lower case, which the OCR promoted to headings.
+* OCR texts: a running page header read as a heading — the trade name again after the title, or
+  an all-capitals heading met again — becomes a page mark (`markKind: running-header`), as the OCR
+  step already does with stamps: kept in the source, off the page and the contents.
 * OCR texts: ATC and CYP codes spelled with Cyrillic look-alike letters (CYP3A4 read with a
   Cyrillic S, U, R and a Ze for the 3) are written in Latin; only a whole token that becomes a
   valid code changes, and the block keeps
@@ -120,20 +123,72 @@ def fix_codes(text: str) -> tuple[str, list[list[str]]]:
     return _CODE_CANDIDATE.sub(replace, text), fixes
 
 
+def _heading_key(text: str) -> str:
+    folded = text.casefold().replace("ё", "е").replace("®", "").replace("™", "")
+    return re.sub(r"\s+", " ", folded).strip(" .:;,")
+
+
+def running_headers(
+    pages: Sequence[ExtractedPage], *, ocr_pages: set[int], trade_name: str | None
+) -> set[str]:
+    """Block ids of OCR headings that repeat a page's running header: the trade name again after the
+    title, or a non-standard all-capitals heading met again (kept the first time)."""
+    trade = _heading_key(trade_name) if trade_name else ""
+    seen: set[str] = set()
+    marked: set[str] = set()
+    for page in pages:
+        if page.page not in ocr_pages:
+            continue
+        for block in sorted(page.blocks, key=lambda item: item.order_index):
+            if block.kind != "heading" or block.removed:
+                continue
+            text = block.text.strip()
+            key = _heading_key(text)
+            if not key or standard_heading(text) is not None:
+                continue
+            repeated = key in seen
+            seen.add(key)
+            if not repeated:
+                continue
+            if key == trade or (text.isupper() and len(key) > 3):
+                marked.add(block.id)
+    return marked
+
+
 @dataclass
 class RepairCounters:
     headings_demoted: int = 0
     flattened_table_blocks: int = 0
     codes_fixed: int = 0
+    running_headers: int = 0
     examples: list[str] = field(default_factory=lambda: list[str]())
     #: Every code rewritten, with its block: the overlay keeps them as the record of the change.
     code_fixes: list[dict[str, str]] = field(default_factory=lambda: list[dict[str, str]]())
 
 
-def repair_page(page: ExtractedPage, *, ocr: bool, counters: RepairCounters) -> ExtractedPage:
+def repair_page(
+    page: ExtractedPage,
+    *,
+    ocr: bool,
+    counters: RepairCounters,
+    running: set[str] | None = None,
+) -> ExtractedPage:
     blocks = sorted(page.blocks, key=lambda item: item.order_index)
     repaired: list[ExtractedBlock] = []
     for block in blocks:
+        if running and block.id in running:
+            # A running page header read as a heading: a page mark, as the OCR step makes of stamps.
+            counters.running_headers += 1
+            repaired.append(
+                block.model_copy(
+                    update={
+                        "kind": "page_mark",
+                        "heading_level": None,
+                        "metadata": {**block.metadata, "markKind": "running-header"},
+                    }
+                )
+            )
+            continue
         if ocr and block.kind == "heading" and not block.removed and is_junk_heading(block.text):
             counters.headings_demoted += 1
             if len(counters.examples) < 40:
@@ -166,7 +221,9 @@ def repair_page(page: ExtractedPage, *, ocr: bool, counters: RepairCounters) -> 
     return page.model_copy(update={"blocks": repaired})
 
 
-def repair_extraction(extracted: ExtractedSource, counters: RepairCounters) -> ExtractedSource:
+def repair_extraction(
+    extracted: ExtractedSource, counters: RepairCounters, trade_name: str | None = None
+) -> ExtractedSource:
     diagnostics = extracted.diagnostics
     ocr_document = diagnostics.text_extraction_mode == "ocr"
     ocr_pages = set(diagnostics.ocr_pages)
@@ -174,10 +231,15 @@ def repair_extraction(extracted: ExtractedSource, counters: RepairCounters) -> E
     def page_is_ocr(page: ExtractedPage) -> bool:
         return ocr_document and (not ocr_pages or page.page in ocr_pages)
 
+    running = running_headers(
+        extracted.pages,
+        ocr_pages={page.page for page in extracted.pages if page_is_ocr(page)},
+        trade_name=trade_name,
+    )
     return extracted.model_copy(
         update={
             "pages": [
-                repair_page(page, ocr=page_is_ocr(page), counters=counters)
+                repair_page(page, ocr=page_is_ocr(page), counters=counters, running=running)
                 for page in extracted.pages
             ]
         }
@@ -193,6 +255,7 @@ class Repaired:
     headings_demoted: int
     flattened_table_blocks: int
     codes_fixed: int
+    running_headers: int = 0
     code_fixes: tuple[dict[str, str], ...] = ()
 
 
@@ -217,8 +280,11 @@ def rerender_repaired(
             f"{document_id}: the stored extraction does not render to the stored Markdown."
         )
     counters = RepairCounters()
+    trade = re.search(r"^\s+tradeName: ['\"]?(.+?)['\"]?$", head, re.MULTILINE)
     body = render_body(
-        repair_extraction(extracted, counters), source_id=document_id, contents_lists=flag
+        repair_extraction(extracted, counters, trade.group(1) if trade else None),
+        source_id=document_id,
+        contents_lists=flag,
     )
     if f"\n{body}" == old_body:
         return None
@@ -231,6 +297,7 @@ def rerender_repaired(
         flattened_table_blocks=counters.flattened_table_blocks,
         codes_fixed=counters.codes_fixed,
         code_fixes=tuple(counters.code_fixes),
+        running_headers=counters.running_headers,
     )
 
 
@@ -245,6 +312,7 @@ def overlay_row(result: Repaired, workspace_label: str, source_workspace: str) -
         "headingsDemoted": result.headings_demoted,
         "flattenedTableBlocks": result.flattened_table_blocks,
         "codesFixed": result.codes_fixed,
+        "runningHeaders": result.running_headers,
         "codeFixes": list(result.code_fixes),
     }
 
@@ -285,6 +353,9 @@ def summarize(results: Sequence[Repaired], failures: Sequence[Mapping[str, str]]
         if result.headings_demoted:
             counter["documentsWithHeadingsDemoted"] += 1
             counter["headingsDemoted"] += result.headings_demoted
+        if result.running_headers:
+            counter["documentsWithRunningHeaders"] += 1
+            counter["runningHeaders"] += result.running_headers
         if result.codes_fixed:
             counter["documentsWithCodesFixed"] += 1
             counter["codesFixed"] += result.codes_fixed
