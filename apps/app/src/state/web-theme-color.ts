@@ -68,7 +68,8 @@ export function wantsDarkIcons(color: string): boolean | undefined {
     const value = Number(channel) / 255;
     return value <= 0.039_28 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
-  const luminance = 0.2126 * (linear[0] ?? 0) + 0.7152 * (linear[1] ?? 0) + 0.0722 * (linear[2] ?? 0);
+  const luminance =
+    0.2126 * (linear[0] ?? 0) + 0.7152 * (linear[1] ?? 0) + 0.0722 * (linear[2] ?? 0);
   // Above ~0.18 dark icons read better than light ones (equal contrast point of black and white).
   return luminance > 0.18;
 }
