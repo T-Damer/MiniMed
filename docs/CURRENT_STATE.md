@@ -20,6 +20,18 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Release 0.6.93 — 2026-11-06
+
+- **In it:** PSY1 («Психический статус», filled from a conversation), BG1 (paper grain on the page grounds) and the
+  first FORMFILL1 slice («Заполнить по беседе» on 070/у and CHA₂DS₂-VASc, word cues, no model). The owner saw the
+  form-filler screenshots (070/у, 390 px, light and dark) before the release. FORMFILL1's form picker on a recording
+  and the Android schema support stay on `form-fill` for the next release.
+- **CI fix.** BG1 added `--theme-grain` to the theme, and the generated native `DesignTokens.kt` lists every skipped
+  token, so `native:source:check` was red from 789a06244; regenerated with `bun run native:tokens`.
+- **Stale e2e.** `assessments.spec.ts` expected «Создать опросник» as a primary button; since the «Мои опросники»
+  header it is an icon header action like import.
+- **Checks.** see STATE «Recently done». Not checked on a phone.
+
 ## A form filled from a conversation — 2026-11-05 (STATE FORMFILL1, branch `form-fill` on `scribe1`)
 
 Any form — a questionnaire, a calculator, an official blank — can take its values from a recorded
