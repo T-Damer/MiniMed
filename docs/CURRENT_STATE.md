@@ -116,7 +116,7 @@ Details, sources and the withdrawal steps: `docs/ASSESSMENTS.md` «СМИЛ … 
   show their text (`components/external-url-segments.ts`; before, the brackets stayed and the label
   became the host). Chunks the preparer marks `review: table-candidate` with ` | ` cells (scanned
   tables whose rows could not be rebuilt, e.g. Ламотриджин «Таблица 6») show as a cell table with a
-  «Таблица из скана» badge (`OcrTableBlock`), not raw pipes. Drug instructions keep the manufacturer
+  «Таблица из скана» badge, not raw pipes (per line since FIX-BATCH2, below). Drug instructions keep the manufacturer
   and «Организация, принимающая претензии» sections (type `registration` + title) and their nested
   sections (the «08103m90 ОГРН …» stamp) off the page, in «⋯» → «Информация». Preparer, not yet in
   any published pack: `ocr_requality.py` demotes a registry stamp read as a heading to a paragraph
