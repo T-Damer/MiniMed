@@ -434,6 +434,8 @@ export function useDocumentReaderChrome(
   };
 
   const bindOutlineScrollbars = (instance: OverlayScrollbarsInstance): void => {
+    // Bound once per list (the ref and the deferred `initialized` event may both report it).
+    detachOutlineViewportScroll?.();
     const viewport = instance.elements().viewport;
     viewport?.addEventListener('scroll', scheduleOutlineSearchSticky, { passive: true });
     scheduleOutlineSearchSticky();
@@ -714,6 +716,8 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 }}
                 class="document-overlay-outline-nav-scroll os-theme-dark"
                 options={{ overflow: { x: 'hidden', y: 'scroll' } }}
+                // Deferred: the instance exists only from here, after the ref has run.
+                events={{ initialized: (instance) => chrome.bindOutlineScrollbars(instance) }}
                 defer
               >
                 <nav

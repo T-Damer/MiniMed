@@ -26,6 +26,12 @@ const CHROME_HIDE_DISTANCE = 40;
 const CHROME_SHOW_DISTANCE = 24;
 /** This close to the end of the page they come back (nothing more to read below). */
 const CHROME_END_SLACK = 8;
+/**
+ * After the controls slide in or out the page may shift under them (the sticky heading line, scroll
+ * anchoring); those movements are not the reader's and are ignored for this long. Without it a
+ * shown bar shifted the page down, which read as a downward scroll and hid it again.
+ */
+const CHROME_SETTLE_MS = 260;
 
 export function useRootNavigation() {
   // First listener on the history: every entry is stamped before any route code reads it.
@@ -228,6 +234,7 @@ export function useRootNavigation() {
    * jitter, a layout shift or a short flick back and forth leaves them where they are.
    */
   let scrollRun = 0;
+  let chromeToggledAt = Number.NEGATIVE_INFINITY;
   let endCheck: number | undefined;
   /** The end of the page brings the controls back; read once per frame, where layout is due anyway. */
   const scheduleEndCheck = (target: EventTarget | null | undefined): void => {
@@ -258,6 +265,10 @@ export function useRootNavigation() {
       return;
     }
     if (direction === 0) return;
+    if (performance.now() - chromeToggledAt < CHROME_SETTLE_MS) {
+      scrollRun = 0;
+      return;
+    }
     // A change of direction starts a new run.
     scrollRun = Math.sign(direction) === Math.sign(scrollRun) ? scrollRun + direction : direction;
     if (scrollTop <= CHROME_DIRECTION_THRESHOLD || scrollRun <= -CHROME_SHOW_DISTANCE) {
@@ -282,7 +293,12 @@ export function useRootNavigation() {
       if (chromeHidden()) setChromeHidden(false);
       lastScrollTop = window.scrollY;
     }
-    document.documentElement.classList.toggle('app-chrome-hidden', canHideChrome && chromeHidden());
+    const hidden = canHideChrome && chromeHidden();
+    if (document.documentElement.classList.contains('app-chrome-hidden') !== hidden) {
+      chromeToggledAt = performance.now();
+      scrollRun = 0;
+    }
+    document.documentElement.classList.toggle('app-chrome-hidden', hidden);
   });
 
   // The arrived page's blocks grow in (app/page-enter.ts) from the first frame that draws them: a

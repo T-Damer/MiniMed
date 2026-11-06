@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 5 November 2026
+> Updated: 6 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,74 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Owner's batch of 15 — 2026-11-06 (STATE FIX-BATCH1; not released)
+
+- **Травник.** The book shows a skeleton of its search bar, chips and card grid from the first frame
+  (the first open after a start waits ~1.5–3 s for the core's document list; before, the page stayed
+  empty) and fades the book in (`--motion-fast`). The pinned search/chips draw the blurred backdrop
+  the other catalog toolbars use (`knowledge-subroute-heading--blurred`), so cards no longer slide under
+  bare chips. The hero's corner icon is a real button (`PreviewableImage` `expand`): it opens the
+  picture like a tap on it. The hero shows the chapter's thumbnail at once; the plates module's full
+  plate is read only when the picture is opened full screen (`resolveLarge`).
+- **Reader performance** (`e2e/reader-perf.spec.ts`, `READER_PERF=1`: a long КР at 4× CPU, frame times
+  and a CPU profile by function). The rolling page number asked each digit for `getAnimations()` on
+  every change — 570 ms of a 10 s scroll; it now keeps its own animations and skips the roll when
+  digits change faster than a roll lasts. The scroll spy and the sticky section path searched every
+  heading from the top on each frame and re-read the heading list on every DOM mutation; they now walk
+  from the last answer (`lastItemAboveLine`), re-read lists once per frame after a change, and cache
+  the scroll margin / sticky offset until a resize or chrome change. Fling: long tasks 16 → 7, read
+  scroll max frame 117 → 74 ms. Left: OverlayScrollbars of wide tables and the browser's own layout
+  are most of what remains («(program)»).
+- **Reader top bar.** Hides after a 40 px downward run past 96 px, returns after a 24 px upward run,
+  at the top or at the end of the page (end read in the next frame, no forced layout per scroll
+  event); jitter and layout shifts no longer toggle it. «⋯» → «Закрепить панель» keeps it in place
+  (`readerChromePinned` preference, `state/reader-chrome-pin.ts`).
+- **Contents scrollbar.** The overlay bar runs in its own lane beside the cards
+  (`document-overlay-outline-nav--gutter`) and is hidden when less than max(64 px, 15 %) of the list
+  is out of view (`outlineNeedsScrollbar`).
+- **«Другие».** Under the title, chips for the other documents with the same name (КР, справочник,
+  definition…), from the document list the reader already has (`same-title-documents.ts`: case/«ё»
+  folded, the document's own editions and its module pointer left out).
+- **Document rendering.** Markdown links `[text](https://…)` in running text open their address and
+  show their text (`components/external-url-segments.ts`; before, the brackets stayed and the label
+  became the host). Chunks the preparer marks `review: table-candidate` with ` | ` cells (scanned
+  tables whose rows could not be rebuilt, e.g. Ламотриджин «Таблица 6») show as a cell table with a
+  «Таблица из скана» badge (`OcrTableBlock`), not raw pipes. Drug instructions keep the manufacturer
+  and «Организация, принимающая претензии» sections (type `registration` + title) and their nested
+  sections (the «08103m90 ОГРН …» stamp) off the page, in «⋯» → «Информация». Preparer, not yet in
+  any published pack: `ocr_requality.py` demotes a registry stamp read as a heading to a paragraph
+  (`demotedFrom=heading`), `pdf_import.py` marks flattened native-PDF frequency tables (Флуоксетин,
+  Дулоксетин adverse effects: one block per cell) `table_candidate` + `flattenedTable`. They need a
+  re-OCR / re-extraction and a module rebuild; findings and commands:
+  side-session notes `fixbatch1-doc-rendering.md`. The garbled adverse-effects lines are in
+  Флуоксетин / Дулоксетин Канон, not in any Ламотриджин document.
+- **Search.** A submitted query shows «По названию» at once: documents whose titles carry its words
+  (≤3 words, each ≥3 letters, word starts), from a keyword → document index built on the device
+  from the navigation list (`features/search/title-index.ts`; 26 192 titles → 19 159 words, 107 865
+  postings, ≈0.86 MB in memory, 70 ms to build on a Mac, built while idle; nothing stored). The
+  full-text results arrive below without moving it (dev Mac: titles at ~70 ms, full «Везде» search
+  ~2.4 s). On a phone the keyboard goes away on submit. With a section chosen and the field empty,
+  the scrolled-away field pill names the section instead of «Поиск».
+- **Questionnaires.** A point-in-quadrants result chart (temperament profile) is drawn on the page
+  as the same symmetric SVG it prints (`assessmentChartPrintSvg(spec, 'schema-chart')`), not the
+  plotted chart pushed aside by its tick labels. «Действия» → «Печать» opens a preview of the
+  printed page with «Книжная / Альбомная» and toggles for result, chart, questions and answers
+  (`AssessmentPrintDialog`, `assessmentRecordPrintHtml`); the sheet in the preview is the printed
+  document with the printer's margins. Print order: result → chart → questions; body 9.5 pt.
+- **Status bar (Android).** The bar stays transparent; its icons now follow the colour under it
+  (`watchTopEdgeContrast` → `setTopEdgeStatusBarIcons`), so a dark hero band in the light theme gets
+  light icons. Not checked on a device.
+- **Printing.** The phone print preview shrank a whole document into one A4 sheet: a 20-page drug
+  instruction became a blank-looking page. Documents taller than 1.35 sheets now fit the width and
+  flow (`computePrintPreviewLayout`); the fit is dropped on paper. Paper previews mark where the
+  printer starts a new page («Страница 2», form 107-1/у's back). The vaccination print dialog is
+  named like its sheet («Прививки ребёнка»).
+- **Print audit (Haiku subagent).** Rendered forms 070/у and 107-1/у, the vaccination sheet,
+  temperament, Braverman, PHQ-9 and a drug print to PDF. Found: 107-1/у preview without its page
+  break (fixed), vaccination title mismatch (fixed), small chart captions (fixed), drug print of an
+  uninstalled module prints only its index (expected). Not reached: diary prints (demo server 502),
+  recipe (needs a 28 MB module), psy-status (no print action).
 
 ## Release 0.6.93 — 2026-11-06
 

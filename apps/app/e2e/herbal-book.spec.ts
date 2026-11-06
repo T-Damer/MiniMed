@@ -47,7 +47,19 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   await page.locator('.herbal-book__plates-offer').getByRole('button').first().click();
   await expect(page.locator('.herbal-book__plates-offer')).toHaveCount(0, { timeout: 120_000 });
 
+  // The book's sticky search and chips draw their backdrop once they are pinned.
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect(page.locator('.herbal-book__toolbar')).toHaveClass(/sticky-surface--stuck/u);
+  await expect(page.locator('.herbal-book__toolbar')).toHaveClass(
+    /knowledge-subroute-heading--blurred/u,
+  );
+
   await openChapter(page, 'Ромашка аптечная');
+  // The corner icon of the picture opens it full screen, like a tap on the picture itself.
+  await page.locator('.reader-hero__expand').click();
+  await expect(page.locator('.media-viewer__image')).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('.media-viewer__image')).toHaveCount(0);
   const chapter = page.locator('.herbal-chapter');
   await expect(chapter).toContainText('Как заварить');
   await expect(chapter).toContainText('Кому нельзя');
