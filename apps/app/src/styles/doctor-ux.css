@@ -222,6 +222,11 @@
   padding-bottom: 0.5rem;
 }
 
+/* The overlay scrollbar runs in its own lane beside the cards, never over them. */
+.document-overlay-outline-nav--gutter {
+  padding-inline-end: 0.875rem;
+}
+
 .document-overlay-outline-section-button {
   display: flex;
   min-width: 0;

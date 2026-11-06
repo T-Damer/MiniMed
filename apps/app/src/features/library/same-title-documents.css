@@ -1,0 +1,22 @@
+/* «Другие»: the documents of the same name, a row of chips under the reader's title. */
+.same-title-documents {
+  display: grid;
+  gap: 0.375rem;
+  margin-block: 0.25rem 0.75rem;
+}
+
+.same-title-documents__label {
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.same-title-documents__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

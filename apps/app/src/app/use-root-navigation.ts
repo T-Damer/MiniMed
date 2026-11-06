@@ -14,11 +14,18 @@ import { visitRoute } from '@/state/app-back';
 import { isDocumentReadRoute } from '@/state/document-route';
 import { currentHistoryEntry, installHistoryEntryTracking } from '@/state/history-entries';
 import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
+import { readerChromePinned } from '@/state/reader-chrome-pin';
 import { installScrollRestoration, rememberedScroll } from '@/state/scroll-restore';
 import { trackToolNavigation } from '@/state/tool-navigation';
 
 const CHROME_HIDE_AFTER = 96;
 const CHROME_DIRECTION_THRESHOLD = 1;
+/** A downward run this long hides the reader's controls. */
+const CHROME_HIDE_DISTANCE = 40;
+/** An upward run this long brings them back. */
+const CHROME_SHOW_DISTANCE = 24;
+/** This close to the end of the page they come back (nothing more to read below). */
+const CHROME_END_SLACK = 8;
 
 export function useRootNavigation() {
   // First listener on the history: every entry is stamped before any route code reads it.
@@ -214,18 +221,51 @@ export function useRootNavigation() {
     return window.scrollY;
   };
 
+  /**
+   * The reader's controls follow a deliberate scroll, not every pixel (owner 2026-11-06: the bar
+   * hid oddly). Distance is summed per direction: a downward run of `CHROME_HIDE_DISTANCE` hides
+   * them, an upward run of `CHROME_SHOW_DISTANCE`, the top of the page or its end shows them. A
+   * jitter, a layout shift or a short flick back and forth leaves them where they are.
+   */
+  let scrollRun = 0;
+  let endCheck: number | undefined;
+  /** The end of the page brings the controls back; read once per frame, where layout is due anyway. */
+  const scheduleEndCheck = (target: EventTarget | null | undefined): void => {
+    if (endCheck !== undefined) return;
+    endCheck = requestAnimationFrame(() => {
+      endCheck = undefined;
+      if (!chromeHidden()) return;
+      const scroller =
+        target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')
+          ? target
+          : document.documentElement;
+      const top = scroller === document.documentElement ? window.scrollY : scroller.scrollTop;
+      if (scroller.scrollHeight - scroller.clientHeight - top <= CHROME_END_SLACK) {
+        scrollRun = 0;
+        setChromeHidden(false);
+      }
+    });
+  };
   const handleScroll = (event?: Event): void => {
     const scrollTop = readScrollTop(event);
     const direction = scrollTop - lastScrollTop;
     lastScrollTop = scrollTop;
-    const canHideChrome = documentReadActive() && !medicalImageViewerActive();
+    const canHideChrome =
+      documentReadActive() && !medicalImageViewerActive() && !readerChromePinned();
     if (!canHideChrome || performance.now() < chromeHoldUntil) {
+      scrollRun = 0;
       if (chromeHidden()) setChromeHidden(false);
-    } else if (scrollTop <= CHROME_DIRECTION_THRESHOLD || direction < -CHROME_DIRECTION_THRESHOLD) {
+      return;
+    }
+    if (direction === 0) return;
+    // A change of direction starts a new run.
+    scrollRun = Math.sign(direction) === Math.sign(scrollRun) ? scrollRun + direction : direction;
+    if (scrollTop <= CHROME_DIRECTION_THRESHOLD || scrollRun <= -CHROME_SHOW_DISTANCE) {
       setChromeHidden(false);
-    } else if (scrollTop > CHROME_HIDE_AFTER && direction > CHROME_DIRECTION_THRESHOLD) {
+    } else if (scrollTop > CHROME_HIDE_AFTER && scrollRun >= CHROME_HIDE_DISTANCE) {
       setChromeHidden(true);
     }
+    if (chromeHidden() && direction > 0) scheduleEndCheck(event?.target);
   };
 
   const handleChromeHold = (event: Event): void => {
@@ -236,7 +276,8 @@ export function useRootNavigation() {
   };
 
   createEffect(() => {
-    const canHideChrome = documentReadActive() && !medicalImageViewerActive();
+    const canHideChrome =
+      documentReadActive() && !medicalImageViewerActive() && !readerChromePinned();
     if (!canHideChrome) {
       if (chromeHidden()) setChromeHidden(false);
       lastScrollTop = window.scrollY;
@@ -336,6 +377,7 @@ export function useRootNavigation() {
     window.removeEventListener(READER_CHROME_HOLD_EVENT, handleChromeHold);
     document.documentElement.classList.remove('app-chrome-hidden');
     if (settleTimer) clearTimeout(settleTimer);
+    if (endCheck !== undefined) cancelAnimationFrame(endCheck);
   });
 
   return {

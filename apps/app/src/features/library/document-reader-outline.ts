@@ -16,18 +16,48 @@ export function skippedByContentVisibility(section: HTMLElement): boolean {
   return section.checkVisibility?.({ contentVisibilityAuto: true }) === false;
 }
 
+/**
+ * The last item whose top is above the reading line (at it too unless `strict`), among items the
+ * browser lays out. Tops grow in document order, so the search starts from the previous answer
+ * (`hint`) and walks only as far as the reader scrolled: a long document no longer measures every
+ * section above the line on every frame (owner 2026-11-06, the reader lagged).
+ */
+export function lastItemAboveLine(
+  items: readonly HTMLElement[],
+  line: number,
+  hint = -1,
+  strict = false,
+): number {
+  const above = (index: number): boolean => {
+    const top = items[index]?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+    return strict ? top < line : top <= line;
+  };
+  const usable = (index: number): boolean => {
+    const item = items[index];
+    return item !== undefined && !skippedByContentVisibility(item);
+  };
+  let index = Math.min(hint, items.length - 1);
+  while (index >= 0 && !usable(index)) index -= 1;
+  if (index >= 0 && !above(index)) {
+    while (index >= 0 && (!usable(index) || !above(index))) index -= 1;
+    return index;
+  }
+  for (let next = index + 1; next < items.length; next += 1) {
+    if (!usable(next)) continue;
+    if (!above(next)) break;
+    index = next;
+  }
+  return index;
+}
+
 export function pickActiveSectionAnchor(
   sections: readonly HTMLElement[],
   readingLine: number,
+  hint = -1,
 ): string {
   if (sections.length === 0) return '';
-  let nextAnchor = sections[0]?.id ?? '';
-  for (const section of sections) {
-    if (skippedByContentVisibility(section)) continue;
-    if (section.getBoundingClientRect().top > readingLine) break;
-    nextAnchor = section.id;
-  }
-  return nextAnchor;
+  const index = lastItemAboveLine(sections, readingLine, hint);
+  return sections[Math.max(index, 0)]?.id ?? '';
 }
 
 /**

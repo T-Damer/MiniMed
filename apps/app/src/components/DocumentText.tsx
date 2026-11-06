@@ -14,6 +14,7 @@ import {
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { externalUrlLabel } from '@/components/external-url-label';
+import { segmentTextWithExternalUrls } from '@/components/external-url-segments';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
 import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
@@ -43,12 +44,6 @@ import { useHistoryLayer } from '@/state/use-history-layer';
 /** The code sheet of a code met in a text; its chunk loads on the first tap. */
 const AtcTextCodeSheet = lazy(() => import('@/features/medications/AtcTextCodeSheet'));
 
-const EXTERNAL_URL_PATTERN = /https?:\/\/[^\s<>"')\]]+/gu;
-
-type PlainTextSegment =
-  | { readonly kind: 'text'; readonly value: string }
-  | { readonly kind: 'url'; readonly value: string };
-
 type TextSlice<T extends { readonly value: string }> = T & { readonly offset: number };
 
 function withTextOffsets<T extends { readonly value: string }>(
@@ -60,26 +55,6 @@ function withTextOffsets<T extends { readonly value: string }>(
     offset += segment.value.length;
     return result;
   });
-}
-
-function segmentTextWithExternalUrls(text: string): readonly PlainTextSegment[] {
-  const segments: PlainTextSegment[] = [];
-  let lastIndex = 0;
-
-  for (const match of text.matchAll(EXTERNAL_URL_PATTERN)) {
-    const start = match.index ?? 0;
-    if (start > lastIndex) {
-      segments.push({ kind: 'text', value: text.slice(lastIndex, start) });
-    }
-    segments.push({ kind: 'url', value: match[0] });
-    lastIndex = start + match[0].length;
-  }
-
-  if (lastIndex < text.length) {
-    segments.push({ kind: 'text', value: text.slice(lastIndex) });
-  }
-
-  return segments.length > 0 ? segments : [{ kind: 'text', value: text }];
 }
 
 function glyphForDocumentLinkKind(kind: DocumentInlineLinkKind): AppGlyphName {
@@ -560,24 +535,26 @@ function LinkedPlainText(props: {
                       urlSegment.kind === 'url' ? (
                         <a
                           class="document-inline-link"
-                          href={urlSegment.value}
+                          href={urlSegment.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title={urlSegment.value}
+                          title={urlSegment.href}
                         >
                           <AppGlyph
                             name="arrow-square-up-right"
                             class="document-inline-link__icon"
                           />
                           <HighlightedLabel
-                            text={externalUrlLabel(urlSegment.value)}
+                            text={urlSegment.label ?? externalUrlLabel(urlSegment.href)}
                             query={props.query}
                             exactQuery={props.exactQuery}
                             fuzzyQuery={props.fuzzyQuery}
                             highlightClass={props.highlightClass}
-                            // A shortened label no longer lines up with the ranges of the full address.
+                            // A link text or shortened label no longer lines up with the ranges of the
+                            // text as written.
                             ranges={
-                              externalUrlLabel(urlSegment.value) === urlSegment.value
+                              !urlSegment.label &&
+                              externalUrlLabel(urlSegment.href) === urlSegment.value
                                 ? props.ranges
                                 : undefined
                             }

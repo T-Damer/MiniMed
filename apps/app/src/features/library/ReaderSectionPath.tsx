@@ -44,17 +44,25 @@ export function ReaderSectionPath(): JSX.Element {
     const stickyAnchor = anchor;
     const stickyLine = line;
     let headings: readonly HTMLElement[] = [];
-    const refresh = (): void => {
-      headings = Array.from(paper.querySelectorAll<HTMLElement>(TITLE_SELECTOR));
-    };
-    refresh();
+    // The list and the sticky offset are read again only when the page or the chrome changed, in
+    // the next frame, not on every mutation or scroll (owner 2026-11-06: the reader lagged).
+    let headingsStale = true;
+    let stickyTop: number | undefined;
+    let lastIndex = -1;
     const update = (): void => {
+      if (headingsStale) {
+        headings = Array.from(paper.querySelectorAll<HTMLElement>(TITLE_SELECTOR));
+        headingsStale = false;
+        lastIndex = -1;
+      }
+      stickyTop ??= Number.parseFloat(getComputedStyle(stickyAnchor).top);
       const anchorTop = stickyAnchor.getBoundingClientRect().top;
       // Before the line has reached its place it is still in the flow, above the first heading.
-      const stuck = anchorTop <= Number.parseFloat(getComputedStyle(stickyAnchor).top) + 1;
+      const stuck = anchorTop <= stickyTop + 1;
       const index = stuck
-        ? pickStuckHeadingIndex(headings, anchorTop + stickyLine.offsetHeight - 1)
+        ? pickStuckHeadingIndex(headings, anchorTop + stickyLine.offsetHeight - 1, lastIndex)
         : -1;
+      lastIndex = index;
       const heading = index < 0 ? undefined : headings[index];
       setShown(
         heading !== undefined ||
@@ -71,25 +79,32 @@ export function ReaderSectionPath(): JSX.Element {
         update();
       });
     };
+    const remeasure = (): void => {
+      stickyTop = undefined;
+      schedule();
+    };
     const mutations = new MutationObserver(() => {
-      refresh();
+      headingsStale = true;
       schedule();
     });
     mutations.observe(paper, { childList: true, subtree: true });
     // A section the browser starts or stops rendering changes which headings can be measured.
     paper.addEventListener('contentvisibilityautostatechange', schedule, true);
     window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
+    window.addEventListener('resize', remeasure);
     // The line moves to the screen edge when the chrome hides: measure again once it has settled.
-    stickyAnchor.addEventListener('transitionend', schedule);
+    stickyAnchor.addEventListener('transitionend', remeasure);
+    const rootClass = new MutationObserver(remeasure);
+    rootClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     schedule();
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
       mutations.disconnect();
       paper.removeEventListener('contentvisibilityautostatechange', schedule, true);
       window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-      stickyAnchor.removeEventListener('transitionend', schedule);
+      window.removeEventListener('resize', remeasure);
+      stickyAnchor.removeEventListener('transitionend', remeasure);
+      rootClass.disconnect();
     });
   });
 

@@ -427,6 +427,12 @@ def _merge(
     )
 
 
+#: Company requisites or a digit-led alphanumeric code («08103m90 • ОГРН 112189 Г. ЯРОС!»): a round
+#: stamp or a signature block printed at the end of a scan is not the title of a section. Only a
+#: heading that is not a standard section title is tested, and the text stays as a paragraph.
+STAMP_REQUISITES = re.compile(r"\b(?:огрн|инн|кпп)\b|\b\d{3,}[a-zа-яё]\w*", re.IGNORECASE)
+
+
 def refine_page(
     page: ExtractedPage,
     confidences: Mapping[int, float | None],
@@ -490,10 +496,17 @@ def refine_page(
                 (re.search(r"\d", current.text) and len(current.text) <= 14)
                 or "\\"
                 in current.text  # a heading of scan noise: a paragraph the builder can carry
+                or STAMP_REQUISITES.search(current.text)  # a registry stamp read as a title
             )
         ):
             counters.headings_demoted += 1
-            current = current.model_copy(update={"kind": "paragraph", "heading_level": None})
+            current = current.model_copy(
+                update={
+                    "kind": "paragraph",
+                    "heading_level": None,
+                    "metadata": {**current.metadata, "demotedFrom": "heading"},
+                }
+            )
         prepared.append(current)
 
     paragraph_lines = [b for b in prepared if b.kind == "paragraph" and not b.removed]

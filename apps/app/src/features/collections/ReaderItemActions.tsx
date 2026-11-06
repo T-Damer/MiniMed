@@ -3,6 +3,7 @@ import { AppContextMenu, type AppContextMenuAction } from '@/components/AppConte
 import type { AppGlyphName } from '@/components/AppGlyph';
 import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import type { ItemRefInput } from '@/state/item-collections';
+import { readerChromePinned, toggleReaderChromePinned } from '@/state/reader-chrome-pin';
 
 import './reader-item-actions.css';
 
@@ -21,8 +22,9 @@ export function createReaderBookmark(): ReaderBookmark {
 }
 
 /**
- * «Меню действий» in a reader's header: the reader's own actions (print first), then «Сохранить
- * в коллекцию», which opens the collections panel anchored on this menu.
+ * «Меню действий» in a reader's header: the reader's own actions (print first), «Закрепить панель»
+ * (the top bar stays while reading), then «Сохранить в коллекцию», which opens the collections panel
+ * anchored on this menu.
  */
 export function ReaderActionsMenu(props: {
   readonly actions: readonly AppContextMenuAction[];
@@ -32,9 +34,16 @@ export function ReaderActionsMenu(props: {
 }): JSX.Element {
   const actions = (): readonly AppContextMenuAction[] => {
     const bookmark = props.bookmark;
+    const pin: AppContextMenuAction = {
+      id: 'pin-chrome',
+      label: readerChromePinned() ? 'Не закреплять панель' : 'Закрепить панель',
+      icon: 'push-pin',
+      onSelect: toggleReaderChromePinned,
+    };
     return bookmark && props.bookmarkItem
       ? [
           ...props.actions,
+          pin,
           {
             id: 'save-to-collection',
             label: 'Сохранить в коллекцию',
@@ -43,7 +52,7 @@ export function ReaderActionsMenu(props: {
             onSelect: () => window.setTimeout(() => bookmark.setOpen(true), 0),
           },
         ]
-      : props.actions;
+      : [...props.actions, pin];
   };
   return (
     <div class="reader-actions-host">

@@ -35,6 +35,8 @@ export interface AppPreferences {
   readonly usefulFeaturesHidden: boolean;
   /** «Дети / Взрослые / Все» in every list of calculators, questionnaires and tools. */
   readonly toolAgeFilter: ToolAgeFilter;
+  /** The reader's top bar stays in place while reading instead of sliding away (reader «⋯»). */
+  readonly readerChromePinned: boolean;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -56,6 +58,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   motionSpeed: 'normal',
   usefulFeaturesHidden: false,
   toolAgeFilter: DEFAULT_TOOL_AGE_FILTER,
+  readerChromePinned: false,
 };
 
 function clampVolume(value: number): number {
@@ -79,6 +82,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly motionSpeed?: unknown;
     readonly usefulFeaturesHidden?: unknown;
     readonly toolAgeFilter?: unknown;
+    readonly readerChromePinned?: unknown;
   };
   return {
     ...(typeof candidate.devLocalModuleArtifacts === 'boolean'
@@ -128,6 +132,10 @@ function normalizePreferences(value: unknown): AppPreferences {
     toolAgeFilter: isToolAgeFilter(candidate.toolAgeFilter)
       ? candidate.toolAgeFilter
       : DEFAULT_PREFERENCES.toolAgeFilter,
+    readerChromePinned:
+      typeof candidate.readerChromePinned === 'boolean'
+        ? candidate.readerChromePinned
+        : DEFAULT_PREFERENCES.readerChromePinned,
   };
 }
 
@@ -172,6 +180,10 @@ export function loadAppPreferences(): AppPreferences {
 
 export function saveAppPreferences(preferences: AppPreferences): AppPreferences {
   return persist(normalizePreferences(preferences));
+}
+
+export function setReaderChromePinned(pinned: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), readerChromePinned: pinned });
 }
 
 export function getModuleAutoUpdatesEnabled(): boolean {

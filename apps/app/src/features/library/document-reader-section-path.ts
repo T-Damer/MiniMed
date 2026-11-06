@@ -1,4 +1,4 @@
-import { skippedByContentVisibility } from '@/features/library/document-reader-outline';
+import { lastItemAboveLine } from '@/features/library/document-reader-outline';
 
 const SECTION_SELECTOR = '.document-overlay-section';
 const TITLE_SELECTOR = '.document-overlay-section__title';
@@ -8,14 +8,12 @@ const TITLE_SELECTOR = '.document-overlay-section__title';
  * line), or -1 while none has. Headings are in document order, so a parent comes before its
  * children; one the browser skips (`content-visibility`) reports a stale box and is ignored.
  */
-export function pickStuckHeadingIndex(headings: readonly HTMLElement[], line: number): number {
-  let index = -1;
-  for (const [position, heading] of headings.entries()) {
-    if (skippedByContentVisibility(heading)) continue;
-    if (heading.getBoundingClientRect().top >= line) break;
-    index = position;
-  }
-  return index;
+export function pickStuckHeadingIndex(
+  headings: readonly HTMLElement[],
+  line: number,
+  hint = -1,
+): number {
+  return lastItemAboveLine(headings, line, hint, true);
 }
 
 function titleText(heading: Element | null): string {

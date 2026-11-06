@@ -30,8 +30,8 @@ import {
   computeReadingLine,
   DESKTOP_READER_LAYOUT_QUERY,
   isDesktopReaderLayout,
+  lastItemAboveLine,
   outlineItemSelector,
-  pickActiveSectionAnchor,
 } from '@/features/library/document-reader-outline';
 import {
   type ReaderPageModel,
@@ -51,12 +51,24 @@ import { holdReaderChrome } from '@/state/reader-chrome-hold';
 
 interface OverlayScrollbarsInstance {
   elements: () => { viewport: HTMLElement | null };
+  options: (options: { scrollbars: { visibility: 'auto' | 'hidden' } }) => unknown;
+}
+
+/**
+ * The contents list scrolls without a bar when only a little of it is hidden (owner 2026-11-06): a
+ * bar for a few lines covers the cards and says nothing. Below this much hidden content, no bar.
+ */
+export function outlineNeedsScrollbar(scrollHeight: number, clientHeight: number): boolean {
+  const hidden = scrollHeight - clientHeight;
+  return hidden > Math.max(64, clientHeight * 0.15);
 }
 
 export interface DocumentReaderChromeController {
   readonly outlineOpen: () => boolean;
   readonly setOutlineOpen: Setter<boolean>;
   readonly outlineSearchStuck: () => boolean;
+  /** The contents list shows its scrollbar; the cards then leave a gutter for it. */
+  readonly outlineScrollbar: () => boolean;
   readonly activeAnchor: () => string;
   readonly setActiveAnchor: Setter<string>;
   /**
@@ -137,6 +149,7 @@ export function useDocumentReaderChrome(
 ): DocumentReaderChromeController {
   const [outlineOpen, setOutlineOpen] = createSignal(false);
   const [outlineSearchStuck, setOutlineSearchStuck] = createSignal(false);
+  const [outlineScrollbar, setOutlineScrollbar] = createSignal(false);
   const [activeAnchor, setActiveAnchor] = createSignal(options.initialAnchor ?? '');
   const [activeFraction, setActiveFraction] = createSignal(0);
   const [chromeElement, setChromeElement] = createSignal<HTMLElement | undefined>();
@@ -293,12 +306,19 @@ export function useDocumentReaderChrome(
       ? paper.closest<HTMLElement>(options.bodyClosestSelector)
       : paper.closest<HTMLElement>('.document-page__body');
     let sections: readonly HTMLElement[] = [];
-    const refreshSections = (): void => {
-      sections = Array.from(paper?.querySelectorAll<HTMLElement>(options.sectionSelector) ?? []);
-    };
-    refreshSections();
+    // Read again in the next frame after the page changed, not once per mutation; the scroll margin
+    // likewise only after a resize or a chrome change (owner 2026-11-06: the reader lagged).
+    let sectionsStale = true;
+    let scrollMargin: number | undefined;
+    let lastSection = -1;
     const updateActiveSection = (): void => {
       if (!paper) return;
+      if (sectionsStale) {
+        sections = Array.from(paper.querySelectorAll<HTMLElement>(options.sectionSelector));
+        sectionsStale = false;
+        scrollMargin = undefined;
+        lastSection = -1;
+      }
       if (sections.length === 0) return;
       const paperScrolls = paper.scrollHeight > paper.clientHeight + 1;
       const bodyScrolls = Boolean(body && body.scrollHeight > body.clientHeight + 1);
@@ -312,13 +332,18 @@ export function useDocumentReaderChrome(
         : bodyScrolls && body
           ? body.getBoundingClientRect()
           : new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+      scrollMargin ??= sectionScrollMargin(sections[0]);
       const readingLine = computeReadingLine(
         scrollerRect,
-        sectionScrollMargin(sections[0]) + SECTION_ALIGNMENT_SLACK_PX,
+        scrollMargin + SECTION_ALIGNMENT_SLACK_PX,
       );
-      const nextAnchor = nearEnd
-        ? (sections.at(-1)?.id ?? sections[0]?.id ?? '')
-        : pickActiveSectionAnchor(sections, readingLine);
+      let nextAnchor: string;
+      if (nearEnd) {
+        nextAnchor = sections.at(-1)?.id ?? sections[0]?.id ?? '';
+      } else {
+        lastSection = lastItemAboveLine(sections, readingLine, lastSection);
+        nextAnchor = sections[Math.max(lastSection, 0)]?.id ?? '';
+      }
       if (nextAnchor !== activeAnchor()) setActiveAnchor(nextAnchor);
       if (options.measureFraction) {
         const section = nextAnchor ? document.getElementById(nextAnchor) : null;
@@ -345,20 +370,27 @@ export function useDocumentReaderChrome(
     paper.addEventListener('scroll', scheduleActiveSection, { passive: true });
     body?.addEventListener('scroll', scheduleActiveSection, { passive: true });
     window.addEventListener('scroll', scheduleActiveSection, { passive: true });
-    window.addEventListener('resize', scheduleActiveSection);
+    const remeasureSections = (): void => {
+      scrollMargin = undefined;
+      scheduleActiveSection();
+    };
+    window.addEventListener('resize', remeasureSections);
     const sectionMutations = new MutationObserver(() => {
-      refreshSections();
+      sectionsStale = true;
       scheduleActiveSection();
     });
     sectionMutations.observe(paper, { childList: true, subtree: true });
+    const chromeClass = new MutationObserver(remeasureSections);
+    chromeClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     queueMicrotask(scheduleActiveSection);
     onCleanup(() => {
       paper?.removeEventListener('scroll', scheduleActiveSection);
       body?.removeEventListener('scroll', scheduleActiveSection);
       window.removeEventListener('scroll', scheduleActiveSection);
-      window.removeEventListener('resize', scheduleActiveSection);
+      window.removeEventListener('resize', remeasureSections);
       if (activeFrame !== undefined) cancelAnimationFrame(activeFrame);
       sectionMutations.disconnect();
+      chromeClass.disconnect();
     });
   });
 
@@ -405,8 +437,32 @@ export function useDocumentReaderChrome(
     const viewport = instance.elements().viewport;
     viewport?.addEventListener('scroll', scheduleOutlineSearchSticky, { passive: true });
     scheduleOutlineSearchSticky();
+    let shown: boolean | undefined;
+    let sizeFrame: number | undefined;
+    const syncScrollbar = (): void => {
+      sizeFrame = undefined;
+      if (!viewport) return;
+      const next = outlineNeedsScrollbar(viewport.scrollHeight, viewport.clientHeight);
+      if (next === shown) return;
+      shown = next;
+      instance.options({ scrollbars: { visibility: next ? 'auto' : 'hidden' } });
+      setOutlineScrollbar(next);
+    };
+    const scheduleScrollbar = (): void => {
+      if (sizeFrame === undefined) sizeFrame = requestAnimationFrame(syncScrollbar);
+    };
+    // The list and the drawer change size as sections render, filter and the drawer opens.
+    const sizes =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleScrollbar);
+    if (viewport) {
+      sizes?.observe(viewport);
+      for (const child of Array.from(viewport.children)) sizes?.observe(child);
+    }
+    syncScrollbar();
     detachOutlineViewportScroll = () => {
       viewport?.removeEventListener('scroll', scheduleOutlineSearchSticky);
+      sizes?.disconnect();
+      if (sizeFrame !== undefined) cancelAnimationFrame(sizeFrame);
     };
   };
 
@@ -427,6 +483,7 @@ export function useDocumentReaderChrome(
     outlineOpen,
     setOutlineOpen,
     outlineSearchStuck,
+    outlineScrollbar,
     activeAnchor,
     setActiveAnchor,
     activeFraction,
@@ -661,7 +718,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
               >
                 <nav
                   ref={chrome.setOutlineNav}
-                  class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}`}
+                  class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}${chrome.outlineScrollbar() ? ' document-overlay-outline-nav--gutter' : ''}`}
                   aria-label="Разделы документа"
                 >
                   {props.outlineNav}

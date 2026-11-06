@@ -671,6 +671,84 @@ def _merge_wrapped_headings(blocks: list[ExtractedBlock]) -> list[ExtractedBlock
     return merged
 
 
+#: A table the PDF text layer holds cell by cell (a block per cell, no ruling lines in the text)
+#: reads as a column of short unrelated lines. A run of at least this many short native blocks whose
+#: left edges fall on three or more shared columns, with several blocks on one baseline, is marked
+#: as a table candidate; the text is kept exactly as extracted (the reader shows it as damaged).
+FLAT_TABLE_MIN_BLOCKS = 8
+FLAT_TABLE_MIN_COLUMNS = 3
+FLAT_TABLE_MIN_COLUMN_BLOCKS = 3
+FLAT_TABLE_MIN_SHARED_ROWS = 3
+FLAT_TABLE_COLUMN_TOLERANCE = 3.0
+FLAT_TABLE_ROW_TOLERANCE = 3.0
+
+
+def _flat_table_span(run: list[ExtractedBlock]) -> tuple[int, int] | None:
+    """The blocks of a run (inclusive indexes) that sit inside a cell-by-cell table, if any."""
+    if len(run) < FLAT_TABLE_MIN_BLOCKS:
+        return None
+    lefts = sorted(block.bbox[0] for block in run if block.bbox)
+    columns: list[list[float]] = []
+    for left in lefts:
+        if columns and left - columns[-1][-1] <= FLAT_TABLE_COLUMN_TOLERANCE:
+            columns[-1].append(left)
+        else:
+            columns.append([left])
+    wide_columns = [c for c in columns if len(c) >= FLAT_TABLE_MIN_COLUMN_BLOCKS]
+    if len(wide_columns) < FLAT_TABLE_MIN_COLUMNS:
+        return None
+    shared: list[int] = []
+    for index, block in enumerate(run):
+        assert block.bbox is not None
+        centre = (block.bbox[1] + block.bbox[3]) / 2
+        if any(
+            other is not block
+            and other.bbox is not None
+            and abs(other.bbox[0] - block.bbox[0]) > FLAT_TABLE_COLUMN_TOLERANCE
+            and abs((other.bbox[1] + other.bbox[3]) / 2 - centre) <= FLAT_TABLE_ROW_TOLERANCE
+            for other in run
+        ):
+            shared.append(index)
+    if len(shared) < FLAT_TABLE_MIN_SHARED_ROWS:
+        return None
+    return shared[0], shared[-1]
+
+
+def _mark_flattened_tables(
+    blocks: list[ExtractedBlock], native_ids: set[str]
+) -> list[ExtractedBlock]:
+    """Mark the cell-by-cell tables of a native text-layer page as `table_candidate` blocks."""
+    result = list(blocks)
+    run: list[int] = []
+
+    def flush() -> None:
+        span = _flat_table_span([result[i] for i in run]) if run else None
+        if span is not None:
+            for index in run[span[0] : span[1] + 1]:
+                block = result[index]
+                result[index] = block.model_copy(
+                    update={
+                        "kind": "table_candidate",
+                        "metadata": {**block.metadata, "flattenedTable": True},
+                    }
+                )
+        run.clear()
+
+    for index, block in enumerate(result):
+        if (
+            block.kind == "paragraph"
+            and not block.removed
+            and block.id in native_ids
+            and block.bbox is not None
+            and block.line_count <= 2
+        ):
+            run.append(index)
+        else:
+            flush()
+    flush()
+    return result
+
+
 def _classify_blocks(
     raw_blocks: list[RawBlock], body_font_size: float | None, options: ExtractionOptions
 ) -> tuple[list[ExtractedPage], int]:
@@ -702,6 +780,11 @@ def _classify_blocks(
 
     pages_by_number: dict[int, list[ExtractedBlock]] = defaultdict(list)
     removed_repeated = 0
+    native_ids = {
+        f"p{block.page}-b{block.order_index + 1}" + (f"s{block.part}" if block.part else "")
+        for block in raw_blocks
+        if block.lines
+    }
     for block in raw_blocks:
         canonical_key = _canonical_marginalia(block.text)
         exact_key = normalize_surface_text(block.text)
@@ -757,7 +840,10 @@ def _classify_blocks(
     for page_number in sorted(pages_by_number):
         page_raw = next(block for block in raw_blocks if block.page == page_number)
         blocks = _merge_wrapped_headings(
-            sorted(pages_by_number[page_number], key=lambda item: item.order_index)
+            _mark_flattened_tables(
+                sorted(pages_by_number[page_number], key=lambda item: item.order_index),
+                native_ids,
+            )
         )
         character_count = sum(len(block.text) for block in blocks if not block.removed)
         extracted_pages.append(

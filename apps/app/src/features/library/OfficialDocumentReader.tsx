@@ -93,6 +93,7 @@ import {
   getReferenceImageResolver,
   isReferenceImageDocumentId,
 } from '@/features/library/reference-image-assets';
+import { SameTitleDocuments } from '@/features/library/SameTitleDocuments';
 import {
   OFFICIAL_DOCUMENT_HIGHLIGHT_CONTAINERS,
   UserDocumentHighlights,
@@ -1517,6 +1518,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           </p>
                         </Show>
                       </ReaderHero>
+                      <SameTitleDocuments
+                        document={documentValue()}
+                        documents={props.availableDocuments ?? NO_DOCUMENTS}
+                      />
                       <Show when={medicationPointerSlug()}>
                         {(slug) => <DrugIndexAtc slug={slug()} />}
                       </Show>

@@ -356,3 +356,18 @@ def test_a_heading_of_scan_noise_with_a_backslash_becomes_a_paragraph() -> None:
     )
     assert page_after.blocks[0].kind == "paragraph"
     assert counters.headings_demoted == 1
+
+
+def test_a_registry_stamp_read_as_a_heading_stays_text_not_a_section_title() -> None:
+    page_after, counters = refine(
+        [
+            block(0, "08103m90 • ОГРН 112189 Г. ЯРОС!", 700, kind="heading"),
+            block(1, "Условия хранения", 100, kind="heading"),
+        ]
+    )
+    stamp, real = page_after.blocks
+    assert stamp.kind == "paragraph"
+    assert stamp.text == "08103m90 • ОГРН 112189 Г. ЯРОС!"
+    assert stamp.metadata["demotedFrom"] == "heading"
+    assert real.kind == "heading"
+    assert counters.headings_demoted == 1

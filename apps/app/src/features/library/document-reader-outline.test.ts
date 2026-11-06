@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   computeReadingLine,
+  lastItemAboveLine,
   outlineCenterScroll,
   outlineItemSelector,
   pickActiveSectionAnchor,
@@ -30,6 +31,26 @@ describe('document-reader-outline', () => {
     expect(pickActiveSectionAnchor(sections, 160)).toBe('b');
     expect(pickActiveSectionAnchor(sections, 300)).toBe('c');
     expect(pickActiveSectionAnchor([], 100)).toBe('');
+  });
+
+  it('lastItemAboveLine walks from the previous answer and measures only what it passes', () => {
+    let measured = 0;
+    const sections = Array.from({ length: 200 }, (_, index) => ({
+      id: `s${String(index)}`,
+      getBoundingClientRect: () => {
+        measured += 1;
+        return { top: index * 100 - 5000 };
+      },
+    })) as unknown as HTMLElement[];
+    // Same answer as a scan from the start, wherever the hint is.
+    for (const hint of [-1, 0, 20, 49, 50, 51, 120, 199]) {
+      expect(lastItemAboveLine(sections, 0, hint)).toBe(50);
+      expect(lastItemAboveLine(sections, 0, hint, true)).toBe(49);
+    }
+    measured = 0;
+    expect(lastItemAboveLine(sections, 120, 50)).toBe(51);
+    expect(measured).toBeLessThanOrEqual(3);
+    expect(lastItemAboveLine(sections, -1e6, 120)).toBe(-1);
   });
 
   it('pickActiveSectionAnchor ignores sections the browser skips, whose boxes are stale', () => {

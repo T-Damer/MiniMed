@@ -15,8 +15,17 @@ function digitsUnitsFirst(value: number): readonly string[] {
     .reverse();
 }
 
+let reducedMotionQuery: MediaQueryList | undefined;
+
 function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  reducedMotionQuery ??= window.matchMedia('(prefers-reduced-motion: reduce)');
+  return reducedMotionQuery.matches;
+}
+
+/** The roll in flight per digit: cancelled by the next change without asking the element. */
+interface Roll {
+  readonly ghost: HTMLElement;
+  readonly animations: readonly Animation[];
 }
 
 /**
@@ -29,10 +38,19 @@ function rollDigit(
   glyph: HTMLElement,
   previous: string,
   direction: 1 | -1,
-): void {
-  if (prefersReducedMotion()) return;
-  for (const stale of Array.from(host.querySelectorAll('.rolling-number__ghost'))) stale.remove();
-  for (const animation of glyph.getAnimations()) animation.cancel();
+  running: Roll | undefined,
+  /** The previous change came less than a roll ago. */
+  quick: boolean,
+): Roll | undefined {
+  // `getAnimations()` flushes style: during a fast scroll (a page number changing every frame) it
+  // cost more than half a second per scroll at phone speed. The roll keeps its own animations.
+  if (running) {
+    for (const animation of running.animations) animation.cancel();
+    running.ghost.remove();
+  }
+  if (prefersReducedMotion()) return undefined;
+  // Digits changing faster than a roll lasts (a fling) simply change: no queue of half-rolls.
+  if (quick) return undefined;
   const ghost = document.createElement('span');
   ghost.className = 'rolling-number__glyph rolling-number__ghost';
   ghost.textContent = previous;
@@ -52,13 +70,14 @@ function rollDigit(
   );
   leaving.addEventListener('finish', () => ghost.remove());
   leaving.addEventListener('cancel', () => ghost.remove());
-  glyph.animate(
+  const arriving = glyph.animate(
     [
       { transform: `translateY(${String(entering)}%)`, opacity: 0 },
       { transform: 'translateY(0)', opacity: 1 },
     ],
     options,
   );
+  return { ghost, animations: [leaving, arriving] };
 }
 
 function RollingDigit(props: {
@@ -68,6 +87,8 @@ function RollingDigit(props: {
   let host: HTMLSpanElement | undefined;
   let glyph: HTMLSpanElement | undefined;
   let shown = props.digit;
+  let running: Roll | undefined;
+  let changedAt = Number.NEGATIVE_INFINITY;
   createEffect(
     on(
       () => props.digit,
@@ -75,7 +96,16 @@ function RollingDigit(props: {
         const previous = shown;
         shown = digit;
         if (previous === digit || !host || !glyph) return;
-        rollDigit(host, glyph, previous, props.direction());
+        const now = performance.now();
+        running = rollDigit(
+          host,
+          glyph,
+          previous,
+          props.direction(),
+          running,
+          now - changedAt < ROLL_MS,
+        );
+        changedAt = now;
       },
       { defer: true },
     ),
