@@ -79,8 +79,8 @@ export function AssessmentQuestionnairePage(props: {
   readonly onSaved: (record: AssessmentRecord) => void;
   readonly onDraftSaved: (record?: IncompleteAssessmentRecord) => void;
   readonly onMessage: (message: string) => void;
-  /** Opens the same instrument in another language (`languageVariants`); the draft moves along. */
-  readonly onSwitchLanguage?: (assessmentId: string) => void;
+  /** Opens the same instrument in another language (`variants`); the draft moves along. */
+  readonly onSwitchVariant?: (assessmentId: string) => void;
 }): JSX.Element {
   const [answers, setAnswers] = createSignal<Record<string, AssessmentResponseValue>>(
     props.initialRecord?.answers ?? {},
@@ -231,8 +231,8 @@ export function AssessmentQuestionnairePage(props: {
   ];
 
   /** Moves the draft to the other language's definition (same question ids) and opens it there. */
-  const switchLanguage = (assessmentId: string): void => {
-    if (assessmentId === props.definition.id || !props.onSwitchLanguage) return;
+  const switchVariant = (assessmentId: string): void => {
+    if (assessmentId === props.definition.id || !props.onSwitchVariant) return;
     const given = answers();
     if (!patientId() && Object.keys(given).length > 0) {
       const moved = saveIncompleteAssessmentRecord({
@@ -244,7 +244,7 @@ export function AssessmentQuestionnairePage(props: {
       discardOrdinaryDraft();
       props.onDraftSaved(moved);
     }
-    props.onSwitchLanguage(assessmentId);
+    props.onSwitchVariant(assessmentId);
   };
 
   // «Заполнить по беседе» where the questionnaire declares how a conversation fills it.
@@ -487,16 +487,16 @@ export function AssessmentQuestionnairePage(props: {
         }
       />
 
-      <Show when={(props.definition.languageVariants?.length ?? 0) > 1 && props.onSwitchLanguage}>
+      <Show when={(props.definition.variants?.length ?? 0) > 1 && props.onSwitchVariant}>
         <SegmentedControl<string>
-          label="Язык опросника"
-          class="assessment-language-switch"
+          label={props.definition.variantLabel ?? "Вариант опросника"}
+          class="assessment-variant-switch"
           value={props.definition.id}
-          options={(props.definition.languageVariants ?? []).map((variant) => ({
+          options={(props.definition.variants ?? []).map((variant) => ({
             value: variant.assessmentId,
             label: variant.label,
           }))}
-          onChange={switchLanguage}
+          onChange={switchVariant}
         />
       </Show>
 

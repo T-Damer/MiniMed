@@ -146,6 +146,7 @@ function printableHtml(
     .schema-chart-print__reference { fill: none; stroke-width: 1.4; stroke-dasharray: 6 5; }
     .schema-chart-print__reference--danger { stroke: #b84424; }
     .schema-chart-print__reference--warning { stroke: #b07a12; }
+    .schema-chart-print__reference--neutral { stroke: #6b7b73; }
     .schema-chart-print__profile-line { fill: none; stroke: #17201c; stroke-width: 2; stroke-linejoin: round; }
     .schema-chart-print__profile-point { fill: #17201c; stroke: #fff; stroke-width: 1.5; }
     .schema-chart-print__value-label { fill: #17201c; font-size: 11px; font-weight: 700; }

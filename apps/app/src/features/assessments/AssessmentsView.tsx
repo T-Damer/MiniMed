@@ -486,7 +486,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
    * questionnaire, not the language); a variant not yet on the device is marked installed along
    * with it, since both come in one module.
    */
-  const switchAssessmentLanguage = (assessmentId: string): void => {
+  const switchAssessmentVariant = (assessmentId: string): void => {
     const entry = assessmentCatalog().find((candidate) => candidate.id === assessmentId);
     if (!entry) return;
     if (!installation().installedIds.has(entry.id)) {
@@ -1070,7 +1070,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onBack={() => navigateBack(builtInBackFallback(selected().slug))}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
-            onSwitchLanguage={switchAssessmentLanguage}
+            onSwitchVariant={switchAssessmentVariant}
             onSaved={(saved) => {
               setTransientRecord(saved);
               refreshRecords();

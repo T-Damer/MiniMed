@@ -96,12 +96,13 @@ const AssessmentTableSchema = z
     path: ['rows'],
   });
 
-const AssessmentLanguageVariantSchema = z.object({
-  /** BCP 47 language of the other definition (`en`). */
-  language: z.string().min(2).max(12),
-  /** Its name in its own language («English»). */
+/** One form of the same instrument: another language, or the men's and women's booklets. */
+const AssessmentVariantSchema = z.object({
+  /** Its name on the switch («Мужской», «English»). */
   label: z.string().min(1),
   assessmentId: z.string().min(1),
+  /** BCP 47 language of that form's text, when the forms differ by language (`en`). */
+  language: z.string().min(2).max(12).optional(),
 });
 
 export const AssessmentDefinitionSchema = z
@@ -116,6 +117,8 @@ export const AssessmentDefinitionSchema = z
     bankLabel: z.string().min(1),
     category: z.string().min(1),
     description: z.string().min(1),
+    /** The instruction read before the questions (the source's own words). */
+    intro: z.string().min(1).optional(),
     estimatedMinutes: z.number().int().positive(),
     /** Who fills it in, in words («Взрослые; заполняет специалист»). */
     audience: z.string().min(1),
@@ -168,10 +171,13 @@ export const AssessmentDefinitionSchema = z
     /** Tables of scores under the result (raw → corrected → standard score); cells are expressions. */
     tables: z.array(AssessmentTableSchema).default([]),
     /**
-     * The same instrument in other languages: separate definitions whose questions have the same
-     * ids, so the answers given so far carry over when the user switches.
+     * Every form of the instrument, this one included (languages, men's and women's booklets):
+     * separate definitions whose questions have the same ids, so the answers given so far carry
+     * over when the user switches. Shown as a switch named `variantLabel`.
      */
-    languageVariants: z.array(AssessmentLanguageVariantSchema).default([]),
+    variants: z.array(AssessmentVariantSchema).default([]),
+    /** What the variant switch chooses («Вариант бланка», «Язык»). */
+    variantLabel: z.string().min(1).optional(),
     /** The language of this definition's text (BCP 47: `ru`, `en`). */
     language: z.string().min(2).max(12).optional(),
     visuals: z.array(CalculatorVisualSchema).default([]),

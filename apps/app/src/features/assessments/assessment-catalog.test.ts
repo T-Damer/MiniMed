@@ -20,7 +20,10 @@ const LIKERT_BATTERY_SLUGS = new Set([
 ]);
 
 function registerPsychologyAssessments(): void {
-  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+  for (const record of loadToolModuleRecords([
+    'content/tool-modules/psychology.json',
+    'content/tool-modules/mmpi.json',
+  ])) {
     if (record.kind === 'assessment') registerDownloadedAssessment(record);
   }
 }
@@ -31,11 +34,11 @@ afterEach(() => {
 
 describe('assessment catalog', () => {
   it('keeps all core catalog entries visible before and after downloading a module', () => {
-    expect(ASSESSMENT_CATALOG).toHaveLength(29);
+    expect(ASSESSMENT_CATALOG).toHaveLength(33);
     registerPsychologyAssessments();
     const catalog = getAssessmentCatalog();
-    expect(catalog).toHaveLength(29);
-    expect(new Set(catalog.map((item) => item.id)).size).toBe(29);
+    expect(catalog).toHaveLength(33);
+    expect(new Set(catalog.map((item) => item.id)).size).toBe(33);
     expect(catalog.every((item) => item.aliases.length > 0)).toBe(true);
   });
 

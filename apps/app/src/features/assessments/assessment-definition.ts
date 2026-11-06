@@ -16,6 +16,9 @@ export function assessmentDefinitionFromRecord(record: ToolDefinitionRecord): As
     language,
     answerSheet,
     responseOptions,
+    variants,
+    variantLabel,
+    intro,
     ...rest
   } = parsed;
   const options = (
@@ -82,6 +85,13 @@ export function assessmentDefinitionFromRecord(record: ToolDefinitionRecord): As
     responseOptions: options(responseOptions),
     ...(pageSize === undefined ? {} : { pageSize }),
     ...(answerSheet ? { answerSheet } : {}),
+    variants: variants.map((variant) => ({
+      label: variant.label,
+      assessmentId: variant.assessmentId,
+      ...(variant.language ? { language: variant.language } : {}),
+    })),
+    ...(variantLabel ? { variantLabel } : {}),
+    ...(intro ? { intro } : {}),
     ...(language ? { language } : {}),
     sourceLinks: record.sources,
   };

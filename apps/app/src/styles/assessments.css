@@ -724,7 +724,7 @@
   color: var(--theme-text);
 }
 
-.assessment-language-switch {
+.assessment-variant-switch {
   max-width: 22rem;
 }
 
@@ -1672,6 +1672,10 @@ html:has(.assessment-next-button) .patient-notes-fab {
 
 .schema-chart__reference--warning {
   stroke: var(--theme-warning);
+}
+
+.schema-chart__reference--neutral {
+  stroke: var(--theme-text-muted);
 }
 
 .schema-chart__profile-line {

@@ -86,9 +86,9 @@ function gridStep(minimum: number, maximum: number): number {
 }
 
 /**
- * A profile over category labels (a personality inventory's scales): one series as a line with its
- * values, and the series with a `danger`/`warning` tone as dashed reference lines (the norm and
- * the bounds of the normal range). The same figure on screen and on paper. Empty when a series
+ * A profile over category labels (a personality inventory's scales): the series with an `accent`
+ * tone (or none) as a line with its values, and the series with a `neutral`, `warning` or `danger`
+ * tone as dashed reference lines (the norm and the bounds of the normal range). The same figure on screen and on paper. Empty when a series
  * holds anything but numbers.
  */
 function lineProfileSvg(
@@ -121,8 +121,10 @@ function lineProfileSvg(
       `<text class="${block}__grid-label" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value}</text>`,
     );
   }
+  const isReference = (tone: string | undefined): boolean =>
+    tone === 'danger' || tone === 'warning' || tone === 'neutral';
   const references = series
-    .filter(({ dataset }) => dataset.tone === 'danger' || dataset.tone === 'warning')
+    .filter(({ dataset }) => isReference(dataset.tone))
     .map(
       ({ dataset, values }) =>
         `<polyline class="${block}__reference ${block}__reference--${dataset.tone}" points="${values
@@ -132,9 +134,7 @@ function lineProfileSvg(
           )
           .join(' ')}"><title>${escapeHtml(dataset.label)}</title></polyline>`,
     );
-  const profiles = series.filter(
-    ({ dataset }) => dataset.tone !== 'danger' && dataset.tone !== 'warning',
-  );
+  const profiles = series.filter(({ dataset }) => !isReference(dataset.tone));
   const lines = profiles.map(({ dataset, values }) => {
     const points = values.map((value, index) => `${x(index)},${y(value)}`).join(' ');
     const marks = values

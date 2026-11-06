@@ -8194,6 +8194,124 @@
       }
     },
     {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.ipip-bfm-50",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "ipip-big-five-50",
+        "title": "IPIP-50: «Большая пятёрка» (Big-Five Factor Markers)",
+        "shortTitle": "IPIP-50",
+        "aliases": [
+          "IPIP",
+          "Big Five",
+          "Большая пятёрка",
+          "пятифакторный опросник",
+          "Goldberg",
+          "Голдберг"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "50 утверждений International Personality Item Pool (общественное достояние): пять факторов личности — экстраверсия, доброжелательность, добросовестность, эмоциональная стабильность, интеллект. Открытая альтернатива большим коммерческим опросникам.",
+        "estimatedMinutes": 10,
+        "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "IPIP: «in relation to other people you know of the same sex as you are, and roughly your same age» — опросник для взрослых."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.ipip-bfm-50-en",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "ipip-big-five-50-en",
+        "title": "IPIP-50: Big-Five Factor Markers (English)",
+        "shortTitle": "IPIP-50 (English)",
+        "aliases": [
+          "IPIP",
+          "Big Five",
+          "Большая пятёрка",
+          "пятифакторный опросник",
+          "Goldberg",
+          "Голдберг"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "Оригинальные английские утверждения International Personality Item Pool (общественное достояние): пять факторов личности, тот же подсчёт, что в русском варианте.",
+        "estimatedMinutes": 10,
+        "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "IPIP: «in relation to other people you know of the same sex as you are, and roughly your same age» — опросник для взрослых."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.mmpi.ru",
+      "tool": {
+        "id": "minimed.assessment.smil-men",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "smil-men",
+        "title": "СМИЛ (MMPI) — мужской вариант",
+        "shortTitle": "СМИЛ, мужской",
+        "aliases": [
+          "СМИЛ",
+          "MMPI",
+          "ММPI",
+          "Миннесотский многоаспектный личностный опросник",
+          "стандартизированный многофакторный метод исследования личности",
+          "Собчик",
+          "СМИЛ мужской"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "personality-inventory",
+        "description": "566 утверждений с ответами «Верно», «Неверно» и «Не знаю». Профиль по трём шкалам достоверности (L, F, K) и десяти базисным шкалам в T-баллах с коррекцией по K — по руководству Л. Н. Собчик (нормы мужчин).",
+        "estimatedMinutes": 90,
+        "audience": "Взрослые мужчины; заполняет сам обследуемый, профиль толкует психолог или психиатр",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "«Вариант мужской взрослый» (Собчик, 2003); для подростков 13–15 лет в руководстве отдельный вариант."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.mmpi.ru",
+      "tool": {
+        "id": "minimed.assessment.smil-women",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "smil-women",
+        "title": "СМИЛ (MMPI) — женский вариант",
+        "shortTitle": "СМИЛ, женский",
+        "aliases": [
+          "СМИЛ",
+          "MMPI",
+          "ММPI",
+          "Миннесотский многоаспектный личностный опросник",
+          "стандартизированный многофакторный метод исследования личности",
+          "Собчик",
+          "СМИЛ женский"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "personality-inventory",
+        "description": "566 утверждений с ответами «Верно», «Неверно» и «Не знаю». Профиль по трём шкалам достоверности (L, F, K) и десяти базисным шкалам в T-баллах с коррекцией по K — по руководству Л. Н. Собчик (нормы женщин).",
+        "estimatedMinutes": 90,
+        "audience": "Взрослые женщины; заполняет сама обследуемая, профиль толкует психолог или психиатр",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "«Вариант женский взрослый» (Собчик, 2003); для подростков 13–15 лет в руководстве отдельный вариант."
+        }
+      }
+    },
+    {
       "moduleId": "minimed.tools.cardiology.ru",
       "tool": {
         "id": "minimed.calculator.wells-pe",

@@ -93,6 +93,12 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Опросники о распределении ролей и взаимодействии внутри команды.',
   },
   {
+    id: 'personality-inventory',
+    title: 'Многофакторное исследование личности',
+    description:
+      'Большие личностные опросники с профилем по многим шкалам: MMPI в русской адаптации и в оригинале, открытая альтернатива.',
+  },
+  {
     id: 'temperament',
     title: 'Темперамент',
     description: 'Типологические опросники для описания устойчивых особенностей реагирования.',
@@ -171,6 +177,7 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'work-style': 'minimed.tools.psychology.ru',
     'team-role': 'minimed.tools.psychology.ru',
     temperament: 'minimed.tools.psychology.ru',
+    'personality-inventory': 'minimed.tools.mmpi.ru',
     asthenia: 'minimed.tools.psychology.ru',
     'substance-use': 'minimed.tools.psychology.ru',
     'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',

@@ -24,7 +24,10 @@ import {
 import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
 
 function psychologyCatalog() {
-  for (const record of loadToolModuleRecords(['content/tool-modules/psychology.json'])) {
+  for (const record of loadToolModuleRecords([
+    'content/tool-modules/psychology.json',
+    'content/tool-modules/mmpi.json',
+  ])) {
     if (record.kind === 'assessment') registerDownloadedAssessment(record);
   }
   return getAssessmentCatalog().filter(

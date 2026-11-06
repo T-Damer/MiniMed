@@ -36,6 +36,8 @@ function atMost(left: string, right: string): boolean {
 const PENDING_RELEASE_MODULES: ReadonlyMap<string, string> = new Map<string, string>([
   // EA1: the app learns the `eaeu-sister-register` source class (country, ranking) in 0.6.66.
   ['minimed.medications.instructions.eaeu-sister-register.ru', '0.6.66'],
+  // MMPI1: the СМИЛ definitions chain scale formulas (raw → +K → T), read from 0.6.94 on.
+  ['minimed.tools.mmpi.ru', '0.6.94'],
 ]);
 
 describe('module catalog structure', () => {

@@ -16,6 +16,7 @@ export const TOOL_MODULE_FILES = [
   'content/tool-modules/pediatrics.json',
   'content/tool-modules/obstetrics-gynecology.json',
   'content/tool-modules/psychology.json',
+  'content/tool-modules/mmpi.json',
   'content/tool-modules/cardiology.json',
   'content/tool-modules/intensive-care.json',
   'content/tool-modules/surgery-trauma.json',

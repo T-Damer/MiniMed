@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.9",
+  "version": "0.1.0-preview.10",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
   "builtAt": "2026-10-20T00:00:00Z",
@@ -5488,6 +5488,862 @@
           "documentId": null,
           "url": "https://doi.org/10.1111/j.1530-0277.1995.tb01475.x",
           "reviewedAt": "2026-11-04"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.ipip-bfm-50",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "ipip-big-five-50",
+      "title": "IPIP-50: «Большая пятёрка» (Big-Five Factor Markers)",
+      "shortTitle": "IPIP-50",
+      "aliases": [
+        "IPIP",
+        "Big Five",
+        "Большая пятёрка",
+        "пятифакторный опросник",
+        "Goldberg",
+        "Голдберг"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "self-reflection",
+      "description": "50 утверждений International Personality Item Pool (общественное достояние): пять факторов личности — экстраверсия, доброжелательность, добросовестность, эмоциональная стабильность, интеллект. Открытая альтернатива большим коммерческим опросникам.",
+      "estimatedMinutes": 10,
+      "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.assessment.ipip-bfm-50",
+        "slug": "ipip-big-five-50",
+        "title": "IPIP-50: «Большая пятёрка» (Big-Five Factor Markers)",
+        "shortTitle": "IPIP-50",
+        "aliases": [
+          "IPIP",
+          "Big Five",
+          "Большая пятёрка",
+          "пятифакторный опросник",
+          "Goldberg",
+          "Голдберг"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "50 утверждений International Personality Item Pool (общественное достояние): пять факторов личности — экстраверсия, доброжелательность, добросовестность, эмоциональная стабильность, интеллект. Открытая альтернатива большим коммерческим опросникам.",
+        "intro": "Следующие фразы описывают поведение людей. Пожалуйста, выберите, насколько точно каждое утверждение описывает Вас. Ваш ответ должен соответствовать Вашему обычному поведению, а не тому, как Вы бы хотели себя вести. Честно опишите Ваше обычное поведение, если нужно, сравнивая себя с поведением других людей.",
+        "estimatedMinutes": 10,
+        "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "IPIP: «in relation to other people you know of the same sex as you are, and roughly your same age» — опросник для взрослых."
+        },
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "совсем нет"
+          },
+          {
+            "value": 2,
+            "label": "скорее нет, чем да"
+          },
+          {
+            "value": 3,
+            "label": "ни да ни нет"
+          },
+          {
+            "value": 4,
+            "label": "скорее да, чем нет"
+          },
+          {
+            "value": 5,
+            "label": "да"
+          }
+        ],
+        "variants": [
+          {
+            "label": "Русский",
+            "assessmentId": "minimed.assessment.ipip-bfm-50",
+            "language": "ru"
+          },
+          {
+            "label": "English",
+            "assessmentId": "minimed.assessment.ipip-bfm-50-en",
+            "language": "en"
+          }
+        ],
+        "variantLabel": "Язык",
+        "language": "ru",
+        "scales": [
+          {
+            "id": "extraversion",
+            "label": "Экстраверсия",
+            "shortLabel": "Экстраверсия",
+            "description": "Extraversion. Общительность, активность в компании, готовность быть в центре внимания."
+          },
+          {
+            "id": "agreeableness",
+            "label": "Доброжелательность",
+            "shortLabel": "Доброжелательность",
+            "description": "Agreeableness. Интерес к людям, сочувствие, забота о других."
+          },
+          {
+            "id": "conscientiousness",
+            "label": "Добросовестность",
+            "shortLabel": "Добросовестность",
+            "description": "Conscientiousness. Порядок, внимание к деталям, исполнение обязанностей."
+          },
+          {
+            "id": "emotional-stability",
+            "label": "Эмоциональная стабильность",
+            "shortLabel": "Эмоциональная стабильность",
+            "description": "Emotional Stability. Спокойствие и устойчивость настроения (обратный полюс — нейротизм)."
+          },
+          {
+            "id": "intellect",
+            "label": "Интеллект и воображение",
+            "shortLabel": "Интеллект и воображение",
+            "description": "Intellect/Imagination. Богатое воображение, интерес к идеям, быстрое понимание."
+          }
+        ],
+        "questions": [
+          {
+            "id": "ipip50-01",
+            "prompt": "Вы — душа любой вечеринки.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-02",
+            "prompt": "Вы редко беспокоитесь за других.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-03",
+            "prompt": "Жизнь редко застает Вас врасплох.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-04",
+            "prompt": "Легко подвергаетесь стрессу.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-05",
+            "prompt": "У вас богатый словарный запас.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-06",
+            "prompt": "Не говорите много.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-07",
+            "prompt": "Люди Вам интересны.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-08",
+            "prompt": "Часто разбрасываете вещи.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-09",
+            "prompt": "Обычно спокойны.",
+            "scaleId": "emotional-stability"
+          },
+          {
+            "id": "ipip50-10",
+            "prompt": "Вам сложно понимать абстрактные идеи.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-11",
+            "prompt": "Вы чувствуете себя комфортно в кругу людей.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-12",
+            "prompt": "Вы можете оскорбить.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-13",
+            "prompt": "Обращаете внимание на детали.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-14",
+            "prompt": "Часто беспокоитесь.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-15",
+            "prompt": "У вас богатое воображение.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-16",
+            "prompt": "Держитесь на заднем плане.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-17",
+            "prompt": "Сочувствуете чувствам других.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-18",
+            "prompt": "Создаете беспорядок.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-19",
+            "prompt": "Редко грустите.",
+            "scaleId": "emotional-stability"
+          },
+          {
+            "id": "ipip50-20",
+            "prompt": "Вы не интересуетесь абстрактными идеями.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-21",
+            "prompt": "Вы часто начинаете разговор сами.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-22",
+            "prompt": "Вам не интересны проблемы окружающих.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-23",
+            "prompt": "Работаете эффективно.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-24",
+            "prompt": "Вас легко вывести из равновесия.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-25",
+            "prompt": "У вас часто возникают превосходные идеи.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-26",
+            "prompt": "Вы немногословны.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-27",
+            "prompt": "У вас мягкое сердце.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-28",
+            "prompt": "Часто забываете положить вещи на место.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-29",
+            "prompt": "Легко расстраиваетесь.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-30",
+            "prompt": "У вас не очень хорошее воображение.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-31",
+            "prompt": "Говорите с большим количеством различных людей на вечеринках.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-32",
+            "prompt": "На самом деле люди вам не интересны.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-33",
+            "prompt": "Любите порядок.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-34",
+            "prompt": "Часто меняете настроение.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-35",
+            "prompt": "Легко вникаете в суть вещей.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-36",
+            "prompt": "Не любите привлекать к себе внимание.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-37",
+            "prompt": "Вы уделяете время другим.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-38",
+            "prompt": "Уклоняетесь от обязанностей.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-39",
+            "prompt": "Подвержены частым колебаниям настроения.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-40",
+            "prompt": "Используете сложные слова.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-41",
+            "prompt": "Не возражаете быть центром внимания.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-42",
+            "prompt": "Чувствуете настроения/ эмоции окружающих.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-43",
+            "prompt": "Следуете распорядку/плану.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-44",
+            "prompt": "Легко раздражаетесь.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-45",
+            "prompt": "Останавливаетесь, чтобы обдумать происходящее.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-46",
+            "prompt": "Вы мало говорите в кругу незнакомых Вам людей.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-47",
+            "prompt": "С вами люди чувствуют себя непринужденно.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-48",
+            "prompt": "Вы аккуратны в работе.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-49",
+            "prompt": "Часто бываете грустны.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-50",
+            "prompt": "Полны идей.",
+            "scaleId": "intellect"
+          }
+        ],
+        "disclaimer": "Сумма по каждому фактору (10–50) показывает выраженность черты в ответах этого человека; русский перевод не стандартизирован, популяционных норм нет.",
+        "evidenceNote": "Утверждения, их порядок, принадлежность к факторам и ключи (+/−) — IPIP «50-item sample questionnaire» (Goldberg, 1992; ipip.ori.org, проверено 06.11.2026). Русский перевод — O. Hypponen (страница переводов IPIP); IPIP не ручается за точность переводов. Изменено MiniMed: исправлены опечатки перевода (5 пунктов, перечислены в источниках модуля), запятые в вариантах ответа. Подсчёт: «+» пункты 1–5, «−» пункты 5–1.",
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "У русского перевода IPIP-50 нет норм: баллы сравнивают с прошлыми заполнениями того же человека.",
+          "sourceIds": ["ipip-big-five-50-ipip-50"]
+        },
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "International Personality Item Pool (L. R. Goldberg и соавт.): утверждения IPIP переданы в общественное достояние — использование для любых целей, коммерческих и некоммерческих, разрешено без запроса. Русский перевод — O. Hypponen, опубликован на сайте IPIP.",
+          "sourceUrl": "https://ipip.ori.org/newPermission.htm"
+        }
+      },
+      "sources": [
+        {
+          "id": "ipip-big-five-50-ipip-50",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "IPIP: Administering IPIP Measures, with a 50-item Sample Questionnaire",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ipip.ori.org/new_ipip-50-item-scale.htm",
+          "reviewedAt": "2026-11-06"
+        },
+        {
+          "id": "ipip-big-five-50-ipip-50-ru",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "IPIP: Russian Translation of the 50-Item Lexical Big-Five Factor Markers (O. Hypponen)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ipip.ori.org/Russian50-itemBigFiveFactorMarkers.htm",
+          "reviewedAt": "2026-11-06"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.ipip-bfm-50-en",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "ipip-big-five-50-en",
+      "title": "IPIP-50: Big-Five Factor Markers (English)",
+      "shortTitle": "IPIP-50 (English)",
+      "aliases": [
+        "IPIP",
+        "Big Five",
+        "Большая пятёрка",
+        "пятифакторный опросник",
+        "Goldberg",
+        "Голдберг"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "self-reflection",
+      "description": "Оригинальные английские утверждения International Personality Item Pool (общественное достояние): пять факторов личности, тот же подсчёт, что в русском варианте.",
+      "estimatedMinutes": 10,
+      "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.assessment.ipip-bfm-50-en",
+        "slug": "ipip-big-five-50-en",
+        "title": "IPIP-50: Big-Five Factor Markers (English)",
+        "shortTitle": "IPIP-50 (English)",
+        "aliases": [
+          "IPIP",
+          "Big Five",
+          "Большая пятёрка",
+          "пятифакторный опросник",
+          "Goldberg",
+          "Голдберг"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "self-reflection",
+        "description": "Оригинальные английские утверждения International Personality Item Pool (общественное достояние): пять факторов личности, тот же подсчёт, что в русском варианте.",
+        "intro": "Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.",
+        "estimatedMinutes": 10,
+        "audience": "Взрослые; самоотчёт, сравнение с самим собой и для беседы",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "IPIP: «in relation to other people you know of the same sex as you are, and roughly your same age» — опросник для взрослых."
+        },
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Very Inaccurate"
+          },
+          {
+            "value": 2,
+            "label": "Moderately Inaccurate"
+          },
+          {
+            "value": 3,
+            "label": "Neither Accurate Nor Inaccurate"
+          },
+          {
+            "value": 4,
+            "label": "Moderately Accurate"
+          },
+          {
+            "value": 5,
+            "label": "Very Accurate"
+          }
+        ],
+        "variants": [
+          {
+            "label": "Русский",
+            "assessmentId": "minimed.assessment.ipip-bfm-50",
+            "language": "ru"
+          },
+          {
+            "label": "English",
+            "assessmentId": "minimed.assessment.ipip-bfm-50-en",
+            "language": "en"
+          }
+        ],
+        "variantLabel": "Язык",
+        "language": "en",
+        "scales": [
+          {
+            "id": "extraversion",
+            "label": "Экстраверсия",
+            "shortLabel": "Экстраверсия",
+            "description": "Extraversion. Общительность, активность в компании, готовность быть в центре внимания."
+          },
+          {
+            "id": "agreeableness",
+            "label": "Доброжелательность",
+            "shortLabel": "Доброжелательность",
+            "description": "Agreeableness. Интерес к людям, сочувствие, забота о других."
+          },
+          {
+            "id": "conscientiousness",
+            "label": "Добросовестность",
+            "shortLabel": "Добросовестность",
+            "description": "Conscientiousness. Порядок, внимание к деталям, исполнение обязанностей."
+          },
+          {
+            "id": "emotional-stability",
+            "label": "Эмоциональная стабильность",
+            "shortLabel": "Эмоциональная стабильность",
+            "description": "Emotional Stability. Спокойствие и устойчивость настроения (обратный полюс — нейротизм)."
+          },
+          {
+            "id": "intellect",
+            "label": "Интеллект и воображение",
+            "shortLabel": "Интеллект и воображение",
+            "description": "Intellect/Imagination. Богатое воображение, интерес к идеям, быстрое понимание."
+          }
+        ],
+        "questions": [
+          {
+            "id": "ipip50-01",
+            "prompt": "Am the life of the party.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-02",
+            "prompt": "Feel little concern for others.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-03",
+            "prompt": "Am always prepared.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-04",
+            "prompt": "Get stressed out easily.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-05",
+            "prompt": "Have a rich vocabulary.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-06",
+            "prompt": "Don't talk a lot.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-07",
+            "prompt": "Am interested in people.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-08",
+            "prompt": "Leave my belongings around.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-09",
+            "prompt": "Am relaxed most of the time.",
+            "scaleId": "emotional-stability"
+          },
+          {
+            "id": "ipip50-10",
+            "prompt": "Have difficulty understanding abstract ideas.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-11",
+            "prompt": "Feel comfortable around people.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-12",
+            "prompt": "Insult people.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-13",
+            "prompt": "Pay attention to details.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-14",
+            "prompt": "Worry about things.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-15",
+            "prompt": "Have a vivid imagination.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-16",
+            "prompt": "Keep in the background.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-17",
+            "prompt": "Sympathize with others' feelings.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-18",
+            "prompt": "Make a mess of things.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-19",
+            "prompt": "Seldom feel blue.",
+            "scaleId": "emotional-stability"
+          },
+          {
+            "id": "ipip50-20",
+            "prompt": "Am not interested in abstract ideas.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-21",
+            "prompt": "Start conversations.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-22",
+            "prompt": "Am not interested in other people's problems.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-23",
+            "prompt": "Get chores done right away.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-24",
+            "prompt": "Am easily disturbed.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-25",
+            "prompt": "Have excellent ideas.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-26",
+            "prompt": "Have little to say.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-27",
+            "prompt": "Have a soft heart.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-28",
+            "prompt": "Often forget to put things back in their proper place.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-29",
+            "prompt": "Get upset easily.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-30",
+            "prompt": "Do not have a good imagination.",
+            "scaleId": "intellect",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-31",
+            "prompt": "Talk to a lot of different people at parties.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-32",
+            "prompt": "Am not really interested in others.",
+            "scaleId": "agreeableness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-33",
+            "prompt": "Like order.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-34",
+            "prompt": "Change my mood a lot.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-35",
+            "prompt": "Am quick to understand things.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-36",
+            "prompt": "Don't like to draw attention to myself.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-37",
+            "prompt": "Take time out for others.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-38",
+            "prompt": "Shirk my duties.",
+            "scaleId": "conscientiousness",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-39",
+            "prompt": "Have frequent mood swings.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-40",
+            "prompt": "Use difficult words.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-41",
+            "prompt": "Don't mind being the center of attention.",
+            "scaleId": "extraversion"
+          },
+          {
+            "id": "ipip50-42",
+            "prompt": "Feel others' emotions.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-43",
+            "prompt": "Follow a schedule.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-44",
+            "prompt": "Get irritated easily.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-45",
+            "prompt": "Spend time reflecting on things.",
+            "scaleId": "intellect"
+          },
+          {
+            "id": "ipip50-46",
+            "prompt": "Am quiet around strangers.",
+            "scaleId": "extraversion",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-47",
+            "prompt": "Make people feel at ease.",
+            "scaleId": "agreeableness"
+          },
+          {
+            "id": "ipip50-48",
+            "prompt": "Am exacting in my work.",
+            "scaleId": "conscientiousness"
+          },
+          {
+            "id": "ipip50-49",
+            "prompt": "Often feel blue.",
+            "scaleId": "emotional-stability",
+            "reverse": true
+          },
+          {
+            "id": "ipip50-50",
+            "prompt": "Am full of ideas.",
+            "scaleId": "intellect"
+          }
+        ],
+        "disclaimer": "Сумма по каждому фактору (10–50) показывает выраженность черты в ответах этого человека; русский перевод не стандартизирован, популяционных норм нет.",
+        "evidenceNote": "Утверждения, их порядок, принадлежность к факторам и ключи (+/−) — IPIP «50-item sample questionnaire» (Goldberg, 1992; ipip.ori.org, проверено 06.11.2026). Русский перевод — O. Hypponen (страница переводов IPIP); IPIP не ручается за точность переводов. Изменено MiniMed: исправлены опечатки перевода (5 пунктов, перечислены в источниках модуля), запятые в вариантах ответа. Подсчёт: «+» пункты 1–5, «−» пункты 5–1.",
+        "evaluation": {
+          "status": "not-applicable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "У русского перевода IPIP-50 нет норм: баллы сравнивают с прошлыми заполнениями того же человека.",
+          "sourceIds": ["ipip-big-five-50-en-ipip-50"]
+        },
+        "license": {
+          "kind": "public-domain-derived",
+          "notice": "International Personality Item Pool (L. R. Goldberg и соавт.): утверждения IPIP переданы в общественное достояние — использование для любых целей, коммерческих и некоммерческих, разрешено без запроса. Русский перевод — O. Hypponen, опубликован на сайте IPIP.",
+          "sourceUrl": "https://ipip.ori.org/newPermission.htm"
+        }
+      },
+      "sources": [
+        {
+          "id": "ipip-big-five-50-en-ipip-50",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "IPIP: Administering IPIP Measures, with a 50-item Sample Questionnaire",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ipip.ori.org/new_ipip-50-item-scale.htm",
+          "reviewedAt": "2026-11-06"
+        },
+        {
+          "id": "ipip-big-five-50-en-ipip-50-ru",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "IPIP: Russian Translation of the 50-Item Lexical Big-Five Factor Markers (O. Hypponen)",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ipip.ori.org/Russian50-itemBigFiveFactorMarkers.htm",
+          "reviewedAt": "2026-11-06"
         }
       ]
     }

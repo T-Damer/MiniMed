@@ -69,11 +69,11 @@ export interface AssessmentTableDefinition {
   readonly caption?: string;
 }
 
-/** The same instrument in another language (a separate definition with the same question ids). */
-export interface AssessmentLanguageVariant {
-  readonly language: string;
+/** One form of the same instrument (a separate definition with the same question ids). */
+export interface AssessmentVariant {
   readonly label: string;
   readonly assessmentId: string;
+  readonly language?: string;
 }
 
 export interface AssessmentQuestion {
@@ -172,7 +172,9 @@ export interface AssessmentDefinition {
   readonly answerSheet?: true;
   readonly tallies?: readonly AssessmentTallyDefinition[];
   readonly tables?: readonly AssessmentTableDefinition[];
-  readonly languageVariants?: readonly AssessmentLanguageVariant[];
+  readonly variants?: readonly AssessmentVariant[];
+  /** What the variant switch chooses («Вариант бланка», «Язык»). */
+  readonly variantLabel?: string;
   /** The language of the definition's text (`ru`, `en`); Russian when absent. */
   readonly language?: string;
   /** Headings shown above the questions of each section (local questionnaires). */
