@@ -85,6 +85,7 @@ describe('app-preferences', () => {
       motionSpeed: 'normal',
       usefulFeaturesHidden: false,
       toolAgeFilter: 'all',
+      readerChromePinned: false,
     });
   });
 
@@ -111,6 +112,7 @@ describe('app-preferences', () => {
       motionSpeed: 'normal',
       usefulFeaturesHidden: false,
       toolAgeFilter: 'all',
+      readerChromePinned: false,
     });
   });
 
