@@ -2365,6 +2365,13 @@ fieldset.search-mode-picker {
   overflow: hidden;
 }
 
+/* A document of several pages: the width fits, the paper runs down (see native-print-fit.ts). */
+.native-print-preview__sheet--flow {
+  aspect-ratio: auto;
+  max-height: none;
+  overflow: visible;
+}
+
 .native-print-preview__content {
   width: 100%;
   color: #111;
@@ -2411,6 +2418,15 @@ html.native-print-active #root {
     padding: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  /* The fit is for the screen; on paper the page lays the text out at its own size. */
+  .native-print-preview__sheet-scaler,
+  .native-print-preview__content {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible;
+    transform: none !important;
   }
 
   .native-print-preview--presentation .native-print-preview__stage {

@@ -9,7 +9,7 @@ import {
   NATIVE_PRINT_SHARE_BUTTON_CLASS,
   NATIVE_PRINT_TITLE_CLASS,
 } from '@/features/printing/native-print-chrome';
-import { computePrintFitScale } from '@/features/printing/native-print-fit';
+import { computePrintPreviewLayout } from '@/features/printing/native-print-fit';
 import {
   clipNativePrintShareText,
   shareNativePrintContent,
@@ -80,16 +80,19 @@ function fitPreviewSheet(sheet: HTMLElement, content: HTMLElement, scaler: HTMLE
   const paddingY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
   const availableWidth = Math.max(0, sheet.clientWidth - paddingX);
   const availableHeight = Math.max(0, sheet.clientHeight - paddingY);
-  const scale = computePrintFitScale(
+  const { scale, flow } = computePrintPreviewLayout(
     content.scrollWidth,
     content.scrollHeight,
     availableWidth,
     availableHeight,
   );
+  sheet.classList.toggle('native-print-preview__sheet--flow', flow);
   scaler.style.transform = `scale(${scale})`;
   scaler.style.transformOrigin = 'top left';
   scaler.style.width = `${100 / scale}%`;
   content.style.width = `${100 / scale}%`;
+  // A transform leaves the layout box as it was: the flowing sheet takes the scaled height.
+  scaler.style.height = flow ? `${content.scrollHeight * scale}px` : '';
 }
 
 async function shareOrPrint(title: string, html: string): Promise<void> {
