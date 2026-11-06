@@ -25,6 +25,7 @@ export function assessmentChartPrintSvg(
   spec: CalculationChartSpec,
   block: 'schema-chart-print' | 'schema-chart' = 'schema-chart-print',
 ): string {
+  if (spec.type === 'line') return lineProfileSvg(spec, block);
   if (spec.type !== 'scatter') return '';
   const point = spec.datasets
     .flatMap((dataset) => dataset.data)
@@ -74,5 +75,97 @@ export function assessmentChartPrintSvg(
   <circle class="${block}__point-halo" cx="${x}" cy="${y}" r="12" />
   <circle class="${block}__point" cx="${x}" cy="${y}" r="6" />
   <text class="${block}__point-label" x="${x}" y="${Math.max(56, y - 17)}" text-anchor="middle">${point.x}% · ${point.y}%</text>
+</svg>${spec.caption ? `<figcaption class="${block}__caption">${escapeHtml(spec.caption)}</figcaption>` : ''}</figure>`;
+}
+
+/** Steps of the value grid: about eight lines between the ends of the axis, on round numbers. */
+function gridStep(minimum: number, maximum: number): number {
+  const span = maximum - minimum;
+  for (const step of [1, 2, 5, 10, 20, 25, 50, 100]) if (span / step <= 12) return step;
+  return span / 10;
+}
+
+/**
+ * A profile over category labels (a personality inventory's scales): one series as a line with its
+ * values, and the series with a `danger`/`warning` tone as dashed reference lines (the norm and
+ * the bounds of the normal range). The same figure on screen and on paper. Empty when a series
+ * holds anything but numbers.
+ */
+function lineProfileSvg(
+  spec: CalculationChartSpec,
+  block: 'schema-chart-print' | 'schema-chart',
+): string {
+  const count = spec.labels.length;
+  if (count < 2) return '';
+  const series = spec.datasets.map((dataset) => ({
+    dataset,
+    values: dataset.data.filter((value): value is number => typeof value === 'number'),
+  }));
+  if (series.some(({ dataset, values }) => values.length !== dataset.data.length)) return '';
+  const all = series.flatMap(({ values }) => values);
+  const minimum = spec.yAxis?.minimum ?? Math.min(...all);
+  const maximum = spec.yAxis?.maximum ?? Math.max(...all);
+  if (!(maximum > minimum)) return '';
+  const left = 44;
+  const right = 508;
+  const top = 18;
+  const bottom = 300;
+  const x = (index: number): number => left + 14 + ((right - left - 28) * index) / (count - 1);
+  const y = (value: number): number =>
+    bottom - coordinate(value, minimum, maximum, 0, bottom - top);
+  const step = gridStep(minimum, maximum);
+  const grid: string[] = [];
+  for (let value = Math.ceil(minimum / step) * step; value <= maximum; value += step) {
+    grid.push(
+      `<line class="${block}__grid" x1="${left}" y1="${y(value)}" x2="${right}" y2="${y(value)}" />`,
+      `<text class="${block}__grid-label" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value}</text>`,
+    );
+  }
+  const references = series
+    .filter(({ dataset }) => dataset.tone === 'danger' || dataset.tone === 'warning')
+    .map(
+      ({ dataset, values }) =>
+        `<polyline class="${block}__reference ${block}__reference--${dataset.tone}" points="${values
+          .map(
+            (value, index) =>
+              `${index === 0 ? left : index === count - 1 ? right : x(index)},${y(value)}`,
+          )
+          .join(' ')}"><title>${escapeHtml(dataset.label)}</title></polyline>`,
+    );
+  const profiles = series.filter(
+    ({ dataset }) => dataset.tone !== 'danger' && dataset.tone !== 'warning',
+  );
+  const lines = profiles.map(({ dataset, values }) => {
+    const points = values.map((value, index) => `${x(index)},${y(value)}`).join(' ');
+    const marks = values
+      .map(
+        (value, index) =>
+          `<circle class="${block}__profile-point" cx="${x(index)}" cy="${y(value)}" r="5" /><text class="${block}__value-label" x="${x(index)}" y="${Math.max(top + 10, y(value) - 10)}" text-anchor="middle">${Math.round(value)}</text>`,
+      )
+      .join('');
+    return `<g><title>${escapeHtml(dataset.label)}</title><polyline class="${block}__profile-line" points="${points}" />${marks}</g>`;
+  });
+  const categories = spec.labels
+    .map(
+      (label, index) =>
+        `<text class="${block}__category-label" x="${x(index)}" y="${bottom + 22}" text-anchor="middle">${escapeHtml(label)}</text>`,
+    )
+    .join('');
+  const summary = profiles
+    .map(
+      ({ dataset, values }) =>
+        `${dataset.label}: ${values.map((value, index) => `${spec.labels[index]} ${Math.round(value)}`).join(', ')}`,
+    )
+    .join('; ');
+  const yLabel = spec.yAxis?.label
+    ? `<text class="${block}__axis-label" x="${left}" y="${top - 4}" text-anchor="end">${escapeHtml(spec.yAxis.label)}</text>`
+    : '';
+  return `<figure class="${block} ${block}--profile"><svg class="${block}__svg" viewBox="0 0 520 334" role="img" aria-label="${escapeHtml(`${spec.title ?? ''}: ${summary}`)}">
+  <rect class="${block}__field" x="${left}" y="${top}" width="${right - left}" height="${bottom - top}" rx="8" />
+  ${grid.join('')}
+  ${references.join('')}
+  ${lines.join('')}
+  ${categories}
+  ${yLabel}
 </svg>${spec.caption ? `<figcaption class="${block}__caption">${escapeHtml(spec.caption)}</figcaption>` : ''}</figure>`;
 }

@@ -22,15 +22,23 @@ import { Button } from '@/components/Button';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { Page } from '@/components/Page';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { Heading } from '@/components/Text';
 import { AssessmentBackNav } from '@/features/assessments/AssessmentBackNav';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { AssessmentImageCarousel } from '@/features/assessments/AssessmentImageCarousel';
 import {
   answeredQuestionCount,
+  assessmentTallies,
   scoreAssessment,
   sectionHeadingBefore,
 } from '@/features/assessments/assessment-engine';
+import {
+  firstUnansweredIndex,
+  questionPageCount,
+  questionPageOf,
+  questionPageRange,
+} from '@/features/assessments/assessment-paging';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
 import type {
   AssessmentDefinition,
@@ -71,6 +79,8 @@ export function AssessmentQuestionnairePage(props: {
   readonly onSaved: (record: AssessmentRecord) => void;
   readonly onDraftSaved: (record?: IncompleteAssessmentRecord) => void;
   readonly onMessage: (message: string) => void;
+  /** Opens the same instrument in another language (`languageVariants`); the draft moves along. */
+  readonly onSwitchLanguage?: (assessmentId: string) => void;
 }): JSX.Element {
   const [answers, setAnswers] = createSignal<Record<string, AssessmentResponseValue>>(
     props.initialRecord?.answers ?? {},
@@ -168,6 +178,33 @@ export function AssessmentQuestionnairePage(props: {
     draftId = initial.id;
     hydratedFromInitial = true;
   });
+  // Long questionnaires (`pageSize`) show one page of questions; a resumed draft opens on the page
+  // of its first unanswered question.
+  const [page, setPage] = createSignal(
+    questionPageOf(
+      props.definition,
+      firstUnansweredIndex(props.definition, props.initialRecord?.answers ?? {}),
+    ),
+  );
+  const pageCount = (): number => questionPageCount(props.definition);
+  const pageRange = () => questionPageRange(props.definition, page());
+  const pageQuestions = createMemo(() => {
+    const range = pageRange();
+    return props.definition.questions
+      .slice(range.start, range.end)
+      .map((question, offset) => ({ question, index: range.start + offset }));
+  });
+  const goToPage = (next: number): void => {
+    const clamped = Math.min(Math.max(next, 0), pageCount() - 1);
+    if (clamped === page()) return;
+    setPage(clamped);
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>('.assessment-questionnaire')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+  const tallies = createMemo(() => assessmentTallies(props.definition, answers()));
   const answered = () => answeredQuestionCount(props.definition, answers());
   const complete = () => answered() === props.definition.questions.length;
   const remaining = () => props.definition.questions.length - answered();
@@ -192,6 +229,23 @@ export function AssessmentQuestionnairePage(props: {
       onSelect: () => setMethodologyOpen(true),
     },
   ];
+
+  /** Moves the draft to the other language's definition (same question ids) and opens it there. */
+  const switchLanguage = (assessmentId: string): void => {
+    if (assessmentId === props.definition.id || !props.onSwitchLanguage) return;
+    const given = answers();
+    if (!patientId() && Object.keys(given).length > 0) {
+      const moved = saveIncompleteAssessmentRecord({
+        assessmentId,
+        subjectLabel: subjectLabel(),
+        answers: given,
+        totalQuestions: props.definition.questions.length,
+      });
+      discardOrdinaryDraft();
+      props.onDraftSaved(moved);
+    }
+    props.onSwitchLanguage(assessmentId);
+  };
 
   // «Заполнить по беседе» where the questionnaire declares how a conversation fills it.
   const conversationBinding = createMemo(() => assessmentConversationBinding(props.definition));
@@ -304,6 +358,13 @@ export function AssessmentQuestionnairePage(props: {
   };
 
   const scrollToNextQuestion = (): void => {
+    const next = firstUnansweredIndex(props.definition, answers());
+    const nextPage = questionPageOf(props.definition, next);
+    if (nextPage !== page()) {
+      setPage(nextPage);
+      requestAnimationFrame(scrollToNextQuestion);
+      return;
+    }
     const target = document.querySelector<HTMLElement>(
       '.assessment-questionnaire .assessment-question:not(:has(input:checked))',
     );
@@ -426,6 +487,19 @@ export function AssessmentQuestionnairePage(props: {
         }
       />
 
+      <Show when={(props.definition.languageVariants?.length ?? 0) > 1 && props.onSwitchLanguage}>
+        <SegmentedControl<string>
+          label="Язык опросника"
+          class="assessment-language-switch"
+          value={props.definition.id}
+          options={(props.definition.languageVariants ?? []).map((variant) => ({
+            value: variant.assessmentId,
+            label: variant.label,
+          }))}
+          onChange={switchLanguage}
+        />
+      </Show>
+
       <Show when={props.definition.intro?.trim()}>
         {(intro) => <p class="assessment-questionnaire__intro">{intro()}</p>}
       </Show>
@@ -505,7 +579,25 @@ export function AssessmentQuestionnairePage(props: {
           value={answered()}
           max={props.definition.questions.length}
         />
+        <For each={tallies()}>
+          {(tally) => (
+            <span
+              class="assessment-progress__tally"
+              classList={{ 'assessment-progress__tally--warning': tally.warning !== undefined }}
+              data-testid={`assessment-tally-${tally.id}`}
+            >
+              {tally.label}: {tally.count}
+            </span>
+          )}
+        </For>
       </div>
+      <For each={tallies().filter((tally) => tally.warning)}>
+        {(tally) => (
+          <p class="assessment-tally-warning" role="status">
+            {tally.warning}
+          </p>
+        )}
+      </For>
 
       <form
         class="assessment-questionnaire"
@@ -514,81 +606,100 @@ export function AssessmentQuestionnairePage(props: {
           void submit();
         }}
       >
-        <For each={props.definition.questions}>
-          {(question, index) => (
-            <>
-              <Show when={sectionHeadingBefore(props.definition, index())}>
-                {(heading) => (
-                  <header class="assessment-section-heading">
-                    <h2 class="assessment-section-heading__title">{heading().title}</h2>
-                    <Show when={heading().description}>
-                      {(description) => (
-                        <p class="assessment-section-heading__description">{description()}</p>
-                      )}
-                    </Show>
-                  </header>
-                )}
-              </Show>
-              <fieldset
-                class="assessment-question paper-card"
-                classList={{
-                  'assessment-question--highlight': highlightedQuestionId() === question.id,
-                }}
-                data-question-id={question.id}
-              >
-                <legend
-                  class="assessment-question__legend"
+        <Show when={pageCount() > 1}>
+          <QuestionPager
+            page={page()}
+            pageCount={pageCount()}
+            range={pageRange()}
+            onPage={goToPage}
+          />
+        </Show>
+        <For each={pageQuestions()}>
+          {({ question, index: questionIndex }) => {
+            const index = (): number => questionIndex;
+            return (
+              <>
+                <Show when={sectionHeadingBefore(props.definition, index())}>
+                  {(heading) => (
+                    <header class="assessment-section-heading">
+                      <h2 class="assessment-section-heading__title">{heading().title}</h2>
+                      <Show when={heading().description}>
+                        {(description) => (
+                          <p class="assessment-section-heading__description">{description()}</p>
+                        )}
+                      </Show>
+                    </header>
+                  )}
+                </Show>
+                <fieldset
+                  class="assessment-question paper-card"
                   classList={{
-                    'assessment-question__legend--answered': answers()[question.id] !== undefined,
+                    'assessment-question--highlight': highlightedQuestionId() === question.id,
                   }}
+                  data-question-id={question.id}
                 >
-                  <span
-                    class="assessment-question__number"
+                  <legend
+                    class="assessment-question__legend"
                     classList={{
-                      'assessment-question__number--wide': String(index() + 1).length >= 2,
+                      'assessment-question__legend--answered': answers()[question.id] !== undefined,
                     }}
                   >
-                    {index() + 1}
-                  </span>
-                  <strong class="assessment-question__prompt">{question.prompt}</strong>
-                </legend>
-                <Show when={question.text?.trim()}>
-                  {(text) => <p class="assessment-question__text">{text()}</p>}
-                </Show>
-                <Show when={question.images?.length}>
-                  <AssessmentImageCarousel
-                    images={question.images ?? []}
-                    label={`Изображения к вопросу ${index() + 1}`}
-                  />
-                </Show>
-                <Show
-                  when={(question.responseOptions ?? props.definition.responseOptions).length > 5}
-                  fallback={
-                    <div class="assessment-response-options">
-                      <For each={question.responseOptions ?? props.definition.responseOptions}>
-                        {(option) => responseOptionLabel(question.id, option)}
-                      </For>
-                    </div>
-                  }
-                >
-                  <HorizontalScroller
-                    class="assessment-response-options-scroll"
-                    viewportClass="assessment-response-options-scroll__viewport"
-                    controls
-                    hideScrollbar
-                    controlLabel="варианты ответов"
+                    <span
+                      class="assessment-question__number"
+                      classList={{
+                        'assessment-question__number--wide': String(index() + 1).length >= 2,
+                      }}
+                    >
+                      {index() + 1}
+                    </span>
+                    <strong class="assessment-question__prompt">{question.prompt}</strong>
+                  </legend>
+                  <Show when={question.text?.trim()}>
+                    {(text) => <p class="assessment-question__text">{text()}</p>}
+                  </Show>
+                  <Show when={question.images?.length}>
+                    <AssessmentImageCarousel
+                      images={question.images ?? []}
+                      label={`Изображения к вопросу ${index() + 1}`}
+                    />
+                  </Show>
+                  <Show
+                    when={(question.responseOptions ?? props.definition.responseOptions).length > 5}
+                    fallback={
+                      <div class="assessment-response-options">
+                        <For each={question.responseOptions ?? props.definition.responseOptions}>
+                          {(option) => responseOptionLabel(question.id, option)}
+                        </For>
+                      </div>
+                    }
                   >
-                    <div class="assessment-response-options-scroll__row">
-                      <For each={question.responseOptions ?? props.definition.responseOptions}>
-                        {(option) => responseOptionLabel(question.id, option, true)}
-                      </For>
-                    </div>
-                  </HorizontalScroller>
-                </Show>
-              </fieldset>
-            </>
-          )}
+                    <HorizontalScroller
+                      class="assessment-response-options-scroll"
+                      viewportClass="assessment-response-options-scroll__viewport"
+                      controls
+                      hideScrollbar
+                      controlLabel="варианты ответов"
+                    >
+                      <div class="assessment-response-options-scroll__row">
+                        <For each={question.responseOptions ?? props.definition.responseOptions}>
+                          {(option) => responseOptionLabel(question.id, option, true)}
+                        </For>
+                      </div>
+                    </HorizontalScroller>
+                  </Show>
+                </fieldset>
+              </>
+            );
+          }}
         </For>
+        <Show when={pageCount() > 1}>
+          <QuestionPager
+            page={page()}
+            pageCount={pageCount()}
+            range={pageRange()}
+            onPage={goToPage}
+          />
+        </Show>
 
         <div class="assessment-submit-panel paper-card">
           <div class="assessment-submit-panel__summary">
@@ -654,5 +765,44 @@ export function AssessmentQuestionnairePage(props: {
         )}
       </Show>
     </div>
+  );
+}
+
+/** ‹ page › for a long questionnaire: which questions are on screen, and arrows to the next page. */
+function QuestionPager(props: {
+  readonly page: number;
+  readonly pageCount: number;
+  readonly range: { readonly start: number; readonly end: number };
+  readonly onPage: (page: number) => void;
+}): JSX.Element {
+  return (
+    <nav class="assessment-pager" aria-label="Страницы вопросов">
+      <Button
+        type="button"
+        variant="icon"
+        class="assessment-pager__arrow"
+        aria-label="Предыдущие вопросы"
+        title="Предыдущие вопросы"
+        disabled={props.page === 0}
+        onClick={() => props.onPage(props.page - 1)}
+        icon={<AppGlyph name="caret-left" />}
+      />
+      <span class="assessment-pager__label">
+        Вопросы {props.range.start + 1}–{props.range.end}
+        <small class="assessment-pager__count">
+          страница {props.page + 1} из {props.pageCount}
+        </small>
+      </span>
+      <Button
+        type="button"
+        variant="icon"
+        class="assessment-pager__arrow"
+        aria-label="Следующие вопросы"
+        title="Следующие вопросы"
+        disabled={props.page >= props.pageCount - 1}
+        onClick={() => props.onPage(props.page + 1)}
+        icon={<AppGlyph name="caret-right" />}
+      />
+    </nav>
   );
 }

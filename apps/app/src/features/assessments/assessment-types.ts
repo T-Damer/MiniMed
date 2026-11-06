@@ -18,6 +18,8 @@ export interface AssessmentResponseOption {
   readonly label: string;
   /** Shows a local questionnaire answer without its internal response value. */
   readonly hideValue?: true;
+  /** One or two letters for a printed answer sheet («В», «Н», «?»). */
+  readonly shortLabel?: string;
 }
 
 export interface AssessmentImage {
@@ -42,6 +44,36 @@ export interface AssessmentScaleDefinition {
    * `score_<id>`, but it is not listed among the result's scores.
    */
   readonly context?: true;
+  /**
+   * A step of the count (raw or corrected score) used by later formulas (`score_<id>`), rules and
+   * tables, but not listed among the result's scores.
+   */
+  readonly hidden?: true;
+}
+
+/** How often one answer value was chosen (see the contract's `tallies`). */
+export interface AssessmentTallyDefinition {
+  readonly id: string;
+  readonly value: AssessmentResponseValue;
+  readonly label: string;
+  readonly warnAt?: number;
+  readonly warning?: string;
+}
+
+/** A table of scores under the result; every cell is an expression. */
+export interface AssessmentTableDefinition {
+  readonly id: string;
+  readonly title: string;
+  readonly columns: readonly string[];
+  readonly rows: readonly { readonly label: string; readonly cells: readonly string[] }[];
+  readonly caption?: string;
+}
+
+/** The same instrument in another language (a separate definition with the same question ids). */
+export interface AssessmentLanguageVariant {
+  readonly language: string;
+  readonly label: string;
+  readonly assessmentId: string;
 }
 
 export interface AssessmentQuestion {
@@ -134,6 +166,15 @@ export interface AssessmentDefinition {
   readonly evidenceNote: string;
   readonly interpretations?: readonly AssessmentInterpretationBand[];
   readonly alerts?: readonly AssessmentAlertRule[];
+  /** Long questionnaires show this many questions at a time, with page arrows. */
+  readonly pageSize?: number;
+  /** The blank prints an answer sheet: question numbers with a box for every answer. */
+  readonly answerSheet?: true;
+  readonly tallies?: readonly AssessmentTallyDefinition[];
+  readonly tables?: readonly AssessmentTableDefinition[];
+  readonly languageVariants?: readonly AssessmentLanguageVariant[];
+  /** The language of the definition's text (`ru`, `en`); Russian when absent. */
+  readonly language?: string;
   /** Headings shown above the questions of each section (local questionnaires). */
   readonly sections?: readonly AssessmentSectionHeading[];
   /**
@@ -180,6 +221,29 @@ export interface ScoredAssessment {
   readonly evaluation?: AssessmentEvaluation;
   /** Notices the answers raised; shown above the verdict, in print and in a shared text. */
   readonly alerts?: readonly AssessmentAlert[];
+  /** The declared tables with their numbers. */
+  readonly tables?: readonly AssessmentResultTable[];
+  /** The declared tallies with their counts. */
+  readonly tallies?: readonly AssessmentTallyCount[];
+}
+
+export interface AssessmentResultTable {
+  readonly id: string;
+  readonly title: string;
+  readonly columns: readonly string[];
+  readonly rows: readonly {
+    readonly label: string;
+    readonly cells: readonly (number | null)[];
+  }[];
+  readonly caption?: string;
+}
+
+export interface AssessmentTallyCount {
+  readonly id: string;
+  readonly label: string;
+  readonly count: number;
+  /** Present when the count reached the declared warning level. */
+  readonly warning?: string;
 }
 
 export type AssessmentAnswers = Readonly<Record<string, AssessmentResponseValue>>;

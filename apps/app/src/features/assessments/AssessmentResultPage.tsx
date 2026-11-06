@@ -250,6 +250,67 @@ export function AssessmentResultPage(props: {
                 </Show>
               )}
             </For>
+            <For each={result().tallies ?? []}>
+              {(tally) => (
+                <p
+                  class="assessment-result-tally"
+                  classList={{ 'assessment-result-tally--warning': tally.warning !== undefined }}
+                >
+                  <strong class="assessment-result-tally__count">
+                    {tally.label}: {tally.count}
+                  </strong>
+                  <Show when={tally.warning}>
+                    {(warning) => (
+                      <span class="assessment-result-tally__warning">{warning()}</span>
+                    )}
+                  </Show>
+                </p>
+              )}
+            </For>
+            <For each={result().tables ?? []}>
+              {(table) => (
+                <section class="assessment-result-table" aria-label={table.title}>
+                  <h3 class="assessment-result-table__title">{table.title}</h3>
+                  <div class="assessment-result-table__scroll">
+                    <table class="assessment-result-table__table">
+                      <thead>
+                        <tr>
+                          <th class="assessment-result-table__head assessment-result-table__head--label">
+                            Шкала
+                          </th>
+                          <For each={table.columns}>
+                            {(column) => <th class="assessment-result-table__head">{column}</th>}
+                          </For>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <For each={table.rows}>
+                          {(row) => (
+                            <tr class="assessment-result-table__row">
+                              <th class="assessment-result-table__label" scope="row">
+                                {row.label}
+                              </th>
+                              <For each={row.cells}>
+                                {(cell) => (
+                                  <td class="assessment-result-table__cell">
+                                    {cell === null
+                                      ? '—'
+                                      : String(Math.round(cell * 10) / 10).replace('.', ',')}
+                                  </td>
+                                )}
+                              </For>
+                            </tr>
+                          )}
+                        </For>
+                      </tbody>
+                    </table>
+                  </div>
+                  <Show when={table.caption}>
+                    {(caption) => <p class="assessment-result-table__caption">{caption()}</p>}
+                  </Show>
+                </section>
+              )}
+            </For>
             <Show when={unscaledScores(result()).length > 0}>
               <div class="assessment-score-list">
                 <For each={unscaledScores(result())}>

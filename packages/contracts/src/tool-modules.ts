@@ -15,6 +15,13 @@ export const ToolModuleKindSchema = z.enum(['calculator', 'assessment']);
 
 const AssessmentResponseValueSchema = z.number().int().min(0).max(100);
 
+const AssessmentResponseOptionSchema = z.object({
+  value: AssessmentResponseValueSchema,
+  label: z.string().min(1),
+  /** One or two letters for a printed answer sheet («В», «Н», «?»). */
+  shortLabel: z.string().min(1).max(3).optional(),
+});
+
 const AssessmentInterpretationSchema = z
   .object({
     minScore: z.number().optional(),
@@ -56,6 +63,47 @@ const AssessmentAlertSchema = z.object({
   message: z.string().min(1),
 });
 
+/**
+ * How often one answer value was chosen, shown while the questionnaire is filled in and on the
+ * result; from `warnAt` on, the warning is shown with it.
+ */
+const AssessmentTallySchema = z.object({
+  id: z.string().min(1),
+  value: AssessmentResponseValueSchema,
+  label: z.string().min(1),
+  warnAt: z.number().int().positive().optional(),
+  warning: z.string().min(1).optional(),
+});
+
+/** A table of numbers under the result; every cell is an expression over the scores and answers. */
+const AssessmentTableSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    columns: z.array(z.string().min(1)).min(1),
+    rows: z
+      .array(
+        z.object({
+          label: z.string().min(1),
+          cells: z.array(z.string().min(1)).min(1),
+        }),
+      )
+      .min(1),
+    caption: z.string().min(1).optional(),
+  })
+  .refine((table) => table.rows.every((row) => row.cells.length === table.columns.length), {
+    message: 'every row needs one cell per column',
+    path: ['rows'],
+  });
+
+const AssessmentLanguageVariantSchema = z.object({
+  /** BCP 47 language of the other definition (`en`). */
+  language: z.string().min(2).max(12),
+  /** Its name in its own language («English»). */
+  label: z.string().min(1),
+  assessmentId: z.string().min(1),
+});
+
 export const AssessmentDefinitionSchema = z
   .object({
     schemaVersion: z.literal(2),
@@ -73,9 +121,7 @@ export const AssessmentDefinitionSchema = z
     audience: z.string().min(1),
     /** Whose age the questionnaire is for (children with a range, adults, any age); required. */
     ageScope: ToolAgeScopeSchema,
-    responseOptions: z.array(
-      z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
-    ),
+    responseOptions: z.array(AssessmentResponseOptionSchema),
     scales: z.array(
       z.object({
         id: z.string().min(1),
@@ -89,6 +135,12 @@ export const AssessmentDefinitionSchema = z
         formula: z.string().min(1).optional(),
         /** An answer that only picks the thresholds (sex for RUS-AUDIT): not a score to show. */
         context: z.literal(true).optional(),
+        /**
+         * A step of the count (a raw or corrected score) that later formulas, rules and tables use
+         * but the result does not list. A formula may name any scale declared before it as
+         * `score_<id>`.
+         */
+        hidden: z.literal(true).optional(),
       }),
     ),
     questions: z.array(
@@ -97,15 +149,31 @@ export const AssessmentDefinitionSchema = z
         prompt: z.string().min(1),
         scaleId: z.string().min(1),
         reverse: z.literal(true).optional(),
-        responseOptions: z
-          .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
-          .optional(),
+        responseOptions: z.array(AssessmentResponseOptionSchema).optional(),
       }),
     ),
     disclaimer: z.string().min(1),
     evidenceNote: z.string().min(1),
     interpretations: z.array(AssessmentInterpretationSchema).optional(),
     alerts: z.array(AssessmentAlertSchema).default([]),
+    /**
+     * The blank prints an answer sheet as well: question numbers in a grid with a box for every
+     * answer (`shortLabel`), for a booklet questionnaire answered on paper.
+     */
+    answerSheet: z.literal(true).optional(),
+    /** Long questionnaires show this many questions at a time, with page arrows. */
+    pageSize: z.number().int().min(5).max(100).optional(),
+    /** Answers counted while the questionnaire is filled in («не знаю»), with a warning level. */
+    tallies: z.array(AssessmentTallySchema).default([]),
+    /** Tables of scores under the result (raw → corrected → standard score); cells are expressions. */
+    tables: z.array(AssessmentTableSchema).default([]),
+    /**
+     * The same instrument in other languages: separate definitions whose questions have the same
+     * ids, so the answers given so far carry over when the user switches.
+     */
+    languageVariants: z.array(AssessmentLanguageVariantSchema).default([]),
+    /** The language of this definition's text (BCP 47: `ru`, `en`). */
+    language: z.string().min(2).max(12).optional(),
     visuals: z.array(CalculatorVisualSchema).default([]),
     /** Banded score tracks drawn under the result; `valueId` is the id of one of `scales`. */
     scoreScales: z.array(ScoreScaleSchema).default([]),

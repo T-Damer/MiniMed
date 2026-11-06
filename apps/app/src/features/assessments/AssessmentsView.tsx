@@ -482,6 +482,20 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     window.location.hash = hash;
   };
   /**
+   * The same instrument in another language replaces this entry (back still leaves the
+   * questionnaire, not the language); a variant not yet on the device is marked installed along
+   * with it, since both come in one module.
+   */
+  const switchAssessmentLanguage = (assessmentId: string): void => {
+    const entry = assessmentCatalog().find((candidate) => candidate.id === assessmentId);
+    if (!entry) return;
+    if (!installation().installedIds.has(entry.id)) {
+      setInstallation(installAssessmentIds([entry.id], assessmentCatalog()));
+    }
+    const { pathname, search } = window.location;
+    window.location.replace(`${pathname}${search}${assessmentPath(entry.bankId, entry.slug)}`);
+  };
+  /**
    * Where back from a built-in scale falls to without history: the questionnaire list when it is
    * a tab of a narrowed profile, its section with split navigation, else the search home.
    */
@@ -1056,6 +1070,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             onBack={() => navigateBack(builtInBackFallback(selected().slug))}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
+            onSwitchLanguage={switchAssessmentLanguage}
             onSaved={(saved) => {
               setTransientRecord(saved);
               refreshRecords();

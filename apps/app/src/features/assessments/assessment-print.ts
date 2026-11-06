@@ -6,9 +6,11 @@ import {
   sectionHeadingBefore,
 } from '@/features/assessments/assessment-engine';
 import type {
+  AssessmentAnswers,
   AssessmentDefinition,
   AssessmentImage,
   AssessmentRecord,
+  AssessmentResultTable,
 } from '@/features/assessments/assessment-types';
 import {
   SCORE_SCALE_PRINT_CSS,
@@ -138,6 +140,28 @@ function printableHtml(
     .schema-chart-print__point { fill: #b84424; stroke: #fff; stroke-width: 2; }
     .schema-chart-print__point-label { fill: #8d3019; font-size: 11px; font-weight: 800; }
     .schema-chart-print__caption { margin-top: 1mm; color: #405b4e; font-size: 8.5pt; }
+    .schema-chart-print--profile { max-width: ${orientation === 'landscape' ? '200mm' : '175mm'}; }
+    .schema-chart-print__grid { stroke: #d5ddd8; stroke-width: 1; }
+    .schema-chart-print__grid-label { fill: #405b4e; font-size: 11px; }
+    .schema-chart-print__reference { fill: none; stroke-width: 1.4; stroke-dasharray: 6 5; }
+    .schema-chart-print__reference--danger { stroke: #b84424; }
+    .schema-chart-print__reference--warning { stroke: #b07a12; }
+    .schema-chart-print__profile-line { fill: none; stroke: #17201c; stroke-width: 2; stroke-linejoin: round; }
+    .schema-chart-print__profile-point { fill: #17201c; stroke: #fff; stroke-width: 1.5; }
+    .schema-chart-print__value-label { fill: #17201c; font-size: 11px; font-weight: 700; }
+    .schema-chart-print__category-label { fill: #17201c; font-size: 12px; font-weight: 700; }
+    .result-table { border-collapse: collapse; margin: 0 0 4mm; font-size: var(--print-body-size); break-inside: avoid; }
+    .result-table__caption { caption-side: top; text-align: left; font-weight: 700; padding-bottom: 1mm; }
+    .result-table__cell { border: var(--print-border-width) solid var(--print-rule-color); padding: 0.6mm 2mm; text-align: right; }
+    .result-table__cell--label { text-align: left; }
+    .result-table__note { margin: -3mm 0 4mm; font-size: var(--print-footer-size); }
+    .answer-grid { display: grid; grid-template-columns: repeat(${orientation === 'landscape' ? 10 : 7}, minmax(0, 1fr)); gap: 0 2mm; margin: 0 0 4mm; font-size: 8pt; }
+    .answer-grid__cell { display: flex; justify-content: space-between; gap: 1mm; border-bottom: var(--print-border-width) solid var(--print-rule-color); padding: 0.3mm 0; break-inside: avoid; }
+    .answer-grid__number { font-variant-numeric: tabular-nums; }
+    .answer-grid__answer { font-weight: 700; }
+    .answer-grid__boxes { letter-spacing: 0.4mm; white-space: nowrap; }
+    .answer-sheet__title { font-size: 11pt; margin: 4mm 0 1.5mm; break-before: page; }
+    .answer-sheet__legend { margin: 0 0 2mm; font-size: var(--print-footer-size); }
     .footer { display: flex; align-items: center; gap: var(--print-inline-gap); margin-top: var(--print-footer-gap); padding-top: var(--print-footer-padding); border-top: var(--print-border-width) solid var(--print-rule-color); font-size: var(--print-footer-size); line-height: 1.1; }
     .footer-link { overflow-wrap: anywhere; }
     .footer-qr { flex: 0 0 auto; width: var(--print-qr-size); height: var(--print-qr-size); fill: var(--print-ink-color); }
@@ -181,18 +205,87 @@ export function printText(
 export function printBlankAssessment(definition: AssessmentDefinition): boolean {
   const text = formatBlankAssessment(definition);
   const prefix = `${definition.title}\n${definition.description}\n`;
-  return printText(
-    definition.title,
-    printableAssessmentText(
-      text.startsWith(prefix)
-        ? text.slice(prefix.length)
-        : removeLeadingTitle(definition.title, text),
-    ),
-    [
-      ...(definition.images ?? []),
-      ...definition.questions.flatMap((question) => question.images ?? []),
-    ],
+  const body = printableAssessmentText(
+    text.startsWith(prefix)
+      ? text.slice(prefix.length)
+      : removeLeadingTitle(definition.title, text),
   );
+  const images = [
+    ...(definition.images ?? []),
+    ...definition.questions.flatMap((question) => question.images ?? []),
+  ];
+  if (!definition.answerSheet) return printText(definition.title, body, images);
+  // The questions first, then the answer sheet on a page of its own.
+  return PrintManager.html(
+    printableHtml(
+      definition.title,
+      body,
+      MINIMED_WEB_APP_URL,
+      images,
+      blankAnswerSheetHtml(definition),
+      'portrait',
+      '',
+    ),
+    definition.title,
+  );
+}
+
+/** The declared tables of a result as printed HTML tables (escaped data). */
+function resultTablesHtml(tables: readonly AssessmentResultTable[]): string {
+  const cell = (value: number | null): string =>
+    value === null ? '—' : String(Math.round(value * 10) / 10).replace('.', ',');
+  return tables
+    .map(
+      (
+        table,
+      ) => `<table class="result-table"><caption class="result-table__caption">${escapeHtml(table.title)}</caption>
+<thead><tr><th class="result-table__cell result-table__cell--label"></th>${table.columns
+        .map((column) => `<th class="result-table__cell">${escapeHtml(column)}</th>`)
+        .join('')}</tr></thead>
+<tbody>${table.rows
+        .map(
+          (row) =>
+            `<tr><th class="result-table__cell result-table__cell--label">${escapeHtml(row.label)}</th>${row.cells
+              .map((value) => `<td class="result-table__cell">${cell(value)}</td>`)
+              .join('')}</tr>`,
+        )
+        .join(
+          '',
+        )}</tbody></table>${table.caption ? `<p class="result-table__note">${escapeHtml(table.caption)}</p>` : ''}`,
+    )
+    .join('');
+}
+
+/**
+ * The answers alone as a compact grid (number and answer), so a long questionnaire's answer sheet
+ * takes a page or two instead of a line per question.
+ */
+function answerGridHtml(definition: AssessmentDefinition, answers: AssessmentAnswers): string {
+  return `<div class="answer-grid" aria-label="Ответы">${definition.questions
+    .map((question, index) => {
+      const choices = question.responseOptions ?? definition.responseOptions;
+      const option = choices.find((candidate) => candidate.value === answers[question.id]);
+      const label = option ? (option.shortLabel ?? option.label) : '—';
+      return `<span class="answer-grid__cell"><span class="answer-grid__number">${index + 1}</span><span class="answer-grid__answer">${escapeHtml(label)}</span></span>`;
+    })
+    .join('')}</div>`;
+}
+
+/** An empty answer sheet: every question number with a box per answer, filled in by hand. */
+function blankAnswerSheetHtml(definition: AssessmentDefinition): string {
+  const legend = definition.responseOptions
+    .map(
+      (option) => `${escapeHtml(option.shortLabel ?? option.label)} — ${escapeHtml(option.label)}`,
+    )
+    .join('; ');
+  return `<h2 class="answer-sheet__title">Бланк ответов</h2><p class="answer-sheet__legend">${legend}</p><div class="answer-grid">${definition.questions
+    .map((question, index) => {
+      const choices = question.responseOptions ?? definition.responseOptions;
+      return `<span class="answer-grid__cell"><span class="answer-grid__number">${index + 1}</span><span class="answer-grid__boxes">${choices
+        .map((option) => `${escapeHtml(option.shortLabel ?? String(option.value))}□`)
+        .join(' ')}</span></span>`;
+    })
+    .join('')}</div>`;
 }
 
 /** What a printed result holds (owner 2026-11-06: the doctor chooses, and the preview shows it). */
@@ -243,7 +336,10 @@ export function assessmentRecordPrintHtml(
       : [];
   const resultText = options.results
     ? printableAssessmentText(
-        removeLeadingTitle(definition.title, formatAssessmentRecord(definition, record)),
+        removeLeadingTitle(
+          definition.title,
+          formatAssessmentRecord(definition, record, { tablesAsText: false }),
+        ),
         noteTitle,
       )
     : '';
@@ -254,13 +350,20 @@ export function assessmentRecordPrintHtml(
           ...(completed.result.visuals ?? []).map((visual) => assessmentChartPrintSvg(visual)),
         ].join('')
       : '';
-  const questionText = questionLines.join('\n').trim();
+  const tables =
+    completed && options.results ? resultTablesHtml(completed.result.tables ?? []) : '';
+  // The answers alone print as a grid; with the questions they stay under each question.
+  const grid =
+    completed && options.answers && !options.questions
+      ? `<h2 class="answer-sheet__title">Ответы</h2>${answerGridHtml(definition, completed.answers)}`
+      : '';
+  const questionText = (options.questions ? questionLines.join('\n') : '').trim();
   return printableHtml(
     definition.title,
     resultText,
     MINIMED_WEB_APP_URL,
     [],
-    charts,
+    `${tables}${charts}${grid}`,
     options.orientation,
     questionText,
   );

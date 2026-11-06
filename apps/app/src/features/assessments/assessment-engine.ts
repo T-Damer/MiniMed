@@ -9,8 +9,11 @@ import type {
   AssessmentRecord,
   AssessmentResponseOption,
   AssessmentResponseValue,
+  AssessmentResultTable,
   AssessmentScaleScore,
   AssessmentSectionHeading,
+  AssessmentTableDefinition,
+  AssessmentTallyCount,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 import {
@@ -43,15 +46,17 @@ interface ScaleTotal {
 
 /**
  * Scores of the scales counted by a formula (`AssessmentScaleDefinition.formula`), with their
- * range: the formula at every answer's lowest and at its highest value. Throws on a broken one.
+ * range: the formula at every answer's lowest and at its highest value. Formulas run in the order
+ * the scales are declared and see every scale before them as `score_<id>` (raw → corrected →
+ * standard score), and the summed scales as well. Throws on a broken one.
  */
 function scaleFormulaTotals(
   definition: AssessmentDefinition,
   answers: AssessmentAnswers,
+  sums: ReadonlyMap<string, ScaleTotal>,
 ): ReadonlyMap<string, ScaleTotal> {
   const totals = new Map<string, ScaleTotal>();
-  const formulas = definition.scales.filter((scale) => scale.formula);
-  if (formulas.length === 0) return totals;
+  if (!definition.scales.some((scale) => scale.formula)) return totals;
   const lowest: Record<string, number> = {};
   const highest: Record<string, number> = {};
   for (const question of definition.questions) {
@@ -59,20 +64,35 @@ function scaleFormulaTotals(
     lowest[question.id] = Math.min(...values);
     highest[question.id] = Math.max(...values);
   }
-  const at = (formula: string, given: AssessmentAnswers): number => {
-    const value = evaluateCalculatorExpression(formula, assessmentScoreScope([], given));
+  const scopes = {
+    actual: { ...assessmentScoreScope([], answers) },
+    lowest: { ...assessmentScoreScope([], lowest) },
+    highest: { ...assessmentScoreScope([], highest) },
+  };
+  const remember = (id: string, total: ScaleTotal): void => {
+    const key = `score_${id.replaceAll('-', '_')}`;
+    scopes.actual[key] = total.rawScore;
+    scopes.lowest[key] = total.minimumScore;
+    scopes.highest[key] = total.maximumScore;
+  };
+  for (const [id, total] of sums) remember(id, total);
+  const at = (formula: string, scope: Readonly<Record<string, number>>): number => {
+    const value = evaluateCalculatorExpression(formula, scope);
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       throw new Error(`The formula ${formula} gives no number.`);
     }
     return value;
   };
-  for (const scale of formulas) {
-    const formula = scale.formula as string;
-    totals.set(scale.id, {
-      rawScore: at(formula, answers),
-      minimumScore: at(formula, lowest),
-      maximumScore: at(formula, highest),
-    });
+  for (const scale of definition.scales) {
+    if (!scale.formula) continue;
+    const ends = [at(scale.formula, scopes.lowest), at(scale.formula, scopes.highest)];
+    const total: ScaleTotal = {
+      rawScore: at(scale.formula, scopes.actual),
+      minimumScore: Math.min(...ends),
+      maximumScore: Math.max(...ends),
+    };
+    totals.set(scale.id, total);
+    remember(scale.id, total);
   }
   return totals;
 }
@@ -391,7 +411,7 @@ export function scoreAssessment(
 
   let formulaTotals: ReadonlyMap<string, ScaleTotal>;
   try {
-    formulaTotals = scaleFormulaTotals(definition, answers);
+    formulaTotals = scaleFormulaTotals(definition, answers, totals);
   } catch {
     return { ok: false, error: 'В схеме опросника неверно настроена формула шкалы.' };
   }
@@ -418,9 +438,10 @@ export function scoreAssessment(
       (left, right) => right.percent - left.percent || left.label.localeCompare(right.label),
     );
 
-  // A context answer (sex) feeds the rules below, but is no score of the result.
+  // A context answer (sex) and a hidden step of the count feed the rules below, but are no
+  // scores of the result.
   const context = new Set(
-    definition.scales.filter((scale) => scale.context).map((scale) => scale.id),
+    definition.scales.filter((scale) => scale.context || scale.hidden).map((scale) => scale.id),
   );
   const shown = scores.filter((score) => !context.has(score.scaleId));
   const highest = shown[0]?.percent ?? 0;
@@ -444,6 +465,16 @@ export function scoreAssessment(
   }
 
   const scales = assessmentScoreScaleSpecs(definition, scores, clinical?.bandIndex);
+  const tables: AssessmentResultTable[] = [];
+  const tableScope = assessmentScoreScope(scores, answers);
+  for (const table of definition.tables ?? []) {
+    try {
+      tables.push(evaluateAssessmentTable(table, tableScope));
+    } catch {
+      return { ok: false, error: `В схеме опросника неверно настроена таблица «${table.title}».` };
+    }
+  }
+  const tallies = assessmentTallies(definition, answers);
 
   return {
     ok: true,
@@ -458,9 +489,56 @@ export function scoreAssessment(
       ...(visuals.length > 0 ? { visuals } : {}),
       ...(scales.length > 0 ? { scales } : {}),
       ...(alerts.length > 0 ? { alerts } : {}),
+      ...(tables.length > 0 ? { tables } : {}),
+      ...(tallies.length > 0 ? { tallies } : {}),
       evaluation: assessmentEvaluation(definition, scores),
     },
   };
+}
+
+function evaluateAssessmentTable(
+  table: AssessmentTableDefinition,
+  scope: Readonly<Record<string, number>>,
+): AssessmentResultTable {
+  return {
+    id: table.id,
+    title: table.title,
+    columns: table.columns,
+    rows: table.rows.map((row) => ({
+      label: row.label,
+      cells: row.cells.map((cell) => {
+        const value = evaluateCalculatorExpression(cell, scope);
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          throw new Error(`The table cell ${cell} gives no number.`);
+        }
+        return value;
+      }),
+    })),
+    ...(table.caption ? { caption: table.caption } : {}),
+  };
+}
+
+/**
+ * How often each declared answer value («не знаю») has been chosen so far, with the warning once
+ * the count reaches its level; works on a draft as well as on a finished questionnaire.
+ */
+export function assessmentTallies(
+  definition: AssessmentDefinition,
+  answers: AssessmentAnswers,
+): AssessmentTallyCount[] {
+  return (definition.tallies ?? []).map((tally) => {
+    let count = 0;
+    for (const question of definition.questions) {
+      if (answers[question.id] === tally.value) count += 1;
+    }
+    const warned = tally.warnAt !== undefined && count >= tally.warnAt && tally.warning;
+    return {
+      id: tally.id,
+      label: tally.label,
+      count,
+      ...(warned ? { warning: tally.warning } : {}),
+    };
+  });
 }
 
 /**
@@ -484,10 +562,22 @@ export function answeredQuestionCount(
   return definition.questions.filter((question) => answers[question.id] !== undefined).length;
 }
 
+/** A result table as text lines: «Шкала: 12 · 15 · 64» under a header of its columns. */
+export function formatAssessmentTable(table: AssessmentResultTable): string {
+  const cell = (value: number | null): string =>
+    value === null ? '—' : String(Math.round(value * 10) / 10).replace('.', ',');
+  return [
+    `${table.title} (${table.columns.join(' · ')}):`,
+    ...table.rows.map((row) => `- ${row.label}: ${row.cells.map(cell).join(' · ')}`),
+  ].join('\n');
+}
+
 export function formatCompletedAssessment(
   definition: AssessmentDefinition,
   result: ScoredAssessment,
   subjectLabel = '',
+  /** Print draws the tables itself; a shared text or note carries them as lines. */
+  options: { readonly tablesAsText?: boolean } = {},
 ): string {
   const subject = subjectLabel.trim() ? `\nПациент / участник: ${subjectLabel.trim()}` : '';
   const date = new Intl.DateTimeFormat('ru-RU', {
@@ -500,6 +590,13 @@ export function formatCompletedAssessment(
         `- ${score.label}: ${formatPercent(score.percent)} (${score.rawScore} из ${score.maximumScore})`,
     )
     .join('\n');
+  const tallies = (result.tallies ?? []).map(
+    (tally) => `${tally.label}: ${tally.count}${tally.warning ? `. ${tally.warning}` : ''}`,
+  );
+  const tables =
+    options.tablesAsText === false
+      ? []
+      : (result.tables ?? []).flatMap((table) => [formatAssessmentTable(table), '']);
   return [
     definition.title,
     `Дата: ${date}${subject}`,
@@ -508,6 +605,8 @@ export function formatCompletedAssessment(
     result.headline,
     result.summary,
     '',
+    ...(tallies.length > 0 ? [...tallies, ''] : []),
+    ...tables,
     ...(scores ? ['Шкалы:', scores, ''] : []),
     `Ограничение: ${result.disclaimer}`,
     `Версия: ${definition.id}`,
@@ -527,9 +626,11 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
   const questions = definition.questions
     .map((question, index) => {
       const options = questionResponseOptions(definition, question);
-      const bracket = options.some((option) => !option.hideValue)
-        ? `  [ ${options.map((option) => option.value).join('  ')} ]`
-        : '';
+      // A booklet questionnaire is answered on its answer sheet, not beside each question.
+      const bracket =
+        !definition.answerSheet && options.some((option) => !option.hideValue)
+          ? `  [ ${options.map((option) => option.value).join('  ')} ]`
+          : '';
       const heading = sectionHeadingBefore(definition, index);
       const headingText = heading
         ? `${index > 0 ? '\n' : ''}${heading.title}${heading.description ? `\n${heading.description}` : ''}\n`
@@ -540,11 +641,13 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
       return `${headingText}${index + 1}. ${question.prompt}${bracket}\n   ${optionsText}`;
     })
     .join('\n');
-  const instruction = hasPerQuestionOptions
-    ? showsValues
-      ? 'Инструкция: для каждого пункта отметьте подходящий вариант ответа (значения указаны рядом с пунктом).'
-      : 'Инструкция: для каждого пункта отметьте подходящий вариант ответа.'
-    : `Инструкция: оцените, насколько каждое утверждение похоже на вас. ${sharedOptionsText}.`;
+  const instruction = definition.answerSheet
+    ? 'Инструкция: прочитайте каждое утверждение и отметьте ответ в бланке ответов (после вопросов) под тем же номером.'
+    : hasPerQuestionOptions
+      ? showsValues
+        ? 'Инструкция: для каждого пункта отметьте подходящий вариант ответа (значения указаны рядом с пунктом).'
+        : 'Инструкция: для каждого пункта отметьте подходящий вариант ответа.'
+      : `Инструкция: оцените, насколько каждое утверждение похоже на вас. ${sharedOptionsText}.`;
   return [
     definition.title,
     definition.description,
@@ -561,6 +664,7 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
 export function formatAssessmentRecord(
   definition: AssessmentDefinition,
   record: AssessmentRecord,
+  options: { readonly tablesAsText?: boolean } = {},
 ): string {
   if (record.kind === 'manual') {
     return [
@@ -586,5 +690,5 @@ export function formatAssessmentRecord(
       .filter(Boolean)
       .join('\n');
   }
-  return formatCompletedAssessment(definition, record.result, record.subjectLabel);
+  return formatCompletedAssessment(definition, record.result, record.subjectLabel, options);
 }

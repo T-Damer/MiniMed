@@ -704,6 +704,49 @@
   accent-color: var(--theme-accent);
 }
 
+.assessment-progress__tally {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--theme-text-muted);
+}
+
+.assessment-progress__tally--warning {
+  color: var(--theme-danger);
+  font-weight: var(--theme-weight-emphasis);
+}
+
+.assessment-tally-warning {
+  margin: 0;
+  padding: var(--theme-space-2) var(--theme-space-3);
+  border: var(--theme-border-hairline) solid var(--theme-warning);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-warning-soft);
+  color: var(--theme-text);
+}
+
+.assessment-language-switch {
+  max-width: 22rem;
+}
+
+.assessment-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
+}
+
+.assessment-pager__label {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  font-weight: var(--theme-weight-emphasis);
+}
+
+.assessment-pager__count {
+  color: var(--theme-text-muted);
+  font-weight: 400;
+}
+
 .assessment-score-list__bar {
   width: 100%;
   min-width: 0;
@@ -1525,6 +1568,135 @@ html:has(.assessment-next-button) .patient-notes-fab {
   fill: var(--theme-danger);
   font-size: 18px;
   font-weight: 800;
+}
+
+/* A result's tallies («Не знаю: 12») and declared tables (raw → corrected → standard score). */
+.assessment-result-tally {
+  display: grid;
+  gap: var(--theme-space-1, 0.25rem);
+  margin: 0.5rem 0;
+}
+
+.assessment-result-tally--warning {
+  padding: var(--theme-space-2) var(--theme-space-3);
+  border: var(--theme-border-hairline) solid var(--theme-warning);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-warning-soft);
+}
+
+.assessment-result-tally__count {
+  font-weight: var(--theme-weight-emphasis);
+}
+
+.assessment-result-tally__warning {
+  color: var(--theme-text);
+}
+
+.assessment-result-table {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.assessment-result-table__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.assessment-result-table__scroll {
+  min-width: 0;
+}
+
+.assessment-result-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.assessment-result-table__head {
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-text-muted);
+  font-weight: 600;
+  text-align: right;
+}
+
+.assessment-result-table__head--label {
+  text-align: left;
+}
+
+.assessment-result-table__label {
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--theme-border);
+  font-weight: 600;
+  text-align: left;
+}
+
+.assessment-result-table__cell {
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--theme-border);
+  text-align: right;
+}
+
+.assessment-result-table__caption {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro);
+}
+
+/* A profile over scales (line chart): grid, dashed norm lines, the profile with its values. */
+.schema-chart--profile {
+  max-width: 40rem;
+}
+
+.schema-chart__grid {
+  stroke: var(--theme-border);
+  stroke-width: 1;
+}
+
+.schema-chart__grid-label {
+  fill: var(--theme-text-muted);
+  font-size: 13px;
+}
+
+.schema-chart__reference {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-dasharray: 6 5;
+}
+
+.schema-chart__reference--danger {
+  stroke: var(--theme-danger);
+}
+
+.schema-chart__reference--warning {
+  stroke: var(--theme-warning);
+}
+
+.schema-chart__profile-line {
+  fill: none;
+  stroke: var(--theme-accent);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+.schema-chart__profile-point {
+  fill: var(--theme-accent);
+  stroke: var(--theme-surface-raised);
+  stroke-width: 2;
+}
+
+.schema-chart__value-label {
+  fill: var(--theme-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.schema-chart__category-label {
+  fill: var(--theme-text);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .schema-chart__caption {
