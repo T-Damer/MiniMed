@@ -1031,6 +1031,32 @@
       "note": "Resized-photo caches, trained runs (model.pt, ONNX, metrics) and logs. Superseded runs are deleted once the staged ensemble is verified.",
       "bytes": 2623287568,
       "modified": "2026-10-30"
+    },
+    {
+      "path": "data/intermediate/grls-render-repair",
+      "class": "REBUILDABLE",
+      "producer": "STATE FIX-BATCH2: tools/ingest/scripts/grls_render_repair.py apply (re-renders prepared ГРЛС instructions from their stored extraction JSON with block repairs: junk and running-header headings, OCR drug codes, flattened tables; overlay data/build/grls-render-repair.jsonl)",
+      "consumers": [
+        "tools/ingest/scripts/build_grls_instruction_modules.py via data/build/grls-render-repair.jsonl (joined last, after OCR1 and LEAF1)"
+      ],
+      "rebuild": "uv run python scripts/grls_render_repair.py apply --out ../../data/intermediate/grls-render-repair --overlay ../../data/build/grls-render-repair.jsonl (a few minutes; MINIMED_DATA_ROOT from a worktree)",
+      "note": "2 163 re-rendered ГРЛС instructions (Markdown only), the current build input of the 15 instruction modules for those documents.",
+      "bytes": 133824512,
+      "modified": "2026-11-06"
+    },
+    {
+      "path": "output/module-zstd-grls-fb2-2026-11-06",
+      "class": "RELEASED",
+      "producer": "STATE FIX-BATCH2: grls_render_repair.py apply -> build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts -> embed_modules.py --family medications --from-dir --reuse-from -> reframe-modules.ts --marker kd1",
+      "consumers": [
+        "catalog.preview.json (datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1)",
+        "content:drug-interactions, medication-safety, drug-comparison, dose-rules (MODULE_DIRECTORIES)",
+        "e2e medication-module-fixture.ts"
+      ],
+      "rebuild": "the published branch datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1 holds the same bytes",
+      "note": "Local copy of the published 15 ГРЛС instruction modules (grls-2026.11.06.kd1); the 2026-10-20 copy stays as rollback.",
+      "bytes": 221061120,
+      "modified": "2026-11-06"
     }
   ]
 }
