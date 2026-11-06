@@ -15,6 +15,8 @@ let medicalImageStatusBarActive = false;
 let darkHeaderOverlayCount = 0;
 /** The theme the user chose in the app; the status-bar icons follow it instead of the device's. */
 let themeOverride: 'light' | 'dark' | undefined;
+/** The shade the colour under the bar needs (dark band → light icons); wins over the theme. */
+let topEdgeDarkIcons: boolean | undefined;
 
 function medicalImageStatusBarColor(): string {
   const viewer = document.querySelector<HTMLElement>('.medical-image-viewer');
@@ -35,9 +37,11 @@ function syncStatusBar(): void {
           : TRANSPARENT_STATUS_BAR,
       ...(lightIcons
         ? { darkIcons: false }
-        : themeOverride !== undefined
-          ? { darkIcons: themeOverride === 'light' }
-          : {}),
+        : topEdgeDarkIcons !== undefined
+          ? { darkIcons: topEdgeDarkIcons }
+          : themeOverride !== undefined
+            ? { darkIcons: themeOverride === 'light' }
+            : {}),
     })
     .catch((cause: unknown) => {
       console.warn('Не удалось изменить тему status bar.', cause);
@@ -48,6 +52,13 @@ function syncStatusBar(): void {
 export function setNativeThemeOverride(theme: 'light' | 'dark' | undefined): void {
   if (theme === themeOverride) return;
   themeOverride = theme;
+  syncStatusBar();
+}
+
+/** The icon shade the page under the transparent bar needs (`watchTopEdgeContrast`). */
+export function setTopEdgeStatusBarIcons(darkIcons: boolean | undefined): void {
+  if (darkIcons === topEdgeDarkIcons) return;
+  topEdgeDarkIcons = darkIcons;
   syncStatusBar();
 }
 

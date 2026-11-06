@@ -70,3 +70,30 @@ describe('setNativeThemeOverride', () => {
     setNativeThemeOverride(undefined);
   });
 });
+
+describe('status-bar icons over the page header', () => {
+  beforeEach(() => {
+    mocks.platform.mockReturnValue('android');
+    mocks.setStatusBar.mockClear();
+  });
+
+  it('turns the icons light over a dark band even in the light theme', async () => {
+    const { wantsDarkIcons } = await import('@/state/web-theme-color');
+    const { setTopEdgeStatusBarIcons } = await import('@/state/native-system-ui');
+    setNativeThemeOverride('light');
+    // The herbal / questionnaire hero band and the paper of a plain page.
+    expect(wantsDarkIcons('rgb(52, 49, 42)')).toBe(false);
+    expect(wantsDarkIcons('rgb(240, 233, 214)')).toBe(true);
+    expect(wantsDarkIcons('rgba(23, 28, 25, 0.9)')).toBe(false);
+    setTopEdgeStatusBarIcons(wantsDarkIcons('rgb(52, 49, 42)'));
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
+      backgroundColor: '#00000000',
+      darkIcons: false,
+    });
+    setTopEdgeStatusBarIcons(undefined);
+    expect(mocks.setStatusBar).toHaveBeenLastCalledWith({
+      backgroundColor: '#00000000',
+      darkIcons: true,
+    });
+  });
+});

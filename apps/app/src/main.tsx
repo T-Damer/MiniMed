@@ -91,6 +91,16 @@ const stopReminderNotifications = standby ? () => undefined : startReminderNotif
 // The browser's bars take the header's colour (an installed diaries app above all); the Android
 // app colours its own.
 let stopThemeColor = (): void => undefined;
+if (Capacitor.getPlatform() === 'android') {
+  // The transparent status bar shows the page header: its icons take the shade it needs.
+  void Promise.all([import('@/state/web-theme-color'), import('@/state/native-system-ui')])
+    .then(([{ watchTopEdgeContrast }, { setTopEdgeStatusBarIcons }]) => {
+      stopThemeColor = watchTopEdgeContrast(setTopEdgeStatusBarIcons);
+    })
+    .catch((cause: unknown) => {
+      console.warn('Значки status bar не будут следовать странице:', cause);
+    });
+}
 if (!Capacitor.isNativePlatform()) {
   // Chrome offers its install prompt once, early: the diaries app's install row needs it.
   listenForInstallPrompt();
