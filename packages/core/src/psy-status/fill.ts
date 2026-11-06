@@ -63,7 +63,7 @@ function findInLine(
   for (const match of text.matchAll(compiled.pattern)) {
     const span = { start: match.index, end: match.index + match[0].length };
     const ending = sentenceEnding(text, span.end);
-    const answer = ending === 'statement' ? undefined : answerAfter(folded, line);
+    const answer = ending === 'statement' ? undefined : answerAfter(folded, line, span.end);
     if (ending === 'question' || answer) {
       if (!answer) continue;
       const code = answer.yes ? compiled.cue.code : compiled.cue.denied;

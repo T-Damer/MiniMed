@@ -262,6 +262,18 @@ describe('cue fallback', () => {
     );
   });
 
+  it("takes the answer on the question's own line when turns are joined by «—»", () => {
+    const lines = [
+      '[00:00–00:15] — Сколько вам лет?— Семьдесят два.— Сахарный диабет есть?— Нет.',
+      '[00:15–00:28] — Давление повышается?— Да, давно.',
+    ];
+    const result = fillFormWithCues(cha2ds2.form, lines);
+    expect(result.fields['ageYears']?.value).toBe(72);
+    expect(result.fields['diabetes']?.value).toBe(false);
+    expect(result.fields['hypertension']?.value).toBe(true);
+    expect(result.fields['diabetes']?.evidence[0]?.quote.text).toBe('Сахарный диабет есть?— Нет');
+  });
+
   it('fills 070/у text, choice and multi-choice fields', () => {
     const lines = [
       'Врач: Диагноз: гипертоническая болезнь второй стадии.',

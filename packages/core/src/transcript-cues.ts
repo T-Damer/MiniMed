@@ -9,8 +9,10 @@ import type { VisitNoteQuote } from '@localmed/contracts';
  * - A statement is quoted as its clause, the part of the line between punctuation marks.
  * - A negation right before the words (up to three words, same clause) or right after them (up to
  *   two words) makes the statement a denial.
- * - A question on a topic is not a fact. When the next line starts with «да» or «нет», the answer
- *   decides, and the quote runs from the question to the answer. A sentence counts as a question
+ * - A question on a topic is not a fact. When the reply starts with «да» or «нет», the answer
+ *   decides, and the quote runs from the question to the answer. The reply is on the same line after
+ *   the «?» when there is one there (turns joined by «—», as time-cut recognised speech has them),
+ *   else on the next line. A sentence counts as a question
  *   when it ends with «?», or when it runs to the end of the line and the next line starts with a
  *   bare «да» / «нет» (recognised speech often loses the question mark).
  */
@@ -100,12 +102,14 @@ export function sentenceEnding(folded: string, end: number): 'question' | 'state
   return 'open';
 }
 
-/** Where the sentence holding `start` begins, after any speaker label. */
+/** Where the sentence holding `start` begins, after any speaker label or dialogue dash. */
 export function sentenceStart(folded: string, start: number): number {
   let from = start;
   while (from > 0 && !SENTENCE_END.test(folded[from - 1] as string)) from -= 1;
   const prefix = SPEAKER_PREFIX.exec(folded.slice(from, start))?.[0].length ?? 0;
-  return from + prefix;
+  // A dialogue dash opens a turn; the quote starts at the words.
+  const dash = /^[—–-]\s*/u.exec(folded.slice(from + prefix, start))?.[0].length ?? 0;
+  return from + prefix + dash;
 }
 
 /** Where the sentence holding `end` stops: its closing mark included, trailing space not. */
@@ -131,28 +135,61 @@ export function opensWithNo(line: string): boolean {
   return NO.test(folded.slice(offset));
 }
 
-/** A bare «да» / «нет» at the start of the next non-empty line, after any speaker label. */
-export function answerAfter(folded: readonly string[], line: number): CueAnswer | undefined {
+/**
+ * Where the reply to a question starts when it is on the question's own line: right after the «?»
+ * that ends the question at `from`, past a dialogue dash («Голоса слышите?— Нет.»). Speech
+ * recognisers that cut the audio by time put several turns on one line, the turns split by «—».
+ */
+function sameLineReply(folded: string, from: number): number | undefined {
+  const mark = folded.indexOf('?', from);
+  if (mark < 0) return undefined;
+  const gap = /^[\s"»“]*(?:[—–-][\s"«„]*)?/u.exec(folded.slice(mark + 1))?.[0].length ?? 0;
+  const start = mark + 1 + gap;
+  return start < folded.length && /[\p{L}\p{N}]/u.test(folded[start] as string) ? start : undefined;
+}
+
+function yesNoAt(text: string, line: number, offset: number): CueAnswer | undefined {
+  const rest = text.slice(offset);
+  const yes = YES.exec(rest);
+  const no = yes ? null : NO.exec(rest);
+  const word = yes ?? no;
+  if (!word) return undefined;
+  const clause = clauseAround(text, offset, offset + word[0].length);
+  return { line, yes: Boolean(yes), start: offset, end: clause.end };
+}
+
+/**
+ * A bare «да» / «нет» answering the question that holds `from`: on the same line after its «?»
+ * when a reply follows there, else at the start of the next non-empty line, after any speaker label.
+ */
+export function answerAfter(
+  folded: readonly string[],
+  line: number,
+  from?: number,
+): CueAnswer | undefined {
+  if (from !== undefined) {
+    const text = folded[line] as string;
+    const same = sameLineReply(text, from);
+    if (same !== undefined) return yesNoAt(text, line, same);
+  }
   for (let next = line + 1; next < folded.length && next <= line + 2; next += 1) {
     const text = folded[next] as string;
     if (!text.trim()) continue;
-    const offset = SPEAKER_PREFIX.exec(text)?.[0].length ?? 0;
-    const rest = text.slice(offset);
-    const yes = YES.exec(rest);
-    const no = yes ? null : NO.exec(rest);
-    const word = yes ?? no;
-    if (!word) return undefined;
-    const clause = clauseAround(text, offset, offset + word[0].length);
-    return { line: next, yes: Boolean(yes), start: offset, end: clause.end };
+    return yesNoAt(text, next, SPEAKER_PREFIX.exec(text)?.[0].length ?? 0);
   }
   return undefined;
 }
 
-/** The next non-empty line within two, with where its words start after any speaker label. */
+/** Where the reply to the question holding `from` starts: on its line after the «?», or the next line. */
 export function replyAfter(
   folded: readonly string[],
   line: number,
+  from?: number,
 ): { readonly line: number; readonly start: number } | undefined {
+  if (from !== undefined) {
+    const same = sameLineReply(folded[line] as string, from);
+    if (same !== undefined) return { line, start: same };
+  }
   for (let next = line + 1; next < folded.length && next <= line + 2; next += 1) {
     const text = folded[next] as string;
     if (!text.trim()) continue;

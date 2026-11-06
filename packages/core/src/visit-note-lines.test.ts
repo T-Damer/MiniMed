@@ -32,6 +32,14 @@ describe('locateLines', () => {
     });
   });
 
+  it('does not link through function words', () => {
+    const books = { transcript: ['— А каких-нибудь книг ты читал?— Нет, только журналы.'] };
+    expect(locateLines(books, 1, 'Мысли причинить себе какой-нибудь вред')).toEqual({
+      ok: false,
+      code: 'line-unrelated',
+    });
+  });
+
   it('does not take a negated mention as the positive claim', () => {
     expect(locateLines(SOURCES, 1, 'Обмороки')).toEqual({ ok: false, code: 'quote-negated' });
     expect(locateLines(SOURCES, 1, 'Обмороков нет')).toMatchObject({ ok: true });

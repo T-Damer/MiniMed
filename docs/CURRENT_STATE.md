@@ -169,6 +169,29 @@ or a value with the transcript words it rests on and who said them. Built on SCR
   - Not measured: phones (QVikhr is ~2–4 s per call on the Mac; a consultation × a 10-field form is
     6–12 calls), wllama's schema path in the browser, real consultations.
 
+- **Real interviews** (2026-11-06; local only — transcripts, quotes and reports stay in `output/`,
+  never in git): two teaching-film psychiatric interviews of real patients, recognised on the Mac
+  by GigaAM v3 (12.7 min, 62 lines; 84 s, 7 lines). No speaker labels: turns are «—»-joined inside
+  ~15 s lines, with recognition errors and, in the short one, a narrator's voice-over. Hand-checked
+  against 5 catalog phrases the patients' own words carry (orientation, cognitive complaint,
+  current medication, an active suicidal statement naming a method, auditory hallucinations) and
+  none for PHQ-9 (no frequencies said). `tools/benchmarks/src/run-form-fill-local.ts`.
+  - **PSY1 cues, as shipped:** 1 right, 0 wrong, 4 missed — **the suicidal statement among them**
+    (no method words in the cues) and every answer given on the question's own line.
+  - **After the fixes** (same-line answers after «?», suicide-method words, everyday memory-complaint
+    words): 4 right, 0 wrong, 1 missed (orientation, which the catalog takes only from the doctor's
+    dictation); the suicidal statement is `suicide-active`, never a denial. Optimistic: the new cue
+    words were written with this interview in view. Nothing came from the narrator's lines; every
+    quote's speaker is «unknown» (no labels to read).
+  - **QVikhr 1.7B under the schema**, the catalog as a form (127 yes/no fields; 351 calls, 4 min on
+    the Mac for the 12.7-minute interview — about an hour on the browser runtime): 77 proposals,
+    none right, none kept. Most were `false` where nothing was said; two would have been harmful —
+    auditory hallucinations «false» on the line where the patient hears a voice, and
+    suicidal-thinking «false» in the window with the suicidal statement; the quote check dropped all.
+    On PHQ-9 it put item 9 (self-harm) at «Несколько дней» on an unrelated line, and that one
+    **passed** the check: the line shared only the particle «-нибудь» with the item's wording.
+    The line check now ignores function words (`LINK_STOPWORDS`), and it is dropped. The small model
+    is not usable on real interviews; the cues carry the feature.
 - **Not done.** The local model on these screens: no screen creates the model controller yet, so the
   sheet runs the word cues; wiring it means `fillFormWithModel` through `localFormFillModel`, the
   model download offered in place, and a progress line (a 10-field form is 6–12 calls). A phone run

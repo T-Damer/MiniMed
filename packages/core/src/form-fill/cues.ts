@@ -66,7 +66,8 @@ type Reading =
 function read(folded: readonly string[], match: Match): Reading {
   const text = folded[match.line] as string;
   const ending = sentenceEnding(text, match.span.end);
-  const answer = ending === 'statement' ? undefined : answerAfter(folded, match.line);
+  const answer =
+    ending === 'statement' ? undefined : answerAfter(folded, match.line, match.span.end);
   if (ending === 'question' || answer) {
     if (!answer) return { kind: 'unanswered' };
     return {
@@ -167,7 +168,7 @@ function numberCandidates(
       continue;
     }
     if (ending === 'statement') continue;
-    const reply = replyAfter(folded, match.line);
+    const reply = replyAfter(folded, match.line, match.span.end);
     if (!reply) continue;
     const answerText = folded[reply.line] as string;
     const answerClause = clauseAround(answerText, reply.start, reply.start);
@@ -312,7 +313,7 @@ function topicChoiceCandidates(
       }
     }
     if (ending === 'statement') continue;
-    const reply = replyAfter(folded, match.line);
+    const reply = replyAfter(folded, match.line, match.span.end);
     if (!reply) continue;
     const replyText = folded[reply.line] as string;
     const replyEnd = sentenceEnd(replyText, reply.start);

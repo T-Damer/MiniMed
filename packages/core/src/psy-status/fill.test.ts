@@ -98,6 +98,20 @@ describe('fillPsyStatusFromTranscript', () => {
     expect(suicide?.text).toBe('Мысли о самоубийстве бывают [00:21–00:26] Пациент: Нет');
   });
 
+  it('reads turns joined on one line, as time-cut speech recognition stores them', () => {
+    // Synthetic, in the shape of a recogniser that cuts audio by time: no speaker labels, «—» turns.
+    const lines = [
+      '[00:00–00:14] — Голоса слышите?— Нет, не слышу.— А таблетки пьёте?— Да, утром.',
+      '[00:14–00:29] — Что думаете делать?— Да брошусь с моста, и всё.— Как это?— Не знаю.',
+    ];
+    const byCode = new Map(fillPsyStatusFromTranscript(lines).map((item) => [item.code, item]));
+    expect(byCode.get('perception-none')?.quotes[0]?.text).toBe('Голоса слышите?— Нет');
+    expect(byCode.get('meds-current')?.kind).toBe('answer');
+    // A method named is an active suicidal statement, never a denial.
+    expect(byCode.get('suicide-active')?.quotes[0]?.text).toBe('Да брошусь с моста');
+    expect(byCode.has('suicide-denied')).toBe(false);
+  });
+
   it('does not take a question for a fact without an answer', () => {
     expect(fillPsyStatusFromTranscript(['Врач: Голоса слышите?', 'Пациент: Сплю плохо.'])).toEqual(
       [],
