@@ -57,12 +57,15 @@ function markPageBreaks(document: Document): void {
  * frame never takes pointer events, so every gesture reaches the surface around it.
  */
 export function PaperPreview(props: PaperPreviewProps): JSX.Element {
-  const [fit, setFit] = createSignal(1);
+  const [hostWidth, setHostWidth] = createSignal(0);
+  // Follows the sheet too: turning the page (portrait ↔ landscape) refits it to the screen.
+  const fit = (): number =>
+    hostWidth() > 0 ? Math.max(MIN_FIT_SCALE, Math.min(1, hostWidth() / props.sheetWidth)) : 1;
   const [sheetHeight, setSheetHeight] = createSignal(props.sheetMinHeight);
   const pinch = usePinchZoom({ expandScrollPort: true, doubleTapZoom: true, wheelZoom: 'ctrl' });
   const watchWidth = (host: HTMLElement): void => {
     const update = (): void => {
-      setFit(Math.max(MIN_FIT_SCALE, Math.min(1, host.clientWidth / props.sheetWidth)));
+      setHostWidth(host.clientWidth);
     };
     update();
     const observer = new ResizeObserver(update);
