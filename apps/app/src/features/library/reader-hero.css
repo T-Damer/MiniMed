@@ -115,13 +115,28 @@
 .reader-hero__expand {
   position: absolute;
   z-index: 3;
-  top: 0.625rem;
-  right: 0.625rem;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  place-items: center;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: zoom-in;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.reader-hero__expand:active {
+  transform: scale(0.96);
+}
+
+.reader-hero__expand-icon {
   width: 1.125rem;
   height: 1.125rem;
-  color: var(--theme-text-muted);
   filter: drop-shadow(0 0 0.375rem color-mix(in srgb, var(--document-paper-fill) 85%, transparent));
-  pointer-events: none;
 }
 
 .reader-hero__body {

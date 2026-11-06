@@ -7,6 +7,7 @@
 }
 
 .herbal-book__toolbar {
+  animation: herbal-book-in var(--motion-fast) var(--motion-ease-out) both;
   position: sticky;
   top: 0;
   z-index: var(--z-sticky-chrome);
@@ -136,9 +137,66 @@
 }
 
 .herbal-book__grid {
+  animation: herbal-book-in var(--motion-fast) var(--motion-ease-out) both;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   gap: var(--layout-gap);
+}
+
+/* The book takes the skeleton's place with a quick fade, nothing moves. */
+@keyframes herbal-book-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.herbal-book__skeleton {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.25rem 0.15rem 0;
+}
+
+.herbal-book__grid--skeleton {
+  animation: none;
+  margin-top: 0.875rem;
+}
+
+.herbal-book__skeleton-search {
+  height: 2.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  background: var(--theme-surface-raised);
+}
+
+.herbal-book__skeleton-chips {
+  display: flex;
+  gap: 0.375rem;
+  overflow: hidden;
+}
+
+.herbal-book__skeleton-chip {
+  width: 7.5rem;
+  height: 2.25rem;
+  flex: none;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-raised);
+}
+
+.herbal-card--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.herbal-card__skeleton-title {
+  width: 80%;
+  height: 1.1rem;
+  margin-bottom: 0.375rem;
+}
+
+.herbal-card__skeleton-line {
+  width: 55%;
+  height: 0.75rem;
 }
 
 .herbal-card {

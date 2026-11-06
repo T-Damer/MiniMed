@@ -3,8 +3,9 @@ import type { HerbalChapter } from './herbal-chapter';
 import { getHerbalPlateResolver } from './herbal-plates';
 
 /**
- * The chapter's botanical plate as the reader hero: the full plate when the plates module is
- * installed, otherwise the small thumbnail the chapter carries.
+ * The chapter's botanical plate as the reader hero: the small thumbnail the chapter carries, shown
+ * at once (owner 2026-11-06: it is enough, the hero waits for nothing bigger). The full plate of the
+ * plates module is read only when the picture is opened full screen.
  */
 export function herbalHeroPicture(chapter: HerbalChapter): HeroPicture | undefined {
   const plate = chapter.plate;
@@ -16,9 +17,12 @@ export function herbalHeroPicture(chapter: HerbalChapter): HeroPicture | undefin
     credit: plate ? `Рисунок: ${plate.credit}` : '',
     surface: 'paper',
     resolve: async () => {
-      const url = plate ? await getHerbalPlateResolver().resolve(plate.asset) : null;
-      const shown = url ?? chapter.thumbnail;
+      const shown =
+        chapter.thumbnail ?? (plate ? await getHerbalPlateResolver().resolve(plate.asset) : null);
       return shown ? { url: shown, alt, sourceUrl, contentType: 'image/jpeg' } : null;
     },
+    ...(plate && chapter.thumbnail
+      ? { resolveLarge: () => getHerbalPlateResolver().resolve(plate.asset) }
+      : {}),
   };
 }

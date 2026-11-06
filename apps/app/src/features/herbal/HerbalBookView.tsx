@@ -35,6 +35,8 @@ import {
 } from './herbal-chapter';
 import { herbalBookActionFromHash, herbalBookHash } from './herbal-routing';
 
+import '@/components/page-skeleton.css';
+
 interface HerbalBookViewProps {
   readonly core: MedicalCore;
   readonly onBack: () => void;
@@ -65,6 +67,45 @@ function HerbalHelp(): JSX.Element {
         Рисунки — старые ботанические таблицы (общественное достояние); у нескольких растений их
         нет. Определять растение в природе только по рисунку нельзя.
       </p>
+    </div>
+  );
+}
+
+const SKELETON_CARDS = [0, 1, 2, 3, 4, 5] as const;
+
+/**
+ * The book while the installed module is read (the first open after start waits for the core): the
+ * search bar, the chips and a grid of cards in their places, shown at once, so the book replaces it
+ * without the layout moving.
+ */
+function HerbalBookSkeleton(): JSX.Element {
+  return (
+    <div
+      class="herbal-book__skeleton"
+      role="status"
+      aria-busy="true"
+      aria-label="Открываем травник"
+      data-testid="herbal-book-skeleton"
+    >
+      <span class="herbal-book__skeleton-search" />
+      <span class="herbal-book__skeleton-chips">
+        <span class="herbal-book__skeleton-chip" />
+        <span class="herbal-book__skeleton-chip" />
+        <span class="herbal-book__skeleton-chip" />
+      </span>
+      <div class="herbal-book__grid herbal-book__grid--skeleton">
+        <For each={SKELETON_CARDS}>
+          {() => (
+            <span class="herbal-card herbal-card--skeleton paper-card">
+              <span class="herbal-card__sheet" />
+              <span class="herbal-card__body">
+                <span class="page-skeleton__bar herbal-card__skeleton-title" />
+                <span class="page-skeleton__bar herbal-card__skeleton-line" />
+              </span>
+            </span>
+          )}
+        </For>
+      </div>
     </div>
   );
 }
@@ -168,6 +209,10 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
         helpTitle="О травнике"
       />
 
+      <Show when={loading() && book().plants.length === 0 && !error()}>
+        <HerbalBookSkeleton />
+      </Show>
+
       <Show when={!loading() && book().plants.length === 0 && !error()}>
         <div class="herbal-book__offer paper-card">
           <p class="herbal-book__offer-text">
@@ -195,7 +240,7 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
       <Show when={book().plants.length > 0}>
         <div
           ref={setToolbarElement}
-          class="herbal-book__toolbar route-sticky-chrome route-sticky-chrome--transparent"
+          class="herbal-book__toolbar knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
         >
           <SearchField
             class="herbal-book__search"

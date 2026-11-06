@@ -25,6 +25,8 @@ export interface HeroPicture {
    * botanical plates in the herbal book); by default it is a photo with its own frame.
    */
   readonly surface?: 'photo' | 'paper';
+  /** A sharper copy shown only in the full-screen preview (looked up when it opens). */
+  readonly resolveLarge?: () => Promise<string | null>;
 }
 
 export function ReaderHero(props: {
@@ -105,8 +107,12 @@ export function ReaderHero(props: {
                     setImage(null);
                     props.onSource?.(null);
                   }}
+                  largeSrc={props.picture?.resolveLarge}
+                  expand={{
+                    class: 'reader-hero__expand',
+                    icon: <AppGlyph name="arrows-out" class="reader-hero__expand-icon" />,
+                  }}
                 />
-                <AppGlyph name="arrows-out" class="reader-hero__expand" />
               </>
             )}
           </Show>

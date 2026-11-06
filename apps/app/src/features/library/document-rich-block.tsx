@@ -421,8 +421,23 @@ export function PreviewableImage(props: {
   readonly imageClass: string;
   readonly hidden?: boolean | undefined;
   readonly onError?: (() => void) | undefined;
+  /** A separate corner button (an expand icon) that opens the same preview. */
+  readonly expand?: { readonly class: string; readonly icon: JSX.Element } | undefined;
+  /** A sharper copy for the full-screen preview, looked up only when the preview opens. */
+  readonly largeSrc?: (() => Promise<string | null>) | undefined;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  const [large, setLarge] = createSignal<string | null>(null);
+  const openPreview = (): void => {
+    setOpen(true);
+    const lookup = props.largeSrc;
+    if (!lookup || large() !== null) return;
+    void lookup()
+      .then((url) => {
+        if (url) setLarge(url);
+      })
+      .catch(() => undefined);
+  };
   const title = (): string => props.caption || props.alt || 'Изображение';
   return (
     <>
@@ -431,7 +446,7 @@ export function PreviewableImage(props: {
         class={props.openClass}
         aria-label="Открыть изображение"
         hidden={props.hidden}
-        onClick={() => setOpen(true)}
+        onClick={openPreview}
       >
         <img
           class={props.imageClass}
@@ -441,12 +456,25 @@ export function PreviewableImage(props: {
           onError={() => props.onError?.()}
         />
       </button>
+      <Show when={props.expand}>
+        {(expand) => (
+          <button
+            type="button"
+            class={expand().class}
+            aria-label="Открыть изображение во весь экран"
+            hidden={props.hidden}
+            onClick={openPreview}
+          >
+            {expand().icon}
+          </button>
+        )}
+      </Show>
       <MediaViewer open={open()} zoomMode="image" title={title()} onClose={() => setOpen(false)}>
         <figure
           class="media-viewer__figure"
           classList={{ 'media-viewer__figure--captioned': Boolean(props.caption) }}
         >
-          <img class="media-viewer__image" src={props.src} alt={props.alt || title()} />
+          <img class="media-viewer__image" src={large() ?? props.src} alt={props.alt || title()} />
           <Show when={props.caption}>
             {(caption) => <figcaption class="media-viewer__caption">{caption()}</figcaption>}
           </Show>
