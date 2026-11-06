@@ -35,9 +35,11 @@ Details, sources and the withdrawal steps: `docs/ASSESSMENTS.md` «СМИЛ … 
   raw-score marks of both profile sheets (≤ 1.3 T off any printed mark), validity alerts pp. 26–28.
   The catalog tags the module `remote-only`: `vite.config.ts` drops its pack from the build, so the
   item text is never inside an installed app. `minAppVersion` 0.6.94 (the engine below).
-- **English original: not shipped.** No openly published copy of the 1943 MMPI items, keys and
-  norms was found (manuals and Dahlstrom's handbook are lending-only); the variant switch is ready
-  for it once the owner has a source. MMPI-2/3 not considered (Pearson).
+- **English original: not shipped** (owner 2026-11-06: ship without it, keep it a documented gap).
+  No openly published copy of the 1943 MMPI items, keys and norms was found (manuals and
+  Dahlstrom's handbook are lending-only); the sources it would need are listed in
+  `docs/ASSESSMENTS.md`. No language option is shown until an English definition exists. MMPI-2/3
+  not considered (Pearson). The owner wants to see the screenshots before any release.
 - **IPIP-50** Big-Five markers (public domain), Russian (O. Hypponen) and English, in the psychology
   module (0.1.0-preview.10), section «Самооценка и личностный профиль». PID-5 rejected: APA reserves
   apps and translations.
