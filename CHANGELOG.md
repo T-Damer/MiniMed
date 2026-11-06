@@ -4,6 +4,8 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.93] - 2026-11-06
+
 - «Психический статус» (Инструменты, `#/notes/psy-status`): a constructor of the mental and somatic status and the
   pharmacological history — phrases by section, each section's status, the doctor's own wording, contradiction checks,
   the text at three levels of detail, «Сохранить» into the patient's card. Filled from a conversation: a recording
@@ -13,6 +15,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 - Background: the page grounds (the desk, every route page, the patient diary's paper) carry a fine, still paper
   grain instead of a flat colour, in light and dark; cards, sheets and buttons stay flat on it. With «less
   transparency» or «more contrast» asked for on the device, the grounds are plain again.
+- «Заполнить по беседе» on form 070/у and the CHA₂DS₂-VASc calculator: a recording or pasted text proposes field
+  values, each with the quoted words it rests on and who said them; the doctor accepts or turns down each one, and only
+  accepted values reach the form. Works without a model (word cues); a value whose quote is not about its field is
+  dropped.
 
 ## [0.6.92] - 2026-11-05
 
