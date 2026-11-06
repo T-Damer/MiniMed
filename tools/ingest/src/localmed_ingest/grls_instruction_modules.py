@@ -35,6 +35,8 @@ from .builder import build_content_pack
 from .grls_contents_lists import apply_overlay as apply_contents_overlay
 from .grls_contents_lists import read_overlay as read_contents_overlay
 from .grls_document_kind import classify_scan_document
+from .grls_render_repair import apply_overlay as apply_repair_overlay
+from .grls_render_repair import read_overlay as read_repair_overlay
 from .sqlite_builder import repository_root
 
 # Private data (manifest, prepared workspaces, ЕСКЛП release) lives in the main checkout only:
@@ -91,6 +93,8 @@ KIND_TITLE_SUFFIX = {
 OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-ocr-quality.jsonl"
 #: Documents whose leaflet table of contents was re-rendered as one list (LEAF1).
 CONTENTS_OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-contents-lists.jsonl"
+#: Documents re-rendered with the FIX-BATCH2 block repairs (stamp headings, flattened tables).
+REPAIR_OVERLAY_PATH = REPO_ROOT / "data" / "build" / "grls-render-repair.jsonl"
 #: Overlay columns (OCR1) that replace the manifest value of the same PDF.
 OVERLAY_COLUMNS = (
     "workspace",
@@ -188,11 +192,13 @@ def read_manifest_rows(
     path: Path = MANIFEST_PATH,
     overlay: Path | None = OVERLAY_PATH,
     contents_overlay: Path | None = CONTENTS_OVERLAY_PATH,
+    repair_overlay: Path | None = REPAIR_OVERLAY_PATH,
 ) -> list[dict[str, Any]]:
     """Manifest rows with the OCR1 overlay (re-prepared text, kind, quality) joined by PDF.
 
-    The LEAF1 overlay comes last and only replaces the text workspace and digest of a document
-    whose leaflet contents list was re-rendered (`grls_contents_lists.py`).
+    The LEAF1 overlay then replaces the text workspace and digest of a document whose leaflet
+    contents list was re-rendered (`grls_contents_lists.py`), and the FIX-BATCH2 overlay those of a
+    document re-rendered with the block repairs (`grls_render_repair.py`).
     """
     rows = [
         cast(dict[str, Any], json.loads(line))
@@ -203,6 +209,8 @@ def read_manifest_rows(
         rows = apply_overlay(rows, read_overlay(overlay))
     if contents_overlay is not None:
         rows = apply_contents_overlay(rows, read_contents_overlay(contents_overlay))
+    if repair_overlay is not None:
+        rows = apply_repair_overlay(rows, read_repair_overlay(repair_overlay))
     return rows
 
 
