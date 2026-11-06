@@ -367,8 +367,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setContextDocuments(available.value);
       // Built while the screen is idle (~70 ms on a Mac, a few hundred on a phone), not on submit.
       const build = (): void => void titleIndexFor(available.value);
-      if ('requestIdleCallback' in window) window.requestIdleCallback(build, { timeout: 2000 });
-      else window.setTimeout(build, 200);
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(build, { timeout: 2000 });
+      } else globalThis.setTimeout(build, 200);
     });
   });
   const contextLinkMatcher = createMemo(() =>
