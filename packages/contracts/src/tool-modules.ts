@@ -20,6 +20,8 @@ const AssessmentResponseOptionSchema = z.object({
   label: z.string().min(1),
   /** One or two letters for a printed answer sheet («В», «Н», «?»). */
   shortLabel: z.string().min(1).max(3).optional(),
+  /** The value is internal (verdicts, keys), not a score to show beside the answer. */
+  hideValue: z.literal(true).optional(),
 });
 
 const AssessmentInterpretationSchema = z

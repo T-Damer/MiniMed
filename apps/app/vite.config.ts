@@ -295,6 +295,21 @@ function excalidrawCjkFontStubs(): Plugin {
   };
 }
 
+/** File names of the index packs of catalog modules tagged `remote-only`. */
+function remoteOnlyModuleFiles(): string[] {
+  const catalog = JSON.parse(
+    readFileSync(
+      fileURLToPath(new URL('./src/features/modules/catalog.preview.json', import.meta.url)),
+      'utf8',
+    ),
+  ) as { modules: { tags?: string[]; artifacts?: { url?: string }[] }[] };
+  return catalog.modules
+    .filter((module) => module.tags?.includes('remote-only'))
+    .flatMap((module) => module.artifacts ?? [])
+    .map((artifact) => artifact.url?.split('/').at(-1) ?? '')
+    .filter((file) => file.endsWith('.db'));
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -311,6 +326,13 @@ function excludeOptionalPublicAssets(): Plugin {
       rmSync(join(outDir, 'tessdata'), { recursive: true, force: true });
       // Illustrations are verified optional downloads; keep their small manifest in the app.
       rmSync(join(outDir, 'content/reference-images/assets'), { recursive: true, force: true });
+      // Packs the catalog tags `remote-only` (a licensed questionnaire that may have to be withdrawn)
+      // are only ever downloaded from the module host, so they never ride inside an installed app.
+      if (process.env['VITE_USE_LOCAL_MODULE_ARTIFACTS'] !== 'true') {
+        for (const file of remoteOnlyModuleFiles()) {
+          rmSync(join(outDir, 'content/modules', file), { force: true });
+        }
+      }
       const packageLarge = process.env['VITE_PACKAGE_LARGE_COMPANIONS'] === 'true';
       const inCi = process.env['CI'] === 'true' || process.env['GITHUB_ACTIONS'] === 'true';
       if (packageLarge || !inCi) return;

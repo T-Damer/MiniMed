@@ -22,12 +22,18 @@ export function assessmentDefinitionFromRecord(record: ToolDefinitionRecord): As
     ...rest
   } = parsed;
   const options = (
-    list: readonly { value: number; label: string; shortLabel?: string | undefined }[],
+    list: readonly {
+      value: number;
+      label: string;
+      shortLabel?: string | undefined;
+      hideValue?: true | undefined;
+    }[],
   ) =>
     list.map((option) => ({
       value: option.value,
       label: option.label,
       ...(option.shortLabel ? { shortLabel: option.shortLabel } : {}),
+      ...(option.hideValue ? { hideValue: true as const } : {}),
     }));
   const definition: AssessmentDefinition = {
     ...rest,

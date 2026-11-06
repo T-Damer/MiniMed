@@ -57,17 +57,20 @@
           {
             "value": 1,
             "label": "Верно",
-            "shortLabel": "В"
+            "shortLabel": "В",
+            "hideValue": true
           },
           {
             "value": 0,
             "label": "Неверно",
-            "shortLabel": "Н"
+            "shortLabel": "Н",
+            "hideValue": true
           },
           {
             "value": 2,
             "label": "Не знаю",
-            "shortLabel": "?"
+            "shortLabel": "?",
+            "hideValue": true
           }
         ],
         "pageSize": 20,
@@ -3546,17 +3549,20 @@
           {
             "value": 1,
             "label": "Верно",
-            "shortLabel": "В"
+            "shortLabel": "В",
+            "hideValue": true
           },
           {
             "value": 0,
             "label": "Неверно",
-            "shortLabel": "Н"
+            "shortLabel": "Н",
+            "hideValue": true
           },
           {
             "value": 2,
             "label": "Не знаю",
-            "shortLabel": "?"
+            "shortLabel": "?",
+            "hideValue": true
           }
         ],
         "pageSize": 20,

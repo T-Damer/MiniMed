@@ -260,9 +260,7 @@ export function AssessmentResultPage(props: {
                     {tally.label}: {tally.count}
                   </strong>
                   <Show when={tally.warning}>
-                    {(warning) => (
-                      <span class="assessment-result-tally__warning">{warning()}</span>
-                    )}
+                    {(warning) => <span class="assessment-result-tally__warning">{warning()}</span>}
                   </Show>
                 </p>
               )}

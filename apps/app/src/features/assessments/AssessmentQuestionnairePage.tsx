@@ -169,15 +169,6 @@ export function AssessmentQuestionnairePage(props: {
       (episode) => episode.patientId === patientId() && episode.status === 'open',
     ) ?? [];
 
-  createEffect(() => {
-    const initial = props.initialRecord;
-    if (!initial || hydratedFromInitial) return;
-    if (Object.keys(answers()).length > 0 || subjectLabel().trim().length > 0) return;
-    setAnswers(initial.answers);
-    setSubjectLabel(initial.subjectLabel);
-    draftId = initial.id;
-    hydratedFromInitial = true;
-  });
   // Long questionnaires (`pageSize`) show one page of questions; a resumed draft opens on the page
   // of its first unanswered question.
   const [page, setPage] = createSignal(
@@ -186,13 +177,26 @@ export function AssessmentQuestionnairePage(props: {
       firstUnansweredIndex(props.definition, props.initialRecord?.answers ?? {}),
     ),
   );
+  createEffect(() => {
+    const initial = props.initialRecord;
+    if (!initial || hydratedFromInitial) return;
+    if (Object.keys(answers()).length > 0 || subjectLabel().trim().length > 0) return;
+    setAnswers(initial.answers);
+    // The draft can arrive after the page opened: go to the page of its first gap.
+    setPage(
+      questionPageOf(props.definition, firstUnansweredIndex(props.definition, initial.answers)),
+    );
+    setSubjectLabel(initial.subjectLabel);
+    draftId = initial.id;
+    hydratedFromInitial = true;
+  });
   const pageCount = (): number => questionPageCount(props.definition);
   const pageRange = () => questionPageRange(props.definition, page());
+  // The question objects themselves, so an answer (which saves the draft and re-renders the
+  // parent) keeps every rendered question in place.
   const pageQuestions = createMemo(() => {
     const range = pageRange();
-    return props.definition.questions
-      .slice(range.start, range.end)
-      .map((question, offset) => ({ question, index: range.start + offset }));
+    return props.definition.questions.slice(range.start, range.end);
   });
   const goToPage = (next: number): void => {
     const clamped = Math.min(Math.max(next, 0), pageCount() - 1);
@@ -489,7 +493,7 @@ export function AssessmentQuestionnairePage(props: {
 
       <Show when={(props.definition.variants?.length ?? 0) > 1 && props.onSwitchVariant}>
         <SegmentedControl<string>
-          label={props.definition.variantLabel ?? "Вариант опросника"}
+          label={props.definition.variantLabel ?? 'Вариант опросника'}
           class="assessment-variant-switch"
           value={props.definition.id}
           options={(props.definition.variants ?? []).map((variant) => ({
@@ -615,8 +619,8 @@ export function AssessmentQuestionnairePage(props: {
           />
         </Show>
         <For each={pageQuestions()}>
-          {({ question, index: questionIndex }) => {
-            const index = (): number => questionIndex;
+          {(question, offset) => {
+            const index = (): number => pageRange().start + offset();
             return (
               <>
                 <Show when={sectionHeadingBefore(props.definition, index())}>

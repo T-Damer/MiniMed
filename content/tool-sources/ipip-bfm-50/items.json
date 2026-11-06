@@ -1,478 +1,457 @@
 {
- "sources": [
-  {
-   "id": "ipip-50",
-   "citation": "International Personality Item Pool: 50-item sample questionnaire (Big-Five Factor Markers, Goldberg, 1992), «Administering IPIP Measures, with a 50-item Sample Questionnaire»",
-   "url": "https://ipip.ori.org/new_ipip-50-item-scale.htm",
-   "sha256": "489d66de7a643d13e620ad2907285639f12e0bc083fbb4e68dc54128373e6f5a",
-   "retrievedAt": "2026-11-06",
-   "holds": "English items, their order, factor and keying (1+ … 5−), the 5 response anchors and the instruction «How Accurately Can You Describe Yourself?»"
-  },
-  {
-   "id": "ipip-50-ru-hypponen",
-   "citation": "Russian Translation of the 50-Item Lexical Big-Five Factor Markers, provided by Olga Hypponen (IPIP translations page)",
-   "url": "https://ipip.ori.org/Russian50-itemBigFiveFactorMarkers.htm",
-   "sha256": "f3e66b41a97a72ba9ea036128413e3533dc18803c711cccc0b97354b57f7bc83",
-   "retrievedAt": "2026-11-06",
-   "holds": "Russian items beside the English ones, Russian anchors and instruction («Следующие фразы описывают поведение людей…»)"
-  },
-  {
-   "id": "ipip-permission",
-   "citation": "IPIP: Obtaining Permission",
-   "url": "https://ipip.ori.org/newPermission.htm",
-   "sha256": "15e3d162504ce920c1da2476941b2a538f2d06075b514324de8cbeab874cc198",
-   "retrievedAt": "2026-11-06",
-   "holds": "public-domain statement: permission automatically granted for any purpose, commercial or non-commercial"
-  }
- ],
- "anchors": {
-  "en": [
-   "Very Inaccurate",
-   "Moderately Inaccurate",
-   "Neither Accurate Nor Inaccurate",
-   "Moderately Accurate",
-   "Very Accurate"
+  "sources": [
+    {
+      "id": "ipip-50",
+      "citation": "International Personality Item Pool: 50-item sample questionnaire (Big-Five Factor Markers, Goldberg, 1992), «Administering IPIP Measures, with a 50-item Sample Questionnaire»",
+      "url": "https://ipip.ori.org/new_ipip-50-item-scale.htm",
+      "sha256": "489d66de7a643d13e620ad2907285639f12e0bc083fbb4e68dc54128373e6f5a",
+      "retrievedAt": "2026-11-06",
+      "holds": "English items, their order, factor and keying (1+ … 5−), the 5 response anchors and the instruction «How Accurately Can You Describe Yourself?»"
+    },
+    {
+      "id": "ipip-50-ru-hypponen",
+      "citation": "Russian Translation of the 50-Item Lexical Big-Five Factor Markers, provided by Olga Hypponen (IPIP translations page)",
+      "url": "https://ipip.ori.org/Russian50-itemBigFiveFactorMarkers.htm",
+      "sha256": "f3e66b41a97a72ba9ea036128413e3533dc18803c711cccc0b97354b57f7bc83",
+      "retrievedAt": "2026-11-06",
+      "holds": "Russian items beside the English ones, Russian anchors and instruction («Следующие фразы описывают поведение людей…»)"
+    },
+    {
+      "id": "ipip-permission",
+      "citation": "IPIP: Obtaining Permission",
+      "url": "https://ipip.ori.org/newPermission.htm",
+      "sha256": "15e3d162504ce920c1da2476941b2a538f2d06075b514324de8cbeab874cc198",
+      "retrievedAt": "2026-11-06",
+      "holds": "public-domain statement: permission automatically granted for any purpose, commercial or non-commercial"
+    }
   ],
-  "ru": [
-   "совсем нет",
-   "скорее нет, чем да",
-   "ни да ни нет",
-   "скорее да, чем нет",
-   "да"
+  "anchors": {
+    "en": [
+      "Very Inaccurate",
+      "Moderately Inaccurate",
+      "Neither Accurate Nor Inaccurate",
+      "Moderately Accurate",
+      "Very Accurate"
+    ],
+    "ru": ["совсем нет", "скорее нет, чем да", "ни да ни нет", "скорее да, чем нет", "да"]
+  },
+  "instruction": {
+    "en": "Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.",
+    "ru": "Следующие фразы описывают поведение людей. Пожалуйста, выберите, насколько точно каждое утверждение описывает Вас. Ваш ответ должен соответствовать Вашему обычному поведению, а не тому, как Вы бы хотели себя вести. Честно опишите Ваше обычное поведение, если нужно, сравнивая себя с поведением других людей."
+  },
+  "factors": {
+    "1": ["Экстраверсия", "Extraversion"],
+    "2": ["Доброжелательность", "Agreeableness"],
+    "3": ["Добросовестность", "Conscientiousness"],
+    "4": ["Эмоциональная стабильность", "Emotional Stability"],
+    "5": ["Интеллект и воображение", "Intellect/Imagination"]
+  },
+  "edits": "Russian: obvious typos of the source fixed (listed per item in `ruFix`), commas added in the anchors «скорее нет, чем да» / «скорее да, чем нет» and in the instruction. Wording otherwise as published.",
+  "items": [
+    {
+      "n": 1,
+      "factor": 1,
+      "keyed": "+",
+      "en": "Am the life of the party.",
+      "ruSource": "Вы - душа любой вечеринки.",
+      "ru": "Вы — душа любой вечеринки.",
+      "ruFix": "дефис заменён тире"
+    },
+    {
+      "n": 2,
+      "factor": 2,
+      "keyed": "-",
+      "en": "Feel little concern for others.",
+      "ruSource": "Вы редко беспокоитесь за других.",
+      "ru": "Вы редко беспокоитесь за других."
+    },
+    {
+      "n": 3,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Am always prepared.",
+      "ruSource": "Жизнь редко застает Вас врасплох.",
+      "ru": "Жизнь редко застает Вас врасплох."
+    },
+    {
+      "n": 4,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Get stressed out easily.",
+      "ruSource": "Легко подвергаетесь стрессу.",
+      "ru": "Легко подвергаетесь стрессу."
+    },
+    {
+      "n": 5,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Have a rich vocabulary.",
+      "ruSource": "У вас богатый словарный запас.",
+      "ru": "У вас богатый словарный запас."
+    },
+    {
+      "n": 6,
+      "factor": 1,
+      "keyed": "-",
+      "en": "Don't talk a lot.",
+      "ruSource": "Не говорите много.",
+      "ru": "Не говорите много."
+    },
+    {
+      "n": 7,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Am interested in people.",
+      "ruSource": "Люди Вам интересны.",
+      "ru": "Люди Вам интересны."
+    },
+    {
+      "n": 8,
+      "factor": 3,
+      "keyed": "-",
+      "en": "Leave my belongings around.",
+      "ruSource": "Часто разбрасываете вещи.",
+      "ru": "Часто разбрасываете вещи."
+    },
+    {
+      "n": 9,
+      "factor": 4,
+      "keyed": "+",
+      "en": "Am relaxed most of the time.",
+      "ruSource": "Обычно спокойны.",
+      "ru": "Обычно спокойны."
+    },
+    {
+      "n": 10,
+      "factor": 5,
+      "keyed": "-",
+      "en": "Have difficulty understanding abstract ideas.",
+      "ruSource": "Вам сложо понимать абстрактные идеи.",
+      "ru": "Вам сложно понимать абстрактные идеи.",
+      "ruFix": "опечатка источника исправлена"
+    },
+    {
+      "n": 11,
+      "factor": 1,
+      "keyed": "+",
+      "en": "Feel comfortable around people.",
+      "ruSource": "Вы чувствуeте себя комфортно в кругу людей.",
+      "ru": "Вы чувствуете себя комфортно в кругу людей.",
+      "ruFix": "латинская «e» в слове «чувствуете» заменена русской"
+    },
+    {
+      "n": 12,
+      "factor": 2,
+      "keyed": "-",
+      "en": "Insult people.",
+      "ruSource": "Вы можете оскорбить.",
+      "ru": "Вы можете оскорбить."
+    },
+    {
+      "n": 13,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Pay attention to details.",
+      "ruSource": "Обращаете внимание на детали.",
+      "ru": "Обращаете внимание на детали."
+    },
+    {
+      "n": 14,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Worry about things.",
+      "ruSource": "Часто беспокоитесь.",
+      "ru": "Часто беспокоитесь."
+    },
+    {
+      "n": 15,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Have a vivid imagination.",
+      "ruSource": "У вас богатое воображение.",
+      "ru": "У вас богатое воображение."
+    },
+    {
+      "n": 16,
+      "factor": 1,
+      "keyed": "-",
+      "en": "Keep in the background.",
+      "ruSource": "Держитесь на заднем плане.",
+      "ru": "Держитесь на заднем плане."
+    },
+    {
+      "n": 17,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Sympathize with others' feelings.",
+      "ruSource": "Сочувствуете чувствам других.",
+      "ru": "Сочувствуете чувствам других."
+    },
+    {
+      "n": 18,
+      "factor": 3,
+      "keyed": "-",
+      "en": "Make a mess of things.",
+      "ruSource": "Создаете беспорядок.",
+      "ru": "Создаете беспорядок."
+    },
+    {
+      "n": 19,
+      "factor": 4,
+      "keyed": "+",
+      "en": "Seldom feel blue.",
+      "ruSource": "Редко грустите.",
+      "ru": "Редко грустите."
+    },
+    {
+      "n": 20,
+      "factor": 5,
+      "keyed": "-",
+      "en": "Am not interested in abstract ideas.",
+      "ruSource": "Вы не интересуетесь абстрактными идеями.",
+      "ru": "Вы не интересуетесь абстрактными идеями."
+    },
+    {
+      "n": 21,
+      "factor": 1,
+      "keyed": "+",
+      "en": "Start conversations.",
+      "ruSource": "Вы часто начинаете разговор сами.",
+      "ru": "Вы часто начинаете разговор сами."
+    },
+    {
+      "n": 22,
+      "factor": 2,
+      "keyed": "-",
+      "en": "Am not interested in other people's problems.",
+      "ruSource": "Вам не интересны проблемы окружающих.",
+      "ru": "Вам не интересны проблемы окружающих."
+    },
+    {
+      "n": 23,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Get chores done right away.",
+      "ruSource": "Работаете эффективно.",
+      "ru": "Работаете эффективно."
+    },
+    {
+      "n": 24,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Am easily disturbed.",
+      "ruSource": "Вас легко вывести из равновесия.",
+      "ru": "Вас легко вывести из равновесия."
+    },
+    {
+      "n": 25,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Have excellent ideas.",
+      "ruSource": "У вас часто возникают превосходные идеи.",
+      "ru": "У вас часто возникают превосходные идеи."
+    },
+    {
+      "n": 26,
+      "factor": 1,
+      "keyed": "-",
+      "en": "Have little to say.",
+      "ruSource": "Вы немногословны.",
+      "ru": "Вы немногословны."
+    },
+    {
+      "n": 27,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Have a soft heart.",
+      "ruSource": "У вас мягкое сердце.",
+      "ru": "У вас мягкое сердце."
+    },
+    {
+      "n": 28,
+      "factor": 3,
+      "keyed": "-",
+      "en": "Often forget to put things back in their proper place.",
+      "ruSource": "Часто забываете положить вещи на место.",
+      "ru": "Часто забываете положить вещи на место."
+    },
+    {
+      "n": 29,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Get upset easily.",
+      "ruSource": "Легко расстраиваетесь.",
+      "ru": "Легко расстраиваетесь."
+    },
+    {
+      "n": 30,
+      "factor": 5,
+      "keyed": "-",
+      "en": "Do not have a good imagination.",
+      "ruSource": "У вас не очень хорошее воображение.",
+      "ru": "У вас не очень хорошее воображение."
+    },
+    {
+      "n": 31,
+      "factor": 1,
+      "keyed": "+",
+      "en": "Talk to a lot of different people at parties.",
+      "ruSource": "Говорите с большим количеством различных людей на вечеринках.",
+      "ru": "Говорите с большим количеством различных людей на вечеринках."
+    },
+    {
+      "n": 32,
+      "factor": 2,
+      "keyed": "-",
+      "en": "Am not really interested in others.",
+      "ruSource": "На самом деле люди вам не интересны.",
+      "ru": "На самом деле люди вам не интересны."
+    },
+    {
+      "n": 33,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Like order.",
+      "ruSource": "Любите порядок.",
+      "ru": "Любите порядок."
+    },
+    {
+      "n": 34,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Change my mood a lot.",
+      "ruSource": "Часто меняете настроение.",
+      "ru": "Часто меняете настроение."
+    },
+    {
+      "n": 35,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Am quick to understand things.",
+      "ruSource": "Легко вникаете в суть вещей.",
+      "ru": "Легко вникаете в суть вещей."
+    },
+    {
+      "n": 36,
+      "factor": 1,
+      "keyed": "-",
+      "en": "Don't like to draw attention to myself.",
+      "ruSource": "Не любите привлекать к себе внимание.",
+      "ru": "Не любите привлекать к себе внимание."
+    },
+    {
+      "n": 37,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Take time out for others.",
+      "ruSource": "Вы уделяете время другим.",
+      "ru": "Вы уделяете время другим."
+    },
+    {
+      "n": 38,
+      "factor": 3,
+      "keyed": "-",
+      "en": "Shirk my duties.",
+      "ruSource": "Уклоняетесь от обязанностей.",
+      "ru": "Уклоняетесь от обязанностей."
+    },
+    {
+      "n": 39,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Have frequent mood swings.",
+      "ruSource": "Подвержены частым колебаниям настроения.",
+      "ru": "Подвержены частым колебаниям настроения."
+    },
+    {
+      "n": 40,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Use difficult words.",
+      "ruSource": "Используете сложные слова.",
+      "ru": "Используете сложные слова."
+    },
+    {
+      "n": 41,
+      "factor": 1,
+      "keyed": "+",
+      "en": "Don't mind being the center of attention.",
+      "ruSource": "Не возражаете быть центром внимания.",
+      "ru": "Не возражаете быть центром внимания."
+    },
+    {
+      "n": 42,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Feel others' emotions.",
+      "ruSource": "Чувствуете настроения/ эмоции окружающих.",
+      "ru": "Чувствуете настроения/ эмоции окружающих."
+    },
+    {
+      "n": 43,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Follow a schedule.",
+      "ruSource": "Следуете распорядку/плану.",
+      "ru": "Следуете распорядку/плану."
+    },
+    {
+      "n": 44,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Get irritated easily.",
+      "ruSource": "Легко раздражитесь.",
+      "ru": "Легко раздражаетесь.",
+      "ruFix": "опечатка источника исправлена"
+    },
+    {
+      "n": 45,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Spend time reflecting on things.",
+      "ruSource": "Останавливаетесь, чтобы обдумать происходяшее.",
+      "ru": "Останавливаетесь, чтобы обдумать происходящее.",
+      "ruFix": "опечатка источника исправлена"
+    },
+    {
+      "n": 46,
+      "factor": 1,
+      "keyed": "-",
+      "en": "Am quiet around strangers.",
+      "ruSource": "Вы мало говорите в кругу незнакомых Вам людей.",
+      "ru": "Вы мало говорите в кругу незнакомых Вам людей."
+    },
+    {
+      "n": 47,
+      "factor": 2,
+      "keyed": "+",
+      "en": "Make people feel at ease.",
+      "ruSource": "С вами люди чувствуют себя непринужденно.",
+      "ru": "С вами люди чувствуют себя непринужденно."
+    },
+    {
+      "n": 48,
+      "factor": 3,
+      "keyed": "+",
+      "en": "Am exacting in my work.",
+      "ruSource": "Вы аккуратны в работе.",
+      "ru": "Вы аккуратны в работе."
+    },
+    {
+      "n": 49,
+      "factor": 4,
+      "keyed": "-",
+      "en": "Often feel blue.",
+      "ruSource": "Часто бываете грустны.",
+      "ru": "Часто бываете грустны."
+    },
+    {
+      "n": 50,
+      "factor": 5,
+      "keyed": "+",
+      "en": "Am full of ideas.",
+      "ruSource": "Полны идей.",
+      "ru": "Полны идей."
+    }
   ]
- },
- "instruction": {
-  "en": "Describe yourself as you generally are now, not as you wish to be in the future. Describe yourself as you honestly see yourself, in relation to other people you know of the same sex as you are, and roughly your same age. So that you can describe yourself in an honest manner, your responses will be kept in absolute confidence.",
-  "ru": "Следующие фразы описывают поведение людей. Пожалуйста, выберите, насколько точно каждое утверждение описывает Вас. Ваш ответ должен соответствовать Вашему обычному поведению, а не тому, как Вы бы хотели себя вести. Честно опишите Ваше обычное поведение, если нужно, сравнивая себя с поведением других людей."
- },
- "factors": {
-  "1": [
-   "Экстраверсия",
-   "Extraversion"
-  ],
-  "2": [
-   "Доброжелательность",
-   "Agreeableness"
-  ],
-  "3": [
-   "Добросовестность",
-   "Conscientiousness"
-  ],
-  "4": [
-   "Эмоциональная стабильность",
-   "Emotional Stability"
-  ],
-  "5": [
-   "Интеллект и воображение",
-   "Intellect/Imagination"
-  ]
- },
- "edits": "Russian: obvious typos of the source fixed (listed per item in `ruFix`), commas added in the anchors «скорее нет, чем да» / «скорее да, чем нет» and in the instruction. Wording otherwise as published.",
- "items": [
-  {
-   "n": 1,
-   "factor": 1,
-   "keyed": "+",
-   "en": "Am the life of the party.",
-   "ruSource": "Вы - душа любой вечеринки.",
-   "ru": "Вы — душа любой вечеринки.",
-   "ruFix": "дефис заменён тире"
-  },
-  {
-   "n": 2,
-   "factor": 2,
-   "keyed": "-",
-   "en": "Feel little concern for others.",
-   "ruSource": "Вы редко беспокоитесь за других.",
-   "ru": "Вы редко беспокоитесь за других."
-  },
-  {
-   "n": 3,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Am always prepared.",
-   "ruSource": "Жизнь редко застает Вас врасплох.",
-   "ru": "Жизнь редко застает Вас врасплох."
-  },
-  {
-   "n": 4,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Get stressed out easily.",
-   "ruSource": "Легко подвергаетесь стрессу.",
-   "ru": "Легко подвергаетесь стрессу."
-  },
-  {
-   "n": 5,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Have a rich vocabulary.",
-   "ruSource": "У вас богатый словарный запас.",
-   "ru": "У вас богатый словарный запас."
-  },
-  {
-   "n": 6,
-   "factor": 1,
-   "keyed": "-",
-   "en": "Don't talk a lot.",
-   "ruSource": "Не говорите много.",
-   "ru": "Не говорите много."
-  },
-  {
-   "n": 7,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Am interested in people.",
-   "ruSource": "Люди Вам интересны.",
-   "ru": "Люди Вам интересны."
-  },
-  {
-   "n": 8,
-   "factor": 3,
-   "keyed": "-",
-   "en": "Leave my belongings around.",
-   "ruSource": "Часто разбрасываете вещи.",
-   "ru": "Часто разбрасываете вещи."
-  },
-  {
-   "n": 9,
-   "factor": 4,
-   "keyed": "+",
-   "en": "Am relaxed most of the time.",
-   "ruSource": "Обычно спокойны.",
-   "ru": "Обычно спокойны."
-  },
-  {
-   "n": 10,
-   "factor": 5,
-   "keyed": "-",
-   "en": "Have difficulty understanding abstract ideas.",
-   "ruSource": "Вам сложо понимать абстрактные идеи.",
-   "ru": "Вам сложно понимать абстрактные идеи.",
-   "ruFix": "опечатка источника исправлена"
-  },
-  {
-   "n": 11,
-   "factor": 1,
-   "keyed": "+",
-   "en": "Feel comfortable around people.",
-   "ruSource": "Вы чувствуeте себя комфортно в кругу людей.",
-   "ru": "Вы чувствуете себя комфортно в кругу людей.",
-   "ruFix": "латинская «e» в слове «чувствуете» заменена русской"
-  },
-  {
-   "n": 12,
-   "factor": 2,
-   "keyed": "-",
-   "en": "Insult people.",
-   "ruSource": "Вы можете оскорбить.",
-   "ru": "Вы можете оскорбить."
-  },
-  {
-   "n": 13,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Pay attention to details.",
-   "ruSource": "Обращаете внимание на детали.",
-   "ru": "Обращаете внимание на детали."
-  },
-  {
-   "n": 14,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Worry about things.",
-   "ruSource": "Часто беспокоитесь.",
-   "ru": "Часто беспокоитесь."
-  },
-  {
-   "n": 15,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Have a vivid imagination.",
-   "ruSource": "У вас богатое воображение.",
-   "ru": "У вас богатое воображение."
-  },
-  {
-   "n": 16,
-   "factor": 1,
-   "keyed": "-",
-   "en": "Keep in the background.",
-   "ruSource": "Держитесь на заднем плане.",
-   "ru": "Держитесь на заднем плане."
-  },
-  {
-   "n": 17,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Sympathize with others' feelings.",
-   "ruSource": "Сочувствуете чувствам других.",
-   "ru": "Сочувствуете чувствам других."
-  },
-  {
-   "n": 18,
-   "factor": 3,
-   "keyed": "-",
-   "en": "Make a mess of things.",
-   "ruSource": "Создаете беспорядок.",
-   "ru": "Создаете беспорядок."
-  },
-  {
-   "n": 19,
-   "factor": 4,
-   "keyed": "+",
-   "en": "Seldom feel blue.",
-   "ruSource": "Редко грустите.",
-   "ru": "Редко грустите."
-  },
-  {
-   "n": 20,
-   "factor": 5,
-   "keyed": "-",
-   "en": "Am not interested in abstract ideas.",
-   "ruSource": "Вы не интересуетесь абстрактными идеями.",
-   "ru": "Вы не интересуетесь абстрактными идеями."
-  },
-  {
-   "n": 21,
-   "factor": 1,
-   "keyed": "+",
-   "en": "Start conversations.",
-   "ruSource": "Вы часто начинаете разговор сами.",
-   "ru": "Вы часто начинаете разговор сами."
-  },
-  {
-   "n": 22,
-   "factor": 2,
-   "keyed": "-",
-   "en": "Am not interested in other people's problems.",
-   "ruSource": "Вам не интересны проблемы окружающих.",
-   "ru": "Вам не интересны проблемы окружающих."
-  },
-  {
-   "n": 23,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Get chores done right away.",
-   "ruSource": "Работаете эффективно.",
-   "ru": "Работаете эффективно."
-  },
-  {
-   "n": 24,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Am easily disturbed.",
-   "ruSource": "Вас легко вывести из равновесия.",
-   "ru": "Вас легко вывести из равновесия."
-  },
-  {
-   "n": 25,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Have excellent ideas.",
-   "ruSource": "У вас часто возникают превосходные идеи.",
-   "ru": "У вас часто возникают превосходные идеи."
-  },
-  {
-   "n": 26,
-   "factor": 1,
-   "keyed": "-",
-   "en": "Have little to say.",
-   "ruSource": "Вы немногословны.",
-   "ru": "Вы немногословны."
-  },
-  {
-   "n": 27,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Have a soft heart.",
-   "ruSource": "У вас мягкое сердце.",
-   "ru": "У вас мягкое сердце."
-  },
-  {
-   "n": 28,
-   "factor": 3,
-   "keyed": "-",
-   "en": "Often forget to put things back in their proper place.",
-   "ruSource": "Часто забываете положить вещи на место.",
-   "ru": "Часто забываете положить вещи на место."
-  },
-  {
-   "n": 29,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Get upset easily.",
-   "ruSource": "Легко расстраиваетесь.",
-   "ru": "Легко расстраиваетесь."
-  },
-  {
-   "n": 30,
-   "factor": 5,
-   "keyed": "-",
-   "en": "Do not have a good imagination.",
-   "ruSource": "У вас не очень хорошее воображение.",
-   "ru": "У вас не очень хорошее воображение."
-  },
-  {
-   "n": 31,
-   "factor": 1,
-   "keyed": "+",
-   "en": "Talk to a lot of different people at parties.",
-   "ruSource": "Говорите с большим количеством различных людей на вечеринках.",
-   "ru": "Говорите с большим количеством различных людей на вечеринках."
-  },
-  {
-   "n": 32,
-   "factor": 2,
-   "keyed": "-",
-   "en": "Am not really interested in others.",
-   "ruSource": "На самом деле люди вам не интересны.",
-   "ru": "На самом деле люди вам не интересны."
-  },
-  {
-   "n": 33,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Like order.",
-   "ruSource": "Любите порядок.",
-   "ru": "Любите порядок."
-  },
-  {
-   "n": 34,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Change my mood a lot.",
-   "ruSource": "Часто меняете настроение.",
-   "ru": "Часто меняете настроение."
-  },
-  {
-   "n": 35,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Am quick to understand things.",
-   "ruSource": "Легко вникаете в суть вещей.",
-   "ru": "Легко вникаете в суть вещей."
-  },
-  {
-   "n": 36,
-   "factor": 1,
-   "keyed": "-",
-   "en": "Don't like to draw attention to myself.",
-   "ruSource": "Не любите привлекать к себе внимание.",
-   "ru": "Не любите привлекать к себе внимание."
-  },
-  {
-   "n": 37,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Take time out for others.",
-   "ruSource": "Вы уделяете время другим.",
-   "ru": "Вы уделяете время другим."
-  },
-  {
-   "n": 38,
-   "factor": 3,
-   "keyed": "-",
-   "en": "Shirk my duties.",
-   "ruSource": "Уклоняетесь от обязанностей.",
-   "ru": "Уклоняетесь от обязанностей."
-  },
-  {
-   "n": 39,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Have frequent mood swings.",
-   "ruSource": "Подвержены частым колебаниям настроения.",
-   "ru": "Подвержены частым колебаниям настроения."
-  },
-  {
-   "n": 40,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Use difficult words.",
-   "ruSource": "Используете сложные слова.",
-   "ru": "Используете сложные слова."
-  },
-  {
-   "n": 41,
-   "factor": 1,
-   "keyed": "+",
-   "en": "Don't mind being the center of attention.",
-   "ruSource": "Не возражаете быть центром внимания.",
-   "ru": "Не возражаете быть центром внимания."
-  },
-  {
-   "n": 42,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Feel others' emotions.",
-   "ruSource": "Чувствуете настроения/ эмоции окружающих.",
-   "ru": "Чувствуете настроения/ эмоции окружающих."
-  },
-  {
-   "n": 43,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Follow a schedule.",
-   "ruSource": "Следуете распорядку/плану.",
-   "ru": "Следуете распорядку/плану."
-  },
-  {
-   "n": 44,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Get irritated easily.",
-   "ruSource": "Легко раздражитесь.",
-   "ru": "Легко раздражаетесь.",
-   "ruFix": "опечатка источника исправлена"
-  },
-  {
-   "n": 45,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Spend time reflecting on things.",
-   "ruSource": "Останавливаетесь, чтобы обдумать происходяшее.",
-   "ru": "Останавливаетесь, чтобы обдумать происходящее.",
-   "ruFix": "опечатка источника исправлена"
-  },
-  {
-   "n": 46,
-   "factor": 1,
-   "keyed": "-",
-   "en": "Am quiet around strangers.",
-   "ruSource": "Вы мало говорите в кругу незнакомых Вам людей.",
-   "ru": "Вы мало говорите в кругу незнакомых Вам людей."
-  },
-  {
-   "n": 47,
-   "factor": 2,
-   "keyed": "+",
-   "en": "Make people feel at ease.",
-   "ruSource": "С вами люди чувствуют себя непринужденно.",
-   "ru": "С вами люди чувствуют себя непринужденно."
-  },
-  {
-   "n": 48,
-   "factor": 3,
-   "keyed": "+",
-   "en": "Am exacting in my work.",
-   "ruSource": "Вы аккуратны в работе.",
-   "ru": "Вы аккуратны в работе."
-  },
-  {
-   "n": 49,
-   "factor": 4,
-   "keyed": "-",
-   "en": "Often feel blue.",
-   "ruSource": "Часто бываете грустны.",
-   "ru": "Часто бываете грустны."
-  },
-  {
-   "n": 50,
-   "factor": 5,
-   "keyed": "+",
-   "en": "Am full of ideas.",
-   "ruSource": "Полны идей.",
-   "ru": "Полны идей."
-  }
- ]
 }

@@ -244,9 +244,9 @@ function smilDefinition(sex: Sex) {
       basis: `«Вариант ${men ? 'мужской' : 'женский'} взрослый» (Собчик, 2003); для подростков 13–15 лет в руководстве отдельный вариант.`,
     },
     responseOptions: [
-      { value: ANSWER_TRUE, label: 'Верно', shortLabel: 'В' },
-      { value: ANSWER_FALSE, label: 'Неверно', shortLabel: 'Н' },
-      { value: ANSWER_UNKNOWN, label: 'Не знаю', shortLabel: '?' },
+      { value: ANSWER_TRUE, label: 'Верно', shortLabel: 'В', hideValue: true },
+      { value: ANSWER_FALSE, label: 'Неверно', shortLabel: 'Н', hideValue: true },
+      { value: ANSWER_UNKNOWN, label: 'Не знаю', shortLabel: '?', hideValue: true },
     ],
     pageSize: 20,
     answerSheet: true,

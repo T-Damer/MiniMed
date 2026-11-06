@@ -20,6 +20,34 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## СМИЛ (Russian MMPI) and IPIP-50 — 2026-11-06 (STATE MMPI1; not released)
+
+Owner decision 2026-11-06, after being told the rights situation: ship the full test with clear
+attribution and its sources, plus an openly licensed alternative, and keep it easy to withdraw.
+Details, sources and the withdrawal steps: `docs/ASSESSMENTS.md` «СМИЛ … и IPIP-50» and
+«Лицензирование».
+
+- **СМИЛ** (Собчик, 2003 edition, free archive.org scan) in its own module `minimed.tools.mmpi.ru`
+  (`content/tool-modules/mmpi.json`, built by `bun scripts/build-personality-tools.ts` from
+  `content/tool-sources/smil-sobchik-2003/`), section «Многофакторное исследование личности»:
+  men's and women's booklets (566 items each, transcribed from the page images), keys pp. 142–144,
+  K fractions from the profile-sheet table, T = 50 + 10(X − M)/σ with M and σ fitted to the
+  raw-score marks of both profile sheets (≤ 1.3 T off any printed mark), validity alerts pp. 26–28.
+  The catalog tags the module `remote-only`: `vite.config.ts` drops its pack from the build, so the
+  item text is never inside an installed app. `minAppVersion` 0.6.94 (the engine below).
+- **English original: not shipped.** No openly published copy of the 1943 MMPI items, keys and
+  norms was found (manuals and Dahlstrom's handbook are lending-only); the variant switch is ready
+  for it once the owner has a source. MMPI-2/3 not considered (Pearson).
+- **IPIP-50** Big-Five markers (public domain), Russian (O. Hypponen) and English, in the psychology
+  module (0.1.0-preview.10), section «Самооценка и личностный профиль». PID-5 rejected: APA reserves
+  apps and translations.
+- **Generic schema** (no tool ids in UI code): chained scale formulas (`score_<earlier scale>`),
+  `hidden` steps, result `tables`, answer `tallies` with a warning level, `pageSize` pages with resume
+  on the first gap, `variants` (forms/languages, the draft moves along), `answerSheet` +
+  `shortLabel`, `hideValue`, `intro`, and line charts drawn as an SVG profile on screen and paper.
+  Print: the existing dialog (orientation; result, chart, questions, answers) prints result tables,
+  answers alone as a grid, and a blank booklet with an answer sheet.
+
 ## Owner's batch of 15 — 2026-11-06 (STATE FIX-BATCH1; not released)
 
 - **Травник.** The book shows a skeleton of its search bar, chips and card grid from the first frame
