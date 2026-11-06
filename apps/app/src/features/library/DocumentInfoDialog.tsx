@@ -1,4 +1,4 @@
-import type { MedicalDocument } from '@localmed/contracts';
+import type { MedicalDocument, MedicalSection } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -31,6 +31,8 @@ export function DocumentInfoDialog(props: {
   readonly drugSources?: readonly string[];
   readonly instruction?: InstructionSourceInfo | null;
   readonly registrations?: readonly RegistrationRow[];
+  /** Sections of the instruction kept off the page: the manufacturer, who receives claims. */
+  readonly referenceSections?: readonly MedicalSection[];
 }): JSX.Element {
   const rows = (): readonly (readonly [string, string])[] => {
     const kind = readerMetaParts(props.document)[0];
@@ -97,6 +99,16 @@ export function DocumentInfoDialog(props: {
         sources={props.drugSources ?? []}
         instruction={props.instruction ?? null}
       />
+      <For each={props.referenceSections ?? []}>
+        {(section) => (
+          <section class="document-info__reference" aria-label={section.title}>
+            <h3 class="document-info__heading">{section.title.replace(/[\s:*]+$/u, '')}</h3>
+            <For each={section.chunks}>
+              {(chunk) => <p class="document-info__reference-text">{chunk.originalText}</p>}
+            </For>
+          </section>
+        )}
+      </For>
       <Show when={registrations().length > 0}>
         <section class="document-info__registrations" aria-labelledby="document-info-registrations">
           <h3 class="document-info__heading" id="document-info-registrations">

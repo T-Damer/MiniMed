@@ -13,6 +13,7 @@ import {
   nestDocumentSections,
   orderDocumentSections,
   preferReadableDocuments,
+  registrationReferenceSections,
   resolveReadableDocumentId,
   summaryDocumentId,
   visibleReaderSections,
@@ -181,6 +182,38 @@ describe('document-display', () => {
       'allmed_reference',
     );
     expect(visible.map((item) => item.title)).toEqual(['Показания']);
+  });
+
+  it('moves the manufacturer and the claims sections of an instruction to «Информация»', () => {
+    const registration = (title: string, depth = 1): MedicalSection => ({
+      ...section(title),
+      sectionType: 'registration',
+      depth,
+    });
+    const sections = [
+      registration('Торговое наименование'),
+      section('Показания'),
+      registration('Производитель:'),
+      registration('Организация, принимающая претензии потребителей*'),
+      { ...section('08103m90 ОГРН Г. ЯРОС'), depth: 2 },
+      { ...section('Условия хранения'), depth: 1 },
+    ];
+    expect(
+      visibleReaderSections(sections, 'official_drug_instruction')
+        .map((item) => item.title)
+        .toSorted(),
+    ).toEqual(['Показания', 'Торговое наименование', 'Условия хранения']);
+    expect(
+      registrationReferenceSections(sections, 'official_drug_instruction').map(
+        (item) => item.title,
+      ),
+    ).toEqual([
+      'Производитель:',
+      'Организация, принимающая претензии потребителей*',
+      '08103m90 ОГРН Г. ЯРОС',
+    ]);
+    // Other documents keep every section.
+    expect(registrationReferenceSections(sections, 'allmed_reference')).toEqual([]);
   });
 
   it('keeps a chapter without text of its own when its subsections have text', () => {

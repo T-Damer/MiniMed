@@ -52,6 +52,7 @@ import {
   isAdministrativeSection,
   type MutableDocumentSectionTree,
   nestDocumentSections,
+  registrationReferenceSections,
   resolveReadableDocumentId,
   visibleReaderSections,
 } from '@/features/library/document-display';
@@ -77,6 +78,8 @@ import {
 } from '@/features/library/document-rich-block-data';
 import { earlierEditionDocumentIds } from '@/features/library/edition-predecessors';
 import { isClinicalRecommendationSource } from '@/features/library/numbered-heading-sections';
+import { OcrTableBlock } from '@/features/library/OcrTableBlock';
+import { isOcrTableChunk } from '@/features/library/ocr-table';
 import { PrintedContentsBlock } from '@/features/library/PrintedContentsBlock';
 import { type PrintedContents, splitPrintedContents } from '@/features/library/printed-contents';
 import { type HeroPicture, ReaderHero } from '@/features/library/ReaderHero';
@@ -1927,33 +1930,41 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                           props.initialAnchor === item.chunk.anchor,
                                       }}
                                     >
-                                      <DocumentText
-                                        text={shownText()}
-                                        query={state().query}
-                                        exactQuery={state().mode === 'exact'}
-                                        fuzzyQuery={state().mode === 'similar'}
-                                        ranges={rangesForFindUnit(
-                                          rangesByUnit(),
-                                          item.chunk.anchor,
-                                          state().query,
-                                        )}
-                                        unitId={item.chunk.anchor}
-                                        activeStart={activeStart()}
-                                        highlightClass="document-overlay-match"
-                                        paragraphClass="document-overlay-section__paragraph"
-                                        // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
-                                        sourceSpans={item.chunk.metadata?.['sourceSpans']}
-                                        documentId={documentValue().id}
-                                        resolveImage={referenceImageResolver()}
-                                        hiddenImageSource={heroImageSource() ?? undefined}
-                                        core={props.core}
-                                        documentLinkMatcher={documentLinkMatcher() ?? undefined}
-                                        onDocumentLink={(documentId) => {
-                                          openDocumentOverlay(documentId, null, {
-                                            preferSummary: true,
-                                          });
-                                        }}
-                                      />
+                                      <Show
+                                        when={
+                                          !isOcrTableChunk(shownText(), item.chunk.metadata) ||
+                                          state().query.trim()
+                                        }
+                                        fallback={<OcrTableBlock text={shownText()} />}
+                                      >
+                                        <DocumentText
+                                          text={shownText()}
+                                          query={state().query}
+                                          exactQuery={state().mode === 'exact'}
+                                          fuzzyQuery={state().mode === 'similar'}
+                                          ranges={rangesForFindUnit(
+                                            rangesByUnit(),
+                                            item.chunk.anchor,
+                                            state().query,
+                                          )}
+                                          unitId={item.chunk.anchor}
+                                          activeStart={activeStart()}
+                                          highlightClass="document-overlay-match"
+                                          paragraphClass="document-overlay-section__paragraph"
+                                          // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
+                                          sourceSpans={item.chunk.metadata?.['sourceSpans']}
+                                          documentId={documentValue().id}
+                                          resolveImage={referenceImageResolver()}
+                                          hiddenImageSource={heroImageSource() ?? undefined}
+                                          core={props.core}
+                                          documentLinkMatcher={documentLinkMatcher() ?? undefined}
+                                          onDocumentLink={(documentId) => {
+                                            openDocumentOverlay(documentId, null, {
+                                              preferSummary: true,
+                                            });
+                                          }}
+                                        />
+                                      </Show>
                                     </div>
                                   }
                                 >
@@ -2002,6 +2013,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   open={infoOpen()}
                   onClose={() => setInfoOpen(false)}
                   document={documentValue()}
+                  referenceSections={registrationReferenceSections(
+                    documentValue().sections,
+                    documentValue().sourceType,
+                  )}
                   instruction={instructionSourceInfo(
                     documentValue(),
                     props.medicationProduct?.instructionFallback?.registrationNumber ??

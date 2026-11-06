@@ -341,11 +341,62 @@ export function foldPageStamps(sections: readonly MedicalSection[]): readonly Me
   return folded;
 }
 
+/**
+ * The manufacturer and the organisation receiving claims of a drug instruction: reference data,
+ * not reading (owner 2026-11-06). They leave the page for «⋯» → «Информация». Matched by the
+ * section's kind and title, never by document: «Торговое наименование» and «Регистрационный номер»
+ * are `registration` sections too and stay.
+ */
+const REGISTRATION_REFERENCE_TITLE = /производител|принимающ\p{L}*\s+претензи/iu;
+
+function isRegistrationReferenceSection(section: MedicalSection): boolean {
+  return (
+    section.sectionType === 'registration' &&
+    REGISTRATION_REFERENCE_TITLE.test(section.title.replace(/[\s:*]+$/u, ''))
+  );
+}
+
+/** The registration reference sections of a drug instruction, with the sections nested in them. */
+function splitRegistrationReference(sections: readonly MedicalSection[]): {
+  readonly reading: readonly MedicalSection[];
+  readonly reference: readonly MedicalSection[];
+} {
+  const reading: MedicalSection[] = [];
+  const reference: MedicalSection[] = [];
+  let insideDepth: number | null = null;
+  for (const section of sections) {
+    if (insideDepth !== null && section.depth > insideDepth) {
+      reference.push(section);
+      continue;
+    }
+    insideDepth = null;
+    if (isRegistrationReferenceSection(section)) {
+      insideDepth = section.depth;
+      reference.push(section);
+    } else reading.push(section);
+  }
+  return { reading, reference };
+}
+
+/** What «Информация» shows of the instruction's own text: manufacturer, claims (empty elsewhere). */
+export function registrationReferenceSections(
+  sections: readonly MedicalSection[],
+  sourceType: string,
+): readonly MedicalSection[] {
+  if (sourceType !== 'official_drug_instruction') return [];
+  return splitRegistrationReference(foldPageStamps(sections)).reference.filter(
+    (section) => section.chunks.length > 0,
+  );
+}
+
 export function visibleReaderSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  const source = sourceType === 'official_drug_instruction' ? foldPageStamps(sections) : sections;
+  const source =
+    sourceType === 'official_drug_instruction'
+      ? splitRegistrationReference(foldPageStamps(sections)).reading
+      : sections;
   const ordered = (
     isClinicalRecommendationSource(sourceType)
       ? glossaryLast(orderDocumentSections(source, sourceType))
