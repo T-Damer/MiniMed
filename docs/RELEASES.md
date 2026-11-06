@@ -149,7 +149,8 @@ The ГРЛС instruction modules are built from the manifest **joined with the O
 `build_grls_instruction_modules.py`, so a refresh that brings new OCR documents runs `grls_ocr_vision_cache.py`,
 `grls_ocr_second_opinion.py` and `grls_ocr_requality.py run` first, then `grls_contents_lists.py apply` (LEAF1: the
 leaflets' table of contents as one list, overlay `data/build/grls-contents-lists.jsonl`; the manufacturer workspace takes
-`grls_contents_lists.py manufacturer`). Modules that carry KD1 vectors are republished in
+`grls_contents_lists.py manufacturer`). Then `grls_render_repair.py apply` (FIX-BATCH2: junk and running-header
+headings, OCR drug codes, flattened tables; overlay `data/build/grls-render-repair.jsonl`, joined last). Modules that carry KD1 vectors are republished in
 two steps: `package-instruction-modules.ts` under the new source tag, then `embed_modules.py --family medications
 --from-dir <compacted> [--reuse-from <decoded previous release>]` (vectors of unchanged chunks are copied byte for byte) and
 `reframe-modules.ts --marker kd1`; only the `…-kd1` mirror branch is published and the catalog

@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "eaeu1.2026.10.26",
-  "publishedAt": "2026-10-26T08:00:00Z",
+  "catalogVersion": "fb2.2026.11.06",
+  "publishedAt": "2026-11-06T20:00:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

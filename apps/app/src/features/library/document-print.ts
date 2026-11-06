@@ -55,7 +55,7 @@ function renderTextBlocks(text: string): string {
         listTag = 'ol';
       }
       html.push(`<li>${escapeHtml(block.text)}</li>`);
-    } else if (block.kind === 'paragraph') {
+    } else if (block.kind === 'paragraph' || block.kind === 'cell') {
       closeList();
       html.push(`<p class="doc-print__paragraph">${escapeHtml(block.text)}</p>`);
     } else if (block.kind === 'table') {

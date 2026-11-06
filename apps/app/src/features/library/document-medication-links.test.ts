@@ -596,3 +596,34 @@ it('keeps exact definition source navigation when the source is installed', () =
   expect(missing?.preview?.source?.documentId).toBe(pointer.id);
   expect(missing?.preview?.source?.anchor).toBe('source/definition');
 });
+
+describe('cells of a table held cell by cell', () => {
+  it('stay cells, not prose glued across columns', () => {
+    const text = 'Нарушения со стороны почек\n\nпозывы к\n\nмочеиспуска-\n\nЗадержка мочи';
+    const spans = [
+      { kind: 'paragraph', bbox: [85, 100, 500, 110] },
+      { kind: 'table_candidate', bbox: [186, 120, 250, 130] },
+      { kind: 'table_candidate', bbox: [186, 140, 250, 150] },
+      { kind: 'table_candidate', bbox: [378, 140, 450, 150] },
+    ];
+    expect(parseDocumentText(text, spans)).toEqual([
+      { kind: 'paragraph', text: 'Нарушения со стороны почек' },
+      { kind: 'cell', text: 'позывы к', cells: ['позывы к'] },
+      { kind: 'cell', text: 'мочеиспуска-', cells: ['мочеиспуска-'] },
+      { kind: 'cell', text: 'Задержка мочи', cells: ['Задержка мочи'] },
+    ]);
+  });
+
+  it('split a scanned row at « | » and leave the prose of the chunk prose', () => {
+    const text = 'Таблица 6. Влияние на глюкуронизацию\n\nПрепараты, | Препараты, | Препараты';
+    const spans = [{ kind: 'paragraph' }, { kind: 'table_candidate' }];
+    expect(parseDocumentText(text, spans)).toEqual([
+      { kind: 'paragraph', text: 'Таблица 6. Влияние на глюкуронизацию' },
+      {
+        kind: 'cell',
+        text: 'Препараты, | Препараты, | Препараты',
+        cells: ['Препараты,', 'Препараты,', 'Препараты'],
+      },
+    ]);
+  });
+});

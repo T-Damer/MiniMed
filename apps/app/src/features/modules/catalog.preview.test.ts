@@ -146,7 +146,7 @@ describe('catalog.preview.json', () => {
         compression: 'zstd',
         url: expect.stringMatching(
           new RegExp(
-            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.20-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.11\\.06-[0-9a-f]{12}-kd1/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
             'u',
           ),
         ),

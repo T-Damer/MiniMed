@@ -78,9 +78,15 @@ const REPORT = resolve(
 );
 /** Where the published instruction-module bytes are kept locally (the release copies). */
 const MODULE_DIRECTORIES = [
-  'output/module-zstd-grls-h2-2026-10-20/grls-instructions-2026.10.20-4b6befe857de-kd1',
+  'output/module-zstd-grls-fb2-2026-11-06/grls-instructions-2026.11.06-9a01334d2a42-kd1',
   'output/module-zstd-manufacturer-h2-2026-10-20/manufacturer-instructions-2026.10.20-cb9d2ece8ef5',
 ].map((directory) => join(DATA_ROOT, directory));
+/**
+ * The EAEU sister-register module (2026-10-26) is not read: its documents would become a card's first
+ * document and replace the Russian instruction the indexes quote (FIX-BATCH2 found an interaction pair
+ * losing two sentences). Adding it is a change of its own, with the review records updated.
+ */
+const NOT_INDEXED = new Set(['minimed.medications.instructions.eaeu-sister-register.ru']);
 
 interface CatalogModule {
   readonly id: string;
@@ -361,7 +367,10 @@ function main(): void {
     modules: readonly CatalogModule[];
   };
   const instructionModules = catalog.modules
-    .filter((module) => module.id.startsWith('minimed.medications.instructions.'))
+    .filter(
+      (module) =>
+        module.id.startsWith('minimed.medications.instructions.') && !NOT_INDEXED.has(module.id),
+    )
     .toSorted((a, b) => a.id.localeCompare(b.id));
   const atc = JSON.parse(readFileSync(ATC_NAMES, 'utf8')) as {
     version: string;

@@ -16,6 +16,7 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { externalUrlLabel } from '@/components/external-url-label';
 import { segmentTextWithExternalUrls } from '@/components/external-url-segments';
 import { QueryHighlightedText } from '@/components/HighlightedText';
+import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
 import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
 import { openAssessment } from '@/features/assessments/assessment-links';
@@ -40,6 +41,8 @@ import { segmentTextWithAtcCodes } from '@/features/medications/atc-text-links';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { useHistoryLayer } from '@/state/use-history-layer';
+
+import '@/features/library/document-cells.css';
 
 /** The code sheet of a code met in a text; its chunk loads on the first tap. */
 const AtcTextCodeSheet = lazy(() => import('@/features/medications/AtcTextCodeSheet'));
@@ -723,14 +726,17 @@ function InlineDocumentText(props: {
 type DocumentTextGroup =
   | { readonly kind: 'table'; readonly items: readonly DocumentTextBlock[] }
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlock[] }
-  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlock[] }
+  | { readonly kind: 'bullet' | 'ordered' | 'cell'; readonly items: readonly DocumentTextBlock[] }
   | { readonly kind: 'image'; readonly items: readonly DocumentTextBlock[] };
 
 type DocumentTextBlockWithOffset = DocumentTextBlock & { readonly offset: number };
 type DocumentTextGroupWithOffsets =
   | { readonly kind: 'table'; readonly items: readonly DocumentTextBlockWithOffset[] }
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlockWithOffset[] }
-  | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlockWithOffset[] }
+  | {
+      readonly kind: 'bullet' | 'ordered' | 'cell';
+      readonly items: readonly DocumentTextBlockWithOffset[];
+    }
   | { readonly kind: 'image'; readonly items: readonly DocumentTextBlockWithOffset[] };
 
 function groupBlocks(blocks: readonly DocumentTextBlock[]): readonly DocumentTextGroup[] {
@@ -951,6 +957,59 @@ export function DocumentText(props: {
                 }
               </For>
             </ul>
+          );
+        }
+        if (group.kind === 'cell') {
+          const rows = group.items.flatMap((item) => (item.kind === 'cell' ? [item] : []));
+          const columns = Math.max(1, ...rows.map((row) => row.cells.length));
+          return (
+            <figure class="document-cells">
+              <span class="document-cells__badge">
+                {columns > 1 ? 'Таблица из скана' : 'Таблица без строк и столбцов'}
+              </span>
+              <Show
+                when={columns > 1}
+                fallback={
+                  <ul class="document-cells__list">
+                    <For each={rows}>
+                      {(row) => (
+                        <li class="document-cells__cell">{inline(row.text, row.offset)}</li>
+                      )}
+                    </For>
+                  </ul>
+                }
+              >
+                <HorizontalScroller
+                  class="document-cells__scroller"
+                  controls
+                  controlLabel="таблицу"
+                >
+                  <table
+                    class="document-cells__table"
+                    style={{ '--document-cells-columns': String(columns) }}
+                  >
+                    <tbody>
+                      <For each={rows}>
+                        {(row) => (
+                          <tr class="document-cells__row">
+                            <For each={row.cells}>
+                              {(cell, index) => (
+                                <td
+                                  class="document-cells__td"
+                                  colSpan={index() === row.cells.length - 1 ? columns - index() : 1}
+                                >
+                                  {cell}
+                                </td>
+                              )}
+                            </For>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                  </table>
+                </HorizontalScroller>
+              </Show>
+            </figure>
           );
         }
         if (group.kind === 'ordered') {

@@ -44,6 +44,11 @@ export type DocumentTextBlock =
   | { readonly kind: 'table'; readonly text: string; readonly table: DocumentTableBlock }
   | { readonly kind: 'paragraph'; readonly text: string }
   | { readonly kind: 'bullet'; readonly text: string }
+  /**
+   * A cell of a table the source holds cell by cell, its rows and columns lost (the preparer marks
+   * such blocks `table_candidate`; FIX-BATCH2): shown as cells, never glued into prose.
+   */
+  | { readonly kind: 'cell'; readonly text: string; readonly cells: readonly string[] }
   | { readonly kind: 'ordered'; readonly text: string; readonly ordinal: number }
   | { readonly kind: 'image'; readonly alt: string; readonly source: string };
 
@@ -82,6 +87,14 @@ function sourceSpanLeft(sourceSpans: unknown, index: number): number | undefined
   const bbox = (span as { readonly bbox?: unknown }).bbox;
   if (!Array.isArray(bbox) || typeof bbox[0] !== 'number') return undefined;
   return bbox[0];
+}
+
+function sourceSpanKind(sourceSpans: unknown, index: number): string | undefined {
+  if (!Array.isArray(sourceSpans)) return undefined;
+  const span = sourceSpans[index];
+  if (!span || typeof span !== 'object') return undefined;
+  const kind = (span as { readonly kind?: unknown }).kind;
+  return typeof kind === 'string' ? kind : undefined;
 }
 
 function implicitListStarts(lines: readonly { readonly text: string }[]): ReadonlySet<number> {
@@ -166,6 +179,17 @@ export function parseDocumentText(
       previousImage?.kind === 'image' &&
       previousImage.source === imageSource[1]
     ) {
+      previousSourceIndex = line.sourceIndex;
+      continue;
+    }
+    if (sourceSpanKind(sourceSpans, line.sourceIndex) === 'table_candidate') {
+      // A scanned row keeps its cells apart with « | »; a text-layer cell is a line of its own.
+      const cells = line.text
+        .split(/\s+\|\s+|\s*\|\|\s*/u)
+        .map((cell) => cell.trim())
+        .filter((cell) => cell.length > 0);
+      blocks.push({ kind: 'cell', text: line.text, cells });
+      activeListIndent = undefined;
       previousSourceIndex = line.sourceIndex;
       continue;
     }

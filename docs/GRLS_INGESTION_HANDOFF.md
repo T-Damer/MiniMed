@@ -275,6 +275,18 @@ re-renders only the bodies of the documents that have one into a new workspace
 `build_grls_instruction_modules.py` (the manufacturer workspace: `manufacturer`, which writes `prepared-contents`).
 Measurements and the modules rebuilt from it: `CURRENT_STATE.md` «LEAF1».
 
+## Block repairs by re-rendering (FIX-BATCH2, 2026-11-06)
+
+`tools/ingest/scripts/grls_render_repair.py plan|apply` re-renders the prepared bodies from the stored extraction
+JSON with block-level repairs (`localmed_ingest/grls_render_repair.py`): OCR headings that are stamps, registration
+page headers, table rows or lower-case sentences become paragraphs; running page headers become page marks; ATC/CYP
+codes OCR'd with Cyrillic look-alikes are spelled in Latin (each change logged in the overlay's `codeFixes`); text-layer
+tables held cell by cell are marked `table_candidate` + `flattenedTable`. It writes `data/intermediate/grls-render-repair`
+and the overlay `data/build/grls-render-repair.jsonl`, which `read_manifest_rows` joins **last** (after OCR1 and
+LEAF1). A document whose stored extraction no longer renders to its stored body is skipped (37 on 2026-11-06). Run
+`apply` again after any OCR1/LEAF1/prepare refresh, before `build_grls_instruction_modules.py`. The Vision cache
+`data/build/grls-ocr-vision` is gone, so a rule that needs the raw OCR lines cannot be applied this way.
+
 ## Re-extracting the text-layer PDFs (MOD-REBUILD, 2026-10-20)
 
 A change to the PDF extraction (heading rule, private-use glyphs) reaches the modules only through a new `medbase

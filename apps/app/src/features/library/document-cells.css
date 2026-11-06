@@ -1,16 +1,11 @@
-/* A table read from a scan (`OcrTableBlock`): the read lines as cells, a quiet badge, scrolls sideways. */
-.ocr-table {
+/* Cells of a table the source holds cell by cell (`cell` blocks of DocumentText): a quiet list. */
+.document-cells {
   display: grid;
   gap: 0.375rem;
   margin: 0.75rem 0;
 }
 
-.ocr-table__caption {
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.ocr-table__badge {
+.document-cells__badge {
   justify-self: start;
   padding: 0.125rem 0.5rem;
   border: 1px solid var(--theme-border);
@@ -19,26 +14,39 @@
   font-size: var(--type-micro);
 }
 
-.ocr-table__scroller {
+.document-cells__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.document-cells__cell {
+  padding: 0.1875rem 0.5rem;
+  border: 1px solid var(--paper-line, var(--theme-border));
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.document-cells__scroller {
   min-width: 0;
 }
 
-.ocr-table__grid {
+.document-cells__table {
   width: 100%;
-  min-width: calc(var(--ocr-table-columns) * 9rem);
+  min-width: calc(var(--document-cells-columns) * 8rem);
   border-collapse: collapse;
   table-layout: fixed;
   border-top: 1px solid var(--paper-line, var(--theme-border));
 }
 
-.ocr-table__cell {
-  vertical-align: top;
+.document-cells__td {
   padding: 0.3125rem 0.5rem;
   border-bottom: 1px solid var(--paper-line, var(--theme-border));
   font-size: 0.875rem;
   line-height: 1.4;
-}
-
-.ocr-table__cell--wide {
-  color: var(--theme-text-muted);
+  vertical-align: top;
 }

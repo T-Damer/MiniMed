@@ -43,9 +43,15 @@ const GRLS_DIRECTORY = join(DATA_ROOT, 'data/raw/official-grls-registry');
 const OUTPUT = join(ROOT, 'apps/app/src/features/drug-comparison/data/comparison-index.json');
 const REPORT = join(DATA_ROOT, 'data/build/drug-comparison/report.json');
 const MODULE_DIRECTORIES = [
-  'output/module-zstd-grls-h2-2026-10-20/grls-instructions-2026.10.20-4b6befe857de-kd1',
+  'output/module-zstd-grls-fb2-2026-11-06/grls-instructions-2026.11.06-9a01334d2a42-kd1',
   'output/module-zstd-manufacturer-h2-2026-10-20/manufacturer-instructions-2026.10.20-cb9d2ece8ef5',
 ].map((directory) => join(DATA_ROOT, directory));
+/**
+ * The EAEU sister-register module (2026-10-26) is not read: its documents would become a card's first
+ * document and replace the Russian instruction the indexes quote (FIX-BATCH2 found an interaction pair
+ * losing two sentences). Adding it is a change of its own, with the review records updated.
+ */
+const NOT_INDEXED = new Set(['minimed.medications.instructions.eaeu-sister-register.ru']);
 /** Already decompressed modules (a directory of `<module id>.db`), to skip the zstd step. */
 const DECODED_DIRECTORY = process.env['CMP1_DECODED_DIR'] ?? process.env['SAFE1_DECODED_DIR'];
 
@@ -223,7 +229,10 @@ function main(): void {
     modules: readonly CatalogModule[];
   };
   const instructionModules = catalog.modules
-    .filter((module) => module.id.startsWith('minimed.medications.instructions.'))
+    .filter(
+      (module) =>
+        module.id.startsWith('minimed.medications.instructions.') && !NOT_INDEXED.has(module.id),
+    )
     .toSorted((a, b) => a.id.localeCompare(b.id));
   const { cards, edition: esklpEdition } = loadEsklpCards();
   const { register, edition: grlsEdition } = loadRegister();

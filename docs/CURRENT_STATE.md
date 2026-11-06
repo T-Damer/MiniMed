@@ -50,6 +50,40 @@ Details, sources and the withdrawal steps: `docs/ASSESSMENTS.md` «СМИЛ … 
   Print: the existing dialog (orientation; result, chart, questions, answers) prints result tables,
   answers alone as a grid, and a blank booklet with an answer sheet.
 
+## OCR audit and module rebuild — 2026-11-06 (STATE FIX-BATCH2; not released)
+
+- **Audit.** Seven Claude Haiku agents read samples of the 2 306 OCR'd ГРЛС instructions chosen by a deterministic
+  screen; damage grouped by cause in [research/ocr-instruction-audit-2026-11-06.md](research/ocr-instruction-audit-2026-11-06.md).
+- **Preparer.** `tools/ingest/scripts/grls_render_repair.py` re-renders bodies from the stored extractions (the Vision
+  cache is gone, no new OCR) into `data/intermediate/grls-render-repair` + overlay `data/build/grls-render-repair.jsonl`,
+  joined last by `read_manifest_rows`: 3 845 junk headings → paragraphs (1 890 documents; stamps, registration-number
+  page headers, approval stamps, table rows, lower-case sentences), 523 running page headers → page marks (191),
+  3 357 drug codes spelled with Cyrillic look-alikes → Latin (390; CYP3A4 1 826 …, each logged in `codeFixes`), 11 349
+  text-layer table-cell blocks marked `table_candidate` + `flattenedTable` (198). 2 163 of 8 947 documents changed; 37
+  skipped (stored extraction no longer renders to the stored body). Not repaired: « | » inside prose, two page columns
+  interleaved, word misreads.
+- **Modules.** The 15 ГРЛС instruction modules rebuilt (`grls-2026.11.06`), compacted, KD1 vectors carried over (57
+  indication passages re-encoded, 9 384 reused byte for byte), framed and published to
+  `datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1` (218.6 MB download); all 15 URLs verified against the
+  catalog (size, SHA-256, decoded checksum, CORS). Local copy `output/module-zstd-grls-fb2-2026-11-06`. An earlier
+  candidate of the same day, `datasets/grls-instructions-2026.11.06-0491296a4ec1-kd1` (before the running-header rule),
+  is published but not referenced by the catalog.
+- **Derived indexes** rebuilt from the new copies: interactions, safety, comparison, dose rules (substance fallback
+  unchanged). The builders now skip the EAEU sister-register module explicitly: since 2026-10-26 they could not run (its
+  file was not in their directories), and reading it would make an EAEU document a card's first document and drop
+  Russian-instruction sentences (one checked pair lost two). The ATC/CLS review record
+  (`research/atc-index-review-2026-10-14.json`) is recounted against the new index: every count rose (repaired texts
+  name more classes), two user pairs gained a sentence, none lost.
+- **Reader.** Lines the preparer marked as table blocks render as cells (`DocumentText` `cell` blocks): a scanned row
+  keeps its « | » cells as a table row («Таблица из скана»), a text-layer cell list is a list of cells («Таблица без
+  строк и столбцов»); prose of the same chunk stays prose (the chunk-level table view of FIX-BATCH1 is gone).
+- **Checked** (production build, 375 px, light and dark): Ламотриджин ФТ (no «08103m90 ОГРН» section, Таблица 6 as
+  cells, manufacturer/claims in «Информация»), Флуоксетин (adverse-effects cells), Рексалти (CYP3A4/CYP2D6), Клозапин
+  Авексима (one title in the contents instead of five), «Шизофрения» of «Красота и медицина» (links). e2e
+  drug-leaflet-contents, medication-instruction-fallback, module-pointer, drug-screen-first-screen,
+  drug-secondary-classes, medication-reload, drug-interactions, dose-card-band, reader-actions: 21 passed (module-pointer
+  once after a cold first download from the new branch). Not checked on a phone.
+
 ## Owner's batch of 15 — 2026-11-06 (STATE FIX-BATCH1; not released)
 
 - **Травник.** The book shows a skeleton of its search bar, chips and card grid from the first frame
