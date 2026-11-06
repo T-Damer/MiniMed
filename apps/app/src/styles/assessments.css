@@ -1282,6 +1282,24 @@ html:has(.assessment-next-button) .patient-notes-fab {
   margin-top: var(--theme-space-3);
 }
 
+.assessment-intro {
+  display: grid;
+  justify-items: center;
+  gap: var(--theme-space-1, 0.25rem);
+}
+
+.assessment-questionnaire__intro--folded {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+.assessment-intro__toggle {
+  margin-top: calc(-1 * var(--theme-space-2));
+}
+
 .assessment-image-carousel {
   min-width: 0;
 }

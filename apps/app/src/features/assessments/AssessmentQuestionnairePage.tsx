@@ -209,6 +209,7 @@ export function AssessmentQuestionnairePage(props: {
     });
   };
   const tallies = createMemo(() => assessmentTallies(props.definition, answers()));
+  const [introOpen, setIntroOpen] = createSignal(false);
   const answered = () => answeredQuestionCount(props.definition, answers());
   const complete = () => answered() === props.definition.questions.length;
   const remaining = () => props.definition.questions.length - answered();
@@ -505,7 +506,29 @@ export function AssessmentQuestionnairePage(props: {
       </Show>
 
       <Show when={props.definition.intro?.trim()}>
-        {(intro) => <p class="assessment-questionnaire__intro">{intro()}</p>}
+        {(intro) => (
+          // A long instruction (a booklet's) shows its first lines; the arrow opens the rest.
+          <div class="assessment-intro">
+            <p
+              class="assessment-questionnaire__intro"
+              classList={{ 'assessment-questionnaire__intro--folded': !introOpen() }}
+            >
+              {intro()}
+            </p>
+            <Show when={intro().length > 320}>
+              <Button
+                type="button"
+                variant="icon"
+                class="assessment-intro__toggle"
+                aria-expanded={introOpen()}
+                aria-label={introOpen() ? 'Свернуть инструкцию' : 'Вся инструкция'}
+                title={introOpen() ? 'Свернуть инструкцию' : 'Вся инструкция'}
+                onClick={() => setIntroOpen(!introOpen())}
+                icon={<AppGlyph name={introOpen() ? 'caret-up' : 'caret-down'} />}
+              />
+            </Show>
+          </div>
+        )}
       </Show>
       <Show when={props.definition.images?.length}>
         <AssessmentImageCarousel

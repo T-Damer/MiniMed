@@ -282,7 +282,7 @@ function smilDefinition(sex: Sex) {
       },
       {
         id: 'cannot-say-guarded',
-        when: 'score_raw_q > 40',
+        when: '(score_raw_q > 40) * (score_raw_q <= 70) == 1',
         title: 'Много ответов «Не знаю»',
         message:
           'По руководству (с. 26) 41–60 «Не знаю» говорят о выраженной настороженности обследуемого.',
