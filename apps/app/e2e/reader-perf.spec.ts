@@ -62,7 +62,8 @@ function topSelfTime(profile: CpuProfile, limit = 30): readonly string[] {
 /** Who calls the costliest built-in functions (layout reads, animation lookups): the nearest script frame. */
 function nativeCallers(profile: CpuProfile, names: readonly string[]): readonly string[] {
   const parent = new Map<number, number>();
-  for (const node of profile.nodes) for (const child of node.children ?? []) parent.set(child, node.id);
+  for (const node of profile.nodes)
+    for (const child of node.children ?? []) parent.set(child, node.id);
   const byNode = new Map(profile.nodes.map((node) => [node.id, node]));
   const totals = new Map<string, number>();
   profile.samples.forEach((id, index) => {

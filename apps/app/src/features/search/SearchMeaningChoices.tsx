@@ -2,6 +2,7 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { For, type JSX } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
+import { displayDocumentTitle } from '@/features/library/document-display';
 import type { DocumentLinkAlternative } from '@/features/library/document-medication-links';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
@@ -53,6 +54,39 @@ export function SearchMeaningChoices(props: {
           </section>
         )}
       </For>
+    </aside>
+  );
+}
+
+/**
+ * The documents whose names carry the submitted words, shown the moment the search starts (from the
+ * title index, no database read); the full-text results arrive below them and never move them.
+ */
+export function SearchTitleMatches(props: {
+  readonly documents: readonly MedicalDocumentSummary[];
+  readonly onOpen: (documentId: string) => void;
+}): JSX.Element {
+  return (
+    <aside class="search-meanings search-meanings--titles" aria-label="Документы по названию">
+      <section class="search-meanings__phrase">
+        <p class="search-meanings__label">По названию</p>
+        <ChoiceChipList label="Документы по названию">
+          <For each={props.documents}>
+            {(document) => {
+              const visual = RESULT_KIND_VISUALS[searchResultDocumentKind(document)];
+              return (
+                <ChoiceChip
+                  icon={<AppGlyph name={visual.icon} class="choice-chip__glyph" />}
+                  detail={visual.label}
+                  onClick={() => props.onOpen(document.id)}
+                >
+                  {displayDocumentTitle(document)}
+                </ChoiceChip>
+              );
+            }}
+          </For>
+        </ChoiceChipList>
+      </section>
     </aside>
   );
 }

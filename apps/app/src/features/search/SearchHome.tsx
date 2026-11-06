@@ -695,6 +695,18 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const sourceSections = createMemo(() =>
     sections().filter((section) => section.id !== 'diagnosis'),
   );
+  /**
+   * The chosen section (or its subsection) names the empty field's pill once it scrolled away, so
+   * the reader still sees where the search looks (owner 2026-11-06); «Все источники» says «Поиск».
+   */
+  const chosenSectionLabel = (): string | undefined => {
+    if (scope() === 'all' && !specialty()) return undefined;
+    const section = sections().find((entry) => entry.id === scope());
+    const group = section?.groups.find((entry) => entry.id === specialty());
+    return (
+      group?.label ?? section?.label ?? SEARCH_SECTIONS.find((entry) => entry.id === scope())?.label
+    );
+  };
   const setClinicalAnalysis = (on: boolean): void => {
     if (on === clinicalAnalysis()) return;
     if (on && !allowSection('diagnosis')) return;
@@ -1028,7 +1040,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             onClick={returnToField}
           >
             <AppGlyph name="search" class="search-field-pill__icon" />
-            <span class="search-field-pill__label">{catalogQuery().trim() || 'Поиск'}</span>
+            <span class="search-field-pill__label">
+              {catalogQuery().trim() || chosenSectionLabel() || 'Поиск'}
+            </span>
           </button>
         </span>
         <SheetPopover

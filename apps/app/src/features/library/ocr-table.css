@@ -24,17 +24,15 @@
 }
 
 .ocr-table__grid {
-  display: grid;
+  width: 100%;
   min-width: calc(var(--ocr-table-columns) * 9rem);
-  grid-template-columns: repeat(var(--ocr-table-columns), minmax(9rem, 1fr));
+  border-collapse: collapse;
+  table-layout: fixed;
   border-top: 1px solid var(--paper-line, var(--theme-border));
 }
 
-.ocr-table__row {
-  display: contents;
-}
-
 .ocr-table__cell {
+  vertical-align: top;
   padding: 0.3125rem 0.5rem;
   border-bottom: 1px solid var(--paper-line, var(--theme-border));
   font-size: 0.875rem;

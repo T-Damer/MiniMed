@@ -79,13 +79,18 @@ import { clinicalStage } from '@/features/search/clinical-stages';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
 import {
   documentMatchesSearchScope,
+  ScopedMedicalCore,
   type SearchScope,
   SOURCE_COLLECTIONS,
   searchModeForScope,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchCorrectionOverlay } from '@/features/search/SearchCorrectionOverlay';
 import { SearchExamples } from '@/features/search/SearchExamples';
-import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
+import {
+  type SearchMeaning,
+  SearchMeaningChoices,
+  SearchTitleMatches,
+} from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchScopeFallbackList } from '@/features/search/SearchScopeFallbackList';
@@ -107,6 +112,7 @@ import {
   scopedSearchFoundNothing,
   searchOtherSections,
 } from '@/features/search/search-scope-fallback';
+import { titleIndexFor } from '@/features/search/title-index';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
 import '@/features/search/search-error.css';
 import '@/features/search/search-refresh.css';
@@ -309,6 +315,9 @@ function refreshDownloadedCalculatorDefinitions(): Promise<void> {
   return downloadedCalculatorRefresh;
 }
 
+/** Instant title answers shown above the full-text results. */
+const INSTANT_TITLE_LIMIT = 6;
+
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Resolved once: reading the slot twice (class and content) would build two pickers and
   // rebuild the visible one, closing its open menu, whenever the class is re-evaluated.
@@ -331,6 +340,37 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const contextDocumentsById = createMemo(
     () => new Map(contextDocuments().map((document) => [document.id, document])),
   );
+  // The words of the search now running or shown: their title matches come first, at once.
+  const [instantQuery, setInstantQuery] = createSignal('');
+  const acceptsInstant = (document: MedicalDocumentSummary): boolean =>
+    props.core instanceof ScopedMedicalCore
+      ? props.core.acceptsDocument(document)
+      : documentMatchesSearchScope(document, props.scope);
+  const instantMatches = createMemo((): readonly MedicalDocumentSummary[] => {
+    const words = instantQuery();
+    if (!words || props.catalogOnly || props.scope === 'diagnosis' || props.scope === 'personal') {
+      return [];
+    }
+    if (searchableQuery(query()) !== words) return [];
+    const documents = contextDocuments();
+    if (documents.length === 0) return [];
+    return titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsInstant);
+  });
+  // The titles are read once the core is there, before the first search, so the first submitted
+  // query already has its instant answers.
+  createEffect(() => {
+    const core = props.core;
+    if (!core || props.searchAllowed === false || props.catalogOnly) return;
+    if (contextDocuments().length > 0) return;
+    void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((available) => {
+      if (!available.ok || contextDocuments().length > 0) return;
+      setContextDocuments(available.value);
+      // Built while the screen is idle (~70 ms on a Mac, a few hundred on a phone), not on submit.
+      const build = (): void => void titleIndexFor(available.value);
+      if ('requestIdleCallback' in window) window.requestIdleCallback(build, { timeout: 2000 });
+      else window.setTimeout(build, 200);
+    });
+  });
   const contextLinkMatcher = createMemo(() =>
     createDocumentLinkMatcher(
       buildDocumentLinkPhrases(context() ? contextDocuments() : [], context()?.document.id),
@@ -896,6 +936,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setLoading(false);
       return;
     }
+    setInstantQuery(trimmed);
     if (!trimmed) {
       setResponse(undefined);
       setDraftAnalysis(undefined);
@@ -1153,8 +1194,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       (event.ctrlKey || event.metaKey || (props.scope !== 'diagnosis' && !event.shiftKey));
     if (submits) {
       event.preventDefault();
-      void runSearch(query(), true);
+      submitSearch();
     }
+  }
+
+  /**
+   * A submitted search puts the keyboard away on a phone, as Google does (owner 2026-11-06): the
+   * results get the whole screen. A tap on the field brings it back.
+   */
+  function submitSearch(): void {
+    if (window.matchMedia('(pointer: coarse)').matches) textarea?.blur();
+    void runSearch(query(), true);
   }
 
   function closeContext(): void {
@@ -1222,7 +1272,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           class="query-sheet"
           onSubmit={(event) => {
             event.preventDefault();
-            void runSearch(query(), true);
+            submitSearch();
           }}
         >
           <label class="sr-only" for="clinical-query">
@@ -1397,7 +1447,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </div>
         </Show>
 
-        <Show when={ambiguousMeanings().length > 0}>
+        <Show when={instantMatches().length > 0}>
+          <SearchTitleMatches
+            documents={instantMatches()}
+            onOpen={(documentId) => openDocumentInArchive(documentId)}
+          />
+        </Show>
+
+        <Show when={ambiguousMeanings().length > 0 && instantMatches().length === 0}>
           <SearchMeaningChoices
             meanings={ambiguousMeanings()}
             documentsById={contextDocumentsById()}
