@@ -12,16 +12,15 @@ import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
+import { AssessmentPrintDialog } from '@/features/assessments/AssessmentPrintDialog';
+import { assessmentChartPrintSvg } from '@/features/assessments/assessment-chart-print';
 import { evaluationNotice } from '@/features/assessments/assessment-evaluation-notice';
 import {
   clearAssessmentNoteDraft,
   readAssessmentNoteDraft,
   writeAssessmentNoteDraft,
 } from '@/features/assessments/assessment-note-draft';
-import {
-  printAssessmentRecord,
-  shareAssessmentRecord,
-} from '@/features/assessments/assessment-print';
+import { shareAssessmentRecord } from '@/features/assessments/assessment-print';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -81,31 +80,14 @@ export function AssessmentResultPage(props: {
   const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
   const manualText = () => (props.record.kind === 'manual' ? props.record.text : '');
-  const printResult = (includeQuestions = false): void => {
-    if (
-      !printAssessmentRecord(
-        props.definition,
-        props.record,
-        attachedResultNoteTitle(props.notes, props.record.id),
-        includeQuestions,
-      )
-    ) {
-      props.onMessage('Не удалось открыть окно печати.');
-    }
-  };
+  const [printOpen, setPrintOpen] = createSignal(false);
   const printActions = (): readonly AppContextMenuAction[] => [
     {
-      id: 'result',
-      label: 'Печатать результат',
+      id: 'print',
+      label: 'Печать',
       icon: 'printer',
-      onSelect: () => printResult(),
-    },
-    {
-      id: 'result-with-questions',
-      label: 'Печатать вместе с вопросами',
-      icon: 'list-checks',
-      disabled: props.record.kind !== 'completed',
-      onSelect: () => printResult(true),
+      // After the menu has closed and returned focus, or the dialog would close with it.
+      onSelect: () => window.setTimeout(() => setPrintOpen(true), 0),
     },
     {
       id: 'info',
@@ -241,11 +223,31 @@ export function AssessmentResultPage(props: {
             <For each={result().scales ?? []}>{(scale) => <ScoreScale spec={scale} />}</For>
             <For each={result().visuals ?? []}>
               {(visual) => (
-                <Chart
-                  title={visual.title ?? props.definition.title}
-                  spec={visual}
-                  {...(visual.heightPx === undefined ? {} : { heightPx: visual.heightPx })}
-                />
+                <Show
+                  when={assessmentChartPrintSvg(visual, 'schema-chart')}
+                  fallback={
+                    <Chart
+                      title={visual.title ?? props.definition.title}
+                      spec={visual}
+                      {...(visual.heightPx === undefined ? {} : { heightPx: visual.heightPx })}
+                    />
+                  }
+                >
+                  {(svg) => (
+                    // The point-in-quadrants figure is drawn like its print, centred and symmetric
+                    // (owner 2026-11-06: the plotted chart sat off to one side); built from
+                    // escaped schema data.
+                    <section
+                      class="schema-chart-panel"
+                      aria-label={visual.title ?? props.definition.title}
+                    >
+                      <h3 class="schema-chart-panel__title">
+                        {visual.title ?? props.definition.title}
+                      </h3>
+                      <div class="schema-chart-panel__figure" innerHTML={svg()} />
+                    </section>
+                  )}
+                </Show>
               )}
             </For>
             <Show when={unscaledScores(result()).length > 0}>
@@ -278,6 +280,15 @@ export function AssessmentResultPage(props: {
         definition={props.definition}
         open={methodologyOpen()}
         onOpenChange={setMethodologyOpen}
+      />
+
+      <AssessmentPrintDialog
+        open={printOpen()}
+        definition={props.definition}
+        record={props.record}
+        noteTitle={attachedResultNoteTitle(props.notes, props.record.id)}
+        onClose={() => setPrintOpen(false)}
+        onError={props.onMessage}
       />
 
       <Show when={shareMessage()}>

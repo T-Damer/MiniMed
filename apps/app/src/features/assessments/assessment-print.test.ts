@@ -6,6 +6,8 @@ import {
 } from '@/features/assessments/assessment-catalog';
 import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import {
+  assessmentRecordPrintHtml,
+  DEFAULT_ASSESSMENT_PRINT,
   printAssessmentRecord,
   printBlankAssessment,
   shareAssessmentRecord,
@@ -178,5 +180,57 @@ describe('assessment print layout', () => {
     expect(markup).toContain('Вопросы и ответы:');
     expect(markup).toContain(definition.questions[0]?.prompt);
     expect(markup).toContain('Ответ: Очень похоже на меня');
+  });
+
+  it('prints what the doctor chose, on the page turned the chosen way', async () => {
+    const definition = await loadAssessmentDefinition('temperament-profile');
+    const answers = Object.fromEntries(
+      definition.questions.map((question) => [question.id, question.reverse ? 1 : 5]),
+    );
+    const result = scoreAssessment(definition, answers, '2026-09-04T10:00:00.000Z');
+    if (!result.ok) throw new Error(result.error);
+    const record = {
+      id: 'temperament-options-test',
+      assessmentId: definition.id,
+      subjectLabel: 'Пациент',
+      createdAt: result.value.completedAt,
+      kind: 'completed' as const,
+      answers,
+      result: result.value,
+    };
+    const prompt = definition.questions[0]?.prompt ?? '';
+
+    const standard = assessmentRecordPrintHtml(definition, record, '', DEFAULT_ASSESSMENT_PRINT);
+    expect(standard).toContain('size: A4 portrait');
+    expect(standard).toContain('class="schema-chart-print__svg"');
+    expect(standard).not.toContain(prompt);
+    // Result first, then the chart.
+    expect(standard.indexOf('Дата')).toBeLessThan(
+      standard.indexOf('class="schema-chart-print__svg"'),
+    );
+
+    const everything = assessmentRecordPrintHtml(definition, record, '', {
+      orientation: 'landscape',
+      questions: true,
+      answers: true,
+      results: true,
+      chart: true,
+    });
+    expect(everything).toContain('size: A4 landscape');
+    expect(everything).toContain(prompt);
+    expect(everything).toContain('Ответ: Очень похоже на меня');
+    expect(everything.indexOf('class="schema-chart-print__svg"')).toBeLessThan(
+      everything.indexOf(prompt),
+    );
+
+    const questionsOnly = assessmentRecordPrintHtml(definition, record, '', {
+      ...DEFAULT_ASSESSMENT_PRINT,
+      results: false,
+      chart: false,
+      questions: true,
+    });
+    expect(questionsOnly).toContain(prompt);
+    expect(questionsOnly).not.toContain('Ответ:');
+    expect(questionsOnly).not.toContain('class="schema-chart-print__svg"');
   });
 });

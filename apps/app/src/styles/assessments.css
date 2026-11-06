@@ -1441,3 +1441,95 @@ html:has(.assessment-next-button) .patient-notes-fab {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+
+/* A point in a quadrant field on the result page: the printed figure, in the theme's colours. */
+.schema-chart-panel {
+  display: grid;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background: var(--theme-surface);
+}
+
+.schema-chart-panel__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.schema-chart-panel__figure {
+  display: grid;
+  justify-items: center;
+}
+
+.schema-chart {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0;
+}
+
+.schema-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--theme-text);
+}
+
+.schema-chart__field {
+  fill: var(--theme-surface-raised);
+  stroke: var(--theme-border);
+  stroke-width: 1;
+}
+
+.schema-chart__ring {
+  fill: none;
+  stroke: var(--theme-text-faint);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.schema-chart__axis {
+  stroke: var(--theme-text-muted);
+  stroke-width: 1.4;
+}
+
+.schema-chart__quadrant {
+  fill: currentColor;
+  /* The figure is drawn ~55 % of its 520-unit width on a phone: sizes in its own units. */
+  font-size: 21px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.schema-chart__axis-label {
+  fill: var(--theme-text-muted);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.schema-chart__point-halo {
+  fill: var(--theme-danger);
+  opacity: 0.2;
+}
+
+.schema-chart__point {
+  fill: var(--theme-danger);
+  stroke: var(--theme-surface-raised);
+  stroke-width: 2;
+}
+
+.schema-chart__point-label {
+  fill: var(--theme-danger);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.schema-chart__caption {
+  margin-top: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro);
+  text-align: center;
+}
