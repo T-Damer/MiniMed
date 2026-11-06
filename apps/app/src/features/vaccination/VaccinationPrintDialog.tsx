@@ -26,7 +26,7 @@ export function VaccinationPrintDialog(props: {
   return (
     <OverlayDialog
       open={props.open}
-      title="Лист для мамы"
+      title={VACCINATION_HANDOUT_TITLE}
       presentation="screen"
       class="vax-preview"
       bodyClass="vax-preview__body"
@@ -44,7 +44,7 @@ export function VaccinationPrintDialog(props: {
       }
     >
       <PaperPreview
-        title="Предпросмотр листа для мамы"
+        title={`Предпросмотр: ${VACCINATION_HANDOUT_TITLE}`}
         html={props.html}
         sheetWidth={HANDOUT_SHEET.width}
         sheetMinHeight={HANDOUT_SHEET.height}

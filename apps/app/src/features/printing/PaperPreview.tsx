@@ -21,6 +21,36 @@ export interface PaperPreviewProps {
   readonly sheetMinHeight: number;
 }
 
+const PAGE_BREAK_VALUES = new Set(['page', 'always', 'left', 'right', 'recto', 'verso']);
+
+/**
+ * The preview is one long sheet, but the printer starts a new page wherever the document asks for
+ * one (`break-before: page`, the back of form 107-1/у): a gap with the page number is drawn there,
+ * so the preview shows the same pages as the printout (Haiku print audit 2026-11-06).
+ */
+function markPageBreaks(document: Document): void {
+  const view = document.defaultView;
+  if (!view) return;
+  let page = 1;
+  for (const element of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {
+    if (element.dataset['previewPageBreak']) continue;
+    const style = view.getComputedStyle(element);
+    const before =
+      PAGE_BREAK_VALUES.has(style.breakBefore) || PAGE_BREAK_VALUES.has(style.pageBreakBefore);
+    if (!before || element === document.body.firstElementChild) continue;
+    page += 1;
+    const gap = document.createElement('div');
+    gap.dataset['previewPageBreak'] = 'true';
+    gap.setAttribute('aria-hidden', 'true');
+    gap.textContent = `Страница ${String(page)}`;
+    gap.setAttribute(
+      'style',
+      'margin:6mm 0;padding:2mm 0;border-block:1px dashed #9a9384;background:#e9e4d8;color:#6b6457;font:600 9pt system-ui,sans-serif;text-align:center;break-before:avoid;',
+    );
+    element.before(gap);
+  }
+}
+
 /**
  * A print page as it will come out of the printer: fitted to the screen width, then zoomed by a
  * two-finger pinch, a double tap, Ctrl+wheel or the +/− buttons, and panned by scrolling. The
@@ -67,7 +97,9 @@ export function PaperPreview(props: PaperPreviewProps): JSX.Element {
                 transform: `scale(${fit()})`,
               }}
               onLoad={(event) => {
-                const height = event.currentTarget.contentDocument?.documentElement.scrollHeight;
+                const frameDocument = event.currentTarget.contentDocument;
+                if (frameDocument) markPageBreaks(frameDocument);
+                const height = frameDocument?.documentElement.scrollHeight;
                 if (height) setSheetHeight(Math.max(height, props.sheetMinHeight));
               }}
             />
