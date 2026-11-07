@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 6 November 2026
+> Updated: 7 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,17 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Release 0.6.94 — 2026-11-07
+
+- **In it:** FIX-BATCH1 (the owner's batch of 15: Травник, reader speed/top bar/contents/«Другие», search title answers,
+  questionnaire chart and print dialog, status-bar icons, phone print preview, Haiku print audit), FIX-BATCH2 (Haiku audit
+  of the OCR'd instructions, the preparer repair pass, the 15 ГРЛС instruction modules republished on
+  `datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1`, derived drug indexes), MMPI1 (СМИЛ remote-only module,
+  IPIP-50) and FORMFILL1 steps 2–4 (form picker on a recording, PHQ-9 cues, Android schema grammar, real-interview cues).
+  The owner saw the FIX-BATCH1 and FIX-BATCH2 screenshots before the release.
+- **Checks.** `bun run check`, typecheck, unit 19 519 passed, build, `native:source:check`; e2e reader, print, search,
+  assessments, form-fill, herbal and drug specs 72 passed. Not checked on a phone.
 
 ## СМИЛ (Russian MMPI) and IPIP-50 — 2026-11-06 (STATE MMPI1; not released)
 

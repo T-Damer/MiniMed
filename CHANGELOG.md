@@ -4,6 +4,32 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.94] - 2026-11-07
+
+- Травник: the book opens on a skeleton of its search, chips and cards at once and fades in; the pinned search keeps a
+  blurred backdrop; the corner icon of a plant picture opens it full screen.
+- Reader: smoother scrolling on phones (the page number and the section tracking no longer re-measure the whole page on
+  every frame); the top bar hides only on a real scroll down and comes back on a short scroll up, and «⋯» → «Закрепить
+  панель» keeps it; the contents scrollbar runs beside the cards and is hidden when little scrolls; «Другие» under the
+  title lists the other documents of the same name; Markdown links read as links; drug instructions keep the
+  manufacturer and the organisation receiving claims in «⋯» → «Информация».
+- Drug instructions (ГРЛС modules republished): stamps, registration numbers and running page headers that the OCR read
+  as headings are gone from the text and the contents; CYP and ATC codes read with Cyrillic look-alikes are spelled in
+  Latin (CYP3A4, A10BB09); tables read from a scan show as cells («Таблица из скана»), tables the PDF holds cell by cell
+  as a marked list of cells. Interaction, safety, comparison and dose indexes rebuilt from them.
+- Search: the documents whose names match show at once («По названию») while the full search over every database
+  runs; the keyboard goes away when the search starts; with a section chosen the scrolled field names it.
+- Questionnaires: a point-in-quadrants result (temperament) is drawn centred, as it prints; «Печать» opens the printed
+  page with «Книжная / Альбомная» and what to print (result, chart, questions, answers).
+- СМИЛ (Собчик's Russian MMPI, its own downloadable module, with sources and validity alerts) and the IPIP-50 Big-Five
+  markers (public domain, Russian and English) in the psychology tools; long questionnaires page and resume where they
+  were left.
+- A finished recording fills the form the doctor picks («Заполнить форму»: psychiatric status, CHA₂DS₂-VASc, PHQ-9,
+  070/у), each value with its quote; better cues from real interviews (answers on the same line, suicide-related
+  statements, memory complaints).
+- Printing: on a phone a long document fits the width and runs over pages (a drug instruction printed as a blank sheet);
+  paper previews mark where a new page starts; the Android status bar icons follow the colour under them.
+
 ## [0.6.93] - 2026-11-06
 
 - «Психический статус» (Инструменты, `#/notes/psy-status`): a constructor of the mental and somatic status and the
