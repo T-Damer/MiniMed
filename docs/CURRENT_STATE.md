@@ -77,8 +77,8 @@ Details, sources and the withdrawal steps: `docs/ASSESSMENTS.md` «СМИЛ … 
   indication passages re-encoded, 9 384 reused byte for byte), framed and published to
   `datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1` (218.6 MB download); all 15 URLs verified against the
   catalog (size, SHA-256, decoded checksum, CORS). Local copy `output/module-zstd-grls-fb2-2026-11-06`. An earlier
-  candidate of the same day, `datasets/grls-instructions-2026.11.06-0491296a4ec1-kd1` (before the running-header rule),
-  is published but not referenced by the catalog.
+  candidate of the same day (`…-0491296a4ec1-kd1`, before the running-header rule) was never in the catalog and its
+  branch was deleted on 2026-11-07.
 - **Derived indexes** rebuilt from the new copies: interactions, safety, comparison, dose rules (substance fallback
   unchanged). The builders now skip the EAEU sister-register module explicitly: since 2026-10-26 they could not run (its
   file was not in their directories), and reading it would make an EAEU document a card's first document and drop
