@@ -7,7 +7,6 @@ import {
   For,
   type JSX,
   lazy,
-  onCleanup,
   Show,
   Suspense,
 } from 'solid-js';
@@ -18,6 +17,7 @@ import { segmentTextWithExternalUrls } from '@/components/external-url-segments'
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { stripKnownHtmlMarkup } from '@/components/html-markup';
+import { createLineClamp } from '@/components/line-clamp';
 import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
 import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
@@ -112,46 +112,55 @@ const MEDICATION_ASSETS = {
 };
 
 /**
- * A term's definition inside its preview card: four lines with a fade, «Показать полностью» when
- * there is more. Some definitions run to hundreds of characters, and the card (a drug card is a few
- * lines) must stay a glance, not a page; the full text opens inside the card.
+ * A term's definition inside its preview card: four lines with a fade and «Показать полностью» when
+ * folding hides three lines or more (`createLineClamp`); a shorter definition shows whole. Some
+ * definitions run to hundreds of characters, and the card must stay a glance, not a page.
  */
 function ClampedDefinition(props: { readonly text: string; readonly class?: string }): JSX.Element {
-  const [expanded, setExpanded] = createSignal(false);
-  const [overflowing, setOverflowing] = createSignal(false);
-  let element: HTMLParagraphElement | undefined;
-  createEffect(() => {
-    // Measured with the clamp on: the paragraph overflows its four lines only when it is longer.
-    const text = props.text;
-    if (expanded() || !text) return;
-    const frame = requestAnimationFrame(() => {
-      if (element) setOverflowing(element.scrollHeight > element.clientHeight + 1);
-    });
-    onCleanup(() => cancelAnimationFrame(frame));
-  });
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({ element, visibleLines: 4, track: () => props.text });
   return (
     <>
       <p
-        ref={element}
+        ref={setElement}
         class={`document-inline-preview__definition ${props.class ?? ''}`.trim()}
         classList={{
-          'document-inline-preview__definition--clamped': !expanded(),
-          'document-inline-preview__definition--faded': !expanded() && overflowing(),
+          'document-inline-preview__definition--clamped': clamp.folded(),
+          'document-inline-preview__definition--faded': clamp.folded(),
         }}
       >
         {props.text}
       </p>
-      <Show when={overflowing() || expanded()}>
+      <Show when={clamp.foldable()}>
         <button
           type="button"
           class="document-inline-preview__more"
-          aria-expanded={expanded()}
-          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={clamp.expanded()}
+          onClick={() => clamp.toggle()}
         >
-          {expanded() ? 'Свернуть' : 'Показать полностью'}
+          {clamp.expanded() ? 'Свернуть' : 'Показать полностью'}
         </button>
       </Show>
     </>
+  );
+}
+
+/** The small «open» button beside a source's name in a term's preview card. */
+function PreviewOpenButton(props: {
+  readonly label: string;
+  readonly title?: string | undefined;
+  readonly onOpen: () => void;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      class="document-inline-preview__open"
+      title={props.title ?? props.label}
+      aria-label={`Открыть: ${props.label}`}
+      onClick={() => props.onOpen()}
+    >
+      <AppGlyph name="arrow-square-up-right" class="document-inline-preview__open-icon" />
+    </button>
   );
 }
 
@@ -172,10 +181,6 @@ function InlineDocumentLink(props: {
   const [previewCard, setPreviewCard] = createSignal<HTMLElement>();
   const [choice, setChoice] = createSignal('');
   const manyChoices = () => (props.segment.alternatives?.length ?? 0) > 2;
-  const selectedAlternative = () =>
-    props.segment.alternatives?.find((_item, index) => String(index) === choice());
-  const primarySource = () =>
-    selectedAlternative()?.preview?.source ?? props.segment.preview?.source;
   useInlinePreviewBounds(open, previewCard, () => setOpen(false));
   // Back (the browser's, Android's) closes the preview before the document goes.
   useHistoryLayer(open, () => setOpen(false));
@@ -183,6 +188,16 @@ function InlineDocumentLink(props: {
   const [summary, setSummary] = createSignal<MedicationLinkSummary>();
   const [previewError, setPreviewError] = createSignal<string>();
   const ambiguous = () => (props.segment.alternatives?.length ?? 0) > 1;
+  /** Opens where the definition came from (a section of its source), else the linked document. */
+  const openSource = (
+    source: { readonly documentId: string; readonly anchor?: string } | undefined,
+    documentId: string,
+  ): void => {
+    setOpen(false);
+    if (source)
+      openDocumentOverlay(source.documentId, source.anchor ?? null, { preferSummary: true });
+    else props.onOpen(documentId);
+  };
   const canPreview = () =>
     Boolean(
       ambiguous() ||
@@ -260,11 +275,22 @@ function InlineDocumentLink(props: {
             }}
           >
             <div class="document-inline-preview__header">
-              <strong class="document-inline-preview__title">
-                {ambiguous()
-                  ? `${props.segment.value}: выберите значение`
-                  : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
-              </strong>
+              <div class="document-inline-preview__heading">
+                <strong class="document-inline-preview__title">
+                  {ambiguous()
+                    ? `${props.segment.value}: выберите значение`
+                    : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
+                </strong>
+                <Show when={!ambiguous()}>
+                  <PreviewOpenButton
+                    label={props.segment.preview?.title ?? props.segment.value}
+                    title={props.segment.preview?.source?.label}
+                    onOpen={() =>
+                      openSource(props.segment.preview?.source, props.segment.documentId)
+                    }
+                  />
+                </Show>
+              </div>
               <Show when={manyChoices()}>
                 <select
                   class="document-inline-preview__choice"
@@ -287,56 +313,6 @@ function InlineDocumentLink(props: {
                   </For>
                 </select>
               </Show>
-              <Show when={ambiguous() && !manyChoices()}>
-                <For each={props.segment.alternatives}>
-                  {(alternative) => (
-                    <button
-                      type="button"
-                      class="document-inline-preview__open"
-                      title={alternative.preview?.source?.label ?? alternative.title}
-                      aria-label={`Открыть: ${alternative.title}`}
-                      onClick={() => {
-                        setOpen(false);
-                        const source = alternative.preview?.source;
-                        if (source)
-                          openDocumentOverlay(source.documentId, source.anchor ?? null, {
-                            preferSummary: true,
-                          });
-                        else props.onOpen(alternative.documentId);
-                      }}
-                    >
-                      Открыть
-                      <AppGlyph
-                        name="arrow-square-up-right"
-                        class="document-inline-preview__open-icon"
-                      />
-                    </button>
-                  )}
-                </For>
-              </Show>
-              <Show when={!ambiguous() || selectedAlternative()}>
-                <button
-                  type="button"
-                  class="document-inline-preview__open"
-                  title={primarySource()?.label}
-                  onClick={() => {
-                    setOpen(false);
-                    const source = primarySource();
-                    if (source)
-                      openDocumentOverlay(source.documentId, source.anchor ?? null, {
-                        preferSummary: true,
-                      });
-                    else
-                      props.onOpen(selectedAlternative()?.documentId ?? props.segment.documentId);
-                  }}
-                >
-                  Открыть
-                  <AppGlyph
-                    name="arrow-square-up-right"
-                    class="document-inline-preview__open-icon"
-                  />
-                </button>
-              </Show>
             </div>
             <Show when={ambiguous()}>
               <For
@@ -350,16 +326,18 @@ function InlineDocumentLink(props: {
               >
                 {(alternative) => (
                   <div class="document-inline-preview__meaning">
-                    <button
-                      type="button"
-                      class="document-inline-preview__meaning-link"
-                      onClick={() => {
-                        setOpen(false);
-                        props.onOpen(alternative.documentId);
-                      }}
-                    >
-                      {alternative.title}
-                    </button>
+                    <div class="document-inline-preview__heading">
+                      <span class="document-inline-preview__meaning-title">
+                        {alternative.title}
+                      </span>
+                      <PreviewOpenButton
+                        label={alternative.title}
+                        title={alternative.preview?.source?.label}
+                        onOpen={() =>
+                          openSource(alternative.preview?.source, alternative.documentId)
+                        }
+                      />
+                    </div>
                     <Show when={alternative.preview}>
                       {(preview) => (
                         <>

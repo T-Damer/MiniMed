@@ -1,9 +1,10 @@
-import { For, type JSX, Show } from 'solid-js';
+import { For, type JSX } from 'solid-js';
 
+import { type HelpSource, HelpSources } from '@/components/HelpSources';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
 
-/** Population, limits and sources of a calculator: where its numbers come from and for whom. */
+/** Population and limits of a calculator: for whom it is and where its numbers stop. */
 export function CalculatorSourcesBody(props: {
   readonly definition: AvailableCalculatorDefinition;
 }): JSX.Element {
@@ -13,28 +14,22 @@ export function CalculatorSourcesBody(props: {
       <ul>
         <For each={props.definition.limitations}>{(limitation) => <li>{limitation}</li>}</For>
       </ul>
-      <For each={props.definition.sources}>
-        {(source) => (
-          <p class="calculator-source-reference">
-            <Show
-              when={source.url}
-              fallback={<span class="calculator-source-reference__title">{source.title}</span>}
-            >
-              <a
-                class="calculator-source-reference__link"
-                href={source.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {source.title}
-              </a>
-            </Show>{' '}
-            · {source.publisher} · {source.version} · проверено {source.reviewedAt}
-          </p>
-        )}
-      </For>
     </>
   );
+}
+
+/** A calculator's sources as the shared «Источники» list shows them (named, opened in the app). */
+export function calculatorHelpSources(
+  definition: AvailableCalculatorDefinition,
+): readonly HelpSource[] {
+  return definition.sources.map((source) => ({
+    title: source.title,
+    publisher: source.publisher,
+    year: source.version,
+    ...(source.page ? { detail: source.page } : {}),
+    ...(source.url ? { url: source.url } : {}),
+    ...(source.document ? { document: source.document } : {}),
+  }));
 }
 
 /** The «Информация» item of a calculator's menu. */
@@ -47,16 +42,7 @@ export function CalculatorInfoDialog(props: {
     <OverlayDialog open={props.open} title="Информация" onClose={props.onClose}>
       <p>{props.definition.summary}</p>
       <CalculatorSourcesBody definition={props.definition} />
+      <HelpSources sources={calculatorHelpSources(props.definition)} />
     </OverlayDialog>
   );
-}
-
-/** One line for the foot of the page; the full list is in «Информация». */
-export function calculatorSourcesFootnote(definition: AvailableCalculatorDefinition): string {
-  const shown = definition.sources
-    .slice(0, 2)
-    .map((source) => `${source.title} (${source.publisher}, ${source.version})`);
-  const rest = definition.sources.length - shown.length;
-  if (shown.length === 0) return '';
-  return `Источники: ${shown.join('; ')}${rest > 0 ? ` и ещё ${rest}` : ''}.`;
 }

@@ -18,6 +18,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { DateField } from '@/components/DateField';
+import { HelpSources } from '@/components/HelpSources';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -30,7 +31,7 @@ import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
 import {
   CalculatorSourcesBody,
-  calculatorSourcesFootnote,
+  calculatorHelpSources,
 } from '@/features/calculators/CalculatorInfo';
 import { USER_CALCULATORS_EVENT } from '@/features/calculators/calculator-events';
 import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
@@ -1399,6 +1400,7 @@ function CalculationResultPanel(props: {
         </Show>
         <Show when={detailsOpen() === 'sources'}>
           <CalculatorSourcesBody definition={props.definition} />
+          <HelpSources sources={calculatorHelpSources(props.definition)} defaultOpen />
           <For each={generalWarnings()}>{(warning) => <p>{warning.message}</p>}</For>
         </Show>
       </OverlayDialog>
@@ -2177,6 +2179,7 @@ export function CalculatorsView(): JSX.Element {
                         <CalculatorSourcesBody definition={definition()} />
                       </>
                     }
+                    helpSources={calculatorHelpSources(definition())}
                     actions={
                       <div class="calculator-subpage-actions">
                         <Show when={definition().category !== 'custom'}>
@@ -2250,10 +2253,6 @@ export function CalculatorsView(): JSX.Element {
                         }}
                       />
                     )}
-                  </Show>
-
-                  <Show when={calculatorSourcesFootnote(definition())}>
-                    {(note) => <p class="calculator-footnote">{note()}</p>}
                   </Show>
                 </div>
               </Show>

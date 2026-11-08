@@ -1,15 +1,25 @@
 import { Popover } from '@kobalte/core/popover';
-import { type JSX, Show } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
 import { useNarrowViewport } from '@/components/narrow-viewport';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { useHistoryLayer } from '@/state/use-history-layer';
 
 import '@/components/SheetPopover.css';
+import '@/components/menu-owner.css';
+
+/** The class a trigger carries while its menu or panel is open (`styles/menu-owner.css`). */
+export const MENU_OWNER_OPEN_CLASS = 'menu-owner--open';
 
 /**
  * A panel that opens from a button: a popover beside the button on wide screens, the shared paper
  * sheet from the bottom edge on phones. The content is the same in both.
+ *
+ * While it is open the button stays pressed, ringed in the accent the panel's border repeats, so the
+ * panel visibly belongs to it (owner 2026-11-08). A popover taller than the room under its button
+ * scrolls inside itself, with the themed thumb, instead of running off the screen.
  */
 export function SheetPopover(props: {
   readonly open: boolean;
@@ -31,6 +41,11 @@ export function SheetPopover(props: {
   readonly children: JSX.Element;
 }): JSX.Element {
   const narrow = useNarrowViewport();
+  const [floating, setFloating] = createSignal<HTMLElement>();
+  const triggerClassList = (): Record<string, boolean> => ({
+    ...props.triggerClassList,
+    [MENU_OWNER_OPEN_CLASS]: props.open,
+  });
   // The panel is a history layer in both forms (sheet on phones, popover on wide screens).
   useHistoryLayer(
     () => props.open,
@@ -51,7 +66,7 @@ export function SheetPopover(props: {
           <Popover.Trigger
             ref={(element: HTMLButtonElement) => props.triggerRef?.(element)}
             class={props.triggerClass}
-            classList={props.triggerClassList ?? {}}
+            classList={triggerClassList()}
             aria-label={props.triggerLabel}
             title={props.triggerTitle}
             onClick={(event: MouseEvent) => {
@@ -64,14 +79,25 @@ export function SheetPopover(props: {
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
-              ref={(element: HTMLElement) => props.contentRef?.(element)}
-              class={`${props.contentClass} sheet-popover__floating`}
+              ref={(element: HTMLElement) => {
+                setFloating(element);
+                props.contentRef?.(element);
+              }}
+              class={`${props.contentClass} sheet-popover__floating scrollbar-themed`}
               aria-label={props.title}
               {...(props.onOpenAutoFocus ? { onOpenAutoFocus: props.onOpenAutoFocus } : {})}
             >
               {props.children}
             </Popover.Content>
           </Popover.Portal>
+          {/* Keyed: each opening mounts a new panel element, and the thumb follows that one. */}
+          <Show when={props.open ? floating() : undefined} keyed>
+            {(element) => (
+              <Portal>
+                <ScrollIndicator target={() => element} fixed />
+              </Portal>
+            )}
+          </Show>
         </Popover>
       }
     >
@@ -79,7 +105,7 @@ export function SheetPopover(props: {
         ref={(element) => props.triggerRef?.(element)}
         type="button"
         class={props.triggerClass}
-        classList={props.triggerClassList ?? {}}
+        classList={triggerClassList()}
         aria-label={props.triggerLabel}
         title={props.triggerTitle}
         aria-haspopup="dialog"

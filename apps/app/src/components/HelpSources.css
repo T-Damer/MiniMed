@@ -1,0 +1,106 @@
+/* «Источники» at the foot of a «?» help (components/HelpSources). */
+.help-sources {
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--theme-border);
+}
+
+.help-sources__count {
+  min-width: 1.5rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.help-sources__list {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.help-sources__item {
+  margin: 0;
+}
+
+.help-sources__row {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.help-sources__row--static {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .help-sources__row:not(.help-sources__row--static):hover {
+    background: var(--theme-hover-surface);
+  }
+}
+
+.help-sources__row:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 1px;
+}
+
+.help-sources__text {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.15rem;
+}
+
+.help-sources__name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.help-sources__kind {
+  display: inline-block;
+  margin-inline-end: 0.35rem;
+  padding: 0 0.35rem;
+  border-radius: 0.3rem;
+  background: var(--theme-accent-soft);
+  color: var(--theme-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  vertical-align: 0.1em;
+}
+
+.help-sources__meta {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.help-sources__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--theme-accent);
+}

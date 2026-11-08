@@ -19,6 +19,12 @@
   bottom: calc(var(--safe-bottom, 0px) + 0.25rem);
 }
 
+/* Over a panel that scrolls itself (a popover): `top`, `left` and `height` follow its box. */
+.scroll-indicator--fixed {
+  position: fixed;
+  z-index: var(--z-popover-scroll-indicator);
+}
+
 /* Inside a box (a sheet's body): `top` and `height` follow the scrolled element. */
 .scroll-indicator--inner {
   position: absolute;

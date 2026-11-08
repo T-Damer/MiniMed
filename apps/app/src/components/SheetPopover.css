@@ -15,6 +15,21 @@
   box-shadow: none;
 }
 
+/*
+ * A popover taller than the room the viewport leaves under its button scrolls inside itself; the
+ * page behind does not take the wheel or the swipe. `:where` keeps a panel's own height rule first.
+ */
+:where(.sheet-popover__floating) {
+  max-height: var(--kb-popper-content-available-height, calc(100dvh - 1rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The panel's border repeats the accent ring of its pressed button (styles/menu-owner.css). */
+.sheet-popover__floating.sheet-popover__floating {
+  border-color: var(--menu-owner-ring);
+}
+
 /* The wide-screen popover scales in from its button and out again before Kobalte unmounts it. */
 .sheet-popover__floating[data-expanded] {
   animation: sheet-popover-in var(--motion-fast, 120ms) var(--motion-ease-out, ease-out) both;

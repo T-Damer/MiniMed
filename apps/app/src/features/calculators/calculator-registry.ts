@@ -3,6 +3,7 @@ import {
   type CalculatorToolPreview,
   type ToolAgeScope,
   type ToolDefinitionRecord,
+  type ToolSourceLink,
 } from '@localmed/contracts';
 import {
   CALCULATOR_PACKS_EVENT,
@@ -19,6 +20,7 @@ import { validateCalculatorSchema } from '@/features/calculators/calculator-sche
 import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
+  CalculatorSourceReference,
 } from '@/features/calculators/calculator-types';
 import { UNIT_CONVERSION_SCHEMA } from '@/features/calculators/unit-conversion-schema';
 
@@ -262,11 +264,24 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/**
+ * The document a schema source names in the app's corpus: the tool record's source link with the
+ * same title (records list them with the module and document a КР or book has in the app).
+ */
+function sourceDocument(
+  title: string,
+  links: readonly ToolSourceLink[] | undefined,
+): CalculatorSourceReference['document'] {
+  const link = links?.find((candidate) => candidate.title === title && candidate.documentId);
+  return link?.documentId ? { moduleId: link.moduleId, documentId: link.documentId } : undefined;
+}
+
 function calculatorCatalogDefinition(
   record: Pick<
     ToolDefinitionRecord,
     'id' | 'version' | 'slug' | 'title' | 'shortTitle' | 'aliases'
-  >,
+  > &
+    Partial<Pick<ToolDefinitionRecord, 'sources'>>,
   schema: CalculatorToolPreview,
   ageScope: ToolAgeScope,
 ): AvailableCalculatorDefinition {
@@ -295,13 +310,18 @@ function calculatorCatalogDefinition(
       ...(input.note ? { note: input.note } : {}),
     })),
     ...(schema.bundled ? { bundled: true } : {}),
-    sources: schema.sources.map((source) => ({
-      title: source.title,
-      publisher: source.publisher,
-      version: source.version,
-      url: source.url ?? '',
-      reviewedAt: source.reviewedAt,
-    })),
+    sources: schema.sources.map((source) => {
+      const document = sourceDocument(source.title, record.sources);
+      return {
+        title: source.title,
+        publisher: source.publisher,
+        version: source.version,
+        url: source.url ?? '',
+        reviewedAt: source.reviewedAt,
+        ...(source.page ? { page: source.page } : {}),
+        ...(document ? { document } : {}),
+      };
+    }),
   };
 }
 

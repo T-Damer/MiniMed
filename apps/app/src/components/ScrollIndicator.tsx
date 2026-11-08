@@ -27,6 +27,11 @@ export function hasOverlayScrollbars(): boolean {
  */
 export function ScrollIndicator(props: {
   readonly target?: () => HTMLElement | undefined;
+  /**
+   * The track follows the target's box on screen (`position: fixed`), for a scroll area that is
+   * itself the panel (a popover) and has no positioned box around it to hold the thumb.
+   */
+  readonly fixed?: boolean;
   readonly class?: string;
 }): JSX.Element {
   const [shown, setShown] = createSignal(false);
@@ -48,7 +53,12 @@ export function ScrollIndicator(props: {
     const overflow = total - visible > 1;
     setShown(overflow);
     if (!overflow || !track || !thumb) return;
-    if (props.target) {
+    if (props.target && props.fixed) {
+      const box = element.getBoundingClientRect();
+      track.style.top = `${box.top + 6}px`;
+      track.style.left = `${box.right - 7}px`;
+      track.style.height = `${Math.max(0, box.height - 12)}px`;
+    } else if (props.target) {
       track.style.top = `${element.offsetTop}px`;
       track.style.height = `${element.clientHeight}px`;
     }
@@ -90,7 +100,7 @@ export function ScrollIndicator(props: {
   return (
     <div
       ref={track}
-      class={`scroll-indicator ${props.target ? 'scroll-indicator--inner' : 'scroll-indicator--page'} ${props.class ?? ''}`}
+      class={`scroll-indicator ${props.fixed ? 'scroll-indicator--fixed' : props.target ? 'scroll-indicator--inner' : 'scroll-indicator--page'} ${props.class ?? ''}`}
       classList={{ 'scroll-indicator--shown': shown() }}
       aria-hidden="true"
     >

@@ -43,6 +43,8 @@
   --z-note-preview: 550;
   --z-note-preview-ui: 551;
   --z-media: 560;
+  /* A popover's scroll thumb (ScrollIndicator `fixed`) above every popover, under toasts. */
+  --z-popover-scroll-indicator: 690;
   --z-toast: 700;
   --z-debug: 1000;
 }

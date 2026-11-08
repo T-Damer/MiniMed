@@ -1194,20 +1194,6 @@ html.calculator-route-open body {
   scroll-margin-top: 4.5rem;
 }
 
-/* Source line at the foot of a calculator page: small plain text, the full list is in «Информация». */
-.calculator-footnote {
-  margin: var(--theme-space-3) 0 0;
-  color: var(--theme-text-faint);
-  font-size: var(--theme-type-caption);
-  line-height: 1.4;
-  /* A citation such as «AHA/ACC/AACVPR/…» has no space to break at. */
-  overflow-wrap: anywhere;
-}
-
-.calculator-source-reference {
-  overflow-wrap: anywhere;
-}
-
 .calculator-subpage-actions {
   display: flex;
   align-items: center;

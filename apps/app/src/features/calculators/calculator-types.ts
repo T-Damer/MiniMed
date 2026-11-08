@@ -32,6 +32,10 @@ export interface CalculatorSourceReference {
   readonly version: string;
   readonly url: string;
   readonly reviewedAt: string;
+  /** Where in the source («приложение Г1; разделы 3.1, 6.1»). */
+  readonly page?: string;
+  /** The same source in the app's corpus (the tool record's source link): opens in the reader. */
+  readonly document?: { readonly moduleId: string | null; readonly documentId: string };
 }
 
 export interface CalculatorInputConstraint {

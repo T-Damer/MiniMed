@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.neurology-rehab.ru",
-  "version": "0.1.0-preview.4",
+  "version": "0.1.0-preview.5",
   "title": "Неврология, реабилитация и функциональный статус: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -6988,6 +6988,8 @@
           "kind": "clinical-recommendation",
           "relation": "interpretation",
           "title": "Клинические рекомендации «Психические и поведенческие расстройства, вызванные употреблением алкоголя. Синдром отмены алкоголя (алкогольное абстинентное состояние)» (Минздрав России, 2024, ID 784), приложение Г1, разделы 3.1, 6.1 и 6.2",
+          "moduleId": "minimed.clinical.recommendation.784_1",
+          "documentId": "kr.rf.784_1",
           "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_7/prilozhenie-g1-gn/prilozhenie-g1/",
           "reviewedAt": "2026-11-08"
         },

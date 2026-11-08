@@ -1,0 +1,24 @@
+/*
+ * A button visibly owns the menu or panel it opened (owner 2026-11-08, AGENTS.md «A menu belongs to
+ * its button»): while it is open the button stays pressed — the accent's soft fill and a ring in the
+ * accent — and the panel's border repeats that ring (SheetPopover, AppContextMenu, HeaderActions).
+ * The class is doubled to outrank each button's own single-class background.
+ */
+:root {
+  --menu-owner-ring: color-mix(in srgb, var(--theme-accent) 70%, var(--theme-border));
+}
+
+.menu-owner--open.menu-owner--open {
+  color: var(--theme-text);
+  background-color: var(--theme-accent-soft);
+  box-shadow:
+    0 0 0 2px var(--menu-owner-ring),
+    0 0.25rem 0.75rem rgb(34 31 25 / 10%);
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-owner--open.menu-owner--open {
+    transform: none;
+  }
+}

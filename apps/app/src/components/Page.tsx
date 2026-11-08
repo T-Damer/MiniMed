@@ -7,6 +7,7 @@ import {
   type HeaderAction,
   HeaderActions,
 } from '@/components/HeaderActions';
+import { type HelpSource, HelpSources } from '@/components/HelpSources';
 import type { HeaderActionPriority } from '@/components/header-actions';
 import { type PageHero, PageHeroBand, useHeroBleed, useHeroScroll } from '@/components/PageHero';
 import { SheetPopover } from '@/components/SheetPopover';
@@ -37,6 +38,11 @@ export interface PageProps {
   readonly help?: JSX.Element;
   /** Heading of the help panel; «Как это работает» by default. */
   readonly helpTitle?: string;
+  /**
+   * The sources behind the page's tool: folded under «Источники» at the end of the «?» help
+   * (owner 2026-11-08). Pass them here rather than inside `help`, so every «?» lists them alike.
+   */
+  readonly helpSources?: readonly HelpSource[] | undefined;
   /**
    * How soon the «?» folds into «⋯» among `headerActions` (1 by default). A page whose main tool
    * must stay on top (the patient page's pencil) lets the «?» fold first.
@@ -92,6 +98,12 @@ export function Page(props: PageProps): JSX.Element {
       props.headerActions !== undefined ||
       props.help !== undefined);
   const helpTitle = (): string => props.helpTitle ?? 'Как это работает';
+  const helpBody = (): JSX.Element => (
+    <div class="page__help-body">
+      {props.help}
+      <Show when={props.helpSources}>{(sources) => <HelpSources sources={sources()} />}</Show>
+    </div>
+  );
   /** With `headerActions` the «?» is one of them (priority 1, first), so it folds into «⋯» too. */
   const foldableActions = createMemo((): readonly HeaderAction[] | undefined => {
     const own = props.headerActions;
@@ -104,7 +116,7 @@ export function Page(props: PageProps): JSX.Element {
         icon: 'question',
         priority: props.helpPriority ?? 1,
         panel: {
-          content: () => <div class="page__help-body">{props.help}</div>,
+          content: helpBody,
           contentClass: 'page__help-panel',
         },
       },
@@ -219,7 +231,7 @@ export function Page(props: PageProps): JSX.Element {
                   contentClass="page__help-panel"
                   placement="bottom-end"
                 >
-                  <div class="page__help-body">{props.help}</div>
+                  {helpBody()}
                 </SheetPopover>
               </Show>
               {slot.actions()}

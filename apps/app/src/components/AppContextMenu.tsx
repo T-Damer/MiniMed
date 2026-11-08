@@ -11,6 +11,8 @@ import {
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 
+import '@/components/menu-owner.css';
+
 export interface AppContextMenuAction {
   readonly id: string;
   readonly label: string;
@@ -213,6 +215,9 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
           <button
             type="button"
             class={`app-context-menu__more${props.buttonClass ? ` ${props.buttonClass}` : ''}`}
+            classList={{ 'menu-owner--open': open() }}
+            aria-haspopup="menu"
+            aria-expanded={open()}
             aria-label={props.buttonLabel ?? 'Действия'}
             title={props.buttonLabel ?? 'Действия'}
             onClick={requestContextMenu}
@@ -226,6 +231,7 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
           <button
             type="button"
             class="app-context-menu__discover"
+            classList={{ 'menu-owner--open': open() }}
             aria-label={props.discoverLabel}
             title={props.discoverLabel}
             onClick={requestContextMenu}
