@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 7 November 2026
+> Updated: 8 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -20,6 +20,32 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Search and reader speed — 2026-11-08 (STATE PERF5)
+
+Owner 2026-11-08: «ускорить приложение … при поиске, чтении особенно». Measured on the production build with the
+real core and the largest documents (phone emulation, CPU 4× on a Mac; no Android WebView — no emulator here), then
+fixed by impact. Numbers, method and the rerunnable script (`apps/app/e2e/perf-baseline.spec.ts`,
+`scripts/perf-compare.ts`): [research/perf-2026-11.md](research/perf-2026-11.md).
+
+- **Start-up.** `DefinitionReferencePanel` imported the 10.5 MB release catalog directly, which the bundler put in
+  front of the search screen; it is now loaded when the dictionary opens (`LazyDefinitionReferencePanel`), installed
+  calculators are read after the reveal, and the personal-file OCR ingest (tesseract, pdf.js) is imported after it.
+  JS before the first screen 16.5 → 5.5 MB, first screen 829 → 403 ms at 4× CPU.
+- **First search.** `MedicalCore.warmUp()` (optional in the contract; `createMedicalCore`, `RetirableMedicalCore`)
+  builds the document, terminology, alias and spelling indexes in one-task pieces once the screen is idle after the
+  reveal and after a core reload; the first query no longer builds them (final list 2.0 → 1.3 s, longest task
+  553 → 193 ms). The heap holds them from the start (+29 MB, as after any first search). Search timing marks
+  `minimed:search:*` (no query text) are for the harness.
+- **Reader.** Wide-table detection skips tables in sections the browser does not render (`checkVisibility`) and reads
+  widths after the frame's layout; the reader chrome re-measures after layout and writes `--document-chrome-height` / `--document-heading-top` only when they change. 814_1 fully mounted
+  2.9 → 2.5 s, layouts 175 → 110; a table is now measured when it nears the screen (a jump into the middle: one
+  ~100 ms task instead of ~50 ms).
+- **Budget check.** `e2e/perf-budget.spec.ts`: the first screen loads no release catalog, pdf.js or tesseract; reader
+  first text / all sections and search titles / list stay under generous ceilings.
+- **Next (not done):** readers stay mounted after they are left (48 000 DOM nodes on the start page after 814_1) —
+  bounding that changes back navigation, owner's call; Android WebView measurement; batching the multi-store SQL calls
+  of a multi-word query; `OverlayDialog`'s scroll indicator re-reads the page height while a long document mounts
+  (133 ms at 4×, UI-BATCH3's file).
 ## Owner's UI batch: sources in «?», owned menus, folds, global UI rules — 2026-11-08 (STATE UI-BATCH3; not released)
 
 Owner 2026-11-08, from a screenshot of CIWA-Ar's «?» (a raw «Клинические рекомендации «Психические и…» link cut off at

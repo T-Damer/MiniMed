@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Faster start and search: the first screen comes about twice as fast (the 10 MB module catalog, pdf.js and the OCR
+  engine no longer load before it), and the first search after a start no longer builds its indexes inside the query
+  (first search on a slow phone 2.0 → 1.3 s); the indexes are built while the start page is idle.
+- Faster reader on long documents: the longest clinical recommendation (814_1, 170 sections) finishes rendering
+  about 15 % sooner with a third fewer page layouts (tables far off screen are measured when they come near, the
+  reader's header is measured after the page is laid out). Measurements and the rerunnable script:
+  `docs/research/perf-2026-11.md`.
 - «?» of a tool: its sources are folded under «Источники» at the end, as named rows (title, publisher, year — «КР
   Синдром отмены алкоголя · Минздрав России · 2024», «… · PubMed») instead of long links; a КР the app has (CIWA-Ar's)
   opens in the reader. Calculators, questionnaires, forms and the vaccination calendar list them alike, and a
