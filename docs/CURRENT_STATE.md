@@ -78,6 +78,19 @@ the bottom, no inner scroll). New rules are in AGENTS.md «Interface rules» (ow
   failure kinds + 2 subscribe refusals, each with its own state; HTTP status kept). Enforced by mapped types with
   `@ts-expect-error` tests, a Biome override (`useExhaustiveSwitchCases`, `noEmptyBlockStatements`, `noUselessCatch`) on
   the migrated paths and `bun run check:errors` (`noFloatingPromises`, same paths). `docs/ERRORS.md`.
+- **Folds rolled out.** Search fragments (3 lines), interaction and comparison quotes (5, replacing character-count
+  heuristics), a questionnaire's instruction (`QuestionnaireIntro`, 5), drug name lists and «Показать все (N)»
+  (`visibleItemCount`), attached results (folds ≥ 3 hidden items). Left: download task list (already ≥ 3), consent
+  «Полный текст» (summary ⇄ full text, not a fold).
+- **Tests.** Unit: `help-sources`, `line-clamp`, `press-feedback`, `typed-errors`, `calm-error-props`, `news-failure`.
+  e2e (chromium, `E2E_LOCAL_MODULES=1` until the preview.5 pack is on GitHub): `help-popover` (1024/390, both themes;
+  `UI_SHOTS=<dir>` saves screenshots), `reader-source-card`, `screen-density`, `hover-effects`, `app-contrast`,
+  `diary-screens`, `search`, `calculators`, `user-calculators`, `score-scale`, `tool-pages-overflow` (now counts
+  `overflow: clip`; the folded citation wraps — it ran sideways before `overflow-wrap: anywhere`), `assessments`,
+  `official-forms`, `reader-layout-preview`, `drug-interactions-severity`, `news-feed` pass. Failing on `origin/main`
+  too, not touched: `news-feed` «marks entries read as they are scrolled past», `drug-comparison.spec.ts:184`,
+  `atc-search.spec.ts:13/:79` (registry code); `reader-lookups.spec.ts:35` expects the old search «source context»
+  view, which a found fragment no longer opens. Not run: webkit-ios project, Android.
 
 ## Calculator links and one-calculator loading — 2026-11-08 (STATE CALCLINK)
 
