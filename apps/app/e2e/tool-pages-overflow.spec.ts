@@ -38,11 +38,17 @@ async function horizontalOverflow(page: Page): Promise<{ page: number; widest: s
       if (style.position === 'fixed' || style.visibility === 'hidden') continue;
       const box = element.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
-      // Content inside a horizontally scrolling area (a wide table, a chart) scrolls there.
+      // Content inside a horizontally scrolling area (a wide table, a chart) scrolls there; a
+      // clipping box (the hero's emblem) cuts it.
       let scrolled = false;
       for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
         const overflowX = getComputedStyle(ancestor).overflowX;
-        if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden') {
+        if (
+          overflowX === 'auto' ||
+          overflowX === 'scroll' ||
+          overflowX === 'hidden' ||
+          overflowX === 'clip'
+        ) {
           scrolled = true;
           break;
         }

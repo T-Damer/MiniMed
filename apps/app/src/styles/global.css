@@ -217,6 +217,8 @@ button:disabled {
   /* No blanket hover shadow on buttons (owner 2026-10-25: shadows look dirty on this palette);
      each control tints its own fill or text. */
   .horizontal-scroll-control:not(:disabled):hover {
+    color: var(--theme-text);
+    background: var(--theme-hover-surface);
     transform: translateY(-50%) scale(1.04);
   }
 
