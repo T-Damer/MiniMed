@@ -71,7 +71,7 @@ export function DoctorProfileSettings(): JSX.Element {
             open={pickOpen()}
             onOpenChange={setPickOpen}
             title="Ваши специальности"
-            triggerClass="ui-button settings-row__action"
+            triggerClass="ui-button ui-button--secondary settings-row__action"
             triggerLabel="Добавить специальности"
             trigger="Добавить"
             contentClass="doctor-profile-settings__pick-panel"

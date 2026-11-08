@@ -2148,3 +2148,25 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+
+.diary-dash-alert__open {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/* Hover (owner 2026-11-08), only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .diary-dash-row__open:hover,
+  .diary-identity__emoji:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+
+  .diary-dash-alert__open:hover,
+  .diary-overview__stats:hover,
+  .diary-overview__row:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+}

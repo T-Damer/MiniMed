@@ -58,3 +58,17 @@
 .ui-file-button__label {
   pointer-events: none;
 }
+
+.ui-file-button {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-file-button:hover:not(.ui-file-button--primary) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+}

@@ -1204,3 +1204,25 @@ html.calculator-route-open body {
   color: var(--theme-text);
   font-weight: 600;
 }
+
+.calculator-section,
+.calculator-form__tooltip-button {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/* Hover (owner 2026-11-08), only where a pointer can hover: the section card under its full-size open
+   button, and the small «?» tooltip button. */
+@media (hover: hover) and (pointer: fine) {
+  .calculator-section:hover {
+    background: var(--theme-hover-surface);
+  }
+
+  .calculator-form__tooltip-button:hover {
+    border-color: var(--theme-accent);
+    color: var(--theme-text);
+    background: var(--theme-hover-surface);
+  }
+}

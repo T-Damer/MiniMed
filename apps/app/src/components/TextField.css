@@ -75,3 +75,10 @@
 .ui-text-field__error {
   color: var(--theme-danger);
 }
+
+/* Hover: the field's edge picks up the accent, as the focus ring will. */
+@media (hover: hover) and (pointer: fine) {
+  .ui-text-field__input:hover:not(:disabled, :focus-visible, .ui-text-field__input--error) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+  }
+}

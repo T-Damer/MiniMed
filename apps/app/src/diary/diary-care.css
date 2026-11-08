@@ -1607,3 +1607,30 @@ body:has(.diary-care-scope) {
     grid-column: auto;
   }
 }
+
+.diary-today__step,
+.diary-today__notice-close,
+.care-row__main {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/* Hover (owner 2026-11-08), only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .diary-today__step:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface-muted));
+  }
+
+  .diary-today__notice-close:hover,
+  .care-row__main:hover:not(:disabled),
+  .care-row__edit:hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  .diary-today__icon:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+}

@@ -12,6 +12,7 @@
   --range-thumb-bg: var(--theme-accent);
   --range-thumb-outline: var(--theme-surface-raised);
   --range-thumb-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 28%);
+  --range-thumb-halo: 0 0 0 0.3125rem color-mix(in srgb, var(--range-thumb-bg) 22%, transparent);
   --range-focus-ring: 0 0 0 0.125rem var(--theme-surface-raised), 0 0 0 0.25rem var(--theme-accent);
 }
 
@@ -90,12 +91,20 @@
   cursor: not-allowed;
 }
 
-.range-input__control:hover,
 .range-input__control:focus,
 .range-input__control:focus-visible {
   border-color: transparent;
   outline: none;
   box-shadow: none;
+}
+
+/* The global field hover (an accent edge) does not belong on the bare track. */
+@media (hover: hover) and (pointer: fine) {
+  .range-input__control:hover {
+    border-color: transparent;
+    outline: none;
+    box-shadow: none;
+  }
 }
 
 .range-input__control::-webkit-slider-runnable-track {
@@ -132,7 +141,9 @@
   background: var(--range-thumb-bg);
   box-shadow: var(--range-thumb-shadow);
   appearance: none;
-  transition: transform var(--theme-motion-control);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .range-input__control::-moz-range-thumb {
@@ -143,7 +154,22 @@
   border-radius: 999px;
   background: var(--range-thumb-bg);
   box-shadow: var(--range-thumb-shadow);
-  transition: transform var(--theme-motion-control);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/* Hover: the thumb grows a little and gains a soft halo; a press grows it a little more. */
+@media (hover: hover) and (pointer: fine) {
+  .range-input__control:hover:not(:disabled, :active, :focus-visible)::-webkit-slider-thumb {
+    transform: scale(1.08);
+    box-shadow: var(--range-thumb-shadow), var(--range-thumb-halo);
+  }
+
+  .range-input__control:hover:not(:disabled, :active, :focus-visible)::-moz-range-thumb {
+    transform: scale(1.08);
+    box-shadow: var(--range-thumb-shadow), var(--range-thumb-halo);
+  }
 }
 
 .range-input__control:active::-webkit-slider-thumb {
