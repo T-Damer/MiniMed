@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { Disclosure } from '@/components/Disclosure';
+import { createLineClamp, visibleItemCount } from '@/components/line-clamp';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import { CellDrug } from './ComparisonMatrix';
 import {
@@ -16,7 +17,7 @@ import '@/styles/drug-comparison.css';
 
 /** Clusters shown before «Показать все»: a section can hold several hundred statements. */
 const VISIBLE_CLUSTERS = 6;
-const LONG_TEXT = 360;
+const QUOTE_LINES = 5;
 
 function CellText(props: {
   readonly cell: CellView;
@@ -24,8 +25,12 @@ function CellText(props: {
   /** The row's own title: a statement's section is named only where it differs. */
   readonly rowTitle: string;
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const long = () => props.cell.text.length > LONG_TEXT;
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({
+    element,
+    visibleLines: QUOTE_LINES,
+    track: () => props.cell.text,
+  });
   return (
     <div class="drug-comparison__cell" data-testid="comparison-unit">
       <CellDrug column={props.column} />
@@ -37,8 +42,9 @@ function CellText(props: {
         <span class="drug-comparison__cell-section">{props.cell.sectionTitle}</span>
       </Show>
       <p
+        ref={setElement}
         class="drug-comparison__quote-text"
-        classList={{ 'drug-comparison__quote-text--clamped': long() && !open() }}
+        classList={{ 'drug-comparison__quote-text--clamped': clamp.folded() }}
       >
         <For each={props.cell.segments}>
           {(segment) => (
@@ -49,14 +55,14 @@ function CellText(props: {
         </For>
       </p>
       <span class="drug-comparison__actions">
-        <Show when={long()}>
+        <Show when={clamp.foldable()}>
           <button
             type="button"
             class="drug-comparison__toggle"
-            aria-expanded={open()}
-            onClick={() => setOpen((value) => !value)}
+            aria-expanded={clamp.expanded()}
+            onClick={() => clamp.toggle()}
           >
-            {open() ? 'Свернуть' : 'Показать полностью'}
+            {clamp.expanded() ? 'Свернуть' : 'Показать полностью'}
           </button>
         </Show>
         <Show when={props.cell.anchor && props.column.documentId}>
@@ -129,7 +135,8 @@ function SectionBlock(props: {
   const visible = createMemo(() =>
     props.row.clusters.filter((cluster) => !props.onlyDifferences || isDifference(cluster)),
   );
-  const shown = () => (all() ? visible() : visible().slice(0, VISIBLE_CLUSTERS));
+  const limit = () => visibleItemCount(visible().length, VISIBLE_CLUSTERS);
+  const shown = () => (all() ? visible() : visible().slice(0, limit()));
   const missing = () =>
     props.columns.filter(
       (column, position) =>
@@ -209,7 +216,7 @@ function SectionBlock(props: {
                 </For>
               </div>
             </div>
-            <Show when={visible().length > VISIBLE_CLUSTERS}>
+            <Show when={visible().length > limit()}>
               <button
                 type="button"
                 class="drug-comparison__more"

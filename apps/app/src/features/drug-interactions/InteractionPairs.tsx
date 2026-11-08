@@ -15,6 +15,7 @@ import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
+import { createLineClamp } from '@/components/line-clamp';
 import { Heading } from '@/components/Text';
 import { PrintManager } from '@/features/printing/print-manager';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
@@ -64,13 +65,20 @@ function todayText(): string {
   return new Date().toLocaleDateString('ru-RU');
 }
 
+/** Lines of a quote shown before «Показать полностью» (the CSS clamp). */
+const QUOTE_LINES = 5;
+
 /** One quoted sentence with the words that name the other drug marked. */
 function QuoteBlock(props: {
   readonly documentId: string;
   readonly quote: SideView['quotes'][number];
 }): JSX.Element {
-  const [expanded, setExpanded] = createSignal(false);
-  const long = () => props.quote.text.length > 360;
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({
+    element,
+    visibleLines: QUOTE_LINES,
+    track: () => props.quote.text,
+  });
   return (
     <blockquote class="drug-interactions__quote">
       <span class="drug-interactions__quote-head">
@@ -86,8 +94,9 @@ function QuoteBlock(props: {
         </Show>
       </span>
       <p
+        ref={setElement}
         class="drug-interactions__quote-text"
-        classList={{ 'drug-interactions__quote-text--clamped': long() && !expanded() }}
+        classList={{ 'drug-interactions__quote-text--clamped': clamp.folded() }}
       >
         <For each={props.quote.segments}>
           {(segment) => (
@@ -98,13 +107,13 @@ function QuoteBlock(props: {
         </For>
       </p>
       <span class="drug-interactions__quote-actions">
-        <Show when={long()}>
+        <Show when={clamp.foldable()}>
           <button
             type="button"
             class="drug-interactions__quote-toggle"
-            onClick={() => setExpanded((value) => !value)}
+            onClick={() => clamp.toggle()}
           >
-            {expanded() ? 'Свернуть' : 'Показать полностью'}
+            {clamp.expanded() ? 'Свернуть' : 'Показать полностью'}
           </button>
         </Show>
         <Show when={props.quote.anchor}>

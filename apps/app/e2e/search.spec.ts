@@ -181,6 +181,22 @@ test('a found part shows three lines, unrolls in place, and is the only fragment
   await open.click();
   await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
 
+  // Fold only what hides three or more lines (owner 2026-11-08): a fragment with a chevron hides
+  // at least three lines, one without it is shown whole.
+  const rule = await page.locator('.result-fragment').evaluateAll((fragments) =>
+    fragments.map((node) => {
+      const paragraph = node.querySelector<HTMLElement>('.result-fragment__text');
+      if (!paragraph) return { hidden: 0, toggle: false };
+      const lineHeight = Number.parseFloat(getComputedStyle(paragraph).lineHeight);
+      const hidden = (paragraph.scrollHeight - paragraph.clientHeight) / lineHeight;
+      return { hidden, toggle: node.querySelector('.result-fragment__toggle') !== null };
+    }),
+  );
+  for (const item of rule) {
+    if (item.toggle) continue;
+    expect(item.hidden).toBeLessThan(0.5);
+  }
+
   // One finding per result (owner 2026-10-20): no «Ещё N фрагментов», no «Найдено ещё в».
   await expect(page.getByRole('button', { name: /^Ещё \d+ фрагмент/u })).toHaveCount(0);
   await expect(page.getByText(/Найдено ещё в/u)).toHaveCount(0);
