@@ -4,6 +4,7 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Tablet: a page header's dark band is as wide as the page under it again; on screens that slide in («Новый пациент») it stood wider than the page.
 ## [0.6.94] - 2026-11-07
 
 - Травник: the book opens on a skeleton of its search, chips and cards at once and fades in; the pinned search keeps a
