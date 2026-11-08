@@ -46,7 +46,6 @@ import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state
 import { publishCoreDataVersion, readInstalledDataVersion } from '@/state/search-data-version';
 import { installTakeoverListener } from '@/state/tab-takeover';
 import { installUiFeedback } from '@/state/ui-feedback';
-import { ensureUserLibraryIngestRunning } from '@/state/user-library-ingest';
 
 const SLOW_BOOT_DELAY_MS = 10_000;
 const APP_UPDATE_MIN_CHECK_MS = 650;
@@ -453,6 +452,12 @@ export function useAppSession() {
       coreToClose = candidate.core;
       setReady(candidate);
       if (previousSearchCore) void previousSearchCore.close();
+      // A reloaded core (an install) gets its first-search indexes while idle too.
+      void scheduleIdle(() => candidate.core.warmUp?.() ?? Promise.resolve()).catch(
+        (cause: unknown) => {
+          console.warn('Search indexes were not prepared after the core reload.', cause);
+        },
+      );
     });
     recordInstallPhase('core-reload', reloadStartedAt);
     setDownloadedModuleCount(
@@ -503,7 +508,14 @@ export function useAppSession() {
     window.addEventListener(APP_UPDATE_READY_EVENT, handleAppUpdate);
     document.addEventListener('visibilitychange', refreshApkTask);
     refreshDueReminders();
-    ensureUserLibraryIngestRunning();
+    // Pending OCR of personal files resumes after the first screen: the ingest brings tesseract
+    // and pdf.js, which kept ~0.5 MB of code in front of the search screen (PERF5).
+    void afterBootReveal()
+      .then(() => import('@/state/user-library-ingest'))
+      .then(({ ensureUserLibraryIngestRunning }) => ensureUserLibraryIngestRunning())
+      .catch((cause: unknown) => {
+        console.error('Фоновая обработка личных документов не запустилась.', cause);
+      });
     void import('@/features/downloads/restore-downloads')
       .then(({ restoreDownloadIntents }) => restoreDownloadIntents())
       .catch(() => setAppUpdateError('Не удалось восстановить очередь загрузок.'));
@@ -538,6 +550,13 @@ export function useAppSession() {
       if (reconnectRequested) await connectInstalledModules();
       // The ~10 MB release catalog is parsed only after search is interactive, the boot surface
       // has gone and the main thread is idle; the remote refresh below reuses the same load.
+      // The first search's indexes (≈0.6 s of main thread on a Mac, more on a phone) are built
+      // while the screen is idle after the reveal, not inside the first query (PERF5).
+      void afterBootReveal()
+        .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
+        .catch((cause: unknown) => {
+          console.warn('Search indexes were not prepared ahead of the first query.', cause);
+        });
       const moduleRuntimeLoad = afterBootReveal().then(() =>
         scheduleIdle(() =>
           Promise.all([

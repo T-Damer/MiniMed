@@ -14,13 +14,13 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { assertIdentityDocumentTarget } from '@/features/modules/module-pointer-install';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
-import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import {
   type DoctorProfile,
   getDoctorProfile,
   noteDoctorField,
   subscribeDoctorProfile,
 } from '@/features/reference/doctor-profile';
+import { LazyDefinitionReferencePanel } from '@/features/reference/LazyDefinitionReferencePanel';
 import {
   loadSenseDetails,
   type SenseDetail,
@@ -365,7 +365,7 @@ export function CoreIdentityMatches(props: {
               if (target.type !== 'definition') return null;
               return (
                 <OverlayDialog open title={hit().title} onClose={() => setSelected(undefined)}>
-                  <DefinitionReferencePanel
+                  <LazyDefinitionReferencePanel
                     core={props.core}
                     onContentChanged={props.onContentChanged}
                     catalog={runtime()?.getCatalog()}

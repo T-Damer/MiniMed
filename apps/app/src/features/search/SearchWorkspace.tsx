@@ -26,6 +26,7 @@ import {
   untrack,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { afterBootReveal } from '@/app/boot-surface';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentText } from '@/components/DocumentText';
@@ -295,6 +296,20 @@ function installedCalculatorSchemas(): readonly CalculatorSchemaWithSearch[] {
 }
 
 let downloadedCalculatorRefresh: Promise<void> | undefined;
+
+/** A screen shown without the boot surface (a test, a frame) still refreshes after this wait. */
+const CALCULATOR_REFRESH_LATEST_MS = 4000;
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+function whenIdle(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window.requestIdleCallback === 'function')
+      window.requestIdleCallback(() => resolve(), { timeout: 1000 });
+    else globalThis.setTimeout(resolve, 0);
+  });
+}
 
 function refreshDownloadedCalculatorDefinitions(): Promise<void> {
   if (downloadedCalculatorRefresh) return downloadedCalculatorRefresh;
@@ -773,7 +788,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setTimeout(() => {
       urlQuery = undefined;
     }, 0);
-    void refreshDownloadedCalculatorDefinitions()
+    // Installed calculators come from the ~10 MB release catalog: it is parsed after the first
+    // screen is revealed and the main thread is idle, not ahead of the reveal (PERF5).
+    void Promise.race([afterBootReveal(), delay(CALCULATOR_REFRESH_LATEST_MS)])
+      .then(whenIdle)
+      .then(refreshDownloadedCalculatorDefinitions)
       .then(handleCalculatorPacksChanged)
       .catch((cause: unknown) => {
         console.warn(
@@ -852,7 +871,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       return;
     }
     setSearchQueued(true);
-    searchTimer = setTimeout(() => void runSearch(trimmed, false, { autoRecord: true }), 500);
+    performance.mark('minimed:search:queued');
+    searchTimer = setTimeout(() => {
+      performance.mark('minimed:search:debounced');
+      void runSearch(trimmed, false, { autoRecord: true });
+    }, 500);
   }
 
   function updateQuery(value: string, debounce = true): void {
@@ -938,6 +961,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       return;
     }
     setInstantQuery(trimmed);
+    // Local timing marks for the performance harness (`e2e/perf-baseline.spec.ts`); no query text.
+    performance.mark('minimed:search:run');
     if (!trimmed) {
       setResponse(undefined);
       setDraftAnalysis(undefined);
@@ -956,10 +981,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     // The skeleton covers the (short) read of a saved copy for a query not yet on screen.
     if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
     const dataVersion = await searchDataVersion();
+    performance.mark('minimed:search:version');
     if (generation !== searchGeneration) return;
     // A search of the plain words is neither read from nor saved to the copies of source searches.
     const everywhere = everywhereQuery() === trimmed;
     if (!everywhere && (await showSavedSearch(trimmed, generation, specialty, dataVersion))) {
+      performance.mark('minimed:search:saved');
       lastSearchedQuery = trimmed;
       if (recordHistory || options.autoRecord || options.apply) {
         replaceSearchQueryInAddress(rawQuery);
@@ -984,6 +1011,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     if (!refreshOfShown) setContext(undefined);
 
+    performance.mark('minimed:search:core-start');
     const result = await core.search({
       query: trimmed,
       mode: searchModeForScope(props.scope),
@@ -993,6 +1021,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       includeSuggestions: props.scope === 'diagnosis',
       ...(everywhere ? { sourceNames: false } : {}),
     });
+    performance.mark('minimed:search:core');
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     // A section that found nothing: the same words over all sources, before the list is shown, so

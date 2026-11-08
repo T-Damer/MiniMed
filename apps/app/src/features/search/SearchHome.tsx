@@ -46,7 +46,7 @@ import { MEDICATION_ATC_HASH } from '@/features/medications/medication-routing';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
 import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
-import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
+import { LazyDefinitionReferencePanel } from '@/features/reference/LazyDefinitionReferencePanel';
 import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
@@ -1209,7 +1209,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             class="reference-dialog"
             onClose={() => setReferenceOpen(false)}
           >
-            <DefinitionReferencePanel core={core()} onContentChanged={props.onContentChanged} />
+            <LazyDefinitionReferencePanel core={core()} onContentChanged={props.onContentChanged} />
           </OverlayDialog>
         )}
       </Show>
