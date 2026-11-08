@@ -186,15 +186,15 @@ test('builds a calculator, runs it, prints it, edits it, copies it, moves its in
   await expect(page.locator('.calculator-subpage-header .page__description')).toHaveText(
     'Масса тела в кг на квадратный метр роста.',
   );
-  // The source has no address: it is plain text in «Информация», not a link to this very page.
-  await expect(page.locator('.calculator-footnote')).toContainText('Авторский калькулятор');
+  // The source has no address: a plain row under «Источники» in «Информация», not a link.
   await page.getByRole('button', { name: 'Информация' }).click();
   const info = page.getByRole('dialog', { name: 'Информация' });
-  await expect(info.locator('.calculator-source-reference__title')).toHaveText(
-    'Авторский калькулятор',
-  );
-  await expect(info.locator('.calculator-source-reference')).toContainText('Создан пользователем');
-  await expect(info.locator('a.calculator-source-reference__link')).toHaveCount(0);
+  await info.getByRole('button', { name: /Источники/u }).click();
+  const source = info.locator('.help-sources__row');
+  await expect(source).toHaveCount(1);
+  await expect(source).toContainText('Авторский калькулятор');
+  await expect(source).toContainText('Создан пользователем');
+  await expect(info.locator('a.help-sources__row')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(info).toBeHidden();
 

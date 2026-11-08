@@ -126,7 +126,11 @@ test('the pooled-cohort page keeps its long citation inside the screen', async (
   await page.getByRole('button', { name: 'Скачать раздел — Кардиология' }).click();
   await expect(page.getByText(/^Доступно офлайн: (\d+) из \1$/u)).toBeVisible();
   await page.goto(`${E2E_ASSET_ORIGIN}/#/calculators/pooled-cohort-equations-ascvd-risk`);
-  await expect(page.locator('.calculator-footnote')).toBeVisible();
+  // The citation sits in the «?» under «Источники»; opened, it stays inside the screen.
+  await page.getByRole('button', { name: 'Информация' }).click();
+  const info = page.getByRole('dialog', { name: 'Информация' });
+  await info.getByRole('button', { name: /Источники/u }).click();
+  await expect(info.locator('.help-sources__row').first()).toBeVisible();
   const overflow = await horizontalOverflow(page);
   expect(overflow.page).toBeLessThanOrEqual(0);
   expect(overflow.widest).toBe('');
@@ -134,7 +138,7 @@ test('the pooled-cohort page keeps its long citation inside the screen', async (
   // Control: the check does see the overflow once the citation may not break again.
   await page.addStyleTag({
     content:
-      '.calculator-footnote, .calculator-source-reference { overflow-wrap: normal !important; word-break: keep-all !important; white-space: nowrap !important; }',
+      '.help-sources__name, .help-sources__meta { display: block !important; overflow-wrap: normal !important; word-break: keep-all !important; white-space: nowrap !important; overflow: visible !important; }',
   });
   const broken = await horizontalOverflow(page);
   expect(broken.page > 0 || broken.widest !== '').toBe(true);

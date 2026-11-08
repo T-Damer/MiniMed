@@ -45,6 +45,20 @@ describe('helpSourceRow', () => {
     });
   });
 
+  it('names an order by its number and subject, the issuer shortened', () => {
+    const row = helpSourceRow({
+      title:
+        'Приказ Министерства здравоохранения Российской Федерации от 06.12.2021 № 1122н "Об утверждении национального календаря профилактических прививок"',
+      url: 'http://publication.pravo.gov.ru/document/0001202112200070',
+    });
+    expect(row).toEqual({
+      kind: 'Приказ № 1122н',
+      name: 'Об утверждении национального календаря профилактических прививок',
+      meta: 'Минздрав России · 2021',
+      site: 'Официальное опубликование',
+    });
+  });
+
   it('keeps a plain title and finds its year in it', () => {
     const row = helpSourceRow({ title: 'Почивалов и др. Детские болезни, 2014, с. 26' });
     expect(row.name).toBe('Почивалов и др. Детские болезни, 2014, с. 26');

@@ -384,6 +384,14 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
           </>
         }
         helpTitle="О форме"
+        helpSources={[
+          {
+            title: `${orderReference(props.schema.source)} «${props.schema.source.orderTitle}»`,
+            year: props.schema.source.orderDate.slice(0, 4),
+            detail: `приложение № ${String(props.schema.source.blankAppendix.number)}`,
+            url: props.schema.source.publicationUrl,
+          },
+        ]}
       />
 
       <div class="forms-workspace__patient">

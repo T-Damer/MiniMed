@@ -130,6 +130,22 @@ function clinicalRecommendationName(title: string): { name: string; locator?: st
   return tail ? { name: name.trim(), locator: tail } : { name: name.trim() };
 }
 
+/** «Приказ Министерства … от 06.12.2021 № 1122н "Об утверждении …"». */
+const ORDER_TITLE =
+  /^Приказ\s+(.+?)\s+от\s+\d{2}\.\d{2}\.((?:19|20)\d{2})\s+№\s*([^\s"«]+)\s*["«](.+)["»]\s*$/u;
+/** Ministries by their short names; a joint order lists several («… и …»). */
+const ISSUER_NAMES: readonly (readonly [RegExp, string])[] = [
+  [/Министерств[оа] здравоохранения Российской Федерации/gu, 'Минздрав России'],
+  [/Министерств[оа] труда и социальной защиты Российской Федерации/gu, 'Минтруд России'],
+  [/Минздрава России/gu, 'Минздрав России'],
+];
+
+function shortIssuer(issuer: string): string {
+  let short = issuer.replace(/^\((.*)\)$/u, '$1');
+  for (const [long, name] of ISSUER_NAMES) short = short.replace(long, name);
+  return short;
+}
+
 /** One row of the «Источники» list: a clean name, who and when, and the site it opens on. */
 export function helpSourceRow(source: HelpSource): HelpSourceRow {
   const title = source.title.trim();
@@ -137,7 +153,15 @@ export function helpSourceRow(source: HelpSource): HelpSourceRow {
   let name = title;
   let authors: string | undefined;
   let locator: string | undefined;
-  if (KR_PREFIX.test(title)) {
+  let issuer: string | undefined;
+  let orderYear: string | undefined;
+  const order = ORDER_TITLE.exec(title);
+  if (order?.[1] && order[3] && order[4]) {
+    kind = `Приказ № ${order[3]}`;
+    issuer = shortIssuer(order[1]);
+    orderYear = order[2];
+    name = order[4].trim();
+  } else if (KR_PREFIX.test(title)) {
     kind = 'КР';
     const parsed = clinicalRecommendationName(title);
     name = parsed.name;
@@ -153,8 +177,8 @@ export function helpSourceRow(source: HelpSource): HelpSourceRow {
   }
   const publisher = source.publisher
     ? (PUBLISHER_NAMES[source.publisher.trim()] ?? source.publisher.trim())
-    : undefined;
-  const year = source.year?.trim() || YEAR.exec(title)?.[1];
+    : issuer;
+  const year = source.year?.trim() || orderYear || YEAR.exec(title)?.[1];
   const meta = [authors, publisher, year, source.detail ?? locator]
     .filter((part): part is string => Boolean(part?.trim()))
     // A publisher that is already in the name (a journal named in the title) is not repeated.

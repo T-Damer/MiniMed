@@ -243,6 +243,10 @@ export function VaccinationWorkspace(props: {
         }
         title={<Heading depth={1}>Календарь прививок</Heading>}
         help={<VaccinationHelp calendar={calendar} />}
+        helpSources={calendar.sources.map((source) => ({
+          title: source.title,
+          url: source.publicationUrl,
+        }))}
         actions={<VaccinationPrintThumb html={handoutHtml()} onOpen={openPreview} />}
       />
       <SegmentedControl

@@ -38,8 +38,8 @@ test('draws a banded score scale for a class result and keeps the licence out of
   // The result card is brought into view after calculating.
   await expect(page.getByTestId('calculator-result')).toBeInViewport();
 
-  // Sources are small text at the bottom and an «Информация» item in the menu.
-  await expect(page.locator('.calculator-footnote')).toContainText('Источники:');
+  // Sources are folded under «Источники» in the «?» («Информация»), not text on the page.
+  await expect(page.locator('.calculator-footnote')).toHaveCount(0);
   // The «Расчёт сохранён» toast sits under the route header over the menu; let it go first.
   await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Информация' }).click();
