@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Reader: documents look as their sources meant them. A clinical recommendation's «Уровень убедительности…» line,
+  «Комментарии» and the text after a list are no longer glued onto the last list item; dash lists split into items;
+  table rows that had lost their header (РЛС packaging, glossaries) are drawn as tables instead of «| a | b |» text; a
+  heading repeated as the section's first line, the same heading twice and page stamps or sentence tails shown as
+  headings are gone; codes typed with Cyrillic look-alikes (К21.0, С09АА01, СYP2D6) read in Latin, so search, copy and
+  code links work; leftover HTML and Markdown marks, Symbol-font squares, «^(2)» and a hyphen's stray space
+  («сердечно- сосудистой») are mended. Display only: the stored texts and modules are unchanged. The longest
+  recommendation (814_1) finishes rendering in the background about 0.7 s later on a slow phone, because it now has
+  twice as many paragraphs; first text is as quick as before.
+
 ## [0.6.95] - 2026-11-09
 
 - Diary: «Лекарства раньше» — medicines taken before, entered by the patient, a carer or the doctor: the medicine (from

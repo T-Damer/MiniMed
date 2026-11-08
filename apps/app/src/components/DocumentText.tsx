@@ -627,8 +627,15 @@ function InlineDocumentText(props: {
 }): JSX.Element {
   const parts = () => {
     let offset = 0;
-    return props.text.split(/(\*\*|#[\p{L}\p{M}-]+|\([A-ZА-Я0-9]{4,8}\))/gu).map((value) => {
-      const part = { value, offset };
+    const values = props.text.split(/(\*\*|#[\p{L}\p{M}-]+|\([A-ZА-Я0-9]{4,8}\))/gu);
+    return values.map((value, index) => {
+      // «** — сцеженное молоко»: a footnote legend's own mark (free on both sides) stays visible;
+      // a mark attached to a word is dropped as before (FMT-AUDIT).
+      const legend =
+        value === '**' &&
+        /(?:^|\s)$/u.test(values[index - 1] ?? '') &&
+        /^\s/u.test(values[index + 1] ?? '');
+      const part = { value, offset, legend };
       offset += value.length;
       return part;
     });
@@ -636,7 +643,7 @@ function InlineDocumentText(props: {
   return (
     <For each={parts()}>
       {(part) => {
-        if (part.value === '**') return null;
+        if (part.value === '**' && !part.legend) return null;
         const hashtag = /^#([\p{L}\p{M}-]+)$/u.exec(part.value)?.[1];
         const code = /^\(([A-ZА-Я0-9]{4,8})\)$/u.exec(part.value)?.[1];
         const reference = hashtag ?? code;

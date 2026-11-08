@@ -55,4 +55,16 @@ describe('stripKnownHtmlMarkup', () => {
       'Перорально.\nРекомендуемая доза 7 мг.\n\nМониторинг:\n- контроль АЛТ;\n- контроль АД.',
     );
   });
+
+  it('drops underline tags, lifts sup/sub and reads markup the source escaped twice (FMT-AUDIT)', () => {
+    expect(stripKnownHtmlMarkup('<u>Не применять</u> детям.')).toBe('Не применять детям.');
+    expect(stripKnownHtmlMarkup('&lt;u&gt;Не применять&lt;/u&gt; детям, если x &lt; 5.')).toBe(
+      'Не применять детям, если x < 5.',
+    );
+    expect(stripKnownHtmlMarkup('Ксарелто<sup style="line-height: 5px;">®</sup> 15 мг')).toBe(
+      'Ксарелто® 15 мг',
+    );
+    expect(stripKnownHtmlMarkup('10<sup>9</sup>/л, H<sub>2</sub>O')).toBe('10⁹/л, H₂O');
+    expect(stripKnownHtmlMarkup('A &Amp; B')).toBe('A & B');
+  });
 });

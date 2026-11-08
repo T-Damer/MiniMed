@@ -237,6 +237,112 @@ describe('document-medication-links', () => {
     ]);
   });
 
+  it('ends a list before a paragraph of its own: evidence lines, comments, text after it (FMT-AUDIT)', () => {
+    expect(
+      parseDocumentText(
+        '- Рекомендуется исследование [2].\n\nУровень убедительности рекомендации C (уровень достоверности доказательств — 5)\n\nКомментарии: частота 1 раз в 3 месяца.\n\n- клиторную эписпадию\n- тотальную эписпадию.\n\nУ девочек принято различать:',
+      ),
+    ).toEqual([
+      { kind: 'bullet', text: 'Рекомендуется исследование [2].' },
+      {
+        kind: 'paragraph',
+        text: 'Уровень убедительности рекомендации C (уровень достоверности доказательств — 5)',
+      },
+      { kind: 'paragraph', text: 'Комментарии: частота 1 раз в 3 месяца.' },
+      { kind: 'bullet', text: 'клиторную эписпадию' },
+      { kind: 'bullet', text: 'тотальную эписпадию.' },
+      { kind: 'paragraph', text: 'У девочек принято различать:' },
+    ]);
+  });
+
+  it('reads dash items and lists the source ran into one line (FMT-AUDIT)', () => {
+    expect(parseDocumentText('Симптомы:\n\n− гиперкальциемия;\n\n– жажда.')).toEqual([
+      { kind: 'paragraph', text: 'Симптомы:' },
+      { kind: 'bullet', text: 'гиперкальциемия;' },
+      { kind: 'bullet', text: 'жажда.' },
+    ]);
+    expect(
+      parseDocumentText(
+        'Сообщите врачу, что: - у Вас аллергия; - нарушена функция почек; - Вы беременны.',
+      ),
+    ).toEqual([
+      { kind: 'paragraph', text: 'Сообщите врачу, что:' },
+      { kind: 'bullet', text: 'у Вас аллергия;' },
+      { kind: 'bullet', text: 'нарушена функция почек;' },
+      { kind: 'bullet', text: 'Вы беременны.' },
+    ]);
+    // One dash in a sentence is not a list.
+    expect(parseDocumentText('Доза: - 5 мг в сутки.')).toEqual([
+      { kind: 'paragraph', text: 'Доза: - 5 мг в сутки.' },
+    ]);
+  });
+
+  it('draws table rows that lost their header as a table (FMT-AUDIT)', () => {
+    const [continued] = parseDocumentText(
+      '| Соматропин | раствор | 15 МЕ/мл |\n| Соматропин | лиофилизат |  |',
+    );
+    expect(continued).toMatchObject({ kind: 'table' });
+    expect(
+      continued?.kind === 'table' &&
+        continued.table.rows.map((row) => row.cells.map((cell) => cell.text)),
+    ).toEqual([
+      ['Соматропин', 'раствор', '15 МЕ/мл'],
+      ['Соматропин', 'лиофилизат', ''],
+    ]);
+    // A row the chunking cut keeps its cells under the right columns.
+    const [cut] = parseDocumentText(
+      'раствор | 15 МЕ/мл | ГЕНЕРИУМ |\n| Соматропин | раствор | 15 МЕ/мл | ГЕНЕРИУМ |\n| Итого |',
+    );
+    expect(
+      cut?.kind === 'table' && cut.table.rows.map((row) => row.cells.map((cell) => cell.text)),
+    ).toEqual([
+      ['', 'раствор', '15 МЕ/мл', 'ГЕНЕРИУМ'],
+      ['Соматропин', 'раствор', '15 МЕ/мл', 'ГЕНЕРИУМ'],
+      ['Итого', '', '', ''],
+    ]);
+    expect(parseDocumentText('| Общее количество баллов |')).toEqual([
+      { kind: 'paragraph', text: 'Общее количество баллов' },
+    ]);
+    const [glossary] = parseDocumentText('АтД | Атопический дерматит\nБА | Бронхиальная астма');
+    expect(glossary?.kind === 'table' && glossary.table.rows.length).toBe(2);
+    // A lone «a | b» line stays prose.
+    expect(parseDocumentText('ClinGen | Clinical Genome Resource.')).toEqual([
+      { kind: 'paragraph', text: 'ClinGen | Clinical Genome Resource.' },
+    ]);
+  });
+
+  it('drops whole-line Markdown italics and quote marks (FMT-AUDIT)', () => {
+    expect(parseDocumentText('*Источник: ВОЗ, 2023*\n\n> Примечание: до 6 месяцев.')).toEqual([
+      { kind: 'paragraph', text: 'Источник: ВОЗ, 2023' },
+      { kind: 'paragraph', text: 'Примечание: до 6 месяцев.' },
+    ]);
+  });
+
+  it('mends a word a wrapped line cut when it joins the lines (FMT-AUDIT)', () => {
+    expect(
+      parseDocumentText(
+        '• Риск сердечно-\n\nсосудистых осложнений и двух-\n\nили трёхкратного',
+        [],
+      ),
+    ).toEqual([
+      { kind: 'bullet', text: 'Риск сердечно-сосудистых осложнений и двух- или трёхкратного' },
+    ]);
+  });
+
+  it('keeps a short sub-heading apart from the PDF paragraph after it (FMT-AUDIT)', () => {
+    expect(
+      parseDocumentText('Дети\n\nБезопасность у детей не установлена.\n\nДанные', [
+        { bbox: [80, 0, 0, 0] },
+        { bbox: [80, 0, 0, 0] },
+        { bbox: [80, 0, 0, 0] },
+      ]),
+    ).toEqual([
+      { kind: 'paragraph', text: 'Дети' },
+      { kind: 'paragraph', text: 'Безопасность у детей не установлена.' },
+      { kind: 'paragraph', text: 'Данные' },
+    ]);
+  });
+
   it('indexes INN phrases from installed medication cards', () => {
     const links = buildMedicationLinkPhrases([
       medication(

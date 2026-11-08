@@ -11,6 +11,7 @@ import {
   SOURCE_BLOCK_SEPARATOR,
   storedBlockCount,
 } from '@/features/library/instruction-text-repair';
+import { joinWrappedLines } from '@/features/library/reader-text-normalization';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -120,6 +121,81 @@ function normalizePhrase(value: string): string {
   return value.toLowerCase().replaceAll('ё', 'е').trim();
 }
 
+/**
+ * The cells of a table row written in running text (FMT-AUDIT): «| a | b |» (a long Markdown table
+ * whose continuation chunk lost its header and separator rows; a row the chunking cut keeps only
+ * one of its outer pipes) or «a | b» (a two-column glossary row). Undefined for a separator row or
+ * text that is not a row.
+ */
+interface PipeRow {
+  readonly cells: readonly string[];
+  /** Which outer pipes the row has: a row cut at its start lost its first cells. */
+  readonly opens: boolean;
+  readonly closes: boolean;
+}
+
+function pipeRowCells(text: string): PipeRow | undefined {
+  if (!text.includes('|')) return undefined;
+  if (/^\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-*:?\s*$/u.test(text)) return undefined;
+  const opens = text.startsWith('|');
+  const closes = text.endsWith('|') && text.length > 1;
+  if (opens || closes) {
+    const inner = text.slice(opens ? 1 : 0, closes ? -1 : undefined);
+    if (inner.trim() === '') return undefined;
+    return { cells: inner.split('|').map((cell) => cell.trim()), opens, closes };
+  }
+  const cells = text.split(/\s+\|\s+/u).map((cell) => cell.trim());
+  return cells.length >= 2 && cells.every((cell) => cell.length > 0 && !cell.includes('|'))
+    ? { cells, opens: false, closes: false }
+    : undefined;
+}
+
+const isFramed = (row: PipeRow) => row.opens || row.closes;
+
+/** Rows of one width: a row cut at its start keeps its last cells under the last columns. */
+function pipeRowsGrid(rows: readonly PipeRow[]): readonly (readonly string[])[] {
+  const width = Math.max(...rows.map((row) => row.cells.length));
+  return rows.map((row) => {
+    const missing = Array.from({ length: width - row.cells.length }, () => '');
+    return row.opens || !row.closes ? [...row.cells, ...missing] : [...missing, ...row.cells];
+  });
+}
+
+function pipeRowsTable(rows: readonly (readonly string[])[]): DocumentTableBlock {
+  return {
+    kind: 'table',
+    caption: '',
+    rows: rows.map((cells) => ({
+      cells: cells.map((text) => ({
+        text,
+        header: false,
+        rowSpan: 1,
+        colSpan: 1,
+        images: [],
+      })),
+    })),
+  };
+}
+
+/** A whole-line Markdown italic («*Источник: …*») or quote («> Примечание»): its marks go. */
+function withoutLineMarks(text: string): string {
+  const italic = /^\*([^*\s](?:[^*]*[^*\s])?)\*$/u.exec(text);
+  if (italic?.[1]) return italic[1];
+  const underscored = /^_([^_\s](?:[^_]*[^_\s])?)_$/u.exec(text);
+  if (underscored?.[1]) return underscored[1];
+  return text.replace(/^>\s+/u, '');
+}
+
+/**
+ * A list the source ran into one line: «…что: - у Вас аллергия; - у Вас нарушена функция почек».
+ * Two or more dash items after «;» or «:» become lines of their own (FMT-AUDIT).
+ */
+function splitInlineDashList(text: string): string {
+  const pattern = /([;:])\s+[-–—−]\s+(?=\S)/gu;
+  if ((text.match(pattern)?.length ?? 0) < 2) return text;
+  return text.replace(pattern, '$1\n– ');
+}
+
 export function parseDocumentText(
   value: string,
   sourceSpans?: unknown,
@@ -153,18 +229,53 @@ export function parseDocumentText(
   const lines = value.split(SOURCE_BLOCK_SEPARATOR).flatMap((block) => {
     const sourceIndex = nextSourceIndex;
     nextSourceIndex += storedBlockCount(block);
-    return resolveWrapMarks(block)
-      .trim()
-      .replace(/\s*([•▪◦●○])\s*/gu, '\n$1 ')
+    return splitInlineDashList(
+      resolveWrapMarks(block)
+        .trim()
+        .replace(/\s*([•▪◦●○])\s*/gu, '\n$1 '),
+    )
       .split('\n')
-      .map((text) => ({ sourceIndex, text: text.trim() }));
+      .map((text) => ({ sourceIndex, text: withoutLineMarks(text.trim()) }));
   });
   const implicitList = implicitListStarts(lines);
   let activeListIndent: number | undefined;
   let previousSourceIndex: number | undefined;
 
+  let skipUntil = 0;
+  let inFence = false;
   for (const [lineIndex, line] of lines.entries()) {
-    if (!line.text) continue;
+    if (lineIndex < skipUntil || !line.text) continue;
+    if (line.text.startsWith('```')) inFence = !inFence;
+    // Rows of a table written as text («| a | b |» or «a | b» lines) are a table.
+    const row = inFence ? undefined : pipeRowCells(line.text);
+    if (row && sourceSpanKind(sourceSpans, line.sourceIndex) !== 'table_candidate') {
+      const rows = [row];
+      let end = lineIndex + 1;
+      for (; end < lines.length; end += 1) {
+        const text = lines[end]?.text ?? '';
+        if (!text) continue;
+        const next = pipeRowCells(text);
+        // Framed rows join whatever their width (merged cells); bare «a | b» rows need equal ones.
+        if (!next || isFramed(next) !== isFramed(row)) break;
+        if (!isFramed(row) && next.cells.length !== row.cells.length) break;
+        rows.push(next);
+      }
+      if (rows.length >= 2 || (row.opens && row.closes && row.cells.length >= 2)) {
+        const table = pipeRowsTable(pipeRowsGrid(rows));
+        blocks.push({ kind: 'table', text: documentRenderBlockSearchText(table), table });
+        skipUntil = end;
+        activeListIndent = undefined;
+        previousSourceIndex = lines[end - 1]?.sourceIndex;
+        continue;
+      }
+      // A lone one-cell row («| Общее количество баллов |») is a line of text.
+      if (row.opens && row.closes && row.cells.length === 1 && row.cells[0]) {
+        blocks.push({ kind: 'paragraph', text: row.cells[0] });
+        activeListIndent = undefined;
+        previousSourceIndex = line.sourceIndex;
+        continue;
+      }
+    }
     const image = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)$/u.exec(line.text);
     if (image?.[2]) {
       blocks.push({ kind: 'image', alt: image[1]?.trim() ?? '', source: image[2] });
@@ -193,7 +304,7 @@ export function parseDocumentText(
       previousSourceIndex = line.sourceIndex;
       continue;
     }
-    const bullet = /^[•▪◦●○*+-]\s+(.+)$/u.exec(line.text);
+    const bullet = /^[•▪◦●○·*+\-–—−]\s+(.+)$/u.exec(line.text);
     if (bullet?.[1]) {
       blocks.push({ kind: 'bullet', text: bullet[1] });
       activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
@@ -215,21 +326,30 @@ export function parseDocumentText(
     }
     const previous = blocks.at(-1);
     const currentLeft = sourceSpanLeft(sourceSpans, line.sourceIndex);
+    // Without PDF geometry a paragraph of its own (a new stored block) continues the item above
+    // only when it starts in lower case: «Уровень убедительности…», «Комментарии:» and the text
+    // after a list are paragraphs of their own, never the tail of the last item (FMT-AUDIT).
     const continuesList =
       (previous?.kind === 'bullet' || previous?.kind === 'ordered') &&
       (activeListIndent === undefined ||
         currentLeft === undefined ||
-        currentLeft > activeListIndent + 4);
+        currentLeft > activeListIndent + 4) &&
+      (currentLeft !== undefined ||
+        line.sourceIndex === previousSourceIndex ||
+        /^[a-zа-яёα-ω]/u.test(line.text));
     if (continuesList) {
-      blocks[blocks.length - 1] = { ...previous, text: `${previous.text} ${line.text}` };
+      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, line.text) };
     } else if (
       previous?.kind === 'paragraph' &&
       !/[.!?;:]$/u.test(previous.text) &&
+      // A short line before a capitalised one is a sub-heading («Дети», «Пациентки с нарушением
+      // функции почек»), not a wrapped line: a PDF wraps near the full line width.
+      !(previous.text.length < 70 && /^[A-ZА-ЯЁ]/u.test(line.text)) &&
       currentLeft !== undefined &&
       previousSourceIndex !== undefined &&
       Math.abs(currentLeft - (sourceSpanLeft(sourceSpans, previousSourceIndex) ?? currentLeft)) < 4
     ) {
-      blocks[blocks.length - 1] = { ...previous, text: `${previous.text} ${line.text}` };
+      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, line.text) };
     } else {
       blocks.push({ kind: 'paragraph', text: line.text });
       activeListIndent = undefined;

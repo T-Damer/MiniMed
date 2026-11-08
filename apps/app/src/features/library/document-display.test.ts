@@ -184,6 +184,50 @@ describe('document-display', () => {
     expect(visible.map((item) => item.title)).toEqual(['Показания']);
   });
 
+  it('drops a section whose only text repeats its heading (FMT-AUDIT)', () => {
+    const echo = {
+      ...section('Состав'),
+      chunks: [{ ...section('Состав').chunks[0], originalText: 'Состав:' }],
+    } as MedicalSection;
+    const visible = visibleReaderSections(
+      [echo, section('Состав'), section('Показания')],
+      'official_drug_instruction',
+    );
+    expect(visible.map((item) => item.title)).toEqual(['Состав', 'Показания']);
+    expect(visible[0]?.chunks[0]?.originalText).toBe('text');
+  });
+
+  it('folds headings that are sentence tails, table cells and page stamps into the text (FMT-AUDIT)', () => {
+    const at = (title: string, depth = 1): MedicalSection => ({
+      ...section(title),
+      depth,
+      sectionType: 'other',
+    });
+    const visible = visibleReaderSections(
+      [
+        at('Передозировка'),
+        at('лечение.'),
+        at('SPC.063.1.EAEU-RU.02.02 С. 4'),
+        at('лп-шOOдт 06-гп -ву'),
+        at('300 АЕ* 1000 АЕ*'),
+        at('Фармакокинетика'),
+        at('Фармакокинетика'),
+      ],
+      'official_drug_instruction',
+    );
+    expect(visible.map((item) => item.title)).toEqual(['Передозировка', 'Фармакокинетика']);
+    expect(visible[0]?.chunks.map((chunk) => chunk.originalText)).toEqual([
+      'text',
+      'лечение.',
+      'text',
+      'text',
+      'text',
+      '300 АЕ* 1000 АЕ*',
+      'text',
+    ]);
+    expect(visible[1]?.chunks).toHaveLength(2);
+  });
+
   it('moves the manufacturer and the claims sections of an instruction to «Информация»', () => {
     const registration = (title: string, depth = 1): MedicalSection => ({
       ...section(title),

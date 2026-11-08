@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Document formatting audit — 2026-11-08 (STATE FMT-AUDIT; merged 2026-11-09, not released)
+
+Owner 2026-11-08: «пройтись по документам еще раз и проверить что форматирование на месте» (Haiku agents).
+All 825 module databases scanned through the reader's own pipeline, 493 sampled sections read by 12 Haiku agents
+(418 findings); every fix is in the reader, no pack rebuilt. Report:
+[research/formatting-audit-2026-11-08.md](research/formatting-audit-2026-11-08.md).
+
+- **Lists.** Without PDF geometry a new block continues a list item only when it starts in lower case (КР evidence
+  lines and «Комментарии», text after a list); «–», «—», «−», «·» are markers; «…: - a; - b» on one line is a list.
+- **Tables as text.** Runs of «| a | b |» rows (a continuation chunk without header, a row the chunking cut) and of
+  equal-width «a | b» rows are a table (`document-medication-links.ts`): РЛС packaging 166 535 raw rows → 1.
+- **Headings.** `reader-text-normalization.ts` drops a first line that repeats the heading; `visibleReaderSections`
+  treats an echo-only section as empty, merges the same heading twice in a row and, for instructions, folds sentence
+  tails, table cells and more page stamps into the section before (their text kept as a line): repeated headings
+  4 129 → 1, junk 2 444 → 307.
+- **Display repairs** (`normalizeReaderText`, from `presentReaderChunkText`, so find agrees): codes with Cyrillic
+  look-alikes in Latin (МКБ-10, АТХ, услуги, CYP: 3 751 → 41), one alphabet per word, a hyphen's stray space
+  («сердечно- сосудистой», also at line joins; suspended hyphens stay), Symbol-font PUA characters, `^(2)` → ²,
+  `*…*` italics and `\` before Russian letters; `stripKnownHtmlMarkup` drops `u`/`small`/`font`, lifts `sup`/`sub`,
+  reads tags escaped twice. A free «**» footnote legend stays visible in `DocumentText`.
+- **Left alone:** OCR tables the preparer did not mark, sentence-like EAEU headings, words the source split
+  («про дукты»), ASCII box tables — see the report.
+- **Speed.** The text repairs cost about as much as before (pre-checks, plain letter classes instead of
+  `\p{L}` lookbehinds). The longest КР 814_1 mounts its last section 2.6 → 3.3 s at 4× CPU because its
+  evidence lines are now 613 paragraphs of their own (first text unchanged, 714_2 and the longest
+  instruction within +30/+70 ms); per-block rendering is the cost — see the report.
+
 ## Release 0.6.95 — 2026-11-09
 
 - **In it:** PERF5 (start-up, first search and reader speed), UI-BATCH3 (sources in «?», owned menus, folds, hover,

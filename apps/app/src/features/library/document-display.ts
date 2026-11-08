@@ -13,6 +13,7 @@ import {
   isClinicalRecommendationSource,
   promoteNumberedHeadingSections,
 } from '@/features/library/numbered-heading-sections';
+import { isSectionTitleEcho } from '@/features/library/reader-text-normalization';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { sourceTypeReaderLabel as localizedSourceTypeReaderLabel } from '@/i18n/labels';
 
@@ -297,6 +298,13 @@ const PAGE_STAMP_TITLE = new RegExp(
     'ВЕРСИИ\\s+ДОКУМЕНТА',
     'НЦЭСМП',
     '[ЛJ][ПTIІЛJ]{1,3}\\s*-?\\s*[NМM#№G][\\s\\S]*',
+    // EAEU stamps, also as OCR mangled them: «ЛП-№004387-ГП-ВУ», «лп-шOOдт 06-гп -ву».
+    '[ЛJ][ПN]\\s*-[\\s\\S]{0,24}-\\s*Г\\s*П\\s*-?\\s*[ВB]\\s*[УY][\\s\\S]*',
+    // «соответствует экспертному отчету» as OCR mangled it: «соотвЕтсгвуЕт э кспЕртноfilу отч Ету».
+    'СО[\\s\\S]{0,14}(?:Э\\s*)?КСП\\s*Е\\s*Р\\s*Т[\\s\\S]*',
+    // Page headers and signature stamps: «SPC.063.1.EAEU-RU.02.02 С. 4», «РУС" | 11:39:04 +03'00».
+    'SPC[.\\d][\\s\\S]*',
+    "[\\s\\S]*\\d{2}:\\d{2}:\\d{2}\\s*[+-]\\d{2}['’]?\\d{2}[\\s\\S]*",
   ]
     .map((pattern) => `(?:${pattern})`)
     .join('|')
@@ -339,6 +347,70 @@ export function foldPageStamps(sections: readonly MedicalSection[]): readonly Me
     folded.push(section);
   }
   return folded;
+}
+
+/**
+ * A heading of an instruction that is no heading (FMT-AUDIT): the tail of a sentence the PDF split
+ * at a page or column («лечение.», «для приготовления раствора для инфузий»), or a table cell
+ * («300 АЕ* 1000 АЕ*», «V03AB25»). Its text joins the section before it as a line of its own, so
+ * nothing is lost, and its paragraphs continue that section.
+ */
+function isFragmentHeading(section: MedicalSection): boolean {
+  if (section.sectionType === 'registration') return false;
+  const title = section.title.trim();
+  return (
+    /^[\p{Ll}]/u.test(title) ||
+    !/[\p{L}]{3,}/u.test(title.replace(/\b[A-Z]\d{2}[A-Z]{0,2}\d{0,2}\b/gu, ''))
+  );
+}
+
+export function foldFragmentHeadings(
+  sections: readonly MedicalSection[],
+): readonly MedicalSection[] {
+  if (!sections.some(isFragmentHeading)) return sections;
+  const folded: MedicalSection[] = [];
+  for (const section of sections) {
+    const previous = folded.at(-1);
+    if (!previous || !isFragmentHeading(section)) {
+      folded.push(section);
+      continue;
+    }
+    const titleLine: MedicalSection['chunks'][number] = {
+      id: `${section.id}:title`,
+      sectionId: previous.id,
+      documentVersionId: section.documentVersionId,
+      orderIndex: section.orderIndex,
+      originalText: section.title.trim(),
+      pageStart: section.pageStart,
+      pageEnd: section.pageEnd,
+      anchor: section.anchor,
+    };
+    folded[folded.length - 1] = {
+      ...previous,
+      chunks: [...previous.chunks, titleLine, ...section.chunks],
+    };
+  }
+  return folded;
+}
+
+/**
+ * The same heading twice in a row at one depth («Фармакокинетика» / «Фармакокинетика»: a page break
+ * of the source) is one section: the second one's text continues the first.
+ */
+function mergeRepeatedHeadings(sections: readonly MedicalSection[]): readonly MedicalSection[] {
+  const key = (section: MedicalSection) =>
+    `${String(section.depth)}|${section.title
+      .trim()
+      .replace(/[\s:.]+$/u, '')
+      .toLocaleLowerCase('ru-RU')}`;
+  const merged: MedicalSection[] = [];
+  for (const section of sections) {
+    const previous = merged.at(-1);
+    if (previous && key(previous) === key(section)) {
+      merged[merged.length - 1] = { ...previous, chunks: [...previous.chunks, ...section.chunks] };
+    } else merged.push(section);
+  }
+  return merged;
 }
 
 /**
@@ -395,7 +467,7 @@ export function visibleReaderSections(
 ): readonly MedicalSection[] {
   const source =
     sourceType === 'official_drug_instruction'
-      ? splitRegistrationReference(foldPageStamps(sections)).reading
+      ? foldFragmentHeadings(splitRegistrationReference(foldPageStamps(sections)).reading)
       : sections;
   const ordered = (
     isClinicalRecommendationSource(sourceType)
@@ -412,19 +484,24 @@ export function visibleReaderSections(
   // A section without text of its own stays when it heads deeper sections that have text: a chapter
   // («3. Лечение») is the parent of its subsections. Dropped, its children nested under whatever
   // section came before it and the chapter vanished from the page and the contents.
+  // A chunk that only repeats its heading («Состав» under «Состав») is no text of its own: the
+  // reader draws nothing for it, and the section would show as an empty duplicate heading.
+  const hasText = (section: MedicalSection) =>
+    section.chunks.some((chunk) => !isSectionTitleEcho(chunk.originalText, section.title));
   const visible = ordered.filter((section, index) => {
-    if (section.chunks.length > 0) return true;
+    if (hasText(section)) return true;
     for (const next of ordered.slice(index + 1)) {
       if (next.depth <= section.depth) return false;
-      if (next.chunks.length > 0) return true;
+      if (hasText(next)) return true;
     }
     return false;
   });
   // Sub-headings the source kept as numbered paragraphs become sections of the reader. After the
   // filter above: a section left without its own text still shows its title.
+  const single = mergeRepeatedHeadings(visible);
   return isClinicalRecommendationSource(sourceType)
-    ? promoteNumberedHeadingSections(visible)
-    : visible;
+    ? promoteNumberedHeadingSections(single)
+    : single;
 }
 
 export function isFullTextDocumentId(documentId: string): boolean {
