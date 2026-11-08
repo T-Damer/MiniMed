@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 
 import { expect, type Page, test } from '@playwright/test';
 
+import { contrastFindings, type Finding } from './contrast';
 import {
   addReading,
   DIARY_PAGE,
@@ -25,12 +26,11 @@ import {
 const OUTPUT = resolve(import.meta.dirname, '../../../output/diary4-screens/after');
 const SCREENSHOTS = Boolean(process.env['DIARY_SCREENSHOTS']);
 
-interface Finding {
-  readonly kind: string;
-  readonly what: string;
-}
+/** Left out of the contrast scan: the install guide's miniature of the browser is a picture (the
+ * steps under it carry the words), and disabled buttons and the share code are exempt. */
+const CONTRAST_SKIP = '.install-scene, button:disabled, .diary-share__code';
 
-/** Runs in the page: collects everything that breaks the reading and tapping rules. */
+/** Runs in the page: collects what breaks the tapping, size and overflow rules (contrast: ./contrast). */
 function findProblems(scope: string | undefined): Finding[] {
   const root = (scope ? document.querySelector(scope) : null) ?? document.body;
   const found: Finding[] = [];
@@ -76,47 +76,6 @@ function findProblems(scope: string | undefined): Finding[] {
   if (page && Number.parseFloat(getComputedStyle(page).fontSize) < 17) {
     found.push({ kind: 'font', what: 'page text is smaller than 17px' });
   }
-  const parse = (css: string): [number, number, number, number] => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const context = canvas.getContext('2d', { willReadFrequently: true });
-    if (!context) return [0, 0, 0, 1];
-    context.clearRect(0, 0, 1, 1);
-    context.fillStyle = css;
-    context.fillRect(0, 0, 1, 1);
-    const [r = 0, g = 0, b = 0, a = 255] = context.getImageData(0, 0, 1, 1).data;
-    return [r, g, b, a / 255];
-  };
-  const luminance = ([r, g, b]: readonly number[]): number => {
-    const channel = (value: number): number => {
-      const unit = value / 255;
-      return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
-    };
-    return 0.2126 * channel(r ?? 0) + 0.7152 * channel(g ?? 0) + 0.0722 * channel(b ?? 0);
-  };
-  const background = (element: Element): [number, number, number] => {
-    // Text in a hero header stands on its band (components/PageHero.tsx), drawn behind it.
-    const hero = element.closest('.page--hero');
-    if (hero) {
-      const [r, g, b] = parse(getComputedStyle(hero).getPropertyValue('--page-hero-band').trim());
-      return [r, g, b];
-    }
-    const layers: [number, number, number, number][] = [];
-    for (let node: Element | null = element; node; node = node.parentElement) {
-      const color = parse(getComputedStyle(node).backgroundColor);
-      if (color[3] > 0) layers.push(color);
-      if (color[3] >= 0.999) break;
-    }
-    let [r, g, b] = [255, 255, 255];
-    for (const [lr, lg, lb, la] of layers.toReversed()) {
-      r = lr * la + r * (1 - la);
-      g = lg * la + g * (1 - la);
-      b = lb * la + b * (1 - la);
-    }
-    return [r, g, b];
-  };
-
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = (node.textContent ?? '').trim();
@@ -131,23 +90,8 @@ function findProblems(scope: string | undefined): Finding[] {
     ) {
       continue;
     }
-    const style = getComputedStyle(element);
-    const size = Number.parseFloat(style.fontSize);
+    const size = Number.parseFloat(getComputedStyle(element).fontSize);
     if (size < 15) found.push({ kind: 'font', what: `${describe(element)} is ${size}px` });
-    if (element.closest('button:disabled, .diary-share__code')) continue;
-    const [fr = 0, fg = 0, fb = 0, fa = 1] = parse(style.color);
-    const [br = 0, bg = 0, bb = 0] = background(element);
-    const foreground = [fr * fa + br * (1 - fa), fg * fa + bg * (1 - fa), fb * fa + bb * (1 - fa)];
-    const light = Math.max(luminance(foreground), luminance([br, bg, bb]));
-    const dark = Math.min(luminance(foreground), luminance([br, bg, bb]));
-    const ratio = (light + 0.05) / (dark + 0.05);
-    const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
-    if (ratio < (large ? 3 : 4.5)) {
-      found.push({
-        kind: 'contrast',
-        what: `${describe(element)} has ${ratio.toFixed(2)}:1 (${style.color} on rgb(${Math.round(br)}, ${Math.round(bg)}, ${Math.round(bb)}))`,
-      });
-    }
   }
 
   if (document.documentElement.scrollWidth > window.innerWidth + 1) {
@@ -173,7 +117,11 @@ async function check(
   lint = true,
 ): Promise<void> {
   // Soft: one screen's findings must not hide the problems of the screens after it.
-  if (lint) expect.soft(await page.evaluate(findProblems, scope), name).toEqual([]);
+  if (lint) {
+    const problems = await page.evaluate(findProblems, scope);
+    const contrast = await contrastFindings(page, { scope, skip: CONTRAST_SKIP });
+    expect.soft([...problems, ...contrast], name).toEqual([]);
+  }
   if (SCREENSHOTS) {
     mkdirSync(OUTPUT, { recursive: true });
     const engine = test.info().project.name === 'webkit-ios' ? '-webkit' : '';

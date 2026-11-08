@@ -142,7 +142,8 @@
 @media (hover: hover) and (pointer: fine) {
   .app-bottom-nav .app-nav-button:hover {
     transform: none;
-    color: var(--theme-accent);
+    /* The nav pill is dark in both themes: a hovered glyph goes light (the accent is 1.4:1 on it). */
+    color: #f8f0dd;
     border-color: transparent;
     background: transparent;
     box-shadow: none;

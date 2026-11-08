@@ -67,7 +67,7 @@
 .assessment-section-header p {
   max-width: 58ch;
   margin-top: 0.3rem;
-  color: var(--muted-text, #666);
+  color: var(--theme-text-muted);
 }
 
 .assessment-section-header__meta {
