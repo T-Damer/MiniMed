@@ -1,0 +1,543 @@
+{
+ "tiers": {
+  "definition": {
+   "rows": 16232,
+   "concepts": 11867,
+   "rows_per_concept_buckets": {
+    "1": 10039,
+    "2": 1168,
+    "3-5": 499,
+    "6-10": 96,
+    "11-50": 61,
+    ">50": 4
+   },
+   "distinct_texts_per_concept_buckets": {
+    "1": 10482,
+    "2": 984,
+    "3-5": 347,
+    "6-10": 51,
+    ">10": 3
+   },
+   "concepts_2plus_rows": 1828,
+   "concepts_2plus_distinct_texts": 1385,
+   "distinct_texts": 13894,
+   "top": [
+    [
+     65,
+     "синдром"
+    ],
+    [
+     56,
+     "лабораторная диагностика"
+    ],
+    [
+     56,
+     "заболевание"
+    ],
+    [
+     53,
+     "инструментальная диагностика"
+    ],
+    [
+     45,
+     "состояние"
+    ],
+    [
+     45,
+     "медицинское вмешательство"
+    ],
+    [
+     44,
+     "доказательная медицина"
+    ],
+    [
+     40,
+     "пациент"
+    ]
+   ]
+  },
+  "section-excerpt": {
+   "rows": 6814,
+   "concepts": 1209,
+   "rows_per_concept_buckets": {
+    "1": 372,
+    "2": 213,
+    "3-5": 486,
+    "6-10": 88,
+    "11-50": 44,
+    ">50": 6
+   },
+   "distinct_texts_per_concept_buckets": {
+    "1": 376,
+    "2": 216,
+    "3-5": 506,
+    "6-10": 73,
+    ">10": 38
+   },
+   "concepts_2plus_rows": 837,
+   "concepts_2plus_distinct_texts": 833,
+   "distinct_texts": 5416,
+   "top": [
+    [
+     1919,
+     "классификация заболевания или состояния"
+    ],
+    [
+     749,
+     "приложение г1 - г шкалы оценки вопросники"
+    ],
+    [
+     81,
+     "приложение г5 миссисипская шкала посттравматического стрессового расстройства англ mississippi scale"
+    ],
+    [
+     61,
+     "приложение г4 опросник качества жизни sf-36"
+    ],
+    [
+     53,
+     "приложение г1 шкала оценки тяжести состояния пациента по версии воз/ecog"
+    ],
+    [
+     51,
+     "приложение г1 шкала альберта моторного развития младенцев"
+    ],
+    [
+     47,
+     "приложение г2 шкала карновского"
+    ],
+    [
+     39,
+     "приложение г1 шкалы оценки вопросники и другие оценочные инструменты состояния пациента приведенные в клинических рекомендациях"
+    ]
+   ]
+  },
+  "abbreviation": {
+   "rows": 19478,
+   "concepts": 5996,
+   "rows_per_concept_buckets": {
+    "1": 3786,
+    "2": 924,
+    "3-5": 722,
+    "6-10": 276,
+    "11-50": 252,
+    ">50": 36
+   },
+   "distinct_texts_per_concept_buckets": {
+    "1": 4587,
+    "2": 846,
+    "3-5": 451,
+    "6-10": 93,
+    ">10": 19
+   },
+   "concepts_2plus_rows": 2210,
+   "concepts_2plus_distinct_texts": 1409,
+   "distinct_texts": 8374,
+   "top": [
+    [
+     370,
+     "мрт"
+    ],
+    [
+     351,
+     "кт"
+    ],
+    [
+     323,
+     "узи"
+    ],
+    [
+     192,
+     "экг"
+    ],
+    [
+     145,
+     "рки"
+    ],
+    [
+     137,
+     "воз"
+    ],
+    [
+     134,
+     "алт"
+    ],
+    [
+     132,
+     "мкб-10"
+    ]
+   ]
+  }
+ },
+ "abbreviations_as_aliases": {
+  "abbreviation_forms": 6084,
+  "abbreviations_with_2plus_expansions": 1376,
+  "max_expansions": 41,
+  "examples": [
+   [
+    41,
+    "НПВП"
+   ],
+   [
+    21,
+    "МКБ-10"
+   ],
+   [
+    20,
+    "НМГ"
+   ],
+   [
+    17,
+    "ЭКГ"
+   ],
+   [
+    17,
+    "ECOG"
+   ],
+   [
+    16,
+    "МРТ"
+   ],
+   [
+    14,
+    "ГКС"
+   ],
+   [
+    13,
+    "ПЭТ/КТ"
+   ],
+   [
+    13,
+    "SpO2"
+   ],
+   [
+    12,
+    "ПГ"
+   ]
+  ],
+  "distinct_expansions": 8374
+ },
+ "definition_rows": 42524,
+ "dated_batch_rows": 42479,
+ "term_entries": 27871,
+ "files_loaded": 48,
+ "families": {
+  "catalog": {
+   "terms": 36,
+   "definitions": 36
+  },
+  "ruwiktionary": {
+   "terms": 6939,
+   "definitions": 6939
+  },
+  "prepared-excerpts": {
+   "terms": 76,
+   "definitions": 76
+  },
+  "kr-source-excerpts": {
+   "terms": 11421,
+   "definitions": 15773
+  },
+  "specialist-journals": {
+   "terms": 224,
+   "definitions": 224
+  },
+  "selected-medical-definitions-2026.09.23": {
+   "terms": 18,
+   "definitions": 18
+  },
+  "msd-definitions-2026.09.23-b": {
+   "terms": 4,
+   "definitions": 4
+  },
+  "kr-glossary-abbrev": {
+   "terms": 9072,
+   "definitions": 19373
+  },
+  "name-completions": {
+   "terms": 42,
+   "definitions": 42
+  },
+  "gap-fills": {
+   "terms": 30,
+   "definitions": 30
+  },
+  "pilot-md": {
+   "terms": 9,
+   "definitions": 9
+  }
+ },
+ "distinct_concepts_by_title": 18533,
+ "concept_clusters_title_plus_alias": 18529,
+ "discovered_names": 7637,
+ "discovered_names_without_definition": 6255,
+ "definitions_per_concept": {
+  "1": 13618,
+  "2": 2205,
+  "3": 1088,
+  "4": 460,
+  "5": 259,
+  "6": 167,
+  "7": 118,
+  "8": 86,
+  "9": 73,
+  "10": 50,
+  "11": 39,
+  "12": 37,
+  "13": 26,
+  "14": 31,
+  "15": 27,
+  "16": 16,
+  "17": 19,
+  "18": 10,
+  "19": 13,
+  "20": 16,
+  "21": 10,
+  "22": 18,
+  "23": 11,
+  "24": 12,
+  "25": 10,
+  "26": 3,
+  "27": 6,
+  "28": 5,
+  "29": 4,
+  "30": 3,
+  "31": 2,
+  "32": 10,
+  "33": 1,
+  "34": 2,
+  "35": 3,
+  "36": 3,
+  "37": 1,
+  "38": 3,
+  "39": 1,
+  "40": 1,
+  "41": 1,
+  "42": 1,
+  "43": 2,
+  "44": 6,
+  "45": 4,
+  "47": 1,
+  "48": 4,
+  "49": 1,
+  "51": 2,
+  "52": 2,
+  "53": 3,
+  "54": 2,
+  "56": 2,
+  "57": 2,
+  "58": 1,
+  "61": 1,
+  "63": 1,
+  "65": 1,
+  "66": 1,
+  "72": 1,
+  "79": 1,
+  "80": 1,
+  "81": 1,
+  "84": 2,
+  "85": 1,
+  "86": 1,
+  "92": 1,
+  "99": 2,
+  "102": 1,
+  "105": 1,
+  "116": 1,
+  "122": 2,
+  "129": 1,
+  "131": 1,
+  "133": 1,
+  "134": 1,
+  "137": 1,
+  "145": 1,
+  "193": 1,
+  "324": 1,
+  "352": 1,
+  "372": 1,
+  "749": 1,
+  "1919": 1
+ },
+ "distinct_texts_per_concept": {
+  "1": 14755,
+  "2": 2058,
+  "3": 918,
+  "4": 315,
+  "5": 176,
+  "6": 97,
+  "7": 67,
+  "8": 31,
+  "9": 34,
+  "10": 16,
+  "11": 11,
+  "12": 11,
+  "13": 7,
+  "14": 2,
+  "15": 5,
+  "16": 1,
+  "17": 5,
+  "18": 4,
+  "19": 3,
+  "20": 1,
+  "21": 1,
+  "22": 5,
+  "23": 1,
+  "28": 2,
+  "30": 1,
+  "32": 1,
+  "38": 1,
+  "41": 1,
+  "54": 1,
+  "426": 1,
+  "1784": 1
+ },
+ "concepts_with_2plus_definitions": 4915,
+ "concepts_with_2plus_distinct_texts": 3778,
+ "concepts_with_2plus_sources": 3510,
+ "max_definitions_one_concept": 1919,
+ "top_concepts": [
+  [
+   1919,
+   "классификация заболевания или состояния"
+  ],
+  [
+   749,
+   "приложение г1 - г шкалы оценки вопросники"
+  ],
+  [
+   372,
+   "мрт"
+  ],
+  [
+   352,
+   "кт"
+  ],
+  [
+   324,
+   "узи"
+  ],
+  [
+   193,
+   "экг"
+  ],
+  [
+   145,
+   "рки"
+  ],
+  [
+   137,
+   "воз"
+  ],
+  [
+   134,
+   "алт"
+  ],
+  [
+   133,
+   "мкб-10"
+  ],
+  [
+   131,
+   "аст"
+  ],
+  [
+   129,
+   "ад"
+  ]
+ ],
+ "aliases_on_terms": 375,
+ "distinct_alias_forms": 411,
+ "colloquial_aliases": 45,
+ "colloquial_canonical_terms": 42,
+ "colloquial_canonical_with_definition": 6,
+ "colloquial_alias_collisions": {},
+ "alias_collisions": 7,
+ "alias_collision_examples": [
+  [
+   "критерии ясперса",
+   [
+    "критерии помрачения сознания по ясперсу",
+    "триада ясперса для реактивных состояний"
+   ]
+  ],
+  [
+   "ясперс",
+   [
+    "критерии помрачения сознания по ясперсу",
+    "триада ясперса для реактивных состояний"
+   ]
+  ],
+  [
+   "jaspers",
+   [
+    "критерии помрачения сознания по ясперсу",
+    "триада ясперса для реактивных состояний"
+   ]
+  ],
+  [
+   "фибрилляция предсердий",
+   [
+    "cha2ds2-vasc",
+    "фибрилляция предсердий фп"
+   ]
+  ],
+  [
+   "регидрон детям",
+   [
+    "орс у детей - продолжающиеся потери",
+    "пероральная регидратация у детей"
+   ]
+  ],
+  [
+   "рвота понос",
+   [
+    "орс у детей - продолжающиеся потери",
+    "пероральная регидратация у детей"
+   ]
+  ],
+  [
+   "симптом воскресенского",
+   [
+    "симптом воскресенского при панкреатите",
+    "симптом рубашки"
+   ]
+  ]
+ ],
+ "alias_equals_other_concept_title": 26,
+ "exact_duplicate_groups": 3574,
+ "exact_duplicate_rows_redundant": 14883,
+ "exact_duplicate_groups_cross_file": 780,
+ "exact_duplicate_groups_cross_concept": 766,
+ "exact_duplicate_rows_same_concept": 13682,
+ "near_duplicate_pairs_within_concept_j08": 440,
+ "near_duplicate_concepts_j08": 205,
+ "near_examples": [
+  [
+   "синдром",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json"
+  ],
+  [
+   "синдром",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+   "content/definition-drafts/clinical-glossary-and-abbreviations-2026.09.29.part-01.json"
+  ],
+  [
+   "синдром",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+   "content/definition-drafts/clinical-glossary-and-abbreviations-2026.09.29.part-01.json"
+  ],
+  [
+   "синдром",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+   "content/definition-drafts/clinical-glossary-and-abbreviations-2026.09.29.part-01.json"
+  ],
+  [
+   "синдром",
+   "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+   "content/definition-drafts/clinical-glossary-and-abbreviations-2026.09.29.part-01.json"
+  ]
+ ],
+ "titles_over_120_chars": 161,
+ "titles_with_filename_unsafe_chars": 545,
+ "definition_chars_total": 10323669
+}

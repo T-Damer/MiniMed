@@ -1,0 +1,192 @@
+{
+  "exact": {
+    "seconds": 31.4,
+    "per_tier": {
+      "definition": {
+        "definitions": 16232,
+        "with_any_link": 9679,
+        "with_resolved_link": 9200,
+        "with_link_to_definition_concept": 8389,
+        "with_gap_link": 1377,
+        "links": 20692,
+        "with_resolved_link_excluding_hubs100": 6755
+      },
+      "section-excerpt": {
+        "definitions": 6814,
+        "with_any_link": 5679,
+        "with_resolved_link": 5640,
+        "with_link_to_definition_concept": 4699,
+        "with_gap_link": 1643,
+        "links": 53015,
+        "with_resolved_link_excluding_hubs100": 4579
+      },
+      "abbreviation": {
+        "definitions": 19478,
+        "with_any_link": 12651,
+        "with_resolved_link": 10720,
+        "with_link_to_definition_concept": 10057,
+        "with_gap_link": 2844,
+        "links": 47964,
+        "with_resolved_link_excluding_hubs100": 7213
+      }
+    },
+    "links_total": 121671,
+    "link_target_tiers": {
+      "definition": 66903,
+      "name-only": 10433,
+      "abbreviation": 43595,
+      "section-excerpt": 740
+    },
+    "gap_link_targets_distinct": 1016,
+    "gap_link_occurrences": 10433,
+    "discovered_names_without_definition": 6255,
+    "discovered_names_without_definition_linked": 1013,
+    "top_gap_targets": [
+      ["опухоль", 799],
+      ["конечности", 379],
+      ["электрокардиография", 308],
+      ["инфекция", 276],
+      ["скорость", 273],
+      ["смерть", 236],
+      ["скорость оседания эритроцитов", 179],
+      ["мышцы", 163],
+      ["легкие", 155],
+      ["инфаркт миокарда", 149],
+      ["антиген", 146],
+      ["страх", 143],
+      ["лактатдегидрогеназа", 139],
+      ["с-реактивный белок", 139],
+      ["активированное частичное тромбопластиновое время", 124]
+    ],
+    "backlinks_all_concepts": {
+      "concepts": 18533,
+      "with_0": 9001,
+      "with_1plus": 9532,
+      "with_5plus": 2338,
+      "median": 1,
+      "mean": 3.33,
+      "max": 756
+    },
+    "backlinks_definition_concepts": {
+      "concepts": 11643,
+      "with_0": 7447,
+      "with_1plus": 4196,
+      "with_5plus": 1177,
+      "median": 0,
+      "mean": 2.92
+    },
+    "hubs": [
+      [756, "назначение"],
+      [615, "заболевание"],
+      [504, "состояние"],
+      [468, "баллов"],
+      [429, "синдром"],
+      [429, "компьютерная томография"],
+      [428, "мрт"],
+      [406, "кт"],
+      [400, "психиатр"],
+      [390, "узи"],
+      [388, "ультразвуковое исследование"],
+      [373, "магнитно-резонансная томография"],
+      [297, "давление"],
+      [278, "часть"],
+      [264, "боль"]
+    ],
+    "hub_concepts_100plus_backlinks": 82
+  },
+  "stem": {
+    "seconds": 49.5,
+    "per_tier": {
+      "definition": {
+        "definitions": 16232,
+        "with_any_link": 15495,
+        "with_resolved_link": 15153,
+        "with_link_to_definition_concept": 14967,
+        "with_gap_link": 4968,
+        "links": 79325,
+        "with_resolved_link_excluding_hubs100": 11376
+      },
+      "section-excerpt": {
+        "definitions": 6814,
+        "with_any_link": 6128,
+        "with_resolved_link": 6113,
+        "with_link_to_definition_concept": 5572,
+        "with_gap_link": 3008,
+        "links": 129855,
+        "with_resolved_link_excluding_hubs100": 5168
+      },
+      "abbreviation": {
+        "definitions": 19478,
+        "with_any_link": 15493,
+        "with_resolved_link": 13400,
+        "with_link_to_definition_concept": 12864,
+        "with_gap_link": 3801,
+        "links": 64558,
+        "with_resolved_link_excluding_hubs100": 8069
+      }
+    },
+    "links_total": 273738,
+    "link_target_tiers": {
+      "name-only": 25117,
+      "definition": 201092,
+      "abbreviation": 45890,
+      "section-excerpt": 1639
+    },
+    "gap_link_targets_distinct": 1445,
+    "gap_link_occurrences": 25117,
+    "discovered_names_without_definition": 6255,
+    "discovered_names_without_definition_linked": 1442,
+    "top_gap_targets": [
+      ["опухоль", 1995],
+      ["кровь", 1472],
+      ["систейн", 1269],
+      ["инфекция", 740],
+      ["массаж", 541],
+      ["смерть", 405],
+      ["страх", 402],
+      ["скорость", 399],
+      ["антиген", 345],
+      ["струп", 327],
+      ["рецептор", 315],
+      ["новорожденный", 314],
+      ["электрокардиография", 311],
+      ["ходьба", 293],
+      ["постит", 260]
+    ],
+    "backlinks_all_concepts": {
+      "concepts": 18533,
+      "with_0": 7773,
+      "with_1plus": 10760,
+      "with_5plus": 3422,
+      "median": 1,
+      "mean": 6.42,
+      "max": 1375
+    },
+    "backlinks_definition_concepts": {
+      "concepts": 11643,
+      "with_0": 6214,
+      "with_1plus": 5429,
+      "with_5plus": 2224,
+      "median": 0,
+      "mean": 7.71
+    },
+    "hubs": [
+      [1375, "заболевание"],
+      [1051, "часть"],
+      [1036, "пациент"],
+      [930, "состояние"],
+      [866, "орган"],
+      [799, "назначение"],
+      [796, "ткань"],
+      [756, "болезнь"],
+      [740, "кровь"],
+      [665, "исследовать"],
+      [641, "процесс"],
+      [624, "систейн"],
+      [622, "полок"],
+      [614, "послед"],
+      [597, "баллов"]
+    ],
+    "hub_concepts_100plus_backlinks": 228
+  }
+}
