@@ -130,12 +130,12 @@ test('sentences from the other sections are folded, the interaction section stay
   const fold = page.locator('.drug-interactions__fold');
   await expect(fold).toHaveCount(1);
   await expect(fold).toContainText('ещё из других разделов (1)');
-  await expect(fold.getByRole('button')).toHaveAttribute('aria-expanded', 'false');
+  await expect(fold.locator('.ui-disclosure__header')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.getByTestId('interaction-fold-body')).toHaveCount(0);
   await shoot(page, 'fold-closed');
 
-  await fold.getByRole('button').click();
-  await expect(fold.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
+  await fold.locator('.ui-disclosure__header').click();
+  await expect(fold.locator('.ui-disclosure__header')).toHaveAttribute('aria-expanded', 'true');
   const folded = page.getByTestId('interaction-fold-body').locator('.drug-interactions__quote');
   await expect(folded).toHaveCount(1);
   await expect(folded.locator('.drug-interactions__quote-section')).toContainText(
