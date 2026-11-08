@@ -1,5 +1,5 @@
 import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
-
+import { shouldFold } from '@/components/line-clamp';
 import { AtcCodeSheet, type AtcSheetFocus } from '@/features/medications/AtcCodeSheet';
 import { atcGroupName, atcGroupNameInline } from '@/features/medications/atc-group-name';
 import { loadAtcNames } from '@/features/medications/atc-names';
@@ -94,7 +94,8 @@ function FoldedLinks<T>(props: {
   readonly children: (item: T) => JSX.Element;
 }): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
-  const folded = (): boolean => props.items.length > props.limit + 1;
+  // Fold only when it hides three or more links (owner 2026-11-08), like every «Показать ещё».
+  const folded = (): boolean => shouldFold(props.items.length, props.limit);
   const visible = (): readonly T[] =>
     folded() && !expanded() ? props.items.slice(0, props.limit) : props.items;
   const hiddenCount = (): number => props.items.length - props.limit;

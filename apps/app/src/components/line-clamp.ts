@@ -23,6 +23,18 @@ export function shouldFold(
   return lines - visibleLines >= minHidden;
 }
 
+/**
+ * How many of `total` list items to show before a «Показать ещё N»: `limit`, unless that would hide
+ * fewer than `MIN_HIDDEN_LINES` items — then all of them, with no button (same rule as for text).
+ */
+export function visibleItemCount(
+  total: number,
+  limit: number,
+  minHidden = MIN_HIDDEN_LINES,
+): number {
+  return shouldFold(total, limit, minHidden) ? limit : total;
+}
+
 function pixels(value: string): number {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;

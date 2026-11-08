@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { shouldFold } from '@/components/line-clamp';
 import { resultPath } from '@/features/assessments/assessment-routing';
 import { formatPercent } from '@/features/calculators/calculator-quantity';
 import { unitForQuantity } from '@/features/calculators/countable-unit';
@@ -26,11 +27,14 @@ function AssessmentAttachedCard(props: {
   const [expanded, setExpanded] = createSignal(false);
   const isManual = () => Boolean(props.result.manualText?.trim());
   const liveRecord = () => findAssessmentRecord(props.result.recordId);
-  const visibleScores = () => (expanded() ? props.result.scores : props.result.scores.slice(0, 1));
-  const hasMore = () =>
-    props.result.scores.length > 1 ||
-    Boolean(props.result.summary.trim()) ||
-    Boolean(props.result.disclaimer?.trim());
+  // «Развернуть» only when it opens at least three things (owner 2026-11-08); fewer show at once.
+  const hiddenCount = () =>
+    Math.max(0, props.result.scores.length - 1) +
+    (props.result.summary.trim() ? 1 : 0) +
+    (props.result.disclaimer?.trim() ? 1 : 0);
+  const hasMore = () => shouldFold(hiddenCount(), 0);
+  const open = () => expanded() || !hasMore();
+  const visibleScores = () => (open() ? props.result.scores : props.result.scores.slice(0, 1));
 
   return (
     <div class="note-result-card note-result-card--assessment paper-card">
@@ -66,10 +70,10 @@ function AssessmentAttachedCard(props: {
             </For>
           </div>
         </Show>
-        <Show when={expanded() && props.result.summary.trim()}>
+        <Show when={open() && props.result.summary.trim()}>
           <p class="note-result-card__detail">{props.result.summary}</p>
         </Show>
-        <Show when={expanded() && props.result.disclaimer?.trim()}>
+        <Show when={open() && props.result.disclaimer?.trim()}>
           <p class="note-result-card__disclaimer">{props.result.disclaimer}</p>
         </Show>
       </Show>
@@ -97,9 +101,11 @@ function CalculatorAttachedCard(props: {
   const [expanded, setExpanded] = createSignal(false);
   const [sourceOpen, setSourceOpen] = createSignal(false);
   const rich = () => props.result as RichNoteAttachedCalculatorResult;
-  const visibleOutputs = () =>
-    expanded() ? props.result.outputs : props.result.outputs.slice(0, 2);
-  const hasMore = () => props.result.outputs.length > 2 || props.result.warnings.length > 0;
+  const hiddenCount = () =>
+    Math.max(0, props.result.outputs.length - 2) + props.result.warnings.length;
+  const hasMore = () => shouldFold(hiddenCount(), 0);
+  const open = () => expanded() || !hasMore();
+  const visibleOutputs = () => (open() ? props.result.outputs : props.result.outputs.slice(0, 2));
   const sourceRecord = () => rich().recordSnapshot ?? findCalculationRecord(props.result.recordId);
   const sourceSchema = () => rich().schemaSnapshot;
 
@@ -127,7 +133,7 @@ function CalculatorAttachedCard(props: {
         </For>
       </div>
 
-      <Show when={expanded() && props.result.warnings.length > 0}>
+      <Show when={open() && props.result.warnings.length > 0}>
         <div class="note-result-card__warnings">
           <For each={props.result.warnings}>{(warning) => <p>{warning}</p>}</For>
         </div>

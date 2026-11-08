@@ -20,6 +20,7 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
+import { createLineClamp } from '@/components/line-clamp';
 import { Page } from '@/components/Page';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { SegmentedControl } from '@/components/SegmentedControl';
@@ -69,6 +70,35 @@ import {
   PATIENT_VAULT_LOCK_EVENT,
   readPatientVault,
 } from '@/state/patient-vault';
+
+/** A long instruction (a booklet's) shows its first lines; the arrow opens the rest, if it hides three or more. */
+function QuestionnaireIntro(props: { readonly text: string }): JSX.Element {
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({ element, visibleLines: 5, track: () => props.text });
+  return (
+    <div class="assessment-intro">
+      <p
+        ref={setElement}
+        class="assessment-questionnaire__intro"
+        classList={{ 'assessment-questionnaire__intro--folded': clamp.folded() }}
+      >
+        {props.text}
+      </p>
+      <Show when={clamp.foldable()}>
+        <Button
+          type="button"
+          variant="icon"
+          class="assessment-intro__toggle"
+          aria-expanded={clamp.expanded()}
+          aria-label={clamp.expanded() ? 'Свернуть инструкцию' : 'Вся инструкция'}
+          title={clamp.expanded() ? 'Свернуть инструкцию' : 'Вся инструкция'}
+          onClick={() => clamp.toggle()}
+          icon={<AppGlyph name={clamp.expanded() ? 'caret-up' : 'caret-down'} />}
+        />
+      </Show>
+    </div>
+  );
+}
 
 export function AssessmentQuestionnairePage(props: {
   readonly active: boolean;
@@ -209,7 +239,6 @@ export function AssessmentQuestionnairePage(props: {
     });
   };
   const tallies = createMemo(() => assessmentTallies(props.definition, answers()));
-  const [introOpen, setIntroOpen] = createSignal(false);
   const answered = () => answeredQuestionCount(props.definition, answers());
   const complete = () => answered() === props.definition.questions.length;
   const remaining = () => props.definition.questions.length - answered();
@@ -506,29 +535,7 @@ export function AssessmentQuestionnairePage(props: {
       </Show>
 
       <Show when={props.definition.intro?.trim()}>
-        {(intro) => (
-          // A long instruction (a booklet's) shows its first lines; the arrow opens the rest.
-          <div class="assessment-intro">
-            <p
-              class="assessment-questionnaire__intro"
-              classList={{ 'assessment-questionnaire__intro--folded': !introOpen() }}
-            >
-              {intro()}
-            </p>
-            <Show when={intro().length > 320}>
-              <Button
-                type="button"
-                variant="icon"
-                class="assessment-intro__toggle"
-                aria-expanded={introOpen()}
-                aria-label={introOpen() ? 'Свернуть инструкцию' : 'Вся инструкция'}
-                title={introOpen() ? 'Свернуть инструкцию' : 'Вся инструкция'}
-                onClick={() => setIntroOpen(!introOpen())}
-                icon={<AppGlyph name={introOpen() ? 'caret-up' : 'caret-down'} />}
-              />
-            </Show>
-          </div>
-        )}
+        {(intro) => <QuestionnaireIntro text={intro()} />}
       </Show>
       <Show when={props.definition.images?.length}>
         <AssessmentImageCarousel

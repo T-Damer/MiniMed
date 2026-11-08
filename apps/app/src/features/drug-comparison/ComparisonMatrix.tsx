@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { createLineClamp } from '@/components/line-clamp';
 import { SelectField } from '@/components/SelectField';
 import { QuoteBlock } from '@/features/medication-safety/SafetyBlocks';
 import { NOTHING_SAID_TEXT } from '@/features/medication-safety/safety-view';
@@ -122,6 +123,8 @@ export function ComparisonSources(props: { readonly columns: readonly ColumnView
   );
 }
 
+const QUOTE_LINES = 5;
+
 function RegistryCellView(props: {
   readonly cell: RegistryCell;
   readonly column: ColumnView;
@@ -159,8 +162,12 @@ function QuoteLineCell(props: {
   readonly column: ColumnView;
   readonly block: QuoteRowView['blocks'][number];
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const long = () => (props.block?.text.length ?? 0) > 240;
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({
+    element,
+    visibleLines: QUOTE_LINES,
+    track: () => props.block?.text,
+  });
   return (
     <div class="drug-comparison__cell" data-testid="comparison-quote-cell">
       <CellDrug column={props.column} />
@@ -172,20 +179,21 @@ function QuoteLineCell(props: {
           {(block) => (
             <>
               <p
+                ref={setElement}
                 class="drug-comparison__quote-text"
-                classList={{ 'drug-comparison__quote-text--clamped': long() && !open() }}
+                classList={{ 'drug-comparison__quote-text--clamped': clamp.folded() }}
               >
                 {block().text}
               </p>
               <span class="drug-comparison__actions">
-                <Show when={long()}>
+                <Show when={clamp.foldable()}>
                   <button
                     type="button"
                     class="drug-comparison__toggle"
-                    aria-expanded={open()}
-                    onClick={() => setOpen((value) => !value)}
+                    aria-expanded={clamp.expanded()}
+                    onClick={() => clamp.toggle()}
                   >
-                    {open() ? 'Свернуть' : 'Показать полностью'}
+                    {clamp.expanded() ? 'Свернуть' : 'Показать полностью'}
                   </button>
                 </Show>
                 <Show when={block().anchor && props.column.documentId}>

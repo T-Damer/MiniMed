@@ -5,6 +5,7 @@
  * values come from the build-time index and the НСИ «АТХ» names, every line names its source, and
  * nothing is worded as an advantage of one drug over another.
  */
+import { visibleItemCount } from '@/components/line-clamp';
 import {
   type AtcNameCatalog,
   atcPrefixes,
@@ -56,7 +57,9 @@ function sentenceCase(value: string): string {
 
 function cell(lines: readonly string[], visible = VISIBLE_LINES): RegistryCell {
   if (lines.length === 0) return EMPTY;
-  return { lines: lines.slice(0, visible), more: lines.slice(visible), empty: false };
+  // One or two lines behind «ещё N» are not worth a button: show them (owner 2026-11-08).
+  const shown = visibleItemCount(lines.length, visible);
+  return { lines: lines.slice(0, shown), more: lines.slice(shown), empty: false };
 }
 
 /** «M01AE01 — … › Производные пропионовой кислоты»: the code and the НСИ names of its groups. */

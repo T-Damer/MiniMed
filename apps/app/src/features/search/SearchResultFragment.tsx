@@ -1,10 +1,12 @@
 import type { SearchResult } from '@localmed/contracts';
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { HighlightedText } from '@/components/HighlightedText';
+import { createLineClamp } from '@/components/line-clamp';
 import { presentResultSnippet } from '@/features/search/search-result-presentation';
 import '@/features/search/search-result-fragment.css';
 
+const FRAGMENT_LINES = 3;
 const EXPAND_MS = 240;
 const EXPAND_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
@@ -18,38 +20,15 @@ export function SearchResultFragment(props: {
   readonly selected: boolean;
   readonly onOpen: () => void;
 }): JSX.Element {
-  const [expanded, setExpanded] = createSignal(false);
-  const [overflowing, setOverflowing] = createSignal(false);
-  let text: HTMLParagraphElement | undefined;
-  let frame = 0;
+  const [text, setText] = createSignal<HTMLParagraphElement>();
   const snippet = () => presentResultSnippet(props.result);
-
-  const measure = (): void => {
-    frame = 0;
-    // Only a collapsed text can tell whether it is cut: an open one shows everything.
-    if (text && !expanded()) setOverflowing(text.scrollHeight > text.clientHeight + 1);
-  };
-  const scheduleMeasure = (): void => {
-    if (frame === 0) frame = requestAnimationFrame(measure);
-  };
-  onMount(() => {
-    measure();
-    // A late web font can add a line without resizing the clamped box.
-    void document.fonts?.ready.then(scheduleMeasure);
-    if (!text) return;
-    const observer = new ResizeObserver(scheduleMeasure);
-    observer.observe(text);
-    onCleanup(() => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    });
-  });
+  const clamp = createLineClamp({ element: text, visibleLines: FRAGMENT_LINES, track: snippet });
 
   const toggle = (): void => {
-    const element = text;
+    const element = text();
     if (!element) return;
     const from = element.getBoundingClientRect().height;
-    setExpanded(!expanded());
+    clamp.toggle();
     const to = element.getBoundingClientRect().height;
     if (Math.abs(from - to) < 1) return;
     element.animate([{ maxHeight: `${from}px` }, { maxHeight: `${to}px` }], {
@@ -70,27 +49,27 @@ export function SearchResultFragment(props: {
         onClick={() => props.onOpen()}
       >
         <p
-          ref={text}
+          ref={setText}
           class="result-snippet result-fragment__text"
           classList={{
-            'result-fragment__text--collapsed': !expanded(),
-            'result-fragment__text--cut': !expanded() && overflowing(),
+            'result-fragment__text--collapsed': clamp.folded(),
+            'result-fragment__text--cut': clamp.folded(),
           }}
         >
           <HighlightedText text={snippet().text} ranges={snippet().ranges} />
         </p>
       </button>
-      <Show when={overflowing() || expanded()}>
+      <Show when={clamp.foldable()}>
         <button
           class="result-fragment__toggle"
           type="button"
-          aria-expanded={expanded()}
-          aria-label={expanded() ? 'Свернуть фрагмент' : 'Показать фрагмент полностью'}
+          aria-expanded={clamp.expanded()}
+          aria-label={clamp.expanded() ? 'Свернуть фрагмент' : 'Показать фрагмент полностью'}
           onClick={toggle}
         >
           <AppGlyph
             name="caret-down"
-            class={`result-fragment__toggle-icon${expanded() ? ' result-fragment__toggle-icon--open' : ''}`}
+            class={`result-fragment__toggle-icon${clamp.expanded() ? ' result-fragment__toggle-icon--open' : ''}`}
           />
         </button>
       </Show>
