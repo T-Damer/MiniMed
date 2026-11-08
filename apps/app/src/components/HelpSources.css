@@ -74,6 +74,8 @@
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.35;
+  /* A citation such as «AHA/ACC/AACVPR/…» has no space to break at. */
+  overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
@@ -95,6 +97,7 @@
   color: var(--theme-text-muted);
   font-size: 0.8125rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .help-sources__icon {

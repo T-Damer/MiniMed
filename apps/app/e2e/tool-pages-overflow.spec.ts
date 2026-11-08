@@ -126,20 +126,34 @@ test('the pooled-cohort page keeps its long citation inside the screen', async (
   await page.getByRole('button', { name: 'Скачать раздел — Кардиология' }).click();
   await expect(page.getByText(/^Доступно офлайн: (\d+) из \1$/u)).toBeVisible();
   await page.goto(`${E2E_ASSET_ORIGIN}/#/calculators/pooled-cohort-equations-ascvd-risk`);
-  // The citation sits in the «?» under «Источники»; opened, it stays inside the screen.
+  // The citation sits in the «?» under «Источники»; opened, it wraps inside its row instead of
+  // running sideways past the sheet.
   await page.getByRole('button', { name: 'Информация' }).click();
   const info = page.getByRole('dialog', { name: 'Информация' });
   await info.getByRole('button', { name: /Источники/u }).click();
-  await expect(info.locator('.help-sources__row').first()).toBeVisible();
+  const list = info.locator('.help-sources__list');
+  await expect(list.locator('.help-sources__row').first()).toBeVisible();
+  // How far a source's text runs past the right edge of the list (0 or less: it wraps inside).
+  const sideways = () =>
+    list.evaluate((element) => {
+      const edge = element.getBoundingClientRect().right;
+      return Math.max(
+        ...Array.from(
+          element.querySelectorAll<HTMLElement>('.help-sources__name, .help-sources__meta'),
+        ).map(
+          (text) => text.getBoundingClientRect().right + text.scrollWidth - text.clientWidth - edge,
+        ),
+      );
+    });
   const overflow = await horizontalOverflow(page);
   expect(overflow.page).toBeLessThanOrEqual(0);
   expect(overflow.widest).toBe('');
+  expect(await sideways()).toBeLessThanOrEqual(0);
 
   // Control: the check does see the overflow once the citation may not break again.
   await page.addStyleTag({
     content:
-      '.help-sources__name, .help-sources__meta { display: block !important; overflow-wrap: normal !important; word-break: keep-all !important; white-space: nowrap !important; overflow: visible !important; }',
+      '.help-sources__name, .help-sources__meta { display: block !important; overflow-wrap: normal !important; word-break: keep-all !important; white-space: nowrap !important; }',
   });
-  const broken = await horizontalOverflow(page);
-  expect(broken.page > 0 || broken.widest !== '').toBe(true);
+  expect(await sideways()).toBeGreaterThan(0);
 });
