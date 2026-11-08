@@ -11,6 +11,7 @@ import { TextField } from '@/components/TextField';
 import { NewsAvatar } from '@/features/news/NewsAvatar';
 import { NewsSourceSheet, type SourceTarget } from '@/features/news/NewsSourceSheet';
 import { avatarLookOf } from '@/features/news/news-avatar';
+import { subscriptionErrorState } from '@/features/news/news-failure';
 import { NEWS_ROOT_HASH } from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { fetchedAtLabel } from '@/features/news/news-state';
@@ -29,7 +30,8 @@ function SourceRow(props: {
 }): JSX.Element {
   const detail = (): string => {
     const subscription = props.subscription;
-    if (subscription.error) return `${hostLabel(subscription.url)} · ${subscription.error.message}`;
+    if (subscription.error)
+      return `${hostLabel(subscription.url)} · ${subscriptionErrorState(subscription.error).title}`;
     if (subscription.kind === 'site') return `${hostLabel(subscription.url)} · сайт`;
     return `${hostLabel(subscription.siteUrl ?? subscription.url)} · ${fetchedAtLabel(subscription.fetchedAt, Date.now())}`;
   };

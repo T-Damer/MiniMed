@@ -11,19 +11,29 @@ export function hasItems(kind: SubscriptionKind): boolean {
   return kind === 'feed' || kind === 'pubmed';
 }
 
-export type FetchFailureCode =
-  | 'offline'
-  | 'cors'
-  | 'network'
-  | 'timeout'
-  | 'http'
-  | 'too-large'
-  | 'not-a-feed'
-  | 'malformed'
-  | 'empty';
+/**
+ * Why a source could not be read: one kind per cause, each with its own user-facing state in
+ * `news-failure.ts` (docs/ERRORS.md). Add a kind here and the compiler lists everything to update.
+ */
+export type FeedFailure =
+  | { readonly kind: 'offline' }
+  | { readonly kind: 'cors' }
+  | { readonly kind: 'network' }
+  | { readonly kind: 'timeout' }
+  | { readonly kind: 'http'; readonly status?: number | undefined }
+  | { readonly kind: 'too-large' }
+  | { readonly kind: 'not-a-feed' }
+  | { readonly kind: 'malformed' }
+  | { readonly kind: 'rejected' }
+  | { readonly kind: 'empty' }
+  | { readonly kind: 'unexpected' };
+
+export type FetchFailureCode = FeedFailure['kind'];
 
 export interface SubscriptionError {
   readonly code: FetchFailureCode;
+  /** HTTP status of an `http` failure. */
+  readonly status?: number;
   readonly message: string;
   /** Epoch milliseconds of the failed attempt. */
   readonly at: number;

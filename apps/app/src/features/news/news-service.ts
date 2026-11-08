@@ -1,5 +1,6 @@
 import { extractArticle } from '@/features/news/article-extract';
 import { FeedParseError, type ParsedFeed, parseFeed } from '@/features/news/feed-parser';
+import { failureState, feedFailureOf, SubscribeRefusal } from '@/features/news/news-failure';
 import {
   createCanvasIconShrinker,
   fetchSourceIcon,
@@ -20,11 +21,9 @@ import {
   FAILURE_MESSAGES,
   FeedFetchError,
   type FeedTransport,
-  failureMessage,
 } from '@/features/news/news-transport';
 import {
   DEFAULT_NEWS_LIMITS,
-  type FetchFailureCode,
   hasItems,
   type NewsItem,
   type NewsLimits,
@@ -32,6 +31,7 @@ import {
   type StoredArticle,
   type StoredIcon,
   type Subscription,
+  type SubscriptionError,
 } from '@/features/news/news-types';
 import {
   normalizePubmedQuery,
@@ -123,14 +123,14 @@ const REFRESH_CONCURRENCY = 3;
 /** Pages kept in memory so «as on the site» after the article costs no second request. */
 const PAGE_CACHE_ENTRIES = 3;
 
-function failureOf(error: unknown): { code: FetchFailureCode; message: string } {
-  if (error instanceof FeedFetchError) {
-    return { code: error.code, message: failureMessage(error.code, error.status) };
-  }
-  if (error instanceof FeedParseError) {
-    return { code: error.code, message: error.message };
-  }
-  return { code: 'network', message: FAILURE_MESSAGES.network };
+function failureOf(error: unknown): Pick<SubscriptionError, 'code' | 'status' | 'message'> {
+  const failure = feedFailureOf(error);
+  const state = failureState(failure);
+  return {
+    code: failure.kind,
+    ...(failure.kind === 'http' && failure.status ? { status: failure.status } : {}),
+    message: state.title,
+  };
 }
 
 /**
@@ -280,7 +280,7 @@ export class NewsService {
     const existing = this.subscriptions.find((s) => s.id === id);
     if (existing) return existing;
     if (this.subscriptions.length >= this.limits.maxSubscriptions) {
-      throw new Error('Достигнут предел числа источников. Удалите ненужные.');
+      throw new SubscribeRefusal({ kind: 'limit' });
     }
     let feed = parsed;
     let response: Awaited<ReturnType<FeedTransport['fetch']>> | undefined;
@@ -329,7 +329,7 @@ export class NewsService {
     const existing = this.subscriptions.find((s) => s.id === id);
     if (existing) return existing;
     if (this.subscriptions.length >= this.limits.maxSubscriptions) {
-      throw new Error('Достигнут предел числа источников. Удалите ненужные.');
+      throw new SubscribeRefusal({ kind: 'limit' });
     }
     const subscription: Subscription = {
       id,
@@ -356,7 +356,9 @@ export class NewsService {
    */
   async searchPubmed(rawQuery: string, signal?: AbortSignal): Promise<PubmedSearchResult> {
     const checked = normalizePubmedQuery(rawQuery);
-    if (!checked.ok) throw new Error(checked.message);
+    if (!checked.ok) {
+      throw new SubscribeRefusal({ kind: 'invalid-input', reason: checked.message });
+    }
     if (!this.online()) throw new FeedFetchError('offline', FAILURE_MESSAGES.offline);
     return this.pubmed.search(checked.query, signal);
   }
@@ -365,13 +367,15 @@ export class NewsService {
   async subscribePubmed(rawQuery: string, result?: PubmedSearchResult): Promise<Subscription> {
     await this.load();
     const checked = normalizePubmedQuery(rawQuery);
-    if (!checked.ok) throw new Error(checked.message);
+    if (!checked.ok) {
+      throw new SubscribeRefusal({ kind: 'invalid-input', reason: checked.message });
+    }
     const url = pubmedSearchPageUrl(checked.query);
     const id = subscriptionIdFor(url);
     const existing = this.subscriptions.find((s) => s.id === id);
     if (existing) return existing;
     if (this.subscriptions.length >= this.limits.maxSubscriptions) {
-      throw new Error('Достигнут предел числа источников. Удалите ненужные.');
+      throw new SubscribeRefusal({ kind: 'limit' });
     }
     const found = result?.query === checked.query ? result : await this.searchPubmed(checked.query);
     const now = this.now();
@@ -427,7 +431,7 @@ export class NewsService {
       const failure = failureOf(error);
       this.updateSubscription(id, (s) => ({
         ...s,
-        error: { code: failure.code, message: failure.message, at: this.now() },
+        error: { ...failure, at: this.now() },
       }));
       this.publish(true);
       return { ok: false, added: 0 };
@@ -480,7 +484,7 @@ export class NewsService {
       const failure = failureOf(error);
       this.updateSubscription(id, (s) => ({
         ...s,
-        error: { code: failure.code, message: failure.message, at: this.now() },
+        error: { ...failure, at: this.now() },
       }));
       this.publish(true);
       return { ok: false, added: 0 };

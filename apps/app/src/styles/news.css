@@ -1118,6 +1118,11 @@ html.news-vt::view-transition-new(news-sheet) {
   font-weight: 700;
 }
 
+.news-frame__fallback-text {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
 /*
  * The article: its heading lives here, in the content. A `paper-sheet` (shared border, ink, shadow)
  * on the desk, but plain paper with the dialog sheets' grain instead of the ruled lines, which would

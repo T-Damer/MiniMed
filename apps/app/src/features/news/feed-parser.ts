@@ -65,7 +65,7 @@ export interface ParsedFeed {
   readonly skipped: number;
 }
 
-export type FeedParseErrorCode = 'empty' | 'too-large' | 'not-a-feed' | 'malformed';
+export type FeedParseErrorCode = 'empty' | 'too-large' | 'not-a-feed' | 'malformed' | 'rejected';
 
 export class FeedParseError extends Error {
   readonly code: FeedParseErrorCode;

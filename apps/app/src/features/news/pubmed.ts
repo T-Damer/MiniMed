@@ -100,7 +100,7 @@ function parseJson(text: string): Record<string, unknown> {
   const root = record(data);
   if (!root) throw malformed();
   if (typeof root['error'] === 'string') {
-    throw new FeedParseError('malformed', 'PubMed отклонил запрос. Повторите позже.');
+    throw new FeedParseError('rejected', 'PubMed отклонил запрос. Повторите позже.');
   }
   return root;
 }
@@ -116,7 +116,7 @@ export function parseEsearch(text: string): PubmedSearchIds {
   const result = record(parseJson(text)['esearchresult']);
   if (!result) throw malformed();
   if (typeof result['ERROR'] === 'string') {
-    throw new FeedParseError('malformed', 'PubMed не принял этот запрос.');
+    throw new FeedParseError('rejected', 'PubMed не принял этот запрос.');
   }
   const list = result['idlist'];
   if (!Array.isArray(list)) throw malformed();

@@ -77,6 +77,26 @@
   },
   "overrides": [
     {
+      "includes": [
+        "apps/app/src/features/news/**",
+        "apps/app/src/components/calm-error-props.ts",
+        "packages/contracts/src/typed-errors.ts"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useExhaustiveSwitchCases": "error"
+          },
+          "suspicious": {
+            "noEmptyBlockStatements": "error"
+          },
+          "complexity": {
+            "noUselessCatch": "error"
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/app/src/styles/global.css"],
       "linter": {
         "rules": {
