@@ -268,7 +268,7 @@ def main() -> None:
         "definition_chars_total": sum(len(d.text) for d in defs),
     }
     OUT.mkdir(exist_ok=True)
-    (OUT / "inventory.json").write_text(json.dumps(res, ensure_ascii=False, indent=1))
+    L.write_report_json(OUT / "inventory.json", res)
     json.dump(res, sys.stdout, ensure_ascii=False, indent=1)
 
 

@@ -121,7 +121,7 @@ def main() -> None:
             "hub_concepts_100plus_backlinks": len(hubs_set),
         }
     OUT.mkdir(exist_ok=True)
-    (OUT / "links.json").write_text(json.dumps(res, ensure_ascii=False, indent=1))
+    L.write_report_json(OUT / "links.json", res)
     json.dump(res, sys.stdout, ensure_ascii=False, indent=1)
 
 

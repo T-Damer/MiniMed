@@ -16,11 +16,27 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shutil
+import subprocess
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def write_report_json(path: Path, obj: object) -> None:
+    """Write a report JSON and Biome-format it so `bun run check` stays green."""
+    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n")
+    if bunx := shutil.which("bunx"):
+        subprocess.run(
+            [bunx, "biome", "format", "--write", str(path)],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+        )
+
+
 DRAFTS = ROOT / "content" / "definition-drafts"
 
 
