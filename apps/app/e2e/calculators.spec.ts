@@ -171,11 +171,12 @@ test('the unit converter shows Russian units and no patient row', async ({ page 
   await expect(resultActions.getByRole('button', { name: 'Записать' })).toHaveClass(
     /ui-button--icon/u,
   );
-  // «?» opens the tool's information (what it converts, its source in Russian).
+  // «?» opens the tool's information (what it converts); its source, in Russian, is folded
+  // under «Источники».
   await page.getByRole('button', { name: 'Информация' }).click();
-  await expect(page.getByRole('dialog', { name: 'Информация' })).toContainText(
-    'Международная система единиц',
-  );
+  const info = page.getByRole('dialog', { name: 'Информация' });
+  await info.getByRole('button', { name: /Источники/u }).click();
+  await expect(info).toContainText('Международная система единиц');
   await page.keyboard.press('Escape');
 
   // Another quantity offers its own units and starts from its first pair.
