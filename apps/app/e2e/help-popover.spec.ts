@@ -70,12 +70,23 @@ for (const scheme of ['light', 'dark'] as const) {
     expect(geometry.bottom).toBeLessThanOrEqual(700);
     expect(geometry.overflowY).toBe('auto');
     if (geometry.scrolls) {
-      const pageBefore = await page.evaluate(() => window.scrollY);
       const box = await panel.boundingBox();
       if (!box) throw new Error('the help panel has no box');
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-      await page.mouse.wheel(0, 400);
-      await expect.poll(() => panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+      // The page has settled (its entrance, the opened sources) before it is compared.
+      await expect
+        .poll(async () => {
+          const first = await page.evaluate(() => window.scrollY);
+          await page.waitForTimeout(250);
+          return (await page.evaluate(() => window.scrollY)) - first;
+        })
+        .toBe(0);
+      const pageBefore = await page.evaluate(() => window.scrollY);
+      // Far more wheel than the panel holds: it scrolls to its end, and the rest does not reach
+      // the page behind it.
+      await page.mouse.wheel(0, 2000);
+      await page.waitForTimeout(600);
+      expect(await panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
       expect(await page.evaluate(() => window.scrollY)).toBe(pageBefore);
     }
     await shot(page, `ciwa-help-sources-1024-${scheme}`);
