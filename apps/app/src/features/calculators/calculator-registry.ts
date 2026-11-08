@@ -12,6 +12,7 @@ import {
   clearDownloadedCalculatorSchemas,
   clearUserCalculatorSchemas,
   registerDownloadedCalculatorSchema,
+  registerStreamedCalculatorSchema,
   registerUserCalculatorSchema,
 } from '@/features/calculators/calculator-schema-catalog';
 import { validateCalculatorSchema } from '@/features/calculators/calculator-schema-validate';
@@ -36,6 +37,8 @@ import {
 const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 /** The doctor's own calculators: kept apart from the downloaded ones, which a module refresh clears. */
 const USER_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
+/** Calculators read one at a time from `tools/` (CALCLINK); a module refresh leaves them in place. */
+const STREAMED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 
 export const ECG_PHOTO_CALIPER_ID = 'ecg-photo-caliper';
 
@@ -167,6 +170,7 @@ export function getCalculatorRegistry(): readonly CalculatorDefinition[] {
       [
         ...CALCULATOR_REGISTRY,
         ...CORE_CALCULATOR_CATALOG,
+        ...STREAMED_CALCULATORS.values(),
         ...DOWNLOADED_CALCULATORS.values(),
         ...USER_CALCULATORS.values(),
       ].map((definition) => [definition.id, definition]),
@@ -186,6 +190,24 @@ export function registerDownloadedCalculator(record: ToolDefinitionRecord): void
     record.id,
     calculatorCatalogDefinition(record, schema, schema.ageScope),
   );
+}
+
+/**
+ * A calculator read on its own (`calculator-stream.ts`): usable at once, without its section's
+ * pack. An installed pack's copy of the same tool still wins in the registry and the schema catalog.
+ */
+export function registerStreamedCalculator(record: ToolDefinitionRecord): void {
+  const validation = validateCalculatorSchema(record.definition);
+  if (record.kind !== 'calculator' || !validation.ok || !validation.schema) {
+    throw new Error(`Calculator payload is invalid: ${validation.errors.join('; ')}`);
+  }
+  const schema = registerStreamedCalculatorSchema(record);
+  STREAMED_CALCULATORS.set(record.id, calculatorCatalogDefinition(record, schema, schema.ageScope));
+}
+
+/** Whether a calculator was read on its own and can run although its section is not installed. */
+export function isStreamedCalculator(id: string): boolean {
+  return STREAMED_CALCULATORS.has(id);
 }
 
 /**

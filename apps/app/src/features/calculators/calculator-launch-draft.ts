@@ -20,7 +20,8 @@ function validDate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function validValue(input: CalculatorInputDefinition, value: string): boolean {
+/** Whether a typed value fits the input: an option it offers, a date, a number within its limits. */
+export function validCalculatorValue(input: CalculatorInputDefinition, value: string): boolean {
   if (input.kind === 'select') {
     return input.options?.some((option) => String(option.value) === value) ?? false;
   }
@@ -62,7 +63,7 @@ export function consumeCalculatorLaunchDraft(
   const values: Record<string, string> = {};
   for (const [id, value] of Object.entries(draft.values)) {
     const input = definitions.get(id);
-    if (input && validValue(input, value)) values[id] = value;
+    if (input && validCalculatorValue(input, value)) values[id] = value;
   }
   return values;
 }

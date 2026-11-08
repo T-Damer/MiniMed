@@ -14,6 +14,8 @@ const BUILT_IN_CALCULATOR_SCHEMAS: ReadonlyMap<string, CalculatorSchema> = new M
 const DOWNLOADED_CALCULATOR_SCHEMAS = new Map<string, CalculatorSchema>();
 /** The doctor's own calculators live apart so refreshing downloaded modules never drops them. */
 const USER_CALCULATOR_SCHEMAS = new Map<string, CalculatorSchema>();
+/** Calculators read one at a time (`calculator-stream.ts`), kept apart for the same reason. */
+const STREAMED_CALCULATOR_SCHEMAS = new Map<string, CalculatorSchema>();
 
 export function clearDownloadedCalculatorSchemas(): void {
   DOWNLOADED_CALCULATOR_SCHEMAS.clear();
@@ -27,15 +29,27 @@ export function registerUserCalculatorSchema(schema: CalculatorSchema): void {
   USER_CALCULATOR_SCHEMAS.set(schema.id, schema);
 }
 
-export function registerDownloadedCalculatorSchema(
-  record: ToolDefinitionRecord,
-): CalculatorSchema | null {
-  if (record.kind !== 'calculator') return null;
+function recordSchema(record: ToolDefinitionRecord): CalculatorSchema {
   const schema = CalculatorSchemaSchema.parse(record.definition);
   if (schema.id !== record.id || schema.slug !== record.slug) {
     throw new Error(`Calculator payload does not match ${record.id}.`);
   }
+  return schema;
+}
+
+export function registerDownloadedCalculatorSchema(
+  record: ToolDefinitionRecord,
+): CalculatorSchema | null {
+  if (record.kind !== 'calculator') return null;
+  const schema = recordSchema(record);
   DOWNLOADED_CALCULATOR_SCHEMAS.set(record.id, schema);
+  return schema;
+}
+
+export function registerStreamedCalculatorSchema(record: ToolDefinitionRecord): CalculatorSchema {
+  if (record.kind !== 'calculator') throw new Error(`${record.id} is not a calculator.`);
+  const schema = recordSchema(record);
+  STREAMED_CALCULATOR_SCHEMAS.set(record.id, schema);
   return schema;
 }
 
@@ -43,6 +57,7 @@ export function getCalculatorSchema(id: string): CalculatorSchema | undefined {
   return (
     USER_CALCULATOR_SCHEMAS.get(id) ??
     DOWNLOADED_CALCULATOR_SCHEMAS.get(id) ??
+    STREAMED_CALCULATOR_SCHEMAS.get(id) ??
     BUILT_IN_CALCULATOR_SCHEMAS.get(id)
   );
 }

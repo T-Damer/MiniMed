@@ -1,9 +1,13 @@
+import { calculatorShareUrl } from '@/features/calculators/calculator-link';
 import {
   displayCalculatorLabel,
   formatCalculatorQuantity,
 } from '@/features/calculators/calculator-quantity';
 import { findCalculator } from '@/features/calculators/calculator-registry';
-import { calculatorResultLayout } from '@/features/calculators/calculator-schema-catalog';
+import {
+  calculatorResultLayout,
+  getCalculatorSchema,
+} from '@/features/calculators/calculator-schema-catalog';
 import { parsePediatricFeedingPlan } from '@/features/calculators/pediatric-feeding-plan';
 import {
   SCORE_SCALE_PRINT_CSS,
@@ -234,17 +238,34 @@ ${(record.result.scales ?? []).map((scale) => scoreScalePrintHtml(scale, { text:
   return PrintManager.html(html, title);
 }
 
+/**
+ * The calculator's link with this calculation's values (CALCLINK): it opens the same calculator,
+ * filled in, for whoever gets it. Only the calculator's inputs go in, never the patient.
+ */
+export function calculationRecordUrl(record: CalculationRecord, base?: string): string | undefined {
+  const schema = getCalculatorSchema(record.calculatorId);
+  if (!schema) return undefined;
+  return calculatorShareUrl({
+    calculatorId: record.calculatorId,
+    inputs: schema.inputs,
+    ...(record.normalizedInputs ? { values: record.normalizedInputs } : {}),
+    ...(base ? { base } : {}),
+  });
+}
+
 export async function shareCalculationRecord(
   record: CalculationRecord,
 ): Promise<'shared' | 'copied'> {
   const text = formatCalculationRecord(record);
+  const url = calculationRecordUrl(record);
   if (navigator.share) {
     await navigator.share({
       title: findCalculator(record.calculatorId)?.title ?? 'Расчёт MiniMed',
       text,
+      ...(url ? { url } : {}),
     });
     return 'shared';
   }
-  await navigator.clipboard.writeText(text);
+  await navigator.clipboard.writeText(url ? `${text}\n\n${url}` : text);
   return 'copied';
 }

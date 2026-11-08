@@ -9,6 +9,7 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { PAGE_HEROES } from '@/app/page-heroes';
@@ -24,6 +25,7 @@ import { Page } from '@/components/Page';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
+import { SkeletonLines } from '@/components/SkeletonLines';
 import { Heading } from '@/components/Text';
 import { CalculatorChart } from '@/features/calculators/CalculatorChart';
 import {
@@ -32,6 +34,11 @@ import {
 } from '@/features/calculators/CalculatorInfo';
 import { USER_CALCULATORS_EVENT } from '@/features/calculators/calculator-events';
 import { consumeCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
+import {
+  calculatorLinkValues,
+  calculatorRouteQuery,
+  shareCalculatorLink,
+} from '@/features/calculators/calculator-link';
 import { calculatorNumberInputAttributes } from '@/features/calculators/calculator-number-input';
 import type {
   CalculatorInstallationState,
@@ -63,6 +70,7 @@ import {
   clearDownloadedCalculators,
   findCalculator,
   getCalculatorRegistry,
+  isStreamedCalculator,
   registerDownloadedCalculator,
   searchCalculators,
 } from '@/features/calculators/calculator-registry';
@@ -85,6 +93,7 @@ import {
   initialCalculatorSchemaValues,
   toStoredCalculationResult,
 } from '@/features/calculators/calculator-schema-engine';
+import { streamCalculator } from '@/features/calculators/calculator-stream';
 import type {
   AvailableCalculatorDefinition,
   CalculatorDefinition,
@@ -159,8 +168,9 @@ import {
   type UserCalculator,
 } from '@/state/user-calculators';
 
+/** The calculator address without the values a link carries after `?` (`calculator-link.ts`). */
 function currentRoute(): string {
-  return window.location.hash.replace(/^#\/?/u, '');
+  return window.location.hash.replace(/^#\/?/u, '').split('?')[0] ?? '';
 }
 
 function relatedCategoriesForSection(
@@ -1337,7 +1347,7 @@ function CalculationResultPanel(props: {
             void shareCalculationRecord(props.record)
               .then((mode) => {
                 props.onMessage(
-                  mode === 'shared' ? 'Расчёт передан.' : 'Расчёт скопирован в буфер обмена.',
+                  mode === 'shared' ? 'Расчёт передан.' : 'Расчёт и ссылка скопированы.',
                 );
               })
               .catch(() => props.onMessage('Не удалось поделиться расчётом.'));
@@ -1485,6 +1495,8 @@ export function InlineCalculatorWorkspace(props: {
 
 export function CalculatorsView(): JSX.Element {
   const [route, setRoute] = createSignal(currentRoute());
+  // The values a calculator link carries (`#/calculators/<id>?<input>=<value>`).
+  const [linkQuery, setLinkQuery] = createSignal(calculatorRouteQuery(window.location.hash));
   const [query, setQuery] = createSignal('');
   const [installation, setInstallation] = createSignal<CalculatorInstallationState>(
     loadCalculatorInstallationState(getCalculatorRegistry()),
@@ -1515,6 +1527,7 @@ export function CalculatorsView(): JSX.Element {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     setRoute(next);
+    setLinkQuery(calculatorRouteQuery(window.location.hash));
   };
   const refreshInstallation = (): void => {
     setInstallation(loadCalculatorInstallationState(calculatorRegistry()));
@@ -1639,17 +1652,63 @@ export function CalculatorsView(): JSX.Element {
     calculatorRegistry();
     return slug() ? findCalculator(slug()) : undefined;
   });
+  // A calculator whose section is not installed is read on its own (`calculator-stream.ts`): the
+  // page shows skeleton lines meanwhile and the section download only when the read fails.
+  const [streaming, setStreaming] = createSignal<'idle' | 'loading' | 'failed'>('idle');
   // A link to a tool this build does not know (renamed, removed, mistyped) says so above the list
   // instead of silently showing the list.
   const unknownSlug = createMemo(
-    () => slug() !== '' && slug() !== 'section' && !userRoute() && !routeDefinition(),
+    () =>
+      slug() !== '' &&
+      slug() !== 'section' &&
+      !userRoute() &&
+      !routeDefinition() &&
+      streaming() !== 'loading',
+  );
+  const runnable = (definition: CalculatorDefinition | undefined): boolean =>
+    definition?.state === 'available' &&
+    (installation().installedIds.has(definition.id) || isStreamedCalculator(definition.id));
+  createEffect(
+    on(slug, (current) => {
+      setStreaming('idle');
+      if (!current || current === 'section' || userRoute()) return;
+      const definition = untrack(routeDefinition);
+      if (definition && (definition.state !== 'available' || untrack(() => runnable(definition)))) {
+        return;
+      }
+      let id = current;
+      try {
+        id = definition?.id ?? decodeURIComponent(current);
+      } catch {
+        return;
+      }
+      setStreaming('loading');
+      void streamCalculator(id).then((result) => {
+        if (untrack(slug) !== current) return;
+        if (result === 'ready') {
+          setCalculatorRegistry(getCalculatorRegistry());
+          setStreaming('idle');
+        } else {
+          setStreaming('failed');
+        }
+      });
+    }),
   );
   const selected = createMemo<AvailableCalculatorDefinition | undefined>(() => {
     const definition = routeDefinition();
-    return definition?.state === 'available' && installation().installedIds.has(definition.id)
-      ? definition
-      : undefined;
+    return definition?.state === 'available' && runnable(definition) ? definition : undefined;
   });
+  // The link's values for the open calculator, the same object while they stay the same (the form
+  // refills itself whenever this changes).
+  const linkValues = createMemo<Readonly<Record<string, string>>>(
+    () => {
+      const definition = selected();
+      const schema = definition ? getCalculatorSchema(definition.id) : undefined;
+      return schema ? calculatorLinkValues(linkQuery(), schema.inputs) : {};
+    },
+    {},
+    { equals: (left, right) => JSON.stringify(left) === JSON.stringify(right) },
+  );
   const [ageFilter, setAgeFilter] = createToolAgeFilter();
   const [recentIds, setRecentIds] = createSignal(loadRecentCalculatorIds());
   // A calculator counts as used once its workspace opens, from the list, a search card or a link.
@@ -2033,12 +2092,16 @@ export function CalculatorsView(): JSX.Element {
                           />
                           <div class="calculator-pack-required__body paper-card" role="status">
                             <Show
-                              when={toolsReady() && !toolsError()}
+                              when={toolsReady() && !toolsError() && streaming() !== 'loading'}
                               fallback={
-                                <p class="calculator-pack-required__text">
-                                  {toolsError() ||
-                                    'Проверяем локальные пакеты и открываем калькулятор.'}
-                                </p>
+                                <Show
+                                  when={toolsError()}
+                                  fallback={
+                                    <SkeletonLines label="Открываем калькулятор" lines={3} />
+                                  }
+                                >
+                                  <p class="calculator-pack-required__text">{toolsError()}</p>
+                                </Show>
                               }
                             >
                               <p class="calculator-pack-required__text">
@@ -2116,6 +2179,36 @@ export function CalculatorsView(): JSX.Element {
                     }
                     actions={
                       <div class="calculator-subpage-actions">
+                        <Show when={definition().category !== 'custom'}>
+                          <Button
+                            type="button"
+                            variant="icon"
+                            class="calculator-subpage-share"
+                            aria-label="Ссылка на калькулятор"
+                            title="Ссылка на калькулятор"
+                            icon={<AppGlyph name="share" />}
+                            onClick={() => {
+                              void shareCalculatorLink({
+                                calculatorId: definition().id,
+                                title: definition().title,
+                                inputs: getCalculatorSchema(definition().id)?.inputs ?? [],
+                              })
+                                .then((mode) => {
+                                  if (mode === 'copied') notify('Ссылка скопирована.');
+                                })
+                                .catch((cause: unknown) => {
+                                  // Closing the share sheet is not a failure.
+                                  if (
+                                    cause instanceof DOMException &&
+                                    cause.name === 'AbortError'
+                                  ) {
+                                    return;
+                                  }
+                                  notify('Не удалось поделиться ссылкой.');
+                                });
+                            }}
+                          />
+                        </Show>
                         <Show when={definition().category === 'custom'}>
                           <Button
                             type="button"
@@ -2137,6 +2230,7 @@ export function CalculatorsView(): JSX.Element {
 
                   <CalculatorForm
                     definition={definition()}
+                    initialValues={linkValues()}
                     onMessage={notify}
                     onRecord={(record) => {
                       setActiveRecord(record);

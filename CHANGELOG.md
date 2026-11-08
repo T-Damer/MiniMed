@@ -5,6 +5,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 ## [Unreleased]
 
 - Tablet: a page header's dark band is as wide as the page under it again; on screens that slide in («Новый пациент») it stood wider than the page.
+- A calculator can be sent as a link: «Поделиться» on a result adds a link that opens the same calculator with the same
+  values, and the share icon in the calculator's header sends it empty. The link opens on the public page
+  (t-damer.gitverse.site) as the calculator alone, with no bottom bar and no first-run setup, and a profile remembered on
+  the device («Дневники») no longer takes it over. A calculator whose section is not downloaded now opens at once: the
+  app reads only that calculator (9–15 KB) instead of the section pack, and keeps it for offline use.
+- CIWA-Ar follows the Russian clinical guidelines «Синдром отмены алкоголя» (2024): 0–8 points mild, 9–15 moderate (an
+  indication for hospitalization, benzodiazepines above 8 points, hourly review), 16 and more severe with a high risk of
+  delirium (review every 10–15 minutes, intravenous benzodiazepines). The bands were ASAM's (below 10, 10–18, 19 and
+  more).
+
 ## [0.6.94] - 2026-11-07
 
 - Травник: the book opens on a skeleton of its search, chips and cards at once and fades in; the pinned search keeps a

@@ -741,37 +741,34 @@ describe('neurology and rehabilitation tool module', () => {
     });
   });
 
-  describe('CIWA-Ar (Sullivan 1989: 10 items, 0–67; ASAM 2020: <10 / 10–18 / ≥19)', () => {
+  describe('CIWA-Ar (Sullivan 1989: 10 items, 0–67; КР «Синдром отмены алкоголя» 2024: 0–8 / 9–15 / ≥16)', () => {
     const id = 'minimed.calculator.ciwa-ar';
     const base = zeros(id);
-    it('sums the items and cuts at 9, 10, 18 and 19', () => {
+    it('sums the items and cuts at 8, 9, 15 and 16', () => {
       expectCases(id, [
         { name: 'no symptoms', inputs: base, score: 0, range: 'mild' },
-        { name: 'nine points', inputs: { ...base, nausea: 7, tremor: 2 }, score: 9, range: 'mild' },
         {
-          name: 'ten points',
-          inputs: { ...base, nausea: 7, tremor: 2, orientation: 1 },
-          score: 10,
+          name: 'eight points',
+          inputs: { ...base, nausea: 7, tremor: 1 },
+          score: 8,
+          range: 'mild',
+        },
+        {
+          name: 'nine points: moderate, a reason to admit',
+          inputs: { ...base, nausea: 7, tremor: 2 },
+          score: 9,
           range: 'moderate',
         },
         {
-          name: 'worked example: tremor, sweats, anxiety, agitation, headache',
-          inputs: { ...base, tremor: 4, sweats: 4, anxiety: 4, agitation: 4, headache: 2 },
-          score: 18,
+          name: 'fifteen points',
+          inputs: { ...base, tremor: 4, sweats: 4, anxiety: 4, agitation: 3 },
+          score: 15,
           range: 'moderate',
         },
         {
-          name: 'nineteen points',
-          inputs: {
-            ...base,
-            tremor: 4,
-            sweats: 4,
-            anxiety: 4,
-            agitation: 4,
-            headache: 2,
-            orientation: 1,
-          },
-          score: 19,
+          name: 'sixteen points: severe, high risk of delirium',
+          inputs: { ...base, tremor: 4, sweats: 4, anxiety: 4, agitation: 4 },
+          score: 16,
           range: 'severe',
         },
         {

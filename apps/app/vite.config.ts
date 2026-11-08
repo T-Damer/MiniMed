@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   copyFileSync,
   createReadStream,
@@ -542,6 +543,79 @@ function diaryPackSubset(): Plugin {
   };
 }
 
+const TOOL_MODULES_DIR = fileURLToPath(new URL('../../content/tool-modules', import.meta.url));
+
+interface ToolModuleFile {
+  readonly tools: readonly { readonly id: string; readonly kind: string }[];
+}
+
+/** Every calculator of the tool packs, by id: one record each, as the pack's own JSON holds it. */
+function calculatorRecords(): Map<string, string> {
+  const records = new Map<string, string>();
+  for (const name of readdirSync(TOOL_MODULES_DIR).toSorted()) {
+    if (!name.endsWith('.json')) continue;
+    const pack = JSON.parse(readFileSync(join(TOOL_MODULES_DIR, name), 'utf8')) as ToolModuleFile;
+    for (const tool of pack.tools) {
+      if (tool.kind !== 'calculator') continue;
+      if (records.has(tool.id)) throw new Error(`Calculator ${tool.id} is in two tool packs.`);
+      records.set(tool.id, JSON.stringify(tool));
+    }
+  }
+  return records;
+}
+
+/** `tools/<digest of every record>`: a changed calculator lands in a new folder, never a stale cache. */
+function calculatorFilesDirectory(records: ReadonlyMap<string, string>): string {
+  const hash = createHash('sha256');
+  for (const [id, record] of records) hash.update(`${id}\0${record}\0`);
+  return `tools/${hash.digest('hex').slice(0, 12)}`;
+}
+
+/**
+ * One file per calculator, `tools/<digest>/<id>.json` (CALCLINK, owner 2026-11-08: a calculator
+ * sent as a link opens at once, without its section's pack). A calculator that is not installed
+ * reads only its own record (9–15 KB) instead of the section download; the service worker keeps
+ * what was opened (`tools/` is an optional directory), and the packs stay the offline install.
+ * The app learns the folder from `__CALCULATOR_FILES__`.
+ */
+function calculatorToolFiles(): Plugin {
+  let records = calculatorRecords();
+  const directory = calculatorFilesDirectory(records);
+  return {
+    name: 'calculator-tool-files',
+    config() {
+      return { define: { __CALCULATOR_FILES__: JSON.stringify(directory) } };
+    },
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const path = request.url?.split('?')[0] ?? '';
+        const prefix = `/${directory}/`;
+        if (!path.startsWith(prefix) || !path.endsWith('.json')) {
+          next();
+          return;
+        }
+        records = calculatorRecords();
+        const record = records.get(path.slice(prefix.length, -'.json'.length));
+        if (!record) {
+          next();
+          return;
+        }
+        response.setHeader('Content-Type', 'application/json; charset=utf-8');
+        response.end(record);
+      });
+    },
+    generateBundle() {
+      records = calculatorRecords();
+      if (calculatorFilesDirectory(records) !== directory) {
+        this.error('The tool packs changed during the build; build again.');
+      }
+      for (const [id, record] of records) {
+        this.emitFile({ type: 'asset', fileName: `${directory}/${id}.json`, source: record });
+      }
+    },
+  };
+}
+
 /** What Vite records on each output chunk: the styles and assets it pulls in. */
 interface ViteChunkMetadata {
   readonly importedCss?: ReadonlySet<string>;
@@ -556,6 +630,7 @@ export default defineConfig({
     diariesEntry(),
     diaryCatalogSubset(),
     diaryPackSubset(),
+    calculatorToolFiles(),
     excalidrawCjkFontStubs(),
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),

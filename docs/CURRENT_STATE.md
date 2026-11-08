@@ -20,6 +20,36 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Calculator links and one-calculator loading — 2026-11-08 (STATE CALCLINK)
+
+Owner 2026-11-08: «скинуть калькулятор по ссылке … желательно без скачивания, динамическая подгрузка одного
+калькулятора»; the link to CHA₂DS₂-VASc opened «Дневники».
+
+- **One file per calculator.** `vite.config.ts` `calculatorToolFiles` writes every calculator of
+  `content/tool-modules/*.json` to `tools/<digest>/<id>.json` (227 files, 2.1 MB in all, 9–15 KB each; the folder name
+  is a digest of all records, given to the app as `__CALCULATOR_FILES__`, so a changed calculator never comes from a stale
+  cache). The dev server serves the same paths. `tools/` is an optional directory for the service worker: a calculator
+  read once opens offline.
+- **Reading one calculator.** `calculator-stream.ts`: when a calculator's section is not installed, the view reads that
+  one record, validates it and registers it in a store a module refresh does not clear
+  (`registerStreamedCalculator`); skeleton lines meanwhile; the section download stays as the way when the read fails
+  (offline before the first open). An installed pack's copy of the same tool still wins.
+- **Links.** `calculator-link.ts`: `<page>?share=tool#/calculators/<id>?<input>=<value>&…`. Only the calculator's inputs
+  go in, each checked against its input like a launch draft (a hand-edited link fills only what the form allows); never
+  the patient. The page is GitVerse (opens reliably in Russia) from the native app and the published pages, the page
+  itself when run locally. «Поделиться» on a result shares text + link; the header share icon sends the empty link.
+- **Shared-tool view.** `?share=tool` is `SHARED_TOOL_PROFILE` (`state/app-profile.ts`): only `#/calculators`, no bottom
+  bar, no onboarding, no search core. It is never stored and wins over a remembered profile and over the GitVerse
+  build's locked «Дневники» (`mount-diaries.tsx` already lets addresses outside the diaries through to the app).
+- **CIWA-Ar bands.** Re-cut to the current КР «Синдром отмены алкоголя (алкогольное абстинентное состояние)» (Минздрав
+  России, 2024, ID 784): appendix Г1 key 0–8 / 9–15 / ≥16; section 3.1 (benzodiazepines above 8 points, hourly review at
+  10–15, every 10–15 min and IV at ≥16); 6.1 (moderate and severe withdrawal, seizures, failed outpatient treatment →
+  hospitalization); 6.2 (mild → outpatient). The older edition on sudact (`…vyzvannye_1`) has 0–9 / 10–19 / ≥20; ASAM
+  2020 has <10 / 10–18 / ≥19 (kept as context). Tool 1.1.0, module `minimed.tools.neurology-rehab.ru` 0.1.0-preview.4.
+- **Tests.** `calculator-link.test.ts`, `calculator-stream.test.ts`, `app-profile.test.ts` (shared link over a remembered
+  profile), `neurology-rehab-tool-module.test.ts` (new cut points), e2e `calculator-link.spec.ts` (a fresh visitor and
+  a device remembering «Дневники»: CIWA-Ar opens filled, no neurology pack request, profile untouched).
+
 ## Release 0.6.94 — 2026-11-07
 
 - **In it:** FIX-BATCH1 (the owner's batch of 15: Травник, reader speed/top bar/contents/«Другие», search title answers,

@@ -6,6 +6,7 @@ import {
   profileAllows,
   profileHidesNavigation,
   resetProfileCache,
+  SHARED_TOOL_PROFILE,
   settingShown,
 } from '@/state/app-profile';
 
@@ -35,6 +36,21 @@ describe('app profiles', () => {
     expect(activeProfile('?profile=off')).toBeUndefined();
     resetProfileCache();
     expect(activeProfile('')).toBeUndefined();
+  });
+
+  it('opens a shared calculator link over a remembered profile, and remembers nothing', () => {
+    expect(activeProfile('?profile=diaries')?.id).toBe('diaries');
+    resetProfileCache();
+    const shared = activeProfile('?share=tool');
+    expect(shared).toBe(SHARED_TOOL_PROFILE);
+    expect(profileHidesNavigation(shared)).toBe(true);
+    expect(profileAllows('#/calculators/minimed.calculator.ciwa-ar?tremor=4', shared)).toBe(true);
+    expect(profileAllows('#/notes/diaries', shared)).toBe(false);
+    resetProfileCache();
+    // The device keeps the profile it had: the link did not replace it.
+    expect(activeProfile('')?.id).toBe('diaries');
+    resetProfileCache();
+    activeProfile('?profile=off');
   });
 
   it('hides the settings rows that do nothing in the profile', () => {

@@ -61,7 +61,7 @@ export const BOOT_CONTENT_FILES: readonly string[] = [
 // packs and modules (OPFS/IndexedDB), OCR language data (verified on-demand download).
 const SKIPPED = /^(?:sw\.js|build-manifest\.json|diary\/|content\/|tessdata\/)/u;
 // Code and runtime for features that need a downloaded model or are heavy: kept after first use.
-const OPTIONAL_DIRECTORIES = /^(?:pdfjs|cornerstone-codecs|excalidraw)\//u;
+const OPTIONAL_DIRECTORIES = /^(?:pdfjs|cornerstone-codecs|excalidraw|tools)\//u;
 const OPTIONAL_ASSETS = /^assets\/(?:ort-|tesseract-core)/u;
 
 /**

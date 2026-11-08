@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.neurology-rehab.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Неврология, реабилитация и функциональный статус: шкалы и расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-10-13T00:00:00Z",
@@ -6382,7 +6382,7 @@
     {
       "id": "minimed.calculator.ciwa-ar",
       "kind": "calculator",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "slug": "ciwa-ar-alcohol-withdrawal",
       "title": "CIWA-Ar — алкогольный абстинентный синдром",
       "shortTitle": "CIWA-Ar",
@@ -6428,7 +6428,8 @@
         "population": "Взрослые с алкогольным абстинентным синдромом, способные общаться.",
         "limitations": [
           "Шкала опирается на жалобы и ответы пациента; при делирии, сопоре и невозможности контакта её не используют.",
-          "Опубликованных единых порогов нет: градации приведены по таблице руководства ASAM (2020), решение зависит от суждения врача.",
+          "Градации и действия — по клиническим рекомендациям «Синдром отмены алкоголя» (Минздрав России, 2024): 0–8, 9–15, 16 и более баллов. В руководстве ASAM (2020) пороги другие: меньше 10, 10–18, 19 и более.",
+          "Судорожные припадки и отсутствие эффекта амбулаторного лечения — показания к госпитализации при любой сумме баллов.",
           "Пульс, давление и температуру в сумму не включают.",
           "Результат не является автоматическим назначением бензодиазепинов."
         ],
@@ -6848,16 +6849,16 @@
         ],
         "interpretations": [
           {
-            "when": "score <= 9",
-            "message": "0–9 баллов: лёгкая абстиненция; по данным авторов шкалы дополнительные препараты при менее 10 баллах обычно не нужны."
+            "when": "score <= 8",
+            "message": "0–8 баллов: минимальная (лёгкая) степень ААС. Активная фармакотерапия не нужна; лечение амбулаторное."
           },
           {
-            "when": "score <= 18",
-            "message": "10–18 баллов: умеренная абстиненция."
+            "when": "score <= 15",
+            "message": "9–15 баллов: ААС средней тяжести — показание к госпитализации. Производные бензодиазепина при сумме больше 8 баллов (диазепам 5–10 мг); при 10–15 баллах осмотр раз в час."
           },
           {
             "when": "1",
-            "message": "19 баллов и более: тяжёлая абстиненция; при судорогах, делирии или новых галлюцинациях — осложнённая."
+            "message": "16 баллов и более: тяжёлый ААС с высоким риском алкогольного делирия — показание к госпитализации. Оценка каждые 10–15 минут, производные бензодиазепина внутривенно."
           }
         ],
         "scoreScales": [
@@ -6871,19 +6872,19 @@
             "bands": [
               {
                 "from": 0,
-                "label": "Лёгкая абстиненция",
+                "label": "Лёгкий ААС",
                 "attentionLevel": "low",
                 "interpretation": 0
               },
               {
-                "from": 10,
-                "label": "Умеренная абстиненция",
+                "from": 9,
+                "label": "ААС средней тяжести",
                 "attentionLevel": "moderate",
                 "interpretation": 1
               },
               {
-                "from": 19,
-                "label": "Тяжёлая абстиненция",
+                "from": 16,
+                "label": "Тяжёлый ААС",
                 "attentionLevel": "urgent",
                 "interpretation": 2
               }
@@ -6891,6 +6892,14 @@
           }
         ],
         "sources": [
+          {
+            "title": "Клинические рекомендации «Психические и поведенческие расстройства, вызванные употреблением алкоголя. Синдром отмены алкоголя (алкогольное абстинентное состояние)» (Минздрав России, 2024, ID 784), приложение Г1, разделы 3.1, 6.1 и 6.2",
+            "publisher": "Министерство здравоохранения Российской Федерации",
+            "version": "2024",
+            "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_7/prilozhenie-g1-gn/prilozhenie-g1/",
+            "page": "приложение Г1; разделы 3.1, 6.1, 6.2",
+            "reviewedAt": "2026-11-08"
+          },
           {
             "title": "Sullivan JT, Sykora K, Schneiderman J, Naranjo CA, Sellers EM. Assessment of alcohol withdrawal: the revised Clinical Institute Withdrawal Assessment for Alcohol scale (CIWA-Ar)",
             "publisher": "British Journal of Addiction",
@@ -6912,32 +6921,32 @@
           "status": "verdict",
           "rules": [
             {
-              "when": "score <= 9",
+              "when": "score <= 8",
               "verdict": {
                 "rangeId": "mild",
-                "title": "Лёгкая абстиненция",
-                "explanation": "0–9 баллов: лёгкая абстиненция; по данным авторов шкалы дополнительные препараты при менее 10 баллах обычно не нужны.",
+                "title": "Лёгкий ААС",
+                "explanation": "0–8 баллов: минимальная (лёгкая) степень ААС. Активная фармакотерапия не нужна; лечение амбулаторное.",
                 "attentionLevel": "low",
                 "lowerBound": 0,
-                "upperBound": 9,
+                "upperBound": 8,
                 "sourceIds": [
-                  "ciwa-ar-alcohol-withdrawal-sullivan-1989",
-                  "ciwa-ar-alcohol-withdrawal-asam-2020"
+                  "ciwa-ar-alcohol-withdrawal-kr-2024",
+                  "ciwa-ar-alcohol-withdrawal-sullivan-1989"
                 ]
               }
             },
             {
-              "when": "score <= 18",
+              "when": "score <= 15",
               "verdict": {
                 "rangeId": "moderate",
-                "title": "Умеренная абстиненция",
-                "explanation": "10–18 баллов: умеренная абстиненция.",
+                "title": "ААС средней тяжести",
+                "explanation": "9–15 баллов: ААС средней тяжести — показание к госпитализации. Производные бензодиазепина при сумме больше 8 баллов (диазепам 5–10 мг); при 10–15 баллах осмотр раз в час.",
                 "attentionLevel": "moderate",
-                "lowerBound": 10,
-                "upperBound": 18,
+                "lowerBound": 9,
+                "upperBound": 15,
                 "sourceIds": [
-                  "ciwa-ar-alcohol-withdrawal-sullivan-1989",
-                  "ciwa-ar-alcohol-withdrawal-asam-2020"
+                  "ciwa-ar-alcohol-withdrawal-kr-2024",
+                  "ciwa-ar-alcohol-withdrawal-sullivan-1989"
                 ]
               }
             },
@@ -6945,22 +6954,22 @@
               "when": "1",
               "verdict": {
                 "rangeId": "severe",
-                "title": "Тяжёлая абстиненция",
-                "explanation": "19 баллов и более: тяжёлая абстиненция; при судорогах, делирии или новых галлюцинациях — осложнённая.",
+                "title": "Тяжёлый ААС",
+                "explanation": "16 баллов и более: тяжёлый ААС с высоким риском алкогольного делирия — показание к госпитализации. Оценка каждые 10–15 минут, производные бензодиазепина внутривенно.",
                 "attentionLevel": "urgent",
-                "lowerBound": 19,
+                "lowerBound": 16,
                 "upperBound": 67,
                 "sourceIds": [
-                  "ciwa-ar-alcohol-withdrawal-sullivan-1989",
-                  "ciwa-ar-alcohol-withdrawal-asam-2020"
+                  "ciwa-ar-alcohol-withdrawal-kr-2024",
+                  "ciwa-ar-alcohol-withdrawal-sullivan-1989"
                 ]
               }
             }
           ],
           "missingContext": [],
           "sourceIds": [
-            "ciwa-ar-alcohol-withdrawal-sullivan-1989",
-            "ciwa-ar-alcohol-withdrawal-asam-2020"
+            "ciwa-ar-alcohol-withdrawal-kr-2024",
+            "ciwa-ar-alcohol-withdrawal-sullivan-1989"
           ]
         },
         "observationMappings": [
@@ -6975,6 +6984,14 @@
       },
       "sources": [
         {
+          "id": "ciwa-ar-alcohol-withdrawal-kr-2024",
+          "kind": "clinical-recommendation",
+          "relation": "interpretation",
+          "title": "Клинические рекомендации «Психические и поведенческие расстройства, вызванные употреблением алкоголя. Синдром отмены алкоголя (алкогольное абстинентное состояние)» (Минздрав России, 2024, ID 784), приложение Г1, разделы 3.1, 6.1 и 6.2",
+          "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_7/prilozhenie-g1-gn/prilozhenie-g1/",
+          "reviewedAt": "2026-11-08"
+        },
+        {
           "id": "ciwa-ar-alcohol-withdrawal-sullivan-1989",
           "kind": "literature",
           "relation": "methodology",
@@ -6985,7 +7002,7 @@
         {
           "id": "ciwa-ar-alcohol-withdrawal-asam-2020",
           "kind": "guideline",
-          "relation": "interpretation",
+          "relation": "clinical-context",
           "title": "The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management",
           "url": "https://pubmed.ncbi.nlm.nih.gov/32511109/",
           "reviewedAt": "2026-10-12"

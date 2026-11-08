@@ -80,6 +80,23 @@ export const APP_PROFILES: readonly AppProfile[] = [
 ];
 
 /**
+ * The shared-tool view (CALCLINK, owner 2026-11-08): `?share=tool` opens one calculator sent as a
+ * link — no bottom bar, no first-run tour, no search core. It holds for this page only: it is never
+ * remembered, and neither a remembered profile nor a build's locked one takes the link over (the
+ * owner's link to CHA₂DS₂-VASc opened «Дневники», the profile his device remembered).
+ */
+export const SHARED_TOOL_PROFILE: AppProfile = {
+  id: 'shared-tool',
+  home: '#/calculators',
+  routes: ['#/calculators'],
+  navigation: [],
+  settingsPages: [],
+  hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows'],
+  skipOnboarding: true,
+  skipSearchCore: true,
+};
+
+/**
  * A build for one job (`VITE_APP_PROFILE`): the GitVerse copy carries only the diaries (owner
  * 2026-11-03), so it is always that profile, whatever the address or the device remembers.
  */
@@ -103,6 +120,10 @@ function storage(): Storage | undefined {
 /** The active profile: from the address when given there, else the one remembered. */
 export function activeProfile(search = window.location.search): AppProfile | undefined {
   if (cached !== undefined) return cached ?? undefined;
+  if (new URLSearchParams(search).get('share') === 'tool') {
+    cached = SHARED_TOOL_PROFILE;
+    return SHARED_TOOL_PROFILE;
+  }
   const locked = APP_PROFILES.find((candidate) => candidate.id === LOCKED_PROFILE);
   if (locked) {
     cached = locked;
