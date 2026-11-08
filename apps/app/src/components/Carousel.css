@@ -183,3 +183,13 @@
     animation: none;
   }
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .carousel__dot:hover {
+    background-color: color-mix(in srgb, var(--theme-accent) 50%, var(--theme-border));
+  }
+
+  .carousel__dot--active:hover {
+    background-color: color-mix(in srgb, var(--theme-accent) 80%, var(--theme-text));
+  }
+}

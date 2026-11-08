@@ -78,3 +78,11 @@
   background: var(--theme-surface-raised);
   box-shadow: var(--shadow-paper);
 }
+
+/* Hover (owner 2026-11-08), only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .app-context-menu__more.header-actions__more:hover:not(:active) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+}

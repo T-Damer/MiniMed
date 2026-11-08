@@ -33,9 +33,11 @@
     transform var(--theme-motion-control, 140ms ease-out);
 }
 
-.choice-chip:hover:not(:disabled) {
-  border-color: var(--theme-accent);
-  background: color-mix(in srgb, var(--theme-accent) 8%, var(--theme-surface-raised));
+@media (hover: hover) and (pointer: fine) {
+  .choice-chip:hover:not(:disabled) {
+    border-color: var(--theme-accent);
+    background: color-mix(in srgb, var(--theme-accent) 8%, var(--theme-surface-raised));
+  }
 }
 
 .choice-chip:active:not(:disabled) {
@@ -64,8 +66,10 @@
     0 0.14rem 0 0 color-mix(in srgb, var(--theme-accent) 55%, black);
 }
 
-.choice-chip--accent:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--theme-accent) 88%, white);
+@media (hover: hover) and (pointer: fine) {
+  .choice-chip--accent:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-accent) 88%, white);
+  }
 }
 
 .choice-chip--compact {

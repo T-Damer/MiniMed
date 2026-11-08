@@ -499,3 +499,17 @@
 .diary-heat__option-label {
   min-width: 0;
 }
+
+/* Hover (owner 2026-11-08), only where a pointer can hover: a ring on the day, a tinted filter chip. */
+@media (hover: hover) and (pointer: fine) {
+  .diary-heat__day:hover {
+    outline: 0.125rem solid var(--theme-accent, #3c6478);
+    outline-offset: 0.0625rem;
+  }
+
+  .diary-heat__filter-button:hover {
+    border-color: var(--theme-accent, #3c6478);
+    color: var(--theme-text, #292720);
+    background: var(--theme-hover-surface, #f1ead6);
+  }
+}

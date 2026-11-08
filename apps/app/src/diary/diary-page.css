@@ -1220,3 +1220,46 @@
 .diary-install-first {
   gap: 1.25rem;
 }
+
+.diary-restore__summary,
+.diary-paste__summary,
+.diary-fold__summary {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/*
+ * Hover (owner 2026-11-08: every interactive element has one, only where a pointer can hover).
+ * A raised card or button takes the hover surface and an accent-tinted edge; a summary line
+ * underlines. Nothing moves, so the box never slides out from under the pointer.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .diary-action:hover:not(:disabled, :active) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+
+  .diary-action--primary:hover:not(:disabled, :active) {
+    border-color: var(--theme-primary-edge);
+    background: var(--theme-primary-hover-background);
+    box-shadow: var(--theme-primary-hover-shadow);
+  }
+
+  .diary-option:hover:not(:disabled, .diary-option--on) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+
+  .diary-option--on:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--theme-accent-contrast) 14%, transparent);
+  }
+
+  .diary-restore__summary:hover,
+  .diary-paste__summary:hover,
+  .diary-fold__summary:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+}

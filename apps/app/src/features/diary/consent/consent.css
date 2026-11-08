@@ -325,3 +325,10 @@
     transition: none;
   }
 }
+
+/* Hover (owner 2026-11-08), only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .consent-chip:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--care-check, #2f9e5b) 18%, transparent);
+  }
+}

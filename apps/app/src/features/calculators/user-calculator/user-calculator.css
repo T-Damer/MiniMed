@@ -384,3 +384,17 @@
     width: 100%;
   }
 }
+
+.my-calculators-card {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+/* Hover (owner 2026-11-08): the card under its full-size open button. */
+@media (hover: hover) and (pointer: fine) {
+  .my-calculators-card:hover {
+    background: var(--theme-hover-surface);
+  }
+}

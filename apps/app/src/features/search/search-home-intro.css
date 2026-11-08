@@ -216,3 +216,10 @@
   width: 1rem;
   height: 1rem;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .home-feature__action--secondary:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+}

@@ -468,3 +468,11 @@
 .screen-editor__copy {
   margin-inline-start: auto;
 }
+
+/* Hover (owner 2026-11-08), only where a pointer can hover. */
+@media (hover: hover) and (pointer: fine) {
+  .screen-editor__editable:hover,
+  .screen-editor__add:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--theme-accent) 10%, transparent);
+  }
+}

@@ -24,9 +24,9 @@
   font-weight: 650;
   cursor: pointer;
   transition:
-    background-color var(--theme-motion-control, 140ms ease-out),
-    color var(--theme-motion-control, 140ms ease-out),
-    box-shadow var(--theme-motion-control, 140ms ease-out);
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .segmented-control__option--selected {
@@ -62,8 +62,16 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .segmented-control__option:not(.segmented-control__option--disabled):hover {
+  .segmented-control__option:not(
+    .segmented-control__option--disabled,
+    .segmented-control__option--selected
+  ):hover {
     color: var(--theme-text);
+    background: var(--theme-hover-surface);
+  }
+
+  .segmented-control__option--selected:not(.segmented-control__option--disabled):hover {
+    background: color-mix(in srgb, var(--theme-surface-raised) 88%, var(--theme-accent));
   }
 }
 
