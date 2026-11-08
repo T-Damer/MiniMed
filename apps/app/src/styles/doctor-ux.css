@@ -1178,13 +1178,21 @@ html.app-chrome-hidden .document-overlay-paper::before {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0.875rem;
-  border: 1px solid var(--paper-line);
+  /* The ring of the term that opened it (`.document-inline-link--open`, components/menu-owner.css). */
+  border: 1px solid var(--menu-owner-ring, var(--paper-line));
   border-radius: 0.625rem;
   background: var(--paper-light);
   box-shadow: 0 0.75rem 2rem rgb(35 31 22 / 18%);
   color: var(--ink);
   font: inherit;
   text-align: start;
+}
+
+/* The term whose card is open stays marked, so the card visibly belongs to it (owner 2026-11-08). */
+.document-inline-link--open {
+  border-radius: 0.25rem;
+  background: var(--theme-accent-soft);
+  box-shadow: 0 0 0 2px var(--menu-owner-ring, var(--theme-accent));
 }
 
 .document-inline-preview__header {

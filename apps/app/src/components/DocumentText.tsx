@@ -42,6 +42,7 @@ import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-li
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { useHistoryLayer } from '@/state/use-history-layer';
 
+import '@/components/menu-owner.css';
 import '@/features/library/document-cells.css';
 
 /** The code sheet of a code met in a text; its chunk loads on the first tap. */
@@ -239,6 +240,7 @@ function InlineDocumentLink(props: {
         <button
           type="button"
           class="document-inline-link"
+          classList={{ 'document-inline-link--open': open() }}
           aria-expanded={canPreview() ? open() : undefined}
           aria-haspopup={canPreview() ? 'dialog' : undefined}
           onClick={activate}

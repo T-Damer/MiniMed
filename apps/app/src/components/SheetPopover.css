@@ -20,6 +20,9 @@
  * page behind does not take the wheel or the swipe. `:where` keeps a panel's own height rule first.
  */
 :where(.sheet-popover__floating) {
+  /* Above the floating bottom dock, which it would otherwise run under (Kobalte lifts its
+     positioner to this z-index). */
+  z-index: var(--z-overlay);
   max-height: var(--kb-popper-content-available-height, calc(100dvh - 1rem));
   overflow-y: auto;
   overscroll-behavior: contain;

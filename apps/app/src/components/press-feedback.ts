@@ -6,6 +6,11 @@
  * face on a ledge: `.ui-button` and the primary-depth ones) neither shrink nor shade: they sink
  * onto their ledge, drawn in CSS from `data-pressed` (owner 2026-11-04).
  *
+ * Letting go springs back past full size and settles (owner 2026-11-08: presses should feel fun,
+ * spring animations are ideal), but never so far that the control pokes out of a box that clips it
+ * or the screen: the overshoot is capped by the room around it (`maxUnclippedScale`), and with no
+ * room it simply returns.
+ *
  * The scale is the independent `scale` property played with `Element.animate`, so it composes with
  * a control's own `transform` and `transition`, the AnimationManager retimes it (state/motion.ts)
  * and «Анимации: выкл.» skips it. A tap is shorter than the animation: the pressed state is held
@@ -59,9 +64,68 @@ type PressLook = 'ledge' | 'shade' | '';
 /** The shortest time a press stays visible, so a quick tap is not over before it is seen. */
 export const PRESS_HOLD_MS = 120;
 const PRESS_IN_MS = 90;
-const PRESS_OUT_MS = 180;
+/** The spring back: longer than a plain release because it overshoots and settles (≤ 300 ms). */
+const PRESS_OUT_MS = 300;
 const ROW_SCALE = 0.98;
 const CONTROL_SCALE = 0.96;
+/** How far past full size a released control springs: a button bounces, a wide row only stirs. */
+const CONTROL_OVERSHOOT = 1.04;
+const ROW_OVERSHOOT = 1.012;
+
+export interface Box {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+/**
+ * The largest scale (about the centre) at which `box` still fits inside `clip`: a control at the
+ * edge of a clipping card or of the screen has no room to grow and gets 1.
+ */
+export function maxUnclippedScale(box: Box, clip: Box): number {
+  const width = box.right - box.left;
+  const height = box.bottom - box.top;
+  if (width <= 0 || height <= 0) return 1;
+  const roomX = Math.min(box.left - clip.left, clip.right - box.right);
+  const roomY = Math.min(box.top - clip.top, clip.bottom - box.bottom);
+  const room = Math.min((2 * roomX) / width, (2 * roomY) / height);
+  return Math.max(1, 1 + room);
+}
+
+/**
+ * Keyframes of a damped spring from `from` to 1 that first swings to `peak` (> 1) and settles
+ * with a smaller swing back; with `peak` ≤ 1 it returns without overshoot.
+ */
+export function springBackKeyframes(from: number, peak: number): Keyframe[] {
+  if (peak <= 1.001) return [{ scale: String(from) }, { scale: '1' }];
+  const swing = peak - 1;
+  const round = (value: number): string => value.toFixed(4);
+  return [
+    { scale: round(from), offset: 0, easing: 'cubic-bezier(0.2, 0.8, 0.4, 1)' },
+    { scale: round(peak), offset: 0.38, easing: 'ease-in-out' },
+    { scale: round(1 - swing * 0.35), offset: 0.68, easing: 'ease-in-out' },
+    { scale: round(1 + swing * 0.1), offset: 0.86, easing: 'ease-in-out' },
+    { scale: '1', offset: 1 },
+  ];
+}
+
+/** The box a control may grow into: the screen, cut by every ancestor that clips its overflow. */
+function clipBox(element: HTMLElement): Box {
+  let clip: Box = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
+    const box = node.getBoundingClientRect();
+    clip = {
+      left: Math.max(clip.left, box.left),
+      top: Math.max(clip.top, box.top),
+      right: Math.min(clip.right, box.right),
+      bottom: Math.min(clip.bottom, box.bottom),
+    };
+  }
+  return clip;
+}
 
 /**
  * The scale a control of this size takes when pressed: small controls shrink to 0.96, wide rows
@@ -86,6 +150,8 @@ interface Press {
   readonly startedAt: number;
   /** Absent for a key on a ledge (it sinks in CSS) and with reduced motion (shade only). */
   readonly animation: Animation | undefined;
+  /** How far the release may spring past full size (1: no overshoot). */
+  readonly peak: number;
   releaseTimer: number | undefined;
 }
 
@@ -101,11 +167,12 @@ function release(press: Press): void {
     animation.cancel();
     return;
   }
-  const from = getComputedStyle(element).scale;
+  const computed = getComputedStyle(element).scale;
+  const from = computed === 'none' ? 1 : Number.parseFloat(computed) || 1;
   animation.cancel();
-  const back = element.animate([{ scale: from === 'none' ? '1' : from }, { scale: '1' }], {
+  const back = element.animate(springBackKeyframes(from, press.peak), {
     duration: PRESS_OUT_MS,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    easing: 'linear',
   });
   back.addEventListener('finish', () => back.cancel(), { once: true });
 }
@@ -134,11 +201,20 @@ function onPointerDown(event: PointerEvent): void {
           easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards',
         });
+  // Measured at full size, before the press shrinks it: the room the spring back may use.
+  const peak =
+    animation && scale !== null
+      ? Math.min(
+          scale === ROW_SCALE ? ROW_OVERSHOOT : CONTROL_OVERSHOOT,
+          maxUnclippedScale(box, clipBox(element)),
+        )
+      : 1;
   current = {
     element,
     pointerId: event.pointerId,
     startedAt: performance.now(),
     animation,
+    peak,
     releaseTimer: undefined,
   };
 }

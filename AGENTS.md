@@ -272,6 +272,41 @@ reported.
   screen, `SkeletonLines` for text still arriving inside a page (`components/PageSkeleton.tsx`). A
   reader shows its first page as soon as it is ready, with skeleton lines only at the bottom.
   `e2e/no-bare-loader.spec.ts` fails on any frame with a loader and no way out.
+- **Sources fold under «Источники» in the «?» (owner 2026-11-08).** A tool's sources are passed to
+  `Page` as `helpSources` (never written into `help`): `HelpSources` folds them at the end of the «?»,
+  collapsed, as named rows — title, publisher, year — not raw links. A source the app has (a КР, a
+  book: `moduleId`/`documentId` in the tool record) opens in the reader; any other opens on its site,
+  named («PubMed»). A popover taller than the screen scrolls inside itself (`SheetPopover`).
+- **A menu belongs to its button (owner 2026-11-08).** While a popover, sheet or menu is open, the
+  button that opened it stays pressed — accent fill and ring (`menu-owner--open`,
+  `components/menu-owner.css`) — and the panel's border repeats the ring. `SheetPopover`,
+  `AppContextMenu` and `HeaderActions` do it; a new trigger uses them or the same class.
+- **Fold only what is worth unfolding (owner 2026-11-08).** A text folds behind «Показать ещё» /
+  «Показать полностью» only when that hides 3 lines or more (`createLineClamp`,
+  `components/line-clamp.ts`); a list folds only when 3 items or more stay hidden. Otherwise show it
+  whole, with no button. In a source list each source has its own small open button beside its name.
+- **Fill the screen, avoid scrolling (owner 2026-11-08).** Each screen shows as much as it can; a
+  screen with a lot of function is compressed instead. If a screen can avoid scrolling it must:
+  scrolling looks like there is nothing more, or loses the user on a dull first screen. Empty space is
+  filled enough, not overloaded. Lists and grids of alike items may scroll. `e2e/screen-density.spec.ts`
+  reports per screen, at 390 and 1024 px, the filled share of the first viewport, the largest empty
+  band, and «scrolls without being a list» (`DENSITY_STRICT=1` fails on them; thresholds in
+  `e2e/screen-density.ts` are heuristics — no validated published metric exists, see
+  `docs/research/screen-density-2026-11-08.md`).
+- **Hover only where it exists (owner 2026-11-08).** Every interactive element has a hover effect,
+  inside `@media (hover: hover)`, so touch screens never keep a stuck hover. `e2e/hover-effects.spec.ts`
+  lists elements without one.
+- **Presses are playful, never clipped (owner 2026-11-08).** The shared press feedback
+  (`components/press-feedback.ts`) shrinks a control and springs it back past full size before it
+  settles; the overshoot is capped by the room its clipping box leaves, so nothing pokes out of a card
+  or the screen. Don't add per-component press animations.
+- **Contrast in both themes (owner 2026-11-08).** Text and icon contrast is checked in light and dark
+  (`e2e/app-contrast.spec.ts`, `e2e/diary-screens.spec.ts`); an element that fails gets a different
+  colour at the token or component level — never a per-screen override.
+- **Errors are typed and all handled (owner 2026-11-08).** Like Rust's `Result`: a fallible operation
+  returns `Result<T, E>` with a union of error kinds; callers handle every kind exhaustively (the
+  compiler rejects a missing one), and every kind has its own user-facing state. See
+  `docs/ERRORS.md`; first applied to ERRORS_EXAMPLE_AREA.
 
 ## Navigation (user decision, 2026-10-14)
 
