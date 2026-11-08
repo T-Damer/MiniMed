@@ -187,29 +187,40 @@ export function useDocumentReaderChrome(
     const element = chromeElement();
     if (!element) return;
     const root = element.closest<HTMLElement>('.document-page');
-    const applyHeight = (): void => {
-      const height = `${element.getBoundingClientRect().height}px`;
-      element.style.setProperty('--document-chrome-height', height);
-      root?.style.setProperty('--document-chrome-height', height);
+    // Written only when it changes: a custom property set on the page restyles the whole document,
+    // and the body's mutations (every slice of a long document) ask for a measure (PERF5).
+    let shownHeight = '';
+    let shownHeadingTop = '';
+    const measure = (): void => {
+      const box = element.getBoundingClientRect();
+      const height = `${box.height}px`;
+      if (height !== shownHeight) {
+        shownHeight = height;
+        element.style.setProperty('--document-chrome-height', height);
+        root?.style.setProperty('--document-chrome-height', height);
+      }
+      // The section path line (`ReaderSectionPath`) and the section jumps start below the chrome.
+      const headingTop = `${Math.max(0, Math.ceil(box.bottom))}px`;
+      if (headingTop !== shownHeadingTop) {
+        shownHeadingTop = headingTop;
+        root?.style.setProperty('--document-heading-top', headingTop);
+      }
     };
-    // The section path line (`ReaderSectionPath`) and the section jumps start below the chrome.
-    const updateHeadingLayout = (): void => {
-      root?.style.setProperty(
-        '--document-heading-top',
-        `${Math.max(0, Math.ceil(element.getBoundingClientRect().bottom))}px`,
-      );
-    };
+    // Read after the frame has been laid out (the task after the animation frame), not inside the
+    // frame: reading there laid out a page the body had just grown, once per slice.
     let frame: number | undefined;
+    let task: number | undefined;
     const schedule = (): void => {
-      if (frame !== undefined) cancelAnimationFrame(frame);
+      if (frame !== undefined || task !== undefined) return;
       frame = requestAnimationFrame(() => {
         frame = undefined;
-        applyHeight();
-        updateHeadingLayout();
+        task = window.setTimeout(() => {
+          task = undefined;
+          measure();
+        }, 0);
       });
     };
-    applyHeight();
-    updateHeadingLayout();
+    measure();
     const observer = new ResizeObserver(schedule);
     observer.observe(element);
     const mutations = root ? new MutationObserver(schedule) : undefined;
@@ -229,6 +240,7 @@ export function useDocumentReaderChrome(
     rootClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
+      if (task !== undefined) window.clearTimeout(task);
       if (settleTimer !== undefined) window.clearTimeout(settleTimer);
       observer.disconnect();
       mutations?.disconnect();

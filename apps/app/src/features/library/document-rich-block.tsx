@@ -488,22 +488,43 @@ const pendingWideMeasures = new Map<HTMLElement, (wide: boolean) => void>();
 let wideMeasureFrame: number | undefined;
 
 /**
+ * A table inside a section the browser skips (`content-visibility: auto`, far from the screen) is
+ * not measured: reading its width would lay that section out — on a long КР whose sections are
+ * appended slice by slice, once per slice (PERF5: 611 ms of a 4 s open at 4× CPU). It is measured
+ * when its section renders (the resize observer reports the new size) or comes near the screen.
+ * The check needs styles only, not layout; engines without it measure as before.
+ */
+function renderedForMeasure(element: HTMLElement): boolean {
+  if (!element.isConnected) return false;
+  const check = (
+    element as HTMLElement & {
+      checkVisibility?: (options: { contentVisibilityAuto: boolean }) => boolean;
+    }
+  ).checkVisibility;
+  return typeof check === 'function' ? check.call(element, { contentVisibilityAuto: true }) : true;
+}
+
+/**
  * Whether tables are wider than their box is read for every pending table first and applied after:
  * a table that turns «wide» changes its class, and measuring the next table right after would
  * force a layout of the whole page again, once per table.
  */
 function requestWideMeasure(scroller: HTMLElement, apply: (wide: boolean) => void): void {
+  if (!renderedForMeasure(scroller)) return;
   pendingWideMeasures.set(scroller, apply);
   if (wideMeasureFrame !== undefined) return;
+  // Read in the task after the frame, when the browser has laid the page out: read inside the frame,
+  // the widths forced a layout of everything the page had just changed (a jump, a new slice).
   wideMeasureFrame = requestAnimationFrame(() => {
-    wideMeasureFrame = undefined;
-    const batch = [...pendingWideMeasures];
-    pendingWideMeasures.clear();
-    const measured = batch.map(
-      ([element, setter]) =>
-        [setter, element.isConnected && element.scrollWidth > element.clientWidth + 1] as const,
-    );
-    for (const [setter, wide] of measured) setter(wide);
+    globalThis.setTimeout(() => {
+      wideMeasureFrame = undefined;
+      const batch = [...pendingWideMeasures].filter(([element]) => renderedForMeasure(element));
+      pendingWideMeasures.clear();
+      const measured = batch.map(
+        ([element, setter]) => [setter, element.scrollWidth > element.clientWidth + 1] as const,
+      );
+      for (const [setter, wide] of measured) setter(wide);
+    }, 0);
   });
 }
 
@@ -524,10 +545,16 @@ function ZoomableTable(props: {
     const resize = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
     resize?.observe(scroller);
     for (const child of Array.from(scroller.children)) resize?.observe(child);
+    // Its first report comes for every table, near or not; only a table near the screen counts.
     const near =
       typeof IntersectionObserver === 'undefined'
         ? undefined
-        : new IntersectionObserver(measure, { rootMargin: '200px' });
+        : new IntersectionObserver(
+            (entries) => {
+              if (entries.some((entry) => entry.isIntersecting)) measure();
+            },
+            { rootMargin: '200px' },
+          );
     near?.observe(scroller);
     if (!resize && !near) measure();
     onCleanup(() => {
