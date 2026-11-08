@@ -26,7 +26,7 @@ describe('calculator links', () => {
       base: 'https://t-damer.gitverse.site/minimed/',
     });
     expect(url).toBe(
-      'https://t-damer.gitverse.site/minimed/?share=tool#/calculators/minimed.calculator.ciwa-ar?tremor=4&age=45&seizures=1',
+      'https://t-damer.gitverse.site/minimed/index.html?share=tool#/calculators/minimed.calculator.ciwa-ar?tremor=4&age=45&seizures=1',
     );
     const hash = new URL(url).hash;
     expect(calculatorLinkValues(calculatorRouteQuery(hash), inputs)).toEqual({
@@ -44,7 +44,7 @@ describe('calculator links', () => {
   it('an empty calculator is a link without values', () => {
     expect(
       calculatorShareUrl({ calculatorId: 'x.y', inputs, base: 'http://127.0.0.1:5173/' }),
-    ).toBe('http://127.0.0.1:5173/?share=tool#/calculators/x.y');
+    ).toBe('http://127.0.0.1:5173/index.html?share=tool#/calculators/x.y');
   });
 
   it('points published pages and the native app at GitVerse, a local page at itself', () => {

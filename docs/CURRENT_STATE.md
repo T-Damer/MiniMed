@@ -34,7 +34,8 @@ Owner 2026-11-08: «скинуть калькулятор по ссылке … 
   one record, validates it and registers it in a store a module refresh does not clear
   (`registerStreamedCalculator`); skeleton lines meanwhile; the section download stays as the way when the read fails
   (offline before the first open). An installed pack's copy of the same tool still wins.
-- **Links.** `calculator-link.ts`: `<page>?share=tool#/calculators/<id>?<input>=<value>&…`. Only the calculator's inputs
+- **Links.** `calculator-link.ts`: `<page>/index.html?share=tool#/calculators/<id>?<input>=<value>&…` (named
+  `index.html`: GitVerse Pages answers a folder address with a query string, from a browser, with «Страница не найдена»). Only the calculator's inputs
   go in, each checked against its input like a launch draft (a hand-edited link fills only what the form allows); never
   the patient. The page is GitVerse (opens reliably in Russia) from the native app and the published pages, the page
   itself when run locally. «Поделиться» on a result shares text + link; the header share icon sends the empty link.

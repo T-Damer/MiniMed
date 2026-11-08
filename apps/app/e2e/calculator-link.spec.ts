@@ -7,7 +7,7 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
  * without its section's download, and a profile the device remembers («Дневники») does not take
  * the link over.
  */
-const LINK = `${E2E_ASSET_ORIGIN}/?share=tool#/calculators/minimed.calculator.ciwa-ar?tremor=4&sweats=4&anxiety=4&agitation=4`;
+const LINK = `${E2E_ASSET_ORIGIN}/index.html?share=tool#/calculators/minimed.calculator.ciwa-ar?tremor=4&sweats=4&anxiety=4&agitation=4`;
 
 for (const remembered of [false, true]) {
   test(`a shared CIWA-Ar link opens filled in${remembered ? ' over a remembered «Дневники»' : ''}`, async ({

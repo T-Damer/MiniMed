@@ -8,7 +8,10 @@ import { isPublishedHost } from '@/features/diary/diary-links';
  * A calculator sent as a link (CALCLINK, owner 2026-11-08). The link opens the one calculator,
  * filled in, on a page that loads only that calculator:
  *
- *   https://t-damer.gitverse.site/minimed/?share=tool#/calculators/<id>?<input>=<value>&…
+ *   https://t-damer.gitverse.site/minimed/index.html?share=tool#/calculators/<id>?<input>=<value>&…
+ *
+ * The page is named (`index.html`): GitVerse Pages answers a folder address with a query string
+ * (`/minimed/?share=tool`) from a browser with its «Страница не найдена».
  *
  * `?share=tool` is the shared-tool view (`state/app-profile.ts`): no bottom bar, no first-run tour,
  * no search core, and a profile remembered on the device does not take the link over. The values
@@ -53,7 +56,7 @@ export function calculatorShareUrl(input: {
       query.set(definition.id, value);
     }
   }
-  const page = new URL(input.base ?? calculatorShareBase());
+  const page = new URL('index.html', input.base ?? calculatorShareBase());
   page.search = `?${SHARED_TOOL_PARAMETER}=${SHARED_TOOL_VALUE}`;
   const values = query.toString();
   page.hash = `#/calculators/${encodeURIComponent(input.calculatorId)}${values ? `?${values}` : ''}`;
