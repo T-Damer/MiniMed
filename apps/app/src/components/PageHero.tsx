@@ -259,8 +259,32 @@ export function useHeroBleed(header: () => HTMLElement | undefined, enabled: () 
       setLength(element, '--page-hero-inset-right', Math.max(0, right - box.right));
       setLength(element, '--page-hero-inset-top', box.top - outer.top);
     };
-    const observer = new ResizeObserver(measure);
+    // A script-driven entrance (`Element.animate`, e.g. «Новый пациент» sliding in) fires no
+    // `animationend`: wait for every running animation of the header or of anything holding it,
+    // then measure where it settled. Without this the band kept the mid-slide offset and stood
+    // wider than its sheet on tablets (owner 2026-11-08).
+    let awaitingEntrance = false;
+    const measureAfterEntrance = (): void => {
+      if (awaitingEntrance || typeof document.getAnimations !== 'function') return;
+      const entrances = document.getAnimations().filter((animation) => {
+        const target = animation.effect instanceof KeyframeEffect ? animation.effect.target : null;
+        return (
+          animation.playState === 'running' && target instanceof Node && target.contains(element)
+        );
+      });
+      if (entrances.length === 0) return;
+      awaitingEntrance = true;
+      void Promise.allSettled(entrances.map((animation) => animation.finished)).then(() => {
+        awaitingEntrance = false;
+        measure();
+      });
+    };
+    const observer = new ResizeObserver(() => {
+      measure();
+      measureAfterEntrance();
+    });
     observer.observe(element);
+    measureAfterEntrance();
     const stopInsets = watchInsets(measure);
     // A screen that slides, scales or fades in was measured mid-way (a scaled ancestor shrinks every
     // box): measure again once an entrance of the header or of anything holding it has ended — not

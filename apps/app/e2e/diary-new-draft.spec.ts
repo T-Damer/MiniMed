@@ -180,3 +180,44 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await expect(page.locator('.diary-dash-row')).toHaveCount(1, { timeout: 60_000 });
   await expect(cards).toHaveCount(0);
 });
+
+// The header band spans its sheet, not more (owner 2026-11-08): «Новый пациент» slides in with a
+// script animation, and the band was measured mid-slide, so on a tablet it stood wider than the
+// page and pushed past the screen's side.
+test('on a tablet the new patient header band is as wide as its sheet', async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1010, height: 800 });
+  await page.addInitScript(() => {
+    window.localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
+  });
+  await page.route(`${E2E_ASSET_ORIGIN}/api/**`, (route) =>
+    route.continue({ url: route.request().url().replace(E2E_ASSET_ORIGIN, service) }),
+  );
+  await page.goto(`${E2E_ASSET_ORIGIN}/?profile=diaries#/notes/diaries`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.getByText('Регистрация', { exact: true }).click();
+  await page.getByLabel('Почта', { exact: true }).fill('tablet@example.test');
+  await page.getByLabel('Как вас подписать для пациентов').fill('Д-р Планшет');
+  await page.getByLabel('Новый пароль (от 8 символов)').fill('tablet-pass-2026');
+  await page.getByRole('button', { name: 'Создать аккаунт' }).click();
+  await page.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
+
+  await page.getByTestId('diary-create-patient').click({ timeout: 60_000 });
+  await expect(page.getByLabel('Имя или псевдоним')).toBeVisible();
+  const band = () =>
+    page.evaluate(() => {
+      const hero = document.querySelector('.diary-new .page-hero');
+      const sheet = hero?.closest('.page-surface');
+      if (!hero || !sheet) return 'missing';
+      const a = hero.getBoundingClientRect();
+      const b = sheet.getBoundingClientRect();
+      const width = document.documentElement.clientWidth;
+      return [
+        Math.round(a.left - Math.max(b.left, 0)),
+        Math.round(Math.min(b.right, width) - a.right),
+        document.documentElement.scrollWidth - width,
+      ].join(' ');
+    });
+  await expect.poll(band, { timeout: 5_000 }).toBe('0 0 0');
+});
