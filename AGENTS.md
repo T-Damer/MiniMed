@@ -303,10 +303,13 @@ reported.
 - **Contrast in both themes (owner 2026-11-08).** Text and icon contrast is checked in light and dark
   (`e2e/app-contrast.spec.ts`, `e2e/diary-screens.spec.ts`); an element that fails gets a different
   colour at the token or component level — never a per-screen override.
-- **Errors are typed and all handled (owner 2026-11-08).** Like Rust's `Result`: a fallible operation
-  returns `Result<T, E>` with a union of error kinds; callers handle every kind exhaustively (the
-  compiler rejects a missing one), and every kind has its own user-facing state. See
-  `docs/ERRORS.md`; first applied to ERRORS_EXAMPLE_AREA.
+- **Errors are typed and all handled (owner 2026-11-08).** Like Rust's `Result`: an expected failure
+  is a value — a `kind` union in `TypedResult<T, E>` — never a string or a generic catch. Callers cover
+  every kind (`matchError`, or `switch` + `assertNever`; a missing kind does not compile), and an
+  `ErrorStates<E>` table gives each kind its own user-facing state, drawn by `CalmError`. A thrown
+  error is converted once, in an `attempt…` boundary; an unknown one becomes `unexpected` and is
+  logged. Example: the news feed (`features/news/news-failure.ts`); a migrated area joins the Biome
+  override and `bun run check:errors`. See `docs/ERRORS.md`.
 
 ## Navigation (user decision, 2026-10-14)
 

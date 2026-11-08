@@ -4,6 +4,25 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- «?» of a tool: its sources are folded under «Источники» at the end, as named rows (title, publisher, year — «КР
+  Синдром отмены алкоголя · Минздрав России · 2024», «… · PubMed») instead of long links; a КР the app has (CIWA-Ar's)
+  opens in the reader. Calculators, questionnaires, forms and the vaccination calendar list them alike, and a
+  calculator page no longer ends in a «Источники: …» line. A «?» taller than the screen scrolls inside itself with the
+  thin themed bar, above the bottom dock, and the page behind stays put.
+- A button visibly owns the panel or menu it opened: the «?», «⋯» and share buttons stay pressed with an accent ring
+  while it is open, and the panel's border repeats the ring; a term in the reader stays marked while its card is open.
+- Reader term cards: each source has its own small open button beside its name, instead of one «Открыть» in the header
+  or a row of them. «Показать полностью» / «Показать ещё» appear only when at least three lines (or items) are hidden;
+  a text that would hide one or two lines shows whole — in term cards, search fragments, interaction quotes, drug
+  comparison, attached results, a questionnaire's instruction and drug name lists.
+- Presses spring: a released control bounces just past full size and settles, never further than the room around it,
+  so nothing pokes out of a card or the screen.
+- Hover effects everywhere a mouse can hover (range sliders, the theme picker and other segmented controls, text
+  fields, cards, diary buttons and rows), only on devices with hover; better contrast for questionnaire section
+  descriptions in the dark theme and for the bottom bar's hovered icon.
+- News feeds: every failure has its own message and action (offline, the site blocks the browser, slow site, HTTP
+  error with its code, not a feed, too large, empty…) instead of a generic one.
+
 - Tablet: a page header's dark band is as wide as the page under it again; on screens that slide in («Новый пациент») it stood wider than the page.
 - A calculator can be sent as a link: «Поделиться» on a result adds a link that opens the same calculator with the same
   values, and the share icon in the calculator's header sends it empty. The link opens on the public page

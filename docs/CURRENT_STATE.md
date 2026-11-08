@@ -20,6 +20,65 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Owner's UI batch: sources in «?», owned menus, folds, global UI rules — 2026-11-08 (STATE UI-BATCH3; not released)
+
+Owner 2026-11-08, from a screenshot of CIWA-Ar's «?» (a raw «Клинические рекомендации «Психические и…» link cut off at
+the bottom, no inner scroll). New rules are in AGENTS.md «Interface rules» (owner 2026-11-08 entries).
+
+- **Sources under «Источники».** `Page` takes `helpSources` and `HelpSources` (`components/HelpSources.tsx`,
+  `help-sources.ts`) folds them, collapsed, at the end of the «?» body (popover and folded-«⋯» sheet alike). A row is
+  the source's own name — `helpSourceRow` strips «Клинические рекомендации «…» (…, ID 784)», Vancouver author lists
+  («Sullivan JT и соавт.») and «Приказ … от … № …н "…"» (kind badge «КР» / «Приказ № 1122н», issuer shortened) — with
+  publisher · year · locator, and the site by name («PubMed», «Официальное опубликование») instead of the address. A
+  source with `moduleId`/`documentId` in the tool record (`ToolSourceLink`; the registry copies it onto the matching
+  schema source by title) opens in the reader through `openDocumentOverlay`. Wired: calculators (also the «Информация»
+  dialog and the result's details), questionnaires (`assessmentHelpSources`, replacing «Связанные источники»), forms
+  (the order), vaccination (order 1122н). The calculator page's «Источники: …» footnote is gone. CIWA-Ar's КР source
+  now names `minimed.clinical.recommendation.784_1` / `kr.rf.784_1`: module `minimed.tools.neurology-rehab.ru`
+  0.1.0-preview.5 (`bun run tools:module:rebuild -- neurology-rehab`).
+- **Popover scroll.** `SheetPopover`'s floating panel takes `max-height: var(--kb-popper-content-available-height)`,
+  `overflow-y: auto`, `overscroll-behavior: contain` (a `:where` rule, so a panel's own height wins), sits at
+  `--z-overlay` above the bottom dock, and gets the themed thumb from `ScrollIndicator fixed` (new mode: the track
+  follows the panel's box on screen, in a portal; keyed to each opening's element).
+- **Owned menus.** `components/menu-owner.css`: `.menu-owner--open` (accent-soft fill, 2 px ring
+  `--menu-owner-ring`, pressed scale). `SheetPopover` sets it on its trigger in both forms, `AppContextMenu` on its «⋯» /
+  discover buttons (plus `aria-haspopup`/`aria-expanded`); the floating panel, `.app-context-menu` and the reader's term
+  card draw their border in the ring colour; an inline term link stays marked (`.document-inline-link--open`). An arrow
+  was not used: it is drawn inside the panel and the new inner scroll would clip it.
+- **Reader term card.** `DocumentText.tsx`: no header «Открыть» and no row of buttons; the title and each meaning row
+  carry their own 2 rem icon button (`PreviewOpenButton`, «Открыть: <name>»), which opens the definition's source
+  section (else the linked document). The multi-meaning layout has no e2e fixture (the clinical fixture's 54 term links
+  are all single); covered by the code path shared with the single row.
+- **Fold rule.** `components/line-clamp.ts`: `createLineClamp` measures the element (`scrollHeight` / line height, on
+  every width change) and folds it to N lines only when ≥ `MIN_HIDDEN_LINES` (3) would be hidden; folded until measured,
+  so a long text never flashes whole. Applied to every text and list fold (see the clamp entry below).
+- **Press spring.** `press-feedback.ts`: release plays `springBackKeyframes(from, peak)` (0.96 → peak → 1 − 0.35·swing →
+  1 + 0.1·swing → 1, 300 ms, follows the gesture); peak 1.04 for controls, 1.012 for wide rows, capped by
+  `maxUnclippedScale(box, clipBox)` — the screen cut by every ancestor whose overflow is not visible — so a control at a
+  card's edge returns without overshoot.
+- **Screen density.** No validated "too empty" metric exists (research: Feature Congestion / Subband Entropy / edge
+  density measure clutter; AIM is research-grade; no big-company tool found) —
+  `docs/research/screen-density-2026-11-08.md`. `e2e/screen-density.ts` measures the filled share of the first viewport
+  on an 8 px grid, the largest empty band and «scrolls without being a list»; `screen-density.spec.ts` reports nine main
+  screens at 390/1024 px (`DENSITY_REPORT=<dir>`, `DENSITY_STRICT=1` to fail). Baseline: only the centred empty states
+  (patients; news on a tablet) are flagged.
+- **Hover.** `e2e/hover-effects.spec.ts` hovers each kind of interactive element on main-app and diary screens (doctor
+  diary against a scratch `diary-server`) and diffs computed styles (screenshots for slider thumbs); it also lists
+  `:hover` rules outside `@media (hover: …)` without failing. Fixed: `RangeSlider` (thumb grows, halo),
+  `SegmentedControl` (theme picker), `TextField`, `FileButton`, `Carousel` dots, header «⋯», `ChoiceChip` (gated),
+  calculator cards and «?» tips, home secondary action, diary actions/options/rows/heatmap/chips, doctor dashboard rows
+  and buttons. Allowlisted: the active bottom-nav tab, the skip link. Still ungated (listed): 11 rules incl.
+  `.carousel__arrow`, `.help-icon-link`, `.ui-disclosure__header`, `.ui-date-field__trigger`.
+- **Contrast.** `e2e/contrast.ts` (shared with `diary-screens.spec.ts`): text 4.5:1 / 3:1 and icon glyphs 3:1, composited
+  backgrounds. `e2e/app-contrast.spec.ts`: home, calculators, CIWA-Ar with «?» and «Источники» open, assessments,
+  a questionnaire, settings, notes, drug comparison, a reader document; 390/1024 px, light/dark. Fixed: questionnaire
+  section descriptions (`#666` fallback, 2.3:1 in dark → `--theme-text-muted`), bottom-bar hover glyph (1.4:1 in light).
+- **Typed errors.** `packages/contracts/src/typed-errors.ts` (`TypedResult`, `matchError`, `assertNever`,
+  `ErrorStates<E>`, `errorStateOf`), `components/calm-error-props.ts`; first area: news feeds (`news-failure.ts`, 11
+  failure kinds + 2 subscribe refusals, each with its own state; HTTP status kept). Enforced by mapped types with
+  `@ts-expect-error` tests, a Biome override (`useExhaustiveSwitchCases`, `noEmptyBlockStatements`, `noUselessCatch`) on
+  the migrated paths and `bun run check:errors` (`noFloatingPromises`, same paths). `docs/ERRORS.md`.
+
 ## Calculator links and one-calculator loading — 2026-11-08 (STATE CALCLINK)
 
 Owner 2026-11-08: «скинуть калькулятор по ссылке … желательно без скачивания, динамическая подгрузка одного
