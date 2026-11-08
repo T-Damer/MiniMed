@@ -101,6 +101,30 @@ export class QueryDocumentIndex {
    * containing it: what a misspelt word is corrected to (`correctWord`). Built on the first use;
    * later `extraNames` are ignored.
    */
+  /**
+   * The tables a search builds on first use, one step each, so an idle warm-up can build them
+   * between other work (`MedicalCore.warmUp`). Each step is a no-op once its table exists.
+   */
+  warmUpSteps(): readonly (() => void)[] {
+    return [
+      () => {
+        this.icdCards ??= buildIcdCards(this.documents);
+      },
+      () => {
+        this.namePrefixes ??= buildNameWordPrefixes(this.documents);
+      },
+      () => {
+        this.latinNames ??= buildLatinNames(this.documents);
+      },
+      () => {
+        this.linkedProducts ??= buildLinkedProducts(this.documents);
+      },
+      () => {
+        this.pointersByTarget ??= buildPointersByTarget(this.documents);
+      },
+    ];
+  }
+
   nameVocabulary(extraNames: readonly string[] = []): NameVocabulary {
     this.names ??= buildNameVocabulary([
       ...this.documents.map((document) =>

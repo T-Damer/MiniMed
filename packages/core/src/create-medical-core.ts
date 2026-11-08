@@ -1364,6 +1364,27 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     };
   };
 
+  /** The alias expander of lookup queries, rebuilt only when the alias list changes. */
+  const ensureLookupExpansion = (
+    aliases: Awaited<ReturnType<MedicalStore['listAliases']>>,
+  ): void => {
+    if (lookupExpansion?.aliases === aliases) return;
+    lookupExpansion = { aliases, expand: createAliasExpander(aliases) };
+  };
+
+  /** The document and terminology indexes of `documents`, built once per document list. */
+  const documentIndexesFor = (
+    documents: readonly SearchDocumentDescriptor[],
+  ): { documentIndex: QueryDocumentIndex; termIndex: TerminologySearchIndex } => {
+    if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+      queryDocumentIndex = new QueryDocumentIndex(documents);
+      terminologyIndex = new TerminologySearchIndex(documents);
+      icdRecommendations = undefined;
+      indexedDocuments = documents;
+    }
+    return { documentIndex: queryDocumentIndex, termIndex: terminologyIndex };
+  };
+
   const runSearch = async (
     request: SearchRequest,
   ): Promise<Result<SearchResponse, LocalMedError>> => {
@@ -1373,15 +1394,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       const aliasesResult = await getAliases();
       if (!aliasesResult.ok) return err(aliasesResult.error);
-      if (
-        parsed.data.analysisMode === 'lookup' &&
-        lookupExpansion?.aliases !== aliasesResult.value
-      ) {
-        lookupExpansion = {
-          aliases: aliasesResult.value,
-          expand: createAliasExpander(aliasesResult.value),
-        };
-      }
+      if (parsed.data.analysisMode === 'lookup') ensureLookupExpansion(aliasesResult.value);
       // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
       // reaches a document whose title lacks the typed words, by meaning.
       const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
@@ -1415,14 +1428,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
 
       const documents = await getSearchDocuments();
-      if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
-        queryDocumentIndex = new QueryDocumentIndex(documents);
-        terminologyIndex = new TerminologySearchIndex(documents);
-        icdRecommendations = undefined;
-        indexedDocuments = documents;
-      }
-      const documentIndex = queryDocumentIndex;
-      const termIndex = terminologyIndex;
+      const { documentIndex, termIndex } = documentIndexesFor(documents);
       const terminologyMatch =
         parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
       const terminologySearches = terminologyMatch
@@ -2167,6 +2173,36 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         options.drugCodes,
         queryDocumentIndex,
       );
+    },
+
+    async warmUp(): Promise<void> {
+      // One piece per task: a tap or a keystroke waits for one piece at most, not for all of them.
+      const pause = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+      const aliases = await getAliases();
+      if (!aliases.ok) return;
+      ensureLookupExpansion(aliases.value);
+      await pause();
+      const documents = await getSearchDocuments();
+      if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+        const documentIndex = new QueryDocumentIndex(documents);
+        await pause();
+        const termIndex = new TerminologySearchIndex(documents);
+        // A search that ran during the pause has built them already.
+        if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+          queryDocumentIndex = documentIndex;
+          terminologyIndex = termIndex;
+          icdRecommendations = undefined;
+          indexedDocuments = documents;
+        }
+      }
+      const index = queryDocumentIndex;
+      if (!index) return;
+      for (const step of index.warmUpSteps()) {
+        await pause();
+        step();
+      }
+      await pause();
+      await spellingVocabulary(index);
     },
 
     async reference(request) {

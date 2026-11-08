@@ -108,6 +108,12 @@ export class RetirableMedicalCore implements MedicalCore {
     return this.route((core) => core.search(request));
   }
 
+  public warmUp(): Promise<void> {
+    return this.route(async (core) => {
+      await core.warmUp?.();
+    });
+  }
+
   public getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>> {
     return this.route((core) => core.getDocument(documentId));
   }

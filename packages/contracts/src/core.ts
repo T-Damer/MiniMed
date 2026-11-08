@@ -87,5 +87,11 @@ export interface MedicalCore {
   installContentPack(
     request: InstallContentPackRequest,
   ): Promise<Result<InstallContentPackResponse, LocalMedError>>;
+  /**
+   * Builds what the first search would otherwise build inside it (document, terminology and
+   * spelling indexes over every mounted document), in pieces that yield between them. Optional;
+   * results never depend on it. Called while the screen is idle after the core opens.
+   */
+  warmUp?(): Promise<void>;
   close(): Promise<void>;
 }
