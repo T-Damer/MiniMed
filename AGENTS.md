@@ -300,6 +300,13 @@ reported.
   (`components/press-feedback.ts`) shrinks a control and springs it back past full size before it
   settles; the overshoot is capped by the room its clipping box leaves, so nothing pokes out of a card
   or the screen. Don't add per-component press animations.
+- **Interactions don't shift the layout (owner 2026-11-08).** Hover, press, focus, selection, loading
+  and similar states animate only the element itself; its neighbours do not move. Animate `transform`
+  and `opacity`, not size or position; a state never changes width, height, padding, border width or
+  font weight (swap a colour or an outline instead); spinners, badges, counters and error text get
+  their space up front or float over the content (popover, overlay), so nothing jumps when they
+  appear. The exception is layout that is designed to move: panes that trade space (`flex: 1` next to
+  `flex: 4`), an accordion or a «Показать ещё» the user opens.
 - **Contrast in both themes (owner 2026-11-08).** Text and icon contrast is checked in light and dark
   (`e2e/app-contrast.spec.ts`, `e2e/diary-screens.spec.ts`); an element that fails gets a different
   colour at the token or component level — never a per-screen override.
