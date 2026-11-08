@@ -114,7 +114,7 @@
   @media (hover: hover) and (pointer: fine) {
     .app-bottom-nav .app-nav-button:hover {
       transform: none;
-      color: var(--theme-accent);
+      color: #f8f0dd;
       border-color: transparent;
       background: transparent;
       box-shadow: none;
