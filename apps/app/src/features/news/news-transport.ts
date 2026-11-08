@@ -68,7 +68,9 @@ export const FAILURE_MESSAGES: Readonly<Record<FetchFailureCode, string>> = {
   'too-large': 'Ответ источника слишком большой.',
   'not-a-feed': 'По этому адресу нет ленты новостей.',
   malformed: 'Лента повреждена и не читается.',
+  rejected: 'Источник не принял запрос.',
   empty: 'Источник вернул пустой ответ.',
+  unexpected: 'Ответ источника не удалось обработать.',
 };
 
 export function failureMessage(code: FetchFailureCode, status?: number): string {
@@ -116,7 +118,7 @@ function lowerHeaders(headers: Headers | Record<string, unknown>): Record<string
 async function readCapped(
   response: Response,
   maxBytes: number,
-  onProgress: () => void = () => {},
+  onProgress: () => void = () => undefined,
 ): Promise<Uint8Array> {
   const body = response.body;
   if (!body) {

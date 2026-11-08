@@ -17,12 +17,17 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { TextField } from '@/components/TextField';
-import { FeedParseError } from '@/features/news/feed-parser';
+import {
+  failureLine,
+  failureState,
+  failureToast,
+  type SubscribeFailure,
+  subscribeFailureOf,
+} from '@/features/news/news-failure';
 import { NEWS_ROOT_HASH } from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { pluralRu, subscriptionIdFor } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import { FeedFetchError } from '@/features/news/news-transport';
 import {
   authorsShort,
   normalizePubmedQuery,
@@ -38,7 +43,7 @@ import { navigateBack } from '@/state/app-back';
 type SearchState =
   | { readonly kind: 'idle' }
   | { readonly kind: 'searching' }
-  | { readonly kind: 'failed'; readonly message: string };
+  | { readonly kind: 'failed'; readonly failure: SubscribeFailure };
 
 /** Kept while the app is open so that leaving to read an article and coming back loses nothing. Never persisted, never logged. */
 const [lastQuery, setLastQuery] = createSignal('');
@@ -98,7 +103,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
   const search = async (): Promise<void> => {
     const checked = normalizePubmedQuery(query());
     if (!checked.ok) {
-      setState({ kind: 'failed', message: checked.message });
+      setState({ kind: 'failed', failure: { kind: 'invalid-input', reason: checked.message } });
       return;
     }
     controller?.abort();
@@ -114,11 +119,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
       setState({ kind: 'idle' });
     } catch (error) {
       if (mine.signal.aborted) return;
-      const message =
-        error instanceof FeedFetchError || error instanceof FeedParseError
-          ? error.message
-          : 'Не удалось выполнить поиск.';
-      setState({ kind: 'failed', message });
+      setState({ kind: 'failed', failure: subscribeFailureOf(error) });
     }
   };
 
@@ -130,7 +131,7 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
       await service.subscribePubmed(current.query, current);
       toast.success('Поиск сохранён: новые статьи будут появляться в ленте.');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось сохранить поиск.');
+      toast.error(failureToast(error));
     } finally {
       setSaving(false);
     }
@@ -204,7 +205,9 @@ export function NewsPubmedPage(props: { readonly snapshot: Accessor<NewsSnapshot
       <Switch>
         <Match when={state().kind === 'failed'}>
           <p class="news-pubmed__error" role="alert">
-            {(state() as Extract<SearchState, { kind: 'failed' }>).message}
+            {failureLine(
+              failureState((state() as Extract<SearchState, { kind: 'failed' }>).failure),
+            )}
           </p>
         </Match>
         <Match when={state().kind === 'searching'}>

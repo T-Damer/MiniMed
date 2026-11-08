@@ -1,3 +1,4 @@
+import { matchError } from '@localmed/contracts';
 import {
   type Accessor,
   createEffect,
@@ -26,13 +27,14 @@ import {
 import { NewsAvatar } from '@/features/news/NewsAvatar';
 import { NewsRichText } from '@/features/news/NewsRichText';
 import { avatarLookOf } from '@/features/news/news-avatar';
+import { attemptFeed, failureState, feedFailureOf } from '@/features/news/news-failure';
 import { itemDateLabel, shortSourceName } from '@/features/news/news-format';
 import { NEWS_ROOT_HASH } from '@/features/news/news-routing';
 import type { NewsSnapshot } from '@/features/news/news-service';
 import { getNewsService } from '@/features/news/news-store';
-import { FeedFetchError } from '@/features/news/news-transport';
+import { feedsNeedNativeApp } from '@/features/news/news-transport';
 import type {
-  FetchFailureCode,
+  FeedFailure,
   NewsItem,
   StoredArticle,
   Subscription,
@@ -61,12 +63,21 @@ export function frameAddress(url: string): string {
   return url.replace(/^http:\/\//iu, 'https://');
 }
 
-function articleProblem(code: FetchFailureCode | undefined): string {
-  if (code === 'cors') {
-    return 'Сайт не разрешает загрузить статью из браузера — откройте её на сайте.';
-  }
-  if (code === 'offline') return 'Нет сети — показан текст из ленты.';
-  return 'Статью загрузить не удалось — показан текст из ленты.';
+/** The line under a teaser when the full article could not be downloaded; the feed text stays. */
+function articleProblem(failure: FeedFailure): string {
+  return matchError(failure, {
+    offline: () => 'Нет сети — показан текст из ленты.',
+    cors: () => 'Сайт не разрешает загрузить статью из браузера — откройте её на сайте.',
+    network: () => 'Сайт недоступен — показан текст из ленты.',
+    timeout: () => 'Сайт не ответил вовремя — показан текст из ленты.',
+    http: (e) => `Сайт вернул ошибку${e.status ? ` ${e.status}` : ''} — показан текст из ленты.`,
+    'too-large': () => 'Страница слишком большая — показан текст из ленты.',
+    'not-a-feed': () => 'Статью на странице найти не удалось — показан текст из ленты.',
+    malformed: () => 'Страницу не удалось прочитать — показан текст из ленты.',
+    rejected: () => 'Сайт не принял запрос — показан текст из ленты.',
+    empty: () => 'Сайт вернул пустую страницу — показан текст из ленты.',
+    unexpected: () => 'Статью обработать не удалось — показан текст из ленты.',
+  });
 }
 
 function ExternalLink(props: {
@@ -140,13 +151,18 @@ function NewsSiteFrame(props: { readonly url: string; readonly title: string }):
 type RawState =
   | { readonly kind: 'loading' }
   | { readonly kind: 'ready'; readonly document: string }
-  | { readonly kind: 'failed'; readonly code: FetchFailureCode | undefined };
+  | { readonly kind: 'failed'; readonly failure: FeedFailure };
 
 /**
  * The page as the site serves it, downloaded by the app and shown with its scripts removed in a
  * sandboxed frame (`srcdoc`, no `allow-scripts`). X-Frame-Options does not apply: the frame shows
  * the app's own copy, not the site.
  */
+/** What the page fallback says: the state of the failure, in the build that is running. */
+function pageFailure(failure: FeedFailure) {
+  return failureState(failure, { browserBuild: feedsNeedNativeApp() });
+}
+
 function NewsRawPage(props: { readonly url: string; readonly title: string }): JSX.Element {
   const service = getNewsService();
   const [state, setState] = createSignal<RawState>({ kind: 'loading' });
@@ -154,25 +170,17 @@ function NewsRawPage(props: { readonly url: string; readonly title: string }): J
   onCleanup(() => abort.abort());
   onMount(() => {
     const address = service.transportKind === 'web' ? frameAddress(props.url) : props.url;
-    service
-      .fetchPage(address, abort.signal)
-      .then((page) => {
-        if (abort.signal.aborted) return;
-        setState({
-          kind: 'ready',
-          document: buildPageFrameDocument(page.html, page.finalUrl),
-        });
-      })
-      .catch((error: unknown) => {
-        if (abort.signal.aborted) return;
-        if (!(error instanceof FeedFetchError)) {
-          console.warn('Страница не показана.', error);
-        }
-        setState({
-          kind: 'failed',
-          code: error instanceof FeedFetchError ? error.code : undefined,
-        });
-      });
+    void attemptFeed(() => service.fetchPage(address, abort.signal)).then((fetched) => {
+      if (abort.signal.aborted) return;
+      setState(
+        fetched.ok
+          ? {
+              kind: 'ready',
+              document: buildPageFrameDocument(fetched.value.html, fetched.value.finalUrl),
+            }
+          : { kind: 'failed', failure: fetched.error },
+      );
+    });
   });
   return (
     <Switch>
@@ -190,17 +198,18 @@ function NewsRawPage(props: { readonly url: string; readonly title: string }): J
           allow=""
         />
       </Match>
-      <Match when={(state() as Extract<RawState, { kind: 'failed' }>).code === 'cors'}>
+      <Match when={(state() as Extract<RawState, { kind: 'failed' }>).failure.kind === 'cors'}>
         <NewsSiteFrame url={props.url} title={props.title} />
       </Match>
       <Match when={true}>
         <div class="news-frame__fallback" role="alert" data-testid="news-frame-fallback">
           <AppGlyph name="globe" class="news-frame__fallback-icon" />
           <p class="news-frame__fallback-title">
-            {(state() as Extract<RawState, { kind: 'failed' }>).code === 'offline'
-              ? 'Нет сети'
-              : 'Страница не загрузилась'}
+            {pageFailure((state() as Extract<RawState, { kind: 'failed' }>).failure).title}
           </p>
+          <Show when={pageFailure((state() as Extract<RawState, { kind: 'failed' }>).failure).text}>
+            {(text) => <p class="news-frame__fallback-text">{text()}</p>}
+          </Show>
           <ExternalLink url={props.url} class="news-pill news-pill--primary">
             <AppGlyph name="arrow-square-out" class="news-pill__icon" />
             Открыть в браузере
@@ -380,9 +389,7 @@ export function NewsViewer(props: {
             setArticleState(downloaded ? 'ready' : 'none');
           } catch (error) {
             if (abort.signal.aborted) return;
-            const code = error instanceof FeedFetchError ? error.code : undefined;
-            if (!(error instanceof FeedFetchError)) console.warn('Статья не загружена.', error);
-            setProblem(articleProblem(code));
+            setProblem(articleProblem(feedFailureOf(error)));
             setArticleState('failed');
           }
         })();

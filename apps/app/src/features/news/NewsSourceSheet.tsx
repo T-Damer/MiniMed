@@ -1,3 +1,4 @@
+import { matchError } from '@localmed/contracts';
 import {
   createEffect,
   createMemo,
@@ -14,20 +15,18 @@ import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { CalmError } from '@/components/CalmError';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { FeedParseError, type ParsedFeed } from '@/features/news/feed-parser';
+import type { ParsedFeed } from '@/features/news/feed-parser';
 import { NewsAvatar } from '@/features/news/NewsAvatar';
 import { avatarLook } from '@/features/news/news-avatar';
+import { attemptFeed, failureProps, failureToast } from '@/features/news/news-failure';
 import { relativeTimeLabel } from '@/features/news/news-format';
 import type { SourceInspection } from '@/features/news/news-service';
 import { subscriptionIdFor } from '@/features/news/news-state';
 import { getNewsService } from '@/features/news/news-store';
-import {
-  BROWSER_FEEDS_MESSAGE,
-  FeedFetchError,
-  isBrowserReadFailure,
-} from '@/features/news/news-transport';
-import type { FetchFailureCode, Subscription } from '@/features/news/news-types';
+import { isBrowserReadFailure } from '@/features/news/news-transport';
+import type { FeedFailure, Subscription } from '@/features/news/news-types';
 import { sheetAvatarTransitionName } from '@/features/news/news-view-transition';
 import { type DiscoveredFeed, hostLabel } from '@/features/news/source-url';
 import { bundledAvatarFor } from '@/features/news/suggested-avatars';
@@ -50,38 +49,31 @@ type Preview =
   | {
       readonly kind: 'failed';
       readonly url: string;
-      readonly code: FetchFailureCode;
-      readonly message: string;
+      readonly failure: FeedFailure;
     };
 
 /** Failures after which the address may still be a website worth opening in the viewer. */
-const SITE_FALLBACK_CODES: ReadonlySet<FetchFailureCode> = new Set([
-  'cors',
-  'not-a-feed',
-  'malformed',
-  'empty',
-  'too-large',
-  'http',
-  'network',
-  'timeout',
-]);
+function siteFallbackAllowed(failure: FeedFailure): boolean {
+  return matchError(failure, {
+    offline: () => false,
+    cors: () => true,
+    network: () => true,
+    timeout: () => true,
+    http: () => true,
+    'too-large': () => true,
+    'not-a-feed': () => true,
+    malformed: () => true,
+    rejected: () => false,
+    empty: () => true,
+    unexpected: () => false,
+  });
+}
 
 const PREVIEW_ITEMS = 5;
 const MAX_FEED_CHOICES = 4;
 
 function targetUrl(target: SourceTarget): string {
   return target.kind === 'suggested' ? target.feed.url : target.url;
-}
-
-function failureOf(error: unknown): { code: FetchFailureCode; message: string } {
-  if (error instanceof FeedFetchError || error instanceof FeedParseError) {
-    // A browser cannot tell «refused» from «unreachable» and can do nothing about either.
-    if (isBrowserReadFailure(error.code)) {
-      return { code: error.code, message: BROWSER_FEEDS_MESSAGE };
-    }
-    return { code: error.code, message: error.message };
-  }
-  return { code: 'network', message: 'Не удалось проверить адрес.' };
 }
 
 /**
@@ -105,15 +97,13 @@ export function NewsSourceSheet(props: {
   let controller: AbortController | undefined;
 
   const inspect = async (url: string, signal: AbortSignal, followFeeds: boolean): Promise<void> => {
-    let inspection: SourceInspection;
-    try {
-      inspection = await service.inspectSource(url, signal);
-    } catch (error) {
-      if (signal.aborted) return;
-      setPreview({ kind: 'failed', url, ...failureOf(error) });
+    const inspected = await attemptFeed(() => service.inspectSource(url, signal));
+    if (signal.aborted) return;
+    if (!inspected.ok) {
+      setPreview({ kind: 'failed', url, failure: inspected.error });
       return;
     }
-    if (signal.aborted) return;
+    const inspection: SourceInspection = inspected.value;
     if (inspection.type === 'feed') {
       setPreview({ kind: 'feed', url: inspection.url, feed: inspection.feed });
       const site = inspection.feed.siteUrl ?? inspection.url;
@@ -216,7 +206,7 @@ export function NewsSourceSheet(props: {
       );
       finish(`Источник добавлен: ${subscription.title}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось добавить источник.');
+      toast.error(failureToast(error));
     } finally {
       setBusy(false);
     }
@@ -234,10 +224,19 @@ export function NewsSourceSheet(props: {
       });
       finish(`Сайт добавлен: ${subscription.title}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось добавить сайт.');
+      toast.error(failureToast(error));
     } finally {
       setBusy(false);
     }
+  };
+  const retryInspect = (): void => {
+    const target = shown();
+    if (!target) return;
+    controller?.abort();
+    const mine = new AbortController();
+    controller = mine;
+    setPreview({ kind: 'loading' });
+    void inspect(pageUrl() ?? targetUrl(target), mine.signal, true);
   };
   const chooseFeed = (feed: DiscoveredFeed): void => {
     controller?.abort();
@@ -249,15 +248,15 @@ export function NewsSourceSheet(props: {
   /** The web build cannot read this source: say so, offer no action that could not work there. */
   const browserBlocked = () => {
     const current = preview();
-    return current.kind === 'failed' && isBrowserReadFailure(current.code);
+    return current.kind === 'failed' && isBrowserReadFailure(current.failure.kind);
   };
   const siteOnlyAllowed = () => {
     const current = preview();
     if (current.kind === 'page') return current.feeds.length === 0;
     return (
       current.kind === 'failed' &&
-      SITE_FALLBACK_CODES.has(current.code) &&
-      !isBrowserReadFailure(current.code)
+      siteFallbackAllowed(current.failure) &&
+      !isBrowserReadFailure(current.failure.kind)
     );
   };
   const feedItems = () => feedOf()?.items.slice(0, PREVIEW_ITEMS) ?? [];
@@ -367,10 +366,14 @@ export function NewsSourceSheet(props: {
             </ul>
           </Match>
           <Match when={preview().kind === 'failed'}>
-            <p class="news-sheet__problem" role="alert">
-              <AppGlyph name="info" class="news-sheet__problem-icon" />
-              {(preview() as Extract<Preview, { kind: 'failed' }>).message}
-            </p>
+            <CalmError
+              embedded
+              testId="news-source-error"
+              {...failureProps((preview() as Extract<Preview, { kind: 'failed' }>).failure, {
+                retry: retryInspect,
+                ...(siteOnlyAllowed() ? { 'open-external': () => void subscribeSite() } : {}),
+              })}
+            />
           </Match>
         </Switch>
       </div>

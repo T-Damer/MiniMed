@@ -158,11 +158,9 @@ describe('parseEsearch', () => {
       'malformed',
     );
     expect(code(JSON.stringify({ esearchresult: { idlist: ['1'], ERROR: 'Invalid query' } }))).toBe(
-      'malformed',
+      'rejected',
     );
-    expect(code(JSON.stringify({ error: 'API rate limit exceeded', count: '4' }))).toBe(
-      'malformed',
-    );
+    expect(code(JSON.stringify({ error: 'API rate limit exceeded', count: '4' }))).toBe('rejected');
   });
 });
 

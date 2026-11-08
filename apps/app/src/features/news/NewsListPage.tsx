@@ -19,6 +19,7 @@ import { NewsSourceGrid } from '@/features/news/NewsSourceGrid';
 import { NewsSourceRail } from '@/features/news/NewsSourceRail';
 import { NewsSourceSheet, type SourceTarget } from '@/features/news/NewsSourceSheet';
 import { avatarLookOf } from '@/features/news/news-avatar';
+import { failureLine, failureToast, subscriptionErrorState } from '@/features/news/news-failure';
 import {
   createPassedObserver,
   createReadTracker,
@@ -147,7 +148,7 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
       });
       toast.success(`Источник добавлен: ${subscription.title}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось добавить источник.');
+      toast.error(failureToast(error));
     }
   };
   /** The browser build reads only the feeds whose hosts allow it; the app reads them all. */
@@ -242,7 +243,7 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
               {(entry) => (
                 <p class="news-page__banner-line">
                   <strong class="news-page__banner-source">{entry.title}:</strong>{' '}
-                  {entry.error?.message}
+                  {entry.error ? failureLine(subscriptionErrorState(entry.error)) : ''}
                 </p>
               )}
             </For>

@@ -596,7 +596,7 @@ test.describe('news feed tab', () => {
     await page.getByRole('button', { name: 'К ленте' }).click();
     await page.locator('[data-news-site]').click();
     await expect(page.getByTestId('news-frame-fallback')).toBeVisible({ timeout: 40_000 });
-    await expect(page.getByTestId('news-frame-fallback')).toContainText('не загрузилась');
+    await expect(page.getByTestId('news-frame-fallback')).toContainText('не ответил');
     await expect(page.getByRole('link', { name: 'Открыть в браузере' }).first()).toBeVisible();
   });
 
@@ -628,7 +628,7 @@ test.describe('news feed tab', () => {
     await page.getByRole('textbox', { name: 'Адрес ленты или сайта' }).fill(BLOCKED_FEED_URL);
     await page.getByRole('button', { name: 'Проверить адрес' }).click();
     const sheet = page.locator('.news-sheet');
-    await expect(sheet.getByRole('alert')).toHaveText(
+    await expect(sheet.getByRole('alert')).toContainText(
       'Ленты загружаются в приложении для Android.',
     );
     // The browser cannot read the feed, nor frame it as a site: no button promises either.

@@ -51,7 +51,9 @@ const FAILURE_CODES: ReadonlySet<string> = new Set<FetchFailureCode>([
   'too-large',
   'not-a-feed',
   'malformed',
+  'rejected',
   'empty',
+  'unexpected',
 ]);
 
 function isSubscriptionKind(value: unknown): value is SubscriptionKind {
@@ -102,6 +104,9 @@ export function parseSubscriptions(raw: unknown): readonly Subscription[] {
       finiteNumber(errorRaw['at']) !== undefined
         ? {
             code: errorRaw['code'] as FetchFailureCode,
+            ...(finiteNumber(errorRaw['status']) !== undefined
+              ? { status: errorRaw['status'] as number }
+              : {}),
             message: errorRaw['message'].slice(0, 300),
             at: errorRaw['at'] as number,
           }

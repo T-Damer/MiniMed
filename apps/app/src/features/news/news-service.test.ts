@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ATOM_FEED, HTML_PAGE, RSS2_FEED } from '@/features/news/feed-fixtures';
 import { NewsService } from '@/features/news/news-service';
@@ -221,6 +221,29 @@ describe('NewsService refresh and unread', () => {
     fail = false;
     await service.refresh();
     expect(service.snapshot().subscriptions[0]?.error).toBeUndefined();
+  });
+
+  it('keeps the http status and files an unknown error as `unexpected`, not as «network»', async () => {
+    let failure: unknown = new FeedFetchError('http', 'x', 503);
+    const { service } = makeService(() => {
+      if (failure) throw failure;
+      return ok(RSS2_FEED);
+    });
+    failure = undefined;
+    await service.subscribeFeed('https://example.org/feed.xml');
+    failure = new FeedFetchError('http', 'x', 503);
+    await service.refresh();
+    expect(service.snapshot().subscriptions[0]?.error).toMatchObject({
+      code: 'http',
+      status: 503,
+      message: 'Источник вернул ошибку 503',
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    failure = new TypeError('boom');
+    await service.refresh();
+    expect(service.snapshot().subscriptions[0]?.error?.code).toBe('unexpected');
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('refreshes only stale feeds when the tab opens', async () => {
