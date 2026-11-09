@@ -128,6 +128,8 @@ for (const viewport of VIEWPORTS) {
       await expect(page).toHaveURL(new RegExp(`${DOCUMENT_HASH}$`, 'u'));
       await expect(page.locator('.document-overlay-section').first()).toBeAttached();
       await expectPlaceRestored(page, left);
+      // The restore is the app's own scroll: it leaves the controls (and the reading line) in place.
+      await expect(page.locator('html')).not.toHaveClass(/app-chrome-hidden/u);
       const back = await snapshot(page);
       expect(back.entries).toBe(entriesAtA + 2);
       expect(back.scrollY).toBeGreaterThan(1000);

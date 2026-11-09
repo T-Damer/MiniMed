@@ -13,7 +13,7 @@ import { medicalImageViewerActive } from '@/features/library/document-reading-mo
 import { visitRoute } from '@/state/app-back';
 import { isDocumentReadRoute } from '@/state/document-route';
 import { currentHistoryEntry, installHistoryEntryTracking } from '@/state/history-entries';
-import { READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
+import { extendReaderChromeHold, READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { readerChromePinned } from '@/state/reader-chrome-pin';
 import { installScrollRestoration, rememberedScroll } from '@/state/scroll-restore';
 import { trackToolNavigation } from '@/state/tool-navigation';
@@ -282,7 +282,7 @@ export function useRootNavigation() {
   const handleChromeHold = (event: Event): void => {
     const duration =
       event instanceof CustomEvent && typeof event.detail === 'number' ? event.detail : 600;
-    chromeHoldUntil = performance.now() + Math.min(Math.max(duration, 0), 3000);
+    chromeHoldUntil = extendReaderChromeHold(chromeHoldUntil, performance.now(), duration);
     if (chromeHidden()) setChromeHidden(false);
   };
 
