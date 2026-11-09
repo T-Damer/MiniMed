@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createReadTracker, hasPassedTop } from '@/features/news/news-read-tracker';
+import {
+  createPassedObserver,
+  createReadTracker,
+  hasPassedTop,
+  isAboveTop,
+} from '@/features/news/news-read-tracker';
 
 describe('createReadTracker', () => {
   beforeEach(() => {
@@ -88,5 +93,73 @@ describe('hasPassedTop', () => {
         boundingClientRect: { bottom: 0, height: 0 },
       }),
     ).toBe(false);
+  });
+});
+
+describe('createPassedObserver', () => {
+  type Callback = (entries: readonly Partial<IntersectionObserverEntry>[]) => void;
+  let fire: Callback = () => undefined;
+  const watched = new Set<Element>();
+  beforeEach(() => {
+    watched.clear();
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: Callback) {
+          fire = callback;
+        }
+        observe(element: Element) {
+          watched.add(element);
+        }
+        unobserve(element: Element) {
+          watched.delete(element);
+        }
+        disconnect() {
+          watched.clear();
+        }
+      },
+    );
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function row(box: { bottom: number; height: number }): Element {
+    return {
+      isConnected: true,
+      getBoundingClientRect: () => box,
+    } as unknown as Element;
+  }
+
+  it('reports the rows a jump moved from below the screen to above it, which fire nothing', () => {
+    const passed: string[] = [];
+    const observer = createPassedObserver((id) => passed.push(id));
+    const onScreen = { bottom: 300, height: 80 };
+    const below = { bottom: 2000, height: 80 };
+    const first = row(onScreen);
+    const jumped = row(below);
+    const stillBelow = row({ bottom: 9000, height: 80 });
+    observer.observe(first, 'first');
+    observer.observe(jumped, 'jumped');
+    observer.observe(stillBelow, 'below');
+    // A 5000 px jump: the row that was on screen fires; the jumped one changed no intersection.
+    onScreen.bottom = -4700;
+    below.bottom = -3000;
+    fire([
+      {
+        target: first,
+        isIntersecting: false,
+        rootBounds: { top: 0 } as DOMRectReadOnly,
+        boundingClientRect: { bottom: -4700, height: 80 } as DOMRectReadOnly,
+      },
+    ]);
+    expect(passed).toEqual(['first', 'jumped']);
+    expect(watched.has(jumped)).toBe(false);
+    expect(watched.has(stillBelow)).toBe(true);
+  });
+
+  it('takes no hidden row for a passed one', () => {
+    expect(isAboveTop({ bottom: 0, height: 0 }, 0)).toBe(false);
+    expect(isAboveTop({ bottom: -1, height: 40 }, 0)).toBe(true);
   });
 });

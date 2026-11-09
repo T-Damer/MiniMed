@@ -60,15 +60,43 @@ export interface PassedObserver {
   disconnect(): void;
 }
 
-/** Reports each observed element once, the first time it is seen above the viewport. */
+/** True when a box lies wholly above the top of the viewport (a hidden, zero-height one never does). */
+export function isAboveTop(
+  box: { readonly bottom: number; readonly height: number },
+  top: number,
+): boolean {
+  return box.height > 0 && box.bottom <= top;
+}
+
+/**
+ * Reports each observed element once, the first time it is seen above the viewport.
+ *
+ * An IntersectionObserver fires only when an element's intersection changes, so a row that goes
+ * from below the screen to above it in one step (a fast fling, a jump of the scroll position, a
+ * 5000 px wheel) never fires and was never marked read (E2E-MAIN, 2026-11-09: 5 of 60 rows). Every
+ * callback therefore also sweeps the rows still watched and reports those that now lie above the
+ * top; the callback runs after layout, so the boxes read are already computed.
+ */
 export function createPassedObserver(onPassed: (itemId: string) => void): PassedObserver {
-  const ids = new WeakMap<Element, string>();
+  const ids = new Map<Element, string>();
+  const report = (element: Element, id: string): void => {
+    observer.unobserve(element);
+    ids.delete(element);
+    onPassed(id);
+  };
   const observer = new IntersectionObserver((entries) => {
+    let top = 0;
     for (const entry of entries) {
+      if (entry.rootBounds) top = entry.rootBounds.top;
       if (!hasPassedTop(entry)) continue;
       const id = ids.get(entry.target);
-      observer.unobserve(entry.target);
-      if (id !== undefined) onPassed(id);
+      if (id !== undefined) report(entry.target, id);
+    }
+    for (const [element, id] of ids) {
+      if (!element.isConnected) {
+        observer.unobserve(element);
+        ids.delete(element);
+      } else if (isAboveTop(element.getBoundingClientRect(), top)) report(element, id);
     }
   });
   return {
@@ -76,6 +104,9 @@ export function createPassedObserver(onPassed: (itemId: string) => void): Passed
       ids.set(element, itemId);
       observer.observe(element);
     },
-    disconnect: () => observer.disconnect(),
+    disconnect: () => {
+      observer.disconnect();
+      ids.clear();
+    },
   };
 }
