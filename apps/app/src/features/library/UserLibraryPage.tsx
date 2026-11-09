@@ -41,6 +41,8 @@ import {
   notesPatientsPath,
   notesSavedPath,
   notesTemplatesPath,
+  notesWorksheetPath,
+  notesWorksheetsPath,
 } from '@/features/notes/notes-routing';
 import { OcrLanguagePackSheet } from '@/features/ocr/OcrLanguagePackSheet';
 import { ensureOcrLanguagePackFiles } from '@/features/ocr/ocr-language-pack';
@@ -70,6 +72,7 @@ import {
   isUserLibraryOcrSupported,
   isUserLibraryQuestionnaire,
   isUserLibrarySystemFolder,
+  isUserLibraryWorksheet,
   listUserLibraryDocuments,
   listUserLibraryFolders,
   markUserLibraryDocumentOpened,
@@ -92,6 +95,7 @@ import {
   USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
   USER_LIBRARY_RESEARCH_FOLDER_ID,
   USER_LIBRARY_TEMPLATES_FOLDER_ID,
+  USER_LIBRARY_WORKSHEETS_FOLDER_ID,
   type UserLibraryColor,
   type UserLibraryDocument,
   type UserLibraryExampleId,
@@ -245,6 +249,7 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [USER_LIBRARY_RESEARCH_FOLDER_ID]: 'microscope',
   [USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID]: 'list-checks',
   [USER_LIBRARY_TEMPLATES_FOLDER_ID]: 'notepad',
+  [USER_LIBRARY_WORKSHEETS_FOLDER_ID]: 'note-pencil',
   [USER_LIBRARY_NOTES_FOLDER_ID]: 'notes',
   [PATIENTS_FOLDER_ID]: 'users',
   [KNOWLEDGE_BASE_FOLDER_ID]: 'modules',
@@ -414,7 +419,10 @@ export function UserLibraryPage(props: {
 }): JSX.Element {
   const folderIdFromLocation = (): string | null => {
     const folderId = parseUserLibraryFolderRoute(window.location.hash.replace(/^#\/?/u, ''));
-    return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ? null : folderId;
+    return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ||
+      folderId === USER_LIBRARY_WORKSHEETS_FOLDER_ID
+      ? null
+      : folderId;
   };
   // Records are reconciled by id: a refresh updates the fields of the same record object, so cards
   // keep their DOM (and keyboard focus) while a file is read, previewed or patched.
@@ -528,6 +536,10 @@ export function UserLibraryPage(props: {
       const requestedFolderId = parseUserLibraryFolderRoute(route);
       if (requestedFolderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
         window.location.hash = notesTemplatesPath();
+        return;
+      }
+      if (requestedFolderId === USER_LIBRARY_WORKSHEETS_FOLDER_ID) {
+        window.location.hash = notesWorksheetsPath();
         return;
       }
       const nextFolderId = requestedFolderId;
@@ -1411,6 +1423,11 @@ export function UserLibraryPage(props: {
       navigate(notesTemplatesPath());
       return;
     }
+    // The CBT diaries open their own catalog: the built-in sheets and the doctor's versions (CBT1).
+    if (folderId === USER_LIBRARY_WORKSHEETS_FOLDER_ID) {
+      navigate(notesWorksheetsPath());
+      return;
+    }
     setSearchQuery('');
     setCurrentFolderId(folderId);
     const nextHash = userLibraryFolderHash(folderId);
@@ -1457,6 +1474,10 @@ export function UserLibraryPage(props: {
     void markUserLibraryDocumentOpened(document.id);
     if (isUserLibraryQuestionnaire(document)) {
       window.location.hash = userQuestionnairePath(document.id);
+      return;
+    }
+    if (isUserLibraryWorksheet(document)) {
+      window.location.hash = notesWorksheetPath(document.id);
       return;
     }
     const kind = userLibraryFileKind(document.mimeType, document.fileName);

@@ -12,6 +12,8 @@ import {
   notesSkinPhotoPath,
   notesTemplatesPath,
   notesVaccinationPath,
+  notesWorksheetPath,
+  notesWorksheetsPath,
   noteTemplatePath,
   readNotesRoute,
   withNotesFullscreen,
@@ -54,6 +56,20 @@ describe('notes routing', () => {
       drugs: ['ибупрофен|Нурофен', 'парацетамол'],
     });
     expect(notesDrugComparisonPath()).toBe('#/notes/drug-comparison');
+  });
+
+  it('parses the CBT worksheets catalog, a sheet and its editor', () => {
+    expect(readNotesRoute(notesWorksheetsPath())).toEqual({ kind: 'worksheets' });
+    expect(readNotesRoute(notesWorksheetPath('cbt-thought-record'))).toEqual({
+      kind: 'worksheet',
+      id: 'cbt-thought-record',
+    });
+    expect(readNotesRoute(notesWorksheetPath('file/1', true))).toEqual({
+      kind: 'worksheet',
+      id: 'file/1',
+      edit: true,
+    });
+    expect(readNotesRoute('#/notes/worksheets/a/b')).toEqual({ kind: 'worksheets' });
   });
 
   it('parses index, templates, card, new-record, and record routes', () => {

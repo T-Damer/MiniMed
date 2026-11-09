@@ -75,6 +75,8 @@ export function AssessmentSpecialtyIndexPage(props: {
   readonly onHome: () => void;
   readonly onOpenSpecialty: (specialtyId: string) => void;
   readonly onOpenUserQuestionnaires: () => void;
+  /** A profile's «Библиотека» also leads to the CBT diaries and homework (CBT1). */
+  readonly onOpenWorksheets?: (() => void) | undefined;
   readonly onCreateUserQuestionnaire: () => void;
   readonly onOpenUserQuestionnaire: (fileId: string) => void;
   readonly onOpenBuiltInScale: (card: BuiltInScaleCard) => void;
@@ -165,7 +167,9 @@ export function AssessmentSpecialtyIndexPage(props: {
           <Heading depth={1}>
             {props.mineOnly
               ? props.builtInScales
-                ? 'Опросники'
+                ? props.onOpenWorksheets
+                  ? 'Библиотека'
+                  : 'Опросники'
                 : 'Мои опросники'
               : 'Тесты и опросники'}
           </Heading>
@@ -265,6 +269,19 @@ export function AssessmentSpecialtyIndexPage(props: {
             </button>
           </Show>
         </Show>
+      </Show>
+
+      <Show when={props.mineOnly && props.onOpenWorksheets && !hasQuery()}>
+        <button
+          type="button"
+          class="assessment-user-entry paper-card"
+          data-testid="assessment-worksheets-entry"
+          onClick={() => props.onOpenWorksheets?.()}
+        >
+          <AppGlyph name="note-pencil" class="assessment-user-entry__icon" />
+          <span class="assessment-user-entry__title">Дневники и задания</span>
+          <AppGlyph name="caret-right" class="assessment-user-entry__caret" />
+        </button>
       </Show>
 
       <Show when={props.mineOnly && props.builtInScales && props.builtInScales.length > 0}>

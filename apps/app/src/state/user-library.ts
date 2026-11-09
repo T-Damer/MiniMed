@@ -150,6 +150,11 @@ export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID = 'user-folder-questionnaires
 export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE = 'Мои опросники';
 export const USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE = 'application/vnd.minimed.questionnaire+json';
 export const USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION = '.minimed-questionnaire';
+/** CBT diaries and homework sheets the doctor saved as their own versions (CBT1). */
+export const USER_LIBRARY_WORKSHEETS_FOLDER_ID = 'user-folder-worksheets';
+export const USER_LIBRARY_WORKSHEETS_FOLDER_TITLE = 'Дневники и задания';
+export const USER_LIBRARY_WORKSHEET_MIME_TYPE = 'application/vnd.minimed.worksheet+json';
+export const USER_LIBRARY_WORKSHEET_FILE_EXTENSION = '.minimed-worksheet';
 export const USER_LIBRARY_BOOKS_FOLDER_ID = 'user-folder-books';
 export const USER_LIBRARY_BOOKS_FOLDER_TITLE = 'Книги';
 export const USER_LIBRARY_RESEARCH_FOLDER_ID = 'user-folder-research';
@@ -321,9 +326,47 @@ export function isUserLibraryQuestionnaire(
 }
 
 export function userLibraryQuestionnaireFileName(title: string): string {
+  return structuredFileName(title, USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION);
+}
+
+export function isUserLibraryWorksheet(document: Pick<UserLibraryDocument, 'mimeType'>): boolean {
+  return document.mimeType === USER_LIBRARY_WORKSHEET_MIME_TYPE;
+}
+
+export function userLibraryWorksheetFileName(title: string): string {
+  return structuredFileName(title, USER_LIBRARY_WORKSHEET_FILE_EXTENSION);
+}
+
+function structuredFileName(title: string, extension: string): string {
   const normalized = normalizeUserLibraryName(title, 'file');
-  const room = USER_LIBRARY_NAME_MAX_LENGTH - USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION.length;
-  return `${[...normalized].slice(0, room).join('')}${USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION}`;
+  const room = USER_LIBRARY_NAME_MAX_LENGTH - extension.length;
+  return `${[...normalized].slice(0, room).join('')}${extension}`;
+}
+
+/**
+ * A file the app writes as JSON with its own title inside (a questionnaire, a worksheet): it lives
+ * in its own system folder, and a rename rewrites the title in the file too.
+ */
+function structuredFileKind(document: Pick<UserLibraryDocument, 'mimeType'>): {
+  readonly folderId: string;
+  readonly folderTitle: string;
+  readonly fileName: (title: string) => string;
+} | null {
+  if (isUserLibraryQuestionnaire(document)) {
+    return {
+      folderId: USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
+      folderTitle: USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE,
+      fileName: userLibraryQuestionnaireFileName,
+    };
+  }
+  if (isUserLibraryWorksheet(document)) {
+    return {
+      folderId: USER_LIBRARY_WORKSHEETS_FOLDER_ID,
+      folderTitle: USER_LIBRARY_WORKSHEETS_FOLDER_TITLE,
+      fileName: userLibraryWorksheetFileName,
+    };
+  }
+  return null;
 }
 
 export function isUserLibraryArchive(fileName: string): boolean {
@@ -661,6 +704,7 @@ function protectedSystemFolderTitle(id: string): string | null {
   if (id === USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID) {
     return USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE;
   }
+  if (id === USER_LIBRARY_WORKSHEETS_FOLDER_ID) return USER_LIBRARY_WORKSHEETS_FOLDER_TITLE;
   return null;
 }
 
@@ -717,6 +761,11 @@ async function ensureUserLibraryDefaultFolders(database: IDBDatabase): Promise<v
     database,
     USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
     USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE,
+  );
+  await ensureUserLibrarySystemFolder(
+    database,
+    USER_LIBRARY_WORKSHEETS_FOLDER_ID,
+    USER_LIBRARY_WORKSHEETS_FOLDER_TITLE,
   );
 
   let seeded = false;
@@ -1201,22 +1250,23 @@ export async function renameUserLibraryDocument(id: string, title: string): Prom
   if (!existing) return;
   const now = new Date().toISOString();
   let renamedQuestionnaire: File | undefined;
-  if (isUserLibraryQuestionnaire(existing)) {
+  const structured = structuredFileKind(existing);
+  if (structured) {
     const source = await getUserLibraryFile(id);
-    if (!source) throw new Error('Файл опросника недоступен.');
+    if (!source) throw new Error('Файл недоступен.');
     let parsed: unknown;
     try {
       parsed = JSON.parse(await source.text());
     } catch {
-      throw new Error('Не удалось переименовать содержимое опросника.');
+      throw new Error('Не удалось переименовать содержимое файла.');
     }
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('Файл опросника содержит некорректные данные.');
+      throw new Error('Файл содержит некорректные данные.');
     }
     renamedQuestionnaire = new File(
       [JSON.stringify({ ...parsed, title: trimmed, updatedAt: now }, null, 2)],
-      userLibraryQuestionnaireFileName(trimmed),
-      { type: USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE },
+      structured.fileName(trimmed),
+      { type: existing.mimeType },
     );
   }
   const updated: UserLibraryDocument = {
@@ -1247,8 +1297,9 @@ export async function renameUserLibraryDocument(id: string, title: string): Prom
 export async function moveUserLibraryDocument(id: string, folderId: string | null): Promise<void> {
   const existing = await getUserLibraryDocument(id);
   if (!existing) return;
-  if (isUserLibraryQuestionnaire(existing) && folderId !== USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID) {
-    throw new Error('Опросники хранятся в системной папке «Опросники».');
+  const structured = structuredFileKind(existing);
+  if (structured && folderId !== structured.folderId) {
+    throw new Error(`Такие файлы хранятся в системной папке «${structured.folderTitle}».`);
   }
   await patchUserLibraryDocument(id, { folderId });
 }

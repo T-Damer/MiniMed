@@ -27,6 +27,7 @@ import {
   listUserLibraryDocuments,
   listUserLibraryFolders,
   listUserLibraryPages,
+  moveUserLibraryDocument,
   patchUserLibraryDocument,
   patchUserLibraryDocumentProcessing,
   putUserLibraryMedicalAnnotationBitmap,
@@ -47,6 +48,8 @@ import {
   USER_LIBRARY_RESEARCH_FOLDER_TITLE,
   USER_LIBRARY_TEMPLATES_FOLDER_ID,
   USER_LIBRARY_TEMPLATES_FOLDER_TITLE,
+  USER_LIBRARY_WORKSHEET_MIME_TYPE,
+  USER_LIBRARY_WORKSHEETS_FOLDER_ID,
   userLibraryFileKind,
   userLibraryProgressFraction,
   userLibrarySearchableCount,
@@ -343,6 +346,37 @@ describe('user-library storage', () => {
     const file = await getUserLibraryFile(created.id);
     if (!file) throw new Error('Переименованный опросник не найден.');
     expect(JSON.parse(await file.text())).toMatchObject({ title: 'Новое название' });
+  });
+
+  it('keeps worksheets in their own folder and their titles in sync', async () => {
+    installUserLibraryIndexedDb();
+    const folders = await listUserLibraryFolders();
+    expect(folders).toContainEqual(
+      expect.objectContaining({
+        id: USER_LIBRARY_WORKSHEETS_FOLDER_ID,
+        title: 'Дневники и задания',
+        isSystem: true,
+      }),
+    );
+    const created = await addUserLibraryFile(
+      new File(
+        [JSON.stringify({ format: 'minimed-worksheet', title: 'Запись мыслей' })],
+        'Запись мыслей.minimed-worksheet',
+        { type: USER_LIBRARY_WORKSHEET_MIME_TYPE },
+      ),
+      USER_LIBRARY_WORKSHEETS_FOLDER_ID,
+      undefined,
+      { skipProcessing: true },
+    );
+
+    await renameUserLibraryDocument(created.id, 'Мысли для Анны');
+
+    const renamed = (await listUserLibraryDocuments()).find((item) => item.id === created.id);
+    expect(renamed?.fileName).toBe('Мысли для Анны.minimed-worksheet');
+    const file = await getUserLibraryFile(created.id);
+    if (!file) throw new Error('Переименованный дневник не найден.');
+    expect(JSON.parse(await file.text())).toMatchObject({ title: 'Мысли для Анны' });
+    await expect(moveUserLibraryDocument(created.id, null)).rejects.toThrow('Дневники и задания');
   });
 
   it('extracts and persists a thumbnail beside the original file', async () => {

@@ -1,0 +1,682 @@
+/* CBT1 — «Дневники и задания»: catalog, sheet page, patient preview, editor. */
+
+.worksheets-catalog,
+.worksheet-page,
+.worksheet-editor {
+  display: grid;
+  gap: 0.9rem;
+  padding-bottom: 2rem;
+}
+
+.worksheets-catalog__search {
+  width: 100%;
+}
+
+.worksheets-catalog__group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.worksheets-catalog__group-title,
+.worksheet-page__panel-title,
+.worksheet-editor__panel-title {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.worksheets-catalog__list,
+.worksheet-editor__list,
+.worksheet-page__checklist,
+.worksheets-catalog__checklist {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.worksheets-catalog__item {
+  display: block;
+}
+
+.worksheets-catalog__row {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+
+.worksheets-catalog__row:hover {
+  background: var(--theme-hover-surface);
+}
+
+.worksheets-catalog__glyph {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  color: var(--theme-accent);
+}
+
+.worksheets-catalog__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.1rem;
+}
+
+.worksheets-catalog__name {
+  font-weight: 600;
+}
+
+.worksheets-catalog__summary {
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8125rem);
+}
+
+.worksheets-catalog__badge {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface);
+  font-size: var(--type-micro, 0.8125rem);
+}
+
+.worksheets-catalog__nothing {
+  margin: 2rem 0;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+
+.worksheets-catalog__check,
+.worksheet-page__check {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.worksheets-catalog__check::before,
+.worksheet-page__check::before {
+  flex: 0 0 auto;
+  color: var(--theme-accent);
+  content: "✓";
+}
+
+.worksheet-page__kind {
+  color: var(--theme-text-muted);
+}
+
+.worksheet-page__draft {
+  margin: 0;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-accent-soft);
+}
+
+.worksheet-page__options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.worksheet-page__switch-row,
+.worksheet-editor__switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.worksheet-page__switch-label,
+.worksheet-editor__switch-label {
+  font-weight: 500;
+}
+
+.worksheet-page__panel,
+.worksheet-editor__panel {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 1rem);
+  background: var(--theme-surface-raised);
+}
+
+.worksheet-page__text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.worksheet-page__fields {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.worksheet-page__field-name {
+  font-weight: 600;
+}
+
+.worksheet-page__field-hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+@media (max-width: 520px) {
+  .worksheet-page__fields {
+    grid-template-columns: 1fr;
+  }
+
+  .worksheet-page__field-hint {
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* The patient's view inside a dashed frame: a showcase of the diary screen. */
+.worksheet-patient {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px dashed var(--theme-border);
+  border-radius: var(--theme-radius-panel, 1rem);
+  background: var(--theme-surface);
+}
+
+.worksheet-patient__title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.worksheet-patient__why {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.worksheet-patient__why-title {
+  font-weight: 600;
+}
+
+.worksheet-patient__text,
+.worksheet-patient__what {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.worksheet-patient__material {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.worksheet-patient__part {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.worksheet-patient__part-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.worksheet-patient__row {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border-radius: var(--theme-radius-control, 0.75rem);
+  background: var(--theme-surface-raised);
+}
+
+.worksheet-patient__place {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.worksheet-patient__field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.worksheet-patient__label {
+  font-weight: 600;
+}
+
+.worksheet-patient__hint {
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8125rem);
+}
+
+.worksheet-patient__input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+}
+
+.worksheet-patient__input--long {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.worksheet-patient__options,
+.worksheet-patient__scale {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.worksheet-patient__option,
+.worksheet-patient__scale-step {
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.worksheet-patient__scale-step {
+  min-width: 2.75rem;
+  padding-inline: 0;
+}
+
+.worksheet-patient__memo {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.worksheet-editor__save-state {
+  color: var(--theme-text-muted);
+}
+
+.worksheet-editor__save-state--error {
+  color: var(--theme-danger);
+}
+
+.worksheet-editor__inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.6rem;
+}
+
+.worksheet-editor__card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  background: var(--theme-surface);
+}
+
+.worksheet-editor__card-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.worksheet-editor__card-number {
+  align-self: center;
+  min-width: 1.5rem;
+  color: var(--theme-text-muted);
+  font-weight: 600;
+}
+
+.worksheet-editor__grow {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.worksheet-editor__switches {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.worksheet-editor__icon-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.worksheet-editor__add {
+  justify-self: start;
+}
+
+/* CBT1 stage 2 — the patient's assignments on the doctor's patient page and one assignment. */
+
+.worksheet-tasks {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.worksheet-tasks__title {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.worksheet-tasks__list,
+.worksheet-task__rows {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.worksheet-tasks__open {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.worksheet-tasks__open--ended {
+  color: var(--theme-text-muted);
+}
+
+.worksheet-tasks__glyph {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.worksheet-tasks__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.worksheet-tasks__count {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.worksheet-task {
+  display: grid;
+  gap: 0.9rem;
+  padding-bottom: 2rem;
+}
+
+.worksheet-task__memo {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: color-mix(in srgb, var(--theme-accent) 7%, var(--theme-surface-raised));
+}
+
+.worksheet-task__memo-line,
+.worksheet-task__row-when,
+.worksheet-task__insight-text {
+  margin: 0;
+}
+
+.worksheet-task__row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: var(--theme-surface-raised);
+}
+
+.worksheet-task__row-when {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+.worksheet-task__cells {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.worksheet-task__cell {
+  display: grid;
+  grid-template-columns: minmax(7rem, 30%) minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.worksheet-task__cell-label {
+  color: var(--theme-text-muted);
+  font-size: 0.92rem;
+}
+
+.worksheet-task__cell-value {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.worksheet-task__spoken {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  white-space: normal;
+}
+
+.worksheet-task__insight {
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--theme-border);
+}
+
+.worksheet-task__hints {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.5rem 0 0;
+}
+
+.worksheet-task__hint-term {
+  font-weight: 600;
+}
+
+.worksheet-task__hint-text {
+  margin: 0 0 0.3rem;
+}
+
+@media (hover: hover) {
+  .worksheet-tasks__open:hover {
+    border-color: var(--theme-accent);
+  }
+}
+
+@media (max-width: 30rem) {
+  .worksheet-task__cell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+}
+
+/* «+ Задание» in the patient's screen editor: the library picker and one assignment. */
+
+.worksheet-picker {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.worksheet-picker__group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.worksheet-picker__title {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-micro, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.worksheet-picker__list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.worksheet-picker__row {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.75rem);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.worksheet-picker__glyph {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.worksheet-picker__copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.worksheet-picker__name {
+  font-weight: 600;
+}
+
+.worksheet-picker__summary,
+.worksheet-picker__empty {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+.worksheet-picker__error,
+.assignment-editor__problem {
+  margin: 0;
+  color: var(--theme-danger);
+}
+
+.assignment-editor {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.assignment-editor__switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.assignment-editor__days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.assignment-editor__day {
+  min-width: 2.75rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assignment-editor__day--on {
+  border-color: var(--theme-accent);
+  color: var(--theme-on-accent, #fff);
+  background: var(--theme-accent);
+}
+
+.assignment-editor__checklist,
+.assignment-editor__fields {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+}
+
+.assignment-editor__summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assignment-editor__checks {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.assignment-editor__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (hover: hover) {
+  .worksheet-picker__row:hover,
+  .assignment-editor__day:hover {
+    border-color: var(--theme-accent);
+  }
+}
+
+/* The reminder time keeps its width; the date takes the rest, never past the sheet. */
+.assignment-editor__when {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.5rem;
+}

@@ -66,11 +66,14 @@ import {
   notesPath,
   notesPatientsPath,
   notesTemplatesPath,
+  notesWorksheetPath,
+  notesWorksheetsPath,
   noteTemplatePath,
   withNotesFullscreen,
 } from '@/features/notes/notes-routing';
 import { type PatientRoute, PatientWorkspace } from '@/features/notes/PatientWorkspace';
 import { useNotesRoute } from '@/features/notes/use-notes-route';
+import { worksheetsParentHash } from '@/features/worksheets/worksheet-routes';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -434,6 +437,21 @@ const DrugComparisonWorkspace = lazy(() =>
 const PrescriptionWorkspace = lazy(() =>
   import('@/features/prescription/PrescriptionWorkspace').then((module) => ({
     default: module.PrescriptionWorkspace,
+  })),
+);
+const WorksheetsCatalog = lazy(() =>
+  import('@/features/worksheets/WorksheetsCatalog').then((module) => ({
+    default: module.WorksheetsCatalog,
+  })),
+);
+const WorksheetPage = lazy(() =>
+  import('@/features/worksheets/WorksheetPage').then((module) => ({
+    default: module.WorksheetPage,
+  })),
+);
+const WorksheetEditor = lazy(() =>
+  import('@/features/worksheets/WorksheetEditor').then((module) => ({
+    default: module.WorksheetEditor,
   })),
 );
 const PsyStatusWorkspace = lazy(() =>
@@ -1013,6 +1031,10 @@ export function NotesView(props: {
   const drugInteractionsRoute = createMemo(() => {
     const current = route();
     return current.kind === 'drug-interactions' ? current : null;
+  });
+  const worksheetRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'worksheet' ? current : null;
   });
   const activeTemplateId = (): string | null => {
     const current = route();
@@ -1674,6 +1696,38 @@ export function NotesView(props: {
             </Portal>
           )}
         </Show>
+      </Show>
+
+      <Show when={props.active && route().kind === 'worksheets'}>
+        <Suspense fallback={<PageSkeleton fallbackHash={worksheetsParentHash()} />}>
+          <WorksheetsCatalog
+            onBack={() => navigateBack(worksheetsParentHash())}
+            onOpen={(id) => navigate(notesWorksheetPath(id))}
+            onEdit={(fileId) => navigate(notesWorksheetPath(fileId, true))}
+          />
+        </Suspense>
+      </Show>
+      <Show when={props.active && worksheetRoute()} keyed>
+        {(current) => (
+          <Suspense fallback={<PageSkeleton fallbackHash={notesWorksheetsPath()} />}>
+            <Show
+              when={current.edit}
+              fallback={
+                <WorksheetPage
+                  id={current.id}
+                  onBack={() => navigateBack(notesWorksheetsPath())}
+                  onOpen={(id) => navigate(notesWorksheetPath(id))}
+                  onEdit={(fileId) => navigate(notesWorksheetPath(fileId, true))}
+                />
+              }
+            >
+              <WorksheetEditor
+                fileId={current.id}
+                onBack={() => navigateBack(notesWorksheetPath(current.id))}
+              />
+            </Show>
+          </Suspense>
+        )}
       </Show>
 
       <Show when={route().kind === 'templates'}>

@@ -72,11 +72,12 @@ import {
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { notesWorksheetsPath } from '@/features/notes/notes-routing';
 import { filterByAge } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import { navigateBack, visitRoute } from '@/state/app-back';
 import { getSplitNavigation } from '@/state/app-preferences';
-import { activeProfile } from '@/state/app-profile';
+import { activeProfile, profileAllows } from '@/state/app-profile';
 import {
   ASSESSMENT_RESULTS_EVENT,
   ASSESSMENT_RESULTS_KEY,
@@ -781,6 +782,11 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
           onHome={() => visitRoute('#/search')}
           onOpenSpecialty={(specialtyId) => navigate(specialtyPath(specialtyId))}
           onOpenUserQuestionnaires={() => navigate(userQuestionnaireHomePath())}
+          onOpenWorksheets={
+            activeProfile() && profileAllows(notesWorksheetsPath(), activeProfile())
+              ? () => navigate(notesWorksheetsPath())
+              : undefined
+          }
           onCreateUserQuestionnaire={() => navigate(userQuestionnaireNewPath())}
           onOpenUserQuestionnaire={(fileId) => navigate(userQuestionnairePath(fileId))}
           onOpenBuiltInScale={({ entry }) => navigate(assessmentPath(entry.bankId, entry.slug))}

@@ -5,6 +5,7 @@ import {
   builtInScaleRoute,
   profileAllows,
   profileHidesNavigation,
+  profileTabFor,
   resetProfileCache,
   SHARED_TOOL_PROFILE,
   settingShown,
@@ -84,11 +85,21 @@ describe('app profiles', () => {
     expect(profileHidesNavigation(undefined)).toBe(false);
     expect(profile?.navigation.map((item) => [item.id, item.label, item.hash])).toEqual([
       ['notes', 'Пациенты', '#/notes/diaries'],
-      ['assessments', 'Опросники', '#/assessments/mine'],
+      ['assessments', 'Библиотека', '#/assessments/mine'],
       ['settings', 'Настройки', '#/settings'],
     ]);
     for (const item of profile?.navigation ?? [])
       expect(profileAllows(item.hash, profile)).toBe(true);
+  });
+
+  it('opens the CBT worksheets under «Библиотека» and marks that tab', () => {
+    const profile = activeProfile('?profile=diaries');
+    expect(profileAllows('#/notes/worksheets/cbt-thought-record', profile)).toBe(true);
+    expect(profileTabFor('#/notes/worksheets', profile)).toBe('assessments');
+    expect(profileTabFor('#/notes/worksheets/own-1/edit?x=1', profile)).toBe('assessments');
+    expect(profileTabFor('#/notes/worksheets-x', profile)).toBeUndefined();
+    expect(profileTabFor('#/notes/diaries', profile)).toBeUndefined();
+    expect(profileTabFor('#/notes/worksheets', undefined)).toBeUndefined();
   });
 
   it('allows the own-questionnaire list, its editor and run pages, but not the test catalog', () => {

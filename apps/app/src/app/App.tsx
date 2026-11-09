@@ -59,7 +59,12 @@ import {
   getSplitNavigation,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
-import { activeProfile, profileAllows, profileHidesNavigation } from '@/state/app-profile';
+import {
+  activeProfile,
+  profileAllows,
+  profileHidesNavigation,
+  profileTabFor,
+} from '@/state/app-profile';
 import { parseDocumentReadRoute } from '@/state/document-route';
 import { createFloatingWindows } from '@/state/floating-windows';
 import {
@@ -173,9 +178,11 @@ export function App(): JSX.Element {
   const [herbalOrigin, setHerbalOrigin] = createSignal<RootView | undefined>();
   // A profile's bar lists its own tabs, so the view itself is the active tab (no folding).
   const navView = () =>
-    expandedNavigation() || activeProfile()
-      ? navigation.view()
-      : compactRootView(navigation.view(), currentHash(), herbalOrigin());
+    activeProfile()
+      ? (profileTabFor(currentHash(), activeProfile()) ?? navigation.view())
+      : expandedNavigation()
+        ? navigation.view()
+        : compactRootView(navigation.view(), currentHash(), herbalOrigin());
   const navigateTab = (next: RootView): void => {
     // A narrowed app's tab opens the address the profile declares for it.
     const profileTab = activeProfile()?.navigation.find((item) => item.id === next);

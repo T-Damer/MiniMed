@@ -17,6 +17,11 @@ const STORAGE_KEY = 'minimed.app-profile.v1';
 /** A bar item: the tab it lights and the address it opens (a tab's own home may be outside the profile). */
 export interface AppProfileNavItem extends RootViewItem {
   readonly hash: string;
+  /**
+   * Other address prefixes that belong to this tab although their view is another one (the CBT
+   * worksheets live under «notes» but are reached from «Библиотека»).
+   */
+  readonly also?: readonly string[];
 }
 
 /** Settings rows that only matter to the full app; a profile without that part hides them. */
@@ -61,14 +66,22 @@ export const APP_PROFILES: readonly AppProfile[] = [
       '#/notes/diaries',
       '#/settings',
       '#/assessments/mine',
+      // CBT diaries and homework (CBT1), reached from the «Библиотека» tab.
+      '#/notes/worksheets',
       ...DIARY_QUESTIONNAIRES.map(builtInScaleRoute),
     ],
     builtInScales: DIARY_QUESTIONNAIRES,
     navigation: [
       { id: 'notes', label: 'Пациенты', icon: 'users', hash: '#/notes/diaries' },
-      // Every questionnaire a diary can carry: the built-in scales and the doctor's own, with the
-      // editor and the run pages below the list.
-      { id: 'assessments', label: 'Опросники', icon: 'list-checks', hash: '#/assessments/mine' },
+      // Every questionnaire a diary can carry (the built-in scales and the doctor's own, with the
+      // editor and the run pages below the list) and the CBT diaries and homework (CBT1).
+      {
+        id: 'assessments',
+        label: 'Библиотека',
+        icon: 'book-open',
+        hash: '#/assessments/mine',
+        also: ['#/notes/worksheets'],
+      },
       { id: 'settings', label: 'Настройки', icon: 'system', hash: '#/settings' },
     ],
     settingsPages: ['clinician', 'appearance'],
@@ -155,6 +168,17 @@ export function profileAllows(hash: string, profile: AppProfile | undefined): bo
 }
 
 /** Test seam: forget the cached profile. */
+/** The profile tab an address belongs to through its `also` prefixes, if any. */
+export function profileTabFor(
+  hash: string,
+  profile: AppProfile | undefined,
+): AppProfileNavItem['id'] | undefined {
+  const path = hash.split('?')[0] ?? '';
+  return profile?.navigation.find((item) =>
+    item.also?.some((prefix) => path === prefix || path.startsWith(`${prefix}/`)),
+  )?.id;
+}
+
 export function resetProfileCache(): void {
   cached = undefined;
 }

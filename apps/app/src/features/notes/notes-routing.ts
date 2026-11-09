@@ -57,6 +57,9 @@ export type NotesRoute =
       readonly group?: 'adult' | 'child';
     }
   | { readonly kind: 'templates'; readonly create?: boolean }
+  /** CBT diaries and homework (CBT1): the catalog, one sheet (built-in `cbt-…` or a file id). */
+  | { readonly kind: 'worksheets' }
+  | { readonly kind: 'worksheet'; readonly id: string; readonly edit?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
   | { readonly kind: 'new-record'; readonly cardId: string }
@@ -180,6 +183,18 @@ export function readNotesRoute(
       ...(days === undefined ? {} : { days }),
       ...(group === 'adult' || group === 'child' ? { group } : {}),
     };
+  }
+  if (parts[1] === 'worksheets') {
+    if (parts.length === 2 || !parts[2]) return { kind: 'worksheets' };
+    let id: string;
+    try {
+      id = decodeURIComponent(parts[2]);
+    } catch {
+      return { kind: 'worksheets' };
+    }
+    if (parts.length === 3) return { kind: 'worksheet', id };
+    if (parts.length === 4 && parts[3] === 'edit') return { kind: 'worksheet', id, edit: true };
+    return { kind: 'worksheets' };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -323,6 +338,14 @@ export function notesPrescriptionPath(
 
 export function notesTemplatesPath(create = false): string {
   return create ? '#/notes/templates?create=1' : '#/notes/templates';
+}
+
+export function notesWorksheetsPath(): string {
+  return '#/notes/worksheets';
+}
+
+export function notesWorksheetPath(id: string, edit = false): string {
+  return `${notesWorksheetsPath()}/${encodeURIComponent(id)}${edit ? '/edit' : ''}`;
 }
 
 export function noteTemplatePath(documentId: string): string {
