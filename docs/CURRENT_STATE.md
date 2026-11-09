@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 8 November 2026
+> Updated: 9 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,15 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Release 0.6.95 — 2026-11-09
+
+- **In it:** PERF5 (start-up, first search and reader speed), UI-BATCH3 (sources in «?», owned menus, folds, hover,
+  spring presses, typed news-feed errors), HERO-W1 (tablet header width), CALCLINK (calculator links, one-calculator
+  loading, CIWA-Ar on КР 2024), MEDHIST1 (medicines taken before) and CBT1 stages 1–3 (CBT sheets, assignment, dictation,
+  printing, source check). The owner saw the screenshots of each before the release. FMT-AUDIT (`fmtaudit`) is not in it.
+- **Checks** (per merge, in each session): `bun run check`, typecheck, unit 19 617 (CBT1, last), build, diary and
+  worksheet e2e 86. Not checked on a phone, a printer or with real on-device speech recognition.
 
 ## Medicines taken before: history, reactions, allergy — 2026-11-09 (STATE MEDHIST1; not released)
 

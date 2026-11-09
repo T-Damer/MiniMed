@@ -4,6 +4,21 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.95] - 2026-11-09
+
+- Diary: «Лекарства раньше» — medicines taken before, entered by the patient, a carer or the doctor: the medicine (from
+  the catalog or in own words), dose, when (a year, a month or a date, «примерно», or a duration in words), why it was
+  stopped, the reaction and its severity, allergy yes / no / not known, the patient's own rating and a note, each with
+  who entered it and when. The doctor sees allergies and intolerance on the patient's page; a medicine taken off the
+  plan is offered for the history; the plan editor warns when the history has a reaction to the same medicine or its
+  ATC group (it never blocks); the history prints after the plan and goes into the FHIR export.
+- Diary: CBT diaries and homework — 29 sheets in the library («Дневники и задания»: self-monitoring, cognitive work,
+  behavioural experiment and activation, exposure, skills, psychoeducation), each with an explanation for the doctor
+  and one for the patient, checked against sources (a claim with no source was removed; where sources disagree both are
+  quoted). The doctor saves own versions, assigns a sheet with how often and until when, and sees the patient's rows
+  with charts; the patient fills it on «Сегодня», dictates text (recognised on the phone; the recording stays on the
+  phone, only the text is sent); sheets and diary questionnaires print blank and filled.
+
 - Faster start and search: the first screen comes about twice as fast (the 10 MB module catalog, pdf.js and the OCR
   engine no longer load before it), and the first search after a start no longer builds its indexes inside the query
   (first search on a slow phone 2.0 → 1.3 s); the indexes are built while the start page is idle.
@@ -29,7 +44,6 @@ All notable changes are documented here. The project follows Semantic Versioning
   descriptions in the dark theme and for the bottom bar's hovered icon.
 - News feeds: every failure has its own message and action (offline, the site blocks the browser, slow site, HTTP
   error with its code, not a feed, too large, empty…) instead of a generic one.
-
 - Tablet: a page header's dark band is as wide as the page under it again; on screens that slide in («Новый пациент») it stood wider than the page.
 - A calculator can be sent as a link: «Поделиться» on a result adds a link that opens the same calculator with the same
   values, and the share icon in the calculator's header sends it empty. The link opens on the public page
