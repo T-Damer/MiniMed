@@ -9,7 +9,9 @@ import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import { atTime, dayKey } from '@/features/diary/diary-care';
 import { createDiaryId, type DiaryCheckpoint, type DiaryEntry } from '@/features/diary/diary-model';
+import { diaryQuestionnairePrintHtml } from '@/features/diary/diary-questionnaire-print';
 import { loadCheckpointQuestionnaire } from '@/features/diary/diary-questionnaires';
+import { PrintManager } from '@/features/printing/print-manager';
 
 function optionsFor(definition: AssessmentDefinition, questionId: string) {
   const question = definition.questions.find((candidate) => candidate.id === questionId);
@@ -71,6 +73,28 @@ export function QuestionnaireSheet(props: {
     if (scored.value.alerts?.length) props.onAlert();
   };
 
+  /** A blank, or the answers given so far — without a score: the patient never sees one. */
+  const print = (): void => {
+    const current = definition();
+    if (!current) return;
+    const given = answers();
+    const html = diaryQuestionnairePrintHtml({
+      title: current.title,
+      at: Object.keys(given).length ? (props.entry?.at ?? new Date().toISOString()) : undefined,
+      questions: current.questions.map((question) => {
+        const options = optionsFor(current, question.id);
+        return {
+          prompt: question.prompt,
+          options: options.map((option) => option.label),
+          answer: options.find((option) => option.value === given[question.id])?.label,
+        };
+      }),
+    });
+    if (!PrintManager.html(html, current.title)) {
+      setError('Телефон не открыл печать. Разрешите всплывающие окна.');
+    }
+  };
+
   return (
     <DiarySheet
       title={definition()?.shortTitle ?? props.checkpoint.label}
@@ -85,6 +109,15 @@ export function QuestionnaireSheet(props: {
             </p>
           </Show>
           <div class="diary-care-actions">
+            <Button
+              class="diary-button"
+              variant="quiet"
+              disabled={!definition()}
+              aria-label="Распечатать опросник"
+              onClick={print}
+            >
+              Печать
+            </Button>
             <Button
               class="diary-button diary-care-actions__save"
               variant="primary"

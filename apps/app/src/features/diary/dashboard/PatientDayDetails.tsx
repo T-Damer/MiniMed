@@ -219,6 +219,7 @@ export function PatientDayDetails(props: {
                       <QuestionnaireAnswers
                         answers={found().point.answers}
                         title={found().title}
+                        at={entry.at}
                         result={`${found().point.total} из ${found().point.max} · ${found().point.headline}`}
                       />
                     )}

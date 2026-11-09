@@ -1,9 +1,11 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
-
+import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { QuestionnaireAnswer } from '@/features/diary/dashboard/diary-insights';
+import { diaryQuestionnairePrintHtml } from '@/features/diary/diary-questionnaire-print';
+import { PrintManager } from '@/features/printing/print-manager';
 
 /**
  * The whole questionnaire as the patient filled it in: each question and the answer chosen. A
@@ -16,6 +18,8 @@ export function QuestionnaireAnswers(props: {
   readonly title: string;
   /** «10 из 27 · Умеренная»: the result, so the sheet does not repeat the date beside it. */
   readonly result?: string;
+  /** When the answers were given (ISO), for the printed copy. */
+  readonly at?: string;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const answered = (): number => props.answers.filter((one) => one.answer !== undefined).length;
@@ -55,6 +59,28 @@ export function QuestionnaireAnswers(props: {
               )}
             </For>
           </ol>
+          <Button
+            variant="secondary"
+            class="diary-answers__print"
+            icon={<AppGlyph name="printer" class="diary-dash__glyph" />}
+            onClick={() => {
+              const html = diaryQuestionnairePrintHtml({
+                title: props.title,
+                at: props.at,
+                result: props.result,
+                questions: props.answers.map((line) => ({
+                  prompt: line.prompt,
+                  options: [],
+                  answer: line.answer ?? 'нет ответа',
+                })),
+              });
+              if (!PrintManager.html(html, props.title)) {
+                toast.error('Браузер не открыл окно печати. Разрешите всплывающие окна.');
+              }
+            }}
+          >
+            Печать
+          </Button>
         </OverlayDialog>
       </Show>
     </Show>
