@@ -459,7 +459,8 @@ export function useAppSession() {
         },
       );
     });
-    recordInstallPhase('core-reload', reloadStartedAt);
+    // The data version names the installed set the new core serves; the install e2e waits on it.
+    recordInstallPhase('core-reload', reloadStartedAt, { dataVersion });
     setDownloadedModuleCount(
       moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
     );

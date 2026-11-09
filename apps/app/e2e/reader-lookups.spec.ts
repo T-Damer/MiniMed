@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
+import {
+  E2E_ASSET_ORIGIN,
+  mountBuiltApp,
+  waitForSearchEditable,
+  waitForSearchReady,
+} from './mount-built-app';
 
 const pointerId =
   'core.catalog.pointer.medication.esklp.mnn.аскорбиновая-кислота-парацетамол-bfbe39d48f8ac5dc';
@@ -7,8 +12,10 @@ const pointerId =
 test('a medication lookup preserves the reader position and shows a short drug card', async ({
   page,
 }) => {
-  test.setTimeout(90_000);
+  // The pointer document opens once the core has (`waitForSearchReady`, its own 120 s bound).
+  test.setTimeout(240_000);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
   const token = Buffer.from(pointerId).toString('base64url');
   await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/d/${token}`);
   const link = page

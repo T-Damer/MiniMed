@@ -45,6 +45,51 @@ export async function routeMedicationModule(page: Page): Promise<void> {
     (url) => url.pathname.endsWith(`/${fileName}`),
     (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
   );
+  await routeCompanionModules(page, catalog);
+}
+
+/** The EAEU texts, one module for every drug group (ADR of 2026-10-26), as released locally. */
+const EAEU_MODULE_ID = 'minimed.medications.instructions.eaeu-sister-register.ru';
+const EAEU_DIRECTORY = 'output/module-zstd-eaeu-2026-10-26';
+/** The companions each page serves from local copies, which `installMedicationModule` waits for. */
+const servedCompanions = new WeakMap<Page, readonly string[]>();
+
+/**
+ * A drug group's module installs with its companions (the group's ГРЛС instructions and the EAEU
+ * texts, `module-companions.ts`). Served from the network they landed at any moment of a test
+ * (the 28 MB EAEU file finished 47 s after a card opened): the drug screen then switched to its
+ * instruction and the core reloaded under the test, taking the header's focused «⋯» with it
+ * (reader-actions, E2E-MAIN 2026-11-09). Local release copies are served instead; a missing or
+ * different copy is left to the network and not waited for.
+ */
+async function routeCompanionModules(
+  page: Page,
+  catalog: {
+    readonly modules: readonly {
+      id: string;
+      artifacts: readonly { url?: string | undefined; sha256: string }[];
+    }[];
+  },
+): Promise<void> {
+  const served: string[] = [];
+  for (const [moduleId, directory] of [
+    [INSTRUCTION_MODULE_ID, INSTRUCTION_DIRECTORY],
+    [EAEU_MODULE_ID, EAEU_DIRECTORY],
+  ] as const) {
+    const artifact = catalog.modules.find((module) => module.id === moduleId)?.artifacts[0];
+    if (!artifact?.url) continue;
+    const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
+    const localPath = resolve(DATA_ROOT, directory, fileName);
+    if (!existsSync(localPath)) continue;
+    const bytes = await readFile(localPath);
+    if (`sha256:${createHash('sha256').update(bytes).digest('hex')}` !== artifact.sha256) continue;
+    await page.route(
+      (url) => url.pathname.endsWith(`/${fileName}`),
+      (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
+    );
+    served.push(moduleId);
+  }
+  servedCompanions.set(page, served);
 }
 
 /**
@@ -78,6 +123,38 @@ export async function installMedicationModule(page: Page): Promise<void> {
   await page.goto(documentRoute(POINTER));
   await page.locator('.document-module-pointer__action').click();
   await expect(page).toHaveURL(documentRoute('esklp.mnn.албендазол'), { timeout: 90_000 });
+  await waitForCompanionModules(page);
+}
+
+/**
+ * Waits until the companions this page serves are installed and the search core has reloaded with
+ * them (`minimed:install:core-reload` names the installed set it serves), so a test starts on the
+ * settled screen rather than one that switches its text and remounts its header under it.
+ */
+async function waitForCompanionModules(page: Page): Promise<void> {
+  const companions = servedCompanions.get(page) ?? [];
+  if (companions.length === 0) return;
+  await expect
+    .poll(
+      () =>
+        page.evaluate((ids) => {
+          const raw = localStorage.getItem('localmed.installed-modules.v1');
+          const entries = raw
+            ? ((JSON.parse(raw) as { entries?: { moduleId: string }[] }).entries ?? [])
+            : [];
+          const installed = new Set(entries.map((entry) => entry.moduleId));
+          if (!ids.every((id) => installed.has(id))) return false;
+          // `core:…|modules:<count>.<digest>`: the core counts every module but itself.
+          const modules = entries.filter((entry) => entry.moduleId !== 'minimed.core.ru').length;
+          const reloads = performance.getEntriesByName('minimed:install:core-reload');
+          const last = reloads.at(-1) as
+            | (PerformanceEntry & { detail?: { dataVersion?: string } })
+            | undefined;
+          return last?.detail?.dataVersion?.includes(`|modules:${String(modules)}.`) ?? false;
+        }, companions),
+      { timeout: 90_000, message: `companions ${companions.join(', ')} installed and searched` },
+    )
+    .toBe(true);
 }
 
 /** Opens the first product card of the medication catalog and returns its title. */
