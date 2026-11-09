@@ -300,7 +300,9 @@ test.describe('news feed tab', () => {
     await expect(first.locator('.news-item__domain')).toHaveText('site.test');
     await expect(first.locator('.news-item__time')).toHaveText('1 ч');
     await expect(first.locator('.news-item__snippet')).toHaveCount(0);
-    // The avatar is inline before the name, not a column of its own.
+    // The avatar is inline before the name, not a column of its own. Measured once the site's icon
+    // has replaced the letter avatar (checked below), not while it swaps.
+    await expect(first.locator('img.news-avatar__image')).toHaveAttribute('src', /^data:image\//u);
     const avatarBox = await first.locator('.news-avatar').boundingBox();
     const titleBox = await first.locator('.news-item__title').boundingBox();
     expect(avatarBox?.width).toBeLessThanOrEqual(24);
