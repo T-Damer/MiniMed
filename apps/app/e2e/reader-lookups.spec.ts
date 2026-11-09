@@ -32,7 +32,11 @@ test('a medication lookup preserves the reader position and shows a short drug c
   await expect(link).toBeInViewport();
 });
 
-test('search source context uses the same inline medication lookup', async ({ page }) => {
+// A found fragment opens its document in the reader (owner phone QA 2026-10-20, e06f0ee48); the
+// search's old «source context» card is no longer shown, so the lookup is checked in that reader.
+test('a drug found in search opens in the reader with the same inline medication lookup', async ({
+  page,
+}) => {
   test.setTimeout(240_000);
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   // The field takes a query while the core opens; the result wait below covers the search only.
@@ -46,10 +50,12 @@ test('search source context uses the same inline medication lookup', async ({ pa
     .first();
   await result.waitFor({ timeout: 30_000 });
   await result.click();
+  await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
   const link = page
-    .locator('.source-paragraph .document-inline-link')
+    .locator('.document-text-chunk .document-inline-link')
     .filter({ hasText: /^АСКОРБИНОВАЯ КИСЛОТА$/u })
     .first();
+  await link.scrollIntoViewIfNeeded();
   await link.click();
   // A short drug card: names, group/ATC, «Открыть» — no registry codes or per-form source links.
   const card = page.locator('.document-inline-preview__card');
@@ -59,5 +65,5 @@ test('search source context uses the same inline medication lookup', async ({ pa
   await expect(card).toContainText(/Торговые названия|АТХ/u);
   await expect(card).not.toContainText(/smnnCode|\d{2}\.\d{2}\.\d{2}\.\d{3}-/u);
   await expect(card.getByRole('button', { name: /Открыть/u })).toBeVisible();
-  await expect(page.locator('.source-paragraph')).toHaveCount(1);
+  await expect(page.getByTestId('reader-context')).toHaveCount(0);
 });

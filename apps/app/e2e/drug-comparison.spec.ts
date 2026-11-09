@@ -4,7 +4,12 @@ import {
   routeInstructionModule,
   routeMedicationModule,
 } from './medication-module-fixture';
-import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-built-app';
+import {
+  E2E_ASSET_ORIGIN,
+  mountBuiltApp,
+  waitForSearchEditable,
+  waitForSearchReady,
+} from './mount-built-app';
 
 // CMP1: «Сравнение препаратов». The antiparasitic ГРЛС instruction module (a local release copy, see
 // docs/data-ledger.json) holds the instructions of albendazole and mebendazole; the test installs it
@@ -125,6 +130,8 @@ test('the tool opens from an address and takes drugs from the picker, at most fo
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1100, height: 900 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  // Typed names resolve through the drug search, which waits for the core to open.
+  await waitForSearchReady(page);
   await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/drug-comparison?d=албендазол&d=ксзвцфыв`);
   await expect(page.getByTestId('comparison-item')).toHaveCount(1, { timeout: 60_000 });
   await expect(page.locator('.drug-comparison__item--missing')).toContainText('ксзвцфыв');
@@ -153,6 +160,7 @@ test('the interaction tool links to the comparison of its drugs', async ({ page 
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
   await page.goto(`${E2E_ASSET_ORIGIN}/#/notes/drug-interactions?d=албендазол&d=празиквантел`);
   const link = page.getByTestId('interaction-compare-link');
   await expect(link).toBeVisible({ timeout: 60_000 });
@@ -188,5 +196,10 @@ test('the tool is listed among the tools', async ({ page }) => {
   await waitForSearchEditable(page);
   await input.fill('сравнение препаратов');
   await page.getByTestId('search-submit').click();
-  await expect(page.getByText('Сравнение препаратов').first()).toBeVisible({ timeout: 60_000 });
+  // The tool's own row in the results (the query also shows in the header's hidden search pill and
+  // in the «Полезные функции» carousel, so plain text matches those first).
+  const results = page.getByRole('region', { name: 'Каталог выбранного раздела' });
+  await expect(results.getByRole('link', { name: /Сравнение препаратов/u })).toBeVisible({
+    timeout: 60_000,
+  });
 });
