@@ -4,6 +4,8 @@ import { DateField } from '@/components/DateField';
 import { TimeField as UiTimeField } from '@/components/TimeField';
 import { DiarySheet, GrowingText } from '@/diary/DiarySheet';
 import { inputModeFor, numberProblem, parseTypedNumber, rangeHint } from '@/diary/diary-validation';
+import { LocalVoiceClips } from '@/diary/LocalVoiceClips';
+import { createSpokenTracker } from '@/diary/spoken';
 import { VoiceClip } from '@/diary/VoiceClip';
 import { VoiceNote } from '@/diary/VoiceNote';
 import { atTime, CARE_DOSE_FIELD, dayKey } from '@/features/diary/diary-care';
@@ -606,21 +608,24 @@ export function NoteSheet(props: {
     props.entry ? clock(props.entry.at) : initialTime(props.day, undefined),
   );
   const [text, setText] = createSignal(typeof previous === 'string' ? previous : '');
-  // A recording the phone could not make words of, kept as it is (owner 2026-11-01).
+  // A recording an older version kept for the doctor (2026-11-01); new ones stay on the phone.
   const [voice, setVoice] = createSignal<DiaryVoice | undefined>(props.entry?.voice);
+  const spoken = createSpokenTracker(props.entry?.spoken);
   const [error, setError] = createSignal('');
-  // Words or a recording: until then the button waits, no red «describe it» after the tap.
+  // Words or an old recording: until then the button waits, no red «describe it» after the tap.
   const empty = (): boolean => !text().trim() && !voice();
 
   const save = (): void => {
     if (empty()) return;
     const recording = voice();
+    const marks = spoken.marks({ '#state': text() });
     setError(
       props.onSave({
         id: props.entry?.id ?? createDiaryId(),
         at: atTime(props.day, time()),
         values: text().trim() ? { state: text() } : {},
         ...(recording ? { voice: recording } : {}),
+        ...(marks ? { spoken: marks } : {}),
       }) ?? '',
     );
   };
@@ -647,9 +652,12 @@ export function NoteSheet(props: {
         onInput={setText}
       />
       <VoiceNote
-        onText={(said) => setText(text().trim() ? `${text().trim()}\n${said}` : said)}
-        onVoice={setVoice}
+        onText={(said, origin) => {
+          spoken.add('#state', said, origin);
+          setText(text().trim() ? `${text().trim()}\n${said}` : said);
+        }}
       />
+      <LocalVoiceClips spoken={props.entry?.spoken} />
       <Show when={voice()}>
         {(recording) => (
           <div class="diary-voice__clip">

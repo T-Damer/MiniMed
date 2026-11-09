@@ -241,7 +241,7 @@ describe('heatmap parts', () => {
       checkpoints: CARE_CHECKPOINTS.map((item) => ({ ...item, ended: true })),
     });
     expect(heatParts(ended)).toEqual(['doses', 'notes']);
-    expect(Object.keys(HEAT_PART_LABEL)).toHaveLength(7);
+    expect(Object.keys(HEAT_PART_LABEL)).toHaveLength(8);
   });
 
   it('counts everything without a filter, with the full set and with an empty one', () => {

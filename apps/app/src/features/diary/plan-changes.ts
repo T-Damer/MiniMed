@@ -118,6 +118,19 @@ export function planChanges(before: DiaryInvitation, after: DiaryInvitation): st
     if (!nextChecks.has(check.id)) lines.push(`Больше не нужно: ${check.label}`);
   }
 
+  // CBT1: worksheets given, changed and taken off.
+  const tasks = new Map((before.assignments ?? []).map((task) => [task.id, task]));
+  for (const task of after.assignments ?? []) {
+    const previous = tasks.get(task.id);
+    const title = task.worksheet.title;
+    if (task.ended) {
+      if (previous && !previous.ended) lines.push(`Задание завершено: ${title}`);
+    } else if (!previous || previous.ended) {
+      lines.push(`Новое задание: ${title}`);
+    } else if (JSON.stringify(previous) !== JSON.stringify(task)) {
+      lines.push(`Задание изменено: ${title}`);
+    }
+  }
   lines.push(...visitChanges(before, after));
   if ((after.note ?? '') !== (before.note ?? '') && after.note) lines.push('Новая заметка врача');
   if (JSON.stringify(after.contacts ?? []) !== JSON.stringify(before.contacts ?? [])) {

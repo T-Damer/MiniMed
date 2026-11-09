@@ -1,0 +1,192 @@
+/* CBT1 — the patient fills an assigned worksheet (WorksheetSheet). */
+
+.worksheet-fill__memo {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: color-mix(in srgb, var(--theme-accent) 7%, var(--theme-surface-raised));
+}
+
+.worksheet-fill__memo-line,
+.worksheet-fill__paragraph {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.worksheet-fill__paragraph--quiet {
+  color: var(--theme-text-muted);
+}
+
+.worksheet-fill__memo-title {
+  font-weight: 700;
+}
+
+.worksheet-fill__memo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.worksheet-fill__how,
+.worksheet-fill__print {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.worksheet-fill__how[aria-expanded="true"] {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+}
+
+.worksheet-fill__how-text {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.worksheet-fill__material {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+}
+
+.worksheet-fill__material-summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.worksheet-fill__section {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.worksheet-fill__section-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.worksheet-fill__field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.worksheet-fill__label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.worksheet-fill__label {
+  font-weight: 700;
+}
+
+.worksheet-fill__hint-button {
+  display: inline-grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.worksheet-fill__hint-button--open {
+  border-color: var(--theme-accent);
+  color: var(--theme-on-accent, #fff);
+  background: var(--theme-accent);
+}
+
+.worksheet-fill__hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.worksheet-fill__with-voice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.5rem;
+}
+
+.worksheet-fill__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control, 0.6rem);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 1.15rem;
+}
+
+.worksheet-fill__input--number {
+  width: 8rem;
+}
+
+.worksheet-fill__number,
+.worksheet-fill__percent {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.worksheet-fill__unit,
+.worksheet-fill__percent-value {
+  color: var(--theme-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.worksheet-fill__percent-value {
+  min-width: 3.5rem;
+  text-align: end;
+  font-weight: 700;
+}
+
+.worksheet-fill__range {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--theme-accent);
+}
+
+.worksheet-fill__range--empty {
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .worksheet-fill__how:hover,
+  .worksheet-fill__print:hover,
+  .worksheet-fill__hint-button:hover {
+    border-color: var(--theme-accent);
+  }
+}
+
+.worksheet-fill__privacy {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Patient-only line («если станет невыносимо, обратитесь к врачу»): always on view, never folded. */
+.worksheet-fill__care {
+  font-weight: 600;
+}

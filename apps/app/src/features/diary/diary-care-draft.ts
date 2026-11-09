@@ -11,6 +11,8 @@ import {
   CARE_CHECKPOINTS,
   DIARY_FORMAT_VERSION,
   type DiaryAppointment,
+  type DiaryAssignment,
+  type DiaryAssignmentRepeat,
   type DiaryCheckpoint,
   type DiaryContact,
   type DiaryContactKind,
@@ -44,6 +46,7 @@ import {
   type UserQuestionnaire,
   withoutUserQuestionnaireImages,
 } from '@/state/user-questionnaire-format';
+import type { UserWorksheet } from '@/state/user-worksheet-format';
 
 export interface CareDoseDraft {
   readonly time: string;
@@ -115,6 +118,24 @@ export interface CareDraft {
   readonly appointments?: readonly CareAppointmentDraft[];
   /** Lab tests the doctor asks for (DIARY27). */
   readonly labs?: readonly CareLabDraft[];
+  /** CBT diaries and homework the doctor assigned (CBT1). */
+  readonly assignments?: readonly CareAssignmentDraft[];
+}
+
+/** One assigned worksheet in the editor: the copy made for this patient and its schedule. */
+export interface CareAssignmentDraft {
+  readonly key: string;
+  readonly id?: string;
+  readonly worksheet: UserWorksheet;
+  readonly repeat: DiaryAssignmentRepeat;
+  /** Weekdays 1…7 for `days`. */
+  readonly days: readonly number[];
+  readonly time: string;
+  /** `YYYY-MM-DD`: given on (kept across re-issues). */
+  readonly from: string;
+  readonly until: string;
+  readonly why: string;
+  readonly what: string;
 }
 
 export interface CareAppointmentDraft {
@@ -144,6 +165,24 @@ export function labFieldId(id: string): string {
 
 export function newCareAppointment(day = ''): CareAppointmentDraft {
   return { key: sectionKey(), day, time: '', place: '', note: '' };
+}
+
+/**
+ * A worksheet just picked for a patient: a log is filled when the event happens, a material is
+ * practised daily, the other layouts once a day.
+ */
+export function newCareAssignment(worksheet: UserWorksheet, from: string): CareAssignmentDraft {
+  return {
+    key: sectionKey(),
+    worksheet,
+    repeat: worksheet.layout === 'log' || worksheet.layout === 'card' ? 'event' : 'daily',
+    days: [1, 3, 5],
+    time: '',
+    from,
+    until: '',
+    why: '',
+    what: '',
+  };
 }
 
 export function newCareLab(next: Partial<Omit<CareLabDraft, 'key'>> = {}): CareLabDraft {
@@ -359,6 +398,22 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
       note: appointment.note ?? '',
     }),
   );
+  const assignments = (invitation.assignments ?? [])
+    .filter((assignment) => !assignment.ended)
+    .map(
+      (assignment): CareAssignmentDraft => ({
+        key: sectionKey(),
+        id: assignment.id,
+        worksheet: assignment.worksheet,
+        repeat: assignment.repeat,
+        days: assignment.days ?? [1, 3, 5],
+        time: assignment.time ?? '',
+        from: assignment.from,
+        until: assignment.until ?? '',
+        why: assignment.why ?? '',
+        what: assignment.what ?? '',
+      }),
+    );
   const labs = (invitation.labs ?? []).map(
     (lab): CareLabDraft => ({
       key: sectionKey(),
@@ -373,6 +428,7 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
     sections: [...drugs, ...checks],
     ...(appointments.length ? { appointments } : {}),
     ...(labs.length ? { labs } : {}),
+    ...(assignments.length ? { assignments } : {}),
     contacts: invitation.contacts?.length
       ? invitation.contacts.map((contact) => ({
           kind: contact.kind,
@@ -434,6 +490,7 @@ export interface CareInvitationParts {
   readonly crisis: readonly string[];
   readonly appointments: readonly DiaryAppointment[];
   readonly labs: readonly DiaryLabRequest[];
+  readonly assignments: readonly DiaryAssignment[];
 }
 
 function cleanOptions(options: readonly string[]): string[] {
@@ -651,6 +708,29 @@ export function careInvitationParts(
     });
   }
 
+  // Worksheets (CBT1): ids never handed out twice; one taken off stays as ended, with its sheet,
+  // so what the patient wrote in it keeps its columns.
+  for (const given of [...(previous?.assignments ?? []), ...(draft.assignments ?? [])]) {
+    if (given.id) taken.add(given.id);
+  }
+  const assignments: DiaryAssignment[] = (draft.assignments ?? []).map((assignment) => ({
+    id: assignment.id ?? nextId('w', taken),
+    worksheet: assignment.worksheet,
+    repeat: assignment.repeat,
+    ...(assignment.repeat === 'days' ? { days: assignment.days } : {}),
+    ...(assignment.time && assignment.repeat !== 'event' ? { time: assignment.time } : {}),
+    from: assignment.from,
+    ...(assignment.until ? { until: assignment.until } : {}),
+    ...(assignment.why.trim() ? { why: assignment.why.trim() } : {}),
+    ...(assignment.what.trim() ? { what: assignment.what.trim() } : {}),
+  }));
+  const keptAssignments = new Set(assignments.map((assignment) => assignment.id));
+  for (const assignment of previous?.assignments ?? []) {
+    if (!keptAssignments.has(assignment.id)) {
+      assignments.push({ ...assignment, ended: true });
+    }
+  }
+
   // Fields of ended sections stay so earlier answers keep their labels and validation.
   for (const [id, field] of previousFields) if (!fields.has(id)) fields.set(id, field);
 
@@ -680,6 +760,7 @@ export function careInvitationParts(
       .filter(Boolean),
     appointments,
     labs,
+    assignments,
   };
 }
 
@@ -701,7 +782,8 @@ export function careInvitation(input: {
   const parts = careInvitationParts(input.draft, input.previous);
   const live =
     parts.plan.some((item) => !item.ended) ||
-    parts.checkpoints.some((checkpoint) => !checkpoint.ended);
+    parts.checkpoints.some((checkpoint) => !checkpoint.ended) ||
+    parts.assignments.some((assignment) => !assignment.ended);
   if (!live) throw new Error('Добавьте хотя бы один раздел.');
   const issuedAt = input.previous
     ? new Date(Math.max(Date.now(), Date.parse(input.previous.issuedAt) + 1000)).toISOString()
@@ -721,6 +803,7 @@ export function careInvitation(input: {
     ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
     ...(parts.appointments.length ? { appointments: parts.appointments } : {}),
     ...(parts.labs.length ? { labs: parts.labs } : {}),
+    ...(parts.assignments.length ? { assignments: parts.assignments } : {}),
     consent: true,
     ...(operator ? { operator } : {}),
     ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),

@@ -22,28 +22,53 @@ import {
   generateDemoDiary,
   type QuestionnaireShape,
 } from '@/features/diary/dashboard/demo-diary-data';
-import { dayKey } from '@/features/diary/diary-care';
+import { addDays, atTime, dayKey } from '@/features/diary/diary-care';
 import {
   type CareDraft,
   type CareSectionDraft,
   careInvitation,
   emptyCareDraft,
   newCareAppointment,
+  newCareAssignment,
   newCareLab,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
 import type { PastMedication } from '@/features/diary/diary-med-history';
 import {
+  createDiaryId,
   DIARY_FORMAT_VERSION,
+  type DiaryAssignmentRepeat,
+  type DiaryEntry,
   type DiaryInvitation,
   type DiaryMeal,
+  type DiarySheetValue,
+  type DiarySpoken,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
 import { loadDiaryQuestionnaire } from '@/features/diary/diary-questionnaires';
 import { createDiaryStore } from '@/features/diary/diary-storage';
+import type { UserWorksheet } from '@/state/user-worksheet-format';
 
 /** Every demo patient's label starts with this; the seeding skips labels that exist. */
 export const DEMO_LABEL_PREFIX = 'Демо ·';
+
+/** A CBT worksheet the demo doctor gave (CBT1), with what the invented patient wrote in it. */
+export interface DemoTask {
+  /** A built-in worksheet id (`cbt-thought-record`). */
+  readonly worksheet: string;
+  readonly repeat: DiaryAssignmentRepeat;
+  readonly days?: readonly number[];
+  readonly time?: string;
+  readonly extended?: boolean;
+  readonly why: string;
+  readonly rows: readonly {
+    readonly daysAgo: number;
+    readonly time: string;
+    readonly sheet: Readonly<Record<string, DiarySheetValue>>;
+    readonly note?: string;
+    readonly spoken?: readonly DiarySpoken[];
+  }[];
+}
 
 export interface DemoPatientSpec extends DemoBehavior {
   readonly label: string;
@@ -54,6 +79,7 @@ export interface DemoPatientSpec extends DemoBehavior {
   readonly draft: (now: Date) => CareDraft;
   /** Medicines taken before (MEDHIST1): the patient's go from the phone, the doctor's are signed. */
   readonly history?: readonly DemoPastMed[];
+  readonly tasks?: readonly DemoTask[];
 }
 
 /** A medicine of the demo history; years count back from the end of the history. */
@@ -71,6 +97,55 @@ export function demoPastMeds(specs: readonly DemoPastMed[], now: Date): PastMedi
     ...(toYearsAgo === undefined ? {} : { to: String(now.getFullYear() - toYearsAgo) }),
     updatedAt: now.toISOString(),
   }));
+}
+
+/** The tasks' worksheets, as this patient's copies, given on the first day of the history. */
+function demoAssignments(
+  spec: DemoPatientSpec,
+  worksheets: readonly UserWorksheet[],
+  from: string,
+): CareDraft['assignments'] {
+  const tasks = spec.tasks ?? [];
+  if (!tasks.length) return undefined;
+  return tasks.map((task) => {
+    const worksheet = worksheets.find((one) => one.id === task.worksheet);
+    if (!worksheet) throw new Error(`Нет готового листа ${task.worksheet}.`);
+    return {
+      ...newCareAssignment({ ...worksheet, extended: task.extended ?? false }, from),
+      repeat: task.repeat,
+      ...(task.days ? { days: task.days } : {}),
+      time: task.time ?? '',
+      why: task.why,
+    };
+  });
+}
+
+/** What the invented patient wrote in each task, as diary entries of the issued plan. */
+export function demoTaskEntries(
+  spec: DemoPatientSpec,
+  invitation: DiaryInvitation,
+  now: Date,
+): DiaryEntry[] {
+  const today = dayKey(now);
+  return (spec.tasks ?? []).flatMap((task, index) => {
+    const assignment = invitation.assignments?.filter((one) => !one.ended)[index];
+    if (!assignment) return [];
+    return task.rows.flatMap((row): DiaryEntry[] => {
+      const at = atTime(addDays(today, -row.daysAgo), row.time);
+      if (Date.parse(at) > now.getTime() - 60_000) return [];
+      return [
+        {
+          id: createDiaryId(),
+          at,
+          values: {},
+          assignment: assignment.id,
+          sheet: row.sheet,
+          ...(row.note ? { note: row.note } : {}),
+          ...(row.spoken ? { spoken: row.spoken } : {}),
+        },
+      ];
+    });
+  });
 }
 
 function drug(input: {
@@ -165,6 +240,72 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
         by: 'patient',
       },
     ],
+    tasks: [
+      {
+        worksheet: 'cbt-thought-record',
+        repeat: 'event',
+        extended: true,
+        why: 'Чтобы увидеть, какие мысли поднимают тревогу, и научиться их проверять',
+        rows: [
+          {
+            daysAgo: 12,
+            time: '19:40',
+            sheet: {
+              situation: 'Начальник попросил зайти после совещания',
+              emotion: 'тревога',
+              intensity: 85,
+              thought: 'Меня уволят, я опять всё испортила',
+              for: 'Он был хмурый',
+              against: 'Он хвалил отчёт на прошлой неделе; хмурый он почти всегда',
+              alternative: 'Скорее всего, это рабочий вопрос, а не про меня',
+              after: 50,
+            },
+          },
+          {
+            daysAgo: 8,
+            time: '08:15',
+            sheet: {
+              situation: 'Подруга не ответила на сообщение',
+              emotion: 'обида, тревога',
+              intensity: 70,
+              thought: 'Я ей надоела',
+              against: 'Она на работе до вечера и вчера сама звонила',
+              alternative: 'Ответит, когда освободится',
+              after: 35,
+            },
+          },
+          {
+            daysAgo: 4,
+            time: '21:05',
+            sheet: {
+              situation: 'Перед сном думала о завтрашней поездке в метро',
+              emotion: 'страх',
+              intensity: 60,
+              thought: 'Мне станет плохо в вагоне, и никто не поможет',
+              alternative: 'В прошлый раз было неприятно, но я доехала',
+              after: 40,
+            },
+            note: 'Сказала голосом, потом поправила пару слов',
+            spoken: [
+              { target: 'situation', seconds: 14, engine: 'whisper-base' },
+              { target: 'thought', seconds: 9, engine: 'whisper-base', edited: true },
+            ],
+          },
+          {
+            daysAgo: 1,
+            time: '13:30',
+            sheet: {
+              situation: 'Очередь в поликлинике, душно',
+              emotion: 'тревога',
+              intensity: 45,
+              thought: 'Сейчас начнётся паника',
+              alternative: 'Это духота; можно выйти подышать',
+              after: 25,
+            },
+          },
+        ],
+      },
+    ],
     draft: (now) =>
       careDraft(
         [
@@ -246,6 +387,24 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
         effect: 'helped',
         note: 'Хотелось бы вернуться, если можно',
         by: 'patient',
+      },
+    ],
+    tasks: [
+      {
+        worksheet: 'cbt-activity-mood',
+        repeat: 'days',
+        days: [1, 3, 5],
+        time: '21:00',
+        why: 'Чтобы увидеть, какие занятия поднимают настроение',
+        rows: [
+          { daysAgo: 6, time: '09:00', sheet: { activity: 'Завтрак, новости', mood: 3 } },
+          { daysAgo: 6, time: '13:00', sheet: { activity: 'Прогулка с собакой', mood: 6 } },
+          { daysAgo: 6, time: '19:00', sheet: { activity: 'Сериал', mood: 4 } },
+          { daysAgo: 4, time: '10:00', sheet: { activity: 'Лежала, не могла встать', mood: 2 } },
+          { daysAgo: 4, time: '17:00', sheet: { activity: 'Звонок сестре', mood: 5 } },
+          { daysAgo: 2, time: '12:00', sheet: { activity: 'Бассейн', mood: 7 } },
+          { daysAgo: 2, time: '20:00', sheet: { activity: 'Готовила ужин', mood: 6 } },
+        ],
       },
     ],
     draft: (now) =>
@@ -402,10 +561,15 @@ export function demoInvitation(
   doctor: string,
   now: Date,
   days = spec.days,
+  worksheets: readonly UserWorksheet[] = [],
 ): DiaryInvitation {
+  const draft = spec.draft(now);
+  const assignments = worksheets.length
+    ? demoAssignments(spec, worksheets, dayKey(demoIssuedAt(now, days)))
+    : undefined;
   const invitation = careInvitation({
     id: patientId,
-    draft: spec.draft(now),
+    draft: assignments ? { ...draft, assignments } : draft,
     doctor,
     note: '',
   });
@@ -461,9 +625,14 @@ async function seedOne(
 ): Promise<string> {
   const { days, now, report } = options;
   const shapes = await loadQuestionnaireShapes(draftQuestionnaires(spec.draft(now)));
+  const worksheets = spec.tasks?.length
+    ? await import('@/features/worksheets/built-in-worksheets').then((module) =>
+        module.loadBuiltInWorksheets(),
+      )
+    : [];
   report(`${spec.label}: создаём пациента`);
   const id = await workspace.createPatient({ label: spec.label, emoji: spec.emoji }, (patientId) =>
-    demoInvitation(spec, patientId, workspace.session.doctor.name, now, days),
+    demoInvitation(spec, patientId, workspace.session.doctor.name, now, days, worksheets),
   );
   try {
     report(`${spec.label}: подключаем телефон`);
@@ -487,10 +656,13 @@ async function seedOne(
     report(`${spec.label}: записываем ${days} дн. (${diary.entries.length} записей)`);
     const history = demoPastMeds(spec.history ?? [], now);
     const fromPhone = history.filter((item) => item.by !== 'doctor');
+    const tasks = demoTaskEntries(spec, results.invitation, now);
     store.save({
       v: DIARY_FORMAT_VERSION,
       invitation: results.invitation,
-      entries: diary.entries,
+      entries: [...diary.entries, ...tasks].toSorted((left, right) =>
+        left.at.localeCompare(right.at),
+      ),
       ...(fromPhone.length ? { medHistory: fromPhone } : {}),
     });
     store.setMeta(id, {

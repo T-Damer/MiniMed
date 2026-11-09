@@ -61,6 +61,7 @@ import {
 } from '@/features/diary/dashboard/new-patient-drafts';
 import { OnlineTag } from '@/features/diary/dashboard/OnlineTag';
 import { PairingView } from '@/features/diary/dashboard/PairingView';
+import { PatientAssignmentPage } from '@/features/diary/dashboard/PatientAssignmentPage';
 import { PatientChartsPage } from '@/features/diary/dashboard/PatientChartsPage';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
 import { PatientListTools } from '@/features/diary/dashboard/PatientListTools';
@@ -198,10 +199,12 @@ function PatientRow(props: {
 export function DiaryDashboard(props: {
   readonly patientId: string | undefined;
   /** The patient view to edit, one day as the patient saw it, or the patient's charts. */
-  readonly view?: 'screen' | 'day' | 'charts' | undefined;
+  readonly view?: 'screen' | 'day' | 'charts' | 'task' | undefined;
   readonly day?: string | undefined;
   /** The chart the charts page opens at. */
   readonly chart?: string | undefined;
+  /** The assigned worksheet the task page shows (CBT1). */
+  readonly task?: string | undefined;
   readonly onBack: () => void;
   readonly onOpenPatient: (id: string, sub?: DiarySub) => void;
   /** The new patient's page in place of «Новый пациент», so back returns to the list. */
@@ -714,6 +717,22 @@ export function DiaryDashboard(props: {
                       focus={props.chart}
                       onBack={() => toPatient(patient().summary.id)}
                       onFill={(day) => openPatient(patient().summary.id, `day/${day}`)}
+                    />
+                  )}
+                </Match>
+                <Match
+                  when={
+                    props.view === 'task' && props.task
+                      ? replicaResults(patient().replica)
+                      : undefined
+                  }
+                >
+                  {(ready) => (
+                    <PatientAssignmentPage
+                      results={ready()}
+                      assignmentId={props.task ?? ''}
+                      patientLabel={patient().replica.profile?.label ?? ''}
+                      onBack={() => toPatient(patient().summary.id)}
                     />
                   )}
                 </Match>

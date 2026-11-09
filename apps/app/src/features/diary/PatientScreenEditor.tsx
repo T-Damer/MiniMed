@@ -1,4 +1,14 @@
-import { createMemo, createSignal, For, Index, type JSX, onMount, Show, Suspense } from 'solid-js';
+import {
+  createMemo,
+  createSignal,
+  For,
+  Index,
+  type JSX,
+  lazy,
+  onMount,
+  Show,
+  Suspense,
+} from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
@@ -17,6 +27,7 @@ import { TimeField } from '@/components/TimeField';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { CareRow } from '@/diary/DiaryToday';
 import { QuestionnaireSheet } from '@/diary/QuestionnaireSheet';
+import { assignmentScheduleWords } from '@/features/diary/diary-assignments';
 import {
   addDays,
   DAY_PERIOD_LABEL,
@@ -28,6 +39,7 @@ import {
 import {
   CARE_SECTION_LABEL,
   type CareAppointmentDraft,
+  type CareAssignmentDraft,
   type CareContactDraft,
   type CareDoseDraft,
   type CareDraft,
@@ -37,6 +49,7 @@ import {
   copyCareSection,
   EMPTY_CARE_CONTACT,
   newCareAppointment,
+  newCareAssignment,
   newCareLab,
   newCareSection,
   newCustomQuestionnaireSection,
@@ -48,6 +61,7 @@ import {
   type DiaryContactKind,
   type DiaryMeal,
   MAX_DIARY_APPOINTMENTS,
+  MAX_DIARY_ASSIGNMENTS,
   MAX_DIARY_CONTACTS,
   MAX_DIARY_DOSE_TIMES,
   MAX_DIARY_LABS,
@@ -69,6 +83,20 @@ import { appointmentWhen, dayWords } from '@/features/diary/diary-visits';
 import { PastMedWarnings } from '@/features/diary/med-history/MedHistory';
 import { useMedHistory } from '@/features/diary/med-history/plan-removals';
 import { AppointmentEditor, LabEditor } from '@/features/diary/VisitEditors';
+import type { UserWorksheet } from '@/state/user-worksheet-format';
+
+// The library and the per-patient sheet editor load when the doctor first adds a task (CBT1).
+const AssignmentEditor = lazy(() =>
+  import('@/features/diary/AssignmentEditor').then((module) => ({
+    default: module.AssignmentEditor,
+  })),
+);
+const WorksheetPicker = lazy(() =>
+  import('@/features/diary/AssignmentEditor').then((module) => ({
+    default: module.WorksheetPicker,
+  })),
+);
+
 import { DrugSearchField } from '@/features/drug-picker/DrugSearchField';
 import type { DrugSuggestionForm } from '@/features/drug-picker/drug-suggest';
 import {
@@ -1040,6 +1068,24 @@ export function PatientScreenEditor(props: {
     patch({ labs: [...(props.draft.labs ?? []), next] });
     setLabKey(next.key);
   };
+  // CBT diaries and homework (CBT1): a pick from the library becomes this patient's copy.
+  const [picking, setPicking] = createSignal(false);
+  const [taskKey, setTaskKey] = createSignal<string>();
+  const taskOf = (key: string | undefined): CareAssignmentDraft | undefined =>
+    key ? props.draft.assignments?.find((one) => one.key === key) : undefined;
+  const taskDetail = (one: CareAssignmentDraft): string =>
+    assignmentScheduleWords({
+      repeat: one.repeat,
+      days: one.days,
+      time: one.time || undefined,
+      until: one.until || undefined,
+    });
+  const addTask = (worksheet: UserWorksheet): void => {
+    const next = newCareAssignment(worksheet, today);
+    patch({ assignments: [...(props.draft.assignments ?? []), next] });
+    setPicking(false);
+    setTaskKey(next.key);
+  };
   const contactCount = (): number =>
     props.draft.contacts.filter((contact) => contact.value.trim()).length;
   // Rows are keyed by section key (strings), so an edit updates a row in place instead of
@@ -1287,6 +1333,39 @@ export function PatientScreenEditor(props: {
         </section>
 
         <section class="care-section">
+          <h3 class="care-section__title">Задания</h3>
+          <Show when={(props.draft.assignments ?? []).length}>
+            <ul class="care-section__list">
+              <For each={props.draft.assignments ?? []}>
+                {(task) => (
+                  <CareRow
+                    icon="note-pencil"
+                    title={task.worksheet.title}
+                    detail={taskDetail(task)}
+                    state={state(`task-${task.key}`)}
+                    checkLabel={`${task.worksheet.title}: отметить, как пациент`}
+                    tip={false}
+                    onCheck={() => tick(`task-${task.key}`)}
+                    onOpen={() => setTaskKey(task.key)}
+                    onEdit={() => setTaskKey(task.key)}
+                    editLabel={`Изменить задание: ${task.worksheet.title}`}
+                  />
+                )}
+              </For>
+            </ul>
+          </Show>
+          <button
+            type="button"
+            class="screen-editor__add care-editable care-editable--empty"
+            disabled={(props.draft.assignments ?? []).length >= MAX_DIARY_ASSIGNMENTS}
+            onClick={() => setPicking(true)}
+          >
+            <AppGlyph name="plus" class="screen-editor__add-glyph" />
+            <span class="screen-editor__add-text">Задание</span>
+          </button>
+        </section>
+
+        <section class="care-section">
           <h3 class="care-section__title">Приёмы у врача</h3>
           <Show when={(props.draft.appointments ?? []).length}>
             <ul class="care-section__list">
@@ -1396,6 +1475,51 @@ export function PatientScreenEditor(props: {
               }}
               onDone={() => setVisit(undefined)}
             />
+          </OverlayDialog>
+        )}
+      </Show>
+      <Show when={picking()}>
+        <OverlayDialog
+          open
+          title="Дневники и задания"
+          class="screen-editor__dialog"
+          onClose={() => setPicking(false)}
+        >
+          <Suspense>
+            <WorksheetPicker onPick={addTask} />
+          </Suspense>
+        </OverlayDialog>
+      </Show>
+      <Show when={taskOf(taskKey())}>
+        {(current) => (
+          <OverlayDialog
+            open
+            title={current().worksheet.title}
+            subtitle="Задание"
+            class="screen-editor__dialog"
+            onClose={() => setTaskKey(undefined)}
+          >
+            <Suspense>
+              <AssignmentEditor
+                assignment={current()}
+                onChange={(next) =>
+                  patch({
+                    assignments: (props.draft.assignments ?? []).map((one) =>
+                      one.key === next.key ? next : one,
+                    ),
+                  })
+                }
+                onRemove={() => {
+                  setTaskKey(undefined);
+                  patch({
+                    assignments: (props.draft.assignments ?? []).filter(
+                      (one) => one.key !== current().key,
+                    ),
+                  });
+                }}
+                onDone={() => setTaskKey(undefined)}
+              />
+            </Suspense>
           </OverlayDialog>
         )}
       </Show>

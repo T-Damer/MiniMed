@@ -116,6 +116,9 @@ export function GrowingText(props: {
   readonly value: string;
   readonly placeholder?: string;
   readonly autofocus?: boolean;
+  /** The name is shown elsewhere (a worksheet column's own label row): read only by screen readers. */
+  readonly hideLabel?: boolean;
+  readonly maxLength?: number;
   readonly onInput: (value: string) => void;
 }): JSX.Element {
   let area: HTMLTextAreaElement | undefined;
@@ -130,12 +133,14 @@ export function GrowingText(props: {
   });
   return (
     <label class="diary-grow">
-      <span class="diary-grow__label">{props.label}</span>
+      <span class={props.hideLabel ? 'diary-hidden-label' : 'diary-grow__label'}>
+        {props.label}
+      </span>
       <textarea
         ref={area}
         class="diary-grow__input"
         rows={3}
-        maxLength={4000}
+        maxLength={props.maxLength ?? 4000}
         value={props.value}
         placeholder={props.placeholder}
         onInput={(event) => {

@@ -2,6 +2,7 @@ import { createMemo, createResource, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { spokenWords } from '@/diary/spoken';
 import { carerLabel } from '@/features/diary/connected/carer';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import {
@@ -223,6 +224,9 @@ export function PatientDayDetails(props: {
                         result={`${found().point.total} из ${found().point.max} · ${found().point.headline}`}
                       />
                     )}
+                  </Show>
+                  <Show when={entry.spoken?.length}>
+                    <span class="diary-timeline__spoken">{spokenWords(entry.spoken ?? [])}</span>
                   </Show>
                   <Show when={entry.corrected}>
                     <span class="diary-timeline__badge">исправлено врачом</span>

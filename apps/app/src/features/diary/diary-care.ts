@@ -3,7 +3,9 @@
  * the patient has already marked, and the heatmap level of each day. Pure functions over the
  * invitation and the entries; the patient page and the doctor preview share them.
  */
+import { assignmentDue, assignmentRuns } from '@/features/diary/diary-assignments';
 import type {
+  DiaryAssignment,
   DiaryCheckpoint,
   DiaryDoseTime,
   DiaryEntry,
@@ -51,6 +53,16 @@ export interface QuestionnaireTask {
   readonly nextDay: string | undefined;
 }
 
+/** An assigned worksheet on one day (CBT1). */
+export interface AssignmentTask {
+  readonly assignment: DiaryAssignment;
+  /** What the patient filled in on this day, oldest first. */
+  readonly entries: readonly DiaryEntry[];
+  /** The schedule asks for it on this day (daily, a chosen weekday); «when it happens» never. */
+  readonly due: boolean;
+  readonly state: TaskState;
+}
+
 export interface DayPlan {
   readonly day: string;
   readonly doses: readonly DoseTask[];
@@ -61,6 +73,8 @@ export interface DayPlan {
   }[];
   readonly checks: readonly CheckTask[];
   readonly questionnaires: readonly QuestionnaireTask[];
+  /** Assigned worksheets running on this day. */
+  readonly assignments: readonly AssignmentTask[];
   /** Free descriptions of the patient's state on this day, oldest first. */
   readonly notes: readonly DiaryEntry[];
   readonly done: number;
@@ -254,8 +268,22 @@ export function dayPlan(
   }
   checks.sort((left, right) => (left.time ?? '99').localeCompare(right.time ?? '99'));
 
+  const assignments: AssignmentTask[] = (invitation.assignments ?? [])
+    .filter((assignment) => !assignment.ended && assignmentRuns(assignment, day))
+    .map((assignment) => {
+      const filled = ofDay.filter((entry) => entry.assignment === assignment.id);
+      const due = assignmentDue(assignment, day);
+      return {
+        assignment,
+        entries: filled,
+        due,
+        state: filled.length ? 'done' : due ? openState(day, assignment.time, now) : 'open',
+      };
+    });
+
   const notes = ofDay.filter(
     (entry) =>
+      entry.assignment === undefined &&
       entry.check === undefined &&
       doseValue(entry) === undefined &&
       (entry.note !== undefined ||
@@ -267,6 +295,7 @@ export function dayPlan(
     ...doses.map((task) => task.state === 'done' || task.state === 'skipped'),
     ...checks.map((task) => task.state === 'done'),
     ...questionnaires.filter((task) => task.due).map((task) => task.entry !== undefined),
+    ...assignments.filter((task) => task.due).map((task) => task.entries.length > 0),
   ];
   return {
     day,
@@ -274,6 +303,7 @@ export function dayPlan(
     asNeeded,
     checks,
     questionnaires,
+    assignments,
     notes,
     done: counted.filter(Boolean).length,
     total: counted.length,
@@ -302,6 +332,7 @@ export type HeatPart =
   | 'substances'
   | 'answers'
   | 'questionnaires'
+  | 'assignments'
   | 'notes';
 
 export const HEAT_PART_LABEL: Readonly<Record<HeatPart, string>> = {
@@ -311,6 +342,7 @@ export const HEAT_PART_LABEL: Readonly<Record<HeatPart, string>> = {
   substances: 'Зависимости',
   answers: 'Описания',
   questionnaires: 'Опросники',
+  assignments: 'Задания',
   notes: 'Заметки',
 };
 
@@ -321,6 +353,7 @@ const HEAT_PART_ORDER: readonly HeatPart[] = [
   'substances',
   'answers',
   'questionnaires',
+  'assignments',
   'notes',
 ];
 
@@ -343,6 +376,7 @@ export function heatParts(invitation: DiaryInvitation): readonly HeatPart[] {
   for (const checkpoint of invitation.checkpoints ?? []) {
     if (!checkpoint.ended) present.add(CHECK_PART[checkpoint.kind]);
   }
+  if (invitation.assignments?.some((assignment) => !assignment.ended)) present.add('assignments');
   return HEAT_PART_ORDER.filter((part) => present.has(part));
 }
 
@@ -365,6 +399,7 @@ function entryPart(
   entry: DiaryEntry,
   kinds: ReadonlyMap<string, DiaryCheckpoint['kind']>,
 ): HeatPart {
+  if (entry.assignment !== undefined) return 'assignments';
   if (entry.check !== undefined) {
     const kind = kinds.get(entry.check);
     return kind ? CHECK_PART[kind] : 'notes';
@@ -386,6 +421,9 @@ function planCounts(
       .map((task) => task.state === 'done'),
     ...(include.has('questionnaires')
       ? plan.questionnaires.filter((task) => task.due).map((task) => task.entry !== undefined)
+      : []),
+    ...(include.has('assignments')
+      ? plan.assignments.filter((task) => task.due).map((task) => task.entries.length > 0)
       : []),
   ];
   return { done: counted.filter(Boolean).length, total: counted.length };

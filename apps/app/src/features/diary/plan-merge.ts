@@ -27,6 +27,7 @@ const FIELD_LABEL: Readonly<Record<string, string>> = {
   operator: 'Реквизиты врача',
   appointments: 'Приёмы',
   labs: 'Анализы',
+  assignments: 'Задания',
 };
 
 function same(left: unknown, right: unknown): boolean {
@@ -55,8 +56,14 @@ function pick<T>(base: T, mine: T, theirs: T): { readonly value: T; readonly cla
 }
 
 function itemName(item: Identified): string {
-  const named = item as { name?: unknown; label?: unknown; title?: unknown; text?: unknown };
-  const name = named.name ?? named.label ?? named.title ?? named.text;
+  const named = item as {
+    name?: unknown;
+    label?: unknown;
+    title?: unknown;
+    text?: unknown;
+    worksheet?: { title?: unknown };
+  };
+  const name = named.name ?? named.label ?? named.title ?? named.text ?? named.worksheet?.title;
   return typeof name === 'string' && name ? name.slice(0, 60) : item.id;
 }
 

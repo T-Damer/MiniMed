@@ -4,9 +4,11 @@ import {
   createSignal,
   For,
   type JSX,
+  lazy,
   Match,
   onMount,
   Show,
+  Suspense,
   Switch,
 } from 'solid-js';
 
@@ -39,6 +41,11 @@ import { VoiceClip } from '@/diary/VoiceClip';
 import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
 import {
+  assignmentEntries,
+  assignmentScheduleWords,
+  sheetSummary,
+} from '@/features/diary/diary-assignments';
+import {
   addDays,
   atTime,
   CARE_DOSE_FIELD,
@@ -62,6 +69,7 @@ import type { DiaryShareStatus } from '@/features/diary/diary-merge';
 import {
   createDiaryId,
   DIARY_MEAL_LABEL,
+  type DiaryAssignment,
   type DiaryCheckpoint,
   type DiaryDoseTime,
   type DiaryEntry,
@@ -80,6 +88,10 @@ import { substanceSummary } from '@/features/diary/diary-substances';
 import { dayWords, labResult } from '@/features/diary/diary-visits';
 import type { DiaryPlanChange } from '@/features/diary/plan-changes';
 
+const WorksheetSheet = lazy(() =>
+  import('@/diary/WorksheetSheet').then((module) => ({ default: module.WorksheetSheet })),
+);
+
 type Sheet =
   | {
       readonly kind: 'dose';
@@ -95,6 +107,11 @@ type Sheet =
   | { readonly kind: 'quiz'; readonly task: QuestionnaireTask }
   | { readonly kind: 'note'; readonly entry: DiaryEntry | undefined }
   | { readonly kind: 'lab'; readonly lab: DiaryLabRequest }
+  | {
+      readonly kind: 'worksheet';
+      readonly assignment: DiaryAssignment;
+      readonly entry: DiaryEntry | undefined;
+    }
   | { readonly kind: 'contacts' }
   | { readonly kind: 'crisis'; readonly raised: boolean };
 
@@ -447,6 +464,11 @@ export function DiaryToday(props: {
     const quiz = shown.questionnaires.find((task) => task.entry?.id === entry.id);
     if (quiz) {
       setSheet({ kind: 'quiz', task: quiz });
+      return;
+    }
+    const assignment = invitation().assignments?.find((one) => one.id === entry.assignment);
+    if (assignment) {
+      setSheet({ kind: 'worksheet', assignment, entry });
       return;
     }
     setSheet({ kind: 'note', entry });
@@ -855,6 +877,82 @@ export function DiaryToday(props: {
           </section>
         </Show>
 
+        <Show when={plan().assignments.length}>
+          <section class="care-section" aria-labelledby="care-tasks">
+            <h3 class="care-section__title" id="care-tasks">
+              Задания
+            </h3>
+            <ul class="care-section__list">
+              <For each={plan().assignments}>
+                {(task) => (
+                  <>
+                    <CareRow
+                      icon="note-pencil"
+                      time={task.due ? task.assignment.time : undefined}
+                      title={task.assignment.worksheet.title}
+                      detail={[
+                        assignmentScheduleWords(task.assignment),
+                        task.entries.length
+                          ? `${task.entries.length} ${pluralize(task.entries.length, 'запись', 'записи', 'записей')}`
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      state={
+                        task.state === 'done' ? 'done' : task.state === 'late' ? 'late' : 'open'
+                      }
+                      checkLabel={`${task.assignment.worksheet.title}: заполнить`}
+                      tip={false}
+                      onCheck={() =>
+                        setSheet({
+                          kind: 'worksheet',
+                          assignment: task.assignment,
+                          entry: undefined,
+                        })
+                      }
+                      onOpen={() =>
+                        setSheet({
+                          kind: 'worksheet',
+                          assignment: task.assignment,
+                          entry: undefined,
+                        })
+                      }
+                    />
+                    <Show when={task.entries.length}>
+                      <li class="care-notes__item care-notes__item--task">
+                        <ul class="care-notes">
+                          <For each={task.entries}>
+                            {(entry) => (
+                              <li class="care-notes__item">
+                                <button
+                                  type="button"
+                                  class="care-note"
+                                  onClick={() =>
+                                    setSheet({
+                                      kind: 'worksheet',
+                                      assignment: task.assignment,
+                                      entry,
+                                    })
+                                  }
+                                >
+                                  <span class="care-note__time">{formatTime(entry.at)}</span>
+                                  <span class="care-note__text">
+                                    {sheetSummary(task.assignment.worksheet, entry)}
+                                  </span>
+                                </button>
+                              </li>
+                            )}
+                          </For>
+                        </ul>
+                      </li>
+                    </Show>
+                  </>
+                )}
+              </For>
+            </ul>
+          </section>
+        </Show>
+
         <Show when={invitation().labs?.length}>
           <section class="care-section" aria-labelledby="care-labs">
             <h3 class="care-section__title" id="care-labs">
@@ -1077,6 +1175,23 @@ export function DiaryToday(props: {
                 />
               )}
             </Show>
+          )}
+        </Match>
+        <Match
+          when={sheet()?.kind === 'worksheet' && (sheet() as Extract<Sheet, { kind: 'worksheet' }>)}
+        >
+          {(current) => (
+            <Suspense>
+              <WorksheetSheet
+                assignment={current().assignment}
+                day={day()}
+                entry={current().entry}
+                entries={assignmentEntries(props.results.entries, current().assignment.id)}
+                onSave={save}
+                onRemove={remove}
+                onClose={close}
+              />
+            </Suspense>
           )}
         </Match>
         <Match when={sheet()?.kind === 'note' && (sheet() as Extract<Sheet, { kind: 'note' }>)}>

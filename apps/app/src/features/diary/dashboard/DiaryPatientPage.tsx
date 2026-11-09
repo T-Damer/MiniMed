@@ -18,6 +18,8 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
+import { pluralize } from '@/diary/diary-format';
+import '@/features/worksheets/worksheets.css';
 import {
   createHeatFilter,
   DOCTOR_HEAT_FILTER_KEY,
@@ -490,6 +492,47 @@ export function DiaryPatientPage(props: {
               symptomDays={symptomDays()}
               changedDays={new Set(edits().keys())}
             />
+
+            <Show when={current().invitation.assignments?.length}>
+              <section class="worksheet-tasks" aria-labelledby="patient-tasks">
+                <h2 class="worksheet-tasks__title" id="patient-tasks">
+                  Задания
+                </h2>
+                <ul class="worksheet-tasks__list">
+                  <For
+                    each={(current().invitation.assignments ?? []).toSorted(
+                      (left, right) => Number(left.ended ?? false) - Number(right.ended ?? false),
+                    )}
+                  >
+                    {(assignment) => {
+                      const count = (): number =>
+                        current().entries.filter((entry) => entry.assignment === assignment.id)
+                          .length;
+                      return (
+                        <li class="worksheet-tasks__item">
+                          <button
+                            type="button"
+                            class="worksheet-tasks__open"
+                            classList={{
+                              'worksheet-tasks__open--ended': assignment.ended === true,
+                            }}
+                            onClick={() => props.onOpen(`task/${assignment.id}`)}
+                          >
+                            <AppGlyph name="note-pencil" class="worksheet-tasks__glyph" />
+                            <span class="worksheet-tasks__name">{assignment.worksheet.title}</span>
+                            <span class="worksheet-tasks__count">
+                              {assignment.ended
+                                ? 'завершено'
+                                : `${count()} ${pluralize(count(), 'запись', 'записи', 'записей')}`}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    }}
+                  </For>
+                </ul>
+              </section>
+            </Show>
           </>
         )}
       </Show>

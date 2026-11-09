@@ -1374,6 +1374,7 @@ export function NotesView(props: {
               view={current().view}
               day={current().day}
               chart={current().chart}
+              task={current().task}
               draft={current().draft}
               onBack={() => navigateBack(notesPath())}
               onList={() => navigateBack(diariesPath())}

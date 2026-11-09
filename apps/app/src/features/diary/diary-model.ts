@@ -20,6 +20,7 @@ import {
   stripUntrustedQuestionnaireImages,
   type UserQuestionnaire,
 } from '@/state/user-questionnaire-format';
+import { parseUserWorksheet, type UserWorksheet } from '@/state/user-worksheet-format';
 
 export const DIARY_FORMAT_VERSION = 2 as const;
 
@@ -190,6 +191,44 @@ export interface DiaryInvitation {
   readonly appointments?: readonly DiaryAppointment[];
   /** Lab tests the doctor asks for (DIARY27); the patient types each result into its field. */
   readonly labs?: readonly DiaryLabRequest[];
+  /**
+   * CBT diaries and homework (CBT1): worksheets the doctor gave, each a copy made for this patient.
+   * A new key, so an older patient app skips it instead of refusing the plan.
+   */
+  readonly assignments?: readonly DiaryAssignment[];
+}
+
+/** How often a worksheet is filled: when the event happens, every day, or on chosen weekdays. */
+export type DiaryAssignmentRepeat = 'event' | 'daily' | 'days';
+
+export const DIARY_ASSIGNMENT_REPEATS: readonly DiaryAssignmentRepeat[] = [
+  'event',
+  'daily',
+  'days',
+];
+
+/**
+ * A worksheet the doctor assigned (CBT1): an embedded copy (the patient's phone cannot read the
+ * doctor's library), when to fill it, and the patient's memo — why and what to do.
+ */
+export interface DiaryAssignment {
+  readonly id: string;
+  readonly worksheet: UserWorksheet;
+  readonly repeat: DiaryAssignmentRepeat;
+  /** `days`: weekdays, 1 Monday … 7 Sunday. */
+  readonly days?: readonly number[];
+  /** A reminder time `HH:MM` for `daily` and `days`. */
+  readonly time?: string;
+  /** The first day (`YYYY-MM-DD`), the day it was given. */
+  readonly from: string;
+  /** The last day, inclusive; absent: until the doctor ends it. */
+  readonly until?: string;
+  /** «Зачем это вам», in the doctor's words for this patient. */
+  readonly why?: string;
+  /** «Что и когда делать», in the doctor's words. */
+  readonly what?: string;
+  /** Taken off by the doctor; kept so the entries made for it still resolve. */
+  readonly ended?: true;
 }
 
 /** A visit to the doctor (owner 2026-11-04: «Завтра у вас приём в 14:30» and a call button). */
@@ -313,6 +352,55 @@ export interface DiaryEntry {
    * end-to-end encrypted like every record, never in QR codes.
    */
   readonly voice?: DiaryVoice;
+  /** The assignment this entry fills (CBT1); its cells are in `sheet`, not in `values`. */
+  readonly assignment?: string;
+  /** What the patient wrote in the worksheet, by worksheet field id. */
+  readonly sheet?: Readonly<Record<string, DiarySheetValue>>;
+  /**
+   * Text that was spoken (CBT1 stage 3): the recording stays on the phone that made it, only the
+   * recognised text travels — this says which text came from a voice and how it was recognised.
+   */
+  readonly spoken?: readonly DiarySpoken[];
+  /**
+   * Reserved (CBT1): a simplified retelling and the tone of a spoken text, each claim pointing at
+   * the words it rests on. Parsed when present; nothing produces it yet.
+   */
+  readonly insights?: readonly DiaryVoiceInsight[];
+}
+
+export type DiarySheetValue = number | string | readonly string[];
+
+/** One text that was dictated and recognised on the patient's phone. */
+export interface DiarySpoken {
+  /** `#note` (the entry's note), `#state` (own words), or a worksheet field id. */
+  readonly target: string;
+  readonly seconds: number;
+  /** The recogniser on the phone: `whisper-base`, `whisper-small`, `gigaam-v3`. */
+  readonly engine: string;
+  /** The patient changed the recognised text before sending it. */
+  readonly edited?: true;
+  /**
+   * The recording's id on the phone that made it (`diary/voice-store.ts`); the recording itself
+   * never leaves that phone.
+   */
+  readonly clip?: string;
+}
+
+/** A span of the spoken text, in characters: what a statement of an insight rests on. */
+export interface DiaryTextSpan {
+  readonly from: number;
+  readonly to: number;
+}
+
+/** Reserved for a future model (CBT1): not produced anywhere yet. */
+export interface DiaryVoiceInsight {
+  readonly target: string;
+  /** The text in simpler words. */
+  readonly simplified: string;
+  /** The tone heard, each with the spans it was heard in. */
+  readonly tone: readonly { readonly label: string; readonly spans: readonly DiaryTextSpan[] }[];
+  readonly model: string;
+  readonly at: string;
 }
 
 export interface DiaryVoice {
@@ -348,6 +436,17 @@ export const MAX_DIARY_TIPS = 40;
 export const MAX_DIARY_DOSE_TIMES = 8;
 export const MAX_DIARY_APPOINTMENTS = 10;
 export const MAX_DIARY_LABS = 12;
+export const MAX_DIARY_ASSIGNMENTS = 12;
+/** One embedded worksheet, as JSON: the largest built-in one is under 4 000. */
+export const MAX_DIARY_WORKSHEET_CHARS = 24_000;
+/** All embedded worksheets of one invitation, ended ones included. */
+export const MAX_DIARY_WORKSHEET_TOTAL_CHARS = 96_000;
+/** One long text cell of a worksheet («Ситуация», «Доводы за»). */
+export const MAX_DIARY_SHEET_TEXT = 2000;
+/** Everything written in one worksheet entry. */
+export const MAX_DIARY_SHEET_TOTAL = 12_000;
+const MAX_SHEET_CELLS = 30;
+const MAX_SPOKEN = 16;
 /** Free text the patient writes about their state, and the doctor's tips. */
 export const MAX_DIARY_NOTE = 4000;
 /**
@@ -855,6 +954,96 @@ function parseLabs(value: unknown, fields: readonly DiaryField[]): DiaryLabReque
   });
 }
 
+function parseEmbeddedWorksheet(value: unknown, label: string): UserWorksheet {
+  let worksheet: UserWorksheet;
+  try {
+    worksheet = parseUserWorksheet(value);
+  } catch (cause) {
+    throw new DiaryFormatError(
+      `${label}: лист некорректен${cause instanceof Error ? ` (${cause.message})` : ''}.`,
+    );
+  }
+  if (JSON.stringify(worksheet).length > MAX_DIARY_WORKSHEET_CHARS) {
+    throw new DiaryFormatError(`«${worksheet.title}»: лист слишком большой для дневника.`);
+  }
+  return worksheet;
+}
+
+function parseAssignments(value: unknown): DiaryAssignment[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_DIARY_ASSIGNMENTS) {
+    throw new DiaryFormatError('Задания некорректны.');
+  }
+  const assignments = value.map((item, index): DiaryAssignment => {
+    const label = `Задание ${index + 1}`;
+    const source = record(item, label);
+    const id = source['id'];
+    if (typeof id !== 'string' || !PLAN_ID_PATTERN.test(id)) {
+      throw new DiaryFormatError(`${label}: некорректный идентификатор.`);
+    }
+    const worksheet = parseEmbeddedWorksheet(source['worksheet'], label);
+    const repeat = source['repeat'];
+    if (!DIARY_ASSIGNMENT_REPEATS.includes(repeat as DiaryAssignmentRepeat)) {
+      throw new DiaryFormatError(`«${worksheet.title}»: не указано, как часто заполнять.`);
+    }
+    const daysValue = source['days'];
+    let days: number[] | undefined;
+    if (repeat === 'days') {
+      if (
+        !Array.isArray(daysValue) ||
+        daysValue.length < 1 ||
+        daysValue.length > 7 ||
+        daysValue.some(
+          (day) => typeof day !== 'number' || !Number.isInteger(day) || day < 1 || day > 7,
+        )
+      ) {
+        throw new DiaryFormatError(`«${worksheet.title}»: выберите дни недели.`);
+      }
+      days = [...new Set(daysValue as number[])].toSorted((left, right) => left - right);
+    } else if (daysValue !== undefined) {
+      throw new DiaryFormatError(`«${worksheet.title}»: дни недели только для «по дням».`);
+    }
+    const time =
+      source['time'] === undefined ? undefined : clockTime(source['time'], worksheet.title);
+    const from = source['from'];
+    const until = source['until'];
+    if (typeof from !== 'string' || !DAY_PATTERN.test(from)) {
+      throw new DiaryFormatError(`«${worksheet.title}»: некорректная дата начала.`);
+    }
+    if (
+      until !== undefined &&
+      (typeof until !== 'string' || !DAY_PATTERN.test(until) || until < from)
+    ) {
+      throw new DiaryFormatError(`«${worksheet.title}»: некорректная дата окончания.`);
+    }
+    const why = longText(source['why'], 'Зачем это вам', true);
+    const what = longText(source['what'], 'Что и когда делать', true);
+    return {
+      id,
+      worksheet,
+      repeat: repeat as DiaryAssignmentRepeat,
+      ...(days ? { days } : {}),
+      ...(time && repeat !== 'event' ? { time } : {}),
+      from,
+      ...(typeof until === 'string' ? { until } : {}),
+      ...(why ? { why } : {}),
+      ...(what ? { what } : {}),
+      ...(source['ended'] === true ? { ended: true as const } : {}),
+    };
+  });
+  if (new Set(assignments.map((assignment) => assignment.id)).size !== assignments.length) {
+    throw new DiaryFormatError('Задания повторяются.');
+  }
+  const chars = assignments.reduce(
+    (total, assignment) => total + JSON.stringify(assignment.worksheet).length,
+    0,
+  );
+  if (chars > MAX_DIARY_WORKSHEET_TOTAL_CHARS) {
+    throw new DiaryFormatError('Задания слишком велики для одного дневника.');
+  }
+  return assignments;
+}
+
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.length > MAX_DIARY_PLAN_ITEMS) {
@@ -928,6 +1117,7 @@ function parseInvitationV2(
   const operator = parseOperator(source['operator']);
   const appointments = parseAppointments(source['appointments']);
   const labs = parseLabs(source['labs'], fields);
+  const assignments = parseAssignments(source['assignments']);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -947,6 +1137,7 @@ function parseInvitationV2(
     ...(operator ? { operator } : {}),
     ...(appointments.length ? { appointments } : {}),
     ...(labs.length ? { labs } : {}),
+    ...(assignments.length ? { assignments } : {}),
   };
 }
 
@@ -1127,6 +1318,19 @@ export function parseDiaryEntry(
   }
   const answers = parseAnswers(source['answers']);
   const voice = parseVoice(source['voice']);
+  const assignmentId = source['assignment'];
+  if (
+    assignmentId !== undefined &&
+    !invitation.assignments?.some((assignment) => assignment.id === assignmentId)
+  ) {
+    throw new DiaryFormatError('Запись ссылается на неизвестное задание.');
+  }
+  const sheet = parseSheet(source['sheet']);
+  if (sheet && assignmentId === undefined) {
+    throw new DiaryFormatError('Лист задания без задания.');
+  }
+  const spoken = parseSpoken(source['spoken']);
+  const insights = parseInsights(source['insights']);
   const raw = record(source['values'], 'Значения записи');
   const values: Record<string, DiaryValue> = {};
   for (const field of invitation.fields) {
@@ -1157,7 +1361,7 @@ export function parseDiaryEntry(
       );
     }
   }
-  if (Object.keys(values).length === 0 && !note && !answers && !voice) {
+  if (Object.keys(values).length === 0 && !note && !answers && !voice && !sheet) {
     throw new DiaryFormatError('Заполните хотя бы одно поле.');
   }
   const answered = invitation.checkpoints?.find((candidate) => candidate.id === check);
@@ -1173,7 +1377,147 @@ export function parseDiaryEntry(
     ...(answers ? { answers } : {}),
     ...(source['corrected'] === true ? { corrected: true as const } : {}),
     ...(voice ? { voice } : {}),
+    ...(typeof assignmentId === 'string' ? { assignment: assignmentId } : {}),
+    ...(sheet ? { sheet } : {}),
+    ...(spoken ? { spoken } : {}),
+    ...(insights ? { insights } : {}),
   };
+}
+
+const SHEET_KEY_PATTERN = /^[a-z][a-z0-9-]{0,23}$/u;
+
+/**
+ * The cells of a worksheet entry, checked for shape only: the doctor may later rename, retype or
+ * drop a column, and what the patient wrote then still has to load. The fill form checks each
+ * cell against its column (`worksheetSheetProblem`) before saving.
+ */
+function parseSheet(value: unknown): Record<string, DiarySheetValue> | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Лист задания');
+  const keys = Object.keys(source);
+  if (keys.length > MAX_SHEET_CELLS) throw new DiaryFormatError('Лист задания некорректен.');
+  const sheet: Record<string, DiarySheetValue> = {};
+  let total = 0;
+  for (const key of keys) {
+    if (!SHEET_KEY_PATTERN.test(key)) throw new DiaryFormatError('Лист задания некорректен.');
+    const cell = source[key];
+    if (typeof cell === 'number') {
+      sheet[key] = finite(cell, 'Лист задания');
+    } else if (typeof cell === 'string') {
+      if (cell.length > MAX_DIARY_SHEET_TEXT || hasControlCharacter(cell, true)) {
+        throw new DiaryFormatError('Лист задания: некорректный текст.');
+      }
+      const trimmed = cell.trim();
+      if (!trimmed) continue;
+      total += trimmed.length;
+      sheet[key] = trimmed;
+    } else if (Array.isArray(cell)) {
+      if (cell.length > MAX_DIARY_OPTIONS) throw new DiaryFormatError('Лист задания некорректен.');
+      const chosen = [...new Set(cell)].map((option) => text(option, 'Лист задания'));
+      total += chosen.join('').length;
+      if (chosen.length) sheet[key] = chosen;
+    } else {
+      throw new DiaryFormatError('Лист задания некорректен.');
+    }
+  }
+  if (total > MAX_DIARY_SHEET_TOTAL) throw new DiaryFormatError('Лист задания слишком длинный.');
+  return Object.keys(sheet).length ? sheet : undefined;
+}
+
+const ENGINE_PATTERN = /^[a-z0-9][a-z0-9.-]{0,39}$/u;
+/** A worksheet column, or the entry's own note / own-words text. */
+const SPOKEN_TARGET_PATTERN = /^(?:#note|#state|[a-z][a-z0-9-]{0,23})$/u;
+
+function parseSpoken(value: unknown): DiarySpoken[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > MAX_SPOKEN) {
+    throw new DiaryFormatError('Отметки о голосе некорректны.');
+  }
+  const spoken = value.map((item): DiarySpoken => {
+    const source = record(item, 'Голос');
+    const { target, seconds, engine } = source;
+    if (
+      typeof target !== 'string' ||
+      !SPOKEN_TARGET_PATTERN.test(target) ||
+      typeof engine !== 'string' ||
+      !ENGINE_PATTERN.test(engine) ||
+      typeof seconds !== 'number' ||
+      !Number.isFinite(seconds) ||
+      seconds <= 0 ||
+      seconds > 3600
+    ) {
+      throw new DiaryFormatError('Отметки о голосе некорректны.');
+    }
+    const clip = source['clip'];
+    if (clip !== undefined && (typeof clip !== 'string' || !ID_PATTERN.test(clip))) {
+      throw new DiaryFormatError('Отметки о голосе некорректны.');
+    }
+    return {
+      target,
+      seconds: Math.round(seconds),
+      engine,
+      ...(source['edited'] === true ? { edited: true as const } : {}),
+      ...(typeof clip === 'string' ? { clip } : {}),
+    };
+  });
+  return spoken.length ? spoken : undefined;
+}
+
+function parseSpans(value: unknown): DiaryTextSpan[] {
+  if (!Array.isArray(value) || value.length > 40) {
+    throw new DiaryFormatError('Разбор голоса некорректен.');
+  }
+  return value.map((item) => {
+    const source = record(item, 'Разбор голоса');
+    const { from, to } = source;
+    if (
+      typeof from !== 'number' ||
+      typeof to !== 'number' ||
+      !Number.isInteger(from) ||
+      !Number.isInteger(to) ||
+      from < 0 ||
+      to <= from ||
+      to > MAX_DIARY_NOTE
+    ) {
+      throw new DiaryFormatError('Разбор голоса некорректен.');
+    }
+    return { from, to };
+  });
+}
+
+function parseInsights(value: unknown): DiaryVoiceInsight[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > MAX_SPOKEN) {
+    throw new DiaryFormatError('Разбор голоса некорректен.');
+  }
+  const insights = value.map((item): DiaryVoiceInsight => {
+    const source = record(item, 'Разбор голоса');
+    const target = source['target'];
+    const model = source['model'];
+    if (
+      typeof target !== 'string' ||
+      !SPOKEN_TARGET_PATTERN.test(target) ||
+      typeof model !== 'string' ||
+      !ENGINE_PATTERN.test(model)
+    ) {
+      throw new DiaryFormatError('Разбор голоса некорректен.');
+    }
+    const toneValue = source['tone'];
+    if (!Array.isArray(toneValue) || toneValue.length > 8) {
+      throw new DiaryFormatError('Разбор голоса некорректен.');
+    }
+    return {
+      target,
+      simplified: longText(source['simplified'], 'Упрощённый текст'),
+      tone: toneValue.map((tone) => {
+        const part = record(tone, 'Тон');
+        return { label: text(part['label'], 'Тон'), spans: parseSpans(part['spans']) };
+      }),
+      model,
+      at: timestamp(source['at'], 'Разбор голоса', Date.now()),
+    };
+  });
+  return insights.length ? insights : undefined;
 }
 
 function parseVoice(value: unknown): DiaryVoice | undefined {
@@ -1348,7 +1692,23 @@ export function describeDiaryEntry(invitation: DiaryInvitation, entry: DiaryEntr
       });
   const answers = entry.answers ? Object.keys(entry.answers).length : 0;
   const plan = entry.values['medication'] as DiaryPlanValue | undefined;
+  const assignment = entry.assignment
+    ? invitation.assignments?.find((candidate) => candidate.id === entry.assignment)
+    : undefined;
+  // A worksheet row: its title and the first cells it has, by column order.
+  const sheet = assignment
+    ? assignment.worksheet.fields
+        .flatMap((field) => {
+          const value = entry.sheet?.[field.id];
+          if (value === undefined) return [];
+          return [Array.isArray(value) ? value.join(', ') : String(value)];
+        })
+        .slice(0, 2)
+        .map((part) => (part.length > 60 ? `${part.slice(0, 59)}…` : part))
+    : [];
   return [
+    assignment?.worksheet.title,
+    ...sheet,
     checkpoint?.kind === 'vitals' ? undefined : checkpoint?.label,
     answers ? `ответы на ${answers} вопр.` : undefined,
     entry.voice ? `голосовая запись, ${entry.voice.seconds} с` : undefined,

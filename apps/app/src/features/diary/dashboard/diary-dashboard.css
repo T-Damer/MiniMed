@@ -2170,3 +2170,9 @@
     background: color-mix(in srgb, currentColor 8%, transparent);
   }
 }
+
+/* CBT1: a dictated text says so — recognised on the patient's phone, changed or not. */
+.diary-timeline__spoken {
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
