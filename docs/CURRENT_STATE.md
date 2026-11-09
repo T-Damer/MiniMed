@@ -59,6 +59,71 @@ Detailed history, moved verbatim on 2026-09-24:
   at 390 and 1024; light and dark screenshots). Not checked: a real phone, a real printer, an old app version against
   the new records, `python:check`/benchmarks (no Python or search change).
 
+## CBT diaries and homework, stages 1–3 — 2026-11-08/09 (STATE CBT1; merged, not released)
+
+- **Owner 2026-11-08:** typical CBT diaries and homework in the library; the doctor picks, edits, saves and
+  assigns them; every sheet prints blank and filled with the patient's explanation; patients record voice.
+  Decisions: speech is recognised on the phone that recorded it and the audio stays on that phone (up to
+  5 minutes, kept for good); only text reaches the server. Stage 1 = format, templates, library, printing.
+- **Format.** `state/user-worksheet-format.ts` (`minimed-worksheet` v1, strict parser, no storage): layout
+  `log | hours | week | ladder | card | material`, fields with `patientHint` / `doctorHint`, `extended`
+  (Beck's record: 3 columns + strength → 7 + emotion after), `chart`, text sections, variants (exposure:
+  in vivo, interoceptive, ERP, imaginal), `draft`, `edition`, `basedOn`. Field ids are diary value keys.
+- **Templates.** `features/worksheets/cbt-worksheets.ru.json`: 29 sheets in the 7 groups of the owner's
+  list, each with a doctor's and a patient's explanation and per-field hints, all `draft` (texts for a
+  doctor to check), no links or invented sources. «Как давать задание»: `assignment-memo.ts`.
+- **Library.** System folder «Дневники и задания» (`user-folder-worksheets`, `.minimed-worksheet` files,
+  `state/user-worksheets.ts`); a rename rewrites the title in the file, the files stay in their folder
+  (like questionnaires). The folder opens `#/notes/worksheets`: built-ins by group + «Мои версии».
+  A sheet's page (`#/notes/worksheets/<id>`) shows the doctor's text and field meanings, version and
+  variant, the patient's view, the checklist, print, «Своя версия» (copy into the library → editor
+  `…/edit`, autosave). In `?profile=diaries` the «Опросники» tab is «Библиотека» with an entry to it
+  (`AppProfileNavItem.also` keeps the tab lit there).
+- **Print.** `features/worksheets/worksheet-print.ts`: patient explanation, memo, field meanings, then the
+  layout (rows per event, hours, weekdays, numbered steps, a card, a material's text and practice log);
+  filled rows first. The doctor's text is not printed.
+- **Assigning (stage 2).** Invitation key `assignments` (`DiaryAssignment`: an embedded copy of the sheet,
+  `repeat` `event | daily | days` + weekdays, reminder time, `from`/`until`, the patient's «Зачем»/«Что
+  делать», `ended`); a new key, so an older patient app skips it instead of refusing the plan (a new
+  checkpoint kind would be refused). Limits: 12 assignments, a sheet ≤ 24 000 chars, all ≤ 96 000. The
+  doctor's editor has «Задания» → «+ Задание» (library picker: own versions, built-ins by group) → a sheet
+  over the preview: version/variant, schedule, memo, the checklist, the columns and patient text for this
+  patient (`WorksheetFieldCard`), blank print, «В библиотеку» (own version). A removed task stays `ended`,
+  ids never reused; plan merge and the patient's «что изменилось» lines know it.
+- **Filling.** `DiaryEntry.assignment` + `sheet` (cells by column id; shape-checked on load so a column
+  the doctor later drops or retypes still loads; the fill form checks each cell, `diary-assignments.ts`).
+  «Сегодня» lists running tasks (daily/weekday ones count in the day's plan and heatmap part «Задания»),
+  the day's rows under each; `diary/WorksheetSheet.tsx`: memo, «Как заполнять», each column with its «?»,
+  a microphone beside each text, print (blank + the patient's rows).
+- **Doctor.** Patient page «Задания» → `#/notes/diaries/<id>/task/<assignment>`: memo, charts of `chart`
+  columns (same-scale columns share one: emotion before/after), rows newest first with dictated texts
+  marked, filled print with the patient's label; the «?» has the doctor's text and how to read each column.
+  Diary questionnaires print too: the patient a blank or own answers without a score, the doctor the
+  answers with the result (`diary-questionnaire-print.ts`). Demo «Лиса»/«Сова» carry a task with rows.
+- **Voice (stage 3).** `VoiceNote`: up to 5 minutes; the recording is saved first in this browser's
+  IndexedDB (`diary/voice-store.ts`, `navigator.storage.persist()` asked) and never sent; Whisper on the
+  phone makes the text (sheet stays usable, «Отменить»); the patient corrects it; the entry carries only the
+  text and `spoken` marks (`#note`/`#state`/column, seconds, engine, `edited`, local clip id). The doctor
+  reads «голосом, 0:42 · распознано на телефоне (whisper-base) · текст исправлен». No words or «Не сейчас»:
+  the recording stays on the phone, nothing goes to the doctor (the 2026-11-01 «keep a wordless clip for the
+  doctor» behaviour is gone for new entries; old `voice` entries still play). A one-time line says the
+  recording stays on the phone. `insights` (simplified text + tone with spans) is parsed and shown when
+  present, nothing produces it yet.
+- **Texts checked against sources (owner 2026-11-09).** Every claim in the 29 sheets, the assignment
+  checklist/memo and the stage-4 drafts rests on a source page (КР 301_3, 455_3, 456_3, 457_3, 650_2,
+  753_1; Дж. Бек 2006; Нац. руководство; AASM 2021, European insomnia guideline 2023, NICE NG69 for
+  sleep and eating, which have no КР in the corpus) or was removed; disagreements read «По данному
+  вопросу данные противоречивы: …». Doctor texts carry page refs; the sources are a `sources` list in
+  the worksheet format, shown under «Источники» in the «?» (КР open in the reader). Claim → source
+  table: `side-session-notes/…/cbt1-source-check.md`. Lines that send the patient to the doctor
+  («обратитесь к врачу», «обсудим на приёме», 112) are `patientCare` on the sheet or variant: shown
+  where the patient fills the sheet and on print, never on the template page, its «Как увидит
+  пациент» or the doctor's explanation (owner 2026-11-09).
+- **Not done:** native GigaAM on Android for the diary (Whisper in the WebView only), reminders for task
+  times, assigning from a sheet's library page, playing one's own recording back from an entry, real
+  printers/PDF and phones not checked; stage 4 (explanations in existing diary screens) waits for the owner
+  to approve the texts (`side-session-notes/…/cbt1-stage4-texts.md`).
+
 ## Search and reader speed — 2026-11-08 (STATE PERF5)
 
 Owner 2026-11-08: «ускорить приложение … при поиске, чтении особенно». Measured on the production build with the
