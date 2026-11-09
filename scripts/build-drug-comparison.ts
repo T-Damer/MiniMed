@@ -33,12 +33,18 @@ const ROOT = resolve(import.meta.dirname, '..');
 const DATA_ROOT = process.env['MINIMED_DATA_ROOT'] ?? ROOT;
 const CATALOG = join(ROOT, 'apps/app/src/features/modules/catalog.preview.json');
 /**
- * The decoded ЕСКЛП МНН cards: the published modules' databases. `CMP1_ESKLP_DIR` points at the
- * decoded set whose `atcCodes` and `atcConsensusCodes` (the ATC fill, `atc_fill.py`) the index
- * should carry; by default the original release.
+ * The ЕСКЛП МНН cards come from the modules the catalog publishes (`ESKLP_MODULE_DIRECTORY`, SHA-256
+ * checked), whose `atcCodes`/`atcConsensusCodes` and `smnnNodes[].atcConsensus` carry the ATC fill
+ * (`atc_fill.py`) and whose strengths are repaired (str1/str2). `CMP1_ESKLP_DIR` may point at an
+ * already decoded set instead. The original build `data/build/release-esklp` has neither: FIX-BATCH2
+ * (2026-11-06) rebuilt the index from it and lost every agreed code pair (13 → 0), so a source without
+ * one is refused (E2E-MAIN, 2026-11-09).
  */
-const ESKLP_DIRECTORY =
-  process.env['CMP1_ESKLP_DIR'] ?? join(DATA_ROOT, 'data/build/release-esklp');
+const ESKLP_DECODED_DIRECTORY = process.env['CMP1_ESKLP_DIR'];
+const ESKLP_MODULE_DIRECTORY = join(
+  DATA_ROOT,
+  'output/module-zstd-esklp-str2-2026-10-20/esklp-2026-08-28-str2',
+);
 const GRLS_DIRECTORY = join(DATA_ROOT, 'data/raw/official-grls-registry');
 const OUTPUT = join(ROOT, 'apps/app/src/features/drug-comparison/data/comparison-index.json');
 const REPORT = join(DATA_ROOT, 'data/build/drug-comparison/report.json');
@@ -103,13 +109,38 @@ function agreedCodes(
   return [...pairs.values()];
 }
 
-function loadEsklpCards(): { cards: readonly ComparisonBuildCard[]; edition: string } {
+/** The catalog's ЕСКЛП modules (`minimed.medications.<group>.ru`, not the instruction or Allmed ones). */
+function esklpModules(catalog: { modules: readonly CatalogModule[] }): readonly CatalogModule[] {
+  return catalog.modules
+    .filter((module) => /^minimed\.medications\.[a-z-]+\.ru$/u.test(module.id))
+    .filter((module) => !module.id.startsWith('minimed.medications.instructions.'))
+    .filter((module) => /\bstr\d+$|^\d{4}-\d{2}-\d{2}/u.test(module.version))
+    .toSorted((a, b) => a.id.localeCompare(b.id));
+}
+
+function loadEsklpCards(
+  modules: readonly CatalogModule[],
+  scratch: string,
+): { cards: readonly ComparisonBuildCard[]; edition: string } {
   const rows: ComparisonBuildCard[] = [];
   let edition = '';
-  for (const file of readdirSync(ESKLP_DIRECTORY)
-    .filter((name) => name.endsWith('.db'))
-    .toSorted()) {
-    const database = new Database(join(ESKLP_DIRECTORY, file), { readonly: true });
+  for (const module of modules) {
+    let file = ESKLP_DECODED_DIRECTORY ? join(ESKLP_DECODED_DIRECTORY, `${module.id}.db`) : '';
+    if (!file || !existsSync(file)) {
+      const source = join(ESKLP_MODULE_DIRECTORY, `${module.id}.db.zst`);
+      const artifact = module.artifacts[0];
+      if (!existsSync(source) || !artifact) {
+        throw new Error(`The published file of ${module.id} is missing (${source})`);
+      }
+      const digest = sha256File(source);
+      if (digest !== artifact.sha256) {
+        throw new Error(`${source}: ${digest} does not match the catalog (${artifact.sha256})`);
+      }
+      file = join(scratch, `${module.id}.db`);
+      const result = Bun.spawnSync(['zstd', '-d', '-q', '-f', source, '-o', file]);
+      if (result.exitCode !== 0) throw new Error(`zstd failed on ${source}`);
+    }
+    const database = new Database(file, { readonly: true });
     const query = database.query<{ id: string; title: string; metadata_json: string }, []>(
       "select id, title, metadata_json from documents where id like 'esklp.mnn.%'",
     );
@@ -133,6 +164,10 @@ function loadEsklpCards(): { cards: readonly ComparisonBuildCard[]; edition: str
       });
     }
     database.close();
+    if (file.startsWith(scratch)) rmSync(file, { force: true });
+  }
+  if (!rows.some((row) => row.atcAgreed.length > 0)) {
+    throw new Error('No ЕСКЛП card carries an agreed ATC pair: the source lacks the ATC fill');
   }
   return { cards: rows.toSorted((a, b) => a.id.localeCompare(b.id)), edition };
 }
@@ -234,20 +269,20 @@ function main(): void {
         module.id.startsWith('minimed.medications.instructions.') && !NOT_INDEXED.has(module.id),
     )
     .toSorted((a, b) => a.id.localeCompare(b.id));
-  const { cards, edition: esklpEdition } = loadEsklpCards();
-  const { register, edition: grlsEdition } = loadRegister();
-  console.log(
-    `ЕСКЛП cards: ${cards.length} (${esklpEdition}); ГРЛС valid registrations: ${register.size} (${grlsEdition})`,
-  );
-
-  const builder = createComparisonBuilder({
-    cards,
-    register,
-    editions: { esklp: esklpEdition, grls: grlsEdition },
-  });
   const scratch = join(tmpdir(), `cmp1-modules-${process.pid}`);
   mkdirSync(scratch, { recursive: true });
   try {
+    const { cards, edition: esklpEdition } = loadEsklpCards(esklpModules(catalog), scratch);
+    const { register, edition: grlsEdition } = loadRegister();
+    console.log(
+      `ЕСКЛП cards: ${cards.length} (${esklpEdition}); ГРЛС valid registrations: ${register.size} (${grlsEdition})`,
+    );
+
+    const builder = createComparisonBuilder({
+      cards,
+      register,
+      editions: { esklp: esklpEdition, grls: grlsEdition },
+    });
     for (const module of instructionModules) {
       const artifact = module.artifacts[0];
       const fileName = `${module.id}.db.zst`;
@@ -275,15 +310,15 @@ function main(): void {
       database.close();
       if (decoded.startsWith(scratch)) rmSync(decoded, { force: true });
     }
+    const { asset, report } = builder.finish();
+    mkdirSync(join(OUTPUT, '..'), { recursive: true });
+    writeFileSync(OUTPUT, `${JSON.stringify(asset)}\n`);
+    mkdirSync(join(REPORT, '..'), { recursive: true });
+    writeFileSync(REPORT, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(JSON.stringify(report.summary, null, 2));
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
-  const { asset, report } = builder.finish();
-  mkdirSync(join(OUTPUT, '..'), { recursive: true });
-  writeFileSync(OUTPUT, `${JSON.stringify(asset)}\n`);
-  mkdirSync(join(REPORT, '..'), { recursive: true });
-  writeFileSync(REPORT, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(JSON.stringify(report.summary, null, 2));
 }
 
 main();
