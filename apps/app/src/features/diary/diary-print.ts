@@ -1,4 +1,14 @@
 import {
+  PAST_MED_ALLERGY_LABEL,
+  PAST_MED_AUTHOR_LABEL,
+  PAST_MED_EFFECT_LABEL,
+  PAST_MED_SEVERITY_LABEL,
+  PAST_MED_STOP_LABEL,
+  type PastMedication,
+  pastMedConcern,
+  pastMedPeriod,
+} from '@/features/diary/diary-med-history';
+import {
   type DiaryEntry,
   type DiaryField,
   type DiaryInvitation,
@@ -35,14 +45,48 @@ function cell(invitation: DiaryInvitation, field: DiaryField, entry: DiaryEntry)
   return escapeHtml(describeDiaryValue(invitation, field, value));
 }
 
+/** «Лекарства раньше» (MEDHIST1): one row per medicine, allergies first (the list is sorted). */
+export function medHistoryPrintHtml(items: readonly PastMedication[]): string {
+  if (!items.length) return '';
+  const rows = items
+    .map((item) => {
+      const concern = pastMedConcern(item);
+      const stop = item.stop
+        ? item.stop === 'other' && item.stopNote
+          ? item.stopNote
+          : PAST_MED_STOP_LABEL[item.stop]
+        : '';
+      const reaction = [
+        item.reaction ?? '',
+        item.severity ? `тяжесть: ${PAST_MED_SEVERITY_LABEL[item.severity].toLowerCase()}` : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+      return `<tr${concern === 'allergy' || concern === 'intolerance' ? ' class="concern"' : ''}><td><strong>${escapeHtml(item.name)}</strong></td><td>${escapeHtml(item.dose ?? '')}</td><td>${escapeHtml(pastMedPeriod(item))}</td><td>${escapeHtml(stop)}</td><td>${escapeHtml(reaction)}</td><td>${item.allergy ? escapeHtml(PAST_MED_ALLERGY_LABEL[item.allergy]) : ''}</td><td>${item.effect ? escapeHtml(PAST_MED_EFFECT_LABEL[item.effect]) : ''}</td><td>${escapeHtml(item.note ?? '')}<small>${escapeHtml(`внёс ${PAST_MED_AUTHOR_LABEL[item.by]}, ${new Date(item.updatedAt).toLocaleDateString('ru-RU')}`)}</small></td></tr>`;
+    })
+    .join('');
+  return `<section class="history"><h2>Лекарства раньше</h2><table class="history-table">
+    <thead><tr><th>Препарат</th><th>Доза</th><th>Когда</th><th>Почему перестали</th><th>Реакция</th><th>Аллергия</th><th>Эффект (оценка пациента)</th><th>Заметка</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></section>`;
+}
+
+export interface DiaryPrintOptions {
+  /** Medicines taken before, printed after the plan. */
+  readonly medHistory?: readonly PastMedication[];
+  /** The patient as the doctor names them (the doctor's print); the patient's own has none. */
+  readonly patient?: string | undefined;
+}
+
 /**
- * A printable diary: the doctor's plan, then one table row per entry followed by empty rows
- * to fill in by hand. Landscape A4 so every field gets its own column.
+ * A printable diary: the doctor's plan, the medicines taken before, then one table row per entry
+ * followed by empty rows to fill in by hand. Landscape A4 so every field gets its own column.
  */
 export function diaryPrintHtml(
   invitation: DiaryInvitation,
   entries: readonly DiaryEntry[] = [],
   blankRows = 20,
+  options: DiaryPrintOptions = {},
 ): string {
   const header = invitation.fields.map((field) => `<th>${columnTitle(field)}</th>`).join('');
   const filled = entries
@@ -92,13 +136,19 @@ export function diaryPrintHtml(
     th:first-child, td:first-child { width: 24mm; }
     tr.blank td { height: 8mm; }
     tr { break-inside: avoid; }
+    .history-table { margin-top: 1mm; }
+    .history-table th:first-child, .history-table td:first-child { width: auto; }
+    .history-table td small { display: block; color: #405b4e; font-size: 7.5pt; }
+    .history-table tr.concern td { background: #fbeeec; }
   </style>
 </head>
 <body>
   <h1>${escapeHtml(invitation.title)}</h1>
+  ${options.patient ? `<p class="meta">Пациент: ${escapeHtml(options.patient)}</p>` : ''}
   ${invitation.doctor ? `<p class="meta">Врач: ${escapeHtml(invitation.doctor)}</p>` : ''}
   ${invitation.note ? `<p class="meta">${escapeHtml(invitation.note)}</p>` : ''}
   ${plan}
+  ${medHistoryPrintHtml(options.medHistory ?? [])}
   <table>
     <thead><tr><th>Дата и время</th>${header}<th>Комментарий</th></tr></thead>
     <tbody>${filled}${empty}</tbody>

@@ -1,6 +1,5 @@
 import { createSignal, type JSX, Show } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
-
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { Switch } from '@/components/Switch';
@@ -11,8 +10,10 @@ import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
 import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
 import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
+import type { PastMedAuthor, PastMedication } from '@/features/diary/diary-med-history';
 import type { DiaryOperator } from '@/features/diary/diary-model';
 import type { DiaryOpenResult, DiaryStore } from '@/features/diary/diary-storage';
+import { MedHistoryPanel } from '@/features/diary/med-history/MedHistory';
 import type { SettingsTileTone } from '@/features/settings/settings-pages';
 import {
   getSoundsEnabled,
@@ -163,6 +164,13 @@ export function DiaryMore(props: {
   readonly onBack?: (() => void) | undefined;
   readonly onPrint: () => void;
   readonly onFhir: () => void;
+  /** Medicines taken before (MEDHIST1): this phone's list and how a change is kept. */
+  readonly medHistory: {
+    readonly items: readonly PastMedication[];
+    readonly author: PastMedAuthor;
+    readonly onSave: (item: PastMedication) => void;
+    readonly onDelete: (id: string) => void;
+  };
   readonly onRestored: (diaryId: string) => void;
   readonly onOpened: (opened: DiaryOpenResult) => void;
   readonly onList: () => void;
@@ -191,7 +199,9 @@ export function DiaryMore(props: {
   const [vibration, setVibration] = createSignal(getVibrationEnabled());
   const [confirming, setConfirming] = createSignal(false);
   const [withdrawError, setWithdrawError] = createSignal('');
-  const [sheet, setSheet] = createSignal<'restore' | 'link' | 'documents' | undefined>();
+  const [sheet, setSheet] = createSignal<
+    'restore' | 'link' | 'documents' | 'history' | undefined
+  >();
   const connected = (): boolean => Boolean(props.onWithdraw || props.access);
 
   return (
@@ -204,6 +214,20 @@ export function DiaryMore(props: {
         hero={PAGE_HEROES.diarySettings}
       />
       <InstallWarning store={props.store} entries={props.entries} />
+
+      <section class="diary-settings__section" aria-label="Лечение">
+        <ul class="settings-list__group">
+          <ActionRow
+            icon="pill"
+            tone="purple"
+            title="Лекарства раньше"
+            status={
+              props.medHistory.items.length ? String(props.medHistory.items.length) : undefined
+            }
+            onClick={() => setSheet('history')}
+          />
+        </ul>
+      </section>
 
       <Show when={props.onEnablePush}>
         {(enable) => (
@@ -416,6 +440,17 @@ export function DiaryMore(props: {
         )}
       </Show>
 
+      <Show when={sheet() === 'history'}>
+        <DiarySheet title="Лекарства раньше" tall onClose={() => setSheet(undefined)}>
+          <MedHistoryPanel
+            items={props.medHistory.items}
+            author={props.medHistory.author}
+            viewer="patient"
+            onSave={props.medHistory.onSave}
+            onDelete={props.medHistory.onDelete}
+          />
+        </DiarySheet>
+      </Show>
       <Show when={sheet() === 'restore'}>
         <DiarySheet title="Вернуть записи из копии" onClose={() => setSheet(undefined)}>
           <RestoreCard

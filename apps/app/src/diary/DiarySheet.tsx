@@ -44,7 +44,10 @@ export function DiarySheet(props: {
       if (current?.[SHEET_KEY] !== id) finish();
     };
     const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') close();
+      if (event.key !== 'Escape') return;
+      // A dialog or a «?» sheet open over this sheet takes its own Escape (one layer at a time).
+      if (document.querySelector('.overlay-dialog:not(.overlay-dialog--closing)')) return;
+      close();
     };
     window.addEventListener('popstate', onPop);
     window.addEventListener('keydown', onKey);

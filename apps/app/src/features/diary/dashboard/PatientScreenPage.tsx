@@ -14,6 +14,7 @@ import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumn
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
 import type { DiaryInvitation } from '@/features/diary/diary-model';
+import { MedHistoryContext } from '@/features/diary/med-history/plan-removals';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
 import { getClinicianProfile } from '@/state/clinician-profile';
 
@@ -136,14 +137,19 @@ export function PatientScreenPage(props: {
           />
         }
         screen={
-          <PatientScreenEditor
-            draft={draft()}
-            onChange={setDraft}
-            doctor={doctor()}
-            onDoctor={setDoctor}
-            note={note()}
-            onNote={setNote}
-          />
+          // The plan editor checks a new prescription against the history (MEDHIST1).
+          <MedHistoryContext.Provider
+            value={() => Object.values(props.patient.replica.medHistory ?? {})}
+          >
+            <PatientScreenEditor
+              draft={draft()}
+              onChange={setDraft}
+              doctor={doctor()}
+              onDoctor={setDoctor}
+              note={note()}
+              onNote={setNote}
+            />
+          </MedHistoryContext.Provider>
         }
         footer={
           <>

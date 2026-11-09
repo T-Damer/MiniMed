@@ -63,6 +63,14 @@ import {
   type DiaryInvitation,
   describeDiaryEntry,
 } from '@/features/diary/diary-model';
+import { diaryPrintHtml, printHtmlInFrame } from '@/features/diary/diary-print';
+import { MedHistoryCard } from '@/features/diary/med-history/MedHistoryCard';
+import {
+  offeredRemovals,
+  planRemovals,
+  readDismissed,
+  writeDismissed,
+} from '@/features/diary/med-history/plan-removals';
 import { planEditDays } from '@/features/diary/plan-history';
 import type { DiarySub } from '@/features/notes/notes-routing';
 import { crossesLimit } from '@/state/assessment-limits';
@@ -222,6 +230,27 @@ export function DiaryPatientPage(props: {
     });
   });
 
+  /** Medicines just taken off the plan, offered for the history (MEDHIST1). */
+  const [dismissed, setDismissed] = createSignal(readDismissed(props.patient.summary.id));
+  const historyOffers = createMemo(() => {
+    void props.version;
+    return offeredRemovals(
+      planRemovals(props.patient.replica.planHistory ?? []),
+      results()?.medHistory ?? [],
+      dismissed(),
+    );
+  });
+  const print = (): void => {
+    const current = results();
+    if (!current) return;
+    printHtmlInFrame(
+      diaryPrintHtml(current.invitation, current.entries, 0, {
+        medHistory: current.medHistory ?? [],
+        patient: props.patient.replica.profile?.label,
+      }),
+    );
+  };
+
   const phone = (): string | undefined => props.patient.replica.profile?.phone;
   const actions = createMemo((): readonly HeaderAction[] => {
     const edit = canEdit();
@@ -264,11 +293,19 @@ export function DiaryPatientPage(props: {
           ]
         : []),
       {
+        id: 'print',
+        label: 'Распечатать',
+        icon: 'printer',
+        priority: 2,
+        disabled: !ready,
+        onSelect: print,
+      },
+      {
         id: 'export',
         label: 'Выгрузить в таблицу',
         icon: 'file-xls',
         priority: 2,
-        disabled: !results()?.entries.length,
+        disabled: !results()?.entries.length && !results()?.medHistory?.length,
         onSelect: () => setDialog('export'),
       },
       {
@@ -415,6 +452,20 @@ export function DiaryPatientPage(props: {
       <Show when={results()}>
         {(current) => (
           <>
+            <MedHistoryCard
+              items={current().medHistory ?? []}
+              canEdit={canEdit()}
+              offers={historyOffers()}
+              onDismiss={(removal) => {
+                const next = new Set(dismissed());
+                next.add(removal.item.id);
+                writeDismissed(props.patient.summary.id, next);
+                setDismissed(next);
+              }}
+              onSave={(item) => props.workspace.savePastMed(props.patient.summary.id, item)}
+              onDelete={(id) => props.workspace.deletePastMed(props.patient.summary.id, id)}
+            />
+
             <PatientOverview
               signals={signals()}
               onOpen={(target) =>

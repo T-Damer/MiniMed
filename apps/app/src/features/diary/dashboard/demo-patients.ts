@@ -32,6 +32,7 @@ import {
   newCareLab,
   newCareSection,
 } from '@/features/diary/diary-care-draft';
+import type { PastMedication } from '@/features/diary/diary-med-history';
 import {
   DIARY_FORMAT_VERSION,
   type DiaryInvitation,
@@ -51,6 +52,25 @@ export interface DemoPatientSpec extends DemoBehavior {
   readonly days: number;
   /** The plan; `now` is the end of the history, so a visit or a test is due from there. */
   readonly draft: (now: Date) => CareDraft;
+  /** Medicines taken before (MEDHIST1): the patient's go from the phone, the doctor's are signed. */
+  readonly history?: readonly DemoPastMed[];
+}
+
+/** A medicine of the demo history; years count back from the end of the history. */
+export type DemoPastMed = Omit<PastMedication, 'id' | 'updatedAt' | 'from' | 'to'> & {
+  readonly fromYearsAgo?: number;
+  readonly toYearsAgo?: number;
+};
+
+/** The demo history as saved items, dated from `now`. */
+export function demoPastMeds(specs: readonly DemoPastMed[], now: Date): PastMedication[] {
+  return specs.map(({ fromYearsAgo, toYearsAgo, ...spec }, index) => ({
+    ...spec,
+    id: `demo${index}${now.getTime().toString(36)}`,
+    ...(fromYearsAgo === undefined ? {} : { from: String(now.getFullYear() - fromYearsAgo) }),
+    ...(toYearsAgo === undefined ? {} : { to: String(now.getFullYear() - toYearsAgo) }),
+    updatedAt: now.toISOString(),
+  }));
 }
 
 function drug(input: {
@@ -116,6 +136,35 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
       'u-nicotine': { chance: 0.9, typical: 9 },
       'u-sedatives': { chance: 0.08, typical: 1 },
     },
+    history: [
+      {
+        name: 'Амоксициллин',
+        atc: ['J01CA04'],
+        fromYearsAgo: 6,
+        toYearsAgo: 6,
+        approx: true,
+        duration: '3 дня',
+        stop: 'intolerance',
+        reaction: 'Крапивница на второй день',
+        severity: 'moderate',
+        allergy: 'yes',
+        by: 'doctor',
+      },
+      {
+        name: 'Пароксетин',
+        atc: ['N06AB05'],
+        dose: '20 мг',
+        fromYearsAgo: 2,
+        toYearsAgo: 2,
+        duration: 'около полугода',
+        stop: 'side-effects',
+        reaction: 'Тошнота, сонливость днём',
+        severity: 'mild',
+        allergy: 'no',
+        effect: 'partly',
+        by: 'patient',
+      },
+    ],
     draft: (now) =>
       careDraft(
         [
@@ -170,6 +219,35 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.88,
     urgentAlert: false,
     vitals: { pulse: 82, systolic: 126, diastolic: 80, spo2: 97 },
+    history: [
+      {
+        name: 'Рисперидон',
+        atc: ['N05AX08'],
+        dose: '2 мг',
+        fromYearsAgo: 5,
+        toYearsAgo: 4,
+        approx: true,
+        stop: 'intolerance',
+        reaction: 'Нарушение цикла, пролактин выше нормы',
+        severity: 'moderate',
+        allergy: 'no',
+        effect: 'helped',
+        by: 'doctor',
+      },
+      {
+        name: 'Лития карбонат',
+        atc: ['N05AN01'],
+        dose: '900 мг',
+        fromYearsAgo: 3,
+        toYearsAgo: 2,
+        stop: 'side-effects',
+        reaction: 'Дрожь в руках',
+        severity: 'mild',
+        effect: 'helped',
+        note: 'Хотелось бы вернуться, если можно',
+        by: 'patient',
+      },
+    ],
     draft: (now) =>
       careDraft(
         [
@@ -221,6 +299,19 @@ export const DEMO_PATIENTS: readonly DemoPatientSpec[] = [
     adherence: 0.9,
     urgentAlert: true,
     vitals: { pulse: 80, systolic: 124, diastolic: 78, spo2: 97 },
+    history: [
+      {
+        name: 'Флуоксетин',
+        atc: ['N06AB03'],
+        dose: '20 мг',
+        fromYearsAgo: 3,
+        duration: 'около года',
+        approx: true,
+        stop: 'ineffective',
+        effect: 'no',
+        by: 'patient',
+      },
+    ],
     draft: () =>
       careDraft([
         drug({
@@ -394,10 +485,13 @@ async function seedOne(
       seed: BASE_SEED + index * 7919,
     });
     report(`${spec.label}: записываем ${days} дн. (${diary.entries.length} записей)`);
+    const history = demoPastMeds(spec.history ?? [], now);
+    const fromPhone = history.filter((item) => item.by !== 'doctor');
     store.save({
       v: DIARY_FORMAT_VERSION,
       invitation: results.invitation,
       entries: diary.entries,
+      ...(fromPhone.length ? { medHistory: fromPhone } : {}),
     });
     store.setMeta(id, {
       consentAt: diary.consentAt,
@@ -414,6 +508,9 @@ async function seedOne(
     if (diary.alertEntryId) {
       const alerted = await connection.raiseAlert();
       if (alerted.phase !== 'idle') throw new Error(alerted.message ?? 'Сигнал не отправился.');
+    }
+    for (const item of history.filter((past) => past.by === 'doctor')) {
+      await workspace.savePastMed(id, item);
     }
     await workspace.refreshPatient(id);
   } catch (cause) {

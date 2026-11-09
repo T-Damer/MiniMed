@@ -9,6 +9,11 @@
  * Everything that crosses a device boundary is validated here.
  */
 
+import {
+  PastMedFormatError,
+  type PastMedication,
+  parsePastMedications,
+} from '@/features/diary/diary-med-history';
 import { substanceSummary } from '@/features/diary/diary-substances';
 import {
   parseUserQuestionnaire,
@@ -322,6 +327,8 @@ export interface DiaryResults {
   readonly v: typeof DIARY_FORMAT_VERSION;
   readonly invitation: DiaryInvitation;
   readonly entries: readonly DiaryEntry[];
+  /** Medicines taken before (MEDHIST1), allergies first; absent when none was entered. */
+  readonly medHistory?: readonly PastMedication[];
 }
 
 export class DiaryFormatError extends Error {
@@ -1236,10 +1243,18 @@ export function parseDiaryResults(value: unknown, now = Date.now()): DiaryResult
   if (new Set(parsed.map((entry) => entry.id)).size !== parsed.length) {
     throw new DiaryFormatError('Записи дневника повторяются.');
   }
+  let medHistory: readonly PastMedication[];
+  try {
+    medHistory = parsePastMedications(source['medHistory']);
+  } catch (cause) {
+    if (cause instanceof PastMedFormatError) throw new DiaryFormatError(cause.message);
+    throw cause;
+  }
   return {
     v: DIARY_FORMAT_VERSION,
     invitation,
     entries: parsed.toSorted((left, right) => left.at.localeCompare(right.at)),
+    ...(medHistory.length ? { medHistory } : {}),
   };
 }
 

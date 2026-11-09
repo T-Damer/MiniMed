@@ -37,6 +37,8 @@ export interface DrugSuggestion {
   readonly product: string | null;
   /** Some form of the card is in the ЖНВЛП list. */
   readonly essential: boolean;
+  /** ATC codes of the card (the registry's and the agreed ones), as the index holds them. */
+  readonly atc: readonly string[];
   /** Distinct dosage forms of the card with their strengths, most likely first. */
   readonly forms: readonly DrugSuggestionForm[];
   /** The name rule's match score (higher is better). */
@@ -149,6 +151,7 @@ export function rankDrugSuggestions(
         name: sentenceCase(match.name),
         product: match.product,
         essential: isEssential(card),
+        atc: card.a,
         forms: suggestionForms(card, index.asset.forms),
         score: match.score,
       }),

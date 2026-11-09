@@ -10,12 +10,10 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { PAGE_HEROES } from '@/app/page-heroes';
-
 import type { NavItem } from '@/app/root-view';
 import { useBottomNav } from '@/app/use-bottom-nav';
 import { BottomNav } from '@/components/BottomNav';
 import type { HeaderAction } from '@/components/HeaderActions';
-
 import { CarerNameSheet, DiaryAccess } from '@/diary/DiaryAccess';
 import { DiaryEntryForm } from '@/diary/DiaryEntryForm';
 import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
@@ -27,6 +25,7 @@ import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallWarning } from '@/diary/InstallWarning';
 import { syncNeedsAction, syncWords } from '@/diary/sync-words';
+import { withMedHistory } from '@/features/diary/diary-med-history';
 import '@/diary/carer.css';
 import { markAuthor, markLine } from '@/features/diary/connected/carer';
 import {
@@ -501,8 +500,32 @@ export function DiaryView(props: {
             entries={results().entries.length}
             onBack={tabbed() ? undefined : () => navigate('home')}
             hasOtherDiaries={props.hasOtherDiaries}
-            onPrint={() => printHtmlInFrame(diaryPrintHtml(invitation(), results().entries, 10))}
+            onPrint={() =>
+              printHtmlInFrame(
+                diaryPrintHtml(invitation(), results().entries, 10, {
+                  medHistory: results().medHistory ?? [],
+                }),
+              )
+            }
             onFhir={() => downloadFhir(results())}
+            medHistory={{
+              items: results().medHistory ?? [],
+              author: carer() ? 'carer' : 'patient',
+              onSave: (item) =>
+                commit(
+                  withMedHistory(results(), [
+                    ...(results().medHistory ?? []).filter((known) => known.id !== item.id),
+                    item,
+                  ]),
+                ),
+              onDelete: (id) =>
+                commit(
+                  withMedHistory(
+                    results(),
+                    (results().medHistory ?? []).filter((known) => known.id !== id),
+                  ),
+                ),
+            }}
             consents={
               meta().consents?.length
                 ? { accepted: meta().consents ?? [], operator: diaryOperator(invitation()) }

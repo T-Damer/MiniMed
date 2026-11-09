@@ -20,6 +20,45 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Medicines taken before: history, reactions, allergy — 2026-11-09 (STATE MEDHIST1; not released)
+
+- **Owner 2026-11-09:** «нужно разрешить вносить данные о прошлых препаратах и их непереносимости/реакции/опыте
+  (сроке) использования». Plan agreed by the owner the same day (patient, carer and doctor enter; ATC level 4 for
+  the class warning; catalog suggestions for the patient too; no QR for the history).
+- **Data.** `features/diary/diary-med-history.ts`: `PastMedication` — name (catalog МНН with slug and ATC codes, or own
+  words), dose, `from`/`to` as `YYYY` / `YYYY-MM` / `YYYY-MM-DD` with «примерно», duration in words, why stopped
+  (`ineffective`, `side-effects`, `intolerance`, `other` + text), reaction, severity in four steps named after CTCAE v5
+  grades 1–4, allergy yes/no/unknown, the patient's own rating of the effect, note, `planItem` when it came off the
+  plan, `by` (doctor / patient / carer) and `updatedAt`. Strict parser; the editor's draft becomes a medicine through
+  a `TypedResult` (`PAST_MED_DRAFT_ERRORS`).
+- **Storage and sync.** Connected diary: one encrypted record `h-<id>` per medicine (`{kind:'past-med'}` or
+  `deleted`), written by the patient's phone, a carer's and the doctors; the server is unchanged (not in
+  `DOCTOR_RECORDS`), the replica refuses an item whose `by` does not match the writer. On the phone the list lives in
+  `DiaryResults.medHistory`, so a diary without the service keeps it and its file/restore carries it; QR codes do not.
+  Old app versions skip the records (counted as refused).
+- **Patient (and carer).** «Настройки» → «Лечение» → «Лекарства раньше»: list (allergy/intolerance first, badge),
+  «Добавить препарат», the editor in the same sheet: the name first (catalog suggestions), then the rest; dates typed
+  «2022», «03.2022», «14.03.2022» (no native pickers); each field has a «?» in the patient's words.
+- **Doctor.** Patient page: one row «Лекарства раньше · N препаратов» naming allergies and intolerance, opening the
+  same list and editor (a reader role only reads); the doctor's «?» carries definitions and sources (ВОЗ 1972, WAO
+  2004, HL7 FHIR AllergyIntoleranceType, CTCAE v5.0, WHO ATC structure) under «Источники»; where WAO and FHIR disagree
+  on allergy vs intolerance the text says «данные противоречивы» and names both. A medicine taken off the plan in the
+  last 60 days is offered («… убран из плана — перенести в историю?», `med-history/plan-removals.ts`), filled in from
+  the plan versions; «×» puts the offer aside on this device.
+- **Prescribing warning.** In the plan editor's medicine sheet (`PastMedWarnings`, via `MedHistoryContext`): a medicine
+  of the history with an allergy, intolerance or reaction that is the same card / ATC substance / name, or shares the
+  ATC level-4 group (NSI group name shown). States the code match only, never a cross-reactivity claim; never blocks.
+- **Print and export.** «Лекарства раньше» table after the plan in the diary print (patient's «Распечатать», and a new
+  «Распечатать» in the doctor's patient header with the patient's label). FHIR: `MedicationStatement`
+  (stopped/completed, `effectivePeriod`, ATC coding) and, with allergy or intolerance, an unconfirmed
+  `AllergyIntolerance` (type left out when the allergy answer is «не знаю»). CSV/XLSX are unchanged.
+- **Also.** Escape in a `SheetPopover` no longer closes the dialog under it; a `DiarySheet` ignores Escape while a
+  dialog is open over it. Demo patients Лиса, Сова and Медведь carry histories (`DemoPatientSpec.history`).
+- **Checks.** check, typecheck, vitest 19 587, diary-server 24, build; e2e diary 86 passed incl. new
+  `diary-med-history.spec.ts` (patient enter/edit/print at 390; doctor list, «?», ATC warning, plan → history, print
+  at 390 and 1024; light and dark screenshots). Not checked: a real phone, a real printer, an old app version against
+  the new records, `python:check`/benchmarks (no Python or search change).
+
 ## Search and reader speed — 2026-11-08 (STATE PERF5)
 
 Owner 2026-11-08: «ускорить приложение … при поиске, чтении особенно». Measured on the production build with the

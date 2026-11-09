@@ -4,6 +4,7 @@
  * and rotates the patient's key after a removal (ADR-0026 §5). No Solid here: the dashboard
  * subscribes to changes.
  */
+
 import type {
   DiaryAlert,
   DiaryDeviceKind,
@@ -25,7 +26,6 @@ import {
   unwrapDataKey,
   wrapDataKey,
 } from '@localmed/diary-sync';
-
 import {
   DiaryApiError,
   diaryAlerts,
@@ -53,6 +53,7 @@ import {
 } from '@/features/diary/connected/doctor-account';
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
+import { type PastMedication, pastMedRecordId } from '@/features/diary/diary-med-history';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
 import { mergeInvitations, type PlanMerge } from '@/features/diary/plan-merge';
 
@@ -608,6 +609,17 @@ export class DoctorDiaries {
       [{ id: entryRecordId(entryId), payload: { kind: 'deleted' } }],
       'correction',
     );
+  }
+
+  /** A medicine taken before (MEDHIST1), new or edited; signed by the doctor, silent on the phone. */
+  savePastMed(patientId: string, item: PastMedication): Promise<void> {
+    return this.write(patientId, [
+      { id: pastMedRecordId(item.id), payload: { kind: 'past-med', item } },
+    ]);
+  }
+
+  deletePastMed(patientId: string, itemId: string): Promise<void> {
+    return this.write(patientId, [{ id: pastMedRecordId(itemId), payload: { kind: 'deleted' } }]);
   }
 
   /**

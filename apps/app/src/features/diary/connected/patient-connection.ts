@@ -4,6 +4,7 @@
  * the local diary store and sends the patient's marks. The local store stays the source the
  * screens read, so the diary keeps working offline; sync runs whenever there is a network.
  */
+
 import type { DiaryDeviceKind, DiaryPatientDetail, DiaryWrappedKey } from '@localmed/contracts';
 import {
   fromBase64Url,
@@ -16,7 +17,6 @@ import {
   unwrapDataKey,
   wrapDataKey,
 } from '@localmed/diary-sync';
-
 import {
   carerName,
   type DiaryPhone,
@@ -56,6 +56,16 @@ import {
 } from '@/features/diary/consent/joining-documents';
 import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
 import { diaryServiceBase } from '@/features/diary/diary-links';
+import {
+  authorMatches,
+  isPastMedRecord,
+  PAST_MED_RECORD_PREFIX,
+  PastMedFormatError,
+  parsePastMedication,
+  pastMedFingerprint,
+  pastMedRecordId,
+  withMedHistory,
+} from '@/features/diary/diary-med-history';
 import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
   type DiaryEntry,
@@ -204,6 +214,21 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
   }
   for (const id of Object.keys(connection.synced)) {
     if (id.startsWith('e-') && !local.has(id) && connection.synced[id] !== 'deleted') {
+      items.push({ id, payload: { kind: 'deleted' }, fingerprint: 'deleted' });
+    }
+  }
+  // Medicines taken before (MEDHIST1): the phone sends what changed here, and what it removed.
+  const history = new Set<string>();
+  for (const item of results?.medHistory ?? []) {
+    const id = pastMedRecordId(item.id);
+    history.add(id);
+    const fingerprint = pastMedFingerprint(item);
+    if (connection.synced[id] !== fingerprint) {
+      items.push({ id, payload: { kind: 'past-med', item }, fingerprint });
+    }
+  }
+  for (const id of Object.keys(connection.synced)) {
+    if (isPastMedRecord(id) && !history.has(id) && connection.synced[id] !== 'deleted') {
       items.push({ id, payload: { kind: 'deleted' }, fingerprint: 'deleted' });
     }
   }
@@ -510,6 +535,24 @@ export class PatientConnection {
           const invitation = parseDiaryInvitation(payload['invitation']);
           if (invitation.id !== this.patientId) continue;
           this.store.open(invitation);
+        } else if (isPastMedRecord(revision.id)) {
+          const results = this.store.read(this.patientId);
+          if (!results) continue;
+          const itemId = revision.id.slice(PAST_MED_RECORD_PREFIX.length);
+          const list = results.medHistory ?? [];
+          const local = list.find((item) => item.id === itemId);
+          // A change made here and not sent yet wins over the one that arrives (like entries).
+          if (local && pastMedFingerprint(local) !== synced[revision.id]) continue;
+          const rest = list.filter((item) => item.id !== itemId);
+          if (payload['kind'] === 'deleted') {
+            this.store.save(withMedHistory(results, rest));
+            synced[revision.id] = 'deleted';
+          } else if (payload['kind'] === 'past-med') {
+            const item = parsePastMedication(payload['item']);
+            if (item.id !== itemId || !authorMatches(item, revision.author)) continue;
+            this.store.save(withMedHistory(results, [...rest, item]));
+            synced[revision.id] = pastMedFingerprint(item);
+          }
         } else if (revision.id.startsWith('e-')) {
           const results = this.store.read(this.patientId);
           if (!results) continue;
@@ -569,7 +612,8 @@ export class PatientConnection {
         }
       } catch (cause) {
         // A record this version cannot read is skipped; the next plan or app update may read it.
-        if (!(cause instanceof DiaryFormatError)) throw cause;
+        if (!(cause instanceof DiaryFormatError || cause instanceof PastMedFormatError))
+          throw cause;
         console.warn('Запись дневника с сервера пропущена:', cause.message);
       }
     }

@@ -1,0 +1,468 @@
+/* Medicines taken before (MEDHIST1): list, editor, «?» and the prescribing warning. */
+
+.med-history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.med-history__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- List ------------------------------------------------------------------------------------ */
+
+.med-history__list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.med-history__item {
+  display: block;
+}
+
+.med-history__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  font: inherit;
+  text-align: left;
+}
+
+.med-history__row--button {
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+@media (hover: hover) {
+  .med-history__row--button:hover {
+    background: var(--theme-hover-surface, var(--theme-surface-muted));
+  }
+}
+
+.med-history__row-icon {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  color: var(--theme-accent-text);
+}
+
+.med-history__row-chevron {
+  flex: none;
+  align-self: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
+}
+
+.med-history__row-text {
+  display: grid;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.med-history__row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.45rem;
+}
+
+.med-history__row-name {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.med-history__row-dose {
+  color: var(--theme-text-muted);
+  font-size: 0.92rem;
+}
+
+.med-history__row-line {
+  color: var(--theme-text);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.med-history__row-note {
+  color: var(--theme-text-muted);
+}
+
+.med-history__row-author {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.med-history__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.med-history__badge--danger {
+  border-color: color-mix(in srgb, var(--theme-danger) 45%, var(--theme-border));
+  background: color-mix(in srgb, var(--theme-danger) 10%, var(--theme-surface-raised));
+  color: var(--theme-danger);
+}
+
+.med-history__badge-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.med-history__empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 1.2rem 0.5rem 0.6rem;
+  text-align: center;
+}
+
+.med-history__empty-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--theme-accent-text);
+}
+
+.med-history__empty-text {
+  max-width: 22rem;
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.med-history__add {
+  justify-self: start;
+}
+
+/* --- Editor ---------------------------------------------------------------------------------- */
+
+.med-history__editor {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.med-history__reveal {
+  display: grid;
+  gap: 0.75rem;
+  animation: med-history-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out);
+}
+
+@keyframes med-history-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+}
+
+.med-history__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.med-history__field-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+}
+
+.med-history__field-label {
+  color: var(--theme-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.med-history__input {
+  min-height: 2.75rem;
+  font-size: 1rem;
+}
+
+.med-history__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.med-history__pair--wide {
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
+.med-history__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+}
+
+.med-history__switch-label {
+  color: var(--theme-text);
+  font-size: 0.92rem;
+}
+
+.med-history__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.med-history__chip {
+  min-height: 2.25rem;
+}
+
+.med-history__error {
+  min-height: 1.3em;
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.9rem;
+}
+
+.med-history__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.med-history__delete {
+  margin-right: auto;
+  color: var(--theme-danger);
+}
+
+.med-history__action-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+/* --- «?» ------------------------------------------------------------------------------------- */
+
+.med-history__help {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+@media (hover: hover) {
+  .med-history__help:hover {
+    color: var(--theme-accent-text);
+  }
+}
+
+.med-history__help-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.med-history__help-panel {
+  display: grid;
+  gap: 0.6rem;
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.875rem;
+  background: var(--theme-surface-raised);
+  box-shadow: var(--shadow-paper);
+}
+
+.med-history__help-text {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+/* --- Prescribing warning ---------------------------------------------------------------------- */
+
+.med-history__warnings {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--theme-danger) 45%, var(--theme-border));
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--theme-danger) 8%, var(--theme-surface-raised));
+}
+
+.med-history__warnings-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.med-history__warnings-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--theme-danger);
+}
+
+.med-history__warnings-title {
+  flex: 1;
+  color: var(--theme-danger);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.med-history__warnings-list {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0 0 0 1.45rem;
+  color: var(--theme-text);
+  font-size: 0.92rem;
+}
+
+.med-history__warnings-item {
+  overflow-wrap: anywhere;
+}
+
+.med-history__warnings-name {
+  font-weight: 650;
+}
+
+.med-history__warnings-group {
+  color: var(--theme-text-muted);
+}
+
+/* --- The doctor's row on the patient page ---------------------------------------------------- */
+
+.med-history-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.med-history-card--concern {
+  border-color: color-mix(in srgb, var(--theme-danger) 40%, var(--theme-border));
+}
+
+@media (hover: hover) {
+  .med-history-card:hover {
+    background: var(--theme-hover-surface, var(--theme-surface-muted));
+  }
+}
+
+.med-history-card__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--theme-accent-text);
+}
+
+.med-history-card__icon--concern {
+  color: var(--theme-danger);
+}
+
+.med-history-card__text {
+  display: grid;
+  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.med-history-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.5rem;
+  font-weight: 650;
+}
+
+.med-history-card__count {
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.med-history-card__concerns {
+  color: var(--theme-danger);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.med-history-card__chevron {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted);
+}
+
+.med-history-offers {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.med-history-offers__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.7rem;
+  border: 1px dashed var(--theme-border);
+  border-radius: 0.9rem;
+  background: var(--theme-surface);
+}
+
+.med-history-offers__icon {
+  flex: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--theme-text-muted);
+}
+
+.med-history-offers__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--theme-text);
+  font-size: 0.92rem;
+}
+
+.med-history-offers__name {
+  font-weight: 650;
+}
+
+.med-history-offers__move {
+  flex: none;
+}

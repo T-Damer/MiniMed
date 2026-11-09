@@ -1,3 +1,4 @@
+import { mergePastMedications } from '@/features/diary/diary-med-history';
 import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
@@ -115,6 +116,7 @@ export function mergeResults(
   const header = mergeInvitation(existing.invitation, incoming.invitation, entries);
   // Entries of the copy must also fit the header that survives the merge.
   const usable = fresh.filter((entry) => fits(header.invitation, [entry]));
+  const medHistory = mergePastMedications(existing.medHistory, incoming.medHistory);
   return {
     results: {
       v: DIARY_FORMAT_VERSION,
@@ -122,6 +124,7 @@ export function mergeResults(
       entries: [...existing.entries, ...usable].toSorted((left, right) =>
         left.at.localeCompare(right.at),
       ),
+      ...(medHistory.length ? { medHistory } : {}),
     },
     added: usable.length,
     kept,

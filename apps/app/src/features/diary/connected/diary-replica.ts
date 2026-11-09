@@ -11,6 +11,15 @@ import {
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
 import {
+  authorMatches,
+  isPastMedRecord,
+  PAST_MED_RECORD_PREFIX,
+  PastMedFormatError,
+  type PastMedication,
+  parsePastMedication,
+  sortPastMedications,
+} from '@/features/diary/diary-med-history';
+import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
   DiaryFormatError,
@@ -77,7 +86,8 @@ export type DiaryPayload =
       readonly documents?: readonly JoiningAcceptance[];
     }
   | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string }
-  | { readonly kind: 'member'; readonly name: string };
+  | { readonly kind: 'member'; readonly name: string }
+  | { readonly kind: 'past-med'; readonly item: unknown };
 
 /** One decrypted record revision as the sync session hands it over. */
 export interface DiaryRecordRevision {
@@ -117,6 +127,8 @@ export interface DiaryReplica {
   readonly consentAt: string | undefined;
   /** The joining documents the patient accepted, with wording and time (none before DIARY26). */
   readonly consents?: readonly JoiningAcceptance[];
+  /** Medicines taken before (MEDHIST1), by id; copies saved before have none. */
+  readonly medHistory?: Readonly<Record<string, PastMedication>>;
   /** Record id → latest revision applied. */
   readonly revs: ReadonlyMap<string, number>;
   /** Records that could not be read (bad payload); kept out of the diary. */
@@ -156,6 +168,7 @@ export function applyRevisions(
   const entryAuthors = new Map(replica.entryAuthors);
   const tipsRead = new Set(replica.tipsRead);
   const carerNames: Record<string, string> = { ...replica.carerNames };
+  const medHistory: Record<string, PastMedication> = { ...replica.medHistory };
   const revs = new Map(replica.revs);
   // Plans first: entries are validated against the plan they answer.
   const ordered = [
@@ -204,6 +217,27 @@ export function applyRevisions(
         const name = memberName(revision.id, revision.author, payload);
         if (!name) throw new DiaryFormatError('Имя опекуна.');
         carerNames[revision.id.slice(7)] = name;
+      } else if (isPastMedRecord(revision.id)) {
+        // Patient, carer and doctors all write the history; the item says who, and must agree.
+        const itemId = revision.id.slice(PAST_MED_RECORD_PREFIX.length);
+        if (payload['kind'] === 'deleted') {
+          delete medHistory[itemId];
+        } else if (payload['kind'] === 'past-med') {
+          let item: PastMedication;
+          try {
+            item = parsePastMedication(payload['item']);
+          } catch (cause) {
+            if (cause instanceof PastMedFormatError) throw new DiaryFormatError(cause.message);
+            throw cause;
+          }
+          if (item.id !== itemId) throw new DiaryFormatError('Препарат не совпадает с ключом.');
+          if (!authorMatches(item, revision.author)) {
+            throw new DiaryFormatError('Автор препарата не совпадает.');
+          }
+          medHistory[itemId] = item;
+        } else {
+          throw new DiaryFormatError('Неизвестная запись.');
+        }
       } else if (revision.id.startsWith('e-')) {
         const entryId = revision.id.slice(2);
         if (payload['kind'] === 'deleted') {
@@ -237,6 +271,7 @@ export function applyRevisions(
     entryAuthors,
     tipsRead,
     carerNames,
+    medHistory,
     consentAt,
     ...(consents.length ? { consents } : {}),
     revs,
@@ -247,11 +282,13 @@ export function applyRevisions(
 /** The diary in the shape every existing screen reads. */
 export function replicaResults(replica: DiaryReplica): DiaryResults | undefined {
   if (!replica.invitation) return undefined;
+  const medHistory = sortPastMedications(Object.values(replica.medHistory ?? {}));
   return {
     v: DIARY_FORMAT_VERSION,
     invitation: replica.invitation,
     entries: [...replica.entries.values()].toSorted((left, right) =>
       left.at.localeCompare(right.at),
     ),
+    ...(medHistory.length ? { medHistory } : {}),
   };
 }

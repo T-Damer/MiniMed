@@ -41,6 +41,7 @@ import {
   newCareSection,
   newCustomQuestionnaireSection,
 } from '@/features/diary/diary-care-draft';
+import { prescribingWarnings } from '@/features/diary/diary-med-history';
 import {
   DIARY_MEAL_LABEL,
   type DiaryCheckpoint,
@@ -65,6 +66,8 @@ import {
 } from '@/features/diary/diary-questionnaires';
 import { SUBSTANCES, substanceById } from '@/features/diary/diary-substances';
 import { appointmentWhen, dayWords } from '@/features/diary/diary-visits';
+import { PastMedWarnings } from '@/features/diary/med-history/MedHistory';
+import { useMedHistory } from '@/features/diary/med-history/plan-removals';
 import { AppointmentEditor, LabEditor } from '@/features/diary/VisitEditors';
 import { DrugSearchField } from '@/features/drug-picker/DrugSearchField';
 import type { DrugSuggestionForm } from '@/features/drug-picker/drug-suggest';
@@ -362,6 +365,15 @@ function DrugFields(props: {
 }): JSX.Element {
   const [forms, setForms] = createSignal<readonly DrugSuggestionForm[]>([]);
   const [calendar, setCalendar] = createSignal(false);
+  // MEDHIST1: the history's reactions to this medicine or its ATC group, as a note, never a block.
+  const history = useMedHistory();
+  const [picked, setPicked] = createSignal<{
+    readonly slug: string;
+    readonly atc: readonly string[];
+  }>();
+  const warnings = createMemo(() =>
+    prescribingWarnings(history(), { name: props.section.title, ...picked() }),
+  );
   const strengths = (): readonly string[] =>
     forms().find((form) => form.form === props.section.form)?.strengths ?? [];
   return (
@@ -378,8 +390,12 @@ function DrugFields(props: {
           label="Препарат"
           placeholder="Начните вводить название"
           value={props.section.title}
-          onInput={(title) => props.patch({ title })}
+          onInput={(title) => {
+            setPicked(undefined);
+            props.patch({ title });
+          }}
           onPick={(picked) => {
+            setPicked({ slug: picked.slug, atc: picked.atc });
             setForms(picked.forms);
             const first = picked.forms[0];
             props.patch({
@@ -391,6 +407,7 @@ function DrugFields(props: {
           }}
         />
       </div>
+      <PastMedWarnings warnings={warnings()} />
       <Show when={props.chosen}>
         <div class="screen-editor__reveal">
           <div class="screen-editor__pair">
