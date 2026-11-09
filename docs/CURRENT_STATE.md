@@ -20,6 +20,56 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## e2e specs that failed on `main` itself — 2026-11-09 (STATE E2E-MAIN)
+
+Every merge since UI-BATCH3 ended with «these fail on main too». Cause of each, and what changed:
+
+- **`atc-search:13/:79` — data regression (app).** FIX-BATCH2 rebuilt `comparison-index.json` from
+  `data/build/release-esklp`, the original ЕСКЛП build without the ATC fill and the strength repairs: the 13 agreed
+  code pairs (`q`, «J05AX13 · в реестре: L03AX»), the codes of 155 cards and the strengths of 215 cards were lost.
+  `scripts/build-drug-comparison.ts` now reads the catalog's published ЕСКЛП modules (str2, SHA-256 checked, decoded on
+  the fly; `CMP1_ESKLP_DIR` still overrides) and refuses a source without an agreed pair. Rebuilt index: cards equal
+  the MOD-REBUILD index, documents FIX-BATCH2's. (`build-dose-rules.ts` still reads the original build, as before.)
+- **`news-feed` «marks entries read as they are scrolled past» — app bug.** An IntersectionObserver fires only when
+  an intersection changes, so rows that one jump of the scroll (a fling, the spec's 5000 px wheel) carried from below
+  the screen to above it never fired: 5 of 60 were marked. `createPassedObserver` now also sweeps the watched rows on
+  every callback and reports those above the top (unit test).
+- **`reader-back-position` desktop, 57 px — app bug, not tolerance.** Measured: the restore jump lands exactly
+  (section top −75 px, margin 97 px ⇒ offset 172 = saved), then the controls slide away with no scroll and the
+  reading line (`scroll-margin-top` = chrome bottom + path line) moves up 57 px. The restore holds the controls for
+  2.5 s, but the reader's «new text» effect called `holdReaderChrome(0)` 5 ms later and replaced that hold, so the
+  restore's own scroll counted as the user scrolling down. Holds now only extend (`extendReaderChromeHold`, unit
+  test); the spec also checks the controls stay.
+- **`reader-actions` 1280 px in a full run — test race with the one-step install.** Installing a drug group also
+  installs its companions (the group's ГРЛС instructions and the 28 MB EAEU module, `module-companions.ts`). The
+  fixture served only the ЕСКЛП file, so the companions came from GitHub and landed at any moment: measured, the EAEU
+  file finished 47 s after the card opened; the drug screen then switched to its instruction and the core reloaded,
+  remounting the header — the focused «⋯» was replaced (focus fell to `<body>`) and the Enter opened nothing.
+  `routeMedicationModule` now serves the companions from the local release copies, and `installMedicationModule`
+  waits until they are installed and a reloaded core serves them (`minimed:install:core-reload` now carries the
+  data version it serves). Affects every spec using the fixture (31).
+- **`reader-lookups:35` — outdated test.** Since the owner's phone QA of 2026-10-20 (e06f0ee48) a found fragment opens
+  its document in the reader; the search «source context» card is never shown. The spec follows search → reader →
+  the same inline drug card. `reader-lookups:7` opened a pointer document without waiting for the core; it waits now.
+- **`drug-comparison:184` — ambiguous locator.** `getByText('Сравнение препаратов')` matched the hidden header search
+  pill (UI-HERO2) first; the spec takes the tool's row in the results. `:122/:152` (now :127/:159) asserted the
+  resolved drugs within 60 s, but `?d=` names resolve only after the core opens: they wait for it first.
+
+Verified: the specs above passed in three full runs in a row (chromium, 4 workers, 711 tests, 55–66 min each; check,
+typecheck, unit 19 657). In the third, `news-feed:265` (another test of the same spec) failed once on its
+avatar/title alignment (3.15 px vs < 2); it measured before the site's icon had replaced the letter avatar, which the
+test asserts only later — it now waits for the icon first (spec 66/66 with `--repeat-each=3`). A first full run at a load average of 40–100 (other projects' containers) took 2.5 h with 112
+failures: every test fetches the 450 MB core from one `vite preview` (≈6.7 MB/s then), so core-gated specs time out.
+
+Left — failing in both quiet full runs, not investigated here (no claim that main passes them): `atc-links:63` (the
+card now leads with its instruction, no ATC code in that text), `item-bookmarks:10` (clicks the title-row bookmark
+removed 2026-10-20; moved to «⋯», the panel then did not always open from a pointer click on the item and «Создать
+коллекцию» was not clickable — needs its own look), `medication-atc-tree:28`, `module-install-timing:91` (the local
+ЕСКЛП copy's SHA-256 is not the catalog's), `offline-shell:146`, `patient-notes:229`, `readability:59/:96`,
+`search-ui-revision:7`, `search:81`, `sheets:95`, `tool-hydration:7`, `tool-module-update:178`,
+`tools-tour-section-back:20`, `vaccination-plan:83/:251`; `app-contrast` dark 1024 (home «Открыть камеру» 3.38:1)
+failed once.
+
 ## Document formatting audit — 2026-11-08 (STATE FMT-AUDIT; merged 2026-11-09, not released)
 
 Owner 2026-11-08: «пройтись по документам еще раз и проверить что форматирование на месте» (Haiku agents).
