@@ -60,8 +60,10 @@ import { PatientDayDetails } from '@/features/diary/dashboard/PatientDayDetails'
 import { AlertNotices, CorrectEntryDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { INTAKE_CHART_ID } from '@/features/diary/dashboard/patient-overview';
 import { TrendChart, type TrendLimit } from '@/features/diary/dashboard/TrendChart';
+import { visitScaleSeries } from '@/features/diary/dashboard/visit-scale-series';
 import { dayKey, diaryStarted } from '@/features/diary/diary-care';
 import type { DiaryEntry, DiaryResults } from '@/features/diary/diary-model';
+import { sortedVisitEntries } from '@/features/diary/diary-visit-scales';
 import { planEditDays, planOn } from '@/features/diary/plan-history';
 import { assessmentBounds, crossesLimit, MEASUREMENT_LIMIT_LABEL } from '@/state/assessment-limits';
 
@@ -201,12 +203,22 @@ export function PatientChartsPage(props: {
     () => ({ results: props.results, version: props.version }),
     ({ results }) => questionnaireSeries(results.invitation, results.entries),
   );
+  // The doctor's own ratings at visits (HAM-D…), apart from what the patient answered.
+  const [visitRatings] = createResource(
+    () => ({
+      visits: sortedVisitEntries(props.patient.replica.visitScales),
+      version: props.version,
+    }),
+    ({ visits }) => visitScaleSeries(visits),
+  );
+  /** The patient's questionnaires, then the doctor's ratings. */
+  const allQuizzes = createMemo(() => [...(quizzes.latest ?? []), ...(visitRatings.latest ?? [])]);
   /** Everything the combined chart can show, over the whole diary. */
   const sources = createMemo(() =>
     combinedSources({
       intakes: history(),
       entries: props.results.entries,
-      quizzes: quizzes.latest ?? [],
+      quizzes: allQuizzes(),
       today,
     }),
   );
@@ -505,7 +517,7 @@ export function PatientChartsPage(props: {
             </Show>
           )}
         </For>
-        <For each={quizzes.latest ?? []}>
+        <For each={allQuizzes()}>
           {(series) => (
             <Show
               when={!series.profile}

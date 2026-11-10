@@ -31,7 +31,10 @@ import {
   shellAssets,
   writeServiceWorkerBuild,
 } from './src/dev-server/service-worker-precache';
-import { DIARY_QUESTIONNAIRES } from './src/features/diary/diary-questionnaire-list';
+import {
+  DIARY_CLINICIAN_SCALES,
+  DIARY_QUESTIONNAIRES,
+} from './src/features/diary/diary-questionnaire-list';
 
 const require = createRequire(import.meta.url);
 
@@ -481,6 +484,9 @@ function diariesEntry(): Plugin {
   };
 }
 
+/** What the diaries copy keeps of the tool packs: patients' questionnaires and visit scales. */
+const DIARY_PACK_SCALES = [...DIARY_QUESTIONNAIRES, ...DIARY_CLINICIAN_SCALES];
+
 const MODULE_CATALOG_FILE =
   /[\\/]features[\\/]modules[\\/]catalog\.(preview|terminology)\.json\?raw$/u;
 
@@ -502,7 +508,7 @@ function diaryCatalogSubset(): Plugin {
       const catalog = JSON.parse(readFileSync(id.replace(/\?raw$/u, ''), 'utf8')) as {
         modules: { id: string; kind: string }[];
       };
-      const packs = new Set(DIARY_QUESTIONNAIRES.map((scale) => `minimed.tools.${scale.pack}.ru`));
+      const packs = new Set(DIARY_PACK_SCALES.map((scale) => `minimed.tools.${scale.pack}.ru`));
       const modules = catalog.modules.filter(
         (module) => module.kind === 'core' || packs.has(module.id),
       );
@@ -529,7 +535,7 @@ function diaryPackSubset(): Plugin {
       if (process.env['VITE_APP_PROFILE'] !== 'diaries') return undefined;
       const pack = DIARY_PACK_FILE.exec(id)?.[1];
       if (!pack) return undefined;
-      const slugs = DIARY_QUESTIONNAIRES.filter((scale) => scale.pack === pack).map(
+      const slugs = DIARY_PACK_SCALES.filter((scale) => scale.pack === pack).map(
         (scale) => scale.slug,
       );
       if (slugs.length === 0) return undefined;

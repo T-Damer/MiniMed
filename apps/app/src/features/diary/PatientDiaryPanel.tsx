@@ -261,6 +261,7 @@ function IssueDiaryDialog(props: {
       ...(parts.contacts.length ? { contacts: parts.contacts } : {}),
       ...(parts.tips.length ? { tips: parts.tips } : {}),
       ...(parts.crisis.length ? { crisis: parts.crisis } : {}),
+      ...(parts.study ? { study: parts.study } : {}),
       consent: true,
       ...withOperator(),
     };

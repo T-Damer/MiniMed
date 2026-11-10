@@ -8,8 +8,10 @@ import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallWarning } from '@/diary/InstallWarning';
 import { PasteLinkCard } from '@/diary/PasteLinkCard';
 import { RestoreCard } from '@/diary/RestoreCard';
+import { studyRowStatus } from '@/diary/StudyConsent';
 import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
 import type { JoiningAcceptance } from '@/features/diary/consent/joining-documents';
+import type { StudyConsentStatus } from '@/features/diary/consent/study-consent';
 import type { PastMedAuthor, PastMedication } from '@/features/diary/diary-med-history';
 import type { DiaryOperator } from '@/features/diary/diary-model';
 import type { DiaryOpenResult, DiaryStore } from '@/features/diary/diary-storage';
@@ -193,6 +195,8 @@ export function DiaryMore(props: {
   readonly consents?:
     | { readonly accepted: readonly JoiningAcceptance[]; readonly operator: DiaryOperator }
     | undefined;
+  /** The study of the plan and the patient's answer: a row that opens its text. */
+  readonly study?: { readonly status: StudyConsentStatus; readonly onOpen: () => void } | undefined;
 }): JSX.Element {
   const [push, setPush] = createSignal<PushState>(props.pushOn ? 'on' : 'off');
   const [sounds, setSounds] = createSignal(getSoundsEnabled());
@@ -381,6 +385,22 @@ export function DiaryMore(props: {
             />
           </ul>
         </section>
+      </Show>
+
+      <Show when={props.study}>
+        {(study) => (
+          <section class="diary-settings__section" aria-label="Исследование">
+            <ul class="settings-list__group">
+              <ActionRow
+                icon="flask"
+                tone="teal"
+                title="Участие в исследовании"
+                status={studyRowStatus(study().status)}
+                onClick={study().onOpen}
+              />
+            </ul>
+          </section>
+        )}
       </Show>
 
       <Show when={props.onWithdraw}>

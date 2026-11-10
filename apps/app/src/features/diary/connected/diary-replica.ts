@@ -10,6 +10,7 @@ import {
   type JoiningAcceptance,
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
+import { parseStudyAnswer, type StudyAnswer } from '@/features/diary/consent/study-consent';
 import {
   authorMatches,
   isPastMedRecord,
@@ -28,6 +29,7 @@ import {
   parseDiaryEntry,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
+import { isVisitRecord, parseVisitScaleEntry } from '@/features/diary/diary-visit-scales';
 
 export const PLAN_RECORD = 'plan';
 export const PROFILE_RECORD = 'profile';
@@ -84,7 +86,10 @@ export type DiaryPayload =
       readonly at: string;
       readonly version: string;
       readonly documents?: readonly JoiningAcceptance[];
+      /** The patient's answer about the study of the plan, if the plan names one. */
+      readonly study?: StudyAnswer;
     }
+  | { readonly kind: 'visit-scale'; readonly entry: unknown }
   | { readonly kind: 'tip-read'; readonly tip: string; readonly at: string }
   | { readonly kind: 'member'; readonly name: string }
   | { readonly kind: 'past-med'; readonly item: unknown };
@@ -127,6 +132,10 @@ export interface DiaryReplica {
   readonly consentAt: string | undefined;
   /** The joining documents the patient accepted, with wording and time (none before DIARY26). */
   readonly consents?: readonly JoiningAcceptance[];
+  /** The patient's latest answer about the plan's study (accepted, declined, withdrawn). */
+  readonly study?: StudyAnswer;
+  /** The doctors' ratings at visits, by entry id (never read by the patient's phone). */
+  readonly visitScales?: Readonly<Record<string, DiaryEntry>>;
   /** Medicines taken before (MEDHIST1), by id; copies saved before have none. */
   readonly medHistory?: Readonly<Record<string, PastMedication>>;
   /** Record id → latest revision applied. */
@@ -163,12 +172,14 @@ export function applyRevisions(
   let profile = replica.profile;
   let consentAt = replica.consentAt;
   let consents = replica.consents ?? [];
+  let study = replica.study;
   let rejected = replica.rejected;
   const entries = new Map(replica.entries);
   const entryAuthors = new Map(replica.entryAuthors);
   const tipsRead = new Set(replica.tipsRead);
   const carerNames: Record<string, string> = { ...replica.carerNames };
   const medHistory: Record<string, PastMedication> = { ...replica.medHistory };
+  const visitScales: Record<string, DiaryEntry> = { ...replica.visitScales };
   const revs = new Map(replica.revs);
   // Plans first: entries are validated against the plan they answer.
   const ordered = [
@@ -208,8 +219,15 @@ export function applyRevisions(
         if (typeof payload['at'] !== 'string') throw new DiaryFormatError('Согласие.');
         if (!revision.author.startsWith('p:'))
           throw new DiaryFormatError('Согласие не с телефона.');
-        consentAt = payload['at'];
-        consents = parseJoiningAcceptances(payload['documents']);
+        const accepted = parseJoiningAcceptances(payload['documents']);
+        const answer = parseStudyAnswer(payload['study']);
+        // A record that only carries the study answer (no joining documents) is not their consent.
+        if (accepted.length > 0 || payload['study'] === undefined) {
+          consentAt = payload['at'];
+          consents = accepted;
+        }
+        // A record without the key (written by a phone that does not know studies) keeps it.
+        study = answer ?? study;
       } else if (revision.id.startsWith('read-') && payload['kind'] === 'tip-read') {
         if (typeof payload['tip'] !== 'string') throw new DiaryFormatError('Подсказка.');
         tipsRead.add(payload['tip']);
@@ -238,6 +256,20 @@ export function applyRevisions(
         } else {
           throw new DiaryFormatError('Неизвестная запись.');
         }
+      } else if (isVisitRecord(revision.id)) {
+        // Only a doctor rates a scale at a visit.
+        if (!revision.author.startsWith('d:')) throw new DiaryFormatError('Оценка не от врача.');
+        const entryId = revision.id.slice(2);
+        if (payload['kind'] === 'deleted') {
+          delete visitScales[entryId];
+        } else if (payload['kind'] === 'visit-scale') {
+          if (!invitation) throw new DiaryFormatError('Оценка пришла раньше плана.');
+          const entry = parseVisitScaleEntry(invitation, payload['entry']);
+          if (entry.id !== entryId) throw new DiaryFormatError('Оценка не совпадает с ключом.');
+          visitScales[entryId] = entry;
+        } else {
+          throw new DiaryFormatError('Неизвестная запись.');
+        }
       } else if (revision.id.startsWith('e-')) {
         const entryId = revision.id.slice(2);
         if (payload['kind'] === 'deleted') {
@@ -247,6 +279,7 @@ export function applyRevisions(
           if (!invitation) throw new DiaryFormatError('Запись пришла раньше плана.');
           const entry = parseDiaryEntry(invitation, payload['entry']);
           if (entry.id !== entryId) throw new DiaryFormatError('Запись не совпадает с ключом.');
+          if (entry.visitScale) throw new DiaryFormatError('Оценка врача не в записях пациента.');
           entries.set(entryId, entry);
           entryAuthors.set(entryId, revision.author);
         } else {
@@ -274,6 +307,8 @@ export function applyRevisions(
     medHistory,
     consentAt,
     ...(consents.length ? { consents } : {}),
+    ...(study ? { study } : {}),
+    ...(Object.keys(visitScales).length ? { visitScales } : {}),
     revs,
     rejected,
   };
