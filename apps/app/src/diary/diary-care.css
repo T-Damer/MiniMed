@@ -478,6 +478,8 @@ body:has(.diary-care-scope) {
 
 .care-row__main {
   display: grid;
+  /* A one-line row sits in the middle of its height, level with the box on the left. */
+  align-content: center;
   flex: 1;
   gap: 0.15rem;
   min-width: 0;
@@ -493,7 +495,8 @@ body:has(.diary-care-scope) {
 
 .care-row__line {
   display: flex;
-  align-items: baseline;
+  /* Time, icon and title on one middle line (owner 2026-11-10: baseline left the icon lower). */
+  align-items: center;
   gap: 0.55rem;
 }
 
