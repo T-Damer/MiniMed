@@ -1,6 +1,7 @@
 /**
  * The browser's `theme-color` follows what is under the status bar (owner 2026-11-03: in an
- * installed web app the bar should match the page header, not show a fixed paper colour).
+ * installed web app the bar should match the page header, not show a fixed paper colour; owner
+ * 2026-11-10: in a browser tab it is the page background, see `browserBarColor`).
  * A page with a hero band (components/PageHero.css) has the band at the top whether it is scrolled
  * or not (the band, then the pinned bar), so it gives the band's colour; any other page gives the
  * first opaque background under the top edge. The browser's `theme-color` is for web builds; the
@@ -114,13 +115,29 @@ export function watchTopEdgeContrast(apply: (darkIcons: boolean) => void): () =>
   };
 }
 
+/** Running as an installed web app (its own window or the home-screen icon), not in a browser tab. */
+function standalone(): boolean {
+  const ios = (navigator as Navigator & { readonly standalone?: boolean }).standalone === true;
+  return ios || window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+}
+
+/**
+ * The colour `theme-color` gives now. An installed app's bar matches the page header (owner
+ * 2026-11-03); in a browser tab (Safari tints its tab bar, mobile browsers the status bar) the
+ * header colour drew a grey strip over the whole page (owner 2026-11-10), so a tab gets the
+ * page's own background, the colour at its edges.
+ */
+export function browserBarColor(installed = standalone()): string | undefined {
+  return installed ? topEdgeColor() : (opaqueBackground(document.body) ?? topEdgeColor());
+}
+
 /** Keeps `theme-color` in step with the page; returns a stop function. */
 export function installWebThemeColor(): () => void {
   const meta = themeMeta();
   let timer = 0;
   const sync = (): void => {
     timer = 0;
-    const color = topEdgeColor();
+    const color = browserBarColor();
     if (color && meta.content !== color) meta.content = color;
   };
   // Throttled: a scroll or a burst of renders reads the colour once per ~0.1 s.
