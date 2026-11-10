@@ -1,0 +1,149 @@
+/*
+ * Study participation (voluntary): the patient's offer card, the sheet that shows the doctor's
+ * consent text as written, and the doctor's status chip. Tokens carry fallbacks because the
+ * diary bundle has no global.css.
+ */
+.study-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--theme-border, #d8dee2);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: var(--theme-surface-raised, #ffffff);
+  cursor: pointer;
+}
+
+.study-card__badge {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--theme-accent, #3c6478);
+  background: var(--theme-accent-soft, rgb(60 100 120 / 12%));
+}
+
+.study-card__glyph {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.study-card__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.study-card__title {
+  font-weight: 700;
+}
+
+.study-card__detail {
+  overflow: hidden;
+  color: var(--theme-text-muted, #5b6770);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.study-card__chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-text-muted, #5b6770);
+}
+
+.study-sheet__protocol {
+  margin: 0 0 0.75rem;
+  color: var(--theme-text-muted, #5b6770);
+  font-size: 0.9rem;
+}
+
+/* The committee's wording, line for line. */
+.study-sheet__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.study-sheet__note {
+  margin: 1rem 0 0;
+  color: var(--theme-text-muted, #5b6770);
+}
+
+.study-sheet__state {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+}
+
+.study-sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.study-sheet__actions > * {
+  flex: 1 1 10rem;
+}
+
+.study-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--theme-border, #d8dee2);
+  border-radius: 999px;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  background: var(--theme-surface-raised, #ffffff);
+  cursor: pointer;
+}
+
+.study-chip--participates {
+  border-color: color-mix(in srgb, var(--care-good, #2f7d5b) 45%, var(--theme-border, #d8dee2));
+}
+
+.study-chip--waiting {
+  color: var(--theme-text-muted, #5b6770);
+}
+
+.study-card,
+.study-chip {
+  transition:
+    background-color var(--motion-fast, 120ms) var(--motion-ease, ease),
+    border-color var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .study-card:hover,
+  .study-chip:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent, #3c6478) 45%,
+      var(--theme-border, #d8dee2)
+    );
+    background: var(--theme-hover-surface, #f2f5f6);
+  }
+}
+
+.study-chip__glyph {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.study-status {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.study-status__row {
+  margin: 0;
+}

@@ -124,3 +124,19 @@ export const DIARY_QUESTIONNAIRES: readonly DiaryQuestionnaireOption[] = [
     profile: true,
   },
 ];
+
+/**
+ * Scales the doctor rates at a visit (clinician-rated, so never a patient's checkpoint): a small
+ * data list, each scale one record of the same tool packs. To offer another one, add its slug
+ * here; its text, scoring and rights notice stay in the pack. The diaries copy keeps these
+ * records too (`vite.config.ts`).
+ */
+export const DIARY_CLINICIAN_SCALES: readonly DiaryQuestionnaireOption[] = [
+  {
+    slug: 'hamilton-depression-rating-scale',
+    bank: 'psychiatry',
+    title: 'HAM-D 17',
+    about: 'депрессия, оценка врача',
+    pack: 'psychology',
+  },
+];

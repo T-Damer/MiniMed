@@ -207,7 +207,31 @@ export interface DiaryInvitation {
    * A new key, so an older patient app skips it instead of refusing the plan.
    */
   readonly assignments?: readonly DiaryAssignment[];
+  /**
+   * The diary belongs to a research study the patient may join (voluntary, apart from the joining
+   * documents). A new key, so an older patient app skips it. The patient's answer travels in the
+   * consent record (`consent/study-consent.ts`).
+   */
+  readonly study?: DiaryStudy;
 }
+
+/**
+ * A study as the doctor registered it. The consent wording is the one the ethics committee
+ * approved, pasted by the doctor; the app ships none of its own.
+ */
+export interface DiaryStudy {
+  /** Stays the same while the doctor edits the study; the patient's answer points at it. */
+  readonly id: string;
+  readonly title: string;
+  /** The protocol number as the committee knows it. */
+  readonly protocol: string;
+  /** The version of the protocol and consent text; a new one asks the patient again. */
+  readonly version: string;
+  /** The approved consent text, shown to the patient as written. */
+  readonly text: string;
+}
+
+export const MAX_DIARY_STUDY_TEXT = 24_000;
 
 /** How often a worksheet is filled: when the event happens, every day, or on chosen weekdays. */
 export type DiaryAssignmentRepeat = 'event' | 'daily' | 'days';
@@ -377,6 +401,12 @@ export interface DiaryEntry {
    * the words it rests on. Parsed when present; nothing produces it yet.
    */
   readonly insights?: readonly DiaryVoiceInsight[];
+  /**
+   * The doctor's own rating at a visit with this scale (slug of `DIARY_CLINICIAN_SCALES`), scored
+   * from `answers`. Only a `v-<id>` record written by a doctor carries it (`diary-visit-scales.ts`);
+   * the patient's phone never reads those records.
+   */
+  readonly visitScale?: string;
 }
 
 export type DiarySheetValue = number | string | readonly string[];
@@ -469,7 +499,8 @@ const VOICE_MIME = /^audio\/(webm|ogg|mp4|aac|mpeg)(;\s*codecs=[\w.,"-]+)?$/u;
 const MAX_TEXT = 200;
 const MAX_ANSWERS = 80;
 const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/u;
-const ANSWER_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,31}$/u;
+/** Up to 64 characters: the bank's clinician scales name their questions after the whole slug. */
+const ANSWER_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/u;
 const ID_PATTERN = /^[a-z0-9]{6,24}$/u;
 const FIELD_ID_PATTERN = /^[a-z][a-z0-9-]{0,23}$/u;
 const PLAN_ID_PATTERN = /^[a-z0-9-]{1,24}$/u;
@@ -1151,6 +1182,7 @@ function parseInvitationV2(
   const appointments = parseAppointments(source['appointments']);
   const labs = parseLabs(source['labs'], fields);
   const assignments = parseAssignments(source['assignments']);
+  const study = parseStudy(source['study']);
   return {
     v: DIARY_FORMAT_VERSION,
     id: identifier(source['id'], 'Дневник'),
@@ -1171,6 +1203,29 @@ function parseInvitationV2(
     ...(appointments.length ? { appointments } : {}),
     ...(labs.length ? { labs } : {}),
     ...(assignments.length ? { assignments } : {}),
+    ...(study ? { study } : {}),
+  };
+}
+
+function parseStudy(value: unknown): DiaryStudy | undefined {
+  if (value === undefined) return undefined;
+  const source = record(value, 'Исследование');
+  const body = source['text'];
+  if (
+    typeof body !== 'string' ||
+    body.length > MAX_DIARY_STUDY_TEXT ||
+    hasControlCharacter(body, true) ||
+    !body.trim()
+  ) {
+    throw new DiaryFormatError('Исследование: некорректный текст согласия.');
+  }
+  return {
+    id: identifier(source['id'], 'Исследование'),
+    title: text(source['title'], 'Название исследования'),
+    protocol: text(source['protocol'], 'Номер протокола'),
+    version: text(source['version'], 'Версия протокола'),
+    // Verbatim: the lines are the committee's, only the edges are trimmed.
+    text: body.trim(),
   };
 }
 
@@ -1364,6 +1419,21 @@ export function parseDiaryEntry(
   }
   const spoken = parseSpoken(source['spoken']);
   const insights = parseInsights(source['insights']);
+  const visitScale = source['visitScale'];
+  if (visitScale !== undefined) {
+    // A rating at a visit is answers to one scale and nothing else.
+    if (
+      typeof visitScale !== 'string' ||
+      !VISIT_SCALE_PATTERN.test(visitScale) ||
+      !answers ||
+      check !== undefined ||
+      assignmentId !== undefined ||
+      voice ||
+      sheet
+    ) {
+      throw new DiaryFormatError('Оценка на приёме некорректна.');
+    }
+  }
   const raw = record(source['values'], 'Значения записи');
   const values: Record<string, DiaryValue> = {};
   for (const field of invitation.fields) {
@@ -1414,8 +1484,11 @@ export function parseDiaryEntry(
     ...(sheet ? { sheet } : {}),
     ...(spoken ? { spoken } : {}),
     ...(insights ? { insights } : {}),
+    ...(typeof visitScale === 'string' ? { visitScale } : {}),
   };
 }
+
+const VISIT_SCALE_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/u;
 
 const SHEET_KEY_PATTERN = /^[a-z][a-z0-9-]{0,23}$/u;
 

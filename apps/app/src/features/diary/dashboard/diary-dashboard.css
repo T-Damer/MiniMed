@@ -2176,3 +2176,61 @@
   color: var(--theme-text-muted);
   font-size: 0.82rem;
 }
+
+/* The doctor rating at a visit: scales to pick and the ratings already saved. */
+.visit-scales {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visit-scales__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.visit-scales__open {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+}
+
+.visit-scales__glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.visit-scales__name {
+  font-weight: 700;
+}
+
+.visit-scales__about {
+  color: var(--theme-text-muted);
+}
+
+.visit-scales__open {
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .visit-scales__open:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+    background: var(--theme-hover-surface);
+  }
+}

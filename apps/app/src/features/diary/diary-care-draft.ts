@@ -9,6 +9,7 @@ import {
   ACTIVITY_FIELD,
   APPETITE_FIELD,
   CARE_CHECKPOINTS,
+  createDiaryId,
   DIARY_FORMAT_VERSION,
   type DiaryAppointment,
   type DiaryAssignment,
@@ -22,6 +23,7 @@ import {
   type DiaryMeal,
   type DiaryOperator,
   type DiaryPlanItem,
+  type DiaryStudy,
   type DiaryTip,
   diaryTemplate,
   GLUCOSE_FIELD,
@@ -125,6 +127,52 @@ export interface CareDraft {
   readonly labs?: readonly CareLabDraft[];
   /** CBT diaries and homework the doctor assigned (CBT1). */
   readonly assignments?: readonly CareAssignmentDraft[];
+  /** The research study this diary belongs to; absent or empty: none. */
+  readonly study?: CareStudyDraft;
+}
+
+/**
+ * The study as typed in the editor. `consentText` is pasted from the form the ethics committee
+ * approved; the app adds no wording of its own.
+ */
+export interface CareStudyDraft {
+  /** Kept while the doctor edits, so the patient's answer stays attached. */
+  readonly id?: string;
+  readonly title: string;
+  readonly protocol: string;
+  readonly version: string;
+  readonly consentText: string;
+}
+
+export const EMPTY_STUDY_DRAFT: CareStudyDraft = {
+  title: '',
+  protocol: '',
+  version: '',
+  consentText: '',
+};
+
+/** Pasted text with Windows line ends and tabs made plain; the words stay as they were. */
+export function normalizeStudyText(value: string): string {
+  return value.replaceAll('\r\n', '\n').replaceAll('\r', '\n').replaceAll('\t', ' ').trim();
+}
+
+/**
+ * The study of the editor as the plan keeps it: nothing when every field is empty, an error when
+ * only some are filled (a consent needs all four).
+ */
+export function studyFromDraft(draft: CareStudyDraft | undefined): DiaryStudy | undefined {
+  if (!draft) return undefined;
+  const title = draft.title.trim();
+  const protocol = draft.protocol.trim();
+  const version = draft.version.trim();
+  const text = normalizeStudyText(draft.consentText);
+  if (!title && !protocol && !version && !text) return undefined;
+  if (!title || !protocol || !version || !text) {
+    throw new Error(
+      'Исследование: заполните название, номер протокола, версию и текст согласия, либо очистите все поля.',
+    );
+  }
+  return { id: draft.id ?? createDiaryId(), title, protocol, version, text };
 }
 
 /** One assigned worksheet in the editor: the copy made for this patient and its schedule. */
@@ -438,6 +486,17 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
     ...(appointments.length ? { appointments } : {}),
     ...(labs.length ? { labs } : {}),
     ...(assignments.length ? { assignments } : {}),
+    ...(invitation.study
+      ? {
+          study: {
+            id: invitation.study.id,
+            title: invitation.study.title,
+            protocol: invitation.study.protocol,
+            version: invitation.study.version,
+            consentText: invitation.study.text,
+          },
+        }
+      : {}),
     contacts: invitation.contacts?.length
       ? invitation.contacts.map((contact) => ({
           kind: contact.kind,
@@ -500,6 +559,7 @@ export interface CareInvitationParts {
   readonly appointments: readonly DiaryAppointment[];
   readonly labs: readonly DiaryLabRequest[];
   readonly assignments: readonly DiaryAssignment[];
+  readonly study?: DiaryStudy | undefined;
 }
 
 function cleanOptions(options: readonly string[]): string[] {
@@ -773,6 +833,8 @@ export function careInvitationParts(
     appointments,
     labs,
     assignments,
+    // Its id stays while the doctor edits it (careDraftFrom), so a given answer keeps pointing at it.
+    study: studyFromDraft(draft.study),
   };
 }
 
@@ -816,6 +878,7 @@ export function careInvitation(input: {
     ...(parts.appointments.length ? { appointments: parts.appointments } : {}),
     ...(parts.labs.length ? { labs: parts.labs } : {}),
     ...(parts.assignments.length ? { assignments: parts.assignments } : {}),
+    ...(parts.study ? { study: parts.study } : {}),
     consent: true,
     ...(operator ? { operator } : {}),
     ...(input.doctor.trim() ? { doctor: input.doctor.trim() } : {}),

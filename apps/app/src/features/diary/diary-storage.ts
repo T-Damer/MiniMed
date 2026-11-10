@@ -2,6 +2,7 @@ import {
   type JoiningAcceptance,
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
+import { parseStudyAnswer, type StudyAnswer } from '@/features/diary/consent/study-consent';
 import {
   type DiarySent,
   type InvitationMergeOutcome,
@@ -38,6 +39,8 @@ export interface DiaryMeta {
   readonly consentAt?: string;
   /** Each joining document the patient accepted: its wording and when (DIARY26). */
   readonly consents?: readonly JoiningAcceptance[];
+  /** The patient's answer about the study of the plan (voluntary; `consent/study-consent.ts`). */
+  readonly study?: StudyAnswer;
   /** Doctor's tips the patient has opened (their «?» is gone). */
   readonly tipsRead?: readonly string[];
   /** Marks the doctor deleted (connected diary), kept so they do not vanish without a trace. */
@@ -215,6 +218,7 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       const removed = parseRemovals(value['removedByDoctor']);
       const planChange = parsePlanChange(value['planChange']);
       const consents = parseJoiningAcceptances(value['consents']);
+      const study = parseStudyAnswer(value['study']);
       return {
         ...(typeof value['lastOpenedAt'] === 'string'
           ? { lastOpenedAt: value['lastOpenedAt'] }
@@ -222,6 +226,7 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
         ...(sent ? { sent } : {}),
         ...(typeof value['consentAt'] === 'string' ? { consentAt: value['consentAt'] } : {}),
         ...(consents.length ? { consents } : {}),
+        ...(study ? { study } : {}),
         ...(Array.isArray(value['tipsRead'])
           ? {
               tipsRead: value['tipsRead'].filter((tip): tip is string => typeof tip === 'string'),

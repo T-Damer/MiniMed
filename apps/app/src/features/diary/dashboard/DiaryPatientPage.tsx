@@ -31,8 +31,15 @@ import { patientRowSummary } from '@/components/patient-picker-summary';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { ConsentRecord } from '@/features/diary/consent/ConsentRecord';
-import { consentDay, consentStatus } from '@/features/diary/consent/consent-status';
+import { consentDay, consentMoment, consentStatus } from '@/features/diary/consent/consent-status';
 import { diaryOperator } from '@/features/diary/consent/joining-documents';
+import {
+  isStudyParticipant,
+  studyConsentStatus,
+  studyStatusLabel,
+} from '@/features/diary/consent/study-consent';
+import { VisitScaleDialog } from '@/features/diary/dashboard/VisitScaleDialog';
+import '@/features/diary/consent/study-consent.css';
 import {
   exportCsv,
   exportRows,
@@ -81,6 +88,8 @@ type Dialog =
   | 'day'
   | 'pair'
   | 'consent'
+  | 'study'
+  | 'visit'
   | 'curators'
   | 'tips'
   | 'export'
@@ -232,6 +241,12 @@ export function DiaryPatientPage(props: {
     });
   });
 
+  /** The study the diary belongs to and the patient's answer (voluntary). */
+  const studyState = createMemo(() => {
+    void props.version;
+    return studyConsentStatus(props.patient.replica.invitation?.study, props.patient.replica.study);
+  });
+
   /** Medicines just taken off the plan, offered for the history (MEDHIST1). */
   const [dismissed, setDismissed] = createSignal(readDismissed(props.patient.summary.id));
   const historyOffers = createMemo(() => {
@@ -294,6 +309,18 @@ export function DiaryPatientPage(props: {
             },
           ]
         : []),
+      ...(edit
+        ? [
+            {
+              id: 'visit-scale',
+              label: 'Оценка на приёме',
+              icon: 'list-checks' as const,
+              priority: 2 as const,
+              disabled: !ready,
+              onSelect: () => setDialog('visit'),
+            },
+          ]
+        : []),
       {
         id: 'print',
         label: 'Распечатать',
@@ -351,7 +378,8 @@ export function DiaryPatientPage(props: {
           const birth = props.patient.replica.profile?.birthDate;
           const born = birth ? patientRowSummary(birth, dayKey(new Date())) : undefined;
           const consent = consentState();
-          if (!label && !born && !consent) return undefined;
+          const study = studyState();
+          if (!label && !born && !consent && study.kind === 'none') return undefined;
           return (
             <span class="diary-patient__line">
               <Show when={born}>{(text) => <span class="diary-patient__born">{text()}</span>}</Show>
@@ -378,6 +406,21 @@ export function DiaryPatientPage(props: {
                     })()}
                   </button>
                 )}
+              </Show>
+              <Show when={study.kind !== 'none'}>
+                <button
+                  type="button"
+                  class="study-chip"
+                  classList={{
+                    'study-chip--participates': isStudyParticipant(study),
+                    'study-chip--waiting': study.kind === 'unanswered',
+                  }}
+                  data-testid="patient-study"
+                  onClick={() => setDialog('study')}
+                >
+                  <AppGlyph name="flask" class="study-chip__glyph" />
+                  {`Исследование: ${studyStatusLabel(study) ?? ''}`}
+                </button>
               </Show>
               <Show when={label}>
                 <span class="diary-presence">
@@ -587,6 +630,38 @@ export function DiaryPatientPage(props: {
               connected
             />
           </OverlayDialog>
+        </Match>
+        <Match when={dialog() === 'study' && props.patient.replica.invitation?.study}>
+          {(study) => (
+            <OverlayDialog
+              open
+              title="Исследование"
+              subtitle={study().title}
+              onClose={() => setDialog(undefined)}
+            >
+              <ul class="study-status" data-testid="study-status">
+                <li class="study-status__row">Протокол {study().protocol}</li>
+                <li class="study-status__row">Версия {study().version}</li>
+                <li class="study-status__row">
+                  {(() => {
+                    const state = studyState();
+                    const label = studyStatusLabel(state) ?? '';
+                    return 'at' in state ? `${label}, ${consentMoment(state.at)}` : label;
+                  })()}
+                </li>
+              </ul>
+            </OverlayDialog>
+          )}
+        </Match>
+        <Match when={dialog() === 'visit' && results()}>
+          {(current) => (
+            <VisitScaleDialog
+              workspace={props.workspace}
+              patient={props.patient}
+              invitation={current().invitation}
+              onClose={() => setDialog(undefined)}
+            />
+          )}
         </Match>
         <Match when={dialog() === 'curators'}>
           <CuratorsDialog

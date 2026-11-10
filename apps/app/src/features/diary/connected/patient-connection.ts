@@ -54,6 +54,11 @@ import {
   JOINING_SET_VERSION,
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
+import {
+  laterStudyAnswer,
+  parseStudyAnswer,
+  studyAnswerFingerprint,
+} from '@/features/diary/consent/study-consent';
 import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
 import { diaryServiceBase } from '@/features/diary/diary-links';
 import {
@@ -232,17 +237,24 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
       items.push({ id, payload: { kind: 'deleted' }, fingerprint: 'deleted' });
     }
   }
-  // Consent is the patient's own: a carer's phone only reads it.
-  if (meta.consentAt && !connection.synced[CONSENT_RECORD] && connection.kind !== 'carer') {
+  // Consent is the patient's own: a carer's phone only reads it. The same record carries the
+  // answer about the plan's study, so it is sent again when that answer changes.
+  const consentSent = studyAnswerFingerprint(meta.study);
+  if (
+    (meta.consentAt || meta.study) &&
+    connection.synced[CONSENT_RECORD] !== consentSent &&
+    connection.kind !== 'carer'
+  ) {
     items.push({
       id: CONSENT_RECORD,
       payload: {
         kind: 'consent',
-        at: meta.consentAt,
+        at: meta.consentAt ?? meta.study?.at,
         version: JOINING_SET_VERSION,
         documents: meta.consents ?? [],
+        ...(meta.study ? { study: meta.study } : {}),
       },
-      fingerprint: '1',
+      fingerprint: consentSent,
     });
   }
   if (connection.kind === 'carer' && connection.name) {
@@ -581,6 +593,8 @@ export class PatientConnection {
             restored.add(entryId);
             const entry: DiaryEntry = parseDiaryEntry(results.invitation, payload['entry']);
             if (entry.id !== entryId) continue;
+            // A doctor's visit rating is not a record of this diary (and not in `e-` records).
+            if (entry.visitScale) continue;
             this.store.save(withEntry(withoutEntry(results, entryId), entry));
             synced[revision.id] = entryFingerprint(entry);
             if (revision.author === self) delete authors[entryId];
@@ -588,14 +602,22 @@ export class PatientConnection {
           }
         } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
           // Accepted on another phone of this patient: the documents count here too.
-          if (typeof payload['at'] === 'string' && !this.store.meta(this.patientId).consentAt) {
-            const consents = parseJoiningAcceptances(payload['documents']);
+          const known = this.store.meta(this.patientId);
+          const consents = parseJoiningAcceptances(payload['documents']);
+          if (typeof payload['at'] === 'string' && !known.consentAt && consents.length > 0) {
             this.store.setMeta(this.patientId, {
               consentAt: payload['at'],
-              ...(consents.length ? { consents } : {}),
+              consents,
             });
+          } else if (typeof payload['at'] === 'string' && !known.consentAt && !payload['study']) {
+            // Accepted before the documents were listed one by one: only the time is known.
+            this.store.setMeta(this.patientId, { consentAt: payload['at'] });
           }
-          synced[revision.id] = '1';
+          // The patient's answer about the study: the later of this phone's and the server's.
+          const remote = parseStudyAnswer(payload['study']);
+          const later = laterStudyAnswer(known.study, remote);
+          if (later && later !== known.study) this.store.setMeta(this.patientId, { study: later });
+          synced[revision.id] = studyAnswerFingerprint(remote);
         } else if (revision.id.startsWith('member-')) {
           const name = memberName(revision.id, revision.author, payload);
           if (name) {

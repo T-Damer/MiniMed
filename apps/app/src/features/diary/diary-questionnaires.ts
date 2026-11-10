@@ -13,6 +13,7 @@ import { assessmentDefinitionFromRecord } from '@/features/assessments/assessmen
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import type { DiaryCheckpoint } from '@/features/diary/diary-model';
 import {
+  DIARY_CLINICIAN_SCALES,
   DIARY_QUESTIONNAIRES,
   type DiaryQuestionnaireOption,
   type QuestionnairePack,
@@ -25,7 +26,7 @@ const PACKS: Readonly<Record<QuestionnairePack, () => Promise<{ readonly default
     import('../../../../../content/tool-modules/obstetrics-gynecology.json'),
 };
 
-export { DIARY_QUESTIONNAIRES, type DiaryQuestionnaireOption };
+export { DIARY_CLINICIAN_SCALES, DIARY_QUESTIONNAIRES, type DiaryQuestionnaireOption };
 
 const packRecords = new Map<QuestionnairePack, Promise<readonly ToolDefinitionRecord[]>>();
 
@@ -64,7 +65,10 @@ export async function loadBuiltInScaleRecords(
 }
 
 export function diaryQuestionnaire(slug: string): DiaryQuestionnaireOption | undefined {
-  return DIARY_QUESTIONNAIRES.find((option) => option.slug === slug);
+  return (
+    DIARY_QUESTIONNAIRES.find((option) => option.slug === slug) ??
+    DIARY_CLINICIAN_SCALES.find((option) => option.slug === slug)
+  );
 }
 
 /** Checkpoint ids stay within the diary's 24-character id pattern. */

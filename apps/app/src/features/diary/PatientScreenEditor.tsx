@@ -83,6 +83,7 @@ import { SUBSTANCES, substanceById } from '@/features/diary/diary-substances';
 import { appointmentWhen, dayWords } from '@/features/diary/diary-visits';
 import { PastMedWarnings } from '@/features/diary/med-history/MedHistory';
 import { useMedHistory } from '@/features/diary/med-history/plan-removals';
+import { StudyEditor, studyFilled } from '@/features/diary/StudyEditor';
 import { AppointmentEditor, LabEditor } from '@/features/diary/VisitEditors';
 import type { UserWorksheet } from '@/state/user-worksheet-format';
 
@@ -1137,6 +1138,24 @@ export function PatientScreenEditor(props: {
             </Show>
             <button
               type="button"
+              class="diary-today__icon screen-editor__icon"
+              aria-label={
+                studyFilled(props.draft.study)
+                  ? 'Участие в исследовании: подключено. Изменить'
+                  : 'Участие в исследовании. Настроить'
+              }
+              data-testid="study-editor-open"
+              onClick={() => setEditing('study')}
+            >
+              <AppGlyph name="flask" class="diary-today__icon-glyph" />
+              <Show when={studyFilled(props.draft.study)}>
+                <span class="screen-editor__badge" aria-hidden="true">
+                  <AppGlyph name="check" class="screen-editor__badge-glyph" />
+                </span>
+              </Show>
+            </button>
+            <button
+              type="button"
               class="diary-today__icon diary-today__icon--help screen-editor__icon"
               aria-label="Кризисные контакты. Изменить"
               onClick={() => setEditing('contacts')}
@@ -1565,6 +1584,22 @@ export function PatientScreenEditor(props: {
             />
           </OverlayDialog>
         )}
+      </Show>
+      <Show when={editing() === 'study'}>
+        <OverlayDialog
+          open
+          title="Исследование"
+          subtitle="Участие добровольное"
+          class="screen-editor__dialog"
+          headerStart={
+            <span class="screen-editor__dialog-badge" aria-hidden="true">
+              <AppGlyph name="flask" class="screen-editor__dialog-glyph" />
+            </span>
+          }
+          onClose={() => setEditing(undefined)}
+        >
+          <StudyEditor draft={props.draft} patch={patch} onDone={() => setEditing(undefined)} />
+        </OverlayDialog>
       </Show>
       <Show when={editing() === 'contacts'}>
         <OverlayDialog

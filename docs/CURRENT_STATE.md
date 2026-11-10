@@ -951,6 +951,27 @@ do not stack with it on touch (`:active` does not match a touch press in Chromiu
   only a paired phone can read), but nothing reaches the doctor before the acceptance. Offline (QR/file) diaries keep
   the acceptances on the phone only. Texts are templates until the clinic's lawyer replaces them (new `version`).
 
+## Dissertation data: the doctor's visit scale and study consent — 2026-11-10 (branch `research-visits`)
+
+- **Visit scale.** From the patient page the doctor picks «Оценка на приёме» (header action), a visit date
+  (`DateField`) and a scale of `DIARY_CLINICIAN_SCALES` (`diary-questionnaire-list.ts`, a data list; today HAM-D 17,
+  `hamilton-depression-rating-scale`); the shared `QuestionnaireSheet` shows the bank's own questions and the rating is
+  saved as a dated entry in a `v-<id>` record (`{kind: 'visit-scale', entry}`, entry has `visitScale: <slug>` and
+  `answers`; `diary-visit-scales.ts`). Not an `e-` record: the patient's phone and older apps skip unknown ids, and the
+  replica refuses a `v-` record from a patient device, with a key that differs from the entry id, and an `e-` entry that
+  carries `visitScale`. Replica: `visitScales` (id → entry), apart from `entries`. Charts page: the series sits with the
+  patient's questionnaires, titled «…, оценка врача» (`dashboard/visit-scale-series.ts`, scored by the bank's schema);
+  the patient's phone shows nothing. Answer ids may now be 64 characters (the bank's HAM-D ids are 35).
+- **Study consent.** `DiaryInvitation.study = {id, title, protocol, version, text}` (editor: flask button in
+  `PatientScreenEditor`, `StudyEditor.tsx`); `text` is the ethics committee's wording pasted by the doctor, shown
+  verbatim, the app ships none. The patient's phone shows a card on «Сегодня» while unanswered and a row in
+  «Настройки»; the sheet offers «Согласен(на)» / «Не согласен(на)» / «Отозвать согласие». The answer
+  `{study, version, status: accepted|declined|withdrawn, at}` is the `study` key of the encrypted `consent` record
+  (`consent/study-consent.ts`); the record is sent again when it changes, the later answer of two phones wins. Declining
+  never blocks the diary. `studyConsentStatus(study, answer)` is the one place that says who consents (a new `version`
+  asks again; a withdrawal stands in any version); the cohort export must use it.
+- **Not done.** No automatic sheet on first open (the card waits on «Сегодня»); in an offline QR/file diary the answer stays on the phone (nothing reaches the doctor).
+
 ## The diaries site: the sign-in first, then the whole app — 2026-11-04 (STATE DIARY24)
 
 - **Owner 2026-11-04:** «ideally load the whole app (site) at once so there is no loading later — except before the user

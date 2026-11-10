@@ -55,6 +55,7 @@ import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import { type PastMedication, pastMedRecordId } from '@/features/diary/diary-med-history';
 import type { DiaryEntry, DiaryInvitation } from '@/features/diary/diary-model';
+import { visitRecordId } from '@/features/diary/diary-visit-scales';
 import { mergeInvitations, type PlanMerge } from '@/features/diary/plan-merge';
 
 /**
@@ -601,6 +602,20 @@ export class DoctorDiaries {
       ],
       'correction',
     );
+  }
+
+  /**
+   * The doctor's rating of a clinician scale at a visit: a dated entry in a `v-` record signed by
+   * the doctor. Silent on the patient's phone, which never reads it.
+   */
+  saveVisitScale(patientId: string, entry: DiaryEntry): Promise<void> {
+    return this.write(patientId, [
+      { id: visitRecordId(entry.id), payload: { kind: 'visit-scale', entry } },
+    ]);
+  }
+
+  deleteVisitScale(patientId: string, entryId: string): Promise<void> {
+    return this.write(patientId, [{ id: visitRecordId(entryId), payload: { kind: 'deleted' } }]);
   }
 
   deleteEntry(patientId: string, entryId: string): Promise<void> {

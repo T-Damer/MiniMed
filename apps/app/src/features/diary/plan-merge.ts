@@ -28,6 +28,7 @@ const FIELD_LABEL: Readonly<Record<string, string>> = {
   appointments: 'Приёмы',
   labs: 'Анализы',
   assignments: 'Задания',
+  study: 'Исследование',
 };
 
 function same(left: unknown, right: unknown): boolean {

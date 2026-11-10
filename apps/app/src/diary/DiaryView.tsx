@@ -24,6 +24,7 @@ import { DiaryToday } from '@/diary/DiaryToday';
 import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
 import { InstallWarning } from '@/diary/InstallWarning';
+import { StudyConsentCard, StudyConsentSheet } from '@/diary/StudyConsent';
 import { syncNeedsAction, syncWords } from '@/diary/sync-words';
 import { withMedHistory } from '@/features/diary/diary-med-history';
 import '@/diary/carer.css';
@@ -35,6 +36,7 @@ import {
   type SyncStatus,
 } from '@/features/diary/connected/patient-connection';
 import { acceptedAt, diaryOperator } from '@/features/diary/consent/joining-documents';
+import { studyAnswer, studyConsentStatus } from '@/features/diary/consent/study-consent';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import { markAllSent, shareStatus } from '@/features/diary/diary-merge';
 import {
@@ -432,6 +434,11 @@ export function DiaryView(props: {
     scheduleSync();
   };
 
+  // A study the doctor named (voluntary): the answer is the patient's own, a carer's phone has none.
+  const [studyOpen, setStudyOpen] = createSignal(false);
+  const study = () => (carer() ? undefined : invitation().study);
+  const studyStatus = () => studyConsentStatus(invitation().study, meta().study);
+
   const remove = (entry: DiaryEntry): void => {
     try {
       commit(withoutEntry(results(), entry.id));
@@ -531,6 +538,11 @@ export function DiaryView(props: {
                 ? { accepted: meta().consents ?? [], operator: diaryOperator(invitation()) }
                 : undefined
             }
+            study={
+              study() && consentAt()
+                ? { status: studyStatus(), onOpen: () => setStudyOpen(true) }
+                : undefined
+            }
             onRestored={(id) => {
               if (id === invitation().id) setResults(props.store.read(id) ?? results());
             }}
@@ -592,6 +604,12 @@ export function DiaryView(props: {
                 />
               </>
             }
+            studyCard={(() => {
+              const offered = study();
+              return offered && studyStatus().kind === 'unanswered' ? (
+                <StudyConsentCard study={offered} onOpen={() => setStudyOpen(true)} />
+              ) : undefined;
+            })()}
             results={results()}
             status={status()}
             consentAt={consentAt()}
@@ -649,6 +667,16 @@ export function DiaryView(props: {
           }}
           onClose={() => setNamePutOff(true)}
         />
+      </Show>
+      <Show when={studyOpen() && study()}>
+        {(offered) => (
+          <StudyConsentSheet
+            study={offered()}
+            status={studyStatus()}
+            onAnswer={(answer) => updateMeta({ study: studyAnswer(offered(), answer) })}
+            onClose={() => setStudyOpen(false)}
+          />
+        )}
       </Show>
       <Show when={tabbed() && screen() !== 'entry' && (!invitation().consent || consentAt())}>
         <Portal>

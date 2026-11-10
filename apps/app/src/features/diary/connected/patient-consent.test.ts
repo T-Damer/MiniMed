@@ -177,3 +177,111 @@ describe('once every document is accepted', () => {
     expect(pushed[0]?.some((item) => item.id === 'consent')).toBe(false);
   });
 });
+
+describe('the answer about a study', () => {
+  const study = { study: 'studyabc123', version: '2', status: 'accepted' as const, at: AT };
+
+  function accepted(store: ReturnType<typeof createDiaryStore>) {
+    const consents = joiningDocuments(true).map((document) => ({
+      document: document.id,
+      version: document.version,
+      at: AT,
+    }));
+    store.setMeta(ID, { consentAt: AT, consents });
+    return consents;
+  }
+
+  it('travels in the consent record and is sent again only when the answer changes', async () => {
+    const { store, connection } = await pairedPhone();
+    const consents = accepted(store);
+    store.setMeta(ID, { study });
+    await connection.sync();
+    expect(pushed[0]?.find((item) => item.id === 'consent')?.payload).toEqual({
+      kind: 'consent',
+      at: AT,
+      version: JOINING_SET_VERSION,
+      documents: consents,
+      study,
+    });
+    await connection.sync();
+    expect(pushed[1]).toEqual([]);
+    const withdrawn = { ...study, status: 'withdrawn' as const, at: '2026-11-05T08:00:00.000Z' };
+    store.setMeta(ID, { study: withdrawn });
+    await connection.sync();
+    const again = pushed[2]?.find((item) => item.id === 'consent')?.payload as {
+      study: unknown;
+      documents: unknown;
+    };
+    expect(again.study).toEqual(withdrawn);
+    expect(again.documents).toEqual(consents);
+  });
+
+  it('takes the later answer when another phone of the patient answered', async () => {
+    const { store, connection } = await pairedPhone();
+    accepted(store);
+    store.setMeta(ID, { study });
+    const later = { ...study, status: 'withdrawn' as const, at: '2026-11-06T08:00:00.000Z' };
+    pulled = [
+      {
+        id: 'consent',
+        author: 'p:device000002',
+        payload: { kind: 'consent', at: AT, version: JOINING_SET_VERSION, study: later },
+      },
+    ];
+    await connection.sync();
+    expect(store.meta(ID).study).toEqual(later);
+    expect(pushed[0]?.some((item) => item.id === 'consent')).toBe(false);
+  });
+
+  it('keeps its own later answer and sends it over an older one on the server', async () => {
+    const { store, connection } = await pairedPhone();
+    accepted(store);
+    const mine = { ...study, status: 'declined' as const, at: '2026-11-07T08:00:00.000Z' };
+    store.setMeta(ID, { study: mine });
+    pulled = [
+      {
+        id: 'consent',
+        author: 'p:device000002',
+        payload: { kind: 'consent', at: AT, version: JOINING_SET_VERSION, study },
+      },
+    ];
+    await connection.sync();
+    expect(store.meta(ID).study).toEqual(mine);
+    expect(pushed[0]?.some((item) => item.id === 'consent')).toBe(true);
+  });
+});
+
+describe('the doctor’s visit ratings on the patient’s phone', () => {
+  it('are never taken into the diary, from a v- record or an e- record', async () => {
+    const { store, connection } = await pairedPhone();
+    const consents = joiningDocuments(true).map((document) => ({
+      document: document.id,
+      version: document.version,
+      at: AT,
+    }));
+    store.setMeta(ID, { consentAt: AT, consents });
+    const rating = {
+      id: 'rating000001',
+      at: AT,
+      values: {},
+      answers: { 'hamilton-depression-rating-scale-01': 1 },
+      visitScale: 'hamilton-depression-rating-scale',
+    };
+    pulled = [
+      {
+        id: 'v-rating000001',
+        author: 'd:doctor0000001',
+        payload: { kind: 'visit-scale', entry: rating },
+      },
+      {
+        id: 'e-rating000001',
+        author: 'd:doctor0000001',
+        payload: { kind: 'entry', entry: rating },
+      },
+    ];
+    await connection.sync();
+    expect(store.read(ID)?.entries).toEqual([]);
+    // Nothing is sent back about them either (no delete for a record that was never local).
+    expect(pushed[0]?.some((item) => item.id.includes('rating000001'))).toBe(false);
+  });
+});

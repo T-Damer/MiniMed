@@ -364,6 +364,8 @@ export function DiaryToday(props: {
   readonly openOnMount?: DiaryEntry | undefined;
   /** The page header the shell puts at the top of the day page (the main app's `Page`). */
   readonly header?: JSX.Element;
+  /** A study waiting for the patient's answer (voluntary); shown once the documents are accepted. */
+  readonly studyCard?: JSX.Element;
   readonly controls?: (api: {
     readonly openContacts: () => void;
     readonly openCrisis: () => void;
@@ -560,6 +562,8 @@ export function DiaryToday(props: {
         {props.header}
 
         <AppointmentCard invitation={invitation()} now={now()} />
+
+        {props.studyCard}
 
         {/* The doctor came from their own calendar: the day's arrows are enough here (DIARY21). */}
         <Show when={props.viewer !== 'doctor'}>
