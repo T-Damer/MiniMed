@@ -77,12 +77,12 @@ describe('doctor totals (ADR-0026 §7)', () => {
       NOW,
     );
     // Two diaries, two active items each (the ended one is not counted); three days of two
-    // morning doses each, two doses marked (adherence counts what the patient marked, as the doctor's page does).
+    // morning doses each; one dose taken, one marked as skipped, which is not taken.
     expect(totals).toEqual({
       diaries: 2,
       prescriptions: 4,
-      adherence7: { done: 2, total: 12 },
-      adherence30: { done: 2, total: 12 },
+      adherence7: { done: 1, total: 12 },
+      adherence30: { done: 1, total: 12 },
     });
   });
 

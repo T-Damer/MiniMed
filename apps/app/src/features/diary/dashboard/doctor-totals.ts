@@ -1,7 +1,7 @@
 /**
  * The anonymous per-doctor totals the doctor's app sends to the service (ADR-0026 §7): how many of
- * the doctor's own diaries have a plan, how many prescriptions are active and how many planned
- * intakes were marked over 7 and 30 days. Summed over all the doctor's diaries; nothing per
+ * the doctor's own diaries have a plan, how many prescriptions are active and how many of the
+ * medicine intakes due over 7 and 30 days were taken. Summed over all the doctor's diaries; nothing per
  * patient leaves this function, no ids, no names.
  */
 import type { DiaryDoctorTotals } from '@localmed/contracts';
@@ -10,7 +10,7 @@ import type { DoctorSession } from '@/features/diary/connected/doctor-account';
 import { isDemoSession } from '@/features/diary/connected/doctor-account';
 import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { DEMO_LABEL_PREFIX } from '@/features/diary/dashboard/demo-patients';
-import { adherence } from '@/features/diary/dashboard/diary-insights';
+import { medicineAdherence } from '@/features/diary/dashboard/diary-insights';
 import { activePlanItems } from '@/features/diary/diary-model';
 
 /**
@@ -43,9 +43,11 @@ export function doctorTotals(
       [7, totals.adherence7],
       [30, totals.adherence30],
     ] as const) {
-      const { done, total } = adherence(results.invitation, results.entries, days, now);
-      sum.done += done;
-      sum.total += total;
+      // Medicines only: intakes taken out of those due (a skipped mark is not taken).
+      for (const medicine of medicineAdherence(results.invitation, results.entries, days, now)) {
+        sum.done += medicine.taken;
+        sum.total += medicine.planned;
+      }
     }
   }
   return totals;
