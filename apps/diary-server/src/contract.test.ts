@@ -19,7 +19,7 @@ describe('storage port contract over SQLite', () => {
         tickToken: CONTRACT_TICK_TOKEN,
         log: () => undefined,
       });
-      expect((await runStoreContract(app, mode, store)).length).toBe(11);
+      expect((await runStoreContract(app, mode, store)).length).toBe(12);
     });
   }
 });

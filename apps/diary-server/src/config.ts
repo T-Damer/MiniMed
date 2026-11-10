@@ -21,6 +21,8 @@ export interface ServerSettings {
   readonly ydb: string | undefined;
   /** `POST /api/tick` key for an outside scheduler (a timer trigger in `serverless` mode); none: no route. */
   readonly tickToken: string | undefined;
+  /** E-mails (lower case) of the service owner(s) who may open `GET /api/admin/stats`; none: nobody. */
+  readonly adminEmails: readonly string[];
 }
 
 export function readSettings(
@@ -45,5 +47,9 @@ export function readSettings(
       .filter(Boolean),
     ydb: env['DIARY_YDB'],
     tickToken: env['DIARY_TICK_TOKEN'] || undefined,
+    adminEmails: (env['DIARY_ADMIN_EMAILS'] ?? '')
+      .split(/[,;]/u)
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
   };
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { DiaryAdminStatsSchema } from '@localmed/contracts';
 import {
   accessCodeEmail,
   DEMO_ACCESS_CODE,
@@ -30,7 +31,11 @@ import { loadVapid } from './push';
 import { sendDueReminders, sendMissedDoses } from './reminders';
 import { openDatabase, SqliteStore } from './sqlite-store';
 
-async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number) {
+async function setup(
+  signup: 'open' | 'invite' = 'open',
+  onlineWindowMs?: number,
+  adminEmails: readonly string[] = [],
+) {
   const db = openDatabase(':memory:');
   const store = new SqliteStore(db);
   const logs: string[] = [];
@@ -40,6 +45,7 @@ async function setup(signup: 'open' | 'invite' = 'open', onlineWindowMs?: number
     secret: 'test-secret',
     vapid: await loadVapid(store, 'mailto:test@example.org'),
     log: (line) => logs.push(line),
+    adminEmails,
     ...(onlineWindowMs === undefined ? {} : { onlineWindowMs }),
   });
   const call = async (method: string, path: string, body?: unknown, token?: string) => {
@@ -780,5 +786,58 @@ describe('diary server', () => {
       expect((await login('doctor@clinic.ru')).status).toBe(401);
     }
     expect((await login('doctor@clinic.ru')).status).toBe(429);
+  });
+
+  it('shows the service owner aggregates only to an admin and never a patient or a record', async () => {
+    const { call, logs } = await setup('open', undefined, ['boss@clinic.ru']);
+    const boss = await register(call, 'Boss@Clinic.ru', 'Д-р Хозяин');
+    const other = await register(call, 'other@clinic.ru', 'Д-р Другой');
+
+    expect((await call('GET', '/api/admin/stats')).status).toBe(401);
+    expect((await call('GET', '/api/admin/stats', undefined, other.token)).status).toBe(403);
+
+    // The client learns of the entry from /api/auth/me; other doctors get no flag at all.
+    expect((await call('GET', '/api/auth/me', undefined, boss.token)).body['admin']).toBe(true);
+    expect('admin' in (await call('GET', '/api/auth/me', undefined, other.token)).body).toBe(false);
+    expect(
+      'admin' in (await call('GET', '/api/auth/me', undefined, other.token)).body['doctor'],
+    ).toBe(false);
+
+    const patient = randomId();
+    const key = newDataKey();
+    const created = await call(
+      'POST',
+      '/api/patients',
+      {
+        id: patient,
+        key: {
+          epoch: 1,
+          recipient: `d:${boss.id}`,
+          wrapped: await wrapDataKey(key, (await publicIdentity(boss.identity)).wrap),
+        },
+      },
+      boss.token,
+    );
+    expect(created.status).toBe(201);
+
+    const stats = await call('GET', '/api/admin/stats', undefined, boss.token);
+    expect(stats.status).toBe(200);
+    expect(DiaryAdminStatsSchema.parse(stats.body)).toBeTruthy();
+    expect(stats.body['doctors'].total).toBe(2);
+    expect(stats.body['patients'].total).toBe(1);
+    expect(stats.body['patients'].withPhone).toBe(0);
+    expect(stats.body['doctorRows']).toHaveLength(2);
+    // Aggregates only: the patient's id appears nowhere.
+    expect(JSON.stringify(stats.body)).not.toContain(patient);
+    expect(logs.join('\n')).not.toContain(patient);
+  });
+
+  it('has no admin when none is configured', async () => {
+    const { call } = await setup();
+    const doctor = await register(call, 'boss@clinic.ru', 'Д-р Хозяин');
+    expect((await call('GET', '/api/admin/stats', undefined, doctor.token)).status).toBe(403);
+    expect('admin' in (await call('GET', '/api/auth/me', undefined, doctor.token)).body).toBe(
+      false,
+    );
   });
 });

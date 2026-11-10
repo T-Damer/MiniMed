@@ -43,7 +43,7 @@ docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
 yc serverless container revision deploy --folder-id "$YC_FOLDER" --container-name "$YC_CONTAINER" \
   --image "$TAG" --cores 1 --core-fraction 50 --memory 512MB --concurrency 4 \
   --execution-timeout 30s --min-instances 0 --service-account-id "$YC_RUNTIME_SA" \
-  --environment "DIARY_MODE=serverless,DIARY_YDB=$DIARY_YDB,YDB_METADATA_CREDENTIALS=1,DIARY_SIGNUP=$DIARY_SIGNUP,DIARY_PUSH_SUBJECT=$DIARY_PUSH_SUBJECT,DIARY_CORS_ORIGINS=$DIARY_CORS_ORIGINS" \
+  --environment "DIARY_MODE=serverless,DIARY_YDB=$DIARY_YDB,YDB_METADATA_CREDENTIALS=1,DIARY_SIGNUP=$DIARY_SIGNUP,DIARY_PUSH_SUBJECT=$DIARY_PUSH_SUBJECT,DIARY_CORS_ORIGINS=$DIARY_CORS_ORIGINS${DIARY_ADMIN_EMAILS:+,DIARY_ADMIN_EMAILS=$DIARY_ADMIN_EMAILS}" \
   >/dev/null
 
 gateway_spec >"$STAGE/gateway.yaml"
