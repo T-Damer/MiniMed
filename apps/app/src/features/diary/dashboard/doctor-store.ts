@@ -24,6 +24,7 @@ import {
   staleDemoPatients,
 } from '@/features/diary/dashboard/demo-patients';
 import { enableDoctorPush, type PushState } from '@/features/diary/dashboard/doctor-push';
+import { reportDoctorTotals } from '@/features/diary/dashboard/doctor-totals-report';
 import { forgetNewPatientDrafts } from '@/features/diary/dashboard/new-patient-drafts';
 import { warmQuestionnaires } from '@/features/diary/diary-questionnaires';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
@@ -77,6 +78,21 @@ function warmQuestionnairesLater(diaries: DoctorDiaries): void {
   }, 1500);
 }
 
+/** The workspace has been read once, so its numbers are worth sending (ADR-0026 §7). */
+let totalsReady = false;
+let totalsCheckedAt = 0;
+/** The workspace changes often; whether totals are due is looked at this often at most. */
+const TOTALS_CHECK_MS = 5 * 60_000;
+
+/** Offers the doctor's anonymous totals to the service; silent, never awaited by the page. */
+function offerTotals(next: DoctorSession, diaries: DoctorDiaries): void {
+  if (!totalsReady || isDemoSession(next)) return;
+  const at = Date.now();
+  if (at - totalsCheckedAt < TOTALS_CHECK_MS) return;
+  totalsCheckedAt = at;
+  void reportDoctorTotals(next, () => diaries.patients());
+}
+
 let stopCurrent: (() => void) | undefined;
 let restoring: Promise<void> | undefined;
 
@@ -110,11 +126,15 @@ export function stopDoctor(): void {
   setDemoStatus('');
   setPushState('off');
   setAdmin(false);
+  totalsReady = false;
+  totalsCheckedAt = 0;
 }
 
 /** The first read of a session is over: live updates, the demo doctor's set and its upkeep. */
 function afterFirstRead(next: DoctorSession, diaries: DoctorDiaries): void {
   diaries.connectLive();
+  totalsReady = true;
+  offerTotals(next, diaries);
   if (isDemoSession(next)) void keepDemoSet(diaries);
 }
 
@@ -158,6 +178,7 @@ export function startDoctor(next: DoctorSession): DoctorDiaries {
   const unsubscribe = diaries.subscribe(() => {
     setVersion((value) => value + 1);
     warmQuestionnairesLater(diaries);
+    offerTotals(next, diaries);
   });
   stopCurrent = () => {
     unsubscribe();

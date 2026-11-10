@@ -12,6 +12,7 @@ import {
   DiaryDeviceKindSchema,
   type DiaryDoctorProfile,
   DiaryDoctorProfileSchema,
+  type DiaryDoctorTotals,
   type DiaryEnvelope,
   DiaryMeResponseSchema,
   DiaryPairResponseSchema,
@@ -233,6 +234,12 @@ export const diaryDevice = {
 export const diaryAdmin = {
   stats: (api: DiaryApi): Promise<DiaryAdminStats> =>
     api.call('GET', '/api/admin/stats', DiaryAdminStatsSchema),
+};
+
+/** The doctor's app reports anonymous per-doctor totals (ADR-0026 §7). */
+export const diaryDoctor = {
+  totals: (api: DiaryApi, totals: DiaryDoctorTotals) =>
+    api.call('PUT', '/api/doctor/totals', Ok, totals),
 };
 
 export const diaryAlerts = {

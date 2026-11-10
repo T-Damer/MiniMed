@@ -2,6 +2,7 @@ import type { DiaryAdminStats } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import {
+  doctorTotalsCells,
   lastActivityLabel,
   overviewTiles,
   shareLabel,
@@ -24,6 +25,10 @@ const STATS: DiaryAdminStats = {
   phones: { patient: 33, carer: 5 },
   records: { total: 1200, last7: 140, last30: 520 },
   alerts: { total: 9, open: 0 },
+  diariesWithPlan: 14,
+  prescriptions: 37,
+  adherence7: { done: 90, total: 120 },
+  adherence30: { done: 300, total: 480 },
   weeks: [
     { start: '2026-11-02', newDoctors: 0, newPatients: 0 },
     { start: '2026-11-09', newDoctors: 1, newPatients: 8 },
@@ -47,6 +52,8 @@ describe('service overview helpers', () => {
       'phones',
       'carers',
       'records',
+      'prescriptions',
+      'adherence',
       'active',
       'alerts',
       'withdrawn',
@@ -57,6 +64,20 @@ describe('service overview helpers', () => {
     expect(byId['carers']?.label).toBe('телефонов близких');
     expect(byId['active']?.hint).toBe('50 % · за месяц 31');
     // No open alerts is a quiet tile; one open turns it red.
+    expect(byId['prescriptions']).toMatchObject({
+      value: '37',
+      label: 'Назначений',
+      hint: 'в 14 дневниках',
+    });
+    expect(byId['adherence']).toMatchObject({
+      value: '75 % / 63 %',
+      label: 'Приём по плану, 7 дней / 30 дней',
+    });
+    expect(
+      overviewTiles({ ...STATS, adherence7: { done: 0, total: 0 } }).find(
+        (tile) => tile.id === 'adherence',
+      )?.value,
+    ).toBe('— / 63 %');
     expect(byId['alerts']?.tone).toBe('default');
     const urgent = overviewTiles({ ...STATS, alerts: { total: 9, open: 2 } });
     expect(urgent.find((tile) => tile.id === 'alerts')?.tone).toBe('danger');
@@ -71,6 +92,25 @@ describe('service overview helpers', () => {
       weekBars([{ start: '2026-11-09', newDoctors: 1, newPatients: 200 }])[0]?.doctorsHeight,
     ).toBe(4);
     expect(weekBars([])).toEqual([]);
+  });
+
+  it('shows the reported totals, with the date when they are older than 30 days', () => {
+    const now = new Date(2026, 10, 10, 15, 0);
+    const fresh = {
+      prescriptions: 6,
+      adherence30: 0.8,
+      totalsAt: new Date(2026, 10, 9).toISOString(),
+    };
+    expect(doctorTotalsCells(fresh, now)).toMatchObject({ prescriptions: '6', adherence: '80 %' });
+    const old = { ...fresh, totalsAt: new Date(2026, 8, 12, 12).toISOString() };
+    expect(doctorTotalsCells(old, now).adherence).toBe('80 % · 12 сен');
+    expect(doctorTotalsCells({ ...fresh, adherence30: null }, now).adherence).toBe('—');
+    expect(
+      doctorTotalsCells({ prescriptions: null, adherence30: null, totalsAt: null }, now),
+    ).toMatchObject({
+      prescriptions: '—',
+      adherence: '—',
+    });
   });
 
   it('says when the last record was written', () => {

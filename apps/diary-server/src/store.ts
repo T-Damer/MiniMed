@@ -4,7 +4,7 @@
  * (`ydb-store.ts`). Every method is one consistent step: the multi-row ones run in one transaction.
  * Record bodies, identity blobs and wrapped keys are ciphertext; what is plain is ADR-0026 §7.
  */
-import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryDoctorTotals, DiaryRole } from '@localmed/contracts';
 
 /** The sign-up invite was spent meanwhile (two registrations raced for one code, SEC-AUDIT1). */
 export class InviteSpent extends Error {
@@ -135,6 +135,20 @@ export interface ServiceStatsRaw {
   /** Per patient with at least one active phone. */
   devices: { patient_id: string; phones: number; carers: number }[];
   alerts: { total: number; open: number };
+  /** The totals the doctors' apps reported (one row per reporting doctor, ADR-0026 §7). */
+  totals: DoctorTotalsRow[];
+}
+
+/** One doctor's reported totals (`putDoctorTotals`); `at` is when the app reported them. */
+export interface DoctorTotalsRow {
+  doctor_id: string;
+  diaries: number;
+  prescriptions: number;
+  done7: number;
+  total7: number;
+  done30: number;
+  total30: number;
+  at: string;
 }
 
 export interface DiaryStore {
@@ -264,6 +278,8 @@ export interface DiaryStore {
    * `since7` / `since30` are ISO times.
    */
   serviceStats(since7: string, since30: string): Promise<ServiceStatsRaw>;
+  /** Keeps the doctor's latest reported totals (one row per doctor, replaced each time). */
+  putDoctorTotals(doctorId: string, totals: DiaryDoctorTotals, at: string): Promise<void>;
 
   pushTargets(owners: readonly string[]): Promise<PushTarget[]>;
   savePushSubscription(

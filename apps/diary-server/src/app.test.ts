@@ -832,6 +832,50 @@ describe('diary server', () => {
     expect(logs.join('\n')).not.toContain(patient);
   });
 
+  it('keeps the reported totals, only for a signed-in doctor, and shows them to the owner', async () => {
+    const { call, logs } = await setup('open', undefined, ['boss@clinic.ru']);
+    const boss = await register(call, 'boss@clinic.ru', 'Д-р Хозяин');
+    const other = await register(call, 'other@clinic.ru', 'Д-р Другой');
+    const totals = {
+      diaries: 3,
+      prescriptions: 8,
+      adherence7: { done: 20, total: 30 },
+      adherence30: { done: 70, total: 100 },
+    };
+
+    expect((await call('PUT', '/api/doctor/totals', totals)).status).toBe(401);
+    for (const bad of [
+      { ...totals, prescriptions: -1 },
+      { ...totals, diaries: 1.5 },
+      { ...totals, prescriptions: 10_000_001 },
+      { ...totals, adherence7: { done: 31, total: 30 } },
+      { ...totals, adherence30: { done: 1 } },
+      { diaries: 1 },
+      { ...totals, patientId: 'abc' },
+    ]) {
+      const answer = await call('PUT', '/api/doctor/totals', bad, other.token);
+      expect(answer.status, JSON.stringify(bad)).toBe(400);
+    }
+
+    expect((await call('PUT', '/api/doctor/totals', totals, other.token)).status).toBe(200);
+    // A second report replaces the first: one row per doctor.
+    const newer = { ...totals, prescriptions: 9, adherence30: { done: 80, total: 100 } };
+    expect((await call('PUT', '/api/doctor/totals', newer, other.token)).status).toBe(200);
+
+    const stats = await call('GET', '/api/admin/stats', undefined, boss.token);
+    expect(DiaryAdminStatsSchema.parse(stats.body)).toBeTruthy();
+    expect(stats.body['prescriptions']).toBe(9);
+    expect(stats.body['diariesWithPlan']).toBe(3);
+    expect(stats.body['adherence7']).toEqual({ done: 20, total: 30 });
+    expect(stats.body['adherence30']).toEqual({ done: 80, total: 100 });
+    const rows = stats.body['doctorRows'] as { email: string; totalsAt: string | null }[];
+    const row = rows.find((entry) => entry.email === 'other@clinic.ru');
+    expect(row).toMatchObject({ prescriptions: 9, adherence30: 0.8 });
+    expect(typeof row?.totalsAt).toBe('string');
+    expect(rows.find((entry) => entry.email === 'boss@clinic.ru')?.totalsAt).toBeNull();
+    expect(logs.join('\n')).not.toContain('prescriptions');
+  });
+
   it('has no admin when none is configured', async () => {
     const { call } = await setup();
     const doctor = await register(call, 'boss@clinic.ru', 'Д-р Хозяин');

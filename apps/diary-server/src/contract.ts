@@ -576,6 +576,26 @@ export async function runStoreContract(
   // The service owner's aggregates (the YDB database is shared between runs, so only lower bounds).
   const at = new Date();
   const windows = statsWindows(at);
+  await store.putDoctorTotals(
+    owner.id,
+    {
+      diaries: 1,
+      prescriptions: 2,
+      adherence7: { done: 3, total: 4 },
+      adherence30: { done: 5, total: 6 },
+    },
+    '2026-11-01T00:00:00.000Z',
+  );
+  await store.putDoctorTotals(
+    owner.id,
+    {
+      diaries: 2,
+      prescriptions: 3,
+      adherence7: { done: 4, total: 5 },
+      adherence30: { done: 6, total: 8 },
+    },
+    '2026-11-02T00:00:00.000Z',
+  );
   const raw = await store.serviceStats(windows.since7, windows.since30);
   const overview = buildServiceStats(raw, at);
   check(overview.doctors.total >= 2, 'overview counts the doctors');
@@ -588,6 +608,19 @@ export async function runStoreContract(
   check(
     overview.doctorRows.some((row) => row.email === ownerEmail && row.patients >= 1),
     'overview lists the doctor with a diary',
+  );
+  const reported = raw.totals.filter((row) => row.doctor_id === owner.id);
+  check(
+    reported.length === 1 &&
+      reported[0]?.prescriptions === 3 &&
+      reported[0]?.total30 === 8 &&
+      reported[0]?.at === '2026-11-02T00:00:00.000Z',
+    'a doctor’s totals are replaced, one row',
+  );
+  check(
+    overview.prescriptions >= 3 &&
+      overview.doctorRows.some((row) => row.email === ownerEmail && row.prescriptions === 3),
+    'overview carries the doctor’s reported totals',
   );
   step('service overview aggregates');
 

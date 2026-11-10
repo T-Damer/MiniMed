@@ -30,12 +30,53 @@ const raw: ServiceStatsRaw = {
     { patient_id: 'p3', phones: 1, carers: 0 },
   ],
   alerts: { total: 4, open: 1 },
+  totals: [
+    {
+      doctor_id: 'd1',
+      diaries: 2,
+      prescriptions: 7,
+      done7: 20,
+      total7: 25,
+      done30: 80,
+      total30: 100,
+      at: '2026-08-01T08:00:00.000Z',
+    },
+    {
+      doctor_id: 'gone',
+      diaries: 9,
+      prescriptions: 9,
+      done7: 1,
+      total7: 1,
+      done30: 1,
+      total30: 1,
+      at: '2026-11-01T08:00:00.000Z',
+    },
+  ],
 };
 
 describe('service overview', () => {
   it('counts weeks from Monday', () => {
     expect(weekStart(NOW)).toBe('2026-11-09');
     expect(weekStart(new Date('2026-11-08T23:59:00Z'))).toBe('2026-11-02');
+  });
+
+  it('sums the reported totals, however old, and shows them per doctor', () => {
+    const stats = buildServiceStats(raw, NOW);
+    expect(stats.diariesWithPlan).toBe(2);
+    expect(stats.prescriptions).toBe(7);
+    expect(stats.adherence7).toEqual({ done: 20, total: 25 });
+    expect(stats.adherence30).toEqual({ done: 80, total: 100 });
+    const first = stats.doctorRows.find((row) => row.email === 'a@x.ru');
+    expect(first).toMatchObject({
+      prescriptions: 7,
+      adherence30: 0.8,
+      totalsAt: '2026-08-01T08:00:00.000Z',
+    });
+    const silent = stats.doctorRows.find((row) => row.email === 'b@x.ru');
+    expect(silent).toMatchObject({ prescriptions: null, adherence30: null, totalsAt: null });
+    const empty = buildServiceStats({ ...raw, totals: [] }, NOW);
+    expect(empty.prescriptions).toBe(0);
+    expect(empty.adherence30).toEqual({ done: 0, total: 0 });
   });
 
   it('builds the aggregates and no patient identifier', () => {
@@ -64,6 +105,9 @@ describe('service overview', () => {
       patients: 2,
       activePatients: 1,
       lastActivityAt: '2026-11-10T07:00:00.000Z',
+      prescriptions: 7,
+      adherence30: 0.8,
+      totalsAt: '2026-08-01T08:00:00.000Z',
     });
     // The withdrawn diary is not the doctor's patient any more.
     expect(stats.doctorRows[1]?.patients).toBe(0);

@@ -10,6 +10,7 @@ import {
   DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
   type DiaryDeviceKind,
+  DiaryDoctorTotalsSchema,
   DiaryEmailSchema,
   DiaryEpochCreateSchema,
   DiaryLoginRequestSchema,
@@ -1008,6 +1009,15 @@ export function createApp(
     const at = new Date();
     const { since7, since30 } = statsWindows(at);
     return json(buildServiceStats(await store.serviceStats(since7, since30), at));
+  });
+
+  // The doctor's app reports summary numbers over the diaries the doctor owns (ADR-0026 §7): no
+  // patient id, name or record, one row per doctor.
+  route('PUT', '/api/doctor/totals', async (request, url) => {
+    const id = doctorOnly(await caller(request, url));
+    const totals = await body(request, DiaryDoctorTotalsSchema);
+    await store.putDoctorTotals(id, totals, now());
+    return json({ ok: true });
   });
 
   // --- alerts, push, live ----------------------------------------------------------------------

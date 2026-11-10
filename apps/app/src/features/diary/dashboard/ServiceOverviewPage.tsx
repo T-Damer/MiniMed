@@ -13,8 +13,10 @@ import { pluralize } from '@/diary/diary-format';
 import { DiaryApiError, diaryAdmin } from '@/features/diary/connected/diary-api';
 import { type DoctorSession, doctorApi } from '@/features/diary/connected/doctor-account';
 import {
+  doctorTotalsCells,
   lastActivityLabel,
   overviewTiles,
+  TOTALS_NOTE,
   weekBars,
 } from '@/features/diary/dashboard/service-overview';
 
@@ -40,6 +42,10 @@ const EMPTY_STATS: DiaryAdminStats = {
   phones: { patient: 0, carer: 0 },
   records: { total: 0, last7: 0, last30: 0 },
   alerts: { total: 0, open: 0 },
+  diariesWithPlan: 0,
+  prescriptions: 0,
+  adherence7: { done: 0, total: 0 },
+  adherence30: { done: 0, total: 0 },
   weeks: [],
   doctorRows: [],
 };
@@ -120,6 +126,9 @@ export function ServiceOverviewPage(props: {
             )}
           </For>
         </StatGrid>
+        <p class="service-overview__note" data-testid="service-totals-note">
+          {TOTALS_NOTE}
+        </p>
 
         <section class="service-overview__section" aria-label="Новые врачи и дневники по неделям">
           <h2 class="service-overview__heading">Новые по неделям</h2>
@@ -184,6 +193,12 @@ export function ServiceOverviewPage(props: {
                     <th class="service-overview__cell service-overview__cell--head service-overview__cell--number">
                       С записью за неделю
                     </th>
+                    <th class="service-overview__cell service-overview__cell--head service-overview__cell--number">
+                      Назначений
+                    </th>
+                    <th class="service-overview__cell service-overview__cell--head service-overview__cell--number">
+                      Приём за 30 дней
+                    </th>
                     <th class="service-overview__cell service-overview__cell--head">
                       Последняя запись
                     </th>
@@ -202,6 +217,15 @@ export function ServiceOverviewPage(props: {
                         </td>
                         <td class="service-overview__cell service-overview__cell--number">
                           {row.activePatients}
+                        </td>
+                        <td class="service-overview__cell service-overview__cell--number">
+                          {doctorTotalsCells(row, now()).prescriptions}
+                        </td>
+                        <td
+                          class="service-overview__cell service-overview__cell--number"
+                          title={doctorTotalsCells(row, now()).title}
+                        >
+                          {doctorTotalsCells(row, now()).adherence}
                         </td>
                         <td class="service-overview__cell">
                           {lastActivityLabel(row.lastActivityAt, now())}

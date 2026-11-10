@@ -5,7 +5,7 @@
  * out here: an e-mail table, BigSerial keys and explicit deletes, each step in one serializable
  * transaction. Schema changes go through the numbered `MIGRATIONS` below.
  */
-import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryDoctorTotals, DiaryRole } from '@localmed/contracts';
 import type { Driver } from '@ydbjs/core';
 import { query } from '@ydbjs/query';
 import { Optional } from '@ydbjs/value/optional';
@@ -16,6 +16,7 @@ import {
   type DeviceRow,
   type DiaryStore,
   type DoctorRow,
+  type DoctorTotalsRow,
   type DoseCheckRow,
   InviteSpent,
   type KeyRow,
@@ -79,6 +80,12 @@ const MIGRATIONS: readonly string[][] = [
     'ALTER TABLE pairings ADD COLUMN kind Utf8',
     `CREATE TABLE dose_checks (patient_id Utf8 NOT NULL, at Utf8 NOT NULL, state Utf8 NOT NULL,
        PRIMARY KEY (patient_id, at))`,
+  ],
+  // The totals each doctor's app reports for the owner's overview (ADR-0026 §7): one row per doctor.
+  [
+    `CREATE TABLE doctor_totals (doctor_id Utf8 NOT NULL, diaries Int64 NOT NULL,
+       prescriptions Int64 NOT NULL, done7 Int64 NOT NULL, total7 Int64 NOT NULL,
+       done30 Int64 NOT NULL, total30 Int64 NOT NULL, at Utf8 NOT NULL, PRIMARY KEY (doctor_id))`,
   ],
 ];
 
@@ -429,6 +436,10 @@ export class YdbStore implements DiaryStore {
     const [alerts] = await rows<ServiceStatsRaw['alerts']>(
       this.sql`SELECT COUNT(*) AS total, COUNT_IF(acked_at IS NULL) AS open FROM alerts`,
     );
+    const totals = await rows<DoctorTotalsRow>(
+      this.sql`SELECT doctor_id, diaries, prescriptions, done7, total7, done30, total30, at
+        FROM doctor_totals`,
+    );
     return {
       doctors,
       patients,
@@ -436,7 +447,16 @@ export class YdbStore implements DiaryStore {
       records,
       devices,
       alerts: alerts ?? { total: 0, open: 0 },
+      totals,
     };
+  }
+
+  async putDoctorTotals(doctorId: string, totals: DiaryDoctorTotals, at: string): Promise<void> {
+    await this.sql`UPSERT INTO doctor_totals
+      (doctor_id, diaries, prescriptions, done7, total7, done30, total30, at)
+      VALUES (${doctorId}, ${BigInt(totals.diaries)}, ${BigInt(totals.prescriptions)},
+        ${BigInt(totals.adherence7.done)}, ${BigInt(totals.adherence7.total)},
+        ${BigInt(totals.adherence30.done)}, ${BigInt(totals.adherence30.total)}, ${at})`;
   }
 
   async membership(patientId: string, doctorId: string): Promise<MemberRow | undefined> {

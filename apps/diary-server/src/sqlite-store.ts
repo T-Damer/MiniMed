@@ -4,13 +4,14 @@
  * what is plain is listed in ADR-0026 §7.
  */
 import { Database } from 'bun:sqlite';
-import type { DiaryDeviceKind, DiaryRole } from '@localmed/contracts';
+import type { DiaryDeviceKind, DiaryDoctorTotals, DiaryRole } from '@localmed/contracts';
 
 import {
   type AlertRow,
   type DeviceRow,
   type DiaryStore,
   type DoctorRow,
+  type DoctorTotalsRow,
   type DoseCheckRow,
   InviteSpent,
   type KeyRow,
@@ -138,6 +139,20 @@ const MIGRATIONS: readonly string[] = [
     PRIMARY KEY (patient_id, at)
   );
   CREATE INDEX dose_checks_at ON dose_checks (at);
+  `,
+  // 4: the totals each doctor's app reports for the owner's overview (ADR-0026 §7): one row per
+  // doctor, numbers only.
+  `
+  CREATE TABLE doctor_totals (
+    doctor_id TEXT PRIMARY KEY REFERENCES doctors(id) ON DELETE CASCADE,
+    diaries INTEGER NOT NULL,
+    prescriptions INTEGER NOT NULL,
+    done7 INTEGER NOT NULL,
+    total7 INTEGER NOT NULL,
+    done30 INTEGER NOT NULL,
+    total30 INTEGER NOT NULL,
+    at TEXT NOT NULL
+  );
   `,
 ];
 
@@ -534,6 +549,12 @@ export class SqliteStore implements DiaryStore {
         `SELECT COUNT(*) AS total, COALESCE(SUM(acked_at IS NULL), 0) AS open FROM alerts`,
       )
       .get();
+    const totals = this.db
+      .query<DoctorTotalsRow, []>(
+        `SELECT doctor_id, diaries, prescriptions, done7, total7, done30, total30, at
+         FROM doctor_totals`,
+      )
+      .all();
     return {
       doctors,
       patients,
@@ -541,7 +562,30 @@ export class SqliteStore implements DiaryStore {
       records,
       devices,
       alerts: alerts ?? { total: 0, open: 0 },
+      totals,
     };
+  }
+
+  async putDoctorTotals(doctorId: string, totals: DiaryDoctorTotals, at: string): Promise<void> {
+    this.db
+      .query(
+        `INSERT INTO doctor_totals
+           (doctor_id, diaries, prescriptions, done7, total7, done30, total30, at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (doctor_id) DO UPDATE SET diaries = excluded.diaries,
+           prescriptions = excluded.prescriptions, done7 = excluded.done7, total7 = excluded.total7,
+           done30 = excluded.done30, total30 = excluded.total30, at = excluded.at`,
+      )
+      .run(
+        doctorId,
+        totals.diaries,
+        totals.prescriptions,
+        totals.adherence7.done,
+        totals.adherence7.total,
+        totals.adherence30.done,
+        totals.adherence30.total,
+        at,
+      );
   }
 
   async membership(patientId: string, doctorId: string): Promise<MemberRow | undefined> {

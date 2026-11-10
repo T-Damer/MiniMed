@@ -23,8 +23,13 @@ export function shareLabel(part: number, total: number): string {
   return total > 0 ? `${Math.round((part / total) * 100)} %` : '—';
 }
 
+/** Under the tiles: where the prescription and adherence figures come from. */
+export const TOTALS_NOTE =
+  'Назначения и приём — итоги, которые присылают приложения врачей (только по их пациентам-владельцам, без данных о пациентах); обновляются, когда врач открывает дневники.';
+
 export function overviewTiles(stats: DiaryAdminStats): readonly OverviewTile[] {
   const { doctors, patients, phones, records, alerts } = stats;
+  const { adherence7, adherence30 } = stats;
   return [
     {
       id: 'doctors',
@@ -65,6 +70,22 @@ export function overviewTiles(stats: DiaryAdminStats): readonly OverviewTile[] {
       hint: `${records.last7} за неделю, ${records.last30} за месяц`,
       icon: 'note-pencil',
       tone: 'default',
+    },
+    {
+      id: 'prescriptions',
+      value: String(stats.prescriptions),
+      label: 'Назначений',
+      hint: `в ${stats.diariesWithPlan} ${pluralize(stats.diariesWithPlan, 'дневнике', 'дневниках', 'дневниках')}`,
+      icon: 'pill',
+      tone: 'accent',
+    },
+    {
+      id: 'adherence',
+      value: `${shareLabel(adherence7.done, adherence7.total)} / ${shareLabel(adherence30.done, adherence30.total)}`,
+      label: 'Приём по плану, 7 дней / 30 дней',
+      hint: `${adherence30.done} из ${adherence30.total} за 30 дней`,
+      icon: 'list-checks',
+      tone: 'good',
     },
     {
       id: 'active',
@@ -139,4 +160,40 @@ export function lastActivityLabel(at: string | null, now: Date): string {
   if (days <= 0) return 'сегодня';
   if (days === 1) return 'вчера';
   return `${days} дн. назад`;
+}
+
+/** «12 сен»: the day a doctor's app last reported, in the viewer's time. */
+function reportedLabel(at: string): string {
+  const time = new Date(at);
+  if (Number.isNaN(time.getTime())) return '';
+  return `${time.getDate()} ${MONTHS[time.getMonth()] ?? ''}`.trim();
+}
+
+const THIRTY_DAYS_MS = 30 * 86_400_000;
+
+export interface DoctorTotalsCells {
+  readonly prescriptions: string;
+  /** «82 %», with the report's day when it is older than 30 days: «82 % · 12 сен». */
+  readonly adherence: string;
+  readonly title: string;
+}
+
+/** The two «итоги приложения врача» cells of a doctor's row; dashes when the app never reported. */
+export function doctorTotalsCells(
+  row: Pick<DiaryAdminStats['doctorRows'][number], 'prescriptions' | 'adherence30' | 'totalsAt'>,
+  now: Date,
+): DoctorTotalsCells {
+  if (row.totalsAt === null) {
+    return { prescriptions: '—', adherence: '—', title: 'Приложение врача ещё не присылало итоги' };
+  }
+  const reported = new Date(row.totalsAt);
+  const stale =
+    !Number.isNaN(reported.getTime()) && now.getTime() - reported.getTime() > THIRTY_DAYS_MS;
+  const share = row.adherence30 === null ? '—' : `${Math.round(row.adherence30 * 100)} %`;
+  const day = reportedLabel(row.totalsAt);
+  return {
+    prescriptions: row.prescriptions === null ? '—' : String(row.prescriptions),
+    adherence: stale && day ? `${share} · ${day}` : share,
+    title: day ? `Итоги присланы ${day}` : '',
+  };
 }

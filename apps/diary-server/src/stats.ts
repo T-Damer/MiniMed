@@ -57,6 +57,8 @@ export function buildServiceStats(raw: ServiceStatsRaw, now: Date): DiaryAdminSt
     patientsOfDoctor.set(member.doctor_id, list);
   }
 
+  const totalsOf = new Map(raw.totals.map((row) => [row.doctor_id, row]));
+
   const doctorRows = raw.doctors
     .map((doctor) => {
       const ids = patientsOfDoctor.get(doctor.id) ?? [];
@@ -69,12 +71,16 @@ export function buildServiceStats(raw: ServiceStatsRaw, now: Date): DiaryAdminSt
           lastActivityAt = row.last_at;
         }
       }
+      const totals = totalsOf.get(doctor.id);
       return {
         name: doctor.name,
         email: doctor.email,
         patients: ids.length,
         activePatients,
         lastActivityAt,
+        prescriptions: totals?.prescriptions ?? null,
+        adherence30: totals && totals.total30 > 0 ? totals.done30 / totals.total30 : null,
+        totalsAt: totals?.at ?? null,
       };
     })
     .sort(
@@ -90,6 +96,12 @@ export function buildServiceStats(raw: ServiceStatsRaw, now: Date): DiaryAdminSt
       last30: records.last30 + row.last30,
     };
   }
+  // Reports of doctors who no longer exist are not counted; old ones still are.
+  const reported = raw.totals.filter((row) =>
+    raw.doctors.some((doctor) => doctor.id === row.doctor_id),
+  );
+  const sum = (pick: (row: (typeof reported)[number]) => number): number =>
+    reported.reduce((total, row) => total + pick(row), 0);
   let phones = { patient: 0, carer: 0 };
   for (const row of raw.devices) {
     phones = { patient: phones.patient + row.phones, carer: phones.carer + row.carers };
@@ -116,6 +128,10 @@ export function buildServiceStats(raw: ServiceStatsRaw, now: Date): DiaryAdminSt
     phones,
     records,
     alerts: raw.alerts,
+    diariesWithPlan: sum((row) => row.diaries),
+    prescriptions: sum((row) => row.prescriptions),
+    adherence7: { done: sum((row) => row.done7), total: sum((row) => row.total7) },
+    adherence30: { done: sum((row) => row.done30), total: sum((row) => row.total30) },
     weeks,
     doctorRows,
   };

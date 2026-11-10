@@ -276,6 +276,31 @@ export const DIARY_ADMIN_WEEKS = 12;
 
 const count = z.number().int().min(0);
 
+/** Upper bound of any figure in `DiaryDoctorTotals` (and of the sums over all doctors). */
+export const DIARY_TOTALS_MAX = 10_000_000;
+const totalsCount = z.number().int().min(0).max(DIARY_TOTALS_MAX);
+const intakes = z
+  .object({ done: totalsCount, total: totalsCount })
+  .refine((value) => value.done <= value.total, 'done exceeds total');
+
+/**
+ * `PUT /api/doctor/totals`: one doctor's app reports summary numbers over the diaries the doctor
+ * owns (ADR-0026 §7): never per patient, no ids, no names. `adherence7` / `adherence30` are the
+ * planned (`total`) and marked (`done`) intakes of the last 7 / 30 days.
+ */
+export const DiaryDoctorTotalsSchema = z
+  .object({
+    /** Owned diaries with at least one active plan item. */
+    diaries: totalsCount,
+    /** Active plan items (not ended), summed over those diaries. */
+    prescriptions: totalsCount,
+    adherence7: intakes,
+    adherence30: intakes,
+    // Strict: a client that adds anything else (an id, a name) is refused, not trimmed.
+  })
+  .strict();
+export type DiaryDoctorTotals = z.infer<typeof DiaryDoctorTotalsSchema>;
+
 /**
  * `GET /api/admin/stats` (super-admin, `DIARY_ADMIN_EMAILS`): aggregates over what the server
  * already sees (ADR-0026 §7): counts and times, doctors' names and e-mails. No patient is
@@ -308,6 +333,14 @@ export const DiaryAdminStatsSchema = z.object({
   phones: z.object({ patient: count, carer: count }),
   records: z.object({ total: count, last7: count, last30: count }),
   alerts: z.object({ total: count, open: count }),
+  /**
+   * Sums of the totals the doctors' apps reported (`DiaryDoctorTotalsSchema`); a doctor who never
+   * reported adds nothing, and a report is kept however old it is.
+   */
+  diariesWithPlan: count,
+  prescriptions: count,
+  adherence7: z.object({ done: count, total: count }),
+  adherence30: z.object({ done: count, total: count }),
   /** Oldest first; `start` is the Monday (UTC, YYYY-MM-DD) of a week. */
   weeks: z.array(z.object({ start: z.string(), newDoctors: count, newPatients: count })),
   /** Newest activity first. */
@@ -319,6 +352,12 @@ export const DiaryAdminStatsSchema = z.object({
       activePatients: count,
       /** Time of the newest record in the doctor's diaries. */
       lastActivityAt: z.string().nullable(),
+      /** Active plan items the doctor's app reported; null: it never reported. */
+      prescriptions: count.nullable(),
+      /** Marked share of planned intakes over 30 days, 0–1; null: nothing reported or planned. */
+      adherence30: z.number().min(0).max(1).nullable(),
+      /** When the doctor's app last reported its totals. */
+      totalsAt: z.string().nullable(),
     }),
   ),
 });

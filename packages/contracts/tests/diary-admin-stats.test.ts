@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { DIARY_ADMIN_WEEKS, DiaryAdminStatsSchema, DiaryMeResponseSchema } from '../src/diary-sync';
+import {
+  DIARY_ADMIN_WEEKS,
+  DIARY_TOTALS_MAX,
+  DiaryAdminStatsSchema,
+  DiaryDoctorTotalsSchema,
+  DiaryMeResponseSchema,
+} from '../src/diary-sync';
 
 const STATS = {
   generatedAt: '2026-11-10T12:00:00.000Z',
@@ -18,6 +24,10 @@ const STATS = {
   phones: { patient: 2, carer: 1 },
   records: { total: 40, last7: 5, last30: 20 },
   alerts: { total: 3, open: 1 },
+  diariesWithPlan: 2,
+  prescriptions: 5,
+  adherence7: { done: 6, total: 8 },
+  adherence30: { done: 20, total: 30 },
   weeks: [{ start: '2026-11-09', newDoctors: 0, newPatients: 1 }],
   doctorRows: [
     {
@@ -26,6 +36,9 @@ const STATS = {
       patients: 2,
       activePatients: 1,
       lastActivityAt: null,
+      prescriptions: 5,
+      adherence30: 0.5,
+      totalsAt: '2026-11-09T10:00:00.000Z',
     },
   ],
 };
@@ -65,5 +78,32 @@ describe('service overview contract (ADR-0026 §7)', () => {
     };
     expect(DiaryMeResponseSchema.parse(me).admin).toBeUndefined();
     expect(DiaryMeResponseSchema.parse({ ...me, admin: true }).admin).toBe(true);
+  });
+});
+
+const TOTALS = {
+  diaries: 3,
+  prescriptions: 8,
+  adherence7: { done: 20, total: 30 },
+  adherence30: { done: 70, total: 100 },
+};
+
+describe('doctor totals contract (ADR-0026 §7)', () => {
+  it('takes whole non-negative numbers, done not above total', () => {
+    expect(DiaryDoctorTotalsSchema.parse(TOTALS)).toEqual(TOTALS);
+    const zero = { ...TOTALS, adherence7: { done: 0, total: 0 } };
+    expect(DiaryDoctorTotalsSchema.safeParse(zero).success).toBe(true);
+    expect(DiaryDoctorTotalsSchema.safeParse({ ...TOTALS, diaries: -1 }).success).toBe(false);
+    expect(DiaryDoctorTotalsSchema.safeParse({ ...TOTALS, diaries: 1.5 }).success).toBe(false);
+    expect(
+      DiaryDoctorTotalsSchema.safeParse({ ...TOTALS, prescriptions: DIARY_TOTALS_MAX + 1 }).success,
+    ).toBe(false);
+    expect(
+      DiaryDoctorTotalsSchema.safeParse({ ...TOTALS, adherence30: { done: 5, total: 4 } }).success,
+    ).toBe(false);
+  });
+
+  it('refuses anything else, so a patient id or a name cannot ride along', () => {
+    expect(DiaryDoctorTotalsSchema.safeParse({ ...TOTALS, patientId: 'abc' }).success).toBe(false);
   });
 });
