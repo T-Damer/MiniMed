@@ -17,9 +17,9 @@ import '@/diary/install-guide.css';
 
 /**
  * «Добавьте дневник на экран «Домой»» as a warning row. It stays until the diary runs from the
- * icon. A tap shows the browser's own install dialog where there is one; otherwise (or if the
- * patient dismissed it) it opens an animated guide in a bottom sheet. Inside a messenger the same
- * row asks to open the diary in a browser instead.
+ * icon. A tap shows the browser's own install dialog where there is one, otherwise an animated
+ * guide in a bottom sheet; «Отмена» in the browser's dialog is an answer, not a reason to show the
+ * guide. Inside a messenger the same row asks to open the diary in a browser instead.
  */
 export function InstallWarning(props: {
   readonly store?: DiaryStore;
@@ -40,7 +40,8 @@ export function InstallWarning(props: {
     if (currentInstallAdvice() === 'prompt' && !messenger()) {
       setAsking(true);
       try {
-        if (await requestInstall()) return;
+        // Installed, or the patient said no in the browser's dialog: no guide on top of that.
+        if ((await requestInstall()) !== 'unavailable') return;
       } finally {
         setAsking(false);
       }
@@ -101,21 +102,27 @@ export function InstallCard(props: {
     if (currentInstallAdvice() === 'prompt') {
       setAsking(true);
       try {
-        if (await requestInstall()) return;
+        const outcome = await requestInstall();
+        if (outcome === 'accepted') return;
+        // «Отмена» in the browser's dialog is the doctor's «Не сейчас».
+        if (outcome === 'dismissed') {
+          later();
+          return;
+        }
       } finally {
         setAsking(false);
       }
     }
     setGuideOpen(true);
   };
-  const later = (): void => {
+  function later(): void {
     try {
       localStorage.setItem(CARD_DISMISSED_KEY, new Date().toISOString());
     } catch {
       // Storage refused: the card goes away for this visit only.
     }
     setDismissed(true);
-  };
+  }
   return (
     <Show
       when={

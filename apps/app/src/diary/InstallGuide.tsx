@@ -61,7 +61,7 @@ export function InstallGuide(props: {
   const install = async (): Promise<void> => {
     setInstalling(true);
     try {
-      if (await requestInstall()) props.onInstalled?.();
+      if ((await requestInstall()) === 'accepted') props.onInstalled?.();
     } finally {
       setInstalling(false);
     }

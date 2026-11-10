@@ -73,13 +73,19 @@ export function currentInstallAdvice(): InstallAdvice {
   });
 }
 
-/** Shows the browser's own install dialog. Returns whether the patient accepted it. */
-export async function requestInstall(): Promise<boolean> {
+/** What became of the browser's own install dialog. */
+export type InstallOutcome = 'accepted' | 'dismissed' | 'unavailable';
+
+/**
+ * Shows the browser's own install dialog. «dismissed» is the person's answer (they closed the
+ * dialog or chose «Отмена»): callers take it as «not now» and do not follow it with the guide.
+ */
+export async function requestInstall(): Promise<InstallOutcome> {
   const event = promptEvent();
-  if (!event) return false;
+  if (!event) return 'unavailable';
   setPromptEvent(null);
   await event.prompt();
   const choice = await event.userChoice;
   if (choice.outcome === 'accepted') setInstalled(true);
-  return choice.outcome === 'accepted';
+  return choice.outcome;
 }
