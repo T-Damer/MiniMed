@@ -208,3 +208,31 @@ test('phone: «Как увидит пациент» opens the patient screen in 
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 2, name: 'Лечение сейчас' })).toBeFocused();
 });
+
+test('wide: the patient screen keeps its title below the pinned header at the end of a long form', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openNewPatient(page, 'sticky@example.test');
+  for (const kind of ['Самочувствие', 'Настроение', 'Пульс и давление', 'Вес и рост', 'Глюкоза']) {
+    await page.getByRole('button', { name: kind, exact: true }).click();
+    const sheet = page.getByRole('dialog');
+    if (await sheet.isVisible().catch(() => false)) await page.keyboard.press('Escape');
+  }
+  // To the very end of the form: the sticky column meets the end of its row there.
+  await page.getByRole('button', { name: 'Добавить пациента' }).scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 4000);
+  await page.waitForTimeout(400);
+  const title = page.getByTestId('patient-view').locator('.patient-view__title');
+  const seen = await title.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + 2);
+    return {
+      top: Math.round(box.top),
+      covered: !(hit && (element === hit || element.contains(hit))),
+      hit: String(hit?.className ?? ''),
+    };
+  });
+  expect(seen.covered, JSON.stringify(seen)).toBe(false);
+});
