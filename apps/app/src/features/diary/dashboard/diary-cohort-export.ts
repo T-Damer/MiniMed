@@ -9,10 +9,14 @@
  * Sheets: «Пациенты» (one row per diary), «Назначения» (each plan version × medicine: ATC codes,
  * target, dose per intake and per day), «Приём по дням» (per day and medicine: prescribed and
  * taken amounts, skips and their reasons), «Измерения» (numbers the patient entered: pressure,
- * pulse, weight, scores) and «Опросники» (questionnaire totals).
+ * pulse, weight, scores) and «Опросники» (questionnaire totals, the patient's and the doctor's
+ * visit ratings).
  */
 
 import type { DiaryPlanRevision } from '@/features/diary/connected/diary-replica';
+import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import { isStudyParticipant, studyConsentStatus } from '@/features/diary/consent/study-consent';
+import { DEMO_LABEL_PREFIX } from '@/features/diary/dashboard/demo-patients';
 import { dayKey, diaryStarted } from '@/features/diary/diary-care';
 import type {
   DiaryEntry,
@@ -31,7 +35,10 @@ export interface CohortDiary {
   readonly id: string;
   readonly results: DiaryResults;
   readonly planHistory: readonly DiaryPlanRevision[];
-  /** Questionnaire totals, scored by the caller (`questionnaireSeries`). */
+  /**
+   * Questionnaire totals, scored by the caller: the patient's (`questionnaireSeries`) and the
+   * doctor's visit ratings (`visitScaleSeries`, series ids `visit-…`).
+   */
   readonly quizzes: readonly QuestionnaireSeries[];
 }
 
@@ -236,6 +243,7 @@ export async function cohortSheets(
           dayNumber(start, dayKey(point.at)),
           series.limitId,
           series.title,
+          series.checkpointId.startsWith('visit-') ? 'врач' : 'пациент',
           point.total,
           point.max,
         ]);
@@ -308,7 +316,7 @@ export async function cohortSheets(
     },
     {
       name: 'Опросники',
-      columns: ['Код', 'День', 'Шкала', 'Название', 'Сумма', 'Максимум'],
+      columns: ['Код', 'День', 'Шкала', 'Название', 'Кто оценил', 'Сумма', 'Максимум'],
       rows: quizzes,
     },
   ];
@@ -338,4 +346,19 @@ export async function cohortXlsx(sheets: readonly CohortSheet[]): Promise<Blob> 
   return new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
+}
+
+/**
+ * The diaries a study export takes: the patient agreed to the study the plan names (the latest
+ * version of it, not withdrawn); demo diaries never.
+ */
+export function studyDiaries(patients: readonly DoctorPatient[]): DoctorPatient[] {
+  return patients.filter(
+    (patient) =>
+      patient.replica.invitation &&
+      !patient.replica.profile?.label?.startsWith(DEMO_LABEL_PREFIX) &&
+      isStudyParticipant(
+        studyConsentStatus(patient.replica.invitation.study, patient.replica.study),
+      ),
+  );
 }

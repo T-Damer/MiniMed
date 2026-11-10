@@ -7,7 +7,7 @@ import {
   loadQuestionnaireShapes,
 } from '@/features/diary/dashboard/demo-patients';
 import type { DiaryPlanItem } from '@/features/diary/diary-model';
-import { cohortSheets, dailyDose, studyCode } from './diary-cohort-export';
+import { cohortSheets, dailyDose, studyCode, studyDiaries } from './diary-cohort-export';
 import { questionnaireSeries } from './diary-insights';
 
 const NOW = new Date(2026, 9, 27, 15, 30);
@@ -90,5 +90,33 @@ describe('RESEARCH1 cohort export', () => {
         if (entry.note && entry.note.length > 12) expect(text).not.toContain(entry.note);
       }
     }
+  });
+});
+
+describe('RESEARCH1 who a study export takes', () => {
+  const study = { id: 'st1', title: 'Полипрагмазия', protocol: '1', version: '2', text: 'Текст' };
+  const patient = (label: string, answer?: object, withStudy = true) =>
+    ({
+      summary: { id: label },
+      refused: 0,
+      replica: {
+        invitation: { id: label, ...(withStudy ? { study } : {}) },
+        profile: { label },
+        ...(answer ? { study: answer } : {}),
+      },
+    }) as unknown as Parameters<typeof studyDiaries>[0][number];
+
+  it('only patients who agreed to the current version and did not withdraw', () => {
+    const at = '2026-11-10T09:00:00Z';
+    const picked = studyDiaries([
+      patient('agreed', { study: 'st1', version: '2', status: 'accepted', at }),
+      patient('old version', { study: 'st1', version: '1', status: 'accepted', at }),
+      patient('declined', { study: 'st1', version: '2', status: 'declined', at }),
+      patient('withdrawn', { study: 'st1', version: '2', status: 'withdrawn', at }),
+      patient('no answer'),
+      patient('no study', undefined, false),
+      patient('Демо · agreed', { study: 'st1', version: '2', status: 'accepted', at }),
+    ]).map((entry) => entry.summary.id);
+    expect(picked).toEqual(['agreed']);
   });
 });

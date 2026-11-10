@@ -1,6 +1,6 @@
 /**
  * «Выгрузка для исследования» (RESEARCH1): every diary of the doctor in one workbook under study
- * codes (`diary-cohort-export.ts`). Demo patients and archived diaries stay out.
+ * codes (`diary-cohort-export.ts`), only the patients who agreed to the plan's study.
  */
 import { createSignal, type JSX } from 'solid-js';
 import { toast } from 'solid-sonner';
@@ -10,9 +10,10 @@ import { TextField } from '@/components/TextField';
 import { pluralize } from '@/diary/diary-format';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import type { DoctorPatient } from '@/features/diary/connected/doctor-workspace';
-import { DEMO_LABEL_PREFIX } from '@/features/diary/dashboard/demo-patients';
-import { type CohortDiary, cohortSheets, cohortXlsx } from './diary-cohort-export';
+import { sortedVisitEntries } from '@/features/diary/diary-visit-scales';
+import { type CohortDiary, cohortSheets, cohortXlsx, studyDiaries } from './diary-cohort-export';
 import { questionnaireSeries } from './diary-insights';
+import { visitScaleSeries } from './visit-scale-series';
 
 const STUDY_KEY = 'minimed.diary.study-name';
 
@@ -22,16 +23,6 @@ function savedStudy(): string {
   } catch {
     return '';
   }
-}
-
-/** The diaries a study export takes: issued, not demo, not archived. */
-export function studyDiaries(patients: readonly DoctorPatient[]): DoctorPatient[] {
-  return patients.filter(
-    (patient) =>
-      patient.replica.invitation &&
-      !patient.replica.profile?.archived &&
-      !patient.replica.profile?.label?.startsWith(DEMO_LABEL_PREFIX),
-  );
 }
 
 export function StudyExportDialog(props: {
@@ -57,7 +48,10 @@ export function StudyExportDialog(props: {
         id: patient.summary.id,
         results,
         planHistory: patient.replica.planHistory,
-        quizzes: await questionnaireSeries(results.invitation, results.entries),
+        quizzes: [
+          ...(await questionnaireSeries(results.invitation, results.entries)),
+          ...(await visitScaleSeries(sortedVisitEntries(patient.replica.visitScales))),
+        ],
       });
     }
     const blob = await cohortXlsx(await cohortSheets(name, diaries));
@@ -80,10 +74,12 @@ export function StudyExportDialog(props: {
       description={
         <>
           <p>
-            {count()} {pluralize(count(), 'дневник', 'дневника', 'дневников')} в одной таблице:
-            назначения с кодами АТХ и мишенями, приём по дням, измерения и опросники. Вместо имён —
-            коды, вместо дат — дни наблюдения, комментарии и свободный текст не попадают.
+            {count()} {pluralize(count(), 'участник', 'участника', 'участников')} в одной таблице:
+            назначения с кодами АТХ и мишенями, приём по дням, измерения, опросники и оценки врача.
+            Вместо имён — коды, вместо дат — дни наблюдения, комментарии и свободный текст не
+            попадают.
           </p>
+          <p>Берутся только дневники, где пациент дал согласие на исследование и не отозвал его.</p>
           <TextField
             label="Название исследования"
             placeholder="например, Полипрагмазия-2027"
