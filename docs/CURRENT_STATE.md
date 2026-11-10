@@ -97,6 +97,10 @@ All 825 module databases scanned through the reader's own pipeline, 493 sampled 
   evidence lines are now 613 paragraphs of their own (first text unchanged, 714_2 and the longest
   instruction within +30/+70 ms); per-block rendering is the cost — see the report.
 
+## Narcology КР check — 2026-11-10 (STATE KR-NARCO; not pushed, not released)
+
+Ten reported items compared with the official JSON and PDF: nine are in the source and left as they are (data conflicts, the page number «50», «Налмефен» glued in the JSON, «)» in 590_2); one was ours (`<sub>=</sub>` → «₌», fixed, `EXTRACTOR_REVISION` 7, no module rebuilt) — [research/narcology-kr-check-2026-11-10.md](research/narcology-kr-check-2026-11-10.md).
+
 ## Release 0.6.95 — 2026-11-09
 
 - **In it:** PERF5 (start-up, first search and reader speed), UI-BATCH3 (sources in «?», owned menus, folds, hover,
