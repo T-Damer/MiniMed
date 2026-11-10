@@ -39,6 +39,7 @@ import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import {
   addDemoPatients,
   demoProgress,
+  doctorIsAdmin,
   doctorLoadError,
   doctorPushState,
   doctorRestored,
@@ -82,6 +83,10 @@ import {
 } from '@/features/diary/dashboard/patient-order';
 import { markSeen, stampFirstSight } from '@/features/diary/dashboard/patient-seen';
 import { isOnline } from '@/features/diary/dashboard/presence';
+import {
+  SERVICE_OVERVIEW_ROUTE,
+  ServiceOverviewPage,
+} from '@/features/diary/dashboard/ServiceOverviewPage';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { type DiarySub, diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
@@ -224,6 +229,7 @@ export function DiaryDashboard(props: {
   const version = doctorVersion;
   const restored = doctorRestored;
   const pushState = doctorPushState;
+  const isAdmin = doctorIsAdmin;
   const demo = demoProgress;
   const [error, setError] = createSignal('');
   const [order, setOrder] = createSignal<PatientOrder>(readOrder());
@@ -276,6 +282,7 @@ export function DiaryDashboard(props: {
     return props.patientId ? workspace()?.patient(props.patientId) : undefined;
   });
   const adding = (): boolean => props.patientId === NEW_PATIENT_ROUTE;
+  const overviewing = (): boolean => props.patientId === SERVICE_OVERVIEW_ROUTE;
 
   const addDemo = (diaries: DoctorDiaries): void => {
     setError('');
@@ -327,6 +334,18 @@ export function DiaryDashboard(props: {
               },
             },
           ]),
+      ...(isAdmin()
+        ? [
+            {
+              id: 'service',
+              label: 'Обзор сервиса',
+              icon: 'chart-line' as const,
+              priority: 3 as const,
+              menuOnly: true,
+              onSelect: () => openPatient(SERVICE_OVERVIEW_ROUTE),
+            },
+          ]
+        : []),
       {
         id: 'demo',
         label: 'Добавить демо-пациентов',
@@ -682,6 +701,9 @@ export function DiaryDashboard(props: {
           />
         )}
       </Show>
+      <Show when={overviewing() && isAdmin() ? session() : undefined}>
+        {(signedIn) => <ServiceOverviewPage session={signedIn()} onBack={toList} />}
+      </Show>
       <Show when={props.patientId ? current() : undefined}>
         {(patient) => (
           <Show when={workspace()}>
@@ -752,7 +774,13 @@ export function DiaryDashboard(props: {
           </Show>
         )}
       </Show>
-      <Show when={!(props.patientId && current()) && !(adding() && workspace())}>
+      <Show
+        when={
+          !(props.patientId && current()) &&
+          !(adding() && workspace()) &&
+          !(overviewing() && isAdmin())
+        }
+      >
         {/* Signed out, the sign-in is the whole screen: no header, no bottom bar (owner 2026-10-30). */}
         <Show when={session()}>
           <Page

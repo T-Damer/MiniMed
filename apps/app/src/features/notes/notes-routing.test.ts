@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   diaryNewPatientPath,
+  diaryServicePath,
   isNotesFullscreenRoute,
   notesDrugComparisonPath,
   notesFormsPath,
@@ -31,6 +32,13 @@ describe('notes routing', () => {
     });
     // Not a draft id: the list, not an empty form under a name that is no draft.
     expect(readNotesRoute('#/notes/diaries/new/Не-id')).toEqual({ kind: 'diaries' });
+  });
+
+  it('opens «Обзор сервиса» at its own address', () => {
+    expect(diaryServicePath()).toBe('#/notes/diaries/service');
+    expect(readNotesRoute(diaryServicePath())).toEqual({ kind: 'diaries', patientId: 'service' });
+    // Only the page itself: a sub-path is the list.
+    expect(readNotesRoute('#/notes/diaries/service/screen')).toEqual({ kind: 'diaries' });
   });
 
   it('opens «Кожа по фото» at its own address', () => {

@@ -3,6 +3,8 @@
  * response is validated with the shared contract before it is used.
  */
 import {
+  type DiaryAdminStats,
+  DiaryAdminStatsSchema,
   type DiaryAlert,
   DiaryAlertSchema,
   DiaryDeviceKeysSchema,
@@ -11,6 +13,7 @@ import {
   type DiaryDoctorProfile,
   DiaryDoctorProfileSchema,
   type DiaryEnvelope,
+  DiaryMeResponseSchema,
   DiaryPairResponseSchema,
   type DiaryPatientDetail,
   DiaryPatientDetailSchema,
@@ -104,7 +107,6 @@ const Patients = z.object({ patients: z.array(DiaryPatientSummarySchema) });
 const PatientOne = z.object({ patient: DiaryPatientSummarySchema });
 const Authors = z.object({ authors: z.record(z.string(), z.string()) });
 const Lookup = z.object({ doctor: DiaryDoctorProfileSchema });
-const Me = z.object({ doctor: DiaryDoctorProfileSchema, identityBlob: z.string() });
 const Alerts = z.object({ alerts: z.array(DiaryAlertSchema) });
 const DeviceKeys = DiaryDeviceKeysSchema.extend({
   epoch: z.number().int(),
@@ -120,7 +122,7 @@ export const diaryAuth = {
   login: (api: DiaryApi, email: string, authKey: string): Promise<DiarySessionResponse> =>
     api.call('POST', '/api/auth/login', DiarySessionResponseSchema, { email, authKey }),
   logout: (api: DiaryApi) => api.call('POST', '/api/auth/logout', Ok, {}),
-  me: (api: DiaryApi) => api.call('GET', '/api/auth/me', Me),
+  me: (api: DiaryApi) => api.call('GET', '/api/auth/me', DiaryMeResponseSchema),
   recoverFetch: (api: DiaryApi, email: string, recoveryAuthKey: string) =>
     api.call('POST', '/api/auth/recover/fetch', DiaryRecoverFetchResponseSchema, {
       email,
@@ -225,6 +227,12 @@ export const diaryDevice = {
   /** The patient's phone's new data key after removing a carer. */
   rotate: (api: DiaryApi, patientId: string, epoch: number, keys: readonly DiaryWrappedKey[]) =>
     api.call('POST', `/api/patients/${patientId}/epochs`, Ok, { epoch, keys }),
+};
+
+/** The service owner's overview (`DIARY_ADMIN_EMAILS` on the server): aggregates only. */
+export const diaryAdmin = {
+  stats: (api: DiaryApi): Promise<DiaryAdminStats> =>
+    api.call('GET', '/api/admin/stats', DiaryAdminStatsSchema),
 };
 
 export const diaryAlerts = {

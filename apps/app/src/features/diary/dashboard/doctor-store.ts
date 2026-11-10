@@ -7,9 +7,10 @@
  */
 import { createSignal } from 'solid-js';
 
-import { DiaryApiError } from '@/features/diary/connected/diary-api';
+import { DiaryApiError, diaryAuth } from '@/features/diary/connected/diary-api';
 import {
   type DoctorSession,
+  doctorApi,
   forgetDoctorSession,
   isDemoSession,
   restoreDoctorSession,
@@ -36,6 +37,7 @@ const [restored, setRestored] = createSignal(false);
 const [loadError, setLoadError] = createSignal('');
 const [demoStatus, setDemoStatus] = createSignal('');
 const [pushState, setPushState] = createSignal<PushUiState>('off');
+const [admin, setAdmin] = createSignal(false);
 
 /** The signed-in doctor; undefined until a kept session is restored or the doctor signs in. */
 export const doctorSession = session;
@@ -49,6 +51,8 @@ export const doctorRestored = restored;
 export const doctorLoadError = loadError;
 /** Progress of the demo patients being made; empty when nothing is. */
 export const demoProgress = demoStatus;
+/** Whether the service says this doctor is its owner («Обзор сервиса»); false until it answers. */
+export const doctorIsAdmin = admin;
 export const doctorPushState = pushState;
 export const setDoctorPushState = setPushState;
 
@@ -105,6 +109,7 @@ export function stopDoctor(): void {
   setLoadError('');
   setDemoStatus('');
   setPushState('off');
+  setAdmin(false);
 }
 
 /** The first read of a session is over: live updates, the demo doctor's set and its upkeep. */
@@ -159,6 +164,16 @@ export function startDoctor(next: DoctorSession): DoctorDiaries {
     diaries.disconnect();
   };
   setWorkspace(diaries);
+  if (!isDemoSession(next)) {
+    diaryAuth
+      .me(doctorApi(next))
+      .then((answer) => {
+        if (session() === next) setAdmin(answer.admin === true);
+      })
+      .catch((cause: unknown) => {
+        console.warn('Дневники: права доктора не прочитаны', cause);
+      });
+  }
   // Allowed on an earlier visit: re-send the subscription with its payload keys, no prompt.
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     void enableDoctorPush(next).then(setPushState, (cause: unknown) => {
