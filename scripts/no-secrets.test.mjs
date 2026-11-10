@@ -31,6 +31,27 @@ import { join, resolve } from 'node:path';
     assert.ok(!untracked.stderr.includes(secret));
     execFileSync('git', ['add', 'source.js'], { cwd: root });
     assert.equal(scan().status, 1);
+    await rm(join(root, 'source.js'));
+    execFileSync('git', ['rm', '-q', '--cached', 'source.js'], { cwd: root });
+    assert.equal(scan().status, 0);
+    // Published *.env files: ids and an operator mailto are fine; a personal address is not.
+    const address = ['owner', 'clinic.example'].join('@');
+    const deploy = join(root, 'deploy.env');
+    await writeFile(
+      deploy,
+      'FOLDER=b1g123\nPUSH_SUBJECT=mailto:admin@operator.example\nADMIN_EMAILS=""\n# ADMIN_EMAILS="you@x.org"\n',
+    );
+    assert.equal(scan().status, 0);
+    await writeFile(deploy, `ADMIN_EMAILS="${address}"\n`);
+    const personal = scan();
+    assert.equal(personal.status, 1);
+    assert.match(personal.stderr, /deploy\.env/);
+    assert.ok(!personal.stderr.includes(address));
+    await writeFile(deploy, `NOTE=${address}\n`);
+    assert.equal(scan().status, 1);
+    await writeFile(deploy, 'FOLDER=b1g123\n');
+    await writeFile(join(root, 'deploy.local.env.example'), 'ADMIN_EMAILS="you@example.org"\n');
+    assert.equal(scan().status, 0);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

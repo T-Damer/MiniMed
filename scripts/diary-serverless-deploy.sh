@@ -12,6 +12,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEPLOY="$ROOT/apps/diary-server/deploy/serverless"
 # shellcheck source=/dev/null
+# The tracked file is public: the owner's e-mail must not be in it (secrets:check fails on it too).
+if grep -Eq '^[[:space:]]*DIARY_ADMIN_EMAILS=' "$DEPLOY/yandex.env"; then
+  echo "DIARY_ADMIN_EMAILS belongs in yandex.local.env (ignored by git), not in yandex.env" >&2
+  exit 1
+fi
 source "$DEPLOY/yandex.env"
 # Personal values (the owner's e-mail), ignored by git: yandex.local.env.example.
 # shellcheck source=/dev/null

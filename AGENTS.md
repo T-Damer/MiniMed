@@ -67,6 +67,10 @@ substitution, clinical promotion or rights assumptions. Historical source files 
 - Before running project code, use a sanitized environment containing only required, documented
   non-secret values. Do not inherit provider credentials, release tokens, private-corpus paths, or
   upload destinations into local app, test, build, or browser processes.
+- The repository is public. Personal or secret values (e-mails, passwords, tokens, keys) never go
+  into a tracked file: they live in an ignored local file next to the tracked one (`*.local.env`,
+  `.env`) with a committed `*.example`. `bun run check` and CI's `secrets:check` fail on an e-mail or
+  a credential-named value in a tracked `*.env`; run `bun run check` before every commit.
 - Bind local browser development servers to `127.0.0.1`; do not expose them on the LAN unless the user
   explicitly requests it.
 - Concurrent e2e runs (agents, release worktrees) each set their own `E2E_PORT` (default 4173): the

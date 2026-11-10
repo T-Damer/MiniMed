@@ -21,7 +21,7 @@
     "clean": "bun scripts/clean.mjs",
     "format": "biome format --write .",
     "lint": "biome lint .",
-    "check": "biome check . && bun scripts/check-tracked-paths.mjs",
+    "check": "biome check . && bun scripts/check-tracked-paths.mjs && bun scripts/no-secrets.mjs",
     "check:write": "biome check --write .",
     "check:errors": "biome lint --only=nursery/noFloatingPromises --diagnostic-level=error apps/app/src/features/news packages/contracts/src apps/app/src/components/calm-error-props.ts",
     "typecheck": "bun run --filter '@localmed/*' --if-present typecheck",
