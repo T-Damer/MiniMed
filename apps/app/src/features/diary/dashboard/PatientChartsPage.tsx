@@ -289,6 +289,9 @@ export function PatientChartsPage(props: {
     const course = props.results.invitation.plan?.find((item) => item.id === itemId)?.course;
     return course?.length ? describeRanges(course) : undefined;
   };
+  /** What the doctor prescribed it for (RESEARCH1). */
+  const targetOf = (itemId: string): string | undefined =>
+    props.results.invitation.plan?.find((item) => item.id === itemId)?.target;
   const openDay = (day: string): void => {
     setDialog({ day });
   };
@@ -426,6 +429,9 @@ export function PatientChartsPage(props: {
                       {medicine.name}
                       <Show when={courseOf(medicine.itemId)}>
                         {(text) => <span class="diary-adherence__course">{text()}</span>}
+                      </Show>
+                      <Show when={targetOf(medicine.itemId)}>
+                        {(text) => <span class="diary-adherence__course">мишень: {text()}</span>}
                       </Show>
                     </span>
                     <span class="diary-adherence__bar" aria-hidden="true">

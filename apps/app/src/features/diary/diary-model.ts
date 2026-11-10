@@ -116,6 +116,17 @@ export interface DiaryPlanItem {
    * resolving, but the patient is no longer offered it.
    */
   readonly ended?: boolean;
+  /**
+   * The medicine as picked from the drug catalog (RESEARCH1): its catalog slug and ATC codes, so a
+   * study can group plans by substance and class. Absent when the name was typed by hand.
+   */
+  readonly drug?: string;
+  readonly atc?: readonly string[];
+  /**
+   * What the doctor prescribes it for (RESEARCH1), in the doctor's words: «давление», «сон»,
+   * «тревога». Read by the doctor and a study export; the patient's screen does not show it.
+   */
+  readonly target?: string;
 }
 
 /**
@@ -1044,6 +1055,22 @@ function parseAssignments(value: unknown): DiaryAssignment[] {
   return assignments;
 }
 
+/** ATC codes: level 1–5 codes like «N06AB06», at most a few per medicine. */
+const ATC_PATTERN = /^[A-Z](?:\d{2}(?:[A-Z](?:[A-Z](?:\d{2})?)?)?)?$/;
+const MAX_ATC_CODES = 8;
+
+function parseAtcCodes(value: unknown, index: number): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (
+    !Array.isArray(value) ||
+    value.length > MAX_ATC_CODES ||
+    !value.every((code) => typeof code === 'string' && ATC_PATTERN.test(code))
+  ) {
+    throw new DiaryFormatError(`Пункт назначения ${index + 1}: некорректный код АТХ.`);
+  }
+  return [...new Set(value as string[])];
+}
+
 function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.length > MAX_DIARY_PLAN_ITEMS) {
@@ -1061,6 +1088,9 @@ function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
     const form = text(source['form'], 'Форма', true);
     const signa = longText(source['signa'], 'Как принимать', true);
     const course = parseCourse(source['course'], index);
+    const drug = text(source['drug'], 'Препарат из справочника', true);
+    const atc = parseAtcCodes(source['atc'], index);
+    const target = text(source['target'], 'Мишень', true);
     return {
       id,
       name: text(source['name'], `Пункт назначения ${index + 1}`),
@@ -1072,6 +1102,9 @@ function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
       ...(times?.length ? { times } : {}),
       ...(source['asNeeded'] === true ? { asNeeded: true } : {}),
       ...(source['ended'] === true ? { ended: true } : {}),
+      ...(drug ? { drug } : {}),
+      ...(atc?.length ? { atc } : {}),
+      ...(target ? { target } : {}),
     };
   });
   if (new Set(items.map((item) => item.id)).size !== items.length) {

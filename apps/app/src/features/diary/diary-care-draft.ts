@@ -87,6 +87,11 @@ export interface CareSectionDraft {
   readonly form: string;
   readonly dose: string;
   readonly signa: string;
+  /** Medicine only (RESEARCH1): catalog slug and ATC codes when picked from the catalog. */
+  readonly drug?: string | undefined;
+  readonly atc?: readonly string[] | undefined;
+  /** Medicine only (RESEARCH1): what it is prescribed for, in the doctor's words. */
+  readonly target?: string | undefined;
   readonly asNeeded: boolean;
   /** Medicine days; empty: no end date. */
   readonly course: readonly CareDayRange[];
@@ -234,7 +239,8 @@ const BLANK: Omit<CareSectionDraft, 'key' | 'kind'> = {
  * duration and patient hint, without the drug itself, its dose and signa, which belong to it alone.
  */
 export function copyCareSection(section: CareSectionDraft): CareSectionDraft {
-  return { ...section, key: sectionKey(), title: '', dose: '', signa: '' };
+  const { drug: _drug, atc: _atc, target: _target, ...rest } = section;
+  return { ...rest, key: sectionKey(), title: '', dose: '', signa: '' };
 }
 
 export function newCareSection(kind: CareSectionKind, quiz = 'phq-9'): CareSectionDraft {
@@ -354,6 +360,9 @@ export function careDraftFrom(invitation: DiaryInvitation): CareDraft {
         form: item.form ?? '',
         dose: item.dose ?? '',
         signa: item.signa ?? item.schedule ?? '',
+        ...(item.drug ? { drug: item.drug } : {}),
+        ...(item.atc?.length ? { atc: item.atc } : {}),
+        ...(item.target ? { target: item.target } : {}),
         times: (item.times ?? []).map((time) => ({ time: time.time, meal: time.meal })),
         asNeeded: item.asNeeded === true,
         course: item.course ?? [],
@@ -558,6 +567,9 @@ export function careInvitationParts(
         ...(section.form.trim() ? { form: section.form.trim() } : {}),
         ...(section.dose.trim() ? { dose: section.dose.trim() } : {}),
         ...(section.signa.trim() ? { signa: section.signa.trim() } : {}),
+        ...(section.drug ? { drug: section.drug } : {}),
+        ...(section.atc?.length ? { atc: section.atc } : {}),
+        ...(section.target?.trim() ? { target: section.target.trim() } : {}),
         ...(section.course.length ? { course: section.course } : {}),
         ...(times.length ? { times } : {}),
         // A medicine without times is taken when needed.

@@ -78,6 +78,7 @@ import {
   diaryQuestionnaire,
   questionnaireCheckpointId,
 } from '@/features/diary/diary-questionnaires';
+import { studyAtcCodes } from '@/features/diary/diary-research';
 import { SUBSTANCES, substanceById } from '@/features/diary/diary-substances';
 import { appointmentWhen, dayWords } from '@/features/diary/diary-visits';
 import { PastMedWarnings } from '@/features/diary/med-history/MedHistory';
@@ -395,10 +396,9 @@ function DrugFields(props: {
   const [calendar, setCalendar] = createSignal(false);
   // MEDHIST1: the history's reactions to this medicine or its ATC group, as a note, never a block.
   const history = useMedHistory();
-  const [picked, setPicked] = createSignal<{
-    readonly slug: string;
-    readonly atc: readonly string[];
-  }>();
+  const [picked, setPicked] = createSignal<
+    { readonly slug: string; readonly atc: readonly string[] } | undefined
+  >(props.section.drug ? { slug: props.section.drug, atc: props.section.atc ?? [] } : undefined);
   const warnings = createMemo(() =>
     prescribingWarnings(history(), { name: props.section.title, ...picked() }),
   );
@@ -420,13 +420,16 @@ function DrugFields(props: {
           value={props.section.title}
           onInput={(title) => {
             setPicked(undefined);
-            props.patch({ title });
+            props.patch({ title, drug: undefined, atc: undefined });
           }}
           onPick={(picked) => {
             setPicked({ slug: picked.slug, atc: picked.atc });
             setForms(picked.forms);
             const first = picked.forms[0];
+            const atc = studyAtcCodes(picked.atc);
             props.patch({
+              drug: picked.slug,
+              atc: atc.length ? atc : undefined,
               title: picked.product ?? picked.name,
               form: first?.form ?? props.section.form,
               dose: first?.strengths[0] ?? props.section.dose,
@@ -454,6 +457,14 @@ function DrugFields(props: {
               onInput={(event) => props.patch({ dose: event.currentTarget.value })}
             />
           </div>
+          <TextField
+            inputClass="screen-editor__input"
+            label="Мишень — на что назначено"
+            placeholder="например, сон или давление"
+            maxLength={120}
+            value={props.section.target ?? ''}
+            onInput={(event) => props.patch({ target: event.currentTarget.value })}
+          />
           <Show when={forms().length > 1 || strengths().length > 1}>
             <div class="screen-editor__chips">
               <For each={forms().length > 1 ? forms() : []}>
