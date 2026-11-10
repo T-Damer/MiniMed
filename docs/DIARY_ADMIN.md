@@ -48,7 +48,14 @@ A signed-in doctor whose e-mail is in `DIARY_ADMIN_EMAILS` sees «Обзор с�
 diaries' list: doctors, diaries, diaries with a patient's phone, carers' phones, records (all, 7 and 30
 days), diaries with a record this week, open and all urgent marks, new doctors and diaries per week for
 12 weeks, and a table of doctors (name, e-mail, diaries, diaries active this week, last record).
-Only counts and times the server already sees (ADR-0026 §7): record bodies stay ciphertext, no patient
+Added 2026-11-10: tiles «Назначений» (active prescriptions) and «Приём по плану, 7 дней / 30 дней»
+(marked share of planned intakes), and two columns in the doctors' table («Назначений», «Приём за 30
+дней»). These are **not** something the server can see: each doctor's app computes anonymous totals over the
+diaries it owns (diaries with a plan, active prescriptions, planned and marked intakes over 7 and 30 days;
+demo diaries excluded) and sends them with `PUT /api/doctor/totals`, at most once an hour and only when
+they changed. Never per patient: no id, name, plan or record. A doctor who has not opened the diaries since
+the update shows dashes; totals older than 30 days still count and the row shows their date.
+Only counts and times the server already sees (ADR-0026 §7) and these totals: record bodies stay ciphertext, no patient
 is listed or named. The numbers come from `GET /api/admin/stats` (403 for everyone else).
 
 To turn it on, put the owner's sign-in e-mail into `apps/diary-server/deploy/serverless/yandex.env`
