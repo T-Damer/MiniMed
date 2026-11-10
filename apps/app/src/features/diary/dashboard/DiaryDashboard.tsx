@@ -83,6 +83,7 @@ import {
 import { markSeen, stampFirstSight } from '@/features/diary/dashboard/patient-seen';
 import { isOnline } from '@/features/diary/dashboard/presence';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
+import { StudyExportDialog } from '@/features/diary/dashboard/StudyExportDialog';
 import { type DiarySub, diariesPath } from '@/features/notes/notes-routing';
 import { navigateBack } from '@/state/app-back';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
@@ -229,6 +230,7 @@ export function DiaryDashboard(props: {
   const [order, setOrder] = createSignal<PatientOrder>(readOrder());
   const [showArchive, setShowArchive] = createSignal(false);
   const [leaving, setLeaving] = createSignal(false);
+  const [studyExport, setStudyExport] = createSignal(false);
   /** Archived patients waiting for «Удалить» to be confirmed. */
   const [deleting, setDeleting] = createSignal<readonly DoctorPatient[]>([]);
   const [pushHelp, setPushHelp] = createSignal(false);
@@ -327,6 +329,15 @@ export function DiaryDashboard(props: {
               },
             },
           ]),
+      {
+        id: 'study',
+        label: 'Выгрузка для исследования',
+        icon: 'file-xls',
+        priority: 3,
+        menuOnly: true,
+        disabled: !patients().length,
+        onSelect: () => setStudyExport(true),
+      },
       {
         id: 'demo',
         label: 'Добавить демо-пациентов',
@@ -607,6 +618,11 @@ export function DiaryDashboard(props: {
         </div>
       </Show>
       <Show when={session()}>
+        <StudyExportDialog
+          open={studyExport()}
+          patients={patients()}
+          onOpenChange={setStudyExport}
+        />
         <ConfirmationDialog
           open={leaving()}
           title="Выйти из дневников?"
@@ -819,7 +835,7 @@ export function DiaryDashboard(props: {
             </Show>
           }
         >
-          {(signedIn) => (
+          {(_signedIn) => (
             <>
               <Show when={demo()}>
                 <p class="diary-dash__quiet" role="status">
