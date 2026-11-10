@@ -29,7 +29,8 @@ from .numbered_headings import appendix_heading_depth, numbered_heading_depth
 # 6: <sup>/<sub> kept as Unicode super/subscripts (degree sign before C), paragraph and list breaks
 #    kept inside table cells, text after an inline image kept, list items keep their marker
 #    (<li><p>) and ordered lists their numbers.
-EXTRACTOR_REVISION = 6
+# 7: a bare «=» or bracket wrapped in <sub>/<sup> stays as written (not «₌»).
+EXTRACTOR_REVISION = 7
 
 _SPACE_PATTERN = re.compile(r"\s+")
 _SECTION_NUMBER_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S")
@@ -51,6 +52,7 @@ _SUBSCRIPT = str.maketrans(
 # A superscript «0»/«o» right after a number and before C/F is a degree sign («30<sup>0</sup>C»).
 _DEGREE_PATTERN = re.compile(r"(\d)\s?[⁰ᵒ](?=\s?[CСF](?![A-Za-zА-Яа-яЁё]))")
 _SUPERSCRIPT_LETTER_O = {"o", "о", "O", "О"}
+_SCRIPT_SIGNS = frozenset("+-−–")
 _OWN_NUMBER = re.compile(r"^\d+[.)]\s")
 _LIST_MARKER = re.compile(r"^(?:- |\d+\. )")
 _OWN_DASH = re.compile(r"^[-–—•·*]\s+")
@@ -91,6 +93,13 @@ def _script_text(data: str, *, superscript: bool) -> str:
     stripped = data.strip()
     if superscript and stripped in _SUPERSCRIPT_LETTER_O:
         return data.replace(stripped, "°")
+    # A bare «=», bracket or similar between words is source punctuation that the source happened
+    # to wrap in <sub> (a URL's «…323788649<sub>=</sub>Pharmacological»), not a script: «₌» would
+    # change the character. Only signs («H⁺», «Cl⁻») stay convertible without a digit or letter.
+    if stripped and not any(char.isalnum() for char in stripped) and not (
+        set(stripped) <= _SCRIPT_SIGNS
+    ):
+        return data
     table = _SUPERSCRIPT if superscript else _SUBSCRIPT
     converted = data.translate(table)
     # Separators between footnote numbers («1,2», «1-3») stay as they are.
