@@ -11,7 +11,11 @@ import {
   studyConsentStatus,
   studyStatusLabel,
 } from '@/features/diary/consent/study-consent';
-import { careInvitation, emptyCareDraft, studyFromDraft } from '@/features/diary/diary-care-draft';
+import {
+  careInvitation,
+  starterCareDraft,
+  studyFromDraft,
+} from '@/features/diary/diary-care-draft';
 import {
   DIARY_FORMAT_VERSION,
   diaryTemplate,
@@ -156,7 +160,7 @@ describe('the study in the plan', () => {
     });
     expect(made?.id).toMatch(/^[a-z0-9]{6,24}$/u);
     const draft = {
-      ...emptyCareDraft(),
+      ...starterCareDraft(),
       study: {
         id: 'studyabc123',
         ...{ title: 'T', protocol: 'P', version: 'V', consentText: 'X' },

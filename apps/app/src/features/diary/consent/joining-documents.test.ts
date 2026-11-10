@@ -12,7 +12,7 @@ import {
   operatorFromProfile,
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
-import { careInvitation, emptyCareDraft } from '@/features/diary/diary-care-draft';
+import { careInvitation, starterCareDraft } from '@/features/diary/diary-care-draft';
 import { parseDiaryInvitation } from '@/features/diary/diary-model';
 
 const PROFILE = {
@@ -76,7 +76,7 @@ describe('the joining documents', () => {
   it('take the doctor’s signature when the profile has no name', () => {
     const invitation = careInvitation({
       id: 'operatorplan1',
-      draft: emptyCareDraft(),
+      draft: starterCareDraft(),
       doctor: 'Др. Смирнов',
       note: '',
       operator: { organization: 'Клиника' },
@@ -91,7 +91,7 @@ describe('the joining documents', () => {
     });
     const next = careInvitation({
       id: 'operatorplan1',
-      draft: emptyCareDraft(),
+      draft: starterCareDraft(),
       doctor: 'Др. Смирнов',
       note: '',
       previous: invitation,

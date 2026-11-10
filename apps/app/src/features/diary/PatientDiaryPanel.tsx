@@ -16,7 +16,7 @@ import {
   type CareDraft,
   careDraftFrom,
   careInvitationParts,
-  emptyCareDraft,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
 import {
   DiaryPartCollector,
@@ -232,7 +232,7 @@ function IssueDiaryDialog(props: {
   const [issued, setIssued] = createSignal<DiaryInvitation | null>(null);
   const [error, setError] = createSignal('');
   const [care, setCare] = createSignal<CareDraft>(
-    editing && isCareDiary(editing) ? careDraftFrom(editing) : emptyCareDraft(),
+    editing && isCareDiary(editing) ? careDraftFrom(editing) : starterCareDraft(),
   );
 
   const template = () => diaryTemplate(templateId());
@@ -536,6 +536,7 @@ function IssueDiaryDialog(props: {
               onDoctor={setDoctor}
               note={note()}
               onNote={setNote}
+              firstStep={1}
             />
           </Show>
           <Show when={hasPlan() && !isCare()}>

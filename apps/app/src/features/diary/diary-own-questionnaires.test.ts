@@ -12,9 +12,9 @@ import {
   type CareDraft,
   careDraftFrom,
   careInvitation,
-  emptyCareDraft,
   newCareSection,
   newCustomQuestionnaireSection,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
 import {
   CUSTOM_QUESTIONNAIRE_SLUG,
@@ -102,7 +102,7 @@ function issue(draft: CareDraft, previous?: DiaryInvitation): DiaryInvitation {
 
 function draftWith(section = newCustomQuestionnaireSection(ownQuestionnaire(), SOURCE_ID)) {
   return {
-    ...emptyCareDraft(),
+    ...starterCareDraft(),
     sections: [{ ...newCareSection('drug'), title: 'Сертралин' }, section],
   } satisfies CareDraft;
 }

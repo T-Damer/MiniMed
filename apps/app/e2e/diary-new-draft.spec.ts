@@ -123,8 +123,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.getByLabel('Имя или псевдоним').fill('Ёжик');
   await expect(page).toHaveURL(/#\/notes\/diaries\/new\/[a-z0-9]{8,32}$/u);
   const draftUrl = page.url();
-  // The instruction is a line of the patient's screen, written in place after a tap.
-  await page.getByRole('button', { name: 'Инструкция пациенту' }).click();
+  // The instruction is a field of the last step; the patient's screen beside it shows it at once.
   await page.getByLabel('Инструкция пациенту').fill('Давление утром и вечером');
   await page.getByRole('button', { name: 'К списку' }).click();
   await expect(cards).toHaveCount(1);
@@ -142,7 +141,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.getByRole('button', { name: 'Продолжить: Ёжик' }).click();
   await expect(page).toHaveURL(draftUrl);
   await expect(page.getByLabel('Имя или псевдоним')).toHaveValue('Ёжик');
-  await expect(page.locator('.screen-editor__note')).toHaveText('Давление утром и вечером');
+  await expect(page.getByLabel('Инструкция пациенту')).toHaveValue('Давление утром и вечером');
 
   // A reload on the form itself keeps it too.
   await page.getByLabel('Имя или псевдоним').fill('Ёжик Колючий');
@@ -151,7 +150,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await expect(page.getByLabel('Имя или псевдоним')).toHaveValue('Ёжик Колючий', {
     timeout: 60_000,
   });
-  await expect(page.locator('.screen-editor__note')).toHaveText('Давление утром и вечером');
+  await expect(page.getByLabel('Инструкция пациенту')).toHaveValue('Давление утром и вечером');
 
   // Created: the draft is gone, the patient is in the list, and the button stays above it.
   await page.getByRole('button', { name: 'Добавить пациента' }).click();

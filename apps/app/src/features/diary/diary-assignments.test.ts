@@ -13,8 +13,8 @@ import {
   type CareDraft,
   careDraftFrom,
   careInvitation,
-  emptyCareDraft,
   newCareAssignment,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
 import {
   DiaryFormatError,
@@ -63,7 +63,7 @@ const activity = {
 
 describe('CBT assignments in the diary plan', () => {
   it('embeds the patient’s copy of each sheet with its schedule and memo', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts, activity]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts, activity]);
     expect(invitation.assignments?.map((one) => one.id)).toEqual(['w1', 'w2']);
     const [first, second] = invitation.assignments ?? [];
     expect(first?.worksheet.title).toBe('Запись мыслей');
@@ -79,7 +79,7 @@ describe('CBT assignments in the diary plan', () => {
   });
 
   it('keeps a removed assignment as ended, so the entries made for it still load', () => {
-    const first = withAssignments(emptyCareDraft(), [thoughts, activity]);
+    const first = withAssignments(starterCareDraft(), [thoughts, activity]);
     const entry = {
       id: 'entry000001',
       at: '2026-11-03T10:00:00.000Z',
@@ -103,7 +103,7 @@ describe('CBT assignments in the diary plan', () => {
   });
 
   it('is a key an older patient app skips: no new checkpoint kind, other keys untouched', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts]);
     const { assignments: _assignments, ...older } = invitation;
     expect(parseDiaryInvitation(older).checkpoints).toEqual(invitation.checkpoints);
     // The parser of the time ignores keys it does not know, as this one ignores a future key.
@@ -111,7 +111,7 @@ describe('CBT assignments in the diary plan', () => {
   });
 
   it('refuses a broken assignment instead of showing half of it', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts]);
     const broken = (patch: Record<string, unknown>) =>
       parseDiaryInvitation({
         ...invitation,
@@ -124,7 +124,7 @@ describe('CBT assignments in the diary plan', () => {
   });
 
   it('checks a worksheet entry for shape and leaves the columns to the fill form', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts]);
     const at = '2026-11-03T10:00:00.000Z';
     expect(() =>
       parseDiaryEntry(invitation, {
@@ -160,7 +160,7 @@ describe('CBT assignments in the diary plan', () => {
   });
 
   it('carries which texts were spoken and reserves a place for a later voice insight', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts]);
     const entry = parseDiaryEntry(invitation, {
       id: 'entry000003',
       at: '2026-11-03T10:00:00.000Z',
@@ -196,7 +196,7 @@ describe('CBT assignments in the diary plan', () => {
 
 describe('the day of an assignment', () => {
   it('asks for a daily or weekday sheet and counts it; a «when it happens» sheet only shows', () => {
-    const invitation = withAssignments(emptyCareDraft(), [thoughts, activity]);
+    const invitation = withAssignments(starterCareDraft(), [thoughts, activity]);
     const [record, mood] = invitation.assignments ?? [];
     if (!record || !mood) throw new Error('assignments');
     expect(weekdayOf('2026-11-09')).toBe(1);

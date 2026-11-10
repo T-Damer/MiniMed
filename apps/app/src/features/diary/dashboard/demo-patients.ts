@@ -27,11 +27,11 @@ import {
   type CareDraft,
   type CareSectionDraft,
   careInvitation,
-  emptyCareDraft,
   newCareAppointment,
   newCareAssignment,
   newCareLab,
   newCareSection,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
 import type { PastMedication } from '@/features/diary/diary-med-history';
 import {
@@ -171,7 +171,7 @@ function drug(input: {
 
 /** The care diary preset: wellbeing morning and evening, vitals. */
 function presets(): CareSectionDraft[] {
-  const found = emptyCareDraft().sections.filter(
+  const found = starterCareDraft().sections.filter(
     (section) => section.id === 'am' || section.id === 'pm' || section.id === 'vitals',
   );
   if (found.length !== 3) throw new Error('В шаблоне дневника нет утреннего, вечернего и пульса.');

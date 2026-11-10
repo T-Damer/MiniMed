@@ -377,8 +377,20 @@ function preset(id: string): CareSectionDraft {
   };
 }
 
-/** A new care diary: one empty medicine, wellbeing morning and evening, vitals, PHQ-9 weekly. */
+/**
+ * A new care diary starts empty (owner 2026-11-10): no medicine, no marks, no questionnaire. The
+ * doctor builds the patient's screen step by step; one empty contact row is only the form's first
+ * line. The base fields of the care template (a free description) stay in every plan.
+ */
 export function emptyCareDraft(): CareDraft {
+  return { sections: [], contacts: [EMPTY_CARE_CONTACT], crisis: '' };
+}
+
+/**
+ * The older starting point: one empty medicine, wellbeing morning and evening, vitals, PHQ-9
+ * weekly. Kept for the local diary editor and the demo patients, which still begin from it.
+ */
+export function starterCareDraft(): CareDraft {
   return {
     sections: [
       newCareSection('drug'),
@@ -858,7 +870,9 @@ export function careInvitation(input: {
     parts.plan.some((item) => !item.ended) ||
     parts.checkpoints.some((checkpoint) => !checkpoint.ended) ||
     parts.assignments.some((assignment) => !assignment.ended);
-  if (!live) throw new Error('Добавьте хотя бы один раздел.');
+  // A new patient may start with nothing: the doctor adds the treatment later. An issued diary
+  // never loses all its sections at once (that is a slip, not a plan).
+  if (!live && input.previous) throw new Error('Добавьте хотя бы один раздел.');
   const issuedAt = input.previous
     ? new Date(Math.max(Date.now(), Date.parse(input.previous.issuedAt) + 1000)).toISOString()
     : new Date().toISOString();

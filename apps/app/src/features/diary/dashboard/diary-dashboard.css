@@ -1339,7 +1339,9 @@
   height: 1.2rem;
 }
 
-/* «Новый пациент» screen ------------------------------------------------------------------------ */
+/* «Новый пациент» and «Экран пациента» (owner 2026-11-10): the doctor's form on the left, the
+   patient's blue, read-only screen on the right. On a phone the form alone; «Как увидит пациент»
+   opens the screen in a sheet. */
 .diary-new {
   display: grid;
   gap: 1rem;
@@ -1350,16 +1352,24 @@
   margin-inline: auto;
 }
 
-.diary-new__side,
-.diary-new__identity,
-.diary-new__screen {
+.diary-new__steps,
+.diary-new__view {
   min-width: 0;
 }
 
-.diary-new__side,
+.diary-new__steps,
 .diary-new__footer {
   display: grid;
   gap: 1rem;
+}
+
+.diary-new__see {
+  justify-self: start;
+}
+
+.diary-new__see-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 /* The main button spans the column (owner 2026-11-04: «Добавить пациента» full width). */
@@ -1367,30 +1377,33 @@
   justify-items: stretch;
 }
 
-/* Narrow screens: «Добавить пациента» stays at hand at the bottom while the long preview scrolls
-   (owner 2026-11-02). On wide screens the footer sits in the sticky left column instead. */
+/* «Добавить пациента» stays at hand at the bottom of the form column while the long form scrolls
+   (owner 2026-11-02), on a phone and on a wide screen alike. */
 .diary-new__footer--sticky {
   position: sticky;
   bottom: max(0.25rem, env(safe-area-inset-bottom));
   z-index: 2;
 }
 
-/* Wide screens (iPad landscape, desktop): the patient's details and the button on the left, the live
-   preview of their screen on the right, both columns centred as one sheet (owner 2026-11-01). The
-   left column stays in view under the pinned header while the long preview scrolls (owner
-   2026-11-02; components/PageHero.css: the bar is the status bar, the row, a gap and the lip). */
+/* Wide screens (iPad landscape, desktop): the form on the left, the patient's screen on the right,
+   both in view under the pinned header (components/PageHero.css: the bar is the status bar, the
+   row, a gap and the lip). The right column scrolls inside itself when the screen is taller than
+   the window, so the form's own scroll never moves it. */
 @media (width >= 60rem) {
   .diary-new__form {
-    grid-template-columns: minmax(17rem, 24rem) minmax(0, 28rem);
-    justify-content: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
     align-items: start;
-    column-gap: clamp(1.5rem, 4vw, 3rem);
-    width: min(100%, 60rem);
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+    width: min(100%, 68rem);
   }
 
-  .diary-new__side {
+  .diary-new__view {
+    --diary-new-top: calc(var(--page-hero-pin) + 2.75rem + 0.5rem + var(--page-hero-lip) + 0.75rem);
     position: sticky;
-    top: calc(var(--page-hero-pin) + 2.75rem + 0.5rem + var(--page-hero-lip) + 0.75rem);
+    top: var(--diary-new-top);
+    max-height: calc(100dvh - var(--diary-new-top) - 1rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 

@@ -8,8 +8,9 @@ import {
   copyCareSection,
   emptyCareDraft,
   newCareSection,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
-import { parseDiaryEntry } from '@/features/diary/diary-model';
+import { parseDiaryEntry, parseDiaryInvitation } from '@/features/diary/diary-model';
 
 function drug(next: Partial<CareSectionDraft>): CareSectionDraft {
   return { ...newCareSection('drug'), ...next };
@@ -20,8 +21,8 @@ function issue(draft: CareDraft, previous?: Parameters<typeof careInvitation>[0]
 }
 
 describe('care diary editor', () => {
-  it('starts with wellbeing, vitals and PHQ-9 and issues a medicine recipe', () => {
-    const base = emptyCareDraft();
+  it('issues a medicine recipe next to wellbeing, vitals and PHQ-9', () => {
+    const base = starterCareDraft();
     const draft: CareDraft = {
       ...base,
       sections: [
@@ -69,7 +70,7 @@ describe('care diary editor', () => {
 
   it('turns a description and a choice into their own fields the patient can answer', () => {
     const invitation = issue({
-      ...emptyCareDraft(),
+      ...starterCareDraft(),
       sections: [
         { ...newCareSection('text'), title: 'Как прошёл день' },
         { ...newCareSection('choice'), title: 'Сон', options: ['хорошо', ' плохо ', 'хорошо'] },
@@ -95,12 +96,12 @@ describe('care diary editor', () => {
 
   it('keeps ids on re-issue and ends removed sections instead of dropping them', () => {
     const first = issue({
-      ...emptyCareDraft(),
+      ...starterCareDraft(),
       sections: [
         drug({ title: 'А' }),
         drug({ title: 'Б', asNeeded: true }),
         { ...newCareSection('choice'), title: 'Сон', options: ['хорошо', 'плохо'] },
-        ...emptyCareDraft().sections.slice(1),
+        ...starterCareDraft().sections.slice(1),
       ],
     });
     const draft = careDraftFrom(first);
@@ -141,18 +142,45 @@ describe('care diary editor', () => {
     expect(second.fields.find((field) => field.id === 'c-1')?.options).toEqual(['хорошо', 'плохо']);
   });
 
-  it('refuses a diary without any section and a choice with one variant', () => {
-    expect(() => issue({ ...emptyCareDraft(), sections: [] })).toThrow('хотя бы один раздел');
+  it('starts empty: no medicine, no marks, no questionnaire', () => {
+    const empty = emptyCareDraft();
+    expect(empty.sections).toEqual([]);
+    expect(empty.appointments ?? []).toEqual([]);
+    expect(empty.labs ?? []).toEqual([]);
+    expect(empty.assignments ?? []).toEqual([]);
+    expect(starterCareDraft().sections.length).toBeGreaterThan(0);
+  });
+
+  it('issues a new diary with no plan and no checkpoints, and a patient app accepts it', () => {
+    const invitation = issue(emptyCareDraft());
+    expect(invitation.plan).toBeUndefined();
+    expect(invitation.checkpoints).toBeUndefined();
+    // The care template's base fields stay: the patient can still describe how they feel.
+    expect(invitation.fields.length).toBeGreaterThan(0);
+    expect(parseDiaryInvitation(JSON.parse(JSON.stringify(invitation))).id).toBe('carediary01');
+    // The doctor adds the treatment later: the next version carries it.
+    const later = issue(
+      { ...emptyCareDraft(), sections: [drug({ title: 'Сертралин', dose: '50 мг' })] },
+      invitation,
+    );
+    expect(later.plan?.map((item) => item.name)).toEqual(['Сертралин']);
+  });
+
+  it('refuses an issued diary left without any section, and a choice with one variant', () => {
+    const first = issue({ ...starterCareDraft(), sections: [drug({ title: 'Сертралин' })] });
+    expect(() => issue({ ...emptyCareDraft(), sections: [] }, first)).toThrow(
+      'хотя бы один раздел',
+    );
     expect(() =>
       issue({
-        ...emptyCareDraft(),
+        ...starterCareDraft(),
         sections: [{ ...newCareSection('choice'), options: ['да'] }],
       }),
     ).toThrow('два варианта');
   });
 
   it('asks glucose, activity and meals as numbers and reads them back as their sections', () => {
-    const base = emptyCareDraft();
+    const base = starterCareDraft();
     const draft: CareDraft = {
       ...base,
       sections: [

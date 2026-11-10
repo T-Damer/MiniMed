@@ -11,7 +11,11 @@ import {
   questionnaireSeries,
 } from '@/features/diary/dashboard/diary-insights';
 import { atTime } from '@/features/diary/diary-care';
-import { careInvitation, emptyCareDraft, newCareSection } from '@/features/diary/diary-care-draft';
+import {
+  careInvitation,
+  newCareSection,
+  starterCareDraft,
+} from '@/features/diary/diary-care-draft';
 import { type DiaryEntry, parseDiaryEntry } from '@/features/diary/diary-model';
 
 const NOW = new Date(2026, 9, 21, 23, 0);
@@ -22,7 +26,7 @@ const invitation = (() => {
     return careInvitation({
       id: 'patient0000000000001',
       draft: {
-        ...emptyCareDraft(),
+        ...starterCareDraft(),
         sections: [
           {
             ...newCareSection('drug'),
@@ -30,7 +34,7 @@ const invitation = (() => {
             dose: '50 мг',
             times: [{ time: '08:00', meal: 'after' }],
           },
-          ...emptyCareDraft().sections.slice(1),
+          ...starterCareDraft().sections.slice(1),
         ],
       },
       doctor: 'Д-р',

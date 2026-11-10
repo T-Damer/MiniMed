@@ -1,42 +1,186 @@
-/* The doctor's editor shaped like the patient's day screen (PatientScreenEditor). */
+/* The doctor's form for the patient's screen (PatientScreenEditor): numbered step cards, the sheets
+   its rows open, and the small parts both use. The patient's own screen is patient-view.css. */
 
 .screen-editor {
   display: grid;
-  justify-items: center;
+  gap: 1rem;
+  min-width: 0;
 }
 
-.screen-editor__frame {
+.screen-editor__contacts {
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* A numbered card of the form: «1 Профиль», with one plain line on what the step is for. */
+.form-step {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel, 0.75rem);
+  background: var(--theme-surface-raised);
+}
+
+.form-step__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.form-step__number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.form-step__heading {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.form-step__title {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  scroll-margin-block-start: calc(
+    var(--page-hero-pin) +
+    2.75rem +
+    0.5rem +
+    var(--page-hero-lip) +
+    0.75rem
+  );
+}
+
+.form-step__title:focus-visible {
+  border-radius: 0.3rem;
+  outline: var(--theme-outline-width, 0.125rem) solid var(--theme-accent);
+  outline-offset: var(--theme-outline-offset, 0.2rem);
+}
+
+.form-step__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.form-step__body {
   display: grid;
   gap: 0.75rem;
-  width: min(100%, 26rem);
-  padding: 1rem 0.9rem 1.1rem;
+  min-width: 0;
+}
+
+/* What the doctor added to a step: one row each, opening its sheet. */
+.form-rows {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.form-row__main {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.45rem 0.75rem;
   border: 1px solid var(--theme-border);
-  border-radius: 1.6rem;
-  background:
-    radial-gradient(rgb(0 0 0 / 3%) 0.5px, transparent 0.6px) 0 0 / 5px 5px,
-    linear-gradient(180deg, var(--theme-surface-raised), var(--theme-surface));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 40%),
-    0 10px 28px rgb(0 0 0 / 8%);
+  border-radius: 0.8rem;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
-.screen-editor__editable-glyph {
+.form-row__main:focus-visible {
+  outline: var(--theme-outline-width, 0.125rem) solid var(--theme-accent);
+  outline-offset: var(--theme-outline-tight-offset, 0.1rem);
+}
+
+.form-row__icon,
+.form-row__edit {
   flex: none;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--theme-accent-text, var(--theme-accent));
 }
 
-.screen-editor__editable-text {
+.form-row__edit {
+  color: var(--theme-text-muted);
+}
+
+.form-row__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.form-row__title {
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.screen-editor__doctor {
-  justify-self: start;
+.form-row__detail {
   color: var(--theme-text-muted);
-  font-size: 0.92rem;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
 }
 
-.screen-editor__kind:active,
+/* «+ Лекарство» and the like: the step's one clear next action. */
+.form-add {
+  justify-self: start;
+}
+
+.form-adds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* The kinds of marks the doctor can add, as chips with their icons. */
+.form-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.form-chips__legend {
+  width: 100%;
+  margin-block-end: 0.15rem;
+  padding: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.form-chips__glyph {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .form-row__main:hover {
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--theme-accent) 9%, transparent);
+  }
+}
+
 .screen-editor__course:active {
   transform: scale(0.96);
 }
@@ -113,7 +257,6 @@
   width: 100%;
 }
 
-.screen-editor__kind:focus-visible,
 .screen-editor__course:focus-visible {
   outline: 0.19rem solid var(--theme-accent);
   outline-offset: 0.12rem;
@@ -176,196 +319,16 @@
   grid-column: 1 / -1;
 }
 
-.screen-editor__add-glyph,
 .screen-editor__glyph {
   width: 1.05rem;
   height: 1.05rem;
 }
 
-.screen-editor__kinds {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.4rem;
-  animation: screen-editor-open var(--motion-base, 200ms) var(--motion-ease-out, ease-out);
-}
-
-.screen-editor__kind {
-  display: grid;
-  justify-items: center;
-  gap: 0.3rem;
-  padding: 0.65rem 0.3rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.9rem;
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
-  font: inherit;
-  font-size: 0.86rem;
-  cursor: pointer;
-  transition: transform var(--motion-fast, 140ms) var(--motion-ease, ease);
-}
-
-.screen-editor__kind:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.screen-editor__kind-glyph {
-  width: 1.4rem;
-  height: 1.4rem;
-  color: var(--theme-accent);
-}
-
-.screen-editor__kinds-close {
-  grid-column: 1 / -1;
-  justify-self: center;
-}
-
-@media (width <= 30rem) {
-  .screen-editor__frame {
-    padding-inline: 0.65rem;
-  }
-}
-
-.screen-editor__chips--set,
-.screen-editor__kinds--set {
+.screen-editor__chips--set {
   min-inline-size: 0;
   margin: 0;
   padding: 0;
   border: 0;
-}
-
-/* The patient's screen as the doctor edits it ------------------------------------------------ */
-.screen-editor__frame {
-  gap: 1rem;
-  color: var(--theme-text);
-}
-
-/* The doctor's own part of the patient's screen (signature, contacts, crisis lines): warm yellow. */
-.screen-editor__header {
-  --care-edit-fill: color-mix(in srgb, #e8b931 14%, var(--theme-surface-raised));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.45rem 0.5rem;
-  padding: 0.6rem 0.7rem;
-  border-radius: 1rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  .screen-editor__header {
-    --care-edit-fill: color-mix(in srgb, var(--theme-accent) 7%, var(--theme-surface-raised));
-  }
-}
-
-.screen-editor__title {
-  min-width: 0;
-}
-
-.screen-editor__tools {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.screen-editor__icon {
-  position: relative;
-}
-
-/* A pencil badge on a round header button. */
-.screen-editor__badge {
-  position: absolute;
-  inset-block-start: -0.25rem;
-  inset-inline-end: -0.25rem;
-  display: grid;
-  place-items: center;
-  width: 1.3rem;
-  height: 1.3rem;
-  border: 2px solid var(--theme-surface-raised);
-  border-radius: 50%;
-  color: var(--theme-accent-contrast);
-  background: var(--theme-accent);
-}
-
-.screen-editor__badge-glyph {
-  width: 0.7rem;
-  height: 0.7rem;
-}
-
-/* «+ Контакт» before the doctor has given one: a real button, not a badge. */
-.screen-editor__contact-add {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 0.3rem;
-  justify-self: end;
-  min-height: 2.5rem;
-  padding: 0 0.85rem;
-  border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
-  border-radius: 999px;
-  color: var(--theme-accent-contrast);
-  background: var(--theme-accent);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform var(--motion-fast) var(--motion-ease);
-}
-
-.screen-editor__contact-add:active,
-.screen-editor__editable:active,
-.screen-editor__add:active {
-  transform: scale(0.96);
-}
-
-.screen-editor__contact-add-text {
-  white-space: nowrap;
-}
-
-/* A line of the patient's screen the doctor writes (signature, instruction). */
-.screen-editor__editable {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 2.25rem;
-  max-width: 100%;
-  padding: 0.2rem 0.55rem;
-  border-radius: 0.6rem;
-  color: var(--theme-text);
-  font: inherit;
-  text-align: start;
-  cursor: text;
-  transition: transform var(--motion-fast) var(--motion-ease);
-}
-
-.screen-editor__note {
-  width: 100%;
-  padding: 0.65rem 0.8rem;
-  border-radius: 0.9rem;
-  white-space: pre-line;
-}
-
-/* «+ Лекарство», «+ Показатель», «+ Опросник» under their sections. */
-.screen-editor__add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 3rem;
-  border-radius: var(--theme-radius-panel, 0.75rem);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform var(--motion-fast) var(--motion-ease);
-}
-
-.screen-editor__add:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* The patient's own button, shown but not the doctor's to press. */
-.screen-editor__ghost {
-  margin: 0;
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .screen-editor__dialog {
@@ -390,62 +353,6 @@
   height: 1.4rem;
 }
 
-/*
- * Fields in the editor read as text in a dashed two-colour frame with a pencil; focused, they turn
- * into a plain solid field (owner 2026-10-28). The frame stays dashed: its gaps (the background
- * colour under the border) fade to the dash colour, so the change animates instead of flickering
- * (owner 2026-11-01).
- */
-.screen-editor__input.ui-text-field__input,
-.screen-editor__input.ui-text-area__control {
-  padding-inline-end: 2.4rem;
-  border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
-  border-radius: 0.7rem;
-  background-color: var(--care-edit-gap, #ecd9a0);
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a59a86' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h4L19 9l-4-4L4 16v4z'/%3E%3Cpath d='M13.5 6.5l4 4'/%3E%3C/svg%3E"),
-    linear-gradient(var(--theme-surface-raised), var(--theme-surface-raised)),
-    linear-gradient(transparent, transparent);
-  background-position:
-    right 0.7rem top 0.8rem,
-    0 0,
-    0 0;
-  background-size: 1.05rem, auto, auto;
-  background-repeat: no-repeat;
-  /* The bottom layer reaches the border box, so the colour shows through the dashes' gaps. */
-  background-clip: padding-box, padding-box, border-box;
-  box-shadow: none;
-  transition:
-    border-color var(--motion-fast) var(--motion-ease),
-    background-color var(--motion-fast) var(--motion-ease),
-    box-shadow var(--motion-fast) var(--motion-ease);
-}
-
-.screen-editor__input.ui-text-field__input:focus,
-.screen-editor__input.ui-text-area__control:focus {
-  border-color: var(--theme-accent);
-  background-color: var(--theme-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 22%, transparent);
-  outline: none;
-}
-
-/* The date field in the same dashed frame (DateField's control: input + calendar button). */
-.ui-date-field__control.screen-editor__date-control {
-  border: 1.5px dashed var(--care-edit-dash, var(--theme-accent));
-  border-radius: 0.7rem;
-  background-color: var(--care-edit-gap, #ecd9a0);
-  background-image:
-    linear-gradient(var(--theme-surface-raised), var(--theme-surface-raised)),
-    linear-gradient(transparent, transparent);
-  background-clip: padding-box, border-box;
-}
-
-.ui-date-field__control.screen-editor__date-control:focus-within {
-  border-color: var(--theme-accent);
-  background-color: var(--theme-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 22%, transparent);
-}
-
 /* «Посмотреть вопросы» under the questionnaire chips: the chosen one as the patient sees it. */
 .screen-editor__preview {
   justify-self: start;
@@ -467,12 +374,4 @@
 
 .screen-editor__copy {
   margin-inline-start: auto;
-}
-
-/* Hover (owner 2026-11-08), only where a pointer can hover. */
-@media (hover: hover) and (pointer: fine) {
-  .screen-editor__editable:hover,
-  .screen-editor__add:hover:not(:disabled) {
-    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--theme-accent) 10%, transparent);
-  }
 }

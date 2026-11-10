@@ -13,6 +13,7 @@ import {
   readNewPatientDrafts,
 } from '@/features/diary/connected/doctor-account';
 import type { CareDraft } from '@/features/diary/diary-care-draft';
+import type { PastMedication } from '@/features/diary/diary-med-history';
 
 export interface NewPatientDraft {
   readonly id: string;
@@ -24,6 +25,11 @@ export interface NewPatientDraft {
   readonly screen: CareDraft;
   readonly doctor: string;
   readonly note: string;
+  /**
+   * «Прошлое лечение» typed before the patient exists. Written to the patient's records right
+   * after they are created (they need the patient id). Drafts kept before this step have none.
+   */
+  readonly pastMeds?: readonly PastMedication[];
 }
 
 /** The form's fields, as the draft keeps them. */
@@ -57,14 +63,15 @@ function sorted(list: readonly NewPatientDraft[]): readonly NewPatientDraft[] {
   return [...list].sort((a, b) => b.savedAt.localeCompare(a.savedAt));
 }
 
-function parse(text: string): readonly NewPatientDraft[] {
+export function parseNewPatientDrafts(text: string): readonly NewPatientDraft[] {
   const stored = JSON.parse(text) as Partial<Stored>;
   if (stored.v !== 1 || !Array.isArray(stored.drafts)) return [];
   return stored.drafts.filter(
     (draft): draft is NewPatientDraft =>
       typeof draft?.id === 'string' &&
       typeof draft.savedAt === 'string' &&
-      Array.isArray(draft.screen?.sections),
+      Array.isArray(draft.screen?.sections) &&
+      (draft.pastMeds === undefined || Array.isArray(draft.pastMeds)),
   );
 }
 
@@ -74,7 +81,7 @@ export function loadNewPatientDrafts(session: DoctorSession): Promise<void> {
   loading ??= readNewPatientDrafts(session)
     .then((text) => {
       if (owner !== session.doctor.id || text === undefined) return;
-      const kept = parse(text);
+      const kept = parseNewPatientDrafts(text);
       const current = drafts();
       const known = new Set(current.map((draft) => draft.id));
       setDrafts(sorted([...current, ...kept.filter((draft) => !known.has(draft.id))]));

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { atTime, dayKey, dayPlan } from '@/features/diary/diary-care';
-import { careInvitation, emptyCareDraft, newCareSection } from '@/features/diary/diary-care-draft';
+import {
+  careInvitation,
+  newCareSection,
+  starterCareDraft,
+} from '@/features/diary/diary-care-draft';
 import { decodeDiaryResultsText, encodeDiaryResultsText } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import {
@@ -19,7 +23,7 @@ const invitation = (() => {
     return careInvitation({
       id: 'patient0000000000002',
       draft: {
-        ...emptyCareDraft(),
+        ...starterCareDraft(),
         sections: [
           {
             ...newCareSection('drug'),
@@ -27,7 +31,7 @@ const invitation = (() => {
             dose: '50 мг',
             times: [{ time: '08:00', meal: 'after' }],
           },
-          ...emptyCareDraft().sections.slice(1),
+          ...starterCareDraft().sections.slice(1),
         ],
       },
       doctor: 'Д-р',

@@ -13,9 +13,12 @@ import { TipsDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careDraftFrom, careInvitation } from '@/features/diary/diary-care-draft';
+import type { PastMedication } from '@/features/diary/diary-med-history';
 import type { DiaryInvitation } from '@/features/diary/diary-model';
+import { FormStep, focusPatientStep } from '@/features/diary/FormStep';
 import { MedHistoryContext } from '@/features/diary/med-history/plan-removals';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
+import { PatientView } from '@/features/diary/PatientView';
 import { getClinicianProfile } from '@/state/clinician-profile';
 
 function errorText(cause: unknown, fallback: string): string {
@@ -44,9 +47,12 @@ export function PatientScreenPage(props: {
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [tips, setTips] = createSignal(false);
+  /** The history as the doctor edits it here: each change is written at once, like on the patient page. */
+  const [pastMeds, setPastMeds] = createSignal<readonly PastMedication[]>(
+    Object.values(props.patient.replica.medHistory ?? {}),
+  );
 
-  const save = async (event: SubmitEvent): Promise<void> => {
-    event.preventDefault();
+  const save = async (): Promise<void> => {
     setError('');
     if (phone().trim() && !isDiaryPhone(phone())) {
       setError('Проверьте телефон пациента.');
@@ -106,7 +112,7 @@ export function PatientScreenPage(props: {
   return (
     <div class="diary-new">
       <Page
-        hero={PAGE_HEROES.patients}
+        hero={PAGE_HEROES.diaryInner}
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К пациенту" onClick={props.onClose} />
         }
@@ -122,48 +128,79 @@ export function PatientScreenPage(props: {
           },
         ]}
       />
-      <PatientFormColumns
-        onSubmit={(event) => void save(event)}
-        identity={
-          <PatientIdentity
-            label={label()}
-            emoji={emoji()}
-            phone={phone()}
-            birthDate={birthDate()}
-            onLabel={setLabel}
-            onEmoji={setEmoji}
-            onPhone={setPhone}
-            onBirthDate={setBirthDate}
-          />
-        }
-        screen={
-          // The plan editor checks a new prescription against the history (MEDHIST1).
-          <MedHistoryContext.Provider
-            value={() => Object.values(props.patient.replica.medHistory ?? {})}
-          >
-            <PatientScreenEditor
+      <MedHistoryContext.Provider value={pastMeds}>
+        <PatientFormColumns
+          steps={
+            <>
+              <FormStep
+                step="profile"
+                number={1}
+                title="Профиль"
+                hint="Как пациент называется в вашем списке."
+              >
+                <PatientIdentity
+                  label={label()}
+                  emoji={emoji()}
+                  phone={phone()}
+                  birthDate={birthDate()}
+                  onLabel={setLabel}
+                  onEmoji={setEmoji}
+                  onPhone={setPhone}
+                  onBirthDate={setBirthDate}
+                />
+              </FormStep>
+              <PatientScreenEditor
+                draft={draft()}
+                onChange={setDraft}
+                doctor={doctor()}
+                onDoctor={setDoctor}
+                note={note()}
+                onNote={setNote}
+                history={{
+                  items: pastMeds(),
+                  onSave: async (item) => {
+                    await props.workspace.savePastMed(props.patient.summary.id, item);
+                    setPastMeds((list) => [...list.filter((one) => one.id !== item.id), item]);
+                  },
+                  onDelete: async (id) => {
+                    await props.workspace.deletePastMed(props.patient.summary.id, id);
+                    setPastMeds((list) => list.filter((one) => one.id !== id));
+                  },
+                }}
+              />
+            </>
+          }
+          view={(afterStep) => (
+            <PatientView
               draft={draft()}
-              onChange={setDraft}
               doctor={doctor()}
-              onDoctor={setDoctor}
               note={note()}
-              onNote={setNote}
+              onStep={(step) => {
+                afterStep?.();
+                requestAnimationFrame(() => focusPatientStep(step));
+              }}
             />
-          </MedHistoryContext.Provider>
-        }
-        footer={
-          <>
-            <Show when={error()}>
-              <p class="diary-dash__error diary-new__error" role="alert">
-                {error()}
-              </p>
-            </Show>
-            <Button class="diary-new__submit" type="submit" variant="primary" disabled={busy()}>
-              {busy() ? 'Сохраняем…' : 'Сохранить'}
-            </Button>
-          </>
-        }
-      />
+          )}
+          footer={
+            <>
+              <Show when={error()}>
+                <p class="diary-dash__error diary-new__error" role="alert">
+                  {error()}
+                </p>
+              </Show>
+              <Button
+                class="diary-new__submit"
+                type="button"
+                variant="primary"
+                disabled={busy()}
+                onClick={() => void save()}
+              >
+                {busy() ? 'Сохраняем…' : 'Сохранить'}
+              </Button>
+            </>
+          }
+        />
+      </MedHistoryContext.Provider>
       <Show when={tips()}>
         <TipsDialog
           workspace={props.workspace}

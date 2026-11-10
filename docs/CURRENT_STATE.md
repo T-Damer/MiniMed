@@ -788,6 +788,31 @@ it. Nothing of a draft goes to the server. On someone else's computer drafts las
 closed. Covered by `e2e/diary-new-draft.spec.ts` (create → leave → reload → card → reload on the
 form → create; discard from the card). Not tested on Android or iOS devices.
 
+## Patient card built from scratch — 2026-11-10 (owner)
+
+«Новый пациент» and «Экран пациента» (`PatientFormColumns`) are one doctor form plus the patient's
+screen. Left: six numbered step cards, each an h2 and one plain line on what it is for — «Профиль»,
+«Прошлое лечение» (the MEDHIST1 panel inline), «Лечение сейчас», «Что отмечает пациент» (add chips per
+kind), «Приёмы, анализы, задания», «Связь и помощь» (signature, instruction, contacts, help lines,
+study); every added thing is a row that opens the existing sheet editor. The form starts empty
+(`emptyCareDraft()` has no sections; the old starter is `starterCareDraft()`, still used by the local
+card's diary and the demo patients). `careInvitation` accepts a new diary with no plan and no
+checkpoints (an issued one still refuses to lose all its sections). Right (from 60rem): `PatientView`,
+a read-only live preview built from the draft with the patient's own `CareRow`/`DiaryHeatmap`, framed
+and labelled «Так видит пациент» and drawn blue by a scoped token override (`patient-view.css`:
+`.patient-view` redefines `--theme-*` and `--care-*`, light and dark; text pairs ≥ 4.5:1, measured).
+A tap on a preview row ticks nothing, it scrolls the form to its step. On a phone a «Как увидит
+пациент» button opens the same view in a sheet. «Добавить пациента» / «Сохранить» sticks to the bottom
+of the form column. The wrapper is a `div`, not a `form`: the past-treatment editor is a form of its
+own. Past treatment typed for a new patient lives in the draft (`pastMeds`, optional, so older drafts
+open) and is written by `writePastMeds` right after `createPatient`; if that fails the patient exists,
+the form says so, the draft is kept and «Записать прошлое лечение» retries only what is left. The two
+pages use the `diaryInner` hero (band alone): the «users» emblem was cut by a band as short as the
+title row. The editor's fields lost their dashed «editable preview» look (the form is no longer the
+preview). Covered by `e2e/diary-new-patient.spec.ts`, `care-screen-rows.test.ts`,
+`new-patient-drafts.test.ts`, `new-patient-history.test.ts`. The patient's questionnaire sheet opened
+from «Посмотреть вопросы» keeps the app's colours (it is a portalled sheet). Not tested on devices.
+
 ## Press shade — 2026-11-04 (STATE PRESS2)
 
 Owner asked whether a tap feels like a press (a calendar day). Measured in headless Chromium as a

@@ -14,8 +14,8 @@ import {
   type CareSectionDraft,
   careDraftFrom,
   careInvitation,
-  emptyCareDraft,
   newCareSection,
+  starterCareDraft,
 } from '@/features/diary/diary-care-draft';
 import { decodeDiaryResultsText, encodeDiaryResultsText } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
@@ -49,7 +49,7 @@ function use(next: Partial<CareSectionDraft> = {}): CareSectionDraft {
 }
 
 function issue(sections: readonly CareSectionDraft[], previous?: DiaryInvitation): DiaryInvitation {
-  const draft: CareDraft = { ...emptyCareDraft(), sections };
+  const draft: CareDraft = { ...starterCareDraft(), sections };
   // careInvitation stamps issuedAt with the clock; pin it before NOW, or the plan is "from the future".
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 10, 1, 9, 0));
@@ -60,7 +60,7 @@ function issue(sections: readonly CareSectionDraft[], previous?: DiaryInvitation
   }
 }
 
-const base = emptyCareDraft().sections.filter((section) => section.id === 'am');
+const base = starterCareDraft().sections.filter((section) => section.id === 'am');
 
 function entry(invitation: DiaryInvitation, values: Record<string, unknown>, at = NOW) {
   return parseDiaryEntry(

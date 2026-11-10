@@ -1,0 +1,147 @@
+/*
+ * The patient's screen beside the doctor's form (PatientView.tsx, owner 2026-11-10). It reads blue on
+ * purpose: the doctor's pages are warm paper with a green accent, the patient's phone is cool blue, so
+ * the doctor always knows which side is the patient's. The scheme is a scoped token override on
+ * `.patient-view` — not a rule per component — so the care rows, the calendar and every `--theme-*`
+ * consumer inside pick it up, and nothing outside it changes. Pairs below were checked for WCAG AA
+ * (text 4.5:1): light text #1c2a31 on #edf2f5 13:1, muted #47606c 5.9:1, accent #2f6684 5.6:1, white on
+ * the accent 6.3:1; dark text #e8f0f4 on #232c31 12:1, muted #b4c6cf 8:1, accent #8fbcd2 7:1, dark ink on
+ * the accent 8.8:1.
+ */
+.patient-view {
+  --desk: #d9e2e7;
+  --theme-background: #dfe7eb;
+  --theme-surface: #edf2f5;
+  --theme-surface-raised: #f6f9fa;
+  --theme-surface-muted: #e1e9ed;
+  --theme-border: #c0ccd4;
+  --theme-text: #1c2a31;
+  --theme-text-muted: #47606c;
+  --theme-text-faint: #4d6672;
+  --theme-placeholder: #5a7280;
+  --theme-accent: #2f6684;
+  --theme-accent-text: #285a75;
+  --theme-accent-contrast: #ffffff;
+  --theme-accent-soft: rgb(47 102 132 / 12%);
+  --theme-danger: #9b3d33;
+  --theme-primary-edge: color-mix(in srgb, var(--theme-accent) 55%, black);
+  --theme-hover-surface: color-mix(in srgb, var(--theme-surface-raised) 88%, var(--theme-accent));
+  --care-good: #2f7d5b;
+  --care-check: #2f9e5b;
+  --care-check-ink: #ffffff;
+  --care-late: #8f5410;
+  --care-fast: var(--motion-fast, 120ms);
+  --care-base: var(--motion-base, 180ms);
+  --care-slow: var(--motion-slow, 240ms);
+  --care-ease: var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  --care-edit-dash: var(--theme-accent);
+  --care-edit-gap: color-mix(in srgb, var(--theme-accent) 30%, var(--theme-surface-raised));
+
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.6rem;
+  border: 2px solid var(--theme-accent);
+  border-radius: 1.75rem;
+  color: var(--theme-text);
+  background: var(--theme-background);
+}
+
+@media (prefers-color-scheme: dark) {
+  .patient-view {
+    --desk: #192024;
+    --theme-background: #1c2327;
+    --theme-surface: #232c31;
+    --theme-surface-raised: #2a353b;
+    --theme-surface-muted: #20282c;
+    --theme-border: #3a4a53;
+    --theme-text: #e8f0f4;
+    --theme-text-muted: #b4c6cf;
+    --theme-text-faint: #a9bdc7;
+    --theme-placeholder: #9fb3bd;
+    --theme-accent: #8fbcd2;
+    --theme-accent-text: #9ecbe0;
+    --theme-accent-contrast: #10181c;
+    --theme-accent-soft: rgb(143 188 210 / 15%);
+    --theme-danger: #f0a99d;
+    --care-good: #7fc4a2;
+    --care-late: #e2a554;
+    --care-edit-gap: color-mix(in srgb, var(--theme-accent) 28%, var(--theme-surface-raised));
+  }
+}
+
+/* The label that names the side: a solid blue tab, so it is never mistaken for a doctor's heading. */
+.patient-view__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-self: start;
+  margin: 0;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.patient-view__title-glyph {
+  width: 1rem;
+  height: 1rem;
+}
+
+.patient-view__screen {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem 0.9rem 1.1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1.3rem;
+  background: linear-gradient(180deg, var(--theme-surface-raised), var(--theme-surface));
+}
+
+.patient-view__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.patient-view__name {
+  min-width: 0;
+}
+
+.patient-view__tools {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.patient-view__tool {
+  cursor: default;
+}
+
+.patient-view__doctor {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.patient-view__note {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.9rem;
+  background: var(--theme-surface-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.patient-view__empty {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
