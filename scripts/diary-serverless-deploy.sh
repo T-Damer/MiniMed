@@ -13,6 +13,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEPLOY="$ROOT/apps/diary-server/deploy/serverless"
 # shellcheck source=/dev/null
 source "$DEPLOY/yandex.env"
+# Personal values (the owner's e-mail), ignored by git: yandex.local.env.example.
+# shellcheck source=/dev/null
+[[ -f "$DEPLOY/yandex.local.env" ]] && source "$DEPLOY/yandex.local.env"
 cd "$ROOT"
 VERSION="$(bun -e 'console.log(JSON.parse(require("fs").readFileSync("release.json", "utf8")).version)')"
 TAG="cr.yandex/$YC_REGISTRY/diary-server:$VERSION-$(git -C "$ROOT" rev-parse --short=9 HEAD)"

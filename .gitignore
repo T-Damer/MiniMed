@@ -19,6 +19,8 @@ output/
 .env
 .env.*
 !.env.example
+# Personal values for the serverless diary deploy (the owner's e-mail): never in the public repo.
+apps/diary-server/deploy/serverless/*.local.env
 *.log
 *.tmp
 *.pyc

@@ -58,10 +58,11 @@ the update shows dashes; totals older than 30 days still count and the row shows
 Only counts and times the server already sees (ADR-0026 §7) and these totals: record bodies stay ciphertext, no patient
 is listed or named. The numbers come from `GET /api/admin/stats` (403 for everyone else).
 
-To turn it on, put the owner's sign-in e-mail into `apps/diary-server/deploy/serverless/yandex.env`
-(`DIARY_ADMIN_EMAILS="you@example.org"`; several: separated by semicolons) and redeploy with
-`scripts/diary-serverless-deploy.sh`. The repository keeps the variable empty; do not commit a real
-address. Empty: nobody has the view and the deploy leaves the variable out.
+To turn it on, copy `apps/diary-server/deploy/serverless/yandex.local.env.example` to
+`yandex.local.env` next to it (ignored by git: the repository is public), put the owner's sign-in
+e-mail there (`DIARY_ADMIN_EMAILS="you@example.org"`; several: separated by semicolons) and redeploy
+with `scripts/diary-serverless-deploy.sh`, which reads it after `yandex.env`. Empty or no file: nobody
+has the view and the deploy leaves the variable out.
 
 ## Checking a change against YDB
 

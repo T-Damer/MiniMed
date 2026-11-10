@@ -10,6 +10,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=/dev/null
 source "$ROOT/apps/diary-server/deploy/serverless/yandex.env"
+# Personal values (the owner's e-mail), ignored by git: yandex.local.env.example.
+# shellcheck source=/dev/null
+[[ -f "$ROOT/apps/diary-server/deploy/serverless/yandex.local.env" ]] && source "$ROOT/apps/diary-server/deploy/serverless/yandex.local.env"
 API="${DIARY_API:-https://med.1damer.com}"
 
 case "${1:-status}" in
