@@ -120,6 +120,20 @@ function isKeyConflict(cause: unknown): boolean {
   return false;
 }
 
+/**
+ * The error thrown inside `sql.begin`, which the SDK hands back wrapped («Transaction failed»
+ * with the thrown error as its `cause`): the store's own errors must reach the caller as they are.
+ */
+function thrownInside<T extends Error>(
+  cause: unknown,
+  type: new (...args: never[]) => T,
+): T | undefined {
+  for (let error = cause; error instanceof Error; error = error.cause) {
+    if (error instanceof type) return error;
+  }
+  return undefined;
+}
+
 export class YdbStore implements DiaryStore {
   private readonly sql: Sql;
 
@@ -193,7 +207,8 @@ export class YdbStore implements DiaryStore {
         }
       });
     } catch (cause) {
-      if (cause instanceof InviteSpent) throw cause;
+      const spent = thrownInside(cause, InviteSpent);
+      if (spent) throw spent;
       if (isKeyConflict(cause)) throw new StoreConflict('e-mail');
       throw cause;
     }
