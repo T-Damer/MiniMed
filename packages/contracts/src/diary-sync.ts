@@ -263,6 +263,67 @@ export const DiaryEpochCreateSchema = z.object({
 
 export const DiaryDeviceKeysSchema = z.object({ keys: z.array(DiaryWrappedKeySchema) });
 
+/** `GET /api/auth/me`: the signed-in doctor; `admin` is present (true) only for the service owner. */
+export const DiaryMeResponseSchema = z.object({
+  doctor: DiaryDoctorProfileSchema,
+  identityBlob: sealed,
+  admin: z.boolean().optional(),
+});
+export type DiaryMeResponse = z.infer<typeof DiaryMeResponseSchema>;
+
+/** Weeks in the service overview's time series (`DiaryAdminStats.weeks`). */
+export const DIARY_ADMIN_WEEKS = 12;
+
+const count = z.number().int().min(0);
+
+/**
+ * `GET /api/admin/stats` (super-admin, `DIARY_ADMIN_EMAILS`): aggregates over what the server
+ * already sees (ADR-0026 §7): counts and times, doctors' names and e-mails. No patient is
+ * identified, no record is read.
+ */
+export const DiaryAdminStatsSchema = z.object({
+  generatedAt: z.string(),
+  doctors: z.object({
+    total: count,
+    /** Doctors who have at least one active diary. */
+    withPatients: count,
+    new7: count,
+    new30: count,
+  }),
+  patients: z.object({
+    /** Diaries not withdrawn. */
+    total: count,
+    withdrawn: count,
+    /** With at least one paired patient phone. */
+    withPhone: count,
+    /** With at least one paired carer phone. */
+    withCarer: count,
+    /** A record in the last 7 / 30 days. */
+    active7: count,
+    active30: count,
+    new7: count,
+    new30: count,
+  }),
+  /** Paired phones that are not revoked. */
+  phones: z.object({ patient: count, carer: count }),
+  records: z.object({ total: count, last7: count, last30: count }),
+  alerts: z.object({ total: count, open: count }),
+  /** Oldest first; `start` is the Monday (UTC, YYYY-MM-DD) of a week. */
+  weeks: z.array(z.object({ start: z.string(), newDoctors: count, newPatients: count })),
+  /** Newest activity first. */
+  doctorRows: z.array(
+    z.object({
+      name: z.string(),
+      email: z.string(),
+      patients: count,
+      activePatients: count,
+      /** Time of the newest record in the doctor's diaries. */
+      lastActivityAt: z.string().nullable(),
+    }),
+  ),
+});
+export type DiaryAdminStats = z.infer<typeof DiaryAdminStatsSchema>;
+
 export const DiaryAlertSchema = z.object({
   id: z.number().int(),
   patientId: DiaryIdSchema,

@@ -42,6 +42,7 @@ const app = createApp(store, {
   vapid: await loadVapid(store, settings.pushSubject),
   corsOrigins: settings.corsOrigins,
   ...(settings.tickToken ? { tickToken: settings.tickToken } : {}),
+  adminEmails: settings.adminEmails,
 });
 
 /** Request bodies are small JSON; anything bigger is refused before it is read. */

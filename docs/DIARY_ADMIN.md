@@ -42,6 +42,20 @@ Sign-up is open for the prototype (owner 2026-10-28). Invite codes (`DIARY_SIGNU
 only by the server mode's CLI today; switch sign-up back to invites together with a serverless
 invite command.
 
+## «Обзор сервиса» (the owner's numbers)
+
+A signed-in doctor whose e-mail is in `DIARY_ADMIN_EMAILS` sees «Обзор сервиса» in the «⋯» menu of the
+diaries' list: doctors, diaries, diaries with a patient's phone, carers' phones, records (all, 7 and 30
+days), diaries with a record this week, open and all urgent marks, new doctors and diaries per week for
+12 weeks, and a table of doctors (name, e-mail, diaries, diaries active this week, last record).
+Only counts and times the server already sees (ADR-0026 §7): record bodies stay ciphertext, no patient
+is listed or named. The numbers come from `GET /api/admin/stats` (403 for everyone else).
+
+To turn it on, put the owner's sign-in e-mail into `apps/diary-server/deploy/serverless/yandex.env`
+(`DIARY_ADMIN_EMAILS="you@example.org"`; several: separated by semicolons) and redeploy with
+`scripts/diary-serverless-deploy.sh`. The repository keeps the variable empty; do not commit a real
+address. Empty: nobody has the view and the deploy leaves the variable out.
+
 ## Checking a change against YDB
 
 ```bash

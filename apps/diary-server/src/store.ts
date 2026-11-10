@@ -113,6 +113,30 @@ export interface DoseCheckRow {
   at: string;
 }
 
+/**
+ * Metadata for the service owner's overview (`GET /api/admin/stats`): per-diary counts and times,
+ * never a record body. Ids stay inside the server; the overview shows only aggregates and the
+ * doctors' own names and e-mails (ADR-0026 §7).
+ */
+export interface ServiceStatsRaw {
+  doctors: { id: string; email: string; name: string; created_at: string }[];
+  /** Every patient, withdrawn ones included. */
+  patients: { id: string; status: string; created_at: string }[];
+  /** Accepted memberships. */
+  members: { patient_id: string; doctor_id: string }[];
+  /** Per patient with at least one record; `last7` / `last30` count records since the given times. */
+  records: {
+    patient_id: string;
+    total: number;
+    last7: number;
+    last30: number;
+    last_at: string | null;
+  }[];
+  /** Per patient with at least one active phone. */
+  devices: { patient_id: string; phones: number; carers: number }[];
+  alerts: { total: number; open: number };
+}
+
 export interface DiaryStore {
   setting(key: string): Promise<string | undefined>;
   setSetting(key: string, value: string): Promise<void>;
@@ -233,6 +257,13 @@ export interface DiaryStore {
   ackAlert(id: number, at: string): Promise<void>;
   /** Consent withdrawn: records, pairings and device keys deleted, devices revoked, a withdrawn alert. */
   withdraw(patientId: string, at: string): Promise<void>;
+
+  /**
+   * Aggregates for the service owner: group-by counts over `records`, `devices` and `alerts`
+   * (no body or key column is read), plus the small doctor, patient and membership lists.
+   * `since7` / `since30` are ISO times.
+   */
+  serviceStats(since7: string, since30: string): Promise<ServiceStatsRaw>;
 
   pushTargets(owners: readonly string[]): Promise<PushTarget[]>;
   savePushSubscription(

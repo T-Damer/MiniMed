@@ -48,6 +48,7 @@ and `apps/app/src/features/diary`.
 | `DIARY_PUSH_SUBJECT` | `mailto:admin@1damer.com` | VAPID contact |
 | `DIARY_TICK_TOKEN` | — | key of `POST /api/tick` (Bearer or `?key=`): sends due reminders and missed-dose notices for a scheduler outside the process — the `serverless` mode's timer trigger; the `server` mode ticks by itself every 20 s and needs it only for an outside scheduler. Unset: no such route |
 | `DIARY_CORS_ORIGINS` | — | origins (commas or semicolons) allowed cross-origin: the Pages app and the native shells; any other origin is answered with the first allowed one, so browsers refuse it |
+| `DIARY_ADMIN_EMAILS` | — | sign-in e-mails (commas or semicolons, compared case-insensitively) of the service owner(s): they get `admin: true` in `GET /api/auth/me` and may read `GET /api/admin/stats`, the numbers behind «Обзор сервиса». Others get 403; unset: nobody. The view shows only aggregates the server already sees (ADR-0026 §7): counts of doctors, diaries, phones, records and alerts, a weekly series and a per-doctor table — no patient is named and no record is read |
 
 The decoy-salt secret and the VAPID key pair are generated on first start and kept in the database.
 

@@ -21,6 +21,7 @@ import {
   wrapDataKey,
 } from '@localmed/diary-sync';
 
+import { buildServiceStats, statsWindows } from './stats';
 import { type DiaryStore, InviteSpent } from './store';
 
 type App = (request: Request) => Promise<Response>;
@@ -571,6 +572,24 @@ export async function runStoreContract(
     'the patient’s phone rotates the key',
   );
   step('carer');
+
+  // The service owner's aggregates (the YDB database is shared between runs, so only lower bounds).
+  const at = new Date();
+  const windows = statsWindows(at);
+  const raw = await store.serviceStats(windows.since7, windows.since30);
+  const overview = buildServiceStats(raw, at);
+  check(overview.doctors.total >= 2, 'overview counts the doctors');
+  check(overview.patients.total >= 1, 'overview counts the diaries');
+  check(overview.records.total >= 1 && overview.records.last7 >= 1, 'overview counts records');
+  check(overview.records.last30 >= overview.records.last7, 'overview windows nest');
+  check(overview.phones.patient >= 1, 'overview counts phones');
+  check(overview.alerts.total >= 1, 'overview counts alerts');
+  check(overview.weeks.at(-1)?.newDoctors !== undefined, 'overview has a weekly series');
+  check(
+    overview.doctorRows.some((row) => row.email === ownerEmail && row.patients >= 1),
+    'overview lists the doctor with a diary',
+  );
+  step('service overview aggregates');
 
   // Revoke the phone; a second phone withdraws consent; another patient is deleted.
   await expectStatus(

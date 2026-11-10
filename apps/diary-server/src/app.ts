@@ -50,6 +50,7 @@ import {
   sendDueReminders,
   sendMissedDoses,
 } from './reminders';
+import { buildServiceStats, statsWindows } from './stats';
 import {
   type DiaryStore,
   type DoctorRow,
@@ -81,6 +82,11 @@ export interface AppConfig {
    * the process: a Yandex Cloud timer trigger in `serverless` mode. Absent: no such route.
    */
   readonly tickToken?: string;
+  /**
+   * E-mails of the service owner(s), lower case: they may read `GET /api/admin/stats`
+   * (aggregates only). Absent or empty: nobody can.
+   */
+  readonly adminEmails?: readonly string[];
 }
 
 const SESSION_DAYS = 30;
@@ -427,6 +433,9 @@ export function createApp(
     identity: { wrap: row.identity_wrap, sign: row.identity_sign },
   });
 
+  const isAdmin = (row: DoctorRow): boolean =>
+    (config.adminEmails ?? []).includes(row.email.toLowerCase());
+
   const newSession = async (doctorId: string): Promise<string> => {
     const token = toBase64Url(randomBytes(32));
     const expires = new Date(Date.now() + SESSION_DAYS * 86_400_000).toISOString();
@@ -573,7 +582,11 @@ export function createApp(
   route('GET', '/api/auth/me', async (request, url) => {
     const id = doctorOnly(await caller(request, url));
     const row = (await store.doctorById(id)) as DoctorRow;
-    return json({ doctor: profile(row), identityBlob: row.identity_blob });
+    return json({
+      doctor: profile(row),
+      identityBlob: row.identity_blob,
+      ...(isAdmin(row) ? { admin: true } : {}),
+    });
   });
 
   route('POST', '/api/auth/recover/fetch', async (request) => {
@@ -982,6 +995,19 @@ export function createApp(
     });
     await notify(await activeDeviceOwners(who.patientId), 'members', {});
     return json({ ok: true });
+  });
+
+  // --- service overview ------------------------------------------------------------------------
+
+  // The service owner's numbers (DIARY_ADMIN_EMAILS): counts and times the server already sees,
+  // never a record body, never a patient identifier.
+  route('GET', '/api/admin/stats', async (request, url) => {
+    const id = doctorOnly(await caller(request, url));
+    const row = (await store.doctorById(id)) as DoctorRow;
+    if (!isAdmin(row)) throw new HttpError(403, 'Нет доступа.');
+    const at = new Date();
+    const { since7, since30 } = statsWindows(at);
+    return json(buildServiceStats(await store.serviceStats(since7, since30), at));
   });
 
   // --- alerts, push, live ----------------------------------------------------------------------

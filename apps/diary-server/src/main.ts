@@ -30,6 +30,7 @@ const app = createApp(store, {
   ...(settings.staticDir ? { staticDir: settings.staticDir } : {}),
   corsOrigins: settings.corsOrigins,
   ...(settings.tickToken ? { tickToken: settings.tickToken } : {}),
+  adminEmails: settings.adminEmails,
 });
 
 const server = Bun.serve({

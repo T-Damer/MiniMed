@@ -25,6 +25,7 @@ import {
   type PatientRow,
   type PushTarget,
   type RecordRow,
+  type ServiceStatsRaw,
   StoreConflict,
 } from './store';
 
@@ -400,6 +401,41 @@ export class YdbStore implements DiaryStore {
       openAlerts: Number(alerts['n'] ?? 0),
       devices: Number(devices['patients'] ?? 0),
       carers: Number(devices['carers'] ?? 0),
+    };
+  }
+
+  async serviceStats(since7: string, since30: string): Promise<ServiceStatsRaw> {
+    // Aggregates only: records are grouped by patient (the body column is never selected) and the
+    // other tables are small. Times are ISO strings, so text comparison orders them.
+    const doctors = await rows<ServiceStatsRaw['doctors'][number]>(
+      this.sql`SELECT id, email, name, created_at FROM doctors`,
+    );
+    const patients = await rows<ServiceStatsRaw['patients'][number]>(
+      this.sql`SELECT id, status, created_at FROM patients`,
+    );
+    const members = await rows<ServiceStatsRaw['members'][number]>(
+      this.sql`SELECT patient_id, doctor_id FROM members WHERE status = 'active'`,
+    );
+    const records = await rows<ServiceStatsRaw['records'][number]>(
+      this.sql`SELECT patient_id, COUNT(*) AS total, COUNT_IF(at >= ${since7}) AS last7,
+          COUNT_IF(at >= ${since30}) AS last30, MAX(at) AS last_at
+        FROM records GROUP BY patient_id`,
+    );
+    const devices = await rows<ServiceStatsRaw['devices'][number]>(
+      this.sql`SELECT patient_id, COUNT_IF(COALESCE(kind, 'patient') = 'patient') AS phones,
+          COUNT_IF(kind = 'carer') AS carers
+        FROM devices WHERE revoked_at IS NULL GROUP BY patient_id`,
+    );
+    const [alerts] = await rows<ServiceStatsRaw['alerts']>(
+      this.sql`SELECT COUNT(*) AS total, COUNT_IF(acked_at IS NULL) AS open FROM alerts`,
+    );
+    return {
+      doctors,
+      patients,
+      members,
+      records,
+      devices,
+      alerts: alerts ?? { total: 0, open: 0 },
     };
   }
 

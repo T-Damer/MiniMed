@@ -20,6 +20,7 @@ import {
   type PatientRow,
   type PushTarget,
   type RecordRow,
+  type ServiceStatsRaw,
   StoreConflict,
 } from './store';
 
@@ -497,6 +498,49 @@ export class SqliteStore implements DiaryStore {
       openAlerts: alerts?.count ?? 0,
       devices: devices?.patients ?? 0,
       carers: devices?.carers ?? 0,
+    };
+  }
+
+  async serviceStats(since7: string, since30: string): Promise<ServiceStatsRaw> {
+    const doctors = this.db
+      .query<ServiceStatsRaw['doctors'][number], []>(
+        'SELECT id, email, name, created_at FROM doctors',
+      )
+      .all();
+    const patients = this.db
+      .query<ServiceStatsRaw['patients'][number], []>('SELECT id, status, created_at FROM patients')
+      .all();
+    const members = this.db
+      .query<ServiceStatsRaw['members'][number], []>(
+        "SELECT patient_id, doctor_id FROM members WHERE status = 'active'",
+      )
+      .all();
+    const records = this.db
+      .query<ServiceStatsRaw['records'][number], [string, string]>(
+        `SELECT patient_id, COUNT(*) AS total, COALESCE(SUM(at >= ?), 0) AS last7,
+           COALESCE(SUM(at >= ?), 0) AS last30, MAX(at) AS last_at
+         FROM records GROUP BY patient_id`,
+      )
+      .all(since7, since30);
+    const devices = this.db
+      .query<ServiceStatsRaw['devices'][number], []>(
+        `SELECT patient_id, COALESCE(SUM(kind = 'patient'), 0) AS phones,
+           COALESCE(SUM(kind = 'carer'), 0) AS carers
+         FROM devices WHERE revoked_at IS NULL GROUP BY patient_id`,
+      )
+      .all();
+    const alerts = this.db
+      .query<ServiceStatsRaw['alerts'], []>(
+        `SELECT COUNT(*) AS total, COALESCE(SUM(acked_at IS NULL), 0) AS open FROM alerts`,
+      )
+      .get();
+    return {
+      doctors,
+      patients,
+      members,
+      records,
+      devices,
+      alerts: alerts ?? { total: 0, open: 0 },
     };
   }
 

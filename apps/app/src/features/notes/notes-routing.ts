@@ -125,6 +125,8 @@ export function readNotesRoute(
   if (parts[1] === 'diaries') {
     const patientId = parts[2];
     if (patientId === 'new' && parts.length === 3) return { kind: 'diaries', patientId };
+    // «Обзор сервиса» of the service owner (dashboard/ServiceOverviewPage.tsx).
+    if (patientId === 'service' && parts.length === 3) return { kind: 'diaries', patientId };
     const draft = parts[3];
     if (patientId === 'new' && draft && /^[a-z0-9]{8,32}$/u.test(draft) && parts.length === 4) {
       return { kind: 'diaries', patientId, draft };
@@ -394,6 +396,11 @@ export type DiarySub =
 export function diariesPath(patientId?: string, sub?: DiarySub): string {
   if (!patientId) return '#/notes/diaries';
   return sub ? `#/notes/diaries/${patientId}/${sub}` : `#/notes/diaries/${patientId}`;
+}
+
+/** «Обзор сервиса»: the service owner's numbers. */
+export function diaryServicePath(): string {
+  return '#/notes/diaries/service';
 }
 
 /** «Новый пациент»: an empty form, or the draft `draft` to continue. */
