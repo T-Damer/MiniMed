@@ -1392,7 +1392,8 @@
 /* Wide screens (iPad landscape, desktop): the form on the left, the patient's screen on the right,
    both in view under the pinned header (components/PageHero.css: the bar is the status bar, the
    row, a gap and the lip). The right column scrolls inside itself when the screen is taller than
-   the window, so the form's own scroll never moves it. */
+   the window, so the form's own scroll never moves it. It is no taller than the window minus the
+   page's room under the form, or at the end of the form it is pushed up under the header. */
 @media (width >= 60rem) {
   .diary-new__form {
     grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
@@ -1405,7 +1406,8 @@
     --diary-new-top: calc(var(--page-hero-pin) + 2.75rem + 0.5rem + var(--page-hero-lip) + 0.75rem);
     position: sticky;
     top: var(--diary-new-top);
-    max-height: calc(100dvh - var(--diary-new-top) - 1rem);
+    /* --diary-new-bottom: the page's own room under the form (PatientFormColumns `roomBelow`). */
+    max-height: calc(100dvh - var(--diary-new-top) - max(1rem, var(--diary-new-bottom, 1rem)));
     overflow-y: auto;
     overscroll-behavior: contain;
   }

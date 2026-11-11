@@ -8,6 +8,21 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 const WIDE_QUERY = '(min-width: 60rem)';
 
 /**
+ * Room the page keeps under its last row (the padding of the form's ancestors). The sticky patient
+ * column may be no taller than the window minus its top and this room: a taller column meets the
+ * end of the form before the page has scrolled to its end and is pushed up under the pinned
+ * header (e2e `diary-new-patient` «keeps its title below the pinned header»).
+ */
+function roomBelow(element: HTMLElement): number {
+  let room = 0;
+  for (let node = element.parentElement?.parentElement; node; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    room += Number.parseFloat(style.paddingBottom) + Number.parseFloat(style.borderBottomWidth);
+  }
+  return room;
+}
+
+/**
  * The patient card of «Новый пациент» and «Экран пациента» (owner 2026-11-10): on a wide screen the
  * doctor's form on the left and, on the right, what the patient's phone will show (blue, read-only);
  * on a phone the form alone, with a «Как увидит пациент» button that opens the same view in a sheet.
@@ -55,7 +70,19 @@ export function PatientFormColumns(props: {
         <div class="diary-new__footer diary-new__footer--sticky">{props.footer}</div>
       </div>
       <Show when={wide()}>
-        <div class="diary-new__view">{props.view()}</div>
+        <div
+          class="diary-new__view"
+          ref={(view) => {
+            const sync = (): void => {
+              view.style.setProperty('--diary-new-bottom', `${Math.ceil(roomBelow(view))}px`);
+            };
+            requestAnimationFrame(sync);
+            window.addEventListener('resize', sync);
+            onCleanup(() => window.removeEventListener('resize', sync));
+          }}
+        >
+          {props.view()}
+        </div>
       </Show>
       <Show when={!wide() && showing()}>
         <OverlayDialog
