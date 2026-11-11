@@ -23,8 +23,8 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await page.getByRole('button', { name: 'Отмена', exact: true }).click();
   await expect(page).toHaveURL(/#\/notes$/u);
   await page.getByRole('button', { name: /^Пациенты/u }).click();
-  await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет.');
-  await expect(page.locator('.patient-workspace__empty-icon')).toBeVisible();
+  await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет');
+  await expect(page.locator('.patient-workspace__empty .ui-empty-state__glyph')).toBeVisible();
   await page.getByRole('button', { name: 'Новый пациент', exact: true }).click();
   await page.getByLabel('Имя или псевдоним').fill('Пациент для поиска');
   await page.getByRole('button', { name: 'Создать карточку', exact: true }).click();
@@ -42,7 +42,7 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await search.fill('для поиска');
   await expect(listedPatient).toHaveCount(1);
   await search.fill('неизвестный пациент');
-  await expect(page.getByText('По запросу ничего не найдено.')).toBeVisible();
+  await expect(page.getByText('По запросу ничего не найдено')).toBeVisible();
 
   await page.getByRole('button', { name: 'Действия с пациентами' }).click();
   await expect(page.getByRole('menuitem', { name: 'Заблокировать', exact: true })).toBeVisible();

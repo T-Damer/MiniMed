@@ -62,7 +62,7 @@ for (const width of [375, 1280]) {
     await expect(page.getByRole('button', { name: 'Новый пациент', exact: true })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет.');
+    await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет');
     expect(await vaultDialogSeen(page)).toBe(false);
     await page.screenshot({ path: testInfo.outputPath(`patients-native-${width}.png`) });
   });

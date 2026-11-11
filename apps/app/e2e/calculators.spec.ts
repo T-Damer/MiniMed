@@ -34,10 +34,11 @@ test('offers and installs the pediatric growth pack from the calculator catalog'
     .click();
 
   const anthropometry = page.getByTestId('calculator-section-anthropometry');
-  // The section names the download and its size; module titles live in the downloads page.
-  await expect(anthropometry).toContainText(/Скачать раздел · [\d.,]+\s[КМ]Б/u);
-  await anthropometry.getByRole('button', { name: 'Скачать раздел — Антропометрия' }).click();
-  await expect(anthropometry).not.toContainText('Скачать раздел ·');
+  // The row shows the download's size and a download button; module titles live in the downloads page.
+  const download = anthropometry.getByRole('button', { name: 'Скачать раздел — Антропометрия' });
+  await expect(anthropometry).toContainText(/[\d.,]+\s[КМ]Б/u);
+  await download.click();
+  await expect(download).toHaveCount(0);
   // One notice turns from progress into the result: no stale «Скачиваем модуль…» beside it.
   await expect(page.getByText(/«Антропометрия» скачан/u)).toBeVisible();
   await expect(page.getByText('Скачиваем модуль…')).toHaveCount(0);

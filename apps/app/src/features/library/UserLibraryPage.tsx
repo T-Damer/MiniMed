@@ -18,6 +18,8 @@ import { Heading } from '@/components/Text';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { SavedItemRow } from '@/features/collections/SavedItemRow';
 import { savedItemCount, searchSavedItems } from '@/features/collections/saved-items';
+import { ComputerFolderView, computerPlaceTitle } from '@/features/library/ComputerFolderView';
+import { UserLibraryPlaces } from '@/features/library/UserLibraryPlaces';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
 import {
   type LibraryEntry,
@@ -26,9 +28,18 @@ import {
   sortLibraryEntries,
 } from '@/features/library/user-library-entries';
 import {
+  parseUserLibraryPlace,
+  type UserLibraryKindGroup,
+  type UserLibraryPlace,
+  userLibraryKindCounts,
+  userLibraryKindGroupById,
+  userLibraryPlaceHash,
+} from '@/features/library/user-library-places';
+import {
   isUserLibraryCatalogRoute,
   openUserLibraryDocument,
   parseUserLibraryFolderRoute,
+  USER_LIBRARY_CATALOG_HASH,
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
 import {
@@ -124,6 +135,8 @@ const PATIENTS_FOLDER_ID = 'patient-vault-entry';
 const KNOWLEDGE_BASE_FOLDER_ID = 'knowledge-base-entry';
 const FORMS_FOLDER_ID = 'official-forms-entry';
 const SAVED_FOLDER_ID = 'saved-items-entry';
+/** Where files opened from «Мой компьютер» are kept. */
+const COMPUTER_COPIES_FOLDER_TITLE = 'С компьютера';
 const KNOWLEDGE_BASE_HASH = '#/modules/documents';
 
 /** Root entries that open another section; constant records keep their cards' identity. */
@@ -437,6 +450,16 @@ export function UserLibraryPage(props: {
     Partial<Record<UserLibraryExampleId, ExampleUploadState>>
   >({});
   const [currentFolderId, setCurrentFolderId] = createSignal<string | null>(folderIdFromLocation());
+  // A kind of file from every folder, or «Мой компьютер» (owner 2026-11-11), from the address.
+  const [place, setPlace] = createSignal<UserLibraryPlace>(
+    parseUserLibraryPlace(window.location.hash.replace(/^#\/?/u, '')),
+  );
+  const kindGroup = (): UserLibraryKindGroup | undefined => {
+    const current = place();
+    return current.kind === 'kind' ? userLibraryKindGroupById(current.group) : undefined;
+  };
+  const placeTitle = (): string | undefined =>
+    place().kind === 'computer' ? computerPlaceTitle() : kindGroup()?.title;
   const [dragTarget, setDragTarget] = createSignal<string | null | undefined>(undefined);
   const [renameTarget, setRenameTarget] = createSignal<RenameTarget | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
@@ -544,6 +567,8 @@ export function UserLibraryPage(props: {
       }
       const nextFolderId = requestedFolderId;
       if (nextFolderId !== currentFolderId()) setCurrentFolderId(nextFolderId);
+      const nextPlace = parseUserLibraryPlace(route);
+      if (userLibraryPlaceHash(nextPlace) !== userLibraryPlaceHash(place())) setPlace(nextPlace);
     };
     syncFolderFromLocation();
     refresh();
@@ -726,16 +751,24 @@ export function UserLibraryPage(props: {
     return record ? userLibraryFileKind(record.mimeType, record.fileName) : 'binary';
   });
 
-  const visibleFolders = createMemo(() => [
+  const rootAndChildFolders = (): UserLibraryFolder[] => [
     ...folders().filter((folder) => folder.parentId === currentFolderId()),
     // With separate tabs off, the knowledge base has no tab of its own: it opens from here.
     ...(currentFolderId() === null && props.knowledgeBaseEntry ? [KNOWLEDGE_BASE_FOLDER] : []),
     ...(currentFolderId() === null ? [SAVED_FOLDER, PATIENTS_FOLDER, FORMS_FOLDER] : []),
-  ]);
+  ];
+  const visibleFolders = createMemo(() =>
+    place().kind !== 'folders' ? [] : rootAndChildFolders(),
+  );
   const visibleDocuments = createMemo(() => {
     const query = searchQuery().trim();
+    const group = kindGroup();
+    if (place().kind === 'computer') return [];
     return documents().filter((document) => {
-      if ((document.folderId ?? null) !== currentFolderId()) return false;
+      if (group) {
+        if (!group.kinds.includes(userLibraryFileKind(document.mimeType, document.fileName)))
+          return false;
+      } else if ((document.folderId ?? null) !== currentFolderId()) return false;
       return !query || matchesFuzzyQuery(query, [document.title, document.fileName]);
     });
   });
@@ -757,6 +790,7 @@ export function UserLibraryPage(props: {
   );
   const visibleExampleSlots = createMemo(() => {
     const query = searchQuery().trim();
+    if (place().kind !== 'folders') return [];
     return USER_LIBRARY_EXAMPLE_SLOTS.filter(
       (slot) =>
         slot.folderId === currentFolderId() &&
@@ -844,6 +878,33 @@ export function UserLibraryPage(props: {
     } else if (added > 1) toast.success(`Добавлено документов: ${added}.`);
     if (failed > 0) toast.error(`Не удалось добавить документов: ${failed}.`);
     refresh();
+  };
+
+  /** Files by kind across all folders, for «По виду» at the top of the root. */
+  const kindCounts = createMemo(() =>
+    userLibraryKindCounts(
+      documents().map((document) => userLibraryFileKind(document.mimeType, document.fileName)),
+    ),
+  );
+  const showPlaces = (): boolean =>
+    place().kind === 'folders' && currentFolderId() === null && searchQuery().trim() === '';
+
+  /**
+   * A file opened from «Мой компьютер»: the app keeps a copy in the folder «С компьютера» (it works
+   * offline, so what it shows must stay readable) and opens it in the usual reader.
+   */
+  const openComputerFile = async (file: File): Promise<void> => {
+    try {
+      const existing = folders().find(
+        (folder) => folder.parentId === null && folder.title === COMPUTER_COPIES_FOLDER_TITLE,
+      );
+      const folder = existing ?? (await createUserLibraryFolder(COMPUTER_COPIES_FOLDER_TITLE));
+      const added = await addUserLibraryFile(file, folder.id);
+      await refresh();
+      openLibraryDocument(added);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось открыть файл.');
+    }
   };
 
   const downloadExample = async (slot: UserLibraryExampleSlot): Promise<void> => {
@@ -1435,6 +1496,10 @@ export function UserLibraryPage(props: {
   };
 
   const goUpFolderHierarchy = (): void => {
+    if (place().kind !== 'folders') {
+      navigateBack(USER_LIBRARY_CATALOG_HASH);
+      return;
+    }
     if (currentFolderId() === null) {
       navigateBack('#/modules/documents');
       return;
@@ -1444,6 +1509,7 @@ export function UserLibraryPage(props: {
   };
 
   const backTargetLabel = (): string => {
+    if (place().kind !== 'folders') return 'Назад к вашим файлам';
     if (currentFolderId() === null) return 'Назад к каталогу документов';
     const parentId = currentFolder()?.parentId;
     if (!parentId) return 'Назад к вашим файлам';
@@ -2056,6 +2122,21 @@ export function UserLibraryPage(props: {
                 Ваши файлы
               </span>
             </button>
+            <Show when={placeTitle()}>
+              {(title) => (
+                <>
+                  <span class="user-library-breadcrumbs__separator" aria-hidden="true">
+                    /
+                  </span>
+                  <span
+                    class="user-library-breadcrumbs__button user-library-breadcrumbs__button--active"
+                    aria-current="page"
+                  >
+                    <span class="user-library-breadcrumbs__label">{title()}</span>
+                  </span>
+                </>
+              )}
+            </Show>
             <For each={folderTrail()}>
               {(folder) => {
                 const drops = folderDropsFor(folder.id);
@@ -2085,10 +2166,12 @@ export function UserLibraryPage(props: {
               }}
             </For>
           </nav>
-          <div class="user-library-page__breadcrumb-tools">
-            {sortMenu()}
-            {viewToggle()}
-          </div>
+          <Show when={place().kind !== 'computer'}>
+            <div class="user-library-page__breadcrumb-tools">
+              {sortMenu()}
+              {viewToggle()}
+            </div>
+          </Show>
         </div>
         <input
           ref={(element) => {
@@ -2134,62 +2217,74 @@ export function UserLibraryPage(props: {
           </form>
         </OverlayDialog>
 
-        <Show
-          when={visibleEntries().length > 0}
-          fallback={
-            <Show
-              when={searchQuery().trim()}
-              fallback={
-                <div class="user-library-page__empty-context">
-                  <button
-                    type="button"
-                    class="user-library-page__empty-state"
-                    aria-label="Добавьте файлы"
-                    onClick={openFilePicker}
-                  >
-                    <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
-                    <strong class="user-library-page__empty-title">Добавьте файлы</strong>
-                  </button>
-                </div>
-              }
-            >
-              <Show when={savedMatches().length === 0}>
-                <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
+        <Show when={showPlaces()}>
+          <UserLibraryPlaces kinds={kindCounts()} onOpen={navigate} />
+          <h2 class="list-group__heading user-library-page__folders-heading">Папки и файлы</h2>
+        </Show>
+        <Show when={place().kind === 'computer'}>
+          <ComputerFolderView
+            onOpenFile={(file) => void openComputerFile(file)}
+            onPickFiles={openFilePicker}
+          />
+        </Show>
+        <Show when={place().kind !== 'computer'}>
+          <Show
+            when={visibleEntries().length > 0}
+            fallback={
+              <Show
+                when={searchQuery().trim()}
+                fallback={
+                  <div class="user-library-page__empty-context">
+                    <button
+                      type="button"
+                      class="user-library-page__empty-state"
+                      aria-label="Добавьте файлы"
+                      onClick={openFilePicker}
+                    >
+                      <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
+                      <strong class="user-library-page__empty-title">Добавьте файлы</strong>
+                    </button>
+                  </div>
+                }
+              >
+                <Show when={savedMatches().length === 0}>
+                  <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
+                </Show>
               </Show>
-            </Show>
-          }
-        >
-          <div
-            class="user-library-page__list"
-            classList={{
-              'user-library-page__list--grid': viewMode() === 'grid',
-              'user-library-page__list--list': viewMode() === 'list',
-            }}
+            }
           >
-            <Show
-              when={viewMode() === 'grid'}
-              fallback={
+            <div
+              class="user-library-page__list"
+              classList={{
+                'user-library-page__list--grid': viewMode() === 'grid',
+                'user-library-page__list--list': viewMode() === 'list',
+              }}
+            >
+              <Show
+                when={viewMode() === 'grid'}
+                fallback={
+                  <LayoutVirtualizedGrid
+                    data={visibleEntries()}
+                    bufferSize={500}
+                    maxColumns={3}
+                    preserveItemNodes
+                  >
+                    {(entry) => renderLibraryEntry(entry)}
+                  </LayoutVirtualizedGrid>
+                }
+              >
                 <LayoutVirtualizedGrid
                   data={visibleEntries()}
                   bufferSize={500}
-                  maxColumns={3}
+                  maxColumns={6}
+                  minColumns={2}
                   preserveItemNodes
                 >
                   {(entry) => renderLibraryEntry(entry)}
                 </LayoutVirtualizedGrid>
-              }
-            >
-              <LayoutVirtualizedGrid
-                data={visibleEntries()}
-                bufferSize={500}
-                maxColumns={6}
-                minColumns={2}
-                preserveItemNodes
-              >
-                {(entry) => renderLibraryEntry(entry)}
-              </LayoutVirtualizedGrid>
-            </Show>
-          </div>
+              </Show>
+            </div>
+          </Show>
         </Show>
 
         <Show when={savedMatches().length > 0}>

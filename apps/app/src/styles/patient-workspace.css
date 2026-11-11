@@ -91,28 +91,6 @@
   margin-bottom: 0.25rem;
 }
 
-.patient-workspace__empty {
-  display: grid;
-  min-height: 8rem;
-  align-content: center;
-  justify-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem 1rem;
-  text-align: center;
-}
-
-.patient-workspace__empty-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  color: var(--theme-accent);
-  opacity: 0.82;
-}
-
-.patient-workspace__empty-text {
-  margin: 0;
-  color: var(--theme-text-muted);
-}
-
 .patient-workspace__unlock,
 .patient-workspace__panel,
 .patient-workspace__event-form,

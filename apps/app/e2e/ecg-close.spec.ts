@@ -17,7 +17,7 @@ test('closing the ECG editor returns to where the user came from, not to a tool 
   const editor = page.getByRole('dialog', { name: 'Загрузите ЭКГ' });
   await expect(editor).toBeVisible();
 
-  await editor.getByRole('button', { name: 'Закрыть' }).click();
+  await editor.getByRole('button', { name: 'Назад', exact: true }).click();
   await expect(editor).toHaveCount(0);
   await expect(page).toHaveURL(/#\/notes$/u);
   await expect(page.getByRole('heading', { name: 'Заметки', exact: true })).toBeVisible();
@@ -35,6 +35,6 @@ test('a deep link to the ECG tool closes to the search page', async ({ page }) =
   await page.goto(`${E2E_ASSET_ORIGIN}/#/calculators/ecg-photo-caliper`);
   const editor = page.getByRole('dialog', { name: 'Загрузите ЭКГ' });
   await expect(editor).toBeVisible();
-  await editor.getByRole('button', { name: 'Закрыть' }).click();
+  await editor.getByRole('button', { name: 'Назад', exact: true }).click();
   await expect(page).toHaveURL(/#\/search$/u);
 });

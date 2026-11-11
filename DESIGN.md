@@ -123,6 +123,21 @@ saved PDFs remain legible in light and dark browser themes.
   activation. Do not add a second `Открыть`, `Что входит`, or `Выжимка` button inside it. Buttons that
   perform another action (download/delete) stop propagation and retain their own accessible name.
 
+### List (owner 2026-11-11: «больше списков»)
+
+- **Structure**: `ListGroup` and `ListRow` from `apps/app/src/components/ListRow.tsx` — an inset group
+  (rounded raised paper, hairlines that start after the tile) of large rows: a coloured icon tile
+  (`ListTileTone`, the Settings palette), a title, one quiet line (two at most), a short value at the
+  end and a chevron. A row's own download/remove button goes in `action` with the `list-action`
+  class (accent fill; `list-action--remove` for delete); it never opens the row.
+- **When**: wherever the content is a list of alike things — forms, calculator and test sections,
+  ECG photo sources, «Файлы» places and kinds, settings. A `Card` is for one thing that needs room
+  of its own (a feature, a result), not for list items with a «Открыть» button.
+- **Data**: the tile's icon and colour are declared with the item (`CalculatorSectionDefinition`,
+  `USER_LIBRARY_KIND_GROUPS`), never chosen by branching on an id in the page.
+- **Full-screen tools** that stand in for a route (the ECG editor) close with the app's ‹
+  (`OverlayDialog` `closeAs="back"`), like a page, not with a ✕.
+
 ### Catalog card
 
 - **Layout stability**: downloading or installing a module or document must not change the card’s outer

@@ -20,6 +20,25 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Phone heat, one visual language, «Файлы» by kind — 2026-11-11 (STATE PERF6; branch `perf6-ui-files`, not merged)
+
+- **Owner 2026-11-11:** the phone heats while navigating and using features; screens and tools look different
+  (the ECG tool most); more lists; «Файлы» by document kind plus «Мой компьютер».
+- **Idle and switching** ([perf-idle-2026-11.md](research/perf-idle-2026-11.md), `e2e/perf-idle.spec.ts`): the
+  diary garden (endless SVG sway under a backdrop blur) cost ~0.85 of a core on an idle diary screen → 0.075; the
+  search home's endless ECG trace drew 120 frames a second → it rests 6 s after the last touch; the carousel
+  autoplay ran behind every tab → only on screen; reopening a document whose module file is missing rebuilt the
+  whole core and its indexes each time (3.8 s → 0.17 s CPU) → rebuild only when the installed set changed
+  (`coreServesInstalledSet`). New rule (AGENTS.md «An idle screen draws nothing»), guarded by
+  `e2e/perf-budget.spec.ts`. Not measured on a phone (the owner's phone was in use).
+- **Lists** ([ui-unify-2026-11.md](research/ui-unify-2026-11.md)): shared `ListGroup`/`ListRow`
+  (`components/ListRow.tsx`, DESIGN.md «List») for «Формы», calculator and test sections, the ECG first step
+  (camera / gallery / typed measurements, «Авторазметка»); the ECG flow closes with ‹ (`OverlayDialog closeAs`).
+- **«Файлы»:** «Места» → «Мой компьютер» (desktop Chrome/Edge: a chosen folder listed live through the File System
+  Access API, handle in IndexedDB; elsewhere the system picker) and «По виду» (documents, images and scans, video,
+  audio, books, tables, questionnaires, other — `features/library/user-library-places.ts`) above the folders;
+  `?kind=…` / `?place=computer` in the address. A file opened from the computer is copied into «С компьютера».
+
 ## e2e specs that failed on `main` itself — 2026-11-09 (STATE E2E-MAIN)
 
 Every merge since UI-BATCH3 ended with «these fail on main too». Cause of each, and what changed:

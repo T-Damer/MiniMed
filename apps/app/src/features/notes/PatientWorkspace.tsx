@@ -21,6 +21,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { todayValue } from '@/components/date-value';
+import { EmptyState } from '@/components/EmptyState';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { PatientAvatar } from '@/components/PatientAvatar';
@@ -917,16 +918,25 @@ function PatientList(props: {
           }}
         </For>
       </div>
+      {/* Centred in the empty space under the header (AGENTS.md «Empty states are centred», PERF6). */}
       <Show when={visibleProfiles().length === 0}>
-        <div class="patient-workspace__empty paper-card" role="status">
-          <AppGlyph
-            name={query().trim() ? 'magnifying-glass-plus' : 'users'}
-            class="patient-workspace__empty-icon"
-          />
-          <p class="patient-workspace__empty-text">
-            {query().trim() ? 'По запросу ничего не найдено.' : 'Карточек пока нет.'}
-          </p>
-        </div>
+        <EmptyState
+          class="patient-workspace__empty"
+          glyph={query().trim() ? 'magnifying-glass-plus' : 'users'}
+          title={query().trim() ? 'По запросу ничего не найдено' : 'Карточек пока нет'}
+          actions={
+            <Show when={!query().trim()}>
+              <Button
+                type="button"
+                variant="primary"
+                icon={<AppGlyph name="plus" />}
+                onClick={() => props.onNavigate(notesPatientsPath('new'))}
+              >
+                Добавить пациента
+              </Button>
+            </Show>
+          }
+        />
       </Show>
     </>
   );

@@ -84,3 +84,33 @@ test('a long clinical recommendation and a search stay within their time budgets
   expect((titles?.t ?? Number.POSITIVE_INFINITY) - lastInput).toBeLessThan(2_000);
   expect((groups?.t ?? Number.POSITIVE_INFINITY) - lastInput).toBeLessThan(6_000);
 });
+
+/**
+ * PERF6 (owner 2026-11-11 «телефон греется»): an idle screen draws nothing. Decorations play and
+ * settle or rest; an endless animation kept the phone drawing 120 frames a second (the search
+ * home's ECG trace, the diary garden behind a backdrop blur — docs/research/perf-idle-2026-11.md).
+ */
+test('idle main screens run no endless animation', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchEditable(page);
+  const endless = () =>
+    page.evaluate(() =>
+      document
+        .getAnimations()
+        .filter(
+          (animation) =>
+            animation.playState === 'running' &&
+            animation.effect?.getComputedTiming().iterations === Number.POSITIVE_INFINITY,
+        )
+        .map((animation) => (animation as CSSAnimation).animationName ?? 'animation'),
+    );
+  for (const hash of ['#/search', '#/notes/diaries', '#/modules/documents/user', '#/settings']) {
+    await page.evaluate((target) => {
+      window.location.hash = target;
+    }, hash);
+    // The ECG trace rests 6 s after the last touch.
+    await expect.poll(endless, { timeout: 15_000, message: hash }).toEqual([]);
+  }
+});

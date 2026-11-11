@@ -1579,3 +1579,31 @@
   white-space: nowrap;
   font-size: 0.8125rem;
 }
+
+/* «Места» and «По виду» above the folders (owner 2026-11-11), and «Мой компьютер». */
+.user-library-places {
+  display: grid;
+  gap: 0.875rem;
+  margin-block: 0.25rem 0.5rem;
+}
+
+.user-library-page__folders-heading {
+  margin-top: 0.25rem;
+}
+
+.computer-folder {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.computer-folder__empty {
+  margin: 0;
+  padding-inline: 0.875rem;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.computer-folder__change {
+  justify-self: start;
+}

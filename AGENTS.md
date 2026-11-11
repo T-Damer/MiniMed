@@ -188,6 +188,14 @@ were not tested.
   «Анимации») retimes it; timers use `motionMs()`. With animations off, end states still apply.
 - Never block input to show a transition or a pending state: keep what is on screen usable and show
   progress in place (a spinner inside the control, a quiet status line).
+- **An idle screen draws nothing (PERF6, owner 2026-11-11 «телефон греется»).** Decorative motion
+  plays a few times and settles, or rests a few seconds after the last touch (`PageHero`'s ECG
+  trace); no `infinite` animation outside a pending state (a spinner while something loads). SVG
+  child transforms and anything under a `backdrop-filter` are re-drawn on the main thread or the GPU
+  every frame: an endless one cost up to 0.9 of a core on an idle screen. Timers stop while their
+  screen is hidden or off screen (`IntersectionObserver`), not only while the tab is hidden.
+  `e2e/perf-budget.spec.ts` fails on an endless animation on the main screens;
+  `e2e/perf-idle.spec.ts` measures idle CPU per screen (`docs/research/perf-idle-2026-11.md`).
 
 ## Interface rules (user decisions, 2026-10-08)
 

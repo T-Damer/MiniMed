@@ -179,25 +179,27 @@
   transform: scale(0.96);
 }
 
+/* Four breaths, then the picture rests (PERF6, AGENTS.md «An idle screen draws nothing»): an error
+   screen left open must not keep the phone drawing. */
 @media (prefers-reduced-motion: no-preference) {
   .calm-error__breath {
-    animation: calm-error-breath 8s ease-in-out infinite;
+    animation: calm-error-breath 8s ease-in-out 4;
   }
 
   .calm-error__cloud {
-    animation: calm-error-float 7s ease-in-out infinite alternate;
+    animation: calm-error-float 7s ease-in-out 4 alternate;
   }
 
   .calm-error__puff {
-    animation: calm-error-drift 14s ease-in-out infinite alternate;
+    animation: calm-error-drift 14s ease-in-out 2 alternate;
   }
 
   .calm-error__breath-word--in {
-    animation: calm-error-word-in 8s ease-in-out infinite;
+    animation: calm-error-word-in 8s ease-in-out 4;
   }
 
   .calm-error__breath-word--out {
-    animation: calm-error-word-out 8s ease-in-out infinite;
+    animation: calm-error-word-out 8s ease-in-out 4;
   }
 }
 

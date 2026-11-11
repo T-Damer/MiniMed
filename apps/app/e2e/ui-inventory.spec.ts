@@ -45,6 +45,8 @@ export const INVENTORY_SCREENS = [
   ['22-settings', '#/settings'],
   ['23-settings-downloads', '#/settings/downloads'],
   ['24-settings-images', '#/settings/images'],
+  ['25-files-images', '#/modules/documents/user?kind=images'],
+  ['26-files-computer', '#/modules/documents/user?place=computer'],
 ] as const;
 
 test('screenshots of every main screen', async () => {
@@ -65,6 +67,7 @@ test('screenshots of every main screen', async () => {
   });
   await routeLocalCatalogModules(context);
   const page = context.pages()[0] ?? (await context.newPage());
+  page.on('pageerror', (error) => console.log(`pageerror: ${error.message}`));
   await page.goto(`${E2E_ASSET_ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
     () => performance.getEntriesByName('minimed:search-ready').length > 0,
