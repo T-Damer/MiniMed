@@ -35,6 +35,9 @@ export interface DoctorRow {
   recovery_hash: string;
   recovery_blob: string;
   created_at: string;
+  /** The privacy policy version the doctor accepted (152-ФЗ ст. 9) and when; null before. */
+  privacy_version: string | null;
+  privacy_at: string | null;
 }
 
 export interface PatientRow {
@@ -167,6 +170,8 @@ export interface DiaryStore {
    * InviteSpent (creating nothing) when another registration used it first.
    */
   createDoctor(row: DoctorRow, inviteCode?: string): Promise<void>;
+  /** Records that the doctor accepted this version of the privacy policy at `at`. */
+  acceptDoctorPrivacy(id: string, version: string, at: string): Promise<void>;
   /** New password material; every session of the doctor ends. */
   resetDoctorAuth(
     id: string,

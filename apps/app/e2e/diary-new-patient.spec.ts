@@ -74,6 +74,7 @@ async function openNewPatient(page: Page, email: string): Promise<void> {
   await page.getByLabel('Почта', { exact: true }).fill(email);
   await page.getByLabel('Как вас подписать для пациентов').fill('Д-р Новикова');
   await page.getByLabel('Новый пароль (от 8 символов)').fill('new-patient-pass-2026');
+  await page.getByRole('checkbox', { name: /Согласен\(на\)/u }).check();
   await page.getByRole('button', { name: 'Создать аккаунт' }).click();
   await page.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
   await page.getByTestId('diary-create-patient').click({ timeout: 60_000 });

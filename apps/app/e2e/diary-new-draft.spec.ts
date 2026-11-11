@@ -102,6 +102,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.getByLabel('Почта', { exact: true }).fill('draft@example.test');
   await page.getByLabel('Как вас подписать для пациентов').fill('Д-р Петрова');
   await page.getByLabel('Новый пароль (от 8 символов)').fill('draft-pass-2026');
+  await page.getByRole('checkbox', { name: /Согласен\(на\)/u }).check();
   await page.getByRole('button', { name: 'Создать аккаунт' }).click();
   await page.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
 
@@ -199,6 +200,7 @@ test('on a tablet the new patient header band is as wide as its sheet', async ({
   await page.getByLabel('Почта', { exact: true }).fill('tablet@example.test');
   await page.getByLabel('Как вас подписать для пациентов').fill('Д-р Планшет');
   await page.getByLabel('Новый пароль (от 8 символов)').fill('tablet-pass-2026');
+  await page.getByRole('checkbox', { name: /Согласен\(на\)/u }).check();
   await page.getByRole('button', { name: 'Создать аккаунт' }).click();
   await page.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
 

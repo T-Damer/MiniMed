@@ -154,6 +154,11 @@ const MIGRATIONS: readonly string[] = [
     at TEXT NOT NULL
   );
   `,
+  // 5: the privacy policy version a doctor accepted and when (152-ФЗ ст. 9); null before.
+  `
+  ALTER TABLE doctors ADD COLUMN privacy_version TEXT;
+  ALTER TABLE doctors ADD COLUMN privacy_at TEXT;
+  `,
 ];
 
 export function openDatabase(path: string): Database {
@@ -230,8 +235,9 @@ export class SqliteStore implements DiaryStore {
         this.db
           .query(
             `INSERT INTO doctors (id, email, name, auth_hash, kdf_salt, kdf_iterations, identity_wrap,
-              identity_sign, identity_blob, recovery_hash, recovery_blob, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              identity_sign, identity_blob, recovery_hash, recovery_blob, created_at,
+              privacy_version, privacy_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             row.id,
@@ -246,6 +252,8 @@ export class SqliteStore implements DiaryStore {
             row.recovery_hash,
             row.recovery_blob,
             row.created_at,
+            row.privacy_version,
+            row.privacy_at,
           );
         if (inviteCode) {
           // Spent only if still unused: of two registrations racing for one code, one wins.
@@ -260,6 +268,12 @@ export class SqliteStore implements DiaryStore {
       if (isUniqueViolation(cause)) throw new StoreConflict('e-mail');
       throw cause;
     }
+  }
+
+  async acceptDoctorPrivacy(id: string, version: string, at: string): Promise<void> {
+    this.db
+      .query('UPDATE doctors SET privacy_version = ?, privacy_at = ? WHERE id = ?')
+      .run(version, at, id);
   }
 
   async resetDoctorAuth(

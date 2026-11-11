@@ -5,8 +5,9 @@
  * `DoctorDiaries` per signed-in doctor, until sign-out. A dashboard that mounts finds the list
  * already there and only asks for a quiet refresh.
  */
-import { createSignal } from 'solid-js';
 
+import type { DiaryPrivacyRecord } from '@localmed/contracts';
+import { createSignal } from 'solid-js';
 import { DiaryApiError, diaryAuth } from '@/features/diary/connected/diary-api';
 import {
   type DoctorSession,
@@ -17,6 +18,7 @@ import {
   signOut,
 } from '@/features/diary/connected/doctor-account';
 import { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
+import { SERVICE_PRIVACY_VERSION } from '@/features/diary/consent/service-privacy';
 import {
   hasDemoSet,
   pruneDemoGuests,
@@ -39,6 +41,7 @@ const [loadError, setLoadError] = createSignal('');
 const [demoStatus, setDemoStatus] = createSignal('');
 const [pushState, setPushState] = createSignal<PushUiState>('off');
 const [admin, setAdmin] = createSignal(false);
+const [privacy, setPrivacy] = createSignal<DiaryPrivacyRecord | undefined>();
 
 /** The signed-in doctor; undefined until a kept session is restored or the doctor signs in. */
 export const doctorSession = session;
@@ -54,6 +57,11 @@ export const doctorLoadError = loadError;
 export const demoProgress = demoStatus;
 /** Whether the service says this doctor is its owner («Обзор сервиса»); false until it answers. */
 export const doctorIsAdmin = admin;
+/**
+ * The privacy policy version the service has for this doctor: null for an account made before the
+ * policy, undefined until the service answers (and for the demo doctor, who takes no consent).
+ */
+export const doctorPrivacy = privacy;
 export const doctorPushState = pushState;
 export const setDoctorPushState = setPushState;
 
@@ -126,6 +134,7 @@ export function stopDoctor(): void {
   setDemoStatus('');
   setPushState('off');
   setAdmin(false);
+  setPrivacy(undefined);
   totalsReady = false;
   totalsCheckedAt = 0;
 }
@@ -189,7 +198,9 @@ export function startDoctor(next: DoctorSession): DoctorDiaries {
     diaryAuth
       .me(doctorApi(next))
       .then((answer) => {
-        if (session() === next) setAdmin(answer.admin === true);
+        if (session() !== next) return;
+        setAdmin(answer.admin === true);
+        setPrivacy(answer.privacy ?? null);
       })
       .catch((cause: unknown) => {
         console.warn('Дневники: права доктора не прочитаны', cause);
@@ -219,6 +230,14 @@ export function startDoctor(next: DoctorSession): DoctorDiaries {
       setLoadError(cause instanceof Error ? cause.message : 'Не удалось загрузить дневники.');
     });
   return diaries;
+}
+
+/** The signed-in doctor accepts the current wording of the service's privacy policy. */
+export async function acceptServicePrivacy(): Promise<void> {
+  const current = session();
+  if (!current) return;
+  const answer = await diaryAuth.acceptPrivacy(doctorApi(current), SERVICE_PRIVACY_VERSION);
+  if (session() === current) setPrivacy(answer.privacy);
 }
 
 /** Looks for the session kept on this device, once; a found one is started. */

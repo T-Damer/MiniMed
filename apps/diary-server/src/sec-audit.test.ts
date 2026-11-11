@@ -102,6 +102,7 @@ async function account(email: string, password = 'password-1') {
         authKey: recovery.authKey,
         identityBlob: await sealIdentity(identity, recovery.wrapKey),
       },
+      privacy: { version: 'policy-test' },
     },
   };
 }

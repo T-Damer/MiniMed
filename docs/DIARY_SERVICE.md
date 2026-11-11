@@ -52,6 +52,29 @@ and `apps/app/src/features/diary`.
 
 The decoy-salt secret and the VAPID key pair are generated on first start and kept in the database.
 
+## Doctors' privacy consent (152-ФЗ ст. 9, 18.1)
+
+The service owner is the operator of doctors' own data (e-mail, name, password hash, sign-in times, push
+subscriptions); patients' data stay under the clinic. The policy is data in the app
+(`apps/app/src/features/diary/consent/service-privacy.ts`, version `SERVICE_PRIVACY_VERSION`; the lawyer's draft
+is `docs/diary-consent/service-privacy.draft.md`). A new wording means a new version in both places.
+
+- `POST /api/auth/register` needs `privacy: { version }`; without it: 400 «Нужно согласие на обработку персональных
+  данных.» (checked before the invite is looked at). Only the public demo account (`DEMO_ACCESS_CODE`) may register
+  without it. The server stamps the time.
+- `POST /api/auth/login`, `/api/auth/register` and `GET /api/auth/me` return `privacy: { version, at } | null`
+  (null: an account from before the policy). `POST /api/auth/privacy` `{ version }` (session needed) records the
+  doctor's acceptance and returns `{ privacy }`.
+- Storage: `doctors.privacy_version` / `privacy_at`, migration 5 in `sqlite-store.ts` and migration 5 (the fifth array)
+  in `ydb-store.ts`; part of the store contract (`contract.ts`, `DiaryStore.acceptDoctorPrivacy`).
+- App: the sign-up form has an unticked «Согласен(на) на обработку моих персональных данных по Политике» (the link
+  opens the policy in a sheet). A new account made by a real access code needs the same tick on its first use
+  (`PrivacyConsentRequired`); an existing code account signs in without it. After signing in, a doctor whose accepted
+  version is missing or differs sees a non-dismissable dialog («Принимаю» / «Выйти»; the demo doctor is exempt);
+  «⋯» → «Политика обработки данных» opens the text any time.
+- A deployed server must run migration 5 before the new client registers anyone (it starts by itself on the next
+  cold start); an old client registering against the new server gets the 400 above.
+
 ## Pilot production (serverless, Yandex Cloud `ru-central1`)
 
 Live since 2026-11-01 (2026-10-27 – 11-01 on a VM); management, ids and costs:

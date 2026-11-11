@@ -87,6 +87,11 @@ const MIGRATIONS: readonly string[][] = [
        prescriptions Int64 NOT NULL, done7 Int64 NOT NULL, total7 Int64 NOT NULL,
        done30 Int64 NOT NULL, total30 Int64 NOT NULL, at Utf8 NOT NULL, PRIMARY KEY (doctor_id))`,
   ],
+  // The privacy policy version a doctor accepted and when (152-ФЗ ст. 9); missing before.
+  [
+    'ALTER TABLE doctors ADD COLUMN privacy_version Utf8',
+    'ALTER TABLE doctors ADD COLUMN privacy_at Utf8',
+  ],
 ];
 
 type Sql = ReturnType<typeof query>;
@@ -193,10 +198,12 @@ export class YdbStore implements DiaryStore {
       await this.sql.begin(async (tx) => {
         await tx`INSERT INTO doctor_emails (email, doctor_id) VALUES (${row.email}, ${row.id})`;
         await tx`INSERT INTO doctors (id, email, name, auth_hash, kdf_salt, kdf_iterations, identity_wrap,
-            identity_sign, identity_blob, recovery_hash, recovery_blob, created_at)
+            identity_sign, identity_blob, recovery_hash, recovery_blob, created_at,
+            privacy_version, privacy_at)
           VALUES (${row.id}, ${row.email}, ${row.name}, ${row.auth_hash}, ${row.kdf_salt},
             ${BigInt(row.kdf_iterations)}, ${row.identity_wrap}, ${row.identity_sign}, ${row.identity_blob},
-            ${row.recovery_hash}, ${row.recovery_blob}, ${row.created_at})`;
+            ${row.recovery_hash}, ${row.recovery_blob}, ${row.created_at},
+            ${maybe(row.privacy_version)}, ${maybe(row.privacy_at)})`;
         if (inviteCode) {
           // Spent only if still unused: of two registrations racing for one code, one wins.
           const invite = await first<{ used_by: string | null }>(
@@ -212,6 +219,11 @@ export class YdbStore implements DiaryStore {
       if (isKeyConflict(cause)) throw new StoreConflict('e-mail');
       throw cause;
     }
+  }
+
+  async acceptDoctorPrivacy(id: string, version: string, at: string): Promise<void> {
+    await this
+      .sql`UPDATE doctors SET privacy_version = ${version}, privacy_at = ${at} WHERE id = ${id}`;
   }
 
   async resetDoctorAuth(

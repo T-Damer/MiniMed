@@ -17,6 +17,8 @@ import {
   signUp,
   signUpMode,
 } from '@/features/diary/connected/doctor-account';
+import { ServicePrivacyLink } from '@/features/diary/consent/ServicePrivacyViews';
+import { SERVICE_PRIVACY_VERSION } from '@/features/diary/consent/service-privacy';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
 
@@ -98,6 +100,8 @@ export function DoctorSignIn(props: {
   const [code, setCode] = createSignal('');
   const [invite, setInvite] = createSignal('');
   const [remember, setRemember] = createSignal(true);
+  // 152-ФЗ ст. 9: unchecked until the doctor ticks it; a separate box, not part of other text.
+  const [consent, setConsent] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [copied, setCopied] = createSignal(false);
@@ -129,7 +133,8 @@ export function DoctorSignIn(props: {
         email().trim() !== '' &&
         name().trim() !== '' &&
         strong &&
-        (signup.latest === 'open' || invite().trim() !== '')
+        (signup.latest === 'open' || invite().trim() !== '') &&
+        consent()
       );
     }
     return email().trim() !== '' && code().trim() !== '' && strong;
@@ -154,7 +159,14 @@ export function DoctorSignIn(props: {
     setBusy(true);
     try {
       if (byCode()) {
-        await props.onSignedIn(await signInWithCode({ code: email(), rememberDevice: remember() }));
+        await props.onSignedIn(
+          await signInWithCode({
+            code: email(),
+            rememberDevice: remember(),
+            // A first use of a real code creates an account: it needs the ticked consent.
+            ...(consent() ? { privacyVersion: SERVICE_PRIVACY_VERSION } : {}),
+          }),
+        );
       } else if (mode() === 'login') {
         await props.onSignedIn(
           await signIn({
@@ -169,6 +181,7 @@ export function DoctorSignIn(props: {
           name: name(),
           password: password(),
           invite: invite(),
+          privacyVersion: SERVICE_PRIVACY_VERSION,
           rememberDevice: remember(),
         });
         setRecovery({ code: result.recoveryCode, session: result.session });
@@ -307,6 +320,19 @@ export function DoctorSignIn(props: {
                   required={!byCode()}
                   value={password()}
                   onInput={(event) => setPassword(event.currentTarget.value)}
+                />
+              </Reveal>
+              <Reveal open={mode() === 'register' || byCode()}>
+                <Checkbox
+                  label={
+                    <>
+                      Согласен(на) на обработку моих персональных данных по{' '}
+                      <ServicePrivacyLink>Политике</ServicePrivacyLink>
+                    </>
+                  }
+                  hint={byCode() ? 'Нужно при первом входе по этому коду' : undefined}
+                  checked={consent()}
+                  onChange={(event) => setConsent(event.currentTarget.checked)}
                 />
               </Reveal>
               <Checkbox

@@ -218,6 +218,7 @@ test.describe('joining documents on a connected diary', () => {
     await doctor.getByLabel('Почта', { exact: true }).fill('consent@example.test');
     await doctor.getByLabel('Как вас подписать для пациентов').fill('Д-р Иванова');
     await doctor.getByLabel('Новый пароль (от 8 символов)').fill('consent-pass-2026');
+    await doctor.getByRole('checkbox', { name: /Согласен\(на\)/u }).check();
     await doctor.getByRole('button', { name: 'Создать аккаунт' }).click();
     await doctor.getByRole('button', { name: 'Я сохранил(а) код' }).click({ timeout: 60_000 });
     await expect(doctor.getByRole('heading', { name: /Сигнум/u })).toBeVisible();
