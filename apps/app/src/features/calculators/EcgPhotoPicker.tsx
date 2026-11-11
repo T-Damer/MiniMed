@@ -1,6 +1,7 @@
 import { type JSX, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import {
   captureNativePhoto,
   NativeCameraError,
@@ -93,5 +94,90 @@ export function EcgPhotoPicker(props: {
       </label>
       {props.extra}
     </div>
+  );
+}
+
+/**
+ * Where the ECG comes from, before there is a photo: the app's list (camera, gallery, typed
+ * numbers) instead of a stack of big buttons, so the tool's first screen looks like the others
+ * (PERF6, owner 2026-11-11). The file inputs keep their names for the system pickers and tests.
+ */
+export function EcgPhotoSourceList(props: {
+  readonly disabled?: boolean;
+  readonly onFile: (file: File) => void;
+  /** «Ввести измерения»: typing ready measurements instead of a photo. */
+  readonly onNumbers?: () => void;
+}): JSX.Element {
+  let camera: HTMLInputElement | undefined;
+  let gallery: HTMLInputElement | undefined;
+  const pick = (event: Event & { currentTarget: HTMLInputElement }): void => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (file) props.onFile(file);
+  };
+  const native = usesNativeCamera();
+  const shoot = async (): Promise<void> => {
+    try {
+      const file = await captureNativePhoto('ecg');
+      if (file) props.onFile(file);
+    } catch (cause) {
+      toast.error(
+        nativeCameraMessage(cause instanceof NativeCameraError ? cause.failure : 'failed'),
+      );
+    }
+  };
+  return (
+    <>
+      <Show when={!native}>
+        <input
+          ref={camera}
+          class="ecg-sources__input"
+          type="file"
+          accept={ECG_PHOTO_ACCEPT}
+          capture="environment"
+          aria-label="Сфотографировать ЭКГ"
+          disabled={props.disabled}
+          onChange={pick}
+        />
+      </Show>
+      <input
+        ref={gallery}
+        class="ecg-sources__input"
+        type="file"
+        accept={ECG_PHOTO_ACCEPT}
+        aria-label="Загрузить ЭКГ"
+        disabled={props.disabled}
+        onChange={pick}
+      />
+      <ListGroup class="ecg-sources" label="Откуда взять ЭКГ">
+        <ListRow
+          icon="camera"
+          tone="green"
+          title="Сфотографировать"
+          subtitle="Весь лист в кадре, сетка чёткая"
+          disabled={props.disabled}
+          onClick={() => (native ? void shoot() : camera?.click())}
+        />
+        <ListRow
+          icon="image"
+          tone="blue"
+          title="Из галереи"
+          subtitle="Фото или скан ленты"
+          disabled={props.disabled}
+          onClick={() => gallery?.click()}
+        />
+        <Show when={props.onNumbers}>
+          {(onNumbers) => (
+            <ListRow
+              icon="list-checks"
+              tone="gray"
+              title="Ввести измерения"
+              subtitle="Интервалы и оси, если они уже есть"
+              onClick={() => onNumbers()()}
+            />
+          )}
+        </Show>
+      </ListGroup>
+    </>
   );
 }

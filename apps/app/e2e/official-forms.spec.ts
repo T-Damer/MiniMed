@@ -62,12 +62,12 @@ async function closePopup(popup: Page): Promise<void> {
   if (!popup.isClosed()) await popup.close();
 }
 
-/** The «Заполнить форму» button of one card of the forms list. */
+/** The row of one form in the forms list (the whole row opens it). */
 function fillButton(page: Page, formNumber: string): Locator {
   return page
     .locator('.forms-home__card')
     .filter({ hasText: `Форма № ${formNumber}` })
-    .getByRole('button', { name: 'Заполнить форму', exact: true });
+    .getByRole('button');
 }
 
 async function openPatientVault(page: Page): Promise<void> {

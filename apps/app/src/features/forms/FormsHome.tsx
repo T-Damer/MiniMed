@@ -1,7 +1,7 @@
 import { For, type JSX } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
 
-import { Button } from '@/components/Button';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
@@ -41,34 +41,27 @@ export function FormsHome(props: {
         }
         helpTitle="О формах"
       />
-      <div class="forms-home__list">
+      <ListGroup class="forms-home__list" label="Формы">
         <For each={listFormSchemas()}>
           {(schema) => (
-            <article class="forms-home__card paper-card">
-              <span class="forms-home__number">Форма № {schema.formNumber}</span>
-              <Heading depth={2} class="forms-home__title">
-                {schema.title}
-              </Heading>
-              <div class="forms-home__actions">
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={() =>
-                    props.onNavigate(
-                      notesFormsPath(schema.id, {
-                        ...(props.patientId ? { patientId: props.patientId } : {}),
-                        ...(props.episodeId ? { episodeId: props.episodeId } : {}),
-                      }),
-                    )
-                  }
-                >
-                  Заполнить форму
-                </Button>
-              </div>
-            </article>
+            <ListRow
+              class="forms-home__card"
+              icon="file-text"
+              tone="blue"
+              title={schema.title}
+              subtitle={`Форма № ${schema.formNumber}`}
+              onClick={() =>
+                props.onNavigate(
+                  notesFormsPath(schema.id, {
+                    ...(props.patientId ? { patientId: props.patientId } : {}),
+                    ...(props.episodeId ? { episodeId: props.episodeId } : {}),
+                  }),
+                )
+              }
+            />
           )}
         </For>
-      </div>
+      </ListGroup>
     </section>
   );
 }

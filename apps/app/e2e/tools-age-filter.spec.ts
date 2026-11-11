@@ -116,9 +116,9 @@ test('filters the calculator sections and an assessment specialty page', async (
   await page.evaluate(() => {
     window.location.hash = '#/assessments/neonatology';
   });
-  await expect(page.locator('.assessment-section').first()).toBeVisible();
+  await expect(page.locator('.assessment-section-row').first()).toBeVisible();
   await filter(page, 'Взрослые');
   await expect(page.getByText('Для выбранного возраста в этом разделе нет тестов')).toBeVisible();
   await filter(page, 'Дети');
-  await expect(page.locator('.assessment-section').first()).toBeVisible();
+  await expect(page.locator('.assessment-section-row').first()).toBeVisible();
 });

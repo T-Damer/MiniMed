@@ -1,4 +1,6 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
+import type { AppGlyphName } from '@/components/AppGlyph';
+import type { ListTileTone } from '@/components/ListRow';
 
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-events';
 import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
@@ -17,6 +19,9 @@ export interface CalculatorSectionDefinition {
   readonly id: CalculatorSectionId;
   readonly title: string;
   readonly description: string;
+  /** The section's tile in the list (PERF6): an icon and a colour of the app's tile palette. */
+  readonly icon: AppGlyphName;
+  readonly tone: ListTileTone;
 }
 
 export interface CalculatorInstallationState {
@@ -168,116 +173,162 @@ export const CALCULATOR_SECTION_CATEGORY_IDS: Readonly<
 export const CALCULATOR_SECTIONS: readonly CalculatorSectionDefinition[] = [
   {
     id: 'unit-conversion',
+    icon: 'scales',
+    tone: 'gray',
     title: 'Преобразование единиц',
     description: 'Масса, длина и объём с переводом через базовую единицу.',
   },
   {
     id: 'anthropometry',
+    icon: 'chart-line',
+    tone: 'teal',
     title: 'Антропометрия',
     description: 'Площадь поверхности тела, z-score и перцентили роста и массы детей.',
   },
   {
     id: 'renal',
+    icon: 'drop',
+    tone: 'blue',
     title: 'Функция почек',
     description: 'Расчётная СКФ у взрослых и детей с явными возрастными ограничениями.',
   },
   {
     id: 'fluids',
+    icon: 'drop-half',
+    tone: 'teal',
     title: 'Жидкость и инфузии',
     description: 'Поддерживающая жидкость и пероральная регидратация у детей.',
   },
   {
     id: 'medication',
+    icon: 'pill',
+    tone: 'purple',
     title: 'Лекарственные расчёты',
     description: 'Дозы, концентрации и правила округления после отдельной проверки источников.',
   },
   {
     id: 'obstetrics',
+    icon: 'baby',
+    tone: 'pink',
     title: 'Акушерство',
     description: 'Срок беременности, предполагаемая дата родов и оценка готовности к родам.',
   },
   {
     id: 'gynecology',
+    icon: 'circle-half',
+    tone: 'pink',
     title: 'Гинекология',
     description: 'Онкологический скрининг и другие гинекологические расчёты.',
   },
   {
     id: 'emergency',
+    icon: 'lightning',
+    tone: 'orange',
     title: 'Неотложная помощь',
     description: 'Электролиты, кислотно-основное состояние, шок и ожоговая травма.',
   },
   {
     id: 'cardiology',
+    icon: 'heartbeat',
+    tone: 'pink',
     title: 'Кардиология',
     description: 'Измерения по фото ЭКГ, коррекция QT и риск инсульта при фибрилляции предсердий.',
   },
   {
     id: 'gastroenterology',
+    icon: 'fork-knife',
+    tone: 'orange',
     title: 'Гастроэнтерология',
     description: 'Неинвазивные индексы фиброза и оценка функции печени.',
   },
   {
     id: 'hematology',
+    icon: 'drop',
+    tone: 'pink',
     title: 'Гематология',
     description: 'Базовые расчёты нейтрофилов, ретикулоцитов и эритроцитарных индексов.',
   },
   {
     id: 'neonatology',
+    icon: 'baby',
+    tone: 'teal',
     title: 'Неонатология',
     description: 'Инфузия глюкозы, физиологическая убыль массы и гестационный возраст.',
   },
   {
     id: 'pediatrics',
+    icon: 'baby',
+    tone: 'green',
     title: 'Педиатрия',
     description: 'Кормления, прикорм и дневной рацион для детей до 3 лет.',
   },
   {
     id: 'intensive-care',
+    icon: 'heartbeat',
+    tone: 'orange',
     title: 'Реанимация и интенсивная терапия',
     description: 'Тяжесть состояния, сепсис, органная дисфункция и седация.',
   },
   {
     id: 'surgery',
+    icon: 'hand',
+    tone: 'gray',
     title: 'Хирургия и травма',
     description: 'Тяжесть травмы, периоперационный риск и хирургические шкалы.',
   },
   {
     id: 'neurology',
+    icon: 'brain',
+    tone: 'purple',
     title: 'Неврология и реабилитация',
     description: 'Инсульт, нейродегенеративные болезни, функциональный статус и уход.',
   },
   {
     id: 'pulmonology',
+    icon: 'sphere',
+    tone: 'blue',
     title: 'Пульмонология и инфекции',
     description: 'Пневмония, ХОБЛ и инфекционные шкалы.',
   },
   {
     id: 'endocrinology',
+    icon: 'flask',
+    tone: 'green',
     title: 'Эндокринология и обмен',
     description: 'Инсулинорезистентность, диабет, щитовидная железа и энергообмен.',
   },
   {
     id: 'laboratory',
+    icon: 'microscope',
+    tone: 'blue',
     title: 'Лабораторные расчёты',
     description: 'Липиды, печёночные и почечные коэффициенты, производные показатели анализов.',
   },
   {
     id: 'rheumatology',
+    icon: 'sneaker-move',
+    tone: 'teal',
     title: 'Ревматология и дерматология',
     description: 'Активность артритов, СКВ, спондилоартритов и псориаза.',
   },
   {
     id: 'oncology',
+    icon: 'cube',
+    tone: 'purple',
     title: 'Онкология',
     description: 'Ответ опухоли, функциональный статус и дозы химиопрепаратов.',
   },
   {
     id: 'urology',
+    icon: 'drop-half',
+    tone: 'blue',
     title: 'Урология',
     description: 'Простатические симптомы, эректильная функция и нефрометрия.',
   },
   {
     id: 'custom',
+    icon: 'calculator',
+    tone: 'green',
     title: 'Мои калькуляторы',
     description: 'Калькуляторы, которые вы составили сами: данные, формула и диапазоны результата.',
   },

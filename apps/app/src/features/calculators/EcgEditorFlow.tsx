@@ -1,5 +1,6 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import { SheetPopover } from '@/components/SheetPopover';
 import type { EcgAutoSummaryStatus } from './ecg-auto-summary';
 import { ECG_MODEL_HELP, ECG_STEP_GUIDES } from './ecg-editor-guide';
@@ -114,28 +115,36 @@ export function EcgHelpButton(props: { readonly step: EcgEditorStep }): JSX.Elem
 /** One quiet row: the model the auto-markup needs, with its download right there. */
 export function EcgModelOffer(props: { readonly editor: EcgEditor }): JSX.Element {
   const e = props.editor;
+  const percent = (): number => Math.round(e.progress() * 100);
   const label = () =>
-    e.installing()
-      ? `Отменить установку · ${Math.round(e.progress() * 100)}%`
-      : 'Установить авторазметку · 19 МБ';
+    e.installing() ? `Отменить установку · ${percent()}%` : 'Установить авторазметку · 19 МБ';
+  // A row of the app's list (PERF6): the offer reads like the other downloads, the button at its end.
   return (
-    <section class="ecg-offer" aria-label="Авторазметка ЭКГ">
-      <span class="ecg-offer__title">Авторазметка · 19 МБ</span>
-      <button
-        class="ecg-offer__button"
-        classList={{ 'ecg-offer__button--busy': e.installing() }}
-        type="button"
-        aria-label={label()}
-        title={label()}
-        onClick={() => void e.install()}
-      >
-        <AppGlyph class="ecg-offer__icon" name={e.installing() ? 'close' : 'download'} />
-        <Show when={e.installing()}>{Math.round(e.progress() * 100)}%</Show>
-      </button>
-      <Show when={e.installing()}>
-        <progress class="ecg-offer__progress" max="1" value={e.progress()} />
-      </Show>
-    </section>
+    <ListGroup class="ecg-offer" label="Авторазметка ЭКГ">
+      <ListRow
+        icon="lightning"
+        tone="purple"
+        title="Авторазметка"
+        subtitle={
+          <Show when={e.installing()} fallback="Сама находит отведения и зубцы · 19 МБ">
+            <progress class="ecg-offer__progress" max="1" value={e.progress()} />
+          </Show>
+        }
+        action={
+          <button
+            class="list-action ecg-offer__button"
+            classList={{ 'ecg-offer__button--busy': e.installing() }}
+            type="button"
+            aria-label={label()}
+            title={label()}
+            onClick={() => void e.install()}
+          >
+            <AppGlyph class="ecg-offer__icon" name={e.installing() ? 'close' : 'download'} />
+            <Show when={e.installing()}>{percent()}%</Show>
+          </button>
+        }
+      />
+    </ListGroup>
   );
 }
 

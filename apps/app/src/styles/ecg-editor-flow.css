@@ -199,29 +199,23 @@
   color: var(--theme-danger);
 }
 
-.ecg-offer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem 0.75rem;
+.ecg-offer,
+.ecg-sources {
   margin: 0 1rem;
-  padding: 0.3rem 0.4rem 0.3rem 0.8rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.6rem;
-  background: var(--theme-surface-raised);
 }
-.ecg-offer__title {
-  font-size: 0.85rem;
+/* The file inputs behind the source rows: the rows open them, the system shows its picker. */
+.ecg-sources__input {
+  display: none;
 }
 .ecg-offer__button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  min-width: 2.5rem;
+  /* One width for «download» and «✕ 42%»: the row does not move when the install starts. */
+  width: 4.25rem;
   min-height: 2.5rem;
-  padding: 0.3rem 0.6rem;
+  padding: 0.3rem 0.4rem;
   border: 1px solid var(--theme-accent);
   border-radius: 0.5rem;
   color: var(--theme-accent-contrast);
@@ -550,6 +544,7 @@
   .ecg-perspective-panel,
   .ecg-update,
   .ecg-offer,
+  .ecg-sources,
   .ecg-summary {
     margin-inline: 0.6rem;
   }

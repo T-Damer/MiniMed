@@ -17,7 +17,7 @@ import {
 } from './EcgEditorFlow';
 import { EcgEditorReport } from './EcgEditorReport';
 import { EcgNumericDiagnosticPanel } from './EcgNumericDiagnosticPanel';
-import { EcgPhotoPicker } from './EcgPhotoPicker';
+import { EcgPhotoPicker, EcgPhotoSourceList } from './EcgPhotoPicker';
 import { ECG_PHOTO_HANDOFF_EVENT, takeHandedOffEcgPhoto } from './ecg-photo-handoff';
 import type { EcgMorphologyObservations } from './ecg-photo-interpreter';
 import type { EcgEditorStep } from './ecgEditor';
@@ -112,6 +112,7 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
         title={TITLES[editor.step() - 1] ?? TITLES[0]}
         class="ecg-editor"
         presentation="screen"
+        closeAs={props.onExit ? 'back' : 'close'}
         headerClass="ecg-editor__header"
         bodyClass="ecg-editor__body"
         headerEnd={<EcgHelpButton step={editor.step()} />}
@@ -122,29 +123,20 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
         </Show>
         <Show when={editor.step() === 1}>
           <div class="ecg-flow__panel">
-            <div class="ecg-editor__upload-bar">
-              <EcgPhotoPicker
-                disabled={editor.loading()}
-                replacing={Boolean(editor.photo())}
-                stretch
-                stack={!editor.photo()}
-                extra={
-                  <Show when={props.onExit}>
-                    <button
-                      class="ecg-picker__option ecg-picker__option--stretch"
-                      type="button"
-                      onClick={() => {
-                        setNumericOpen(true);
-                      }}
-                    >
-                      <AppGlyph class="ecg-picker__icon" name="list-checks" />
-                      Ввести измерения
-                    </button>
-                  </Show>
-                }
-                onFile={load}
-              />
-            </div>
+            <Show
+              when={editor.photo()}
+              fallback={
+                <EcgPhotoSourceList
+                  disabled={editor.loading()}
+                  onFile={load}
+                  {...(props.onExit ? { onNumbers: () => setNumericOpen(true) } : {})}
+                />
+              }
+            >
+              <div class="ecg-editor__upload-bar">
+                <EcgPhotoPicker disabled={editor.loading()} replacing stretch onFile={load} />
+              </div>
+            </Show>
             <Show when={editor.photo()}>
               {(photo) => (
                 <span class="ecg-editor__hint ecg-editor__file">

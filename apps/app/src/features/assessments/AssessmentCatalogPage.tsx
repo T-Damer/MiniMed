@@ -3,6 +3,7 @@ import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
@@ -204,118 +205,180 @@ export function AssessmentCatalogPage(props: {
           />
         }
       >
-        <div class="assessment-section-list">
-          <For each={groupAssessmentsBySection(props.definitions)}>
-            {(group) => {
-              const sectionAssessmentIds = () =>
-                group.assessments.map((definition) => definition.id);
-              const installedCount = () =>
-                sectionAssessmentIds().filter((id) => installed(id)).length;
-              const complete = () =>
-                isAssessmentSectionComplete(
-                  group.section.id,
-                  props.installation,
-                  props.allDefinitions,
-                );
-              const fromDatabase = () =>
-                isAssessmentSectionFromDatabase(group.section.id, props.allDefinitions);
-              return (
-                <Show when={!props.sectionId || props.sectionId === group.section.id}>
-                  <section
-                    class="assessment-section paper-card"
-                    classList={{ 'assessment-section--link': !props.sectionId }}
-                    role={props.sectionId ? undefined : 'button'}
-                    tabindex={props.sectionId ? undefined : 0}
-                    aria-label={
-                      props.sectionId ? undefined : `Открыть раздел «${group.section.title}»`
-                    }
-                    onClick={(event) => {
-                      if (props.sectionId) return;
-                      if (event.target instanceof Element && event.target.closest('button')) return;
-                      props.onOpenSection(group.section.id);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.target instanceof Element && event.target.closest('button')) return;
-                      if (!props.sectionId && (event.key === 'Enter' || event.key === ' ')) {
-                        event.preventDefault();
-                        props.onOpenSection(group.section.id);
-                      }
-                    }}
-                  >
-                    <header class="assessment-section-header">
-                      <div class="assessment-section-header__content">
-                        <h2 class="assessment-section-header__title">{group.section.title}</h2>
-                        <p class="assessment-section-header__description">
-                          {group.section.description}
-                        </p>
-                        <small class="assessment-section-header__meta">
-                          {fromDatabase()
-                            ? `${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве`
-                            : `${installedCount()}/${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве · ${
-                                complete() ? 'раздел скачан' : 'раздел не скачан'
-                              }`}
-                        </small>
-                      </div>
-                      <Show when={!fromDatabase()}>
-                        <Button
+        <Show when={!props.sectionId}>
+          {/* The sections as the app's list (PERF6, owner 2026-11-11 «больше списков»). */}
+          <ListGroup class="assessment-section-rows" label="Разделы тестов">
+            <For each={groupAssessmentsBySection(props.definitions)}>
+              {(group) => {
+                const ids = () => group.assessments.map((definition) => definition.id);
+                const installedCount = () => ids().filter((id) => installed(id)).length;
+                const complete = () =>
+                  isAssessmentSectionComplete(
+                    group.section.id,
+                    props.installation,
+                    props.allDefinitions,
+                  );
+                const fromDatabase = () =>
+                  isAssessmentSectionFromDatabase(group.section.id, props.allDefinitions);
+                const actionLabel = () =>
+                  complete()
+                    ? `Удалить раздел «${group.section.title}»`
+                    : `${sectionDownloadLabel(group.section.id)} — ${group.section.title}`;
+                return (
+                  <ListRow
+                    class="assessment-section-row"
+                    icon="list-checks"
+                    tone="teal"
+                    title={group.section.title}
+                    subtitle={group.section.description}
+                    value={fromDatabase() ? undefined : `${installedCount()} из ${ids().length}`}
+                    aria-label={`Открыть раздел «${group.section.title}»`}
+                    onClick={() => props.onOpenSection(group.section.id)}
+                    action={
+                      fromDatabase() ? undefined : (
+                        <button
                           type="button"
-                          class="assessment-section-header__button"
-                          classList={{
-                            'assessment-section-header__button--primary': !complete(),
-                            'assessment-section-header__button--danger': complete(),
-                          }}
+                          class="list-action"
+                          classList={{ 'list-action--remove': complete() }}
                           data-testid={`assessment-section-${group.section.id}`}
+                          aria-label={actionLabel()}
+                          title={actionLabel()}
                           onClick={() =>
                             complete()
                               ? props.onRemoveSection(group.section.id)
                               : props.onInstallSection(group.section.id)
                           }
-                          icon={
-                            <AppGlyph
-                              name={complete() ? 'trash' : 'download'}
-                              class="assessment-section-header__icon"
-                            />
-                          }
                         >
-                          {complete() ? 'Удалить' : sectionDownloadLabel(group.section.id)}
-                        </Button>
-                      </Show>
-                    </header>
-
-                    <Show when={props.sectionId === group.section.id}>
-                      <div class="assessment-catalog-grid">
-                        <For each={group.assessments}>
-                          {(definition) => {
-                            const requiredModules = () =>
-                              assessmentRequiredByModules(definition.id, props.installation);
-                            const hasUserManagedSource = () =>
-                              !fromDatabase() &&
-                              (props.installation.manualIds.has(definition.id) ||
-                                (props.installation.sectionIds.has(definition.category) &&
-                                  !props.installation.excludedIds.has(definition.id)));
-                            return (
-                              <AssessmentCard
-                                definition={definition}
-                                installed={installed(definition.id)}
-                                canDelete={hasUserManagedSource()}
-                                requiredModules={requiredModules()}
-                                onOpen={props.onOpen}
-                                onInstall={props.onInstall}
-                                onRemove={props.onRemove}
-                                onPrint={props.onPrint}
-                                installSize={props.installSizeOf?.({ definitionId: definition.id })}
+                          <AppGlyph
+                            name={complete() ? 'trash' : 'download'}
+                            class="list-action__icon"
+                          />
+                        </button>
+                      )
+                    }
+                  />
+                );
+              }}
+            </For>
+          </ListGroup>
+        </Show>
+        <Show when={props.sectionId}>
+          <div class="assessment-section-list">
+            <For each={groupAssessmentsBySection(props.definitions)}>
+              {(group) => {
+                const sectionAssessmentIds = () =>
+                  group.assessments.map((definition) => definition.id);
+                const installedCount = () =>
+                  sectionAssessmentIds().filter((id) => installed(id)).length;
+                const complete = () =>
+                  isAssessmentSectionComplete(
+                    group.section.id,
+                    props.installation,
+                    props.allDefinitions,
+                  );
+                const fromDatabase = () =>
+                  isAssessmentSectionFromDatabase(group.section.id, props.allDefinitions);
+                return (
+                  <Show when={!props.sectionId || props.sectionId === group.section.id}>
+                    <section
+                      class="assessment-section paper-card"
+                      role={props.sectionId ? undefined : 'button'}
+                      tabindex={props.sectionId ? undefined : 0}
+                      aria-label={
+                        props.sectionId ? undefined : `Открыть раздел «${group.section.title}»`
+                      }
+                      onClick={(event) => {
+                        if (props.sectionId) return;
+                        if (event.target instanceof Element && event.target.closest('button'))
+                          return;
+                        props.onOpenSection(group.section.id);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.target instanceof Element && event.target.closest('button'))
+                          return;
+                        if (!props.sectionId && (event.key === 'Enter' || event.key === ' ')) {
+                          event.preventDefault();
+                          props.onOpenSection(group.section.id);
+                        }
+                      }}
+                    >
+                      <header class="assessment-section-header">
+                        <div class="assessment-section-header__content">
+                          <h2 class="assessment-section-header__title">{group.section.title}</h2>
+                          <p class="assessment-section-header__description">
+                            {group.section.description}
+                          </p>
+                          <small class="assessment-section-header__meta">
+                            {fromDatabase()
+                              ? `${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве`
+                              : `${installedCount()}/${assessmentCountLabel(sectionAssessmentIds().length)} на устройстве · ${
+                                  complete() ? 'раздел скачан' : 'раздел не скачан'
+                                }`}
+                          </small>
+                        </div>
+                        <Show when={!fromDatabase()}>
+                          <Button
+                            type="button"
+                            class="assessment-section-header__button"
+                            classList={{
+                              'assessment-section-header__button--primary': !complete(),
+                              'assessment-section-header__button--danger': complete(),
+                            }}
+                            data-testid={`assessment-section-${group.section.id}`}
+                            onClick={() =>
+                              complete()
+                                ? props.onRemoveSection(group.section.id)
+                                : props.onInstallSection(group.section.id)
+                            }
+                            icon={
+                              <AppGlyph
+                                name={complete() ? 'trash' : 'download'}
+                                class="assessment-section-header__icon"
                               />
-                            );
-                          }}
-                        </For>
-                      </div>
-                    </Show>
-                  </section>
-                </Show>
-              );
-            }}
-          </For>
-        </div>
+                            }
+                          >
+                            {complete() ? 'Удалить' : sectionDownloadLabel(group.section.id)}
+                          </Button>
+                        </Show>
+                      </header>
+
+                      <Show when={props.sectionId === group.section.id}>
+                        <div class="assessment-catalog-grid">
+                          <For each={group.assessments}>
+                            {(definition) => {
+                              const requiredModules = () =>
+                                assessmentRequiredByModules(definition.id, props.installation);
+                              const hasUserManagedSource = () =>
+                                !fromDatabase() &&
+                                (props.installation.manualIds.has(definition.id) ||
+                                  (props.installation.sectionIds.has(definition.category) &&
+                                    !props.installation.excludedIds.has(definition.id)));
+                              return (
+                                <AssessmentCard
+                                  definition={definition}
+                                  installed={installed(definition.id)}
+                                  canDelete={hasUserManagedSource()}
+                                  requiredModules={requiredModules()}
+                                  onOpen={props.onOpen}
+                                  onInstall={props.onInstall}
+                                  onRemove={props.onRemove}
+                                  onPrint={props.onPrint}
+                                  installSize={props.installSizeOf?.({
+                                    definitionId: definition.id,
+                                  })}
+                                />
+                              );
+                            }}
+                          </For>
+                        </div>
+                      </Show>
+                    </section>
+                  </Show>
+                );
+              }}
+            </For>
+          </div>
+        </Show>
       </Show>
     </>
   );

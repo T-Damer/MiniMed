@@ -315,35 +315,6 @@
   z-index: var(--z-raised-3);
 }
 
-.calculator-section {
-  position: relative;
-}
-
-.calculator-section-open-hit-area {
-  position: absolute;
-  z-index: var(--z-base);
-  inset: 0;
-  width: 100%;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.calculator-section > :not(.calculator-section-open-hit-area) {
-  position: relative;
-  z-index: var(--z-raised);
-}
-
-.calculator-section-actions {
-  position: absolute;
-  z-index: var(--z-raised-3);
-  top: 0;
-  right: 0;
-  pointer-events: auto;
-}
-
 .assessment-card {
   padding-top: var(--theme-space-4);
 }

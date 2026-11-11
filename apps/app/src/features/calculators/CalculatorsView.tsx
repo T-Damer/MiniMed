@@ -19,6 +19,7 @@ import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { DateField } from '@/components/DateField';
 import { HelpSources } from '@/components/HelpSources';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import { NavBack } from '@/components/NavBack';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -323,71 +324,57 @@ function CalculatorSectionCard(props: {
   const hasDownloads = () => props.downloadableModules.length > 0;
   const removable = () => !hasDownloads() && !bundled() && complete();
 
+  /** A short value at the row's end: what a download adds, or how much already works offline. */
+  const value = (): string | undefined =>
+    hasDownloads()
+      ? downloadSize(props.downloadableModules)
+      : availableCount() === 0
+        ? 'Скоро'
+        : bundled()
+          ? undefined
+          : `${installedCount()} из ${availableCount()}`;
+
   return (
-    <section
-      class="calculator-section paper-card"
+    <ListRow
+      class="calculator-section"
       data-testid={`calculator-section-${props.section.id}`}
-    >
-      <button
-        type="button"
-        class="calculator-section-open-hit-area"
-        aria-label={`Открыть раздел «${props.section.title}»`}
-        onClick={() => props.onOpenSection(props.section.id)}
-      />
-      <header class="calculator-section-header">
-        <div>
-          <p class="archive-kicker">Инструменты раздела</p>
-          <h2>{props.section.title}</h2>
-          <Show
-            when={
-              props.matchedTitles && props.matchedTitles.length > 0 ? props.matchedTitles : null
+      icon={props.section.icon}
+      tone={props.section.tone}
+      title={props.section.title}
+      aria-label={`Открыть раздел «${props.section.title}»`}
+      subtitle={
+        <Show
+          when={props.matchedTitles && props.matchedTitles.length > 0 ? props.matchedTitles : null}
+          fallback={props.section.description}
+        >
+          {(titles) =>
+            `${titles().slice(0, 3).join(' · ')}${titles().length > 3 ? ` · ещё ${titles().length - 3}` : ''}`
+          }
+        </Show>
+      }
+      value={value()}
+      onClick={() => props.onOpenSection(props.section.id)}
+      action={
+        hasDownloads() || (availableCount() > 0 && !bundled()) ? (
+          <button
+            type="button"
+            class="list-action"
+            classList={{ 'list-action--remove': removable() }}
+            aria-label={
+              removable()
+                ? `Удалить раздел «${props.section.title}»`
+                : `${props.downloadLabel} — ${props.section.title}`
             }
-            fallback={<p>{props.section.description}</p>}
+            title={removable() ? 'Удалить раздел' : props.downloadLabel}
+            onClick={() =>
+              removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
+            }
           >
-            {(titles) => (
-              <p class="calculator-section__matches">
-                {titles().slice(0, 3).join(' · ')}
-                {titles().length > 3 ? ` · ещё ${titles().length - 3}` : ''}
-              </p>
-            )}
-          </Show>
-          <small>
-            {hasDownloads()
-              ? `${bundled() || installedCount() > 0 ? 'Часть уже работает офлайн · ' : ''}${props.downloadLabel} · ${downloadSize(props.downloadableModules)}`
-              : availableCount() === 0
-                ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
-                : core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions)
-                  ? 'Доступно офлайн'
-                  : `Доступно офлайн: ${installedCount()} из ${availableCount()}`}
-          </small>
-        </div>
-        <div class="calculator-section-actions">
-          <Show when={hasDownloads() || (availableCount() > 0 && !bundled())}>
-            <Button
-              type="button"
-              variant="icon"
-              class="calculator-section-action"
-              classList={{ 'calculator-section-remove': removable() }}
-              aria-label={
-                removable()
-                  ? `Удалить раздел «${props.section.title}»`
-                  : `${props.downloadLabel} — ${props.section.title}`
-              }
-              title={removable() ? 'Удалить раздел' : props.downloadLabel}
-              onClick={() =>
-                removable() ? props.onRemove(props.section.id) : props.onInstall(props.section.id)
-              }
-              icon={
-                <AppGlyph
-                  class="calculator-section-action-icon"
-                  name={removable() ? 'trash' : 'download'}
-                />
-              }
-            />
-          </Show>
-        </div>
-      </header>
-    </section>
+            <AppGlyph class="list-action__icon" name={removable() ? 'trash' : 'download'} />
+          </button>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -2010,7 +1997,7 @@ export function CalculatorsView(): JSX.Element {
                             />
                           }
                         >
-                          <div class="calculator-section-list">
+                          <ListGroup class="calculator-section-list" label="Разделы калькуляторов">
                             <For each={visibleSections()}>
                               {(section) => (
                                 <CalculatorSectionCard
@@ -2030,7 +2017,7 @@ export function CalculatorsView(): JSX.Element {
                                 />
                               )}
                             </For>
-                          </div>
+                          </ListGroup>
                           <Show when={showMyCalculatorsCard()}>
                             <MyCalculatorsCard
                               count={userCalculatorCount()}

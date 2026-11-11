@@ -11,6 +11,7 @@ import {
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
+import { NavBack } from '@/components/NavBack';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
 import { playExitGhost } from '@/components/overlay-ghost';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
@@ -45,6 +46,12 @@ interface OverlayDialogProps {
   /** Id of the element that describes the dialog, for assistive tech. */
   readonly describedBy?: string;
   readonly headerStart?: JSX.Element;
+  /**
+   * `back`: the close control is the app's ‹ at the start of the row, as on a page — for a
+   * full-screen tool that stands in for a route (the ECG editor), so it reads like the other
+   * screens (PERF6, owner 2026-11-11 «ЭКГ выглядит чужим»). `close` (default): ✕ at the end.
+   */
+  readonly closeAs?: 'close' | 'back';
   readonly headerEnd?: JSX.Element;
   readonly onClose: () => void;
   readonly children: JSX.Element;
@@ -390,6 +397,13 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
               class={`overlay-dialog-header overlay-dialog-header--${presentation()} ${props.headerClass ?? ''}`}
               {...(presentation() === 'sheet' ? dragHandlers : {})}
             >
+              <Show when={props.closeAs === 'back' && dismissible()}>
+                <NavBack
+                  class="knowledge-back-button overlay-dialog__back-button"
+                  aria-label="Назад"
+                  onClick={closeDialog}
+                />
+              </Show>
               {props.headerStart}
               <div class="overlay-dialog-title">
                 <h2 class="overlay-dialog__heading" id={titleId}>
@@ -406,7 +420,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                 </Show>
               </div>
               {props.headerEnd}
-              <Show when={dismissible()}>
+              <Show when={dismissible() && props.closeAs !== 'back'}>
                 <button
                   type="button"
                   class={`overlay-dialog__close-button overlay-dialog__close-button--${presentation()}`}
