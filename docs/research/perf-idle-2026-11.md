@@ -34,11 +34,37 @@ search and the reader; this one measures what the app does **while nobody touche
   1.62.1) as a phone, 390×844 at 2.75×, on an M2 Max. **Process CPU is measured without CPU
   throttling**: CDP's 4× throttle costs ~800 ms of renderer CPU per second by itself, which hides
   everything else. Unit below: **CPU ms per second** of wall time (1000 = one core busy).
-- **Not a phone.** The owner's Xiaomi 14 was on USB with a debuggable MiniMed 0.6.93, but in use
-  (another app in front); it was not taken over without the owner's OK, so **no number here comes
-  from the phone**. The headless GPU is software (SwiftShader), so GPU milliseconds are larger than
-  on a phone GPU; what carries over is the count of frames drawn (120 a second on a 120 Hz phone
-  keeps the GPU and the display pipeline awake) and the main-thread work per frame.
+- **The phone** (owner's OK 2026-11-11): his Xiaomi 14 (HyperOS, 120 Hz, WebView Chrome 156) with the installed
+  MiniMed **0.6.93 — the code before these fixes** (installing a new build was not part of the OK, so the phone has
+  «before» numbers only; «after» comes from the Mac). Read over adb and CDP (`webview_devtools_remote_<pid>`, no
+  typing): CPU ticks of the app process (its RenderThread draws the WebView), the WebView renderer and
+  SurfaceFlinger from `/proc/<pid>/stat`, frames from `dumpsys gfxinfo`, main-thread time from CDP, skin
+  temperature from `dumpsys thermalservice`. Scripts were kept out of the repository (ad hoc, read-only).
+- The headless Mac GPU is software (SwiftShader); on the phone the same endless animations cost the app's draw
+  thread and the system compositor instead (below).
+
+## On the owner's phone (0.6.93, before the fixes; CPU ms per second, 1000 = one core)
+
+Second walk (everything mounted), 15 s settle, 10 s window:
+
+| screen | app (draw) | WebView renderer | SurfaceFlinger | frames/s | main thread ms/s | endless animation |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| search home | 1 072 | 217 | 416 | 240 | 45 | ECG trace |
+| drug interactions | 1 128 | 325 | 443 | 240 | 51 | ECG trace |
+| diaries (signed in, patient list) | 781 | 3 391 | 148 | 36 | 918 | garden sway, falling leaves |
+| knowledge base | 1 190 | 2 499 | 279 | 210 | 811 | download spinners (an install was running) |
+| files, calculators, ECG by photo, settings | 4–8 | 102–110 | 7–18 | 0 | 1–2 | — |
+
+- The ECG trace alone keeps **about 1.5 cores** busy on an idle search home (draw thread + compositor at 240 frames a
+  second as gfxinfo counts them); the diary garden **about 4** (120 style recalculations and 120 layouts a second,
+  384 ms/s of main thread measured separately). Both are gone in this branch (Mac: 0 frames, 13–45 ms/s).
+- Notes showed 870 ms/s of main thread right after the knowledge base and 2 ms/s when left alone: background work
+  (a running install, the notes sync), not the screen.
+- **Memory:** the WebView renderer held **1.9 GB PSS, 557 MB of it in compressed swap** (app process 317 MB); the JS
+  heap read 622 → 1 020 MB over the walks (`performance.memory`, coarse). Swapping that much also costs CPU. Not
+  investigated further (next steps).
+- **Heat:** skin 36.1 °C before (another app in front) → 40.0 °C after ~9 min of MiniMed in front → 42.1 °C after
+  ~15 min (USB-powered the whole time, which adds heat of its own).
 
 ## Ranked causes and fixes (by measured cost)
 
@@ -116,6 +142,6 @@ all (the reader's 48 k-node case from PERF5 is a long КР, not measured here).
    the files are gone. The app now stops rebuilding the core for them, but nothing tells the doctor
    or repairs the install; a phone with a cleaned storage would show the summary instead of the
    full text.
-4. **Android numbers.** Repeat the three tests on the owner's phone (CDP over
-   `webview_devtools_remote`, `adb shell dumpsys gfxinfo org.med.web framestats`, `top`, thermal
-   service) once he agrees to hand it over for ~15 minutes.
+4. **Phone «after» numbers** need this branch installed on the phone (the same adb/CDP reading).
+5. **Renderer memory on the phone: 1.9 GB PSS, 557 MB swapped** — find what holds it (SQLite wasm heaps of the
+   module workers, kept-alive readers, the catalog) with a heap snapshot over CDP.

@@ -30,7 +30,9 @@ Detailed history, moved verbatim on 2026-09-24:
   autoplay ran behind every tab → only on screen; reopening a document whose module file is missing rebuilt the
   whole core and its indexes each time (3.8 s → 0.17 s CPU) → rebuild only when the installed set changed
   (`coreServesInstalledSet`). New rule (AGENTS.md «An idle screen draws nothing»), guarded by
-  `e2e/perf-budget.spec.ts`. Not measured on a phone (the owner's phone was in use).
+  `e2e/perf-budget.spec.ts`. On the owner's phone (0.6.93, before the fixes) the ECG trace kept ~1.5 cores busy on
+  an idle search home (240 frames/s) and the diary garden ~4; the WebView renderer held 1.9 GB (557 MB swapped); skin
+  36 → 42 °C in 15 min. «After» was measured on the Mac only (no install on the phone).
 - **Lists** ([ui-unify-2026-11.md](research/ui-unify-2026-11.md)): shared `ListGroup`/`ListRow`
   (`components/ListRow.tsx`, DESIGN.md «List») for «Формы», calculator and test sections, the ECG first step
   (camera / gallery / typed measurements, «Авторазметка»); the ECG flow closes with ‹ (`OverlayDialog closeAs`).
