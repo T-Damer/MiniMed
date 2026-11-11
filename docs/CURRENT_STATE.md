@@ -20,7 +20,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Phone heat, one visual language, «Файлы» by kind — 2026-11-11 (STATE PERF6; branch `perf6-ui-files`, not merged)
+## Phone heat, one visual language, «Файлы» by kind — 2026-11-11 (STATE PERF6; merged, not released)
 
 - **Owner 2026-11-11:** the phone heats while navigating and using features; screens and tools look different
   (the ECG tool most); more lists; «Файлы» by document kind plus «Мой компьютер».
