@@ -4,6 +4,37 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.96] - 2026-11-12
+
+- Diary, new patient: the card is built from scratch, top to bottom, in six numbered steps («Профиль», «Прошлое
+  лечение», «Лечение сейчас», «Что отмечает пациент», «Приёмы, анализы, задания», «Связь и помощь»); nothing is
+  filled in in advance. On a wide screen the doctor's form is on the left and the patient's screen, blue and
+  read-only, on the right; on a phone «Как увидит пациент» opens it as a sheet, and a tap on a row there goes back to
+  its step.
+- Diary, research: a plan item keeps the catalog medicine, its ATC codes and the doctor's target («на что
+  назначено»); the doctor rates a visit on a scale; the patient may join a study (voluntary, revocable).
+  «Выгрузка для исследования» puts the diaries of consenting participants into one workbook under study codes, with
+  observation days instead of dates and no free text.
+- Diary, service overview: the service owner sees doctors, patients, prescriptions and adherence. Doctors' apps send
+  only anonymous per-doctor totals (medicine intakes taken out of those due); diary contents stay end-to-end
+  encrypted.
+- Diary, privacy: a doctor accepts the service's privacy policy at sign-up (an unticked box); accounts made earlier
+  are asked once («Принимаю» or «Выйти»). The policy names who delivers push notifications (Google, Apple, Mozilla).
+- Diary fixes: «Отмена» in the browser's install dialog counts as an answer (no install guide after it); a care row's
+  time, icon and title sit on one line; in a browser tab the bar above the page has the page's colour instead of a grey
+  band; on a wide screen the patient's column no longer slides under the header at the end of a long form.
+- «Файлы»: «Места» with «Мой компьютер» and «По виду», one row per document kind, above the folders; a file opened
+  from the computer keeps a copy in «С компьютера». In the list view the icon no longer touches the name.
+- One list style for «Формы», the calculator and test sections and the ECG tool's first screen; the ECG tool closes
+  with ‹.
+- Less heat when idle: the diary garden settles, the ECG line in page headers rests 6 s after the last touch, the
+  search carousel runs only while on screen, and reopening a document no longer rebuilds the search core.
+- Drug comparison is built from the published ЕСКЛП modules again (agreed ATC pairs, codes and repaired strengths).
+  News: rows a fast scroll carries past the screen are marked read. Reader: holding its controls no longer cuts a
+  running action short.
+- Clinical recommendations: a «=» the source wraps in a subscript tag stays «=» (narcology КР check,
+  `docs/research/narcology-kr-check-2026-11-10.md`); takes effect with the next КР republish.
+
 - Reader: documents look as their sources meant them. A clinical recommendation's «Уровень убедительности…» line,
   «Комментарии» and the text after a list are no longer glued onto the last list item; dash lists split into items;
   table rows that had lost their header (РЛС packaging, glossaries) are drawn as tables instead of «| a | b |» text; a

@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 9 November 2026
+> Updated: 12 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -121,6 +121,17 @@ All 825 module databases scanned through the reader's own pipeline, 493 sampled 
 ## Narcology КР check — 2026-11-10 (STATE KR-NARCO; not pushed, not released)
 
 Ten reported items compared with the official JSON and PDF: nine are in the source and left as they are (data conflicts, the page number «50», «Налмефен» glued in the JSON, «)» in 590_2); one was ours (`<sub>=</sub>` → «₌», fixed, `EXTRACTOR_REVISION` 7, no module rebuilt) — [research/narcology-kr-check-2026-11-10.md](research/narcology-kr-check-2026-11-10.md).
+
+## Release 0.6.96 — 2026-11-12
+
+- **In it:** RESEARCH1 (catalog drug, ATC, target, visit rating, study consent, study export), ADMIN1 («Обзор сервиса»,
+  anonymous per-doctor totals), NEWPAT1 (new patient from scratch, doctor form and blue patient screen), PRIV1 (doctors'
+  privacy policy at sign-up), PERF6 (idle heat, shared lists, «Файлы» places and kinds), E2E-MAIN fixes, FMT-AUDIT
+  reader formatting, the КР `<sub>=</sub>` ingest fix (takes effect with the next КР republish).
+- **Fixed at release:** CI ruff format/lint of the КР ingest change; the wide patient column was pushed under the
+  header at the end of a long form (`PatientFormColumns` now subtracts the page's bottom room).
+- **Checks:** `bun run verify`, Python ruff/pyright/pytest, e2e new patient, files places and diary patient (25).
+  Not checked on a phone.
 
 ## Release 0.6.95 — 2026-11-09
 
