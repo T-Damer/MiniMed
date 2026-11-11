@@ -52,6 +52,12 @@ search and the reader; this one measures what the app does **while nobody touche
 | drug interactions, any page with the ECG band | 119–181 (at 5 s) | rests after 6 s | same trace |
 | every other screen | 11–22 | 11–18 | timers only (frame-health 5 s, reminders 30 s) |
 
+Final build, every screen, settled 25 s, one round (CPU ms/s · frames drawn per second): search home
+45 · 10 (the carousel's autoplay while on screen), files 19 · 0, knowledge base 19 · 0, notes 15 · 0, diaries 19 ·
+0, news 16 · 0, calculators 13 · 0, tests 16 · 0, ECG by photo 13 · 0, drug interactions 31 · 5, settings 19 · 0,
+reader КР 714_2 13 · 0, search home after the loop 29 · 5. No endless animation runs on any of them. (Before, at
+5 s settle: search home 199 · 120, diaries 896 · 120, drug interactions 181 · 120; the rest 14–146.)
+
 Experiments on the diary screen (`PERF_CSS`, one part off at a time, CPU ms/s): all 885; sway off
 855 (layouts 128 → 0/s); falling leaves off 993; sign-in logo/pulse off 751; **blur off 444**
 (GPU 601 → 148). Search home: ECG off 269 → 80 (frames 120 → 5/s).
