@@ -1,4 +1,4 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -32,32 +32,6 @@ export function ServicePrivacyDialog(props: { readonly onClose: () => void }): J
     <OverlayDialog open title={SERVICE_PRIVACY.title} onClose={props.onClose}>
       <PolicyBody />
     </OverlayDialog>
-  );
-}
-
-/**
- * The link inside the sign-up checkbox's label: opens the policy without ticking the box. The sheet
- * is mounted only while open.
- */
-export function ServicePrivacyLink(props: { readonly children: JSX.Element }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  return (
-    <>
-      <button
-        type="button"
-        class="service-privacy__link"
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setOpen(true);
-        }}
-      >
-        {props.children}
-      </button>
-      <Show when={open()}>
-        <ServicePrivacyDialog onClose={() => setOpen(false)} />
-      </Show>
-    </>
   );
 }
 

@@ -17,7 +17,7 @@ import {
   signUp,
   signUpMode,
 } from '@/features/diary/connected/doctor-account';
-import { ServicePrivacyLink } from '@/features/diary/consent/ServicePrivacyViews';
+import { ServicePrivacyLink } from '@/features/diary/consent/ServicePrivacyLink';
 import { SERVICE_PRIVACY_VERSION } from '@/features/diary/consent/service-privacy';
 import { SignInGarden } from '@/features/diary/dashboard/SignInGarden';
 import { getClinicianProfile, setClinicianProfile } from '@/state/clinician-profile';
