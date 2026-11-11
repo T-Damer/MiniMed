@@ -96,8 +96,10 @@ def _script_text(data: str, *, superscript: bool) -> str:
     # A bare «=», bracket or similar between words is source punctuation that the source happened
     # to wrap in <sub> (a URL's «…323788649<sub>=</sub>Pharmacological»), not a script: «₌» would
     # change the character. Only signs («H⁺», «Cl⁻») stay convertible without a digit or letter.
-    if stripped and not any(char.isalnum() for char in stripped) and not (
-        set(stripped) <= _SCRIPT_SIGNS
+    if (
+        stripped
+        and not any(char.isalnum() for char in stripped)
+        and not (set(stripped) <= _SCRIPT_SIGNS)
     ):
         return data
     table = _SUPERSCRIPT if superscript else _SUBSCRIPT

@@ -71,7 +71,7 @@ def test_footnote_and_exponent_digits_do_not_glue_onto_numbers(tmp_path: Path) -
 
 
 def test_bare_punctuation_wrapped_in_a_script_tag_stays_as_written(tmp_path: Path) -> None:
-    # КР 32_2, references: the source wraps the «=» of a URL in <sub>; «₌» would change the text.
+    # Guideline 32_2: the source wraps the «=» of a URL in <sub>; «₌» would change the text.
     texts = _texts(
         tmp_path,
         "<p>publication/323788649<sub>=</sub>Pharmacological<sub>=</sub>interventions</p>"
