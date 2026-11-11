@@ -21,6 +21,7 @@ import {
   type DiaryPatientSummary,
   DiaryPatientSummarySchema,
   DiaryPreloginResponseSchema,
+  DiaryPrivacyRecordSchema,
   type DiaryPublicIdentity,
   DiaryPushKeySchema,
   type DiaryRecordsNotice,
@@ -102,6 +103,7 @@ export function createDiaryApi(token: () => string | undefined, base = ''): Diar
   };
 }
 
+const DiaryPrivacyAnswerSchema = z.object({ privacy: DiaryPrivacyRecordSchema });
 const Ok = z.object({ ok: z.literal(true) }).passthrough();
 const Seqs = z.object({ seqs: z.array(z.number()) });
 const Patients = z.object({ patients: z.array(DiaryPatientSummarySchema) });
@@ -124,6 +126,9 @@ export const diaryAuth = {
     api.call('POST', '/api/auth/login', DiarySessionResponseSchema, { email, authKey }),
   logout: (api: DiaryApi) => api.call('POST', '/api/auth/logout', Ok, {}),
   me: (api: DiaryApi) => api.call('GET', '/api/auth/me', DiaryMeResponseSchema),
+  /** The doctor accepts this version of the service's privacy policy. */
+  acceptPrivacy: (api: DiaryApi, version: string) =>
+    api.call('POST', '/api/auth/privacy', DiaryPrivacyAnswerSchema, { version }),
   recoverFetch: (api: DiaryApi, email: string, recoveryAuthKey: string) =>
     api.call('POST', '/api/auth/recover/fetch', DiaryRecoverFetchResponseSchema, {
       email,

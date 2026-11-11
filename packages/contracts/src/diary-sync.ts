@@ -28,6 +28,21 @@ export const DiaryKdfSchema = z.object({
   iterations: z.number().int().min(100_000).max(5_000_000),
 });
 
+/**
+ * The doctor's consent to the service's privacy policy: the version of the text the doctor read
+ * (the server stamps the time). Sent with registration and with `POST /api/auth/privacy`.
+ */
+export const DiaryPrivacyAcceptanceSchema = z.object({
+  version: z.string().trim().min(1).max(64),
+});
+export type DiaryPrivacyAcceptance = z.infer<typeof DiaryPrivacyAcceptanceSchema>;
+
+/** What the server keeps of that consent: the accepted version and when; null before the doctor accepted. */
+export const DiaryPrivacyRecordSchema = z
+  .object({ version: z.string(), at: z.string() })
+  .nullable();
+export type DiaryPrivacyRecord = z.infer<typeof DiaryPrivacyRecordSchema>;
+
 export const DiaryRegisterRequestSchema = z.object({
   email: DiaryEmailSchema,
   name: z.string().trim().min(1).max(120),
@@ -40,6 +55,8 @@ export const DiaryRegisterRequestSchema = z.object({
   invite: z.string().trim().max(64).optional(),
   /** `inviteProof(code)`: the code itself never reaches the server (SEC-AUDIT1). */
   inviteProof: base64Url.max(100).optional(),
+  /** Required by the server (152-ФЗ ст. 9): a registration without it is refused. */
+  privacy: DiaryPrivacyAcceptanceSchema.optional(),
 });
 export type DiaryRegisterRequest = z.infer<typeof DiaryRegisterRequestSchema>;
 
@@ -63,6 +80,8 @@ export const DiarySessionResponseSchema = z.object({
   token: base64Url,
   doctor: DiaryDoctorProfileSchema,
   identityBlob: sealed,
+  /** The doctor's accepted privacy policy version; null for an account made before the policy. */
+  privacy: DiaryPrivacyRecordSchema.optional(),
 });
 export type DiarySessionResponse = z.infer<typeof DiarySessionResponseSchema>;
 
@@ -268,6 +287,7 @@ export const DiaryMeResponseSchema = z.object({
   doctor: DiaryDoctorProfileSchema,
   identityBlob: sealed,
   admin: z.boolean().optional(),
+  privacy: DiaryPrivacyRecordSchema.optional(),
 });
 export type DiaryMeResponse = z.infer<typeof DiaryMeResponseSchema>;
 

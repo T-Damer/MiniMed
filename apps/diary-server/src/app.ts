@@ -21,6 +21,7 @@ import {
   DiaryPatientCreateSchema,
   type DiaryPatientSummary,
   DiaryPreloginRequestSchema,
+  DiaryPrivacyAcceptanceSchema,
   type DiaryPushPayload,
   DiaryPushSubscriptionSchema,
   DiaryRecordsPushSchema,
@@ -434,6 +435,11 @@ export function createApp(
     identity: { wrap: row.identity_wrap, sign: row.identity_sign },
   });
 
+  const privacyOf = (row: DoctorRow) =>
+    row.privacy_version && row.privacy_at
+      ? { version: row.privacy_version, at: row.privacy_at }
+      : null;
+
   const isAdmin = (row: DoctorRow): boolean =>
     (config.adminEmails ?? []).includes(row.email.toLowerCase());
 
@@ -512,6 +518,11 @@ export function createApp(
 
   route('POST', '/api/auth/register', async (request) => {
     const input = await body(request, DiaryRegisterRequestSchema);
+    // 152-ФЗ ст. 9: no account without the doctor's own consent to the policy, checked before
+    // anything is spent. The public demo account holds no one's personal data and takes none.
+    if (!input.privacy && input.email !== (await demoEmail)) {
+      throw new HttpError(400, 'Нужно согласие на обработку персональных данных.');
+    }
     await limit(`register:${input.email}`);
     await limit(`register-from:${clientAddress(request)}`);
     // Open sign-up: a cap on new accounts for the whole service, not only per address.
@@ -546,6 +557,8 @@ export function createApp(
       recovery_hash: await passwords.hash(input.recovery.authKey),
       recovery_blob: input.recovery.identityBlob,
       created_at: now(),
+      privacy_version: input.privacy?.version ?? null,
+      privacy_at: input.privacy ? now() : null,
     };
     try {
       await store.createDoctor(row, inviteCode);
@@ -558,7 +571,12 @@ export function createApp(
     }
     const id = row.id;
     return json(
-      { token: await newSession(id), doctor: profile(row), identityBlob: row.identity_blob },
+      {
+        token: await newSession(id),
+        doctor: profile(row),
+        identityBlob: row.identity_blob,
+        privacy: privacyOf(row),
+      },
       201,
     );
   });
@@ -571,6 +589,7 @@ export function createApp(
       token: await newSession(row.id),
       doctor: profile(row),
       identityBlob: row.identity_blob,
+      privacy: privacyOf(row),
     });
   });
 
@@ -586,8 +605,18 @@ export function createApp(
     return json({
       doctor: profile(row),
       identityBlob: row.identity_blob,
+      privacy: privacyOf(row),
       ...(isAdmin(row) ? { admin: true } : {}),
     });
+  });
+
+  // An account made before the policy (or one that meets a new wording) accepts the current version.
+  route('POST', '/api/auth/privacy', async (request, url) => {
+    const id = doctorOnly(await caller(request, url));
+    const { version } = await body(request, DiaryPrivacyAcceptanceSchema);
+    const at = now();
+    await store.acceptDoctorPrivacy(id, version, at);
+    return json({ privacy: { version, at } });
   });
 
   route('POST', '/api/auth/recover/fetch', async (request) => {

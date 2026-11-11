@@ -95,6 +95,7 @@ export async function runStoreContract(
         authKey: recovery.authKey,
         identityBlob: await sealIdentity(identity, recovery.wrapKey),
       },
+      privacy: { version: 'contract-1' },
     };
     return { identity, code, recovery, body };
   };
@@ -116,6 +117,26 @@ export async function runStoreContract(
     call('POST', '/api/auth/register', (await registration(ownerEmail, 'Двойник')).body),
     'e-mail taken',
   );
+  {
+    // 152-ФЗ ст. 9: no account without the consent; the accepted version and time are kept.
+    const { privacy: _omitted, ...withoutConsent } = (
+      await registration(`noconsent-${run}@clinic.test`, 'Без согласия')
+    ).body;
+    await expectStatus(
+      400,
+      call('POST', '/api/auth/register', withoutConsent),
+      'register without consent',
+    );
+    check(
+      (await store.doctorByEmail(`noconsent-${run}@clinic.test`)) === undefined,
+      'a refused registration leaves no account',
+    );
+    const stored = await store.doctorById(owner.id);
+    check(
+      stored?.privacy_version === 'contract-1' && typeof stored.privacy_at === 'string',
+      'the consent is stored with the registration',
+    );
+  }
   step('register');
 
   // Invites (SEC-AUDIT1): plain codes are re-keyed, a code is spent once even by a race.
@@ -140,6 +161,8 @@ export async function runStoreContract(
     recovery_hash: 'h',
     recovery_blob: 'b',
     created_at: new Date().toISOString(),
+    privacy_version: null,
+    privacy_at: null,
   });
   await store.createDoctor(inviteDoctor(`invited-${run}@clinic.test`), inviteKey);
   let spent = false;
@@ -163,6 +186,22 @@ export async function runStoreContract(
   );
   const me = await expectStatus(200, call('GET', '/api/auth/me', undefined, login['token']), 'me');
   check(me['doctor'].id === owner.id, 'me is the owner');
+  check(me['privacy']?.version === 'contract-1', 'me carries the accepted policy version');
+  await expectStatus(
+    200,
+    call('POST', '/api/auth/privacy', { version: 'contract-2' }, login['token']),
+    'accept a newer policy',
+  );
+  await expectStatus(400, call('POST', '/api/auth/privacy', {}, login['token']), 'no version');
+  await expectStatus(
+    401,
+    call('POST', '/api/auth/privacy', { version: 'x' }),
+    'privacy needs a session',
+  );
+  check(
+    (await store.doctorById(owner.id))?.privacy_version === 'contract-2',
+    'the accepted version is replaced',
+  );
   await expectStatus(200, call('POST', '/api/auth/logout', undefined, login['token']), 'logout');
   await expectStatus(401, call('GET', '/api/auth/me', undefined, login['token']), 'logged out');
   step('sessions');

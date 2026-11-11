@@ -30,6 +30,11 @@ import { InstallCard } from '@/diary/InstallWarning';
 import { replicaResults } from '@/features/diary/connected/diary-replica';
 import { isDemoSession } from '@/features/diary/connected/doctor-account';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
+import {
+  ServicePrivacyAccept,
+  ServicePrivacyDialog,
+} from '@/features/diary/consent/ServicePrivacyViews';
+import { privacyAcceptanceNeeded } from '@/features/diary/consent/service-privacy';
 import { CuratorStack } from '@/features/diary/dashboard/CuratorStack';
 import { DiaryPatientPage } from '@/features/diary/dashboard/DiaryPatientPage';
 import { DoctorSignIn } from '@/features/diary/dashboard/DoctorSignIn';
@@ -37,10 +42,12 @@ import { DEMO_LABEL_PREFIX, hasDemoSet } from '@/features/diary/dashboard/demo-p
 import { adherence } from '@/features/diary/dashboard/diary-insights';
 import { enableDoctorPush } from '@/features/diary/dashboard/doctor-push';
 import {
+  acceptServicePrivacy,
   addDemoPatients,
   demoProgress,
   doctorIsAdmin,
   doctorLoadError,
+  doctorPrivacy,
   doctorPushState,
   doctorRestored,
   doctorSession,
@@ -240,6 +247,21 @@ export function DiaryDashboard(props: {
   /** Archived patients waiting for «Удалить» to be confirmed. */
   const [deleting, setDeleting] = createSignal<readonly DoctorPatient[]>([]);
   const [pushHelp, setPushHelp] = createSignal(false);
+  /** The service's privacy policy opened from «⋯»; the accepting dialog is `ServicePrivacyAccept`. */
+  const [policyOpen, setPolicyOpen] = createSignal(false);
+  const [accepting, setAccepting] = createSignal(false);
+  const [acceptError, setAcceptError] = createSignal('');
+  const acceptPolicy = (): void => {
+    setAcceptError('');
+    setAccepting(true);
+    acceptServicePrivacy()
+      .catch((cause: unknown) => {
+        setAcceptError(
+          cause instanceof Error ? cause.message : 'Не получилось сохранить. Попробуйте ещё раз.',
+        );
+      })
+      .finally(() => setAccepting(false));
+  };
   /** The patient whose pairing code and link are shown again (a lost page, another device). */
   const [pairing, setPairing] = createSignal<string>();
   // Taps that change the screen answer at once: the page on screen starts leaving, and the route
@@ -365,6 +387,14 @@ export function DiaryDashboard(props: {
         menuOnly: true,
         disabled: Boolean(demo()) || hasDemo(),
         onSelect: () => addDemo(diaries),
+      },
+      {
+        id: 'privacy',
+        label: 'Политика обработки данных',
+        icon: 'file-text',
+        priority: 3,
+        menuOnly: true,
+        onSelect: () => setPolicyOpen(true),
       },
       {
         id: 'out',
@@ -681,6 +711,17 @@ export function DiaryDashboard(props: {
           if (!open) setDeleting([]);
         }}
       />
+      <Show when={session() && privacyAcceptanceNeeded(doctorPrivacy())}>
+        <ServicePrivacyAccept
+          busy={accepting()}
+          error={acceptError()}
+          onAccept={acceptPolicy}
+          onLeave={leaveDoctor}
+        />
+      </Show>
+      <Show when={policyOpen()}>
+        <ServicePrivacyDialog onClose={() => setPolicyOpen(false)} />
+      </Show>
       <Show when={pushHelp() && session()}>
         {(current) => (
           <PushHelpDialog

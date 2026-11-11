@@ -234,6 +234,11 @@ export async function signUp(input: {
   readonly name: string;
   readonly password: string;
   readonly invite?: string;
+  /**
+   * The policy version the doctor ticked (152-ФЗ ст. 9); the server refuses an account without
+   * it, except the public demo one.
+   */
+  readonly privacyVersion?: string;
   readonly rememberDevice: boolean;
 }): Promise<SignUpResult> {
   const email = input.email.trim().toLowerCase();
@@ -257,6 +262,7 @@ export async function signUp(input: {
     },
     // Only the code's proof goes to the server: an access code is also the account's password.
     ...(input.invite?.trim() ? { inviteProof: await inviteProof(input.invite) } : {}),
+    ...(input.privacyVersion ? { privacy: { version: input.privacyVersion } } : {}),
   });
   const session = { token: answer.token, doctor: answer.doctor, identity };
   if (input.rememberDevice) await remember(session);
@@ -298,6 +304,14 @@ async function accessCodeAccount(code: string): Promise<{ email: string; passwor
   return { email: await accessCodeEmail(code), password: code };
 }
 
+/** A code that opens a new account needs the doctor's consent to the policy first. */
+export class PrivacyConsentRequired extends Error {
+  constructor() {
+    super('Для первого входа по этому коду отметьте согласие на обработку персональных данных.');
+    this.name = 'PrivacyConsentRequired';
+  }
+}
+
 /** The name patients see for a doctor who signed in by code alone. */
 export const ACCESS_CODE_DOCTOR_NAME = 'Врач';
 
@@ -310,6 +324,8 @@ export async function signInWithCode(input: {
   readonly rememberDevice: boolean;
   /** The name patients see; «Врач» by default. */
   readonly name?: string;
+  /** The policy version the doctor ticked; a first use of a real code needs it. */
+  readonly privacyVersion?: string;
 }): Promise<DoctorSession> {
   const code = readAccessCode(input.code);
   if (!code) throw new Error('Код выглядит как XXXX-XXXX-XXXX.');
@@ -319,11 +335,16 @@ export async function signInWithCode(input: {
   } catch (cause) {
     if (!(cause instanceof DiaryApiError && cause.status === 401)) throw cause;
   }
+  // The public demo account holds nobody's personal data and takes no consent.
+  if (!input.privacyVersion && code !== readAccessCode(DEMO_ACCESS_CODE)) {
+    throw new PrivacyConsentRequired();
+  }
   try {
     const { session } = await signUp({
       ...account,
       name: input.name ?? ACCESS_CODE_DOCTOR_NAME,
       invite: input.code.trim(),
+      ...(input.privacyVersion ? { privacyVersion: input.privacyVersion } : {}),
       rememberDevice: input.rememberDevice,
     });
     return session;

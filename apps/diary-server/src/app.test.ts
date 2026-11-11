@@ -87,6 +87,7 @@ async function register(
       authKey: recovery.authKey,
       identityBlob: await sealIdentity(identity, recovery.wrapKey),
     },
+    privacy: { version: 'policy-test' },
   });
   expect(result.status).toBe(201);
   return {
@@ -98,6 +99,53 @@ async function register(
 }
 
 describe('diary server', () => {
+  it('refuses a registration without the privacy consent and keeps the accepted version', async () => {
+    const { db, call } = await setup();
+    const identity = await generateIdentity();
+    const secrets = await deriveAccountSecrets('password-1', KDF);
+    const recovery = await deriveRecoverySecrets(newRecoveryCode(), 'a@b.ru');
+    const request = {
+      email: 'a@b.ru',
+      name: 'Врач',
+      authKey: secrets.authKey,
+      kdf: KDF,
+      identity: await publicIdentity(identity),
+      identityBlob: await sealIdentity(identity, secrets.wrapKey),
+      recovery: {
+        authKey: recovery.authKey,
+        identityBlob: await sealIdentity(identity, recovery.wrapKey),
+      },
+    };
+    const refused = await call('POST', '/api/auth/register', request);
+    expect(refused.status).toBe(400);
+    expect(refused.body['error']).toBe('Нужно согласие на обработку персональных данных.');
+    expect(db.query('SELECT COUNT(*) AS n FROM doctors').get()).toEqual({ n: 0 });
+
+    const made = await call('POST', '/api/auth/register', {
+      ...request,
+      privacy: { version: 'policy-1' },
+    });
+    expect(made.status).toBe(201);
+    expect(made.body['privacy'].version).toBe('policy-1');
+    const token = made.body['token'] as string;
+    const me = await call('GET', '/api/auth/me', undefined, token);
+    expect(me.body['privacy'].version).toBe('policy-1');
+    expect(typeof me.body['privacy'].at).toBe('string');
+
+    // A newer wording: the doctor accepts it; a session is needed, and a version.
+    expect((await call('POST', '/api/auth/privacy', { version: 'policy-2' })).status).toBe(401);
+    expect((await call('POST', '/api/auth/privacy', {}, token)).status).toBe(400);
+    const accepted = await call('POST', '/api/auth/privacy', { version: 'policy-2' }, token);
+    expect(accepted.status).toBe(200);
+    expect(accepted.body['privacy'].version).toBe('policy-2');
+    expect((await call('GET', '/api/auth/me', undefined, token)).body['privacy'].version).toBe(
+      'policy-2',
+    );
+    // An account from before the policy has nothing accepted.
+    db.query('UPDATE doctors SET privacy_version = NULL, privacy_at = NULL').run();
+    expect((await call('GET', '/api/auth/me', undefined, token)).body['privacy']).toBeNull();
+  });
+
   it('runs the whole life of a connected diary without seeing plaintext', async () => {
     const { db, call, logs } = await setup();
     const owner = await register(call, 'owner@clinic.ru', 'Д-р Иванова');
@@ -737,6 +785,7 @@ describe('diary server', () => {
         authKey: recovery.authKey,
         identityBlob: await sealIdentity(identity, recovery.wrapKey),
       },
+      privacy: { version: 'policy-test' },
     };
     expect((await call('POST', '/api/auth/register', request)).status).toBe(403);
     db.query("INSERT INTO invites (code, created_at) VALUES ('K7MP-2QXR-9HTN', 'now')").run();

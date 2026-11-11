@@ -7,8 +7,8 @@ import '@/features/diary/consent/consent.css';
 
 /** A document's full text with the clinic's details in place; blanks show what belongs there. */
 export function ConsentDocumentText(props: {
-  readonly document: JoiningDocument;
-  readonly operator: DiaryOperator;
+  readonly document: Pick<JoiningDocument, 'sections'>;
+  readonly operator?: DiaryOperator;
 }): JSX.Element {
   return (
     <div class="consent-text">
@@ -21,7 +21,7 @@ export function ConsentDocumentText(props: {
             <For each={section.paragraphs}>
               {(paragraph) => (
                 <p class="consent-text__paragraph">
-                  <For each={joiningParagraph(paragraph, props.operator)}>
+                  <For each={joiningParagraph(paragraph, props.operator ?? {})}>
                     {(part) =>
                       part.blank ? <span class="consent-text__blank">{part.text}</span> : part.text
                     }

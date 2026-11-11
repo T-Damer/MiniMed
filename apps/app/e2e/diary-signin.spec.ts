@@ -58,6 +58,9 @@ async function fakeDiaryService(page: Page) {
           return reply(403, { error: 'Код приглашения не подошёл или уже использован.' });
         }
         used.add(invite);
+        if (!(body['privacy'] as { version?: string } | undefined)?.version) {
+          return reply(400, { error: 'Нужно согласие на обработку персональных данных.' });
+        }
         const account = body as unknown as Account;
         accounts.set(account.email, account);
         return reply(201, {
@@ -144,6 +147,13 @@ test.describe('diary sign-in', () => {
     await expect(passwordRow(page)).toBeVisible();
     await codeField(page).fill('k2cm r5ag 2m4r');
     await expect(passwordRow(page)).toBeHidden();
+    // A new account needs the doctor's own consent (152-ФЗ ст. 9): unticked, nothing is registered.
+    const consent = page.getByRole('checkbox', { name: /Согласен\(на\)/u });
+    await expect(consent).not.toBeChecked();
+    await page.getByRole('button', { name: 'Войти по коду' }).click();
+    await expect(page.getByRole('alert')).toContainText('отметьте согласие');
+    expect(service.calls).not.toContain('/api/auth/register');
+    await consent.check();
     await page.getByRole('button', { name: 'Войти по коду' }).click();
 
     await expect(page.getByRole('heading', { name: 'Сигнум' })).toBeVisible();
@@ -170,6 +180,7 @@ test.describe('diary sign-in', () => {
     const service = await fakeDiaryService(page);
     await openSignedOut(page);
     await codeField(page).fill('AAAA-BBBB-CCCC');
+    await page.getByRole('checkbox', { name: /Согласен\(на\)/u }).check();
     await page.getByRole('button', { name: 'Войти по коду' }).click();
     await expect(page.getByRole('alert')).toHaveText('Код не подошёл.');
     expect(service.accounts.size).toBe(0);
