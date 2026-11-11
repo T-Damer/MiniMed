@@ -80,6 +80,16 @@ export function publishCoreDataVersion(version: string): void {
   coreDataVersion = version;
 }
 
+/**
+ * Whether the core now searching was built from the installed set the registry holds now. A
+ * document the core cannot find is then not fixed by building the core again: a module whose file
+ * is gone from storage stays unmountable, and every open of a document rebuilt the whole core and
+ * its search indexes (PERF6: ~1 s of main thread per open on the Mac, several on a phone).
+ */
+export function coreServesInstalledSet(): boolean {
+  return coreDataVersion !== undefined && coreDataVersion === readInstalledDataVersion();
+}
+
 let semanticState: Promise<boolean> | undefined;
 
 /** The query model was installed or removed. */

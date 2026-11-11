@@ -128,6 +128,7 @@ import {
   updateCurrentCrumbTitle,
 } from '@/state/document-trail';
 import { stepHistoryBackOnce } from '@/state/history-layer';
+import { coreServesInstalledSet } from '@/state/search-data-version';
 
 interface DocumentPageHostProps {
   readonly getCore: () => MedicalCore | undefined;
@@ -617,7 +618,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
 
       let result = readableId === documentId ? requested : await core.getDocument(readableId);
-      if (!result.ok && props.reconnectContent) {
+      // Rebuild the core only when the installed set changed since it was built (an install that
+      // has not reached it yet); otherwise a rebuild cannot find the document either.
+      if (!result.ok && props.reconnectContent && !coreServesInstalledSet()) {
         await props.reconnectContent();
         if (!current()) return;
         const refreshedCore = props.getCore();

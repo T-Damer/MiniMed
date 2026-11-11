@@ -181,7 +181,7 @@
   animation:
     diary-garden-unfold 0.5s var(--motion-ease-out, ease-out)
     calc(0.35s + var(--leaf-index) * 0.12s) forwards,
-    diary-garden-sway 4.5s ease-in-out calc(1.6s + var(--leaf-index) * 0.3s) 4 alternate forwards;
+    diary-garden-sway 4.5s ease-in-out calc(1.6s + var(--leaf-index) * 0.3s) 2 alternate forwards;
 }
 
 @keyframes diary-garden-unfold {
@@ -192,7 +192,7 @@
 
 .diary-garden__leaf.diary-garden__leaf--grown {
   transform: scale(1);
-  animation: diary-garden-sway 4.5s ease-in-out calc(var(--leaf-index) * 0.3s) 4 alternate forwards;
+  animation: diary-garden-sway 4.5s ease-in-out calc(var(--leaf-index) * 0.3s) 2 alternate forwards;
 }
 
 @keyframes diary-garden-sway {
@@ -294,9 +294,10 @@
   padding: 1.25rem 1.5rem 1.1rem;
   border: 1px solid var(--theme-border);
   border-radius: 1.5rem;
-  background: color-mix(in srgb, var(--theme-surface-raised) 92%, transparent);
+  /* No backdrop blur (PERF6): under a 92 % surface it barely showed, yet with the garden moving
+     behind it the GPU re-blurred the card every frame — half the idle cost of this screen. */
+  background: color-mix(in srgb, var(--theme-surface-raised) 94%, transparent);
   box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 14%);
-  backdrop-filter: blur(10px);
   animation: diary-signin-rise var(--motion-slow, 240ms) var(--motion-ease-out, ease-out);
 }
 

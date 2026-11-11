@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { type BrowserContext, type CDPSession, chromium, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
-import { routeLocalCatalogModules } from './perf-harness';
+import { type CpuProfile, routeLocalCatalogModules, topSelfTime } from './perf-harness';
 
 /**
  * PERF6 (owner 2026-11-11 «телефон греется при переходах и работе»): what each main screen keeps
@@ -404,11 +404,16 @@ test('memory over repeated navigation loops', async () => {
   for (let loop = 1; loop <= loops; loop += 1) {
     const before = processTimes();
     const started = Date.now();
-    for (const [, hash] of SCREENS) {
+    for (const [name, hash] of SCREENS) {
       await page.evaluate((target) => {
         window.location.hash = target;
       }, hash);
       await page.waitForTimeout(pause);
+      if (process.env['PERF_LOOP_DETAIL']) {
+        await cdp.send('HeapProfiler.collectGarbage');
+        const attached = await page.evaluate(() => document.getElementsByTagName('*').length);
+        console.log(JSON.stringify({ loop, name, nodes: (await metrics(cdp))['Nodes'], attached }));
+      }
     }
     const walkMs = Date.now() - started;
     const row = await sample(`after walk ${loop}`);
@@ -416,5 +421,86 @@ test('memory over repeated navigation loops', async () => {
   }
   const out = process.env['PERF_OUT'] ?? resolve(ROOT, `playwright/perf-loops-${Date.now()}.json`);
   writeFileSync(out, `${JSON.stringify({ loops, pause, rows }, null, 2)}\n`);
+  await context.close();
+});
+
+/**
+ * `PERF_NAV=1`: what one switch between screens costs once every screen has been visited (kept
+ * alive): main-thread script/style/layout and the CPU of every process for 2 s after the address
+ * changes, and a CPU profile of a whole warm walk (top self time).
+ */
+test('cost of switching between screens that are already mounted', async () => {
+  test.skip(!process.env['PERF_NAV'], 'run with PERF_NAV=1');
+  test.setTimeout(30 * 60_000);
+  const context = await openContext();
+  const page = context.pages()[0] ?? (await context.newPage());
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Performance.enable');
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    () => performance.getEntriesByName('minimed:search-ready').length > 0,
+    undefined,
+    { timeout: 600_000, polling: 500 },
+  );
+  await page.waitForTimeout(10_000);
+  page.on('console', (message) => {
+    if (message.text().includes('PERF6-PROBE') || ['warning', 'error'].includes(message.type()))
+      console.log(message.type(), message.text().slice(0, 600));
+  });
+  const navScreens = SCREENS.filter(
+    ([name]) => ONLY.length === 0 || ONLY.some((part) => name.includes(part)),
+  );
+  const go = (hash: string) =>
+    page.evaluate((target) => {
+      window.location.hash = target;
+    }, hash);
+  // A first walk mounts everything (catalog, lazy chunks): not counted.
+  for (const [, hash] of navScreens) {
+    await go(hash);
+    await page.waitForTimeout(2000);
+  }
+  await cdp.send('Profiler.enable');
+  await cdp.send('Profiler.setSamplingInterval', { interval: 200 });
+  // `PERF_NAV_PROFILE=reader` profiles only the switches to screens whose name contains it.
+  const profiled = process.env['PERF_NAV_PROFILE'] ?? '';
+  if (!profiled) await cdp.send('Profiler.start');
+  const rows: Record<string, unknown>[] = [];
+  const tops: Record<string, readonly string[]> = {};
+  for (const [name, hash] of navScreens) {
+    const profileThis = profiled !== '' && name.includes(profiled);
+    if (profileThis) await cdp.send('Profiler.start');
+    const before = { cpu: processTimes(), m: await metrics(cdp) };
+    await go(hash);
+    await page.waitForTimeout(2000);
+    const after = { cpu: processTimes(), m: await metrics(cdp) };
+    if (profileThis) {
+      const { profile } = (await cdp.send('Profiler.stop')) as { profile: CpuProfile };
+      tops[name] = topSelfTime(profile, 30);
+      if (process.env['PERF_PROFILE_OUT'])
+        writeFileSync(process.env['PERF_PROFILE_OUT'], JSON.stringify(profile));
+      console.log(`== ${name}\n${tops[name].join('\n')}`);
+    }
+    const ms = (key: string) => Math.round((after.m[key] - before.m[key]) * 1000);
+    const row = {
+      screen: name,
+      cpu: diffTimes(before.cpu, after.cpu),
+      task: ms('TaskDuration'),
+      script: ms('ScriptDuration'),
+      style: ms('RecalcStyleDuration'),
+      layout: ms('LayoutDuration'),
+      styles: after.m['RecalcStyleCount'] - before.m['RecalcStyleCount'],
+      layouts: after.m['LayoutCount'] - before.m['LayoutCount'],
+    };
+    rows.push(row);
+    console.log(JSON.stringify(row));
+  }
+  let top: readonly string[] = [];
+  if (!profiled) {
+    const { profile } = (await cdp.send('Profiler.stop')) as { profile: CpuProfile };
+    top = topSelfTime(profile, 40);
+    console.log(top.join('\n'));
+  }
+  const out = process.env['PERF_OUT'] ?? resolve(ROOT, `playwright/perf-nav-${Date.now()}.json`);
+  writeFileSync(out, `${JSON.stringify({ rows, top, tops }, null, 2)}\n`);
   await context.close();
 });

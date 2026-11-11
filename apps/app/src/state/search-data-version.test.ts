@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { type InstalledModuleVersion, installedDataVersion } from '@/state/search-data-version';
+import {
+  coreServesInstalledSet,
+  type InstalledModuleVersion,
+  installedDataVersion,
+  publishCoreDataVersion,
+  readInstalledDataVersion,
+} from '@/state/search-data-version';
 
 function module(
   moduleId: string,
@@ -53,5 +59,36 @@ describe('installed data version', () => {
       module(`minimed.clinical.m${index}`, '1'),
     );
     expect(installedDataVersion([CORE, ...modules]).length).toBeLessThan(80);
+  });
+});
+
+describe('core serves the installed set', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubStorage(): void {
+    const values = new Map<string, string>();
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: (key: string) => values.get(key) ?? null,
+        setItem: (key: string, value: string) => values.set(key, value),
+        removeItem: (key: string) => values.delete(key),
+        key: (index: number) => [...values.keys()][index] ?? null,
+        get length() {
+          return values.size;
+        },
+      },
+    });
+  }
+
+  it('is true only for the installed set the published core was built from', () => {
+    stubStorage();
+    publishCoreDataVersion(readInstalledDataVersion());
+    // A document missing from that core: building it again from the same set cannot find it.
+    expect(coreServesInstalledSet()).toBe(true);
+    // The core now searching was built from another set (an install it has not picked up yet).
+    publishCoreDataVersion('core:0.6.47:sha256:core|modules:1.00000000000000');
+    expect(coreServesInstalledSet()).toBe(false);
   });
 });
