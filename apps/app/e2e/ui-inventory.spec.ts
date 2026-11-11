@@ -47,6 +47,7 @@ export const INVENTORY_SCREENS = [
   ['24-settings-images', '#/settings/images'],
   ['25-files-images', '#/modules/documents/user?kind=images'],
   ['26-files-computer', '#/modules/documents/user?place=computer'],
+  ['27-files-documents', '#/modules/documents/user?kind=documents'],
 ] as const;
 
 test('screenshots of every main screen', async () => {
@@ -54,10 +55,14 @@ test('screenshots of every main screen', async () => {
   mkdirSync(OUT, { recursive: true });
   const schemes = (process.env['UI_SCHEMES'] ?? 'light,dark').split(',') as ('light' | 'dark')[];
   const context = await chromium.launchPersistentContext(PROFILE_DIR, {
-    viewport: { width: 390, height: 844 },
+    // `UI_WIDTH=1280` for a desktop window (no touch).
+    viewport: {
+      width: Number(process.env['UI_WIDTH'] ?? '390'),
+      height: Number(process.env['UI_HEIGHT'] ?? '844'),
+    },
     deviceScaleFactor: 2,
-    hasTouch: true,
-    isMobile: true,
+    hasTouch: !process.env['UI_WIDTH'],
+    isMobile: !process.env['UI_WIDTH'],
     serviceWorkers: 'block',
     args: ['--mute-audio'],
   });
@@ -65,6 +70,12 @@ test('screenshots of every main screen', async () => {
     window.localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
     window.localStorage.setItem('minimed:core-download-consent:v1', '1');
   });
+  // `UI_LIBRARY_VIEW=list`: «Файлы» in its list view.
+  const libraryView = process.env['UI_LIBRARY_VIEW'];
+  if (libraryView)
+    await context.addInitScript((view) => {
+      window.localStorage.setItem('minimed.libraryView', view);
+    }, libraryView);
   await routeLocalCatalogModules(context);
   const page = context.pages()[0] ?? (await context.newPage());
   page.on('pageerror', (error) => console.log(`pageerror: ${error.message}`));
