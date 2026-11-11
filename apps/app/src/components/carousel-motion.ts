@@ -17,9 +17,13 @@ export interface CarouselAutoplayState {
   /** Pointer over the carousel or focus inside it: autoplay waits. */
   readonly held: boolean;
   readonly pageHidden: boolean;
+  /** The carousel is not on screen: scrolled away, or on a tab kept alive behind another (PERF6). */
+  readonly offScreen: boolean;
 }
 
 /** Whether an autoplay tick may advance the carousel now. */
 export function carouselAutoplayMayAdvance(state: CarouselAutoplayState): boolean {
-  return !state.reducedMotion && !state.takenOver && !state.held && !state.pageHidden;
+  return (
+    !state.reducedMotion && !state.takenOver && !state.held && !state.pageHidden && !state.offScreen
+  );
 }

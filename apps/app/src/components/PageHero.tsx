@@ -23,6 +23,12 @@ export interface PageHero {
     by half loops seamlessly. */
 const ECG_BEAT = 'h34 l4 -3 l4 3 h8 l3 4 l5 -26 l5 32 l4 -10 h14 q6 -7 12 0 h27';
 
+/** Seconds of no input after which the trace rests (stands still: no frames are drawn). */
+const ECG_REST_AFTER_MS = 6000;
+/** Input arrives in bursts (a scroll fires per frame): re-arm the rest timer at most this often. */
+const WAKE_THROTTLE_MS = 500;
+const WAKE_EVENTS = ['pointerdown', 'keydown', 'wheel', 'input'] as const;
+
 /**
  * The monitor's trace, and a live reading of the app itself (owner 2026-10-29): it turns yellow
  * and beats faster while frames are being dropped, red and faster still when the app struggles
@@ -37,15 +43,61 @@ function EcgTrace(): JSX.Element {
     for (const animation of trace.getAnimations()) animation.updatePlaybackRate(rate);
   });
   // The drift stands still while the trace is off screen (scrolled away, a hidden tab): an endless
-  // animation keeps the WebView drawing every frame.
+  // animation keeps the WebView drawing every frame. It also rests once nobody has touched the app
+  // for a few seconds (PERF6, owner 2026-11-11 «телефон греется»): an endless drift drew 120 frames a
+  // second on an idle search home, a fifth of a core (docs/research/perf-idle-2026-11.md). Any
+  // touch (a scroll starts with one), key, wheel or a change of the app's health wakes it again;
+  // `scroll` itself is not used: the carousel's autoplay scrolls too.
   onMount(() => {
-    if (!trace || typeof IntersectionObserver === 'undefined') return;
+    if (!trace) return;
     const element = trace;
-    const observer = new IntersectionObserver(([entry]) =>
-      element.classList.toggle('page-hero__ecg--paused', entry?.isIntersecting !== true),
-    );
-    observer.observe(element);
-    onCleanup(() => observer.disconnect());
+    let onScreen = true;
+    let resting = false;
+    let restTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastWake = 0;
+    const apply = (): void => {
+      element.classList.toggle('page-hero__ecg--paused', !onScreen || resting);
+    };
+    const wake = (): void => {
+      const now = performance.now();
+      if (!resting && now - lastWake < WAKE_THROTTLE_MS) return;
+      lastWake = now;
+      resting = false;
+      apply();
+      if (restTimer !== undefined) clearTimeout(restTimer);
+      restTimer = setTimeout(() => {
+        restTimer = undefined;
+        resting = true;
+        apply();
+      }, ECG_REST_AFTER_MS);
+    };
+    const options = { capture: true, passive: true } as const;
+    for (const type of WAKE_EVENTS) window.addEventListener(type, wake, options);
+    createEffect(() => {
+      if (health() !== 'good') wake();
+    });
+    let observer: IntersectionObserver | undefined;
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(([entry]) => {
+        const visible = entry?.isIntersecting === true;
+        if (visible && !onScreen) {
+          onScreen = true;
+          // A page shown again (a tab, back) greets the user with a moving trace.
+          resting = true;
+          wake();
+          return;
+        }
+        onScreen = visible;
+        apply();
+      });
+      observer.observe(element);
+    }
+    wake();
+    onCleanup(() => {
+      observer?.disconnect();
+      for (const type of WAKE_EVENTS) window.removeEventListener(type, wake, options);
+      if (restTimer !== undefined) clearTimeout(restTimer);
+    });
   });
   // The drift moves this box, not the svg: an animated <svg> root is not composited (WebView fell
   // back to repainting the glowing line on the main thread every frame).

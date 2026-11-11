@@ -137,16 +137,34 @@ export function Carousel(props: {
       if (idleTimer !== undefined) window.clearTimeout(idleTimer);
     });
     if (!props.autoplayMs) return;
-    const timer = window.setInterval(() => {
+    const autoplayMs = props.autoplayMs;
+    // The timer runs only while the carousel is on screen: a tab kept alive behind another one
+    // (display: none) or a carousel scrolled away kept waking the app every few seconds (PERF6).
+    let timer: number | undefined;
+    let onScreen = false;
+    const tick = (): void => {
       const mayAdvance = carouselAutoplayMayAdvance({
         reducedMotion: reducedMotion.matches,
         takenOver: takenOver(),
         held: held() || props.autoplayPaused?.() === true,
         pageHidden: document.hidden,
+        offScreen: !onScreen,
       });
       if (mayAdvance && count() > 1) show(carouselStep(index(), count(), 1), true);
-    }, props.autoplayMs);
-    onCleanup(() => window.clearInterval(timer));
+    };
+    const visibility = new IntersectionObserver(([entry]) => {
+      onScreen = entry?.isIntersecting === true;
+      if (onScreen && timer === undefined) timer = window.setInterval(tick, autoplayMs);
+      if (!onScreen && timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+    });
+    visibility.observe(element);
+    onCleanup(() => {
+      visibility.disconnect();
+      if (timer !== undefined) window.clearInterval(timer);
+    });
   });
 
   return (

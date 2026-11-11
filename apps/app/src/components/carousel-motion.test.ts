@@ -21,7 +21,13 @@ describe('carouselIndexAt', () => {
 });
 
 describe('carouselAutoplayMayAdvance', () => {
-  const idle = { reducedMotion: false, takenOver: false, held: false, pageHidden: false };
+  const idle = {
+    reducedMotion: false,
+    takenOver: false,
+    held: false,
+    pageHidden: false,
+    offScreen: false,
+  };
 
   it('advances only while nobody is looking closely, and never with reduced motion', () => {
     expect(carouselAutoplayMayAdvance(idle)).toBe(true);
@@ -29,5 +35,6 @@ describe('carouselAutoplayMayAdvance', () => {
     expect(carouselAutoplayMayAdvance({ ...idle, takenOver: true })).toBe(false);
     expect(carouselAutoplayMayAdvance({ ...idle, held: true })).toBe(false);
     expect(carouselAutoplayMayAdvance({ ...idle, pageHidden: true })).toBe(false);
+    expect(carouselAutoplayMayAdvance({ ...idle, offScreen: true })).toBe(false);
   });
 });

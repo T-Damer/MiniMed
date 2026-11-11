@@ -121,7 +121,10 @@
     var(--route-desk-gradient, var(--theme-surface));
 }
 
-/* Garden (SignInGarden) */
+/* Garden (SignInGarden). It grows, sways a few times and settles; loose leaves fall once (PERF6,
+   owner 2026-11-11 «телефон греется»): the endless sway re-laid the SVG out 128 times a second and,
+   under the sign-in card's backdrop blur, kept the GPU re-blurring every frame — 0.9 of a core on an
+   idle patient list (docs/research/perf-idle-2026-11.md). */
 .diary-garden {
   --garden-young: color-mix(in srgb, var(--theme-accent) 55%, #9cc79a);
   --garden-deep: var(--theme-accent);
@@ -178,7 +181,7 @@
   animation:
     diary-garden-unfold 0.5s var(--motion-ease-out, ease-out)
     calc(0.35s + var(--leaf-index) * 0.12s) forwards,
-    diary-garden-sway 4.5s ease-in-out calc(1.6s + var(--leaf-index) * 0.3s) infinite alternate;
+    diary-garden-sway 4.5s ease-in-out calc(1.6s + var(--leaf-index) * 0.3s) 4 alternate forwards;
 }
 
 @keyframes diary-garden-unfold {
@@ -189,7 +192,7 @@
 
 .diary-garden__leaf.diary-garden__leaf--grown {
   transform: scale(1);
-  animation: diary-garden-sway 4.5s ease-in-out calc(var(--leaf-index) * 0.3s) infinite alternate;
+  animation: diary-garden-sway 4.5s ease-in-out calc(var(--leaf-index) * 0.3s) 4 alternate forwards;
 }
 
 @keyframes diary-garden-sway {
@@ -229,7 +232,7 @@
   top: -3rem;
   width: 1.6rem;
   opacity: 0.4;
-  animation: diary-garden-fall 22s linear infinite;
+  animation: diary-garden-fall 22s linear forwards;
 }
 
 .diary-garden__drift--lane-1 {
@@ -307,7 +310,7 @@
 .diary-signin__logo {
   width: 3.5rem;
   height: 3.5rem;
-  animation: diary-signin-bob 3.2s ease-in-out infinite;
+  animation: diary-signin-bob 3.2s ease-in-out 3;
 }
 
 @keyframes diary-signin-bob {
@@ -330,7 +333,7 @@
   stroke-linejoin: round;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: diary-signin-trace 2.4s linear infinite;
+  animation: diary-signin-trace 2.4s linear 3 forwards;
 }
 
 @keyframes diary-signin-trace {
@@ -438,7 +441,7 @@
 
 .diary-signin__key {
   display: inline-block;
-  animation: diary-signin-bob 2.4s ease-in-out infinite;
+  animation: diary-signin-bob 2.4s ease-in-out 3;
 }
 
 .diary-signin__code {
