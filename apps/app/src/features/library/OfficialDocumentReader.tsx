@@ -1724,7 +1724,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       </Show>
                       <DrugRecipeSheet
                         core={props.core}
-                        documentId={documentValue().id}
+                        drug={{
+                          documentIds: [
+                            props.medicationOpenedDocumentId,
+                            props.medicationSource?.id,
+                            parseModulePointerMetadata(props.document?.metadata)?.targetDocumentId,
+                            documentValue().id,
+                          ],
+                          names: [
+                            drugScreen()?.header.title,
+                            props.medicationProduct?.tradeName,
+                            displayDocumentTitle(documentValue()),
+                          ],
+                        }}
                         open={recipeOpen()}
                         onClose={() => setRecipeOpen(false)}
                       />

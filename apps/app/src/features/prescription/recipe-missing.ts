@@ -3,7 +3,7 @@ import type { ItemAnalysis } from './prescription-model';
 /**
  * What the recipe still lacks, in words: the sheet says which step is missing instead of a general
  * «выберите форму». The recipe line needs the drug, its dosage form and its strength from the
- * registry, and the instruction the course is read from.
+ * registry; the sign comes from the instruction, or from the doctor when there is none.
  */
 export function recipeMissingText(
   analyses: readonly Pick<ItemAnalysis, 'state' | 'form' | 'strength' | 'rp'>[],
@@ -14,11 +14,7 @@ export function recipeMissingText(
   if (first.form === null) return 'Выберите лекарственную форму: текст рецепта появится здесь.';
   if (first.strength === null) return 'Выберите дозировку: текст рецепта появится здесь.';
   if (first.state === 'loading') return 'Читаем инструкцию…';
-  if (first.state === 'not-installed') {
-    return 'Рецепт собирается по инструкции: скачайте её в карточке препарата.';
-  }
-  if (first.state === 'no-instruction') {
-    return 'Инструкции этого вещества нет в источниках приложения: рецепт собрать не из чего.';
-  }
-  return 'Текст рецепта появится здесь.';
+  // With a form and a strength the registry gives the Rp. line, instruction or not; an empty one
+  // here is the doctor's own text, cleared.
+  return 'Впишите текст рецепта: он появится здесь.';
 }

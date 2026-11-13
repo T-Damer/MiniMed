@@ -27,14 +27,14 @@ import type { DrugItem } from '@/features/drug-interactions/interaction-check';
 import { loadInteractionIndex } from '@/features/drug-interactions/interaction-load';
 import type { PrintPair } from '@/features/drug-interactions/interaction-print';
 import { type PairView, printPairs } from '@/features/drug-interactions/interaction-view';
-import { AtcMatchBadge } from '@/features/medications/AtcMatchBadge';
 import { loadAtcNames } from '@/features/medications/atc-names';
-import { breakableDrugName, joinProductAndSubstance } from '@/features/medications/drug-label';
+import { joinProductAndSubstance } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
 import { PrintManager } from '@/features/printing/print-manager';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { replaceToolUrl } from '@/state/tool-url-state';
+import { ComparisonDrugPicker, ComparisonDrugRows } from './ComparisonDrugPicker';
 import { ComparisonMatrix, ComparisonSources } from './ComparisonMatrix';
 import { ComparisonSections } from './ComparisonSections';
 import { decodeDrug, type FoundDrug, findDrugs, resolveDrugName } from './comparison-candidates';
@@ -104,7 +104,7 @@ export function DrugComparisonWorkspace(props: {
   const [onlyDifferences, setOnlyDifferences] = createSignal(false);
   const [pairs, setPairs] = createSignal<readonly PairView[]>([]);
   const [pairModules, setPairModules] = createSignal<readonly string[]>([]);
-  let searchInput: HTMLInputElement | undefined;
+  const [pickerOpen, setPickerOpen] = createSignal(false);
 
   const itemId = (drug: Pick<FoundDrug, 'slug' | 'product'>): string =>
     drug.product ? `${drug.slug}|${drug.product}` : drug.slug;
@@ -404,39 +404,25 @@ export function DrugComparisonWorkspace(props: {
           placeholder="Препарат, МНН или код АТХ"
           value={query()}
           onInput={setQuery}
-          inputRef={(element) => {
-            searchInput = element;
-          }}
           onClear={() => {
             setQuery('');
             setCandidates([]);
           }}
         />
-        <Show when={candidates().length > 0}>
-          <ul class="drug-comparison__candidates" aria-label="Найденные препараты">
-            <For each={candidates()}>
-              {(drug) => (
-                <li class="drug-comparison__candidate-row">
-                  <button
-                    type="button"
-                    class="drug-comparison__candidate"
-                    disabled={hasDrug(drug) || items().length >= MAX_DRUGS}
-                    onClick={() => {
-                      addDrug(drug);
-                      setQuery('');
-                      setCandidates([]);
-                    }}
-                  >
-                    <AppGlyph name={hasDrug(drug) ? 'check' : 'plus'} />
-                    <span class="drug-comparison__candidate-name">
-                      {breakableDrugName(drug.label)}
-                    </span>
-                    <Show when={drug.atc}>{(match) => <AtcMatchBadge match={match()} />}</Show>
-                  </button>
-                </li>
-              )}
-            </For>
-          </ul>
+        <Show when={index() && candidates().length > 0}>
+          <ComparisonDrugRows
+            index={index() as NonNullable<ReturnType<typeof index>>}
+            names={atc() ?? null}
+            drugs={candidates()}
+            label="Найденные препараты"
+            chosen={hasDrug}
+            full={items().length >= MAX_DRUGS}
+            onPick={(drug) => {
+              addDrug(drug);
+              setQuery('');
+              setCandidates([]);
+            }}
+          />
         </Show>
         <Show when={query().trim().length >= 2 && candidates().length === 0 && !index.loading}>
           <p class="drug-comparison__hint" role="status">
@@ -508,17 +494,19 @@ export function DrugComparisonWorkspace(props: {
             <p class="drug-comparison__empty" role="status" data-testid="comparison-empty">
               Добавьте {items().length === 0 ? 'два препарата' : 'ещё один препарат'} или больше (до{' '}
               {MAX_DRUGS}), чтобы сравнить их.
-              <Show when={items().length === 1}>
-                {' '}
-                <button
-                  type="button"
-                  class="drug-comparison__toggle"
-                  onClick={() => searchInput?.focus()}
-                >
-                  Выбрать
-                </button>
-              </Show>
             </p>
+            <Show when={items().length === 1}>
+              <Button
+                type="button"
+                variant="primary"
+                class="drug-comparison__choose"
+                data-testid="comparison-choose"
+                icon={<AppGlyph name="plus" />}
+                onClick={() => setPickerOpen(true)}
+              >
+                Выбрать препарат
+              </Button>
+            </Show>
           </Show>
         }
       >
@@ -605,6 +593,24 @@ export function DrugComparisonWorkspace(props: {
         </Show>
         <ComparisonSources columns={columns()} />
         <p class="drug-comparison__footnote">{COMPARISON_NOTICE}</p>
+      </Show>
+      <Show when={index()}>
+        {(loaded) => (
+          <ComparisonDrugPicker
+            open={pickerOpen()}
+            core={props.core}
+            index={loaded()}
+            names={atc() ?? null}
+            chosenCards={items().map((item) => item.card)}
+            chosen={hasDrug}
+            full={items().length >= MAX_DRUGS}
+            onPick={(drug) => {
+              addDrug(drug);
+              setPickerOpen(false);
+            }}
+            onClose={() => setPickerOpen(false)}
+          />
+        )}
       </Show>
     </section>
   );

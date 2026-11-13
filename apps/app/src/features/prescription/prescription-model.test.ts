@@ -132,6 +132,32 @@ describe('analysing one drug of the prescription', () => {
     expect(analysis.options).toHaveLength(0);
   });
 
+  // SRCHDRUG1: with no instruction to read, the item still yields its Rp. line from the registry,
+  // and the sign is the doctor's own text.
+  it('writes the Rp. line from the registry when the instruction is missing or not in the sources', () => {
+    const chosen = {
+      ...newItem('1', 'amoxicillin', 'Амоксициллин'),
+      form: 'таблетки',
+      strength: '500 мг',
+    };
+    const missing = analyze({}, 'missing', chosen);
+    expect(missing.state).toBe('not-installed');
+    expect(missing.rp).toMatch(/Amoxicillin/u);
+    expect(missing.rp).toContain('0,5');
+    expect(missing.signa).toBe('');
+    const none = analyzeItem(chosen, {
+      index: createDoseIndex({ ...index.asset, documents: {} }),
+      patient: {},
+      instructionOf: () => undefined,
+    });
+    expect(none.state).toBe('no-instruction');
+    expect(none.rp).toBe(missing.rp);
+    const typed = analyze({}, 'missing', { ...chosen, signa: 'По 1 таблетке 2 раза в день' });
+    expect(typed.signa).toBe('По 1 таблетке 2 раза в день');
+    // Without a strength there is no line to write yet.
+    expect(analyze({}, 'missing', { ...chosen, strength: null }).rp).toBe('');
+  });
+
   it('computes a child of 20 kg from the rule that fits by weight and quotes its sentence', () => {
     const item = {
       ...newItem('1', 'amoxicillin', 'Амоксициллин'),

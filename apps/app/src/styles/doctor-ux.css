@@ -1282,6 +1282,11 @@ html.app-chrome-hidden .document-overlay-paper::before {
   font-weight: 600;
 }
 
+/* SRCHDRUG1: title matches the results above do not list, once, after them. */
+.search-title-extras {
+  margin-block: 1rem 0.75rem;
+}
+
 .search-no-results {
   display: grid;
   gap: 0.9rem;

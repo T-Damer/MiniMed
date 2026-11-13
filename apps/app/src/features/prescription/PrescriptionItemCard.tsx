@@ -47,9 +47,11 @@ function RecipeTextEditor(props: {
   readonly item: PrescriptionItem;
   readonly analysis: ItemAnalysis;
   readonly onChange: (patch: Partial<PrescriptionItem>) => void;
+  /** Open at once where the doctor has to write the sign: no instruction to read it from. */
+  readonly defaultOpen?: boolean;
 }): JSX.Element {
   return (
-    <Disclosure variant="inline" title="Текст рецепта">
+    <Disclosure variant="inline" title="Текст рецепта" defaultOpen={props.defaultOpen ?? false}>
       <div class="prescription__edit">
         <TextArea
           label="Rp."
@@ -69,7 +71,8 @@ function RecipeTextEditor(props: {
             variant="quiet"
             onClick={() => props.onChange({ rp: null, signa: null })}
           >
-            Вернуть расчётный текст
+            {/* Written by hand (no instruction): there is no computed text to return to. */}
+            {props.analysis.state === 'ready' ? 'Вернуть расчётный текст' : 'Сбросить'}
           </Button>
         </Show>
       </div>
@@ -218,7 +221,7 @@ export function PrescriptionItemCard(props: {
       </Show>
       <Show when={analysis().state === 'no-instruction'}>
         <p class="prescription__status" data-testid="prescription-no-instruction">
-          Инструкции этого вещества в таких формах нет в источниках приложения: доз из неё не взять.
+          Инструкции к этой форме в источниках нет: способ применения впишите сами.
         </p>
       </Show>
       <Show when={analysis().state === 'not-installed'}>
@@ -230,6 +233,21 @@ export function PrescriptionItemCard(props: {
             <SafetyDownloadOffer moduleId={moduleId()} onContentChanged={props.onContentChanged} />
           )}
         </Show>
+      </Show>
+      {/* No instruction to read the course from: the Rp. line comes from the registry and the
+          doctor writes the sign, instead of a refusal (owner 2026-11-13). */}
+      <Show
+        when={
+          (analysis().state === 'no-instruction' || analysis().state === 'not-installed') &&
+          analysis().form !== null
+        }
+      >
+        <RecipeTextEditor
+          item={props.item}
+          analysis={analysis()}
+          onChange={props.onChange}
+          defaultOpen={analysis().state === 'no-instruction'}
+        />
       </Show>
 
       <Show when={analysis().state === 'ready' ? analysis().instruction : null}>

@@ -65,7 +65,8 @@ test('a long clinical recommendation and a search stay within their time budgets
   expect((firstText?.t ?? Number.POSITIVE_INFINITY) - from).toBeLessThan(1_500);
   expect((mounted?.t ?? Number.POSITIVE_INFINITY) - from).toBeLessThan(5_000);
 
-  // A typed query: «По названию» after the 500 ms pause, the full list soon after.
+  // A typed query: the full list soon after the 500 ms pause (the «По названию» strip that came
+  // first is gone, SRCHDRUG1 2026-11-13: it repeated the first results).
   await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
   await waitForSearchEditable(page);
   await page.waitForTimeout(1500);
@@ -78,10 +79,8 @@ test('a long clinical recommendation and a search stay within their time budgets
   await waitForSettled(page, '(s.flags & 2) !== 0', 1000, 60_000);
   const search = await stopSampling(page, searchFrom);
   const lastInput = search.keys.at(-1) ?? searchFrom;
-  const titles = search.samples.find((sample) => sample.t >= lastInput && (sample.flags & 1) !== 0);
   const groups = search.samples.find((sample) => sample.t >= lastInput && (sample.flags & 2) !== 0);
-  // Measured on a Mac (PERF5): titles ≈ 510 ms (the debounce), groups ≈ 600–900 ms.
-  expect((titles?.t ?? Number.POSITIVE_INFINITY) - lastInput).toBeLessThan(2_000);
+  // Measured on a Mac (PERF5): groups ≈ 600–900 ms after the last key.
   expect((groups?.t ?? Number.POSITIVE_INFINITY) - lastInput).toBeLessThan(6_000);
 });
 

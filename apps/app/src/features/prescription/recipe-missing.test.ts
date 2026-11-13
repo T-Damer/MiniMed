@@ -23,9 +23,13 @@ describe('what the recipe sheet says is missing', () => {
     expect(recipeMissingText([row({ strength: null })])).toContain('Выберите дозировку');
   });
 
-  it('names the instruction when the product is chosen but the text cannot be read', () => {
+  it('waits for the instruction while it is read, and never refuses without one', () => {
     expect(recipeMissingText([row({ state: 'loading' })])).toBe('Читаем инструкцию…');
-    expect(recipeMissingText([row({ state: 'not-installed' })])).toContain('скачайте её');
-    expect(recipeMissingText([row({ state: 'no-instruction' })])).toContain('нет в источниках');
+    // SRCHDRUG1: no instruction is no refusal — the Rp. line is the registry's, the sign the doctor's.
+    for (const state of ['not-installed', 'no-instruction'] as const) {
+      const text = recipeMissingText([row({ state })]);
+      expect(text).toContain('Впишите');
+      expect(text).not.toMatch(/не из чего|скачайте/u);
+    }
   });
 });

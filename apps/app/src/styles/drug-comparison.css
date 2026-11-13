@@ -30,52 +30,6 @@
   min-width: 0;
 }
 
-.drug-comparison__candidates {
-  display: grid;
-  gap: 0.2rem;
-  margin: 0;
-  padding: 0.3rem;
-  list-style: none;
-  border: var(--theme-border-hairline, 1px) solid var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  background: var(--theme-surface);
-}
-
-.drug-comparison__candidate-row {
-  display: block;
-}
-
-.drug-comparison__candidate {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  width: 100%;
-  min-height: 2.4rem;
-  padding: 0.4rem 0.6rem;
-  border: 0;
-  border-radius: var(--theme-radius-control);
-  background: transparent;
-  color: var(--theme-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.drug-comparison__candidate-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.drug-comparison__candidate:hover:not(:disabled) {
-  background: var(--theme-hover-surface);
-}
-
-.drug-comparison__candidate:disabled {
-  color: var(--theme-text-faint);
-  cursor: default;
-}
-
 .drug-comparison__hint {
   margin: 0;
   color: var(--theme-text-muted);
@@ -593,4 +547,33 @@
 
 .drug-comparison__source-drug {
   font-weight: 600;
+}
+
+/* SRCHDRUG1: «Выбрать препарат» and the picker sheet (list rows with the drug's ATC group). */
+.drug-comparison__choose {
+  justify-self: start;
+}
+
+.drug-comparison-picker__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.drug-comparison-picker__empty {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+
+.drug-comparison__row-check {
+  display: inline-flex;
+  color: var(--theme-accent-text, var(--theme-accent));
+}
+
+.drug-comparison__row-check-glyph {
+  width: 1.15rem;
+  height: 1.15rem;
 }
