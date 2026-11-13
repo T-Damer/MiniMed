@@ -170,5 +170,26 @@ Android until the download finishes. Same synthetic dialogue and scoring as abov
   `Int`, so `inspectModel` / `installModelFile` rejected every native model («Expected model size is
   missing») — the patient-card dictaphone's models could never be checked or installed on a device.
   The size is now read as any `Number`.
-- **Not measured:** the owner's phone (no install without the owner's OK), a real room or a real
-  session (never used), screen-off recording.
+- **Owner's phone** (2026-11-14, owner OK; Xiaomi 23127PN0CC, HyperOS user build, 0.6.97 + REC2
+  signed with the prerelease key over 0.6.95, data kept). The WebView of a user build ignores the
+  debug command-line file, so the fake microphone is not available there: the driver's guard
+  (every audio input must be Chromium's «Fake …» device) stopped before any recording — it opened
+  the microphone only to read its label and closed it at once; nothing was recorded or kept. The
+  native path was measured without a microphone instead: the four pinned model files (checked
+  against their SHA-256 on the Mac) were staged and installed through the plugin's own
+  `installModelFile` (size and SHA-256 verified on the phone, 3 s for the 225 MB model), then the
+  same dialogue as 16 kHz PCM, cut at its pauses into 4 stretches (6.8–12.7 s), went through
+  `recognizePcm` three times:
+
+  | | per loop of the script (81 words) |
+  | --- | ---: |
+  | WER as scored | 0.074 (digits) |
+  | WER, digits as words | 0.012 (one error: «принимаю.ропусков») |
+  | real-time factor, median stretch | 0.09 |
+  | real-time factor, mean (11 calls after the first) | 0.13 (two stretches took ~4 s) |
+  | first call (builds the recognizer) | 3.3 s for 12.5 s |
+
+  The text was identical in all three loops. Not covered on the phone: the WebView microphone, the
+  AudioWorklet tap and the VAD (covered on the emulator), and the in-app download (covered on the
+  emulator).
+- **Not measured:** a real room or a real session (never used), screen-off recording.

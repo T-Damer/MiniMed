@@ -40,7 +40,10 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Measured** ([research/recorder-perf-2026-11.md](research/recorder-perf-2026-11.md) «REC2»):
   Android emulator, synthetic dialogue: WER 0.091 as scored for REC1 (Whisper Base 0.119), every
   word heard once digits are spelled out (Whisper 0.098); real-time factor 0.15, live text never
-  deferred. Driver `scripts/recorder-quality-android.ts`.
+  deferred. Driver `scripts/recorder-quality-android.ts`. **Owner's phone** (0.6.97 + REC2 installed
+  with the owner's OK, data kept): GigaAM installed through the plugin and fed the same synthetic
+  dialogue as PCM (no microphone — a user-build WebView has no fake microphone): WER 0.074 per loop
+  (0.012 with digits as words), real-time factor 0.09 median, 0.13 mean.
 - **Tests:** `speech-engine.test.ts` (engine choice, switching mid-recording), `native-transcriber-pcm.test.ts`
   (bridge PCM encoding); recorder e2e (`conversation-recordings`, `conversation-transcript`,
   `conversation-activity`, `form-fill-recording`) pass on the web path.

@@ -195,6 +195,31 @@ const HELPERS = `
 const LIVE = '[data-testid="conversation-live"]';
 const CARD = `${LIVE} .asr-model-card`;
 
+/**
+ * Stops before any recording unless the WebView's microphone is Chromium's fake device playing the
+ * WAV: a phone is never recorded through its real microphone. Device labels are read without
+ * opening a stream when the page already may see them; otherwise a stream is opened only to read
+ * its label and is stopped at once (nothing is kept).
+ */
+async function assertFakeMicrophone(cdp: Cdp): Promise<void> {
+  const label = await cdp.eval<string>(`(async () => {
+    const listed = (await navigator.mediaDevices.enumerateDevices())
+      .filter((device) => device.kind === 'audioinput')
+      .map((device) => device.label)
+      .filter(Boolean);
+    if (listed.length > 0) return listed.join(' | ');
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const tracks = stream.getAudioTracks();
+    const names = tracks.map((track) => track.label).join(' | ');
+    for (const track of stream.getTracks()) track.stop();
+    return names;
+  })()`);
+  log({ microphone: label });
+  if (!label || !label.split(' | ').every((name) => name.startsWith('Fake '))) {
+    throw new Error('The WebView is not on the fake microphone: nothing was recorded.');
+  }
+}
+
 /** The recording sheet open after «Стоп»: its recording (synthetic) is deleted from the app. */
 async function deleteOpenRecording(cdp: Cdp): Promise<void> {
   await cdp
@@ -281,6 +306,7 @@ async function main(): Promise<void> {
       .catch(() => undefined);
   }
 
+  await assertFakeMicrophone(cdp);
   await openRecorder(cdp);
   await cdp.waitFor(`window.__rq.click('^Начать запись$', '${LIVE}')`, 15_000, 'record');
   await cdp.waitFor(`window.__rq.button('^Стоп$', '${LIVE}')`, 15_000, 'the recording');
