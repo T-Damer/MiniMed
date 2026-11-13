@@ -4,6 +4,27 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.97] - 2026-11-13
+
+- Session recording: while recording, a floating button with a live waveform stays over every screen, so the whole
+  app can be used; a tap opens the recorder window (time, waveform, pause, stop, the patient it goes to, the live
+  text). Recording no longer decodes the whole file every few seconds (the cause of the lag); speech is cut into
+  stretches at pauses and transcribed while the phone keeps up, otherwise after the recording or on «Расшифровать».
+  Subtitle phantoms («Продолжение следует…») and loops are dropped; the microphone no longer applies headset echo and
+  noise filters that garbled the patient across the table. Measurements: `docs/research/recorder-perf-2026-11.md`.
+- Recordings are in «Файлы» → «По виду» → «Записи бесед» and on the patient's card. They play in the app's own
+  player: waveform, tap or drag to seek, speed, and the transcript follows playback (a tap on a line plays from it).
+- Search: the «По названию» strip above the results is gone (for a drug it only repeated them); title matches the
+  results miss follow them as «Ещё по названию».
+- «Рецепт» on a drug card no longer answers «нет карточки» (nervous-system ЖНВЛП: 47 cards → 0). Without an
+  instruction the Rp. line comes from the registry and the doctor writes «Способ применения»; doses still come only
+  from quoted instruction text. Method: `docs/research/prescription-coverage-2026-11.md`.
+- Drug comparison: «Выбрать препарат» opens a list with search and each drug's ATC group, starting from the chosen
+  drug's group.
+- Note templates («Ваши шаблоны») sit on a paper sheet; editing opens the full-page editor with the title on its own
+  line and the toolbar flush under the header. «Выдать дневник» is laid out as numbered steps with a sticky «Создать
+  QR-код». The patient avatar is readable on dark and light backgrounds.
+
 ## [0.6.96] - 2026-11-12
 
 - Diary, new patient: the card is built from scratch, top to bottom, in six numbered steps («Профиль», «Прошлое

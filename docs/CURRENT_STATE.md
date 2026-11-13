@@ -20,7 +20,15 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Session recorder: floating button, background text, «Файлы», own player — 2026-11-13 (STATE REC1; branch, not merged)
+## Release 0.6.97 — 2026-11-13
+
+- **In it:** REC1 (floating session recorder, background transcription with a load governor, recordings in «Файлы»
+  and on the patient card, own audio player), SRCHDRUG1 («По названию» folded into the results, «Рецепт» for every
+  drug card, comparison picker), FORMDIARY-UI1 (note templates on paper and edited full-page, «Выдать дневник» steps,
+  avatar contrast). The owner saw each branch's screenshots and asked for the release.
+- **Checks:** `bun run verify` on the merged tree, e2e of the three areas. Not checked on a phone or the Android build.
+
+## Session recorder: floating button, background text, «Файлы», own player — 2026-11-13 (STATE REC1; released in 0.6.97)
 
 Owner 2026-11-13 after recording therapy sessions on the phone: wrong text, recording not findable
 (attaching a patient did not help), an ugly recorder, heavy lag while recording, a plain browser
@@ -74,7 +82,7 @@ player. Measurements and the transcription diagnosis: [research/recorder-perf-20
   same 16 kHz stretches with the native GigaAM v3 model the APK already ships for the patient-card
   dictaphone (a `recognizePcm` plugin method) — the largest remaining gain in accuracy.
 
-## Note templates as paper, «Выдать дневник» steps, avatar contrast — 2026-11-13 (STATE FORMDIARY-UI1; branch, not merged)
+## Note templates as paper, «Выдать дневник» steps, avatar contrast — 2026-11-13 (STATE FORMDIARY-UI1; released in 0.6.97)
 
 - **Owner 2026-11-13:** a «form» (a note template, «Ваши шаблоны») showed without a background; its edit mode was a
   small note box with broken headings; the full-screen toolbar hung with a gap above it; «Выдать дневник» had almost
@@ -97,7 +105,7 @@ player. Measurements and the transcription diagnosis: [research/recorder-perf-20
 - `e2e/forms-diary-ui.spec.ts` (390 and 1280 px; `FDUI_CAPTURE_DIR` saves light/dark screenshots). Not tested on a
   phone or the Android build.
 
-## «Кветиапин»: one result per drug, «Рецепт» for every card, a list picker — 2026-11-13 (STATE SRCHDRUG1; not merged, not released)
+## «Кветиапин»: one result per drug, «Рецепт» for every card, a list picker — 2026-11-13 (STATE SRCHDRUG1; released in 0.6.97)
 
 Owner 2026-11-13. Numbers and method: [prescription-coverage-2026-11](research/prescription-coverage-2026-11.md).
 
