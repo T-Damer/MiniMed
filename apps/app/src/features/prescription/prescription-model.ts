@@ -512,6 +512,19 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
   const enabled = (inputs.settings ?? PRESCRIPTION_SETTINGS).computedDoses;
   const { card, forms, form, strength, product, ids } = choicesOf(item, index);
   const documentChoices = ids.map((id) => ({ id, label: documentLabel(index, id) }));
+  // The Rp. line needs only the registry (name, form, strength): with no instruction to read the
+  // course from, the doctor still gets it and writes the sign by hand (owner 2026-11-13).
+  const registryRp =
+    card && form !== null && strength !== null
+      ? rpLine({
+          latinName: card.l ?? null,
+          russianName: card.n ? cardDisplayName(card.s) : item.label,
+          form,
+          strength,
+          quantity: null,
+          quantityKind: null,
+        })
+      : '';
   const base = {
     numbersOff: !enabled,
     card,
@@ -534,7 +547,7 @@ export function analyzeItem(item: PrescriptionItem, inputs: ItemInputs): ItemAna
     quantity: null,
     packSize: item.packSize,
     signa: item.signa ?? '',
-    rp: item.rp ?? '',
+    rp: item.rp ?? registryRp,
     divisible: false,
     moduleToInstall: null,
     instruction: null as ResolvedInstruction | null,

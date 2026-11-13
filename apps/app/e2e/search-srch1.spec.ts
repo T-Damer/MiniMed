@@ -41,7 +41,8 @@ test('a class word shows the class card, then the drugs of the class', async ({ 
   await expect(card).toContainText('J01FA');
   // The class card stands above the first result, and the first results are the class's drugs.
   const cardBox = await card.boundingBox();
-  const firstBox = await page.locator('.result-group').first().boundingBox();
+  // The real list: the leaving skeleton (180 ms) also draws `.result-group` cards above the card.
+  const firstBox = await page.locator('.results-list .result-group').first().boundingBox();
   expect(cardBox && firstBox && cardBox.y < firstBox.y).toBe(true);
   await expect(page.locator('.result-group-header__title').first()).toContainText(
     /азитромицин|кларитромицин|эритромицин/iu,

@@ -13,7 +13,7 @@ test('the comparison picker and its suggestions fit the viewport', async ({ page
   const field = page.getByLabel('Добавить препарат');
   await expect(field).toBeVisible({ timeout: 60_000 });
   await field.fill('амоксициллин');
-  await expect(page.getByRole('list', { name: 'Найденные препараты' })).toBeVisible({
+  await expect(page.getByRole('region', { name: 'Найденные препараты' })).toBeVisible({
     timeout: 90_000,
   });
 
@@ -25,7 +25,7 @@ test('the comparison picker and its suggestions fit the viewport', async ({ page
       page: edge('.drug-comparison .page'),
       help: edge('.drug-comparison .page__help-button'),
       picker: edge('.drug-comparison__picker'),
-      list: edge('.drug-comparison__candidates'),
+      list: edge('.drug-comparison__rows'),
     };
   });
   expect(right.page).toBeLessThanOrEqual(right.viewport);

@@ -137,14 +137,19 @@ test('the tool opens from an address and takes drugs from the picker, at most fo
   await expect(page.locator('.drug-comparison__item--missing')).toContainText('ксзвцфыв');
   await expect(page.getByTestId('comparison-empty')).toContainText('ещё один препарат');
   const picker = page.getByRole('searchbox', { name: 'Добавить препарат' });
-  await picker.fill('пирантел');
-  await page.locator('.drug-comparison__candidate').first().click();
-  await expect(page.getByTestId('comparison-item')).toHaveCount(2);
-  await expect(page.getByTestId('comparison-matrix')).toBeVisible();
-  for (const name of ['празиквантел', 'мебендазол']) {
+  // The row of the typed drug: the list is debounced, a row of the previous word may still stand.
+  const pick = async (name: string, count: number): Promise<void> => {
     await picker.fill(name);
-    await page.locator('.drug-comparison__candidate').first().click();
-  }
+    await page
+      .locator('.drug-comparison__row', { hasText: new RegExp(name, 'iu') })
+      .first()
+      .click();
+    await expect(page.getByTestId('comparison-item')).toHaveCount(count);
+  };
+  await pick('пирантел', 2);
+  await expect(page.getByTestId('comparison-matrix')).toBeVisible();
+  await pick('празиквантел', 3);
+  await pick('мебендазол', 4);
   await expect(page.getByTestId('comparison-item')).toHaveCount(4);
   await expect(page.getByTestId('comparison-column')).toHaveCount(4);
   await expect(page.locator('.drug-comparison__hint').first()).toContainText('предел в 4');

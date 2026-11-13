@@ -46,6 +46,7 @@ import {
   documentIdsToRead,
   type InstructionState,
   type ItemAnalysis,
+  type ItemState,
   newItem,
   type PrescriptionItem,
 } from './prescription-model';
@@ -58,6 +59,16 @@ import { ageText } from './prescription-safety';
  * so a reload inside this window loses nothing.
  */
 export const PRESCRIPTION_AUTOSAVE_DEBOUNCE_MS = 700;
+
+/**
+ * Items that reach the recipe: one with a dose from its instruction, and one the doctor writes by
+ * hand because the instruction is not installed or not in the sources (its Rp. from the registry).
+ */
+const WRITTEN_STATES: ReadonlySet<ItemState> = new Set([
+  'ready',
+  'not-installed',
+  'no-instruction',
+]);
 
 /** One change of a patient's draft; the patient is fixed when it is typed. */
 interface DraftEdit {
@@ -344,7 +355,7 @@ export function createPrescriptionController(
   const lines = createMemo<readonly PrescribedLine[]>(() =>
     analyses().flatMap((analysis, position) => {
       const item = draft().items[position];
-      if (!item || analysis.state !== 'ready' || analysis.rp === '') return [];
+      if (!item || !WRITTEN_STATES.has(analysis.state) || analysis.rp === '') return [];
       return [
         {
           id: item.id,

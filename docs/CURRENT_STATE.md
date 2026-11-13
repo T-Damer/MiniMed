@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 12 November 2026
+> Updated: 13 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -42,6 +42,37 @@ Detailed history, moved verbatim on 2026-09-24:
   an opaque paper disc; AA in both themes on the dark header band and on cards.
 - `e2e/forms-diary-ui.spec.ts` (390 and 1280 px; `FDUI_CAPTURE_DIR` saves light/dark screenshots). Not tested on a
   phone or the Android build.
+
+## «Кветиапин»: one result per drug, «Рецепт» for every card, a list picker — 2026-11-13 (STATE SRCHDRUG1; not merged, not released)
+
+Owner 2026-11-13. Numbers and method: [prescription-coverage-2026-11](research/prescription-coverage-2026-11.md).
+
+- **«По названию» folded into the results.** The instant title strip above the results is gone: for
+  a drug name it only repeated the results (47 of 47 title answers over 10 drug queries). The title
+  index stays: once the results are in, title matches the list does not contain (by id, or by
+  title — a pointer and its card share the title) follow it once, as the list group «Ещё по
+  названию» (`titleMatchesBeyondResults`, `SearchTitleExtras`); for diseases that is 20 of 78
+  (narrower articles such as «Пневмония у детей»). The phrase choices («X» — N значений) drop
+  documents the list shows and hide a phrase left with fewer than two (`meaningsBeyondResults`).
+  Ranking is unchanged.
+- **«Рецепт» never answers «нет карточки».** The drug card handed the sheet the id of the
+  instruction it shows, which the dose index (a few instructions per card) often lacks; the sheet now
+  asks for the opened ЕСКЛП card (or its pointer) first, then an indexed instruction, then the
+  substance name, then a unique trade name (`prescription/drug-on-screen.ts`). Nervous-system ЖНВЛП
+  (102 cards): 47 «нет карточки» → 0.
+- **No instruction is no refusal.** Without an instruction (1 083 of 3 324 cards, 133 ЖНВЛП) or
+  with it not installed, the Rp. line is built from the registry (Latin name, form, strength) and the
+  doctor writes «Способ применения» in the «Текст рецепта» editor (open at once when there is no
+  instruction); such items reach the recipe text and the blank. Doses still come only from quoted
+  instruction sentences.
+- **Comparison picker.** «Выбрать» is a button («Выбрать препарат») opening a sheet with a search
+  field and `ListGroup`/`ListRow` rows: each drug with its ATC group (NSI level 4), the compared ones
+  ticked and disabled; before typing, the chosen drug's ATC group (level 4, widened to level 3 when
+  small — кветиапин → «Антипсихотические средства»). The search results under «Добавить препарат»
+  use the same rows (`ComparisonDrugPicker.tsx`, `comparison-picker.ts`).
+- e2e: `quetiapine-search-recipe.spec.ts` (nervous-system group from local release copies, 390 and
+  1280 px), measurement `recipe-coverage.measure.spec.ts` (opt-in). Seen, not fixed: companions of a
+  group installed through a pointer did not trigger a second search-core reload (`modules:1`).
 
 ## Phone heat, one visual language, «Файлы» by kind — 2026-11-11 (STATE PERF6; merged, not released)
 

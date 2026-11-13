@@ -53,6 +53,7 @@ import { parseComparisonQuery } from '@/features/drug-comparison/comparison-quer
 import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
 import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
+import { displayDocumentTitle } from '@/features/library/document-display';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
@@ -90,13 +91,17 @@ import { SearchExamples } from '@/features/search/SearchExamples';
 import {
   type SearchMeaning,
   SearchMeaningChoices,
-  SearchTitleMatches,
+  SearchTitleExtras,
 } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchScopeFallbackList } from '@/features/search/SearchScopeFallbackList';
 import { SearchSourceNote } from '@/features/search/SearchSourceNote';
 import { correctionPieces } from '@/features/search/search-correction';
+import {
+  meaningsBeyondResults,
+  titleMatchesBeyondResults,
+} from '@/features/search/search-meanings';
 import {
   replaceSearchQueryInAddress,
   searchQueryFromHash,
@@ -330,8 +335,8 @@ function refreshDownloadedCalculatorDefinitions(): Promise<void> {
   return downloadedCalculatorRefresh;
 }
 
-/** Instant title answers shown above the full-text results. */
-const INSTANT_TITLE_LIMIT = 6;
+/** Title matches looked up for a query; those the results do not list follow them. */
+const TITLE_MATCH_LIMIT = 6;
 
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Resolved once: reading the slot twice (class and content) would build two pickers and
@@ -355,24 +360,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const contextDocumentsById = createMemo(
     () => new Map(contextDocuments().map((document) => [document.id, document])),
   );
-  // The words of the search now running or shown: their title matches come first, at once.
-  const [instantQuery, setInstantQuery] = createSignal('');
-  const acceptsInstant = (document: MedicalDocumentSummary): boolean =>
+  // The words of the search now shown: documents whose titles carry them and that the results do
+  // not list follow the results (SRCHDRUG1; until 2026-11-13 they were a «По названию» strip above
+  // the results that, for a drug, repeated its first results).
+  const [titleQuery, setTitleQuery] = createSignal('');
+  const acceptsTitle = (document: MedicalDocumentSummary): boolean =>
     props.core instanceof ScopedMedicalCore
       ? props.core.acceptsDocument(document)
       : documentMatchesSearchScope(document, props.scope);
-  const instantMatches = createMemo((): readonly MedicalDocumentSummary[] => {
-    const words = instantQuery();
-    if (!words || props.catalogOnly || props.scope === 'diagnosis' || props.scope === 'personal') {
-      return [];
-    }
-    if (searchableQuery(query()) !== words) return [];
-    const documents = contextDocuments();
-    if (documents.length === 0) return [];
-    return titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsInstant);
-  });
-  // The titles are read once the core is there, before the first search, so the first submitted
-  // query already has its instant answers.
+  // The titles are read once the core is there and indexed while the screen is idle (~70 ms on a
+  // Mac, a few hundred on a phone), so the results never wait for them.
   createEffect(() => {
     const core = props.core;
     if (!core || props.searchAllowed === false || props.catalogOnly) return;
@@ -380,7 +377,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((available) => {
       if (!available.ok || contextDocuments().length > 0) return;
       setContextDocuments(available.value);
-      // Built while the screen is idle (~70 ms on a Mac, a few hundred on a phone), not on submit.
       const build = (): void => void titleIndexFor(available.value);
       if (typeof window.requestIdleCallback === 'function') {
         window.requestIdleCallback(build, { timeout: 2000 });
@@ -395,17 +391,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const queryLinkMatcher = createMemo(() =>
     createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments())),
   );
-  const ambiguousMeanings = createMemo((): readonly SearchMeaning[] => [
-    ...new Map(
-      queryLinkMatcher()
-        .segment(response()?.analysis.originalQuery ?? '')
-        .flatMap((segment): [string, SearchMeaning][] =>
-          segment.kind === 'link' && segment.alternatives && segment.alternatives.length > 1
-            ? [[segment.value, { phrase: segment.value, alternatives: segment.alternatives }]]
-            : [],
-        ),
-    ).values(),
-  ]);
+  // A phrase that names several documents offers them as choices, but only those the results do
+  // not already list (owner 2026-11-13: «Кветиапин» showed its card twice, above and in the list).
+  const ambiguousMeanings = createMemo((): readonly SearchMeaning[] =>
+    meaningsBeyondResults(
+      [
+        ...new Map(
+          queryLinkMatcher()
+            .segment(response()?.analysis.originalQuery ?? '')
+            .flatMap((segment): [string, SearchMeaning][] =>
+              segment.kind === 'link' && segment.alternatives && segment.alternatives.length > 1
+                ? [[segment.value, { phrase: segment.value, alternatives: segment.alternatives }]]
+                : [],
+            ),
+        ).values(),
+      ],
+      (response()?.groups ?? []).map((group) => group.documentId),
+    ),
+  );
   const [loading, setLoading] = createSignal(false);
   // A re-run of the query already on screen (after an install, a core swap or a history replay):
   // the current results stay usable, and a different outcome waits behind «Обновить».
@@ -559,6 +562,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     repeatedTitles().has(group.title)
       ? resultQualifier(contextDocumentsById().get(group.documentId))
       : undefined;
+  const titleExtras = createMemo((): readonly MedicalDocumentSummary[] => {
+    const shown = response();
+    const words = titleQuery();
+    if (!shown || loading() || !words || props.catalogOnly) return [];
+    if (props.scope === 'diagnosis' || props.scope === 'personal') return [];
+    if (searchableQuery(shown.analysis.originalQuery) !== words) return [];
+    const documents = contextDocuments();
+    if (documents.length === 0) return [];
+    return titleMatchesBeyondResults(
+      titleIndexFor(documents).lookup(words, TITLE_MATCH_LIMIT, acceptsTitle),
+      displayDocumentTitle,
+      shown.groups,
+    );
+  });
   const resultCount = createMemo(() =>
     visibleGroups().reduce((total, group) => total + group.results.length, 0),
   );
@@ -960,7 +977,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setLoading(false);
       return;
     }
-    setInstantQuery(trimmed);
+    setTitleQuery(trimmed);
     // Local timing marks for the performance harness (`e2e/perf-baseline.spec.ts`); no query text.
     performance.mark('minimed:search:run');
     if (!trimmed) {
@@ -1477,14 +1494,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </div>
         </Show>
 
-        <Show when={instantMatches().length > 0}>
-          <SearchTitleMatches
-            documents={instantMatches()}
-            onOpen={(documentId) => openDocumentInArchive(documentId)}
-          />
-        </Show>
-
-        <Show when={ambiguousMeanings().length > 0 && instantMatches().length === 0}>
+        <Show when={ambiguousMeanings().length > 0}>
           <SearchMeaningChoices
             meanings={ambiguousMeanings()}
             documentsById={contextDocumentsById()}
@@ -1888,6 +1898,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       )}
                     </Show>
                   </div>
+                  <Show when={!scopeFallback() && titleExtras().length > 0}>
+                    <SearchTitleExtras
+                      documents={titleExtras()}
+                      onOpen={(documentId) => openDocumentInArchive(documentId)}
+                    />
+                  </Show>
                 </Show>
 
                 <Show

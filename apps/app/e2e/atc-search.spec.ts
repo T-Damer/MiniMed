@@ -86,7 +86,7 @@ test('the drug comparison picker suggests drugs by ATC code', async ({ page }) =
   });
   const field = page.getByPlaceholder('Препарат, МНН или код АТХ');
   await field.fill('J05AX13');
-  const candidate = page.locator('.drug-comparison__candidate').first();
+  const candidate = page.locator('.drug-comparison__row').first();
   await expect(candidate).toContainText(/умифеновир/iu, { timeout: 90_000 });
   await expect(candidate.getByTestId('atc-match')).toContainText('J05AX13');
   await expect(candidate.getByTestId('atc-match')).toContainText('в реестре: L03AX');

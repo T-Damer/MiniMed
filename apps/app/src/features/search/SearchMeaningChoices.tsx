@@ -2,16 +2,17 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { For, type JSX } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
+import { ListGroup, ListRow, type ListTileTone } from '@/components/ListRow';
 import { displayDocumentTitle } from '@/features/library/document-display';
-import type { DocumentLinkAlternative } from '@/features/library/document-medication-links';
-import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
+import {
+  type SearchResultDocumentKind,
+  searchResultDocumentKind,
+} from '@/features/search/ScopedMedicalCore';
+import type { SearchMeaning } from '@/features/search/search-meanings';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 
-export interface SearchMeaning {
-  readonly phrase: string;
-  readonly alternatives: readonly DocumentLinkAlternative[];
-}
+export type { SearchMeaning } from '@/features/search/search-meanings';
 
 /** Lists every document a query phrase may refer to as explicit choices. */
 export function SearchMeaningChoices(props: {
@@ -58,35 +59,41 @@ export function SearchMeaningChoices(props: {
   );
 }
 
+/** The tile colour of each kind of document in a list row. */
+const KIND_TONES: Readonly<Record<SearchResultDocumentKind, ListTileTone>> = {
+  medication: 'green',
+  'clinical-recommendation': 'blue',
+  legal: 'gray',
+  calculator: 'orange',
+  assessment: 'purple',
+  reference: 'teal',
+};
+
 /**
- * The documents whose names carry the submitted words, shown the moment the search starts (from the
- * title index, no database read); the full-text results arrive below them and never move them.
+ * Documents whose titles carry the query words and that the results above do not list (owner
+ * 2026-11-13: a document appears once). A narrower article («Пневмония у детей») is often one.
  */
-export function SearchTitleMatches(props: {
+export function SearchTitleExtras(props: {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly onOpen: (documentId: string) => void;
 }): JSX.Element {
   return (
-    <aside class="search-meanings search-meanings--titles" aria-label="Документы по названию">
-      <section class="search-meanings__phrase">
-        <p class="search-meanings__label">По названию</p>
-        <ChoiceChipList label="Документы по названию">
-          <For each={props.documents}>
-            {(document) => {
-              const visual = RESULT_KIND_VISUALS[searchResultDocumentKind(document)];
-              return (
-                <ChoiceChip
-                  icon={<AppGlyph name={visual.icon} class="choice-chip__glyph" />}
-                  detail={visual.label}
-                  onClick={() => props.onOpen(document.id)}
-                >
-                  {displayDocumentTitle(document)}
-                </ChoiceChip>
-              );
-            }}
-          </For>
-        </ChoiceChipList>
-      </section>
-    </aside>
+    <ListGroup class="search-title-extras" heading="Ещё по названию" label="Ещё по названию">
+      <For each={props.documents}>
+        {(document) => {
+          const kind = searchResultDocumentKind(document);
+          return (
+            <ListRow
+              class="search-title-extras__row"
+              icon={RESULT_KIND_VISUALS[kind].icon}
+              tone={KIND_TONES[kind]}
+              title={displayDocumentTitle(document)}
+              subtitle={RESULT_KIND_VISUALS[kind].label}
+              onClick={() => props.onOpen(document.id)}
+            />
+          );
+        }}
+      </For>
+    </ListGroup>
   );
 }

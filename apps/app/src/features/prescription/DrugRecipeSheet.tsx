@@ -1,26 +1,17 @@
 import type { MedicalCore } from '@localmed/contracts';
 import { createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
 
-import { cardSlugOfDocumentId } from '@/features/drug-interactions/drug-candidates';
 import { notesPrescriptionPath } from '@/features/notes/notes-routing';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { createQuietResource } from '@/state/quiet-resource';
-import type { DoseIndex } from './dose-index';
 import { loadDoseIndex } from './dose-load';
+import { cardSlugOfDrugDocument, type DrugOnScreen } from './drug-on-screen';
 import { PrescriptionItemCard } from './PrescriptionItemCard';
 import { PrescriptionPatientFacts } from './PrescriptionPatientFacts';
 import { createPrescriptionController } from './prescription-controller';
 import { RecipeDialog } from './RecipeDialog';
 import { recipeMissingText } from './recipe-missing';
 import '@/styles/prescription.css';
-
-/** The ЕСКЛП card of an open drug document: the card itself, or the card its instruction serves. */
-export function cardSlugOfDrugDocument(index: DoseIndex, documentId: string): string | null {
-  const direct = cardSlugOfDocumentId(documentId);
-  if (direct !== null) return index.cardBySlug.has(direct) ? direct : null;
-  const first = index.asset.documents[documentId]?.c[0];
-  return first === undefined ? null : (index.asset.cards[first]?.s ?? null);
-}
 
 function RecipeSheet(props: {
   readonly open: boolean;
@@ -83,7 +74,7 @@ function RecipeSheet(props: {
  */
 export function DrugRecipeSheet(props: {
   readonly core: MedicalCore | undefined;
-  readonly documentId: string;
+  readonly drug: DrugOnScreen;
   readonly open: boolean;
   readonly onClose: () => void;
   readonly onContentChanged?: (() => Promise<void>) | undefined;
@@ -103,7 +94,7 @@ export function DrugRecipeSheet(props: {
   );
   const slug = createMemo(() => {
     const loaded = index.value();
-    return loaded ? cardSlugOfDrugDocument(loaded, props.documentId) : undefined;
+    return loaded ? cardSlugOfDrugDocument(loaded, props.drug) : undefined;
   });
   return (
     <Show
@@ -114,9 +105,14 @@ export function DrugRecipeSheet(props: {
           text=""
           onClose={props.onClose}
           empty={
-            index.value() === undefined
-              ? 'Загружаем указатель доз…'
-              : 'Для этого препарата в указателе доз нет карточки: назначение по нему не рассчитывается.'
+            index.value() === undefined ? (
+              'Загружаем указатель доз…'
+            ) : (
+              // No ЕСКЛП card names this drug: the prescription tool still takes it by hand.
+              <a class="prescription__link" href={notesPrescriptionPath({ cards: [] })}>
+                Выписать в «Назначении»
+              </a>
+            )
           }
         />
       }

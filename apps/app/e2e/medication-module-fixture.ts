@@ -28,14 +28,22 @@ const documentRoute = (id: string) =>
 
 /** Serves the module's published file; call before mounting. Skips when the copy is absent. */
 export async function routeMedicationModule(page: Page): Promise<void> {
+  await routeMedicationGroup(page, 'antiparasitic');
+}
+
+/**
+ * Serves one ЕСКЛП drug group (`nervous-system`, `antiparasitic`, …) with its ГРЛС instructions and
+ * the EAEU texts from the local release copies; call before mounting. Skips when a copy is absent.
+ */
+export async function routeMedicationGroup(page: Page, group: string): Promise<void> {
+  const moduleId = `minimed.medications.${group}.ru`;
   const catalog = ContentModuleCatalogSchema.parse(
     JSON.parse(
       await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
     ),
   );
-  const artifact = catalog.modules.find((module) => module.id === MEDICATION_MODULE_ID)
-    ?.artifacts[0];
-  if (!artifact?.url) throw new Error('Missing medication module artifact');
+  const artifact = catalog.modules.find((module) => module.id === moduleId)?.artifacts[0];
+  if (!artifact?.url) throw new Error(`Missing medication module artifact ${moduleId}`);
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
   const localPath = resolve(DATA_ROOT, PUBLISHED_DIRECTORY, fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
@@ -45,7 +53,7 @@ export async function routeMedicationModule(page: Page): Promise<void> {
     (url) => url.pathname.endsWith(`/${fileName}`),
     (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
   );
-  await routeCompanionModules(page, catalog);
+  await routeCompanionModules(page, catalog, `minimed.medications.instructions.${group}.ru`);
 }
 
 /** The EAEU texts, one module for every drug group (ADR of 2026-10-26), as released locally. */
@@ -70,10 +78,11 @@ async function routeCompanionModules(
       artifacts: readonly { url?: string | undefined; sha256: string }[];
     }[];
   },
+  instructionModuleId: string,
 ): Promise<void> {
   const served: string[] = [];
   for (const [moduleId, directory] of [
-    [INSTRUCTION_MODULE_ID, INSTRUCTION_DIRECTORY],
+    [instructionModuleId, INSTRUCTION_DIRECTORY],
     [EAEU_MODULE_ID, EAEU_DIRECTORY],
   ] as const) {
     const artifact = catalog.modules.find((module) => module.id === moduleId)?.artifacts[0];
@@ -124,6 +133,38 @@ export async function installMedicationModule(page: Page): Promise<void> {
   await page.locator('.document-module-pointer__action').click();
   await expect(page).toHaveURL(documentRoute('esklp.mnn.албендазол'), { timeout: 90_000 });
   await waitForCompanionModules(page);
+}
+
+/**
+ * Installs a drug group through a card's core pointer and reopens the app once the group and its
+ * companions are registered, so the search core opens with all of them. (Installed together, the
+ * nervous-system packs land within seconds and the core was rebuilt for the first one only —
+ * `modules:1` — so the wait of {@link installMedicationModule} never ends for them.)
+ */
+export async function installMedicationGroup(
+  page: Page,
+  pointer: string,
+  card: string,
+): Promise<void> {
+  await page.goto(documentRoute(pointer));
+  await page.locator('.document-module-pointer__action').click();
+  await expect(page).toHaveURL(documentRoute(card), { timeout: 90_000 });
+  const companions = servedCompanions.get(page) ?? [];
+  await expect
+    .poll(
+      () =>
+        page.evaluate((ids) => {
+          const raw = localStorage.getItem('localmed.installed-modules.v1');
+          const entries = raw
+            ? ((JSON.parse(raw) as { entries?: { moduleId: string }[] }).entries ?? [])
+            : [];
+          const installed = new Set(entries.map((entry) => entry.moduleId));
+          return ids.every((id) => installed.has(id));
+        }, companions),
+      { timeout: 300_000, message: `companions ${companions.join(', ')} installed` },
+    )
+    .toBe(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
 }
 
 /**
