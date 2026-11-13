@@ -20,7 +20,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Session recorder on Android: GigaAM v3 instead of Whisper — 2026-11-13 (STATE REC2; branch, not merged)
+## Session recorder on Android: GigaAM v3 instead of Whisper — 2026-11-13 (STATE REC2; merged, not released)
 
 - **Engine choice** (`features/conversations/speech-engine.ts`): GigaAM v3 (native sherpa-onnx, the
   model the patient-card dictaphone already uses) when the Android plugin is present and its models
