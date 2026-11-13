@@ -5,18 +5,21 @@ import {
   For,
   type JSX,
   lazy,
+  Match,
   onCleanup,
   onMount,
   Show,
   Suspense,
+  Switch,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { AsciiSpinner } from '@/components/AsciiSpinner';
-import { Button } from '@/components/Button';
+import { OverlayDialog } from '@/components/OverlayDialog';
+import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { AsrModelCard } from '@/features/asr/AsrModelCard';
-import { asrInstall } from '@/features/asr/asr-model-install';
+import { asrInstall, watchAsrInstall } from '@/features/asr/asr-model-install';
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
 import {
   conversationSession,
@@ -29,71 +32,60 @@ import {
   type VaultOffer,
   vaultOffer,
 } from '@/features/conversations/conversation-transcript';
+import { LiveWaveform } from '@/features/conversations/LiveWaveform';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { PulseDots } from '@/features/conversations/PulseDots';
+import { usePatientSnapshot } from '@/features/conversations/use-patient-snapshot';
 
-/** The patient picker is heavy and needed only after a recording ends: loaded on demand. */
-const ConversationAttachDialog = lazy(() =>
+/** The recording sheet (player, text, patient) is needed only after a recording: loaded on demand. */
+const ConversationRecordingSheet = lazy(() =>
   import('@/features/conversations/ConversationAttachDialog').then((module) => ({
-    default: module.ConversationAttachDialog,
+    default: module.ConversationRecordingSheet,
   })),
 );
 
 import './conversation-recorder.css';
 
-/** The level meter, shared by the bar and the live window. */
-function LevelMeter(props: { readonly class: string; readonly barClass: string }): JSX.Element {
-  const bars = Array.from({ length: 12 }, (_, index) => index);
-  return (
-    <span class={props.class} aria-hidden="true">
-      <For each={bars}>
-        {(index) => (
-          <span
-            class={props.barClass}
-            style={{
-              '--conversation-level': String(
-                Math.max(0.15, conversationSession.level() * (0.6 + ((index * 7) % 5) / 10)),
-              ),
-            }}
-          />
-        )}
-      </For>
-    </span>
-  );
-}
-
 /**
- * Floating bar over every screen while a conversation is being recorded: the app-level activity
- * indicator. Tapping it expands the live window; «Стоп» ends the recording.
+ * The recording while the doctor uses the app (REC1, owner 2026-11-13): a floating button in the
+ * app's floating-tools column, with the voice drawn live and the time. A tap opens the window.
  */
-function RecordingBar(): JSX.Element {
+function RecorderFab(): JSX.Element {
+  const host = (): HTMLElement | undefined =>
+    document.getElementById('app-floating-controls') ?? undefined;
+  const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
   return (
     <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
-      <Portal>
-        <div class="conversation-bar" role="status" aria-live="polite">
-          <button
-            type="button"
-            class="conversation-bar__expand"
-            aria-label="Идёт запись беседы. Открыть окно с текстом"
-            title="Открыть окно с текстом"
-            onClick={() => conversationSession.openWindow()}
+      <Portal mount={host() ?? document.body}>
+        <button
+          type="button"
+          class="recorder-fab floating-window-controls__item"
+          classList={{
+            'recorder-fab--paused': conversationSession.paused(),
+            'recorder-fab--free': !host(),
+          }}
+          aria-label={`${conversationSession.paused() ? 'Запись на паузе' : 'Идёт запись беседы'}, ${time()}. Открыть запись`}
+          title="Открыть запись"
+          data-testid="recorder-fab"
+          onClick={() => conversationSession.openWindow()}
+        >
+          <span
+            class="recorder-fab__dot"
+            classList={{ 'recorder-fab__dot--paused': conversationSession.paused() }}
+            aria-hidden="true"
           >
-            <span class="conversation-bar__dot" aria-hidden="true" />
-            <span class="conversation-bar__label">Идёт запись беседы</span>
-            <span class="conversation-bar__time">
-              {formatRecordingDuration(conversationSession.elapsedMs())}
-            </span>
-            <LevelMeter class="conversation-bar__meter" barClass="conversation-bar__meter-bar" />
-          </button>
-          <Button
-            class="conversation-bar__stop"
-            variant="danger"
-            icon={<AppGlyph name="stop-circle" class="conversation-bar__stop-icon" />}
-            onClick={() => void stopConversation()}
-          >
-            Стоп
-          </Button>
-        </div>
+            <Show when={conversationSession.paused()}>
+              <AppGlyph name="pause-fill" class="recorder-fab__pause" />
+            </Show>
+          </span>
+          <LiveWaveform
+            class="recorder-fab__wave"
+            source={() => conversationSession.recorder()}
+            bar={2}
+            gap={2}
+          />
+          <span class="recorder-fab__time">{time()}</span>
+        </button>
       </Portal>
     </Show>
   );
@@ -147,10 +139,7 @@ const OFFER_HINT: Readonly<Record<VaultOffer, string>> = {
  * plaintext one) and the text so far is written at once. The recording is never interrupted; the
  * row folds away when the text is saved, leaving only the lock beside the timer.
  */
-function VaultSuggestion(props: {
-  readonly state: TranscriptSaveState;
-  readonly roomy: boolean;
-}): JSX.Element {
+function VaultSuggestion(props: { readonly state: TranscriptSaveState }): JSX.Element {
   const open = (): boolean => props.state === 'unsaved';
   const [offer] = createResource(open, (shown) => (shown ? vaultOffer() : undefined));
   const [busy, setBusy] = createSignal(false);
@@ -178,10 +167,7 @@ function VaultSuggestion(props: {
         <button
           type="button"
           class="conversation-offer__chip"
-          classList={{
-            'conversation-offer__chip--roomy': props.roomy,
-            'conversation-offer__chip--failed': failure() !== '',
-          }}
+          classList={{ 'conversation-offer__chip--failed': failure() !== '' }}
           disabled={busy()}
           aria-label={`Текст не сохранится. ${OFFER_ACTION[kind()]}`}
           title={OFFER_HINT[kind()]}
@@ -215,191 +201,179 @@ function VaultSuggestion(props: {
 }
 
 /**
- * The expanded activity: the shared floating-window frame (toolbar, full-screen toggle) around the
- * timer, the level meter, the live text as it appears and the stop control. Without a speech model
- * the text area is the install card; once the model is ready the text takes its place.
+ * Where the text stands while recording: the install card without a model, the lines as they come,
+ * or one quiet line when the phone is too busy for live text (it is read after «Стоп»).
  */
-function RecordingWindow(): JSX.Element {
+function LiveText(): JSX.Element {
   let text: HTMLDivElement | undefined;
-  const fullscreen = () => conversationSession.windowFullscreen();
-  const recording = (): boolean => conversationSession.recorder() !== null;
   const lines = () => conversationSession.liveLines();
+  const status = () => conversationSession.liveStatus();
   const phase = asrInstall.phase;
   const showCard = (): boolean =>
     lines().length === 0 && ['missing', 'cached', 'loading', 'failed'].includes(phase());
-  const showText = (): boolean => !showCard() && (lines().length > 0 || phase() === 'ready');
+  onMount(() => onCleanup(watchAsrInstall()));
   createEffect(() => {
     lines();
-    requestAnimationFrame(() => text?.scrollTo({ top: text.scrollHeight }));
-  });
-  onMount(() => {
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      if (document.querySelector('[aria-modal="true"]')) return;
-      if (fullscreen()) conversationSession.toggleFullscreen();
-      else conversationSession.closeWindow();
-    };
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
+    requestAnimationFrame(() => text?.scrollTo({ top: text.scrollHeight, behavior: 'smooth' }));
   });
   return (
-    <Portal>
-      <section
-        class="floating-windows-layer"
-        classList={{ 'floating-windows-layer--fullscreen': fullscreen() }}
-        aria-label="Запись беседы"
-      >
-        <section
-          class="floating-window floating-window--active conversation-live"
-          classList={{
-            'floating-window--fullscreen': fullscreen(),
-            'conversation-live--fullscreen': fullscreen(),
-          }}
-          role="dialog"
-          aria-label={recording() ? 'Идёт запись беседы' : 'Запись беседы'}
-          data-testid="conversation-live"
-        >
-          <header
-            class="floating-window__toolbar"
-            classList={{ 'floating-window__toolbar--fullscreen': fullscreen() }}
-          >
-            <button
-              class="floating-window__button"
-              type="button"
-              aria-label={recording() ? 'Свернуть в строку записи' : 'Закрыть'}
-              title={recording() ? 'Свернуть в строку записи' : 'Закрыть'}
-              onClick={() => conversationSession.closeWindow()}
-            >
-              <AppGlyph name={recording() ? 'caret-down' : 'close'} class="floating-window__icon" />
-            </button>
-            <strong class="floating-window__title">
-              {recording() ? 'Идёт запись беседы' : 'Запись беседы'}
-            </strong>
-            <div class="floating-window__actions">
-              <button
-                class="floating-window__button floating-window__button--fullscreen"
-                type="button"
-                aria-label={fullscreen() ? 'Свернуть в маленькое окно' : 'Открыть на весь экран'}
-                title={fullscreen() ? 'Свернуть в маленькое окно' : 'На весь экран'}
-                onClick={() => conversationSession.toggleFullscreen()}
-              >
-                <AppGlyph
-                  name={fullscreen() ? 'arrows-in' : 'arrows-out'}
-                  class="floating-window__icon"
-                />
-              </button>
-            </div>
-          </header>
-          <div
-            class="floating-window__content conversation-live__body"
-            classList={{ 'conversation-live__body--fullscreen': fullscreen() }}
-          >
-            <Show
-              when={recording()}
-              fallback={
-                <div class="conversation-live__ready">
-                  <button
-                    type="button"
-                    class="conversation-live__record"
-                    aria-label="Начать запись"
-                    title="Начать запись"
-                    disabled={conversationSession.starting()}
-                    onClick={() => void startConversation()}
-                  >
-                    <Show
-                      when={!conversationSession.starting()}
-                      fallback={<AsciiSpinner class="conversation-live__record-spinner" />}
-                    >
-                      <AppGlyph name="microphone" class="conversation-live__record-icon" />
-                    </Show>
-                  </button>
-                </div>
-              }
-            >
-              <div class="conversation-live__head">
-                <div class="conversation-live__status" role="timer" aria-live="off">
-                  <span class="conversation-live__dot" aria-hidden="true" />
-                  <span class="conversation-live__time">
-                    {formatRecordingDuration(conversationSession.elapsedMs())}
-                  </span>
-                  <LevelMeter
-                    class="conversation-live__meter"
-                    barClass="conversation-live__meter-bar"
-                  />
-                  <SaveMark state={conversationSession.saveState()} />
-                </div>
-                <VaultSuggestion state={conversationSession.saveState()} roomy={fullscreen()} />
-              </div>
-              <div class="conversation-live__stage">
-                <div
-                  class="conversation-live__layer conversation-live__layer--card"
-                  classList={{ 'conversation-live__layer--hidden': !showCard() }}
-                  inert={!showCard()}
-                >
-                  <AsrModelCard compact={!fullscreen()} />
-                </div>
-                <div
-                  class="conversation-live__layer"
-                  classList={{ 'conversation-live__layer--hidden': !showText() }}
-                  inert={!showText()}
-                >
-                  <div
-                    class="conversation-live__text"
-                    classList={{
-                      'conversation-live__text--empty': lines().length === 0,
-                      'conversation-live__text--plain': fullscreen(),
-                    }}
-                    ref={(element) => {
-                      text = element;
-                    }}
-                  >
-                    <ol
-                      class="conversation-live__lines"
-                      aria-label="Текст беседы"
-                      aria-live="polite"
-                    >
-                      <For each={lines()}>
-                        {(line) => <li class="conversation-live__line">{line}</li>}
-                      </For>
-                    </ol>
-                    <Show
-                      when={conversationSession.liveStatus() !== 'failed'}
-                      fallback={
-                        <p class="conversation-live__problem" role="alert">
-                          <AppGlyph name="info" class="conversation-live__problem-icon" />
-                          Распознавание остановилось
-                        </p>
-                      }
-                    >
-                      <PulseDots
-                        working={conversationSession.liveStatus() === 'working'}
-                        label={
-                          conversationSession.liveStatus() === 'working'
-                            ? 'Распознаём речь'
-                            : 'Слушаем'
-                        }
-                      />
-                    </Show>
-                  </div>
-                </div>
-              </div>
-              <Button
-                class="conversation-live__stop"
-                variant="danger"
-                icon={<AppGlyph name="stop-circle" class="conversation-bar__stop-icon" />}
-                onClick={() => void stopConversation()}
-              >
-                Стоп
-              </Button>
-            </Show>
+    <div class="recorder-window__text-stage">
+      <Show
+        when={!showCard()}
+        fallback={
+          <div class="recorder-window__card">
+            <AsrModelCard compact />
           </div>
-        </section>
-      </section>
-    </Portal>
+        }
+      >
+        <div
+          class="recorder-window__text"
+          classList={{ 'recorder-window__text--empty': lines().length === 0 }}
+          ref={(element) => {
+            text = element;
+          }}
+        >
+          <ol class="recorder-window__lines" aria-label="Текст беседы" aria-live="polite">
+            <For each={lines()}>{(line) => <li class="recorder-window__line">{line}</li>}</For>
+          </ol>
+          <Switch
+            fallback={
+              <PulseDots
+                working={status() === 'working'}
+                label={status() === 'working' ? 'Распознаём речь' : 'Слушаем'}
+              />
+            }
+          >
+            <Match when={status() === 'deferred'}>
+              <p class="recorder-window__note" data-testid="recorder-deferred">
+                <AppGlyph name="clock" class="recorder-window__note-icon" />
+                Телефон занят — текст будет после записи
+              </p>
+            </Match>
+            <Match when={status() === 'failed'}>
+              <p class="recorder-window__note" role="alert">
+                <AppGlyph name="info" class="recorder-window__note-icon" />
+                Распознавание остановилось
+              </p>
+            </Match>
+          </Switch>
+        </div>
+      </Show>
+    </div>
   );
 }
 
-/** App-wide host: the recording bar, the post-recording dialog and crash recovery. */
+/**
+ * The recorder's window (owner 2026-11-13): before a recording, the big record button; while
+ * recording, the time, the voice, pause and stop, the patient the recording goes to and the live
+ * text. Closing it («Свернуть») leaves the recording running behind the floating button.
+ */
+function RecorderWindow(): JSX.Element {
+  const recording = (): boolean => conversationSession.recorder() !== null;
+  const [failure, setFailure] = createSignal('');
+  const patients = usePatientSnapshot(setFailure);
+  return (
+    <OverlayDialog
+      open
+      title={recording() ? 'Запись беседы' : 'Новая запись беседы'}
+      class="recorder-window"
+      bodyClass="recorder-window__body"
+      closeControl={recording() ? { label: 'Свернуть', glyph: 'caret-down' } : undefined}
+      onClose={() => conversationSession.closeWindow()}
+    >
+      <div class="recorder-window__content" data-testid="conversation-live">
+        <Show
+          when={recording()}
+          fallback={
+            <div class="recorder-window__ready">
+              <button
+                type="button"
+                class="recorder-window__record"
+                aria-label="Начать запись"
+                title="Начать запись"
+                disabled={conversationSession.starting()}
+                onClick={() => void startConversation()}
+              >
+                <Show
+                  when={!conversationSession.starting()}
+                  fallback={<AsciiSpinner class="recorder-window__record-spinner" />}
+                >
+                  <AppGlyph name="microphone" class="recorder-window__record-icon" />
+                </Show>
+              </button>
+            </div>
+          }
+        >
+          <div class="recorder-window__status" role="timer" aria-live="off">
+            <span
+              class="recorder-window__state"
+              classList={{ 'recorder-window__state--paused': conversationSession.paused() }}
+            >
+              {conversationSession.paused() ? 'Пауза' : 'Запись'}
+            </span>
+            <span class="recorder-window__time conversation-live__time">
+              {formatRecordingDuration(conversationSession.elapsedMs())}
+            </span>
+            <SaveMark state={conversationSession.saveState()} />
+          </div>
+          <LiveWaveform
+            class="recorder-window__wave"
+            source={() => conversationSession.recorder()}
+            bar={3}
+            gap={2}
+          />
+          <div class="recorder-window__controls">
+            <button
+              type="button"
+              class="recorder-window__control"
+              aria-label={conversationSession.paused() ? 'Продолжить запись' : 'Пауза'}
+              title={conversationSession.paused() ? 'Продолжить' : 'Пауза'}
+              onClick={() =>
+                conversationSession.paused()
+                  ? conversationSession.resume()
+                  : conversationSession.pause()
+              }
+            >
+              <AppGlyph
+                name={conversationSession.paused() ? 'microphone' : 'pause-fill'}
+                class="recorder-window__control-icon"
+              />
+            </button>
+            <button
+              type="button"
+              class="recorder-window__stop"
+              aria-label="Стоп"
+              title="Остановить и сохранить"
+              onClick={() => void stopConversation()}
+            >
+              <span class="recorder-window__stop-square" aria-hidden="true" />
+            </button>
+          </div>
+          <VaultSuggestion state={conversationSession.saveState()} />
+        </Show>
+        <PatientPickerRow
+          class="recorder-window__patient"
+          profiles={patients.snapshot()?.profiles ?? []}
+          patientId={conversationSession.linkedPatientId()}
+          unlocked={patients.snapshot() !== null}
+          hint="Запись попадёт в карту пациента"
+          onPatientChange={(id) => conversationSession.linkPatient(id)}
+          onSnapshotChange={patients.setSnapshot}
+        />
+        <Show when={failure()}>
+          <p class="recorder-window__error" role="alert">
+            {failure()}
+          </p>
+        </Show>
+        <Show when={recording()}>
+          <LiveText />
+        </Show>
+      </div>
+    </OverlayDialog>
+  );
+}
+
+/** App-wide host: the floating button, the recorder window, the recording sheet, crash recovery. */
 export function ConversationRecorderHost(): JSX.Element {
   onMount(recoverConversations);
   createEffect(() => {
@@ -410,14 +384,14 @@ export function ConversationRecorderHost(): JSX.Element {
   });
   return (
     <>
-      <RecordingBar />
+      <RecorderFab />
       <Show when={conversationSession.windowOpen()}>
-        <RecordingWindow />
+        <RecorderWindow />
       </Show>
       <Show when={conversationSession.finished()}>
         {(recording) => (
           <Suspense>
-            <ConversationAttachDialog
+            <ConversationRecordingSheet
               recording={recording()}
               onClose={() => conversationSession.dismissFinished()}
             />

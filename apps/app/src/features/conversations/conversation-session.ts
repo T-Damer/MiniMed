@@ -11,97 +11,171 @@ import {
   type TranscriptSaver,
   type TranscriptSaveState,
   transcriptEventText,
+  transcriptLines,
 } from '@/features/conversations/conversation-transcript';
+import { startLoadMonitor } from '@/features/conversations/device-load';
 import {
   type LiveStatus,
-  type LiveTranscriber,
-  startLiveTranscriber,
+  type SpeechTranscriber,
+  startSpeechTranscriber,
+  type TranscriptSegment,
 } from '@/features/conversations/live-transcription';
 import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
+import { peaksOfSamples } from '@/features/conversations/recording-audio';
 import {
   type ConversationRecorder,
   type ConversationRecording,
   deleteConversationRecording,
   markConversationAttached,
+  RECORDING_SAMPLE_RATE,
   readConversationAudio,
+  readConversationRecording,
+  readStoredSamples,
   recoverInterruptedRecordings,
+  releaseStoredSamples,
   startConversationRecording,
+  storedSampleSpan,
+  updateConversationRecording,
 } from '@/state/conversation-recordings';
 import { appendEvent, type PatientEvent } from '@/state/patient-domain';
-import { addPatientBlob, updatePatientVault } from '@/state/patient-vault';
+import { addPatientBlob, isPatientVaultUnlocked, updatePatientVault } from '@/state/patient-vault';
 
-/** One app-wide recording at a time; the bar and the attach dialog read these signals. */
+type AsrRuntime = typeof import('@/features/asr/asr-models');
+
+/** One app-wide recording at a time; the floating button and the window read these signals. */
 const [recorder, setRecorder] = createSignal<ConversationRecorder | null>(null);
-const [elapsedMs, setElapsedMs] = createSignal(0);
-const [level, setLevel] = createSignal(0);
+/** Recorded seconds, changed once a second (the time on the button needs no more). */
+const [elapsedSeconds, setElapsedSeconds] = createSignal(0);
+const [paused, setPaused] = createSignal(false);
 const [starting, setStarting] = createSignal(false);
 const [error, setError] = createSignal('');
 /** The current error is a microphone refusal by Android itself: settings can fix it. */
 const [errorOpensSettings, setErrorOpensSettings] = createSignal(false);
+/** The recording whose sheet is open (just stopped, or opened from «Файлы» / a patient). */
 const [finished, setFinished] = createSignal<ConversationRecording | null>(null);
-/** The live text window: expanded from the bar, optionally over the whole screen. */
+/** Whether that sheet follows a «Стоп» (titled «Запись сохранена») or was opened from a list. */
+const [finishedFrom, setFinishedFrom] = createSignal<'stopped' | 'list'>('stopped');
+/** The recorder window over the app, opened from the floating button or the tools list. */
 const [windowOpen, setWindowOpen] = createSignal(false);
-const [windowFullscreen, setWindowFullscreen] = createSignal(false);
-const [liveStatus, setLiveStatus] = createSignal<LiveStatus>('unavailable');
+/** The patient chosen in the window while recording: the recording goes to their card. */
+const [linkedPatientId, setLinkedPatientId] = createSignal('');
 
 /**
- * The text of one recording while it is held in memory: recognised lines, the state of their
- * encrypted autosave and whether the tail is still being read after «Стоп». Lines are never logged.
+ * The text of one recording while it is held in memory: recognised segments, the state of their
+ * encrypted autosave, and the recogniser's state. Lines are never logged.
  */
 export interface ConversationTranscript {
+  readonly segments: Accessor<readonly TranscriptSegment[]>;
   readonly lines: Accessor<readonly string[]>;
   readonly saveState: Accessor<TranscriptSaveState>;
-  /** True from «Стоп» until the last audio is read and the final write is done. */
+  readonly status: Accessor<LiveStatus>;
+  /** True from «Стоп» (or «Расшифровать») until the last audio is read and saved. */
   readonly settling: Accessor<boolean>;
+  /** 0–1 of the recording turned into text, while a «Расшифровать» run reads it. */
+  readonly progress: Accessor<number | null>;
 }
 
 interface TranscriptRun extends ConversationTranscript {
   readonly id: string;
-  readonly setLines: (lines: readonly string[]) => void;
+  readonly setSegments: (segments: readonly TranscriptSegment[]) => void;
+  readonly setStatus: (status: LiveStatus) => void;
   readonly setSettling: (settling: boolean) => void;
+  readonly setProgress: (progress: number | null) => void;
   readonly saver: TranscriptSaver;
-  live?: LiveTranscriber;
-  /** Resolves once the live transcriber exists (or could not be created). */
-  starting: Promise<void>;
+  transcriber?: SpeechTranscriber;
+  /** Everything before this sample is text (or silence) — once that text is saved. */
+  until: number;
   settled: Promise<void>;
 }
 
 const runs = new Map<string, TranscriptRun>();
 const [activeRun, setActiveRun] = createSignal<TranscriptRun | undefined>();
 
-function createRun(id: string): TranscriptRun {
-  const [lines, setLines] = createSignal<readonly string[]>([]);
+let asrRuntime: AsrRuntime | undefined;
+/** Speech runtime on demand: the first screen stays light, the model loads only for recordings. */
+async function loadAsr(): Promise<AsrRuntime> {
+  asrRuntime ??= await import('@/features/asr/asr-models');
+  return asrRuntime;
+}
+
+/**
+ * Stored samples go once the text covering them is safely saved — or when there is no text to lose.
+ * Unsaved text (no vault yet) keeps them, so «Расшифровать» can still produce it later.
+ */
+async function releaseCovered(run: TranscriptRun): Promise<void> {
+  const state = run.saveState();
+  const safe = state === 'saved' || (state === 'idle' && run.segments().length === 0);
+  if (!safe || run.until <= 0) return;
+  await releaseStoredSamples(run.id, run.until);
+  await updateConversationRecording(run.id, { transcribedSamples: run.until });
+}
+
+function createRun(id: string, initial: readonly TranscriptSegment[] = []): TranscriptRun {
+  const [segments, setSegments] = createSignal<readonly TranscriptSegment[]>(initial);
   const [saveState, setSaveState] = createSignal<TranscriptSaveState>('idle');
+  const [status, setStatus] = createSignal<LiveStatus>('unavailable');
   const [settling, setSettling] = createSignal(false);
+  const [progress, setProgress] = createSignal<number | null>(null);
   const run: TranscriptRun = {
     id,
-    lines,
+    segments,
+    lines: () => transcriptLines(segments()),
     saveState,
+    status,
     settling,
-    setLines,
+    progress,
+    setSegments,
+    setStatus,
     setSettling,
+    setProgress,
+    until: 0,
     saver: createTranscriptSaver({
-      save: (next) => saveDraftTranscript(id, next),
+      save: async (next) => {
+        const covered = run.until;
+        const result = await saveDraftTranscript(id, next);
+        if (result === 'saved') {
+          await releaseStoredSamples(id, covered);
+          await updateConversationRecording(id, { transcribedSamples: covered });
+        }
+        return result;
+      },
       onState: setSaveState,
     }),
-    starting: Promise.resolve(),
     settled: Promise.resolve(),
   };
   runs.set(id, run);
   return run;
 }
 
+function listenTo(
+  run: TranscriptRun,
+): Pick<Parameters<typeof startSpeechTranscriber>[0], 'onSegments' | 'onStatus' | 'onProgress'> {
+  return {
+    onSegments: (next) => {
+      run.setSegments(next);
+      run.saver.update(next);
+    },
+    onStatus: run.setStatus,
+    onProgress: (until) => {
+      run.until = until;
+    },
+  };
+}
+
 export const conversationSession = {
   recorder,
-  elapsedMs,
-  level,
+  /** Recorded milliseconds, pauses excluded (whole seconds). */
+  elapsedMs: (): number => elapsedSeconds() * 1000,
+  paused,
   starting,
   error,
   errorOpensSettings,
   finished,
+  finishedFrom,
   windowOpen,
-  windowFullscreen,
-  liveStatus,
+  linkedPatientId,
+  /** The recogniser's state for the running recording. */
+  liveStatus: (): LiveStatus => activeRun()?.status() ?? 'unavailable',
   /** Recognised lines of the recording that is running now. */
   liveLines: (): readonly string[] => activeRun()?.lines() ?? [],
   /** The autosave state of the running recording's text. */
@@ -115,7 +189,7 @@ export const conversationSession = {
     await enableEncryptedVault();
     await run?.saver.retry();
   },
-  /** The in-memory text of a recording made in this session, if its run is still held. */
+  /** The in-memory text of a recording made or read in this session, if its run is still held. */
   transcript: (recordingId: string): ConversationTranscript | undefined => runs.get(recordingId),
   openWindow: () => setWindowOpen(true),
   /**
@@ -123,19 +197,39 @@ export const conversationSession = {
    * off until the doctor taps the big record button inside it.
    */
   prepare: () => setWindowOpen(true),
-  closeWindow: () => {
-    setWindowOpen(false);
-    setWindowFullscreen(false);
+  closeWindow: () => setWindowOpen(false),
+  linkPatient: (patientId: string): void => {
+    setLinkedPatientId(patientId);
+    const current = recorder();
+    if (current) void updateConversationRecording(current.id, { patientId });
   },
-  toggleFullscreen: () => setWindowFullscreen((value) => !value),
+  pause: (): void => {
+    recorder()?.pause();
+    setPaused(recorder()?.paused() ?? false);
+  },
+  resume: (): void => {
+    recorder()?.resume();
+    setPaused(recorder()?.paused() ?? false);
+  },
   dismissFinished: () => {
     const recording = finished();
     setFinished(null);
     // The run may still be reading the tail of the audio; it is dropped once that is saved.
     const run = recording ? runs.get(recording.id) : undefined;
-    if (run) void run.settled.then(() => runs.delete(run.id));
+    if (run && !run.settling()) void run.settled.then(() => runs.delete(run.id));
   },
-  openFinished: (recording: ConversationRecording) => setFinished(recording),
+  /** Opens a recording's sheet from «Файлы», a patient's card or the notes inbox. */
+  openFinished: (recording: ConversationRecording) => {
+    setFinishedFrom('list');
+    setFinished(recording);
+  },
+  /** Re-reads the open sheet's recording (attached, text progress) without closing it. */
+  refreshFinished: async (): Promise<void> => {
+    const open = finished();
+    if (!open) return;
+    const updated = await readConversationRecording(open.id);
+    if (updated && finished()?.id === open.id) setFinished(updated);
+  },
   clearError: () => {
     setError('');
     setErrorOpensSettings(false);
@@ -143,43 +237,36 @@ export const conversationSession = {
 };
 
 let ticker: number | undefined;
+let loadMonitor: ReturnType<typeof startLoadMonitor> | undefined;
 
-/** Live text needs the speech model; it loads on demand so the app's first screen stays light. */
-async function beginLiveText(run: TranscriptRun, snapshot: () => Blob): Promise<void> {
-  setLiveStatus('unavailable');
-  try {
-    const asr = await import('@/features/asr/asr-models');
-    run.live = startLiveTranscriber({
-      available: asr.liveRecognitionReady,
-      snapshot,
-      decode: asr.decodeToPcm16k,
-      recognise: asr.recogniseLivePcm,
-      onLines: (next) => {
-        run.setLines(next);
-        run.saver.update(next);
-      },
-      onStatus: (status) => {
-        if (activeRun() === run) setLiveStatus(status);
-      },
-    });
-  } catch {
-    setLiveStatus('failed');
-  }
+/** Live text: the recorder's 16 kHz samples go straight to the transcriber, nothing is decoded. */
+function beginLiveText(run: TranscriptRun, source: ConversationRecorder): void {
+  loadMonitor = startLoadMonitor();
+  const monitor = loadMonitor;
+  void loadAsr().catch(() => run.setStatus('failed'));
+  const transcriber = startSpeechTranscriber({
+    mode: 'live',
+    available: () => asrRuntime?.liveRecognitionReady() ?? false,
+    recognise: async (samples) => (await loadAsr()).recogniseLivePcm(samples),
+    overloaded: () => monitor.overloaded(),
+    ...listenTo(run),
+  });
+  run.transcriber = transcriber;
+  source.onSamples((samples) => transcriber.push(samples));
 }
 
 /**
- * After «Стоп»: lets the transcriber read the audio that came in since its last step, then makes
- * the final encrypted write. Runs in the background; the attach dialog waits for `settled`.
+ * After «Стоп»: lets the transcriber read what it still holds (unless it has deferred), makes the
+ * final encrypted write and releases the samples that are text now. The window waits on `settled`.
  */
 function settleRun(run: TranscriptRun): void {
   run.setSettling(true);
   run.settled = (async () => {
     try {
-      await run.starting;
-      await run.live?.finish();
+      await run.transcriber?.finish();
       await run.saver.flush();
+      await releaseCovered(run);
     } finally {
-      run.saver.cancel();
       run.setSettling(false);
     }
   })();
@@ -193,14 +280,17 @@ export async function startConversation(): Promise<void> {
   try {
     const next = await startConversationRecording((message) => setError(message));
     setRecorder(next);
-    setElapsedMs(0);
+    setPaused(false);
+    setElapsedSeconds(0);
     ticker = window.setInterval(() => {
-      setElapsedMs(Date.now() - next.startedAt);
-      setLevel(next.level());
-    }, 200);
+      const seconds = Math.floor(next.elapsedMs() / 1000);
+      if (seconds !== elapsedSeconds()) setElapsedSeconds(seconds);
+    }, 250);
     const run = createRun(next.id);
     setActiveRun(run);
-    run.starting = beginLiveText(run, () => next.snapshot());
+    beginLiveText(run, next);
+    if (linkedPatientId())
+      void updateConversationRecording(next.id, { patientId: linkedPatientId() });
   } catch (cause) {
     const failure = await diagnoseMicrophoneFailure(cause);
     setErrorOpensSettings(failure.openSettings);
@@ -215,21 +305,34 @@ export async function stopConversation(): Promise<void> {
   if (!current) return;
   if (ticker !== undefined) window.clearInterval(ticker);
   ticker = undefined;
+  loadMonitor?.dispose();
+  loadMonitor = undefined;
   const run = activeRun();
+  const patientId = linkedPatientId();
   setWindowOpen(false);
-  setWindowFullscreen(false);
   setRecorder(null);
-  setLevel(0);
-  setLiveStatus('unavailable');
+  setPaused(false);
   setActiveRun(undefined);
+  setLinkedPatientId('');
   try {
-    setFinished(await current.stop());
+    const recording = await current.stop();
     if (run) settleRun(run);
-  } catch (cause) {
-    if (run) {
-      run.saver.cancel();
-      void run.starting.then(() => run.live?.stop());
+    setFinishedFrom('stopped');
+    setFinished(recording);
+    if (patientId && isPatientVaultUnlocked()) {
+      // The patient was chosen while recording: the recording goes to their card by itself.
+      void attachConversation(recording, patientId, undefined)
+        .then(async () => {
+          const updated = await readConversationRecording(recording.id);
+          if (updated && finished()?.id === recording.id) setFinished(updated);
+        })
+        .catch((cause: unknown) =>
+          setError(cause instanceof Error ? cause.message : 'Не удалось добавить запись в карту.'),
+        );
     }
+  } catch (cause) {
+    run?.transcriber?.stop();
+    run?.saver.cancel();
     setError(cause instanceof Error ? cause.message : 'Не удалось завершить запись.');
   }
 }
@@ -245,21 +348,135 @@ export function conversationTitle(recording: ConversationRecording): string {
   return `Запись беседы, ${formatRecordingDuration(recording.durationMs)}`;
 }
 
-/** The text a recording has: this session's lines while held, else the encrypted draft or file. */
+/** The text a recording has: this session's segments while held, else the encrypted draft/file. */
+export async function loadConversationSegments(recording: ConversationRecording): Promise<{
+  readonly segments: readonly TranscriptSegment[];
+  readonly locked: boolean;
+}> {
+  const run = runs.get(recording.id);
+  if (run) return { segments: run.segments(), locked: false };
+  const stored = await readConversationTranscript(recording.id);
+  return stored.status === 'found'
+    ? { segments: stored.segments, locked: false }
+    : { segments: [], locked: stored.status === 'locked' };
+}
+
+/** The text a recording has, as lines (forms and the psychiatric status read it like this). */
 export async function loadConversationLines(
   recording: ConversationRecording,
 ): Promise<{ readonly lines: readonly string[]; readonly locked: boolean }> {
+  const { segments, locked } = await loadConversationSegments(recording);
+  return { lines: transcriptLines(segments), locked };
+}
+
+/**
+ * Whether part of a recording still waits to be turned into text: stored samples remain, or the
+ * recording was made before REC1 (no samples kept) and has no text yet.
+ */
+export async function recordingNeedsTranscript(recording: ConversationRecording): Promise<boolean> {
   const run = runs.get(recording.id);
-  if (run) return { lines: run.lines(), locked: false };
-  const stored = await readConversationTranscript(recording.id);
-  return stored.status === 'found'
-    ? { lines: stored.lines, locked: false }
-    : { lines: [], locked: stored.status === 'locked' };
+  if (run?.settling()) return false;
+  if (recording.samples !== undefined) return (await storedSampleSpan(recording.id)) !== null;
+  const { segments, locked } = await loadConversationSegments(recording);
+  return !locked && segments.length === 0;
+}
+
+/** Peaks for a recording that has none (made before REC1 or interrupted): decoded once, saved. */
+export async function ensureRecordingPeaks(
+  recording: ConversationRecording,
+): Promise<readonly number[]> {
+  if (recording.peaks && recording.peaks.length > 0) return recording.peaks;
+  const asr = await loadAsr();
+  const pcm = await asr.decodeToPcm16k(await readConversationAudio(recording.id));
+  const peaks = peaksOfSamples(pcm, RECORDING_SAMPLE_RATE);
+  await updateConversationRecording(recording.id, { peaks });
+  return peaks;
+}
+
+/** Writes new text into the patient's copy too, when the recording is already in a card. */
+async function refreshAttachedText(
+  recording: ConversationRecording,
+  segments: readonly TranscriptSegment[],
+): Promise<void> {
+  const attached = (await readConversationRecording(recording.id))?.attachedTo;
+  if (!attached || segments.length === 0) return;
+  await filePatientTranscript(recording.id, segments, attached.patientId);
+  await updatePatientVault((current) => ({
+    ...current,
+    events: current.events.map((event) =>
+      event.id === attached.eventId ? { ...event, text: transcriptEventText(segments) } : event,
+    ),
+  }));
+}
+
+/**
+ * «Расшифровать»: reads what is not text yet — the kept 16 kHz samples, or for a recording made
+ * before REC1 the decoded file — to its end, in the background. The model must be ready.
+ */
+export async function transcribeRecording(recording: ConversationRecording): Promise<void> {
+  const existing = runs.get(recording.id);
+  if (existing?.settling()) return existing.settled;
+  const asr = await loadAsr();
+  if (!asr.liveRecognitionReady()) throw new Error('Сначала загрузите модель расшифровки.');
+  const { segments: before } = await loadConversationSegments(recording);
+  const run = existing ?? createRun(recording.id, before);
+  run.setSettling(true);
+  run.setProgress(0);
+  run.settled = (async () => {
+    try {
+      const span = await storedSampleSpan(recording.id);
+      const total =
+        recording.samples ?? Math.round((recording.durationMs / 1000) * RECORDING_SAMPLE_RATE);
+      const startSample = span?.from ?? 0;
+      const transcriber = startSpeechTranscriber({
+        mode: 'request',
+        available: () => asr.liveRecognitionReady(),
+        recognise: (samples) => asr.recogniseLivePcm(samples),
+        initialSegments: run.segments(),
+        startSample,
+        ...listenTo(run),
+      });
+      run.transcriber = transcriber;
+      const step = (at: number): void => run.setProgress(Math.min(1, at / Math.max(1, total)));
+      if (span) {
+        for await (const block of readStoredSamples(recording.id, span.from)) {
+          // Hand over in 50 ms pieces, as live: the recogniser reads while the rest still loads.
+          for (let offset = 0; offset < block.samples.length; offset += 16_000) {
+            transcriber.push(block.samples.subarray(offset, offset + 16_000));
+          }
+          step(block.start + block.samples.length);
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      } else if (recording.samples === undefined) {
+        // Made before REC1: no samples were kept, the file is decoded once.
+        const pcm = await asr.decodeToPcm16k(await readConversationAudio(recording.id));
+        for (let offset = 0; offset < pcm.length; offset += 16_000) {
+          transcriber.push(pcm.subarray(offset, offset + 16_000));
+          if (offset % (RECORDING_SAMPLE_RATE * 30) === 0) {
+            step(offset);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        }
+      }
+      await transcriber.finish();
+      run.setProgress(1);
+      await run.saver.flush();
+      await releaseCovered(run);
+      if (transcriber.status() === 'failed') {
+        throw new Error('Не удалось расшифровать запись. Попробуйте ещё раз.');
+      }
+      await refreshAttachedText(recording, run.segments());
+    } finally {
+      run.setSettling(false);
+      run.setProgress(null);
+    }
+  })();
+  return run.settled;
 }
 
 /**
  * Copies the audio and its text into the patient's vault as a note event with its own files. The
- * source recording stays in the inbox, marked as attached, until the doctor deletes it.
+ * source recording stays in «Файлы», marked as attached, until the doctor deletes it.
  */
 export async function attachConversation(
   recording: ConversationRecording,
@@ -268,9 +485,9 @@ export async function attachConversation(
 ): Promise<void> {
   // The tail of a just-stopped recording may still be read; wait so the card gets all of it.
   await runs.get(recording.id)?.settled;
-  const [audio, { lines }] = await Promise.all([
+  const [audio, { segments }] = await Promise.all([
     readConversationAudio(recording.id),
-    loadConversationLines(recording),
+    loadConversationSegments(recording),
   ]);
   const eventId = `conversation-${recording.id}`;
   const event: PatientEvent = {
@@ -281,8 +498,8 @@ export async function attachConversation(
     occurredAt: recording.startedAt,
     title: conversationTitle(recording),
     text:
-      lines.length > 0
-        ? transcriptEventText(lines)
+      segments.length > 0
+        ? transcriptEventText(segments)
         : recording.status === 'interrupted'
           ? 'Аудиозапись беседы (запись прервалась, сохранена записанная часть).'
           : 'Аудиозапись беседы.',
@@ -295,13 +512,14 @@ export async function attachConversation(
     mimeType: audio.type || 'audio/webm',
     bytes: new Uint8Array(await audio.arrayBuffer()),
   });
-  if (lines.length > 0) await filePatientTranscript(recording.id, lines, patientId);
+  if (segments.length > 0) await filePatientTranscript(recording.id, segments, patientId);
   await updatePatientVault((current) =>
     current.events.some((candidate) => candidate.id === eventId)
       ? current
       : appendEvent(current, event),
   );
   await markConversationAttached(recording.id, { patientId, eventId });
+  await updateConversationRecording(recording.id, { patientId });
 }
 
 /**
@@ -309,6 +527,8 @@ export async function attachConversation(
  * patient: then the card owns a copy of the audio and the text, and both stay.
  */
 export async function removeConversation(recording: ConversationRecording): Promise<void> {
+  runs.get(recording.id)?.transcriber?.stop();
+  runs.delete(recording.id);
   await deleteConversationRecording(recording.id);
   if (!recording.attachedTo) await deleteConversationTranscript(recording.id);
 }

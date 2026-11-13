@@ -1,4 +1,5 @@
 import { AUTOMATIC_TRANSCRIPT_LABEL } from '@/features/asr/visit-recording';
+import type { TranscriptSegment } from '@/features/conversations/live-transcription';
 import {
   addPatientBlob,
   createPatientVault,
@@ -23,7 +24,8 @@ import {
  * outside the vault, or logs.
  */
 const KIND = 'minimed-conversation-transcript';
-const VERSION = 1;
+/** 2 (REC1): timed segments. 1: plain lines, still read (text made before REC1 stays readable). */
+const VERSION = 2;
 const MIME_TYPE = 'application/json';
 
 export const TRANSCRIPT_SAVE_DELAY_MS = 1_500;
@@ -36,7 +38,7 @@ export function transcriptBlobId(recordingId: string): string {
 
 export function encodeTranscript(
   recordingId: string,
-  lines: readonly string[],
+  segments: readonly TranscriptSegment[],
   savedAt: Date = new Date(),
 ): Uint8Array {
   return new TextEncoder().encode(
@@ -45,34 +47,58 @@ export function encodeTranscript(
       version: VERSION,
       recordingId,
       savedAt: savedAt.toISOString(),
-      lines,
+      segments,
     }),
   );
 }
 
-/** Reads a stored transcript; anything that is not exactly the stored shape is rejected. */
-export function decodeTranscript(bytes: Uint8Array): readonly string[] {
+function isSegment(value: unknown): value is TranscriptSegment {
+  if (typeof value !== 'object' || value === null) return false;
+  const segment = value as { text?: unknown; startMs?: unknown; endMs?: unknown };
+  const time = (field: unknown): boolean =>
+    field === undefined || (typeof field === 'number' && Number.isFinite(field) && field >= 0);
+  return typeof segment.text === 'string' && time(segment.startMs) && time(segment.endMs);
+}
+
+/** Reads a stored transcript; anything that is not exactly a stored shape is rejected. */
+export function decodeTranscript(bytes: Uint8Array): readonly TranscriptSegment[] {
   let value: unknown;
   try {
     value = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     throw new Error('Текст беседы повреждён.');
   }
-  const record = value as { kind?: unknown; version?: unknown; lines?: unknown } | null;
+  const record = value as {
+    kind?: unknown;
+    version?: unknown;
+    lines?: unknown;
+    segments?: unknown;
+  } | null;
+  if (record?.kind !== KIND) throw new Error('Текст беседы повреждён.');
   if (
-    record?.kind !== KIND ||
-    record.version !== VERSION ||
-    !Array.isArray(record.lines) ||
-    !record.lines.every((line) => typeof line === 'string')
+    record.version === 1 &&
+    Array.isArray(record.lines) &&
+    record.lines.every((line) => typeof line === 'string')
   ) {
-    throw new Error('Текст беседы повреждён.');
+    return (record.lines as readonly string[]).map((text) => ({ text }));
   }
-  return record.lines as readonly string[];
+  if (
+    record.version === VERSION &&
+    Array.isArray(record.segments) &&
+    record.segments.every(isSegment)
+  ) {
+    return record.segments as readonly TranscriptSegment[];
+  }
+  throw new Error('Текст беседы повреждён.');
+}
+
+export function transcriptLines(segments: readonly TranscriptSegment[]): readonly string[] {
+  return segments.map((segment) => segment.text);
 }
 
 /** The note a patient's card shows: the machine label first, then the text. */
-export function transcriptEventText(lines: readonly string[]): string {
-  return `${AUTOMATIC_TRANSCRIPT_LABEL}\n\n${lines.join('\n')}`;
+export function transcriptEventText(segments: readonly TranscriptSegment[]): string {
+  return `${AUTOMATIC_TRANSCRIPT_LABEL}\n\n${transcriptLines(segments).join('\n')}`;
 }
 
 export type VaultAccess = 'encrypted' | 'unavailable';
@@ -138,14 +164,14 @@ export type DraftSaveResult = 'saved' | 'unavailable';
 /** Writes the draft transcript of a recording that has no patient yet. */
 export async function saveDraftTranscript(
   recordingId: string,
-  lines: readonly string[],
+  segments: readonly TranscriptSegment[],
 ): Promise<DraftSaveResult> {
   if ((await openEncryptedVault()) === 'unavailable') return 'unavailable';
   const write = (): Promise<void> =>
     addPatientBlob({
       id: transcriptBlobId(recordingId),
       mimeType: MIME_TYPE,
-      bytes: encodeTranscript(recordingId, lines),
+      bytes: encodeTranscript(recordingId, segments),
     });
   try {
     await write();
@@ -161,19 +187,19 @@ export async function saveDraftTranscript(
 /** Moves the transcript into the patient's own files, so deleting the patient deletes it too. */
 export async function filePatientTranscript(
   recordingId: string,
-  lines: readonly string[],
+  segments: readonly TranscriptSegment[],
   patientId: string,
 ): Promise<void> {
   await addPatientBlob({
     id: transcriptBlobId(recordingId),
     patientId,
     mimeType: MIME_TYPE,
-    bytes: encodeTranscript(recordingId, lines),
+    bytes: encodeTranscript(recordingId, segments),
   });
 }
 
 export type StoredTranscript =
-  | { readonly status: 'found'; readonly lines: readonly string[] }
+  | { readonly status: 'found'; readonly segments: readonly TranscriptSegment[] }
   | { readonly status: 'none' }
   /** The vault is closed and cannot be opened without the doctor. */
   | { readonly status: 'locked' };
@@ -183,7 +209,9 @@ export async function readConversationTranscript(recordingId: string): Promise<S
     return { status: 'locked' };
   }
   const stored = await readPatientBlob(transcriptBlobId(recordingId));
-  return stored ? { status: 'found', lines: decodeTranscript(stored.bytes) } : { status: 'none' };
+  return stored
+    ? { status: 'found', segments: decodeTranscript(stored.bytes) }
+    : { status: 'none' };
 }
 
 /** Removes the transcript with its recording. A closed vault that cannot open leaves it as is. */
@@ -197,7 +225,7 @@ export type TranscriptSaveState = 'idle' | 'pending' | 'saved' | 'unsaved' | 'fa
 
 export interface TranscriptSaver {
   /** Notes new text; the write happens after a quiet moment (and at the latest after a wait). */
-  update(lines: readonly string[]): void;
+  update(segments: readonly TranscriptSegment[]): void;
   /** Writes what is pending right now. */
   flush(): Promise<void>;
   /** Writes the latest text again even if the last write reported it as not saved. */
@@ -207,13 +235,13 @@ export interface TranscriptSaver {
 }
 
 export function createTranscriptSaver(deps: {
-  readonly save: (lines: readonly string[]) => Promise<DraftSaveResult>;
+  readonly save: (segments: readonly TranscriptSegment[]) => Promise<DraftSaveResult>;
   readonly onState: (state: TranscriptSaveState) => void;
   readonly delayMs?: number;
   readonly maxWaitMs?: number;
   readonly retryMs?: number;
 }): TranscriptSaver {
-  let latest: readonly string[] = [];
+  let latest: readonly TranscriptSegment[] = [];
   let dirty = false;
   let touched = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -228,10 +256,10 @@ export function createTranscriptSaver(deps: {
   const write = (): Promise<void> => {
     chain = chain.then(async () => {
       if (!dirty) return;
-      const lines = latest;
+      const segments = latest;
       dirty = false;
       try {
-        const result = await deps.save(lines);
+        const result = await deps.save(segments);
         if (!dirty) deps.onState(result === 'saved' ? 'saved' : 'unsaved');
       } catch {
         // The cause may name the vault or the text; the doctor sees the state, the next try repeats.
@@ -253,8 +281,8 @@ export function createTranscriptSaver(deps: {
   };
 
   return {
-    update(lines) {
-      latest = lines;
+    update(segments) {
+      latest = segments;
       touched = true;
       dirty = true;
       deps.onState('pending');

@@ -660,7 +660,10 @@ describe('patient vault storage modes', () => {
   it('keeps a conversation draft encrypted at rest and opens the device-key vault silently', async () => {
     nativeBridge.native = true;
     nativeBridge.available = true;
-    const lines = ['У пациента болит голова третий день', 'Давление сто сорок на девяносто'];
+    const lines = [
+      { startMs: 0, endMs: 3_000, text: 'У пациента болит голова третий день' },
+      { startMs: 3_200, endMs: 6_000, text: 'Давление сто сорок на девяносто' },
+    ];
     const id = transcriptBlobId('conv-1');
 
     expect(await patientVaultExists()).toBe(false);
@@ -675,7 +678,7 @@ describe('patient vault storage modes', () => {
     lockPatientVault();
     await expect(readConversationTranscript('conv-1')).resolves.toEqual({
       status: 'found',
-      lines,
+      segments: lines,
     });
     expect(isPatientVaultUnlocked()).toBe(true);
 
@@ -684,12 +687,12 @@ describe('patient vault storage modes', () => {
   });
 
   it('never opens or fills a plaintext browser vault with a draft by itself', async () => {
-    await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('unavailable');
+    await expect(saveDraftTranscript('conv-1', [{ text: 'текст' }])).resolves.toBe('unavailable');
     expect(await patientVaultExists()).toBe(false);
 
     await createPatientVault({ allowUnencrypted: true });
     lockPatientVault();
-    await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('unavailable');
+    await expect(saveDraftTranscript('conv-1', [{ text: 'текст' }])).resolves.toBe('unavailable');
     await expect(readConversationTranscript('conv-1')).resolves.toEqual({ status: 'locked' });
     expect(isPatientVaultUnlocked()).toBe(false);
     expect(fakeDatabase.stores.get('blobs')?.size ?? 0).toBe(0);
@@ -877,7 +880,7 @@ describe('browser device-key vault', () => {
 
   describe('the recording window offer', () => {
     it('creates the vault on a tap and then saves the pending text encrypted', async () => {
-      const lines = ['У пациента болит голова третий день'];
+      const lines = [{ startMs: 0, endMs: 2_500, text: 'У пациента болит голова третий день' }];
       await expect(vaultOffer()).resolves.toBe('create');
       await expect(saveDraftTranscript('conv-1', lines)).resolves.toBe('unavailable');
       expect(await patientVaultExists()).toBe(false);
@@ -895,7 +898,7 @@ describe('browser device-key vault', () => {
       lockPatientVault();
       await expect(readConversationTranscript('conv-1')).resolves.toEqual({
         status: 'found',
-        lines,
+        segments: lines,
       });
     });
 
@@ -904,12 +907,12 @@ describe('browser device-key vault', () => {
       await writePatientVault(patientSnapshotWithEvent('patient-keep', 'event-1'));
       lockPatientVault();
       await expect(vaultOffer()).resolves.toBe('encrypt');
-      await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('unavailable');
+      await expect(saveDraftTranscript('conv-1', [{ text: 'текст' }])).resolves.toBe('unavailable');
 
       await enableEncryptedVault();
 
       expect(await patientVaultStorageMode()).toBe('browser-device-key');
-      await expect(saveDraftTranscript('conv-1', ['текст'])).resolves.toBe('saved');
+      await expect(saveDraftTranscript('conv-1', [{ text: 'текст' }])).resolves.toBe('saved');
       expect((await readPatientVault()).profiles[0]?.id).toBe('patient-keep');
     });
 
