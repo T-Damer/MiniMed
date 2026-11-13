@@ -7,9 +7,15 @@
 .recorder-fab {
   --recorder-red: #c8402e;
 
-  display: inline-flex;
-  order: -1;
+  position: fixed;
+  z-index: var(--z-scroll-top);
+  right: 0;
+  bottom: calc(var(--bottom-nav-clearance) + 0.25rem);
+  left: 0;
+  display: flex;
+  width: max-content;
   height: 2.75rem;
+  margin-inline: auto;
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.875rem 0 0.75rem;
@@ -21,14 +27,6 @@
   cursor: pointer;
   animation: recorder-fab-in var(--motion-base) var(--motion-ease-out);
   transition: background-color var(--motion-fast) var(--motion-ease);
-}
-
-/* No floating-tools column to stand in (a floating child window): the same place by itself. */
-.recorder-fab--free {
-  position: fixed;
-  z-index: var(--z-scroll-top);
-  right: max(0.75rem, var(--safe-right));
-  bottom: max(4.375rem, calc(4.375rem + var(--safe-bottom)));
 }
 
 .recorder-fab__dot {

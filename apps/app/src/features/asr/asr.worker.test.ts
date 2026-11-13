@@ -148,6 +148,45 @@ describe('ASR worker model loading', () => {
     );
   });
 
+  it('reads a conversation stretch in one pass and remembers a failing timestamp mode', async () => {
+    const transcribe = vi.fn(async (_audio: Float32Array, options: Record<string, unknown>) => {
+      if (options['return_timestamps'] === 'word') {
+        throw new Error('Model outputs must contain cross attentions to extract timestamps.');
+      }
+      return { text: 'Текст.' };
+    });
+    mocks.pipeline.mockResolvedValue(transcribe);
+    await loadModel();
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith({
+        type: 'ready',
+        modelId: 'onnx-community/whisper-base',
+      });
+    });
+    const ask = (requestId: string, timestamps?: boolean) =>
+      scope.onmessage?.({
+        data: {
+          type: 'transcribe',
+          requestId,
+          modelId: 'onnx-community/whisper-base',
+          audio: new Float32Array([0, 0.1]),
+          ...(timestamps === undefined ? {} : { timestamps }),
+        },
+      } as MessageEvent);
+
+    // A live stretch: text only, one decoding pass.
+    ask('live-1', false);
+    await vi.waitFor(() => expect(transcribe).toHaveBeenCalledTimes(1));
+    expect(transcribe.mock.calls[0]?.[1]).toMatchObject({ return_timestamps: false });
+
+    // A file: word timestamps fail once, segment timestamps work and are used from then on.
+    ask('file-1');
+    await vi.waitFor(() => expect(transcribe).toHaveBeenCalledTimes(3));
+    ask('file-2');
+    await vi.waitFor(() => expect(transcribe).toHaveBeenCalledTimes(4));
+    expect(transcribe.mock.calls[3]?.[1]).toMatchObject({ return_timestamps: true });
+  });
+
   it('accepts a pinned Hugging Face Request and preserves its Range metadata', async () => {
     await import('./asr.worker');
     const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];

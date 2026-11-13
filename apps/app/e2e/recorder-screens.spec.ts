@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
-import { installDeviceKeyAndSpeech } from './fake-speech';
+import { installFakeSpeech } from './fake-speech';
 import { mountBuiltApp } from './mount-built-app';
 
 /**
@@ -25,7 +25,15 @@ test.use({
   permissions: ['microphone'],
   launchOptions: {
     ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-    args: ['--mute-audio', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+    args: [
+      '--mute-audio',
+      '--use-fake-ui-for-media-stream',
+      '--use-fake-device-for-media-stream',
+      // Synthetic speech instead of the fake device's beep, so the waveforms look like a talk.
+      ...(process.env['REC_SHOTS_WAV']
+        ? [`--use-file-for-fake-audio-capture=${process.env['REC_SHOTS_WAV']}`]
+        : []),
+    ],
   },
 });
 
@@ -39,7 +47,8 @@ for (const width of [390, 1280]) {
       page.screenshot({ path: `${DIR}/${tag}-${name}.png` });
     await page.setViewportSize({ width, height: width < 600 ? 844 : 800 });
     await page.emulateMedia({ colorScheme: 'light' });
-    await installDeviceKeyAndSpeech(page, PHRASES);
+    // The browser build (a phone bridge stand-in would leave the search core unopened on screen).
+    await installFakeSpeech(page, PHRASES);
     await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
 
     await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
@@ -56,6 +65,9 @@ for (const width of [390, 1280]) {
       .locator('.asr-model-card')
       .getByRole('button', { name: /Скачать/u })
       .click();
+    // A browser without a vault offers to create one; the shots show the text saved.
+    const offer = live.getByRole('button', { name: /Текст не сохранится/u });
+    await offer.click({ timeout: 30_000 }).catch(() => undefined);
     const line = OLD ? '.conversation-live__line' : '.recorder-window__line';
     await expect(live.locator(line)).toHaveCount(2, { timeout: 60_000 });
     await shot('2-recording');

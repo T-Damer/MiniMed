@@ -79,14 +79,35 @@ test('live recognition of a synthetic dialogue', async () => {
     .locator('.quick-tool-row__open', { hasText: 'Запись беседы' })
     .click();
   const live = page.getByTestId('conversation-live');
+  // A first-time download asks before it starts (owner rule): accept it when asked.
+  page.on('dialog', (dialog) => void dialog.accept());
   // The model first (cached in the profile after the first run), then a clean recording.
   const card = live.locator('.asr-model-card');
   const action = card.getByRole('button', { name: /Скачать|Включить/u });
   await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
+  // The card appears once the runtime has been asked (absent when the model is already loaded).
+  if (await action.isVisible({ timeout: 20_000 }).catch(() => false)) await action.click();
+  await action.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => undefined);
   if (await action.isVisible().catch(() => false)) await action.click();
-  await expect(live.getByRole('status', { name: /Слушаем|Распознаём/u })).toBeVisible({
-    timeout: 10 * 60_000,
+  const problems: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') problems.push(message.text());
   });
+  try {
+    // Ready: the install card leaves the window (both builds hide or remove it).
+    const deadline = Date.now() + 8 * 60_000;
+    for (;;) {
+      const visible = await card.isVisible().catch(() => false);
+      if (!visible) break;
+      if (Date.now() > deadline) throw new Error('The speech model did not become ready.');
+      console.log(JSON.stringify({ card: (await card.innerText()).replace(/\s+/gu, ' ') }));
+      await page.waitForTimeout(10_000);
+    }
+  } catch (cause) {
+    await page.screenshot({ path: `${OUT}.model-timeout.png` });
+    console.log(JSON.stringify({ problems: problems.slice(-15) }));
+    throw cause;
+  }
   await live.getByRole('button', { name: /Стоп/u }).first().click();
   const saved = page.getByRole('dialog', { name: /Запись/u }).last();
   await saved
@@ -102,6 +123,14 @@ test('live recognition of a synthetic dialogue', async () => {
   await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
   const started = Date.now();
   await page.waitForTimeout(SECONDS * 1000);
+  await page.screenshot({ path: `${OUT}.end.png` });
+  console.log(
+    JSON.stringify({
+      status: await live.getByRole('status').allTextContents(),
+      notes: await live.locator('.recorder-window__note').allTextContents(),
+      problems: problems.slice(-10),
+    }),
+  );
   const lines = live.locator('.recorder-window__line, .conversation-live__line');
   const heard = await lines.allTextContents();
   const recordedSeconds = (Date.now() - started) / 1000;

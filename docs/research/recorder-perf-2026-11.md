@@ -57,7 +57,29 @@ re-styled every 200 ms.
 
 ## After (this branch)
 
-<!-- filled from output/recorder-perf.json of the REC1 build -->
+Same scenario, same machine, recorder collapsed into the floating button (its live waveform drawing
+on the search home):
+
+| age | CPU total ms/s | renderer | main-thread task ms/s | style recalcs/s | long tasks |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 30 s | 98 | 65 | 19 | 0 | 0 |
+| 90 s | 111 | 76 | 20 | 0 | 0 |
+| 180 s | 103 | 72 | 20 | 0 | 0 |
+
+- **Whole-browser CPU −52 %** (200–235 → 98–111 ms/s), renderer −50 %, main thread −45 %, style
+  recalculations 60 → 0 a second; GPU process 38–48 → 21–22 ms/s.
+- **Nothing grows with the length of the recording any more.** No step decodes the file: the
+  AudioWorklet hands over 50 ms of 16 kHz samples (20 messages a second), the speech detector costs
+  well under a millisecond a second, and a stretch is sent only at a pause. The decode table above
+  is gone from the recording path entirely; a 30-min point costs what the 30-s point costs.
+- What remains: the canvas waveform (redrawn at most 20 times a second, only while on screen and
+  not paused), one IndexedDB write a second for the compressed slice and one every 5 s for the
+  kept samples, the time label once a second.
+- Recognition itself (the Whisper worker) is not in these numbers (the stand-in answers at once).
+  On a phone it is the biggest cost while it runs; the governor now stops it — for the rest of that
+  recording — when it reads slower than real time (smoothed factor > 1.15), when 45 s of speech wait
+  in its queue, when the main thread spent over a third of the last 15 s in long tasks, or on a weak
+  phone (≤ 2 GB or ≤ 2 cores). The audio is never affected; the text then comes from «Расшифровать».
 
 ## Transcription: why the text was wrong
 

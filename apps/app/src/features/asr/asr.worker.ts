@@ -22,6 +22,11 @@ export interface AsrTranscribeMessage {
   readonly requestId: string;
   readonly audio: Float32Array;
   readonly modelId: string;
+  /**
+   * False for a stretch of a conversation (REC1): its place in time is known, so the text alone is
+   * asked for — one decoding pass instead of a failed word-timestamp pass and a second one.
+   */
+  readonly timestamps?: boolean;
 }
 
 export type AsrWorkerInMessage = AsrLoadMessage | AsrTranscribeMessage | AsrAssetResponse;
@@ -117,22 +122,31 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
 /**
  * Word timestamps need the decoder's cross attentions, which some Whisper exports do not return
  * («Model outputs must contain cross attentions to extract timestamps»). Then segment timestamps,
- * and if those fail too, plain text: a transcript without timings beats none.
+ * and if those fail too, plain text: a transcript without timings beats none. Each failed attempt
+ * is a whole decoding pass, so the first mode that works is remembered per model (REC1: the q8
+ * exports failed word timestamps on every stretch, doubling the cost of live text).
  */
+const workingAttempt = new Map<string, number>();
+
 async function transcribeWithFallback(
   pipe: (audio: Float32Array, options: Record<string, unknown>) => Promise<unknown>,
   audio: Float32Array,
   options: Readonly<Record<string, unknown>>,
+  modelId: string,
+  timestamps: boolean,
 ): Promise<unknown> {
   const attempts: readonly Record<string, unknown>[] = [
     options,
     { ...options, return_timestamps: true },
     { ...options, return_timestamps: false },
   ];
+  const first = timestamps ? (workingAttempt.get(modelId) ?? 0) : attempts.length - 1;
   let failure: unknown;
-  for (const attempt of attempts) {
+  for (let index = first; index < attempts.length; index += 1) {
     try {
-      return await pipe(audio, attempt);
+      const output = await pipe(audio, attempts[index] ?? options);
+      if (timestamps) workingAttempt.set(modelId, index);
+      return output;
     } catch (cause) {
       failure = cause;
       const text = cause instanceof Error ? cause.message : String(cause);
@@ -313,6 +327,8 @@ scope.onmessage = (event) => {
         pipe,
         message.audio,
         spec.callOptions ?? {},
+        message.modelId,
+        message.timestamps ?? true,
       );
       const first = Array.isArray(output)
         ? (output[0] as { text?: unknown; chunks?: unknown } | undefined)

@@ -28,6 +28,8 @@ export const RECORDING_SAMPLE_RATE = 16_000;
 const PCM_BLOCK = RECORDING_SAMPLE_RATE * 5;
 /** Recent waveform peaks kept for the live drawing: 20 a second, 12 s. */
 const RECENT_PEAKS = 240;
+/** Samples per value of the stored waveform overview: a quarter second. */
+const OVERVIEW_STEP = RECORDING_SAMPLE_RATE / 4;
 
 export type ConversationRecordingStatus = 'recording' | 'stopped' | 'interrupted';
 
@@ -48,7 +50,7 @@ export interface ConversationRecording {
   /** 16 kHz samples captured, and how many of them are already text (or silence). */
   readonly samples?: number;
   readonly transcribedSamples?: number;
-  /** Waveform overview: the loudest sample of every second, 0–1. */
+  /** Waveform overview: the loudest sample of every quarter second, 0–1. */
   readonly peaks?: readonly number[];
 }
 
@@ -405,10 +407,10 @@ export async function startConversationRecording(
     recentCount += 1;
     secondPeak = Math.max(secondPeak, peak);
     secondFill += samples.length;
-    if (secondFill >= RECORDING_SAMPLE_RATE) {
+    if (secondFill >= OVERVIEW_STEP) {
       overview.push(Math.round(secondPeak * 1000) / 1000);
       secondPeak = 0;
-      secondFill -= RECORDING_SAMPLE_RATE;
+      secondFill -= OVERVIEW_STEP;
     }
     const int16 = toInt16(samples);
     let offset = 0;

@@ -34,6 +34,8 @@ describe('waveform peaks', () => {
   it('measures decoded audio once per step', () => {
     const samples = new Float32Array(16_000 * 3);
     samples[16_000 + 8] = -0.8;
-    expect(peaksOfSamples(samples, 16_000)).toEqual([0, 0.8, 0]);
+    expect(peaksOfSamples(samples, 16_000, 1)).toEqual([0, 0.8, 0]);
+    // Four values a second by default, as the recorder stores them.
+    expect(peaksOfSamples(samples, 16_000)).toHaveLength(12);
   });
 });

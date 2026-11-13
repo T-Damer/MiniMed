@@ -54,7 +54,7 @@ export function peakHeight(peak: number): number {
 export function peaksOfSamples(
   samples: Float32Array,
   sampleRate: number,
-  stepSeconds = 1,
+  stepSeconds = 0.25,
 ): number[] {
   const step = Math.max(1, Math.round(sampleRate * stepSeconds));
   const out: number[] = [];

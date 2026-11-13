@@ -47,23 +47,18 @@ const ConversationRecordingSheet = lazy(() =>
 import './conversation-recorder.css';
 
 /**
- * The recording while the doctor uses the app (REC1, owner 2026-11-13): a floating button in the
- * app's floating-tools column, with the voice drawn live and the time. A tap opens the window.
+ * The recording while the doctor uses the app (REC1, owner 2026-11-13): a floating pill centred
+ * just above the bottom bar, with the voice drawn live and the time — out of the right-hand tools
+ * column, which leaves a phone only a 44 px slot beside the bar. A tap opens the window.
  */
 function RecorderFab(): JSX.Element {
-  const host = (): HTMLElement | undefined =>
-    document.getElementById('app-floating-controls') ?? undefined;
   const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
   return (
     <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
-      <Portal mount={host() ?? document.body}>
+      <Portal>
         <button
           type="button"
-          class="recorder-fab floating-window-controls__item"
-          classList={{
-            'recorder-fab--paused': conversationSession.paused(),
-            'recorder-fab--free': !host(),
-          }}
+          class="recorder-fab"
           aria-label={`${conversationSession.paused() ? 'Запись на паузе' : 'Идёт запись беседы'}, ${time()}. Открыть запись`}
           title="Открыть запись"
           data-testid="recorder-fab"
@@ -236,14 +231,14 @@ function LiveText(): JSX.Element {
           <ol class="recorder-window__lines" aria-label="Текст беседы" aria-live="polite">
             <For each={lines()}>{(line) => <li class="recorder-window__line">{line}</li>}</For>
           </ol>
-          <Switch
-            fallback={
+          <Switch>
+            {/* Only while recognition can run: before the model is in, nothing claims to listen. */}
+            <Match when={status() === 'listening' || status() === 'working'}>
               <PulseDots
                 working={status() === 'working'}
                 label={status() === 'working' ? 'Распознаём речь' : 'Слушаем'}
               />
-            }
-          >
+            </Match>
             <Match when={status() === 'deferred'}>
               <p class="recorder-window__note" data-testid="recorder-deferred">
                 <AppGlyph name="clock" class="recorder-window__note-icon" />
