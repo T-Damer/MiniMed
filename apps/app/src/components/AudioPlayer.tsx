@@ -24,7 +24,6 @@ export interface AudioPlayerSegment {
 }
 
 const SPEEDS = [1, 1.25, 1.5, 2, 0.75] as const;
-const SKIP_SECONDS = 15;
 const BAR = 3;
 const GAP = 2;
 
@@ -35,7 +34,8 @@ function speedLabel(speed: number): string {
 /**
  * The app's audio player (REC1, owner 2026-11-13 «обычный браузерный плеер»): a round play button,
  * the recording's waveform — drawn once from peaks computed when it was recorded (or decoded once
- * and saved) — that seeks on a tap and scrubs on a drag, ±15 s, playback speed, and the transcript
+ * and saved) — that seeks on a tap and scrubs on a drag (no skip buttons: the waveform is how one
+ * moves, owner 2026-11-13), «00:12 / 00:25» under it with the speed at the right, and the transcript
  * following the playback when its segments carry times: the current one is marked and kept in
  * view, a tap on one plays from there. The `<audio>` element underneath has no controls of its own.
  */
@@ -250,44 +250,21 @@ export function AudioPlayer(props: {
             onPointerCancel={() => setScrubMs(null)}
             onKeyDown={onKeyDown}
           />
-          <div class="audio-player__times">
-            <span class="audio-player__time">{formatRecordingDuration(shownMs())}</span>
-            <span class="audio-player__time audio-player__time--total">
-              {formatRecordingDuration(durationMs())}
+          <div class="audio-player__meta">
+            <span class="audio-player__time">
+              {formatRecordingDuration(shownMs())} / {formatRecordingDuration(durationMs())}
             </span>
+            <button
+              type="button"
+              class="audio-player__speed"
+              aria-label={`Скорость ${speedLabel(speed())}`}
+              title="Скорость"
+              onClick={cycleSpeed}
+            >
+              {speedLabel(speed())}
+            </button>
           </div>
         </div>
-      </div>
-      <div class="audio-player__tools">
-        <button
-          type="button"
-          class="audio-player__tool"
-          aria-label={`Назад на ${SKIP_SECONDS} секунд`}
-          title={`−${SKIP_SECONDS} с`}
-          onClick={() => seekTo(currentMs() - SKIP_SECONDS * 1000)}
-        >
-          <AppGlyph name="arrow-counter-clockwise" class="audio-player__tool-icon" />
-          <span class="audio-player__tool-label">{SKIP_SECONDS}</span>
-        </button>
-        <button
-          type="button"
-          class="audio-player__tool audio-player__tool--speed"
-          aria-label={`Скорость ${speedLabel(speed())}`}
-          title="Скорость"
-          onClick={cycleSpeed}
-        >
-          {speedLabel(speed())}
-        </button>
-        <button
-          type="button"
-          class="audio-player__tool"
-          aria-label={`Вперёд на ${SKIP_SECONDS} секунд`}
-          title={`+${SKIP_SECONDS} с`}
-          onClick={() => seekTo(currentMs() + SKIP_SECONDS * 1000)}
-        >
-          <AppGlyph name="arrow-clockwise" class="audio-player__tool-icon" />
-          <span class="audio-player__tool-label">{SKIP_SECONDS}</span>
-        </button>
       </div>
       <Show when={(props.segments ?? []).length > 0}>
         <ol

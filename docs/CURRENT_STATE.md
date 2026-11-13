@@ -51,8 +51,9 @@ player. Measurements and the transcription diagnosis: [research/recorder-perf-20
   chosen while recording gets the recording in their card at «Стоп».
 - **Recording sheet** (`ConversationAttachDialog.tsx` → `ConversationRecordingSheet`): the app's
   `AudioPlayer` (`components/AudioPlayer.tsx`: play, canvas waveform from peaks stored at recording
-  time — 4 a second, decoded once for older recordings — tap/drag seek, slider keys, ±15 s, speed
-  1–2×/0.75×, the transcript following playback, a tap on a line plays from it), «Расшифровать» with
+  time — 4 a second, decoded once for older recordings — tap/drag seek, slider keys, «00:12 / 00:25»
+  under it with the speed (1–2×, 0.75×) at the right, no skip buttons — owner's reference
+  2026-11-13; the transcript following playback, a tap on a line plays from it), «Расшифровать» with
   progress, forms, patient filing or «В карте пациента · Открыть», delete.
 - **Where recordings are.** «Файлы» → «По виду» → «Записи бесед» (declared in
   `user-library-places.ts` with `source: 'conversation-recordings'`, its own list view); the patient
@@ -66,7 +67,8 @@ player. Measurements and the transcription diagnosis: [research/recorder-perf-20
   `conversation-activity` (floating button across tabs, pause), `conversation-recordings` (patient
   chosen while recording → «Файлы» and the card; weak phone → «Расшифровать»), the updated
   `conversation-transcript` and `form-fill-recording`. Not gates: `recorder-perf` (`PERF_REC=1`),
-  `recorder-quality` (`REC_QUALITY=1`, real Whisper on synthetic speech), `recorder-screens`.
+  `recorder-quality` (`REC_QUALITY=1`, real Whisper on synthetic speech: WER 0.119 on 130 s; no
+  before/after pair — the old build's scripted run never finished), `recorder-screens`.
 - **Not tested:** the owner's phone (no install without the owner's OK), recording with the screen
   off (WebView in the background), real recordings (never used). **Next:** on Android, recognise the
   same 16 kHz stretches with the native GigaAM v3 model the APK already ships for the patient-card

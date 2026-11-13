@@ -1,5 +1,4 @@
 import archiveBold from '@phosphor-icons/core/assets/bold/archive-bold.svg?raw';
-import arrowClockwiseBold from '@phosphor-icons/core/assets/bold/arrow-clockwise-bold.svg?raw';
 import arrowCounterClockwiseBold from '@phosphor-icons/core/assets/bold/arrow-counter-clockwise-bold.svg?raw';
 import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
 import arrowRightBold from '@phosphor-icons/core/assets/bold/arrow-right-bold.svg?raw';
@@ -268,7 +267,6 @@ export type AppGlyphName =
   | 'play-fill'
   | 'pause-fill'
   | 'waveform'
-  | 'arrow-clockwise'
   | 'microphone'
   | 'microscope'
   | 'text-aa'
@@ -470,7 +468,6 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'play-fill': svgBody(playFill),
   'pause-fill': svgBody(pauseFill),
   waveform: svgBody(waveformBold),
-  'arrow-clockwise': svgBody(arrowClockwiseBold),
   microphone: svgBody(microphoneBold),
   microscope: svgBody(microscopeBold),
   'text-h-two': svgBody(textHTwoBold),

@@ -105,7 +105,30 @@ near-silent stretches are never sent, Whisper's subtitle phantoms and loops are 
 microphone records without call processing (AGC kept), and stored 16 kHz samples make
 «Расшифровать» work for any length.
 
-<!-- quality numbers: output/recorder-quality.json, before/after -->
+**Measured** (`apps/app/e2e/recorder-quality.spec.ts`, `REC_QUALITY=1`): the real Whisper Base q8
+from Hugging Face in headless Chromium, the 42-s synthetic dialogue (Milena TTS, 7 turns, a
+psychiatrist's questions about sleep, mood and sertraline) looped by the fake microphone for 130 s,
+the live text scored against the script by word error rate (numbers written as digits count as
+errors on both sides):
+
+| build | heard words / reference | WER |
+| --- | ---: | ---: |
+| REC1 | 240 / 243 | **0.119** |
+
+The same run of the build before REC1 (served from its `dist`, same origin and cached model) did not
+finish in headless Chromium: after a first recording, its window stayed at «Начать запись» for the
+second one in both attempts, so there is **no same-audio before/after WER**. The diagnosis below
+rests on the code and on what the worker logged, not on a measured difference.
+
+The REC1 text has no phantom lines and no repeated stretches; what remains wrong is the model's own
+hearing («ташнота», «снаидневной», «серторальныйн»). Synthetic speech is clean and close to the
+microphone, so these numbers flatter both builds against a real session; they compare the
+pipelines, not the absolute quality on the owner's recordings.
+
+**Double decoding.** The worker log showed every live stretch failing the word-timestamp pass
+(«Model outputs must contain cross attentions…», the q8 exports have no cross attentions) and being
+decoded again: the old live text cost two Whisper passes per stretch. Live stretches now ask for text
+only (their time is known), and the working timestamp mode is remembered per model for files.
 
 ## Not measured
 

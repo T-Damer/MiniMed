@@ -113,14 +113,26 @@ test('live recognition of a synthetic dialogue', async () => {
   await saved
     .getByRole('button', { name: /Позже|Готово/u })
     .first()
-    .click();
+    .click({ timeout: 15_000 });
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 15_000 });
+  await page.waitForTimeout(3_000);
 
+  // The measured recording. The old recorder sometimes ignored the first tap after a recording
+  // (still finishing the last one): the tap is repeated until «Стоп» shows.
   await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
   await page
     .getByRole('dialog', { name: 'Все инструменты' })
     .locator('.quick-tool-row__open', { hasText: 'Запись беседы' })
-    .click();
-  await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
+    .click({ timeout: 15_000 });
+  const stop = live.getByRole('button', { name: /Стоп/u }).first();
+  for (let attempt = 0; attempt < 5 && !(await stop.isVisible()); attempt += 1) {
+    await live
+      .getByRole('button', { name: 'Начать запись', exact: true })
+      .click({ timeout: 10_000 })
+      .catch(() => undefined);
+    await stop.waitFor({ state: 'visible', timeout: 8_000 }).catch(() => undefined);
+  }
+  await expect(stop).toBeVisible();
   const started = Date.now();
   await page.waitForTimeout(SECONDS * 1000);
   await page.screenshot({ path: `${OUT}.end.png` });
