@@ -52,6 +52,13 @@ interface OverlayDialogProps {
    * screens (PERF6, owner 2026-11-11 «ЭКГ выглядит чужим»). `close` (default): ✕ at the end.
    */
   readonly closeAs?: 'close' | 'back';
+  /**
+   * What the ✕ does in words and glyph, when closing does not end anything: the recorder window
+   * («Свернуть», a down caret) folds back into its floating button while the recording runs.
+   */
+  readonly closeControl?:
+    | { readonly label: string; readonly glyph: 'close' | 'caret-down' }
+    | undefined;
   readonly headerEnd?: JSX.Element;
   readonly onClose: () => void;
   readonly children: JSX.Element;
@@ -424,11 +431,14 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                 <button
                   type="button"
                   class={`overlay-dialog__close-button overlay-dialog__close-button--${presentation()}`}
-                  aria-label="Закрыть"
-                  title="Закрыть"
+                  aria-label={props.closeControl?.label ?? 'Закрыть'}
+                  title={props.closeControl?.label ?? 'Закрыть'}
                   onClick={closeDialog}
                 >
-                  <AppGlyph name="close" class="overlay-dialog__button-icon" />
+                  <AppGlyph
+                    name={props.closeControl?.glyph ?? 'close'}
+                    class="overlay-dialog__button-icon"
+                  />
                 </button>
               </Show>
             </header>

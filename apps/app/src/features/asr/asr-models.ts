@@ -584,7 +584,13 @@ export async function recogniseLivePcm(pcm: Float32Array): Promise<string> {
   const promise = new Promise<TranscriptionOutput>((resolve, reject) => {
     pendingResults.set(requestId, { resolve, reject });
   });
-  const message: AsrTranscribeMessage = { type: 'transcribe', requestId, audio: pcm, modelId };
+  const message: AsrTranscribeMessage = {
+    type: 'transcribe',
+    requestId,
+    audio: pcm,
+    modelId,
+    timestamps: false,
+  };
   instance.postMessage(message satisfies AsrWorkerInMessage, [pcm.buffer]);
   return (await promise).text;
 }

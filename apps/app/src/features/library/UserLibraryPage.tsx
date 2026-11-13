@@ -18,6 +18,10 @@ import { Heading } from '@/components/Text';
 import { userQuestionnairePath } from '@/features/assessments/assessment-routing';
 import { SavedItemRow } from '@/features/collections/SavedItemRow';
 import { savedItemCount, searchSavedItems } from '@/features/collections/saved-items';
+import {
+  ConversationRecordingList,
+  useConversationRecordings,
+} from '@/features/conversations/ConversationRecordingList';
 import { ComputerFolderView, computerPlaceTitle } from '@/features/library/ComputerFolderView';
 import { UserLibraryPlaces } from '@/features/library/UserLibraryPlaces';
 import { createLibraryDropHandlers, FOLDER_DRAG_TYPE } from '@/features/library/user-library-drag';
@@ -458,6 +462,9 @@ export function UserLibraryPage(props: {
     const current = place();
     return current.kind === 'kind' ? userLibraryKindGroupById(current.group) : undefined;
   };
+  /** A section gathered from another store (the conversation recorder), drawn by its own view. */
+  const sourceView = () => kindGroup()?.source;
+  const conversationRecordings = useConversationRecordings();
   const placeTitle = (): string | undefined =>
     place().kind === 'computer' ? computerPlaceTitle() : kindGroup()?.title;
   const [dragTarget, setDragTarget] = createSignal<string | null | undefined>(undefined);
@@ -884,6 +891,7 @@ export function UserLibraryPage(props: {
   const kindCounts = createMemo(() =>
     userLibraryKindCounts(
       documents().map((document) => userLibraryFileKind(document.mimeType, document.fileName)),
+      { 'conversation-recordings': conversationRecordings().length },
     ),
   );
   const showPlaces = (): boolean =>
@@ -2166,7 +2174,7 @@ export function UserLibraryPage(props: {
               }}
             </For>
           </nav>
-          <Show when={place().kind !== 'computer'}>
+          <Show when={place().kind !== 'computer' && !sourceView()}>
             <div class="user-library-page__breadcrumb-tools">
               {sortMenu()}
               {viewToggle()}
@@ -2227,7 +2235,10 @@ export function UserLibraryPage(props: {
             onPickFiles={openFilePicker}
           />
         </Show>
-        <Show when={place().kind !== 'computer'}>
+        <Show when={sourceView() === 'conversation-recordings'}>
+          <ConversationRecordingList />
+        </Show>
+        <Show when={place().kind !== 'computer' && !sourceView()}>
           <Show
             when={visibleEntries().length > 0}
             fallback={

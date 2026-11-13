@@ -35,6 +35,7 @@ import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { VisitRecorder } from '@/features/asr/VisitRecorderPanel';
+import { ConversationRecordingList } from '@/features/conversations/ConversationRecordingList';
 import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
@@ -1299,6 +1300,8 @@ function PatientDetail(props: {
         episodeId={activeEpisodeId()}
         onSaved={props.onSnapshot}
       />
+      {/* REC1: the conversation recordings that went to this patient, playable from the card. */}
+      <ConversationRecordingList patientId={props.profile.id} heading="Записи бесед" empty="none" />
       <section class="patient-workspace__timeline">
         <Heading depth={2} class="patient-workspace__section-title">
           События

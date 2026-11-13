@@ -57,13 +57,13 @@ test('a finished recording fills form 070/у, accepted values only', async ({ pa
     .locator('.asr-model-card')
     .getByRole('button', { name: /Скачать/u })
     .click();
-  await expect(live.locator('.conversation-live__line')).toHaveCount(CONVERSATION.length, {
+  await expect(live.locator('.recorder-window__line')).toHaveCount(CONVERSATION.length, {
     timeout: 90_000,
   });
   await live.getByRole('button', { name: 'Стоп' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Запись сохранена' });
-  await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Диагноз');
+  await expect(dialog.getByRole('list', { name: 'Текст беседы' })).toContainText('Диагноз');
   await dialog.getByRole('button', { name: 'Заполнить форму', exact: true }).click();
   const forms = dialog.getByRole('list', { name: 'Форма по беседе' });
   await expect(forms.getByRole('button')).toHaveText([

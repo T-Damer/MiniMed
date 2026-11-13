@@ -138,6 +138,7 @@ import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
 import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import warningBold from '@phosphor-icons/core/assets/bold/warning-bold.svg?raw';
+import waveformBold from '@phosphor-icons/core/assets/bold/waveform-bold.svg?raw';
 import wineBold from '@phosphor-icons/core/assets/bold/wine-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
@@ -147,7 +148,9 @@ import brainFill from '@phosphor-icons/core/assets/fill/brain-fill.svg?raw';
 import downloadSimpleFill from '@phosphor-icons/core/assets/fill/download-simple-fill.svg?raw';
 import gearSixFill from '@phosphor-icons/core/assets/fill/gear-six-fill.svg?raw';
 import imageSquareFill from '@phosphor-icons/core/assets/fill/image-square-fill.svg?raw';
+import pauseFill from '@phosphor-icons/core/assets/fill/pause-fill.svg?raw';
 import pencilSimpleFill from '@phosphor-icons/core/assets/fill/pencil-simple-fill.svg?raw';
+import playFill from '@phosphor-icons/core/assets/fill/play-fill.svg?raw';
 import pushPinFill from '@phosphor-icons/core/assets/fill/push-pin-fill.svg?raw';
 import stopCircleFill from '@phosphor-icons/core/assets/fill/stop-circle-fill.svg?raw';
 import textAaFill from '@phosphor-icons/core/assets/fill/text-aa-fill.svg?raw';
@@ -260,6 +263,10 @@ export type AppGlyphName =
   | 'lightning'
   | 'pause'
   | 'play'
+  /** Solid play/pause for the audio player's main button. */
+  | 'play-fill'
+  | 'pause-fill'
+  | 'waveform'
   | 'microphone'
   | 'microscope'
   | 'text-aa'
@@ -458,6 +465,9 @@ const glyphBodies: Record<AppGlyphName, string> = {
   lightning: svgBody(lightningBold),
   pause: svgBody(pauseBold),
   play: svgBody(playBold),
+  'play-fill': svgBody(playFill),
+  'pause-fill': svgBody(pauseFill),
+  waveform: svgBody(waveformBold),
   microphone: svgBody(microphoneBold),
   microscope: svgBody(microscopeBold),
   'text-h-two': svgBody(textHTwoBold),

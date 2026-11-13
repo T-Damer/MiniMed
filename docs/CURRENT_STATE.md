@@ -20,6 +20,60 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Session recorder: floating button, background text, «Файлы», own player — 2026-11-13 (STATE REC1; branch, not merged)
+
+Owner 2026-11-13 after recording therapy sessions on the phone: wrong text, recording not findable
+(attaching a patient did not help), an ugly recorder, heavy lag while recording, a plain browser
+player. Measurements and the transcription diagnosis: [research/recorder-perf-2026-11.md](research/recorder-perf-2026-11.md).
+
+- **Capture without decoding.** `state/conversation-recordings.ts`: MediaRecorder still writes 1-s
+  opus slices to IndexedDB (crash-safe, one open connection per recording now); beside it an
+  AudioWorklet (`features/conversations/pcm-tap.worklet.ts`, 16 kHz context — Chromium resamples)
+  posts 50 ms of samples and a peak. The old live text decoded the **whole** file every 7 s
+  (1 s at 10 min, 3 s + 110 MB at 30 min on an M2 Max); that path is gone. Microphone without echo
+  cancellation and noise suppression (AGC kept): those are tuned for a headset and garble the patient
+  across the table. Pause/resume (MediaRecorder and the tap; time excludes pauses).
+- **Speech to text** (`live-transcription.ts`, `speech-windows.ts`, `recognised-text.ts`): a 30-ms
+  energy detector cuts stretches at pauses (8–24 s; a monologue at its quietest moment), near-silent
+  stretches are never sent, Whisper's subtitle phantoms («Продолжение следует…», «Субтитры …») and
+  loops are dropped. Segments carry times (`startMs`/`endMs`); the encrypted transcript is version 2
+  (version-1 lines still read, untimed).
+- **Governor.** Live text runs while the device keeps up; it defers for the rest of the recording
+  when the model reads slower than real time, 45 s of speech wait, the main thread is in long tasks
+  over a third of 15 s, or the phone has ≤ 2 GB / ≤ 2 cores (`device-load.ts`). The window then says
+  «Телефон занят — текст будет после записи». The 16 kHz samples (16-bit, 5-s blocks, store `pcm`)
+  are kept until their text is **saved** in the vault and released then; «Расшифровать» reads what is
+  left — any length, no decoding. Recordings made before REC1 (no samples kept) are decoded once.
+- **UI** (`ConversationRecorder.tsx`): while recording, a floating pill centred above the bottom bar —
+  red dot, live waveform (canvas, ≤ 20 redraws/s, only on screen), time — over every screen; a tap
+  opens the window (OverlayDialog sheet, its ✕ is «Свернуть»): time, waveform, pause, stop, the
+  patient the recording goes to (`PatientPickerRow`), the live text or the model card. A patient
+  chosen while recording gets the recording in their card at «Стоп».
+- **Recording sheet** (`ConversationAttachDialog.tsx` → `ConversationRecordingSheet`): the app's
+  `AudioPlayer` (`components/AudioPlayer.tsx`: play, canvas waveform from peaks stored at recording
+  time — 4 a second, decoded once for older recordings — tap/drag seek, slider keys, «00:12 / 00:25»
+  under it with the speed (1–2×, 0.75×) at the right, no skip buttons — owner's reference
+  2026-11-13; the transcript following playback, a tap on a line plays from it), «Расшифровать» with
+  progress, forms, patient filing or «В карте пациента · Открыть», delete.
+- **Where recordings are.** «Файлы» → «По виду» → «Записи бесед» (declared in
+  `user-library-places.ts` with `source: 'conversation-recordings'`, its own list view); the patient
+  card lists that patient's recordings (`ConversationRecordingList`); the notes screen keeps the
+  unfiled ones.
+- **Measured** (Mac, synthetic speech, recorder collapsed on another screen): browser CPU 200–235 →
+  98–111 ms/s, main thread 33–39 → 19–20 ms/s, style recalculations 60 → 0 a second, and no cost
+  that grows with the recording.
+- **Tests.** Unit: `speech-windows`, `recognised-text`, `live-transcription` (governor, deferral,
+  request mode), `recording-audio`, `device-load`, transcript v2, places. e2e:
+  `conversation-activity` (floating button across tabs, pause), `conversation-recordings` (patient
+  chosen while recording → «Файлы» and the card; weak phone → «Расшифровать»), the updated
+  `conversation-transcript` and `form-fill-recording`. Not gates: `recorder-perf` (`PERF_REC=1`),
+  `recorder-quality` (`REC_QUALITY=1`, real Whisper on synthetic speech: WER 0.119 on 130 s; no
+  before/after pair — the old build's scripted run never finished), `recorder-screens`.
+- **Not tested:** the owner's phone (no install without the owner's OK), recording with the screen
+  off (WebView in the background), real recordings (never used). **Next:** on Android, recognise the
+  same 16 kHz stretches with the native GigaAM v3 model the APK already ships for the patient-card
+  dictaphone (a `recognizePcm` plugin method) — the largest remaining gain in accuracy.
+
 ## Note templates as paper, «Выдать дневник» steps, avatar contrast — 2026-11-13 (STATE FORMDIARY-UI1; branch, not merged)
 
 - **Owner 2026-11-13:** a «form» (a note template, «Ваши шаблоны») showed without a background; its edit mode was a

@@ -14,6 +14,7 @@ export type UserLibraryKindGroupId =
   | 'images'
   | 'video'
   | 'audio'
+  | 'recordings'
   | 'books'
   | 'tables'
   | 'questionnaires'
@@ -27,7 +28,15 @@ export interface UserLibraryKindGroup {
   readonly icon: AppGlyphName;
   readonly tone: ListTileTone;
   readonly kinds: readonly UserLibraryFileKind[];
+  /**
+   * Gathered from another store than the library's files (REC1: the conversation recorder keeps its
+   * recordings apart, with their text); counted from `sourceCounts` and drawn by its own view.
+   */
+  readonly source?: UserLibrarySource;
 }
+
+/** Stores other than the library's files that «По виду» shows a section for. */
+export type UserLibrarySource = 'conversation-recordings';
 
 export const USER_LIBRARY_KIND_GROUPS: readonly UserLibraryKindGroup[] = [
   {
@@ -48,6 +57,15 @@ export const USER_LIBRARY_KIND_GROUPS: readonly UserLibraryKindGroup[] = [
   },
   { id: 'video', title: 'Видео', hint: '', icon: 'film-slate', tone: 'purple', kinds: ['video'] },
   { id: 'audio', title: 'Аудио', hint: '', icon: 'music-notes', tone: 'pink', kinds: ['audio'] },
+  {
+    id: 'recordings',
+    title: 'Записи бесед',
+    hint: 'С текстом, если расшифрованы',
+    icon: 'microphone',
+    tone: 'orange',
+    kinds: [],
+    source: 'conversation-recordings',
+  },
   {
     id: 'books',
     title: 'Книги',
@@ -96,14 +114,21 @@ export function userLibraryKindGroupById(id: string | null): UserLibraryKindGrou
   return USER_LIBRARY_KIND_GROUPS.find((group) => group.id === id);
 }
 
-/** How many files each section holds; sections with none are left out, in the declared order. */
+/**
+ * How many files each section holds; sections with none are left out, in the declared order. A
+ * section of another store takes its count from `sourceCounts`.
+ */
 export function userLibraryKindCounts(
   kinds: Iterable<UserLibraryFileKind>,
+  sourceCounts: Partial<Record<UserLibrarySource, number>> = {},
 ): readonly { readonly group: UserLibraryKindGroup; readonly count: number }[] {
   const counts = new Map<UserLibraryKindGroupId, number>();
   for (const kind of kinds) {
     const id = userLibraryKindGroup(kind).id;
     counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  for (const group of USER_LIBRARY_KIND_GROUPS) {
+    if (group.source) counts.set(group.id, sourceCounts[group.source] ?? 0);
   }
   return USER_LIBRARY_KIND_GROUPS.filter((group) => (counts.get(group.id) ?? 0) > 0).map(
     (group) => ({ group, count: counts.get(group.id) ?? 0 }),
