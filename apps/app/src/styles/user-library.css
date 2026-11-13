@@ -369,6 +369,55 @@
   background: transparent;
 }
 
+/* Markdown and plain text are laid out by the app: they sit on a sheet of paper, like a form or
+   a КР page, instead of on the bare desk. PDFs, images and sheets draw their own pages. */
+.user-document-reader__paper--page.document-overlay-paper {
+  --document-paper-inline-padding: clamp(1.125rem, 5vw, 3.5rem);
+  width: min(100% - 1rem, 52rem);
+  /* Little room above the text: it still starts on the first screen (e2e first-screen). */
+  margin: 0.25rem auto 1.5rem;
+  padding: 1rem var(--document-paper-inline-padding) 2.5rem;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.4375rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  box-shadow: var(--shadow-paper);
+}
+
+/* A text that opens with the title as its own heading: the pencil floats beside that heading,
+   which starts at the top of the sheet instead of under an empty row. */
+.document-overlay-paper__header.user-document-reader__header--beside-title {
+  /* Above the text's zoom surface (`.pinch-zoom-surface__content`, z-index 1, later in the page),
+     which would otherwise take the pencil's taps. */
+  position: relative;
+  z-index: 2;
+  float: right;
+  margin: 0 0 0.5rem 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+.user-document-reader__markdown--titled > :first-child {
+  margin-top: 0;
+}
+
+/* The editor's draft bar: the state on the left, the actions on the right, above the text. */
+.user-document-reader__draft-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--paper-line);
+}
+
+.user-document-reader__draft-bar > .user-document-reader__draft-status {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .user-document-reader__text-pages {
   display: flex;
   flex-direction: column;

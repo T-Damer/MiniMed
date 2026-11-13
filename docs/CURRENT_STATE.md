@@ -20,6 +20,29 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Note templates as paper, «Выдать дневник» steps, avatar contrast — 2026-11-13 (STATE FORMDIARY-UI1; branch, not merged)
+
+- **Owner 2026-11-13:** a «form» (a note template, «Ваши шаблоны») showed without a background; its edit mode was a
+  small note box with broken headings; the full-screen toolbar hung with a gap above it; «Выдать дневник» had almost
+  no styles; the patient avatar was dark letters on a dark background. Official forms («Формы», 070/у…) were checked
+  at both widths and themes and had none of these faults.
+- **Reader:** Markdown and plain-text user documents sit on a paper sheet (`user-document-reader__paper--page`);
+  a text that opens with the document's title as its `#` heading no longer repeats it above
+  (`features/notes/note-title-heading.ts`) and the pencil stands beside that heading.
+- **Editing a Markdown document** opens the full-page editor at once (`NoteMarkdownEditor startFullscreen`,
+  `confirmExitFullscreen`): the draft state and «Сохранить» above the text, ‹ closes it (asks first with unsaved
+  text); no full-screen flag in the address for it. The editor's text starts on the title's line; its toolbar sticks
+  flush under the header (`top: var(--document-chrome-height)`; it added `--sticky-header-top` although the
+  full-screen header sticks at 0). A page-hide flush no longer marks untouched text as changed (the serializer's
+  own spelling of «____» is not an edit).
+- **«Выдать дневник»:** numbered `FormStep` cards (Какой дневник → поля / назначение / шаги дневника лечения →
+  Врач и инструкция), template choice as large rows with a chosen state (`ChoiceGroup` `--checked`, shared),
+  row cards with icon delete, one sticky footer row at the sheet's bottom edge (printer icon + «Создать QR-код»).
+- **Avatar:** initials and the icon on a solid accent disc (`--theme-accent` / `--theme-accent-contrast`), emoji on
+  an opaque paper disc; AA in both themes on the dark header band and on cards.
+- `e2e/forms-diary-ui.spec.ts` (390 and 1280 px; `FDUI_CAPTURE_DIR` saves light/dark screenshots). Not tested on a
+  phone or the Android build.
+
 ## Phone heat, one visual language, «Файлы» by kind — 2026-11-11 (STATE PERF6; merged, not released)
 
 - **Owner 2026-11-11:** the phone heats while navigating and using features; screens and tools look different

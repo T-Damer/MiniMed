@@ -13,7 +13,10 @@ export function PatientAvatar(props: {
   return (
     <span
       class={`patient-avatar${props.class ? ` ${props.class}` : ''}`}
-      classList={{ 'patient-avatar--portrait': props.portrait }}
+      classList={{
+        'patient-avatar--portrait': props.portrait,
+        'patient-avatar--symbol': props.avatar?.kind === 'symbol',
+      }}
       aria-hidden="true"
     >
       <Show

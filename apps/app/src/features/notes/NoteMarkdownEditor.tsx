@@ -44,6 +44,7 @@ import {
   noteLinkMarkdown,
 } from '@/features/notes/note-link-targets';
 import { buildNotePrintHtml } from '@/features/notes/note-print';
+import { markdownOpensWithTitle } from '@/features/notes/note-title-heading';
 import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
 import {
   createNoteWysiwyg,
@@ -101,6 +102,16 @@ interface NoteMarkdownEditorProps {
   readonly onOpenReminders?: () => void;
   /** Where «Назад» leads from the full-screen editor; without it, back only leaves full screen. */
   readonly onExitFullscreen?: () => void;
+  /**
+   * Asked before «Назад» or Escape leaves full screen; `false` keeps the editor open (the host
+   * asks about unsaved text first and closes the editor itself).
+   */
+  readonly confirmExitFullscreen?: () => boolean;
+  /**
+   * Opens straight into the full-page editor (a document edited as a page, not as a note). The
+   * host owns that state, so the address carries no full-screen flag for it.
+   */
+  readonly startFullscreen?: boolean;
   readonly exitFullscreenLabel?: string;
   /** Lets the host hide what lies under the full-screen editor from focus and assistive tech. */
   readonly onFullscreenChange?: (fullscreen: boolean) => void;
@@ -239,12 +250,16 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
 
   // The editor reports its text after a short pause; this reports it now (reload, tab hidden,
   // route change) so the draft written from it is never one pause behind.
+  // How the editor writes the text it was opened with. The serializer spells some Markdown its own
+  // way («________» becomes «\_\_\_…»): text nobody has touched is no change either.
+  let untouched: { readonly source: string; readonly serialized: string } | undefined;
   const flush = (): void => {
     const markdown = instanceRef.current?.getMarkdown();
+    if (markdown === undefined) return;
+    if (untouched && untouched.source === props.latest() && untouched.serialized === markdown)
+      return;
     // The serializer ends a document with a newline the stored text lacks: that alone is no change.
-    if (markdown !== undefined && markdown.trimEnd() !== props.latest().trimEnd()) {
-      props.onChange(markdown);
-    }
+    if (markdown.trimEnd() !== props.latest().trimEnd()) props.onChange(markdown);
   };
 
   onMount(() => {
@@ -273,6 +288,7 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
         }
         const freshest = props.latest();
         if (freshest !== props.initialValue) created.setMarkdown(freshest);
+        untouched = { source: freshest, serialized: created.getMarkdown() };
         instanceRef.current = created;
         props.onReady(created);
       })
@@ -294,7 +310,9 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
 }
 
 export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element {
-  const [fullscreen, setFullscreenState] = createSignal(isNotesFullscreenRoute());
+  const [fullscreen, setFullscreenState] = createSignal(
+    Boolean(props.startFullscreen) || isNotesFullscreenRoute(),
+  );
   const [mentionOpen, setMentionOpen] = createSignal(false);
   const [mentionQuery, setMentionQuery] = createSignal('');
   const [slashOpen, setSlashOpen] = createSignal(false);
@@ -341,6 +359,13 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     const nextHistoryState =
       currentHistoryState && typeof currentHistoryState === 'object' ? currentHistoryState : {};
     window.history.replaceState({ ...nextHistoryState, noteFullscreen: enabled }, '', nextHash);
+  };
+
+  /** «Назад» / Escape: the host may keep the editor open (unsaved text) or close it itself. */
+  const exitFullscreen = (): void => {
+    if (props.confirmExitFullscreen && !props.confirmExitFullscreen()) return;
+    setFullscreen(false);
+    props.onExitFullscreen?.();
   };
 
   createEffect(() => props.onFullscreenChange?.(fullscreen()));
@@ -406,7 +431,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       setSlashQuery('');
       setSlashActive(0);
       setSelectionMenu(null);
-      setFullscreen(false);
+      exitFullscreen();
     };
     document.addEventListener('keydown', onKeyDown);
     onCleanup(() => document.removeEventListener('keydown', onKeyDown));
@@ -866,6 +891,11 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     const title = props.printTitle === undefined ? props.label : props.printTitle.trim();
     return title || null;
   };
+  /** The page title, unless the text already opens with it as its first heading. */
+  const fullscreenPageTitle = (): string | null => {
+    const title = fullscreenTitle();
+    return title && !markdownOpensWithTitle(text(), title) ? title : null;
+  };
 
   const [toolbarStrip, setToolbarStrip] = createSignal<HTMLDivElement>();
 
@@ -1321,10 +1351,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       chrome={chrome}
       searchOpen={searchOpen}
       chromeClassList={{ 'note-markdown-editor__chrome': true }}
-      onBack={() => {
-        setFullscreen(false);
-        props.onExitFullscreen?.();
-      }}
+      onBack={exitFullscreen}
       {...(props.exitFullscreenLabel ? { backLabel: props.exitFullscreenLabel } : {})}
       onBackIntercept={() => {
         if (!searchOpen()) return false;
@@ -1393,7 +1420,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       }
       content={
         <article ref={chrome.setPaper} class="document-overlay-paper">
-          <Show when={fullscreenTitle()}>
+          <Show when={fullscreenPageTitle()}>
             {(title) => <h1 class="document-overlay-paper__title">{title()}</h1>}
           </Show>
           {props.fullscreenHeader?.()}

@@ -52,6 +52,19 @@
   background: var(--theme-surface-raised);
 }
 
+/* The chosen row of a large group reads as chosen from across the room, not by its dot alone. A
+   colour swap only: the border keeps its width, so nothing around it moves. */
+.ui-choice-group__option--large.ui-choice-group__option--checked {
+  border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-surface-raised));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-choice-group__option--large:hover {
+    border-color: color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
+  }
+}
+
 .ui-choice-group__option--disabled {
   cursor: not-allowed;
   opacity: 0.6;

@@ -3,7 +3,10 @@ import type { JSX } from 'solid-js';
 /** The steps of the doctor's patient form, top to bottom; the preview's rows point at them. */
 export type PatientStep = 'profile' | 'past' | 'now' | 'marks' | 'visits' | 'contact';
 
-const stepId = (step: PatientStep): string => `patient-step-${step}`;
+/** The steps of «Выдать дневник» that are not the patient form's own. */
+export type DiaryIssueStep = 'diary' | 'fields' | 'plan' | 'signature';
+
+const stepId = (step: PatientStep | DiaryIssueStep): string => `patient-step-${step}`;
 
 /**
  * Scrolls the form to a step and puts the screen reader there, without a second jump from focus.
@@ -21,7 +24,7 @@ export function focusPatientStep(step: PatientStep): void {
  * the built-in guidance (owner 2026-11-10), no separate tour.
  */
 export function FormStep(props: {
-  readonly step: PatientStep;
+  readonly step: PatientStep | DiaryIssueStep;
   readonly number: number;
   readonly title: string;
   readonly hint: string;

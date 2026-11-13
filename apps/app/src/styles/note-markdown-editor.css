@@ -453,6 +453,8 @@ body:has(.note-markdown-editor--fullscreen) {
 }
 
 .note-markdown-editor--fullscreen .note-markdown-wysiwyg__surface {
+  /* The paper already has its margins: headings and text start on the title's line. */
+  padding-inline: 0;
   color: var(--ink);
 }
 

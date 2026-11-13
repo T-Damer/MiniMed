@@ -1,6 +1,7 @@
 import QRCode from 'qrcode';
 import { createResource, createSignal, For, Index, type JSX, onCleanup, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
@@ -59,6 +60,7 @@ import {
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
 import { diaryPrintHtml } from '@/features/diary/diary-print';
+import { FormStep } from '@/features/diary/FormStep';
 import { PatientScreenEditor } from '@/features/diary/PatientScreenEditor';
 import { decodeQrFromSource } from '@/features/diary/qr-decode';
 import { PrintManager } from '@/features/printing/print-manager';
@@ -273,6 +275,10 @@ function IssueDiaryDialog(props: {
         ? fields().some((field) => field.type === 'plan')
         : Boolean(template()?.planTitle);
 
+  /** Numbers of the form's steps: «Какой дневник» is 1 unless an issued diary is updated. */
+  const stepAfterTemplate = (): number => (editing ? 1 : 2);
+  const stepAfterFields = (): number => stepAfterTemplate() + (custom() && !editing ? 1 : 0);
+
   const updatePlan = (index: number, patch: Partial<PlanDraft>): void => {
     setPlan((current) =>
       current.map((item, position) => (position === index ? { ...item, ...patch } : item)),
@@ -405,6 +411,7 @@ function IssueDiaryDialog(props: {
           : 'Онлайн в браузере пациента или на бумаге'
       }
       class="patient-diary-dialog"
+      bodyClass="patient-diary-dialog__body"
       onClose={props.onClose}
     >
       <Show
@@ -429,27 +436,41 @@ function IssueDiaryDialog(props: {
             </p>
           </Show>
           <Show when={!editing}>
-            <ChoiceGroup
-              legend="Какой дневник"
-              name="diary-template"
-              value={templateId()}
-              options={[
-                ...DIARY_TEMPLATES.map((option) => ({
-                  value: option.id,
-                  label: option.title,
-                  hint: option.summary,
-                })),
-                {
-                  value: CUSTOM,
-                  label: 'Свой дневник',
-                  hint: 'Задайте поля сами: числа, варианты, отметки, текст.',
-                },
-              ]}
-              onChange={setTemplateId}
-            />
+            <FormStep
+              step="diary"
+              number={1}
+              title="Какой дневник"
+              hint="Пациент заполняет его в браузере или на распечатанном бланке."
+            >
+              <ChoiceGroup
+                legend={<span class="sr-only">Какой дневник</span>}
+                name="diary-template"
+                class="patient-diary__templates"
+                large
+                value={templateId()}
+                options={[
+                  ...DIARY_TEMPLATES.map((option) => ({
+                    value: option.id,
+                    label: option.title,
+                    hint: option.summary,
+                  })),
+                  {
+                    value: CUSTOM,
+                    label: 'Свой дневник',
+                    hint: 'Задайте поля сами: числа, варианты, отметки, текст.',
+                  },
+                ]}
+                onChange={setTemplateId}
+              />
+            </FormStep>
           </Show>
           <Show when={custom() && !editing}>
-            <div class="patient-diary__builder">
+            <FormStep
+              step="fields"
+              number={stepAfterTemplate()}
+              title="Поля дневника"
+              hint="Что пациент записывает каждый раз."
+            >
               <TextField
                 label="Название дневника"
                 value={customTitle()}
@@ -504,29 +525,33 @@ function IssueDiaryDialog(props: {
                       />
                       <Button
                         type="button"
-                        variant="quiet"
+                        variant="icon"
+                        class="patient-diary__remove"
+                        aria-label={`Убрать поле ${index + 1}`}
+                        title="Убрать поле"
                         disabled={fields().length === 1}
+                        icon={<AppGlyph name="trash" class="patient-diary__remove-glyph" />}
                         onClick={() =>
                           setFields((current) =>
                             current.filter((_, position) => position !== index),
                           )
                         }
-                      >
-                        Убрать
-                      </Button>
+                      />
                     </div>
                   </div>
                 )}
               </Index>
               <Button
                 type="button"
-                variant="quiet"
+                variant="secondary"
+                class="patient-diary__add"
+                icon={<AppGlyph name="plus" class="patient-diary__add-glyph" />}
                 disabled={fields().length >= MAX_DIARY_FIELDS}
                 onClick={() => setFields((current) => [...current, EMPTY_FIELD])}
               >
-                Добавить поле
+                Поле
               </Button>
-            </div>
+            </FormStep>
           </Show>
           <Show when={isCare()}>
             <PatientScreenEditor
@@ -536,21 +561,25 @@ function IssueDiaryDialog(props: {
               onDoctor={setDoctor}
               note={note()}
               onNote={setNote}
-              firstStep={1}
+              firstStep={stepAfterFields()}
             />
           </Show>
           <Show when={hasPlan() && !isCare()}>
-            <div class="patient-diary__medications">
-              <Heading depth={3}>
-                {editing
+            <FormStep
+              step="plan"
+              number={stepAfterFields()}
+              title={
+                editing
                   ? (editing.planTitle ?? 'Назначение врача')
                   : custom()
                     ? 'Назначение врача'
-                    : (template()?.planTitle ?? 'Назначение врача')}
-              </Heading>
-              <Show when={!editing && !custom() && template()?.planHint}>
-                <p class="patient-diary__hint">{template()?.planHint}</p>
-              </Show>
+                    : (template()?.planTitle ?? 'Назначение врача')
+              }
+              hint={
+                (!editing && !custom() && template()?.planHint) ||
+                'Что пациент принимает и когда: он отметит приём или пропуск.'
+              }
+            >
               <Index each={plan()}>
                 {(item, index) => (
                   <div class="patient-diary__medication">
@@ -569,6 +598,7 @@ function IssueDiaryDialog(props: {
                       onInput={(event) => updatePlan(index, { dose: event.currentTarget.value })}
                     />
                     <TextField
+                      class="patient-diary__schedule"
                       label="Когда"
                       hideLabel
                       placeholder="Когда (например, 8:00 и 20:00, дни 1–5)"
@@ -580,55 +610,79 @@ function IssueDiaryDialog(props: {
                     <Show when={plan().length > 1}>
                       <Button
                         type="button"
-                        variant="quiet"
+                        variant="icon"
+                        class="patient-diary__remove"
+                        aria-label={`Убрать пункт ${index + 1}`}
+                        title="Убрать пункт"
+                        icon={<AppGlyph name="trash" class="patient-diary__remove-glyph" />}
                         onClick={() =>
                           setPlan((current) => current.filter((_, position) => position !== index))
                         }
-                      >
-                        Убрать пункт
-                      </Button>
+                      />
                     </Show>
                   </div>
                 )}
               </Index>
               <Button
                 type="button"
-                variant="quiet"
+                variant="secondary"
+                class="patient-diary__add"
+                icon={<AppGlyph name="plus" class="patient-diary__add-glyph" />}
                 disabled={plan().length >= MAX_DIARY_PLAN_ITEMS}
                 onClick={() => setPlan((current) => [...current, EMPTY_PLAN])}
               >
-                Добавить пункт
+                Пункт
               </Button>
-            </div>
+            </FormStep>
           </Show>
           <Show when={!isCare()}>
-            <TextField
-              class="patient-diary__field"
-              label="Врач"
-              value={doctor()}
-              onInput={(event) => setDoctor(event.currentTarget.value)}
-            />
-            <TextArea
-              class="patient-diary__field"
-              label="Инструкция пациенту"
-              maxLength={200}
-              value={note()}
-              placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
-              onInput={(event) => setNote(event.currentTarget.value)}
-            />
+            <FormStep
+              step="signature"
+              number={stepAfterFields() + (hasPlan() ? 1 : 0)}
+              title="Врач и инструкция"
+              hint="Подпись врача и короткое пояснение, как вести дневник."
+            >
+              <TextField
+                class="patient-diary__field"
+                label="Врач"
+                value={doctor()}
+                onInput={(event) => setDoctor(event.currentTarget.value)}
+              />
+              <TextArea
+                class="patient-diary__field"
+                label="Инструкция пациенту"
+                maxLength={200}
+                value={note()}
+                placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
+                onInput={(event) => setNote(event.currentTarget.value)}
+              />
+            </FormStep>
           </Show>
-          <Show when={error()}>
-            <p class="patient-diary__error" role="alert">
-              {error()}
-            </p>
-          </Show>
-          <div class="patient-diary__actions">
-            <Button type="button" onClick={printBlank}>
-              Распечатать бланк
-            </Button>
-            <Button type="submit" variant="primary">
-              {editing ? 'Получить новую ссылку' : 'Создать QR-код'}
-            </Button>
+          <div class="patient-diary__footer">
+            <Show when={error()}>
+              <p class="patient-diary__error" role="alert">
+                {error()}
+              </p>
+            </Show>
+            <div class="patient-diary__footer-actions">
+              <Button
+                type="button"
+                variant="icon"
+                class="patient-diary__print"
+                aria-label="Распечатать бланк"
+                title="Распечатать бланк"
+                icon={<AppGlyph name="printer" class="patient-diary__action-glyph" />}
+                onClick={printBlank}
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                class="patient-diary__submit"
+                icon={<AppGlyph name="qr-code" class="patient-diary__action-glyph" />}
+              >
+                {editing ? 'Получить новую ссылку' : 'Создать QR-код'}
+              </Button>
+            </div>
           </div>
         </form>
       </Show>

@@ -72,6 +72,7 @@ import {
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
+import { markdownOpensWithTitle } from '@/features/notes/note-title-heading';
 import { PdfThumbnails } from '@/features/pdf-viewer/PdfThumbnails';
 import { PdfViewer } from '@/features/pdf-viewer/PdfViewer';
 import { openPdfInSystem } from '@/features/pdf-viewer/pdf-actions';
@@ -255,6 +256,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     readerCapability().reader.actions.includes(action);
   const isTemplateDocument = (): boolean => meta()?.folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID;
   const isMarkdown = (): boolean => readerCapability().reader.renderer === 'markdown';
+  const isPaperPage = (): boolean => isMarkdown() || readerCapability().reader.renderer === 'text';
   const isSheet = (): boolean => readerCapability().reader.renderer === 'sheet';
   const isDicom = (): boolean => {
     const current = meta();
@@ -270,6 +272,13 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       .map((page) => page.text)
       .join('\n'),
   );
+  /** The text opens with the title as its own first heading: the page does not repeat it. */
+  const titleInText = createMemo(() => {
+    const current = meta();
+    return Boolean(
+      current && isMarkdown() && markdownOpensWithTitle(markdownText(), current.title),
+    );
+  });
   const draftSourceText = createMemo(() => {
     const pageTexts = pages().map((page) => page.text);
     return readerCapability().reader.renderer === 'docx'
@@ -1006,6 +1015,63 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     chrome.scrollTo(item.pageAnchor);
   };
 
+  /** A sheet's pencil stands in its title row, so no row of its own pushes the text down. */
+  const pencilBesideTitle = (): boolean =>
+    isPaperPage() && !titleInText() && !draftOpen() && editableSource();
+  const editButton = (): JSX.Element => (
+    <Button
+      type="button"
+      variant="icon"
+      class="document-overlay-action-button user-document-reader__edit"
+      aria-label="Редактировать"
+      title="Редактировать"
+      onClick={openDraftEditor}
+      icon={<AppGlyph name="edit" class="document-overlay-action-button__icon" />}
+    />
+  );
+
+  /**
+   * The draft's state and its «Отмена» / «Сохранить черновик», above the text. The full-page
+   * editor's bar is one phone-width row: no «Отмена» (its ‹ closes the editor the same way) and
+   * a plain «Сохранить» next to the «Черновик» state.
+   */
+  const draftActions = (fullPage: boolean): JSX.Element => (
+    <>
+      <span class="user-document-reader__draft-status" role="status">
+        Черновик{draftDirty() ? ' · не сохранён' : ''}
+      </span>
+      <Show when={!fullPage}>
+        <Button
+          type="button"
+          class="document-overlay-action-button"
+          onClick={closeDraftEditor}
+          disabled={draftSaving()}
+        >
+          Отмена
+        </Button>
+      </Show>
+      <Button
+        type="button"
+        variant="primary"
+        class="document-overlay-action-button"
+        onClick={() => void saveDraft()}
+        disabled={!draftDirty() || draftSaving()}
+        icon={
+          <AppGlyph
+            name={draftSaving() ? 'refresh' : 'check'}
+            class={
+              draftSaving()
+                ? 'document-overlay-action-button__icon document-overlay-action-button__icon--spin'
+                : 'document-overlay-action-button__icon'
+            }
+          />
+        }
+      >
+        {draftSaving() ? 'Сохраняем…' : fullPage ? 'Сохранить' : 'Сохранить черновик'}
+      </Button>
+    </>
+  );
+
   const pageByIndex = (pageIndex: number): UserLibraryPage | undefined =>
     pages().find((item) => item.pageIndex === pageIndex);
 
@@ -1202,103 +1268,73 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             classList={{
               'user-document-reader__paper--medical': isMedicalImage(),
               'user-document-reader__paper--sheet-fullscreen': isSheet() && fullscreen(),
+              // Text the app lays out itself sits on a sheet of paper, not on the bare desk.
+              'user-document-reader__paper--page': isPaperPage(),
             }}
           >
             <Show when={meta()}>
               {(current) => (
                 <Show when={!isMedicalImage()}>
-                  <ReaderTitleRow>
-                    <h1
-                      class="document-overlay-paper__title"
-                      classList={{
-                        'document-overlay-paper__title--sheet-fullscreen':
-                          isSheet() && fullscreen(),
-                      }}
-                    >
-                      <QueryHighlightedText
-                        text={current().title}
-                        softBreaks
-                        query={findState().query}
-                        exact={findState().mode === 'exact'}
-                        fuzzy={findState().mode === 'similar'}
-                        ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
-                        unitId={current().id}
-                        activeStart={
-                          activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
-                        }
-                        matchClass="document-overlay-match"
-                      />
-                    </h1>
-                  </ReaderTitleRow>
+                  <Show when={!titleInText()}>
+                    <ReaderTitleRow aside={<Show when={pencilBesideTitle()}>{editButton()}</Show>}>
+                      <h1
+                        class="document-overlay-paper__title"
+                        classList={{
+                          'document-overlay-paper__title--sheet-fullscreen':
+                            isSheet() && fullscreen(),
+                        }}
+                      >
+                        <QueryHighlightedText
+                          text={current().title}
+                          softBreaks
+                          query={findState().query}
+                          exact={findState().mode === 'exact'}
+                          fuzzy={findState().mode === 'similar'}
+                          ranges={rangesForFindUnit(
+                            rangesByUnit(),
+                            current().id,
+                            findState().query,
+                          )}
+                          unitId={current().id}
+                          activeStart={
+                            activeMatch()?.unitId === current().id
+                              ? activeMatch()?.start
+                              : undefined
+                          }
+                          matchClass="document-overlay-match"
+                        />
+                      </h1>
+                    </ReaderTitleRow>
+                  </Show>
                   <Show when={current().source ? null : userDocumentMetaLine(current())}>
                     {(line) => <p class="user-document-reader__file-meta">{line()}</p>}
                   </Show>
-                  <header
-                    class="document-overlay-paper__header"
-                    classList={{
-                      'document-overlay-paper__header--sheet-fullscreen': isSheet() && fullscreen(),
-                      // Only the edit button: no rule, no spacing — the text follows the title.
-                      'document-overlay-paper__header--idle': !draftOpen(),
-                    }}
-                  >
-                    <div
-                      class="document-overlay-paper__actions"
-                      classList={{ 'document-overlay-paper__actions--idle': !draftOpen() }}
+                  <Show when={!pencilBesideTitle()}>
+                    <header
+                      class="document-overlay-paper__header"
+                      classList={{
+                        'document-overlay-paper__header--sheet-fullscreen':
+                          isSheet() && fullscreen(),
+                        // Only the edit button: no rule, no spacing — the text follows the title.
+                        'document-overlay-paper__header--idle': !draftOpen(),
+                        // The text's own first heading is the title: the pencil stands beside it.
+                        'user-document-reader__header--beside-title': titleInText() && !draftOpen(),
+                      }}
                     >
-                      <Show
-                        when={draftOpen()}
-                        fallback={
-                          <Show when={editableSource()}>
-                            <Button
-                              type="button"
-                              variant="icon"
-                              class="document-overlay-action-button user-document-reader__edit"
-                              aria-label="Редактировать"
-                              title="Редактировать"
-                              onClick={openDraftEditor}
-                              icon={
-                                <AppGlyph
-                                  name="edit"
-                                  class="document-overlay-action-button__icon"
-                                />
-                              }
-                            />
-                          </Show>
-                        }
+                      <div
+                        class="document-overlay-paper__actions"
+                        classList={{ 'document-overlay-paper__actions--idle': !draftOpen() }}
                       >
-                        <span class="user-document-reader__draft-status" role="status">
-                          Черновик{draftDirty() ? ' · не сохранён' : ''}
-                        </span>
-                        <Button
-                          type="button"
-                          class="document-overlay-action-button"
-                          onClick={closeDraftEditor}
-                          disabled={draftSaving()}
+                        <Show
+                          when={draftOpen()}
+                          fallback={<Show when={editableSource()}>{editButton()}</Show>}
                         >
-                          Отмена
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="primary"
-                          class="document-overlay-action-button"
-                          onClick={() => void saveDraft()}
-                          disabled={!draftDirty() || draftSaving()}
-                          icon={
-                            <AppGlyph
-                              name={draftSaving() ? 'refresh' : 'check'}
-                              class={
-                                draftSaving()
-                                  ? 'document-overlay-action-button__icon document-overlay-action-button__icon--spin'
-                                  : 'document-overlay-action-button__icon'
-                              }
-                            />
-                          }
-                        >
-                          {draftSaving() ? 'Сохраняем…' : 'Сохранить черновик'}
-                        </Button>
-                      </Show>
-                    </div>
-                  </header>
+                          {/* A Markdown draft has its bar in the full-page editor above this page. */}
+                          <Show when={!isMarkdown()}>{draftActions(false)}</Show>
+                        </Show>
+                      </div>
+                    </header>
+                  </Show>
                 </Show>
               )}
             </Show>
@@ -1541,7 +1577,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                             <Show when={parsedMarkdown()} keyed>
                               {(parsed) => (
                                 <SafeMarkdown
-                                  class="user-document-reader__markdown"
+                                  class={
+                                    titleInText()
+                                      ? 'user-document-reader__markdown user-document-reader__markdown--titled'
+                                      : 'user-document-reader__markdown'
+                                  }
                                   markdown={markdownText()}
                                   parsed={parsed}
                                 />
@@ -1607,10 +1647,21 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                     </Show>
                   }
                 >
+                  {/* A Markdown document is edited as a page: the full-page editor opens at once,
+                      with the draft's actions above the text; ‹ closes it like «Отмена». */}
                   <NoteMarkdownEditor
                     label="Текст черновика"
                     printTitle={meta()?.title ?? ''}
                     templatePrint={isTemplateDocument()}
+                    startFullscreen
+                    exitFullscreenLabel="Закрыть редактор"
+                    confirmExitFullscreen={() => {
+                      closeDraftEditor();
+                      return false;
+                    }}
+                    fullscreenHeader={() => (
+                      <div class="user-document-reader__draft-bar">{draftActions(true)}</div>
+                    )}
                     value={draftText()}
                     onChange={(value) => {
                       setDraftText(value);

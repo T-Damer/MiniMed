@@ -4,7 +4,7 @@
 }
 
 .patient-diary-dialog {
-  width: min(34rem, calc(100vw - 1rem));
+  width: min(40rem, calc(100vw - 1rem));
 }
 
 .patient-diary__hint {
@@ -19,7 +19,6 @@
   gap: 0.5rem;
 }
 
-.patient-diary__form,
 .patient-diary__issued,
 .patient-diary__scanner,
 .patient-diary__preview {
@@ -33,15 +32,83 @@
   gap: 0.25rem;
 }
 
-.patient-diary__medications {
+/* «Выдать дневник»: numbered cards (`FormStep`) as on «Новый пациент», the actions pinned to the
+   bottom of the sheet (owner 2026-11-13: the dialog had almost no styles). */
+.patient-diary__form {
   display: grid;
+  gap: 1rem;
+  padding: 0.25rem 0 0;
+}
+
+/* One item of the doctor's plan: a row card, its fields side by side when there is room. */
+.patient-diary__medication {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface);
+}
+
+.patient-diary__schedule {
+  grid-column: 1 / -1;
+}
+
+.ui-button.patient-diary__add {
+  justify-self: start;
+}
+
+.ui-button.patient-diary__remove {
+  justify-self: end;
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-button.patient-diary__remove:hover {
+    color: var(--theme-danger);
+  }
+}
+
+.patient-diary__add-glyph,
+.patient-diary__remove-glyph,
+.patient-diary__action-glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+/* The footer is the sheet's bottom edge: the body gives up its own bottom room (the footer covers
+   the home indicator instead), and a field scrolled into view stops above the footer. */
+.overlay-dialog-body.overlay-dialog-body--sheet.patient-diary-dialog__body {
+  padding-block-end: 0;
+  scroll-padding-block-end: 5.5rem;
+}
+
+.patient-diary__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 0.5rem;
+  margin-inline: -1rem;
+  padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom, 0px));
+  border-top: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+}
+
+.patient-diary__footer-actions {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.patient-diary__medication {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: 0.4rem;
+.ui-button.patient-diary__print {
+  flex: none;
+}
+
+.ui-button.patient-diary__submit {
+  flex: 1 1 auto;
 }
 
 .patient-diary__code {
@@ -99,11 +166,6 @@
   color: var(--theme-danger);
 }
 
-.patient-diary__builder {
-  display: grid;
-  gap: 0.75rem;
-}
-
 .patient-diary__field-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
@@ -111,7 +173,7 @@
   padding: 0.75rem;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-control);
-  background: var(--theme-surface-raised);
+  background: var(--theme-surface);
 }
 
 .patient-diary__field-actions {

@@ -1,3 +1,6 @@
+/* A solid accent disc with the accent's own contrast colour for the initials and the icon: the
+   pair is AA in both themes on any surface (a translucent tint turned dark letters on the dark
+   header band into dark-on-dark, owner 2026-11-13). */
 .patient-avatar {
   display: inline-grid;
   place-items: center;
@@ -6,7 +9,12 @@
   flex: none;
   overflow: hidden;
   border-radius: 50%;
-  background: var(--theme-accent-soft);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+/* An emoji keeps its own colours: it sits on an opaque paper disc, not on the accent. */
+.patient-avatar.patient-avatar--symbol {
+  background: color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface-raised));
 }
 .patient-avatar__icon {
   width: 1.25rem;
@@ -30,7 +38,7 @@
 }
 
 .patient-avatar__initials {
-  color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
   font-size: var(--patient-avatar-initials-size, 0.75rem);
   font-weight: 650;
 }
