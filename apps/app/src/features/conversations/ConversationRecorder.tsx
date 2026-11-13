@@ -6,7 +6,6 @@ import {
   type JSX,
   lazy,
   Match,
-  onCleanup,
   onMount,
   Show,
   Suspense,
@@ -19,7 +18,6 @@ import { AsciiSpinner } from '@/components/AsciiSpinner';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { AsrModelCard } from '@/features/asr/AsrModelCard';
-import { asrInstall, watchAsrInstall } from '@/features/asr/asr-model-install';
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
 import {
   conversationSession,
@@ -36,6 +34,7 @@ import { LiveWaveform } from '@/features/conversations/LiveWaveform';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { usePatientSnapshot } from '@/features/conversations/use-patient-snapshot';
+import { useSpeechOffer } from '@/features/conversations/use-speech-offer';
 
 /** The recording sheet (player, text, patient) is needed only after a recording: loaded on demand. */
 const ConversationRecordingSheet = lazy(() =>
@@ -203,10 +202,8 @@ function LiveText(): JSX.Element {
   let text: HTMLDivElement | undefined;
   const lines = () => conversationSession.liveLines();
   const status = () => conversationSession.liveStatus();
-  const phase = asrInstall.phase;
-  const showCard = (): boolean =>
-    lines().length === 0 && ['missing', 'cached', 'loading', 'failed'].includes(phase());
-  onMount(() => onCleanup(watchAsrInstall()));
+  const speech = useSpeechOffer();
+  const showCard = (): boolean => lines().length === 0 && speech.offerShown();
   createEffect(() => {
     lines();
     requestAnimationFrame(() => text?.scrollTo({ top: text.scrollHeight, behavior: 'smooth' }));
@@ -217,7 +214,7 @@ function LiveText(): JSX.Element {
         when={!showCard()}
         fallback={
           <div class="recorder-window__card">
-            <AsrModelCard compact />
+            <AsrModelCard compact engine={speech.offered} />
           </div>
         }
       >

@@ -135,3 +135,40 @@ only (their time is known), and the working timestamp mode is remembered per mod
 - The owner's phone: installing a build needs the owner's OK; numbers above are from the Mac.
 - Recording with the screen off (WebView in the background) was not tested.
 - Real recordings were never used (patient-sensitive); only synthetic speech.
+
+## REC2: GigaAM v3 on Android (2026-11-13)
+
+The Android app now reads the recorder's 16 kHz stretches with the native GigaAM v3 model
+(sherpa-onnx NeMo CTC with punctuation, greedy search, int8, 2 threads) through the plugin method
+`recognizePcm`, whenever its models are installed; Whisper stays the engine in the browser and on
+Android until the download finishes. Same synthetic dialogue and scoring as above
+(`dialog48k.wav`, Milena TTS, 7 turns, looped; `apps/app/e2e/word-error-rate.ts`).
+
+- **Where:** Android emulator `minimed_spike_120hz` (API 36, arm64, 4 cores, 3 GB, on the M2 Max),
+  WebView 133, debug APK built as `org.med.web.rec2` beside the emulator's own install. The WebView's
+  fake microphone plays the WAV (`/data/local/tmp/webview-command-line` on a userdebug image); no
+  real microphone or speech. Driver: `scripts/recorder-quality-android.ts` (plain CDP over the
+  WebView's DevTools socket; it refuses any serial that is not an emulator). The models were
+  downloaded through the recorder's own card («Скачать · 256 МБ»).
+
+| engine | where | recorded | heard / reference words | WER (as scored) | WER, digits as words, aligned to the loop end |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Whisper Base q8 (REC1) | Chromium on the Mac | 130 s | 240 / 243 | 0.119 | 0.098 (24 / 246) |
+| **GigaAM v3** | Android emulator | 142 s | 255 / 243 | **0.091** | **0.000** (0 / 252) |
+
+- «As scored» is the REC1 method: the script repeated round(seconds / 42.5) times, digits counted as
+  errors. GigaAM writes numbers as digits («в 4:00 утра», «по 50 мг», «через 2 недели») and the
+  142-s run heard the start of a fourth loop, so all 22 of its scored errors are those two effects;
+  with digits spelled out and the reference cut where the audio stopped it heard every word.
+  Whisper's remaining errors under the same normalisation are its own hearing («ташнота»,
+  «снаидневной», «серторальныйн»).
+- **Speed:** 13 stretches, 135 s of audio, real-time factor **0.15** (slowest stretch 9.4 s read in
+  2.5 s), including the base64 bridge. Live text never deferred: a line appeared every ~10 s, right
+  after each pause. A second, 45-s run: RTF 0.23. The emulator shares the Mac's cores, so a phone
+  may differ either way; the REC1 governor (`LIVE_MAX_REALTIME_FACTOR` 1.15) is kept unchanged.
+- **Found on the way:** Capacitor's `PluginCall.getLong` returns null for a JSON number that fits an
+  `Int`, so `inspectModel` / `installModelFile` rejected every native model («Expected model size is
+  missing») — the patient-card dictaphone's models could never be checked or installed on a device.
+  The size is now read as any `Number`.
+- **Not measured:** the owner's phone (no install without the owner's OK), a real room or a real
+  session (never used), screen-off recording.

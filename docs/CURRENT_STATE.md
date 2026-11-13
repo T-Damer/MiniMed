@@ -20,6 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Session recorder on Android: GigaAM v3 instead of Whisper — 2026-11-13 (STATE REC2; branch, not merged)
+
+- **Engine choice** (`features/conversations/speech-engine.ts`): GigaAM v3 (native sherpa-onnx, the
+  model the patient-card dictaphone already uses) when the Android plugin is present and its models
+  are installed, else the browser's Whisper — chosen per stretch, for live text and «Расшифровать»
+  alike, so a download that finishes mid-recording takes over from the next stretch. The Whisper
+  runtime is loaded only when the native models are absent. The REC1 governor is unchanged.
+- **Native** (`LocalMedTranscriberPlugin.recognizePcm`): base64 16 kHz mono 16-bit PCM in, text out;
+  one lazily built `OfflineRecognizer` (NeMo CTC with punctuation, greedy, no diarization) on its own
+  thread, so a dictaphone transcription never holds live text back; released when the app is
+  destroyed. Model checksums are verified once per process (by size and mtime) instead of hashing
+  256 MB on every status check. Fixed: `getLong` returned null for Int-sized JSON numbers, so the
+  native models could never be inspected or installed.
+- **UI:** in the Android app the recorder window and the recording sheet offer the native download
+  (`AsrModelCard engine="native"`, «Скачать · 256 МБ», `features/asr/native-model-install.ts`)
+  until it is installed — also when Whisper is already loaded, which keeps reading meanwhile; the web
+  build still offers Whisper.
+- **Measured** ([research/recorder-perf-2026-11.md](research/recorder-perf-2026-11.md) «REC2»):
+  Android emulator, synthetic dialogue: WER 0.091 as scored for REC1 (Whisper Base 0.119), every
+  word heard once digits are spelled out (Whisper 0.098); real-time factor 0.15, live text never
+  deferred. Driver `scripts/recorder-quality-android.ts`.
+- **Tests:** `speech-engine.test.ts` (engine choice, switching mid-recording), `native-transcriber-pcm.test.ts`
+  (bridge PCM encoding); recorder e2e (`conversation-recordings`, `conversation-transcript`,
+  `conversation-activity`, `form-fill-recording`) pass on the web path.
+- **Not tested:** the owner's phone (install only with the owner's OK), real recordings, screen-off
+  recording, the recorder waveform on the emulator (blank in the emulator screenshot, not looked
+  into). **Follow-up:** `LlamaInferencePlugin` and `LocalMedUpdatePlugin` read `expectedBytes`
+  with the same `getLong` and silently get null for sizes under 2 GiB.
+
 ## Release 0.6.97 — 2026-11-13
 
 - **In it:** REC1 (floating session recorder, background transcription with a load governor, recordings in «Файлы»
@@ -78,9 +107,7 @@ player. Measurements and the transcription diagnosis: [research/recorder-perf-20
   `recorder-quality` (`REC_QUALITY=1`, real Whisper on synthetic speech: WER 0.119 on 130 s; no
   before/after pair — the old build's scripted run never finished), `recorder-screens`.
 - **Not tested:** the owner's phone (no install without the owner's OK), recording with the screen
-  off (WebView in the background), real recordings (never used). **Next:** on Android, recognise the
-  same 16 kHz stretches with the native GigaAM v3 model the APK already ships for the patient-card
-  dictaphone (a `recognizePcm` plugin method) — the largest remaining gain in accuracy.
+  off (WebView in the background), real recordings (never used). GigaAM on Android: REC2 above.
 
 ## Note templates as paper, «Выдать дневник» steps, avatar contrast — 2026-11-13 (STATE FORMDIARY-UI1; released in 0.6.97)
 

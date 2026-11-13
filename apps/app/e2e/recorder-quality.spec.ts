@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
+import { loopedWer } from './word-error-rate';
 
 /**
  * REC1: how well live recognition hears a conversation, before and after the recorder rework. Not a
@@ -16,36 +17,6 @@ const OUT =
   process.env['REC_QUALITY_OUT'] ??
   resolve(import.meta.dirname, '../../../output/recorder-quality.json');
 const SECONDS = Number(process.env['REC_QUALITY_SECONDS'] ?? '130');
-
-function words(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/ё/gu, 'е')
-    .replace(/\[\[[^\]]*\]\]/gu, ' ')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/u)
-    .filter(Boolean);
-}
-
-/** Word-level edit distance. */
-function distance(reference: readonly string[], hypothesis: readonly string[]): number {
-  let previous = Array.from({ length: hypothesis.length + 1 }, (_, index) => index);
-  for (let row = 1; row <= reference.length; row += 1) {
-    const current = [row];
-    for (let column = 1; column <= hypothesis.length; column += 1) {
-      const cost = reference[row - 1] === hypothesis[column - 1] ? 0 : 1;
-      current.push(
-        Math.min(
-          (previous[column] ?? 0) + 1,
-          (current[column - 1] ?? 0) + 1,
-          (previous[column - 1] ?? 0) + cost,
-        ),
-      );
-    }
-    previous = current;
-  }
-  return previous[hypothesis.length] ?? 0;
-}
 
 test('live recognition of a synthetic dialogue', async () => {
   test.skip(process.env['REC_QUALITY'] !== '1', 'run with REC_QUALITY=1');
@@ -156,18 +127,14 @@ test('live recognition of a synthetic dialogue', async () => {
     .allTextContents();
   const finalText = after.length >= heard.length ? after : heard;
 
-  const script = words(readFileSync(scriptFile, 'utf8'));
-  // The fake microphone loops the file; the reference is the script as many times as it played.
-  const loops = Math.max(1, Math.round(recordedSeconds / loopSeconds));
-  const reference = Array.from({ length: loops }, () => script).flat();
-  const hypothesis = words(finalText.join(' '));
-  const errors = distance(reference, hypothesis);
   const result = {
     recordedSeconds: Math.round(recordedSeconds),
-    loops,
-    referenceWords: reference.length,
-    hypothesisWords: hypothesis.length,
-    wer: Math.round((errors / reference.length) * 1000) / 1000,
+    ...loopedWer(
+      readFileSync(scriptFile, 'utf8'),
+      finalText.join(' '),
+      recordedSeconds,
+      loopSeconds,
+    ),
     lines: finalText,
   };
   console.log(JSON.stringify({ ...result, lines: finalText.length }));

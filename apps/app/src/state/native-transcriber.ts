@@ -46,6 +46,7 @@ interface LocalMedTranscriberPlugin {
   startRecording(): Promise<void>;
   stopRecording(): Promise<unknown>;
   transcribe(options: { readonly filePath: string }): Promise<unknown>;
+  recognizePcm(options: { readonly pcm: string }): Promise<{ readonly text?: unknown }>;
   deleteRecording(options: { readonly filePath: string }): Promise<void>;
   openAppSettings(): Promise<void>;
   microphoneStatusAfterRefusal(): Promise<NativePermissionStatus>;
@@ -79,6 +80,37 @@ async function inspectArtifact(
 
 export function isNativeTranscriberAvailable(): boolean {
   return Capacitor.getPlatform() === 'android';
+}
+
+/** The Android app carries the GigaAM recogniser (the models may still need a download). */
+export function isNativeSpeechSupported(): boolean {
+  return isNativeTranscriberAvailable() && Capacitor.isPluginAvailable('LocalMedTranscriber');
+}
+
+/** Mono samples in [-1, 1] as base64 of little-endian 16-bit PCM, the bridge's format. */
+export function pcm16Base64(samples: Float32Array): string {
+  const bytes = new Uint8Array(samples.length * 2);
+  const view = new DataView(bytes.buffer);
+  for (let index = 0; index < samples.length; index += 1) {
+    const value = Math.max(-1, Math.min(1, samples[index] ?? 0));
+    view.setInt16(index * 2, value < 0 ? value * 0x8000 : value * 0x7fff, true);
+  }
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + CHUNK));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Recognises one stretch of speech (16 kHz mono) with the native GigaAM v3 model. The text is
+ * returned, never logged.
+ */
+export async function recogniseNativePcm(samples: Float32Array): Promise<string> {
+  assertNativeTranscriber();
+  const result = await localMedTranscriber.recognizePcm({ pcm: pcm16Base64(samples) });
+  return typeof result.text === 'string' ? result.text : '';
 }
 
 export async function getNativeTranscriptionModelStatus(): Promise<NativeTranscriptionModelStatus> {

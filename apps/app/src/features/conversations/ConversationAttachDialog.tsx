@@ -18,7 +18,6 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { SelectField } from '@/components/SelectField';
 import { AsrModelCard } from '@/features/asr/AsrModelCard';
-import { asrInstall, watchAsrInstall } from '@/features/asr/asr-model-install';
 import {
   attachConversation,
   conversationSession,
@@ -32,6 +31,7 @@ import {
 import type { TranscriptSegment } from '@/features/conversations/live-transcription';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { patientName, usePatientSnapshot } from '@/features/conversations/use-patient-snapshot';
+import { useSpeechOffer } from '@/features/conversations/use-speech-offer';
 import {
   CONVERSATION_FORMS,
   type ConversationFormEntry,
@@ -68,6 +68,7 @@ export function ConversationRecordingSheet(props: {
   const [confirmDelete, setConfirmDelete] = createSignal(false);
   const [needsText, setNeedsText] = createSignal(false);
   const patients = usePatientSnapshot(setError);
+  const speech = useSpeechOffer();
   const held = () => conversationSession.transcript(props.recording.id);
   const segments = (): readonly TranscriptSegment[] => held()?.segments() ?? stored();
   const lines = (): readonly string[] => segments().map((segment) => segment.text);
@@ -88,7 +89,6 @@ export function ConversationRecordingSheet(props: {
   };
 
   onMount(() => {
-    onCleanup(watchAsrInstall());
     void readConversationAudio(props.recording.id)
       .then((blob) => setAudioUrl(URL.createObjectURL(blob)))
       .catch(() => setError('Не удалось открыть аудио.'));
@@ -228,7 +228,7 @@ export function ConversationRecordingSheet(props: {
       </Show>
       <Show when={!settling() && needsText()}>
         <div class="recording-sheet__transcribe">
-          <Show when={asrInstall.phase() === 'ready'} fallback={<AsrModelCard compact />}>
+          <Show when={speech.ready()}>
             <Button
               variant="primary"
               icon={<AppGlyph name="waveform" />}
@@ -236,6 +236,9 @@ export function ConversationRecordingSheet(props: {
             >
               {lines().length > 0 ? 'Расшифровать остальное' : 'Расшифровать'}
             </Button>
+          </Show>
+          <Show when={speech.offerShown()}>
+            <AsrModelCard compact engine={speech.offered} />
           </Show>
         </div>
       </Show>

@@ -1,5 +1,6 @@
 import { type Accessor, createSignal } from 'solid-js';
 
+import { checkNativeModels, nativeSpeechReady } from '@/features/asr/native-model-install';
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
 import {
   createTranscriptSaver,
@@ -23,6 +24,11 @@ import {
 import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
 import { peaksOfSamples } from '@/features/conversations/recording-audio';
 import {
+  createSpeechEngine,
+  type SpeechEngine,
+  type SpeechEngineState,
+} from '@/features/conversations/speech-engine';
+import {
   type ConversationRecorder,
   type ConversationRecording,
   deleteConversationRecording,
@@ -37,6 +43,7 @@ import {
   storedSampleSpan,
   updateConversationRecording,
 } from '@/state/conversation-recordings';
+import { isNativeSpeechSupported, recogniseNativePcm } from '@/state/native-transcriber';
 import { appendEvent, type PatientEvent } from '@/state/patient-domain';
 import { addPatientBlob, isPatientVaultUnlocked, updatePatientVault } from '@/state/patient-vault';
 
@@ -96,6 +103,30 @@ let asrRuntime: AsrRuntime | undefined;
 async function loadAsr(): Promise<AsrRuntime> {
   asrRuntime ??= await import('@/features/asr/asr-models');
   return asrRuntime;
+}
+
+/** What can recognise speech right now: GigaAM on Android once installed, else Whisper (REC2). */
+export function speechEngineState(): SpeechEngineState {
+  return {
+    nativeSupported: isNativeSpeechSupported(),
+    nativeReady: nativeSpeechReady(),
+    whisperReady: asrRuntime?.liveRecognitionReady() ?? false,
+  };
+}
+
+const speechEngine: SpeechEngine = createSpeechEngine({
+  state: speechEngineState,
+  recogniseNative: recogniseNativePcm,
+  recogniseWhisper: async (samples) => (await loadAsr()).recogniseLivePcm(samples),
+});
+
+/**
+ * Readies a recogniser for a recording: the native models are checked first, and the Whisper
+ * runtime is loaded only when they are not there (the first screen stays light either way).
+ */
+async function prepareSpeechEngine(): Promise<void> {
+  if (await checkNativeModels()) return;
+  await loadAsr();
 }
 
 /**
@@ -243,11 +274,11 @@ let loadMonitor: ReturnType<typeof startLoadMonitor> | undefined;
 function beginLiveText(run: TranscriptRun, source: ConversationRecorder): void {
   loadMonitor = startLoadMonitor();
   const monitor = loadMonitor;
-  void loadAsr().catch(() => run.setStatus('failed'));
+  void prepareSpeechEngine().catch(() => run.setStatus('failed'));
   const transcriber = startSpeechTranscriber({
     mode: 'live',
-    available: () => asrRuntime?.liveRecognitionReady() ?? false,
-    recognise: async (samples) => (await loadAsr()).recogniseLivePcm(samples),
+    available: speechEngine.available,
+    recognise: speechEngine.recognise,
     overloaded: () => monitor.overloaded(),
     ...listenTo(run),
   });
@@ -416,8 +447,8 @@ async function refreshAttachedText(
 export async function transcribeRecording(recording: ConversationRecording): Promise<void> {
   const existing = runs.get(recording.id);
   if (existing?.settling()) return existing.settled;
-  const asr = await loadAsr();
-  if (!asr.liveRecognitionReady()) throw new Error('Сначала загрузите модель расшифровки.');
+  await prepareSpeechEngine();
+  if (!speechEngine.available()) throw new Error('Сначала загрузите модель расшифровки.');
   const { segments: before } = await loadConversationSegments(recording);
   const run = existing ?? createRun(recording.id, before);
   run.setSettling(true);
@@ -430,8 +461,8 @@ export async function transcribeRecording(recording: ConversationRecording): Pro
       const startSample = span?.from ?? 0;
       const transcriber = startSpeechTranscriber({
         mode: 'request',
-        available: () => asr.liveRecognitionReady(),
-        recognise: (samples) => asr.recogniseLivePcm(samples),
+        available: speechEngine.available,
+        recognise: speechEngine.recognise,
         initialSegments: run.segments(),
         startSample,
         ...listenTo(run),
@@ -449,6 +480,7 @@ export async function transcribeRecording(recording: ConversationRecording): Pro
         }
       } else if (recording.samples === undefined) {
         // Made before REC1: no samples were kept, the file is decoded once.
+        const asr = await loadAsr();
         const pcm = await asr.decodeToPcm16k(await readConversationAudio(recording.id));
         for (let offset = 0; offset < pcm.length; offset += 16_000) {
           transcriber.push(pcm.subarray(offset, offset + 16_000));

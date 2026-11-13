@@ -2,11 +2,17 @@ import { For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import {
+  type AsrInstallPhase,
   asrInstall,
   formatModelSize,
   installAsrModel,
   watchAsrInstall,
 } from '@/features/asr/asr-model-install';
+import {
+  installNativeModel,
+  nativeInstall,
+  watchNativeInstall,
+} from '@/features/asr/native-model-install';
 
 import '@/features/asr/asr-model-card.css';
 
@@ -42,6 +48,38 @@ function VoiceToTextArt(props: { readonly busy: boolean }): JSX.Element {
   );
 }
 
+/** One installable speech model as the card sees it: the browser's Whisper or Android's GigaAM. */
+interface ModelInstallView {
+  readonly phase: () => AsrInstallPhase;
+  readonly progress: () => number | null;
+  readonly error: () => string;
+  readonly retrying: () => boolean;
+  readonly sizeBytes: () => number | undefined;
+  readonly install: () => Promise<void>;
+  readonly watch: () => () => void;
+}
+
+const MODEL_VIEWS: Readonly<Record<'whisper' | 'native', ModelInstallView>> = {
+  whisper: {
+    phase: asrInstall.phase,
+    progress: asrInstall.progress,
+    error: asrInstall.error,
+    retrying: asrInstall.retrying,
+    sizeBytes: () => asrInstall.model()?.downloadBytes,
+    install: installAsrModel,
+    watch: watchAsrInstall,
+  },
+  native: {
+    phase: nativeInstall.phase,
+    progress: nativeInstall.progress,
+    error: nativeInstall.error,
+    retrying: () => false,
+    sizeBytes: nativeInstall.remainingBytes,
+    install: installNativeModel,
+    watch: watchNativeInstall,
+  },
+};
+
 /**
  * Offers the on-device speech model in place: a picture, one sentence and one button that turns
  * into its own progress while the model downloads. Nothing around it is blocked.
@@ -49,20 +87,23 @@ function VoiceToTextArt(props: { readonly busy: boolean }): JSX.Element {
 export function AsrModelCard(props: {
   readonly compact?: boolean;
   readonly class?: string;
+  /** Which model to offer; the browser's Whisper by default. */
+  readonly engine?: 'whisper' | 'native';
 }): JSX.Element {
-  onCleanup(watchAsrInstall());
-  const phase = asrInstall.phase;
+  const view = (): ModelInstallView => MODEL_VIEWS[props.engine ?? 'whisper'];
+  onCleanup(view().watch());
+  const phase = () => view().phase();
   const loading = () => phase() === 'loading';
   const percent = (): number | null => {
-    const fraction = asrInstall.progress();
+    const fraction = view().progress();
     return fraction === null ? null : Math.round(Math.min(1, Math.max(0, fraction)) * 100);
   };
   const size = (): string => {
-    const bytes = asrInstall.model()?.downloadBytes;
+    const bytes = view().sizeBytes();
     return bytes === undefined ? '' : ` · ${formatModelSize(bytes)}`;
   };
   const label = (): string => {
-    if (loading() && asrInstall.retrying()) return 'Повторяем';
+    if (loading() && view().retrying()) return 'Повторяем';
     if (loading()) return percent() === null ? 'Загружаем' : `${percent()}%`;
     if (phase() === 'failed') return 'Повторить';
     if (phase() === 'cached') return 'Включить';
@@ -86,7 +127,7 @@ export function AsrModelCard(props: {
         aria-disabled={loading()}
         aria-label={loading() ? `Загрузка модели, ${label()}` : label()}
         onClick={() => {
-          if (!loading()) void installAsrModel();
+          if (!loading()) void view().install();
         }}
       >
         <span
@@ -110,7 +151,7 @@ export function AsrModelCard(props: {
         </span>
         <span class="asr-model-card__action-label">{label()}</span>
       </button>
-      <Show when={phase() === 'failed' && asrInstall.error()}>
+      <Show when={phase() === 'failed' && view().error()}>
         {(message) => (
           <p class="asr-model-card__error" role="alert">
             {message()}

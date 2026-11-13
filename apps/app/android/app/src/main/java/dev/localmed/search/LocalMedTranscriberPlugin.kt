@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.Base64
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
@@ -16,14 +17,18 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import com.getcapacitor.annotation.Permission
+import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -51,6 +56,11 @@ class LocalMedTranscriberPlugin : Plugin() {
 
     companion object {
         private const val BUFFER_BYTES = 64 * 1024
+        /** 16 kHz mono 16-bit: one stretch of the conversation recorder is at most ~24 s. */
+        private const val MAX_PCM_SECONDS = 120
+        private const val PCM_SAMPLE_RATE = 16_000
+        private const val SPEECH_MODEL = "gigaam-v3-punct.int8.onnx"
+        private const val SPEECH_TOKENS = "gigaam-v3-punct.tokens.txt"
 
         private val MODEL_SPECS =
             listOf(
@@ -81,6 +91,14 @@ class LocalMedTranscriberPlugin : Plugin() {
     private val recordingLock = Any()
     private val transcriptionExecutor = Executors.newSingleThreadExecutor()
     private val transcribing = AtomicBoolean(false)
+    /**
+     * Short stretches of the conversation recorder: their own thread, so a long visit transcription
+     * never holds live text back. The recognizer is built on first use and kept until destroy.
+     */
+    private val speechExecutor = Executors.newSingleThreadExecutor()
+    private var speechRecognizer: OfflineRecognizer? = null
+    /** Files whose checksum matched, by (size, mtime): a 225 MB model is hashed once per process. */
+    private val verifiedModels = ConcurrentHashMap<String, Pair<Long, Long>>()
     private var recording: RecordingSession? = null
 
     @PluginMethod
@@ -126,6 +144,7 @@ class LocalMedTranscriberPlugin : Plugin() {
                 ) {
                     throw IOException("Copied model checksum mismatch.")
                 }
+                verifiedModels.remove(spec.fileName)
                 if (target.exists() && !target.delete()) {
                     throw IOException("Unable to replace the existing model.")
                 }
@@ -390,6 +409,49 @@ class LocalMedTranscriberPlugin : Plugin() {
         }
     }
 
+    /**
+     * Recognises one stretch of speech with GigaAM v3: `pcm` is base64 of 16 kHz mono little-endian
+     * 16-bit samples. Only the text is returned; neither the audio nor the text is logged.
+     */
+    @PluginMethod
+    fun recognizePcm(call: PluginCall) {
+        val encoded = call.getString("pcm")
+        if (encoded.isNullOrEmpty()) {
+            call.reject("Нет аудио для распознавания.", "SPEECH_PCM_REQUIRED")
+            return
+        }
+        speechExecutor.execute {
+            try {
+                val bytes = Base64.decode(encoded, Base64.DEFAULT)
+                if (bytes.size % 2 != 0 || bytes.size > MAX_PCM_SECONDS * PCM_SAMPLE_RATE * 2) {
+                    throw IOException("PCM stretch has an invalid length.")
+                }
+                val shorts = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+                val samples = FloatArray(shorts.remaining())
+                for (index in samples.indices) samples[index] = shorts.get(index) / 32_768f
+                val recognizer =
+                    speechRecognizer
+                        ?: run {
+                            verifyModel(MODEL_SPECS.getValue(SPEECH_MODEL))
+                            verifyModel(MODEL_SPECS.getValue(SPEECH_TOKENS))
+                            NativeSherpaTranscriber.createRecognizer(modelDirectory()).also {
+                                speechRecognizer = it
+                            }
+                        }
+                val text = NativeSherpaTranscriber.recognizeWindowed(recognizer, samples)
+                call.resolve(JSObject().put("text", text))
+            } catch (error: Exception) {
+                call.reject("Не удалось распознать речь.", "SPEECH_RECOGNITION_FAILED", error)
+            } catch (error: LinkageError) {
+                call.reject(
+                    "Нативный runtime распознавания недоступен.",
+                    "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
+                    Exception(error),
+                )
+            }
+        }
+    }
+
     override fun handleOnDestroy() {
         synchronized(recordingLock) {
             val session = recording
@@ -406,22 +468,36 @@ class LocalMedTranscriberPlugin : Plugin() {
             }
         }
         transcriptionExecutor.shutdownNow()
+        // Released on its own thread, after any stretch already being read.
+        speechExecutor.execute {
+            speechRecognizer?.release()
+            speechRecognizer = null
+        }
+        speechExecutor.shutdown()
         super.handleOnDestroy()
     }
 
     private fun verifyInstalledModels() {
-        for (spec in MODEL_SPECS.values) {
-            val file = modelFile(spec)
-            if (
-                !file.isFile ||
-                    file.length() != spec.expectedBytes ||
-                    !spec.expectedSha256.equals(sha256(file), ignoreCase = true)
-            ) {
-                throw IOException(
-                    "Required transcription model is missing or invalid: " + spec.fileName,
-                )
-            }
+        for (spec in MODEL_SPECS.values) verifyModel(spec)
+    }
+
+    private fun verifyModel(spec: ModelSpec) {
+        if (!isModelValid(spec, modelFile(spec))) {
+            throw IOException("Required transcription model is missing or invalid: " + spec.fileName)
         }
+    }
+
+    /** Size and checksum, the checksum skipped for a file already verified in this process. */
+    private fun isModelValid(spec: ModelSpec, file: File): Boolean {
+        if (!file.isFile || file.length() != spec.expectedBytes) {
+            verifiedModels.remove(spec.fileName)
+            return false
+        }
+        val identity = Pair(file.length(), file.lastModified())
+        if (verifiedModels[spec.fileName] == identity) return true
+        val valid = spec.expectedSha256.equals(sha256(file), ignoreCase = true)
+        if (valid) verifiedModels[spec.fileName] = identity else verifiedModels.remove(spec.fileName)
+        return valid
     }
 
     private fun notifyProgress(
@@ -443,8 +519,11 @@ class LocalMedTranscriberPlugin : Plugin() {
     private fun requireModelSpec(call: PluginCall): ModelSpec {
         val fileName = call.getString("fileName") ?: throw IOException("Model file name is missing.")
         val spec = MODEL_SPECS[fileName] ?: throw IOException("Unknown transcription model.")
+        // Capacitor's getLong answers null for a JSON number that fits an Int, as every model
+        // size here does; the number is read whatever width the bridge parsed it at.
         val requestedBytes =
-            call.getLong("expectedBytes") ?: throw IOException("Expected model size is missing.")
+            (call.data.opt("expectedBytes") as? Number)?.toLong()
+                ?: throw IOException("Expected model size is missing.")
         val requestedSha =
             call.getString("expectedSha256")?.lowercase(Locale.ROOT)
                 ?: throw IOException("Expected model checksum is missing.")
@@ -457,10 +536,7 @@ class LocalMedTranscriberPlugin : Plugin() {
     private fun modelFile(spec: ModelSpec): File = File(modelDirectory(), spec.fileName)
 
     private fun modelInspection(spec: ModelSpec, file: File): JSObject {
-        val valid =
-            file.isFile &&
-                file.length() == spec.expectedBytes &&
-                spec.expectedSha256.equals(sha256(file), ignoreCase = true)
+        val valid = isModelValid(spec, file)
         val result = JSObject()
         result.put("valid", valid)
         result.put("sizeBytes", if (file.isFile) file.length() else 0L)

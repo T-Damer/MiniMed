@@ -40,8 +40,6 @@ internal object NativeSherpaTranscriber {
         if (audio.sampleRate != SAMPLE_RATE) {
             throw IOException("Sherpa input must be 16 kHz.")
         }
-        val asrModel = requiredModel(modelDirectory, "gigaam-v3-punct.int8.onnx")
-        val tokens = requiredModel(modelDirectory, "gigaam-v3-punct.tokens.txt")
         val segmentation = requiredModel(modelDirectory, "pyannote-segmentation-3.0.int8.onnx")
         val embedding = requiredModel(modelDirectory, "campplus-voxceleb-16k.onnx")
 
@@ -74,28 +72,7 @@ internal object NativeSherpaTranscriber {
                     ),
             )
 
-        val recognizer =
-            OfflineRecognizer(
-                config =
-                    OfflineRecognizerConfig(
-                        featConfig =
-                            FeatureConfig(
-                                sampleRate = SAMPLE_RATE,
-                                featureDim = FEATURE_DIM,
-                                dither = 0f,
-                            ),
-                        modelConfig =
-                            OfflineModelConfig(
-                                nemo =
-                                    OfflineNemoEncDecCtcModelConfig(
-                                        model = asrModel.absolutePath,
-                                    ),
-                                numThreads = NUM_THREADS,
-                                tokens = tokens.absolutePath,
-                            ),
-                        decodingMethod = "greedy_search",
-                    ),
-            )
+        val recognizer = createRecognizer(modelDirectory)
 
         try {
             val diarized =
@@ -165,7 +142,37 @@ internal object NativeSherpaTranscriber {
         }
     }
 
-    private fun recognizeWindowed(recognizer: OfflineRecognizer, samples: FloatArray): String {
+    /**
+     * GigaAM v3 (NeMo CTC with punctuation, greedy search): the speech model alone, no speaker
+     * split. The caller owns the recognizer and releases it.
+     */
+    fun createRecognizer(modelDirectory: File): OfflineRecognizer {
+        val asrModel = requiredModel(modelDirectory, "gigaam-v3-punct.int8.onnx")
+        val tokens = requiredModel(modelDirectory, "gigaam-v3-punct.tokens.txt")
+        return OfflineRecognizer(
+            config =
+                OfflineRecognizerConfig(
+                    featConfig =
+                        FeatureConfig(
+                            sampleRate = SAMPLE_RATE,
+                            featureDim = FEATURE_DIM,
+                            dither = 0f,
+                        ),
+                    modelConfig =
+                        OfflineModelConfig(
+                            nemo =
+                                OfflineNemoEncDecCtcModelConfig(
+                                    model = asrModel.absolutePath,
+                                ),
+                            numThreads = NUM_THREADS,
+                            tokens = tokens.absolutePath,
+                        ),
+                    decodingMethod = "greedy_search",
+                ),
+        )
+    }
+
+    fun recognizeWindowed(recognizer: OfflineRecognizer, samples: FloatArray): String {
         val maxWindowFrames = SAMPLE_RATE * MAX_ASR_WINDOW_SECONDS
         if (samples.size <= maxWindowFrames) return recognize(recognizer, samples)
 
