@@ -74,6 +74,13 @@ describe('SpeechSegmenter', () => {
     );
   });
 
+  it('is done with everything after the end, trailing silence included', () => {
+    const segmenter = new SpeechSegmenter();
+    feed(segmenter, sound(2, true), sound(1, false));
+    expect(segmenter.flush()?.speechSeconds).toBeGreaterThan(1.8);
+    expect(segmenter.position).toBe(seconds(3));
+  });
+
   it('hands out nothing for silence, and advances its position past it', () => {
     const segmenter = new SpeechSegmenter();
     expect(feed(segmenter, sound(30, false))).toHaveLength(0);

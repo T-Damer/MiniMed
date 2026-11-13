@@ -618,55 +618,7 @@
 }
 
 .conversation-inbox {
-  display: grid;
-  gap: 0.6rem;
-  padding: 1rem;
-}
-
-.conversation-inbox__title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-}
-
-.conversation-inbox__list {
-  display: grid;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.conversation-inbox__item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.conversation-inbox__copy {
-  display: grid;
   min-width: 0;
-  gap: 0.1rem;
-}
-
-.conversation-inbox__name {
-  font-weight: 700;
-}
-
-.conversation-inbox__meta {
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-}
-
-.conversation-inbox__meta--warning {
-  color: var(--theme-warning);
-}
-
-.conversation-inbox__actions {
-  display: flex;
-  gap: 0.35rem;
 }
 
 .conversation-dialog__fill {

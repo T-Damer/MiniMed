@@ -271,8 +271,17 @@ export async function storedSampleSpan(
 
 /** Deletes the stored blocks that lie wholly before `sample`: their text exists now. */
 export async function releaseStoredSamples(id: string, sample: number): Promise<void> {
+  if (sample <= 0) return;
   await withStores('readwrite', ({ pcm }) => {
-    pcm.delete(IDBKeyRange.bound([id, 0], [id, sample - PCM_BLOCK]));
+    // Blocks are 5 s except the last one of a recording; each is checked by its own length.
+    const cursor = pcm.openCursor(IDBKeyRange.bound([id, 0], [id, sample]));
+    cursor.onsuccess = () => {
+      const current = cursor.result;
+      if (!current) return;
+      const block = current.value as StoredPcm;
+      if (block.start + block.samples.length <= sample) current.delete();
+      current.continue();
+    };
   });
 }
 
@@ -359,6 +368,8 @@ export async function startConversationRecording(
 
   // The audio-thread tap: 16 kHz samples and a peak every 50 ms.
   const context = createTapContext();
+  // Created after the microphone prompt: the tap's context may start suspended.
+  void context.resume().catch(() => undefined);
   const source = context.createMediaStreamSource(stream);
   let tap: AudioWorkletNode | undefined;
   const listeners = new Set<(samples: Float32Array) => void>();

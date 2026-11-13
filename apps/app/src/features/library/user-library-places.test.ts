@@ -49,6 +49,19 @@ describe('«Файлы» by kind', () => {
     ]);
     expect(userLibraryKindCounts([])).toEqual([]);
   });
+
+  it('counts a section of another store from its own count, after «Аудио» (REC1)', () => {
+    expect(
+      userLibraryKindCounts(['audio'], { 'conversation-recordings': 3 }).map(({ group, count }) => [
+        group.id,
+        count,
+      ]),
+    ).toEqual([
+      ['audio', 1],
+      ['recordings', 3],
+    ]);
+    expect(userLibraryKindCounts([], { 'conversation-recordings': 0 })).toEqual([]);
+  });
 });
 
 describe('«Файлы» places in the address', () => {

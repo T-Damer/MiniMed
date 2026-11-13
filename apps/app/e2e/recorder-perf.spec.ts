@@ -180,7 +180,8 @@ test('cost of a running recording on another screen', async () => {
   const startedAt = Date.now();
   const download = live.locator('.asr-model-card').getByRole('button', { name: /Скачать/u });
   if (await download.isVisible().catch(() => false)) await download.click();
-  await live
+  // Old window: «Свернуть в строку записи» inside it; new one: «Свернуть» in the sheet header.
+  await page
     .getByRole('button', { name: /Свернуть/u })
     .first()
     .click();

@@ -1,9 +1,11 @@
 /**
  * Whether the device is struggling, for the live speech governor (REC1): a weak phone (≤ 2 GB or
  * ≤ 2 cores) never recognises live, and any phone whose main thread spent more than a third of the
- * last five seconds in long tasks is busy enough that recognition should wait for «Расшифровать».
+ * last fifteen seconds in long tasks is busy enough that recognition should wait for «Расшифровать».
+ * The window is long on purpose: deferring is final for a recording, so a start-up spike must not
+ * decide it.
  */
-const WINDOW_MS = 5_000;
+const WINDOW_MS = 15_000;
 const BUSY_SHARE = 0.33;
 
 export interface LoadMonitor {

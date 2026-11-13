@@ -118,7 +118,6 @@ export function LiveWaveform(props: {
         canvas = element;
       }}
       class={props.class}
-      role="presentation"
     />
   );
 }

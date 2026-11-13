@@ -123,7 +123,12 @@ export class SpeechSegmenter {
       this.drop(this.frames.length);
       return null;
     }
-    return this.cut(Math.min(this.frames.length, last + 1 + framesFor(this.options.tailSeconds)));
+    const window = this.cut(
+      Math.min(this.frames.length, last + 1 + framesFor(this.options.tailSeconds)),
+    );
+    // The end of the recording: silence after the last words is done too.
+    this.drop(this.frames.length);
+    return window;
   }
 
   private addFrame(samples: Float32Array): void {

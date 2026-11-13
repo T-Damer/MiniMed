@@ -18,7 +18,7 @@ test.use({
   },
 });
 
-test('the bar expands to a live window with full screen, survives a tab switch and stops', async ({
+test('the floating button opens the window, survives a tab switch, pauses and stops', async ({
   page,
 }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
@@ -27,45 +27,53 @@ test('the bar expands to a live window with full screen, survives a tab switch a
 
   // The row only opens the window: nothing is recorded until the round button is tapped.
   const live = page.getByTestId('conversation-live');
-  const bar = page.locator('.conversation-bar');
+  const fab = page.getByTestId('recorder-fab');
   await expect(live).toBeVisible();
-  await expect(bar).toHaveCount(0);
-  await expect(live.locator('.conversation-live__time')).toHaveCount(0);
+  await expect(fab).toHaveCount(0);
+  await expect(live.locator('.recorder-window__time')).toHaveCount(0);
   await expect(live.getByRole('button', { name: 'Стоп' })).toHaveCount(0);
 
   await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
   await expect(live.getByRole('button', { name: 'Стоп' })).toBeVisible();
-
-  // Collapsing leaves the recording bar; expanding brings the window back.
-  await live.getByRole('button', { name: 'Свернуть в строку записи' }).click();
-  await expect(live).toHaveCount(0);
-  await expect(bar).toBeVisible();
-  await expect(bar.getByText('Идёт запись беседы')).toBeVisible();
-  await expect(bar.locator('.conversation-bar__time')).toHaveText(/\d{2}:\d{2}/u);
-  await bar.getByRole('button', { name: /Открыть окно с текстом/u }).click();
-  await expect(live).toBeVisible();
-  await expect(bar).toHaveCount(0);
-  // No speech model in the test: the timer and meter stay, and the model is offered in place.
-  await expect(live.locator('.conversation-live__time')).toHaveText(/\d{2}:\d{2}/u);
+  // No speech model in the test: the time and the voice stay, and the model is offered in place.
+  await expect(live.locator('.recorder-window__time')).toHaveText(/\d{2}:\d{2}/u);
+  await expect(live.locator('.recorder-window__wave')).toBeVisible();
   await expect(
     live.getByText('Загрузите модель, чтобы голос автоматически превращался в текст'),
   ).toBeVisible();
   await expect(live.getByRole('button', { name: /Скачать · \d+ МБ/u })).toBeVisible();
 
-  await live.getByRole('button', { name: 'Открыть на весь экран' }).click();
-  await expect(live).toHaveClass(/floating-window--fullscreen/u);
-  await live.getByRole('button', { name: 'Свернуть в маленькое окно' }).click();
-  await expect(live).not.toHaveClass(/floating-window--fullscreen/u);
-
-  // Another tab: the window stays.
+  // Collapsing leaves the floating button with the time; the whole app is usable.
+  await page
+    .getByRole('dialog', { name: 'Запись беседы' })
+    .getByRole('button', { name: 'Свернуть' })
+    .click();
+  await expect(live).toHaveCount(0);
+  await expect(fab).toBeVisible();
+  await expect(fab).toHaveAccessibleName(/Идёт запись беседы/u);
+  await expect(fab.locator('.recorder-fab__time')).toHaveText(/\d{2}:\d{2}/u);
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: /^Настройки/u })
     .click();
+  await expect(fab).toBeVisible();
+  const before = await fab.locator('.recorder-fab__time').textContent();
+  await expect(fab.locator('.recorder-fab__time')).not.toHaveText(before ?? '', { timeout: 5_000 });
+
+  // Back in the window: a pause stops the clock, «Продолжить» starts it again.
+  await fab.click();
   await expect(live).toBeVisible();
+  await live.getByRole('button', { name: 'Пауза' }).click();
+  await expect(live.locator('.recorder-window__state')).toHaveText('Пауза');
+  const paused = await live.locator('.recorder-window__time').textContent();
+  await page.waitForTimeout(2_200);
+  await expect(live.locator('.recorder-window__time')).toHaveText(paused ?? '');
+  await live.getByRole('button', { name: 'Продолжить запись' }).click();
+  await expect(live.locator('.recorder-window__state')).toHaveText('Запись');
 
   await live.getByRole('button', { name: 'Стоп' }).click();
   await expect(live).toHaveCount(0);
+  await expect(fab).toHaveCount(0);
   await expect(page.getByRole('dialog', { name: 'Запись сохранена' })).toBeVisible();
 });
 
@@ -77,7 +85,7 @@ test('the saved recording shows its length and is filed through the patient pick
   await sheet.locator('.quick-tool-row__open', { hasText: 'Запись беседы' }).click();
   const live = page.getByTestId('conversation-live');
   await live.getByRole('button', { name: 'Начать запись', exact: true }).click();
-  await expect(live.locator('.conversation-live__time')).toHaveText(/00:0[1-9]/u, {
+  await expect(live.locator('.recorder-window__time')).toHaveText(/00:0[1-9]/u, {
     timeout: 10_000,
   });
   await live.getByRole('button', { name: 'Стоп' }).click();

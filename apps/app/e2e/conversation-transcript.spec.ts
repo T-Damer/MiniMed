@@ -42,18 +42,18 @@ test('the model installs in place mid-recording, the text is saved encrypted and
   await expect(live.getByText('модель можно загрузить в настройках')).toHaveCount(0);
   await expect(live.getByText('нигде не сохраняется')).toHaveCount(0);
 
-  const timeBefore = await live.locator('.conversation-live__time').textContent();
+  const timeBefore = await live.locator('.recorder-window__time').textContent();
   await download.click();
   // Progress lives inside the same button; the recording keeps running and nothing is blocked.
   await expect(card.locator('.asr-model-card__action--busy')).toBeVisible();
-  await expect(live.locator('.conversation-live__time')).not.toHaveText(timeBefore ?? '');
+  await expect(live.locator('.recorder-window__time')).not.toHaveText(timeBefore ?? '');
 
   // The model becomes ready: the card gives way to the text area.
   await expect(card).toBeHidden({ timeout: 15_000 });
   await expect(live.getByRole('status', { name: 'Слушаем' })).toBeVisible();
 
   // Audio recorded before and after the model arrived is recognised from the beginning.
-  const lines = live.locator('.conversation-live__line');
+  const lines = live.locator('.recorder-window__line');
   await expect(lines.first()).toHaveText('Фраза номер 1', { timeout: 30_000 });
 
   // The autosave wrote the text into the encrypted vault, not into any plain store.
@@ -91,10 +91,11 @@ test('the model installs in place mid-recording, the text is saved encrypted and
   await page.goto(`${E2E_ASSET_ORIGIN}/#/notes`);
   await page.reload();
   const inbox = page.locator('.conversation-inbox');
-  await expect(inbox.getByText('Прервана')).toBeVisible({ timeout: 30_000 });
-  await inbox.getByRole('button', { name: 'Добавить' }).click();
+  const row = inbox.getByTestId('conversation-recording-row');
+  await expect(row).toContainText('прервалась', { timeout: 30_000 });
+  await row.getByRole('button').click();
   const dialog = page.getByRole('dialog', { name: 'Запись прервалась' });
-  await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
+  await expect(dialog.getByRole('list', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
 });
 
 test('stopping hands the finished text to the attach dialog', async ({ page }) => {
@@ -105,12 +106,12 @@ test('stopping hands the finished text to the attach dialog', async ({ page }) =
     .locator('.asr-model-card')
     .getByRole('button', { name: /Скачать/u })
     .click();
-  await expect(live.locator('.conversation-live__line').first()).toBeVisible({ timeout: 40_000 });
+  await expect(live.locator('.recorder-window__line').first()).toBeVisible({ timeout: 40_000 });
 
   await live.getByRole('button', { name: 'Стоп' }).click();
   const dialog = page.getByRole('dialog', { name: 'Запись сохранена' });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
+  await expect(dialog.getByRole('list', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
 });
 
 interface StoredVaultFacts {
@@ -157,7 +158,7 @@ async function recordUntilTextAppears(page: Page) {
     .locator('.asr-model-card')
     .getByRole('button', { name: /Скачать/u })
     .click();
-  await expect(live.locator('.conversation-live__line').first()).toHaveText('Фраза номер 1', {
+  await expect(live.locator('.recorder-window__line').first()).toHaveText('Фраза номер 1', {
     timeout: 40_000,
   });
   return live;
@@ -181,13 +182,13 @@ test('a browser without a vault offers to create one and saves the pending text 
   expect((await readVaultFacts(page)).mode).toBeUndefined();
   await page.screenshot({ path: testInfo.outputPath('offer-small.png') });
 
-  const timeBefore = await live.locator('.conversation-live__time').textContent();
+  const timeBefore = await live.locator('.recorder-window__time').textContent();
   await offer.click();
 
   // The recording never paused; the text was written at once and the offer folds away.
   await expect(live.locator('.conversation-save--saved')).toBeVisible({ timeout: 15_000 });
   await expect(live.locator('.conversation-offer')).not.toHaveClass(/conversation-offer--open/u);
-  await expect(live.locator('.conversation-live__time')).not.toHaveText(timeBefore ?? '');
+  await expect(live.locator('.recorder-window__time')).not.toHaveText(timeBefore ?? '');
   const facts = await readVaultFacts(page);
   expect(facts.mode).toBe('browser-device-key');
   expect(facts.keyExtractable).toBe(false);
@@ -200,13 +201,14 @@ test('a browser without a vault offers to create one and saves the pending text 
   await page.goto(`${E2E_ASSET_ORIGIN}/#/notes`);
   await page.reload();
   const inbox = page.locator('.conversation-inbox');
-  await expect(inbox.getByText('Прервана')).toBeVisible({ timeout: 30_000 });
-  await inbox.getByRole('button', { name: 'Добавить' }).click();
+  const row = inbox.getByTestId('conversation-recording-row');
+  await expect(row).toContainText('прервалась', { timeout: 30_000 });
+  await row.getByRole('button').click();
   const dialog = page.getByRole('dialog', { name: 'Запись прервалась' });
-  await expect(dialog.getByRole('region', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
+  await expect(dialog.getByRole('list', { name: 'Текст беседы' })).toContainText('Фраза номер 1');
 });
 
-test('the full-screen window explains the offer, and a plaintext vault is encrypted in place', async ({
+test('the window explains the offer, and a plaintext vault is encrypted in place', async ({
   page,
 }, testInfo) => {
   await installFakeSpeech(page);
@@ -254,14 +256,13 @@ test('the full-screen window explains the offer, and a plaintext vault is encryp
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   const live = await recordUntilTextAppears(page);
 
-  await live.getByRole('button', { name: 'Открыть на весь экран' }).click();
   const offer = live.getByRole('button', { name: /Текст не сохранится/u });
   await expect(live.locator('.conversation-offer')).toHaveClass(/conversation-offer--open/u, {
     timeout: 15_000,
   });
   await expect(offer).toBeVisible();
   await expect(offer).toContainText('Зашифровать хранилище');
-  await page.screenshot({ path: testInfo.outputPath('offer-fullscreen.png') });
+  await page.screenshot({ path: testInfo.outputPath('offer-window.png') });
 
   await offer.click();
   await expect(live.locator('.conversation-save--saved')).toBeVisible({ timeout: 15_000 });
