@@ -57,8 +57,11 @@ function handleArrival(entry: HistoryEntryInfo, previous: HistoryEntryInfo | nul
   const dismissed = live.splice(index + 1);
   for (const layer of dismissed.reverse()) layer.onPop();
   if (entry.layer && index === -1) {
-    // A layer entry nobody shows any more: step over it, the way the history was going.
-    if (previous && previous.depth > entry.depth) window.history.back();
+    // A layer entry nobody shows any more: step over it, the way the history was going. Going
+    // back, the step is tracked like any other, so a layer opened meanwhile (the recording sheet
+    // right after «Стоп» closed the recorder window over the closed tools list) waits for it
+    // instead of being pushed and then taken by it.
+    if (previous && previous.depth > entry.depth) stepBack();
     else window.history.forward();
   }
 }
@@ -182,9 +185,13 @@ export function openHistoryLayer(options: HistoryLayerOptions): HistoryLayer {
     layerId = entry.id;
     live.push({ id: entry.id, onPop: options.onPop });
   };
-  // A step back that is still on its way would take this push with it.
-  if (pendingStep) void pendingStep.then(open);
-  else open();
+  // A step back that is still on its way would take this push with it. Its arrival may start
+  // another (stepping over a dead layer), so the push waits until no step is left.
+  const openWhenSettled = (): void => {
+    if (pendingStep) void pendingStep.then(openWhenSettled);
+    else open();
+  };
+  openWhenSettled();
 
   const forget = (): LiveLayer | undefined => {
     if (layerId === undefined) return undefined;

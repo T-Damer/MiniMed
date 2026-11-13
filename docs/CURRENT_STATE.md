@@ -44,9 +44,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Tests:** `speech-engine.test.ts` (engine choice, switching mid-recording), `native-transcriber-pcm.test.ts`
   (bridge PCM encoding); recorder e2e (`conversation-recordings`, `conversation-transcript`,
   `conversation-activity`, `form-fill-recording`) pass on the web path.
-- **Not tested:** the owner's phone (install only with the owner's OK), real recordings, screen-off
-  recording, the recorder waveform on the emulator (blank in the emulator screenshot, not looked
-  into). **Follow-up:** `LlamaInferencePlugin` and `LocalMedUpdatePlugin` read `expectedBytes`
+- **Sheet after «Стоп» vanished** (found on the emulator, REC1 path): «Стоп» closes the recorder
+  window, opened from the tools list whose layer entry stays dead below it; the step over that dead
+  entry was an untracked `history.back()`, so the recording sheet pushed its layer in between and the
+  second step took it ~0.3 s later (the recording was saved, the sheet gone). `history-layer.ts` now
+  tracks that step and a new layer waits until no step is left (`history-layer.test.ts`).
+- **Not tested:** real recordings, screen-off recording, the waveform (live and in the player) on the
+  emulator — blank in the emulator screenshots, not looked into. **Follow-up:** `LlamaInferencePlugin` and `LocalMedUpdatePlugin` read `expectedBytes`
   with the same `getLong` and silently get null for sizes under 2 GiB.
 
 ## Release 0.6.97 — 2026-11-13

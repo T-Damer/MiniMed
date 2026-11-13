@@ -13,7 +13,9 @@
  *   ANDROID_SERIAL=emulator-5554 REC_QUALITY_WAV=dialog48k.wav REC_QUALITY_SCRIPT=dialog-script.txt \
  *     bun scripts/recorder-quality-android.ts
  *
- * It refuses any serial that is not an emulator: physical phones are never touched.
+ * It refuses any serial that is not an emulator unless `REC_QUALITY_DEVICE_OK` names that exact
+ * serial (a phone, only with its owner's OK). Even then the microphone is the fake one fed by the
+ * synthetic WAV, the app's settings are left alone, and both test recordings are deleted at the end.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -30,8 +32,11 @@ const LOOP_SECONDS = Number(process.env['REC_QUALITY_LOOP_SECONDS'] ?? '42.47');
 const PORT = Number(process.env['REC_QUALITY_CDP_PORT'] ?? '9339');
 const OUT = resolve(process.env['REC_QUALITY_OUT'] ?? 'output/recorder-quality-android.json');
 
-if (!/^emulator-\d+$/u.test(SERIAL)) {
-  throw new Error('Set ANDROID_SERIAL to an emulator (emulator-NNNN); phones are never used.');
+const EMULATOR = /^emulator-\d+$/u.test(SERIAL);
+if (!EMULATOR && (SERIAL === '' || process.env['REC_QUALITY_DEVICE_OK'] !== SERIAL)) {
+  throw new Error(
+    'Set ANDROID_SERIAL to an emulator; a phone needs REC_QUALITY_DEVICE_OK=<its serial> (owner OK).',
+  );
 }
 if (!WAV || !SCRIPT) throw new Error('REC_QUALITY_WAV and REC_QUALITY_SCRIPT are required.');
 
@@ -190,6 +195,25 @@ const HELPERS = `
 const LIVE = '[data-testid="conversation-live"]';
 const CARD = `${LIVE} .asr-model-card`;
 
+/** The recording sheet open after «Стоп»: its recording (synthetic) is deleted from the app. */
+async function deleteOpenRecording(cdp: Cdp): Promise<void> {
+  await cdp
+    .waitFor(`window.__rq.click('^Удалить запись$')`, 30_000, 'the delete button')
+    .catch(async (cause: unknown) => {
+      const state = await cdp.eval<string>(
+        `JSON.stringify({ hash: location.hash, dialogs: [...document.querySelectorAll('[role=dialog],[role=alertdialog]')].map((d) => d.getAttribute('aria-label') ?? d.className), toasts: window.__rq.texts('[data-sonner-toast]') })`,
+      );
+      log({ deleteFailed: state });
+      throw cause;
+    });
+  await cdp.waitFor(
+    `(() => { const d = [...document.querySelectorAll('[role="alertdialog"], [role="dialog"]')].at(-1); const b = d && [...d.querySelectorAll('button')].find((x) => x.textContent.trim() === 'Удалить'); b?.click(); return b; })()`,
+    10_000,
+    'the delete confirmation',
+  );
+  await sleep(2_000);
+}
+
 async function openRecorder(cdp: Cdp): Promise<void> {
   await cdp.eval(`window.location.hash = '#/search'; true`);
   await cdp.waitFor(`window.__rq.click('^Все инструменты$')`, 60_000, 'the tools button');
@@ -231,13 +255,16 @@ const TIMING_PROBE = `
 async function main(): Promise<void> {
   prepareDevice();
   let cdp = await Cdp.open();
-  // A fresh install starts with onboarding and the core download offer: skipped, as in e2e.
-  const skipped = await cdp.eval<boolean>(`(() => {
+  // A fresh emulator install starts with onboarding and the core download offer: skipped, as in
+  // e2e. A phone's own settings are never changed.
+  const skipped =
+    !EMULATOR ||
+    (await cdp.eval<boolean>(`(() => {
     const already = localStorage.getItem('minimed:package-setup-dismissed:v1') === '1';
     localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
     localStorage.setItem('minimed:core-download-consent:v1', '1');
     return already;
-  })()`);
+  })()`));
   if (!skipped) {
     cdp.close();
     launch();
@@ -248,9 +275,11 @@ async function main(): Promise<void> {
   await cdp.eval(HELPERS);
   await cdp.eval(TIMING_PROBE);
   // The guided onboarding of a fresh install covers the screen (and the screenshots): skipped.
-  await cdp
-    .waitFor(`window.__rq.click('^Пропустить обучение$')`, 8_000, 'onboarding')
-    .catch(() => undefined);
+  if (EMULATOR) {
+    await cdp
+      .waitFor(`window.__rq.click('^Пропустить обучение$')`, 8_000, 'onboarding')
+      .catch(() => undefined);
+  }
 
   await openRecorder(cdp);
   await cdp.waitFor(`window.__rq.click('^Начать запись$', '${LIVE}')`, 15_000, 'record');
@@ -274,11 +303,10 @@ async function main(): Promise<void> {
     if (/Повторить/u.test(card)) await cdp.eval(`window.__rq.click('Повторить', '${CARD}')`);
     await sleep(10_000);
   }
-  // A clean recording: the warm-up one is stopped and its sheet closed.
+  // A clean recording: the warm-up one is stopped and deleted.
   await cdp.eval(`window.__rq.click('^Стоп$', '${LIVE}')`);
   await sleep(4_000);
-  await cdp.eval(`window.history.back(); true`);
-  await sleep(3_000);
+  await deleteOpenRecording(cdp);
 
   await openRecorder(cdp);
   await cdp.eval(`window.__recTimings = []; true`);
@@ -308,6 +336,7 @@ async function main(): Promise<void> {
   );
   const sheet = await cdp.send('Page.captureScreenshot', { format: 'png' });
   writeFileSync(`${OUT}.sheet.png`, Buffer.from(String(sheet['data'] ?? ''), 'base64'));
+  await deleteOpenRecording(cdp);
   const finalText = after.length >= heard.length ? after : heard;
   const calls = await cdp.eval<RecognitionTiming[]>('window.__recTimings ?? []');
   const audio = calls.reduce((sum, call) => sum + call.audioSeconds, 0);
@@ -332,7 +361,16 @@ async function main(): Promise<void> {
   writeFileSync(OUT, `${JSON.stringify(result, null, 2)}\n`);
   log({ ...result, lines: finalText.length, timeline: timeline.length });
   cdp.close();
-  adb('shell', 'rm', '-f', '/data/local/tmp/webview-command-line');
+  adb(
+    'shell',
+    'rm',
+    '-f',
+    '/data/local/tmp/webview-command-line',
+    `/data/local/tmp/${basename(WAV)}`,
+  );
+  adb('shell', `run-as ${PACKAGE} rm -f files/rec-quality.wav`);
+  // Back to the real microphone: the WebView reads its flags only at start.
+  launch();
   adb('forward', '--remove', `tcp:${PORT}`);
   process.exit(0);
 }

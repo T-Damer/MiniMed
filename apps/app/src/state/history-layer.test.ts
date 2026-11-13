@@ -141,6 +141,29 @@ describe('history layers', () => {
     expect(popTopHistoryLayer()).toBe(false);
   });
 
+  it('a layer opened while a dead layer below is being stepped over waits for that step too', async () => {
+    // The tools list opens the recorder window over itself and closes: its entry stays, dead.
+    const tools = openHistoryLayer({ onPop: vi.fn() });
+    const recorder = openHistoryLayer({ onPop: vi.fn() });
+    tools.dispose();
+    await vi.advanceTimersByTimeAsync(1);
+    await browser.settle();
+    // «Стоп» closes the window and opens the recording sheet before the history has unwound.
+    recorder.dispose();
+    await vi.advanceTimersByTimeAsync(1);
+    const onPop = vi.fn();
+    openHistoryLayer({ onPop });
+    for (let round = 0; round < 6; round += 1) {
+      await browser.settle();
+      await vi.advanceTimersByTimeAsync(20);
+    }
+    // The step over the dead entry did not take the sheet with it.
+    expect(onPop).not.toHaveBeenCalled();
+    expect(hasHistoryLayer()).toBe(true);
+    expect(readHistoryEntry(window.history.state)?.layer).toBe(true);
+    expect(browser.cursor()).toBe(1);
+  });
+
   it('a layer opened while a step back is still on its way waits for it', async () => {
     const first = openHistoryLayer({ onPop: vi.fn() });
     first.pop();
