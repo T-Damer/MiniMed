@@ -46,6 +46,7 @@ import {
 import { isNativeSpeechSupported, recogniseNativePcm } from '@/state/native-transcriber';
 import { appendEvent, type PatientEvent } from '@/state/patient-domain';
 import { addPatientBlob, isPatientVaultUnlocked, updatePatientVault } from '@/state/patient-vault';
+import { perfMark, perfSpan } from '@/state/perf-log';
 
 type AsrRuntime = typeof import('@/features/asr/asr-models');
 
@@ -236,10 +237,12 @@ export const conversationSession = {
   },
   pause: (): void => {
     recorder()?.pause();
+    perfMark('recorder.pause');
     setPaused(recorder()?.paused() ?? false);
   },
   resume: (): void => {
     recorder()?.resume();
+    perfMark('recorder.resume');
     setPaused(recorder()?.paused() ?? false);
   },
   dismissFinished: () => {
@@ -269,6 +272,8 @@ export const conversationSession = {
 
 let ticker: number | undefined;
 let loadMonitor: ReturnType<typeof startLoadMonitor> | undefined;
+/** Performance log: the recording as a running feature, so long frames during it are blamed on it. */
+let endRecordingSpan: ((fields?: Readonly<Record<string, unknown>>) => void) | undefined;
 
 /** Live text: the recorder's 16 kHz samples go straight to the transcriber, nothing is decoded. */
 function beginLiveText(run: TranscriptRun, source: ConversationRecorder): void {
@@ -310,6 +315,8 @@ export async function startConversation(): Promise<void> {
   setStarting(true);
   try {
     const next = await startConversationRecording((message) => setError(message));
+    perfMark('recorder.start');
+    endRecordingSpan = perfSpan('recorder.recording');
     setRecorder(next);
     setPaused(false);
     setElapsedSeconds(0);
@@ -338,6 +345,10 @@ export async function stopConversation(): Promise<void> {
   ticker = undefined;
   loadMonitor?.dispose();
   loadMonitor = undefined;
+  const recordedSeconds = current.elapsedMs() / 1000;
+  endRecordingSpan?.({ recordedS: recordedSeconds });
+  endRecordingSpan = undefined;
+  perfMark('recorder.stop', { recordedS: recordedSeconds });
   const run = activeRun();
   const patientId = linkedPatientId();
   setWindowOpen(false);
@@ -453,6 +464,9 @@ export async function transcribeRecording(recording: ConversationRecording): Pro
   const run = existing ?? createRun(recording.id, before);
   run.setSettling(true);
   run.setProgress(0);
+  const endTranscribeSpan = perfSpan('asr.transcribe-file', {
+    recordedS: recording.durationMs / 1000,
+  });
   run.settled = (async () => {
     try {
       const span = await storedSampleSpan(recording.id);
@@ -499,6 +513,7 @@ export async function transcribeRecording(recording: ConversationRecording): Pro
       }
       await refreshAttachedText(recording, run.segments());
     } finally {
+      endTranscribeSpan();
       run.setSettling(false);
       run.setProgress(null);
     }

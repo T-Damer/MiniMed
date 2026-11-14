@@ -290,6 +290,35 @@
   flex: none;
 }
 
+/* «Журнал производительности» (PERFLOG1): share / clear under the helper text. */
+.perf-log-settings {
+  align-items: flex-start;
+}
+
+.perf-log-settings__progress {
+  font-variant-numeric: tabular-nums;
+}
+
+.perf-log-settings__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.perf-log-settings__share {
+  flex: none;
+}
+
+.perf-log-settings__clear {
+  flex: none;
+}
+
+.perf-log-settings__clear-glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
 .settings-row__helper {
   margin: 0.2rem 0 0;
   font-size: 0.8125rem;

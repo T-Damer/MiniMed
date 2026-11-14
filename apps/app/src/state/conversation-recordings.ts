@@ -14,6 +14,7 @@
  */
 import pcmTapUrl from '@/features/conversations/pcm-tap.worklet.ts?worker&url';
 import { fromInt16, toInt16 } from '@/features/conversations/recording-audio';
+import { perfCount, perfLogOn } from '@/state/perf-log';
 
 const DATABASE_NAME = 'minimed-conversations';
 const DATABASE_VERSION = 2;
@@ -402,6 +403,7 @@ export async function startConversationRecording(
   };
 
   const onTap = (samples: Float32Array, peak: number): void => {
+    const tapStarted = perfLogOn() ? performance.now() : 0;
     lastPeak = peak;
     recent[recentCount % RECENT_PEAKS] = peak;
     recentCount += 1;
@@ -423,6 +425,7 @@ export async function startConversationRecording(
     }
     captured += samples.length;
     for (const listener of listeners) listener(samples);
+    if (tapStarted > 0) perfCount('recorder.tap', performance.now() - tapStarted);
   };
 
   try {

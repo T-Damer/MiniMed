@@ -11,6 +11,7 @@
  * kept in storage by the recorder) and the rest is read when the doctor taps «Расшифровать». The
  * caller keeps the text (encrypted, `conversation-transcript.ts`); nothing here stores or logs it.
  */
+
 import { cleanRecognisedText } from '@/features/conversations/recognised-text';
 import {
   SPEECH_SAMPLE_RATE,
@@ -18,6 +19,7 @@ import {
   type SpeechWindow,
   type SpeechWindowOptions,
 } from '@/features/conversations/speech-windows';
+import { perfMark } from '@/state/perf-log';
 
 /** One recognised stretch with its place in the recording (absent for text made before REC1). */
 export interface TranscriptSegment {
@@ -85,6 +87,9 @@ function segmentText(window: SpeechWindow, text: string): TranscriptSegment {
   };
 }
 
+/** Why live recognition stopped, for the performance log. */
+type DeferReason = 'no-model' | 'overloaded' | 'errors' | 'backlog' | 'slow';
+
 export function startSpeechTranscriber(deps: SpeechTranscriberDeps): SpeechTranscriber {
   const segmenter = new SpeechSegmenter(deps.windows, deps.startSample ?? 0);
   const now = deps.now ?? (() => performance.now());
@@ -124,7 +129,14 @@ export function startSpeechTranscriber(deps: SpeechTranscriberDeps): SpeechTrans
   };
 
   /** Live recognition stops here; the samples from this point wait in storage. */
-  const defer = (next: 'deferred' | 'failed'): void => {
+  const defer = (next: 'deferred' | 'failed', reason: DeferReason): void => {
+    perfMark('asr.defer', {
+      reason,
+      mode: deps.mode,
+      measured,
+      rtf: realtime,
+      queuedS: queuedSeconds(),
+    });
     frozenAt = until();
     queue.length = 0;
     clearTimeout(timer);
@@ -149,18 +161,18 @@ export function startSpeechTranscriber(deps: SpeechTranscriberDeps): SpeechTrans
     if (!deps.available()) {
       setStatus('unavailable');
       if (deps.mode === 'live' && (finishing || queuedSeconds() > LIVE_MAX_WAITING_SECONDS)) {
-        defer('deferred');
+        defer('deferred', 'no-model');
         return;
       }
       if (deps.mode === 'request') {
-        defer('failed');
+        defer('failed', 'no-model');
         return;
       }
       later(POLL_MS);
       return;
     }
     if (deps.mode === 'live' && !finishing && deps.overloaded?.()) {
-      defer('deferred');
+      defer('deferred', 'overloaded');
       return;
     }
     if (window.speechSeconds < MIN_SPEECH_SECONDS) {
@@ -192,7 +204,7 @@ export function startSpeechTranscriber(deps: SpeechTranscriberDeps): SpeechTrans
       // The cause may carry audio-derived detail; only the count is kept.
       failures += 1;
       busy = false;
-      if (failures >= MAX_FAILURES) defer('failed');
+      if (failures >= MAX_FAILURES) defer('failed', 'errors');
       else later(RETRY_MS);
       return;
     } finally {
@@ -204,7 +216,7 @@ export function startSpeechTranscriber(deps: SpeechTranscriberDeps): SpeechTrans
       (queuedSeconds() > LIVE_MAX_BACKLOG_SECONDS ||
         (measured >= 2 && realtime > LIVE_MAX_REALTIME_FACTOR))
     ) {
-      defer('deferred');
+      defer('deferred', queuedSeconds() > LIVE_MAX_BACKLOG_SECONDS ? 'backlog' : 'slow');
       return;
     }
     void pump();

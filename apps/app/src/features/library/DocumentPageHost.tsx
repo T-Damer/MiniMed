@@ -128,6 +128,7 @@ import {
   updateCurrentCrumbTitle,
 } from '@/state/document-trail';
 import { stepHistoryBackOnce } from '@/state/history-layer';
+import { perfMark, perfSpan } from '@/state/perf-log';
 import { coreServesInstalledSet } from '@/state/search-data-version';
 
 interface DocumentPageHostProps {
@@ -446,7 +447,19 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     setSubstanceInstruction({ product: chosen, document: read.value });
   };
 
+  /** Performance log: the whole open as a span, the first text as a mark (no document id). */
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
+    const endLoadSpan = perfSpan('reader.load');
+    try {
+      await loadOfficialDocument(parsed);
+    } finally {
+      endLoadSpan({ shown: document() !== undefined });
+    }
+  };
+
+  const loadOfficialDocument = async (
+    parsed: DocumentReadRoute & { kind: 'official' },
+  ): Promise<void> => {
     const documentId = parsed.documentId;
     const expectedIdentity = parsed.expectedIdentity;
     const identityKey = JSON.stringify(expectedIdentity ?? null);
@@ -673,6 +686,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
       assertIdentityDocumentTarget(result.value, expectedIdentity);
       setDocument(result.value);
+      perfMark('reader.text', { sections: result.value.sections.length });
       loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
       if (result.value.metadata['contentMode'] === 'esklp-mnn') {

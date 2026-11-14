@@ -13,6 +13,7 @@ import {
   diaryRecords,
 } from '@/features/diary/connected/diary-api';
 import type { DiaryRecordRevision } from '@/features/diary/connected/diary-replica';
+import { perfSpan } from '@/state/perf-log';
 
 export interface Keyring {
   /** Epoch → raw AES key. */
@@ -67,6 +68,19 @@ export class DiarySession {
 
   /** Everything new since the cursor, oldest first. */
   async pull(): Promise<PullResult> {
+    // Performance log: how long a pull and its decryption took, and how many records (no content).
+    const endPullSpan = perfSpan('diary.pull');
+    try {
+      const result = await this.pullPages();
+      endPullSpan({ records: result.revisions.length, refused: result.refused });
+      return result;
+    } catch (cause) {
+      endPullSpan({ ok: false });
+      throw cause;
+    }
+  }
+
+  private async pullPages(): Promise<PullResult> {
     const revisions: DiaryRecordRevision[] = [];
     let refused = 0;
     let more = true;

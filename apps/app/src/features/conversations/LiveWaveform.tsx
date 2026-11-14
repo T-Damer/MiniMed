@@ -1,6 +1,7 @@
 import { type JSX, onCleanup, onMount } from 'solid-js';
 
 import { peakHeight } from '@/features/conversations/recording-audio';
+import { perfCount, perfLogOn } from '@/state/perf-log';
 
 /** The recorder's peaks arrive 20 times a second; drawing faster would repeat frames. */
 const FRAME_MS = 50;
@@ -78,9 +79,16 @@ export function LiveWaveform(props: {
     const tick = (now: number): void => {
       frame = 0;
       if (!visible) return;
+      perfCount('waveform.frame');
       if (now - last >= FRAME_MS) {
         last = now;
-        draw();
+        if (perfLogOn()) {
+          const started = performance.now();
+          draw();
+          perfCount('waveform.draw', performance.now() - started);
+        } else {
+          draw();
+        }
       }
       if (!props.source()?.paused()) frame = requestAnimationFrame(tick);
     };

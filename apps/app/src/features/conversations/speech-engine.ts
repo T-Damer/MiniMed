@@ -8,6 +8,8 @@
  * over from the next stretch on. Nothing here logs audio or text.
  */
 
+import { perfSpan } from '@/state/perf-log';
+
 export type SpeechEngineKind = 'native' | 'whisper';
 
 export interface SpeechEngineState {
@@ -53,9 +55,21 @@ export function createSpeechEngine(deps: SpeechEngineDeps): SpeechEngine {
     available: () => kind() !== null,
     recognise: (samples) => {
       const engine = kind();
-      if (engine === 'native') return deps.recogniseNative(samples);
-      if (engine === 'whisper') return deps.recogniseWhisper(samples);
-      return Promise.reject(new Error('Речевая модель не загружена.'));
+      if (engine === null) return Promise.reject(new Error('Речевая модель не загружена.'));
+      // Performance log: engine, audio length and wall time of each stretch (no text).
+      const end = perfSpan('asr.stretch', { engine, audioS: samples.length / 16_000 });
+      const reading =
+        engine === 'native' ? deps.recogniseNative(samples) : deps.recogniseWhisper(samples);
+      return reading.then(
+        (text) => {
+          end({ ok: true });
+          return text;
+        },
+        (cause: unknown) => {
+          end({ ok: false });
+          throw cause;
+        },
+      );
     },
   };
 }
