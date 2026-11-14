@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 13 November 2026
+> Updated: 14 November 2026
 > Released version: `0.6.65` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -20,7 +20,14 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Session recorder on Android: GigaAM v3 instead of Whisper — 2026-11-13 (STATE REC2; merged, not released)
+## Release 0.6.98 — 2026-11-14
+
+- **In it:** REC2 (GigaAM v3 for the conversation recorder on Android, live and «Расшифровать»; native model install
+  fixed) and the fix for the recording sheet closing right after «Стоп». The owner asked for the release after the
+  on-phone report (RTF 0.09, WER 0.012 with digits as words, audio fed to the native path, not the microphone).
+- **Checks:** `bun run verify`, recorder and «Файлы» e2e. Not checked with the phone's real microphone.
+
+## Session recorder on Android: GigaAM v3 instead of Whisper — 2026-11-13 (STATE REC2; released in 0.6.98)
 
 - **Engine choice** (`features/conversations/speech-engine.ts`): GigaAM v3 (native sherpa-onnx, the
   model the patient-card dictaphone already uses) when the Android plugin is present and its models

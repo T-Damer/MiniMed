@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.98] - 2026-11-14
+
+- Session recording on Android: speech is recognised by the GigaAM v3 model on the phone (with punctuation) instead
+  of the browser's Whisper Base, for live text and «Расшифровать», once its models (about 256 MB) are installed; the
+  recorder window and the recording sheet offer the download. Until then, and on other platforms, Whisper stays. On
+  the owner's phone a synthetic dialogue read about 11× faster than real time with one wrong word in 81. Native
+  models could not be installed or inspected before (a number type mismatch in the bridge); fixed.
+- The recording sheet no longer closes right after «Стоп» (two history steps raced), so the saved recording stays in
+  front of you.
+
 ## [0.6.97] - 2026-11-13
 
 - Session recording: while recording, a floating button with a live waveform stays over every screen, so the whole
