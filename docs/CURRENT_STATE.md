@@ -24,7 +24,9 @@ Detailed history, moved verbatim on 2026-09-24:
 
 - **Why:** the owner still feels lag after 0.6.98, mostly while recording, and asked for a «метка» on releases
   that collects a performance log from their own phone.
-- **What:** Settings → «Основные» → «Журнал производительности» (or `?perf=1`): long animation frames with their
+- **What:** turned on for one phone only (owner: «метку именно на мой телефон») with
+  `adb shell am start -S -n org.med.web/dev.localmed.search.MainActivity --ez minimed.perfLog true` (a browser:
+  `?perf=1`); only such a device shows Settings → «Основные» → «Журнал производительности». It records long animation frames with their
   scripts, slow interactions, dropped frames after input, screens and settle times, recorder / transcription /
   search / reader / diary marks, JS heap and, on Android, a native sampler (`LocalMedPerfPlugin`: app-process CPU,
   PSS, temperature, thermal status and headroom, CPU clock). «Поделиться журналом» shares one JSON with a short

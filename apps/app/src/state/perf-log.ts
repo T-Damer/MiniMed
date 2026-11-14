@@ -1,7 +1,8 @@
 /**
  * The opt-in performance log (PERFLOG1, owner 2026-11-14 «метка на релизах»). Off by default; the
- * doctor turns it on in Settings → «Основные» → «Журнал производительности» (or with `?perf=1` in a
- * browser), uses the app as usual, and shares the log with «Поделиться журналом».
+ * owner turns it on for their phone (an adb intent, `LocalMedPerfPlugin.kt`) or a browser
+ * (`?perf=1`), uses the app as usual, and shares the log with «Поделиться журналом» in Settings →
+ * «Основные», where its row appears only on such a device.
  *
  * This module is the small part every feature imports: the on/off flag and the `perfMark`,
  * `perfSpan` and `perfCount` calls. While the log is off each call is one boolean check and
@@ -238,16 +239,45 @@ export function attachPerfSink(next: ((entry: PerfEntry) => void) | undefined): 
 /** The log turns itself off this long after it was turned on, so a forgotten switch stops. */
 export const PERF_LOG_AUTO_OFF_MS = 48 * 3_600_000;
 
-/** When the log was turned on (epoch ms), or undefined when it is off or has timed out. */
+/** Set once a device has had the log on: only there does Settings show the log's row. */
+export const PERF_LOG_DEVICE_KEY = 'minimed.perf-log.device';
+
+/**
+ * The Android app's own flag (`LocalMedPerfPlugin`): set once over adb on the owner's phone
+ * (owner 2026-11-14 «метку именно на мой телефон»). Absent in a browser.
+ */
+interface DevicePerfFlag {
+  enabledAt(): number;
+  set(on: boolean): void;
+}
+
+function deviceFlag(): DevicePerfFlag | undefined {
+  return (window as { MiniMedPerfFlag?: DevicePerfFlag }).MiniMedPerfFlag;
+}
+
+function storedSince(nowMs: number): number | undefined {
+  const flag = deviceFlag();
+  if (flag) {
+    const since = Number(flag.enabledAt());
+    return since > 0 ? since : undefined;
+  }
+  const stored = localStorage.getItem(PERF_LOG_KEY);
+  if (!stored) return undefined;
+  const since = Number(stored);
+  // `1` from an address flag written before a clock was read: counts as «just now».
+  return !Number.isFinite(since) || since < 1e12 ? nowMs : since;
+}
+
+/**
+ * When the log was turned on (epoch ms), or undefined when it is off or has timed out. In the
+ * Android app the device flag decides; in a browser `localStorage` (`?perf=1`).
+ */
 export function perfLogOnSince(nowMs: number = Date.now()): number | undefined {
   try {
-    const stored = localStorage.getItem(PERF_LOG_KEY);
-    if (!stored) return undefined;
-    const since = Number(stored);
-    // `1` from an address flag written before a clock was read: counts as «just now».
-    if (!Number.isFinite(since) || since < 1e12) return nowMs;
+    const since = storedSince(nowMs);
+    if (since === undefined) return undefined;
     if (nowMs - since > PERF_LOG_AUTO_OFF_MS) {
-      localStorage.removeItem(PERF_LOG_KEY);
+      writeStored(false);
       return undefined;
     }
     return since;
@@ -262,10 +292,26 @@ function readStored(): boolean {
 
 function writeStored(enabled: boolean): void {
   try {
-    if (!enabled) localStorage.removeItem(PERF_LOG_KEY);
-    else if (perfLogOnSince() === undefined) localStorage.setItem(PERF_LOG_KEY, String(Date.now()));
+    deviceFlag()?.set(enabled);
+    if (!enabled) {
+      localStorage.removeItem(PERF_LOG_KEY);
+      return;
+    }
+    localStorage.setItem(PERF_LOG_DEVICE_KEY, '1');
+    if (localStorage.getItem(PERF_LOG_KEY) === null) {
+      localStorage.setItem(PERF_LOG_KEY, String(Date.now()));
+    }
   } catch {
     // Storage blocked: the log runs for this visit only.
+  }
+}
+
+/** Whether this device ever had the log on: the Settings row is shown only then. */
+export function perfLogAvailableHere(): boolean {
+  try {
+    return on || localStorage.getItem(PERF_LOG_DEVICE_KEY) === '1';
+  } catch {
+    return on;
   }
 }
 
@@ -301,7 +347,11 @@ function startRecording(): void {
 export function initPerfLog(href: string = window.location.href): void {
   const fromAddress = perfFlagFromAddress(href);
   if (fromAddress !== undefined) writeStored(fromAddress);
-  if (fromAddress ?? readStored()) startRecording();
+  if (fromAddress ?? readStored()) {
+    // The device flag turned it on: Settings shows the row (share, clear, off) from now on.
+    writeStored(true);
+    startRecording();
+  }
 }
 
 /** The settings switch. Turning it off stops recording; the log so far stays until «Очистить». */

@@ -148,7 +148,7 @@ function entryNames(file: PerfLogFile): Set<string> {
   );
 }
 
-test('browser: the switch records a search, a recording and a long frame; the file has no content', async ({
+test('browser: `?perf=1` records a search, a recording and a long frame; the file has no content', async ({
   page,
 }, testInfo) => {
   test.setTimeout(240_000);
@@ -159,13 +159,24 @@ test('browser: the switch records a search, a recording and a long frame; the fi
   });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, waitForCore: true });
 
+  // Not offered to everyone: no row in Settings until this device has had the log on.
+  await page.evaluate(() => {
+    window.location.hash = '#/settings';
+  });
+  await openSettingsPage(page, 'Основные');
+  await expect(
+    page.getByRole('switch', { name: 'Обновлять материалы автоматически' }),
+  ).toBeVisible();
+  await expect(page.getByTestId('perf-log-settings')).toHaveCount(0);
+
+  // The browser's flag; on a phone the owner's adb intent does the same.
+  await page.goto(`${E2E_ASSET_ORIGIN}/?perf=1#/search`);
+  await waitForSearchReady(page);
   const row = await openPerfLogRow(page);
-  await page.screenshot({ path: testInfo.outputPath('perf-log-off.png') });
-  await row.getByRole('switch', { name: 'Журнал производительности' }).click();
   await expect(row.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
 
   // A search with words that must not be logged.
-  await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
+  await page.goto(`${E2E_ASSET_ORIGIN}/?perf=1#/search`);
   await waitForSearchEditable(page);
   await page.getByTestId('search-input').click();
   await page.keyboard.type(SECRET_QUERY, { delay: 40 });
@@ -182,7 +193,10 @@ test('browser: the switch records a search, a recording and a long frame; the fi
     }
   });
 
-  await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
+  // An in-app move: a new page load would drop what was not yet written.
+  await page.evaluate(() => {
+    window.location.hash = '#/search';
+  });
   await recordWithLiveText(page);
 
   const shareRow = await openPerfLogRow(page);
@@ -233,9 +247,21 @@ test('Android: native samples and the native share; a patient chosen while recor
   test.setTimeout(180_000);
   await installDeviceKeyAndSpeech(page, SECRET_PHRASES);
   await installNativePerfStandIns(page);
+  // The owner's adb intent set the device flag (`LocalMedPerfPlugin`) a minute ago.
+  await page.addInitScript(() => {
+    let enabledAt = Date.now() - 60_000;
+    Object.assign(window, {
+      MiniMedPerfFlag: {
+        enabledAt: () => enabledAt,
+        set: (on: boolean) => {
+          enabledAt = on ? enabledAt || Date.now() : 0;
+        },
+      },
+    });
+  });
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const row = await openPerfLogRow(page);
-  await row.getByRole('switch', { name: 'Журнал производительности' }).click();
+  await expect(row.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
   await expect
     .poll(() =>
       page.evaluate(

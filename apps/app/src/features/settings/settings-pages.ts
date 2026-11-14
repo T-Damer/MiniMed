@@ -44,9 +44,6 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
       'ссылки',
       'ядро поиска',
       'о приложении',
-      'журнал производительности',
-      'тормозит',
-      'лаги',
     ],
   },
   {

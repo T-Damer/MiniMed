@@ -16,9 +16,9 @@ export function perfLogProgressText(entries: number, minutes: number): string {
 }
 
 /**
- * Settings → «Основные» → «Журнал производительности» (PERFLOG1): the switch, how much is recorded,
- * «Поделиться журналом» and «Очистить». The collector is only loaded when the log is on or a stored
- * log is looked up for the share button.
+ * Settings → «Основные» → «Журнал производительности» (PERFLOG1), shown only on a device where the
+ * owner turned the log on (`perfLogAvailableHere`): the switch, how much is recorded, «Поделиться
+ * журналом» and the bin. The collector is only loaded there.
  */
 export function PerfLogSettings(): JSX.Element {
   const [enabled, setEnabled] = createSignal(perfLogOn());

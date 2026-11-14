@@ -17,6 +17,7 @@ import {
   subscribeAppPreferences,
 } from '@/state/app-preferences';
 import type { AppUpdateProgress } from '@/state/app-update';
+import { perfLogAvailableHere } from '@/state/perf-log';
 
 const DevDownloadSettings = import.meta.env.DEV
   ? lazy(() =>
@@ -101,7 +102,10 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
           </Button>
         </div>
         <DoctorProfileSettings />
-        <PerfLogSettings />
+        {/* Only on a device where the owner turned the log on (adb flag or `?perf=1`). */}
+        <Show when={perfLogAvailableHere()}>
+          <PerfLogSettings />
+        </Show>
       </section>
       <Disclosure class="system-technical-panel" title="Техническая информация">
         <Show

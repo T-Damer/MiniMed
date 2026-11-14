@@ -12,6 +12,7 @@ import android.os.HandlerThread
 import android.os.PowerManager
 import android.os.Process
 import android.os.SystemClock
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -26,6 +27,14 @@ import java.io.File
  * native GigaAM recogniser run here; the WebView renderer is a separate, sandboxed process), memory,
  * battery temperature, thermal status and headroom, CPU clock — and keeps only the latest sample.
  * `sample()` hands that over, so a plugin call never waits for the reads. Off: no thread, no work.
+ *
+ * The log is turned on per device, not for everyone (owner 2026-11-14 «метку именно на мой
+ * телефон»): once, over adb,
+ *
+ *   adb shell am start -S -n org.med.web/dev.localmed.search.MainActivity --ez minimed.perfLog true
+ *
+ * stores the moment in this app's preferences (`false` clears it). `window.MiniMedPerfFlag` lets the
+ * page read and change it synchronously at start-up (`perf-log.ts`); it is only a timestamp.
  */
 @CapacitorPlugin(name = "LocalMedPerf")
 class LocalMedPerfPlugin : Plugin() {
@@ -35,6 +44,42 @@ class LocalMedPerfPlugin : Plugin() {
     private var lastCpuMs = 0L
     private var lastWallMs = 0L
     private var intervalMs = 5_000L
+
+    private val flags by lazy {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+    }
+
+    /** `window.MiniMedPerfFlag`: when the log was turned on on this device (0 = off). */
+    private inner class PerfFlag {
+        @JavascriptInterface
+        fun enabledAt(): Double = flags.getLong(ENABLED_AT, 0L).toDouble()
+
+        @JavascriptInterface
+        fun set(on: Boolean) = store(on)
+    }
+
+    override fun load() {
+        applyIntent(activity?.intent)
+        bridge.webView.addJavascriptInterface(PerfFlag(), "MiniMedPerfFlag")
+    }
+
+    override fun handleOnNewIntent(intent: Intent) {
+        applyIntent(intent)
+    }
+
+    /** The adb switch: `--ez minimed.perfLog true|false` on the launch intent. */
+    private fun applyIntent(intent: Intent?) {
+        if (intent == null || !intent.hasExtra(EXTRA_PERF_LOG)) return
+        store(intent.getBooleanExtra(EXTRA_PERF_LOG, false))
+        intent.removeExtra(EXTRA_PERF_LOG)
+    }
+
+    private fun store(on: Boolean) {
+        val editor = flags.edit()
+        if (!on) editor.remove(ENABLED_AT)
+        else if (flags.getLong(ENABLED_AT, 0L) == 0L) editor.putLong(ENABLED_AT, System.currentTimeMillis())
+        editor.apply()
+    }
 
     private val tick = object : Runnable {
         override fun run() {
@@ -184,5 +229,8 @@ class LocalMedPerfPlugin : Plugin() {
 
     private companion object {
         const val MB = 1_048_576L
+        const val PREFERENCES = "minimed_perf_log"
+        const val ENABLED_AT = "enabledAt"
+        const val EXTRA_PERF_LOG = "minimed.perfLog"
     }
 }

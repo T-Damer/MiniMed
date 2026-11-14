@@ -18,12 +18,14 @@ import {
   attachPerfSink,
   codeLabel,
   elementLabel,
+  initPerfLog,
   PERF_LOG_AUTO_OFF_MS,
   PERF_LOG_KEY,
   type PerfEntry,
   perfCount,
   perfFeatures,
   perfFlagFromAddress,
+  perfLogAvailableHere,
   perfLogOn,
   perfLogOnSince,
   perfMark,
@@ -110,6 +112,41 @@ describe('auto-off', () => {
     expect(perfLogOnSince(since + 1_000)).toBe(since);
     expect(perfLogOnSince(since + PERF_LOG_AUTO_OFF_MS + 1)).toBeUndefined();
     expect(localStorage.getItem(PERF_LOG_KEY)).toBeNull();
+  });
+});
+
+describe('one device only', () => {
+  afterEach(() => {
+    delete (window as { MiniMedPerfFlag?: unknown }).MiniMedPerfFlag;
+  });
+
+  it('hides the Settings row on a device that never had the log on', () => {
+    initPerfLog('https://localhost/#/search');
+    expect(perfLogOn()).toBe(false);
+    expect(perfLogAvailableHere()).toBe(false);
+  });
+
+  it('starts from the Android flag set over adb, and the switch writes it back', async () => {
+    let enabledAt = Date.now() - 60_000;
+    const set = vi.fn((on: boolean) => {
+      enabledAt = on ? enabledAt || Date.now() : 0;
+    });
+    Object.assign(window, { MiniMedPerfFlag: { enabledAt: () => enabledAt, set } });
+    initPerfLog('https://localhost/#/search');
+    expect(perfLogOn()).toBe(true);
+    expect(perfLogAvailableHere()).toBe(true);
+    await setPerfLogEnabled(false);
+    expect(set).toHaveBeenLastCalledWith(false);
+    expect(perfLogOnSince()).toBeUndefined();
+    // The row stays on this device, so the doctor can share or turn it on again.
+    expect(perfLogAvailableHere()).toBe(true);
+  });
+
+  it('the Android flag wins over a stale browser key', () => {
+    localStorage.setItem(PERF_LOG_KEY, String(Date.now()));
+    Object.assign(window, { MiniMedPerfFlag: { enabledAt: () => 0, set: vi.fn() } });
+    initPerfLog('https://localhost/#/search');
+    expect(perfLogOn()).toBe(false);
   });
 });
 
