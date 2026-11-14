@@ -8,6 +8,7 @@ import { listenForInstallPrompt } from '@/diary/install-state';
 import { registerAppServiceWorker } from '@/state/app-update';
 import { installChunkRecovery } from '@/state/chunk-recovery';
 import { installMotionManager } from '@/state/motion';
+import { initPerfLog } from '@/state/perf-log';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import { isStandbyTab, resumeFromStandby } from '@/state/tab-takeover';
 import { installTheme } from '@/state/theme';
@@ -61,6 +62,8 @@ import '@/styles/paper-dots.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
+// The opt-in performance log first, so it sees the start-up frames (off: one localStorage read).
+initPerfLog();
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
 const stopPressFeedback = installPressFeedback();

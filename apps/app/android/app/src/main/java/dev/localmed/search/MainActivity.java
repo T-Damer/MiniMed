@@ -167,6 +167,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(LocalMedPatientVaultPlugin.class);
         registerPlugin(LocalMedCameraPlugin.class);
         registerPlugin(LocalMedTranscriberPlugin.class);
+        registerPlugin(LocalMedPerfPlugin.class);
         super.onCreate(savedInstanceState);
 
         WebView webView = getBridge() == null ? null : getBridge().getWebView();

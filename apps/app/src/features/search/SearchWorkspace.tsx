@@ -130,6 +130,7 @@ import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { motionMs } from '@/state/motion';
+import { perfSpan } from '@/state/perf-log';
 import { searchDataVersion } from '@/state/search-data-version';
 import {
   appendSearchHistory,
@@ -1029,6 +1030,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (!refreshOfShown) setContext(undefined);
 
     performance.mark('minimed:search:core-start');
+    // Performance log: the core's search time and the section searched (never the words).
+    const endSearchSpan = perfSpan('search.core', { scope: props.scope });
     const result = await core.search({
       query: trimmed,
       mode: searchModeForScope(props.scope),
@@ -1039,6 +1042,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       ...(everywhere ? { sourceNames: false } : {}),
     });
     performance.mark('minimed:search:core');
+    endSearchSpan({ ok: result.ok });
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     // A section that found nothing: the same words over all sources, before the list is shown, so
