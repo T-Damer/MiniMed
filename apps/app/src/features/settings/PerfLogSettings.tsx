@@ -5,7 +5,12 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Switch } from '@/components/Switch';
 import { pluralRu } from '@/i18n/labels';
-import { PERF_LOG_EVENT, perfLogOn, setPerfLogEnabled } from '@/state/perf-log';
+import {
+  PERF_LOG_EVENT,
+  perfLogAvailableHere,
+  perfLogOn,
+  setPerfLogEnabled,
+} from '@/state/perf-log';
 
 /** «12 мин · 1 534 события». */
 export function perfLogProgressText(entries: number, minutes: number): string {
@@ -16,9 +21,9 @@ export function perfLogProgressText(entries: number, minutes: number): string {
 }
 
 /**
- * Settings → «Основные» → «Журнал производительности» (PERFLOG1), shown only on a device where the
- * owner turned the log on (`perfLogAvailableHere`): the switch, how much is recorded, «Поделиться
- * журналом» and the bin. The collector is only loaded there.
+ * Settings → «Основные» → «Журнал производительности» (PERFLOG1; owner 2026-11-14: a switch for
+ * everyone, off by default): the switch, how much is recorded, «Поделиться журналом» and the bin.
+ * The collector is loaded only while the log is on or a stored log was left on this device.
  */
 export function PerfLogSettings(): JSX.Element {
   const [enabled, setEnabled] = createSignal(perfLogOn());
@@ -28,6 +33,12 @@ export function PerfLogSettings(): JSX.Element {
 
   const refresh = async (): Promise<void> => {
     setEnabled(perfLogOn());
+    // A device that never had the log on has nothing stored: load nothing, open no database.
+    if (!perfLogAvailableHere()) {
+      setHasLog(false);
+      setProgress('');
+      return;
+    }
     const collector = await import('@/state/perf-log-collector');
     const running = collector.perfLogProgress();
     if (running) {

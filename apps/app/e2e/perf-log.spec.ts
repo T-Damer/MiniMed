@@ -148,7 +148,7 @@ function entryNames(file: PerfLogFile): Set<string> {
   );
 }
 
-test('browser: `?perf=1` records a search, a recording and a long frame; the file has no content', async ({
+test('browser: the switch records a search, a recording and a long frame; the file has no content', async ({
   page,
 }, testInfo) => {
   test.setTimeout(240_000);
@@ -159,24 +159,22 @@ test('browser: `?perf=1` records a search, a recording and a long frame; the fil
   });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true, waitForCore: true });
 
-  // Not offered to everyone: no row in Settings until this device has had the log on.
-  await page.evaluate(() => {
-    window.location.hash = '#/settings';
-  });
-  await openSettingsPage(page, 'Основные');
-  await expect(
-    page.getByRole('switch', { name: 'Обновлять материалы автоматически' }),
-  ).toBeVisible();
-  await expect(page.getByTestId('perf-log-settings')).toHaveCount(0);
-
-  // The browser's flag; on a phone the owner's adb intent does the same.
-  await page.goto(`${E2E_ASSET_ORIGIN}/?perf=1#/search`);
-  await waitForSearchReady(page);
+  // The switch is in Settings for everyone, off by default (owner 2026-11-14).
   const row = await openPerfLogRow(page);
-  await expect(row.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+  const toggle = row.getByRole('switch', { name: 'Журнал производительности' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await expect(row.getByTestId('perf-log-progress')).toHaveCount(0);
+  const unopened = await page.evaluate(async () =>
+    (await indexedDB.databases()).map((database) => database.name),
+  );
+  expect(unopened, 'Settings opens no log database while it is off').not.toContain(
+    'minimed-perf-log',
+  );
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
   // A search with words that must not be logged.
-  await page.goto(`${E2E_ASSET_ORIGIN}/?perf=1#/search`);
+  await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
   await waitForSearchEditable(page);
   await page.getByTestId('search-input').click();
   await page.keyboard.type(SECRET_QUERY, { delay: 40 });

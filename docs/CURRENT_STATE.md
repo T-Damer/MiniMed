@@ -20,13 +20,12 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Performance log in release builds — 2026-11-14 (STATE PERFLOG1; not merged, not released)
+## Performance log in release builds — 2026-11-14 (STATE PERFLOG1; merged, going into 0.6.99)
 
 - **Why:** the owner still feels lag after 0.6.98, mostly while recording, and asked for a «метка» on releases
   that collects a performance log from their own phone.
-- **What:** turned on for one phone only (owner: «метку именно на мой телефон») with
-  `adb shell am start -S -n org.med.web/dev.localmed.search.MainActivity --ez minimed.perfLog true` (a browser:
-  `?perf=1`); only such a device shows Settings → «Основные» → «Журнал производительности». It records long animation frames with their
+- **What:** Settings → «Основные» → «Журнал производительности», a switch for everyone, off by default (owner
+  2026-11-14); also an adb intent on a phone (`--ez minimed.perfLog true`) or `?perf=1` in a browser. It records long animation frames with their
   scripts, slow interactions, dropped frames after input, screens and settle times, recorder / transcription /
   search / reader / diary marks, JS heap and, on Android, a native sampler (`LocalMedPerfPlugin`: app-process CPU,
   PSS, temperature, thermal status and headroom, CPU clock). «Поделиться журналом» shares one JSON with a short

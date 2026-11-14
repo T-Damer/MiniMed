@@ -6,23 +6,19 @@ boolean check per mark and loads nothing.
 
 ## For the owner: turn it on, use the app, send the log
 
-The log is **not offered to everyone** (owner 2026-11-14 «можно просто добавить метку именно на мой
-телефон»): there is no switch in Settings until a device has had the log turned on.
+1. **Настройки → Основные → «Журнал производительности»** — turn the switch on (owner 2026-11-14:
+   a switch for everyone, off by default). Two other ways do the same:
+   - on a phone over adb, without touching the screen (the agent asks before running it):
 
-1. **Turn it on for one phone**, once, over adb (with the phone connected; the agent asks before
-   running it):
+     ```bash
+     adb shell am start -S -n org.med.web/dev.localmed.search.MainActivity --ez minimed.perfLog true
+     ```
 
-   ```bash
-   adb shell am start -S -n org.med.web/dev.localmed.search.MainActivity --ez minimed.perfLog true
-   ```
-
-   The app restarts with the log on. The flag lives in the app's own preferences on that phone
-   (`LocalMedPerfPlugin`), survives restarts and app updates, and turns itself off **two days**
-   later. `--ez minimed.perfLog false` turns it off. In a browser, `?perf=1` in the address does
-   the same (`?perf=0` off).
-2. From then on **Настройки → Основные** on that phone shows «Журнал производительности» with its
-   switch (off / on again), how much is recorded, «Поделиться журналом» and a bin button
-   («Очистить журнал»). Other phones never see the row.
+     The app restarts with the log on; the flag lives in the app's own preferences
+     (`LocalMedPerfPlugin`); `--ez minimed.perfLog false` turns it off;
+   - in a browser, `?perf=1` in the address (`?perf=0` off).
+2. The log turns itself off **two days** after it was turned on. The row shows how much is recorded,
+   «Поделиться журналом» and a bin button («Очистить журнал»).
 3. Use the app as usual, especially where it lags: record a conversation for a few minutes with the
    screen on, search, open documents, the diary. The log is written every minute and whenever the
    app goes to the background, so it survives the app being closed (up to the last minute is lost if
@@ -59,7 +55,7 @@ source maps (`bunx vite build --sourcemap` in `apps/app` at that release's commi
 Code: `apps/app/src/state/perf-log.ts` (the flag and `perfMark` / `perfSpan` / `perfCount`, always
 loaded, ~3 kB), `perf-log-collector.ts` (loaded only while on), `perf-log-analysis.ts` (shared with
 the report script), `perf-log-export.ts`, `perf-log-screen.ts`; Android
-`LocalMedPerfPlugin.kt`; Settings `features/settings/PerfLogSettings.tsx` (rendered only where `perfLogAvailableHere()`).
+`LocalMedPerfPlugin.kt`; Settings `features/settings/PerfLogSettings.tsx` (it looks for a stored log only on a device that has had the log on, so for everyone else opening Settings loads nothing).
 
 | kind | source | fields |
 | --- | --- | --- |
@@ -107,7 +103,7 @@ sessions in IndexedDB `minimed-perf-log`.
 
 - `apps/app/src/state/perf-log.test.ts`, `perf-log-analysis.test.ts` (no-content filters, screen
   names, auto-off, off cost, summary and report on a synthetic log).
-- `apps/app/e2e/perf-log.spec.ts`: browser (no row by default, `?perf=1`, search, a 180 ms busy frame, recording with live
+- `apps/app/e2e/perf-log.spec.ts`: browser (switch off by default and no database opened, the switch, search, a 180 ms busy frame, recording with live
   text, download, no content, report), Android build in Chromium with native stand-ins (native
   sample and share path with the device flag stand-in, patient name not logged), off/on cost.
 - Android emulator: see «Emulator run» below.
@@ -129,9 +125,9 @@ and GigaAM installed, stop, the test recording deleted. The report script read t
 - a first emulator run before GigaAM was installed showed the live text deferring with `no-model`
   after 180 s while the 256 MB download ran — REC1's intended behaviour, now visible in the log.
 
-Device flag, same emulator and build: a plain launch shows no row in Settings and the flag reads 0;
-`am start -S … --ez minimed.perfLog true` restarts the app with the log on (row shown, «Пишется»);
-`… false` turns it off (row stays, switch off).
+Device flag, same emulator: a plain launch leaves the log off (flag 0);
+`am start -S … --ez minimed.perfLog true` restarts the app with the log on («Пишется» in Settings);
+`… false` turns it off.
 
 Not tested: the owner's phone (needs the owner's OK and the owner's own recording), screen-off
 recording with the log on, a real microphone.

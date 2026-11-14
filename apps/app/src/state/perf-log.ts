@@ -1,8 +1,8 @@
 /**
  * The opt-in performance log (PERFLOG1, owner 2026-11-14 «метка на релизах»). Off by default; the
- * owner turns it on for their phone (an adb intent, `LocalMedPerfPlugin.kt`) or a browser
- * (`?perf=1`), uses the app as usual, and shares the log with «Поделиться журналом» in Settings →
- * «Основные», where its row appears only on such a device.
+ * switch is Settings → «Основные» → «Журнал производительности»; an adb intent on the owner's phone
+ * (`LocalMedPerfPlugin.kt`) or `?perf=1` in a browser turns it on too. Use the app as usual, then
+ * «Поделиться журналом».
  *
  * This module is the small part every feature imports: the on/off flag and the `perfMark`,
  * `perfSpan` and `perfCount` calls. While the log is off each call is one boolean check and
@@ -239,7 +239,7 @@ export function attachPerfSink(next: ((entry: PerfEntry) => void) | undefined): 
 /** The log turns itself off this long after it was turned on, so a forgotten switch stops. */
 export const PERF_LOG_AUTO_OFF_MS = 48 * 3_600_000;
 
-/** Set once a device has had the log on: only there does Settings show the log's row. */
+/** Set once a device has had the log on: Settings then looks for a stored log to share. */
 export const PERF_LOG_DEVICE_KEY = 'minimed.perf-log.device';
 
 /**
@@ -306,7 +306,7 @@ function writeStored(enabled: boolean): void {
   }
 }
 
-/** Whether this device ever had the log on: the Settings row is shown only then. */
+/** Whether this device ever had the log on (so a stored log may be there to share). */
 export function perfLogAvailableHere(): boolean {
   try {
     return on || localStorage.getItem(PERF_LOG_DEVICE_KEY) === '1';

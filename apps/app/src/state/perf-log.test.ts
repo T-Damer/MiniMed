@@ -115,12 +115,12 @@ describe('auto-off', () => {
   });
 });
 
-describe('one device only', () => {
+describe('device flag', () => {
   afterEach(() => {
     delete (window as { MiniMedPerfFlag?: unknown }).MiniMedPerfFlag;
   });
 
-  it('hides the Settings row on a device that never had the log on', () => {
+  it('a device that never had the log on has nothing stored to look up', () => {
     initPerfLog('https://localhost/#/search');
     expect(perfLogOn()).toBe(false);
     expect(perfLogAvailableHere()).toBe(false);
@@ -138,7 +138,7 @@ describe('one device only', () => {
     await setPerfLogEnabled(false);
     expect(set).toHaveBeenLastCalledWith(false);
     expect(perfLogOnSince()).toBeUndefined();
-    // The row stays on this device, so the doctor can share or turn it on again.
+    // A stored log may be there to share.
     expect(perfLogAvailableHere()).toBe(true);
   });
 
