@@ -237,7 +237,8 @@ function observeSlowEvents(supported: readonly string[]): void {
   const observer = new PerformanceObserver((list) => {
     for (const raw of list.getEntries()) {
       const entry = raw as EventTimingEntry;
-      if (entry.duration < SLOW_EVENT_MS) continue;
+      // One entry per tap or key (`interactionId`); hover and capture events of it are skipped.
+      if (entry.duration < SLOW_EVENT_MS || !entry.interactionId) continue;
       const name = /^[a-z]{1,24}$/u.test(entry.name) ? entry.name : 'event';
       const el = elementLabel(entry.target);
       const f = safeFields({

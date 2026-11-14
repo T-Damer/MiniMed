@@ -20,6 +20,21 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Performance log in release builds — 2026-11-14 (STATE PERFLOG1; not merged, not released)
+
+- **Why:** the owner still feels lag after 0.6.98, mostly while recording, and asked for a «метка» on releases
+  that collects a performance log from their own phone.
+- **What:** Settings → «Основные» → «Журнал производительности» (or `?perf=1`): long animation frames with their
+  scripts, slow interactions, dropped frames after input, screens and settle times, recorder / transcription /
+  search / reader / diary marks, JS heap and, on Android, a native sampler (`LocalMedPerfPlugin`: app-process CPU,
+  PSS, temperature, thermal status and headroom, CPU clock). «Поделиться журналом» shares one JSON with a short
+  Russian summary; `bun scripts/perf-log-report.ts <file>` turns it into a Markdown report. No text, queries,
+  transcripts, patient or document ids (checked by `e2e/perf-log.spec.ts`). Off: one boolean check per mark and no
+  loaded code; on: ≈ 1 ms of the log's own script time per 10 s idle. Turns itself off after 48 h.
+- **Docs:** [PERF_LOG.md](PERF_LOG.md) (how the owner turns it on and sends it; what is recorded; cost).
+- **Next:** the owner records with the log on; the agent reads the log and fixes the top lag causes in separate
+  commits.
+
 ## Release 0.6.98 — 2026-11-14
 
 - **In it:** REC2 (GigaAM v3 for the conversation recorder on Android, live and «Расшифровать»; native model install

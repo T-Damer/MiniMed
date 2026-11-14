@@ -193,6 +193,9 @@ async function main(): Promise<void> {
   ) {
     await cdp.eval(`document.querySelector('${row} [role=switch]').click(); true`);
   }
+  // A clean log for this run: the bin («Очистить журнал») empties earlier sessions.
+  await cdp.eval(`document.querySelector('${row} [aria-label="Очистить журнал"]')?.click(); true`);
+  await sleep(1_000);
   await cdp.waitFor(
     `document.querySelector('${row} [data-testid=perf-log-progress]')?.textContent.includes('Пишется')`,
     30_000,
