@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.99] - 2026-11-14
+
+- Performance log: Settings → «Основные» → «Журнал производительности» (off by default; also turned on by an adb flag
+  on a phone or `?perf=1` in a browser). While on, it records slow frames and interactions, screen timings, recorder,
+  transcription, search, reader and diary marks, memory and, on Android, CPU, temperature and thermal state — no text,
+  queries, transcripts or patient and document ids. «Поделиться журналом» shares it as one file with a short summary;
+  it turns itself off after 48 hours. How to send it and what it holds: `docs/PERF_LOG.md`.
+
 ## [0.6.98] - 2026-11-14
 
 - Session recording on Android: speech is recognised by the GigaAM v3 model on the phone (with punctuation) instead

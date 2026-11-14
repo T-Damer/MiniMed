@@ -20,7 +20,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Performance log in release builds — 2026-11-14 (STATE PERFLOG1; merged, going into 0.6.99)
+## Release 0.6.99 — 2026-11-14
+
+- **In it:** PERFLOG1 (opt-in performance log with a Settings switch, adb flag, native sampler on Android, share and
+  report script). The owner asked for the switch and the release.
+- **Checks:** `bun run verify`, e2e of the performance log and the recorder. Not checked on a phone.
+
+## Performance log in release builds — 2026-11-14 (STATE PERFLOG1; released in 0.6.99)
 
 - **Why:** the owner still feels lag after 0.6.98, mostly while recording, and asked for a «метка» on releases
   that collects a performance log from their own phone.
