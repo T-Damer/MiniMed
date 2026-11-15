@@ -144,6 +144,62 @@ describe('ModuleShelf with kept facts', () => {
     expect(saved.get('a')).toEqual({ health: HEALTH, listings: { listAliases: 'listAliases:a' } });
   });
 
+  /** A worker whose pool lists `files`, as the real one does at start. */
+  const listingWorker = (files: readonly string[]) =>
+    fakeWorker((request) =>
+      request.type === 'init' ? ({ id: request.id, result: files } as ShelfResponse) : undefined,
+    );
+  const types = (requests: readonly ShelfRequest[]) => requests.map((request) => request.type);
+
+  it('does not open a listed file with kept facts until its first real call', async () => {
+    const { worker, requests } = listingWorker(['a']);
+    const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    await store.initialize();
+    await store.getHealth();
+    expect(types(requests)).toEqual(['init']);
+    expect(await store.getChunk('id')).toBe('getChunk:a');
+    expect(types(requests)).toEqual(['init', 'open', 'batch']);
+    expect(calls(requests)).toEqual(['initialize:a', 'getChunk:a']);
+  });
+
+  it('opens a file the pool does not list at once, so a missing module fails at the mount', async () => {
+    const { worker, requests } = listingWorker([]);
+    const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    expect(types(requests)).toEqual(['init', 'open']);
+  });
+
+  it('warms the files left for later, and closes only what it opened', async () => {
+    const { worker, requests } = listingWorker(['a', 'b']);
+    const { store: facts } = memoryFacts({
+      a: { health: HEALTH as never },
+      b: { health: HEALTH as never },
+    });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const a = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    const b = await shelf.open('b', 10, { cacheSizeKiB: -256 });
+    await b.close();
+    expect(types(requests)).toEqual(['init']);
+    await shelf.warm();
+    expect(types(requests)).toEqual(['init', 'open']);
+    await a.close();
+    expect(types(requests)).toEqual(['init', 'open', 'close']);
+  });
+
+  it('answers a rebuilt core from the same page without initialising the file again', async () => {
+    const { worker, requests } = fakeWorker();
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
+    const first = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    await first.initialize();
+    await first.getHealth();
+    const second = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    expect(await second.initialize()).toEqual(HEALTH);
+    expect(calls(requests)).toEqual(['initialize:a', 'getHealth:a']);
+  });
+
   it('does not trust kept facts for a file that was just written', async () => {
     const { worker, requests } = fakeWorker();
     const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });

@@ -72,8 +72,16 @@ type ShelfListingMethod =
 
 export interface ShelfEntry {
   leases: number;
-  /** Settles when the worker has the connection open (or failed to). */
-  readonly opened: Promise<void>;
+  /**
+   * Settles when the worker has the connection open (or failed to). Unset while the connection is
+   * not asked for yet: a file with kept facts is opened by its first real call or by the
+   * background warm-up, not at the start (800 cold file opens cost 18–20 s on a phone).
+   */
+  opened?: Promise<void> | undefined;
+  /** Opens the connection now, once. */
+  readonly connect: () => Promise<void>;
+  /** The worker's `initialize` has been sent for this file in this page. */
+  initSent?: boolean;
   readonly listings: Map<ShelfListingMethod, Promise<unknown>>;
   /** The file's health never changes while it is open read-only; every search asks for it. */
   health?: Promise<StorageHealth> | undefined;
@@ -203,6 +211,13 @@ class ShelfShard {
       options.bytes || this.entries.has(file) || !this.options.facts
         ? undefined
         : (await this.options.facts.load()).get(file);
+    // Known facts and a file the pool lists: nothing has to be read now. A file the pool does not
+    // list is opened at once, so a missing module is reported at the mount as before.
+    let lazy = false;
+    if (known?.health && !this.entries.has(file)) {
+      await this.start();
+      lazy = this.files.has(file);
+    }
     let entry = this.entries.get(file);
     if (entry) {
       entry.leases += 1;
@@ -210,15 +225,18 @@ class ShelfShard {
       const keptHealth = known?.health;
       const created: ShelfEntry = {
         leases: 1,
-        opened: this.send({
-          type: 'open',
-          file,
-          byteLength,
-          cacheSizeKiB: options.cacheSizeKiB,
-          ...(options.bytes ? { bytes: options.bytes } : {}),
-        }).then(() => {
-          this.files.add(file);
-        }),
+        connect: () => {
+          created.opened ??= this.send({
+            type: 'open',
+            file,
+            byteLength,
+            cacheSizeKiB: options.cacheSizeKiB,
+            ...(options.bytes ? { bytes: options.bytes } : {}),
+          }).then(() => {
+            this.files.add(file);
+          });
+          return created.opened;
+        },
         listings: new Map(
           Object.entries(known?.listings ?? {}).map(([method, value]) => [
             method as ShelfListingMethod,
@@ -230,10 +248,12 @@ class ShelfShard {
       };
       entry = created;
       this.entries.set(file, created);
+      if (!lazy) void created.connect().catch(() => undefined);
     }
     const current = entry;
     try {
-      await current.opened;
+      // A lazily kept file has nothing to wait for; anything else waits for its connection.
+      if (current.opened) await current.opened;
     } catch (cause) {
       current.leases -= 1;
       if (this.entries.get(file) === current && current.leases === 0) this.entries.delete(file);
@@ -252,10 +272,12 @@ class ShelfShard {
     return new Promise((resolve, reject) => {
       const wasEmpty = this.queued.length === 0;
       const entry = this.entries.get(file);
+      if (entry && method === 'initialize') entry.initSent = true;
       if (entry?.initPending) {
         // The start answered from the kept facts; the file itself is initialised now, in front of
         // its first real call (same message, same order).
         entry.initPending = false;
+        entry.initSent = true;
         if (method !== 'initialize') {
           const ignore = (): void => undefined;
           this.queued.push({
@@ -283,8 +305,31 @@ class ShelfShard {
   private async flushCalls(): Promise<void> {
     // Calls issued in the microtasks that ran before this one are in the queue now.
     await Promise.resolve();
-    const calls = this.queued;
+    const queued = this.queued;
     this.queued = [];
+    // Files whose connection was left for later are opened now; a file that cannot be opened
+    // fails its own calls only.
+    const unopened = new Map<string, Error>();
+    await Promise.all(
+      [...new Set(queued.map((call) => call.file))].map(async (file) => {
+        const entry = this.entries.get(file);
+        if (!entry) return;
+        try {
+          await entry.connect();
+        } catch (cause) {
+          unopened.set(
+            file,
+            cause instanceof Error ? cause : new Error('The module file could not be opened.'),
+          );
+        }
+      }),
+    );
+    const calls = queued.filter((call) => {
+      const failure = unopened.get(call.file);
+      if (failure) call.reject(failure);
+      return !failure;
+    });
+    if (calls.length === 0) return;
     try {
       const outcomes = (await this.send({
         type: 'batch',
@@ -307,9 +352,24 @@ class ShelfShard {
     if (entry.leases > 0 || this.entries.get(file) !== entry) return;
     this.entries.delete(file);
     try {
-      await this.send({ type: 'close', file });
+      // A connection that was never asked for has nothing to close.
+      if (entry.opened) {
+        await entry.opened.catch(() => undefined);
+        await this.send({ type: 'close', file });
+      }
     } finally {
       this.scheduleIdleShutdown();
+    }
+  }
+
+  /**
+   * Opens the connections left for later, one after another, so the first search does not pay for
+   * all of them at once. One at a time: a reader's call for a single file waits for one open.
+   */
+  public async warm(): Promise<void> {
+    for (const entry of [...this.entries.values()]) {
+      if (this.failure) return;
+      if (!entry.opened) await entry.connect().catch(() => undefined);
     }
   }
 
@@ -494,6 +554,11 @@ export class ModuleShelf {
     return moved;
   }
 
+  /** Opens, in the background, the files whose connection the start left for later. */
+  public async warm(): Promise<void> {
+    await Promise.all(this.shards.map((shard) => shard.warm()));
+  }
+
   /** Stops the workers (tests, and the end of the page). Open stores fail afterwards. */
   public dispose(): void {
     for (const shard of this.shards) shard.dispose();
@@ -551,7 +616,13 @@ export class ShelfModuleStore implements MedicalStore {
     }
     // Kept from an earlier start: the answer is known, and the file is initialised with its
     // first real call instead of now (800 files at every start).
-    if (seed === undefined && this.entry.initPending && this.entry.health && !this.closed) {
+    // Also on a core rebuild: the file was initialised once in this page already.
+    if (
+      seed === undefined &&
+      (this.entry.initPending || this.entry.initSent) &&
+      this.entry.health &&
+      !this.closed
+    ) {
       return this.entry.health;
     }
     return this.call('initialize', seed === undefined ? [] : [seed]);

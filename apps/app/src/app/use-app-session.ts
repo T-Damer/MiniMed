@@ -11,6 +11,7 @@ import {
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
+import { getModuleShelf } from '@/composition/module-shelf';
 import { RetirableMedicalCore } from '@/composition/retirable-medical-core';
 import {
   cancelQueuedAndroidApkDownload,
@@ -558,6 +559,9 @@ export function useAppSession() {
       // while the screen is idle after the reveal, not inside the first query (PERF5).
       void afterBootReveal()
         .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
+        // The module files the start did not open are opened now, in the background, so the
+        // first search over all of them does not wait for 800 cold file opens.
+        .then(() => getModuleShelf()?.warm())
         .catch((cause: unknown) => {
           console.warn('Search indexes were not prepared ahead of the first query.', cause);
         });
