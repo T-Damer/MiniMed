@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.100] - 2026-11-15
+
+- The app no longer stutters while document sets install in the background (found in a performance log from a phone:
+  a resumed download queue rebuilt the whole search index after every finished set, 29 times in 8 minutes). The index is
+  now rebuilt once when the queue ends, and at most once per two minutes while it runs; a set opened by hand still
+  connects at once. The questionnaire check of each installed guideline waits for the queue and works in small steps,
+  and repeated work in every index rebuild is kept instead of redone.
+
 ## [0.6.99] - 2026-11-14
 
 - Performance log: Settings → «Основные» → «Журнал производительности» (off by default; also turned on by an adb flag

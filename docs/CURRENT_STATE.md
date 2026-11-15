@@ -20,7 +20,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Stutter while modules install — 2026-11-15 (STATE PERF7; not committed, not released)
+## Release 0.6.100 — 2026-11-15
+
+App-only release: PERF7 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build;
+e2e module-lifecycle, module-pointer, module-removal and the 96 MiB install timing pass (the drug-group timing case
+needs a newer local module copy and did not run). Not tested on a phone.
+
+## Stutter while modules install — 2026-11-15 (STATE PERF7; released in 0.6.100)
 
 Owner's performance log from the phone (0.6.99, Xiaomi 23127PN0CC, 8.4 min): 137 s of main-thread
 blocking, 91 s of it in worker-reply handlers of the module runtime while a download queue resumed
