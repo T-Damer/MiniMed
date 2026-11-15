@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.103] - 2026-11-15
+
+- Fewer freezes right after the app opens: the search index is prepared in short steps that let taps and scrolling
+  through, and the search screen no longer builds a second copy of the document-name matcher. In a local run on a
+  slowed-down CPU the longest freeze after the search box appears went from about 1.0 s to about 0.45 s.
+
 ## [0.6.102] - 2026-11-15
 
 - A lighter start: the module catalog is read about twice as fast at its first use, the search screen builds its name

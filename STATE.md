@@ -182,7 +182,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-15 claude-fable PERF9 (not committed, not released; owner goal «UI/logic under 250 ms»): core warm-up pieces yield every 8 ms (alias filter, alias expander, name vocabulary, identity names), one shared link matcher, catalog load in three tasks; unit + typecheck + check + benchmark:all + search e2e; local 4× profile only
+- 2026-11-15 claude-fable REL 0.6.103: PERF9 (app-only); verify + benchmark:all + search e2e; not on a phone
+- 2026-11-15 claude-fable PERF9 (released in 0.6.103; owner goal «UI/logic under 250 ms»): core warm-up pieces yield every 8 ms (alias filter, alias expander, name vocabulary, identity names), one shared link matcher, catalog load in three tasks; unit + typecheck + check + benchmark:all + search e2e; local 4× profile only
 - 2026-11-15 claude-fable REL 0.6.102: PERF8 (app-only); verify + search/forms/module e2e; not on a phone
 - 2026-11-15 claude-fable PERF8 (released in 0.6.102): trusted parse of the bundled catalogs (contracts, test-enforced equal to the schema), search home passes deferred to idle and shared, form search index (1 MB of form schemas off the search route), four dead components removed; unit + typecheck + check + search/forms/module e2e; `search.spec` help-menu test fails on released 0.6.101 too
 - 2026-11-15 claude-fable REL 0.6.101: PERF7 follow-up (app-only); verify + module e2e; not on a phone

@@ -20,7 +20,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Index building in slices, one link matcher — 2026-11-15 (STATE PERF9; not committed, not released)
+## Release 0.6.103 — 2026-11-15
+
+App-only release: PERF9 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,
+`benchmark:all`; e2e search (srch1, spelling, name variants, title answers, section downloads, home section start)
+and module pointer pass. Not tested on a phone.
+
+## Index building in slices, one link matcher — 2026-11-15 (STATE PERF9; released in 0.6.103)
 
 Goal (owner 2026-11-15): no UI or logic step over 250 ms. Measured on the production build at 4× CPU
 (start with the core in place), by long tasks and long animation frames.
