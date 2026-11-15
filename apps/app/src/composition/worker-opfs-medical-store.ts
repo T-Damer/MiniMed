@@ -45,7 +45,12 @@ export interface OpfsDownloadUi {
 }
 
 /** Whole-pack listings that never change while a pack is open read-only. */
-type PackListingMethod = 'listDocumentIdentities' | 'listAliases' | 'listNavigationDocuments';
+type PackListingMethod =
+  | 'listDocumentIdentities'
+  | 'listAliases'
+  | 'listNavigationDocuments'
+  | 'listSearchDocuments'
+  | 'listCoreIdentityNames';
 
 /** Hands `value` on in a later task, letting the browser draw a frame first. */
 function nextTask<T>(value: T): Promise<T> {
@@ -257,11 +262,13 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public listCoreIdentityNames(): Promise<readonly string[]> {
-    return this.call('listCoreIdentityNames', []);
+    return this.listing('listCoreIdentityNames');
   }
 
   public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
-    return this.call('listSearchDocuments', []);
+    // 20 000 descriptors: a core rebuilt after an install read and decoded them again (seconds of
+    // the main thread on a phone, performance log 0.6.104).
+    return this.listing('listSearchDocuments');
   }
 
   public listDocuments(): Promise<readonly DocumentRecord[]> {

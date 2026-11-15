@@ -20,6 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Third phone log: cold starts, rebuilds, reading — 2026-11-15 (STATE PERF13; committed, not released)
+
+Owner's log of 0.6.104 (44 min, three starts, most sets installed). «Search ready»: 12.6 s after a
+warm start (25 s in 0.6.102), but 24 s and 26 s after cold ones: opening ~800 module files took
+18–20 s when the phone's file cache was cold. A core rebuild after a pointer install cost 5.5 s to
+open and 5 s to initialize, and the search that followed took 35 s of which the core's own time was
+4.5 s. On the reader and recorder screens the blocking came from that core work (module and core
+replies), not from the reader (<1 s of its own code) or the recorder.
+
+- **Module files are not opened at start.** A shelf file with kept facts (PERF12) that its pool
+  lists is opened by its first real call or by the background warm-up after the idle index
+  warm-up, one file at a time per shard. A file the pool does not list is opened at once, so a
+  missing module still fails at the mount. A file that cannot be opened fails its own calls only.
+- **A rebuilt core does not initialize the module files again** in the same page.
+- **A module is asked only about its own documents** once its identities are known: document
+  reads and document-filtered searches skip the other files; a module with no core identity names
+  is not asked to look one up. Core identity names and embedding profiles are kept per file too.
+- **The core database's lists survive a rebuild**: the worker store keeps the search document list
+  and identity names; on the phone the native store's five listings are answered once per page
+  (`composition/store-listing-memo.ts`) instead of crossing the bridge at every rebuild.
+- **The «what is left to download» pass** runs in slices, shared by the home and its picker (one
+  1.4 s step on the phone).
+- Local, 774 modules, 4× CPU: «search ready» 2.7–2.9 s; a search right after start still opens
+  the files it needs (7–8 s in that run), after the background warm-up it does not.
+
+Not measured on a phone. Not done: a text search still asks every installed module (one FTS
+query per file); the search home's reactive pass after a rebuild; rendering frames of 0.5–1.2 s
+when a document opens.
+
 ## «КР first» for equal titles — 2026-11-15 (STATE SRCH-KR1; committed, not released)
 
 Owner decision (2026-11-15): a clinical recommendation ranks above a general article with the same

@@ -11,6 +11,7 @@ import { readBoundedResponse } from '@/composition/bounded-response';
 import { withCalmCoreErrors } from '@/composition/calm-core-errors';
 import { ANDROID_CORE_DOWNLOAD } from '@/composition/core-download';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
+import { withKeptListings } from '@/composition/store-listing-memo';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { comparisonDrugCodes } from '@/features/drug-comparison/comparison-atc-directory';
@@ -637,7 +638,11 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
     let nativeStore: CapacitorMedicalStore | undefined;
     const mounts = startInstalledModuleMounts();
     try {
-      nativeStore = await createNativeStore(downloadUi);
+      // The same core database across rebuilds: its listings are read over the bridge once.
+      nativeStore = withKeptListings(
+        await createNativeStore(downloadUi),
+        `native-core:${nativePlatform === 'android' ? ANDROID_CORE_DOWNLOAD.checksum : 'packaged'}`,
+      );
       const contentBaseUrl = getPackagedContentBaseUrl();
       const companions = await createPackagedCompanionStores(contentBaseUrl, {
         includeMedications: false,
