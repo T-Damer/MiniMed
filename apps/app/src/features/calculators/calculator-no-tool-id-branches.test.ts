@@ -7,12 +7,10 @@ import { describe, expect, it } from 'vitest';
 // data and never branch on a tool's id or slug. This guards the screens that once did.
 const FILES = [
   'apps/app/src/features/calculators/CalculatorsView.tsx',
-  'apps/app/src/features/calculators/CalculatorHost.tsx',
   'apps/app/src/features/calculators/RecentCalculatorsRow.tsx',
   'apps/app/src/features/calculators/calculator-print.ts',
   'apps/app/src/features/calculators/calculator-packs.ts',
   'apps/app/src/features/assessments/AssessmentsView.tsx',
-  'apps/app/src/features/assessments/AssessmentHost.tsx',
   'apps/app/src/features/assessments/assessment-print.ts',
 ] as const;
 

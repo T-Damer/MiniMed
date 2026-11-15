@@ -12,6 +12,7 @@ import type {
 } from '@localmed/contracts';
 import {
   children,
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -389,8 +390,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       buildDocumentLinkPhrases(context() ? contextDocuments() : [], context()?.document.id),
     ),
   );
+  // The matcher over every document name is built when the browser is idle, not in the task that
+  // receives the list: that task already builds the home catalog (1.7 s in one piece at phone speed).
+  const linkDocuments = createDeferred(contextDocuments, { timeoutMs: 2000 });
   const queryLinkMatcher = createMemo(() =>
-    createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments())),
+    createDocumentLinkMatcher(buildDocumentLinkPhrases(linkDocuments())),
   );
   // A phrase that names several documents offers them as choices, but only those the results do
   // not already list (owner 2026-11-13: «Кветиапин» showed its card twice, above and in the list).

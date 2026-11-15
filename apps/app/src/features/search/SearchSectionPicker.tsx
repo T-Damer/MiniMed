@@ -1,6 +1,7 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-solid';
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -41,9 +42,11 @@ export function SearchSectionPicker(props: {
   let trigger: HTMLButtonElement | undefined;
   const [open, setOpen] = createSignal(false);
   const downloads = props.downloads;
+  // Deferred like the search home's own pass, so both ask with the same list and share one answer.
+  const downloadDocuments = createDeferred(() => props.documents, { timeoutMs: 2000 });
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
-    return searchSectionDownloadBlocks(props.documents, props.tools, downloads.catalog());
+    return searchSectionDownloadBlocks(downloadDocuments(), props.tools, downloads.catalog());
   });
   const block = (scope: SearchScope, group = '') =>
     downloadBlocks().get(`${scope}/${group}`) ?? EMPTY_SEARCH_DOWNLOAD_BLOCK;

@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import {
+  createDeferred,
   createEffect,
   createMemo,
   createSignal,
@@ -212,9 +213,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const document = first === undefined ? undefined : documentsById().get(first);
     return document !== undefined && searchResultDocumentKind(document) === 'medication';
   });
+  // Which sections still have something to download is worked out when the browser is idle: the
+  // pass walks the whole catalog and must not ride in the task that first lists the documents.
+  const downloadDocuments = createDeferred(documents, { timeoutMs: 2000 });
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
-    return searchSectionDownloadBlocks(documents(), toolRows(), downloads.catalog());
+    return searchSectionDownloadBlocks(downloadDocuments(), toolRows(), downloads.catalog());
   });
   /** Document sections of the current scope whose published modules are not installed yet. */
   const missingSections = createMemo(() => {

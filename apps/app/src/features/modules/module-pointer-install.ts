@@ -65,8 +65,25 @@ function stringList(value: unknown): readonly string[] | null {
   return values.length > 0 ? values : null;
 }
 
+/**
+ * The home catalog, the section downloads and the reader ask for the same 20 000 documents'
+ * pointers several times per core build; a document's metadata object does not change.
+ */
+const parsedPointers = new WeakMap<object, ModulePointerDescriptor | null>();
+
 export function parseModulePointerMetadata(
   metadata: Readonly<Record<string, unknown>> | undefined,
+): ModulePointerDescriptor | null {
+  if (!metadata) return null;
+  const known = parsedPointers.get(metadata);
+  if (known !== undefined) return known;
+  const parsed = readModulePointerMetadata(metadata);
+  parsedPointers.set(metadata, parsed);
+  return parsed;
+}
+
+function readModulePointerMetadata(
+  metadata: Readonly<Record<string, unknown>>,
 ): ModulePointerDescriptor | null {
   const pointerMetadata = metadata as ModulePointerMetadata | undefined;
   if (pointerMetadata?.contentMode !== 'module-pointer') return null;

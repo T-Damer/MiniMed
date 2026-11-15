@@ -20,6 +20,32 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Start-up work after the search box, form schemas off the search route — 2026-11-15 (STATE PERF8; not committed, not released)
+
+Measured on the production build at 4× CPU (start with the core in place, 20 000 documents).
+
+- **Bundled catalog parse.** The schema checked each of the 27 000 document rows twice (compact
+  table, then expanded membership). `parseTrustedContentModuleCatalog` (contracts) runs everything
+  but the rows through the schema and expands the rows as they are; `bundled-catalog-parse.test.ts`
+  proves the result equals the full parse for both bundled files. 111 → 20 ms in Bun; the catalog
+  task of the start 909 → 494 ms. A catalog fetched at run time still goes through the full schema.
+- **Search home.** The link matcher over every document name and the «what is left to download»
+  pass wait for idle (`createDeferred`); the home and its section picker share one answer of
+  `searchSectionDownloadBlocks`; `parseModulePointerMetadata` keeps its result per document. The
+  task that receives the document list 798 → 352 ms; the longest long task of the start
+  1.74 → 1.04 s, total long-task blocking 4.6 → 4.3 s.
+- **Form schemas.** Search listed forms through the whole form registry (13 schemas, 1 MB chunk in
+  the search route). `forms/form-search-index.ts` holds id, number and title; a test keeps it equal
+  to the schemas. Static closure of the search route: about 5.1 → 4.1 MB.
+- Removed four unreferenced components (333 lines): `EcgDigitizedWaveformReview`, `AssessmentHost`,
+  `CalculatorHost`, `BrandMark`.
+
+Left, largest first: the core builds its alias filter, name vocabulary and identity indexes on the
+main thread after start (three stretches of 0.6–0.7 s at 4×; needs the core's index building in a
+worker); `module-catalog-shell` (1 MB, 643 KB of it calculator previews) is in the start; main CSS
+is 522 KB. `search.spec.ts` «the help menu opens the feature tour…» fails on 0.6.101 as released
+(Escape does not close the tour) — not from this work, not fixed.
+
 ## Release 0.6.101 — 2026-11-15
 
 App-only release: module install validation in a worker (PERF7 follow-up, below). Core and modules unchanged.

@@ -1,7 +1,7 @@
 import {
   type ContentModuleCatalog,
-  ContentModuleCatalogEntrySchema,
-  ContentModuleCatalogSchema,
+  parseTrustedContentModuleCatalog,
+  parseTrustedContentModuleCatalogEntries,
 } from '@localmed/contracts';
 
 // Raw text keeps the multi-megabyte catalogs on V8's JSON.parse fast path; the bundler would
@@ -10,8 +10,10 @@ import catalogText from '@/features/modules/catalog.preview.json?raw';
 import terminologyText from '@/features/modules/catalog.terminology.json?raw';
 import { withLocalDefinitionReference } from '@/features/modules/local-definition-reference';
 
-const terminologyModules = ContentModuleCatalogEntrySchema.array().parse(
-  JSON.parse(terminologyText),
+// Both files ship inside the build: `bundled-catalog-parse.test.ts` proves the trusted parse equals
+// the full schema parse, which took five times as long at the first use of the catalog.
+const terminologyModules = parseTrustedContentModuleCatalogEntries(
+  JSON.parse(terminologyText) as readonly unknown[],
 );
 if (new Set(terminologyModules.map((module) => module.id)).size !== terminologyModules.length) {
   throw new Error('Bundled terminology catalog contains duplicate module IDs.');
@@ -34,7 +36,7 @@ export function withBundledTerminology(catalog: ContentModuleCatalog): ContentMo
 }
 
 /** The release catalog without bundled terminology, for loaders that merge terminology later. */
-export const BASE_MODULE_CATALOG = ContentModuleCatalogSchema.parse(JSON.parse(catalogText));
+export const BASE_MODULE_CATALOG = parseTrustedContentModuleCatalog(JSON.parse(catalogText));
 
 export const MODULE_CATALOG = withBundledTerminology(BASE_MODULE_CATALOG);
 

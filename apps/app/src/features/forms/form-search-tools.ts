@@ -1,6 +1,6 @@
-import { anyAgeScope, type FormSchema } from '@localmed/contracts';
+import { anyAgeScope } from '@localmed/contracts';
 
-import { listFormSchemas } from '@/features/forms/form-registry';
+import { FORM_SEARCH_INDEX, type FormSearchEntry } from '@/features/forms/form-search-index';
 import { notesFormsPath } from '@/features/notes/notes-routing';
 
 /** A form as search lists it next to calculators and questionnaires; opens the filling screen. */
@@ -30,7 +30,7 @@ function numberAliases(formNumber: string): readonly string[] {
   ];
 }
 
-export function formSearchTool(schema: FormSchema): FormSearchTool {
+export function formSearchTool(schema: FormSearchEntry): FormSearchTool {
   return {
     id: schema.id,
     title: `Форма № ${schema.formNumber} — ${schema.title}`,
@@ -41,7 +41,7 @@ export function formSearchTool(schema: FormSchema): FormSearchTool {
 }
 
 export function listFormSearchTools(): readonly FormSearchTool[] {
-  return listFormSchemas().map(formSearchTool);
+  return FORM_SEARCH_INDEX.map(formSearchTool);
 }
 
 /** Forms are not tied to a patient's age. */

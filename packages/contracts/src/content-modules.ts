@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import {
+  type ContentModuleDocumentTable,
   compactCatalogDocuments,
+  expandDocumentTable,
   expandModuleDocumentTable,
 } from './content-module-document-table';
 import { DefinitionReferenceModuleSchema } from './definition-reference-api';
@@ -391,6 +393,55 @@ export type ContentModuleInstallState = z.infer<typeof ContentModuleInstallState
 export type ContentModuleCatalogEntry = z.infer<typeof ContentModuleCatalogEntrySchema>;
 export type ContentModuleCategory = z.infer<typeof ContentModuleCategorySchema>;
 export type ContentModuleCatalog = z.infer<typeof ContentModuleCatalogSchema>;
+
+function withoutDocumentTable(module: unknown): unknown {
+  if (typeof module !== 'object' || module === null || !('documentTable' in module)) return module;
+  const { documentTable: _table, ...rest } = module as Record<string, unknown>;
+  return rest;
+}
+
+function attachTrustedDocuments(
+  parsed: readonly ContentModuleCatalogEntry[],
+  raw: readonly unknown[],
+): void {
+  parsed.forEach((module, index) => {
+    const source = raw[index];
+    if (typeof source !== 'object' || source === null || !('documentTable' in source)) return;
+    (module as { documents: ContentModuleCatalogEntry['documents'] }).documents =
+      expandDocumentTable(source.documentTable as ContentModuleDocumentTable);
+  });
+}
+
+/**
+ * Catalog entries that ship inside the build. The schema checks every document row twice (the
+ * compact table, then the expanded membership): 27 000 rows are four fifths of the parse and held
+ * the phone's screen at the first use of the catalog. Here everything but the rows goes through
+ * the schema and the rows are expanded as they are. Only for bytes the build owns, and only while
+ * a test proves the result equals the full schema parse; a catalog fetched at run time uses
+ * {@link ContentModuleCatalogSchema}.
+ */
+export function parseTrustedContentModuleCatalogEntries(
+  raw: readonly unknown[],
+): ContentModuleCatalogEntry[] {
+  const parsed = ContentModuleCatalogEntrySchema.array().parse(raw.map(withoutDocumentTable));
+  attachTrustedDocuments(parsed, raw);
+  return parsed;
+}
+
+/** {@link parseTrustedContentModuleCatalogEntries} for a whole bundled catalog. */
+export function parseTrustedContentModuleCatalog(raw: unknown): ContentModuleCatalog {
+  const modules =
+    typeof raw === 'object' && raw !== null && 'modules' in raw && Array.isArray(raw.modules)
+      ? (raw.modules as readonly unknown[])
+      : undefined;
+  if (!modules) return ContentModuleCatalogSchema.parse(raw);
+  const parsed = ContentModuleCatalogSchema.parse({
+    ...(raw as Record<string, unknown>),
+    modules: modules.map(withoutDocumentTable),
+  });
+  attachTrustedDocuments(parsed.modules, modules);
+  return parsed;
+}
 export type CoreCatalogTopicStub = z.infer<typeof CoreCatalogTopicStubSchema>;
 export type InstalledContentModule = z.infer<typeof InstalledContentModuleSchema>;
 export type ContentModuleDownloadTask = z.infer<typeof ContentModuleDownloadTaskSchema>;

@@ -36,15 +36,49 @@ export const EMPTY_SEARCH_DOWNLOAD_BLOCK: SearchDownloadBlock = {
   unavailable: false,
 };
 
-/** Use document membership and declared tool ids, never a module's title or broad specialty tag. */
+let lastBlocks:
+  | {
+      readonly documents: readonly MedicalDocumentSummary[];
+      readonly tools: readonly SearchCatalogTool[];
+      readonly catalog: ContentModuleCatalog;
+      readonly experimentalEnabled: boolean;
+      readonly blocks: ReadonlyMap<string, SearchDownloadBlock>;
+    }
+  | undefined;
+
+/**
+ * Use document membership and declared tool ids, never a module's title or broad specialty tag.
+ * The search home and its section picker ask with the same lists, so the last answer is kept: the
+ * pass walks every catalog document and every document of the core.
+ */
 export function searchSectionDownloadBlocks(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
   catalog: ContentModuleCatalog,
 ): ReadonlyMap<string, SearchDownloadBlock> {
+  const experimentalEnabled = getExperimentalModulesEnabled();
+  if (
+    lastBlocks &&
+    lastBlocks.documents === documents &&
+    lastBlocks.tools === tools &&
+    lastBlocks.catalog === catalog &&
+    lastBlocks.experimentalEnabled === experimentalEnabled
+  ) {
+    return lastBlocks.blocks;
+  }
+  const blocks = computeSearchSectionDownloadBlocks(documents, tools, catalog, experimentalEnabled);
+  lastBlocks = { documents, tools, catalog, experimentalEnabled, blocks };
+  return blocks;
+}
+
+function computeSearchSectionDownloadBlocks(
+  documents: readonly MedicalDocumentSummary[],
+  tools: readonly SearchCatalogTool[],
+  catalog: ContentModuleCatalog,
+  experimentalEnabled: boolean,
+): ReadonlyMap<string, SearchDownloadBlock> {
   // One read of the «Experimental» switch for the whole pass: per module and per document it was
   // two storage reads each time (0.4 s per install queue at phone speed).
-  const experimentalEnabled = getExperimentalModulesEnabled();
   const isReleased = (module: ContentModuleCatalogEntry): boolean =>
     isModuleReleasedWith(module, experimentalEnabled);
   const byDocument = new Map<string, ContentModuleCatalogEntry[]>();
