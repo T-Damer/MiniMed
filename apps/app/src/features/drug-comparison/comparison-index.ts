@@ -251,9 +251,12 @@ export function compareInstructions(left: RankedDocument, right: RankedDocument)
     rowCount(right.document.y) - rowCount(left.document.y) ||
     left.document.s - right.document.s ||
     left.document.k - right.document.k ||
-    left.id.localeCompare(right.id)
+    ID_ORDER.compare(left.id, right.id)
   );
 }
+
+/** The order of `localeCompare`, without setting up a collator for every comparison of the sort. */
+const ID_ORDER = new Intl.Collator();
 
 export interface ComparisonIndex {
   readonly asset: ComparisonIndexAsset;
@@ -279,7 +282,7 @@ export function createComparisonIndex(asset: ComparisonIndexAsset): ComparisonIn
     list.sort((left, right) => {
       const a = asset.documents[left];
       const b = asset.documents[right];
-      if (!a || !b) return left.localeCompare(right);
+      if (!a || !b) return ID_ORDER.compare(left, right);
       return compareInstructions({ id: left, document: a }, { id: right, document: b });
     });
   }

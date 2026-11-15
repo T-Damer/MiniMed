@@ -122,7 +122,7 @@ import {
   scopedSearchFoundNothing,
   searchOtherSections,
 } from '@/features/search/search-scope-fallback';
-import { titleIndexFor } from '@/features/search/title-index';
+import { prepareTitleIndex, titleIndexFor } from '@/features/search/title-index';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
 import '@/features/search/search-error.css';
 import '@/features/search/search-refresh.css';
@@ -383,7 +383,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((available) => {
       if (!available.ok || contextDocuments().length > 0) return;
       setContextDocuments(available.value);
-      const build = (): void => void titleIndexFor(available.value);
+      const build = (): void => {
+        prepareTitleIndex(available.value).catch((cause: unknown) => {
+          console.warn('The title index was not prepared ahead of the first query.', cause);
+        });
+      };
       if (typeof window.requestIdleCallback === 'function') {
         window.requestIdleCallback(build, { timeout: 2000 });
       } else globalThis.setTimeout(build, 200);
@@ -1065,7 +1069,29 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       ...(everywhere ? { sourceNames: false } : {}),
     });
     performance.mark('minimed:search:core');
-    endSearchSpan({ ok: result.ok });
+    // Where the time went inside the core: its own total, the query model and the text branches.
+    endSearchSpan(
+      result.ok
+        ? {
+            ok: true,
+            coreMs: result.value.elapsedMs,
+            mode: result.value.modeUsed,
+            semantic: result.value.diagnostics.semantic.status,
+            semanticMs: result.value.diagnostics.semantic.elapsedMs,
+            semanticHits: result.value.diagnostics.semantic.candidateCount,
+            branches: result.value.diagnostics.branches.length,
+            branchMs: result.value.diagnostics.branches.reduce(
+              (total, branch) => total + branch.elapsedMs,
+              0,
+            ),
+            slowestBranchMs: result.value.diagnostics.branches.reduce(
+              (slowest, branch) => Math.max(slowest, branch.elapsedMs),
+              0,
+            ),
+            groups: result.value.groups.length,
+          }
+        : { ok: false },
+    );
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
     // A section that found nothing: the same words over all sources, before the list is shown, so

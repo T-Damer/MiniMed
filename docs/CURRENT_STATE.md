@@ -20,6 +20,54 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Second phone log: searches with every module installed — 2026-11-15 (STATE PERF10; not released)
+
+Owner's log of 0.6.102 (10.5 min, most document sets installed): 34.8 s of blocking (137 s in the
+0.6.99 log). Start took 25 s to «search ready» (core create 19 s, module mount 18.8 s); two
+searches took 54 s and 37 s with 2–4 s frames in worker-reply handlers; a few taps froze 1–2 s
+while those searches ran. Reproduced with 774 clinical modules at 4× CPU.
+
+- **A search that races the idle warm-up** built the alias expander and the identity index in one
+  piece; it now waits for the sliced build (`ensureLookupExpansion`) and primes the names in
+  slices. Longest core step in the first search 856 → 402 ms at 4×.
+- **Dose-rule index**: the schema pass over the 3 MB bundled asset on first use is replaced by
+  `trustBundledDoseRuleIndex` (reference checks kept; `dose-load.test.ts` proves the schema returns
+  the file unchanged). 693 → 212 ms at 4×.
+- **Drug names**: `drugNameEntries` is built once per index (three callers built it each), and
+  each screen waiting for the comparison index continues in its own task; one collator for the
+  instruction sort.
+- **Title index** built in slices in idle time (`prepareTitleIndex`; 0.6 s step on the phone).
+- **Search phases in the performance log**: the `search.core` span now carries the core's own
+  time, the mode, the query model's status and time, the number of text branches and their time.
+  The 54 s is not explained yet: only 20 s of it was main-thread blocking, and no phase timing was
+  recorded. The next log will say whether it is the query model, the text search over the module
+  files, or waiting for the warm-up.
+
+Not addressed: 25 s to «search ready» with every module installed (module mount), the 1–2 s
+rendering frames when Settings or a document opens (`sticky-surface`, `DocumentPageHost`, render
+time, not script), and the return to the search home (1.65 s `hashchange`).
+
+## On-device models: runtime files, idle unload, one speech recognizer — 2026-11-15 (STATE MODELS1; not released)
+
+Survey of ECG, skin, semantic search and dictation (owner 2026-11-15): every ONNX model already runs
+in a worker (one thread: the WebView is not cross-origin isolated) or natively; sessions are reused.
+
+- **ONNX runtime files pinned in the search and speech workers.** `e5.worker.ts` and `asr.worker.ts`
+  left transformers.js at its default, the runtime's WebAssembly from a public CDN; they now use the
+  files the build ships (`pinOrtWasmFiles`), as ECG and skin already did. Whether the default
+  actually failed offline on a phone was not observed.
+- **Idle unload** (`features/onnx/idle-release.ts`): the ECG and skin workers stop 2 min after their
+  last request, the search model worker (119 MB) after 5 min; the next request starts a new worker.
+- **Android dictation** (`LocalMedTranscriberPlugin.kt`, `NativeSherpaTranscriber.kt`): one GigaAM
+  recognizer for live stretches and file transcription (a file no longer builds a second copy of
+  the 225 MB model); `prepareSpeech` builds it when a recording starts instead of inside the first
+  stretch (~3 s on the phone, `docs/research/recorder-perf-2026-11.md`); it is released after 5 min
+  without speech. **The Kotlin was not compiled locally** (the toolchain needs JDK 21, this machine
+  has 27) and not run on a phone; `native:source:check` passes.
+
+Not done (needs a phone or a new model file): dictation thread count (2), ECG latency (never
+measured), a pruned-vocabulary search model (KD1's area), the plain non-asyncify runtime build.
+
 ## Release 0.6.103 — 2026-11-15
 
 App-only release: PERF9 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,

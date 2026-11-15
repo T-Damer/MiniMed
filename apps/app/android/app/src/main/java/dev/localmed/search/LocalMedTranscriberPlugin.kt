@@ -28,8 +28,13 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 @CapacitorPlugin(
@@ -58,6 +63,7 @@ class LocalMedTranscriberPlugin : Plugin() {
         private const val BUFFER_BYTES = 64 * 1024
         /** 16 kHz mono 16-bit: one stretch of the conversation recorder is at most ~24 s. */
         private const val MAX_PCM_SECONDS = 120
+        private const val SPEECH_IDLE_RELEASE_MINUTES = 5L
         private const val PCM_SAMPLE_RATE = 16_000
         private const val SPEECH_MODEL = "gigaam-v3-punct.int8.onnx"
         private const val SPEECH_TOKENS = "gigaam-v3-punct.tokens.txt"
@@ -95,8 +101,46 @@ class LocalMedTranscriberPlugin : Plugin() {
      * Short stretches of the conversation recorder: their own thread, so a long visit transcription
      * never holds live text back. The recognizer is built on first use and kept until destroy.
      */
-    private val speechExecutor = Executors.newSingleThreadExecutor()
+    private val speechExecutor = Executors.newSingleThreadScheduledExecutor()
     private var speechRecognizer: OfflineRecognizer? = null
+    private var speechIdleRelease: ScheduledFuture<*>? = null
+
+    /**
+     * The one recognizer of the app, built on first use. Speech thread only: live dictation and
+     * file transcription both read speech here, so the 225 MB model is loaded once.
+     */
+    private fun speechRecognizerOnSpeechThread(): OfflineRecognizer {
+        speechIdleRelease?.cancel(false)
+        speechIdleRelease = null
+        return speechRecognizer
+            ?: run {
+                verifyModel(MODEL_SPECS.getValue(SPEECH_MODEL))
+                verifyModel(MODEL_SPECS.getValue(SPEECH_TOKENS))
+                NativeSherpaTranscriber.createRecognizer(modelDirectory()).also {
+                    speechRecognizer = it
+                }
+            }
+    }
+
+    /** Speech thread only: the model leaves memory after a few minutes without speech to read. */
+    private fun releaseSpeechRecognizerWhenIdle() {
+        speechIdleRelease?.cancel(false)
+        speechIdleRelease =
+            try {
+                speechExecutor.schedule(
+                    Runnable {
+                        speechRecognizer?.release()
+                        speechRecognizer = null
+                        speechIdleRelease = null
+                    },
+                    SPEECH_IDLE_RELEASE_MINUTES,
+                    TimeUnit.MINUTES,
+                )
+            } catch (_: RejectedExecutionException) {
+                // The plugin is shutting down; handleOnDestroy releases the recognizer.
+                null
+            }
+    }
     /** Files whose checksum matched, by (size, mtime): a 225 MB model is hashed once per process. */
     private val verifiedModels = ConcurrentHashMap<String, Pair<Long, Long>>()
     private var recording: RecordingSession? = null
@@ -378,6 +422,25 @@ class LocalMedTranscriberPlugin : Plugin() {
                         onTranscriptionProgress = { completed, total ->
                             notifyProgress("transcribing", completed, total, null)
                         },
+                        recognizeText = { samples ->
+                            try {
+                                speechExecutor
+                                    .submit(
+                                        Callable<String> {
+                                            try {
+                                                NativeSherpaTranscriber.recognizeWindowed(
+                                                    speechRecognizerOnSpeechThread(),
+                                                    samples,
+                                                )
+                                            } finally {
+                                                releaseSpeechRecognizerWhenIdle()
+                                            }
+                                        },
+                                    ).get()
+                            } catch (error: ExecutionException) {
+                                throw error.cause ?: error
+                            }
+                        },
                     )
                 notifyProgress("finalizing", 0, 1, "Собираем расшифровку")
                 val array = JSArray()
@@ -429,16 +492,11 @@ class LocalMedTranscriberPlugin : Plugin() {
                 val shorts = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
                 val samples = FloatArray(shorts.remaining())
                 for (index in samples.indices) samples[index] = shorts.get(index) / 32_768f
-                val recognizer =
-                    speechRecognizer
-                        ?: run {
-                            verifyModel(MODEL_SPECS.getValue(SPEECH_MODEL))
-                            verifyModel(MODEL_SPECS.getValue(SPEECH_TOKENS))
-                            NativeSherpaTranscriber.createRecognizer(modelDirectory()).also {
-                                speechRecognizer = it
-                            }
-                        }
-                val text = NativeSherpaTranscriber.recognizeWindowed(recognizer, samples)
+                val text =
+                    NativeSherpaTranscriber.recognizeWindowed(
+                        speechRecognizerOnSpeechThread(),
+                        samples,
+                    )
                 call.resolve(JSObject().put("text", text))
             } catch (error: Exception) {
                 call.reject("Не удалось распознать речь.", "SPEECH_RECOGNITION_FAILED", error)
@@ -448,6 +506,32 @@ class LocalMedTranscriberPlugin : Plugin() {
                     "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
                     Exception(error),
                 )
+            } finally {
+                releaseSpeechRecognizerWhenIdle()
+            }
+        }
+    }
+
+    /**
+     * Loads the speech model ahead of the first stretch. Called when a recording starts: building
+     * the recognizer takes about 3 s on a phone, and the first words waited for it.
+     */
+    @PluginMethod
+    fun prepareSpeech(call: PluginCall) {
+        speechExecutor.execute {
+            try {
+                speechRecognizerOnSpeechThread()
+                call.resolve()
+            } catch (error: Exception) {
+                call.reject("Модель распознавания не готова.", "SPEECH_MODEL_UNAVAILABLE", error)
+            } catch (error: LinkageError) {
+                call.reject(
+                    "Нативный runtime распознавания недоступен.",
+                    "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
+                    Exception(error),
+                )
+            } finally {
+                releaseSpeechRecognizerWhenIdle()
             }
         }
     }
@@ -470,6 +554,8 @@ class LocalMedTranscriberPlugin : Plugin() {
         transcriptionExecutor.shutdownNow()
         // Released on its own thread, after any stretch already being read.
         speechExecutor.execute {
+            speechIdleRelease?.cancel(false)
+            speechIdleRelease = null
             speechRecognizer?.release()
             speechRecognizer = null
         }

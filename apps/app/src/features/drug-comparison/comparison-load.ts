@@ -19,5 +19,13 @@ export function loadComparisonIndex(): Promise<ComparisonIndex> {
       pending = undefined;
       throw error;
     });
-  return pending;
+  // Each caller continues in a task of its own: several screens wait for the index, and what they
+  // build from it ran back to back in the task that parsed it (a 1.3 s step on a phone).
+  return pending.then(inNextTask);
+}
+
+function inNextTask<T>(value: T): Promise<T> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value), 0);
+  });
 }

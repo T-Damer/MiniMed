@@ -1,4 +1,6 @@
 import { env, type FeatureExtractionPipeline, pipeline } from '@huggingface/transformers';
+import type { Env as OrtEnv } from 'onnxruntime-web/webgpu';
+import { pinOrtWasmFiles } from '@/features/onnx/ort-wasm-paths';
 import { E5_MODEL_ID, E5_MODEL_REVISION, pinnedE5File } from './e5-model';
 import { readBundledE5ModelFile } from './e5-model-bundled';
 import { readE5ModelFile } from './e5-model-cache';
@@ -21,6 +23,10 @@ export type E5WorkerOutMessage =
   | { readonly type: 'embed-error'; readonly requestId: number; readonly message: string };
 
 env.allowLocalModels = false;
+// transformers.js otherwise takes the ONNX runtime's WebAssembly from a public CDN: offline, or in
+// the APK without a network, the model would not start. The build ships those files.
+const ortEnv = (env as { backends?: { onnx?: Partial<OrtEnv> } }).backends?.onnx;
+if (ortEnv?.wasm) pinOrtWasmFiles(ortEnv as OrtEnv);
 let source: E5WorkerModelSource = { kind: 'download' };
 
 // Every model file comes from the APK's bundled copy or the verified local cache; a missing file

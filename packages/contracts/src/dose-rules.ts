@@ -242,18 +242,44 @@ export function parseDoseRuleIndex(value: unknown): DoseRuleIndexAsset {
   if (!parsed.success) {
     throw new Error(`Dose-rule index: ${parsed.error.issues[0]?.message ?? 'malformed'}`);
   }
-  for (const [id, document] of Object.entries(parsed.data.documents)) {
+  assertDoseRuleReferences(parsed.data);
+  return parsed.data;
+}
+
+/**
+ * The index that ships inside the build, without the schema pass: the pass over the 3 MB asset
+ * held the main thread for most of a second on a phone the first time a drug was looked up. Only
+ * for the bundled file, and only while a test proves that {@link parseDoseRuleIndex} accepts it
+ * and returns it unchanged. The cheap reference checks still run.
+ */
+export function trustBundledDoseRuleIndex(value: unknown): DoseRuleIndexAsset {
+  const asset = value as DoseRuleIndexAsset;
+  if (
+    typeof asset !== 'object' ||
+    asset === null ||
+    !Array.isArray(asset.modules) ||
+    !Array.isArray(asset.cards) ||
+    typeof asset.documents !== 'object' ||
+    asset.documents === null
+  ) {
+    throw new Error('Dose-rule index: malformed');
+  }
+  assertDoseRuleReferences(asset);
+  return asset;
+}
+
+function assertDoseRuleReferences(asset: DoseRuleIndexAsset): void {
+  for (const [id, document] of Object.entries(asset.documents)) {
     for (const rule of document.rules) {
       if (rule.s >= document.sec.length || rule.b <= rule.a) {
         throw new Error(`Dose-rule index: document ${id} has an invalid rule range`);
       }
     }
-    if (document.m >= parsed.data.modules.length) {
+    if (document.m >= asset.modules.length) {
       throw new Error(`Dose-rule index: document ${id} has no module`);
     }
-    if (document.c.some((card) => card >= parsed.data.cards.length)) {
+    if (document.c.some((card) => card >= asset.cards.length)) {
       throw new Error(`Dose-rule index: document ${id} has an invalid card`);
     }
   }
-  return parsed.data;
 }

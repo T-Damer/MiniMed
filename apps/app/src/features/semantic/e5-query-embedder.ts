@@ -1,4 +1,5 @@
 import { KD1_FUSION, KD1_PROFILE, NeuralQueryEmbedder } from '@localmed/search-semantic';
+import { createIdleRelease } from '@/features/onnx/idle-release';
 import type { E5EmbedMessage, E5WorkerOutMessage } from './e5.worker';
 import { discardDownloadedE5Model, isDownloadedE5ModelInstalled } from './e5-model-cache';
 import { resolveE5ModelSource } from './e5-model-source';
@@ -26,6 +27,7 @@ function embeddingWorker(): Worker {
     pending.delete(message.requestId);
     if (message.type === 'embedding') request.resolve(message.values);
     else request.reject(new Error(message.message));
+    if (pending.size === 0) idleRelease.idle();
   };
   created.onerror = () => {
     for (const request of pending.values()) request.reject(new Error('semantic-worker-failed'));
@@ -36,6 +38,16 @@ function embeddingWorker(): Worker {
   worker = created;
   return created;
 }
+
+/**
+ * The 119 MB model leaves memory after five minutes without a query; the next query loads it
+ * again, as the first one after a start does.
+ */
+const idleRelease = createIdleRelease(() => {
+  if (pending.size > 0) return;
+  worker?.terminate();
+  worker = null;
+}, 5 * 60_000);
 
 let installed: boolean | null = null;
 
@@ -72,6 +84,7 @@ async function encode(text: string): Promise<Float32Array> {
   const requestId = ++requestCounter;
   const values = await new Promise<Float32Array>((resolve, reject) => {
     pending.set(requestId, { resolve, reject });
+    idleRelease.busy();
     const message: E5EmbedMessage = { type: 'embed', requestId, text, source };
     embeddingWorker().postMessage(message);
   });

@@ -182,6 +182,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-15 claude-fable PERF10 (not released; owner's 0.6.102 phone log): search racing the warm-up shares sliced builds, bundled dose index without the schema pass, drug name entries once, sliced title index, search phase timings in the perf log; unit + typecheck + check + benchmark:all + search/drug/ECG/skin e2e
+- 2026-11-15 claude-fable MODELS1 (not released): ONNX runtime files pinned in `e5.worker.ts` (KD1's path, owner go-ahead) and `asr.worker.ts`; idle unload of ECG, skin and search workers; Android dictation shares one recognizer, warms it at recording start, releases it idle — Kotlin NOT compiled locally (no JDK 21), not on a phone; unit + typecheck + check + native:source:check + ECG/skin e2e
 - 2026-11-15 claude-fable REL 0.6.103: PERF9 (app-only); verify + benchmark:all + search e2e; not on a phone
 - 2026-11-15 claude-fable PERF9 (released in 0.6.103; owner goal «UI/logic under 250 ms»): core warm-up pieces yield every 8 ms (alias filter, alias expander, name vocabulary, identity names), one shared link matcher, catalog load in three tasks; unit + typecheck + check + benchmark:all + search e2e; local 4× profile only
 - 2026-11-15 claude-fable REL 0.6.102: PERF8 (app-only); verify + search/forms/module e2e; not on a phone

@@ -1,4 +1,5 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
+import { createTimeSlicer, type TimeSlicer } from '@localmed/search-lexical';
 
 import { displayDocumentTitle } from '@/features/library/document-display';
 
@@ -55,21 +56,59 @@ function lowerBound(words: readonly string[], value: string): number {
 
 export function buildTitleIndex(documents: readonly MedicalDocumentSummary[]): TitleIndex {
   const startedAt = performance.now();
-  const titles = documents.map((document) => fold(displayDocumentTitle(document)).trim());
+  const titles = documents.map(foldedTitle);
+  const byWord = new Map<string, number[]>();
+  titles.forEach((title, index) => {
+    indexTitleWords(title, index, byWord);
+  });
+  return finishTitleIndex(documents, titles, byWord, startedAt);
+}
+
+/**
+ * {@link buildTitleIndex} in slices: over tens of thousands of titles it was a 0.6 s step on a
+ * phone, in the idle time right after the home appeared.
+ */
+export async function buildTitleIndexSliced(
+  documents: readonly MedicalDocumentSummary[],
+  slice: TimeSlicer,
+): Promise<TitleIndex> {
+  const startedAt = performance.now();
+  const titles: string[] = [];
+  const byWord = new Map<string, number[]>();
+  for (const [index, document] of documents.entries()) {
+    const title = foldedTitle(document);
+    titles.push(title);
+    indexTitleWords(title, index, byWord);
+    const due = slice();
+    if (due) await due;
+  }
+  return finishTitleIndex(documents, titles, byWord, startedAt);
+}
+
+function foldedTitle(document: MedicalDocumentSummary): string {
+  return fold(displayDocumentTitle(document)).trim();
+}
+
+function indexTitleWords(title: string, index: number, byWord: Map<string, number[]>): void {
+  for (const word of new Set(title.match(WORD) ?? [])) {
+    if (word.length < 2) continue;
+    const list = byWord.get(word);
+    if (list) list.push(index);
+    else byWord.set(word, [index]);
+  }
+}
+
+function finishTitleIndex(
+  documents: readonly MedicalDocumentSummary[],
+  titles: readonly string[],
+  byWord: ReadonlyMap<string, number[]>,
+  startedAt: number,
+): TitleIndex {
   // A module pointer whose document is installed is the same answer twice: the document stays.
   const ids = new Set(documents.map((document) => document.id));
   const installedPointer = documents.map((document) => {
     const target = document.metadata?.['targetDocumentId'];
     return typeof target === 'string' && ids.has(target);
-  });
-  const byWord = new Map<string, number[]>();
-  titles.forEach((title, index) => {
-    for (const word of new Set(title.match(WORD) ?? [])) {
-      if (word.length < 2) continue;
-      const list = byWord.get(word);
-      if (list) list.push(index);
-      else byWord.set(word, [index]);
-    }
   });
   const words = [...byWord.keys()].toSorted();
   const offsets = new Uint32Array(words.length + 1);
@@ -152,6 +191,26 @@ export function buildTitleIndex(documents: readonly MedicalDocumentSummary[]): T
 }
 
 const built = new WeakMap<readonly MedicalDocumentSummary[], TitleIndex>();
+
+const building = new WeakMap<readonly MedicalDocumentSummary[], Promise<void>>();
+
+/** Builds the index of a list ahead of its first use, in slices; a list is built once. */
+export function prepareTitleIndex(documents: readonly MedicalDocumentSummary[]): Promise<void> {
+  if (built.has(documents)) return Promise.resolve();
+  let running = building.get(documents);
+  if (!running) {
+    running = buildTitleIndexSliced(documents, createTimeSlicer())
+      .then((index) => {
+        // A query that needed the index meanwhile has built it in one piece.
+        if (!built.has(documents)) built.set(documents, index);
+      })
+      .finally(() => {
+        building.delete(documents);
+      });
+    building.set(documents, running);
+  }
+  return running;
+}
 
 /** One index per document list: the search screens share it. */
 export function titleIndexFor(documents: readonly MedicalDocumentSummary[]): TitleIndex {

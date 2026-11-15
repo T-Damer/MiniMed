@@ -36,6 +36,11 @@ internal object NativeSherpaTranscriber {
         modelDirectory: File,
         onDiarizationProgress: (completed: Int, total: Int) -> Unit,
         onTranscriptionProgress: (completed: Int, total: Int) -> Unit,
+        /**
+         * Speech of one stretch as text. The caller owns the recognizer (one per app, shared with
+         * live dictation): building a second copy of the 225 MB model for every file took ~3 s.
+         */
+        recognizeText: (samples: FloatArray) -> String,
     ): List<NativeSpeakerSegment> {
         if (audio.sampleRate != SAMPLE_RATE) {
             throw IOException("Sherpa input must be 16 kHz.")
@@ -72,8 +77,6 @@ internal object NativeSherpaTranscriber {
                     ),
             )
 
-        val recognizer = createRecognizer(modelDirectory)
-
         try {
             val diarized =
                 diarizer.processWithCallback(
@@ -86,7 +89,7 @@ internal object NativeSherpaTranscriber {
                     0L,
                 )
             if (diarized.isEmpty()) {
-                val text = recognizeWindowed(recognizer, audio.samples)
+                val text = recognizeText(audio.samples)
                 onTranscriptionProgress(1, 1)
                 return if (text.isBlank()) {
                     emptyList()
@@ -118,11 +121,7 @@ internal object NativeSherpaTranscriber {
                     onTranscriptionProgress(index + 1, diarized.size)
                     continue
                 }
-                val text =
-                    recognizeWindowed(
-                        recognizer,
-                        audio.samples.copyOfRange(startFrame, endFrame),
-                    )
+                val text = recognizeText(audio.samples.copyOfRange(startFrame, endFrame))
                 if (text.isNotBlank()) {
                     results.add(
                         NativeSpeakerSegment(
@@ -137,7 +136,6 @@ internal object NativeSherpaTranscriber {
             }
             return results
         } finally {
-            recognizer.release()
             diarizer.release()
         }
     }

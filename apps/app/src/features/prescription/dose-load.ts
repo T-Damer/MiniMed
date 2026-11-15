@@ -1,4 +1,4 @@
-import { createDoseIndex, type DoseIndex, parseDoseRuleIndex } from './dose-index';
+import { createDoseIndex, type DoseIndex, trustBundledDoseRuleIndex } from './dose-index';
 
 /**
  * Loader of the dose-rule index. The JSON is its own chunk: it is fetched the first time the
@@ -10,7 +10,9 @@ let pending: Promise<DoseIndex> | undefined;
 
 export function loadDoseIndex(): Promise<DoseIndex> {
   pending ??= import('./data/dose-rules-index.json')
-    .then((module) => createDoseIndex(parseDoseRuleIndex(module.default as unknown)))
+    // Checked against the schema by `dose-load.test.ts`, not on every first use (see the trust
+    // function's note).
+    .then((module) => createDoseIndex(trustBundledDoseRuleIndex(module.default as unknown)))
     .catch((error: unknown) => {
       pending = undefined;
       throw error;

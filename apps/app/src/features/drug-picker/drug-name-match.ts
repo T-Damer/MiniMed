@@ -52,6 +52,19 @@ function stripRegistered(name: string): string {
 
 /** One entry per card; trade names are the instruction documents' titles, one per distinct name. */
 export function drugNameEntries(asset: ComparisonIndexAsset): readonly DrugNameEntry[] {
+  // The pickers, the suggestions and the search extras each ask for the entries of the same
+  // index: built once, not once per caller in the task that receives the index.
+  let entries = entriesByAsset.get(asset);
+  if (!entries) {
+    entries = buildDrugNameEntries(asset);
+    entriesByAsset.set(asset, entries);
+  }
+  return entries;
+}
+
+const entriesByAsset = new WeakMap<ComparisonIndexAsset, readonly DrugNameEntry[]>();
+
+function buildDrugNameEntries(asset: ComparisonIndexAsset): readonly DrugNameEntry[] {
   const trade = new Map<number, Map<string, string>>();
   for (const document of Object.values(asset.documents)) {
     if (!document.t) continue;

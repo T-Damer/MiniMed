@@ -27,7 +27,7 @@ import {
   analyzeClinicalQuery,
   buildLookupQueryPlan,
   buildSnippet,
-  createAliasExpander,
+  type createAliasExpander,
   createAliasExpanderSliced,
   createTimeSlicer,
   DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
@@ -1228,6 +1228,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   let lookupExpansion:
     | { aliases: MedicalAliasRecords; expand: ReturnType<typeof createAliasExpander> }
     | undefined;
+  let lookupExpansionBuild:
+    | { readonly aliases: MedicalAliasRecords; readonly done: Promise<void> }
+    | undefined;
   let indexedDocuments: readonly SearchDocumentDescriptor[] | undefined;
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
   let queryDocumentIndex: QueryDocumentIndex | undefined;
@@ -1245,6 +1248,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       aliasesPromise = undefined;
       lookupExpansion = undefined;
+      lookupExpansionBuild = undefined;
       indexedDocuments = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;
@@ -1382,11 +1386,22 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   };
 
   /** The alias expander of lookup queries, rebuilt only when the alias list changes. */
-  const ensureLookupExpansion = (
-    aliases: Awaited<ReturnType<MedicalStore['listAliases']>>,
-  ): void => {
+  /**
+   * The alias expander of `aliases`, built in slices and once: a search that arrives while the
+   * idle warm-up is building it waits for that build instead of starting its own in one piece.
+   */
+  const ensureLookupExpansion = async (aliases: MedicalAliasRecords): Promise<void> => {
     if (lookupExpansion?.aliases === aliases) return;
-    lookupExpansion = { aliases, expand: createAliasExpander(aliases) };
+    if (lookupExpansionBuild?.aliases !== aliases) {
+      lookupExpansionBuild = {
+        aliases,
+        done: createAliasExpanderSliced(aliases, createTimeSlicer()).then((expand) => {
+          // A reset or a newer alias list meanwhile: this build is no longer the wanted one.
+          if (lookupExpansionBuild?.aliases === aliases) lookupExpansion = { aliases, expand };
+        }),
+      };
+    }
+    await lookupExpansionBuild.done;
   };
 
   /** The document and terminology indexes of `documents`, built once per document list. */
@@ -1411,7 +1426,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       const aliasesResult = await getAliases();
       if (!aliasesResult.ok) return err(aliasesResult.error);
-      if (parsed.data.analysisMode === 'lookup') ensureLookupExpansion(aliasesResult.value);
+      if (parsed.data.analysisMode === 'lookup') await ensureLookupExpansion(aliasesResult.value);
       // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
       // reaches a document whose title lacks the typed words, by meaning.
       const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
@@ -1445,6 +1460,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
 
       const documents = await getSearchDocuments();
+      // First search before the warm-up got here: the names are normalized in slices, so the
+      // index built next does not hold the thread for them.
+      if (indexedDocuments !== documents) {
+        await QueryDocumentIndex.prepare(documents, createTimeSlicer());
+      }
       const { documentIndex, termIndex } = documentIndexesFor(documents);
       const terminologyMatch =
         parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
@@ -2197,13 +2217,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const pause = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
       const aliases = await getAliases();
       if (!aliases.ok) return;
-      if (lookupExpansion?.aliases !== aliases.value) {
-        const expand = await createAliasExpanderSliced(aliases.value, createTimeSlicer());
-        // A lookup that ran meanwhile has built it already.
-        if (lookupExpansion?.aliases !== aliases.value) {
-          lookupExpansion = { aliases: aliases.value, expand };
-        }
-      }
+      await ensureLookupExpansion(aliases.value);
       await pause();
       const documents = await getSearchDocuments();
       if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
@@ -2337,6 +2351,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       initialized = false;
       aliasesPromise = undefined;
       lookupExpansion = undefined;
+      lookupExpansionBuild = undefined;
       indexedDocuments = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;

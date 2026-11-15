@@ -12,6 +12,7 @@ import {
 } from '@/features/calculators/ecg-model-contract';
 import type { DownloadContext } from '@/features/downloads/download-queue';
 import { downloadWithRetry } from '@/features/network/download-retry';
+import { createIdleRelease } from '@/features/onnx/idle-release';
 import { listZipEntries, readZipEntry } from '@/state/user-library-zip';
 
 const STORAGE_KEY = 'minimed.ecg-model';
@@ -362,6 +363,13 @@ function resetWorker(error = new Error('Оцифровщик ЭКГ был ос�
   failPending(error);
 }
 
+/** The digitizer leaves memory two minutes after its last photo. */
+const idleRelease = createIdleRelease(() => {
+  if (pendingDigitizations.size > 0) return;
+  worker?.terminate();
+  worker = null;
+});
+
 function workerInstance(): Worker {
   if (worker) return worker;
   const instance = new Worker(new URL('./ecg-model.worker.ts', import.meta.url), {
@@ -374,6 +382,7 @@ function workerInstance(): Worker {
     pendingDigitizations.delete(message.requestId);
     if (message.type === 'digitization-result') waiter.resolve(message.result);
     else waiter.reject(new Error(message.message));
+    if (pendingDigitizations.size === 0) idleRelease.idle();
   };
   instance.onerror = () => {
     worker = null;
@@ -413,6 +422,7 @@ export async function digitizeEcgPhoto(
       },
     });
   });
+  idleRelease.busy();
   workerInstance().postMessage(
     {
       type: 'digitize',

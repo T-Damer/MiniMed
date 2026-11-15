@@ -8,6 +8,7 @@ import {
   type DoseRuleDocument,
   type DoseRuleIndexAsset,
   parseDoseRuleIndex,
+  trustBundledDoseRuleIndex,
 } from '@localmed/contracts';
 
 import {
@@ -15,7 +16,7 @@ import {
   SECTION_ID_PREFIX,
 } from '@/features/drug-interactions/interaction-index';
 
-export { parseDoseRuleIndex, SECTION_ID_PREFIX };
+export { parseDoseRuleIndex, SECTION_ID_PREFIX, trustBundledDoseRuleIndex };
 
 /** Instructions kept per МНН card: the best one of each of the most common dosage forms. */
 export const DOSE_DOCUMENTS_PER_CARD = 6;

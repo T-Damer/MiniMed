@@ -1,7 +1,7 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { buildTitleIndex } from './title-index';
+import { buildTitleIndex, buildTitleIndexSliced } from './title-index';
 
 function doc(id: string, title: string): MedicalDocumentSummary {
   return {
@@ -23,6 +23,18 @@ const DOCUMENTS = [
 ];
 
 describe('title index', () => {
+  it('built in slices answers as the one-piece index does', async () => {
+    const whole = buildTitleIndex(DOCUMENTS);
+    const sliced = await buildTitleIndexSliced(DOCUMENTS, () => Promise.resolve());
+    for (const query of ['шизофрения', 'шизо', 'Гастрит', 'пневмония детей', 'у']) {
+      expect(sliced.lookup(query, 5).map((item) => item.id)).toEqual(
+        whole.lookup(query, 5).map((item) => item.id),
+      );
+    }
+    expect(sliced.stats.words).toBe(whole.stats.words);
+    expect(sliced.stats.postings).toBe(whole.stats.postings);
+  });
+
   it('finds titles by a word or its start, the exact name first', () => {
     const index = buildTitleIndex(DOCUMENTS);
     expect(index.lookup('шизофрения', 5).map((item) => item.id)).toEqual(['b', 'a']);

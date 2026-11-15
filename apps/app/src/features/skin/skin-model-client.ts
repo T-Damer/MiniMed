@@ -1,3 +1,4 @@
+import { createIdleRelease } from '@/features/onnx/idle-release';
 import {
   encodeSkinDetails,
   SKIN_CLASSES,
@@ -133,6 +134,13 @@ function resetWorker(): void {
   failPending(new Error('Модель кожи была заменена.'));
 }
 
+/** The skin model leaves memory two minutes after its last photo. */
+const idleRelease = createIdleRelease(() => {
+  if (pending.size > 0) return;
+  worker?.terminate();
+  worker = undefined;
+});
+
 function workerInstance(): Worker {
   if (worker) return worker;
   const instance = new Worker(new URL('./skin-model.worker.ts', import.meta.url), {
@@ -145,6 +153,7 @@ function workerInstance(): Worker {
     pending.delete(reply.requestId);
     if (reply.type === 'result') waiter.resolve(reply.probabilities);
     else waiter.reject(new Error(reply.message));
+    if (pending.size === 0) idleRelease.idle();
   };
   instance.onerror = () => {
     worker = undefined;
@@ -166,6 +175,7 @@ export const skinModel: SkinModel = {
     const image = await photo.arrayBuffer();
     const probabilities = await new Promise<Float32Array>((resolve, reject) => {
       pending.set(requestId, { resolve, reject });
+      idleRelease.busy();
       workerInstance().postMessage(
         {
           type: 'analyze',

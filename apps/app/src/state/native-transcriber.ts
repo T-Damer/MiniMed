@@ -47,6 +47,7 @@ interface LocalMedTranscriberPlugin {
   stopRecording(): Promise<unknown>;
   transcribe(options: { readonly filePath: string }): Promise<unknown>;
   recognizePcm(options: { readonly pcm: string }): Promise<{ readonly text?: unknown }>;
+  prepareSpeech(): Promise<void>;
   deleteRecording(options: { readonly filePath: string }): Promise<void>;
   openAppSettings(): Promise<void>;
   microphoneStatusAfterRefusal(): Promise<NativePermissionStatus>;
@@ -111,6 +112,18 @@ export async function recogniseNativePcm(samples: Float32Array): Promise<string>
   assertNativeTranscriber();
   const result = await localMedTranscriber.recognizePcm({ pcm: pcm16Base64(samples) });
   return typeof result.text === 'string' ? result.text : '';
+}
+
+/**
+ * Loads the native speech model ahead of the first stretch of a recording (about 3 s on a phone,
+ * which the first words otherwise wait for). A model that is not installed yet is not an error
+ * here: the first stretch reports it.
+ */
+export function warmNativeSpeech(): void {
+  if (!isNativeSpeechSupported()) return;
+  localMedTranscriber.prepareSpeech().catch((cause: unknown) => {
+    console.warn('The native speech model was not loaded ahead of the recording.', cause);
+  });
 }
 
 export async function getNativeTranscriptionModelStatus(): Promise<NativeTranscriptionModelStatus> {

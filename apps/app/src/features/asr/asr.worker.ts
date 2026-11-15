@@ -4,6 +4,8 @@ import {
   type ProgressInfo,
   pipeline,
 } from '@huggingface/transformers';
+import type { Env as OrtEnv } from 'onnxruntime-web/webgpu';
+import { pinOrtWasmFiles } from '@/features/onnx/ort-wasm-paths';
 import {
   ASR_MODEL_REVISIONS,
   type AsrAssetRequest,
@@ -160,6 +162,10 @@ async function transcribeWithFallback(
 const NETWORK_RETRY_DELAYS_MS = [750, 2000] as const;
 
 env.allowLocalModels = false;
+// transformers.js otherwise takes the ONNX runtime's WebAssembly from a public CDN: offline, or in
+// the APK without a network, the model would not start. The build ships those files.
+const ortEnv = (env as { backends?: { onnx?: Partial<OrtEnv> } }).backends?.onnx;
+if (ortEnv?.wasm) pinOrtWasmFiles(ortEnv as OrtEnv);
 
 const scope = self as unknown as {
   postMessage(message: AsrWorkerOutMessage): void;

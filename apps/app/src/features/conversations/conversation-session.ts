@@ -43,7 +43,11 @@ import {
   storedSampleSpan,
   updateConversationRecording,
 } from '@/state/conversation-recordings';
-import { isNativeSpeechSupported, recogniseNativePcm } from '@/state/native-transcriber';
+import {
+  isNativeSpeechSupported,
+  recogniseNativePcm,
+  warmNativeSpeech,
+} from '@/state/native-transcriber';
 import { appendEvent, type PatientEvent } from '@/state/patient-domain';
 import { addPatientBlob, isPatientVaultUnlocked, updatePatientVault } from '@/state/patient-vault';
 import { perfMark, perfSpan } from '@/state/perf-log';
@@ -126,7 +130,11 @@ const speechEngine: SpeechEngine = createSpeechEngine({
  * runtime is loaded only when they are not there (the first screen stays light either way).
  */
 async function prepareSpeechEngine(): Promise<void> {
-  if (await checkNativeModels()) return;
+  if (await checkNativeModels()) {
+    // The model loads now, not inside the first stretch of speech.
+    warmNativeSpeech();
+    return;
+  }
   await loadAsr();
 }
 
