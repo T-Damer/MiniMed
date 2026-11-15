@@ -20,7 +20,15 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## A document's own terms answer first — 2026-11-15 (STATE TERM1; committed, not released)
+## Release 0.6.105 — 2026-11-15
+
+PERF12, PERF13, SRCH-KR1 and TERM1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck,
+build, `benchmark:all`, `native:source:check`; e2e modules (many-modules reload, lifecycle, pointer, removal), search
+and the reader dictionary pass. Known failures that predate this release: `benchmark:lookup-quality` (two agreement
+gates at 0.9997), `tool-module-update` «cannot be fetched», `search.spec` help menu, the Android emulator
+responsiveness test. Not tested on a phone.
+
+## A document's own terms answer first — 2026-11-15 (STATE TERM1; released in 0.6.105)
 
 Search review, step 1 (owner 2026-11-15: «do everything you suggest»). «Найти в словаре» now knows
 which library document is being read (from the address) and looks the selection up in that
@@ -34,7 +42,7 @@ and PDFs, and folding the other senses behind one control. Steps 2 (one result p
 3 (one answer slot on the search page) are not built. Not checked in a browser on a real
 recommendation: unit tests cover the parser and the matcher, and the existing dictionary e2e pass.
 
-## Third phone log: cold starts, rebuilds, reading — 2026-11-15 (STATE PERF13; committed, not released)
+## Third phone log: cold starts, rebuilds, reading — 2026-11-15 (STATE PERF13; released in 0.6.105)
 
 Owner's log of 0.6.104 (44 min, three starts, most sets installed). «Search ready»: 12.6 s after a
 warm start (25 s in 0.6.102), but 24 s and 26 s after cold ones: opening ~800 module files took
@@ -63,7 +71,7 @@ Not measured on a phone. Not done: a text search still asks every installed modu
 query per file); the search home's reactive pass after a rebuild; rendering frames of 0.5–1.2 s
 when a document opens.
 
-## «КР first» for equal titles — 2026-11-15 (STATE SRCH-KR1; committed, not released)
+## «КР first» for equal titles — 2026-11-15 (STATE SRCH-KR1; released in 0.6.105)
 
 Owner decision (2026-11-15): a clinical recommendation ranks above a general article with the same
 title. Roadmap item 12, equal-title part: in the final sort of a search, among documents whose
@@ -74,7 +82,7 @@ the same condition from several sources is still several results. The review beh
 build-time concept shared across sources; links and the dictionary ignore the document being read)
 and the three proposed steps are in the session notes of 2026-11-15; none of them is built.
 
-## Module health and listings kept across starts — 2026-11-15 (STATE PERF12; committed, not released)
+## Module health and listings kept across starts — 2026-11-15 (STATE PERF12; released in 0.6.105)
 
 Every start asked each installed module file for `initialize`, its health, its document identities
 and its aliases again (`core-initialize`, 5.8 s in the 0.6.102 phone log with ~800 modules). A

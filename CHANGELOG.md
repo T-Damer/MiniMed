@@ -4,6 +4,18 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.105] - 2026-11-15
+
+- Faster start with many document sets installed: the sets are no longer opened at start (a phone log showed 18–20 s
+  there after a cold start); they open when first used or in the background afterwards, and their health and document
+  lists are kept between starts.
+- After a set is installed, the search index is rebuilt without re-reading every installed set and the main database's
+  lists; reading a document asks only the set that holds it.
+- Search: a clinical recommendation comes first among documents named exactly as the query («Мигрень», «Острый
+  панкреатит»).
+- «Найти в словаре» first answers from the document being read: its own «Список сокращений» and «Термины и
+  определения», shown as «В этом документе».
+
 ## [0.6.104] - 2026-11-15
 
 - Faster start with many document sets installed: the sets are opened several at a time and alongside the main
