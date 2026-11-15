@@ -95,6 +95,7 @@ import { QueryDocumentIndex } from './query-document-index';
 import {
   collapseGroupsByTargetDocument,
   dropGroupsWithoutSubject,
+  isRecommendationOrItsPointer,
   rankSearchGroupsByQuery,
 } from './query-group-ranking';
 import {
@@ -1726,6 +1727,12 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         (left, right) =>
           Number(exactTitleDocumentIds.has(right.documentId)) -
             Number(exactTitleDocumentIds.has(left.documentId)) ||
+          // Two documents named exactly as the query («Мигрень»: a recommendation and a general
+          // article): the recommendation leads (owner 2026-11-15, roadmap item 12).
+          (exactTitleDocumentIds.has(left.documentId) && exactTitleDocumentIds.has(right.documentId)
+            ? Number(isRecommendationOrItsPointer(documentIndex.byId.get(right.documentId))) -
+              Number(isRecommendationOrItsPointer(documentIndex.byId.get(left.documentId)))
+            : 0) ||
           // A trade name typed whole («Аспирин», «Кандид Б») leads, before words that merely begin
           // with it («Аспиринорезистентность», «Кандидоз»): SRCH1.
           Number(namesTypedProduct(right, typedProductName)) -

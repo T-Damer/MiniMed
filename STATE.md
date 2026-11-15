@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-15 claude-fable SRCH-KR1 (committed, not released; owner «КР first»): roadmap item 12 equal-title tie-break — a recommendation or its core pointer leads documents titled exactly as the query; six search benchmarks pass, `lookup-quality` fails identically with and without it
 - 2026-11-15 claude-fable PERF12 (committed, not released): shelf module health and listings kept per file and app build (`composition/module-shelf-facts.ts`), file initialised with its first real call; unit + typecheck + check + module e2e; `tool-module-update` «cannot be fetched» test fails on 0.6.99 too
 - 2026-11-15 claude-fable REL 0.6.104: PERF10 + PERF11 + MODELS1; verify + benchmark:all + Android build workflow + e2e; dictation not on a phone
 - 2026-11-15 claude-fable PERF11 (released in 0.6.104; owner «fix the 25 s startup»): installed modules opened 8 at a time with batched record reads, and alongside the core database instead of after it; unit + typecheck + check + module e2e (many-modules-reload, lifecycle, pointer, removal, file import); local 4× run only

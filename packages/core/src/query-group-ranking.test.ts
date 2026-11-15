@@ -1,6 +1,7 @@
 import type { MedicalDocumentSummary, SearchResult, SearchResultGroup } from '@localmed/contracts';
 import {
   collapseGroupsByTargetDocument,
+  isRecommendationOrItsPointer,
   queryGroupRelevanceBoost,
   rankSearchGroupsByQuery,
 } from '@localmed/core';
@@ -909,4 +910,29 @@ it('ranks a verbatim source phrase above documents matching individual words in 
     result('other', 'Нарушения мышления', 'Иной текст.'),
   ]);
   expect(rankSearchGroupsByQuery([generic, exact], query)[0]?.documentId).toBe('source');
+});
+
+describe('isRecommendationOrItsPointer (roadmap item 12)', () => {
+  const descriptor = (sourceType: string, metadata: Record<string, unknown> = {}) =>
+    ({ id: 'd', title: 'Мигрень', shortTitle: null, sourceType, metadata }) as never;
+
+  it('knows a recommendation and the core pointer to one', () => {
+    expect(isRecommendationOrItsPointer(descriptor('clinical_recommendation'))).toBe(true);
+    expect(isRecommendationOrItsPointer(descriptor('clinical_recommendation_summary'))).toBe(true);
+    expect(
+      isRecommendationOrItsPointer(
+        descriptor('core_catalog_pointer', { catalogFamily: 'clinical' }),
+      ),
+    ).toBe(true);
+  });
+
+  it('does not take a reference article, its pointer or a missing document for one', () => {
+    expect(isRecommendationOrItsPointer(descriptor('medical_reference'))).toBe(false);
+    expect(
+      isRecommendationOrItsPointer(
+        descriptor('core_catalog_pointer', { catalogFamily: 'reference' }),
+      ),
+    ).toBe(false);
+    expect(isRecommendationOrItsPointer(undefined)).toBe(false);
+  });
 });

@@ -20,6 +20,17 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## «КР first» for equal titles — 2026-11-15 (STATE SRCH-KR1; committed, not released)
+
+Owner decision (2026-11-15): a clinical recommendation ranks above a general article with the same
+title. Roadmap item 12, equal-title part: in the final sort of a search, among documents whose
+title is exactly the query, a recommendation or the core's pointer to one comes first. On the
+released core «Мигрень», «Острый панкреатит» and «Бронхиальная астма» now start with the КР;
+«Пневмония» does not change (the КР is titled «Пневмония (внебольничная)»). This is ordering only:
+the same condition from several sources is still several results. The review behind it (no
+build-time concept shared across sources; links and the dictionary ignore the document being read)
+and the three proposed steps are in the session notes of 2026-11-15; none of them is built.
+
 ## Module health and listings kept across starts — 2026-11-15 (STATE PERF12; committed, not released)
 
 Every start asked each installed module file for `initialize`, its health, its document identities

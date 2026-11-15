@@ -99,8 +99,14 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     `clinical-abbrev` identities), not from a hand-written list.
 12. **Equal-title tie-break.** krasotaimedicina «Мигрень» / «Острый панкреатит» rank above the КР with
     the identical title, and МКБ nodes crowd the top five («жаропонижающее ребенку» → poisoning codes
-    T39/X40). Candidate: prefer the recommendation for equal title matches (owner decision pending;
-    measure on `owner-queries.json` and the lookup gate first).
+    T39/X40). **Done for equal titles (2026-11-15, owner: «КР first»):** among documents named
+    exactly as the query, a clinical recommendation (or the core's pointer to one) leads
+    (`isRecommendationOrItsPointer`, final sort of `runSearch`). «Мигрень», «Острый панкреатит»,
+    «Бронхиальная астма» now open with the КР. Not covered: a КР whose title is not the query
+    («Пневмония» → KiM «Пневмония» stays above КР «Пневмония (внебольничная)»), and the МКБ nodes
+    in the top five. `benchmark:all`, `srch1`, `owner-queries`, `doctor-lookup`, `source-names`,
+    `class` pass; `lookup-quality` fails the same two agreement gates (0.9997) with and without
+    the change.
 13. **Missing-letter drug typo** («цефтриаксн» finds nothing relevant) — done with item 19
     (2026-10-13): the core's medication spelling branch already found the drug; «Все» dropped it
     because its title stem was not in the query. `ScopedMedicalCore` now keeps drugs that branch

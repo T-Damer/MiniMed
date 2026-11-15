@@ -360,6 +360,21 @@ function isClinicalRecommendationDocument(document: SearchDocumentDescriptor | u
 }
 
 /**
+ * A clinical recommendation, or the core's pointer to one that is not installed yet. Used where
+ * the recommendation leads other sources of the same name (owner decision 2026-11-15, roadmap
+ * item 12: «КР first»).
+ */
+export function isRecommendationOrItsPointer(
+  document: SearchDocumentDescriptor | undefined,
+): boolean {
+  if (isClinicalRecommendationDocument(document)) return true;
+  return (
+    document?.sourceType === 'core_catalog_pointer' &&
+    document.metadata?.['catalogFamily'] === 'clinical'
+  );
+}
+
+/**
  * Coverage fractions are ordering keys that run before the relevance score. Compare coarse tiers
  * (none / under half / at least half / all) so that 0.67 versus 0.6 falls through to the score
  * instead of overriding it.
