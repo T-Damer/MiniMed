@@ -76,9 +76,15 @@ const KIND_TONES: Readonly<Record<SearchResultDocumentKind, ListTileTone>> = {
 export function SearchTitleExtras(props: {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly onOpen: (documentId: string) => void;
+  /** «По названию» while the full search still runs; «Ещё по названию» under its results. */
+  readonly heading?: string;
 }): JSX.Element {
   return (
-    <ListGroup class="search-title-extras" heading="Ещё по названию" label="Ещё по названию">
+    <ListGroup
+      class="search-title-extras"
+      heading={props.heading ?? 'Ещё по названию'}
+      label={props.heading ?? 'Ещё по названию'}
+    >
       <For each={props.documents}>
         {(document) => {
           const kind = searchResultDocumentKind(document);

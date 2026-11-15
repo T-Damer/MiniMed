@@ -1,7 +1,14 @@
 import type { SearchResultGroup } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { audienceLabel, clusterResultGroups, conditionTitleKey } from './condition-clusters';
+import {
+  audienceLabel,
+  clusterResultGroups,
+  conditionTitleKey,
+  IN_TEXT_PREVIEW,
+  shownInText,
+  splitResultSections,
+} from './condition-clusters';
 
 function group(
   documentId: string,
@@ -112,5 +119,35 @@ describe('one name, two audiences', () => {
     expect(audienceLabel({ ageCategories: ['Дети', 'Взрослые'] })).toBe('взрослые и дети');
     expect(audienceLabel({ ageCategories: [] })).toBeUndefined();
     expect(audienceLabel(undefined)).toBeUndefined();
+  });
+});
+
+describe('result sections', () => {
+  const cluster = (id: string, title: string) => ({ lead: group(id, title), others: [] });
+  const names = (title: string) => title.toLowerCase().includes('мигрен');
+
+  it('keeps the best result and the results named by the query on top, the rest as found in text', () => {
+    const sections = splitResultSections(
+      [
+        cluster('substance', 'Суматриптан'),
+        cluster('headache', 'Головная боль напряжения'),
+        cluster('children', 'Мигрень у детей'),
+        cluster('stroke', 'Ишемический инсульт'),
+      ],
+      names,
+    );
+    expect(sections.named.map((item) => item.lead.documentId)).toEqual(['substance', 'children']);
+    expect(sections.inText.map((item) => item.lead.documentId)).toEqual(['headache', 'stroke']);
+  });
+
+  it('folds a long «found in text» part only when three or more would hide', () => {
+    const many = Array.from({ length: IN_TEXT_PREVIEW + 3 }, (_, index) =>
+      cluster(`t${String(index)}`, 'Текст'),
+    );
+    expect(shownInText(many, false)).toHaveLength(IN_TEXT_PREVIEW);
+    expect(shownInText(many, true)).toHaveLength(IN_TEXT_PREVIEW + 3);
+    expect(shownInText(many.slice(0, IN_TEXT_PREVIEW + 2), false)).toHaveLength(
+      IN_TEXT_PREVIEW + 2,
+    );
   });
 });

@@ -112,3 +112,18 @@
     background: var(--theme-accent-soft);
   }
 }
+
+/* The second part of a result list: what the query was only found inside. */
+.search-results-section__title {
+  margin: 1rem 0 0.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.search-results-section__more {
+  justify-self: center;
+  margin: 0.75rem auto 0;
+}

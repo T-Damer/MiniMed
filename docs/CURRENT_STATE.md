@@ -20,6 +20,29 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Names at once, then results in two parts — 2026-11-16 (STATE SRCH-FAST1; not committed, not released)
+
+Owner (2026-11-16): «display results as fast as possible — show additional later… break down into
+sections like "more" and "found in text"».
+
+- **Names at once.** The moment a search starts, the documents whose titles carry the query words
+  are listed as «По названию» (up to 8, from the device's title index: no database is read). They
+  stand in for the loading placeholders; the full results replace them when the search over every
+  installed source answers. At 4× CPU on the Mac the names are on screen ~60 ms after Enter, the
+  full results after ~1.5 s. Not shown for the clinical analysis.
+- **Two parts.** The full list keeps the search's best result and every result whose title names
+  the query on top, and puts the rest under «Найдено в тексте» (`splitResultSections`). Each part
+  keeps the search's own order. One list stays one list for a drug class and for the clinical
+  analysis, which do not rank by title.
+- **«Показать ещё».** «Найдено в тексте» shows six results; the rest unfold with one button, and
+  only when three or more would hide.
+- **Fixed on the way:** a dialog opened from a popover menu («Справка» → the feature tour) ignored
+  Escape for the 120 ms the menu took to leave: the closing popover still intercepted the key
+  (`SheetPopover` stopped its propagation whether open or not). It now does so only while open.
+
+The owner's newer instruction replaces «Loading is one state» for search results: the names shown
+first are a real, usable list, and what follows is added, not a second loader.
+
 ## Release 0.6.106 — 2026-11-15
 
 SRCH-ONE1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build, `benchmark:all`,

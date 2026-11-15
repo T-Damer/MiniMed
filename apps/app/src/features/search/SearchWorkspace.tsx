@@ -70,6 +70,7 @@ import { getContentModuleRuntime } from '@/features/modules/module-runtime-servi
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { DoseCard } from '@/features/prescription/DoseCard';
 import { parseDoseQuery } from '@/features/prescription/dose-query';
+import { titleNamesWords } from '@/features/reader-dictionary/selection-term';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
 import { ClinicalAnalysisNote } from '@/features/search/ClinicalAnalysisNote';
 import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
@@ -88,6 +89,9 @@ import {
   clusterResultGroups,
   conditionTitleKey,
   type ResultCluster,
+  type ResultSections,
+  shownInText,
+  splitResultSections,
 } from '@/features/search/condition-clusters';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
 import {
@@ -354,6 +358,8 @@ function refreshDownloadedCalculatorDefinitions(): Promise<void> {
 
 /** Title matches looked up for a query; those the results do not list follow them. */
 const TITLE_MATCH_LIMIT = 6;
+/** Names shown the moment a search starts, before its results. */
+const INSTANT_TITLE_LIMIT = 8;
 const EMPTY_LINK_MATCHER = createDocumentLinkMatcher([]);
 
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
@@ -568,6 +574,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       (loading() || searchQueued()),
   );
   const skeletonMounted = createLingeringFlag(resultsPending, () => motionMs(180));
+  const instantTitles = createMemo((): readonly MedicalDocumentSummary[] => {
+    const words = titleQuery();
+    if (!resultsPending() || !loading() || !words) return [];
+    if (props.scope === 'diagnosis') return [];
+    const documents = contextDocuments();
+    if (documents.length === 0) return [];
+    return titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsTitle);
+  });
 
   // Clinical recommendation editions: a replaced edition shares its successor's title, so results
   // keep only the newest edition found. The edition sidecar (~60 kB gzip) loads after the page,
@@ -612,6 +626,36 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   };
   // One condition, one card: the sources of the same name fold under the recommendation.
   const resultClusters = createMemo(() => clusterResultGroups(visibleGroups(), audienceOf));
+  // Results named by the query first, then what the query was only found inside. A drug class and
+  // the clinical analysis rank by other things than the title and keep one list.
+  const resultSections = createMemo((): ResultSections => {
+    const clusters = resultClusters();
+    const shown = response();
+    const words = searchableQuery(shown?.analysis.originalQuery ?? '');
+    if (!words || shown?.drugClass || props.scope === 'diagnosis' || props.scope === 'personal') {
+      return { named: clusters, inText: [] };
+    }
+    return splitResultSections(clusters, (title) => titleNamesWords(title, words));
+  });
+  const [inTextExpanded, setInTextExpanded] = createSignal(false);
+  createEffect(on(response, () => setInTextExpanded(false), { defer: true }));
+  const inTextShown = createMemo(() => shownInText(resultSections().inText, inTextExpanded()));
+  const clusterCard = (cluster: ResultCluster, index: number, first: boolean): JSX.Element => (
+    <SearchResultGroupCard
+      group={cluster.lead}
+      index={index}
+      selectedChunkId={context()?.focusChunkId}
+      action={props.groupAction?.(cluster.lead)}
+      qualifier={qualifierOf(cluster.lead)}
+      onOpenDocument={openDocumentInArchive}
+      sources={sourcesOf(cluster)}
+      compact={
+        // Only a card that lists its sources stands in for the answer; a lone result keeps its
+        // fragment.
+        first && cluster.others.length > 0 && answerKey() === conditionTitleKey(cluster.lead.title)
+      }
+    />
+  );
   const sourcesOf = (cluster: ResultCluster): readonly ResultSource[] =>
     cluster.others.map((other) => {
       const visual = isIcd11DocumentId(other.documentId)
@@ -1851,7 +1895,19 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         </Show>
 
         <div class="search-results-slot">
-          <Show when={skeletonMounted()}>
+          {/* The names that carry the query, at once: the title index needs no database, while the
+              full search over every installed source is still running. */}
+          <Show when={instantTitles().length > 0}>
+            <div data-testid="search-instant-titles">
+              <SearchTitleExtras
+                heading="По названию"
+                documents={instantTitles()}
+                onOpen={(documentId) => openDocumentInArchive(documentId)}
+              />
+            </div>
+          </Show>
+          {/* Names on screen are the content of the wait; placeholders show only without them. */}
+          <Show when={skeletonMounted() && instantTitles().length === 0}>
             <SearchResultsSkeleton leaving={!resultsPending()} />
           </Show>
           <Show when={response()}>
@@ -1964,32 +2020,49 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     <Show
                       when={scopeFallback()}
                       fallback={
-                        <LayoutVirtualizedGrid
-                          data={resultClusters()}
-                          bufferSize={400}
-                          align="start"
-                        >
-                          {(cluster, clusterIndex) => {
-                            return (
-                              <SearchResultGroupCard
-                                group={cluster.lead}
-                                index={clusterIndex}
-                                selectedChunkId={context()?.focusChunkId}
-                                action={props.groupAction?.(cluster.lead)}
-                                qualifier={qualifierOf(cluster.lead)}
-                                onOpenDocument={openDocumentInArchive}
-                                sources={sourcesOf(cluster)}
-                                compact={
-                                  // Only a card that lists its sources stands in for the answer;
-                                  // a lone result keeps its fragment.
-                                  clusterIndex === 0 &&
-                                  cluster.others.length > 0 &&
-                                  answerKey() === conditionTitleKey(cluster.lead.title)
-                                }
-                              />
-                            );
-                          }}
-                        </LayoutVirtualizedGrid>
+                        <>
+                          <LayoutVirtualizedGrid
+                            data={resultSections().named}
+                            bufferSize={400}
+                            align="start"
+                          >
+                            {(cluster, clusterIndex) =>
+                              clusterCard(cluster, clusterIndex, clusterIndex === 0)
+                            }
+                          </LayoutVirtualizedGrid>
+                          <Show when={inTextShown().length > 0}>
+                            <h3
+                              class="search-results-section__title"
+                              data-testid="search-results-in-text"
+                            >
+                              Найдено в тексте
+                            </h3>
+                            <LayoutVirtualizedGrid
+                              data={inTextShown()}
+                              bufferSize={400}
+                              align="start"
+                            >
+                              {(cluster, clusterIndex) =>
+                                clusterCard(
+                                  cluster,
+                                  resultSections().named.length + clusterIndex,
+                                  false,
+                                )
+                              }
+                            </LayoutVirtualizedGrid>
+                            <Show when={inTextShown().length < resultSections().inText.length}>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                class="search-results-section__more"
+                                data-testid="search-results-more"
+                                onClick={() => setInTextExpanded(true)}
+                              >
+                                Показать ещё {resultSections().inText.length - inTextShown().length}
+                              </Button>
+                            </Show>
+                          </Show>
+                        </>
                       }
                     >
                       {(fallback) => (

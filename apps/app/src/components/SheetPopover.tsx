@@ -85,8 +85,12 @@ export function SheetPopover(props: {
               }}
               class={`${props.contentClass} sheet-popover__floating scrollbar-themed`}
               aria-label={props.title}
-              // Escape closes this popover only: a dialog under it listens on the window.
-              onEscapeKeyDown={(event: KeyboardEvent) => event.stopPropagation()}
+              // Escape closes this popover only: a dialog under it listens on the window. Only
+              // while it is open: a popover still playing its exit kept the key from the dialog
+              // its own item had just opened (the tour needed Escape twice).
+              onEscapeKeyDown={(event: KeyboardEvent) => {
+                if (props.open) event.stopPropagation();
+              }}
               {...(props.onOpenAutoFocus ? { onOpenAutoFocus: props.onOpenAutoFocus } : {})}
             >
               {props.children}

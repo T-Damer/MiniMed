@@ -121,3 +121,42 @@ export function audienceLabel(
   ].toSorted();
   return names.length > 0 ? names.join(' и ') : undefined;
 }
+
+/**
+ * The two parts of a result list (owner 2026-11-15: «break down into sections like "more" and
+ * "found in text"»). `named`: the search's best result and every result whose title carries the
+ * words of the query. `inText`: results the query was only found inside. Each part keeps the
+ * order the search ranked it in.
+ */
+export interface ResultSections {
+  readonly named: readonly ResultCluster[];
+  readonly inText: readonly ResultCluster[];
+}
+
+export function splitResultSections(
+  clusters: readonly ResultCluster[],
+  titleNamesQuery: (title: string) => boolean,
+): ResultSections {
+  const named: ResultCluster[] = [];
+  const inText: ResultCluster[] = [];
+  clusters.forEach((cluster, index) => {
+    // The first result is the search's own answer whatever its title (a trade name typed whole
+    // finds its substance card).
+    if (index === 0 || titleNamesQuery(cluster.lead.title)) named.push(cluster);
+    else inText.push(cluster);
+  });
+  return { named, inText };
+}
+
+/** How many «found in text» results show before «Показать ещё». */
+export const IN_TEXT_PREVIEW = 6;
+
+/** The part of `inText` shown now: all of it when expanded or when fewer than three would hide. */
+export function shownInText(
+  inText: readonly ResultCluster[],
+  expanded: boolean,
+): readonly ResultCluster[] {
+  return expanded || inText.length - IN_TEXT_PREVIEW < 3
+    ? inText
+    : inText.slice(0, IN_TEXT_PREVIEW);
+}
