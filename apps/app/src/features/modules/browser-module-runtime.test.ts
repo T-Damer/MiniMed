@@ -292,6 +292,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+const inspectInWorker = vi.hoisted(() => vi.fn());
+vi.mock('@/features/modules/module-validation-client', () => ({
+  inspectModuleIndexInWorker: inspectInWorker,
+  moduleValidationWorkerAvailable: () => typeof Worker !== 'undefined',
+}));
+
 describe('browser module runtime storage', () => {
   it('refreshes a stale bundled core while preserving its installedAt', () => {
     const registry = new InMemoryInstalledModuleRegistry();
@@ -510,7 +516,7 @@ describe('browser module runtime storage', () => {
     }
   });
 
-  it('validates oversized modules without changing the small in-memory path', async () => {
+  it('validates oversized modules through OPFS and small ones in the validation worker', async () => {
     installObjectUrlDouble();
     const workers = installWorkerDouble();
     const validator = new BrowserModuleValidator();
@@ -531,24 +537,18 @@ describe('browser module runtime storage', () => {
       expect.objectContaining({ method: 'inspectIntegrity', args: ['sampled'] }),
     );
 
-    const smallStore = {
-      initialize: vi.fn(async () => ({
-        ...HEALTH,
-        persistent: false,
-        installation: 'memory' as const,
-      })),
-      inspectIntegrity: vi.fn(async () => INTEGRITY),
-      close: vi.fn(async () => undefined),
-    } as unknown as SqliteMedicalStore;
-    const createFromBytes = vi
-      .spyOn(SqliteMedicalStore, 'createFromBytes')
-      .mockResolvedValue(smallStore);
+    // A small index is checked in the validation worker, not in the page's own SQLite heap.
+    const createFromBytes = vi.spyOn(SqliteMedicalStore, 'createFromBytes');
+    inspectInWorker.mockResolvedValueOnce({
+      health: { ...HEALTH, persistent: false, installation: 'memory' as const },
+      integrity: INTEGRITY,
+    });
     const smallBytes = new Uint8Array([1, 2, 3]);
     const smallResult = await validator.validate(moduleEntry('minimed.small'), smallBytes);
 
     expect(smallResult.valid).toBe(true);
-    expect(smallStore.inspectIntegrity).toHaveBeenCalledWith('full');
-    expect(createFromBytes).toHaveBeenCalledWith(smallBytes);
+    expect(inspectInWorker).toHaveBeenCalledWith(smallBytes, 'full', undefined);
+    expect(createFromBytes).not.toHaveBeenCalled();
     expect(workers).toHaveLength(1);
     expect(URL.createObjectURL).toHaveBeenCalledOnce();
   });

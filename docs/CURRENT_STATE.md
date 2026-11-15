@@ -47,7 +47,15 @@ after a restart was installing 113 modules. Reproduced locally (resumed queue, 4
 - `searchSectionDownloadBlocks` reads the «Experimental» switch once per pass
   (`isModuleReleasedWith`), not twice from storage per module and document.
 
-Not done: install validation and SHA-256 of each module still run on the main thread; the ~10 MB
+- **Install validation in a worker (2026-11-15, after 0.6.100; not released).** A small module index
+  was opened in the page's SQLite heap for its integrity check; `module-validation.worker.ts` now
+  does it (`inspectModuleStore` is shared with the page path, which stays for OPFS-streamed packs
+  and where workers are missing). Local 150-module queue at 4× CPU: 150 worker checks, none on the
+  page; the queue finished in 14 s instead of 26 s, long-task blocking 15.5 → 10.4 s. SHA-256 stays
+  where it is: the digest already runs off the thread, the page's cost is one copy of the bytes,
+  and a worker would need the same copy.
+
+Not done: the ~10 MB
 catalog parse (2.6 s once per session on the phone) and the home catalog recompute after a rebuild
 are unchanged. Not measured on a phone; the idle-phone numbers of the log are from one device.
 

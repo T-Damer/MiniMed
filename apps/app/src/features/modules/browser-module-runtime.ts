@@ -81,6 +81,7 @@ import {
   moduleIndexBytes,
   moduleIndexSize,
 } from '@/features/modules/module-index-payload';
+import { inspectModuleStore } from '@/features/modules/module-inspection';
 import {
   holdModuleStagingLock,
   listModulePools,
@@ -94,6 +95,11 @@ import {
 } from '@/features/modules/module-opfs-pools';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import { searchIndexIsConsistent } from '@/features/modules/module-search-index';
+import {
+  inspectModuleIndexInWorker,
+  moduleValidationWorkerAvailable,
+} from '@/features/modules/module-validation-client';
+import type { ModuleInspection } from '@/features/modules/module-validation-protocol';
 import {
   dequeuePendingModuleInstall,
   discardPendingModuleInstall,
@@ -941,43 +947,56 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
       const artifact = module.artifacts.find((entry) => entry.kind === 'index');
       const indexSha256 =
         (artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256) ?? undefined;
-      if (indexBytes === null) {
-        // Streamed into OPFS by the backend: open that copy, never import another.
-        if (!artifact?.decodedSizeBytes) throw new Error('Для базы не указан размер распаковки.');
-        const opfsBytes = artifact.decodedSizeBytes;
-        store = await timeInstallPhase('validate-open', () =>
-          openModuleStore(module.id, module.version, { opfsBytes }, indexSha256),
-        );
-      } else {
-        const bytes = indexBytes;
-        store = await timeInstallPhase('validate-open', () =>
-          openModuleStore(module.id, module.version, bytes, indexSha256),
-        );
-      }
-      const opened = store;
-      const health = await timeInstallPhase('validate-initialize', () => opened.initialize());
       // The installer verified the SHA-256 of these exact bytes, so a large pack skips the
       // whole-file page walk (80-200 s through OPFS handles for a 630 MB module).
       const scan = isLargeIndex(artifact?.decodedSizeBytes ?? indexBytes?.byteLength ?? 0)
         ? 'sampled'
         : 'full';
+      const referenceRequest = module.definitionReference
+        ? ({
+            op: 'status',
+            moduleId: module.id,
+            editionId: module.definitionReference.editionId,
+          } as const)
+        : undefined;
       const integrityStartedAt = performance.now();
-      const integrity = await timeInstallPhase('validate-integrity', () =>
-        opened.inspectIntegrity(scan),
-      );
+      let inspection: ModuleInspection;
+      if (
+        indexBytes !== null &&
+        !isLargeIndex(indexBytes.byteLength) &&
+        moduleValidationWorkerAvailable()
+      ) {
+        // A small index was opened in the page's own SQLite heap: every installed module held the
+        // main thread for its integrity check (performance log 0.6.99). It is checked in a worker.
+        const bytes = indexBytes;
+        inspection = await timeInstallPhase('validate-worker', () =>
+          inspectModuleIndexInWorker(bytes, scan, referenceRequest),
+        );
+      } else {
+        if (indexBytes === null) {
+          // Streamed into OPFS by the backend: open that copy, never import another.
+          if (!artifact?.decodedSizeBytes) throw new Error('Для базы не указан размер распаковки.');
+          const opfsBytes = artifact.decodedSizeBytes;
+          store = await timeInstallPhase('validate-open', () =>
+            openModuleStore(module.id, module.version, { opfsBytes }, indexSha256),
+          );
+        } else {
+          const bytes = indexBytes;
+          store = await timeInstallPhase('validate-open', () =>
+            openModuleStore(module.id, module.version, bytes, indexSha256),
+          );
+        }
+        inspection = await inspectModuleStore(store, scan, referenceRequest, timeInstallPhase);
+      }
+      const { health, integrity, reference } = inspection;
       for (const [check, durationMs] of Object.entries(integrity.timingsMs ?? {})) {
         recordInstallDuration(`validate-integrity:${check}`, integrityStartedAt, durationMs);
       }
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
       let referenceValid = false;
       if (module.definitionReference) {
-        const reference = await store.reference({
-          op: 'status',
-          moduleId: module.id,
-          editionId: module.definitionReference.editionId,
-        });
         referenceValid =
-          reference.op === 'status' &&
+          reference?.op === 'status' &&
           reference.entries === module.definitionReference.entries &&
           health.contentPackIds.length === 1 &&
           health.contentPackIds[0] === module.definitionReference.editionId;
