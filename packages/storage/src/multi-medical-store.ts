@@ -7,7 +7,6 @@ import {
   type EmbeddingProfile,
 } from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
-
 import type {
   LexicalHit,
   LexicalSearchRequest,
@@ -17,6 +16,7 @@ import type {
   VectorHit,
   VectorSearchRequest,
 } from './ports';
+import { SortedListingMemo, stableSortSliced } from './sliced-sort';
 
 /**
  * One default-locale collator for every sort here: the same order as `a.localeCompare(b)` without
@@ -24,6 +24,10 @@ import type {
  * a second of main thread at phone speed.
  */
 const textCollator = new Intl.Collator();
+
+/** Shared by every combined store of the page: a rebuilt core mounts the same lists. */
+const aliasesMemo = new SortedListingMemo<AliasRecord>();
+const navigationDocumentsMemo = new SortedListingMemo<DocumentRecord>();
 
 function compareText(left: string, right: string): number {
   return textCollator.compare(left, right);
@@ -95,6 +99,14 @@ export class MultiMedicalStore implements MedicalStore {
   private readonly mounts = new Map<string, InternalMount>();
   private initialized = false;
   private validatedAliases: readonly AliasRecord[] | undefined;
+  private aliasesPending: Promise<readonly AliasRecord[]> | undefined;
+  /** The aliases `validateComposition` checked, waiting for the first `listAliases` to sort them. */
+  private checkedAliases:
+    | {
+        readonly inputs: readonly (readonly AliasRecord[])[];
+        readonly byId: ReadonlyMap<string, AliasRecord>;
+      }
+    | undefined;
 
   public constructor(mounts: readonly MedicalStoreMount[]) {
     if (mounts.length === 0) throw new Error('MultiMedicalStore requires at least one mount.');
@@ -135,6 +147,8 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
     this.validatedAliases = undefined;
+    this.aliasesPending = undefined;
+    this.checkedAliases = undefined;
     const seedTargets = [...this.mounts.values()].filter((mount) => mount.acceptsSeed);
     if (seed && seedTargets.length !== 1) {
       throw new Error('A seed requires exactly one mounted store with acceptsSeed=true.');
@@ -181,6 +195,8 @@ export class MultiMedicalStore implements MedicalStore {
     if (mount.required) throw new Error(`Required module ${moduleId} cannot be removed.`);
     this.mounts.delete(moduleId);
     this.validatedAliases = undefined;
+    this.aliasesPending = undefined;
+    this.checkedAliases = undefined;
     await mount.store.close();
   }
 
@@ -234,15 +250,20 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    return (
-      await Promise.all(
-        this.activeMounts().map(({ store }) =>
-          store.listNavigationDocuments ? store.listNavigationDocuments() : store.listDocuments(),
-        ),
-      )
-    )
-      .flat()
-      .toSorted((left, right) => compareText(left.title, right.title));
+    const inputs = await Promise.all(
+      this.activeMounts().map(({ store }) =>
+        store.listNavigationDocuments ? store.listNavigationDocuments() : store.listDocuments(),
+      ),
+    );
+    // Tens of thousands of titles: sorted in slices, and not again while the mounted stores hand
+    // out the same lists (a core rebuilt without a change in what is installed).
+    const kept = navigationDocumentsMemo.find(inputs);
+    if (kept) return kept;
+    const sorted = await stableSortSliced(inputs.flat(), (left, right) =>
+      compareText(left.title, right.title),
+    );
+    navigationDocumentsMemo.keep(inputs, sorted);
+    return sorted;
   }
 
   public async lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
@@ -324,15 +345,44 @@ export class MultiMedicalStore implements MedicalStore {
   public async listAliases(): Promise<readonly AliasRecord[]> {
     this.assertInitialized();
     if (this.validatedAliases) return this.validatedAliases;
-    const aliases = (
-      await Promise.all(this.activeMounts().map((mount) => mount.store.listAliases()))
-    ).flat();
-    const byId = new Map<string, AliasRecord>();
-    for (const alias of aliases) byId.set(alias.id, alias);
-    this.validatedAliases = [...byId.values()].toSorted((left, right) =>
-      compareText(left.alias, right.alias),
-    );
-    return this.validatedAliases;
+    // One merge for concurrent callers; a failed one is not kept.
+    this.aliasesPending ??= this.mergeAliases().catch((cause: unknown) => {
+      this.aliasesPending = undefined;
+      this.checkedAliases = undefined;
+      throw cause;
+    });
+    return this.aliasesPending;
+  }
+
+  /**
+   * Every alias of the active mounts, one per id, in the order of their text. With the drug packs
+   * mounted that is hundreds of thousands of strings: sorted in slices, and not again while the
+   * mounts hand out the same lists.
+   */
+  private async mergeAliases(): Promise<readonly AliasRecord[]> {
+    // The lists checked at the start are used as they are: the mounts are not asked again.
+    const checked = this.checkedAliases;
+    const inputs =
+      checked?.inputs ??
+      (await Promise.all(this.activeMounts().map((mount) => mount.store.listAliases())));
+    let sorted = aliasesMemo.find(inputs);
+    if (!sorted) {
+      let byId = checked?.byId;
+      if (!byId) {
+        const merged = new Map<string, AliasRecord>();
+        for (const moduleAliases of inputs) {
+          for (const alias of moduleAliases) merged.set(alias.id, alias);
+        }
+        byId = merged;
+      }
+      sorted = await stableSortSliced([...byId.values()], (left, right) =>
+        compareText(left.alias, right.alias),
+      );
+      aliasesMemo.keep(inputs, sorted);
+    }
+    this.checkedAliases = undefined;
+    this.validatedAliases = sorted;
+    return sorted;
   }
 
   public async listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {
@@ -444,6 +494,8 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async close(): Promise<void> {
     this.validatedAliases = undefined;
+    this.aliasesPending = undefined;
+    this.checkedAliases = undefined;
     const results = await Promise.allSettled(
       [...this.mounts.values()].map((mount) => mount.store.close()),
     );
@@ -520,9 +572,8 @@ export class MultiMedicalStore implements MedicalStore {
     }
 
     const aliases = new Map<string, AliasRecord>();
-    for (const moduleAliases of await Promise.all(
-      active.map((mount) => mount.store.listAliases()),
-    )) {
+    const aliasInputs = await Promise.all(active.map((mount) => mount.store.listAliases()));
+    for (const moduleAliases of aliasInputs) {
       for (const alias of moduleAliases) {
         const existing = aliases.get(alias.id);
         if (existing && aliasSignature(existing) !== aliasSignature(alias))
@@ -544,9 +595,12 @@ export class MultiMedicalStore implements MedicalStore {
         profiles.set(profile.id, signature);
       }
     }
-    this.validatedAliases = [...aliases.values()].toSorted((left, right) =>
-      compareText(left.alias, right.alias),
-    );
+    // The aliases were checked for conflicts above. Their sorted list is made by `listAliases`
+    // when the search first asks for it: the sort is the longest step with the drug packs mounted
+    // and nothing on the way to a ready core needs it.
+    this.validatedAliases = undefined;
+    this.aliasesPending = undefined;
+    this.checkedAliases = { inputs: aliasInputs, byId: aliases };
   }
 
   private async firstMatch<T>(

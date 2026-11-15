@@ -182,7 +182,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-16 claude-fable SRCH-FAST1 (not committed, not released; owner «results as fast as possible, sections»): title matches shown the moment a search starts, full results split into named / «Найдено в тексте» with «Показать ещё»; a closing `SheetPopover` no longer swallows Escape meant for the dialog its item opened
+- 2026-11-16 claude-fable PERF14 (committed, not released; owner's 0.6.106 phone log): alias and navigation-document sorts run in slices with a reuse memo (`packages/storage/src/sliced-sort.ts`), the alias sort left `validateComposition`; unit + typecheck + check + benchmark:all + module/search e2e; not reproduced with drug packs locally
+- 2026-11-16 claude-fable SRCH-FAST1 (committed, not released; owner «results as fast as possible, sections»): title matches shown the moment a search starts, full results split into named / «Найдено в тексте» with «Показать ещё»; a closing `SheetPopover` no longer swallows Escape meant for the dialog its item opened
 - 2026-11-15 claude-fable REL 0.6.106: SRCH-ONE1 (app-only); verify + benchmark:all + search e2e; not on a phone
 - 2026-11-15 claude-fable SRCH-ONE1 (released in 0.6.106; search review steps 2–3): same-name sources fold into one result card led by the recommendation with source chips (`features/search/condition-clusters.ts`), first card compact under a matching definition; recommendations for different audiences (adults / children) stay separate cards labelled by `ageCategories`; unit + typecheck + check, seen at 390/1024 px; `search-ui-revision` and the help-menu test fail on 0.6.99 too
 - 2026-11-15 claude-fable REL 0.6.105: PERF12 + PERF13 + SRCH-KR1 + TERM1; verify + benchmark:all + module/search/dictionary e2e; not on a phone

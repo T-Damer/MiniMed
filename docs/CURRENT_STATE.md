@@ -20,7 +20,30 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Names at once, then results in two parts — 2026-11-16 (STATE SRCH-FAST1; not committed, not released)
+## Fourth phone log: sorts on the main thread — 2026-11-16 (STATE PERF14; committed, not released)
+
+Owner's log of 0.6.106 (80 min, three starts, most sets and the drug packs installed): 38.7 s of
+blocking. «Search ready» 11–14 s in all three starts (24–26 s after cold starts in 0.6.104):
+module mount 7.0–7.9 s, `core-initialize` 4.2–6.5 s. Frames of 1–5 s in worker-reply handlers
+30 s after the start and during searches; a medications search took 15 s (core 7.1 s, of it the
+query model 5.1 s on its first use, text branch 0.7 s; 8 s outside the core). One reader open
+took 10.9 s with a single 6 s frame of rendering.
+
+- **Sorting on the main thread.** Every core build sorted all aliases and all navigation
+  documents with a locale-aware comparison in one piece: with the drug packs that is hundreds of
+  thousands of strings. `packages/storage/src/sliced-sort.ts`: a stable sort in slices (runs
+  sorted on their own, merged pairwise; equal to `toSorted`, tested), and a memo that returns
+  the last result while the mounts hand out the same lists (a rebuild without a change).
+- **The alias sort left the start.** `validateComposition` still checks aliases for conflicts but
+  no longer sorts them; `listAliases` sorts on first use (the idle warm-up), in slices, from the
+  lists the start already checked.
+
+Not reproduced here (no drug packs in the local e2e corpus): the gain on the phone is an
+expectation from the code, not a measurement. Not addressed: the 6 s rendering frame of one
+reader open (document unknown), the query model's 5 s first use, the 8 s a medications search
+spends outside the core, module mount still 7 s on the phone (0.6 s here at 4× CPU).
+
+## Names at once, then results in two parts — 2026-11-16 (STATE SRCH-FAST1; committed, not released)
 
 Owner (2026-11-16): «display results as fast as possible — show additional later… break down into
 sections like "more" and "found in text"».
