@@ -1884,6 +1884,103 @@ export class BrowserContentModuleRuntime {
   }
 }
 
+/** Modules being opened at once at start; the shelf's workers queue what they cannot take yet. */
+const MODULE_MOUNT_CONCURRENCY = 8;
+/** Version records read per IndexedDB transaction at start. */
+const VERSION_READ_BATCH = 64;
+
+/**
+ * Reads the stored version of each pointer, a batch per transaction instead of a transaction per
+ * module. A batch is read when its first record is asked for.
+ */
+function batchedVersionReader(
+  database: IDBDatabase,
+  pointers: readonly ActiveModulePointer[],
+): { read(index: number): Promise<StoredModuleVersion | null> } {
+  const batches = new Map<number, Promise<readonly (StoredModuleVersion | null)[]>>();
+  const readBatch = async (start: number): Promise<readonly (StoredModuleVersion | null)[]> => {
+    const transaction = database.transaction(VERSIONS_STORE, 'readonly');
+    const store = transaction.objectStore(VERSIONS_STORE);
+    const rows = Promise.all(
+      pointers
+        .slice(start, start + VERSION_READ_BATCH)
+        .map((pointer) =>
+          requestResult(
+            store.get(versionKey(pointer.moduleId, pointer.version)) as IDBRequest<
+              StoredModuleVersion | undefined
+            >,
+          ),
+        ),
+    );
+    const [values] = await Promise.all([rows, transactionDone(transaction)]);
+    return values.map((value) => value ?? null);
+  };
+  return {
+    async read(index) {
+      const start = index - (index % VERSION_READ_BATCH);
+      let batch = batches.get(start);
+      if (!batch) {
+        batch = readBatch(start);
+        batches.set(start, batch);
+      }
+      return (await batch)[index - start] ?? null;
+    },
+  };
+}
+
+/** Opens one installed module for the search core; a module that cannot be opened is skipped. */
+async function mountStoredModule(
+  database: IDBDatabase,
+  pointer: ActiveModulePointer,
+  stored: StoredModuleVersion,
+  cacheSizeKiB: number,
+): Promise<MedicalStoreMount | undefined> {
+  const source = storedIndexSource(stored);
+  if (!source) {
+    console.warn(`Content module ${pointer.moduleId} has no stored index.`);
+    return undefined;
+  }
+  try {
+    const { store, movedToShelf } = await openMountedModuleStore(stored, source, cacheSizeKiB);
+    if (stored.definitionReference) {
+      await store.initialize();
+      try {
+        const status = await store.reference({
+          op: 'status',
+          moduleId: pointer.moduleId,
+          editionId: stored.definitionReference.editionId,
+        });
+        if (status.op !== 'status' || status.entries !== stored.definitionReference.entries)
+          throw new Error('Installed reference descriptor mismatch.');
+      } catch (cause) {
+        await store.close();
+        throw cause;
+      }
+    }
+    if (movedToShelf) {
+      // Installed before the shelf: the file just written is the module now.
+      await moveIndexBytesToShelf(database, stored.key).catch((cause: unknown) => {
+        console.warn(`Unable to drop the IndexedDB copy of ${pointer.moduleId}.`, cause);
+      });
+    } else if (stored.bytes && isLargeIndex(moduleIndexSize(stored.bytes))) {
+      // Installed before the single-store change: the OPFS copy just opened is the module now.
+      await dropRedundantIndexBytes(database, stored.key).catch((cause: unknown) => {
+        console.warn(`Unable to drop the duplicate index of ${pointer.moduleId}.`, cause);
+      });
+    }
+    return {
+      moduleId: pointer.moduleId,
+      store,
+      enabled: true,
+      searchWeight: 1,
+      ...(stored.definitionReference ? { definitionReference: stored.definitionReference } : {}),
+    };
+  } catch (cause) {
+    console.warn(`Unable to mount content module ${pointer.moduleId}.`, cause);
+    return undefined;
+  }
+}
+
 export async function loadInstalledModuleMounts(): Promise<readonly MedicalStoreMount[]> {
   if (!('indexedDB' in globalThis)) return [];
   const database = await openDatabase();
@@ -1895,57 +1992,28 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
         (globalThis.navigator as { deviceMemory?: number } | undefined)?.deviceMemory,
       ),
     );
-    const mounts: MedicalStoreMount[] = [];
-    for (const pointer of pointers) {
-      const stored = await readVersion(database, pointer.moduleId, pointer.version);
-      if (!stored) continue;
-      const source = storedIndexSource(stored);
-      if (!source) {
-        console.warn(`Content module ${pointer.moduleId} has no stored index.`);
-        continue;
+    // One module after another (a record read and a worker round trip each) took 18.8 s for ~800
+    // installed modules on a phone. The records are read in batches and the modules are opened
+    // several at a time: the shelf's shard workers each take their share in parallel. The mounts
+    // keep the order of the pointers.
+    const versions = batchedVersionReader(database, pointers);
+    const mounted: (MedicalStoreMount | undefined)[] = new Array(pointers.length);
+    let next = 0;
+    const mountNext = async (): Promise<void> => {
+      while (next < pointers.length) {
+        const index = next;
+        next += 1;
+        const pointer = pointers[index];
+        if (!pointer) continue;
+        const stored = await versions.read(index);
+        if (!stored) continue;
+        mounted[index] = await mountStoredModule(database, pointer, stored, cacheSizeKiB);
       }
-      try {
-        const { store, movedToShelf } = await openMountedModuleStore(stored, source, cacheSizeKiB);
-        if (stored.definitionReference) {
-          await store.initialize();
-          try {
-            const status = await store.reference({
-              op: 'status',
-              moduleId: pointer.moduleId,
-              editionId: stored.definitionReference.editionId,
-            });
-            if (status.op !== 'status' || status.entries !== stored.definitionReference.entries)
-              throw new Error('Installed reference descriptor mismatch.');
-          } catch (cause) {
-            await store.close();
-            throw cause;
-          }
-        }
-        mounts.push({
-          moduleId: pointer.moduleId,
-          store,
-          enabled: true,
-          searchWeight: 1,
-          ...(stored.definitionReference
-            ? { definitionReference: stored.definitionReference }
-            : {}),
-        });
-        if (movedToShelf) {
-          // Installed before the shelf: the file just written is the module now.
-          await moveIndexBytesToShelf(database, stored.key).catch((cause: unknown) => {
-            console.warn(`Unable to drop the IndexedDB copy of ${pointer.moduleId}.`, cause);
-          });
-        } else if (stored.bytes && isLargeIndex(moduleIndexSize(stored.bytes))) {
-          // Installed before the single-store change: the OPFS copy just opened is the module now.
-          await dropRedundantIndexBytes(database, stored.key).catch((cause: unknown) => {
-            console.warn(`Unable to drop the duplicate index of ${pointer.moduleId}.`, cause);
-          });
-        }
-      } catch (cause) {
-        console.warn(`Unable to mount content module ${pointer.moduleId}.`, cause);
-      }
-    }
-    return mounts;
+    };
+    await Promise.all(
+      Array.from({ length: Math.min(MODULE_MOUNT_CONCURRENCY, pointers.length) }, mountNext),
+    );
+    return mounted.filter((mount): mount is MedicalStoreMount => mount !== undefined);
   } finally {
     database.close();
     void sweepOrphanedModulePools().catch((cause: unknown) => {

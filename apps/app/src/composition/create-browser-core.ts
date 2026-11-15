@@ -476,17 +476,41 @@ export function builtInCompanionMounts(
   return mounts;
 }
 
+/**
+ * Starts opening the installed modules. Called before the core database is opened, so the two run
+ * side by side: with every module installed the modules are most of the start, and they waited
+ * for the core and the companion packs first.
+ */
+function startInstalledModuleMounts(): Promise<readonly MedicalStoreMount[]> {
+  return timeInstallPhase('core-mount-modules', loadInstalledModuleMounts).catch(
+    (cause: unknown): readonly MedicalStoreMount[] => {
+      console.warn(
+        'Downloaded content modules could not be opened; using the built-in base.',
+        cause,
+      );
+      return [];
+    },
+  );
+}
+
+/** A core that failed to open leaves its module stores behind: close them. */
+function closeModuleMounts(mounts: Promise<readonly MedicalStoreMount[]>): void {
+  void mounts.then((opened) => {
+    for (const mount of opened) {
+      mount.store.close().catch((cause: unknown) => {
+        console.warn(`Unable to close content module ${mount.moduleId}.`, cause);
+      });
+    }
+  });
+}
+
 async function withInstalledModules(
   coreStore: MedicalStore,
   companions: CompanionStores,
+  mounts: Promise<readonly MedicalStoreMount[]>,
   acceptsSeed = false,
 ): Promise<MedicalStore> {
-  let installedModules: readonly MedicalStoreMount[] = [];
-  try {
-    installedModules = await timeInstallPhase('core-mount-modules', loadInstalledModuleMounts);
-  } catch (cause) {
-    console.warn('Downloaded content modules could not be opened; using the built-in base.', cause);
-  }
+  const installedModules = await mounts;
 
   const installedModuleIds = new Set(installedModules.map((module) => module.moduleId));
   const builtInMounts: MedicalStoreMount[] = [
@@ -611,13 +635,14 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
   let fallbackCoreUrl: string | undefined;
   if (platform === 'android' || platform === 'ios') {
     let nativeStore: CapacitorMedicalStore | undefined;
+    const mounts = startInstalledModuleMounts();
     try {
       nativeStore = await createNativeStore(downloadUi);
       const contentBaseUrl = getPackagedContentBaseUrl();
       const companions = await createPackagedCompanionStores(contentBaseUrl, {
         includeMedications: false,
       });
-      const store = await withInstalledModules(nativeStore, companions);
+      const store = await withInstalledModules(nativeStore, companions, mounts);
       return createMedicalCore({
         store,
         platform,
@@ -627,6 +652,7 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
         searchExecution: 'direct-only',
       });
     } catch (error) {
+      closeModuleMounts(mounts);
       await nativeStore?.close();
       // A corrupt edition is not a backend capability failure. Never bypass native validation
       // by opening the same damaged bytes in WASM.
@@ -650,6 +676,7 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
     }
   }
 
+  const mounts = startInstalledModuleMounts();
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
     const report = await readPackReport(contentBaseUrl);
@@ -663,7 +690,7 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: false,
     });
-    const store = await withInstalledModules(coreStore, companions);
+    const store = await withInstalledModules(coreStore, companions, mounts);
     return createMedicalCore({
       store,
       platform,
@@ -677,12 +704,14 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
           : undefined,
     });
   } catch (error) {
+    closeModuleMounts(mounts);
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });
   }
 }
 
 export async function createBrowserWorkerCore(contentBaseUrl: string) {
+  const mounts = startInstalledModuleMounts();
   try {
     const report = await readPackReport(contentBaseUrl);
     const coreStore = await createRequiredWebCoreStore(
@@ -693,7 +722,7 @@ export async function createBrowserWorkerCore(contentBaseUrl: string) {
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: shouldOpenPackagedMedicationsInSearchWorker(),
     });
-    const store = await withInstalledModules(coreStore, companions);
+    const store = await withInstalledModules(coreStore, companions, mounts);
     return createMedicalCore({
       store,
       platform: 'web',
@@ -701,6 +730,7 @@ export async function createBrowserWorkerCore(contentBaseUrl: string) {
       drugCodes: comparisonDrugCodes,
     });
   } catch (error) {
+    closeModuleMounts(mounts);
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });
   }
