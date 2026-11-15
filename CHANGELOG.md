@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.106] - 2026-11-15
+
+- Search: one card per condition. Sources with the same name (a clinical recommendation, a reference article, an
+  МКБ-10 card) are one result led by the recommendation; the other sources are listed under its title and each opens
+  its own document.
+- Recommendations of one name for different ages stay separate and say whom they are for («Мигрень»: «взрослые» and
+  «дети»).
+- When the definition above the results names the same thing as the first result, that result lists its sources
+  without repeating the text.
+
 ## [0.6.105] - 2026-11-15
 
 - Faster start with many document sets installed: the sets are no longer opened at start (a phone log showed 18–20 s

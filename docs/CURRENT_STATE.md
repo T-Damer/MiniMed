@@ -20,7 +20,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## One card per condition, one answer on top — 2026-11-15 (STATE SRCH-ONE1; committed, not released)
+## Release 0.6.106 — 2026-11-15
+
+SRCH-ONE1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build, `benchmark:all`,
+`native:source:check`; search e2e pass except the help-menu test, which fails on 0.6.99 too. Seen in a browser at
+390 and 1024 px; not tested on a phone.
+
+## One card per condition, one answer on top — 2026-11-15 (STATE SRCH-ONE1; released in 0.6.106)
 
 Search review, steps 2 and 3 (owner 2026-11-15).
 
