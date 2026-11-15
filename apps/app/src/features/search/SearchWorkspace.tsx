@@ -53,6 +53,7 @@ import { ComparisonSuggestionCard } from '@/features/drug-comparison/ComparisonS
 import { parseComparisonQuery } from '@/features/drug-comparison/comparison-query';
 import { InteractionSuggestionCard } from '@/features/drug-interactions/InteractionSuggestionCard';
 import { parseInteractionQuery } from '@/features/drug-interactions/interaction-query';
+import { isIcd11DocumentId } from '@/features/icd11/icd11-document';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { displayDocumentTitle } from '@/features/library/document-display';
 import {
@@ -82,7 +83,17 @@ import {
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
 import { clinicalStage } from '@/features/search/clinical-stages';
+import {
+  audienceLabel,
+  clusterResultGroups,
+  conditionTitleKey,
+  type ResultCluster,
+} from '@/features/search/condition-clusters';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
+import {
+  definitionHitHasText,
+  selectDefinitionPreview,
+} from '@/features/search/definition-preview';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
@@ -97,7 +108,7 @@ import {
   SearchMeaningChoices,
   SearchTitleExtras,
 } from '@/features/search/SearchMeaningChoices';
-import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
+import { type ResultSource, SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchScopeFallbackList } from '@/features/search/SearchScopeFallbackList';
 import { SearchSourceNote } from '@/features/search/SearchSourceNote';
@@ -122,6 +133,7 @@ import {
   scopedSearchFoundNothing,
   searchOtherSections,
 } from '@/features/search/search-scope-fallback';
+import { RESULT_TYPE_VISUALS, resultTypeVisual } from '@/features/search/searchResultKindVisuals';
 import { prepareTitleIndex, titleIndexFor } from '@/features/search/title-index';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
 import '@/features/search/search-error.css';
@@ -586,10 +598,41 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const repeatedTitles = createMemo(() =>
     repeatedResultTitles(visibleGroups().map((group) => group.title)),
   );
-  const qualifierOf = (group: SearchResultGroup): string | undefined =>
-    repeatedTitles().has(group.title)
-      ? resultQualifier(contextDocumentsById().get(group.documentId))
-      : undefined;
+  // Whom a result is written for; a name can be one recommendation for adults and another for
+  // children, and the card has to say which.
+  const audienceOf = (group: SearchResultGroup): string | undefined =>
+    audienceLabel(contextDocumentsById().get(group.documentId)?.metadata);
+  const qualifierOf = (group: SearchResultGroup): string | undefined => {
+    if (!repeatedTitles().has(group.title)) return undefined;
+    const parts = [
+      group.documentKind === 'clinical-recommendation' ? audienceOf(group) : undefined,
+      resultQualifier(contextDocumentsById().get(group.documentId)),
+    ].filter((part): part is string => Boolean(part));
+    return parts.length > 0 ? parts.join(' · ') : undefined;
+  };
+  // One condition, one card: the sources of the same name fold under the recommendation.
+  const resultClusters = createMemo(() => clusterResultGroups(visibleGroups(), audienceOf));
+  const sourcesOf = (cluster: ResultCluster): readonly ResultSource[] =>
+    cluster.others.map((other) => {
+      const visual = isIcd11DocumentId(other.documentId)
+        ? RESULT_TYPE_VISUALS.icd11
+        : resultTypeVisual(other);
+      const code = /^[A-ZА-Я]\d{2}(?:\.\d+)?/u.exec(other.title)?.[0];
+      const detail =
+        other.documentType === 'icd10' || other.documentType === 'icd11'
+          ? code
+          : [
+              other.documentKind === 'clinical-recommendation' ? audienceOf(other) : undefined,
+              resultQualifier(contextDocumentsById().get(other.documentId)),
+            ]
+              .filter((part): part is string => Boolean(part))
+              .join(' · ') || undefined;
+      return {
+        documentId: other.documentId,
+        icon: visual.icon,
+        label: detail ? `${visual.label} · ${detail}` : visual.label,
+      };
+    });
   const titleExtras = createMemo((): readonly MedicalDocumentSummary[] => {
     const shown = response();
     const words = titleQuery();
@@ -647,6 +690,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       );
     }),
   );
+  // The definition shown above the results and the first card are one answer when they name the
+  // same thing: the card then lists its sources without repeating the text.
+  const answerKey = createMemo(() => {
+    const identities = visibleIdentities();
+    if (identities.length === 0 || !props.referenceCore) return undefined;
+    const preview = selectDefinitionPreview(identities, searchableQuery(query()));
+    return preview && definitionHitHasText(preview.main.primary)
+      ? conditionTitleKey(preview.main.title)
+      : undefined;
+  });
 
   const calculatorSchemas = createMemo(() => {
     calculatorPacksRevision();
@@ -1912,19 +1965,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       when={scopeFallback()}
                       fallback={
                         <LayoutVirtualizedGrid
-                          data={visibleGroups()}
+                          data={resultClusters()}
                           bufferSize={400}
                           align="start"
                         >
-                          {(group, groupIndex) => {
+                          {(cluster, clusterIndex) => {
                             return (
                               <SearchResultGroupCard
-                                group={group}
-                                index={groupIndex}
+                                group={cluster.lead}
+                                index={clusterIndex}
                                 selectedChunkId={context()?.focusChunkId}
-                                action={props.groupAction?.(group)}
-                                qualifier={qualifierOf(group)}
+                                action={props.groupAction?.(cluster.lead)}
+                                qualifier={qualifierOf(cluster.lead)}
                                 onOpenDocument={openDocumentInArchive}
+                                sources={sourcesOf(cluster)}
+                                compact={
+                                  // Only a card that lists its sources stands in for the answer;
+                                  // a lone result keeps its fragment.
+                                  clusterIndex === 0 &&
+                                  cluster.others.length > 0 &&
+                                  answerKey() === conditionTitleKey(cluster.lead.title)
+                                }
                               />
                             );
                           }}

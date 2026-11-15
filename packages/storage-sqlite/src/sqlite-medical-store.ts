@@ -412,6 +412,9 @@ const NAVIGATION_METADATA_FIELDS = [
   'moduleIds',
   'definitionPreviewAnchor',
   'terminologyMentionAnchors',
+  // Whom a recommendation is written for («Взрослые», «Дети»): two recommendations of one name
+  // differ by it, and a result card has to say which is which.
+  'ageCategories',
 ] as const;
 
 function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string, unknown> {

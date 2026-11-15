@@ -20,6 +20,40 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## One card per condition, one answer on top — 2026-11-15 (STATE SRCH-ONE1; committed, not released)
+
+Search review, steps 2 and 3 (owner 2026-11-15).
+
+- **One card per condition** (`features/search/condition-clusters.ts`). Results of the kinds
+  «clinical recommendation» and «reference» whose titles name the same thing become one card:
+  the title without an МКБ code in front and «, МКБ-10» behind, lower case. The recommendation
+  leads (the best-ranked one among several, else the best-ranked result); the other sources are
+  chips under the card's header — «Клинические рекомендации · ред. 2», «Справочник»,
+  «МКБ-10 · G43» — and each opens its own document. Grouping is by name only: the sources stay
+  separate documents with their own labels, nothing is merged or called the same text. Drugs,
+  tools, legal acts and a term found as a definition are never folded.
+- **One answer on top.** When the definition card above the results and the first card name the
+  same thing, and that card lists other sources, the card shows its header and sources without
+  repeating the found fragment: definition, then its sources, then related conditions.
+- «Мигрень» at 390 px: definition + one «Мигрень» card with three source chips (was a definition
+  and three separate «Мигрень» cards plus the МКБ card further down). Seen in a browser at 390 and
+  1024 px.
+
+- **One name, two audiences (owner 2026-11-15: «some terms have double meanings, e.g. for
+  children»).** Two recommendations titled «Мигрень» are different documents, one for adults and
+  one for children, not two editions. Recommendations for different audiences are never folded
+  into each other: each is its own card, labelled «взрослые · ред. 4» / «дети · ред. 2» from the
+  source's `ageCategories` (now kept in the navigation document list of both stores); the article
+  and the МКБ card fold under the first of them. The first version of this change hid the
+  children's recommendation behind a chip that said only «ред. 2».
+
+Not done: grouping documents whose titles differ («Пневмония» and КР «Пневмония
+(внебольничная)»), which needs a build-time key such as the МКБ-10 code; the meaning chips and
+the title extras are unchanged; in-text links still offer their own alternatives.
+
+e2e that fail on 0.6.99 too (not from this work): `search-ui-revision` (long catalog after a
+jump, both widths), `search.spec` help menu.
+
 ## Release 0.6.105 — 2026-11-15
 
 PERF12, PERF13, SRCH-KR1 and TERM1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck,

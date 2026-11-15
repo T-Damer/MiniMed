@@ -241,6 +241,7 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'moduleIds', json_extract(d.metadata_json, '$.moduleIds'),
       'definitionPreviewAnchor', json_extract(d.metadata_json, '$.definitionPreviewAnchor'),
       'terminologyMentionAnchors', json_extract(d.metadata_json, '$.terminologyMentionAnchors'),
+      'ageCategories', json_extract(d.metadata_json, '$.ageCategories'),
       'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
       'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
       'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),

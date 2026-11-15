@@ -106,7 +106,9 @@ hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.
     («Пневмония» → KiM «Пневмония» stays above КР «Пневмония (внебольничная)»), and the МКБ nodes
     in the top five. `benchmark:all`, `srch1`, `owner-queries`, `doctor-lookup`, `source-names`,
     `class` pass; `lookup-quality` fails the same two agreement gates (0.9997) with and without
-    the change.
+    the change. **2026-11-15, SRCH-ONE1:** results of one name (recommendation, reference
+    article, МКБ card) are one card led by the recommendation with the other sources as chips
+    (`condition-clusters.ts`); differing titles still need a build-time key.
 13. **Missing-letter drug typo** («цефтриаксн» finds nothing relevant) — done with item 19
     (2026-10-13): the core's medication spelling branch already found the drug; «Все» dropped it
     because its title stem was not in the query. `ScopedMedicalCore` now keeps drugs that branch

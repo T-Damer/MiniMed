@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-15 claude-fable SRCH-ONE1 (committed, not released; search review steps 2–3): same-name sources fold into one result card led by the recommendation with source chips (`features/search/condition-clusters.ts`), first card compact under a matching definition; recommendations for different audiences (adults / children) stay separate cards labelled by `ageCategories`; unit + typecheck + check, seen at 390/1024 px; `search-ui-revision` and the help-menu test fail on 0.6.99 too
 - 2026-11-15 claude-fable REL 0.6.105: PERF12 + PERF13 + SRCH-KR1 + TERM1; verify + benchmark:all + module/search/dictionary e2e; not on a phone
 - 2026-11-15 claude-fable TERM1 (released in 0.6.105; search review step 1): «Найти в словаре» answers from the read document's own «Список сокращений» / «Термины и определения» first (`reader-dictionary/document-terms.ts`); unit + dictionary e2e; not seen in a browser on a real КР; steps 2–3 of the review not built
 - 2026-11-15 claude-fable PERF13 (released in 0.6.105; owner's 0.6.104 phone log): module files opened on first use + background warm-up, no re-initialize on rebuild, modules asked only about their own documents, core lists kept across rebuilds (worker store and native store), sliced download-blocks pass; unit + typecheck + check + native:source:check + module/search e2e; local 4× only
