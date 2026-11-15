@@ -20,7 +20,34 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Second phone log: searches with every module installed — 2026-11-15 (STATE PERF10; not released)
+## Release 0.6.104 — 2026-11-15
+
+PERF10, PERF11 and MODELS1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,
+`benchmark:all`, `native:source:check`; e2e search, drugs, prescription, modules (many-modules reload, lifecycle,
+pointer), ECG and skin pass. The Android workflow compiles the Kotlin and builds the APK; its emulator test
+`fullApplicationReachesSearchAndReturnsResultsWithoutExhaustingTheBridge` (WebView silent for 5 s during the first
+search on the CI emulator) fails the same way on the 0.6.103 tag — not from this release, not fixed. Dictation
+changes not run on a phone.
+
+## Start with every module installed — 2026-11-15 (STATE PERF11; released in 0.6.104)
+
+The 0.6.102 phone log: 25 s from launch to «search ready», 18.8 s of it opening ~800 installed
+modules one after another (a record read in its own IndexedDB transaction and a worker round trip
+per module), and only after the core database and the companion packs were open.
+
+- `loadInstalledModuleMounts` reads the version records 64 per transaction and opens 8 modules at
+  a time (`MODULE_MOUNT_CONCURRENCY`); the three shelf shard workers take their share in parallel.
+  The mounts keep the order of the pointers.
+- The core factory starts the mounts before it opens the core database
+  (`startInstalledModuleMounts`), so both run side by side; a core that fails to open closes them.
+- 774 clinical modules, 4× CPU, Mac: «search ready» 4.8 → 2.7–3.3 s; module opening starts at
+  0.5 s instead of 1.8 s and takes 0.8–1.2 s instead of 2.1 s. Not measured on a phone.
+
+Left: `core-initialize` (5.8 s in the phone log, ~1 s here) still asks every module for its health
+and its document identities at each start; keeping those per module version would avoid touching
+800 database files.
+
+## Second phone log: searches with every module installed — 2026-11-15 (STATE PERF10; released in 0.6.104)
 
 Owner's log of 0.6.102 (10.5 min, most document sets installed): 34.8 s of blocking (137 s in the
 0.6.99 log). Start took 25 s to «search ready» (core create 19 s, module mount 18.8 s); two
@@ -47,7 +74,7 @@ Not addressed: 25 s to «search ready» with every module installed (module moun
 rendering frames when Settings or a document opens (`sticky-surface`, `DocumentPageHost`, render
 time, not script), and the return to the search home (1.65 s `hashchange`).
 
-## On-device models: runtime files, idle unload, one speech recognizer — 2026-11-15 (STATE MODELS1; not released)
+## On-device models: runtime files, idle unload, one speech recognizer — 2026-11-15 (STATE MODELS1; released in 0.6.104)
 
 Survey of ECG, skin, semantic search and dictation (owner 2026-11-15): every ONNX model already runs
 in a worker (one thread: the WebView is not cross-origin isolated) or natively; sessions are reused.

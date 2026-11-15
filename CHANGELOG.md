@@ -4,6 +4,20 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.104] - 2026-11-15
+
+- Faster start with many document sets installed: the sets are opened several at a time and alongside the main
+  database instead of one after another afterwards (a phone log showed 19 of 25 start-up seconds spent there).
+- Search with many document sets installed freezes less: a search started right after the app opens no longer rebuilds
+  its indexes in one piece, the dose and drug-name tables it pulls in are prepared once and without a full re-check,
+  and the title index is built in short steps.
+- Dictation on Android: the speech model is loaded when a recording starts instead of during the first words, a
+  recorded file no longer loads a second copy of the model, and the model leaves memory after five minutes without
+  speech.
+- The ECG, skin and search models leave memory when unused; search by meaning and browser dictation load their runtime
+  from the app's own files (offline).
+- Performance log: each search records how long the core, the meaning model and the text search took (never the words).
+
 ## [0.6.103] - 2026-11-15
 
 - Fewer freezes right after the app opens: the search index is prepared in short steps that let taps and scrolling
