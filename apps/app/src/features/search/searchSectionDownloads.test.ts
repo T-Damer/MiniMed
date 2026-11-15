@@ -2,7 +2,10 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { searchCatalogTools } from '@/features/search/searchCatalog';
-import { searchSectionDownloadBlocks } from './searchSectionDownloads';
+import {
+  searchSectionDownloadBlocks,
+  searchSectionDownloadBlocksSliced,
+} from './searchSectionDownloads';
 
 const document = (metadata?: MedicalDocumentSummary['metadata']): MedicalDocumentSummary => ({
   id: 'test-pointer',
@@ -18,6 +21,24 @@ const document = (metadata?: MedicalDocumentSummary['metadata']): MedicalDocumen
 });
 
 describe('search section downloads', () => {
+  it('gives the same blocks in slices as in one pass, and one run to callers with the same lists', async () => {
+    const tools = searchCatalogTools();
+    const documents: MedicalDocumentSummary[] = [];
+    const first = searchSectionDownloadBlocksSliced(documents, tools, MODULE_CATALOG);
+    expect(searchSectionDownloadBlocksSliced(documents, tools, MODULE_CATALOG)).toBe(first);
+    const sliced = await first;
+    // Other lists (a new array) so the one-pass call computes for itself.
+    const whole = searchSectionDownloadBlocks([], [...tools], MODULE_CATALOG);
+    expect([...sliced.keys()].toSorted()).toEqual([...whole.keys()].toSorted());
+    for (const [key, block] of whole) {
+      expect(sliced.get(key)?.modules.map((module) => module.id)).toEqual(
+        block.modules.map((module) => module.id),
+      );
+      expect(sliced.get(key)?.local).toBe(block.local);
+      expect(sliced.get(key)?.unavailable).toBe(block.unavailable);
+    }
+  });
+
   it('uses exact tool membership and deduplicates a shared package at the parent', () => {
     const tools = searchCatalogTools();
     const blocks = searchSectionDownloadBlocks([], tools, MODULE_CATALOG);

@@ -96,7 +96,11 @@ import {
   toolsFollowResults,
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
-import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
+import {
+  NO_DOWNLOAD_BLOCKS,
+  type SearchDownloadBlock,
+  searchSectionDownloadBlocksSliced,
+} from '@/features/search/searchSectionDownloads';
 import { sectionShortcutRows, sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { hideUsefulFeatures, USEFUL_FEATURES_NOTICE_ID } from '@/features/search/useful-features';
@@ -216,9 +220,22 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   // Which sections still have something to download is worked out when the browser is idle: the
   // pass walks the whole catalog and must not ride in the task that first lists the documents.
   const downloadDocuments = createDeferred(documents, { timeoutMs: 2000 });
-  const downloadBlocks = createMemo(() => {
+  const [downloadBlocks, setDownloadBlocks] =
+    createSignal<ReadonlyMap<string, SearchDownloadBlock>>(NO_DOWNLOAD_BLOCKS);
+  createEffect(() => {
     downloads.preferenceRevision();
-    return searchSectionDownloadBlocks(downloadDocuments(), toolRows(), downloads.catalog());
+    const pending = searchSectionDownloadBlocksSliced(
+      downloadDocuments(),
+      toolRows(),
+      downloads.catalog(),
+    );
+    let current = true;
+    onCleanup(() => {
+      current = false;
+    });
+    void pending.then((blocks) => {
+      if (current) setDownloadBlocks(() => blocks);
+    });
   });
   /** Document sections of the current scope whose published modules are not installed yet. */
   const missingSections = createMemo(() => {

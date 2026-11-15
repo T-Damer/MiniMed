@@ -20,7 +20,9 @@ import type { SearchCatalogSection, SearchCatalogTool } from '@/features/search/
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import {
   EMPTY_SEARCH_DOWNLOAD_BLOCK,
-  searchSectionDownloadBlocks,
+  NO_DOWNLOAD_BLOCKS,
+  type SearchDownloadBlock,
+  searchSectionDownloadBlocksSliced,
 } from '@/features/search/searchSectionDownloads';
 import type { SearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
@@ -44,9 +46,22 @@ export function SearchSectionPicker(props: {
   const downloads = props.downloads;
   // Deferred like the search home's own pass, so both ask with the same list and share one answer.
   const downloadDocuments = createDeferred(() => props.documents, { timeoutMs: 2000 });
-  const downloadBlocks = createMemo(() => {
+  const [downloadBlocks, setDownloadBlocks] =
+    createSignal<ReadonlyMap<string, SearchDownloadBlock>>(NO_DOWNLOAD_BLOCKS);
+  createEffect(() => {
     downloads.preferenceRevision();
-    return searchSectionDownloadBlocks(downloadDocuments(), props.tools, downloads.catalog());
+    const pending = searchSectionDownloadBlocksSliced(
+      downloadDocuments(),
+      props.tools,
+      downloads.catalog(),
+    );
+    let current = true;
+    onCleanup(() => {
+      current = false;
+    });
+    void pending.then((blocks) => {
+      if (current) setDownloadBlocks(() => blocks);
+    });
   });
   const block = (scope: SearchScope, group = '') =>
     downloadBlocks().get(`${scope}/${group}`) ?? EMPTY_SEARCH_DOWNLOAD_BLOCK;

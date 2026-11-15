@@ -200,6 +200,33 @@ describe('ModuleShelf with kept facts', () => {
     expect(calls(requests)).toEqual(['initialize:a', 'getHealth:a']);
   });
 
+  it('asks a module only about documents it holds, once its identities are known', async () => {
+    const { worker, requests } = listingWorker(['a']);
+    const { store: facts } = memoryFacts({
+      a: {
+        health: HEALTH as never,
+        listings: {
+          listDocumentIdentities: [{ id: 'kr.1', versionId: 'kr.1@v1' }],
+          listCoreIdentityNames: [],
+        },
+      },
+    });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    expect(await store.getDocument('other')).toBeNull();
+    expect(await store.getDocumentByVersionId('other@v1')).toBeNull();
+    expect(await store.getSectionsByDocument('other')).toEqual([]);
+    expect(await store.getChunksByDocument('other')).toEqual([]);
+    expect(await store.lookupCoreIdentities('астма')).toEqual([]);
+    const elsewhere = { ftsQuery: 'x', terms: [], filters: { documentIds: ['other'] }, limit: 5 };
+    expect(await store.search(elsewhere)).toEqual([]);
+    expect(types(requests)).toEqual(['init']);
+    // Its own document and an unfiltered search still go to the file.
+    expect(await store.getDocument('kr.1')).toBe('getDocument:a');
+    await store.search({ ftsQuery: 'x', terms: [], filters: {}, limit: 5 });
+    expect(calls(requests)).toEqual(['initialize:a', 'getDocument:a', 'search:a']);
+  });
+
   it('does not trust kept facts for a file that was just written', async () => {
     const { worker, requests } = fakeWorker();
     const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });

@@ -68,7 +68,9 @@ type ShelfListingMethod =
   | 'listDocumentIdentities'
   | 'listAliases'
   | 'listNavigationDocuments'
-  | 'listSearchDocuments';
+  | 'listSearchDocuments'
+  | 'listCoreIdentityNames'
+  | 'listEmbeddingProfiles';
 
 export interface ShelfEntry {
   leases: number;
@@ -92,6 +94,27 @@ export interface ShelfEntry {
   initPending?: boolean;
   /** What is kept of this file across starts (`module-shelf-facts`). */
   facts: ShelfFacts;
+  /**
+   * The documents of the file, once its identities are known. A module is then asked only about
+   * documents it holds: a search or a reader call otherwise went to every one of ~800 files.
+   */
+  documents?: { readonly ids: ReadonlySet<string>; readonly versions: ReadonlySet<string> };
+  /** True once the file is known to carry no core identity names. */
+  noCoreNames?: boolean;
+}
+
+/** Derives the membership shortcuts from a listing that has just become known. */
+function noteListing(entry: ShelfEntry, method: string, value: unknown): void {
+  if (method === 'listDocumentIdentities' && Array.isArray(value)) {
+    const identities = value as readonly DocumentIdentity[];
+    entry.documents = {
+      ids: new Set(identities.map((identity) => identity.id)),
+      versions: new Set(identities.map((identity) => identity.versionId)),
+    };
+  }
+  if (method === 'listCoreIdentityNames' && Array.isArray(value)) {
+    entry.noCoreNames = value.length === 0;
+  }
 }
 
 export interface ShelfWorker {
@@ -246,6 +269,9 @@ class ShelfShard {
         ...(keptHealth ? { health: Promise.resolve(keptHealth), initPending: true } : {}),
         facts: { ...(keptHealth ? { health: keptHealth } : {}), listings: { ...known?.listings } },
       };
+      for (const [method, value] of Object.entries(known?.listings ?? {})) {
+        noteListing(created, method, value);
+      }
       entry = created;
       this.entries.set(file, created);
       if (!lazy) void created.connect().catch(() => undefined);
@@ -296,6 +322,9 @@ class ShelfShard {
 
   /** @internal Keeps an answer of `file` for the next start. */
   public remember(file: string, entry: ShelfEntry, fact: ShelfFacts): void {
+    for (const [method, value] of Object.entries(fact.listings ?? {})) {
+      noteListing(entry, method, value);
+    }
     if (!this.options.facts || this.entries.get(file) !== entry) return;
     if (fact.health) entry.facts.health = fact.health;
     if (fact.listings) entry.facts.listings = { ...entry.facts.listings, ...fact.listings };
@@ -654,11 +683,13 @@ export class ShelfModuleStore implements MedicalStore {
   }
 
   public lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
+    // A clinical module carries no core identity names: nothing to look up in it.
+    if (this.entry.noCoreNames && !this.closed) return Promise.resolve([]);
     return this.call('lookupCoreIdentities', [query]);
   }
 
   public listCoreIdentityNames(): Promise<readonly string[]> {
-    return this.call('listCoreIdentityNames', []);
+    return this.listing('listCoreIdentityNames');
   }
 
   public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
@@ -674,14 +705,18 @@ export class ShelfModuleStore implements MedicalStore {
   }
 
   public getDocument(id: string): Promise<DocumentRecord | null> {
+    if (this.lacksDocument(id)) return Promise.resolve(null);
     return this.call('getDocument', [id]);
   }
 
   public getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {
+    const known = this.entry.documents;
+    if (known && !known.versions.has(versionId) && !this.closed) return Promise.resolve(null);
     return this.call('getDocumentByVersionId', [versionId]);
   }
 
   public getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]> {
+    if (this.lacksDocument(documentId)) return Promise.resolve([]);
     return this.call('getSectionsByDocument', [documentId]);
   }
 
@@ -690,6 +725,7 @@ export class ShelfModuleStore implements MedicalStore {
   }
 
   public getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
+    if (this.lacksDocument(documentId)) return Promise.resolve([]);
     return this.call('getChunksByDocument', [documentId]);
   }
 
@@ -710,18 +746,21 @@ export class ShelfModuleStore implements MedicalStore {
   }
 
   public listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {
-    return this.call('listEmbeddingProfiles', []);
+    return this.listing('listEmbeddingProfiles');
   }
 
   public search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
+    if (this.outsideDocumentFilter(request.filters)) return Promise.resolve([]);
     return this.call('search', [request]);
   }
 
   public searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {
+    if (this.outsideDocumentFilter(request.filters)) return Promise.resolve([]);
     return this.call('searchVector', [request]);
   }
 
   public scoreVectors(request: VectorSearchRequest): Promise<readonly VectorScore[]> {
+    if (this.outsideDocumentFilter(request.filters)) return Promise.resolve([]);
     return this.call('scoreVectors', [request]);
   }
 
@@ -736,6 +775,20 @@ export class ShelfModuleStore implements MedicalStore {
     if (this.closed) return;
     this.closed = true;
     await this.shelf.release(this.file, this.entry);
+  }
+
+  /** True when the file's documents are known and `documentId` is not one of them. */
+  private lacksDocument(documentId: string): boolean {
+    const known = this.entry.documents;
+    return known !== undefined && !known.ids.has(documentId) && !this.closed;
+  }
+
+  /** True when the request names documents and none of them is in this file. */
+  private outsideDocumentFilter(filters: SearchFilters): boolean {
+    const known = this.entry.documents;
+    const wanted = filters.documentIds;
+    if (!known || !wanted || wanted.length === 0 || this.closed) return false;
+    return !wanted.some((id) => known.ids.has(id));
   }
 
   /** Read once per open file, across the leases of a core rebuild; a failed read is retried. */

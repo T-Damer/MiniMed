@@ -3,6 +3,7 @@ import type {
   ContentModuleCatalogEntry,
   MedicalDocumentSummary,
 } from '@localmed/contracts';
+import { createTimeSlicer } from '@localmed/search-lexical';
 import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
 import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
 import { ICD11_COLLECTION } from '@/features/icd11/icd11-document';
@@ -23,6 +24,7 @@ import {
   type SearchCatalogTool,
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
+
 import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 export interface SearchDownloadBlock {
@@ -35,6 +37,9 @@ export const EMPTY_SEARCH_DOWNLOAD_BLOCK: SearchDownloadBlock = {
   local: false,
   unavailable: false,
 };
+
+/** Before the first pass has finished: nothing is offered yet. */
+export const NO_DOWNLOAD_BLOCKS: ReadonlyMap<string, SearchDownloadBlock> = new Map();
 
 let lastBlocks:
   | {
@@ -66,17 +71,75 @@ export function searchSectionDownloadBlocks(
   ) {
     return lastBlocks.blocks;
   }
-  const blocks = computeSearchSectionDownloadBlocks(documents, tools, catalog, experimentalEnabled);
-  lastBlocks = { documents, tools, catalog, experimentalEnabled, blocks };
+  const steps = searchSectionDownloadBlockSteps(documents, tools, catalog, experimentalEnabled);
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  lastBlocks = { documents, tools, catalog, experimentalEnabled, blocks: step.value };
+  return step.value;
+}
+
+let slicedBlocks:
+  | {
+      readonly documents: readonly MedicalDocumentSummary[];
+      readonly tools: readonly SearchCatalogTool[];
+      readonly catalog: ContentModuleCatalog;
+      readonly experimentalEnabled: boolean;
+      readonly blocks: Promise<ReadonlyMap<string, SearchDownloadBlock>>;
+    }
+  | undefined;
+
+/**
+ * {@link searchSectionDownloadBlocks} in slices: with every module installed the pass was one
+ * 1.4 s step on a phone (performance log 0.6.104). Callers with the same lists share one run.
+ */
+export function searchSectionDownloadBlocksSliced(
+  documents: readonly MedicalDocumentSummary[],
+  tools: readonly SearchCatalogTool[],
+  catalog: ContentModuleCatalog,
+): Promise<ReadonlyMap<string, SearchDownloadBlock>> {
+  const experimentalEnabled = getExperimentalModulesEnabled();
+  if (
+    lastBlocks &&
+    lastBlocks.documents === documents &&
+    lastBlocks.tools === tools &&
+    lastBlocks.catalog === catalog &&
+    lastBlocks.experimentalEnabled === experimentalEnabled
+  ) {
+    return Promise.resolve(lastBlocks.blocks);
+  }
+  if (
+    slicedBlocks &&
+    slicedBlocks.documents === documents &&
+    slicedBlocks.tools === tools &&
+    slicedBlocks.catalog === catalog &&
+    slicedBlocks.experimentalEnabled === experimentalEnabled
+  ) {
+    return slicedBlocks.blocks;
+  }
+  const run = async (): Promise<ReadonlyMap<string, SearchDownloadBlock>> => {
+    const slice = createTimeSlicer();
+    const steps = searchSectionDownloadBlockSteps(documents, tools, catalog, experimentalEnabled);
+    let step = steps.next();
+    while (!step.done) {
+      const due = slice();
+      if (due) await due;
+      step = steps.next();
+    }
+    lastBlocks = { documents, tools, catalog, experimentalEnabled, blocks: step.value };
+    return step.value;
+  };
+  const blocks = run();
+  slicedBlocks = { documents, tools, catalog, experimentalEnabled, blocks };
   return blocks;
 }
 
-function computeSearchSectionDownloadBlocks(
+/** The pass itself; it yields after each catalog module and each document so a caller may pause. */
+function* searchSectionDownloadBlockSteps(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
   catalog: ContentModuleCatalog,
   experimentalEnabled: boolean,
-): ReadonlyMap<string, SearchDownloadBlock> {
+): Generator<undefined, ReadonlyMap<string, SearchDownloadBlock>, undefined> {
   // One read of the «Experimental» switch for the whole pass: per module and per document it was
   // two storage reads each time (0.4 s per install queue at phone speed).
   const isReleased = (module: ContentModuleCatalogEntry): boolean =>
@@ -106,6 +169,7 @@ function computeSearchSectionDownloadBlocks(
       matches.push(module);
       byTool.set(key, matches);
     }
+    yield;
   }
   const blocks = new Map<
     string,
@@ -172,6 +236,7 @@ function computeSearchSectionDownloadBlocks(
               : document.specialties;
       add(section.id, groups, module, local);
     }
+    yield;
   }
   for (const tool of tools) {
     const candidates =
