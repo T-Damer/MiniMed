@@ -3,6 +3,7 @@ import type { MedicalCore } from '@localmed/contracts';
 import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { afterBootReveal } from '@/app/boot-surface';
+import { BULK_INSTALL_RECONNECT_GAP_MS, createReconnectPacer } from '@/app/reconnect-pacer';
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
@@ -52,6 +53,8 @@ const APP_UPDATE_MIN_CHECK_MS = 650;
 const APP_UPDATE_UP_TO_DATE_VISIBLE_MS = 2_800;
 
 type ModuleRuntimeService = typeof import('@/features/modules/module-runtime-service');
+
+const FINISHED_INSTALL_STATES: ReadonlySet<string> = new Set(['completed', 'failed', 'cancelled']);
 type ContentModuleRuntime = ReturnType<ModuleRuntimeService['getContentModuleRuntime']>;
 
 function delay(ms: number): Promise<void> {
@@ -575,11 +578,22 @@ export function useAppSession() {
           const contentRuntime = runtimeService.getContentModuleRuntime(catalog);
           bindModuleRuntime(contentRuntime);
           // A download resumed after a reload has no screen waiting on it: connect it here.
-          unsubscribeRecoveredInstalls = contentRuntime.subscribeRecoveredInstalls(() => {
-            void connectInstalledModules().catch((cause: unknown) => {
-              console.warn('Продолженная загрузка не подключилась к поиску.', cause);
-            });
+          // One rebuild per finished module of a long queue kept the phone stuttering.
+          const pacer = createReconnectPacer({
+            reconnect: () => {
+              void connectInstalledModules().catch((cause: unknown) => {
+                console.warn('Продолженная загрузка не подключилась к поиску.', cause);
+              });
+            },
+            hasPendingInstalls: () =>
+              contentRuntime.listTasks().some((task) => !FINISHED_INSTALL_STATES.has(task.state)),
+            minGapMs: BULK_INSTALL_RECONNECT_GAP_MS,
           });
+          const unsubscribe = contentRuntime.subscribeRecoveredInstalls(pacer.request);
+          unsubscribeRecoveredInstalls = () => {
+            unsubscribe();
+            pacer.dispose();
+          };
           unsubscribeModuleRuntime =
             runtimeService.subscribeContentModuleRuntime(bindModuleRuntime);
         })

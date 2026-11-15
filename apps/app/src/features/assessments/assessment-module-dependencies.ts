@@ -16,6 +16,14 @@ export interface AssessmentDependencyScanOptions {
 }
 
 const MAX_PARALLEL_DOCUMENT_READS = 4;
+/** The scan runs on the main thread: it hands the thread back after this much work. */
+const SCAN_SLICE_MS = 12;
+
+function nextTask(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
 
 function knownAssessmentCount(): number {
   return getAssessmentCatalog().length;
@@ -86,6 +94,7 @@ export async function findAssessmentDependenciesInStore(
   }
 
   let nextDocumentIndex = 0;
+  let sliceStartedAt = performance.now();
   const scanDocuments = async (): Promise<void> => {
     const targetCount = knownAssessmentCount();
     while (nextDocumentIndex < documents.length) {
@@ -96,6 +105,11 @@ export async function findAssessmentDependenciesInStore(
       for (const chunk of chunks) {
         collectAssessmentIds(chunk.originalText, assessmentIds);
         if (targetCount > 0 && assessmentIds.size >= targetCount) return;
+        // A clinical guideline is one document of hundreds of chunks: yield inside it.
+        if (performance.now() - sliceStartedAt >= SCAN_SLICE_MS) {
+          await nextTask();
+          sliceStartedAt = performance.now();
+        }
       }
     }
   };

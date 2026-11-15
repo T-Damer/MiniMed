@@ -114,7 +114,7 @@ export function normalizeIcd10Lookalikes(value: string): string {
   );
 }
 
-export function normalizeSurfaceText(value: string): string {
+function computeSurfaceText(value: string): string {
   return normalizeIcd10Lookalikes(
     value
       .normalize('NFKC')
@@ -125,6 +125,26 @@ export function normalizeSurfaceText(value: string): string {
       .replace(/\s+/gu, ' ')
       .trim(),
   );
+}
+
+/** Names and aliases are short; longer text (chunks, notes) is not worth keeping. */
+const SURFACE_CACHE_MAX_LENGTH = 200;
+const SURFACE_CACHE_MAX_ENTRIES = 250_000;
+const surfaceCache = new Map<string, string>();
+
+/**
+ * Every search index normalizes the same document names and aliases (five passes per core build),
+ * and a core rebuilt after a module install does it all again: 1.6 s of the main thread per build
+ * at phone speed. The result depends only on the input, so short strings are computed once.
+ */
+export function normalizeSurfaceText(value: string): string {
+  if (value.length > SURFACE_CACHE_MAX_LENGTH) return computeSurfaceText(value);
+  const known = surfaceCache.get(value);
+  if (known !== undefined) return known;
+  const normalized = computeSurfaceText(value);
+  if (surfaceCache.size >= SURFACE_CACHE_MAX_ENTRIES) surfaceCache.clear();
+  surfaceCache.set(value, normalized);
+  return normalized;
 }
 
 /** Remove a navigation preamble, not words inside a disease name or clinical narrative. */

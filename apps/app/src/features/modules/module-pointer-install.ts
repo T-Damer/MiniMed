@@ -185,11 +185,13 @@ export function selectModuleForPointer(
   pointer: ModulePointerDescriptor,
   catalog: ContentModuleCatalog,
   installed: readonly InstalledContentModule[] = [],
+  /** A caller resolving thousands of pointers passes a release check that reads the switch once. */
+  isReleased: (module: ContentModuleCatalogEntry) => boolean = isModuleReleased,
 ): ContentModuleCatalogEntry | null {
   const allowedIds = new Set([pointer.primaryModuleId, ...pointer.moduleIds]);
   const available = (module: ContentModuleCatalogEntry): boolean =>
     moduleContainsTarget(module, pointer.targetDocumentId) &&
-    (isModuleReleased(module) || Boolean(installedModuleVersion(module, installed)));
+    (isReleased(module) || Boolean(installedModuleVersion(module, installed)));
   const declared = catalog.modules.filter(
     (module) => allowedIds.has(module.id) && available(module),
   );

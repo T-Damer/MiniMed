@@ -20,11 +20,22 @@ export const PACKAGED_MEDICATIONS_SIZE_BYTES = 514_322_432;
 export function isModuleReleased(
   module: Pick<ContentModuleCatalogEntry, 'releaseState' | 'artifacts' | 'sourceSetDigest'>,
 ): boolean {
+  return isModuleReleasedWith(module, getExperimentalModulesEnabled());
+}
+
+/**
+ * {@link isModuleReleased} for a loop over the catalog: the caller reads the «Experimental» switch
+ * once (each read touches storage) and passes it in.
+ */
+export function isModuleReleasedWith(
+  module: Pick<ContentModuleCatalogEntry, 'releaseState' | 'artifacts' | 'sourceSetDigest'>,
+  experimentalEnabled: boolean,
+): boolean {
   return (
     hasDownloadableModuleIndex(module) &&
     !hasLocalModuleArtifacts(module) &&
     (module.releaseState === 'published' ||
-      (module.releaseState === 'preview' && getExperimentalModulesEnabled()))
+      (module.releaseState === 'preview' && experimentalEnabled))
   );
 }
 

@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-15 claude-fable PERF7 (not committed, not released; owner's phone log 0.6.99): core rebuilds paced during an install queue (`app/reconnect-pacer.ts`), cached name normalization, questionnaire scan deferred and sliced, one «Experimental» read per catalog pass; unit + typecheck + check pass, local 4× profile only, not on a phone
 - 2026-11-14 claude-opus REL 0.6.99: PERFLOG1 (performance log, Settings switch); verify + perf-log and recorder e2e; not on a phone
 - 2026-11-14 claude-opus PERFLOG1 (merged, released in 0.6.99; owner OK «Давай добавим свитч в настройки и сделаем релиз»): opt-in performance log — Settings → «Основные» → «Журнал производительности» (off by default; also adb `--ez minimed.perfLog true` or `?perf=1`), long frames with scripts, slow taps, dropped frames after input, screens, recorder/ASR/search/reader/diary marks, heap, Android native sampler (`LocalMedPerfPlugin`); «Поделиться журналом» JSON, `bun scripts/perf-log-report.ts`; no content (e2e), off = no code loaded; emulator run with GigaAM (RTF 0.03); `docs/PERF_LOG.md`. Not on the owner's phone yet. Seen, not fixed: LiveWaveform's rAF runs at display rate though it draws ≤ 20/s
 - 2026-11-14 claude-opus REL 0.6.98: REC2 (GigaAM v3 recorder on Android) + recording sheet «Стоп» history fix; verify + recorder e2e; owner asked for the release after the on-phone report

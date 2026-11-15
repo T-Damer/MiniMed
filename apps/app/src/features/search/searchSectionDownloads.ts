@@ -7,7 +7,7 @@ import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry'
 import { isUserCalculatorId } from '@/features/calculators/user-calculator/user-calculator-ids';
 import { ICD11_COLLECTION } from '@/features/icd11/icd11-document';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
-import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import { isModuleReleasedWith } from '@/features/modules/local-packaged-modules';
 import {
   parseModulePointerMetadata,
   selectModuleForPointer,
@@ -23,6 +23,7 @@ import {
   type SearchCatalogTool,
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
+import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 export interface SearchDownloadBlock {
   readonly modules: readonly ContentModuleCatalogEntry[];
@@ -41,6 +42,11 @@ export function searchSectionDownloadBlocks(
   tools: readonly SearchCatalogTool[],
   catalog: ContentModuleCatalog,
 ): ReadonlyMap<string, SearchDownloadBlock> {
+  // One read of the «Experimental» switch for the whole pass: per module and per document it was
+  // two storage reads each time (0.4 s per install queue at phone speed).
+  const experimentalEnabled = getExperimentalModulesEnabled();
+  const isReleased = (module: ContentModuleCatalogEntry): boolean =>
+    isModuleReleasedWith(module, experimentalEnabled);
   const byDocument = new Map<string, ContentModuleCatalogEntry[]>();
   const byTool = new Map<string, ContentModuleCatalogEntry[]>();
   for (const module of catalog.modules) {
@@ -88,14 +94,14 @@ export function searchSectionDownloadBlocks(
   };
   // The fresh core need not already contain pointers for every downloadable medication pack.
   for (const module of catalog.modules) {
-    if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
+    if (module.kind !== 'medication' || !isReleased(module)) continue;
     add('medications', [`module:${module.id}`], module, false);
     add('all', [], module, false);
   }
   // The ICD-11 pack lists no documents in the catalog (no core pointer targets it): its section is
   // offered from the module entry itself, and «Все источники» offers it with the others.
   for (const module of catalog.modules) {
-    if (module.collection !== ICD11_COLLECTION || !isModuleReleased(module)) continue;
+    if (module.collection !== ICD11_COLLECTION || !isReleased(module)) continue;
     add('icd11', [], module, false);
     add('all', [], module, false);
   }
@@ -106,10 +112,11 @@ export function searchSectionDownloadBlocks(
       document.metadata?.['contentMode'] === 'module-pointer';
     const candidates = byDocument.get(pointer?.targetDocumentId ?? document.id) ?? [];
     const module = pointer
-      ? (selectModuleForPointer(pointer, { ...catalog, modules: candidates }) ?? undefined)
+      ? (selectModuleForPointer(pointer, { ...catalog, modules: candidates }, [], isReleased) ??
+        undefined)
       : isPointer
         ? undefined
-        : candidates.find(isModuleReleased);
+        : candidates.find(isReleased);
     const local = !isPointer && !module;
     for (const section of SEARCH_SECTIONS) {
       if (
@@ -135,7 +142,7 @@ export function searchSectionDownloadBlocks(
   for (const tool of tools) {
     const candidates =
       byTool.get(`${tool.scope === 'assessments' ? 'assessment' : 'calculator'}/${tool.id}`) ?? [];
-    const module = candidates.find(isModuleReleased);
+    const module = candidates.find(isReleased);
     const local =
       tool.scope === 'calculators' &&
       (CALCULATOR_REGISTRY.some((entry) => entry.id === tool.id) || isUserCalculatorId(tool.id));

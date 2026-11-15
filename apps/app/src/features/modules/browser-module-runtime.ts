@@ -113,6 +113,10 @@ const SOURCE_ASSETS_STORE = 'source-assets';
 const CORE_MODULE_ID = 'minimed.core.ru';
 const MODULE_RETRY_DELAYS_MS = [1_000, 2_500, 5_000] as const;
 const MODULE_REQUEUE_DELAY_MS = 15_000;
+const ASSESSMENT_SCAN_POLL_MS = 2_000;
+/** A paused queue must not hold the questionnaire scan back for ever. */
+const ASSESSMENT_SCAN_MAX_WAIT_MS = 5 * 60_000;
+const SETTLED_TASK_STATES: ReadonlySet<string> = new Set(['completed', 'failed', 'cancelled']);
 /** A module that keeps failing for a transient reason stops being re-queued by itself after this many tries. */
 const MODULE_REQUEUE_LIMIT = 5;
 const MODULE_OPFS_FETCH_TIMEOUT_MS = 180_000;
@@ -1083,6 +1087,7 @@ export class BrowserContentModuleRuntime {
   private readonly retryCounts = new Map<string, number>();
   private readonly recoveredInstallListeners = new Set<(task: ContentModuleDownloadTask) => void>();
   private readonly assessmentDependencyScans = new Map<string, Promise<void>>();
+  private assessmentScanTail: Promise<void> = Promise.resolve();
   private readonly assessmentDependencyGenerations = new Map<string, number>();
   private disposed = false;
   private readonly localPackagedModulesReady: Promise<void>;
@@ -1423,7 +1428,13 @@ export class BrowserContentModuleRuntime {
     const existing = this.assessmentDependencyScans.get(key);
     if (existing) return existing;
     const generation = this.invalidateAssessmentDependencyScans(moduleId);
-    const scan = this.scanAssessmentDependencies(moduleId, version, generation);
+    // The scan reads a module's whole text on the main thread. One per finished module, started
+    // while the next modules were installing, held the phone's screen for seconds at a time
+    // (performance log 0.6.99): scans now wait for the queue to settle and run one after another.
+    const scan = this.assessmentScanTail
+      .then(() => this.whenInstallsSettle())
+      .then(() => this.scanAssessmentDependencies(moduleId, version, generation));
+    this.assessmentScanTail = scan.catch(() => undefined);
     this.assessmentDependencyScans.set(key, scan);
     const cleanup = (): void => {
       if (this.assessmentDependencyScans.get(key) === scan) {
@@ -1432,6 +1443,20 @@ export class BrowserContentModuleRuntime {
     };
     scan.then(cleanup, cleanup);
     return scan;
+  }
+
+  /** Resolves once no module is downloading or installing, or after the longest wait. */
+  private async whenInstallsSettle(): Promise<void> {
+    const deadline = Date.now() + ASSESSMENT_SCAN_MAX_WAIT_MS;
+    while (
+      !this.disposed &&
+      Date.now() < deadline &&
+      this.installer.listTasks().some((task) => !SETTLED_TASK_STATES.has(task.state))
+    ) {
+      await new Promise<void>((resolve) => {
+        window.setTimeout(resolve, ASSESSMENT_SCAN_POLL_MS);
+      });
+    }
   }
 
   private async scanAssessmentDependencies(

@@ -20,6 +20,31 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Stutter while modules install — 2026-11-15 (STATE PERF7; not committed, not released)
+
+Owner's performance log from the phone (0.6.99, Xiaomi 23127PN0CC, 8.4 min): 137 s of main-thread
+blocking, 91 s of it in worker-reply handlers of the module runtime while a download queue resumed
+after a restart was installing 113 modules. Reproduced locally (resumed queue, 4× CPU) and profiled.
+
+- **One core rebuild per finished module.** Each resumed install asked for a rebuild of the whole
+  search core (29 in the log, up to 31 s each on the phone, back to back). `app/reconnect-pacer.ts`
+  now rebuilds at once only when nothing else is installing; during a queue at most once per 2 min,
+  and the last module always gets its rebuild. 150 queued modules: 2 rebuilds. New documents of a
+  running queue reach search up to 2 min later; opening one still rebuilds on demand
+  (`DocumentPageHost`).
+- **Names normalized five times per core build.** `normalizeSurfaceText` keeps results for strings
+  up to 200 characters (bounded map): a rebuild no longer repeats 1.6 s of normalization at phone
+  speed; the rebuild after the last install took 0.4 s instead of 4 s in the local run.
+- **Questionnaire scan per installed КР.** No clinical module declares its questionnaires, so each
+  install re-opened the module database on the main thread and scanned its whole text. Scans now
+  wait until the queue settles (5 min at most), run one at a time and yield every 12 ms.
+- `searchSectionDownloadBlocks` reads the «Experimental» switch once per pass
+  (`isModuleReleasedWith`), not twice from storage per module and document.
+
+Not done: install validation and SHA-256 of each module still run on the main thread; the ~10 MB
+catalog parse (2.6 s once per session on the phone) and the home catalog recompute after a rebuild
+are unchanged. Not measured on a phone; the idle-phone numbers of the log are from one device.
+
 ## Release 0.6.99 — 2026-11-14
 
 - **In it:** PERFLOG1 (opt-in performance log with a Settings switch, adb flag, native sampler on Android, share and
