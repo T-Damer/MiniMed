@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.101] - 2026-11-15
+
+- Installing document sets is lighter on the screen: the integrity check of each downloaded set runs in the background
+  instead of on the interface thread. In a local run of 150 queued sets on a slowed-down CPU the queue finished in 14 s
+  instead of 26 s.
+
 ## [0.6.100] - 2026-11-15
 
 - The app no longer stutters while document sets install in the background (found in a performance log from a phone:

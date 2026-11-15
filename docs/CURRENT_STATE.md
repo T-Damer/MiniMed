@@ -20,6 +20,12 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Release 0.6.101 — 2026-11-15
+
+App-only release: module install validation in a worker (PERF7 follow-up, below). Core and modules unchanged.
+Checks: `bun run verify`, unit, typecheck, build; e2e module-lifecycle, module-pointer, module-removal,
+module-file-import, regulatory-module and icd11-module pass. Not tested on a phone.
+
 ## Release 0.6.100 — 2026-11-15
 
 App-only release: PERF7 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build;
@@ -47,7 +53,7 @@ after a restart was installing 113 modules. Reproduced locally (resumed queue, 4
 - `searchSectionDownloadBlocks` reads the «Experimental» switch once per pass
   (`isModuleReleasedWith`), not twice from storage per module and document.
 
-- **Install validation in a worker (2026-11-15, after 0.6.100; not released).** A small module index
+- **Install validation in a worker (2026-11-15; released in 0.6.101).** A small module index
   was opened in the page's SQLite heap for its integrity check; `module-validation.worker.ts` now
   does it (`inspectModuleStore` is shared with the page path, which stays for OPFS-streamed packs
   and where workers are missing). Local 150-module queue at 4× CPU: 150 worker checks, none on the

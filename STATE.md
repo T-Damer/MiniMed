@@ -182,7 +182,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-15 claude-fable PERF7 follow-up (not released): module install validation runs in `features/modules/module-validation.worker.ts`; unit + typecheck + check + install e2e, local 4× profile only
+- 2026-11-15 claude-fable REL 0.6.101: PERF7 follow-up (app-only); verify + module e2e; not on a phone
+- 2026-11-15 claude-fable PERF7 follow-up (released in 0.6.101): module install validation runs in `features/modules/module-validation.worker.ts`; unit + typecheck + check + install e2e, local 4× profile only
 - 2026-11-15 claude-fable REL 0.6.100: PERF7 (app-only); verify + install/pointer/removal e2e; not on a phone
 - 2026-11-15 claude-fable PERF7 (released in 0.6.100; owner's phone log 0.6.99): core rebuilds paced during an install queue (`app/reconnect-pacer.ts`), cached name normalization, questionnaire scan deferred and sliced, one «Experimental» read per catalog pass; unit + typecheck + check pass, local 4× profile only, not on a phone
 - 2026-11-14 claude-opus REL 0.6.99: PERFLOG1 (performance log, Settings switch); verify + perf-log and recorder e2e; not on a phone
