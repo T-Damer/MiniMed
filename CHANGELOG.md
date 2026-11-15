@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.102] - 2026-11-15
+
+- A lighter start: the module catalog is read about twice as fast at its first use, the search screen builds its name
+  matcher and its «what is left to download» list when the phone is idle instead of all at once, and it no longer loads
+  the official form schemas (about 1 MB) just to list form numbers. The longest freeze after the search box appears is
+  about 40 % shorter in a local run on a slowed-down CPU.
+
 ## [0.6.101] - 2026-11-15
 
 - Installing document sets is lighter on the screen: the integrity check of each downloaded set runs in the background

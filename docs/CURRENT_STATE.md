@@ -20,7 +20,14 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Start-up work after the search box, form schemas off the search route — 2026-11-15 (STATE PERF8; not committed, not released)
+## Release 0.6.102 — 2026-11-15
+
+App-only release: PERF8 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build;
+e2e search home, section downloads, official forms, module pointer and lifecycle pass. `search.spec.ts` «the help
+menu opens the feature tour…» fails as it does on 0.6.101 (Escape does not close the tour); not fixed. Not tested on
+a phone.
+
+## Start-up work after the search box, form schemas off the search route — 2026-11-15 (STATE PERF8; released in 0.6.102)
 
 Measured on the production build at 4× CPU (start with the core in place, 20 000 documents).
 
