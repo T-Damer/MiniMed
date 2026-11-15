@@ -58,6 +58,9 @@ import { displayDocumentTitle } from '@/features/library/document-display';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
+  type DocumentLinkMatcher,
+  documentLinkMatcherFor,
+  prepareDocumentLinkMatcher,
 } from '@/features/library/document-medication-links';
 import { MedicationSafetyCard } from '@/features/medication-safety/MedicationSafetyCard';
 import { parseSafetyQuery } from '@/features/medication-safety/safety-query';
@@ -339,6 +342,7 @@ function refreshDownloadedCalculatorDefinitions(): Promise<void> {
 
 /** Title matches looked up for a query; those the results do not list follow them. */
 const TITLE_MATCH_LIMIT = 6;
+const EMPTY_LINK_MATCHER = createDocumentLinkMatcher([]);
 
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Resolved once: reading the slot twice (class and content) would build two pickers and
@@ -393,9 +397,24 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // The matcher over every document name is built when the browser is idle, not in the task that
   // receives the list: that task already builds the home catalog (1.7 s in one piece at phone speed).
   const linkDocuments = createDeferred(contextDocuments, { timeoutMs: 2000 });
-  const queryLinkMatcher = createMemo(() =>
-    createDocumentLinkMatcher(buildDocumentLinkPhrases(linkDocuments())),
-  );
+  // The same matcher the home prepares for the readers, built once, in slices: a second copy built
+  // here in one piece was a 0.5 s step at phone speed.
+  const [queryLinkMatcher, setQueryLinkMatcher] =
+    createSignal<DocumentLinkMatcher>(EMPTY_LINK_MATCHER);
+  createEffect(() => {
+    const documents = linkDocuments();
+    if (documents.length === 0) {
+      setQueryLinkMatcher(() => EMPTY_LINK_MATCHER);
+      return;
+    }
+    let current = true;
+    onCleanup(() => {
+      current = false;
+    });
+    void prepareDocumentLinkMatcher(documents).then(() => {
+      if (current) setQueryLinkMatcher(() => documentLinkMatcherFor(documents));
+    });
+  });
   // A phrase that names several documents offers them as choices, but only those the results do
   // not already list (owner 2026-11-13: «Кветиапин» showed its card twice, above and in the list).
   const ambiguousMeanings = createMemo((): readonly SearchMeaning[] =>

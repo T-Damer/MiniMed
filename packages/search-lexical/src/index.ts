@@ -27,6 +27,7 @@ export * from './query';
 export type { DistanceOptions, ExtractMatch, ExtractOptions, SimilarityOptions } from './rapidfuzz';
 export { extract, extractTop, Levenshtein, OSA } from './rapidfuzz';
 export * from './snippet';
+export * from './time-slice';
 export type {
   CorpusVocabulary,
   CorpusVocabularyOptions,

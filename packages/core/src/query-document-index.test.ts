@@ -12,6 +12,34 @@ import { createMedicalCore } from './create-medical-core';
 import { QueryDocumentIndex } from './query-document-index';
 
 describe('QueryDocumentIndex', () => {
+  it('builds the same name vocabulary in slices as in one piece', async () => {
+    const documents = [
+      {
+        id: 'a',
+        title: 'Пневмония внебольничная у взрослых',
+        shortTitle: 'Пневмония',
+        sourceType: 'clinical_guideline',
+        metadata: { declaredAliases: ['воспаление лёгких'], navigationAliases: ['J18'] },
+      },
+      {
+        id: 'b',
+        title: 'Амоксициллин',
+        shortTitle: null,
+        sourceType: 'medical_reference',
+        metadata: {},
+      },
+    ];
+    const always = (): Promise<void> => Promise.resolve();
+    await QueryDocumentIndex.prepare(documents, always);
+    const whole = new QueryDocumentIndex(documents).nameVocabulary(['Ибупрофен']);
+    const sliced = await new QueryDocumentIndex(documents).nameVocabularySliced(
+      ['Ибупрофен'],
+      always,
+    );
+    expect(sliced.words).toEqual(whole.words);
+    expect([...sliced.weights]).toEqual([...whole.weights]);
+  });
+
   it('separates strict titles/navigation aliases from broad declared aliases', () => {
     const index = new QueryDocumentIndex([
       {

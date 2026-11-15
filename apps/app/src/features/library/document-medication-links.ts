@@ -595,13 +595,27 @@ function yieldToMainThread(): Promise<void> {
  * on it (~900 ms with the CPU throttled four times). Stops when `documentLinkMatcherFor` built it
  * first (a reader opened before the slices finished); a list is built once.
  */
-export async function prepareDocumentLinkMatcher(
+export function prepareDocumentLinkMatcher(
   documents: readonly MedicalDocumentSummary[],
   yieldNow: () => Promise<void> = yieldToMainThread,
 ): Promise<void> {
-  if (matchersByDocuments.has(documents) || preparing.has(documents)) return;
-  preparing.add(documents);
-  try {
+  if (matchersByDocuments.has(documents)) return Promise.resolve();
+  // A second caller (the search screen next to the home) waits for the build already running.
+  let running = preparing.get(documents);
+  if (!running) {
+    running = buildDocumentLinkMatcherInSlices(documents, yieldNow).finally(() => {
+      preparing.delete(documents);
+    });
+    preparing.set(documents, running);
+  }
+  return running;
+}
+
+async function buildDocumentLinkMatcherInSlices(
+  documents: readonly MedicalDocumentSummary[],
+  yieldNow: () => Promise<void>,
+): Promise<void> {
+  {
     const collector = createLinkPhraseCollector(documents);
     for (let next = 0; next < documents.length; ) {
       const sliceEnd = performance.now() + PREPARE_SLICE_MS;
@@ -627,12 +641,10 @@ export async function prepareDocumentLinkMatcher(
       if (matchersByDocuments.has(documents)) return;
     }
     if (!matchersByDocuments.has(documents)) matchersByDocuments.set(documents, index.finish());
-  } finally {
-    preparing.delete(documents);
   }
 }
 
-const preparing = new WeakSet<readonly MedicalDocumentSummary[]>();
+const preparing = new WeakMap<readonly MedicalDocumentSummary[], Promise<void>>();
 
 export function documentLinkMatcherFor(
   documents: readonly MedicalDocumentSummary[],

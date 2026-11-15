@@ -1,9 +1,11 @@
 import {
   buildNameVocabulary,
+  buildNameVocabularySliced,
   type NameVocabulary,
   normalizeIcd10Lookalikes,
   normalizeSurfaceText,
   searchSubjectText,
+  type TimeSlicer,
 } from '@localmed/search-lexical';
 import type { SearchDocumentDescriptor } from '@localmed/storage';
 
@@ -127,12 +129,56 @@ export class QueryDocumentIndex {
 
   nameVocabulary(extraNames: readonly string[] = []): NameVocabulary {
     this.names ??= buildNameVocabulary([
-      ...this.documents.map((document) =>
-        normalizeSurfaceText([...documentNames(document), ...terminologyNames(document)].join(' ')),
-      ),
+      ...this.documents.map(normalizedDocumentNames),
       ...extraNames.map(normalizeSurfaceText),
     ]);
     return this.names;
+  }
+
+  /**
+   * {@link nameVocabulary} built in slices: in one piece it held the main thread for 0.6 s at
+   * phone speed right after the start. A search that built the table meanwhile wins.
+   */
+  async nameVocabularySliced(
+    extraNames: readonly string[],
+    slice: TimeSlicer,
+  ): Promise<NameVocabulary> {
+    if (this.names) return this.names;
+    const names: string[] = [];
+    for (const document of this.documents) {
+      names.push(normalizedDocumentNames(document));
+      const due = slice();
+      if (due) await due;
+    }
+    for (const name of extraNames) {
+      names.push(normalizeSurfaceText(name));
+      const due = slice();
+      if (due) await due;
+    }
+    const vocabulary = await buildNameVocabularySliced(names, slice);
+    this.names ??= vocabulary;
+    return this.names;
+  }
+
+  /**
+   * Normalizes the names the constructor indexes, in slices, so that the constructor (which a
+   * search may also run, in one piece) finds them already normalized.
+   */
+  static async prepare(
+    documents: readonly SearchDocumentDescriptor[],
+    slice: TimeSlicer,
+  ): Promise<void> {
+    for (const document of documents) {
+      normalizeSurfaceText(document.title);
+      if (document.shortTitle) normalizeSurfaceText(document.shortTitle);
+      for (const key of ['declaredAliases', 'navigationAliases'] as const) {
+        const names = document.metadata[key];
+        if (!Array.isArray(names)) continue;
+        for (const name of names) if (typeof name === 'string') normalizeSurfaceText(name);
+      }
+      const due = slice();
+      if (due) await due;
+    }
   }
 
   /** Titles of the documents whose declared Latin name (`nameLat`) is `query`, e.g. «Nurofen». */
@@ -192,6 +238,12 @@ function nameWords(value: string): readonly string[] {
 }
 
 /** The title, short title and declared and navigation aliases of a document. */
+function normalizedDocumentNames(document: SearchDocumentDescriptor): string {
+  return normalizeSurfaceText(
+    [...documentNames(document), ...terminologyNames(document)].join(' '),
+  );
+}
+
 function documentNames(document: SearchDocumentDescriptor): readonly string[] {
   const names = [document.title, document.shortTitle ?? ''];
   for (const key of ['declaredAliases', 'navigationAliases'] as const) {

@@ -1,8 +1,8 @@
 import type { TextRange } from '@localmed/contracts';
 import type { AliasRecord } from '@localmed/domain';
-
 import { isLookupMetaToken } from './lookup-subject';
 import { isCloseToken, MIN_FUZZY_TOKEN_LENGTH, normalizeSurfaceText, tokenize } from './normalize';
+import type { TimeSlicer } from './time-slice';
 
 export type AliasMatchType = 'exact' | 'fuzzy';
 
@@ -112,40 +112,73 @@ export type AliasExpander = (query: string) => AliasExpansion;
 
 /** A core-owned vocabulary snapshot. Rebuild after installing/removing/reinitializing content. */
 export function createAliasExpander(aliases: readonly AliasRecord[]): AliasExpander {
-  const prepared: PreparedAlias[] = aliases
-    .toSorted((left, right) => right.alias.length - left.alias.length)
-    .map((alias) => ({
-      alias: { ...alias },
-      normalized: normalizeSurfaceText(alias.alias),
-      tokens: tokenize(alias.alias),
-    }));
+  const prepared = sortedForPreparation(aliases).map(prepareAlias);
   // Every fuzzy match must match the first significant alias token. The only exception is
   // the documented one-token/device fallback, which indexes its final token as well.
-  const heads = new Map<number, Map<string, Set<PreparedAlias>>>();
+  const heads: AliasHeads = new Map();
+  for (const item of prepared) indexAliasHeads(item, heads);
+  return (query) => expandPreparedAliases(query, prepared, heads);
+}
+
+/**
+ * {@link createAliasExpander} built in slices (`slice` from `createTimeSlicer`): in one piece it
+ * held the main thread for 0.3 s at phone speed during the idle warm-up.
+ */
+export async function createAliasExpanderSliced(
+  aliases: readonly AliasRecord[],
+  slice: TimeSlicer,
+): Promise<AliasExpander> {
+  const prepared: PreparedAlias[] = [];
+  for (const alias of sortedForPreparation(aliases)) {
+    prepared.push(prepareAlias(alias));
+    const due = slice();
+    if (due) await due;
+  }
+  const heads: AliasHeads = new Map();
   for (const item of prepared) {
-    const tokens = [item.tokens[0]];
-    if (
-      item.tokens.length === 2 &&
-      (item.tokens[1]?.length ?? 0) >= MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH
-    ) {
-      tokens.push(item.tokens[1]);
-    }
-    for (const token of tokens) {
-      if (!token) continue;
-      let bucket = heads.get(token.length);
-      if (!bucket) {
-        bucket = new Map();
-        heads.set(token.length, bucket);
-      }
-      let entries = bucket.get(token);
-      if (!entries) {
-        entries = new Set();
-        bucket.set(token, entries);
-      }
-      entries.add(item);
-    }
+    indexAliasHeads(item, heads);
+    const due = slice();
+    if (due) await due;
   }
   return (query) => expandPreparedAliases(query, prepared, heads);
+}
+
+type AliasHeads = Map<number, Map<string, Set<PreparedAlias>>>;
+
+function sortedForPreparation(aliases: readonly AliasRecord[]): AliasRecord[] {
+  return aliases.toSorted((left, right) => right.alias.length - left.alias.length);
+}
+
+function prepareAlias(alias: AliasRecord): PreparedAlias {
+  return {
+    alias: { ...alias },
+    normalized: normalizeSurfaceText(alias.alias),
+    tokens: tokenize(alias.alias),
+  };
+}
+
+function indexAliasHeads(item: PreparedAlias, heads: AliasHeads): void {
+  const tokens = [item.tokens[0]];
+  if (
+    item.tokens.length === 2 &&
+    (item.tokens[1]?.length ?? 0) >= MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH
+  ) {
+    tokens.push(item.tokens[1]);
+  }
+  for (const token of tokens) {
+    if (!token) continue;
+    let bucket = heads.get(token.length);
+    if (!bucket) {
+      bucket = new Map();
+      heads.set(token.length, bucket);
+    }
+    let entries = bucket.get(token);
+    if (!entries) {
+      entries = new Set();
+      bucket.set(token, entries);
+    }
+    entries.add(item);
+  }
 }
 
 // Preparing tens of thousands of aliases costs hundreds of milliseconds; clinical analysis calls

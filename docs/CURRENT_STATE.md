@@ -20,6 +20,30 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Index building in slices, one link matcher — 2026-11-15 (STATE PERF9; not committed, not released)
+
+Goal (owner 2026-11-15): no UI or logic step over 250 ms. Measured on the production build at 4× CPU
+(start with the core in place), by long tasks and long animation frames.
+
+- **Core warm-up pieces yield.** `createTimeSlicer` (search-lexical, 8 ms pieces). The alias filter
+  (`filterQueryAliasesSliced`), the alias expander (`createAliasExpanderSliced`) and the name
+  vocabulary (`nameVocabularySliced`, `buildNameVocabularySliced`) run in slices;
+  `QueryDocumentIndex.prepare` normalizes the identity names in slices before the constructor. Same
+  results by construction (tests compare the sliced builders with the one-piece ones);
+  `benchmark:all` within tolerance. A search that needs a table before its slices finish still
+  builds it in one piece, as before.
+- **One link matcher.** The search screen built its own copy of the document-name matcher in one
+  piece (0.5 s). It now waits for the matcher the home already prepares in slices
+  (`prepareDocumentLinkMatcher` returns the running build to a second caller).
+- **Catalog load in three tasks**: parse, the screens that react, the module runtime.
+- Start, 4× CPU: longest long task 1.04 → 0.45 s; long-task blocking 4.3 → 2.2 s; tasks over
+  250 ms: 6 → 4.
+
+Still over 250 ms at 4×: the step that hands the document list to the search home (about 0.45 s:
+section counts and other lists derived in one reactive pass), a start-up timer step without a
+script source (0.33 s), the «what is left to download» pass (0.27 s, idle), and the schema check of
+the catalog fetched from the network (0.34 s, once, about 14 s after start).
+
 ## Release 0.6.102 — 2026-11-15
 
 App-only release: PERF8 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build;

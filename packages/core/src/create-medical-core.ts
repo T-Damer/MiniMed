@@ -28,6 +28,8 @@ import {
   buildLookupQueryPlan,
   buildSnippet,
   createAliasExpander,
+  createAliasExpanderSliced,
+  createTimeSlicer,
   DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
@@ -443,10 +445,25 @@ function isComponentMedicationAlias(alias: MedicalAliasRecord): boolean {
   );
 }
 
-function filterQueryAliases(aliases: MedicalAliasRecords): MedicalAliasRecords {
-  return aliases.filter(
-    (alias) => normalizeSurfaceText(alias.alias).length >= 2 && !isComponentMedicationAlias(alias),
-  );
+function keepsQueryAlias(alias: MedicalAliasRecord): boolean {
+  return normalizeSurfaceText(alias.alias).length >= 2 && !isComponentMedicationAlias(alias);
+}
+
+/**
+ * `filterQueryAliases` in slices: the list is every alias of the corpus, and in one piece the
+ * filter held the main thread for 0.65 s at phone speed right after the start.
+ */
+async function filterQueryAliasesSliced(
+  aliases: MedicalAliasRecords,
+): Promise<MedicalAliasRecords> {
+  const slice = createTimeSlicer();
+  const kept: MedicalAliasRecord[] = [];
+  for (const alias of aliases) {
+    if (keepsQueryAlias(alias)) kept.push(alias);
+    const due = slice();
+    if (due) await due;
+  }
+  return kept;
 }
 
 // Normalizing every medication alias per query dominated search time; the list is immutable.
@@ -1297,7 +1314,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const ready = await ensureInitialized();
       if (!ready.ok) return err(ready.error);
       try {
-        const aliases = filterQueryAliases(await options.store.listAliases());
+        const aliases = await filterQueryAliasesSliced(await options.store.listAliases());
 
         return ok(aliases);
       } catch (error) {
@@ -1785,7 +1802,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     let vocabulary = spellingVocabularies.get(index);
     if (!vocabulary) {
       vocabulary = (options.store.listCoreIdentityNames?.() ?? Promise.resolve([])).then((names) =>
-        index.nameVocabulary(names),
+        index.nameVocabularySliced(names, createTimeSlicer()),
       );
       spellingVocabularies.set(index, vocabulary);
     }
@@ -2180,10 +2197,17 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const pause = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
       const aliases = await getAliases();
       if (!aliases.ok) return;
-      ensureLookupExpansion(aliases.value);
+      if (lookupExpansion?.aliases !== aliases.value) {
+        const expand = await createAliasExpanderSliced(aliases.value, createTimeSlicer());
+        // A lookup that ran meanwhile has built it already.
+        if (lookupExpansion?.aliases !== aliases.value) {
+          lookupExpansion = { aliases: aliases.value, expand };
+        }
+      }
       await pause();
       const documents = await getSearchDocuments();
       if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+        await QueryDocumentIndex.prepare(documents, createTimeSlicer());
         const documentIndex = new QueryDocumentIndex(documents);
         await pause();
         const termIndex = new TerminologySearchIndex(documents);

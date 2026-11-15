@@ -1,3 +1,5 @@
+import type { TimeSlicer } from './time-slice';
+
 /**
  * Spelling correction of one typed word against the names the corpus holds (roadmap item 19,
  * TYPO1). Matching from the start of the word already forgives a slip late in a word
@@ -149,9 +151,30 @@ const NAME_WORD = /[0-9a-zа-я]+/gu;
  */
 export function buildNameVocabulary(names: Iterable<string>): NameVocabulary {
   const counts = new Map<string, number>();
-  for (const name of names)
-    for (const word of new Set(name.match(NAME_WORD) ?? []))
-      counts.set(word, (counts.get(word) ?? 0) + 1);
+  for (const name of names) countNameWords(name, counts);
+  return vocabularyOf(counts);
+}
+
+/** {@link buildNameVocabulary} that hands the thread back between names when `slice` says so. */
+export async function buildNameVocabularySliced(
+  names: Iterable<string>,
+  slice: TimeSlicer,
+): Promise<NameVocabulary> {
+  const counts = new Map<string, number>();
+  for (const name of names) {
+    countNameWords(name, counts);
+    const due = slice();
+    if (due) await due;
+  }
+  return vocabularyOf(counts);
+}
+
+function countNameWords(name: string, counts: Map<string, number>): void {
+  for (const word of new Set(name.match(NAME_WORD) ?? []))
+    counts.set(word, (counts.get(word) ?? 0) + 1);
+}
+
+function vocabularyOf(counts: ReadonlyMap<string, number>): NameVocabulary {
   const words = [...counts.keys()].sort();
   const weights = new Uint32Array(words.length + 1);
   for (const [index, word] of words.entries())
