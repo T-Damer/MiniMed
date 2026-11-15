@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-15 claude-fable TERM1 (committed, not released; search review step 1): «Найти в словаре» answers from the read document's own «Список сокращений» / «Термины и определения» first (`reader-dictionary/document-terms.ts`); unit + dictionary e2e; not seen in a browser on a real КР; steps 2–3 of the review not built
 - 2026-11-15 claude-fable PERF13 (committed, not released; owner's 0.6.104 phone log): module files opened on first use + background warm-up, no re-initialize on rebuild, modules asked only about their own documents, core lists kept across rebuilds (worker store and native store), sliced download-blocks pass; unit + typecheck + check + native:source:check + module/search e2e; local 4× only
 - 2026-11-15 claude-fable SRCH-KR1 (committed, not released; owner «КР first»): roadmap item 12 equal-title tie-break — a recommendation or its core pointer leads documents titled exactly as the query; six search benchmarks pass, `lookup-quality` fails identically with and without it
 - 2026-11-15 claude-fable PERF12 (committed, not released): shelf module health and listings kept per file and app build (`composition/module-shelf-facts.ts`), file initialised with its first real call; unit + typecheck + check + module e2e; `tool-module-update` «cannot be fetched» test fails on 0.6.99 too

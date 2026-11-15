@@ -20,6 +20,20 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## A document's own terms answer first — 2026-11-15 (STATE TERM1; committed, not released)
+
+Search review, step 1 (owner 2026-11-15: «do everything you suggest»). «Найти в словаре» now knows
+which library document is being read (from the address) and looks the selection up in that
+document's own «Список сокращений» and «Термины и определения» first
+(`reader-dictionary/document-terms.ts`: the source's own «left – meaning» lines, never rewritten).
+A match is shown above the dictionary's answers as «В этом документе». An abbreviation matches
+letter for letter whatever its case; a term matches by its words in any grammatical form.
+
+Not done in this slice: the same lookup for links in the text (a tap on a term), user documents
+and PDFs, and folding the other senses behind one control. Steps 2 (one result per condition) and
+3 (one answer slot on the search page) are not built. Not checked in a browser on a real
+recommendation: unit tests cover the parser and the matcher, and the existing dictionary e2e pass.
+
 ## Third phone log: cold starts, rebuilds, reading — 2026-11-15 (STATE PERF13; committed, not released)
 
 Owner's log of 0.6.104 (44 min, three starts, most sets installed). «Search ready»: 12.6 s after a

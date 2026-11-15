@@ -2,6 +2,11 @@ import type { CoreIdentityHit, MedicalCore, SearchResultGroup } from '@localmed/
 import { createEffect, createSignal, For, type JSX, on, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import {
+  type DocumentTerm,
+  findDocumentTerm,
+  parseDocumentTerms,
+} from '@/features/reader-dictionary/document-terms';
 import { loadEtymology } from '@/features/reader-dictionary/etymology';
 import {
   closeReaderDictionary,
@@ -25,6 +30,25 @@ type LookupState =
   | { readonly kind: 'invalid' }
   | { readonly kind: 'error'; readonly message: string };
 
+const termsByDocument = new Map<string, Promise<readonly DocumentTerm[]>>();
+
+/** The document's own terms, read once per document; a document that cannot be read has none. */
+function documentTermsOf(core: MedicalCore, documentId: string): Promise<readonly DocumentTerm[]> {
+  let terms = termsByDocument.get(documentId);
+  if (!terms) {
+    terms = core.getDocument(documentId).then(
+      (result) => (result.ok ? parseDocumentTerms(result.value.sections) : []),
+      () => [],
+    );
+    termsByDocument.set(documentId, terms);
+    if (termsByDocument.size > 8) {
+      const oldest = termsByDocument.keys().next().value;
+      if (oldest !== undefined) termsByDocument.delete(oldest);
+    }
+  }
+  return terms;
+}
+
 function firstAnchor(group: SearchResultGroup): string | null {
   return group.results[0]?.anchor ?? null;
 }
@@ -43,6 +67,8 @@ export function ReaderDictionarySheet(props: {
   // The last request stays on screen while the sheet plays its exit.
   const [shown, setShown] = createSignal(readerDictionaryRequest());
   const [origin, setOrigin] = createSignal<readonly string[]>([]);
+  // What the document being read says about the selection itself; shown above everything else.
+  const [ownTerm, setOwnTerm] = createSignal<DocumentTerm>();
   const [originError, setOriginError] = createSignal(false);
   let generation = 0;
 
@@ -56,9 +82,15 @@ export function ReaderDictionarySheet(props: {
         setState({ kind: 'loading' });
         setOrigin([]);
         setOriginError(false);
+        setOwnTerm(undefined);
         if (!core) {
           setState({ kind: 'error', message: 'Поиск ещё не готов.' });
           return;
+        }
+        if (request.documentId) {
+          void documentTermsOf(core, request.documentId).then((terms) => {
+            if (token === generation) setOwnTerm(findDocumentTerm(terms, request.text));
+          });
         }
         void resolveSelectionTerm(request.text, (query) =>
           core.search({
@@ -119,6 +151,20 @@ export function ReaderDictionarySheet(props: {
       onClose={closeReaderDictionary}
     >
       <div class="reader-dictionary" data-testid="reader-dictionary">
+        <Show when={ownTerm()}>
+          {(term) => (
+            <section
+              class="reader-dictionary__own"
+              aria-label="В этом документе"
+              data-testid="reader-dictionary-own"
+            >
+              <h3 class="reader-dictionary__own-title">В этом документе</h3>
+              <p class="reader-dictionary__own-text">
+                <span class="reader-dictionary__own-term">{term().term}</span> — {term().meaning}
+              </p>
+            </section>
+          )}
+        </Show>
         <Show when={state().kind === 'loading'}>
           <p class="reader-dictionary__status" role="status" aria-label="Ищем в словаре">
             <span class="reader-dictionary__spinner" aria-hidden="true" />
