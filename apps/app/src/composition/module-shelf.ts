@@ -18,6 +18,11 @@ import type {
   VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
+import {
+  createIndexedDbShelfFacts,
+  type ShelfFacts,
+  type ShelfFactsStore,
+} from '@/composition/module-shelf-facts';
 import { SHELF_SHARD_COUNT, shelfPoolName, shelfShardOf } from '@/composition/module-shelf-names';
 import type {
   ShelfCall,
@@ -28,6 +33,8 @@ import type {
   ShelfResponse,
   ShelfStats,
 } from '@/composition/module-shelf-protocol';
+
+import { RELEASE_VERSION } from '../../../../release';
 
 /**
  * The module shelf (client side): the installed modules are files of a few OPFS pools (shards),
@@ -57,7 +64,11 @@ interface PendingRequest {
 }
 
 /** Whole-pack listings never change while a module file is open read-only. */
-type ShelfListingMethod = 'listDocumentIdentities' | 'listAliases' | 'listNavigationDocuments';
+type ShelfListingMethod =
+  | 'listDocumentIdentities'
+  | 'listAliases'
+  | 'listNavigationDocuments'
+  | 'listSearchDocuments';
 
 export interface ShelfEntry {
   leases: number;
@@ -66,6 +77,13 @@ export interface ShelfEntry {
   readonly listings: Map<ShelfListingMethod, Promise<unknown>>;
   /** The file's health never changes while it is open read-only; every search asks for it. */
   health?: Promise<StorageHealth> | undefined;
+  /**
+   * The health came from the kept facts and the worker's own `initialize` has not run yet: it is
+   * sent in front of the first call that reaches the file.
+   */
+  initPending?: boolean;
+  /** What is kept of this file across starts (`module-shelf-facts`). */
+  facts: ShelfFacts;
 }
 
 export interface ShelfWorker {
@@ -84,9 +102,12 @@ export interface ModuleShelfOptions {
   readonly poolName?: (shard: number) => string;
   /** How long a worker without open files lives on, for the next install or core rebuild. */
   readonly idleShutdownMs?: number;
+  /** Health and listings kept across starts; without it every start asks the files. */
+  readonly facts?: ShelfFactsStore;
 }
 
 interface ShelfShardOptions {
+  readonly facts?: ShelfFactsStore | undefined;
   readonly createWorker?: (() => ShelfWorker) | undefined;
   readonly poolName: string;
   readonly idleShutdownMs?: number | undefined;
@@ -177,10 +198,16 @@ class ShelfShard {
   ): Promise<ShelfModuleStore> {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = undefined;
+    // A file just written (`bytes`) is asked itself; an installed one may have kept facts.
+    const known =
+      options.bytes || this.entries.has(file) || !this.options.facts
+        ? undefined
+        : (await this.options.facts.load()).get(file);
     let entry = this.entries.get(file);
     if (entry) {
       entry.leases += 1;
     } else {
+      const keptHealth = known?.health;
       const created: ShelfEntry = {
         leases: 1,
         opened: this.send({
@@ -192,7 +219,14 @@ class ShelfShard {
         }).then(() => {
           this.files.add(file);
         }),
-        listings: new Map(),
+        listings: new Map(
+          Object.entries(known?.listings ?? {}).map(([method, value]) => [
+            method as ShelfListingMethod,
+            Promise.resolve(value),
+          ]),
+        ),
+        ...(keptHealth ? { health: Promise.resolve(keptHealth), initPending: true } : {}),
+        facts: { ...(keptHealth ? { health: keptHealth } : {}), listings: { ...known?.listings } },
       };
       entry = created;
       this.entries.set(file, created);
@@ -216,9 +250,34 @@ class ShelfShard {
   public call(file: string, method: ShelfCallMethod, args: readonly unknown[]): Promise<unknown> {
     if (this.failure) return Promise.reject(this.failure);
     return new Promise((resolve, reject) => {
+      const wasEmpty = this.queued.length === 0;
+      const entry = this.entries.get(file);
+      if (entry?.initPending) {
+        // The start answered from the kept facts; the file itself is initialised now, in front of
+        // its first real call (same message, same order).
+        entry.initPending = false;
+        if (method !== 'initialize') {
+          const ignore = (): void => undefined;
+          this.queued.push({
+            file,
+            method: 'initialize',
+            args: [],
+            resolve: ignore,
+            reject: ignore,
+          });
+        }
+      }
       this.queued.push({ file, method, args, resolve, reject });
-      if (this.queued.length === 1) queueMicrotask(() => void this.flushCalls());
+      if (wasEmpty) queueMicrotask(() => void this.flushCalls());
     });
+  }
+
+  /** @internal Keeps an answer of `file` for the next start. */
+  public remember(file: string, entry: ShelfEntry, fact: ShelfFacts): void {
+    if (!this.options.facts || this.entries.get(file) !== entry) return;
+    if (fact.health) entry.facts.health = fact.health;
+    if (fact.listings) entry.facts.listings = { ...entry.facts.listings, ...fact.listings };
+    this.options.facts.save(file, entry.facts);
   }
 
   private async flushCalls(): Promise<void> {
@@ -346,6 +405,7 @@ export class ModuleShelf {
     this.shards = Array.from({ length: count }, (_, index) => {
       const create = options.createWorker;
       const shard = new ShelfShard({
+        facts: options.facts,
         createWorker: create ? () => create(index) : undefined,
         poolName: (options.poolName ?? shelfPoolName)(index),
         idleShutdownMs: options.idleShutdownMs,
@@ -487,6 +547,12 @@ export class ShelfModuleStore implements MedicalStore {
     if (seed !== undefined) {
       this.entry.listings.clear();
       this.entry.health = undefined;
+      this.entry.initPending = false;
+    }
+    // Kept from an earlier start: the answer is known, and the file is initialised with its
+    // first real call instead of now (800 files at every start).
+    if (seed === undefined && this.entry.initPending && this.entry.health && !this.closed) {
+      return this.entry.health;
     }
     return this.call('initialize', seed === undefined ? [] : [seed]);
   }
@@ -502,9 +568,12 @@ export class ShelfModuleStore implements MedicalStore {
       health = this.call<StorageHealth>('getHealth', []);
       this.entry.health = health;
       const entry = this.entry;
-      health.catch(() => {
-        if (entry.health === health) entry.health = undefined;
-      });
+      health.then(
+        (value) => this.shelf.remember(this.file, entry, { health: value }),
+        () => {
+          if (entry.health === health) entry.health = undefined;
+        },
+      );
     }
     return health;
   }
@@ -522,7 +591,7 @@ export class ShelfModuleStore implements MedicalStore {
   }
 
   public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
-    return this.call('listSearchDocuments', []);
+    return this.listing('listSearchDocuments');
   }
 
   public listDocuments(): Promise<readonly DocumentRecord[]> {
@@ -604,8 +673,11 @@ export class ShelfModuleStore implements MedicalStore {
     if (!pending) {
       pending = this.call(method, []);
       this.entry.listings.set(method, pending);
-      const listings = this.entry.listings;
-      pending.catch(() => listings.delete(method));
+      const entry = this.entry;
+      pending.then(
+        (value) => this.shelf.remember(this.file, entry, { listings: { [method]: value } }),
+        () => entry.listings.delete(method),
+      );
     }
     return pending as Promise<never>;
   }
@@ -631,7 +703,9 @@ export function getModuleShelf(): ModuleShelf | undefined {
   ) {
     return undefined;
   }
-  sharedShelf ??= new ModuleShelf();
+  sharedShelf ??= new ModuleShelf(
+    typeof indexedDB === 'undefined' ? {} : { facts: createIndexedDbShelfFacts(RELEASE_VERSION) },
+  );
   return sharedShelf.unavailable ? undefined : sharedShelf;
 }
 

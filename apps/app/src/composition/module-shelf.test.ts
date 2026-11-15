@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ModuleShelf, type ShelfWorker } from '@/composition/module-shelf';
+import type { ShelfFacts, ShelfFactsStore } from '@/composition/module-shelf-facts';
 import {
   isOrphanedShelfFile,
   SHELF_CACHE_BUDGET_KIB,
@@ -89,6 +90,67 @@ describe('shelf names', () => {
     expect(shelfCacheKiB(300, shelfCacheBudgetKiB(2))).toBeGreaterThan(
       shelfCacheKiB(300, shelfCacheBudgetKiB(8)),
     );
+  });
+});
+
+describe('ModuleShelf with kept facts', () => {
+  function memoryFacts(initial: Record<string, ShelfFacts> = {}) {
+    const saved = new Map<string, ShelfFacts>();
+    const store: ShelfFactsStore = {
+      load: async () => new Map(Object.entries(initial)),
+      save: (file, facts) => saved.set(file, structuredClone(facts)),
+    };
+    return { store, saved };
+  }
+  const calls = (requests: readonly ShelfRequest[]) =>
+    requests.flatMap((request) =>
+      request.type === 'batch' ? request.calls.map((call) => `${call.method}:${call.file}`) : [],
+    );
+
+  it('answers health and listings from the kept facts without asking the file', async () => {
+    const { worker, requests } = fakeWorker();
+    const { store: facts } = memoryFacts({
+      a: { health: HEALTH as never, listings: { listDocumentIdentities: [{ id: 'd' }] } },
+    });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    expect(await store.initialize()).toEqual(HEALTH);
+    expect(await store.getHealth()).toEqual(HEALTH);
+    expect(await store.listDocumentIdentities()).toEqual([{ id: 'd' }]);
+    expect(calls(requests)).toEqual([]);
+  });
+
+  it('initialises the file in front of its first real call, once', async () => {
+    const { worker, requests } = fakeWorker();
+    const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    await store.initialize();
+    expect(await store.getChunk('id')).toBe('getChunk:a');
+    await store.getChunk('other');
+    expect(calls(requests)).toEqual(['initialize:a', 'getChunk:a', 'getChunk:a']);
+  });
+
+  it('asks a file without kept facts as before and keeps its answers for the next start', async () => {
+    const { worker, requests } = fakeWorker();
+    const { store: facts, saved } = memoryFacts();
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 10, { cacheSizeKiB: -256 });
+    await store.initialize();
+    await store.getHealth();
+    await store.listAliases();
+    expect(calls(requests)).toEqual(['initialize:a', 'getHealth:a', 'listAliases:a']);
+    await Promise.resolve();
+    expect(saved.get('a')).toEqual({ health: HEALTH, listings: { listAliases: 'listAliases:a' } });
+  });
+
+  it('does not trust kept facts for a file that was just written', async () => {
+    const { worker, requests } = fakeWorker();
+    const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker, facts });
+    const store = await shelf.open('a', 3, { cacheSizeKiB: -256, bytes: new Uint8Array(3) });
+    await store.initialize();
+    expect(calls(requests)).toEqual(['initialize:a']);
   });
 });
 

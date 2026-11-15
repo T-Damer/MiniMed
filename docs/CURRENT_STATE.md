@@ -20,6 +20,26 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Module health and listings kept across starts — 2026-11-15 (STATE PERF12; committed, not released)
+
+Every start asked each installed module file for `initialize`, its health, its document identities
+and its aliases again (`core-initialize`, 5.8 s in the 0.6.102 phone log with ~800 modules). A
+module file never changes: its name carries the version and the checksum.
+
+- `composition/module-shelf-facts.ts`: health and the whole-pack listings (`listDocumentIdentities`,
+  `listAliases`, `listNavigationDocuments`, `listSearchDocuments`) per shelf file, in IndexedDB
+  (`minimed-module-facts-v1`), valid for one app build; a new build asks the files again once.
+- The shelf answers from the kept facts; the file's own `initialize` is sent in front of its first
+  real call (same message), so a start no longer touches 800 files. A file just written is always
+  asked itself. Without IndexedDB, or after a storage failure, everything works as before.
+- 774 clinical modules, 4× CPU, Mac: `core-initialize` 1.36 → ~0.95 s; what is left of it is the
+  core database and the companion packs, not the modules. A search over all modules right after
+  the start returns the same results. Not measured on a phone.
+- Not covered: the 11 large OPFS modules (drug and reference packs) still answer from their files.
+
+`tool-module-update.spec.ts` «while the update cannot be fetched…» fails on 0.6.99 too («Есть
+обновление» never shown in the calculators list) — older than this work, not fixed.
+
 ## Release 0.6.104 — 2026-11-15
 
 PERF10, PERF11 and MODELS1 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,
