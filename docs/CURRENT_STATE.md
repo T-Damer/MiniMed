@@ -20,7 +20,12 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Quick answer with names, nothing above the list late, scans tidied — 2026-11-16 (STATE SRCH-QUICK2, SCAN-TIDY1; not released)
+## Release 0.6.111 — 2026-11-16
+
+SRCH-COLD1, SRCH-QUICK1, SRCH-QUICK2 and SCAN-TIDY1 (below). App only. Checks: `bun run verify`, unit; e2e
+search, reader, dictionary, drug card. Not tested on a phone.
+
+## Quick answer with names, nothing above the list late, scans tidied — 2026-11-16 (STATE SRCH-QUICK2, SCAN-TIDY1; released in 0.6.111)
 
 Owner 2026-11-16: «let's fix all of this» (the four limits listed with SRCH-QUICK1).
 
@@ -50,7 +55,7 @@ Owner 2026-11-16: «let's fix all of this» (the four limits listed with SRCH-QU
   joining split words (32 of 517 safely), label fragments inside sentences, merged revision columns.
   In-document find reads the stored chunks through the same document, so it matches what is shown.
 
-## Quick first answer; later answers only add — 2026-11-16 (STATE SRCH-QUICK1; not released)
+## Quick first answer; later answers only add — 2026-11-16 (STATE SRCH-QUICK1; released in 0.6.111)
 
 Owner 2026-11-16: «yes, quick first answer»; «refining shouldn't reshuffle the results, only show
 additional results under current»; one centred arrow / loader instead of hanging buttons.
@@ -77,7 +82,7 @@ additional results under current»; one centred arrow / loader instead of hangin
   its card only under «Ещё найдено» on that first search; a drug class card and a «показаны
   результаты по…» note still arrive above the list.
 
-## Text search over every set: what the 12–15 s were — 2026-11-16 (STATE SRCH-COLD1; not released)
+## Text search over every set: what the 12–15 s were — 2026-11-16 (STATE SRCH-COLD1; released in 0.6.111)
 
 Measured with 774 small sets in a kept browser profile, CPU throttled four times.
 

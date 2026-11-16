@@ -4,6 +4,20 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.111] - 2026-11-16
+
+- A search typed right after a start answers at once: the typed words are found as text first, with exact names
+  and a trade name's substance card, and the full search follows.
+- Later answers never reorder what is on screen. New results are added below under «Ещё найдено»; cards already
+  shown, an unrolled fragment included, stay as they are.
+- One round button in the middle of the bottom edge, above the bottom bar and the recording button: a spinner
+  while more is being found, a down arrow when results lie below. The arrow leaves once you scroll.
+- Scanned instructions are shown without chunks that hold no words, without a sentence printed twice in a row and
+  without scrap headings («ИЛИ», «LLC»). The stored text is unchanged.
+- A word selected just after a document opens keeps its selection and its lookup menu.
+- Fewer freezes right after a start: document lists are prepared in short steps, and the installed sets are
+  opened in the background from the moment search is ready.
+
 ## [0.6.110] - 2026-11-16
 
 - Patient card: the name leads the dark header; six actions stand on top («Запись, осмотр», «Данные для справок»,
