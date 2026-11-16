@@ -638,7 +638,37 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return parts.length > 0 ? parts.join(' · ') : undefined;
   };
   // One condition, one card: the sources of the same name fold under the recommendation.
-  const resultClusters = createMemo(() => clusterResultGroups(visibleGroups(), audienceOf));
+  // What a later answer added is clustered on its own, after the first results: a card on screen
+  // never gains a source or changes its lead. A cluster that did not change is the same object as
+  // before, so its card (an unrolled fragment, an open menu) is not rebuilt when results are added.
+  let previousClusters: readonly ResultCluster[] = [];
+  const resultClusters = createMemo((): readonly ResultCluster[] => {
+    const added = appended();
+    const groups = visibleGroups();
+    const next =
+      added.size === 0
+        ? clusterResultGroups(groups, audienceOf)
+        : [
+            ...clusterResultGroups(
+              groups.filter((group) => !added.has(group.documentId)),
+              audienceOf,
+            ),
+            ...clusterResultGroups(
+              groups.filter((group) => added.has(group.documentId)),
+              audienceOf,
+            ),
+          ];
+    const byLead = new Map(previousClusters.map((cluster) => [cluster.lead, cluster]));
+    previousClusters = next.map((cluster) => {
+      const before = byLead.get(cluster.lead);
+      return before &&
+        before.others.length === cluster.others.length &&
+        before.others.every((other, index) => other === cluster.others[index])
+        ? before
+        : cluster;
+    });
+    return previousClusters;
+  });
   // Results named by the query first, then what the query was only found inside. A drug class and
   // the clinical analysis rank by other things than the title and keep one list.
   /** Clusters a later answer added: listed under the first results, never among them. */
@@ -703,6 +733,32 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           }
         />
       )}
+    </Show>
+  );
+  // What else the full answer brings for the top of the list: over a quick answer already on
+  // screen these, too, go under the first results.
+  const rewriteNote = (): JSX.Element => (
+    <Show
+      when={
+        props.scope !== 'personal'
+          ? (response()?.queryRewrite ?? scopeFallback()?.response.queryRewrite)
+          : undefined
+      }
+    >
+      {(rewrite) => (
+        <div
+          class="results-refreshing-note search-rewrite-note"
+          role="status"
+          data-testid="search-rewrite-note"
+        >
+          Показаны результаты по: «{rewrite().query}»
+        </div>
+      )}
+    </Show>
+  );
+  const drugClassCard = (): JSX.Element => (
+    <Show when={response()?.drugClass}>
+      {(drugClass) => <DrugClassCard drugClass={drugClass()} />}
     </Show>
   );
   const clusterCard = (
@@ -2093,23 +2149,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           <Show when={response()}>
             {(_searchResponse) => (
               <div class="search-results-slot__content search-results-slot__reveal">
-                <Show
-                  when={
-                    props.scope !== 'personal'
-                      ? (response()?.queryRewrite ?? scopeFallback()?.response.queryRewrite)
-                      : undefined
-                  }
-                >
-                  {(rewrite) => (
-                    <div
-                      class="results-refreshing-note search-rewrite-note"
-                      role="status"
-                      data-testid="search-rewrite-note"
-                    >
-                      Показаны результаты по: «{rewrite().query}»
-                    </div>
-                  )}
-                </Show>
+                <Show when={!identitiesLate()}>{rewriteNote()}</Show>
 
                 <Show when={props.scope !== 'personal' ? response()?.sourceScope : undefined}>
                   {(source) => (
@@ -2177,9 +2217,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 </Show>
 
                 <Show when={props.scope !== 'personal'}>
-                  <Show when={response()?.drugClass}>
-                    {(drugClass) => <DrugClassCard drugClass={drugClass()} />}
-                  </Show>
+                  <Show when={!identitiesLate()}>{drugClassCard()}</Show>
                   <Show when={!identitiesLate()}>{identityCard()}</Show>
                   <div class="results-list" data-testid="search-results">
                     <Show
@@ -2228,7 +2266,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               </Button>
                             </Show>
                           </Show>
-                          <Show when={identitiesLate()}>{identityCard()}</Show>
+                          <Show when={identitiesLate()}>
+                            {rewriteNote()}
+                            {drugClassCard()}
+                            {identityCard()}
+                          </Show>
                           <Show when={addedClusters().length > 0}>
                             <h3
                               class="search-results-section__title"

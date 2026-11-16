@@ -20,6 +20,36 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Quick answer with names, nothing above the list late, scans tidied — 2026-11-16 (STATE SRCH-QUICK2, SCAN-TIDY1; not released)
+
+Owner 2026-11-16: «let's fix all of this» (the four limits listed with SRCH-QUICK1).
+
+- **Trade names and exact names in a quick answer.** `runQuickSearch` asks the core's name table
+  (`lookupCoreIdentities`: the definition card is there from the first answer) and scans the store's
+  raw alias list for an alias spelt exactly as the query (waits 250 ms for the list at most): the
+  documents named as its canonical term lead the quick answer («Панадол» → the card of
+  «ПАРАЦЕТАМОЛ»).
+- **Nothing arrives above the list.** Over a quick answer the rewrite note and the drug-class card
+  of the full answer stand under the first results, with the definition card.
+- **Cards are not rebuilt by a merge.** What a later answer adds is clustered on its own after the
+  first results, and an unchanged cluster stays the same object: an unrolled fragment stays
+  unrolled. (`search.spec` «a found part…» caught the rebuild: the fragment's toggle was detached.)
+- **The arrow leaves.** `SearchMoreBelow` hides its arrow once the reader has scrolled 48 px on
+  their own and shows it again when the list gets new results; the spinner still shows while more
+  is being found.
+- **A selection survives the links.** The reader's links join the text a moment after a document
+  opens (PERF15) and re-render it; a word selected in between lost its selection and its lookup
+  menu (`reader-dictionary.spec` failed two runs of three). The link update now waits until nothing
+  is selected (`whenNothingIsSelected`).
+- **SCAN-TIDY1 (display only, owner's decision after OCR-AUDIT1).** `tidyScannedDocument`
+  (`features/library/scan-text-tidy.ts`), applied where the page hands a document to the reader and
+  only when `metadata.ocr === true`: chunks with no word of three letters are not shown; an exact
+  repeat of 25–240 characters standing right after itself is shown once; a section whose heading has
+  fewer than four letters («ИЛИ», «LLC») joins the section above; a section left empty is not
+  listed. Stored text, checksums and anchors are untouched. Not done, by the audit's own finding:
+  joining split words (32 of 517 safely), label fragments inside sentences, merged revision columns.
+  In-document find reads the stored chunks through the same document, so it matches what is shown.
+
 ## Quick first answer; later answers only add — 2026-11-16 (STATE SRCH-QUICK1; not released)
 
 Owner 2026-11-16: «yes, quick first answer»; «refining shouldn't reshuffle the results, only show

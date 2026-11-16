@@ -6,12 +6,14 @@ import '@/features/search/search-more-below.css';
 /** Results count as «below» once this much of the page is under the screen. */
 const BELOW_PX = 96;
 const MEASURE_INTERVAL_MS = 120;
+/** Scrolled this far since the arrow appeared: the reader has seen there is more. */
+const NOTICED_PX = 48;
 
 /**
  * The one sign that a search has more than the screen shows (owner 2026-11-16): a round button in
  * the middle of the screen's bottom edge, above the bottom bar and the recording button. While
  * more results are being found it is a spinner; when results lie below it is an arrow that scrolls
- * to them. Results are only ever added under what is shown, so this is where to look for them.
+ * to them, until the reader scrolls. Results are only ever added under what is shown, so this is where to look for them.
  */
 export function SearchMoreBelow(props: {
   /** More results are still being found. */
@@ -20,12 +22,21 @@ export function SearchMoreBelow(props: {
   readonly track: () => unknown;
 }): JSX.Element {
   const [below, setBelow] = createSignal(false);
+  // The arrow is a notice, not a fixture: once the reader has scrolled on their own it goes away,
+  // so it does not sit over a control in the middle of the bottom edge, and comes back when the
+  // list gets new results.
+  const [noticed, setNoticed] = createSignal(false);
+  let shownAtTop: number | undefined;
   let timer: number | undefined;
   const measure = (): void => {
     timer = undefined;
     const page = document.scrollingElement;
     if (!page) return;
-    setBelow(page.scrollHeight - page.scrollTop - window.innerHeight > BELOW_PX);
+    const more = page.scrollHeight - page.scrollTop - window.innerHeight > BELOW_PX;
+    setBelow(more);
+    if (!more) return;
+    shownAtTop ??= page.scrollTop;
+    if (Math.abs(page.scrollTop - shownAtTop) > NOTICED_PX) setNoticed(true);
   };
   const measureSoon = (): void => {
     timer ??= window.setTimeout(measure, MEASURE_INTERVAL_MS);
@@ -40,10 +51,16 @@ export function SearchMoreBelow(props: {
       window.clearTimeout(timer);
     });
   });
-  createEffect(on(props.track, measureSoon));
+  createEffect(
+    on(props.track, () => {
+      setNoticed(false);
+      shownAtTop = undefined;
+      measureSoon();
+    }),
+  );
 
   return (
-    <Show when={props.pending || below()}>
+    <Show when={props.pending || (below() && !noticed())}>
       <button
         type="button"
         class="search-more-below"

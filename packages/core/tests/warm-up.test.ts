@@ -231,6 +231,33 @@ describe('a quick first answer (SearchRequest.quick)', () => {
     }
   });
 
+  it('finds the card of a substance by a trade name typed whole, and the exact names', async () => {
+    const core = createMedicalCore({
+      store: new InMemoryMedicalStore(),
+      seed: {
+        ...SEED,
+        aliases: [
+          {
+            id: 'alias.panadol',
+            canonicalTerm: 'ПАРАЦЕТАМОЛ',
+            alias: 'Панадол',
+            category: 'medication',
+            weight: 1,
+          },
+        ],
+      },
+      platform: 'test',
+    });
+    try {
+      const quick = await core.search({ ...request, query: 'панадол', quick: true });
+      if (!quick.ok) throw new Error(quick.error.message);
+      expect(quick.value.partial).toBe(true);
+      expect(quick.value.groups[0]?.documentId).toBe('med.paracetamol');
+    } finally {
+      await core.close();
+    }
+  });
+
   it('never answers a clinical analysis quickly', async () => {
     const core = createCore();
     try {

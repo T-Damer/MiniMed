@@ -662,6 +662,25 @@ function ClinicalMedicationLinksPanel(props: {
   );
 }
 
+/**
+ * Runs `apply` now, or once the reader's text selection is gone. Links join a document's text a
+ * moment after it opens, which re-renders the text: a word selected in between (to look it up, to
+ * copy it) lost its selection and its menu.
+ */
+function whenNothingIsSelected(apply: () => void): void {
+  const selected = (): boolean => window.getSelection()?.isCollapsed === false;
+  if (!selected()) {
+    apply();
+    return;
+  }
+  const onChange = (): void => {
+    if (selected()) return;
+    document.removeEventListener('selectionchange', onChange);
+    apply();
+  };
+  document.addEventListener('selectionchange', onChange);
+}
+
 export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.Element {
   /** A medication card saves the product (its stable card id), other pages save themselves. */
   const bookmarkItem = (document: MedicalDocument): ItemRefInput => {
@@ -1128,7 +1147,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     preparedLinkLists();
     if (documents.length > 0 && !isDocumentLinkMatcherReady(documents)) {
       void prepareDocumentLinkMatcher(documents).then(
-        () => setPreparedLinkLists((count) => count + 1),
+        () => whenNothingIsSelected(() => setPreparedLinkLists((count) => count + 1)),
         (error: unknown) => {
           console.error('Не удалось подготовить ссылки между документами.', error);
         },

@@ -1892,6 +1892,37 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
    * grouped like any result, marked `partial`. No aliases, no exact names, no typo correction: the
    * caller repeats the search for those. The indexes are started so that the repeat finds them.
    */
+  /** How long a quick answer waits for the store's alias list before going on without it. */
+  const QUICK_ALIAS_WAIT_MS = 250;
+  /**
+   * The canonical terms of the aliases spelt exactly as the query («Нурофен» → «ИБУПРОФЕН»), three
+   * at most, read from the store's raw alias list when it arrives in time. A plain scan, no index.
+   */
+  const quickCanonicalTerms = async (query: string): Promise<readonly string[]> => {
+    const wanted = query.trim().toLowerCase().replaceAll('ё', 'е');
+    if (!wanted) return [];
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const aliases = await Promise.race([
+      options.store.listAliases(),
+      new Promise<undefined>((resolve) => {
+        timer = setTimeout(() => resolve(undefined), QUICK_ALIAS_WAIT_MS);
+      }),
+    ]);
+    clearTimeout(timer);
+    if (!aliases) return [];
+    const terms = new Set<string>();
+    for (const alias of aliases) {
+      if (alias.alias.length !== wanted.length) continue;
+      if (alias.alias.toLowerCase().replaceAll('ё', 'е') !== wanted) continue;
+      if (alias.canonicalTerm.toLowerCase().replaceAll('ё', 'е') === wanted) continue;
+      terms.add(alias.canonicalTerm);
+      if (terms.size === 3) break;
+    }
+    return [...terms];
+  };
+  const term = (plan: ReturnType<typeof buildLookupQueryPlan>): string =>
+    plan.analysis.originalQuery;
+
   const runQuickSearch = async (
     request: SearchRequest,
   ): Promise<Result<SearchResponse, LocalMedError>> => {
@@ -1902,10 +1933,62 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const plan = buildLookupQueryPlan(request.query, NO_ALIASES, undefined, {
         boundShortTerms: true,
       });
-      if (plan.branches.length === 0) {
+      // Exact names need no index: the core's own name table (the definition card), and the alias
+      // list when the store has it by now — a trade name typed whole («Нурофен») then finds the
+      // card of its substance on this first search too.
+      const unfiltered =
+        !request.filters.specialties?.length &&
+        !request.filters.ageGroups?.length &&
+        !request.filters.sectionTypes?.length;
+      const identities = unfiltered
+        ? ((await options.store.lookupCoreIdentities?.(request.query)) ?? []).filter(
+            (hit) =>
+              !request.filters.documentIds?.length ||
+              (hit.target.type === 'document' &&
+                request.filters.documentIds.includes(hit.target.documentId)),
+          )
+        : [];
+      const canonicalPlans = (await quickCanonicalTerms(request.query)).flatMap((term) => {
+        const named = buildLookupQueryPlan(term, NO_ALIASES, undefined, { boundShortTerms: true });
+        return named.branches.length > 0 ? [named] : [];
+      });
+      if (plan.branches.length === 0 && identities.length === 0 && canonicalPlans.length === 0) {
         return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
       }
       const perBranchLimit = Math.max(request.limit * 5, 50);
+      const namedGroups: SearchResultGroup[] = [];
+      for (const named of canonicalPlans) {
+        const branch = named.branches[0];
+        if (!branch) continue;
+        const hits = await options.store.search({
+          ftsQuery: branch.ftsQuery,
+          terms: branch.terms,
+          filters: request.filters,
+          limit: perBranchLimit,
+          diversifyDocuments: true,
+        });
+        // Only documents named as the canonical term: the alias names them, not their mentions.
+        const wanted = normalizeSurfaceText(named.analysis.normalizedQuery);
+        const own = hits.filter(
+          (hit) =>
+            normalizeSurfaceText(hit.document.title) === wanted ||
+            normalizeSurfaceText(hit.document.shortTitle ?? '') === wanted,
+        );
+        if (own.length === 0) continue;
+        namedGroups.push(
+          ...groupResults(
+            fuseBranchHits([{ branch, hits: own }], perBranchLimit, term(named), new Set(), true),
+            null,
+            true,
+            named.analysis.normalizedQuery,
+            named.terms,
+            NO_ALIASES,
+            own.map((hit) => toDocumentSummary(hit.document)),
+            named.analysis,
+            named.lookupTermGroups,
+          ),
+        );
+      }
       const branchHits = await Promise.all(
         plan.branches.map(async (branch) => {
           const branchStartedAt = performance.now();
@@ -1947,15 +2030,22 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         plan.analysis,
         plan.lookupTermGroups,
       );
+      const namedIds = new Set(namedGroups.map((item) => item.documentId));
       return ok({
         requestId: requestId(),
-        identities: [],
+        identities,
         normalizedQuery: plan.analysis.normalizedQuery,
         elapsedMs: performance.now() - startedAt,
         modeUsed: 'lexical',
         analysis: plan.analysis,
         suggestions: plan.analysis.suggestions,
-        groups: groups.slice(0, request.limit),
+        groups: [
+          ...namedGroups.filter(
+            (item, index) =>
+              namedGroups.findIndex((other) => other.documentId === item.documentId) === index,
+          ),
+          ...groups.filter((item) => !namedIds.has(item.documentId)),
+        ].slice(0, request.limit),
         diagnostics: {
           ftsQuery: branchHits.map(({ diagnostics }) => diagnostics.ftsQuery).join(' || '),
           candidateCount: new Set(branchHits.flatMap(({ hits }) => hits.map((hit) => hit.chunk.id)))

@@ -34,6 +34,7 @@ import {
   rememberDocumentSummaries,
 } from '@/features/library/document-title-hints';
 import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReader';
+import { tidyScannedDocument } from '@/features/library/scan-text-tidy';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
 import { allmedMatchesProduct } from '@/features/medications/allmed-matching';
@@ -1061,10 +1062,16 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const current = document();
     return current ? withoutRegistrySections(current) : undefined;
   });
-  const readerDocument = (): MedicalDocument | undefined =>
+  const shownDocument = (): MedicalDocument | undefined =>
     showsInstruction()
       ? instructionDocument()
       : (shownSubstanceInstruction()?.document ?? registryFreeDocument());
+  // A scanned instruction is shown without its empty chunks, doubled sentences and scrap headings
+  // (`scan-text-tidy.ts`); one tidy copy per document, so the reader sees a stable object.
+  const readerDocument = createMemo((): MedicalDocument | undefined => {
+    const shown = shownDocument();
+    return shown ? tidyScannedDocument(shown) : undefined;
+  });
   const readerPendingTitle = (): string | undefined =>
     showsInstruction() && !instructionDocument() ? 'Открываем инструкцию' : pendingTitle();
 
