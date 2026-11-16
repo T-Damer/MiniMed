@@ -184,9 +184,11 @@ describe('ModuleShelf with kept facts', () => {
     await b.close();
     expect(types(requests)).toEqual(['init']);
     await shelf.warm();
-    expect(types(requests)).toEqual(['init', 'open']);
+    // Opened and initialised in the worker, so the first search does neither.
+    expect(types(requests)).toEqual(['init', 'open', 'batch']);
+    expect(calls(requests)).toEqual(['initialize:a']);
     await a.close();
-    expect(types(requests)).toEqual(['init', 'open', 'close']);
+    expect(types(requests)).toEqual(['init', 'open', 'batch', 'close']);
   });
 
   it('answers a rebuilt core from the same page without initialising the file again', async () => {

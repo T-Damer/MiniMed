@@ -560,13 +560,16 @@ export function useAppSession() {
       // while the screen is idle after the reveal, not inside the first query (PERF5).
       void afterBootReveal()
         .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
-        // The module files the start did not open are opened now, in the background, so the
-        // first search over all of them does not wait for 800 cold file opens.
-        .then(() => getModuleShelf()?.warm())
-        // The large sets were mounted from kept facts: their files are opened now, two at a time.
-        .then(() => warmDeferredModuleStores())
         .catch((cause: unknown) => {
           console.warn('Search indexes were not prepared ahead of the first query.', cause);
+        });
+      // The module files the start did not open are opened and initialised in their workers from
+      // now on, beside the index preparation above and not after it: a search typed in the first
+      // seconds no longer opens 800 cold files itself. Then the large sets, two at a time.
+      void Promise.resolve(getModuleShelf()?.warm())
+        .then(() => warmDeferredModuleStores())
+        .catch((cause: unknown) => {
+          console.warn('Module files were not opened ahead of the first query.', cause);
         });
       const moduleRuntimeLoad = afterBootReveal().then(() =>
         scheduleIdle(() =>

@@ -20,6 +20,45 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Text search over every set: what the 12–15 s were — 2026-11-16 (STATE SRCH-COLD1; not released)
+
+Measured with 774 small sets in a kept browser profile, CPU throttled four times.
+
+- **A warm text search is not slow.** 0.6–1.0 s for the core over 774 sets; calls of one turn already
+  travel as one message per shard. On the phone the text branch took 0.3–2.0 s in the 0.6.109 log.
+- **The 12–15 s of the 0.6.108 log** were a search that ran while a set was being installed and the
+  search repeated right after the core reload. The reproducible slow case is **the first search typed
+  right after a start: 5.1–5.5 s locally** (0.6–1.0 s warm). It waits for the first-search indexes
+  (alias filter, alias expander, name vocabulary, typo matcher, document index: ~3–4 s of main thread
+  in 8 ms slices) while the rest of the start competes for the same thread (link index, catalog
+  parse, search home). 1.7 s of it is text normalisation of hundreds of thousands of names.
+- **Done:** document listings are mapped in slices and each waiting screen continues in a task of
+  its own (`mapSliced`, `ownTask`: the 0.6–1.4 s frames after the store's sort in the 0.6.109 log);
+  the small sets are opened *and initialised* in their workers from the moment search is ready, not
+  after the index preparation (`ModuleShelf.warm`); the alias filter works out a canonical term's
+  facts once per term. **The cold first search did not get faster locally (5.1–5.5 s before and
+  after).**
+- **Next, not done:** answer a first search with what is ready (plain text query, names at once) and
+  repeat it when the indexes are built; or keep the prepared indexes between starts.
+
+## Scanned instructions: audit — 2026-11-16 (STATE OCR-AUDIT1; read-only, Haiku)
+
+Nervous-system instruction set, 1 086 documents, 269 scans (153 national instructions, 83 sheets of
+amendments, 33 leaflets; `ocrQuality` good 138, fair 111, low 20). Measured over all scans:
+
+| Defect | Scans | Fixable by a rule |
+| --- | --- | --- |
+| Word split «мате- риала» | 517 in 121 documents (also 139 in 79 born-digital ones) | 32 of 517 with a vocabulary gate; an ungated join breaks «сердечно- сосудистой» |
+| Form labels glued into text | 169 in 63 documents | Only whole chunks that are nothing but labels (18) |
+| Stray markers «N= 7624», «20_r.» | 93 in 56 documents | Hide only; «N=» is often a misread «№» inside a registration number |
+| Sentence repeated twice | 59 chunks in 34 documents | Yes, exact repeats of 25+ characters |
+| Old and new wording columns merged (amendments) | about 10 of 26 sampled | No: needs a layout-aware extraction |
+| Headings that are not headings («ИЛИ», «LLC») | 651 of 5 659 titles; 44 documents mostly such | Drop from the contents only |
+| Chunks with no word | 56 | Hide |
+
+The grade `ocrQuality` predicts the defects poorly. Nothing was changed: the rules above hide or
+join, they do not rewrite, and each needs the owner's decision (`AGENTS.md`: no silent repair).
+
 ## Release 0.6.110 — 2026-11-16
 
 PERF17, DRUG-INSTR1, PAT-CARD1 and READ-SCROLL1 (below). App only. Checks: `bun run verify`, unit; e2e

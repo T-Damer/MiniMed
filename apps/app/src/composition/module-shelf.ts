@@ -396,9 +396,15 @@ class ShelfShard {
    * all of them at once. One at a time: a reader's call for a single file waits for one open.
    */
   public async warm(): Promise<void> {
-    for (const entry of [...this.entries.values()]) {
+    for (const [file, entry] of [...this.entries]) {
       if (this.failure) return;
       if (!entry.opened) await entry.connect().catch(() => undefined);
+      // A file mounted from kept facts is initialised by its first real call: do that here too,
+      // or the first search initialises every file it asks (5.5 s of a first search over 774
+      // sets with the CPU throttled four times).
+      if (entry.initPending && this.entries.get(file) === entry) {
+        await this.call(file, 'initialize', []).catch(() => undefined);
+      }
     }
   }
 

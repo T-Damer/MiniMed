@@ -432,36 +432,93 @@ function isFixedCombinationTerm(term: string): boolean {
   return /[+;/]/u.test(normalizedTerm) || /(?:^|\s)и(?:\s|$)/u.test(normalizedTerm);
 }
 
-function isComponentMedicationAlias(alias: MedicalAliasRecord): boolean {
+/** What the filter needs of a canonical term, worked out once: a drug has many aliases. */
+interface CanonicalTermFacts {
+  readonly normalized: string;
+  /** The twice-stemmed words when the term is a fixed combination; null when it is not one. */
+  readonly combinationStems: string | null;
+}
+
+function canonicalTermFacts(term: string, known: Map<string, CanonicalTermFacts>) {
+  let facts = known.get(term);
+  if (!facts) {
+    const normalized = normalizeSurfaceText(term);
+    facts = {
+      normalized,
+      combinationStems: isFixedCombinationTerm(normalized)
+        ? // The light stemmer needs a second pass to align «инфекции» and «инфекций».
+          tokenize(normalized).map(lightStemRussian).map(lightStemRussian).join(' ')
+        : null,
+    };
+    known.set(term, facts);
+  }
+  return facts;
+}
+
+function isComponentMedicationAlias(
+  alias: MedicalAliasRecord,
+  known: Map<string, CanonicalTermFacts>,
+): boolean {
   if (alias.category !== 'medication') return false;
+  const canonical = canonicalTermFacts(alias.canonicalTerm, known);
+  if (canonical.combinationStems === null) return false;
   const normalizedAlias = normalizeSurfaceText(alias.alias);
-  const normalizedCanonicalTerm = normalizeSurfaceText(alias.canonicalTerm);
   return (
-    normalizedAlias !== normalizedCanonicalTerm &&
-    isFixedCombinationTerm(normalizedCanonicalTerm) &&
-    // The light stemmer needs a second pass to align «инфекции» and «инфекций».
+    normalizedAlias !== canonical.normalized &&
     findNormalizedPhraseIndex(
-      tokenize(normalizedCanonicalTerm).map(lightStemRussian).map(lightStemRussian).join(' '),
+      canonical.combinationStems,
       tokenize(normalizedAlias).map(lightStemRussian).map(lightStemRussian).join(' '),
     ) >= 0
   );
 }
 
-function keepsQueryAlias(alias: MedicalAliasRecord): boolean {
-  return normalizeSurfaceText(alias.alias).length >= 2 && !isComponentMedicationAlias(alias);
+function keepsQueryAlias(
+  alias: MedicalAliasRecord,
+  known: Map<string, CanonicalTermFacts> = new Map(),
+): boolean {
+  return normalizeSurfaceText(alias.alias).length >= 2 && !isComponentMedicationAlias(alias, known);
 }
 
 /**
  * `filterQueryAliases` in slices: the list is every alias of the corpus, and in one piece the
  * filter held the main thread for 0.65 s at phone speed right after the start.
  */
+/**
+ * `items.map(map)` in slices. The document listings are tens of thousands of records with the drug
+ * sets installed; mapped in one piece right after the store's sort they were part of a 0.6–1.4 s
+ * frame at every start and core rebuild on a phone (performance log 0.6.109).
+ */
+async function mapSliced<T, R>(items: readonly T[], map: (item: T) => R): Promise<R[]> {
+  const slice = createTimeSlicer();
+  const mapped: R[] = new Array(items.length);
+  for (let index = 0; index < items.length; index += 1) {
+    mapped[index] = map(items[index] as T);
+    const due = slice();
+    if (due) await due;
+  }
+  return mapped;
+}
+
+/**
+ * Lets each caller of a shared listing continue in a task of its own: several screens wait for
+ * the same listing, and what they build from it ran back to back in the task that produced it.
+ */
+function ownTask(): Promise<void> {
+  const scheduler = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
+  if (typeof scheduler?.yield === 'function') return scheduler.yield();
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
 async function filterQueryAliasesSliced(
   aliases: MedicalAliasRecords,
 ): Promise<MedicalAliasRecords> {
   const slice = createTimeSlicer();
   const kept: MedicalAliasRecord[] = [];
+  const known = new Map<string, CanonicalTermFacts>();
   for (const alias of aliases) {
-    if (keepsQueryAlias(alias)) kept.push(alias);
+    if (keepsQueryAlias(alias, known)) kept.push(alias);
     const due = slice();
     if (due) await due;
   }
@@ -2125,13 +2182,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           const ready = await ensureInitialized();
           if (!ready.ok) return err(ready.error);
           const documents = await options.store.listDocuments();
-          return ok(documents.map(toDocumentSummary));
+          return ok(await mapSliced(documents, toDocumentSummary));
         } catch (error) {
           return err(asLocalMedError(error));
         }
       })();
       const result = await documentSummariesPromise;
       if (!result.ok) documentSummariesPromise = undefined;
+      await ownTask();
       return result;
     },
 
@@ -2143,13 +2201,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           const documents = await (options.store.listNavigationDocuments
             ? options.store.listNavigationDocuments()
             : options.store.listDocuments());
-          return ok(documents.map(toDocumentSummary));
+          return ok(await mapSliced(documents, toDocumentSummary));
         } catch (error) {
           return err(asLocalMedError(error));
         }
       })();
       const result = await navigationDocumentsPromise;
       if (!result.ok) navigationDocumentsPromise = undefined;
+      await ownTask();
       return result;
     },
 
