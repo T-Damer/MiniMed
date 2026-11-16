@@ -20,6 +20,19 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Fifth phone log: the drug directory inside the first search — 2026-11-16 (STATE PERF16; not released)
+
+Owner's log of 0.6.107 (recorded before 0.6.108 was built, so it shows the PERF15 problems again:
+a drug card's full listing as 6.4 s and 5.7 s `Worker.onmessage` frames, `search.core` of 74 s with
+the model taking 43 s beside a recording, `reader.load` of 66.6 s).
+
+- New in it: a 1.2 s frame in `comparison-load` and 14 s of a 22 s search outside the core's timer.
+  After its text search a lookup asks the application's drug directory (homeopathic cards, class
+  words, ATC codes); the first call imported the 2.4 MB comparison index, checked and indexed it in
+  one task. The load is now three tasks, and `warmUp` asks the directory while the screen is idle.
+- Not explained: a 3.1 s frame of pure rendering (no script) after a tap on a list item in a reader.
+- Not measured on a phone; 0.6.108 itself has no phone log yet.
+
 ## Release 0.6.108 — 2026-11-16
 
 PERF15 (below). Core and modules unchanged. Checks: `bun run verify`, `benchmark:all`; e2e search, drug card and

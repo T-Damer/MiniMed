@@ -2255,6 +2255,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
       await pause();
       await spellingVocabulary(index);
+      // The drug directory the lookup asks after its text search (homeopathic cards, class words,
+      // codes): the application loads megabytes for it on the first call, which was the first
+      // search — time the search's own timer never saw.
+      const drugCodes = options.drugCodes;
+      if (drugCodes) {
+        await pause();
+        await drugCodes.homeopathicIds?.();
+        await pause();
+        await drugCodes.entries();
+        await pause();
+        // Any word: the answer is unused, the class vocabulary is what gets loaded.
+        await drugCodes.classOf?.('класс');
+      }
     },
 
     async reference(request) {

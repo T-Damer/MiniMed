@@ -13,8 +13,13 @@ import {
 let pending: Promise<ComparisonIndex> | undefined;
 
 export function loadComparisonIndex(): Promise<ComparisonIndex> {
+  // Three tasks, not one: the 2.4 MB chunk is evaluated, then checked, then indexed, and a tap gets
+  // the thread between them (together they were a 1.2 s frame on a phone, inside the first search).
   pending ??= import('./data/comparison-index.json')
-    .then((module) => createComparisonIndex(parseComparisonIndex(module.default as unknown)))
+    .then(inNextTask)
+    .then((module) => parseComparisonIndex(module.default as unknown))
+    .then(inNextTask)
+    .then(createComparisonIndex)
     .catch((error: unknown) => {
       pending = undefined;
       throw error;

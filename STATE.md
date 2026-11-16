@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-16 claude-fable PERF16 (not released; owner's 0.6.107 phone log, pre-0.6.108): comparison index loads in three tasks, core `warmUp` asks the drug directory (homeopathic ids, ATC entries, class vocabulary) so the first search does not; unit + typecheck + check + search/drug e2e; not on a phone
 - 2026-11-16 claude-fable REL 0.6.108: PERF15 (app-only); verify + benchmark:all + search/drug/reader e2e; not on a phone
 - 2026-11-16 claude-fable PERF15 (released in 0.6.108; owner «Рисперидон» 10.9 s open, 15 s search): drug card reads the navigation listing (full listing carries `smnnNodes`, MBs per substance), link index never built in the first render, instruction index kept per list, search text-first with the meaning model only for unnamed multi-word queries, misspelling matcher built in warm-up, perf log records document shape; unit + typecheck + check + benchmark:all + search/drug/reader e2e; other full-listing callers still open; not on a phone
 - 2026-11-16 claude-fable REL 0.6.107: SRCH-FAST1 + PERF14 (app-only); verify + benchmark:all + search/module e2e; not on a phone
