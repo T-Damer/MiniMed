@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.107] - 2026-11-16
+
+- Search shows something at once: documents whose names carry the query appear the moment a search starts, and the
+  full results replace them when the search over every source answers.
+- Results come in two parts: what the query names first, then «Найдено в тексте» (six shown, the rest behind
+  «Показать ещё»).
+- A dialog opened from a menu (for example «Что умеет MiniMed» from «Справка») closes on the first Escape or «Назад».
+- Fewer freezes with the drug sets installed: the lists of names the search prepares are sorted in short steps and
+  not again when nothing changed.
+
 ## [0.6.106] - 2026-11-15
 
 - Search: one card per condition. Sources with the same name (a clinical recommendation, a reference article, an

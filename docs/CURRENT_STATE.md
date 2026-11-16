@@ -20,7 +20,12 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Fourth phone log: sorts on the main thread — 2026-11-16 (STATE PERF14; committed, not released)
+## Release 0.6.107 — 2026-11-16
+
+SRCH-FAST1 and PERF14 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,
+`benchmark:all`; e2e search and modules pass. Seen in a browser at 390 px; not tested on a phone.
+
+## Fourth phone log: sorts on the main thread — 2026-11-16 (STATE PERF14; released in 0.6.107)
 
 Owner's log of 0.6.106 (80 min, three starts, most sets and the drug packs installed): 38.7 s of
 blocking. «Search ready» 11–14 s in all three starts (24–26 s after cold starts in 0.6.104):
@@ -43,7 +48,7 @@ expectation from the code, not a measurement. Not addressed: the 6 s rendering f
 reader open (document unknown), the query model's 5 s first use, the 8 s a medications search
 spends outside the core, module mount still 7 s on the phone (0.6 s here at 4× CPU).
 
-## Names at once, then results in two parts — 2026-11-16 (STATE SRCH-FAST1; committed, not released)
+## Names at once, then results in two parts — 2026-11-16 (STATE SRCH-FAST1; released in 0.6.107)
 
 Owner (2026-11-16): «display results as fast as possible — show additional later… break down into
 sections like "more" and "found in text"».
