@@ -10,19 +10,154 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.7rem;
 }
 
+/* The name leads the dark header: one or two lines beside the avatar, nothing else in the row. */
 .patient-card__name {
   display: -webkit-box;
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-size: 1rem;
-  line-height: 1.2;
+  font-size: 1.25rem;
+  line-height: 1.15;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Actions on top of the card: a grid of tiles, three in a row on a phone. */
+.patient-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.patient-actions__tile {
+  display: grid;
+  min-height: 4.75rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1rem;
+  padding: 0.6rem 0.35rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
+}
+
+.patient-actions__tile--open {
+  border-color: var(--theme-accent);
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -2px;
+}
+
+.patient-actions__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--theme-accent);
+  color: var(--theme-accent-contrast, var(--theme-surface-raised));
+}
+
+.patient-actions__glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.patient-actions__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+@media (hover: hover) {
+  .patient-actions__tile:hover {
+    border-color: var(--theme-accent);
+    background: var(--theme-hover-surface);
+  }
+}
+
+.patient-card__panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.patient-card__panel--hidden {
+  display: none;
+}
+
+/* A recording in the log: one row that opens the player, its text under it. */
+.patient-log-recording {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--theme-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.patient-log-recording__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: var(--theme-hover-surface);
+  color: var(--theme-accent);
+}
+
+.patient-log-recording__glyph,
+.patient-log-recording__play {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.patient-log-recording__play {
+  color: var(--theme-accent);
+}
+
+.patient-log-recording__body {
+  display: grid;
+  min-width: 0;
+}
+
+.patient-log-recording__time,
+.patient-log-recording__duration {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.patient-log-recording__duration {
+  font-variant-numeric: tabular-nums;
+}
+
+.patient-workspace__event-text {
+  margin: 0;
+  font-size: 0.875rem;
+  white-space: pre-line;
+}
+
+.patient-workspace__event-text--clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 
 .patient-card__action {

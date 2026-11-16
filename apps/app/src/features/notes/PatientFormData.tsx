@@ -99,6 +99,8 @@ function DraftStatus(props: { readonly state: DraftState; readonly class?: strin
 export function PatientFormData(props: {
   readonly profile: PatientProfile;
   readonly onSnapshot: (snapshot: PatientVaultSnapshot) => void;
+  /** Shown already unfolded: the card opened it from its «Данные для справок» action. */
+  readonly defaultOpen?: boolean;
 }): JSX.Element {
   const [draft, setDraft] = createSignal<PatientFormDraft>(profileToDraft(props.profile));
   const [errors, setErrors] = createSignal<PatientFormDraftErrors>({});
@@ -166,6 +168,7 @@ export function PatientFormData(props: {
     <Disclosure
       class="patient-form-data paper-card"
       title="Данные для справок и форм"
+      defaultOpen={props.defaultOpen ?? false}
       description="ФИО, СНИЛС, полис ОМС, адрес, место работы, гражданство"
       meta={
         <Show when={status.state() === 'draft'}>

@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installDeviceKeyAndSpeech } from './fake-speech';
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 
 /**
  * REC1 (owner 2026-11-13): a recording is found again — in «Файлы» → «Записи бесед» and on the
@@ -103,7 +104,7 @@ test('a patient chosen while recording gets it; «Файлы» and the card both
   // «Файлы» stays mounted behind (hidden); only the card's own list is visible.
   const onCard = page.getByTestId('conversation-recording-row').filter({ visible: true });
   await expect(onCard).toHaveCount(1, { timeout: 15_000 });
-  await onCard.getByRole('button').click();
+  await onCard.click();
   await expect(page.getByRole('dialog', { name: 'Запись беседы' })).toBeVisible();
 });
 

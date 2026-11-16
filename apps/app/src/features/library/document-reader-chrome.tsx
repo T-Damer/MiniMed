@@ -58,6 +58,9 @@ interface OverlayScrollbarsInstance {
  * The contents list scrolls without a bar when only a little of it is hidden (owner 2026-11-06): a
  * bar for a few lines covers the cards and says nothing. Below this much hidden content, no bar.
  */
+/** The reader measures its active section this often while scrolling, and once at rest. */
+const ACTIVE_SECTION_INTERVAL_MS = 100;
+
 export function outlineNeedsScrollbar(scrollHeight: number, clientHeight: number): boolean {
   const hidden = scrollHeight - clientHeight;
   return hidden > Math.max(64, clientHeight * 0.15);
@@ -370,13 +373,32 @@ export function useDocumentReaderChrome(
       }
     };
 
+    // At most ten measurements a second while the page scrolls, and one more when it stops: each
+    // one reads sizes and so forces the layout of whatever the scroll just brought in. Once per
+    // frame was a sixth of a phone's frame budget during a fling (owner 2026-11-16: reading lags);
+    // the outline's highlight and the page bubble do not need more.
     let activeFrame: number | undefined;
-    const scheduleActiveSection = (): void => {
+    let activeTimer: number | undefined;
+    let measuredAt = Number.NEGATIVE_INFINITY;
+    const measureInFrame = (): void => {
       if (activeFrame !== undefined) return;
       activeFrame = requestAnimationFrame(() => {
         activeFrame = undefined;
+        measuredAt = performance.now();
         updateActiveSection();
       });
+    };
+    const scheduleActiveSection = (): void => {
+      if (activeFrame !== undefined || activeTimer !== undefined) return;
+      const wait = ACTIVE_SECTION_INTERVAL_MS - (performance.now() - measuredAt);
+      if (wait <= 0) {
+        measureInFrame();
+        return;
+      }
+      activeTimer = window.setTimeout(() => {
+        activeTimer = undefined;
+        measureInFrame();
+      }, wait);
     };
 
     paper.addEventListener('scroll', scheduleActiveSection, { passive: true });
@@ -396,6 +418,7 @@ export function useDocumentReaderChrome(
     chromeClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     queueMicrotask(scheduleActiveSection);
     onCleanup(() => {
+      window.clearTimeout(activeTimer);
       paper?.removeEventListener('scroll', scheduleActiveSection);
       body?.removeEventListener('scroll', scheduleActiveSection);
       window.removeEventListener('scroll', scheduleActiveSection);

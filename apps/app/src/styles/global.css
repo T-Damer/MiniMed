@@ -169,6 +169,20 @@ button:disabled {
 }
 
 /* A horizontal strip never shows a scrollbar: its arrows say that it scrolls. */
+/* The light scroller (`HorizontalScroller light`): a plain box, its bar hidden like the other's. */
+.horizontal-native-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.horizontal-native-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 .horizontal-scroll-frame .os-scrollbar {
   display: none !important;
 }

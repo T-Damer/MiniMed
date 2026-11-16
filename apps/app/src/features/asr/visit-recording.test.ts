@@ -30,7 +30,7 @@ describe('visit recording transcript', () => {
     expect(formatRecordingDuration(3_725_000)).toBe('1:02:05');
   });
 
-  it('creates a labelled note event in the visit and refuses an empty transcript', () => {
+  it('creates a note event in the visit, without a notice, and refuses an empty transcript', () => {
     const event = createVisitTranscriptEvent({
       id: 'event-1',
       patientId: 'patient-1',
@@ -45,7 +45,7 @@ describe('visit recording transcript', () => {
       title: 'Беседа на приёме, 01:05',
       observations: [],
     });
-    expect(event.text).toContain('Автоматическая расшифровка');
+    expect(event.text).not.toContain('Автоматическая расшифровка');
     expect(visitRecordingBlobId(event.id)).toBe('visit-recording-event-1');
     expect(() =>
       createVisitTranscriptEvent({

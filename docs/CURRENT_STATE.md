@@ -20,7 +20,40 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Seventh phone log: large sets from kept facts, the patient card, Сульпирид — 2026-11-16 (STATE PERF17, DRUG-INSTR1; not released)
+## Release 0.6.110 — 2026-11-16
+
+PERF17, DRUG-INSTR1, PAT-CARD1 and READ-SCROLL1 (below). App only. Checks: `bun run verify`, unit; e2e
+patient, notes, diary, recordings, search. Not tested on a phone.
+
+## Patient card: actions, panels, one log; reader scrolling — 2026-11-16 (STATE PAT-CARD1, READ-SCROLL1; released in 0.6.110)
+
+Owner 2026-11-16: «actions on top + list of events on bottom», a dark header, recording and transcript
+as one block, no «Автоматическая расшифровка…» notice, no repeated text.
+
+- **Header.** The dark hero keeps ‹ back, the avatar with the name (1.25 rem, two lines at most) and
+  «⋯» (export, lock, delete). «Динамика» and «Заполнить форму» moved from the header to the actions.
+- **Actions** (`PATIENT_ACTIONS`, declared as data): «Запись, осмотр», «Данные для справок», «Назначить
+  дневник» open a panel under the grid (one at a time; all three stay mounted, so a draft survives);
+  «Мониторинг» opens the connected diaries (`diariesPath()`), «Динамика» and «Заполнить форму» their
+  routes. An address that names a visit (`?episode=`) opens the visit panel. No panel is open at first:
+  after a reload a typed visit note is behind «Запись, осмотр».
+- **«События»** is `patientLogEntries` (`features/notes/patient-event-log.ts`): events and conversation
+  recordings in one list, newest first. A recording filed to the card (`attachedTo.eventId`) and its
+  text event are one entry: a row that opens the player, the text under it (four lines, then
+  «Показать полностью»). The separate «Записи бесед» list is gone from the card.
+- **Text.** New transcript events carry the spoken lines only; `eventLogText` strips the old notice
+  from events saved before. A second line that repeats the title is not shown.
+- **READ-SCROLL1.** `HorizontalScroller light` (document tables): a plain scrolling box measured when
+  it comes into view and when scrolled, instead of an OverlayScrollbars instance per table with resize
+  and mutation observers (50–75 ms of forced layout apiece in one frame, log 0.6.109). The reader's
+  active-section tracker measures at most every 100 ms and once at rest. `READER_PERF=1`, 4× throttle,
+  a long recommendation: reading p95 25 → 17 ms, worst long task 467 → 69 ms; fling p95 still 50 ms
+  (sections coming into view are rendered by the browser). `jank` log entries carry `over33`, `p95`,
+  `scrollPx`, `nodes`.
+- Not changed: text search over every set (12–15 s on the phone), the cut «Пищевая аллергия»
+  definition on the phone, OCR quality of scanned instructions.
+
+## Seventh phone log: large sets from kept facts, the patient card, Сульпирид — 2026-11-16 (STATE PERF17, DRUG-INSTR1; released in 0.6.110)
 
 Owner's log of 0.6.109: `core-mount-modules` 4.9 s and 7.3 s (13 `worker-open`, 6.5–13.5 s summed),
 `core-initialize` 4.8 s and 8.0 s, `search-ready` at 9.8 s and 15.4 s. On the patient card

@@ -284,7 +284,12 @@ function sampleFramesOnInteraction(): void {
   let frames = 0;
   let dropped = 0;
   let over50 = 0;
+  let over33 = 0;
   let worst = 0;
+  // How far the page moved in the window: tells a scroll from taps, and a slow read from a fling.
+  let scrolled = 0;
+  let lastTop = 0;
+  const pageTop = (): number => document.scrollingElement?.scrollTop ?? 0;
   const deltas: number[] = [];
   const finish = (): void => {
     if (frames >= 3) {
@@ -293,7 +298,18 @@ function sampleFramesOnInteraction(): void {
       // Only a smooth stretch tells the refresh rate; clamp to 30–165 Hz.
       if (low > 5 && low < 34) vsync = Math.min(vsync, Math.max(6, low));
       if (session) session.vsyncMs = Math.round(vsync * 100) / 100;
-      const f = safeFields({ frames, dropped, over50, worst, vsync });
+      const f = safeFields({
+        frames,
+        dropped,
+        over33,
+        over50,
+        worst,
+        p95: sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ?? 0,
+        vsync,
+        scrollPx: Math.round(scrolled),
+        // The size of the page being drawn: a count, cheap to read from the live collection.
+        nodes: document.getElementsByTagName('*').length,
+      });
       push(
         withContext({
           t: windowStart - origin,
@@ -307,7 +323,9 @@ function sampleFramesOnInteraction(): void {
     frames = 0;
     dropped = 0;
     over50 = 0;
+    over33 = 0;
     worst = 0;
+    scrolled = 0;
     deltas.length = 0;
     last = 0;
   };
@@ -319,9 +337,14 @@ function sampleFramesOnInteraction(): void {
       deltas.push(delta);
       dropped += missedRefreshes(delta, vsync);
       if (delta > 50) over50 += 1;
+      if (delta > 33.4) over33 += 1;
       if (delta > worst) worst = delta;
+      const top = pageTop();
+      scrolled += Math.abs(top - lastTop);
+      lastTop = top;
     } else {
       windowStart = time;
+      lastTop = pageTop();
     }
     last = time;
     if (time < until && document.visibilityState === 'visible') {

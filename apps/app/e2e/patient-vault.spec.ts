@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
-import { openPatientList, patientCard } from './patient-list';
+import { openPatientList, openPatientPanel, patientCard } from './patient-list';
 
 async function selectPatient(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: /^Выбрать (другого )?пациента$/u }).click();
@@ -104,7 +104,9 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await expect(page.getByRole('heading', { name: 'Пациент динамики' })).toBeVisible();
   await expect(page.getByText('20 кг')).toBeVisible();
   await expect(page.getByText('110 см')).toBeVisible();
+  await openPatientPanel(page, 'visit');
   await page.getByPlaceholder('Краткая запись осмотра').fill('Первичный осмотр');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
 
@@ -293,7 +295,9 @@ test('repeats an assessment for the same protected patient', async ({ page }) =>
   await page.getByRole('button', { name: 'Новый пациент' }).click();
   await page.getByLabel('Имя или псевдоним').fill('Пациент повторной оценки');
   await page.getByRole('button', { name: 'Создать карточку' }).click();
+  await openPatientPanel(page, 'visit');
   await page.getByPlaceholder('Краткая запись осмотра').fill('Оценочный осмотр');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
 

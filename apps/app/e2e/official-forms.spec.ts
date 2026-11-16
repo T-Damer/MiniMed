@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 import { openSettingsPage } from './settings-nav';
 
 const SCREENS = resolve(import.meta.dirname, '../../../output/f1-screens');
@@ -103,7 +104,7 @@ async function seedClinicianAndPatient(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Создать карточку', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Пациент для справки' })).toBeVisible();
 
-  await page.getByRole('button', { name: /Данные для справок и форм/u }).click();
+  await openPatientPanel(page, 'data');
   await page.getByLabel('ФИО полностью').fill('Иванов Иван Иванович');
   await page.getByLabel('СНИЛС').fill('123-456-789 01');
   await page.getByLabel('Место работы / учёбы').fill('ООО «Тест»');
@@ -118,7 +119,9 @@ async function seedClinicianAndPatient(page: Page): Promise<void> {
   // The panel is an autosaved draft: it shows «Сохранено» once the vault holds the typed values.
   await expect(page.locator('.patient-form-data .draft-status')).toHaveText('Сохранено');
 
+  await openPatientPanel(page, 'visit');
   await page.getByPlaceholder('Краткая запись осмотра').fill('Осмотр перед направлением');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
   await page.getByLabel('Диагноз осмотра').fill('Бронхиальная астма');

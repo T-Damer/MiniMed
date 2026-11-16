@@ -4,6 +4,22 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.110] - 2026-11-16
+
+- Patient card: the name leads the dark header; six actions stand on top («Запись, осмотр», «Данные для справок»,
+  «Назначить дневник», «Мониторинг», «Динамика», «Заполнить форму») and each opens its panel; «События» below is
+  one log of everything, newest first.
+- A conversation recording and its text are one block in «События»: tap it to listen. The notice «Автоматическая
+  расшифровка аудиозаписи…» and the repeated title line are gone.
+- The patient card no longer freezes for seconds with the drug sets installed.
+- Start is faster with the drug sets installed: the large sets are opened when first needed, or in the background
+  after the start, not before search is ready.
+- A drug card never shows a sheet of amendments («Изменение № …») as the substance's instruction while a whole
+  instruction is installed; a text of its own is preferred to a scan.
+- Reading: tables in a document no longer re-measure themselves while the page changes, and the reader tracks the
+  current section ten times a second instead of every frame.
+- The performance log records how far the page scrolled, the slow frames and the page size of each sample.
+
 ## [0.6.109] - 2026-11-16
 
 - Search keeps the names it finds at once as the answer: the send button no longer spins while the text of the

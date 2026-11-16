@@ -969,6 +969,7 @@ export function DocumentText(props: {
                 <HorizontalScroller
                   class="document-cells__scroller"
                   controls
+                  light
                   controlLabel="таблицу"
                 >
                   <table

@@ -18,3 +18,17 @@ export async function openPatientList(page: Page): Promise<void> {
 export function patientCard(page: Page, name: string): Locator {
   return page.locator('.patient-workspace__patient-card').filter({ hasText: name });
 }
+
+/**
+ * Opens a panel of the patient card from its actions on top («Запись, осмотр», «Данные для
+ * справок», «Назначить дневник»); a panel that is already open stays open.
+ */
+export async function openPatientPanel(
+  page: Page,
+  panel: 'visit' | 'data' | 'diary',
+): Promise<void> {
+  const tile = page.getByTestId(`patient-action-${panel}`).filter({ visible: true });
+  await expect(tile).toBeVisible();
+  if ((await tile.getAttribute('aria-pressed')) !== 'true') await tile.click();
+  await expect(tile).toHaveAttribute('aria-pressed', 'true');
+}

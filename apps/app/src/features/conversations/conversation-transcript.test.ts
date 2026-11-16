@@ -81,10 +81,8 @@ describe('transcript encoding', () => {
     ).toThrow();
   });
 
-  it('puts the machine label before the text in a patient note', () => {
-    const text = transcriptEventText(seg('раз', 'два'));
-    expect(text.endsWith('\n\nраз\nдва')).toBe(true);
-    expect(text.startsWith('Автоматическая расшифровка')).toBe(true);
+  it('keeps the spoken lines, and no notice, in a patient note', () => {
+    expect(transcriptEventText(seg('раз', 'два'))).toBe('раз\nдва');
   });
 });
 

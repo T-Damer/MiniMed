@@ -31,7 +31,10 @@ export function visitRecordingBlobId(eventId: string): string {
   return `visit-recording-${eventId}`;
 }
 
-/** The label that keeps an automatic transcript distinguishable from the doctor's own notes. */
+/**
+ * The notice older events carry in front of a transcript. No longer written (owner 2026-11-16);
+ * the card strips it from events saved before (`eventLogText`).
+ */
 export const AUTOMATIC_TRANSCRIPT_LABEL =
   'Автоматическая расшифровка аудиозаписи; проверьте перед использованием.';
 
@@ -52,7 +55,7 @@ export function createVisitTranscriptEvent(input: {
     kind: 'note',
     occurredAt: input.occurredAt,
     title: `Беседа на приёме, ${formatRecordingDuration(input.durationMs)}`,
-    text: `${AUTOMATIC_TRANSCRIPT_LABEL}\n\n${text}`,
+    text,
     observations: [],
     immutable: false,
   };

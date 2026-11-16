@@ -17,11 +17,12 @@ import {
   type AppContextMenuAction,
   requestContextMenu,
 } from '@/components/AppContextMenu';
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { todayValue } from '@/components/date-value';
 import { EmptyState } from '@/components/EmptyState';
+import { createLineClamp } from '@/components/line-clamp';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { PatientAvatar } from '@/components/PatientAvatar';
@@ -35,10 +36,17 @@ import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { VisitRecorder } from '@/features/asr/VisitRecorderPanel';
-import { ConversationRecordingList } from '@/features/conversations/ConversationRecordingList';
+import { formatRecordingDuration } from '@/features/asr/visit-recording';
+import { useConversationRecordings } from '@/features/conversations/ConversationRecordingList';
+import { conversationSession } from '@/features/conversations/conversation-session';
 import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
-import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
+import {
+  diariesPath,
+  notesFormsPath,
+  notesPath,
+  notesPatientsPath,
+} from '@/features/notes/notes-routing';
 import { EpisodeDiagnosisEditor, PatientFormData } from '@/features/notes/PatientFormData';
 import { PatientStorageHelp } from '@/features/notes/PatientStorageHelp';
 import {
@@ -46,6 +54,12 @@ import {
   newPatientDrafts,
   recoverPatientDrafts,
 } from '@/features/notes/patient-draft-savers';
+import {
+  eventLogDetail,
+  eventLogText,
+  type PatientLogEntry,
+  patientLogEntries,
+} from '@/features/notes/patient-event-log';
 import { parseNewPatientDraft, serializeNewPatientDraft } from '@/features/notes/patient-form-data';
 import { patientMetricLabel, patientSexLabel } from '@/features/notes/patient-labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -943,6 +957,26 @@ function PatientList(props: {
   );
 }
 
+type PatientPanel = 'visit' | 'data' | 'diary';
+
+interface PatientAction {
+  readonly id: 'visit' | 'data' | 'diary' | 'monitoring' | 'dynamics' | 'form';
+  readonly label: string;
+  readonly icon: AppGlyphName;
+  /** The panel the action opens under the grid; an action without one leaves the card. */
+  readonly panel?: PatientPanel;
+}
+
+/** The actions on top of a patient card, in order (owner 2026-11-16). */
+const PATIENT_ACTIONS: readonly PatientAction[] = [
+  { id: 'visit', label: 'Запись, осмотр', icon: 'note-pencil', panel: 'visit' },
+  { id: 'data', label: 'Данные для справок', icon: 'file-text', panel: 'data' },
+  { id: 'diary', label: 'Назначить дневник', icon: 'calendar-check', panel: 'diary' },
+  { id: 'monitoring', label: 'Мониторинг', icon: 'chart-line' },
+  { id: 'dynamics', label: 'Динамика', icon: 'graph' },
+  { id: 'form', label: 'Заполнить форму', icon: 'file-plus' },
+];
+
 function PatientDetail(props: {
   readonly profile: PatientProfile;
   readonly snapshot: PatientVaultSnapshot;
@@ -954,6 +988,9 @@ function PatientDetail(props: {
 }): JSX.Element {
   // The visit the person picked (several open visits can exist in older data).
   const [pickedEpisodeId, setPickedEpisodeId] = createSignal<string>();
+  // One panel open at a time, from the actions on top; all stay mounted, so a draft typed in one
+  // survives opening another.
+  const [panel, setPanel] = createSignal<PatientPanel>();
   const [busy, setBusy] = createSignal(false);
   const [editingObservationId, setEditingObservationId] = createSignal<string>();
   const [revisionValue, setRevisionValue] = createSignal('');
@@ -1007,6 +1044,8 @@ function PatientDetail(props: {
     const target = episodes().find((candidate) => candidate.id === targetId);
     if (!target) return;
     setPickedEpisodeId(target.id);
+    // The visit lives in the «Запись, осмотр» panel: an address that names a visit opens it.
+    setPanel('visit');
     queueMicrotask(() => {
       document.getElementById(target.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -1082,6 +1121,26 @@ function PatientDetail(props: {
       setBusy(false);
     }
   };
+  const runAction = (action: PatientAction): void => {
+    if (action.panel) {
+      setPanel((current) => (current === action.panel ? undefined : action.panel));
+      return;
+    }
+    if (action.id === 'monitoring') props.onNavigate(diariesPath());
+    else if (action.id === 'dynamics') props.onNavigate(notesPatientsPath(props.profile.id, true));
+    else if (action.id === 'form') {
+      props.onNavigate(
+        notesFormsPath(undefined, {
+          patientId: props.profile.id,
+          ...(episode() ? { episodeId: (episode() as ClinicalEpisode).id } : {}),
+        }),
+      );
+    }
+  };
+  const recordings = useConversationRecordings();
+  const log = createMemo(() =>
+    patientLogEntries(props.profile.id, props.snapshot.events, recordings()),
+  );
   const cardMenuActions: readonly AppContextMenuAction[] = [
     {
       id: 'export',
@@ -1143,262 +1202,338 @@ function PatientDetail(props: {
           .filter(Boolean)
           .join(' · ')}
         actions={
-          <>
+          <AppContextMenu class="patient-card__menu" actions={cardMenuActions} hideButton>
             <Button
               type="button"
               variant="icon"
               class="patient-card__action"
-              aria-label="Динамика"
-              title="Динамика"
-              icon={<AppGlyph name="graph" />}
-              onClick={() => props.onNavigate(notesPatientsPath(props.profile.id, true))}
+              aria-label="Действия с карточкой"
+              title="Действия с карточкой"
+              onClick={requestContextMenu}
+              icon={<AppGlyph name="dots-three" />}
             />
-            <Button
-              type="button"
-              variant="icon"
-              class="patient-card__action"
-              aria-label="Заполнить форму"
-              title="Заполнить форму"
-              icon={<AppGlyph name="file-text" />}
-              onClick={() =>
-                props.onNavigate(
-                  notesFormsPath(undefined, {
-                    patientId: props.profile.id,
-                    ...(episode() ? { episodeId: (episode() as ClinicalEpisode).id } : {}),
-                  }),
-                )
-              }
-            />
-            <AppContextMenu class="patient-card__menu" actions={cardMenuActions} hideButton>
-              <Button
-                type="button"
-                variant="icon"
-                class="patient-card__action"
-                aria-label="Действия с карточкой"
-                title="Действия с карточкой"
-                onClick={requestContextMenu}
-                icon={<AppGlyph name="dots-three" />}
-              />
-            </AppContextMenu>
-          </>
+          </AppContextMenu>
         }
       />
-      <PatientFormData profile={props.profile} onSnapshot={props.onSnapshot} />
-      <section class="patient-workspace__panel paper-card">
-        <Heading depth={2}>Осмотр</Heading>
-        <Show when={episodes().length > 0}>
-          <div class="patient-workspace__episode-list">
-            <For each={episodes()}>
-              {(candidate) => (
-                <div
-                  id={candidate.id}
-                  class="patient-workspace__episode"
-                  classList={{
-                    'patient-workspace__episode--active': episode()?.id === candidate.id,
-                  }}
-                >
-                  <div class="patient-workspace__episode-head">
-                    <span class="patient-workspace__episode-title">
-                      {candidate.title} · {formatDate(candidate.startedAt)}
-                    </span>
-                    <span
-                      class="patient-workspace__episode-status"
-                      classList={{
-                        'patient-workspace__episode-status--open': candidate.status === 'open',
-                      }}
-                    >
-                      {candidate.status === 'open' ? 'Открыт' : 'Закрыт'}
-                    </span>
-                    <Show when={candidate.status === 'open'}>
-                      <span class="patient-workspace__episode-actions">
-                        <Show when={openEpisodes().length > 1 && episode()?.id !== candidate.id}>
+      <nav class="patient-actions" aria-label="Действия с пациентом">
+        <For each={PATIENT_ACTIONS}>
+          {(action) => (
+            <button
+              type="button"
+              class="patient-actions__tile"
+              classList={{
+                'patient-actions__tile--open':
+                  action.panel !== undefined && panel() === action.panel,
+              }}
+              data-testid={`patient-action-${action.id}`}
+              aria-pressed={action.panel ? panel() === action.panel : undefined}
+              onClick={() => runAction(action)}
+            >
+              <span class="patient-actions__icon" aria-hidden="true">
+                <AppGlyph name={action.icon} class="patient-actions__glyph" />
+              </span>
+              <span class="patient-actions__label">{action.label}</span>
+            </button>
+          )}
+        </For>
+      </nav>
+      <div
+        class="patient-card__panel"
+        classList={{ 'patient-card__panel--hidden': panel() !== 'data' }}
+      >
+        <PatientFormData profile={props.profile} onSnapshot={props.onSnapshot} defaultOpen />
+      </div>
+      <div
+        class="patient-card__panel"
+        classList={{ 'patient-card__panel--hidden': panel() !== 'diary' }}
+      >
+        <PatientDiaryPanel
+          patientId={props.profile.id}
+          episodeId={activeEpisodeId()}
+          onSaved={props.onSnapshot}
+        />
+      </div>
+      <div
+        class="patient-card__panel"
+        classList={{ 'patient-card__panel--hidden': panel() !== 'visit' }}
+      >
+        <section class="patient-workspace__panel paper-card">
+          <Heading depth={2}>Осмотр</Heading>
+          <Show when={episodes().length > 0}>
+            <div class="patient-workspace__episode-list">
+              <For each={episodes()}>
+                {(candidate) => (
+                  <div
+                    id={candidate.id}
+                    class="patient-workspace__episode"
+                    classList={{
+                      'patient-workspace__episode--active': episode()?.id === candidate.id,
+                    }}
+                  >
+                    <div class="patient-workspace__episode-head">
+                      <span class="patient-workspace__episode-title">
+                        {candidate.title} · {formatDate(candidate.startedAt)}
+                      </span>
+                      <span
+                        class="patient-workspace__episode-status"
+                        classList={{
+                          'patient-workspace__episode-status--open': candidate.status === 'open',
+                        }}
+                      >
+                        {candidate.status === 'open' ? 'Открыт' : 'Закрыт'}
+                      </span>
+                      <Show when={candidate.status === 'open'}>
+                        <span class="patient-workspace__episode-actions">
+                          <Show when={openEpisodes().length > 1 && episode()?.id !== candidate.id}>
+                            <Button
+                              type="button"
+                              variant="icon"
+                              class="patient-workspace__episode-action"
+                              aria-label="Выбрать для записи"
+                              title="Выбрать для записи"
+                              disabled={busy()}
+                              icon={<AppGlyph name="check" />}
+                              onClick={() => void pickEpisode(candidate.id)}
+                            />
+                          </Show>
                           <Button
                             type="button"
                             variant="icon"
                             class="patient-workspace__episode-action"
-                            aria-label="Выбрать для записи"
-                            title="Выбрать для записи"
+                            aria-label="Закрыть"
+                            title="Закрыть осмотр"
                             disabled={busy()}
-                            icon={<AppGlyph name="check" />}
-                            onClick={() => void pickEpisode(candidate.id)}
+                            icon={<AppGlyph name="close" />}
+                            onClick={() => void closeEpisode(candidate.id)}
                           />
-                        </Show>
-                        <Button
-                          type="button"
-                          variant="icon"
-                          class="patient-workspace__episode-action"
-                          aria-label="Закрыть"
-                          title="Закрыть осмотр"
-                          disabled={busy()}
-                          icon={<AppGlyph name="close" />}
-                          onClick={() => void closeEpisode(candidate.id)}
-                        />
-                      </span>
+                        </span>
+                      </Show>
+                    </div>
+                    <Show when={candidate.text.trim() && candidate.id !== noteEpisode()?.id}>
+                      <p class="patient-workspace__episode-text">{candidate.text}</p>
                     </Show>
                   </div>
-                  <Show when={candidate.text.trim() && candidate.id !== noteEpisode()?.id}>
-                    <p class="patient-workspace__episode-text">{candidate.text}</p>
-                  </Show>
-                </div>
-              )}
-            </For>
+                )}
+              </For>
+            </div>
+          </Show>
+          <Show when={selectedEpisode()}>
+            {(selected) => (
+              <EpisodeDiagnosisEditor episode={selected()} onSnapshot={props.onSnapshot} />
+            )}
+          </Show>
+          <TextArea
+            class="patient-workspace__field"
+            label="Краткая запись осмотра"
+            hideLabel
+            value={noteText()}
+            onInput={(event) => {
+              setNoteText(event.currentTarget.value);
+              noteSaver.edit(event.currentTarget.value);
+            }}
+            onBlur={() => {
+              // With no visit yet, leaving the field must not swap the button away mid-tap.
+              if (noteEpisode()) void noteSaver.flush();
+            }}
+            placeholder="Краткая запись осмотра"
+            rows={3}
+          />
+          <div class="patient-workspace__actions">
+            <Show when={!noteEpisode()}>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={busy()}
+                onClick={() => void createEpisode()}
+              >
+                {busy() ? 'Сохраняем…' : 'Создать осмотр'}
+              </Button>
+            </Show>
+            <Show when={episode()}>
+              <small class="patient-workspace__event-text">
+                Текущий осмотр {episode()?.status === 'open' ? 'открыт' : 'закрыт'}:{' '}
+                {formatDate(episode()?.startedAt ?? '')}
+              </small>
+            </Show>
           </div>
-        </Show>
-        <Show when={selectedEpisode()}>
-          {(selected) => (
-            <EpisodeDiagnosisEditor episode={selected()} onSnapshot={props.onSnapshot} />
-          )}
-        </Show>
-        <TextArea
-          class="patient-workspace__field"
-          label="Краткая запись осмотра"
-          hideLabel
-          value={noteText()}
-          onInput={(event) => {
-            setNoteText(event.currentTarget.value);
-            noteSaver.edit(event.currentTarget.value);
-          }}
-          onBlur={() => {
-            // With no visit yet, leaving the field must not swap the button away mid-tap.
-            if (noteEpisode()) void noteSaver.flush();
-          }}
-          placeholder="Краткая запись осмотра"
-          rows={3}
+        </section>
+        <ManualEventForm
+          patientId={props.profile.id}
+          episodeId={activeEpisodeId()}
+          snapshot={props.snapshot}
+          onSaved={props.onSnapshot}
         />
-        <div class="patient-workspace__actions">
-          <Show when={!noteEpisode()}>
-            <Button
-              type="button"
-              variant="primary"
-              disabled={busy()}
-              onClick={() => void createEpisode()}
-            >
-              {busy() ? 'Сохраняем…' : 'Создать осмотр'}
-            </Button>
-          </Show>
-          <Show when={episode()}>
-            <small class="patient-workspace__event-text">
-              Текущий осмотр {episode()?.status === 'open' ? 'открыт' : 'закрыт'}:{' '}
-              {formatDate(episode()?.startedAt ?? '')}
-            </small>
-          </Show>
-        </div>
-      </section>
-      <ManualEventForm
-        patientId={props.profile.id}
-        episodeId={activeEpisodeId()}
-        snapshot={props.snapshot}
-        onSaved={props.onSnapshot}
-      />
-      <PatientDiaryPanel
-        patientId={props.profile.id}
-        episodeId={activeEpisodeId()}
-        onSaved={props.onSnapshot}
-      />
-      <VisitRecorder
-        patientId={props.profile.id}
-        episodeId={activeEpisodeId()}
-        onSaved={props.onSnapshot}
-      />
-      {/* REC1: the conversation recordings that went to this patient, playable from the card. */}
-      <ConversationRecordingList patientId={props.profile.id} heading="Записи бесед" empty="none" />
+        <VisitRecorder
+          patientId={props.profile.id}
+          episodeId={activeEpisodeId()}
+          onSaved={props.onSnapshot}
+        />
+      </div>
       <section class="patient-workspace__timeline">
         <Heading depth={2} class="patient-workspace__section-title">
           События
         </Heading>
         <Show
-          when={events().length > 0}
+          when={log().length > 0}
           fallback={<p class="patient-workspace__empty paper-card">Событий пока нет.</p>}
         >
-          <For each={events()}>
-            {(event) => (
-              <article
-                id={event.id}
-                class="patient-workspace__event paper-card"
-                data-episode-id={event.episodeId ?? ''}
-              >
-                <time class="patient-workspace__event-time">
-                  {formatDateTime(event.occurredAt)}
-                </time>
-                <strong class="patient-workspace__event-title">{event.title}</strong>
-                <span class="patient-workspace__event-description">{eventDescription(event)}</span>
-                <Show when={event.text}>
-                  <small class="patient-workspace__event-text">{event.text}</small>
-                </Show>
-                <For each={event.observations}>
-                  {(observation) => (
-                    <>
-                      <small class="patient-workspace__event-observation">
-                        {observation.value} {observation.unit}
-                        {observation.evaluation?.verdict
-                          ? ` · ${observation.evaluation.verdict.title}`
-                          : ''}
-                      </small>
-                      <Show
-                        when={
-                          !event.supersededBy &&
-                          (event.kind === 'manual-measurement' ||
-                            event.kind === 'laboratory-result')
-                        }
-                      >
-                        <Show
-                          when={editingObservationId() === observation.id}
-                          fallback={
-                            <Button
-                              type="button"
-                              class="patient-workspace__event-action"
-                              disabled={busy()}
-                              onClick={() => startObservationRevision(observation)}
-                            >
-                              Исправить значение
-                            </Button>
-                          }
-                        >
-                          <div class="patient-workspace__event-revision">
-                            <TextField
-                              class="patient-workspace__event-revision-label"
-                              label="Новое значение"
-                              type="number"
-                              step="any"
-                              value={revisionValue()}
-                              onInput={(inputEvent) =>
-                                setRevisionValue(inputEvent.currentTarget.value)
+          <For each={log()}>
+            {(entry) => (
+              <Show
+                when={entry.kind === 'recording' ? entry : undefined}
+                fallback={((event: PatientEvent) => (
+                  <article
+                    id={event.id}
+                    class="patient-workspace__event paper-card"
+                    data-episode-id={event.episodeId ?? ''}
+                  >
+                    <time class="patient-workspace__event-time">
+                      {formatDateTime(event.occurredAt)}
+                    </time>
+                    <strong class="patient-workspace__event-title">{event.title}</strong>
+                    <Show when={eventLogDetail(event.title, eventDescription(event))}>
+                      {(detail) => (
+                        <span class="patient-workspace__event-description">{detail()}</span>
+                      )}
+                    </Show>
+                    <Show when={eventLogText(event.text)}>
+                      {(text) => <EventLogText text={text()} />}
+                    </Show>
+                    <For each={event.observations}>
+                      {(observation) => (
+                        <>
+                          <small class="patient-workspace__event-observation">
+                            {observation.value} {observation.unit}
+                            {observation.evaluation?.verdict
+                              ? ` · ${observation.evaluation.verdict.title}`
+                              : ''}
+                          </small>
+                          <Show
+                            when={
+                              !event.supersededBy &&
+                              (event.kind === 'manual-measurement' ||
+                                event.kind === 'laboratory-result')
+                            }
+                          >
+                            <Show
+                              when={editingObservationId() === observation.id}
+                              fallback={
+                                <Button
+                                  type="button"
+                                  class="patient-workspace__event-action"
+                                  disabled={busy()}
+                                  onClick={() => startObservationRevision(observation)}
+                                >
+                                  Исправить значение
+                                </Button>
                               }
-                            />
-                            <div class="patient-workspace__event-revision-actions">
-                              <Button
-                                type="button"
-                                class="patient-workspace__event-action"
-                                disabled={busy()}
-                                onClick={() => void reviseObservation(observation)}
-                              >
-                                {busy() ? 'Сохраняем…' : 'Сохранить исправление'}
-                              </Button>
-                              <Button
-                                type="button"
-                                class="patient-workspace__event-action"
-                                disabled={busy()}
-                                onClick={cancelObservationRevision}
-                              >
-                                Отмена
-                              </Button>
-                            </div>
-                          </div>
-                        </Show>
-                      </Show>
-                    </>
-                  )}
-                </For>
-                <Show when={event.supersededBy}>
-                  <small class="patient-workspace__event-revision-status">
-                    Заменено исправлением.
-                  </small>
-                </Show>
-              </article>
+                            >
+                              <div class="patient-workspace__event-revision">
+                                <TextField
+                                  class="patient-workspace__event-revision-label"
+                                  label="Новое значение"
+                                  type="number"
+                                  step="any"
+                                  value={revisionValue()}
+                                  onInput={(inputEvent) =>
+                                    setRevisionValue(inputEvent.currentTarget.value)
+                                  }
+                                />
+                                <div class="patient-workspace__event-revision-actions">
+                                  <Button
+                                    type="button"
+                                    class="patient-workspace__event-action"
+                                    disabled={busy()}
+                                    onClick={() => void reviseObservation(observation)}
+                                  >
+                                    {busy() ? 'Сохраняем…' : 'Сохранить исправление'}
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    class="patient-workspace__event-action"
+                                    disabled={busy()}
+                                    onClick={cancelObservationRevision}
+                                  >
+                                    Отмена
+                                  </Button>
+                                </div>
+                              </div>
+                            </Show>
+                          </Show>
+                        </>
+                      )}
+                    </For>
+                    <Show when={event.supersededBy}>
+                      <small class="patient-workspace__event-revision-status">
+                        Заменено исправлением.
+                      </small>
+                    </Show>
+                  </article>
+                ))((entry as Extract<PatientLogEntry, { kind: 'event' }>).event)}
+              >
+                {(recorded) => (
+                  <article
+                    id={recorded().event?.id ?? recorded().id}
+                    class="patient-workspace__event patient-workspace__event--recording paper-card"
+                    data-testid="patient-log-recording"
+                  >
+                    <button
+                      type="button"
+                      class="patient-log-recording"
+                      data-testid="conversation-recording-row"
+                      aria-label={`Запись беседы ${formatDateTime(recorded().at)}, ${formatRecordingDuration(recorded().recording.durationMs)}`}
+                      onClick={() => conversationSession.openFinished(recorded().recording)}
+                    >
+                      <span class="patient-log-recording__icon" aria-hidden="true">
+                        <AppGlyph name="waveform" class="patient-log-recording__glyph" />
+                      </span>
+                      <span class="patient-log-recording__body">
+                        <strong class="patient-log-recording__title">Запись беседы</strong>
+                        <time class="patient-log-recording__time">
+                          {formatDateTime(recorded().at)}
+                        </time>
+                      </span>
+                      <span class="patient-log-recording__duration">
+                        {formatRecordingDuration(recorded().recording.durationMs)}
+                      </span>
+                      <AppGlyph name="play-fill" class="patient-log-recording__play" />
+                    </button>
+                    <Show when={eventLogText(recorded().event?.text)}>
+                      {(text) => <EventLogText text={text()} />}
+                    </Show>
+                  </article>
+                )}
+              </Show>
             )}
           </For>
         </Show>
       </section>
+    </>
+  );
+}
+
+/** An event's text: four lines, the rest behind «Показать полностью» when that hides enough. */
+function EventLogText(props: { readonly text: string }): JSX.Element {
+  const [element, setElement] = createSignal<HTMLParagraphElement>();
+  const clamp = createLineClamp({ element, visibleLines: 4, track: () => props.text });
+  return (
+    <>
+      <p
+        ref={setElement}
+        class="patient-workspace__event-text"
+        classList={{ 'patient-workspace__event-text--clamped': clamp.folded() }}
+      >
+        {props.text}
+      </p>
+      <Show when={clamp.foldable()}>
+        <Button
+          type="button"
+          class="patient-workspace__event-action"
+          onClick={() => clamp.toggle()}
+        >
+          {clamp.folded() ? 'Показать полностью' : 'Свернуть'}
+        </Button>
+      </Show>
     </>
   );
 }

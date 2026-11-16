@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 
 /** Reload at each of these delays after typing: inside the debounce, just after, and long after. */
 const RELOAD_DELAYS_MS = [500, 2000, 5000, 12000];
@@ -65,6 +66,7 @@ for (const delayMs of RELOAD_DELAYS_MS) {
     test.setTimeout(120_000);
     await mountBuiltApp(page, { persistentOrigin: true });
     await createPatient(page, `Пациент ${delayMs}`);
+    await openPatientPanel(page, 'visit');
     await visitNote(page).fill(`Кашель третий день ${delayMs}`);
     await page.waitForTimeout(delayMs);
     await page.reload();
@@ -80,17 +82,21 @@ test('visit note typed into an open visit survives a reload, at once and later',
   test.setTimeout(150_000);
   await mountBuiltApp(page, { persistentOrigin: true });
   await createPatient(page, 'Пациент открытый осмотр');
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Первичный осмотр');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
   // The note stays in its field after the visit is created.
   await expect(visitNote(page)).toHaveValue('Первичный осмотр');
 
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Первичный осмотр, добавлено: хрипов нет');
   await page.reload();
   await expect(visitNote(page)).toHaveValue('Первичный осмотр, добавлено: хрипов нет');
   await expect(visitRows(page)).toHaveCount(1);
 
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Вторая правка через паузу');
   await page.waitForTimeout(2000);
   await page.reload();
@@ -101,7 +107,9 @@ test('a closed visit keeps and shows its note; a new note opens a new visit', as
   test.setTimeout(120_000);
   await mountBuiltApp(page, { persistentOrigin: true });
   await createPatient(page, 'Пациент закрытый осмотр');
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Запись первого осмотра');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
   await page.getByRole('button', { name: 'Закрыть', exact: true }).click();
@@ -111,6 +119,7 @@ test('a closed visit keeps and shows its note; a new note opens a new visit', as
   );
   await expect(visitNote(page)).toHaveValue('');
 
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Запись второго осмотра');
   await expect(visitRows(page)).toHaveCount(2);
   await page.reload();
@@ -122,7 +131,9 @@ test('«Создать осмотр» twice leaves one open visit', async ({ pag
   test.setTimeout(120_000);
   await mountBuiltApp(page, { persistentOrigin: true });
   await createPatient(page, 'Пациент двойной тап');
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Один осмотр');
+  await openPatientPanel(page, 'visit');
   const create = page.getByRole('button', { name: 'Создать осмотр', exact: true });
   await create.dblclick();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
@@ -138,7 +149,9 @@ test('visit status and its icon buttons do not overlap or leave the row', async 
   await page.setViewportSize({ width: 375, height: 812 });
   await mountBuiltApp(page, { persistentOrigin: true });
   await createPatient(page, 'Пациент строка');
+  await openPatientPanel(page, 'visit');
   await visitNote(page).fill('Запись');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   const row = visitRows(page).first();
   await expect(row).toContainText('Открыт');

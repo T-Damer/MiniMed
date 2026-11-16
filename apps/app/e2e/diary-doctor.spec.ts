@@ -13,6 +13,7 @@ import {
   testInvitationLink,
 } from './diary-fixtures';
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 
 const ISSUED = '[aria-label="Выданные дневники"]';
 const DIARY_EVENTS = (page: Page) =>
@@ -25,6 +26,7 @@ async function noCanShare(page: Page): Promise<void> {
 }
 
 async function issueBloodPressureDiary(page: Page): Promise<string> {
+  await openPatientPanel(page, 'diary');
   await page.getByRole('button', { name: 'Выдать дневник', exact: true }).click();
   // «Дневник лечения» is the default; this flow is about the blood pressure diary.
   await page.getByText('Дневник артериального давления', { exact: true }).click();
@@ -37,6 +39,7 @@ async function issueBloodPressureDiary(page: Page): Promise<string> {
 }
 
 async function importText(page: Page, text: string): Promise<void> {
+  await openPatientPanel(page, 'diary');
   await page.getByRole('button', { name: 'Принять данные', exact: true }).click();
   await page.getByText('Пациент прислал файл или текст').click();
   await page.getByLabel('Или вставьте текст из сообщения').fill(text);

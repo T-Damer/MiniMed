@@ -1,4 +1,3 @@
-import { AUTOMATIC_TRANSCRIPT_LABEL } from '@/features/asr/visit-recording';
 import type { TranscriptSegment } from '@/features/conversations/live-transcription';
 import {
   addPatientBlob,
@@ -96,9 +95,12 @@ export function transcriptLines(segments: readonly TranscriptSegment[]): readonl
   return segments.map((segment) => segment.text);
 }
 
-/** The note a patient's card shows: the machine label first, then the text. */
+/**
+ * The text a patient's card keeps with a recording: the lines as spoken. The card shows it under
+ * the recording itself, which already says where the text came from (owner 2026-11-16: no notice).
+ */
 export function transcriptEventText(segments: readonly TranscriptSegment[]): string {
-  return `${AUTOMATIC_TRANSCRIPT_LABEL}\n\n${transcriptLines(segments).join('\n')}`;
+  return transcriptLines(segments).join('\n');
 }
 
 export type VaultAccess = 'encrypted' | 'unavailable';

@@ -182,8 +182,11 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-16 claude-fable DRUG-INSTR1 (not released; owner «Сульпирид gives strange data»): the substance card ranks instructions by readability (whole text > scan > leaflet > amendments); unit + browser check with the nervous-system sets
-- 2026-11-16 claude-fable PERF17 (not released; owner's 0.6.109 log): large OPFS sets mount from kept facts and open lazily (`deferred-module-store.ts`), notes and module overview off the full listing; unit + typecheck + browser check with 8 drug sets; not on a phone; «Пищевая аллергия» definition cut NOT reproduced
+- 2026-11-16 claude-fable REL 0.6.110: PERF17 + DRUG-INSTR1 + PAT-CARD1 + READ-SCROLL1 (app-only); verify + unit + patient/notes/diary/recording/search e2e; not on a phone
+- 2026-11-16 claude-fable READ-SCROLL1 (released in 0.6.110; owner «scroll lag»): `HorizontalScroller light` for document tables, section tracker at 10 Hz, jank log entries with scroll distance; reader-perf at 4× throttle; fling p95 unchanged
+- 2026-11-16 claude-fable PAT-CARD1 (released in 0.6.110; owner's card design): dark header with the name, six actions opening panels, one «События» log with recording + text as one block, no transcript notice; e2e helper `openPatientPanel`
+- 2026-11-16 claude-fable DRUG-INSTR1 (released in 0.6.110; owner «Сульпирид gives strange data»): the substance card ranks instructions by readability (whole text > scan > leaflet > amendments); unit + browser check with the nervous-system sets
+- 2026-11-16 claude-fable PERF17 (released in 0.6.110; owner's 0.6.109 log): large OPFS sets mount from kept facts and open lazily (`deferred-module-store.ts`), notes and module overview off the full listing; unit + typecheck + browser check with 8 drug sets; not on a phone; «Пищевая аллергия» definition cut NOT reproduced
 - 2026-11-16 claude-fable REL 0.6.109: PERF16 + SRCH-FAST2 + SEXQ1 (app + psychology tool module 0.1.0-preview.11); verify + unit + search/assessment e2e; not on a phone
 - 2026-11-16 claude-fable SEXQ1 (released in 0.6.109; owner «add ASEX, СФЖ, СФМ»): three questionnaires in a new section «Сексуальная функция»; ASEX in MiniMed's translation of the original form, СФМ/СФЖ from two matching copies of Васильченко 1990 with half points kept; sources in docs/ASSESSMENTS.md; the 1990 scan itself not checked
 - 2026-11-16 claude-fable SRCH-FAST2 (released in 0.6.109; owner's 0.6.108 log): names stay the answer (no top spinner), skeleton under them for the text part, fragments of «Найдено в тексте» in idle; text search over every set (12–15 s on the phone) NOT fixed — next task

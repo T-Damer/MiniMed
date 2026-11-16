@@ -6,6 +6,7 @@ import { expect, type Locator, type Page, test } from '@playwright/test';
 import { contrastFindings } from './contrast';
 import { createDoctorCard } from './diary-fixtures';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 
 // Owner report 2026-11-13 (FORMDIARY-UI1): a note template («бланк», Files → «Ваши шаблоны»)
 // showed on the bare desk, its edit mode was a small note box with a doubled, misaligned title,
@@ -128,6 +129,7 @@ for (const viewport of VIEWPORTS) {
       test.setTimeout(180_000);
       await mountBuiltApp(page, { skipLargeCompanionPacks: true });
       await createDoctorCard(page, 'Анна Тестова', true);
+      await openPatientPanel(page, 'diary');
       await page.getByRole('button', { name: 'Выдать дневник', exact: true }).click();
       const dialog = page.getByRole('dialog', { name: 'Выдать дневник' });
       await expect(dialog).toBeVisible();

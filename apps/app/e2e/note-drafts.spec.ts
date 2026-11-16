@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+import { openPatientPanel } from './patient-list';
 
 /** Reload this long after the last keystroke: inside the debounce, just after, long after. */
 const RELOAD_DELAYS_MS = [500, 2000, 5000];
@@ -24,13 +25,15 @@ async function createPatient(page: Page, name: string): Promise<void> {
 }
 
 async function createVisit(page: Page): Promise<void> {
+  await openPatientPanel(page, 'visit');
   await page.getByPlaceholder('Краткая запись осмотра').fill('Осмотр');
+  await openPatientPanel(page, 'visit');
   await page.getByRole('button', { name: 'Создать осмотр', exact: true }).click();
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toBeVisible();
 }
 
 async function openFormData(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /Данные для справок и форм/u }).click();
+  await openPatientPanel(page, 'data');
   await expect(page.getByLabel('Место работы / учёбы')).toBeVisible();
 }
 
@@ -71,6 +74,8 @@ for (const delayMs of RELOAD_DELAYS_MS) {
     await icdCode(page).fill('J4');
     await page.waitForTimeout(delayMs);
     await page.reload();
+    // The visit and its diagnosis are in the «Запись, осмотр» panel of the card.
+    await openPatientPanel(page, 'visit');
 
     await expect(diagnosisText(page)).toHaveValue(`Острый бронхит ${delayMs}`);
     await expect(icdCode(page)).toHaveValue('J4');
