@@ -16,12 +16,15 @@ import {
 } from '@localmed/core';
 import {
   type InstalledModuleRegistry,
+  type MedicalStore,
   type MedicalStoreMount,
   PersistentInstalledModuleRegistry,
   WebStorageInstalledModuleRegistryPersistence,
 } from '@localmed/storage';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { createDeferredModuleStore } from '@/composition/deferred-module-store';
 import { getModuleShelf, type ShelfModuleStore } from '@/composition/module-shelf';
+import { createIndexedDbShelfFacts } from '@/composition/module-shelf-facts';
 import {
   shelfCacheBudgetKiB,
   shelfCacheKiB,
@@ -304,7 +307,7 @@ async function openModuleStore(
 
 /** What a mount holds, and whether its index bytes were moved to the shelf by opening it. */
 interface MountedModuleStore {
-  readonly store: SqliteMedicalStore | WorkerOpfsMedicalStore | ShelfModuleStore;
+  readonly store: MedicalStore;
   readonly movedToShelf: boolean;
 }
 
@@ -342,11 +345,35 @@ async function openMountedModuleStore(
       }
     }
   }
+  if (isInstalledOpfsIndex(source) && !stored.definitionReference && deferredFacts) {
+    // A large set that lives in its own OPFS pool: mounted from what an earlier start kept about
+    // the file, opened by the first call that needs it (`deferred-module-store.ts`).
+    const key = `opfs:${moduleOpfsPoolName(stored.moduleId, stored.version, stored.indexSha256)}`;
+    return {
+      store: createDeferredModuleStore({
+        key,
+        facts: deferredFacts,
+        kept: (await deferredFacts.load()).get(key),
+        open: () => openModuleStore(stored.moduleId, stored.version, source, stored.indexSha256),
+        methods: WORKER_STORE_METHODS,
+      }),
+      movedToShelf: false,
+    };
+  }
   return {
     store: await openModuleStore(stored.moduleId, stored.version, source, stored.indexSha256),
     movedToShelf: false,
   };
 }
+
+/** Kept facts of the large sets; absent where IndexedDB is (tests, old browsers). */
+const deferredFacts =
+  typeof indexedDB === 'undefined' ? undefined : createIndexedDbShelfFacts(RELEASE_VERSION);
+const WORKER_STORE_METHODS: ReadonlySet<string> = new Set(
+  Object.getOwnPropertyNames(WorkerOpfsMedicalStore.prototype).filter(
+    (name) => name !== 'constructor',
+  ),
+);
 
 async function readActivePointers(database: IDBDatabase): Promise<readonly ActiveModulePointer[]> {
   const transaction = database.transaction(ACTIVE_STORE, 'readonly');
@@ -1945,6 +1972,7 @@ async function mountStoredModule(
     if (stored.definitionReference) {
       await store.initialize();
       try {
+        if (!store.reference) throw new Error('The module store has no definition reference.');
         const status = await store.reference({
           op: 'status',
           moduleId: pointer.moduleId,

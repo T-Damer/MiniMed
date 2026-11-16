@@ -738,7 +738,9 @@ export function NotesView(props: {
   const refreshDocuments = (): void => {
     const core = props.core;
     if (!core) return;
-    void core.listDocuments().then((result) => {
+    // The navigation listing: names and light metadata. The full one carries every drug
+    // substance's product tree and froze the patient card for seconds (performance log 0.6.109).
+    void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((result) => {
       if (result.ok) setDocuments(result.value);
     });
   };

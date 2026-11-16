@@ -341,7 +341,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const [overviewConditionCount, setOverviewConditionCount] = createSignal(0);
 
   const refreshOverviewDocumentCounts = (): void => {
-    void props.core.listDocuments().then((result) => {
+    void (props.core.listNavigationDocuments?.() ?? props.core.listDocuments()).then((result) => {
       if (!result.ok) return;
       setOverviewDocumentCounts(countDocumentsByOverviewBucket(result.value));
       setOverviewConditionCount(buildConditionCatalog(result.value).length);

@@ -6,6 +6,7 @@ import { afterBootReveal } from '@/app/boot-surface';
 import { BULK_INSTALL_RECONNECT_GAP_MS, createReconnectPacer } from '@/app/reconnect-pacer';
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
+import { warmDeferredModuleStores } from '@/composition/deferred-module-store';
 import {
   type InitializedMedicalCore,
   initializeMedicalCore,
@@ -562,6 +563,8 @@ export function useAppSession() {
         // The module files the start did not open are opened now, in the background, so the
         // first search over all of them does not wait for 800 cold file opens.
         .then(() => getModuleShelf()?.warm())
+        // The large sets were mounted from kept facts: their files are opened now, two at a time.
+        .then(() => warmDeferredModuleStores())
         .catch((cause: unknown) => {
           console.warn('Search indexes were not prepared ahead of the first query.', cause);
         });
