@@ -24,6 +24,14 @@ export const SearchRequestSchema = z.object({
    * (`SearchResponse.sourceScope`).
    */
   sourceNames: z.boolean().optional(),
+  /**
+   * Answer at once with what is ready. A search typed in the first seconds after a start otherwise
+   * waits for the indexes of the first search (aliases, name variants, typo matcher: seconds on a
+   * phone). With `quick`, a core that has not built them yet searches the typed words as text and
+   * marks the response `partial`; the caller repeats the search without `quick` for the full one.
+   * A core whose indexes are ready ignores the flag.
+   */
+  quick: z.boolean().optional(),
 });
 
 export const AnalyzeQueryRequestSchema = z.object({
@@ -434,6 +442,11 @@ export interface SearchResponse {
   readonly descriptionRecommendations?: DescriptionRecommendations;
   /** Present only when the whole query named a drug class; see {@link SearchDrugClass}. */
   readonly drugClass?: SearchDrugClass;
+  /**
+   * The answer of a `quick` request made before the first-search indexes were ready: the typed
+   * words found as text, without aliases, name variants, exact names or typo correction.
+   */
+  readonly partial?: true;
 }
 
 export type DescriptionRecommendations =

@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Quick first answer; later answers only add — 2026-11-16 (STATE SRCH-QUICK1; not released)
+
+Owner 2026-11-16: «yes, quick first answer»; «refining shouldn't reshuffle the results, only show
+additional results under current»; one centred arrow / loader instead of hanging buttons.
+
+- **`SearchRequest.quick`** (contract): a core whose first-search indexes are not built yet answers
+  a lookup with the typed words as a text query (`runQuickSearch`: no aliases, exact names, name
+  variants or typo correction) and marks the response `partial`. A core that is ready ignores the
+  flag; a clinical analysis is never answered quickly.
+- **The search screen** asks quickly first. A partial answer with results is shown at once, ordered
+  before it is shown (named as the query, then names carrying its words, then the rest:
+  `orderQuickAnswer`); the full search follows.
+- **Nothing shown is reordered** (`appendRefinedResponse`): the full answer after a quick one, and
+  the answer by meaning after the text one, keep the groups on screen (the same objects) and add
+  only new documents, under the heading «Ещё найдено». A definition card that arrives with the full
+  answer stands under the first results, not above them.
+- **`SearchMoreBelow`**: a round button in the middle of the bottom edge, above the bottom bar and
+  above the recording button (`:has(.recorder-fab)`); a spinner while more is being found, a down
+  arrow that scrolls one screen when results lie below. The «По смыслу» skeleton is gone. It floats,
+  so it can cover a control under it: `search.spec` scrolls a fragment's toggle clear of it.
+- Local, 774 sets, 4× throttle, search typed right after a start: first results 3.7–4.1 s, full
+  answer 8.3–9.5 s (before: nothing until the full answer); the first 10 results kept their order
+  and 9 were added. Not measured on a phone.
+- Limits: a quick answer has no exact-name and alias hits, so a drug typed by a trade name may get
+  its card only under «Ещё найдено» on that first search; a drug class card and a «показаны
+  результаты по…» note still arrive above the list.
+
 ## Text search over every set: what the 12–15 s were — 2026-11-16 (STATE SRCH-COLD1; not released)
 
 Measured with 774 small sets in a kept browser profile, CPU throttled four times.

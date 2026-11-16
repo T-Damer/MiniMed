@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-16 claude-fable SRCH-QUICK1 (not released; owner «quick first answer», «refining must not reshuffle»): `SearchRequest.quick` / `SearchResponse.partial`, later answers appended under shown results (`append-refined.ts`), centred `SearchMoreBelow` (spinner / arrow) above the bottom bar and recorder; unit + core tests + search e2e; cold first results 3.7–4.1 s vs 8.3–9.5 s full locally; not on a phone
 - 2026-11-16 claude-fable OCR-AUDIT1 (read-only, Haiku agent): defect classes of the 269 scanned nervous-system instructions with counts; table in CURRENT_STATE; no data changed, rules await the owner
 - 2026-11-16 claude-fable SRCH-COLD1 (not released; owner «fix text search»): warm search over 774 sets is 0.6–1.0 s at 4× throttle; listings mapped in slices with a task per caller, shelf files opened and initialised from search-ready, alias filter facts per canonical term; the cold first search (5.1–5.5 s locally) did NOT get faster — next: quick first answer or kept indexes
 - 2026-11-16 claude-fable REL 0.6.110: PERF17 + DRUG-INSTR1 + PAT-CARD1 + READ-SCROLL1 (app-only); verify + unit + patient/notes/diary/recording/search e2e; not on a phone

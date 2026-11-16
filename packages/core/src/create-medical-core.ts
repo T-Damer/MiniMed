@@ -511,6 +511,9 @@ function ownTask(): Promise<void> {
   });
 }
 
+/** The quick search's alias list: one array, so the typo matcher built for it is kept. */
+const NO_ALIASES: MedicalAliasRecords = [];
+
 async function filterQueryAliasesSliced(
   aliases: MedicalAliasRecords,
 ): Promise<MedicalAliasRecords> {
@@ -1884,6 +1887,98 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     }
   };
 
+  /**
+   * `SearchRequest.quick` before the first-search indexes exist: the typed words as a text query,
+   * grouped like any result, marked `partial`. No aliases, no exact names, no typo correction: the
+   * caller repeats the search for those. The indexes are started so that the repeat finds them.
+   */
+  const runQuickSearch = async (
+    request: SearchRequest,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    const startedAt = performance.now();
+    try {
+      const ready = await ensureInitialized();
+      if (!ready.ok) return err(ready.error);
+      const plan = buildLookupQueryPlan(request.query, NO_ALIASES, undefined, {
+        boundShortTerms: true,
+      });
+      if (plan.branches.length === 0) {
+        return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
+      }
+      const perBranchLimit = Math.max(request.limit * 5, 50);
+      const branchHits = await Promise.all(
+        plan.branches.map(async (branch) => {
+          const branchStartedAt = performance.now();
+          const hits = await options.store.search({
+            ftsQuery: branch.ftsQuery,
+            terms: branch.terms,
+            filters: request.filters,
+            limit: perBranchLimit,
+            diversifyDocuments: true,
+          });
+          return {
+            branch,
+            hits,
+            diagnostics: {
+              id: branch.id,
+              label: branch.label,
+              ftsQuery: branch.ftsQuery,
+              candidateCount: hits.length,
+              elapsedMs: performance.now() - branchStartedAt,
+              weight: branch.weight,
+            },
+          };
+        }),
+      );
+      const results = fuseBranchHits(branchHits, perBranchLimit, request.query, new Set(), true);
+      const documents = new Map(
+        branchHits.flatMap(({ hits }) =>
+          hits.map((hit) => [hit.document.id, toDocumentSummary(hit.document)] as const),
+        ),
+      );
+      const groups = groupResults(
+        results,
+        requestedSectionType(plan.analysis.normalizedQuery),
+        !/ограничен/u.test(plan.analysis.normalizedQuery),
+        plan.analysis.normalizedQuery,
+        plan.terms,
+        NO_ALIASES,
+        [...documents.values()],
+        plan.analysis,
+        plan.lookupTermGroups,
+      );
+      return ok({
+        requestId: requestId(),
+        identities: [],
+        normalizedQuery: plan.analysis.normalizedQuery,
+        elapsedMs: performance.now() - startedAt,
+        modeUsed: 'lexical',
+        analysis: plan.analysis,
+        suggestions: plan.analysis.suggestions,
+        groups: groups.slice(0, request.limit),
+        diagnostics: {
+          ftsQuery: branchHits.map(({ diagnostics }) => diagnostics.ftsQuery).join(' || '),
+          candidateCount: new Set(branchHits.flatMap(({ hits }) => hits.map((hit) => hit.chunk.id)))
+            .size,
+          aliasMatches: plan.aliasMatches,
+          terms: plan.terms,
+          branches: branchHits.map(({ diagnostics }) => diagnostics),
+          semantic: {
+            status: 'disabled',
+            requestedMode: 'lexical',
+            profileId: null,
+            candidateCount: 0,
+            elapsedMs: 0,
+            fallbackReason: null,
+          },
+        },
+        partial: true,
+      });
+    } catch (error) {
+      return err(asLocalMedError(error));
+    }
+  };
+
   /** Item 3 (S3): see `name-variant-fallback.ts`; the typed query's response stays unless replaced. */
   // One vocabulary per document index: its names plus the core's exact names of modules not installed.
   const spellingVocabularies = new WeakMap<QueryDocumentIndex, Promise<NameVocabulary>>();
@@ -2252,6 +2347,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       // Pasted markup («<img src=x onerror=…>») has no word of the user's in it: nothing to find.
       if (!/[\p{L}\p{N}]/u.test(parsed.data.query.replaceAll(MARKUP_TAG, ' '))) {
         return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
+      }
+      // Asked to answer at once, and the indexes of a first search are not built yet (a search
+      // typed in the first seconds after a start): the words as text now, the rest on the repeat.
+      if (
+        parsed.data.quick === true &&
+        parsed.data.analysisMode === 'lookup' &&
+        (!lookupExpansion || !queryDocumentIndex)
+      ) {
+        return runQuickSearch(parsed.data);
       }
       const searched = await searchWithFallbacks(parsed.data);
       if (

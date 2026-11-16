@@ -178,6 +178,9 @@ test('a found part shows three lines, unrolls in place, and is the only fragment
   const open = fragment.getByRole('button', { name: 'Свернуть фрагмент' });
   await expect(open).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeGreaterThan(collapsed);
+  // The round «more below» button floats over the middle of the bottom edge: bring the toggle to
+  // the middle of the screen, as a reader would before tapping it.
+  await open.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await open.click();
   await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
 

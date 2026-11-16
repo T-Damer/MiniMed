@@ -192,3 +192,53 @@ describe('warmUp (PERF5)', () => {
     }
   });
 });
+
+describe('a quick first answer (SearchRequest.quick)', () => {
+  const request = {
+    query: 'пневмония',
+    mode: 'lexical' as const,
+    analysisMode: 'lookup' as const,
+    filters: {},
+    limit: 20,
+    includeSuggestions: false,
+  };
+
+  it('answers with the words as text before the first-search indexes exist', async () => {
+    const core = createCore();
+    try {
+      const quick = await core.search({ ...request, quick: true });
+      if (!quick.ok) throw new Error(quick.error.message);
+      expect(quick.value.partial).toBe(true);
+      expect(quick.value.groups.map((group) => group.documentId)).toContain('ref.pneumonia');
+      expect(quick.value.identities).toEqual([]);
+    } finally {
+      await core.close();
+    }
+  });
+
+  it('is the full answer once the indexes are built', async () => {
+    const core = createCore();
+    try {
+      const full = await core.search(request);
+      const again = await core.search({ ...request, quick: true });
+      if (!full.ok || !again.ok) throw new Error('search failed');
+      expect(again.value.partial).toBeUndefined();
+      expect(again.value.groups.map((group) => group.documentId)).toEqual(
+        full.value.groups.map((group) => group.documentId),
+      );
+    } finally {
+      await core.close();
+    }
+  });
+
+  it('never answers a clinical analysis quickly', async () => {
+    const core = createCore();
+    try {
+      const clinical = await core.search({ ...request, analysisMode: 'clinical', quick: true });
+      if (!clinical.ok) throw new Error(clinical.error.message);
+      expect(clinical.value.partial).toBeUndefined();
+    } finally {
+      await core.close();
+    }
+  });
+});

@@ -72,6 +72,7 @@ import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { DoseCard } from '@/features/prescription/DoseCard';
 import { parseDoseQuery } from '@/features/prescription/dose-query';
 import { titleNamesWords } from '@/features/reader-dictionary/selection-term';
+import { appendRefinedResponse, orderQuickAnswer } from '@/features/search/append-refined';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
 import { ClinicalAnalysisNote } from '@/features/search/ClinicalAnalysisNote';
 import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
@@ -113,6 +114,7 @@ import {
   SearchMeaningChoices,
   SearchTitleExtras,
 } from '@/features/search/SearchMeaningChoices';
+import { SearchMoreBelow } from '@/features/search/SearchMoreBelow';
 import { type ResultSource, SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
 import { SearchScopeFallbackList } from '@/features/search/SearchScopeFallbackList';
@@ -151,7 +153,7 @@ import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { motionMs } from '@/state/motion';
-import { perfSpan } from '@/state/perf-log';
+import { perfMark, perfSpan } from '@/state/perf-log';
 import { searchDataVersion } from '@/state/search-data-version';
 import {
   appendSearchHistory,
@@ -470,6 +472,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     (props.searchAllowed === false && props.searchPending === true);
   /** The second part of a search by meaning is running under the results on screen. */
   const [meaningPending, setMeaningPending] = createSignal(false);
+  /** The full search is running after a quick first answer that is already on screen. */
+  const [refinePending, setRefinePending] = createSignal(false);
+  /** Documents a later answer added under the first results (`appendRefinedResponse`). */
+  const [appended, setAppended] = createSignal<ReadonlySet<string>>(new Set());
   const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
   // The query whose source name the doctor asked to search as plain words («Искать везде»).
   const [everywhereQuery, setEverywhereQuery] = createSignal<string>();
@@ -635,8 +641,19 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const resultClusters = createMemo(() => clusterResultGroups(visibleGroups(), audienceOf));
   // Results named by the query first, then what the query was only found inside. A drug class and
   // the clinical analysis rank by other things than the title and keep one list.
+  /** Clusters a later answer added: listed under the first results, never among them. */
+  const addedClusters = createMemo(() => {
+    const added = appended();
+    return added.size === 0
+      ? []
+      : resultClusters().filter((cluster) => added.has(cluster.lead.documentId));
+  });
   const resultSections = createMemo((): ResultSections => {
-    const clusters = resultClusters();
+    const added = appended();
+    const clusters =
+      added.size === 0
+        ? resultClusters()
+        : resultClusters().filter((cluster) => !added.has(cluster.lead.documentId));
     const shown = response();
     const words = searchableQuery(shown?.analysis.originalQuery ?? '');
     if (!words || shown?.drugClass || props.scope === 'diagnosis' || props.scope === 'personal') {
@@ -667,6 +684,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   });
   createEffect(on(response, () => setInTextExpanded(false), { defer: true }));
   const inTextShown = createMemo(() => shownInText(resultSections().inText, inTextExpanded()));
+  // The definition card of the query. It comes with the full answer: over a quick answer already
+  // on screen it is placed under the first results, so the list does not move down.
+  const [identitiesLate, setIdentitiesLate] = createSignal(false);
+  const identityCard = (): JSX.Element => (
+    <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
+      {(referenceCore) => (
+        <CoreIdentityMatches
+          hits={visibleIdentities()}
+          query={searchableQuery(query())}
+          groups={visibleGroups()}
+          core={referenceCore()}
+          onContentChanged={
+            props.onContentChanged ??
+            (async () => {
+              window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
+            })
+          }
+        />
+      )}
+    </Show>
+  );
   const clusterCard = (
     cluster: ResultCluster,
     index: number,
@@ -1202,7 +1240,26 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       includeSuggestions: props.scope === 'diagnosis',
       ...(everywhere ? { sourceNames: false } : {}),
     };
-    const result = await core.search({ ...request, mode: 'lexical' });
+    // Answer at once with what is ready: right after a start the full search waits for its
+    // indexes for seconds. A quick answer is shown as it is; the full one is added under it.
+    let result = await core.search({ ...request, mode: 'lexical', quick: true });
+    let quickShown: SearchResponse | undefined;
+    if (result.ok && result.value.partial) {
+      if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+      if (result.value.groups.length > 0 && !refreshOfShown) {
+        quickShown = orderQuickAnswer(result.value, trimmed);
+        setIdentitiesLate(false);
+        setAppended(new Set<string>());
+        setPendingResponse(undefined);
+        setResponse(quickShown);
+        setDraftAnalysis(result.value.analysis);
+        setLoading(false);
+        setRefinePending(true);
+        perfMark('search.quick', { groups: result.value.groups.length });
+      }
+      result = await core.search({ ...request, mode: 'lexical' });
+      if (generation === searchGeneration) setRefinePending(false);
+    }
     performance.mark('minimed:search:core');
     // Where the time went inside the core: its own total, the query model and the text branches.
     endSearchSpan(
@@ -1260,8 +1317,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       !sameSearchOutcome(current, result.value)
     ) {
       setPendingResponse(result.value);
+    } else if (quickShown && response() === quickShown) {
+      // The quick answer is on screen: the full one never reshuffles it, its other results follow.
+      const merged = appendRefinedResponse(quickShown, result.value);
+      setPendingResponse(undefined);
+      setResponse(merged.response);
+      setAppended(merged.appended);
+      setIdentitiesLate(true);
     } else {
       setPendingResponse(undefined);
+      setAppended(new Set<string>());
+      setIdentitiesLate(false);
       setResponse(result.value);
     }
     setDraftAnalysis(result.value.analysis);
@@ -1322,7 +1388,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (!result.ok || result.value.modeUsed === 'lexical') return;
     const shown = response();
     if (shown && sameSearchOutcome(shown, result.value)) return;
-    setResponse(result.value);
+    if (!shown) {
+      setResponse(result.value);
+    } else {
+      // Found by meaning: added under the text results, which stay where they are.
+      const merged = appendRefinedResponse(shown, result.value, appended());
+      setResponse(merged.response);
+      setAppended(merged.appended);
+    }
     setDraftAnalysis(result.value.analysis);
     if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
   }
@@ -1988,6 +2061,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           )}
         </Show>
 
+        <Show when={props.scope !== 'personal' && (response() || loading())}>
+          <SearchMoreBelow
+            pending={
+              (loading() && instantTitles().length > 0) || refinePending() || meaningPending()
+            }
+            track={() => [response(), instantTitles(), inTextExpanded()]}
+          />
+        </Show>
         <div class="search-results-slot">
           {/* The names that carry the query, at once: the title index needs no database, while the
               full search over every installed source is still running. */}
@@ -2099,22 +2180,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   <Show when={response()?.drugClass}>
                     {(drugClass) => <DrugClassCard drugClass={drugClass()} />}
                   </Show>
-                  <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
-                    {(referenceCore) => (
-                      <CoreIdentityMatches
-                        hits={visibleIdentities()}
-                        query={searchableQuery(query())}
-                        groups={visibleGroups()}
-                        core={referenceCore()}
-                        onContentChanged={
-                          props.onContentChanged ??
-                          (async () => {
-                            window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
-                          })
-                        }
-                      />
-                    )}
-                  </Show>
+                  <Show when={!identitiesLate()}>{identityCard()}</Show>
                   <div class="results-list" data-testid="search-results">
                     <Show
                       when={scopeFallback()}
@@ -2162,14 +2228,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               </Button>
                             </Show>
                           </Show>
-                          <Show when={meaningPending()}>
+                          <Show when={identitiesLate()}>{identityCard()}</Show>
+                          <Show when={addedClusters().length > 0}>
                             <h3
                               class="search-results-section__title"
-                              data-testid="search-results-meaning-pending"
+                              data-testid="search-results-added"
                             >
-                              По смыслу
+                              Ещё найдено
                             </h3>
-                            <SearchResultsSkeleton leaving={false} below />
+                            <LayoutVirtualizedGrid
+                              data={addedClusters()}
+                              bufferSize={400}
+                              align="start"
+                            >
+                              {(cluster, clusterIndex) =>
+                                clusterCard(
+                                  cluster,
+                                  resultClusters().length - addedClusters().length + clusterIndex,
+                                  false,
+                                )
+                              }
+                            </LayoutVirtualizedGrid>
                           </Show>
                         </>
                       }
