@@ -58,7 +58,11 @@ import {
 } from '@/features/library/document-display';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
-import { documentLinkMatcherFor } from '@/features/library/document-medication-links';
+import {
+  documentLinkMatcherFor,
+  isDocumentLinkMatcherReady,
+  prepareDocumentLinkMatcher,
+} from '@/features/library/document-medication-links';
 import { printDocument, shareDocument, shareText } from '@/features/library/document-print';
 import { firstSliceCount, nextSliceCount } from '@/features/library/document-reader-batches';
 import {
@@ -1113,11 +1117,26 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
   // One index per document list (shared by every document opened from it); this reader's own
   // document family is left out by a view of it, not by rebuilding.
-  const documentLinkMatcher = createMemo(() =>
-    props.document
-      ? documentLinkMatcherFor(props.availableDocuments ?? NO_DOCUMENTS, props.document.id)
-      : null,
-  );
+  // A list whose index is not built yet (a document opened before the idle preparation finished,
+  // a list that changed after an install) never holds the text back: the text is shown at once and
+  // the links join it when the index, built in short steps, is ready.
+  const [preparedLinkLists, setPreparedLinkLists] = createSignal(0);
+  const documentLinkMatcher = createMemo(() => {
+    const document = props.document;
+    if (!document) return null;
+    const documents = props.availableDocuments ?? NO_DOCUMENTS;
+    preparedLinkLists();
+    if (documents.length > 0 && !isDocumentLinkMatcherReady(documents)) {
+      void prepareDocumentLinkMatcher(documents).then(
+        () => setPreparedLinkLists((count) => count + 1),
+        (error: unknown) => {
+          console.error('Не удалось подготовить ссылки между документами.', error);
+        },
+      );
+      return null;
+    }
+    return documentLinkMatcherFor(documents, document.id);
+  });
   const isClinicalSummary = createMemo(
     () => props.document?.sourceType === 'clinical_recommendation_summary',
   );

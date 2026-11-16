@@ -217,7 +217,7 @@ function isPreferred(
   return candidate.id < current.id;
 }
 
-function chooseInstructions(
+function chooseInstructionsOf(
   documents: readonly IndexedSummary[],
 ): ReadonlyMap<string, { readonly id: string; readonly metadata: Metadata }> {
   const chosen = new Map<string, { readonly id: string; readonly metadata: Metadata }>();
@@ -232,25 +232,61 @@ function chooseInstructions(
   return chosen;
 }
 
+/**
+ * One choice per document list: a drug card asks for it several times while it opens (the page, the
+ * reader, the product list), and the list is the core's kept listing, the same array every time.
+ */
+const chosenByDocuments = new WeakMap<
+  readonly IndexedSummary[],
+  ReadonlyMap<string, { readonly id: string; readonly metadata: Metadata }>
+>();
+
+function chooseInstructions(
+  documents: readonly IndexedSummary[],
+): ReadonlyMap<string, { readonly id: string; readonly metadata: Metadata }> {
+  let chosen = chosenByDocuments.get(documents);
+  if (!chosen) {
+    chosen = chooseInstructionsOf(documents);
+    chosenByDocuments.set(documents, chosen);
+  }
+  return chosen;
+}
+
+const indexByDocuments = new WeakMap<readonly IndexedSummary[], ReadonlyMap<string, string>>();
+const sourceClassByDocuments = new WeakMap<
+  readonly IndexedSummary[],
+  ReadonlyMap<string, InstructionSourceClass>
+>();
+
 /** Registration number → instruction document id, from the documents the core lists. */
 export function instructionIndexFromDocuments(
   documents: readonly IndexedSummary[],
 ): ReadonlyMap<string, string> {
-  return new Map(
-    [...chooseInstructions(documents)].map(([registration, entry]) => [registration, entry.id]),
-  );
+  let index = indexByDocuments.get(documents);
+  if (!index) {
+    index = new Map(
+      [...chooseInstructions(documents)].map(([registration, entry]) => [registration, entry.id]),
+    );
+    indexByDocuments.set(documents, index);
+  }
+  return index;
 }
 
 /** Registration number → where the document the index chose for it comes from. */
 export function instructionSourceClassIndex(
   documents: readonly IndexedSummary[],
 ): ReadonlyMap<string, InstructionSourceClass> {
-  return new Map(
-    [...chooseInstructions(documents)].map(([registration, entry]) => [
-      registration,
-      instructionSourceClassOf(entry.metadata),
-    ]),
-  );
+  let index = sourceClassByDocuments.get(documents);
+  if (!index) {
+    index = new Map(
+      [...chooseInstructions(documents)].map(([registration, entry]) => [
+        registration,
+        instructionSourceClassOf(entry.metadata),
+      ]),
+    );
+    sourceClassByDocuments.set(documents, index);
+  }
+  return index;
 }
 
 export type InstructionTextQuality = 'native' | 'ocr' | 'ocr-low' | 'ocr-reviewed';

@@ -5,17 +5,43 @@ import {
   type LookupPlanOptions,
   buildLookupQueryPlan as originalLookup,
 } from './analysis';
-import { createMedicationSpellingMatcher } from './medication-spelling';
+import {
+  createMedicationSpellingMatcher,
+  createMedicationSpellingMatcherSliced,
+  type MedicationSpellingMatcher,
+} from './medication-spelling';
+import type { TimeSlicer } from './time-slice';
 
 // The key is the immutable vocabulary supplied by the current core, not a query or a global edition.
 // Reinitialization replaces that array; old indexes are collectible with their vocabulary.
 /** Label of a search branch or hit found for a likely misspelling of a drug name. */
 export const MEDICATION_SPELLING_LABEL = 'Возможная опечатка';
 
-const matchers = new WeakMap<
-  readonly AliasRecord[],
-  ReturnType<typeof createMedicationSpellingMatcher>
->();
+const matchers = new WeakMap<readonly AliasRecord[], MedicationSpellingMatcher>();
+const preparingMatchers = new WeakMap<readonly AliasRecord[], Promise<void>>();
+
+/**
+ * Builds the misspelling matcher of an alias vocabulary ahead of the first lookup, in short steps.
+ * A lookup that arrives first builds it at once, as before.
+ */
+export function prepareLookupSpelling(
+  aliases: readonly AliasRecord[],
+  slice: TimeSlicer,
+): Promise<void> {
+  if (matchers.has(aliases)) return Promise.resolve();
+  let running = preparingMatchers.get(aliases);
+  if (!running) {
+    running = createMedicationSpellingMatcherSliced(aliases, slice)
+      .then((match) => {
+        if (!matchers.has(aliases)) matchers.set(aliases, match);
+      })
+      .finally(() => {
+        preparingMatchers.delete(aliases);
+      });
+    preparingMatchers.set(aliases, running);
+  }
+  return running;
+}
 
 export interface MedicationLookupPlan extends ClinicalQueryPlan {
   readonly medicationSpellingNames?: readonly string[];

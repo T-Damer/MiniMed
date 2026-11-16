@@ -233,6 +233,9 @@ function toChunk(row: NativeSqlRow): ChunkRecord {
 /** Documents per native reply: whole-catalog replies do not fit a WebView heap. */
 const DOCUMENT_PAGE_SIZE = 1024;
 
+// `clinicalMedicationLinks`: a drug card lists the recommendations naming it from this listing (the
+// full one is megabytes per drug substance). Instruction fields (`registrationNumber`…) are not
+// here: instructions live in modules, never in the native core.
 const NAVIGATION_DOCUMENT_SELECT = `
   SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
     d.specialty_json, json_object(
@@ -242,6 +245,7 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'definitionPreviewAnchor', json_extract(d.metadata_json, '$.definitionPreviewAnchor'),
       'terminologyMentionAnchors', json_extract(d.metadata_json, '$.terminologyMentionAnchors'),
       'ageCategories', json_extract(d.metadata_json, '$.ageCategories'),
+      'clinicalMedicationLinks', json_extract(d.metadata_json, '$.clinicalMedicationLinks'),
       'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
       'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
       'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),

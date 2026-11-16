@@ -646,6 +646,11 @@ async function buildDocumentLinkMatcherInSlices(
 
 const preparing = new WeakMap<readonly MedicalDocumentSummary[], Promise<void>>();
 
+/** Whether the matcher of this list is built: a reader that finds it missing shows its text first. */
+export function isDocumentLinkMatcherReady(documents: readonly MedicalDocumentSummary[]): boolean {
+  return matchersByDocuments.has(documents);
+}
+
 export function documentLinkMatcherFor(
   documents: readonly MedicalDocumentSummary[],
   currentDocumentId?: string,

@@ -191,6 +191,25 @@ async function loadTradeNameSupplements(
   return [...uniqueByTradeName.values()];
 }
 
+/** What a document is made of, for the performance log: fixed names and counts, no content. */
+function documentShape(document: MedicalDocument | undefined): Readonly<Record<string, unknown>> {
+  if (!document) return {};
+  let chunks = 0;
+  let chars = 0;
+  for (const section of document.sections) {
+    chunks += section.chunks.length;
+    for (const chunk of section.chunks) chars += chunk.originalText.length;
+  }
+  const mode = document.metadata['contentMode'];
+  return {
+    kind: document.sourceType.replaceAll('_', '-'),
+    ...(typeof mode === 'string' ? { mode } : {}),
+    sections: document.sections.length,
+    chunks,
+    chars,
+  };
+}
+
 function userFacingOpenError(message: string): string {
   if (message.includes('Document not found')) {
     return 'Документ пока не подключён к поиску. Подождите завершения установки или нажмите «Повторить» в разделе скачивания.';
@@ -447,13 +466,17 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     setSubstanceInstruction({ product: chosen, document: read.value });
   };
 
-  /** Performance log: the whole open as a span, the first text as a mark (no document id). */
+  /**
+   * Performance log: the whole open as a span, the first text as a mark. No document id, only its
+   * shape — the kind of source and how much there is of it — so a slow open can be reproduced with
+   * a document of the same kind and size.
+   */
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
     const endLoadSpan = perfSpan('reader.load');
     try {
       await loadOfficialDocument(parsed);
     } finally {
-      endLoadSpan({ shown: document() !== undefined });
+      endLoadSpan({ shown: document() !== undefined, ...documentShape(document()) });
     }
   };
 
@@ -690,13 +713,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
       if (result.value.metadata['contentMode'] === 'esklp-mnn') {
-        // Medication supplements need complete source metadata, but only after first text is visible.
-        const fullSummaries = await core.listDocuments();
-        if (!fullSummaries.ok) throw new Error(fullSummaries.error.message);
-        const refreshedSummaries = fullSummaries.value;
-        if (!current()) return;
-        listed = refreshedSummaries;
-        setAvailableDocuments(listed);
+        // The supplements read the navigation listing, the one already on screen: it carries the
+        // instruction registrations and the recommendations' drug links. The full listing ships
+        // every substance's whole product tree (megabytes each) to this thread; a drug card took
+        // ten seconds to open on a phone with the drug sets installed.
         setClinicalMedicationLinks(
           selectedMedicationProduct?.mnnDocumentId
             ? parseClinicalMedicationLinks(listed, selectedMedicationProduct.mnnDocumentId)
@@ -972,8 +992,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       await props.reconnectContent();
       const core = props.getCore();
       if (!core) throw new Error('Локальный поиск ещё не готов.');
-      const list = await core.listDocuments();
-      if (!list.ok) throw new Error(list.error.message);
+      const list = { value: await listDocuments(core) };
       setAvailableDocuments(list.value);
       // Resolve for what is on screen now, not what was open when the download started: the
       // substance card follows its group's download, and the doctor may pick a trade name meanwhile

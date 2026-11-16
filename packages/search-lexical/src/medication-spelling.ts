@@ -1,6 +1,7 @@
 import type { AliasRecord } from '@localmed/domain';
 import { normalizeSurfaceText } from './normalize';
 import { extractTop } from './rapidfuzz';
+import type { TimeSlicer } from './time-slice';
 
 // 2026-09-24 RapidFuzz OSA medication-name experiment (docs/research/rapidfuzz-medication-experiment-2026-09-24.md):
 // swept 0.65-0.90; 0.65 and 0.70 tied for best recall (Top-1 889/929, Top-8 929/929, 0/10 negative
@@ -113,7 +114,42 @@ interface Name {
  * Exact known names are never repaired. No first-letter filter: the first letter can be wrong.
  * Clinical analysis does not invoke this matcher; it belongs to ordinary source lookup only.
  */
-export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[]) {
+export function createMedicationSpellingMatcher(
+  aliases: readonly AliasRecord[],
+): MedicationSpellingMatcher {
+  const steps = medicationSpellingMatcherSteps(aliases);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
+
+/**
+ * The same matcher built in short steps: with the drug sets installed the vocabulary is hundreds of
+ * thousands of names, and building it inside the first search held the thread for that long.
+ */
+export async function createMedicationSpellingMatcherSliced(
+  aliases: readonly AliasRecord[],
+  slice: TimeSlicer,
+): Promise<MedicationSpellingMatcher> {
+  const steps = medicationSpellingMatcherSteps(aliases);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+    const due = slice();
+    if (due) await due;
+  }
+}
+
+export type MedicationSpellingMatcher = (query: string) => readonly MedicationSpellingMatch[];
+
+/** Aliases indexed between two points where the build can give the thread back. */
+const ALIASES_PER_STEP = 256;
+
+function* medicationSpellingMatcherSteps(
+  aliases: readonly AliasRecord[],
+): Generator<undefined, MedicationSpellingMatcher> {
+  let sinceStep = 0;
   const known = new Set<string>();
   const names = new Map<string, Name>();
   const add = (value: string, canonical: string, lookup: string, suffix: string | null) => {
@@ -133,6 +169,11 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
       });
   };
   for (const alias of aliases) {
+    sinceStep += 1;
+    if (sinceStep >= ALIASES_PER_STEP) {
+      sinceStep = 0;
+      yield undefined;
+    }
     for (const value of [alias.alias, alias.canonicalTerm]) {
       const normalized = normalizeSurfaceText(value);
       known.add(normalized);

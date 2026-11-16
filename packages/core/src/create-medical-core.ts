@@ -43,6 +43,7 @@ import {
   type NameVocabulary,
   normalizeSurfaceText,
   parseAtcQuery,
+  prepareLookupSpelling,
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
@@ -1427,7 +1428,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       const aliasesResult = await getAliases();
       if (!aliasesResult.ok) return err(aliasesResult.error);
-      if (parsed.data.analysisMode === 'lookup') await ensureLookupExpansion(aliasesResult.value);
+      if (parsed.data.analysisMode === 'lookup') {
+        await ensureLookupExpansion(aliasesResult.value);
+        // In short steps, like the expansion: built inside the plan it held the thread whole.
+        await prepareLookupSpelling(aliasesResult.value, createTimeSlicer());
+      }
       // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
       // reaches a document whose title lacks the typed words, by meaning.
       const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
@@ -2225,6 +2230,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const aliases = await getAliases();
       if (!aliases.ok) return;
       await ensureLookupExpansion(aliases.value);
+      await pause();
+      await prepareLookupSpelling(aliases.value, createTimeSlicer());
       await pause();
       const documents = await getSearchDocuments();
       if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {

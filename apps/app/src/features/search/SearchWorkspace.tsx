@@ -6,6 +6,7 @@ import type {
   QueryAnalysis,
   QueryFact,
   SearchFilters,
+  SearchRequest,
   SearchResponse,
   SearchResultGroup,
   SearchSuggestion,
@@ -1156,15 +1157,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     performance.mark('minimed:search:core-start');
     // Performance log: the core's search time and the section searched (never the words).
     const endSearchSpan = perfSpan('search.core', { scope: props.scope });
-    const result = await core.search({
+    // Text results first: the meaning model (119 MB, seconds to load on a phone) joins only a
+    // query that no result names — a drug typed by its name never waits for it.
+    const scopeMode = searchModeForScope(props.scope);
+    const request = {
       query: trimmed,
-      mode: searchModeForScope(props.scope),
-      analysisMode: props.scope === 'diagnosis' ? 'clinical' : 'lookup',
+      analysisMode: props.scope === 'diagnosis' ? ('clinical' as const) : ('lookup' as const),
       filters: props.filters ?? {},
       limit: 20,
       includeSuggestions: props.scope === 'diagnosis',
       ...(everywhere ? { sourceNames: false } : {}),
-    });
+    };
+    const result = await core.search({ ...request, mode: 'lexical' });
     performance.mark('minimed:search:core');
     // Where the time went inside the core: its own total, the query model and the text branches.
     endSearchSpan(
@@ -1186,6 +1190,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               0,
             ),
             groups: result.value.groups.length,
+            // The size of the query, never its words.
+            words: trimmed.match(/[\p{L}\p{N}]+/gu)?.length ?? 0,
+            chars: trimmed.length,
           }
         : { ok: false },
     );
@@ -1228,9 +1235,62 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (recordHistory || options.autoRecord) {
       appendSearchHistory(rawQuery, props.scope, result.value, specialty, { auto: !recordHistory });
     }
+    // One word is a name (a trade name finds its substance card through an alias, not a title),
+    // and so is a query some result's title carries: neither is a question for the model.
+    if (
+      scopeMode === 'auto' &&
+      (trimmed.match(/[\p{L}\p{N}]+/gu)?.length ?? 0) > 1 &&
+      !result.value.groups.some((group) => titleNamesWords(group.title, trimmed))
+    ) {
+      void addMeaningResults(
+        core,
+        request,
+        generation,
+        trimmed,
+        specialty,
+        dataVersion,
+        everywhere,
+      );
+    }
     if (options.reloadContextDocuments || contextDocuments().length === 0) {
       await loadContextDocuments(core, generation, trimmed);
     }
+  }
+
+  /**
+   * The second part of a search by meaning: the same words with the query model, after the text
+   * results are on screen. The list is replaced only when the model was used and changed it.
+   */
+  async function addMeaningResults(
+    core: MedicalCore,
+    request: Omit<SearchRequest, 'mode'>,
+    generation: number,
+    trimmed: string,
+    specialty: string | undefined,
+    dataVersion: string,
+    everywhere: boolean,
+  ): Promise<void> {
+    setRefreshing(true);
+    const endSpan = perfSpan('search.meaning', { scope: props.scope });
+    const result = await core.search({ ...request, mode: 'auto' });
+    endSpan(
+      result.ok
+        ? {
+            ok: true,
+            mode: result.value.modeUsed,
+            semantic: result.value.diagnostics.semantic.status,
+            semanticMs: result.value.diagnostics.semantic.elapsedMs,
+          }
+        : { ok: false },
+    );
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+    setRefreshing(false);
+    if (!result.ok || result.value.modeUsed === 'lexical') return;
+    const shown = response();
+    if (shown && sameSearchOutcome(shown, result.value)) return;
+    setResponse(result.value);
+    setDraftAnalysis(result.value.analysis);
+    if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
   }
 
   /**

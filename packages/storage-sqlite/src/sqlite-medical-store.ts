@@ -415,6 +415,15 @@ const NAVIGATION_METADATA_FIELDS = [
   // Whom a recommendation is written for («Взрослые», «Дети»): two recommendations of one name
   // differ by it, and a result card has to say which is which.
   'ageCategories',
+  // A drug card resolves its instructions and the recommendations naming it from this listing:
+  // the full one carries every substance's whole product tree (megabytes per substance).
+  'registrationNumber',
+  'requestedRegistrationNumbers',
+  'registrationNumbers',
+  'sourceClass',
+  'documentKind',
+  'fetchedAt',
+  'clinicalMedicationLinks',
 ] as const;
 
 function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string, unknown> {

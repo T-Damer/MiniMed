@@ -20,6 +20,38 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Drug card and drug search on the phone — 2026-11-16 (STATE PERF15; not released)
+
+Owner's 0.6.106 log: «Рисперидон» took 15.1 s to find and 10.9 s to open (one 6 s frame). Reproduced
+with the 30 drug sets seeded and the CPU throttled four times.
+
+- **The full document listing ships every substance's product tree.** `metadata.smnnNodes` of an
+  ЕСКЛП substance is up to 2.9 MB (44.6 MB for the nervous-system set alone, 325 substances). A drug
+  card called `core.listDocuments()` after its first text, so every installed drug set sent its
+  whole metadata to the main thread, and the new array rebuilt the inline-link index and the
+  instruction index. The card now reads the navigation listing only; that listing carries the
+  instruction registrations (`registrationNumber`, `requestedRegistrationNumbers`,
+  `registrationNumbers`, `sourceClass`, `documentKind`, `fetchedAt`) and `clinicalMedicationLinks`.
+  Long frames after the tap, local, 4× throttle: 7.0 s in 27 frames → 3.3 s in 14; first text 1.3 s.
+- **Still on the full listing** (each pays the same cost once per core with the drug sets
+  installed): `MedicationCatalogView` (needs the trees), `ConditionCatalogView`, `ModuleCatalogView`,
+  `DocumentLibrary`, `NotesView`, `HerbalBookView`, `assessment-module-dependencies`. Next task:
+  move them to the navigation listing or a listing without `smnnNodes`.
+- **The reader never builds the link index inside its first render.** A list whose index is not
+  ready shows the text first; the index is built in short steps and the links join it.
+- **The instruction index is kept per document list** (it was computed four times per open).
+- **Search: text first, meaning second.** «Препараты», «Рекомендации» and the clinical search asked
+  the meaning model on every query (`mode: 'auto'`; the model is bundled in the APK, 5.1 s to load in
+  the log). The text search now answers first; the model runs after it, in the background, only for
+  a query of two or more words that no result's title carries, and replaces the list only when it
+  changed it (`search.meaning` span).
+- **The misspelling matcher** of the alias vocabulary is built in short steps during warm-up
+  (`prepareLookupSpelling`) instead of inside the first lookup (446 ms at 4× locally).
+- **Performance log:** `reader.load` records the document's shape (`kind`, `mode`, `sections`,
+  `chunks`, `chars`), `search.core` the query's size (`words`, `chars`). No ids and no words: the
+  log's «No content» rule stands until the owner decides otherwise.
+- Not explained: 8 s of the 15.1 s search lay outside the core's own timer. Not measured on a phone.
+
 ## Release 0.6.107 — 2026-11-16
 
 SRCH-FAST1 and PERF14 (below). Core and modules unchanged. Checks: `bun run verify`, unit, typecheck, build,
