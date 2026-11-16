@@ -20,7 +20,12 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Drug card and drug search on the phone — 2026-11-16 (STATE PERF15; not released)
+## Release 0.6.108 — 2026-11-16
+
+PERF15 (below). Core and modules unchanged. Checks: `bun run verify`, `benchmark:all`; e2e search, drug card and
+reader pass. Not tested on a phone.
+
+## Drug card and drug search on the phone — 2026-11-16 (STATE PERF15; released in 0.6.108)
 
 Owner's 0.6.106 log: «Рисперидон» took 15.1 s to find and 10.9 s to open (one 6 s frame). Reproduced
 with the 30 drug sets seeded and the CPU throttled four times.

@@ -4,6 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.108] - 2026-11-16
+
+- A drug card opens faster with the drug sets installed: it no longer loads every set's full product data, and its
+  text shows before the links between documents are ready.
+- Search answers from text first. The search by meaning runs afterwards, in the background, only for a query of two
+  or more words that no result's name carries; a drug typed by its name never waits for it.
+- The first search after a start no longer pauses to prepare the list of drug-name misspellings.
+- The performance log records the kind and size of an opened document and the length of a query (no names, no words).
+
 ## [0.6.107] - 2026-11-16
 
 - Search shows something at once: documents whose names carry the query appear the moment a search starts, and the
