@@ -55,6 +55,7 @@ import {
   type InstructionModuleOffer,
   instructionModuleOffer,
 } from '@/features/medications/instruction-offer';
+import { instructionReadabilityIndex } from '@/features/medications/instruction-source';
 import {
   consumeMedicationProductContext,
   medicationProductFromHistory,
@@ -449,6 +450,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       typeof source.metadata['standardizedInn'] === 'string'
         ? source.metadata['standardizedInn']
         : source.title,
+      instructionReadabilityIndex(listed),
     );
     const instructionId = chosen?.instructionDocumentId;
     if (!chosen || !instructionId) {
@@ -584,7 +586,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
         if (!current()) return;
       }
-      let listed = await listDocuments(core);
+      const listed = await listDocuments(core);
       if (!current()) return;
       setAvailableDocuments(listed);
       const availableIds = new Set(listed.map((item) => item.id));

@@ -423,6 +423,8 @@ const NAVIGATION_METADATA_FIELDS = [
   'sourceClass',
   'documentKind',
   'fetchedAt',
+  // A scan is a worse «instruction of the substance» than a text of its own.
+  'ocr',
   'clinicalMedicationLinks',
 ] as const;
 

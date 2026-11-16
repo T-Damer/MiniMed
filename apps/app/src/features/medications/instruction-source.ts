@@ -289,6 +289,34 @@ export function instructionSourceClassIndex(
   return index;
 }
 
+const readabilityByDocuments = new WeakMap<
+  readonly IndexedSummary[],
+  ReadonlyMap<string, number>
+>();
+
+/**
+ * Instruction document id → how readable it is as «the instruction» of a substance: 0 a whole
+ * instruction with its own text, 1 a whole instruction read from a scan, 2 a patient leaflet,
+ * 3 a leaflet from a scan, 5 and 6 a sheet of amendments or another auxiliary document.
+ */
+export function instructionReadabilityIndex(
+  documents: readonly IndexedSummary[],
+): ReadonlyMap<string, number> {
+  let index = readabilityByDocuments.get(documents);
+  if (!index) {
+    const ranks = new Map<string, number>();
+    for (const document of documents) {
+      if (document.sourceType !== 'official_drug_instruction') continue;
+      const kind = instructionKindOf(document.metadata);
+      const base = isAuxiliary(kind) ? 5 : kind === 'leaflet' ? 2 : 0;
+      ranks.set(document.id, base + Number(document.metadata?.['ocr'] === true));
+    }
+    index = ranks;
+    readabilityByDocuments.set(documents, index);
+  }
+  return index;
+}
+
 export type InstructionTextQuality = 'native' | 'ocr' | 'ocr-low' | 'ocr-reviewed';
 
 export interface InstructionSourceInfo {

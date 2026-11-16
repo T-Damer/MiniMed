@@ -64,6 +64,36 @@ describe('the body of a drug card', () => {
     expect(withoutRegistrySections(instruction)).toBe(instruction);
   });
 
+  it('never takes a sheet of amendments or a scan while a whole instruction is installed', () => {
+    // «Сульпирид»: «Бетамакс» had only a scanned «Изменение № 2», and it was shown as the card's
+    // instruction although «Сульпирид» and «Эглонил» had whole instructions with their own text.
+    const amendment = product({
+      registrationNumber: 'ЛП-004197',
+      tradeName: 'БЕТАМАКС',
+      instructionDocumentId: 'amendment',
+    });
+    const scan = product({ registrationNumber: 'ЛП-2', instructionDocumentId: 'scan' });
+    const whole = product({ registrationNumber: 'ЛП-9', instructionDocumentId: 'whole' });
+    const readability = new Map([
+      ['amendment', 6],
+      ['scan', 1],
+      ['whole', 0],
+    ]);
+    expect(
+      representativeInstructionProduct([amendment, scan, whole], 'Сульпирид', readability)
+        ?.instructionDocumentId,
+    ).toBe('whole');
+    expect(
+      representativeInstructionProduct([amendment, scan], 'Сульпирид', readability)
+        ?.instructionDocumentId,
+    ).toBe('scan');
+    // The only text there is still shows.
+    expect(
+      representativeInstructionProduct([amendment], 'Сульпирид', readability)
+        ?.instructionDocumentId,
+    ).toBe('amendment');
+  });
+
   it('reads the official instruction of the most fitting trade name', () => {
     const fallback = product({
       registrationNumber: 'ЛП-1',

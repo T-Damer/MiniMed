@@ -20,6 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Seventh phone log: large sets from kept facts, the patient card, Сульпирид — 2026-11-16 (STATE PERF17, DRUG-INSTR1; not released)
+
+Owner's log of 0.6.109: `core-mount-modules` 4.9 s and 7.3 s (13 `worker-open`, 6.5–13.5 s summed),
+`core-initialize` 4.8 s and 8.0 s, `search-ready` at 9.8 s and 15.4 s. On the patient card
+(`notes/patients/:id`) four frames of 4.3 s, 2.0 s, 6.4 s and 0.6 s in the module store's message
+handler.
+
+- **Large sets are mounted from kept facts** (`composition/deferred-module-store.ts`). A set in its own
+  OPFS pool is no longer opened and initialised at start: its health and whole-pack listings are kept
+  per file and per app build in the shelf's facts store (key `opfs:<pool>`), and the file is opened by
+  the first call that needs it or by `warmDeferredModuleStores()` after the start (two at a time).
+  The full document listing is never kept. A set with a definition reference still opens at mount.
+  Local, 8 drug sets: files opened at start 9 → 1, `core-mount-modules` 2.4 s (first) → 15–58 ms.
+  The first start of a new app build still opens every file once. Not measured on a phone.
+- **The patient card froze on the full listing.** `NotesView` and the module overview called
+  `core.listDocuments()` (every substance's product tree); both read the navigation listing now.
+  Still on the full listing: `MedicationCatalogView`, `ConditionCatalogView`, `DocumentLibrary`,
+  `HerbalBookView`, `assessment-module-dependencies`.
+- **DRUG-INSTR1: a sheet of amendments was shown as a substance's instruction.** «Сульпирид» showed
+  «Бетамакс», whose only installed text is a scanned «Изменение № 2» (`documentKind: amendment`,
+  `ocr: true`). `representativeInstructionProduct` now ranks by `instructionReadabilityIndex` first:
+  whole instruction with its own text, whole from a scan, leaflet, leaflet scan, then amendments.
+  The navigation projection carries `ocr`. With the nervous-system sets the card shows «Эглонил».
+- **Not fixed.** The definition card of «Пищевая аллергия» shows only the tail of the definition on
+  the phone; the stored text is whole and the web reader returns it whole, so the cut is on the
+  native core's path (`reference` op `text`) or in the phone's edition — not reproduced. Text search
+  over every set (12–15 s) and scroll lag in documents are unchanged. OCR quality of scanned
+  instructions is a data matter: 269 of 1 086 nervous-system instructions are scans.
+
 ## Release 0.6.109 — 2026-11-16
 
 PERF16, SRCH-FAST2 and SEXQ1 (below). App and the psychology tool module (`0.1.0-preview.11`, minimum app

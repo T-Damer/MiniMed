@@ -58,6 +58,8 @@ function ownInstruction(product: MedicationProduct): boolean {
   return product.instructionDocumentId !== null && !product.instructionFallback;
 }
 
+const NO_READABILITY: ReadonlyMap<string, number> = new Map();
+
 const SOURCE_ORDER = ['grls', 'eaeu-sister-register', 'manufacturer-site'] as const;
 
 function sourceRank(product: MedicationProduct): number {
@@ -74,11 +76,21 @@ function sourceRank(product: MedicationProduct): number {
 export function representativeInstructionProduct(
   products: readonly MedicationProduct[],
   substanceName: string,
+  /**
+   * How readable an instruction document is (`instructionReadabilityIndex`): 0 for a whole
+   * instruction with its own text; higher for a scan, a leaflet, a sheet of amendments. Before
+   * every other rule: a sheet of amendments («Изменение № 2», a scanned table of old and new
+   * wording) was shown as the substance's instruction while whole instructions were installed.
+   */
+  readability: ReadonlyMap<string, number> = NO_READABILITY,
 ): MedicationProduct | null {
   const substance = drugNameKey(substanceName);
   const withText = products.filter((product) => product.instructionDocumentId !== null);
+  const rank = (product: MedicationProduct): number =>
+    readability.get(product.instructionDocumentId ?? '') ?? 0;
   const ranked = withText.toSorted(
     (left, right) =>
+      rank(left) - rank(right) ||
       Number(ownInstruction(right)) - Number(ownInstruction(left)) ||
       // A ГРЛС file first, then another member state's register, then a holder's site.
       sourceRank(left) - sourceRank(right) ||
