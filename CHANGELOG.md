@@ -4,6 +4,17 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.109] - 2026-11-16
+
+- Search keeps the names it finds at once as the answer: the send button no longer spins while the text of the
+  sources is still being searched, and «Найдено в тексте» shows its own placeholder under the names.
+- In «Найдено в тексте» the names appear first; the found fragments join them afterwards, one card at a time.
+- A search by meaning shows its own placeholder («По смыслу») under the results instead of the spinner in the field.
+- The first search after a start no longer loads the drug directory (2.4 MB): it is prepared while the screen is idle.
+- New questionnaires in «Тесты» → «Психиатрия» → «Сексуальная функция»: the Arizona Sexual Experience Scale (ASEX),
+  «Сексуальная формула мужская» (СФМ) and «Сексуальная формула женская» (СФЖ) by G. S. Vasilchenko. The Russian text
+  of ASEX is MiniMed's translation of the original form; СФМ and СФЖ keep their half-point answers.
+
 ## [0.6.108] - 2026-11-16
 
 - A drug card opens faster with the drug sets installed: it no longer loads every set's full product data, and its

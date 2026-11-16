@@ -56,6 +56,11 @@
   animation: search-results-hide 180ms ease-out forwards;
 }
 
+/* Under results already on screen (names found at once, the text results): its own row. */
+.results-skeleton--below {
+  grid-area: auto;
+}
+
 .results-skeleton__group {
   --skeleton-bar: color-mix(in srgb, var(--theme-text-faint) 24%, transparent);
   --skeleton-sweep: color-mix(in srgb, var(--theme-surface-raised) 70%, transparent);

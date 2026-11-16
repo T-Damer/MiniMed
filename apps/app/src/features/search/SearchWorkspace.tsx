@@ -462,8 +462,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [refreshing, setRefreshing] = createSignal(false);
   // The send button turns into a spinner while a search runs, a re-run checks the list on screen
   // (progress in place, nothing inserted into the page) or the core is still on its way.
+  // Names found at once are the answer on screen: what is still being searched below them (the
+  // text of every source, the meaning model) shows its own placeholder there and leaves this alone.
   const submitBusy = (): boolean =>
-    loading() || refreshing() || (props.searchAllowed === false && props.searchPending === true);
+    (loading() && instantTitles().length === 0) ||
+    refreshing() ||
+    (props.searchAllowed === false && props.searchPending === true);
+  /** The second part of a search by meaning is running under the results on screen. */
+  const [meaningPending, setMeaningPending] = createSignal(false);
   const [pendingResponse, setPendingResponse] = createSignal<SearchResponse>();
   // The query whose source name the doctor asked to search as plain words («Искать везде»).
   const [everywhereQuery, setEverywhereQuery] = createSignal<string>();
@@ -639,9 +645,34 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return splitResultSections(clusters, (title) => titleNamesWords(title, words));
   });
   const [inTextExpanded, setInTextExpanded] = createSignal(false);
+  // Names first, citations second: a card of «Найдено в тексте» shows its name at once and its
+  // found fragment joins it later, one card per idle period, so a long list never renders its
+  // fragments (linked, highlighted text) in one step.
+  const [inTextFragments, setInTextFragments] = createSignal(0);
+  createEffect(() => {
+    const total = resultSections().inText.length;
+    setInTextFragments(0);
+    if (total === 0) return;
+    let cancelled = false;
+    const next = (): void => {
+      if (cancelled) return;
+      const shown = untrack(inTextFragments) + 1;
+      setInTextFragments(shown);
+      if (shown < total) void whenIdle().then(next);
+    };
+    void whenIdle().then(next);
+    onCleanup(() => {
+      cancelled = true;
+    });
+  });
   createEffect(on(response, () => setInTextExpanded(false), { defer: true }));
   const inTextShown = createMemo(() => shownInText(resultSections().inText, inTextExpanded()));
-  const clusterCard = (cluster: ResultCluster, index: number, first: boolean): JSX.Element => (
+  const clusterCard = (
+    cluster: ResultCluster,
+    index: number,
+    first: boolean,
+    nameOnly?: () => boolean,
+  ): JSX.Element => (
     <SearchResultGroupCard
       group={cluster.lead}
       index={index}
@@ -653,7 +684,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       compact={
         // Only a card that lists its sources stands in for the answer; a lone result keeps its
         // fragment.
-        first && cluster.others.length > 0 && answerKey() === conditionTitleKey(cluster.lead.title)
+        (first &&
+          cluster.others.length > 0 &&
+          answerKey() === conditionTitleKey(cluster.lead.title)) ||
+        nameOnly?.() === true
       }
     />
   );
@@ -1270,7 +1304,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     dataVersion: string,
     everywhere: boolean,
   ): Promise<void> {
-    setRefreshing(true);
+    setMeaningPending(true);
     const endSpan = perfSpan('search.meaning', { scope: props.scope });
     const result = await core.search({ ...request, mode: 'auto' });
     endSpan(
@@ -1284,7 +1318,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         : { ok: false },
     );
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
-    setRefreshing(false);
+    setMeaningPending(false);
     if (!result.ok || result.value.modeUsed === 'lexical') return;
     const shown = response();
     if (shown && sameSearchOutcome(shown, result.value)) return;
@@ -1966,9 +2000,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               />
             </div>
           </Show>
-          {/* Names on screen are the content of the wait; placeholders show only without them. */}
-          <Show when={skeletonMounted() && instantTitles().length === 0}>
-            <SearchResultsSkeleton leaving={!resultsPending()} />
+          {/* Under the names: what the text of the sources is still being searched for. */}
+          <Show when={skeletonMounted() && instantTitles().length > 0}>
+            <h3 class="search-results-section__title" data-testid="search-results-in-text-pending">
+              Найдено в тексте
+            </h3>
+          </Show>
+          <Show when={skeletonMounted()}>
+            <SearchResultsSkeleton leaving={!resultsPending()} below={instantTitles().length > 0} />
           </Show>
           <Show when={response()}>
             {(_searchResponse) => (
@@ -2107,6 +2146,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                   cluster,
                                   resultSections().named.length + clusterIndex,
                                   false,
+                                  () => clusterIndex >= inTextFragments(),
                                 )
                               }
                             </LayoutVirtualizedGrid>
@@ -2121,6 +2161,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                 Показать ещё {resultSections().inText.length - inTextShown().length}
                               </Button>
                             </Show>
+                          </Show>
+                          <Show when={meaningPending()}>
+                            <h3
+                              class="search-results-section__title"
+                              data-testid="search-results-meaning-pending"
+                            >
+                              По смыслу
+                            </h3>
+                            <SearchResultsSkeleton leaving={false} below />
                           </Show>
                         </>
                       }

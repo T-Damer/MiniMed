@@ -20,7 +20,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Fifth phone log: the drug directory inside the first search — 2026-11-16 (STATE PERF16; not released)
+## Release 0.6.109 — 2026-11-16
+
+PERF16, SRCH-FAST2 and SEXQ1 (below). App and the psychology tool module (`0.1.0-preview.11`, minimum app
+0.6.109). Checks: `bun run verify`, unit; e2e search, loaders, assessments. Not tested on a phone.
+
+## Sixth phone log, names first, three questionnaires — 2026-11-16 (STATE SRCH-FAST2, SEXQ1; released in 0.6.109)
+
+Owner's log of 0.6.108: documents open in 0.46–0.88 s (a 216 000-character recommendation in 0.88 s),
+`reader.load` now records the document's shape. A one-word text search in «Рекомендации» took 12.6 s and
+15.3 s (`mode: lexical`, two branches of 9–11.6 s each) and kept running while documents were read: the
+jank on the reader in that log lies under `search.core`.
+
+- **Not fixed: the text search asks every installed set.** ~800 small sets in three shard workers,
+  two branches each. This is the cause of the 12–15 s and of most reading lag in the log. Next task: one
+  shared text index for the small sets, or a term → set prefilter (`docs/SEARCH_ROADMAP.md`).
+- **Names are the answer (owner: «keep it for top finds»).** While names found at once are on screen the
+  send button does not spin; «Найдено в тексте» with the results skeleton stands under them
+  (`results-skeleton--below`). The meaning phase shows «По смыслу» with a skeleton under the results
+  instead of the refresh spinner.
+- **Citations second.** Cards of «Найдено в тексте» render their name first; the found fragment joins one
+  card per idle period (`inTextFragments`).
+- **Reader scrolling measured** (`READER_PERF=1`, 4× throttle): frame p95 25 ms reading, 50 ms fling;
+  script is ~1 s of 12 s, the rest is the browser's rendering. Nothing changed there.
+- **SEXQ1: ASEX, СФМ, СФЖ** in a new section «Сексуальная функция» (`sexual-function`, bank
+  «Психиатрия»). Sources and the choices made (ASEX in MiniMed's own translation; half points kept through
+  answer codes and scale formulas; no cut-offs invented for СФМ/СФЖ) are in `docs/ASSESSMENTS.md`.
+  `sexual-function-scales.test.ts` covers the criteria and every half-point answer.
+
+## Fifth phone log: the drug directory inside the first search — 2026-11-16 (STATE PERF16; released in 0.6.109)
 
 Owner's log of 0.6.107 (recorded before 0.6.108 was built, so it shows the PERF15 problems again:
 a drug card's full listing as 6.4 s and 5.7 s `Worker.onmessage` frames, `search.core` of 74 s with

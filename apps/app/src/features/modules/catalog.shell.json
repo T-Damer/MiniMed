@@ -8252,6 +8252,89 @@
       }
     },
     {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.asex",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "asex",
+        "title": "Аризонская шкала сексуального опыта (ASEX)",
+        "shortTitle": "ASEX",
+        "aliases": [
+          "ASEX",
+          "Arizona Sexual Experience Scale",
+          "Аризонская шкала сексуального опыта",
+          "шкала сексуальной дисфункции",
+          "сексуальная дисфункция"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "sexual-function",
+        "description": "Шкала ASEX (McGahuey и соавт., 2000): 5 пунктов о влечении, возбуждении, эрекции или увлажнении, оргазме и удовлетворении; сумма 5–30 и критерии сексуальной дисфункции.",
+        "estimatedMinutes": 1,
+        "audience": "Взрослые; заполняет пациент; скрининг и наблюдение в динамике, в том числе на фоне лекарственной терапии",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.sfm",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "sfm",
+        "title": "Сексуальная формула мужская (СФМ)",
+        "shortTitle": "СФМ",
+        "aliases": [
+          "СФМ",
+          "сексуальная формула мужская",
+          "квантификационная шкала СФМ",
+          "вопросник Васильченко",
+          "мужская сексуальная формула"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "sexual-function",
+        "description": "Квантификационная шкала Г. С. Васильченко: 10 разделов по 0–4 балла, три триады (до сношения, сношение, оценка) и длительность расстройства; среднестатистический образец 9/9/9 + 3 = 30.",
+        "estimatedMinutes": 5,
+        "audience": "Взрослые; заполняет пациент перед приёмом сексолога, врач проверяет ответы в беседе",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
+      "moduleId": "minimed.tools.psychology.ru",
+      "tool": {
+        "id": "minimed.assessment.sff",
+        "kind": "assessment",
+        "version": "1.0.0",
+        "slug": "sff",
+        "title": "Сексуальная формула женская (СФЖ)",
+        "shortTitle": "СФЖ",
+        "aliases": [
+          "СФЖ",
+          "сексуальная формула женская",
+          "квантификационная шкала СФЖ",
+          "женская сексуальная формула"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "sexual-function",
+        "description": "Квантификационная шкала под редакцией Г. С. Васильченко: 9 разделов по 0–4 балла, четыре диады и длительность расстройства; среднестатистический образец 6/6/6/6 + 3 = 27.",
+        "estimatedMinutes": 5,
+        "audience": "Взрослые; заполняет пациент перед приёмом сексолога, врач проверяет ответы в беседе",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        }
+      }
+    },
+    {
       "moduleId": "minimed.tools.mmpi.ru",
       "tool": {
         "id": "minimed.assessment.smil-men",

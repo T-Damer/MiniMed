@@ -34,11 +34,11 @@ afterEach(() => {
 
 describe('assessment catalog', () => {
   it('keeps all core catalog entries visible before and after downloading a module', () => {
-    expect(ASSESSMENT_CATALOG).toHaveLength(33);
+    expect(ASSESSMENT_CATALOG).toHaveLength(36);
     registerPsychologyAssessments();
     const catalog = getAssessmentCatalog();
-    expect(catalog).toHaveLength(33);
-    expect(new Set(catalog.map((item) => item.id)).size).toBe(33);
+    expect(catalog).toHaveLength(36);
+    expect(new Set(catalog.map((item) => item.id)).size).toBe(36);
     expect(catalog.every((item) => item.aliases.length > 0)).toBe(true);
   });
 

@@ -9,12 +9,19 @@ const CARD_INDEXES = (count: number): readonly number[] =>
  * Placeholder for the result groups: the same card, header, tags row and excerpt rows as
  * `SearchResultGroupCard`, drawn as quiet bars. It sits in the results slot, so it never moves.
  */
-export function SearchResultsSkeleton(props: { readonly leaving: boolean }): JSX.Element {
+export function SearchResultsSkeleton(props: {
+  readonly leaving: boolean;
+  /** In the page's flow, under what is already found, instead of in the place of the results. */
+  readonly below?: boolean;
+}): JSX.Element {
   const columns = skeletonColumnCount(window.innerWidth);
   return (
     <div
       class="results-skeleton"
-      classList={{ 'results-skeleton--leaving': props.leaving }}
+      classList={{
+        'results-skeleton--leaving': props.leaving,
+        'results-skeleton--below': props.below === true,
+      }}
       role="status"
       aria-label="Загружаем результаты поиска"
       data-testid="search-skeleton"

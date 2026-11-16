@@ -114,6 +114,12 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Тесты ВОЗ на риск, связанный с алкоголем, и шкала мыслей об алкоголе и тяги.',
   },
   {
+    id: 'sexual-function',
+    title: 'Сексуальная функция',
+    description:
+      'Шкала ASEX и вопросники Г. С. Васильченко для мужчин (СФМ) и женщин (СФЖ): влечение, возбуждение, оргазм, удовлетворённость.',
+  },
+  {
     id: 'newborn-screening',
     title: 'Оценка новорождённого',
     description: 'Стандартизированная оценка состояния новорождённого сразу после рождения.',
@@ -180,6 +186,7 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'personality-inventory': 'minimed.tools.mmpi.ru',
     asthenia: 'minimed.tools.psychology.ru',
     'substance-use': 'minimed.tools.psychology.ru',
+    'sexual-function': 'minimed.tools.psychology.ru',
     'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',
     'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
     'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',
