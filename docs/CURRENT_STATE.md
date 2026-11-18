@@ -54,6 +54,12 @@ The OCR audit inventories source checksums, pages, blocks and coordinates for re
 The second-opinion pipeline marks missing or repeated numbers for review. Sibling substitution
 requires a corresponding numeric token for each differing value. None of these checks edits a source.
 
+## Clinical recommendation update — 2026-11-18
+
+The clinical delta release adds 27 individually downloadable official editions to the app catalog.
+The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
+check compares the Ministry catalog with MiniMed daily and on demand in GitHub Actions.
+
 ## Release 0.6.112 — 2026-11-18
 
 ### Startup stalls and compact search results

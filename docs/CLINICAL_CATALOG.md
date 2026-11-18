@@ -79,6 +79,11 @@ SQLite validation.
 
 ## Automation
 
+`clinical-registry-check.yml` compares the active Ministry registry with the app catalog daily
+and on demand. It uses the same `official-sync` and `delta` commands as local verification.
+The run summary lists new official editions and the report artifact records the full delta.
+The job has read-only access and performs no content builds or publication.
+
 `bun run content:catalog:clinical` refreshes the official Ministry API export, rebuilds the ledger,
 checks selected documents, and generates the 744-document source plan.
 

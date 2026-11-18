@@ -1,0 +1,55 @@
+name: Check official clinical recommendations
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clinical-registry-check
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.10.0'
+          enable-cache: true
+      - run: uv sync --project tools/ingest --locked --no-dev
+      - name: Compare active registry editions with the app catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          report_dir="$RUNNER_TEMP/clinical-registry"
+          mkdir -p "$report_dir"
+          uv run --project tools/ingest --locked --no-dev medbase-clinical-catalog official-sync \
+            --output "$report_dir/official.json" --report "$report_dir/fetch.json"
+          uv run --project tools/ingest --locked --no-dev medbase-clinical-catalog delta \
+            --catalog "$report_dir/official.json" \
+            --module-catalog apps/app/src/features/modules/catalog.preview.json \
+            --output "$report_dir/delta.json" > "$report_dir/summary.json"
+          {
+            echo '### Official clinical recommendation inventory'
+            jq -r '
+              "- Active official editions: \(.registryRecords)",
+              "- Active editions missing from MiniMed: \(.newRecords | length)",
+              "- Listed editions absent from the active registry: \(.listedButNotActive | length)"
+            ' "$report_dir/summary.json"
+            jq -r '.records[] | "- [" + .id + "](" + .officialUrl + ") " + .name' "$report_dir/delta.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: clinical-registry-delta
+          path: |
+            ${{ runner.temp }}/clinical-registry/delta.json
+            ${{ runner.temp }}/clinical-registry/fetch.json
+            ${{ runner.temp }}/clinical-registry/summary.json
+          if-no-files-found: error
+          retention-days: 14
