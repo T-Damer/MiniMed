@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "fb2.2026.11.06",
-  "publishedAt": "2026-11-06T20:00:00Z",
+  "catalogVersion": "clinical-delta-2026.11.18-496529600b9c",
+  "publishedAt": "2026-11-18T10:21:58.670Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",
@@ -43,7 +43,7 @@
   "sectionDocumentCounts": {
     "conditions": 15904,
     "icd11": 37052,
-    "guidelines": 763,
+    "guidelines": 790,
     "medications": 3324,
     "legal": 31
   },
