@@ -24,6 +24,8 @@ export interface AppPreferences {
    */
   readonly vibrationChosen?: boolean;
   readonly rememberSearchMode: boolean;
+  readonly restoreLastPage: boolean;
+  readonly showPageRestoreNotice: boolean;
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
   readonly floatingWindowsEnabled: boolean;
@@ -50,6 +52,8 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   splitNavigation: false,
   vibrationEnabled: false,
   rememberSearchMode: false,
+  restoreLastPage: true,
+  showPageRestoreNotice: true,
   soundVolume: DEFAULT_SOUND_VOLUME,
   bookReadingMode: false,
   floatingWindowsEnabled: false,
@@ -74,6 +78,8 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly vibrationEnabled?: unknown;
     readonly vibrationChosen?: unknown;
     readonly rememberSearchMode?: unknown;
+    readonly restoreLastPage?: unknown;
+    readonly showPageRestoreNotice?: unknown;
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
     readonly floatingWindowsEnabled?: unknown;
@@ -105,6 +111,8 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.rememberSearchMode === 'boolean'
         ? candidate.rememberSearchMode
         : DEFAULT_PREFERENCES.rememberSearchMode,
+    restoreLastPage: candidate.restoreLastPage !== false,
+    showPageRestoreNotice: candidate.showPageRestoreNotice !== false,
     soundVolume: clampVolume(
       typeof candidate.soundVolume === 'number'
         ? candidate.soundVolume
@@ -184,6 +192,14 @@ export function saveAppPreferences(preferences: AppPreferences): AppPreferences 
 
 export function setReaderChromePinned(pinned: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), readerChromePinned: pinned });
+}
+
+export function setRestoreLastPage(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), restoreLastPage: enabled });
+}
+
+export function setShowPageRestoreNotice(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), showPageRestoreNotice: enabled });
 }
 
 export function getModuleAutoUpdatesEnabled(): boolean {

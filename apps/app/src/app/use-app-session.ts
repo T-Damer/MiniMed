@@ -5,7 +5,7 @@ import { toast } from 'solid-sonner';
 import { afterBootReveal } from '@/app/boot-surface';
 import { BULK_INSTALL_RECONNECT_GAP_MS, createReconnectPacer } from '@/app/reconnect-pacer';
 import { countPublishedCatalogModules } from '@/app/root-view';
-import { createBrowserCore } from '@/composition/create-browser-core';
+import { createBrowserCore, readInstalledModuleDocument } from '@/composition/create-browser-core';
 import { warmDeferredModuleStores } from '@/composition/deferred-module-store';
 import {
   type InitializedMedicalCore,
@@ -18,6 +18,7 @@ import {
   cancelQueuedAndroidApkDownload,
   startQueuedAndroidApkDownload,
 } from '@/features/downloads/native-apk-download';
+import type { InstalledMountProgress } from '@/features/modules/browser-module-runtime';
 import { recordInstallPhase } from '@/features/modules/install-timing';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 import {
@@ -46,7 +47,11 @@ import {
   watchAndroidApkTasks,
 } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
-import { publishCoreDataVersion, readInstalledDataVersion } from '@/state/search-data-version';
+import {
+  publishCoreDataVersion,
+  readInstalledDataSnapshot,
+  readInstalledDataVersion,
+} from '@/state/search-data-version';
 import { installTakeoverListener } from '@/state/tab-takeover';
 import { installUiFeedback } from '@/state/ui-feedback';
 
@@ -100,6 +105,7 @@ export function useAppSession() {
     readonly total: number;
     readonly phase?: 'downloading' | 'verifying' | 'installing';
   }>();
+  const [installedProgress, setInstalledProgress] = createSignal<InstalledMountProgress>();
   let beginCoreDownload: (() => void) | undefined;
   // The download was asked for while the device is offline: it begins when the network returns.
   const [coreWaitingForNetwork, setCoreWaitingForNetwork] = createSignal(false);
@@ -402,42 +408,57 @@ export function useAppSession() {
     );
   };
 
-  const createSessionCore = async () =>
+  const createSessionCore = async (onAndroidBase?: () => void) =>
     new RetirableMedicalCore(
-      await createBrowserCore({
-        requestDownload: async (resuming) => {
-          // The first launch's onboarding introduces the app before anything is downloaded.
-          if (isCoreStartHeld()) {
-            setCoreWaitingToStart(true);
-            try {
-              await whenCoreStartReleased();
-            } finally {
-              setCoreWaitingToStart(false);
+      await createBrowserCore(
+        {
+          requestDownload: async (resuming) => {
+            // The first launch's onboarding introduces the app before anything is downloaded.
+            if (isCoreStartHeld()) {
+              setCoreWaitingToStart(true);
+              try {
+                await whenCoreStartReleased();
+              } finally {
+                setCoreWaitingToStart(false);
+              }
             }
-          }
-          return new Promise<void>((resolve, reject) => {
-            if (ready()) {
-              reject(
-                new Error(
-                  'Установленная основная база больше не доступна. Перезапустите приложение для повторной загрузки.',
-                ),
-              );
-              return;
-            }
-            setCoreDownloadRequired(true);
-            if (resuming || isCoreDownloadConsented()) {
-              setCoreDownloading(true);
-              void untilOnline().then(resolve);
-            } else {
-              setCoreDownloadDeferred(true);
-              beginCoreDownload = () => void untilOnline().then(resolve);
-            }
-          });
+            return new Promise<void>((resolve, reject) => {
+              if (ready()) {
+                reject(
+                  new Error(
+                    'Установленная основная база больше не доступна. Перезапустите приложение для повторной загрузки.',
+                  ),
+                );
+                return;
+              }
+              setCoreDownloadRequired(true);
+              if (resuming || isCoreDownloadConsented()) {
+                setCoreDownloading(true);
+                void untilOnline().then(resolve);
+              } else {
+                setCoreDownloadDeferred(true);
+                beginCoreDownload = () => void untilOnline().then(resolve);
+              }
+            });
+          },
+          onProgress: setCoreProgress,
+          onModuleProgress: setInstalledProgress,
+          onWaitingForOtherTab: setCoreWaitingForOtherTab,
         },
-        onProgress: setCoreProgress,
-        onWaitingForOtherTab: setCoreWaitingForOtherTab,
-      }),
+        onAndroidBase,
+      ),
     );
+
+  let servesBaseOnly = false;
+  let baseAttachmentVersion: string | undefined;
+
+  function warmModuleFiles(): void {
+    void Promise.resolve(getModuleShelf()?.warm())
+      .then(() => warmDeferredModuleStores())
+      .catch((cause: unknown) => {
+        console.warn('Module files were not opened ahead of the first query.', cause);
+      });
+  }
 
   const reconnectInstalledModules = async (): Promise<void> => {
     const current = ready();
@@ -445,8 +466,15 @@ export function useAppSession() {
     // The installed set the next core is built from; saved searches are labelled with it once
     // that core is the one searching, never earlier.
     const dataVersion = readInstalledDataVersion();
+    if (servesBaseOnly) baseAttachmentVersion = dataVersion;
     const reloadStartedAt = performance.now();
     await swapMedicalCore(current, createSessionCore, (candidate) => {
+      if (disposed) {
+        void candidate.core.close().catch((cause: unknown) => {
+          console.warn('Unable to close the unused MedicalCore instance.', cause);
+        });
+        return;
+      }
       recordInstallPhase('core-reload-open', reloadStartedAt);
       // Publish the new core before the previous one closes: readers must never be handed a core
       // that is shutting down («DB has been closed» right after an install).
@@ -457,13 +485,19 @@ export function useAppSession() {
       coreToClose = candidate.core;
       setReady(candidate);
       if (previousSearchCore) void previousSearchCore.close();
-      // A reloaded core (an install) gets its first-search indexes while idle too.
-      void scheduleIdle(() => candidate.core.warmUp?.() ?? Promise.resolve()).catch(
-        (cause: unknown) => {
-          console.warn('Search indexes were not prepared after the core reload.', cause);
-        },
-      );
-    });
+      if (servesBaseOnly) {
+        servesBaseOnly = false;
+        performance.mark('minimed:installed-search-ready');
+      } else {
+        // The startup attachment leaves its large packs cold until an actual search or read.
+        void scheduleIdle(() => candidate.core.warmUp?.() ?? Promise.resolve()).catch(
+          (cause: unknown) => {
+            console.warn('Search indexes were not prepared after the core reload.', cause);
+          },
+        );
+      }
+    }).finally(() => setInstalledProgress(undefined));
+    if (disposed) return;
     // The data version names the installed set the new core serves; the install e2e waits on it.
     recordInstallPhase('core-reload', reloadStartedAt, { dataVersion });
     setDownloadedModuleCount(
@@ -475,6 +509,9 @@ export function useAppSession() {
   let reconnecting: Promise<void> | undefined;
   let reconnectRequested = false;
   const connectInstalledModules = (): Promise<void> => {
+    if (reconnecting && servesBaseOnly && baseAttachmentVersion === readInstalledDataVersion()) {
+      return reconnecting;
+    }
     reconnectRequested = true;
     if (!ready() || disposed) return Promise.resolve();
     if (reconnecting) return reconnecting;
@@ -485,6 +522,7 @@ export function useAppSession() {
       }
     })().finally(() => {
       reconnecting = undefined;
+      baseAttachmentVersion = undefined;
     });
     return reconnecting;
   };
@@ -538,8 +576,16 @@ export function useAppSession() {
     // catalog: its screens do not need them, and the first would fetch a database it never uses.
     if (activeProfile()?.skipSearchCore) return;
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
-    const initialDataVersion = readInstalledDataVersion();
-    const initializedPromise = initializeMedicalCore(createSessionCore);
+    const initialData = readInstalledDataSnapshot();
+    const initializedPromise = initializeMedicalCore(() =>
+      createSessionCore(
+        initialData.hasActiveModules
+          ? () => {
+              servesBaseOnly = true;
+            }
+          : undefined,
+      ),
+    );
     try {
       const initialized = await initializedPromise;
       if (disposed) {
@@ -548,29 +594,32 @@ export function useAppSession() {
       }
       const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
       coreToClose = initialized.core;
-      publishCoreDataVersion(initialDataVersion);
+      publishCoreDataVersion(initialData.version, servesBaseOnly);
       setSearchCore(initializedSearchCore);
       setReady(initialized);
       performance.mark('minimed:search-ready');
       setCoreDownloading(false);
-      if (reconnectRequested) await connectInstalledModules();
-      // The ~10 MB release catalog is parsed only after search is interactive, the boot surface
-      // has gone and the main thread is idle; the remote refresh below reuses the same load.
-      // The first search's indexes (≈0.6 s of main thread on a Mac, more on a phone) are built
-      // while the screen is idle after the reveal, not inside the first query (PERF5).
-      void afterBootReveal()
-        .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
-        .catch((cause: unknown) => {
-          console.warn('Search indexes were not prepared ahead of the first query.', cause);
-        });
-      // The module files the start did not open are opened and initialised in their workers from
-      // now on, beside the index preparation above and not after it: a search typed in the first
-      // seconds no longer opens 800 cold files itself. Then the large sets, two at a time.
-      void Promise.resolve(getModuleShelf()?.warm())
-        .then(() => warmDeferredModuleStores())
-        .catch((cause: unknown) => {
-          console.warn('Module files were not opened ahead of the first query.', cause);
-        });
+      if (servesBaseOnly) {
+        void afterBootReveal()
+          .then(() =>
+            scheduleIdle(async () => {
+              if (!disposed && servesBaseOnly && !reconnecting) await connectInstalledModules();
+            }),
+          )
+          .catch((cause: unknown) => {
+            console.warn('Installed content was not connected at start-up.', cause);
+          });
+      } else {
+        if (reconnectRequested) await connectInstalledModules();
+        // Prepare the first query's indexes after the first screen has painted.
+        void afterBootReveal()
+          .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
+          .catch((cause: unknown) => {
+            console.warn('Search indexes were not prepared ahead of the first query.', cause);
+          });
+        warmModuleFiles();
+      }
+      // Parse the release catalog after the reveal. The remote refresh reuses this load.
       const moduleRuntimeLoad = afterBootReveal().then(() =>
         scheduleIdle(() =>
           Promise.all([
@@ -627,6 +676,7 @@ export function useAppSession() {
         cause instanceof Error ? cause.message : 'Не удалось открыть локальную базу знаний.',
       );
     } finally {
+      setInstalledProgress(undefined);
       if (bootTimer) clearTimeout(bootTimer);
       bootTimer = undefined;
     }
@@ -666,6 +716,7 @@ export function useAppSession() {
     coreDownloadRequired,
     coreDownloadDeferred,
     coreDownloading,
+    installedProgress,
     coreWaitingForNetwork,
     coreProgress,
     downloadCore,
@@ -696,5 +747,6 @@ export function useAppSession() {
     cancelAvailableUpdate,
     checkAvailableUpdate,
     connectInstalledModules,
+    stagedModuleReader: () => (servesBaseOnly ? readInstalledModuleDocument : undefined),
   };
 }

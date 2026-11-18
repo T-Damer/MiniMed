@@ -8,7 +8,7 @@ import {
   fillFormWithCues,
   formFillReviewItems,
 } from '@localmed/core/form-fill';
-import { createSignal, For, type JSX, Match, onMount, Show, Switch } from 'solid-js';
+import { createSignal, For, type JSX, Match, onCleanup, onMount, Show, Switch } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -16,18 +16,20 @@ import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { TextArea } from '@/components/TextArea';
 import {
+  conversationSession,
   conversationTitle,
   loadConversationLines,
 } from '@/features/conversations/conversation-session';
+import { FormFillReviewList } from '@/features/form-fill/FormFillReviewList';
+import { takeHandedConversation } from '@/features/form-fill/form-fill-handoff';
 import { pluralRu } from '@/features/news/news-state';
 import { pastedTranscriptLines } from '@/features/psy-status/psy-status-session';
 import {
   type ConversationRecording,
   listConversationRecordings,
 } from '@/state/conversation-recordings';
+import { afterLayersClosed } from '@/state/history-layer';
 import { FEEDBACK_MOMENTS, playFeedback } from '@/state/ui-feedback';
-import { FormFillReviewList } from './FormFillReviewList';
-import { takeHandedConversation } from './form-fill-handoff';
 
 import './form-fill-review.css';
 
@@ -79,6 +81,23 @@ export function FormFillFromConversation(props: {
     setResult(filled);
     setReview(emptyFormFillReview(filled));
     setStep('review');
+  };
+  let active = true;
+  const applyRecording = (label: string, lines: readonly string[]): void => {
+    if (active) {
+      fill({ label, lines });
+      setOpen(true);
+    }
+  };
+  onCleanup(() => {
+    active = false;
+    conversationSession.releaseForm(applyRecording);
+  });
+  const recordForForm = (): void => {
+    close();
+    afterLayersClosed(() => {
+      if (active) conversationSession.prepareForForm(applyRecording);
+    });
   };
   // A recording handed over from its «Запись сохранена» dialog opens straight on the values.
   onMount(() => {
@@ -158,6 +177,13 @@ export function FormFillFromConversation(props: {
         <div class="form-fill-sheet">
           <Switch>
             <Match when={step() === 'source'}>
+              <Button
+                variant="primary"
+                icon={<AppGlyph name="microphone" />}
+                onClick={recordForForm}
+              >
+                Записать беседу
+              </Button>
               <Show
                 when={recordings().length > 0}
                 fallback={

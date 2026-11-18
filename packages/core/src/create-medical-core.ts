@@ -1331,21 +1331,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     }
   };
 
-  const ensureInitialized = async (): Promise<Result<CoreStatus, LocalMedError>> => {
-    if (initialized) {
-      try {
-        const health = await options.store.getHealth();
-        return ok({
-          state: 'ready',
-          schemaVersion: health.schemaVersion,
-          contentPackIds: health.contentPackIds,
-          documentCount: health.documentCount,
-        });
-      } catch (error) {
-        return err(asLocalMedError(error));
-      }
-    }
-    return initialize();
+  const ensureInitialized = async (): Promise<Result<void, LocalMedError>> => {
+    if (initialized) return ok(undefined);
+    const result = await initialize();
+    return result.ok ? ok(undefined) : result;
   };
 
   const getSearchDocuments = (): Promise<readonly SearchDocumentDescriptor[]> => {

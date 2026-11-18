@@ -59,6 +59,8 @@ export interface PageProps {
    * on a page with a `hero`.
    */
   readonly room?: JSX.Element;
+  /** A compact control that stays directly below the hero header as it pins. */
+  readonly pinnedFooter?: JSX.Element;
 }
 
 /**
@@ -78,6 +80,7 @@ export function Page(props: PageProps): JSX.Element {
     description: children(() => props.description),
     icon: children(() => props.icon),
     room: children(() => props.room),
+    pinnedFooter: children(() => props.pinnedFooter),
   };
   let headerElement: HTMLElement | undefined;
   let rowElement: HTMLDivElement | undefined;
@@ -277,6 +280,9 @@ export function Page(props: PageProps): JSX.Element {
             </Show>
           </div>
         )}
+      </Show>
+      <Show when={slot.pinnedFooter() !== undefined}>
+        <div class="page__pinned-footer">{slot.pinnedFooter()}</div>
       </Show>
     </header>
   );

@@ -94,6 +94,7 @@ import {
   presentReaderSectionTitle,
   readerChunkFindText,
 } from '@/features/library/reader-text-presentation';
+import { createReaderViewportWork } from '@/features/library/reader-viewport-work';
 import {
   getReferenceImageResolver,
   isReferenceImageDocumentId,
@@ -258,14 +259,14 @@ function sectionIndexForAnchor(
   );
 }
 
-function scheduleIdleWork(work: () => void): number {
+function scheduleIdleWork(work: () => void, timeout: number | null = 100): number {
   const requestIdleCallback = (
     globalThis as typeof globalThis & {
       requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
     }
   ).requestIdleCallback;
   if (typeof requestIdleCallback === 'function') {
-    return requestIdleCallback(work, { timeout: 100 });
+    return requestIdleCallback(work, timeout === null ? undefined : { timeout });
   }
   return window.setTimeout(work, 0);
 }
@@ -284,10 +285,12 @@ function cancelIdleWork(handle: number): void {
 function AllmedSupplementPanel(props: {
   readonly supplement: TradeNameSupplement;
   readonly defaultOpen: boolean;
+  readonly graphicsReady: boolean;
 }): JSX.Element {
   const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
 
-  onMount(() => {
+  createEffect(() => {
+    if (!props.graphicsReady) return;
     const reference = props.supplement.product.imageReference;
     if (!reference) return;
     void resolveMedicationPackagingImage(reference).then(setImage);
@@ -706,6 +709,34 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const [fullTextProgress, setFullTextProgress] = createSignal<number | null>(null);
   const [fullTextError, setFullTextError] = createSignal<string | null>(null);
   const [mountedSectionCount, setMountedSectionCount] = createSignal(0);
+  const [renderStage, setRenderStage] = createSignal<'text' | 'tables' | 'links' | 'graphics'>(
+    'text',
+  );
+  const observeViewportWork = createReaderViewportWork();
+  const tablesReady = () => renderStage() !== 'text';
+  const linksReady = () => renderStage() === 'links' || renderStage() === 'graphics';
+  const graphicsReady = () => renderStage() === 'graphics';
+  const renderEdition = createMemo(() => props.document?.versionId);
+  createEffect(() => {
+    const edition = renderEdition();
+    setRenderStage('text');
+    if (!edition) return;
+
+    let work: number | undefined;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        setRenderStage('tables');
+        work = scheduleIdleWork(() => {
+          setRenderStage('links');
+          work = scheduleIdleWork(() => setRenderStage('graphics'), null);
+        }, null);
+      });
+    });
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      if (work !== undefined) cancelIdleWork(work);
+    });
+  });
   let flashTimeout: number | undefined;
   let flashedHeading: HTMLElement | null = null;
 
@@ -807,19 +838,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
 
   // Drug screen: header, quick links and section index. Only for a trade name or a substance card.
-  const listedDocumentTitles = createMemo(
-    () =>
-      new Map(
-        (props.availableDocuments ?? []).map((item) => [item.id, displayDocumentTitle(item)]),
-      ),
-  );
   const isDrugDocument = createMemo(() => {
     const source = props.medicationSource ?? props.document;
     return !!props.medicationProduct || (!!source && isEsklpSubstanceDocument(source));
   });
-  const mfgCountries = useMfgCountries(isDrugDocument);
-  const fallbackAsset = useSubstanceFallback(() => isDrugDocument());
+  const mfgCountries = useMfgCountries(() => linksReady() && isDrugDocument());
+  const fallbackAsset = useSubstanceFallback(() => linksReady() && isDrugDocument());
   const drugSourceProducts = createMemo(() => {
+    if (!linksReady()) return [];
     const source = props.medicationSource ?? props.document;
     if (!source || !isEsklpSubstanceDocument(source)) return [];
     const index = instructionIndexFromSummaries(props.availableDocuments ?? []);
@@ -841,7 +867,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       product: props.medicationProduct,
       sourceProducts: drugSourceProducts(),
       supplements: props.drugSupplements ?? props.supplementalPanels ?? [],
-      documentTitle: (documentId) => listedDocumentTitles().get(documentId),
+      documentTitle: (documentId) => {
+        const source = props.availableDocuments?.find((item) => item.id === documentId);
+        return source ? displayDocumentTitle(source) : undefined;
+      },
     });
   });
   // A drug card whose set is not installed: the pointer names the ЕСКЛП card, and the comparison
@@ -852,6 +881,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
 
   const findUnits = createMemo((): readonly DocumentFindUnit[] => {
+    if (!findOpen()) return [];
     const document = props.document;
     if (!document) return [];
     const units: DocumentFindUnit[] = [];
@@ -1141,6 +1171,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   // the links join it when the index, built in short steps, is ready.
   const [preparedLinkLists, setPreparedLinkLists] = createSignal(0);
   const documentLinkMatcher = createMemo(() => {
+    if (!linksReady()) return null;
     const document = props.document;
     if (!document) return null;
     const documents = props.availableDocuments ?? NO_DOCUMENTS;
@@ -1164,6 +1195,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return document ? documentInteractiveToolLink(document.metadata) : undefined;
   });
   const referenceImageResolver = createMemo(() => {
+    if (!graphicsReady()) return undefined;
     const document = props.document;
     if (
       !document ||
@@ -1512,10 +1544,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   when={drugScreen()}
                   fallback={
                     <>
-                      <ReaderHero picture={heroPicture()} onSource={setHeroImageSource}>
+                      <ReaderHero
+                        picture={heroPicture()}
+                        graphicsReady={graphicsReady()}
+                        onSource={setHeroImageSource}
+                      >
                         <ReaderTitleRow
                           aside={
-                            <Show when={documentValue().sourceType === 'official_drug_instruction'}>
+                            <Show
+                              when={
+                                graphicsReady() &&
+                                documentValue().sourceType === 'official_drug_instruction'
+                              }
+                            >
                               <DrugCompoundAside
                                 screen={null}
                                 inn={textOf(documentValue().metadata['inn'])}
@@ -1682,11 +1723,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     <>
                       <DrugScreenHeader
                         header={screen().header}
+                        graphicsReady={graphicsReady()}
                         aside={
-                          <DrugCompoundAside
-                            screen={screen()}
-                            inn={textOf(documentValue().metadata['inn'])}
-                          />
+                          <Show when={graphicsReady()}>
+                            <DrugCompoundAside
+                              screen={screen()}
+                              inn={textOf(documentValue().metadata['inn'])}
+                            />
+                          </Show>
                         }
                         title={
                           <QueryHighlightedText
@@ -1709,20 +1753,22 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           />
                         }
                       />
-                      <DrugQuickLinks
-                        links={screen().links}
-                        onSelectProduct={(product) => props.onSelectMedicationProduct?.(product)}
-                        onOpenSubstance={(link) => {
-                          if (link.target.kind === 'substance-card') {
-                            props.onSelectMedicationProduct?.(undefined);
-                            return;
-                          }
-                          openDocumentOverlay(link.target.documentId, null, {
-                            preferSummary: true,
-                          });
-                        }}
-                        onOpenGroup={(group) => openMedicationCatalogSearch(group.query)}
-                      />
+                      <Show when={linksReady()}>
+                        <DrugQuickLinks
+                          links={screen().links}
+                          onSelectProduct={(product) => props.onSelectMedicationProduct?.(product)}
+                          onOpenSubstance={(link) => {
+                            if (link.target.kind === 'substance-card') {
+                              props.onSelectMedicationProduct?.(undefined);
+                              return;
+                            }
+                            openDocumentOverlay(link.target.documentId, null, {
+                              preferSummary: true,
+                            });
+                          }}
+                          onOpenGroup={(group) => openMedicationCatalogSearch(group.query)}
+                        />
+                      </Show>
                       <Show when={!props.medicationProduct && props.substanceInstructionProduct}>
                         {(product) => (
                           <p class="drug-instruction-of" data-testid="drug-instruction-of">
@@ -1782,7 +1828,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   )}
                 </Show>
 
-                <RlsMedicationPackagingPanel document={documentValue()} />
+                <Show when={tablesReady()}>
+                  <RlsMedicationPackagingPanel document={documentValue()} />
+                </Show>
 
                 <Show when={documentValue().sourceType === 'official_drug_instruction'}>
                   <DrugConditionRow document={documentValue()} />
@@ -1842,6 +1890,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           <AllmedSupplementPanel
                             supplement={supplement}
                             defaultOpen={index() === 0}
+                            graphicsReady={graphicsReady()}
                           />
                         )}
                       </For>
@@ -1954,6 +2003,17 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           </Show>
                           <For each={resolveDocumentChunkItems(section.chunks)}>
                             {(item) => {
+                              const [nearby, setNearby] = createSignal(false);
+                              const observeChunk = (element: HTMLDivElement): void => {
+                                createEffect(() => {
+                                  const allowed =
+                                    item.kind === 'rich'
+                                      ? item.block.kind === 'image' && graphicsReady()
+                                      : linksReady();
+                                  if (allowed)
+                                    onCleanup(observeViewportWork(element, () => setNearby(true)));
+                                });
+                              };
                               const activeStart = () =>
                                 currentMatch()?.unitId === item.chunk.anchor
                                   ? currentMatch()?.start
@@ -1971,6 +2031,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                   when={item.kind === 'rich' ? item.block : undefined}
                                   fallback={
                                     <div
+                                      ref={observeChunk}
                                       id={item.chunk.anchor}
                                       class="document-text-chunk"
                                       classList={{
@@ -1994,11 +2055,18 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                         paragraphClass="document-overlay-section__paragraph"
                                         // biome-ignore lint/complexity/useLiteralKeys: source spans are optional runtime metadata.
                                         sourceSpans={item.chunk.metadata?.['sourceSpans']}
+                                        tablesReady={tablesReady()}
                                         documentId={documentValue().id}
-                                        resolveImage={referenceImageResolver()}
+                                        resolveImage={
+                                          nearby() ? referenceImageResolver() : undefined
+                                        }
                                         hiddenImageSource={heroImageSource() ?? undefined}
                                         core={props.core}
-                                        documentLinkMatcher={documentLinkMatcher() ?? undefined}
+                                        documentLinkMatcher={
+                                          nearby()
+                                            ? (documentLinkMatcher() ?? undefined)
+                                            : undefined
+                                        }
                                         onDocumentLink={(documentId) => {
                                           openDocumentOverlay(documentId, null, {
                                             preferSummary: true,
@@ -2010,29 +2078,34 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                                 >
                                   {(block) => (
                                     <div
+                                      ref={observeChunk}
                                       id={item.chunk.anchor}
                                       classList={{
                                         'document-rich-block': true,
+                                        'document-rich-block--image': block().kind === 'image',
                                         'document-initial-anchor':
                                           props.initialAnchor === item.chunk.anchor,
                                       }}
                                     >
-                                      <DocumentRichBlock
-                                        block={block()}
-                                        highlight={{
-                                          query: state().query,
-                                          exact: state().mode === 'exact',
-                                          fuzzy: state().mode === 'similar',
-                                          matchClass: 'document-overlay-match',
-                                          ranges: rangesForFindUnit(
-                                            rangesByUnit(),
-                                            item.chunk.anchor,
-                                            state().query,
-                                          ),
-                                          unitId: item.chunk.anchor,
-                                          activeStart: activeStart(),
-                                        }}
-                                      />
+                                      <Show when={block().kind === 'image' || tablesReady()}>
+                                        <DocumentRichBlock
+                                          block={block()}
+                                          imageReady={graphicsReady() && nearby()}
+                                          highlight={{
+                                            query: state().query,
+                                            exact: state().mode === 'exact',
+                                            fuzzy: state().mode === 'similar',
+                                            matchClass: 'document-overlay-match',
+                                            ranges: rangesForFindUnit(
+                                              rangesByUnit(),
+                                              item.chunk.anchor,
+                                              state().query,
+                                            ),
+                                            unitId: item.chunk.anchor,
+                                            activeStart: activeStart(),
+                                          }}
+                                        />
+                                      </Show>
                                     </div>
                                   )}
                                 </Show>

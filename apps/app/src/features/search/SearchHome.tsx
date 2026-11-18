@@ -45,6 +45,7 @@ import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { MEDICATION_ATC_HASH } from '@/features/medications/medication-routing';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
+import type { InstalledMountProgress } from '@/features/modules/browser-module-runtime';
 import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
 import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
 import { LazyDefinitionReferencePanel } from '@/features/reference/LazyDefinitionReferencePanel';
@@ -133,6 +134,7 @@ interface SearchHomeProps {
   readonly baseCore?: MedicalCore | undefined;
   /** Why search is not ready yet; undefined once it is. */
   readonly coreStatus?: SearchCoreStatus | undefined;
+  readonly installedProgress?: InstalledMountProgress | undefined;
   readonly onRetryCore?: () => void;
   readonly onDownloadCore?: () => void;
   readonly onContentChanged: () => Promise<void>;
@@ -1104,14 +1106,39 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             props.coreStatus.kind !== 'waiting'
           }
           fieldStatus={
-            <Show when={noteCoreStatus()}>
-              {(status) => (
-                <SearchCoreStatusNote
-                  variant="inline"
-                  status={status()}
-                  {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
-                  {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
-                />
+            <Show
+              when={
+                noteCoreStatus()?.kind !== 'opening' && noteCoreStatus()
+                  ? undefined
+                  : props.installedProgress
+              }
+              fallback={
+                <Show when={noteCoreStatus()}>
+                  {(status) => (
+                    <SearchCoreStatusNote
+                      variant="inline"
+                      status={status()}
+                      {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
+                      {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
+                    />
+                  )}
+                </Show>
+              }
+            >
+              {(progress) => (
+                <div class="search-core-status search-core-status--inline">
+                  <span class="search-core-status__title">
+                    {progress().processed === progress().total
+                      ? 'Подготавливаем поиск по наборам…'
+                      : `Подключаем локальные наборы · ${progress().processed} / ${progress().total}`}
+                  </span>
+                  <progress
+                    class="search-core-status__progress"
+                    aria-label="Подключение локальных наборов"
+                    value={progress().processed}
+                    max={progress().total}
+                  />
+                </div>
               )}
             </Show>
           }

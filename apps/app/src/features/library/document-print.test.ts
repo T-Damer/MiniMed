@@ -1,6 +1,10 @@
 import type { MedicalDocument } from '@localmed/contracts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { printDocument, shareDocument } from '@/features/library/document-print';
+import {
+  printableDocumentHtml,
+  printDocument,
+  shareDocument,
+} from '@/features/library/document-print';
 import { PrintManager } from '@/features/printing/print-manager';
 
 const nativeMocks = vi.hoisted(() => ({
@@ -93,6 +97,54 @@ describe('document print layout', () => {
     vi.unstubAllGlobals();
   });
 
+  it('prints the official emblem and source title facts from a guideline after an approval page', () => {
+    const document = buildDocument();
+    const section = document.sections[0];
+    const chunk = section?.chunks[0];
+    if (!section || !chunk) throw new Error('The print fixture has no source chunk.');
+    const html = printableDocumentHtml(
+      {
+        ...document,
+        sourceType: 'clinical_recommendation',
+        metadata: { officialId: '123_2', ageGroups: ['Дети'] },
+        sections: [
+          {
+            ...section,
+            chunks: [
+              { ...chunk, pageStart: 1, originalText: 'Утверждено' },
+              {
+                ...chunk,
+                pageStart: 2,
+                originalText: `Клинические рекомендации
+Кодирование по Международной
+E75.2
+статистической классификации болезней и проблем, связанных со здоровьем:
+Возрастная группа: Дети
+Год утверждения: 2024
+Разработчик клинической рекомендации:
+• Первая организация
+
+• Вторая организация
+Оглавление
+Текст следующего раздела`,
+              },
+            ],
+          },
+        ],
+      },
+      'https://example.test/source',
+    );
+    const cover = html.match(/<header class="doc-print__cover">[\s\S]+?<\/header>/u)?.[0];
+    expect(cover).toContain('src="data:image/webp;base64,');
+    expect(cover).toContain('Государственный герб Российской Федерации');
+    expect(cover).toContain('>E75.2</dd>');
+    expect(cover).toContain('>Дети</dd>');
+    expect(cover).toContain('>2024</dd>');
+    expect(cover).toContain('>Первая организация</li>');
+    expect(cover).toContain('>Вторая организация</li>');
+    expect(cover).not.toContain('Текст следующего раздела');
+  });
+
   it('renders headings, real lists, and real tables into the popup markup', () => {
     const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
     const popup = { document: popupDocument, opener: undefined, focus: vi.fn(), print: vi.fn() };
@@ -108,7 +160,9 @@ describe('document print layout', () => {
     expect(printDocument(buildDocument())).toBe(true);
 
     const markup = popupDocument.write.mock.calls[0]?.[0] as string;
-    expect(markup).toContain('<h2>Разрешённые продукты</h2>');
+    expect(markup).toContain(
+      '<h2 class="doc-print__heading doc-print__heading--h2">Разрешённые продукты</h2>',
+    );
     expect(markup).toContain('<ul class="doc-print__list"><li>нежирное мясо и рыба;</li>');
     expect(markup).toContain('<table class="doc-print__table">');
     expect(markup).toContain('<th>Заголовок</th>');

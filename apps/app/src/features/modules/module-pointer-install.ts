@@ -224,7 +224,7 @@ export function selectModuleForPointer(
   );
 }
 
-function installedModuleVersion(
+export function installedModuleVersion(
   module: ContentModuleCatalogEntry,
   installed: readonly InstalledContentModule[],
 ): InstalledContentModule | null {

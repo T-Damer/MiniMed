@@ -1,7 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
-
+import {
+  documentPreviewPages,
+  PRINT_DOCUMENT_PAGE_WIDTH,
+} from '@/features/printing/document-print-preview';
 import {
   NATIVE_PRINT_CRUMBS_CLASS,
   NATIVE_PRINT_HEADER_CLASS,
@@ -16,7 +19,11 @@ import {
 } from '@/features/printing/native-print-share';
 import { nativeAndroidShareText, shareSystemFile } from '@/state/native-share';
 
+let stopDocumentResize: (() => void) | undefined;
+
 function removePreview(): void {
+  stopDocumentResize?.();
+  stopDocumentResize = undefined;
   document.querySelector<HTMLElement>('.native-print-preview')?.remove();
   document.documentElement.classList.remove('native-print-active');
   window.removeEventListener('afterprint', removePreview);
@@ -175,6 +182,8 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
   if (parsed.querySelector('.rich-sheet')) {
     preview.classList.add('native-print-preview--landscape');
   }
+  const printDocument = parsed.body.classList.contains('doc-print');
+  preview.classList.toggle('native-print-preview--document', printDocument);
   const printableFragments =
     presentationSlides.length > 0
       ? presentationSlides.map((slide) => slide.outerHTML)
@@ -203,9 +212,43 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
     scaler.append(content);
     sheet.append(scaler);
     stage.append(sheet);
-    window.requestAnimationFrame(() => {
-      fitPreviewSheet(sheet, content, scaler);
-    });
+    if (printDocument) {
+      const images = Array.from(content.querySelectorAll('img')).filter((image) => !image.complete);
+      void Promise.allSettled(images.map((image) => image.decode())).then(() => {
+        window.requestAnimationFrame(() => {
+          if (!sheet.isConnected) return;
+          const pages = documentPreviewPages(content);
+          if (pages.length === 0) return;
+          const styles = Array.from(content.querySelectorAll('style'));
+          stage.replaceChildren();
+          for (const page of pages) {
+            const paper = sheet.cloneNode(false) as HTMLElement;
+            const paperScaler = scaler.cloneNode(false) as HTMLElement;
+            const paperBody = content.cloneNode(false) as HTMLElement;
+            paperBody.append(page.content);
+            paperScaler.append(paperBody);
+            paper.append(paperScaler);
+            paper.style.setProperty('--print-page-overflow', `${page.overflow}px`);
+            stage.append(paper);
+          }
+          stage.prepend(...styles);
+          const measure = (): void => {
+            const first = stage.querySelector<HTMLElement>('.native-print-preview__sheet');
+            if (!first) return;
+            stage.style.setProperty(
+              '--print-page-scale',
+              String(first.clientWidth / PRINT_DOCUMENT_PAGE_WIDTH),
+            );
+          };
+          measure();
+          const resize = new ResizeObserver(measure);
+          resize.observe(preview);
+          stopDocumentResize = () => resize.disconnect();
+        });
+      });
+    } else {
+      window.requestAnimationFrame(() => fitPreviewSheet(sheet, content, scaler));
+    }
   }
   preview.append(header, stage);
 

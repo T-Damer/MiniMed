@@ -26,6 +26,7 @@ import { createDeferredModuleStore } from '@/composition/deferred-module-store';
 import { getModuleShelf, type ShelfModuleStore } from '@/composition/module-shelf';
 import { getBrowserModuleFacts } from '@/composition/module-shelf-facts';
 import {
+  SHELF_VERIFY_CACHE_KIB,
   shelfCacheBudgetKiB,
   shelfCacheKiB,
   shelfFileName,
@@ -320,6 +321,7 @@ async function openMountedModuleStore(
   stored: StoredModuleVersion,
   source: ModuleIndexSource,
   cacheSizeKiB: number,
+  eager = false,
 ): Promise<MountedModuleStore> {
   if (isInstalledShelfIndex(source)) {
     const shelf = getModuleShelf();
@@ -345,7 +347,7 @@ async function openMountedModuleStore(
       }
     }
   }
-  if (isInstalledOpfsIndex(source) && !stored.definitionReference && deferredFacts) {
+  if (isInstalledOpfsIndex(source) && !stored.definitionReference && deferredFacts && !eager) {
     // A large set that lives in its own OPFS pool: mounted from what an earlier start kept about
     // the file, opened by the first call that needs it (`deferred-module-store.ts`).
     const key = `opfs:${moduleOpfsPoolName(stored.moduleId, stored.version, stored.indexSha256)}`;
@@ -1912,7 +1914,33 @@ export class BrowserContentModuleRuntime {
 /** Modules being opened at once at start; the shelf's workers queue what they cannot take yet. */
 const MODULE_MOUNT_CONCURRENCY = 8;
 /** Version records read per IndexedDB transaction at start. */
-const VERSION_READ_BATCH = 64;
+const VERSION_READ_BATCH = 4;
+
+let foregroundReads = 0;
+let foregroundReadDone: Promise<void> | undefined;
+let resolveForegroundRead: (() => void) | undefined;
+
+export async function prioritizeInstalledModuleRead<T>(read: () => Promise<T>): Promise<T> {
+  if (foregroundReads === 0) {
+    foregroundReadDone = new Promise((resolve) => {
+      resolveForegroundRead = resolve;
+    });
+  }
+  foregroundReads += 1;
+  try {
+    return await read();
+  } finally {
+    // Let the selected text paint before the next mount batch queues its worker replies.
+    setTimeout(() => {
+      foregroundReads -= 1;
+      if (foregroundReads === 0) {
+        foregroundReadDone = undefined;
+        resolveForegroundRead?.();
+        resolveForegroundRead = undefined;
+      }
+    }, 120);
+  }
+}
 
 /**
  * Reads the stored version of each pointer, a batch per transaction instead of a transaction per
@@ -1924,6 +1952,8 @@ function batchedVersionReader(
 ): { read(index: number): Promise<StoredModuleVersion | null> } {
   const batches = new Map<number, Promise<readonly (StoredModuleVersion | null)[]>>();
   const readBatch = async (start: number): Promise<readonly (StoredModuleVersion | null)[]> => {
+    // Let input and paint run between IndexedDB batches, including older records with index bytes.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const transaction = database.transaction(VERSIONS_STORE, 'readonly');
     const store = transaction.objectStore(VERSIONS_STORE);
     const rows = Promise.all(
@@ -1948,6 +1978,11 @@ function batchedVersionReader(
         batch = readBatch(start);
         batches.set(start, batch);
       }
+      // Mount workers claim indices in order. Once they all have this promise, nothing else
+      // needs to retain the records (including any legacy index bytes) in the batch.
+      if (index === Math.min(start + VERSION_READ_BATCH, pointers.length) - 1) {
+        batches.delete(start);
+      }
       return (await batch)[index - start] ?? null;
     },
   };
@@ -1959,6 +1994,7 @@ async function mountStoredModule(
   pointer: ActiveModulePointer,
   stored: StoredModuleVersion,
   cacheSizeKiB: number,
+  eager = false,
 ): Promise<MedicalStoreMount | undefined> {
   const source = storedIndexSource(stored);
   if (!source) {
@@ -1966,7 +2002,12 @@ async function mountStoredModule(
     return undefined;
   }
   try {
-    const { store, movedToShelf } = await openMountedModuleStore(stored, source, cacheSizeKiB);
+    const { store, movedToShelf } = await openMountedModuleStore(
+      stored,
+      source,
+      cacheSizeKiB,
+      eager,
+    );
     if (stored.definitionReference) {
       await store.initialize();
       try {
@@ -2007,7 +2048,14 @@ async function mountStoredModule(
   }
 }
 
-export async function loadInstalledModuleMounts(): Promise<readonly MedicalStoreMount[]> {
+export type InstalledMountProgress = {
+  readonly processed: number;
+  readonly total: number;
+};
+
+export async function loadInstalledModuleMounts(
+  onProgress?: (progress: InstalledMountProgress) => void,
+): Promise<readonly MedicalStoreMount[]> {
   if (!('indexedDB' in globalThis)) return [];
   const database = await openDatabase();
   try {
@@ -2025,15 +2073,22 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     const versions = batchedVersionReader(database, pointers);
     const mounted: (MedicalStoreMount | undefined)[] = new Array(pointers.length);
     let next = 0;
+    let processed = 0;
+    if (pointers.length > 0) onProgress?.({ processed, total: pointers.length });
     const mountNext = async (): Promise<void> => {
       while (next < pointers.length) {
+        if (foregroundReadDone) await foregroundReadDone;
         const index = next;
         next += 1;
         const pointer = pointers[index];
         if (!pointer) continue;
         const stored = await versions.read(index);
-        if (!stored) continue;
-        mounted[index] = await mountStoredModule(database, pointer, stored, cacheSizeKiB);
+        if (stored)
+          mounted[index] = await mountStoredModule(database, pointer, stored, cacheSizeKiB);
+        processed += 1;
+        if (processed % 16 === 0 || processed === pointers.length) {
+          onProgress?.({ processed, total: pointers.length });
+        }
       }
     };
     await Promise.all(
@@ -2045,5 +2100,38 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     void sweepOrphanedModulePools().catch((cause: unknown) => {
       console.warn('Unable to sweep orphaned OPFS module pools.', cause);
     });
+  }
+}
+
+/** A foreground reader can lease one verified active module while the full set attaches. */
+export async function loadInstalledModuleMount(
+  module: ContentModuleCatalogEntry,
+): Promise<MedicalStoreMount | undefined> {
+  if (!('indexedDB' in globalThis)) return undefined;
+  const { id: moduleId, version } = module;
+  const artifact = module.artifacts.find((entry) => entry.required && entry.kind === 'index');
+  const checksum = artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256;
+  if (!checksum || !module.sourceSetDigest) return undefined;
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(ACTIVE_STORE, 'readonly');
+    const pointer = await requestResult(
+      transaction.objectStore(ACTIVE_STORE).get(moduleId) as IDBRequest<
+        ActiveModulePointer | undefined
+      >,
+    );
+    await transactionDone(transaction);
+    if (pointer?.version !== version) return undefined;
+    const stored = await readVersion(database, moduleId, version);
+    if (
+      !stored ||
+      stored.definitionReference ||
+      stored.indexSha256 !== checksum ||
+      stored.sourceSetDigest !== module.sourceSetDigest
+    )
+      return undefined;
+    return await mountStoredModule(database, pointer, stored, SHELF_VERIFY_CACHE_KIB, true);
+  } finally {
+    database.close();
   }
 }

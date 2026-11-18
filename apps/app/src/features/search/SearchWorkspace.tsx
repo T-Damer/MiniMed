@@ -68,8 +68,9 @@ import {
 } from '@/features/library/document-medication-links';
 import { MedicationSafetyCard } from '@/features/medication-safety/MedicationSafetyCard';
 import { parseSafetyQuery } from '@/features/medication-safety/safety-query';
+import { prepareInstalledSubstanceReader } from '@/features/medications/installed-substance-reader';
 import { CLINICAL_REGISTRY_URL } from '@/features/modules/clinical-registry-links';
-import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
+import { loadedModuleCatalog, loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { DoseCard } from '@/features/prescription/DoseCard';
@@ -155,7 +156,7 @@ import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import { motionMs } from '@/state/motion';
 import { perfMark, perfSpan } from '@/state/perf-log';
-import { searchDataVersion } from '@/state/search-data-version';
+import { coreIsBaseOnly, searchDataVersion } from '@/state/search-data-version';
 import {
   appendSearchHistory,
   SEARCH_REPLAY_EVENT,
@@ -590,11 +591,53 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const skeletonMounted = createLingeringFlag(resultsPending, () => motionMs(180));
   const instantTitles = createMemo((): readonly MedicalDocumentSummary[] => {
     const words = titleQuery();
-    if (!resultsPending() || !loading() || !words) return [];
-    if (props.scope === 'diagnosis') return [];
+    if (!words || props.scope === 'diagnosis') return [];
     const documents = contextDocuments();
-    if (documents.length === 0) return [];
-    return titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsTitle);
+    if (resultsPending() && loading() && documents.length > 0) {
+      const titles = titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsTitle);
+      if (titles.length) return titles;
+    }
+    if (
+      !coreIsBaseOnly() ||
+      (props.scope !== 'all' && props.scope !== 'medications') ||
+      props.specialty
+    )
+      return [];
+    // The discovery base can omit an exact drug name. Show the installed ЕСКЛП card from its
+    // verified catalogue membership while the search workers attach the rest of the library.
+    const catalog = loadedModuleCatalog();
+    if (!catalog) return [];
+    const documentId = `esklp.mnn.${words.toLocaleLowerCase('ru')}`;
+    for (const module of catalog.modules) {
+      if (!module.id.startsWith('minimed.medications.')) continue;
+      const entry = module.documents.find((item) => item.documentId === documentId && item.title);
+      if (!entry?.title) continue;
+      const installed = getContentModuleRuntime(catalog)
+        .listInstalled()
+        .some(
+          (item) =>
+            item.moduleId === module.id &&
+            item.version === module.version &&
+            item.enabled &&
+            item.state === 'installed' &&
+            item.activeSourceSetDigest === module.sourceSetDigest,
+        );
+      if (!installed) continue;
+      return [
+        {
+          id: entry.documentId,
+          title: entry.title,
+          shortTitle: null,
+          sourceType: 'official_registry_summary',
+          status: entry.status,
+          specialties: [],
+          versionId: entry.documentVersionId,
+          versionLabel: module.version,
+          effectiveFrom: null,
+        },
+      ];
+    }
+    return [];
   });
 
   // Once a title answer is visible, keep that row and its position through both text passes.
@@ -618,6 +661,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const documents = instantTitles();
     const words = titleQuery();
     if (documents.length && words === searchableQuery(query())) {
+      const substance = documents.find(
+        (doc) => doc.id === `esklp.mnn.${words.toLocaleLowerCase('ru')}`,
+      );
+      if (substance) prepareInstalledSubstanceReader(substance.id);
       setFirstTitles({ query: words, scope: props.scope, specialty: props.specialty, documents });
     }
   });
@@ -1294,6 +1341,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setResponse(undefined);
       setLoading(false);
       return;
+    }
+    if (
+      coreIsBaseOnly() &&
+      (props.scope === 'all' || props.scope === 'medications') &&
+      /^\p{L}{3,32}$/u.test(trimmed)
+    ) {
+      prepareInstalledSubstanceReader(`esklp.mnn.${trimmed.toLocaleLowerCase('ru')}`);
     }
     setTitleQuery(trimmed);
     // Local timing marks for the performance harness (`e2e/perf-baseline.spec.ts`); no query text.
@@ -2356,6 +2410,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   when={
                     !loading() &&
                     visibleGroups().length === 0 &&
+                    retainedTitles().length === 0 &&
                     !scopeFallback() &&
                     !response()?.identities?.length &&
                     !response()?.sourceScope &&

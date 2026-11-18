@@ -17,6 +17,7 @@ import '@/features/medications/drug-screen.css';
  */
 export function DrugScreenHeader(props: {
   readonly header: DrugHeaderModel;
+  readonly graphicsReady?: boolean | undefined;
   /** The title element: the reader draws it so that «find in document» can mark it. */
   readonly title: JSX.Element;
   /** Beside the title: the active substance's structure, when it is known. */
@@ -27,7 +28,7 @@ export function DrugScreenHeader(props: {
   createEffect(() => {
     const reference = props.header.imageReference;
     setImage(null);
-    if (!reference) return;
+    if (!reference || props.graphicsReady === false) return;
     let stale = false;
     onCleanup(() => {
       stale = true;

@@ -27,6 +27,31 @@ afterEach(async () => {
 });
 
 describe('SqliteMedicalStore', () => {
+  it('reads instruction summaries for exact registrations in the same installed index', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    const matches = [
+      { registrationNumber: 'ЛП-1' },
+      { requestedRegistrationNumbers: ['ЛП-1'] },
+      { registrationNumbers: ['ЛП-1'] },
+    ];
+    const documents = CORE_SLICE_PACK.documents.map((document, index) => ({
+      ...document,
+      sourceType: index < matches.length ? 'official_drug_instruction' : document.sourceType,
+      metadata: { ...matches[index], unrelated: 'not part of the reader listing' },
+    }));
+    await store.initialize({ ...CORE_SLICE_PACK, documents });
+    const found = await store.listInstructionDocuments(['ЛП-1']);
+    expect(found.map(({ id }) => id).sort()).toEqual(
+      documents
+        .slice(0, 3)
+        .map(({ id }) => id)
+        .sort(),
+    );
+    expect(found.every(({ metadata }) => !('unrelated' in metadata))).toBe(true);
+    expect(await store.listInstructionDocuments(['ЛП'])).toEqual([]);
+  });
+
   it('projects identities and ranking fields without unrelated metadata', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);

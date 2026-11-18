@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./psy-status": "./src/psy-status/index.ts",
-    "./form-fill": "./src/form-fill/index.ts"
+    "./form-fill": "./src/form-fill/index.ts",
+    "./mappers": "./src/mappers.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

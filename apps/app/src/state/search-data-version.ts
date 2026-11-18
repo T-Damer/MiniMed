@@ -59,25 +59,42 @@ export function installedDataVersion(modules: readonly InstalledModuleVersion[])
 let unreadableReads = 0;
 
 /** The installed set as the registry (localStorage) holds it right now. */
-export function readInstalledDataVersion(): string {
+export function readInstalledDataSnapshot(): { version: string; hasActiveModules: boolean } {
   try {
     const registry = new PersistentInstalledModuleRegistry(
       new WebStorageInstalledModuleRegistryPersistence(window.localStorage),
     );
-    return installedDataVersion(registry.list());
+    const modules = registry.list();
+    return {
+      version: installedDataVersion(modules),
+      hasActiveModules: modules.some(
+        (module) =>
+          module.moduleId !== CORE_MODULE_ID && module.state === 'installed' && module.enabled,
+      ),
+    };
   } catch (cause) {
     console.warn('The installed-module registry could not be read for the search cache.', cause);
     // Unique per read: nothing saved under it is ever found again, which is the safe direction.
     unreadableReads += 1;
-    return `unreadable:${Date.now()}.${unreadableReads}`;
+    return { version: `unreadable:${Date.now()}.${unreadableReads}`, hasActiveModules: false };
   }
 }
 
+export function readInstalledDataVersion(): string {
+  return readInstalledDataSnapshot().version;
+}
+
 let coreDataVersion: string | undefined;
+let baseOnlyCore = false;
 
 /** The installed-set version of the core the search now runs on; set when a core is published. */
-export function publishCoreDataVersion(version: string): void {
-  coreDataVersion = version;
+export function publishCoreDataVersion(version: string, baseOnly = false): void {
+  baseOnlyCore = baseOnly;
+  coreDataVersion = baseOnly ? `${version}|base-only` : version;
+}
+
+export function coreIsBaseOnly(): boolean {
+  return baseOnlyCore;
 }
 
 /**

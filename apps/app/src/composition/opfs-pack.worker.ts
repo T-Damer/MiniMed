@@ -1,6 +1,10 @@
 /// <reference lib="webworker" />
 
-import { type OpfsPackSource, SqliteMedicalStore } from '@localmed/storage-sqlite';
+import {
+  type OpfsPackSource,
+  SqliteMedicalStore,
+  sqliteWasmHeapBytes,
+} from '@localmed/storage-sqlite';
 
 import type {
   OpfsPackWorkerOpenOptions,
@@ -92,6 +96,10 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       if (downloadApproval?.id !== message.id) throw new Error('Unexpected download approval.');
       downloadApproval.resolve();
       downloadApproval = undefined;
+      return;
+    }
+    if (message.type === 'prepare') {
+      await sqliteWasmHeapBytes();
       return;
     }
     if (message.type === 'open') {

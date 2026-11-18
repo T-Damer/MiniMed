@@ -188,7 +188,11 @@ export function useHeroScroll(
       const height = element.offsetHeight;
       const top = box.top + window.scrollY;
       const rowHeight = pinned.offsetHeight;
-      const bar = safeTop + rowHeight + remToPx(0.5) + lip;
+      const footer = element.querySelector<HTMLElement>('.page__pinned-footer');
+      const footerHeight = footer
+        ? footer.offsetHeight + (Number.parseFloat(getComputedStyle(element).rowGap) || 0)
+        : 0;
+      const bar = safeTop + rowHeight + remToPx(0.5) + lip + footerHeight;
       const start = Math.max(0, top - safeTop);
       const end = top + height - bar;
       if (end <= start) return;
@@ -196,6 +200,7 @@ export function useHeroScroll(
       // after this measurement (Capacitor sets it once the WebView reports it).
       setLength(element, '--page-hero-height', height);
       setLength(element, '--page-hero-row', rowHeight);
+      setLength(element, '--page-hero-footer', footerHeight);
       setLength(element, '--page-hero-start', start);
       setLength(element, '--page-hero-end', end);
       // The row slides down over the title block under it: that block is gone by the time the

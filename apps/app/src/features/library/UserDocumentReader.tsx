@@ -79,6 +79,7 @@ import { openPdfInSystem } from '@/features/pdf-viewer/pdf-actions';
 import { pdfPageIndexFromUnitId } from '@/features/pdf-viewer/pdf-find-state';
 import { createPdfViewerModel } from '@/features/pdf-viewer/pdf-viewer-model';
 import { PrintManager } from '@/features/printing/print-manager';
+import { navigateBack, visitRoute } from '@/state/app-back';
 import type { DocumentTrail } from '@/state/document-trail';
 import { saveBlobAsFile } from '@/state/native-share';
 import { setMedicalImageStatusBar } from '@/state/native-system-ui';
@@ -671,6 +672,10 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
       askDiscard('navigate', href);
       return;
     }
+    if (origin?.catalogHref === href) {
+      visitRoute(href, '', 'replace');
+      return;
+    }
     navigateHref(props, href);
   };
 
@@ -880,7 +885,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
   };
   const leaveMedicalViewer = (): void => {
     if (origin) {
-      requestNavigate(origin.catalogHref);
+      navigateBack(origin.catalogHref);
       return;
     }
     navigateDocumentReaderBack(props.trail, props.onNavigate);
@@ -1109,7 +1114,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         searchOpen={findOpen}
         trail={props.trail ?? null}
         onNavigate={requestNavigate}
-        {...(origin ? { onBack: () => requestNavigate(origin.catalogHref) } : {})}
+        {...(origin ? { onBack: () => navigateBack(origin.catalogHref) } : {})}
         breadcrumbs={
           <Show
             when={props.trail}

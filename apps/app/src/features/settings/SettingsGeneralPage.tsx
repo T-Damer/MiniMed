@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import type { CoreStatus } from '@localmed/contracts';
 import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js';
 
@@ -12,8 +13,10 @@ import { DoctorProfileSettings } from '@/features/settings/DoctorProfileSettings
 import { PerfLogSettings } from '@/features/settings/PerfLogSettings';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import {
-  getModuleAutoUpdatesEnabled,
+  loadAppPreferences,
   setModuleAutoUpdatesEnabled,
+  setRestoreLastPage,
+  setShowPageRestoreNotice,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
 import type { AppUpdateProgress } from '@/state/app-update';
@@ -44,14 +47,9 @@ export interface SettingsGeneralPageProps {
  * data last: the search core's technical information and the project links.
  */
 export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Element {
-  const [moduleAutoUpdates, setModuleAutoUpdatesState] = createSignal(
-    getModuleAutoUpdatesEnabled(),
-  );
+  const [preferences, setPreferences] = createSignal(loadAppPreferences());
   onMount(() => {
-    const unsubscribe = subscribeAppPreferences((preferences) =>
-      setModuleAutoUpdatesState(preferences.moduleAutoUpdatesEnabled),
-    );
-    onCleanup(unsubscribe);
+    onCleanup(subscribeAppPreferences(setPreferences));
   });
   return (
     <>
@@ -81,11 +79,31 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
             <p class="settings-row__helper">Новые версии уже скачанных наборов загружаются сами.</p>
           </div>
           <Switch
-            checked={moduleAutoUpdates()}
+            checked={preferences().moduleAutoUpdatesEnabled}
             aria-label="Обновлять материалы автоматически"
             onChange={setModuleAutoUpdatesEnabled}
           />
         </div>
+        <Show when={Capacitor.isNativePlatform()}>
+          <div class="settings-row">
+            <span class="settings-row__label">Восстанавливать последнюю страницу</span>
+            <Switch
+              checked={preferences().restoreLastPage}
+              aria-label="Восстанавливать последнюю страницу"
+              onChange={setRestoreLastPage}
+            />
+          </div>
+          <Show when={preferences().restoreLastPage}>
+            <div class="settings-row">
+              <span class="settings-row__label">Сообщать о восстановлении страницы</span>
+              <Switch
+                checked={preferences().showPageRestoreNotice}
+                aria-label="Сообщать о восстановлении страницы"
+                onChange={setShowPageRestoreNotice}
+              />
+            </div>
+          </Show>
+        </Show>
         <div class="settings-row">
           <div class="settings-row__text">
             <span class="settings-row__label settings-row__label--with-icon">

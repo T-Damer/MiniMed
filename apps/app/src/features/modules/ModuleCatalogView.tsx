@@ -22,6 +22,7 @@ import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { CountBadge } from '@/components/CountBadge';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
+import { NavBack } from '@/components/NavBack';
 import { NavBackWithReturnTo } from '@/components/NavBackWithReturnTo';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -78,7 +79,6 @@ import {
   formatModuleBytes,
   formatModuleCollectionSubtitle,
   formatOverviewCollectionSubtitle,
-  MODULE_RELEASE_LABELS,
   MODULE_TASK_LABELS,
   moduleCollectionDocumentCount,
   moduleDocumentCountFact,
@@ -412,7 +412,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const singleRegularSectionModule = (section: string): ContentModuleCatalogEntry | null => {
     // The ICD-11 pack lists no documents in the catalog (no core pointer targets it) and has tens of
     // thousands of cards: its section shows the module card, not a document list.
-    if (section === ICD11_COLLECTION) return null;
+    if (section === ICD11_COLLECTION || section === 'reference') return null;
     const modules = regularSectionModules(section);
     return modules.length === 1 ? (modules[0] ?? null) : null;
   };
@@ -1054,9 +1054,32 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
           }
         />
       </Show>
+      <Show when={regularCollection() === 'reference'}>
+        <Page
+          hero={PAGE_HEROES.modules}
+          class="module-page-header"
+          navigation={<NavBack aria-label="Назад" onClick={() => props.onBack?.()} />}
+          title={<Heading depth={1}>Нормы и расчёты</Heading>}
+          actions={
+            <SearchField
+              class="route-search module-page-header__search"
+              value={catalogQuery()}
+              onInput={setCatalogQuery}
+              onClear={() => setCatalogQuery('')}
+              label="Поиск по нормам и расчётам"
+              hideLabel
+              placeholder="Поиск по разделу"
+            />
+          }
+        />
+      </Show>
+      {/* The legacy catalog toolbar is retained for the other catalog routes. */}
       <Show
         when={
-          props.embedded && !lawsSpecialty() && !singleRegularSectionModule(regularCollection())
+          props.embedded &&
+          regularCollection() !== 'reference' &&
+          !lawsSpecialty() &&
+          !singleRegularSectionModule(regularCollection())
         }
       >
         <div
@@ -2004,9 +2027,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       <OverlayDialog
         open={detailsModule() !== null}
         title={detailsModule()?.title ?? 'Набор документов'}
-        subtitle={`${MODULE_RELEASE_LABELS[detailsModule()?.releaseState ?? 'planned']} · ${
-          detailsModule()?.version ?? ''
-        }`}
         class="recommendation-section-help-dialog"
         onClose={() => setDetailsModule(null)}
       >
@@ -2035,11 +2055,20 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                       : 'Скачать'}
                 </Button>
               </Show>
-              <p>{module().description}</p>
               <ul class="recommendation-section-help-facts">
                 <li>{moduleDocumentCountFact(module())}</li>
-                <li>{formatModuleBytes(module().sizes.downloadBytes)}</li>
+                <Show when={module().sizes.installedBytes !== null}>
+                  <li>{formatModuleBytes(module().sizes.installedBytes)} на устройстве</li>
+                </Show>
+                <Show
+                  when={
+                    module().sizes.installedBytes === null && module().sizes.downloadBytes !== null
+                  }
+                >
+                  <li>{formatModuleBytes(module().sizes.downloadBytes)} при скачивании</li>
+                </Show>
               </ul>
+              <p class="recommendation-section-help-description">{module().description}</p>
               <Show
                 when={module().documents.length > 0}
                 fallback={

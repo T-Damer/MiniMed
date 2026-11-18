@@ -75,7 +75,7 @@ import { getContentModuleRuntime } from '@/features/modules/module-runtime-servi
 import { notesWorksheetsPath } from '@/features/notes/notes-routing';
 import { filterByAge } from '@/features/tools/tool-age-filter';
 import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
-import { navigateBack, visitRoute } from '@/state/app-back';
+import { navigateBack, replaceRoute, visitRoute } from '@/state/app-back';
 import { getSplitNavigation } from '@/state/app-preferences';
 import { activeProfile, profileAllows } from '@/state/app-profile';
 import {
@@ -378,6 +378,12 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     return stored && stored.file.id === userQuestionnaireFileId()
       ? userQuestionnaireReadinessError(stored.questionnaire)
       : null;
+  });
+  createEffect(() => {
+    const current = route();
+    if (current.kind === 'user-assessment' && userReadinessError()) {
+      replaceRoute(userQuestionnaireEditPath(current.fileId), '');
+    }
   });
   const userRecord = createMemo(() => {
     const current = route();
@@ -976,28 +982,6 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               navigate(userQuestionnaireResultPath(userQuestionnaireFileId() ?? '', saved.id));
             }}
           />
-        )}
-      </Show>
-
-      <Show
-        when={
-          route().kind === 'user-assessment' && loadedUserQuestionnaire()
-            ? userReadinessError()
-            : undefined
-        }
-      >
-        {(error) => (
-          <section class="assessment-pack-required paper-card" role="alert">
-            <h1 class="assessment-pack-required__title">Опросник ещё не готов</h1>
-            <p class="assessment-pack-required__text">{error()}</p>
-            <Button
-              type="button"
-              class="assessment-pack-required__button"
-              onClick={() => navigate(userQuestionnaireEditPath(userQuestionnaireFileId() ?? ''))}
-            >
-              Редактировать
-            </Button>
-          </section>
         )}
       </Show>
 

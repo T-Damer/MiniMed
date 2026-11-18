@@ -242,6 +242,7 @@
       var(--page-hero-height, 0px) -
       var(--page-hero-pin) -
       var(--page-hero-row, 0px) -
+      var(--page-hero-footer, 0px) -
       0.5rem -
       var(--page-hero-lip)
     );
@@ -250,6 +251,7 @@
     top: calc(
       var(--page-hero-pin) +
       var(--page-hero-row, 0px) +
+      var(--page-hero-footer, 0px) +
       0.5rem +
       var(--page-hero-lip) -
       var(--page-hero-height, 0px)

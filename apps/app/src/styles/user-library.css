@@ -1656,3 +1656,7 @@
 .computer-folder__change {
   justify-self: start;
 }
+
+.user-library-page__recordings {
+  margin-top: 0.75rem;
+}

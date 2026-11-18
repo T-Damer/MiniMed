@@ -772,6 +772,15 @@
   background: rgb(255 251 239 / 100%);
 }
 
+.overlay-dialog.overlay-dialog--sheet.recommendation-section-help-dialog {
+  width: min(100%, 52rem);
+  max-width: 100%;
+}
+
+.module-page-header__search {
+  width: min(12rem, 33vw);
+}
+
 .recommendation-section-help-body {
   display: grid;
   gap: 0.875rem;

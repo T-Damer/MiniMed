@@ -46,7 +46,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function parsePosition(value: unknown): ReaderPosition | undefined {
+export function parseReaderPosition(value: unknown): ReaderPosition | undefined {
   if (!isRecord(value)) return undefined;
   const { anchor, offset } = value;
   if (typeof anchor !== 'string' || anchor === '') return undefined;
@@ -62,7 +62,7 @@ export function readHistoryEntry(state: unknown): HistoryEntryInfo | null {
   const { id, depth } = raw;
   if (typeof id !== 'string' || id === '') return null;
   if (typeof depth !== 'number' || !Number.isInteger(depth) || depth < 0) return null;
-  const position = parsePosition(raw['position']);
+  const position = parseReaderPosition(raw['position']);
   return {
     id,
     depth,
@@ -316,7 +316,17 @@ export function saveReaderPosition(entryId: string, position: ReaderPosition): b
     return true;
   }
   ownReplaceState(withHistoryEntry(window.history.state, { ...entry, position }));
+  for (const listener of positionListeners) listener();
   return true;
+}
+
+const positionListeners = new Set<() => void>();
+
+export function subscribeReaderPosition(listener: () => void): () => void {
+  positionListeners.add(listener);
+  return () => {
+    positionListeners.delete(listener);
+  };
 }
 
 type PositionFlusher = () => void;

@@ -98,8 +98,7 @@ function unique<T>(values: readonly T[]): readonly T[] {
 export class MultiMedicalStore implements MedicalStore {
   private readonly mounts = new Map<string, InternalMount>();
   private initialized = false;
-  // The reader asks for the header, then sections and chunks. Remember only the last mount.
-  private lastDocumentMount: { readonly id: string; readonly mount: InternalMount } | undefined;
+  private documentOwners = new Map<string, InternalMount>();
   private validatedAliases: readonly AliasRecord[] | undefined;
   private aliasesPending: Promise<readonly AliasRecord[]> | undefined;
   /** The aliases `validateComposition` checked, waiting for the first `listAliases` to sort them. */
@@ -148,7 +147,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
-    this.lastDocumentMount = undefined;
+    this.documentOwners.clear();
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -164,8 +163,7 @@ export class MultiMedicalStore implements MedicalStore {
     );
     this.initialized = true;
     try {
-      await this.validateComposition();
-      return await this.getHealth();
+      return this.combineHealth(await this.validateComposition());
     } catch (cause) {
       this.initialized = false;
       throw cause;
@@ -197,6 +195,9 @@ export class MultiMedicalStore implements MedicalStore {
     if (!mount) return;
     if (mount.required) throw new Error(`Required module ${moduleId} cannot be removed.`);
     this.mounts.delete(moduleId);
+    for (const [id, owner] of this.documentOwners) {
+      if (owner === mount) this.documentOwners.delete(id);
+    }
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -210,12 +211,11 @@ export class MultiMedicalStore implements MedicalStore {
       throw new Error(`Required module ${moduleId} cannot be disabled.`);
     if (mount.enabled === enabled) return;
 
-    const previous = mount.enabled;
     this.mounts.set(moduleId, { ...mount, enabled });
     try {
       if (this.initialized) await this.validateComposition();
     } catch (cause) {
-      this.mounts.set(moduleId, { ...mount, enabled: previous });
+      this.mounts.set(moduleId, mount);
       throw cause;
     }
   }
@@ -223,7 +223,10 @@ export class MultiMedicalStore implements MedicalStore {
   public async getHealth(): Promise<StorageHealth> {
     this.assertInitialized();
     const active = this.activeMounts();
-    const health = await Promise.all(active.map((mount) => mount.store.getHealth()));
+    return this.combineHealth(await Promise.all(active.map((mount) => mount.store.getHealth())));
+  }
+
+  private combineHealth(health: readonly StorageHealth[]): StorageHealth {
     const schemaVersion = health[0]?.schemaVersion;
     if (schemaVersion === undefined) throw new Error('No enabled medical-store modules.');
 
@@ -300,14 +303,7 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async getDocument(id: string): Promise<DocumentRecord | null> {
     this.assertInitialized();
-    for (const mount of this.activeMounts()) {
-      const document = await mount.store.getDocument(id);
-      if (document) {
-        this.lastDocumentMount = { id, mount };
-        return document;
-      }
-    }
-    return null;
+    return this.documentOwner(id)?.getDocument(id) ?? null;
   }
 
   public async getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {
@@ -316,13 +312,7 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]> {
     this.assertInitialized();
-    const owner = this.lastOwnerOf(documentId);
-    if (owner) return owner.getSectionsByDocument(documentId);
-    return (
-      await Promise.all(
-        this.activeMounts().map(({ store }) => store.getSectionsByDocument(documentId)),
-      )
-    ).flat();
+    return this.documentOwner(documentId)?.getSectionsByDocument(documentId) ?? [];
   }
 
   public async getSection(id: string): Promise<SectionRecord | null> {
@@ -331,13 +321,7 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
     this.assertInitialized();
-    const owner = this.lastOwnerOf(documentId);
-    if (owner) return owner.getChunksByDocument(documentId);
-    return (
-      await Promise.all(
-        this.activeMounts().map(({ store }) => store.getChunksByDocument(documentId)),
-      )
-    ).flat();
+    return this.documentOwner(documentId)?.getChunksByDocument(documentId) ?? [];
   }
 
   public async getChunksBySection(sectionId: string): Promise<readonly ChunkRecord[]> {
@@ -505,7 +489,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async close(): Promise<void> {
-    this.lastDocumentMount = undefined;
+    this.documentOwners.clear();
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -517,12 +501,9 @@ export class MultiMedicalStore implements MedicalStore {
     if (failures.length > 0) throw new Error(`Unable to close ${failures.length} medical stores.`);
   }
 
-  private lastOwnerOf(id: string): MedicalStore | undefined {
-    const cached = this.lastDocumentMount;
-    // Enabling, disabling or replacing a mount changes its object identity.
-    return cached?.id === id && this.mounts.get(cached.mount.moduleId) === cached.mount
-      ? cached.mount.store
-      : undefined;
+  private documentOwner(id: string): MedicalStore | undefined {
+    const owner = this.documentOwners.get(id);
+    return owner && this.mounts.get(owner.moduleId) === owner ? owner.store : undefined;
   }
 
   private activeMounts(): readonly InternalMount[] {
@@ -535,7 +516,7 @@ export class MultiMedicalStore implements MedicalStore {
       );
   }
 
-  private async validateComposition(): Promise<void> {
+  private async validateComposition(): Promise<readonly StorageHealth[]> {
     for (const mount of this.mounts.values()) {
       if (!mount.enabled || !mount.definitionReference) continue;
       if (mount.required || mount.acceptsSeed || !mount.store.reference)
@@ -569,25 +550,29 @@ export class MultiMedicalStore implements MedicalStore {
       }
     }
 
-    const documentIds = new Set<string>();
+    const documentOwners = new Map<string, InternalMount>();
     const versionIds = new Set<string>();
-    for (const documents of await Promise.all(
-      active.map(async ({ store }) =>
-        store.listDocumentIdentities
-          ? store.listDocumentIdentities()
-          : (await store.listDocuments()).map((document) => ({
-              id: document.id,
-              versionId: document.version.id,
-            })),
-      ),
-    )) {
+    const mountDocuments = await Promise.all(
+      active.map(async (mount) => ({
+        mount,
+        documents: await (mount.store.listDocumentIdentities
+          ? mount.store.listDocumentIdentities()
+          : mount.store.listDocuments().then((documents) =>
+              documents.map((document) => ({
+                id: document.id,
+                versionId: document.version.id,
+              })),
+            )),
+      })),
+    );
+    for (const { mount, documents } of mountDocuments) {
       for (const document of documents) {
-        if (documentIds.has(document.id))
+        if (documentOwners.has(document.id))
           throw new Error(`Duplicate active document ID: ${document.id}`);
         if (versionIds.has(document.versionId)) {
           throw new Error(`Duplicate active document-version ID: ${document.versionId}`);
         }
-        documentIds.add(document.id);
+        documentOwners.set(document.id, mount);
         versionIds.add(document.versionId);
       }
     }
@@ -622,6 +607,8 @@ export class MultiMedicalStore implements MedicalStore {
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = { inputs: aliasInputs, byId: aliases };
+    this.documentOwners = documentOwners;
+    return health;
   }
 
   private async firstMatch<T>(

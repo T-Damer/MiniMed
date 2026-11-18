@@ -710,6 +710,12 @@ export class ShelfModuleStore implements MedicalStore {
     return this.listing('listNavigationDocuments');
   }
 
+  public listInstructionDocuments(
+    registrations: readonly string[],
+  ): Promise<readonly DocumentRecord[]> {
+    return this.call('listInstructionDocuments', [registrations]);
+  }
+
   public getDocument(id: string): Promise<DocumentRecord | null> {
     if (this.lacksDocument(id)) return Promise.resolve(null);
     return this.call('getDocument', [id]);

@@ -1735,7 +1735,7 @@ export function NotesView(props: {
 
       <Show when={route().kind === 'templates'}>
         <NoteTemplatesCatalog
-          onBack={() => navigateBack(notesPath())}
+          onBack={() => navigateBack(props.backToFiles ? USER_LIBRARY_CATALOG_HASH : notesPath())}
           onOpenTemplate={(documentId) => navigate(noteTemplatePath(documentId))}
           createOnMount={shouldCreateTemplate()}
         />

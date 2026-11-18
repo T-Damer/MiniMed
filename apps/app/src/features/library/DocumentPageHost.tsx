@@ -1,4 +1,5 @@
 import {
+  type ContentModuleCatalogEntry,
   type ContentModuleDownloadTask,
   type MedicalCore,
   type MedicalDocument,
@@ -7,6 +8,7 @@ import {
 } from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -48,6 +50,10 @@ import {
   isEsklpSubstanceDocument,
 } from '@/features/medications/drug-screen';
 import {
+  readInstalledSubstance,
+  selectSubstanceInstruction,
+} from '@/features/medications/installed-substance-reader';
+import {
   EMPTY_SUBSTANCE_FALLBACK,
   productWithInstructionFallback,
   sameInstructionSlot,
@@ -56,7 +62,6 @@ import {
   type InstructionModuleOffer,
   instructionModuleOffer,
 } from '@/features/medications/instruction-offer';
-import { instructionReadabilityIndex } from '@/features/medications/instruction-source';
 import {
   consumeMedicationProductContext,
   medicationProductFromHistory,
@@ -73,10 +78,7 @@ import {
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { loadSubstanceFallback } from '@/features/medications/substance-fallback';
-import {
-  representativeInstructionProduct,
-  withoutRegistrySections,
-} from '@/features/medications/substance-reading';
+import { withoutRegistrySections } from '@/features/medications/substance-reading';
 import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
@@ -136,6 +138,12 @@ import { coreServesInstalledSet } from '@/state/search-data-version';
 interface DocumentPageHostProps {
   readonly getCore: () => MedicalCore | undefined;
   readonly reconnectContent?: () => Promise<void>;
+  readonly stagedModuleReader?: () =>
+    | ((
+        module: ContentModuleCatalogEntry,
+        documentId: string,
+      ) => Promise<MedicalDocument | undefined>)
+    | undefined;
 }
 
 function normalizedTradeName(value: string): string {
@@ -304,10 +312,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   let loadingDocumentId: string | null = null;
   let loadedOfficialRequestId: string | null = null;
   /**
-   * The target an installation has just read through the reconnected core: the route that opens it
+   * A target already read during an install or a pointer handoff: the route that opens it
    * takes this text instead of reading it again behind the new module's other reads.
    */
-  let installedTarget:
+  let preparedTarget:
     | { readonly core: MedicalCore; readonly document: MedicalDocument }
     | undefined;
   let officialLoadGeneration = 0;
@@ -442,17 +450,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     listed: readonly MedicalDocumentSummary[],
     generation: number,
   ): Promise<void> => {
-    const chosen = representativeInstructionProduct(
-      parseEsklpMedicationProducts(
-        source,
-        instructionIndexFromSummaries(listed),
-        instructionSourceClassIndexFromSummaries(listed),
-      ),
-      typeof source.metadata['standardizedInn'] === 'string'
-        ? source.metadata['standardizedInn']
-        : source.title,
-      instructionReadabilityIndex(listed),
-    );
+    const chosen = selectSubstanceInstruction(source, listed);
     const instructionId = chosen?.instructionDocumentId;
     if (!chosen || !instructionId) {
       setSubstanceInstruction(undefined);
@@ -522,6 +520,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     }
 
     loadingDocumentId = documentId;
+    performance.mark('minimed:reader:open');
     requestedIdentityKey = identityKey;
     const generation = ++officialLoadGeneration;
     const current = () => generation === officialLoadGeneration;
@@ -559,35 +558,168 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const preferSummaryId = consumePreferSummaryDocumentId();
     const preferSummary = !!expectedIdentity || preferSummaryId === documentId;
 
+    const showText = (value: MedicalDocument): void => {
+      const first = document() === undefined;
+      setDocument(value);
+      setPendingTitle(undefined);
+      if (first) {
+        performance.mark('minimed:reader:text');
+        perfMark('reader.text', { sections: value.sections.length });
+      }
+    };
+    const readStagedDocument = async (
+      id: string,
+      pointer?: ModulePointerResolution['pointer'],
+    ): Promise<MedicalDocument | undefined> => {
+      const read = props.stagedModuleReader?.();
+      if (!read) return undefined;
+      try {
+        const runtime =
+          peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+        if (!current()) return undefined;
+        const catalog = runtime.getCatalog();
+        const installed = runtime.listInstalled();
+        const resolution = pointer
+          ? resolveModulePointer(pointer, catalog, installed)
+          : resolveCatalogDocumentPointer(id, catalog, installed, expectedIdentity);
+        if (resolution?.state !== 'installed') return undefined;
+        return await read(resolution.module, id);
+      } catch (cause) {
+        console.warn('Unable to read the installed module before search attachment.', cause);
+        return undefined;
+      }
+    };
+    const openPreparedTarget = (
+      owner: MedicalCore,
+      target: MedicalDocument,
+      pointer: MedicalDocument | undefined,
+      metadata = pointer?.metadata,
+    ): boolean => {
+      if (!target.sections.some((section) => section.chunks.length > 0)) return false;
+      preparedTarget = { core: owner, document: target };
+      const anchor = modulePointerTargetAnchor(
+        metadata,
+        initialAnchor(),
+        pointer ? { pointer, target } : undefined,
+      );
+      openDocumentOverlay(target.id, anchor, {
+        preferSummary: true,
+        replace: true,
+        title: displayDocumentTitle(target),
+      });
+      return true;
+    };
+
     try {
       // Read the selected document before queuing catalog SQL on the same worker/native owner.
       // Merely awaiting it first is insufficient when the catalog request was already dispatched.
-      const handedOver = installedTarget;
-      installedTarget = undefined;
-      const requested =
-        handedOver?.core === core && handedOver.document.id === documentId
-          ? ok(handedOver.document)
-          : await core.getDocument(documentId);
+      const handedOver = preparedTarget;
+      preparedTarget = undefined;
+      const readStartedAt = performance.now();
+      const endRead = perfSpan('reader.initial-read');
+      let direct: Awaited<ReturnType<typeof readInstalledSubstance>>;
+      let requested = await (async () => {
+        try {
+          if (handedOver?.core === core && handedOver.document.id === documentId) {
+            return ok(handedOver.document);
+          }
+          if (!selectedMedicationProduct && !expectedIdentity) {
+            direct = await readInstalledSubstance(documentId);
+            if (direct) return ok(direct.source);
+          }
+          const initial = await core.getDocument(documentId);
+          if (
+            !current() ||
+            initial.ok ||
+            initial.error.code !== 'CONTENT_NOT_FOUND' ||
+            !props.reconnectContent ||
+            coreServesInstalledSet()
+          )
+            return initial;
+
+          const staged = await readStagedDocument(documentId);
+          if (!current()) return initial;
+          if (staged) return ok(staged);
+          // On a base-first start, join the in-flight attachment before asking for navigation
+          // listings. A direct link into an installed pack can then open on its first attempt.
+          await props.reconnectContent();
+          const refreshed = props.getCore();
+          if (!current() || !refreshed) return initial;
+          core = refreshed;
+          return await core.getDocument(documentId);
+        } finally {
+          performance.measure('minimed:reader:initial-read', { start: readStartedAt });
+          endRead();
+        }
+      })();
       if (!current()) return;
+      const requestedPointer = requested.ok
+        ? parseModulePointerMetadata(requested.value.metadata)
+        : null;
+      const canFollowPointer =
+        requestedPointer && !expectedIdentity && requestedPointer.targetDocumentId !== documentId;
+      if (canFollowPointer) {
+        // A verified active store can answer an exact ID without the expensive navigation list.
+        const target = await core.getDocument(requestedPointer.targetDocumentId);
+        if (!current()) return;
+        const resolved = target.ok
+          ? target.value
+          : await readStagedDocument(requestedPointer.targetDocumentId, requestedPointer);
+        if (!current()) return;
+        if (
+          resolved &&
+          openPreparedTarget(core, resolved, requested.ok ? requested.value : undefined)
+        )
+          return;
+      }
       // A pointer may hand over to the document it stands for, and a clinical summary to its full
       // text: showing the stand-in first would flash it between two loading states. They wait for
       // the lookups below and the reader opens once, on the document that stays.
       const mayHandOver =
         requested.ok &&
-        ((!expectedIdentity && parseModulePointerMetadata(requested.value.metadata) !== null) ||
+        ((!expectedIdentity && requestedPointer !== null) ||
           (!preferSummary && requested.value.sourceType === 'clinical_recommendation_summary'));
       if (requested.ok) {
-        assertIdentityDocumentTarget(requested.value, expectedIdentity);
+        const value = requested.value;
+        assertIdentityDocumentTarget(value, expectedIdentity);
         if (!mayHandOver) {
-          setDocument(requested.value);
-          setPendingTitle(undefined);
+          batch(() => {
+            const instruction = direct?.instruction;
+            if (instruction) {
+              setSubstanceInstruction(instruction);
+              performance.mark('minimed:reader:instruction');
+            }
+            showText(value);
+          });
         }
       }
       if (requested.ok && !mayHandOver && globalThis.document.visibilityState === 'visible') {
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
         if (!current()) return;
       }
-      const listed = await listDocuments(core);
+      if (
+        requested.ok &&
+        isEsklpSubstanceDocument(requested.value) &&
+        props.stagedModuleReader?.() &&
+        props.reconnectContent
+      ) {
+        // The substance header is already visible. Its representative leaflet needs the
+        // attached instruction packs, so resolve its registration against the new core.
+        await props.reconnectContent();
+        if (!current()) return;
+        core = props.getCore() ?? core;
+      }
+      if (direct) {
+        // The initial paint uses only the substance metadata. The registry sections are for
+        // secondary actions and can follow the instruction.
+        const complete = await core.getDocument(documentId);
+        if (!current()) return;
+        if (complete.ok) requested = complete;
+      }
+      const endNavigation = perfSpan('reader.navigation');
+      const listed = await listDocuments(core).finally(() => endNavigation());
       if (!current()) return;
       setAvailableDocuments(listed);
       const availableIds = new Set(listed.map((item) => item.id));
@@ -610,30 +742,35 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           pointer.targetDocumentId !== documentId &&
           (availableIds.has(pointer.targetDocumentId) || resolution.state === 'installed')
         ) {
-          const target = await core.getDocument(pointer.targetDocumentId);
+          let target = canFollowPointer
+            ? undefined
+            : await core.getDocument(pointer.targetDocumentId);
           if (!current()) return;
-          if (target.ok && target.value.sections.some((section) => section.chunks.length > 0)) {
-            // The pointer only stands in for the target: the target takes its history entry.
-            openDocumentOverlay(
-              pointer.targetDocumentId,
-              modulePointerTargetAnchor(
-                pointerMetadata,
-                initialAnchor(),
-                requested.ok
-                  ? {
-                      pointer: requested.value,
-                      target: target.value,
-                    }
-                  : undefined,
-              ),
-              {
-                preferSummary: true,
-                replace: true,
-                title: displayDocumentTitle(target.value),
-              },
-            );
-            return;
+          if (
+            !target?.ok &&
+            resolution.state === 'installed' &&
+            props.reconnectContent &&
+            !coreServesInstalledSet()
+          ) {
+            await props.reconnectContent();
+            const refreshed = props.getCore();
+            if (!current()) return;
+            if (refreshed) {
+              core = refreshed;
+              target = await core.getDocument(pointer.targetDocumentId);
+            }
           }
+          if (!current()) return;
+          if (
+            target?.ok &&
+            openPreparedTarget(
+              core,
+              target.value,
+              requested.ok ? requested.value : undefined,
+              pointerMetadata,
+            )
+          )
+            return;
           setModulePointerInstallError(
             'Набор установлен, но полный документ недоступен. Повторите подключение в разделе скачивания.',
           );
@@ -641,10 +778,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         // The pointer stays: its panel (install, progress) now stands in the reader. It is named
         // only here, so a pointer that hands over never flashes its install panel first.
         setModulePointer(resolution);
-        if (requested.ok && readableId === documentId) {
-          setDocument(requested.value);
-          setPendingTitle(undefined);
-        }
+        if (requested.ok && readableId === documentId) showText(requested.value);
       }
       const summary = listed.find((item) => item.id === readableId);
       if (summary) {
@@ -711,10 +845,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         return;
       }
       assertIdentityDocumentTarget(result.value, expectedIdentity);
-      setDocument(result.value);
-      perfMark('reader.text', { sections: result.value.sections.length });
+      showText(result.value);
       loadedOfficialRequestId = documentId;
-      setPendingTitle(undefined);
       if (result.value.metadata['contentMode'] === 'esklp-mnn') {
         // The supplements read the navigation listing, the one already on screen: it carries the
         // instruction registrations and the recommendations' drug links. The full listing ships
@@ -1138,7 +1270,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         );
         return;
       }
-      installedTarget = { core: refreshedCore, document: target.value };
+      preparedTarget = { core: refreshedCore, document: target.value };
       openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {
         preferSummary: true,
         replace: true,

@@ -104,9 +104,6 @@
 
 /* One compact progress line: required fields filled, draft state, reset. */
 .form-progress {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky-chrome, 5);
   display: flex;
   min-height: 2.5rem;
   align-items: center;
@@ -114,6 +111,7 @@
   padding: 0.3rem 0.5rem 0.3rem 0.75rem;
   border: 1px solid var(--theme-border);
   border-radius: var(--theme-radius-panel, 0.9rem);
+  color: var(--theme-text);
   background: var(--theme-surface-raised);
 }
 

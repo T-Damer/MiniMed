@@ -392,6 +392,24 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
             url: props.schema.source.publicationUrl,
           },
         ]}
+        pinnedFooter={
+          <FormProgress
+            total={requiredTotal()}
+            done={requiredTotal() - validation().missing.length}
+            stateText={formDraftStateText({
+              status: status(),
+              savedAt: savedAt(),
+              error: saveError() || undefined,
+              touched: Object.keys(edits()).length > 0,
+              memoryOnly: memoryOnly(),
+            })}
+            stateError={saveError() !== ''}
+            attention={attempted()}
+            canReset={changedFromPrefill()}
+            onJump={jumpToFirstMissing}
+            onReset={resetEdits}
+          />
+        }
       />
 
       <div class="forms-workspace__patient">
@@ -454,23 +472,6 @@ export function FormFillPage(props: FormFillPageProps): JSX.Element {
           }}
         />
       </Show>
-
-      <FormProgress
-        total={requiredTotal()}
-        done={requiredTotal() - validation().missing.length}
-        stateText={formDraftStateText({
-          status: status(),
-          savedAt: savedAt(),
-          error: saveError() || undefined,
-          touched: Object.keys(edits()).length > 0,
-          memoryOnly: memoryOnly(),
-        })}
-        stateError={saveError() !== ''}
-        attention={attempted()}
-        canReset={changedFromPrefill()}
-        onJump={jumpToFirstMissing}
-        onReset={resetEdits}
-      />
 
       <Show when={ready()}>
         <For each={props.schema.sections}>

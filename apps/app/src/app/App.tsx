@@ -14,9 +14,10 @@ import { Dynamic, Portal } from 'solid-js/web';
 import { Toaster } from 'solid-sonner';
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
-import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
+import { afterBootReveal, firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
 import { isFullScreen } from '@/app/full-screen-routes';
 import { LazyBoundary } from '@/app/LazyBoundary';
+import { showPageRestoredNotice } from '@/app/page-restored-notice';
 import { RootPageSkeleton } from '@/app/RootPageSkeleton';
 import {
   COMPACT_ROOT_VIEWS,
@@ -68,6 +69,7 @@ import {
 } from '@/state/app-profile';
 import { parseDocumentReadRoute } from '@/state/document-route';
 import { createFloatingWindows } from '@/state/floating-windows';
+import { restoreLastPage, trackLastPage } from '@/state/last-page';
 import {
   ROUTE_WINDOW_REQUEST_EVENT,
   type RouteWindowRequestDetail,
@@ -167,7 +169,17 @@ export function App(): JSX.Element {
   // The first launch's onboarding introduces the app before the core download begins; the
   // onboarding lets it go, and so does any path on which the onboarding is not going to show.
   if (onboardingOpen() && !embeddedFloatingWindow) holdCoreStart();
+  const tracksLastPage = session.isNativeShell && !embeddedFloatingWindow;
+  const restoredPage =
+    tracksLastPage && !onboardingOpen() ? restoreLastPage(activeProfile()) : undefined;
   const navigation = useRootNavigation();
+  if (tracksLastPage) onCleanup(trackLastPage(activeProfile()));
+  if (restoredPage)
+    onMount(() => {
+      void afterBootReveal().then(() => {
+        if (window.location.hash === restoredPage) showPageRestoredNotice();
+      });
+    });
   const [shellReady, setShellReady] = createSignal(document.readyState === 'complete');
   const [splitNavigation, setSplitNavigation] = createSignal(getSplitNavigation());
   const [currentHash, setCurrentHash] = createSignal(window.location.hash);
@@ -584,6 +596,7 @@ export function App(): JSX.Element {
           <SearchHome
             baseCore={session.ready() ? (session.searchCore() ?? session.ready()?.core) : undefined}
             coreStatus={coreStatus()}
+            installedProgress={session.installedProgress()}
             onRetryCore={() => window.location.reload()}
             onDownloadCore={session.downloadCore}
             onContentChanged={session.connectInstalledModules}
@@ -601,6 +614,7 @@ export function App(): JSX.Element {
                 <DocumentPageHost
                   getCore={() => session.ready()?.core}
                   reconnectContent={session.connectInstalledModules}
+                  stagedModuleReader={session.stagedModuleReader}
                 />
               </Suspense>
             </LazyBoundary>

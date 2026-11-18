@@ -32,6 +32,7 @@ export interface HeroPicture {
 export function ReaderHero(props: {
   /** The picture of the article; no hero without it. */
   readonly picture: HeroPicture | undefined;
+  readonly graphicsReady?: boolean | undefined;
   readonly onSource?: (source: string | null) => void;
   readonly children: JSX.Element;
 }): JSX.Element {
@@ -42,7 +43,7 @@ export function ReaderHero(props: {
     const picture = props.picture;
     setImage(null);
     props.onSource?.(null);
-    if (!picture) {
+    if (!picture || props.graphicsReady === false) {
       setPending(false);
       return;
     }

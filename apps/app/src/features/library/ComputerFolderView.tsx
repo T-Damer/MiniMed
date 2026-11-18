@@ -142,14 +142,19 @@ export function ComputerFolderView(props: {
             title="Папка с компьютера"
             text="Выберите папку один раз — её файлы будут видны здесь."
             actions={
-              <Button
-                type="button"
-                variant="primary"
-                icon={<AppGlyph name="folder-open" />}
-                onClick={() => void choose()}
-              >
-                Выбрать папку
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="primary"
+                  icon={<AppGlyph name="folder-open" />}
+                  onClick={() => void choose()}
+                >
+                  Выбрать папку
+                </Button>
+                <Button type="button" variant="secondary" onClick={props.onPickFiles}>
+                  Выбрать файл
+                </Button>
+              </>
             }
           />
         </Match>
@@ -196,17 +201,24 @@ export function ComputerFolderView(props: {
           {(failed) => {
             const message = () => errorStateOf(COMPUTER_FOLDER_FAILURE_STATES, failed().failure);
             return (
-              <CalmError
-                title={message().title}
-                detail={message().text}
-                actionLabel={
-                  failed().failure.kind === 'unsupported' ? 'Выбрать файлы' : 'Выбрать папку'
-                }
-                onAction={() =>
-                  failed().failure.kind === 'unsupported' ? props.onPickFiles() : void choose()
-                }
-                embedded
-              />
+              <>
+                <CalmError
+                  title={message().title}
+                  detail={message().text}
+                  actionLabel={
+                    failed().failure.kind === 'unsupported' ? 'Выбрать файлы' : 'Выбрать папку'
+                  }
+                  onAction={() =>
+                    failed().failure.kind === 'unsupported' ? props.onPickFiles() : void choose()
+                  }
+                  embedded
+                />
+                <Show when={failed().failure.kind !== 'unsupported'}>
+                  <Button type="button" variant="secondary" onClick={props.onPickFiles}>
+                    Выбрать файл
+                  </Button>
+                </Show>
+              </>
             );
           }}
         </Match>

@@ -60,6 +60,76 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Release 0.6.115 — 2026-11-18
+
+### Startup and reader
+
+Android can open the native discovery base while the installed packs attach in the background.
+Mount workers claim records in order with eight parallel opens and release each IndexedDB batch
+after its records have been claimed. The temporary base has its own search-cache version. An exact
+ЕСКЛП name can use verified installed catalog membership while its search pack attaches. A reader
+can lease an exact active pack early and checks the document edition and checksum against the
+catalog before display. The combined store routes document, section and chunk reads through the
+owner map built during composition validation. A pointer can hand over the target it already read.
+
+An exact ЕСКЛП substance can open from its verified substance pack and the matching ГРЛС
+instruction pack while the library is still attaching. The companion pack supplies exact
+registration matches from its own index. The normal selection rules choose the complete native-text
+instruction and the reader paints it before opening the full registry card. A bounded disk snapshot
+holds one recently opened public instruction and is invalidated when the installed set changes.
+
+The official reader paints text and image captions before tables. Table layout has a separate
+turn before inline links and larger visuals. Near-viewport chunks activate links and illustrations
+one at a time on idle frames after scrolling pauses. Queued work drops out when it leaves the
+viewport margin. The full text-find index is built when Find opens.
+
+Android can restore the last page and its anchored reader position after the process is unloaded.
+The setting lives in «Настройки → Основные». The restore notice can turn restoration off or hide
+future notices. Checkpoints are per profile and omit search text. Explicit launch routes take
+precedence over a saved page.
+
+Phone checks used 846 installed modules on the Xiaomi. The signed 0.6.114 build reached search
+readiness in 11.45 s on a repeat process-cold launch and 29.82 s on the first start after
+installation. Its «Рисперидон» result took 10.89 s from tap to the first visible instruction text.
+In the final candidate's four process-cold trials the discovery base was ready 0.60–0.82 s after
+WebView navigation and the first exact result appeared 0.62–1.11 s after input. The same verified
+instruction painted before full attachment in every run. It took 1.38 s immediately after clearing
+the snapshot and 0.45–0.67 s in the three following runs. The cold target remains open with an
+empty snapshot. Five swipes in each run exercised the reader during background attachment, with
+133–200 ms p95 frame intervals. Force-stop checks restored the reader to its saved position and
+verified both notice actions and the next-launch home behavior with restoration off. The candidate
+used temporary web assets with the signed app's native bridge and installed data.
+
+### Browser navigation, forms and printing follow-up
+
+The 0.6.111 Xiaomi report exported at 16:39 Istanbul time recorded 19.6 s of long-frame blocking
+across three sessions. The largest IndexedDB callback blocked for 2.41 s. Installed module versions are now
+read in groups of four with a browser task between batches. Search shows how many local packs have
+been processed while the library opens. On Android the discovery base remains usable during this
+phase. A Chromium reload with 120 real packs left in IndexedDB by an older installer showed
+progress from 0 to 120 and moved every index to the shelf.
+
+Template Back follows browser history. The device-file picker opens the selected file in the
+reader and keeps its local copy. Files adds space between the path and the recordings list.
+Form progress pins as part of the safe-area-aware page header. A conversation started from a form
+can return its transcript to that form for review. Incomplete personal questionnaires open the
+editor on the same history entry so its existing required-field checks are visible immediately.
+
+«Нормы и расчёты» uses the shared page header. The legacy catalog toolbar remains available to
+other routes. The detail sheet shows pack document count and installed size when available, with
+an explicit download action for downloadable packs. Clinical printing reconstructs the title page
+from pack metadata and the original opening pages. It includes the state coat of arms from the
+[Presidential Library](https://www.prlib.ru/node/1327586), with the title, МКБ-10, audience,
+approval year and developers in the source layout. The browser rendered those fields from the
+released 216_2 pack. Tables wrap on A4, repeat their headings across sheets when available and
+can break between rows. A browser PDF and simulated Android preview each produced five sheets for
+a 108-row fixture. This round was checked in Chromium while the Xiaomi was disconnected.
+
+The official form overlay run matched all 13 measurements from a fresh 0.6.114 baseline,
+including the existing differences on 003-В/у, 025-1/у, 071/у and 088/у. The generated official
+blank layouts still use the same templates. Seven source orders were unchanged. All 25 indexed
+regulatory portal records passed verification and five entries still lack a portal record.
+
 ## Release 0.6.114 — 2026-11-18
 
 ### Status-bar edge and drug table review

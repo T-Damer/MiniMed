@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
+import type { ContentModuleCatalogEntry, MedicalCore, MedicalDocument } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
+import { toMedicalDocument } from '@localmed/core/mappers';
 import { type MedicalStore, type MedicalStoreMount, MultiMedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore, LocalMedDatabase } from '@localmed/storage-capacitor';
 import {
@@ -15,7 +17,11 @@ import { withKeptListings } from '@/composition/store-listing-memo';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { comparisonDrugCodes } from '@/features/drug-comparison/comparison-atc-directory';
-import { loadInstalledModuleMounts } from '@/features/modules/browser-module-runtime';
+import {
+  type InstalledMountProgress,
+  loadInstalledModuleMount,
+  loadInstalledModuleMounts,
+} from '@/features/modules/browser-module-runtime';
 import { timeInstallPhase } from '@/features/modules/install-timing';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
 import { E5_QUERY_EMBEDDER } from '@/features/semantic/e5-query-embedder';
@@ -148,6 +154,7 @@ async function fetchPackReport(contentBaseUrl: string): Promise<PackBuildReport>
 }
 
 export interface CoreDownloadUi {
+  readonly onModuleProgress?: (progress: InstalledMountProgress) => void;
   readonly requestDownload: (resuming?: boolean) => Promise<void>;
   readonly onProgress: (progress: {
     readonly loaded: number;
@@ -482,8 +489,10 @@ export function builtInCompanionMounts(
  * side by side: with every module installed the modules are most of the start, and they waited
  * for the core and the companion packs first.
  */
-function startInstalledModuleMounts(): Promise<readonly MedicalStoreMount[]> {
-  return timeInstallPhase('core-mount-modules', loadInstalledModuleMounts).catch(
+function startInstalledModuleMounts(
+  onProgress?: CoreDownloadUi['onModuleProgress'],
+): Promise<readonly MedicalStoreMount[]> {
+  return timeInstallPhase('core-mount-modules', () => loadInstalledModuleMounts(onProgress)).catch(
     (cause: unknown): readonly MedicalStoreMount[] => {
       console.warn(
         'Downloaded content modules could not be opened; using the built-in base.',
@@ -617,11 +626,57 @@ async function createPackagedCompanionStores(
  * The search core of the page. Every failed result of a storage fault reads as one calm message
  * (`withCalmCoreErrors`), so no screen can show the storage engine's own words.
  */
-export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
-  return withCalmCoreErrors(await openBrowserCore(downloadUi));
+export async function createBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () => void) {
+  return withCalmCoreErrors(await openBrowserCore(downloadUi, onAndroidBase));
 }
 
-async function openBrowserCore(downloadUi?: CoreDownloadUi) {
+/** Reads one indexed document before the installed-set core is ready. The lease can be shared. */
+export async function readInstalledModuleDocument(
+  module: ContentModuleCatalogEntry,
+  documentId: string,
+  headerOnly = false,
+): Promise<MedicalDocument | undefined> {
+  return withInstalledReaderCore(module, async (core, store) => {
+    let document: MedicalDocument;
+    if (headerOnly) {
+      const initialized = await core.initialize();
+      if (!initialized.ok) return undefined;
+      const record = await store.getDocument(documentId);
+      if (!record) return undefined;
+      document = toMedicalDocument(record, []);
+    } else {
+      const result = await core.getDocument(documentId);
+      if (!result.ok) return undefined;
+      document = result.value;
+    }
+    return module.documents.some(
+      (entry) =>
+        entry.documentId === document.id &&
+        entry.documentVersionId === document.versionId &&
+        entry.sourceChecksum === document.sourceChecksum,
+    )
+      ? document
+      : undefined;
+  });
+}
+
+export async function withInstalledReaderCore<T>(
+  module: ContentModuleCatalogEntry,
+  read: (core: MedicalCore, store: MedicalStore) => Promise<T>,
+): Promise<T | undefined> {
+  const mount = await loadInstalledModuleMount(module);
+  if (!mount) return undefined;
+  const core = createMedicalCore({ store: mount.store, platform: 'android' });
+  try {
+    return await read(core, mount.store);
+  } finally {
+    void core.close().catch((error: unknown) => {
+      console.warn('Unable to close an installed reader lease.', error);
+    });
+  }
+}
+
+async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () => void) {
   try {
     const externalCore = await createRegisteredExternalMedicalCore();
     if (externalCore) return externalCore;
@@ -636,19 +691,27 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
   let fallbackCoreUrl: string | undefined;
   if (platform === 'android' || platform === 'ios') {
     let nativeStore: CapacitorMedicalStore | undefined;
-    const mounts = startInstalledModuleMounts();
+    const startWithBase = platform === 'android' && onAndroidBase !== undefined;
+    if (startWithBase && hasOpfsSahPoolApis()) WorkerOpfsMedicalStore.prepareReaderWorkers();
+    const mounts = startWithBase
+      ? undefined
+      : startInstalledModuleMounts(downloadUi?.onModuleProgress);
     try {
       // The same core database across rebuilds: its listings are read over the bridge once.
       nativeStore = withKeptListings(
         await createNativeStore(downloadUi),
         `native-core:${nativePlatform === 'android' ? ANDROID_CORE_DOWNLOAD.checksum : 'packaged'}`,
       );
-      const contentBaseUrl = getPackagedContentBaseUrl();
-      const companions = await createPackagedCompanionStores(contentBaseUrl, {
-        includeMedications: false,
-      });
-      const store = await withInstalledModules(nativeStore, companions, mounts);
-      return createMedicalCore({
+      const store = mounts
+        ? await withInstalledModules(
+            nativeStore,
+            await createPackagedCompanionStores(getPackagedContentBaseUrl(), {
+              includeMedications: false,
+            }),
+            mounts,
+          )
+        : nativeStore;
+      const core = createMedicalCore({
         store,
         platform,
         embedder: QUERY_EMBEDDER,
@@ -656,8 +719,10 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
         // Search must reuse the native bridge and its installed packs, not open a second WASM core.
         searchExecution: 'direct-only',
       });
+      if (startWithBase) onAndroidBase();
+      return core;
     } catch (error) {
-      closeModuleMounts(mounts);
+      if (mounts) closeModuleMounts(mounts);
       await nativeStore?.close();
       // A corrupt edition is not a backend capability failure. Never bypass native validation
       // by opening the same damaged bytes in WASM.
@@ -681,7 +746,7 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi) {
     }
   }
 
-  const mounts = startInstalledModuleMounts();
+  const mounts = startInstalledModuleMounts(downloadUi?.onModuleProgress);
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
     const report = await readPackReport(contentBaseUrl);

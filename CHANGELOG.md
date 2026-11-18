@@ -4,6 +4,16 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.115] - 2026-11-18
+
+- Open Android search from the discovery base while installed packs attach in batches with visible progress.
+- Open exact installed medication instructions directly and keep a bounded copy for repeat reads.
+- Restore the last page and reading position after Android unloads the app, with settings for restoration and its notice.
+- Fix template Back navigation and open selected device files directly in the reader.
+- Keep certificate progress below the header, start a recording from «Беседа», and open incomplete questionnaires in their editor.
+- Update «Нормы и расчёты» and show pack sizes, document counts, and download actions in its detail sheet.
+- Print clinical recommendations with the Герб and source title-page fields. Fit tables across A4 pages and repeat their headings.
+
 ## [0.6.114] - 2026-11-18
 
 - Keep the reader background continuous through the status bar and match Android icons to the visible surface.

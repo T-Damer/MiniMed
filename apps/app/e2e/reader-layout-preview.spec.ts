@@ -95,10 +95,11 @@ for (const viewport of FIT_VIEWPORTS) {
     test.setTimeout(240_000);
     await mountClinicalReader(page, viewport);
     await page.waitForTimeout(2500);
-    const control = page.locator('.document-rich-image__control').first();
-    await control.evaluate((element) =>
+    const figure = page.locator('.document-rich-block--image').first();
+    await figure.evaluate((element) =>
       element.scrollIntoView({ block: 'center', behavior: 'instant' }),
     );
+    const control = figure.locator('.document-rich-image__control');
     await expect(control).toBeVisible();
     await control.click();
     const image = page.locator('.media-viewer__image');

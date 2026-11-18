@@ -86,6 +86,8 @@ describe('app-preferences', () => {
       usefulFeaturesHidden: false,
       toolAgeFilter: 'all',
       readerChromePinned: false,
+      restoreLastPage: true,
+      showPageRestoreNotice: true,
     });
   });
 
@@ -113,6 +115,8 @@ describe('app-preferences', () => {
       usefulFeaturesHidden: false,
       toolAgeFilter: 'all',
       readerChromePinned: false,
+      restoreLastPage: true,
+      showPageRestoreNotice: true,
     });
   });
 

@@ -24,6 +24,7 @@ import type {
   OpfsPackWorkerLockStatus,
   OpfsPackWorkerMethod,
   OpfsPackWorkerOpenOptions,
+  OpfsPackWorkerRequest,
   OpfsPackWorkerResponse,
 } from '@/composition/opfs-pack-protocol';
 import { recordEpochInstallPhase } from '@/features/modules/install-timing';
@@ -57,9 +58,27 @@ function nextTask<T>(value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), 0));
 }
 
+function createPackWorker(): Worker {
+  return new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), { type: 'module' });
+}
+
 export class WorkerOpfsMedicalStore implements MedicalStore {
   private onDownloadWait: (waiting: boolean) => void = () => {};
   private static readonly sharedStores = new Map<string, SharedWorkerStore>();
+  private static readonly preparedWorkers = new Set<Worker>();
+
+  /** Compile SQLite while the native base opens, before any downloaded pack is requested. */
+  public static prepareReaderWorkers(): void {
+    if (WorkerOpfsMedicalStore.preparedWorkers.size > 0) return;
+    for (let index = 0; index < 2; index += 1) {
+      const worker = createPackWorker();
+      WorkerOpfsMedicalStore.preparedWorkers.add(worker);
+      worker.postMessage({ id: 0, type: 'prepare' } satisfies OpfsPackWorkerRequest);
+      setTimeout(() => {
+        if (WorkerOpfsMedicalStore.preparedWorkers.delete(worker)) worker.terminate();
+      }, 5000);
+    }
+  }
 
   private requestId = 0;
   private readonly pending = new Map<number, PendingCall>();
@@ -182,9 +201,9 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     downloadUi?: OpfsDownloadUi,
     onWaitingForOtherTab?: (waiting: boolean) => void,
   ): Promise<WorkerOpfsMedicalStore> {
-    const worker = new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), {
-      type: 'module',
-    });
+    const prepared = WorkerOpfsMedicalStore.preparedWorkers.values().next().value;
+    if (prepared) WorkerOpfsMedicalStore.preparedWorkers.delete(prepared);
+    const worker = prepared ?? createPackWorker();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let rejectTimeout: (error: Error) => void = () => undefined;
     const timedOut = new Promise<never>((_, reject) => {
@@ -277,6 +296,12 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
     return this.listing('listNavigationDocuments');
+  }
+
+  public listInstructionDocuments(
+    registrations: readonly string[],
+  ): Promise<readonly DocumentRecord[]> {
+    return this.call('listInstructionDocuments', [registrations]);
   }
 
   public getDocument(id: string): Promise<DocumentRecord | null> {

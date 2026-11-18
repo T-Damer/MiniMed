@@ -18,6 +18,7 @@ export type OpfsPackWorkerMethod =
   | 'lookupCoreIdentities'
   | 'listSearchDocuments'
   | 'listNavigationDocuments'
+  | 'listInstructionDocuments'
   | 'listDocuments'
   | 'getDocument'
   | 'getDocumentByVersionId'
@@ -37,6 +38,7 @@ export type OpfsPackWorkerMethod =
 
 export type OpfsPackWorkerRequest =
   | { readonly id: number; readonly type: 'approve-download' }
+  | { readonly id: number; readonly type: 'prepare' }
   | ({
       readonly id: number;
       readonly type: 'open';
@@ -101,6 +103,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly lookupCoreIdentities: readonly [query: string];
   readonly listSearchDocuments: readonly [];
   readonly listNavigationDocuments: readonly [];
+  readonly listInstructionDocuments: readonly [registrations: readonly string[]];
   readonly listDocuments: readonly [];
   readonly getDocument: readonly [id: string];
   readonly getDocumentByVersionId: readonly [versionId: string];

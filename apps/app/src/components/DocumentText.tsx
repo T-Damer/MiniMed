@@ -838,6 +838,7 @@ export function DocumentText(props: {
   readonly onDocumentLink?: ((documentId: string) => void) | undefined;
   readonly core?: MedicalCore | undefined;
   readonly sourceSpans?: unknown;
+  readonly tablesReady?: boolean | undefined;
   readonly paragraphClass?: string | undefined;
   readonly text: string;
   readonly onReference?: ((reference: string) => void) | undefined;
@@ -896,19 +897,21 @@ export function DocumentText(props: {
         if (group.kind === 'table') {
           const item = group.items[0];
           return item?.kind === 'table' ? (
-            <DocumentRichBlock
-              block={item.table}
-              highlight={{
-                query: props.query,
-                exact: props.exactQuery,
-                fuzzy: props.fuzzyQuery,
-                matchClass: props.highlightClass,
-                ranges: props.ranges,
-                unitId: props.unitId,
-                activeStart: props.activeStart,
-                rangeOffset: item.offset,
-              }}
-            />
+            <Show when={props.tablesReady !== false}>
+              <DocumentRichBlock
+                block={item.table}
+                highlight={{
+                  query: props.query,
+                  exact: props.exactQuery,
+                  fuzzy: props.fuzzyQuery,
+                  matchClass: props.highlightClass,
+                  ranges: props.ranges,
+                  unitId: props.unitId,
+                  activeStart: props.activeStart,
+                  rangeOffset: item.offset,
+                }}
+              />
+            </Show>
           ) : null;
         }
         if (group.kind === 'image') {
@@ -950,54 +953,58 @@ export function DocumentText(props: {
           const rows = group.items.flatMap((item) => (item.kind === 'cell' ? [item] : []));
           const columns = Math.max(1, ...rows.map((row) => row.cells.length));
           return (
-            <figure class="document-cells">
-              <span class="document-cells__badge">
-                {columns > 1 ? 'Таблица из скана' : 'Таблица без строк и столбцов'}
-              </span>
-              <Show
-                when={columns > 1}
-                fallback={
-                  <ul class="document-cells__list">
-                    <For each={rows}>
-                      {(row) => (
-                        <li class="document-cells__cell">{inline(row.text, row.offset)}</li>
-                      )}
-                    </For>
-                  </ul>
-                }
-              >
-                <HorizontalScroller
-                  class="document-cells__scroller"
-                  controls
-                  light
-                  controlLabel="таблицу"
-                >
-                  <table
-                    class="document-cells__table"
-                    style={{ '--document-cells-columns': String(columns) }}
-                  >
-                    <tbody>
+            <Show when={props.tablesReady !== false}>
+              <figure class="document-cells">
+                <span class="document-cells__badge">
+                  {columns > 1 ? 'Таблица из скана' : 'Таблица без строк и столбцов'}
+                </span>
+                <Show
+                  when={columns > 1}
+                  fallback={
+                    <ul class="document-cells__list">
                       <For each={rows}>
                         {(row) => (
-                          <tr class="document-cells__row">
-                            <For each={row.cells}>
-                              {(cell, index) => (
-                                <td
-                                  class="document-cells__td"
-                                  colSpan={index() === row.cells.length - 1 ? columns - index() : 1}
-                                >
-                                  {cell}
-                                </td>
-                              )}
-                            </For>
-                          </tr>
+                          <li class="document-cells__cell">{inline(row.text, row.offset)}</li>
                         )}
                       </For>
-                    </tbody>
-                  </table>
-                </HorizontalScroller>
-              </Show>
-            </figure>
+                    </ul>
+                  }
+                >
+                  <HorizontalScroller
+                    class="document-cells__scroller"
+                    controls
+                    light
+                    controlLabel="таблицу"
+                  >
+                    <table
+                      class="document-cells__table"
+                      style={{ '--document-cells-columns': String(columns) }}
+                    >
+                      <tbody>
+                        <For each={rows}>
+                          {(row) => (
+                            <tr class="document-cells__row">
+                              <For each={row.cells}>
+                                {(cell, index) => (
+                                  <td
+                                    class="document-cells__td"
+                                    colSpan={
+                                      index() === row.cells.length - 1 ? columns - index() : 1
+                                    }
+                                  >
+                                    {cell}
+                                  </td>
+                                )}
+                              </For>
+                            </tr>
+                          )}
+                        </For>
+                      </tbody>
+                    </table>
+                  </HorizontalScroller>
+                </Show>
+              </figure>
+            </Show>
           );
         }
         if (group.kind === 'ordered') {

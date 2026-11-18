@@ -1215,6 +1215,29 @@ export class SqliteMedicalStore implements MedicalStore {
     return listDocumentRows(this.database, DOCUMENT_SELECT, toDocument);
   }
 
+  public async listInstructionDocuments(
+    registrations: readonly string[],
+  ): Promise<readonly DocumentRecord[]> {
+    this.assertInitialized();
+    if (registrations.length === 0) return [];
+    return queryRows(
+      this.database,
+      `
+      WITH registrations AS (SELECT value FROM json_each(?))
+      SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status, d.specialty_json,
+        json_extract(d.metadata_json, ${NAVIGATION_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields,
+        dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
+        dv.source_checksum, dv.extracted_at
+      FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
+      WHERE d.source_type = 'official_drug_instruction' AND (
+        json_extract(d.metadata_json, '$.registrationNumber') IN (SELECT value FROM registrations)
+        OR EXISTS (SELECT 1 FROM json_each(d.metadata_json, '$.requestedRegistrationNumbers') requested JOIN registrations r ON r.value = requested.value)
+        OR EXISTS (SELECT 1 FROM json_each(d.metadata_json, '$.registrationNumbers') related JOIN registrations r ON r.value = related.value)
+      )`,
+      [JSON.stringify(registrations)],
+    ).map(toDocument);
+  }
+
   public async getDocument(id: string): Promise<DocumentRecord | null> {
     this.assertInitialized();
     const row = queryRows(this.database, `${DOCUMENT_SELECT} WHERE d.id = ? LIMIT 1`, id)[0];

@@ -2372,6 +2372,29 @@ fieldset.search-mode-picker {
   overflow: visible;
 }
 
+.native-print-preview--document .native-print-preview__stage {
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.native-print-preview--document .native-print-preview__sheet {
+  display: block;
+  height: calc((297mm + var(--print-page-overflow, 0px)) * var(--print-page-scale, 1));
+  max-height: none;
+  aspect-ratio: auto;
+  padding: 0;
+}
+
+.native-print-preview--document .native-print-preview__sheet-scaler {
+  width: 210mm;
+  height: auto;
+  overflow: visible;
+  padding: 20mm 15mm 20mm 30mm;
+  transform: scale(var(--print-page-scale, 1));
+  transform-origin: top left;
+}
+
 .native-print-preview__content {
   width: 100%;
   color: #111;
@@ -2427,6 +2450,28 @@ html.native-print-active #root {
     height: auto !important;
     overflow: visible;
     transform: none !important;
+  }
+
+  .native-print-preview--document .native-print-preview__stage {
+    display: block;
+  }
+
+  .native-print-preview--document .native-print-preview__sheet {
+    height: auto;
+    overflow: visible;
+    break-after: page;
+  }
+
+  .native-print-preview--document .native-print-preview__sheet:last-child {
+    break-after: auto;
+  }
+
+  .native-print-preview--document .doc-print__cover {
+    break-after: auto;
+  }
+
+  .native-print-preview--document .native-print-preview__sheet-scaler {
+    padding: 0;
   }
 
   .native-print-preview--presentation .native-print-preview__stage {
@@ -3422,6 +3467,14 @@ html.native-print-active #root {
   border-radius: 0;
   background: transparent;
   animation: search-core-status-in var(--motion-base) var(--motion-ease-out) both;
+}
+
+.search-core-status__progress {
+  flex: 1 1 6rem;
+  min-width: 3rem;
+  max-width: 10rem;
+  height: 0.5rem;
+  accent-color: var(--theme-accent);
 }
 
 .search-core-status__copy--inline {

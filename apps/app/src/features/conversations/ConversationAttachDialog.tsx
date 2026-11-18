@@ -244,6 +244,23 @@ export function ConversationRecordingSheet(props: {
       </Show>
 
       <Show when={lines().length > 0 && !settling()}>
+        <Show when={conversationSession.finishedFormFill()} keyed>
+          {(fill) => (
+            <Button
+              variant="primary"
+              class="conversation-dialog__fill"
+              icon={<AppGlyph name="note-pencil" />}
+              onClick={() => {
+                const transcript = lines();
+                const label = conversationTitle(props.recording);
+                props.onClose();
+                afterLayersClosed(() => fill(label, transcript));
+              }}
+            >
+              Заполнить открытую форму
+            </Button>
+          )}
+        </Show>
         <Button
           variant="quiet"
           class="conversation-dialog__fill"

@@ -68,6 +68,10 @@ const [finished, setFinished] = createSignal<ConversationRecording | null>(null)
 /** Whether that sheet follows a «Стоп» (titled «Запись сохранена») or was opened from a list. */
 const [finishedFrom, setFinishedFrom] = createSignal<'stopped' | 'list'>('stopped');
 /** The recorder window over the app, opened from the floating button or the tools list. */
+type FillFromRecording = (label: string, lines: readonly string[]) => void;
+
+let fillFromActiveRecording: FillFromRecording | undefined;
+const [finishedFormFill, setFinishedFormFill] = createSignal<FillFromRecording>();
 const [windowOpen, setWindowOpen] = createSignal(false);
 /** The patient chosen in the window while recording: the recording goes to their card. */
 const [linkedPatientId, setLinkedPatientId] = createSignal('');
@@ -212,6 +216,7 @@ export const conversationSession = {
   errorOpensSettings,
   finished,
   finishedFrom,
+  finishedFormFill,
   windowOpen,
   linkedPatientId,
   /** The recogniser's state for the running recording. */
@@ -237,7 +242,18 @@ export const conversationSession = {
    * off until the doctor taps the big record button inside it.
    */
   prepare: () => setWindowOpen(true),
-  closeWindow: () => setWindowOpen(false),
+  prepareForForm: (fill: FillFromRecording) => {
+    fillFromActiveRecording = fill;
+    setWindowOpen(true);
+  },
+  releaseForm: (fill: FillFromRecording) => {
+    if (fillFromActiveRecording === fill) fillFromActiveRecording = undefined;
+    if (finishedFormFill() === fill) setFinishedFormFill(undefined);
+  },
+  closeWindow: () => {
+    if (!recorder() && !starting()) fillFromActiveRecording = undefined;
+    setWindowOpen(false);
+  },
   linkPatient: (patientId: string): void => {
     setLinkedPatientId(patientId);
     const current = recorder();
@@ -256,6 +272,7 @@ export const conversationSession = {
   dismissFinished: () => {
     const recording = finished();
     setFinished(null);
+    setFinishedFormFill(undefined);
     // The run may still be reading the tail of the audio; it is dropped once that is saved.
     const run = recording ? runs.get(recording.id) : undefined;
     if (run && !run.settling()) void run.settled.then(() => runs.delete(run.id));
@@ -263,6 +280,7 @@ export const conversationSession = {
   /** Opens a recording's sheet from «Файлы», a patient's card or the notes inbox. */
   openFinished: (recording: ConversationRecording) => {
     setFinishedFrom('list');
+    setFinishedFormFill(undefined);
     setFinished(recording);
   },
   /** Re-reads the open sheet's recording (attached, text progress) without closing it. */
@@ -359,6 +377,8 @@ export async function stopConversation(): Promise<void> {
   perfMark('recorder.stop', { recordedS: recordedSeconds });
   const run = activeRun();
   const patientId = linkedPatientId();
+  const fill = fillFromActiveRecording;
+  fillFromActiveRecording = undefined;
   setWindowOpen(false);
   setRecorder(null);
   setPaused(false);
@@ -368,6 +388,7 @@ export async function stopConversation(): Promise<void> {
     const recording = await current.stop();
     if (run) settleRun(run);
     setFinishedFrom('stopped');
+    if (fill) setFinishedFormFill(() => fill);
     setFinished(recording);
     if (patientId && isPatientVaultUnlocked()) {
       // The patient was chosen while recording: the recording goes to their card by itself.

@@ -118,3 +118,10 @@ html:has(.conversation-bar) [data-sonner-toaster].app-notification-host[data-y-p
   outline: 2px solid var(--theme-accent);
   outline-offset: 2px;
 }
+
+.app-notification__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin-top: 0.25rem;
+}

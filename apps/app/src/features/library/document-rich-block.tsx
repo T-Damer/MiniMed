@@ -618,12 +618,15 @@ function ZoomableTable(props: {
 export function DocumentRichBlock(props: {
   readonly block: DocumentRenderBlock;
   readonly highlight?: RichBlockHighlightProps | undefined;
+  readonly imageReady?: boolean | undefined;
 }): JSX.Element {
   if (props.block.kind === 'image') {
     const caption = visibleImageCaption(props.block.alt, props.block.title);
     return (
       <figure class="document-rich-image">
-        <ZoomableImage image={props.block} highlight={props.highlight} />
+        <Show when={props.imageReady !== false}>
+          <ZoomableImage image={props.block} highlight={props.highlight} />
+        </Show>
         <Show when={caption}>
           {(value) => (
             <figcaption class="document-rich-image__caption">

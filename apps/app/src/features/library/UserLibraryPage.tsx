@@ -2190,8 +2190,14 @@ export function UserLibraryPage(props: {
           multiple
           aria-label="Загрузить документы"
           onChange={(event) => {
-            void appendFiles(event.currentTarget.files);
-            event.currentTarget.value = '';
+            const input = event.currentTarget;
+            if (place().kind === 'computer') {
+              const file = input.files?.[0];
+              if (file) void openComputerFile(file);
+            } else {
+              void appendFiles(input.files);
+            }
+            input.value = '';
           }}
         />
 
@@ -2232,11 +2238,18 @@ export function UserLibraryPage(props: {
         <Show when={place().kind === 'computer'}>
           <ComputerFolderView
             onOpenFile={(file) => void openComputerFile(file)}
-            onPickFiles={openFilePicker}
+            onPickFiles={() => {
+              if (!fileInputElement) return;
+              fileInputElement.accept = '';
+              fileInputElement.multiple = false;
+              fileInputElement.click();
+            }}
           />
         </Show>
         <Show when={sourceView() === 'conversation-recordings'}>
-          <ConversationRecordingList />
+          <section class="user-library-page__recordings" aria-label="Записи бесед">
+            <ConversationRecordingList />
+          </section>
         </Show>
         <Show when={place().kind !== 'computer' && !sourceView()}>
           <Show

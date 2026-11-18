@@ -197,9 +197,12 @@ describe('MultiMedicalStore', () => {
     ]);
     await multi.initialize();
 
+    const unrelatedDocument = vi.spyOn(core, 'getDocument');
     const unrelatedSections = vi.spyOn(core, 'getSectionsByDocument');
     const unrelatedChunks = vi.spyOn(core, 'getChunksByDocument');
-    await multi.getDocument('clinical.fever');
+    expect((await multi.getDocument('clinical.fever'))?.contentPackId).toBe('clinical');
+    await multi.getDocument('core.topic');
+    unrelatedDocument.mockClear();
     const sections = await multi.getSectionsByDocument('clinical.fever');
     const chunks = await multi.getChunksByDocument('clinical.fever');
 
@@ -207,9 +210,17 @@ describe('MultiMedicalStore', () => {
     expect(chunks.map((chunk) => chunk.sectionId)).toEqual(['clinical.fever@1/section']);
     expect(unrelatedSections).not.toHaveBeenCalled();
     expect(unrelatedChunks).not.toHaveBeenCalled();
+    expect((await multi.getDocument('clinical.fever'))?.contentPackId).toBe('clinical');
+    expect(await multi.getDocument('missing.document')).toBeNull();
+    expect(unrelatedDocument).not.toHaveBeenCalled();
     expect(await multi.getSectionsByDocument('missing.document')).toEqual([]);
     await multi.setEnabled('clinical', false);
     expect(await multi.getChunksByDocument('clinical.fever')).toEqual([]);
+    expect(await multi.getDocument('clinical.fever')).toBeNull();
+    await multi.setEnabled('clinical', true);
+    expect(await multi.getChunksByDocument('clinical.fever')).toEqual(chunks);
+    await multi.removeMount('clinical');
+    expect(await multi.getDocument('clinical.fever')).toBeNull();
   });
 
   it('removes disabled optional modules from search without closing them', async () => {
