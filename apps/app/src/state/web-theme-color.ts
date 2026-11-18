@@ -21,6 +21,11 @@ function opaqueBackground(element: Element | null): string | undefined {
 
 /** The colour the top edge of the screen shows now. */
 export function topEdgeColor(): string | undefined {
+  const cap = document.querySelector('.app-shell__status-cap');
+  if (cap?.getClientRects().length) {
+    const color = opaqueBackground(cap);
+    if (color) return color;
+  }
   // Pages kept alive behind the current one are hidden: the shown one has a box on screen.
   for (const hero of Array.from(document.querySelectorAll('.page--hero'))) {
     if (!hero.getClientRects().length) continue;

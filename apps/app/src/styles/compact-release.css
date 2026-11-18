@@ -3742,7 +3742,8 @@ html:root > body {
 }
 
 /* A real element: Safari's probe reads a pseudo-element as its (unfixed) parent. */
-.app-shell:has(.app-view.active :is(.page--hero, .search-home)) > .app-shell__status-cap {
+.app-shell:has(.app-view.active :is(.page--hero, .search-home))
+> .app-shell__status-cap:not(.app-shell__status-cap--suppressed) {
   display: block;
   position: fixed;
   z-index: var(--z-status-cap);

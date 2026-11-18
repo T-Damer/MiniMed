@@ -11,7 +11,8 @@ let holds = 0;
 let applied: SystemBarsStyle | undefined;
 
 function apply(): void {
-  if (!Capacitor.isNativePlatform()) return;
+  // Android samples the visible surface and writes through LocalMedSystemUi.
+  if (Capacitor.getPlatform() !== 'ios') return;
   const style = holds > 0 ? SystemBarsStyle.Dark : SystemBarsStyle.Default;
   if (style === applied) return;
   applied = style;

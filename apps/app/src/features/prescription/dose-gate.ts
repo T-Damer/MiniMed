@@ -125,6 +125,11 @@ export function shapeFamily(shape: DoseShape): string {
   return shape.replace(/\.(?:no)?freq$/u, '');
 }
 
+/** Pipe separators represent cell boundaries in prepared instruction tables. */
+export function hasTableCellSeparator(evidence: string): boolean {
+  return /\s\|\s/u.test(evidence);
+}
+
 /** True when the rule may produce computed numbers (doses, cap comparisons, a default course). */
 export function mayCompute(rule: Pick<DoseRule, 'gc'>): boolean {
   return GATE_ALLOWED.has(shapeOf(rule));
@@ -441,7 +446,8 @@ export function classifyRule(input: GateInput): DoseShape {
   // «Дети старше 12 лет … 2 таблетки.» / «(до 18 лет), масса тела ≥41 кг»: the population goes on after the sentence.
   if (input.qualifierFollows === true) return 'rejected.population';
   const remarkFree = clause.replace(/\(\s*соответствует[^)]*\)/gu, ' ');
-  if (TABLE_CUES.test(clause) || NEGATION.test(remarkFree)) return 'rejected.table';
+  if (hasTableCellSeparator(clause) || TABLE_CUES.test(clause) || NEGATION.test(remarkFree))
+    return 'rejected.table';
   // A fragment: starts inside a parenthesis, or is a muddle of Latin words and a few Russian ones.
   if (
     (clause.match(/\)/gu) ?? []).length > (clause.match(/\(/gu) ?? []).length ||

@@ -102,6 +102,23 @@ def test_a_stamp_on_the_title_baseline_is_its_own_line() -> None:
     assert sorted(line.text for line in lines) == ["ИНСТРУКЦИЯ", "СОГЛАСОВАНО"]
 
 
+def test_table_rows_keep_boundaries_and_source_coordinates() -> None:
+    rows = [
+        block(0, "Строка | Значение", 30, kind="table_candidate"),
+        block(1, "Первая | 10", 54, kind="table_candidate"),
+        block(2, "Вторая | 20", 78, kind="table_candidate"),
+    ]
+    extracted = ExtractedPage(page=1, width=WIDTH, height=HEIGHT, blocks=rows, character_count=0)
+    result = refine_page(extracted, {}, None, (), CleanupCounters())
+    assert len(result.blocks) == 1
+    table = result.blocks[0]
+    assert table.text.splitlines() == [row.text for row in rows]
+    assert table.bbox and rows[-1].bbox and table.bbox[3] == rows[-1].bbox[3]
+    assert table.metadata["blocks"] == [row.id for row in rows]
+    lines = cast(list[dict[str, object]], table.metadata["lines"])
+    assert [line["bbox"] for line in lines] == [row.bbox for row in rows]
+
+
 def test_an_amendment_table_is_read_column_by_column() -> None:
     lines = assemble_lines(
         page(

@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.114] - 2026-11-18
+
+- Keep the reader background continuous through the status bar and match Android icons to the visible surface.
+- Preserve OCR table row boundaries and source coordinates.
+- Show table-derived prescription rules as source quotes and exclude them from dose calculations.
+
 ## [0.6.113] - 2026-11-18
 
 - Restore Android search and read large catalog projections in bounded pages.

@@ -20,7 +20,7 @@ import {
   type InstructionSourceInfo,
   instructionSourceInfo,
 } from '@/features/medications/instruction-source';
-import { mayCompute } from './dose-gate';
+import { hasTableCellSeparator, mayCompute } from '@/features/prescription/dose-gate';
 import { extractDoseRules } from './dose-parse';
 
 export interface ResolvedRule {
@@ -175,10 +175,11 @@ export function resolveInstruction(
     for (let index = 0; index < read.starts.length; index += 1) {
       if ((read.starts[index] ?? 0) <= rule.a) chunkAt = index;
     }
+    const evidence = read.text.slice(rule.a, rule.b);
     resolved.push({
       rule,
-      computable: mayCompute(rule),
-      quote: collapse(read.text.slice(rule.a, rule.b)),
+      computable: mayCompute(rule) && !hasTableCellSeparator(evidence),
+      quote: collapse(evidence),
       context: rule.h ? collapse(read.text.slice(rule.h[0], rule.h[1])) : null,
       indication: rule.i ? collapse(read.text.slice(rule.i[0], rule.i[1])) : null,
       severalRegimens: rule.sv === 1,

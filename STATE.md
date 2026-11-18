@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-18 REL 0.6.114: reader status bar, OCR table provenance and the prescription table calculation guard.
 - 2026-11-18 REL 0.6.113: Android search bridge fix, reader routing, News loading and scrolling fixes.
 - 2026-11-18 REL 0.6.112 (PERF18): sliced startup cache access, compact search listings and deferred document lookup.
 - 2026-11-16 claude-fable REL 0.6.111: SRCH-COLD1 + SRCH-QUICK1 + SRCH-QUICK2 + SCAN-TIDY1 (app-only); verify + unit + search/reader/dictionary/drug e2e; not on a phone

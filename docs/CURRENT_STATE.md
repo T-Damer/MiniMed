@@ -60,6 +60,21 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Release 0.6.114 — 2026-11-18
+
+### Status-bar edge and drug table review
+
+Reader routes suppress the top-edge cap that previously stayed visible for the hidden search tab.
+On Android, visible surface contrast drives one icon-colour bridge. Hiding the cap on the Xiaomi
+removed an 18-device-pixel band over the paper background.
+
+The GRLS audit covered 2,296 unique OCR extractions. It flagged 286 table-related blocks
+across 71 instructions. A local Vision run examined all 148 flagged scan pages and assembled
+80 review-only table candidates. Native extraction found one more candidate. Future table merges
+keep original row geometry and numeric alternatives for review. The shipped prescription index
+has 12,352 rules whose checked evidence ranges all resolve. Two computable rules came from
+pipe-delimited table-like evidence. The new guard keeps those entries quotable without computation.
+
 ## Release 0.6.112 — 2026-11-18
 
 ### Startup stalls and compact search results

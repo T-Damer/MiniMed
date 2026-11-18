@@ -373,15 +373,22 @@ def _merge(
     blocks: Sequence[ExtractedBlock], lexicon: Lexicon | None, counters: CleanupCounters
 ) -> ExtractedBlock:
     first = blocks[0]
+    table = first.kind == "table_candidate"
     text = first.text
     hyphens = 0
-    for block in blocks[1:]:
-        joined = join_hyphenated(text, block.text, lexicon) if text.rstrip().endswith("-") else None
-        if joined is not None:
-            text = joined
-            hyphens += 1
-        else:
-            text = f"{text.rstrip()} {block.text.lstrip()}"
+    if table:
+        text = "\n".join(block.text.strip() for block in blocks)
+    else:
+        for block in blocks[1:]:
+            joined = (
+                join_hyphenated(text, block.text, lexicon) if text.rstrip().endswith("-") else None
+            )
+            if joined is not None:
+                text = joined
+                hyphens += 1
+            else:
+                text = f"{text.rstrip()} {block.text.lstrip()}"
+        text = re.sub(r"\s{2,}", " ", text).strip()
     boxes = [_bbox(block) for block in blocks]
     union = [
         round(min(box[0] for box in boxes), 3),
@@ -402,11 +409,11 @@ def _merge(
             extra["enginesDisagreeOnNumbers"] = True
     counters.lines_joined += len(blocks) - 1
     counters.hyphens_joined += hyphens
-    if len(blocks) > 1:
+    if len(blocks) > 1 and not table:
         counters.paragraphs_reflowed += 1
     return first.model_copy(
         update={
-            "text": re.sub(r"\s{2,}", " ", text).strip(),
+            "text": text,
             "bbox": union,
             "line_count": sum(block.line_count for block in blocks),
             "metadata": {
@@ -525,23 +532,15 @@ def refine_page(
 
     for block in prepared:
         if block.kind == "paragraph" and not block.removed:
-            if run and _should_break(run[-1], block, pitch, left_margin):
+            if run and (
+                run[-1].kind != "paragraph" or _should_break(run[-1], block, pitch, left_margin)
+            ):
                 flush()
             run.append(block)
             continue
         if block.kind == "table_candidate" and not block.removed:
-            if run and run[-1].kind == "table_candidate":
-                previous = run.pop()
-                run.append(
-                    previous.model_copy(
-                        update={
-                            "text": previous.text + "\n" + block.text,
-                            "line_count": previous.line_count + block.line_count,
-                        }
-                    )
-                )
-                continue
-            flush()
+            if run and run[-1].kind != "table_candidate":
+                flush()
             run.append(block)
             continue
         flush()

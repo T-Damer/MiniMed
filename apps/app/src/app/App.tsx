@@ -473,6 +473,10 @@ export function App(): JSX.Element {
           statusCap = element;
         }}
         class="app-shell__status-cap"
+        classList={{
+          'app-shell__status-cap--suppressed':
+            navigation.documentReadActive() || showingBootScreen(),
+        }}
         aria-hidden="true"
       />
       <Portal>
