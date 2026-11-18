@@ -106,14 +106,8 @@ def digit_tokens(text: str) -> list[str]:
 
 
 def numbers_conflict(first: str, second: str) -> bool:
-    """Each reading has a standalone number the other lacks: a real disagreement about a number.
-
-    A number one engine merely lost (a dropped digit in a unit, a code read with look-alike
-    letters) is not a
-    conflict; the other reading keeps the number.
-    """
-    a, b = set(digit_tokens(first)), set(digit_tokens(second))
-    return bool(a - b) and bool(b - a)
+    """Flag any change in standalone numbers, including missing or repeated values."""
+    return digit_tokens(first) != digit_tokens(second)
 
 
 def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:

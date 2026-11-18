@@ -68,6 +68,7 @@ import {
 } from '@/features/library/document-medication-links';
 import { MedicationSafetyCard } from '@/features/medication-safety/MedicationSafetyCard';
 import { parseSafetyQuery } from '@/features/medication-safety/safety-query';
+import { CLINICAL_REGISTRY_URL } from '@/features/modules/clinical-registry-links';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
@@ -2390,6 +2391,28 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             )}
           </Show>
         </div>
+
+        <Show
+          when={
+            props.scope === 'guidelines' &&
+            titleQuery() &&
+            response() &&
+            !loading() &&
+            !refinePending() &&
+            !meaningPending()
+          }
+        >
+          <a
+            class="search-registry-link"
+            href={CLINICAL_REGISTRY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerPolicy="no-referrer"
+          >
+            <AppGlyph name="arrow-square-out" class="search-registry-link__icon" />
+            Поиск в реестре Минздрава
+          </a>
+        </Show>
 
         {props.catalogAfterResults}
       </div>

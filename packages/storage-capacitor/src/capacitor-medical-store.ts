@@ -233,6 +233,35 @@ function toChunk(row: NativeSqlRow): ChunkRecord {
 /** Documents per native reply: whole-catalog replies do not fit a WebView heap. */
 const DOCUMENT_PAGE_SIZE = 1024;
 
+// Keep this projection comment-free for the native bridge. Target IDs collapse duplicate results.
+const SEARCH_DOCUMENT_SELECT = `
+  SELECT d.id, d.title, d.short_title, d.source_type, json_object(
+    'terminology', json_extract(metadata_json, '$.terminology'),
+    'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
+    'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
+    'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
+    'ageGroups', json_extract(metadata_json, '$.ageGroups'),
+    'entityType', json_extract(metadata_json, '$.entityType'),
+    'conceptId', json_extract(metadata_json, '$.conceptId'),
+    'contentMode', json_extract(metadata_json, '$.contentMode'),
+    'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
+    'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
+    'interactiveRoute', json_extract(metadata_json, '$.interactiveRoute'),
+    'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
+      THEN 'true' ELSE 'false' END),
+    'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
+      THEN 'true' ELSE 'false' END),
+    'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId'),
+    'icd10Codes', json_extract(metadata_json, '$.icd10Codes'),
+    'mkbCode', json_extract(metadata_json, '$.mkbCode'),
+    'nameLat', json_extract(metadata_json, '$.nameLat'),
+    'publisher', json_extract(metadata_json, '$.publisher'),
+    'sourceLabel', json_extract(metadata_json, '$.sourceLabel'),
+    'issuer', json_extract(metadata_json, '$.issuer'),
+    'linkedMnnDocumentId', json_extract(metadata_json, '$.linkedMnnDocumentId')
+  ) AS metadata_json FROM documents d
+`;
+
 // `clinicalMedicationLinks`: a drug card lists the recommendations naming it from this listing (the
 // full one is megabytes per drug substance). Instruction fields (`registrationNumber`…) are not
 // here: instructions live in modules, never in the native core.
@@ -489,105 +518,55 @@ export class CapacitorMedicalStore implements MedicalStore {
 
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     this.assertInitialized();
-    this.searchDocuments ??= this.query(`
-      SELECT id, title, short_title, source_type, json_object(
-        'terminology', json_extract(metadata_json, '$.terminology'),
-        'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
-        'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
-        'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
-        'ageGroups', json_extract(metadata_json, '$.ageGroups'),
-        'entityType', json_extract(metadata_json, '$.entityType'),
-        'conceptId', json_extract(metadata_json, '$.conceptId'),
-        'contentMode', json_extract(metadata_json, '$.contentMode'),
-        'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
-        'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
-        'interactiveRoute', json_extract(metadata_json, '$.interactiveRoute'),
-        'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
-          THEN 'true' ELSE 'false' END),
-        'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
-          THEN 'true' ELSE 'false' END),
-        -- A core-catalog pointer and the full record it names (an ICD pointer and its mkb.db node,
-        -- for example) must collapse into one search-result group before the ranker cuts to a fixed
-        -- result count (query-group-ranking.ts::collapseGroupsByTargetDocument); that pass needs this
-        -- field on the same lean search projection every ranked document goes through.
-        'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId'),
-        -- Query-time identity bridges (S3): МКБ codes and the Latin name of a drug.
-        'icd10Codes', json_extract(metadata_json, '$.icd10Codes'),
-        'mkbCode', json_extract(metadata_json, '$.mkbCode'),
-        'nameLat', json_extract(metadata_json, '$.nameLat'),
-        -- Query-time source names and the substance a product record is linked to.
-        'publisher', json_extract(metadata_json, '$.publisher'),
-        'sourceLabel', json_extract(metadata_json, '$.sourceLabel'),
-        'issuer', json_extract(metadata_json, '$.issuer'),
-        'linkedMnnDocumentId', json_extract(metadata_json, '$.linkedMnnDocumentId')
-      ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
-    `)
-      .then((rows) =>
-        rows.map((row) => ({
-          id: readString(row, 'id'),
-          title: readString(row, 'title'),
-          shortTitle: readNullableString(row, 'short_title'),
-          sourceType: readString(row, 'source_type'),
-          metadata: parseJsonObject(readString(row, 'metadata_json')),
-        })),
-      )
-      .catch((error: unknown) => {
-        this.searchDocuments = undefined;
-        throw error;
-      });
+    this.searchDocuments ??= this.readDocumentPages(SEARCH_DOCUMENT_SELECT, (row) => ({
+      id: readString(row, 'id'),
+      title: readString(row, 'title'),
+      shortTitle: readNullableString(row, 'short_title'),
+      sourceType: readString(row, 'source_type'),
+      metadata: parseJsonObject(readString(row, 'metadata_json')),
+    })).catch((error: unknown) => {
+      this.searchDocuments = undefined;
+      throw error;
+    });
     return this.searchDocuments;
   }
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    // One whole-catalog reply is tens of megabytes of JSON (canonical definitions alone are ~7 M
-    // characters) and ran the Android WebView heap out of memory; read it in title-ordered pages.
-    const identities = await this.listDocumentIdentities();
-    const documents: DocumentRecord[] = [];
-    for (let offset = 0; offset < identities.length; offset += DOCUMENT_PAGE_SIZE) {
-      const ids = identities
-        .slice(offset, offset + DOCUMENT_PAGE_SIZE)
-        .map((document) => document.id);
-      const rows = await this.query(
-        `${NAVIGATION_DOCUMENT_SELECT} WHERE d.id IN (SELECT value FROM json_each(?))
-         ORDER BY d.title COLLATE NOCASE, d.id`,
-        [JSON.stringify(ids)],
-      );
-      if (rows.length !== ids.length)
-        throw new Error('Native document catalog changed while reading.');
-      documents.push(...rows.map(toDocument));
-    }
-    return documents;
+    return this.readDocumentPages(NAVIGATION_DOCUMENT_SELECT, toDocument);
   }
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    if (!this.documents) {
-      this.documents = this.loadDocuments().catch((error: unknown) => {
+    this.documents ??= this.readDocumentPages(DOCUMENT_SELECT, toDocument).catch(
+      (error: unknown) => {
         this.documents = undefined;
         throw error;
-      });
-    }
+      },
+    );
     return this.documents;
   }
 
-  private async loadDocuments(): Promise<readonly DocumentRecord[]> {
+  private async readDocumentPages<T>(
+    projection: string,
+    readDocument: (row: NativeSqlRow) => T,
+  ): Promise<readonly T[]> {
     const identities = await this.listDocumentIdentities();
-    const documents: DocumentRecord[] = [];
-    // ponytail: row pages fit the released corpus; use byte-capped native pages for larger metadata.
+    const documents: T[] = [];
+    // One catalog reply can run the Android WebView out of memory. Let interactive native queries
+    // run between small pages and keep the immutable identity list's title order.
     for (let offset = 0; offset < identities.length; offset += DOCUMENT_PAGE_SIZE) {
       const ids = identities
         .slice(offset, offset + DOCUMENT_PAGE_SIZE)
         .map((document) => document.id);
-      // Read metadata only for this page; the immutable identity list is already title-sorted.
       const rows = await this.query(
-        `${DOCUMENT_SELECT} WHERE d.id IN (SELECT value FROM json_each(?))
+        `${projection} WHERE d.id IN (SELECT value FROM json_each(?))
          ORDER BY d.title COLLATE NOCASE, d.id`,
         [JSON.stringify(ids)],
       );
       if (rows.length !== ids.length)
         throw new Error('Native document catalog changed while reading.');
-      documents.push(...rows.map(toDocument));
+      documents.push(...rows.map(readDocument));
     }
     return documents;
   }

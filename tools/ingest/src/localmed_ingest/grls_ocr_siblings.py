@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from itertools import permutations
 from typing import Any, cast
 
 _TOKEN = re.compile(r"[а-яёa-z0-9]+(?:[,.]\d+)?")
@@ -73,11 +74,16 @@ class Comparison:
             return False
         if not LENGTH_RATIO[0] <= self.word_ratio <= LENGTH_RATIO[1]:
             return False
+        if len(self.ocr_only_numbers) != len(self.native_only_numbers):
+            return False
         if len(self.ocr_only_numbers) > MAX_OCR_ONLY_NUMBERS:
             return False
-        return all(
-            any(within_one_edit(number, other) for other in self.ocr_only_numbers)
-            for number in self.native_only_numbers
+        return any(
+            all(
+                within_one_edit(native, ocr)
+                for native, ocr in zip(self.native_only_numbers, ordered_ocr, strict=True)
+            )
+            for ordered_ocr in permutations(self.ocr_only_numbers)
         )
 
 

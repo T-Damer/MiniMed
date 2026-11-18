@@ -9,12 +9,6 @@
   flex-direction: column;
 }
 
-.page-skeleton--headless {
-  padding: clamp(0.75rem, 4vw, 1.125rem) clamp(0.75rem, 4vw, 1.125rem) 6rem;
-  background:
-    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%), var(--route-desk-gradient);
-}
-
 .page-skeleton__notice {
   margin-bottom: 1.25rem;
 }
@@ -26,12 +20,6 @@
   animation: page-skeleton-reveal var(--motion-base, 180ms) var(--motion-ease-out, ease-out) 240ms
     both;
   pointer-events: none;
-}
-
-.page-skeleton__paper--card {
-  flex: 0 0 auto;
-  border: 1px solid var(--paper-line);
-  border-radius: 0.75rem;
 }
 
 .page-skeleton__bar {

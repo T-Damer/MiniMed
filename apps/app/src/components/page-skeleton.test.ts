@@ -46,7 +46,9 @@ describe('loading screens', () => {
       const screens = suspenseFallbacks(text).filter((fallback) => fallback !== '');
       expect(screens.length, file).toBeGreaterThan(0);
       for (const fallback of screens) {
-        expect(fallback, `${file}: ${fallback.slice(0, 80)}`).toContain('<PageSkeleton');
+        expect(fallback, `${file}: ${fallback.slice(0, 80)}`).toMatch(
+          /<(?:RootPageSkeleton|PageSkeleton)\b/u,
+        );
       }
     }
   });

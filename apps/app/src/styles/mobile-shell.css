@@ -36,9 +36,10 @@ body {
 }
 
 .app-shell {
+  --shell-top-inset: var(--safe-top);
   position: relative;
   min-height: 100dvh;
-  padding-top: var(--safe-top);
+  padding-top: var(--shell-top-inset);
   padding-right: var(--safe-right);
   /* No bottom padding: the floating bar overlays the page and every route leaves its own clearance;
      a padded 100dvh shell scrolled the document past the page onto a darker desk strip. */
@@ -50,12 +51,12 @@ body {
    A home-screen web app (iOS) has the same inset and the same pulled-up surfaces: padding here
    too pushed every page 62 pt down. */
 .app-shell--native {
-  padding-top: 0;
+  --shell-top-inset: 0px;
 }
 
 @media (display-mode: standalone), (display-mode: fullscreen) {
   .app-shell {
-    padding-top: 0;
+    --shell-top-inset: 0px;
   }
 }
 

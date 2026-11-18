@@ -147,6 +147,10 @@
     background-color var(--motion-base) var(--motion-ease-out);
 }
 
+.document-module-pointer__action--source {
+  text-decoration: none;
+}
+
 .document-module-pointer__action:active {
   transform: scale(0.96);
 }

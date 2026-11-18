@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.113] - 2026-11-18
+
+- Restore Android search and read large catalog projections in bounded pages.
+- Route reader requests to the owning module once the document is found.
+- Keep loading placeholders below the status bar. News covers the full screen while loading and scrolls inside the website frame.
+- Link to the official Ministry registry from guideline search and to exact editions when an offline pack is unavailable.
+- Flag missing numeric values in OCR and inventory table blocks that need review.
+
 ## [0.6.112] - 2026-11-18
 
 - Read installed-module metadata in smaller steps to reduce pauses during startup.

@@ -163,15 +163,17 @@ describe('CapacitorMedicalStore', () => {
       metadata: JSON.parse(String(fixtureRow().metadata_json)),
     });
     expect(await store.listSearchDocuments()).toBe(documents);
-    expect(plugin.calls).toHaveLength(1);
-    expect(plugin.calls[0]?.sql).toContain("json_type(metadata_json, '$.notLegalAdvice') = 'true'");
-    expect(plugin.calls[0]?.sql).toContain("json_extract(metadata_json, '$.conceptId')");
-    expect(plugin.calls[0]?.sql).toContain("json_extract(metadata_json, '$.interactiveRoute')");
-    expect(plugin.calls[0]?.sql).not.toContain('source_checksum');
+    expect(plugin.calls).toHaveLength(2);
+    expect(plugin.calls[1]?.sql).toContain("json_type(metadata_json, '$.notLegalAdvice') = 'true'");
+    expect(plugin.calls[1]?.sql).toContain("json_extract(metadata_json, '$.conceptId')");
+    expect(plugin.calls[1]?.sql).toContain("json_extract(metadata_json, '$.interactiveRoute')");
+    expect(plugin.calls[1]?.sql).not.toContain('source_checksum');
+    expect(plugin.calls[1]?.sql.trim()).toMatch(/^SELECT\b/u);
+    expect(plugin.calls[1]?.sql).not.toMatch(/;|--|\/\*/u);
     await store.close();
     await store.initialize();
     await store.listSearchDocuments();
-    expect(plugin.calls).toHaveLength(2);
+    expect(plugin.calls).toHaveLength(4);
     await store.close();
   });
 
@@ -187,27 +189,30 @@ describe('CapacitorMedicalStore', () => {
     await store.close();
   });
 
-  it('reads the navigation catalog in bounded pages, not one whole-catalog reply', async () => {
-    const plugin = new FakeNativePlugin();
-    const identities = Array.from({ length: 2500 }, (_, index) => ({
-      id: `document-${String(index).padStart(4, '0')}`,
-      current_version_id: `version-${index}`,
-    }));
-    const pages: number[] = [];
-    vi.spyOn(plugin, 'query').mockImplementation(async ({ sql, argsJson }) => {
-      if (sql.startsWith('SELECT id, current_version_id')) return { rows: identities };
-      const [idsJson] = JSON.parse(argsJson ?? '[]') as [string];
-      const ids = JSON.parse(idsJson) as string[];
-      pages.push(ids.length);
-      return { rows: ids.map((id) => ({ ...fixtureRow(), id })) };
-    });
-    const store = createStore(plugin);
-    await store.initialize();
-    const documents = await store.listNavigationDocuments();
-    expect(pages).toEqual([1024, 1024, 452]);
-    expect(documents.map((document) => document.id)).toEqual(identities.map((row) => row.id));
-    await store.close();
-  });
+  it.each(['listNavigationDocuments', 'listSearchDocuments'] as const)(
+    'reads %s in bounded pages',
+    async (method) => {
+      const plugin = new FakeNativePlugin();
+      const identities = Array.from({ length: 2500 }, (_, index) => ({
+        id: `document-${String(index).padStart(4, '0')}`,
+        current_version_id: `version-${index}`,
+      }));
+      const pages: number[] = [];
+      vi.spyOn(plugin, 'query').mockImplementation(async ({ sql, argsJson }) => {
+        if (sql.startsWith('SELECT id, current_version_id')) return { rows: identities };
+        const [idsJson] = JSON.parse(argsJson ?? '[]') as [string];
+        const ids = JSON.parse(idsJson) as string[];
+        pages.push(ids.length);
+        return { rows: ids.map((id) => ({ ...fixtureRow(), id })) };
+      });
+      const store = createStore(plugin);
+      await store.initialize();
+      const documents = await store[method]();
+      expect(pages).toEqual([1024, 1024, 452]);
+      expect(documents.map((document) => document.id)).toEqual(identities.map((row) => row.id));
+      await store.close();
+    },
+  );
 
   it('reads document identities without metadata for composition validation', async () => {
     const plugin = new FakeNativePlugin();

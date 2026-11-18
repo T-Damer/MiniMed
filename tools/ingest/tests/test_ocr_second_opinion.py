@@ -193,13 +193,15 @@ def test_the_pipeline_takes_the_better_line_and_marks_the_numbers_in_doubt(tmp_p
     assert paragraph.metadata["enginesDisagreeOnNumbers"] is True
 
 
-def test_only_a_number_each_reading_lacks_is_a_conflict() -> None:
+def test_conflicts_include_standalone_numbers_missing_from_either_reading() -> None:
     # a digit lost in a unit or a code read with look-alike letters is not a disagreement
     assert not numbers_conflict("доз 260 и 340 мг/м2", "доз 260 и 340 мг/м?")
     assert not numbers_conflict("Код ATX: L01EA01", "Код ATX: LO1EAO1")
     assert not numbers_conflict("DDR1 и DDR2", "DDR; и ЭПК»")
     assert not numbers_conflict("витамин B12", "витамин В,э")
     assert numbers_conflict("по 25 г", "по 26 г")
+    assert numbers_conflict("по 25 г", "по г")
+    assert numbers_conflict("1 1 2", "1 2")
     assert numbers_conflict("20 1,23", "20 г, 25 г")
     assert digit_tokens("мг/м2 и B12 и 7,4 %") == ["7.4"]
 

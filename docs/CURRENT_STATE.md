@@ -20,6 +20,40 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Android search and route loading fixes — 2026-11-18, included in 0.6.113
+
+On 0.6.112, the native SQLite bridge rejected the compact search projection because its SQL
+contained inline comments. The adapter keeps comments outside the query and reads compact
+descriptors in the same 1,024-row pages as other catalogs. A phone probe verified both the
+rejection and the corrected call without changing the installed APK. With all document sets
+offered by the phone's bulk catalog installed (834 active modules), it read 20,002 core
+descriptors over 20 bridge replies. In that run cold search readiness took 11.43 s, the first
+«Рисперидон» result appeared in 286 ms once search was ready, and reader text appeared in
+9.70 s. Five swipes moved the reader 2,324 CSS px with a 133 ms p95 frame interval. Startup and
+reader work still dominate the phone workload. The composed store now remembers only the last document's
+owning mount, allowing sections and chunks to skip unrelated stores. The device timings above
+precede this change.
+
+Root tab placeholders use the shell's safe-area inset and match the destination's search,
+grid, list, or feed layout. Browser tests exercised the Settings list and Knowledge Base grid
+below a simulated 44 px status bar.
+
+## News loading and official source discovery — 2026-11-18, included in 0.6.113
+
+The News tab paints a full-height placeholder while its route loads. The site viewer fits the
+available height between its header and bottom navigation; article mode uses normal app scrolling
+and website mode scrolls within the embedded page. Browser checks include a short mobile viewport,
+simulated native insets, wheel and touch input, and the site's error fallback.
+
+The November 18 official registry check found 778 active editions, including 27 missing from
+the tracked app catalog. All 27 built locally as individual modules, pending catalog publication.
+Clinical search offers the official registry after local results, and an unavailable official
+recommendation can open its exact edition. These links carry no search query.
+
+The OCR audit inventories source checksums, pages, blocks and coordinates for review candidates.
+The second-opinion pipeline marks missing or repeated numbers for review. Sibling substitution
+requires a corresponding numeric token for each differing value. None of these checks edits a source.
+
 ## Release 0.6.112 — 2026-11-18
 
 ### Startup stalls and compact search results

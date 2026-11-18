@@ -1020,6 +1020,23 @@ html.news-vt::view-transition-new(news-sheet) {
   min-height: 100dvh;
 }
 
+/* A framed site owns the scrollable viewport below the app header. The surface starts
+   at the shared page-surface offset and ends at the bottom of the viewport. */
+.news-viewer.news-viewer--frame {
+  height: calc(100dvh + var(--safe-top) - var(--shell-top-inset));
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.news-viewer__frame-slot,
+.news-frame {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
 .news-viewer__source {
   display: flex;
   min-width: 0;
@@ -1065,39 +1082,24 @@ html.news-vt::view-transition-new(news-sheet) {
   color: var(--theme-text-muted);
 }
 
-.news-viewer__page {
-  display: block;
-  width: 100%;
-  height: calc(100dvh - 8rem - var(--safe-top, 0px));
-  min-height: 24rem;
-  border: var(--theme-border-hairline) solid var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  background: #fff;
-  animation: news-fade-in var(--motion-base) var(--motion-ease-out) both;
-}
-
-/* The page in a frame, for a browser build that cannot read the site. */
-.news-frame {
-  display: grid;
-  gap: 0.5rem;
-}
-
+.news-viewer__page,
 .news-frame__frame {
-  display: block;
   width: 100%;
-  height: calc(100dvh - 8rem - var(--safe-top, 0px));
-  min-height: 24rem;
+  height: 100%;
+  min-height: 0;
   border: var(--theme-border-hairline) solid var(--theme-border);
   border-radius: var(--theme-radius-panel);
   background: #fff;
 }
 
-.news-frame__frame--behind {
-  opacity: 0.35;
+.news-viewer__page {
+  animation: news-fade-in var(--motion-base) var(--motion-ease-out) both;
 }
 
 .news-frame__fallback {
   display: grid;
+  align-content: start;
+  overflow: auto;
   justify-items: start;
   gap: 0.625rem;
   padding: 1.25rem;

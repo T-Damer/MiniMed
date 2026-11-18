@@ -98,6 +98,8 @@ function unique<T>(values: readonly T[]): readonly T[] {
 export class MultiMedicalStore implements MedicalStore {
   private readonly mounts = new Map<string, InternalMount>();
   private initialized = false;
+  // The reader asks for the header, then sections and chunks. Remember only the last mount.
+  private lastDocumentMount: { readonly id: string; readonly mount: InternalMount } | undefined;
   private validatedAliases: readonly AliasRecord[] | undefined;
   private aliasesPending: Promise<readonly AliasRecord[]> | undefined;
   /** The aliases `validateComposition` checked, waiting for the first `listAliases` to sort them. */
@@ -146,6 +148,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
+    this.lastDocumentMount = undefined;
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -296,7 +299,15 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async getDocument(id: string): Promise<DocumentRecord | null> {
-    return this.firstMatch((store) => store.getDocument(id));
+    this.assertInitialized();
+    for (const mount of this.activeMounts()) {
+      const document = await mount.store.getDocument(id);
+      if (document) {
+        this.lastDocumentMount = { id, mount };
+        return document;
+      }
+    }
+    return null;
   }
 
   public async getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {
@@ -305,9 +316,8 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]> {
     this.assertInitialized();
-    // Document ids are unique across the active mounts, so only the mount that holds the document
-    // returns rows. Asking each mount directly spares a full `getDocument` (its whole metadata,
-    // sent across the worker boundary) per call just to find that mount.
+    const owner = this.lastOwnerOf(documentId);
+    if (owner) return owner.getSectionsByDocument(documentId);
     return (
       await Promise.all(
         this.activeMounts().map(({ store }) => store.getSectionsByDocument(documentId)),
@@ -321,6 +331,8 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async getChunksByDocument(documentId: string): Promise<readonly ChunkRecord[]> {
     this.assertInitialized();
+    const owner = this.lastOwnerOf(documentId);
+    if (owner) return owner.getChunksByDocument(documentId);
     return (
       await Promise.all(
         this.activeMounts().map(({ store }) => store.getChunksByDocument(documentId)),
@@ -493,6 +505,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async close(): Promise<void> {
+    this.lastDocumentMount = undefined;
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -502,6 +515,14 @@ export class MultiMedicalStore implements MedicalStore {
     this.initialized = false;
     const failures = results.filter((result) => result.status === 'rejected');
     if (failures.length > 0) throw new Error(`Unable to close ${failures.length} medical stores.`);
+  }
+
+  private lastOwnerOf(id: string): MedicalStore | undefined {
+    const cached = this.lastDocumentMount;
+    // Enabling, disabling or replacing a mount changes its object identity.
+    return cached?.id === id && this.mounts.get(cached.mount.moduleId) === cached.mount
+      ? cached.mount.store
+      : undefined;
   }
 
   private activeMounts(): readonly InternalMount[] {

@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js';
 import { Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { clinicalRecommendationSourceUrl } from '@/features/modules/clinical-registry-links';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
 
@@ -78,6 +79,29 @@ export function DocumentModulePointer(props: DocumentModulePointerProps): JSX.El
                   )}
                 </Show>
               </p>
+              <Show
+                when={
+                  resolution().state === 'unavailable'
+                    ? clinicalRecommendationSourceUrl(resolution().pointer.targetDocumentId)
+                    : undefined
+                }
+              >
+                {(url) => (
+                  <a
+                    class="document-module-pointer__action document-module-pointer__action--source"
+                    href={url()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    referrerPolicy="no-referrer"
+                  >
+                    <AppGlyph
+                      name="arrow-square-out"
+                      class="document-module-pointer__action-icon"
+                    />
+                    Минздрав
+                  </a>
+                )}
+              </Show>
               <Show when={canInstall()}>
                 <button
                   type="button"

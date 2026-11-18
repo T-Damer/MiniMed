@@ -182,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-18 REL 0.6.113: Android search bridge fix, reader routing, News loading and scrolling fixes.
 - 2026-11-18 REL 0.6.112 (PERF18): sliced startup cache access, compact search listings and deferred document lookup.
 - 2026-11-16 claude-fable REL 0.6.111: SRCH-COLD1 + SRCH-QUICK1 + SRCH-QUICK2 + SCAN-TIDY1 (app-only); verify + unit + search/reader/dictionary/drug e2e; not on a phone
 - 2026-11-16 claude-fable SCAN-TIDY1 (released in 0.6.111; owner «fix all of this»): scanned instructions shown without empty chunks, doubled sentences and scrap headings (`scan-text-tidy.ts`, display only, `metadata.ocr`); unit + browser check on the Бетамакс sheet

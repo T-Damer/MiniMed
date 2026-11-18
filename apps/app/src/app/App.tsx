@@ -17,6 +17,7 @@ import { BootScreen } from '@/app/BootScreen';
 import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
 import { isFullScreen } from '@/app/full-screen-routes';
 import { LazyBoundary } from '@/app/LazyBoundary';
+import { RootPageSkeleton } from '@/app/RootPageSkeleton';
 import {
   COMPACT_ROOT_VIEWS,
   compactRootView,
@@ -443,7 +444,7 @@ export function App(): JSX.Element {
           preserve composer drafts, scroll position, and per-view state. */}
       <Show when={navigation.hasMountedView(id)}>
         <LazyBoundary>
-          <Suspense fallback={<PageSkeleton headless />}>
+          <Suspense fallback={<RootPageSkeleton view={id} />}>
             <Dynamic component={content} />
           </Suspense>
         </LazyBoundary>

@@ -41,6 +41,12 @@ def test_a_one_character_digit_misreading_is_tolerated_but_not_two_or_a_new_dose
     assert not compare_with_native(far, BASE).same_document  # a transposition is two edits
 
 
+def test_unmatched_ocr_number_requires_review() -> None:
+    comparison = compare_with_native(BASE + " Дополнительное число 999.", BASE)
+    assert comparison.ocr_only_numbers == ("999",)
+    assert not comparison.same_document
+
+
 def test_texts_of_different_length_or_content_are_different_documents() -> None:
     assert not compare_with_native(BASE, BASE[: len(BASE) // 3]).same_document
     assert not compare_with_native(

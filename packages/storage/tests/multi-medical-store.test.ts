@@ -197,12 +197,19 @@ describe('MultiMedicalStore', () => {
     ]);
     await multi.initialize();
 
+    const unrelatedSections = vi.spyOn(core, 'getSectionsByDocument');
+    const unrelatedChunks = vi.spyOn(core, 'getChunksByDocument');
+    await multi.getDocument('clinical.fever');
     const sections = await multi.getSectionsByDocument('clinical.fever');
     const chunks = await multi.getChunksByDocument('clinical.fever');
 
     expect(sections.map((section) => section.id)).toEqual(['clinical.fever@1/section']);
     expect(chunks.map((chunk) => chunk.sectionId)).toEqual(['clinical.fever@1/section']);
+    expect(unrelatedSections).not.toHaveBeenCalled();
+    expect(unrelatedChunks).not.toHaveBeenCalled();
     expect(await multi.getSectionsByDocument('missing.document')).toEqual([]);
+    await multi.setEnabled('clinical', false);
+    expect(await multi.getChunksByDocument('clinical.fever')).toEqual([]);
   });
 
   it('removes disabled optional modules from search without closing them', async () => {

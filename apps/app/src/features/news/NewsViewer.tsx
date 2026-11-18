@@ -136,7 +136,7 @@ function NewsSiteFrame(props: { readonly url: string; readonly title: string }):
       </Show>
       <iframe
         class="news-frame__frame"
-        classList={{ 'news-frame__frame--behind': state() === 'slow' }}
+        hidden={state() === 'slow'}
         title={props.title}
         src={frameAddress(props.url)}
         sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
@@ -400,7 +400,7 @@ export function NewsViewer(props: {
   const title = () => item()?.title ?? subscription()?.title ?? '';
   const missing = () =>
     props.snapshot().itemsLoaded && (props.target.kind === 'item' ? !item() : !subscription());
-  const showRaw = () => isSite() || raw();
+  const frameUrl = () => (isSite() || raw() ? pageUrl() : undefined);
   const canToggle = () => !isSite() && !isPubmed() && pageUrl() !== undefined;
   const sourceName = () => {
     const entry = subscription();
@@ -412,7 +412,11 @@ export function NewsViewer(props: {
   };
 
   return (
-    <section class="news-viewer page-surface page-grain" data-testid="news-viewer">
+    <section
+      class="news-viewer page-surface page-grain"
+      classList={{ 'news-viewer--frame': !missing() && frameUrl() !== undefined }}
+      data-testid="news-viewer"
+    >
       <Page
         hero={PAGE_HEROES.news}
         class="news-viewer__heading"
@@ -487,9 +491,12 @@ export function NewsViewer(props: {
         }
       >
         <Show
-          when={showRaw() && pageUrl()}
+          when={frameUrl()}
           fallback={
-            <Show when={item() && (cacheChecked() || isPubmed())}>
+            <Show
+              when={item() && (cacheChecked() || isPubmed())}
+              fallback={<SkeletonLines label="Загружаем статью" lines={8} />}
+            >
               <NewsArticle
                 item={item() as NewsItem}
                 subscription={subscription()}
@@ -500,7 +507,11 @@ export function NewsViewer(props: {
             </Show>
           }
         >
-          {(url) => <NewsRawPage url={url()} title={title()} />}
+          {(url) => (
+            <div class="news-viewer__frame-slot">
+              <NewsRawPage url={url()} title={title()} />
+            </div>
+          )}
         </Show>
       </Show>
     </section>
