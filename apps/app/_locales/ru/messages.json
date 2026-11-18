@@ -1,4 +1,7 @@
 {
+  "search_found_in_text": { "message": "Найдено в тексте" },
+  "search_show_excerpt": { "message": "Показать фрагмент: $1" },
+  "search_hide_excerpt": { "message": "Свернуть фрагмент: $1" },
   "specialty_addiction_medicine": {
     "message": "Наркология",
     "description": "Medical specialty slug: addiction-medicine"

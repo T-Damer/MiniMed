@@ -1,7 +1,7 @@
 import { ContentPackSeedSchema } from '@localmed/contracts';
 import { normalizeForIndex } from '@localmed/search-lexical';
 import { InMemoryMedicalStore } from '@localmed/storage';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createMedicalCore } from '../src/create-medical-core';
 
@@ -202,6 +202,42 @@ describe('a quick first answer (SearchRequest.quick)', () => {
     limit: 20,
     includeSuggestions: false,
   };
+
+  it('supplies search descriptors while the navigation listing is still loading', async () => {
+    let releaseNavigation = (): void => undefined;
+    const navigationGate = new Promise<void>((resolve) => {
+      releaseNavigation = resolve;
+    });
+    const memory = new InMemoryMedicalStore();
+    const store = Object.assign(memory, {
+      listNavigationDocuments: vi.fn(async () => {
+        await navigationGate;
+        return memory.listDocuments();
+      }),
+      listSearchDocuments: vi.fn(() => memory.listDocuments()),
+    });
+    const core = createMedicalCore({ store, seed: SEED, platform: 'test' });
+    await core.initialize();
+    const navigation = core.listNavigationDocuments?.();
+    const search = core.listSearchDocuments?.();
+    try {
+      await vi.waitFor(() => expect(store.listSearchDocuments).toHaveBeenCalledOnce(), {
+        timeout: 200,
+      });
+      const descriptors = await search;
+      expect(descriptors?.ok && descriptors.value.some(({ id }) => id === 'ref.pneumonia')).toBe(
+        true,
+      );
+      const quick = await core.search({ ...request, quick: true });
+      expect(quick.ok && quick.value.partial).toBe(true);
+      expect(await core.listSearchDocuments?.()).toEqual(descriptors);
+      expect(store.listSearchDocuments).toHaveBeenCalledOnce();
+    } finally {
+      releaseNavigation();
+      await Promise.all([navigation, search]);
+      await core.close();
+    }
+  });
 
   it('answers with the words as text before the first-search indexes exist', async () => {
     const core = createCore();

@@ -24,7 +24,7 @@ import {
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { createDeferredModuleStore } from '@/composition/deferred-module-store';
 import { getModuleShelf, type ShelfModuleStore } from '@/composition/module-shelf';
-import { createIndexedDbShelfFacts } from '@/composition/module-shelf-facts';
+import { getBrowserModuleFacts } from '@/composition/module-shelf-facts';
 import {
   shelfCacheBudgetKiB,
   shelfCacheKiB,
@@ -366,9 +366,7 @@ async function openMountedModuleStore(
   };
 }
 
-/** Kept facts of the large sets; absent where IndexedDB is (tests, old browsers). */
-const deferredFacts =
-  typeof indexedDB === 'undefined' ? undefined : createIndexedDbShelfFacts(RELEASE_VERSION);
+const deferredFacts = getBrowserModuleFacts(RELEASE_VERSION);
 const WORKER_STORE_METHODS: ReadonlySet<string> = new Set(
   Object.getOwnPropertyNames(WorkerOpfsMedicalStore.prototype).filter(
     (name) => name !== 'constructor',

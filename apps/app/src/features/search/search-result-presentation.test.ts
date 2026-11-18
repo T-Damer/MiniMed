@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   displaySectionPath,
+  hasExcerptContext,
   orderResultsForDisplay,
   presentResultSnippet,
   presentSourceChunkText,
@@ -22,6 +23,13 @@ function rangeOf(text: string, word: string): { start: number; end: number } {
 }
 
 describe('presentResultSnippet', () => {
+  it('recognizes an excerpt that carries words beyond the matched term', () => {
+    expect(hasExcerptContext('Кветиапин')).toBe(false);
+    expect(hasExcerptContext('Острый бронхит', [{ start: 0, end: 14 }])).toBe(false);
+    const text = 'В исследовании применяли кветиапин.';
+    expect(hasExcerptContext(text, [rangeOf(text, 'кветиапин')])).toBe(true);
+  });
+
   it('renames catalogue labels, drops empty and identifier clauses and keeps highlights', () => {
     const presented = presentResultSnippet({
       snippet: POINTER,

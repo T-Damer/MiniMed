@@ -41,6 +41,15 @@
   padding: 0;
 }
 
+.list-row--with-details {
+  flex-wrap: wrap;
+}
+
+.list-row__details {
+  min-width: 0;
+  flex: 0 0 100%;
+}
+
 /* The hairline above every row but the first, starting where the text starts. */
 .list-row + .list-row::before {
   position: absolute;
@@ -73,6 +82,10 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.list-row__main--with-details {
+  flex-basis: 0;
 }
 
 .list-row__main--button:disabled {

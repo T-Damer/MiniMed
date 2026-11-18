@@ -19,7 +19,7 @@ import type {
   VectorSearchRequest,
 } from '@localmed/storage';
 import {
-  createIndexedDbShelfFacts,
+  getBrowserModuleFacts,
   type ShelfFacts,
   type ShelfFactsStore,
 } from '@/composition/module-shelf-facts';
@@ -833,9 +833,8 @@ export function getModuleShelf(): ModuleShelf | undefined {
   ) {
     return undefined;
   }
-  sharedShelf ??= new ModuleShelf(
-    typeof indexedDB === 'undefined' ? {} : { facts: createIndexedDbShelfFacts(RELEASE_VERSION) },
-  );
+  const facts = getBrowserModuleFacts(RELEASE_VERSION);
+  sharedShelf ??= new ModuleShelf(facts ? { facts } : {});
   return sharedShelf.unavailable ? undefined : sharedShelf;
 }
 

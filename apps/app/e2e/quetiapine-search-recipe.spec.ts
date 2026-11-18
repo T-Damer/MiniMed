@@ -31,29 +31,68 @@ for (const width of [390, 1280]) {
     page,
   }) => {
     test.setTimeout(420_000);
+    await page.addInitScript(() => {
+      const postMessage = Worker.prototype.postMessage;
+      let held = false;
+      const pending: (() => void)[] = [];
+      Object.assign(window, {
+        holdSearch: () => {
+          held = true;
+        },
+        releaseSearch: () => {
+          held = false;
+          for (const send of pending.splice(0)) send();
+        },
+      });
+      Worker.prototype.postMessage = function (message, options) {
+        const send = () => Reflect.apply(postMessage, this, [message, options]);
+        if (
+          held &&
+          (message?.method === 'search' ||
+            message?.calls?.some((call: { method: string }) => call.method === 'search'))
+        ) {
+          pending.push(send);
+        } else send();
+      };
+    });
     await routeMedicationGroup(page, 'nervous-system');
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true, localStorage: PREFERENCES });
     await installMedicationGroup(page, POINTER, 'esklp.mnn.кветиапин');
 
-    // 1. Search: the results, and no title strip repeating them.
+    // 1. Search: keep the same row when the delayed text search sends its results.
     await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
     await waitForSearchEditable(page);
     const input = page.getByTestId('search-input');
+    await page.evaluate(() => Reflect.get(window, 'holdSearch')());
     await input.fill('Кветиапин');
     await page.getByTestId('search-submit').click();
-    await expect(page.locator('.result-group').first()).toBeVisible({ timeout: 90_000 });
-    await expect(page.locator('.result-group').first()).toContainText(/кветиапин/iu);
-    await page.waitForTimeout(500);
+    const early = page.getByTestId('search-instant-titles').getByTestId('search-result').first();
+    await expect(early).toBeVisible({ timeout: 90_000 });
+    await expect(early).toContainText(/кветиапин/iu);
+    const firstRow = await early.elementHandle();
+    const earlyPosition = await early.evaluate((row) => row.getBoundingClientRect().top + scrollY);
+    await page.evaluate(() => Reflect.get(window, 'releaseSearch')());
+    await page.waitForFunction(
+      () => performance.getEntriesByName('minimed:search:core').length > 0,
+    );
+    expect(await firstRow?.evaluate((row) => row.isConnected)).toBe(true);
+    expect(await early.evaluate((row) => row.getBoundingClientRect().top + scrollY)).toBeCloseTo(
+      earlyPosition,
+      0,
+    );
+    await expect(early.locator('.result-fragment')).toHaveCount(0);
+    const ids = await page
+      .getByTestId('search-result')
+      .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-document-id')));
+    expect(new Set(ids).size).toBe(ids.length);
     await shoot(page, '1-search');
     await expect.soft(page.locator('.search-meanings--titles')).toHaveCount(0);
     // Every title match of a drug name is a result already: nothing follows the list.
     await expect.soft(page.locator('.search-title-extras')).toHaveCount(0);
 
     // 2. The card's «Рецепт».
-    await page.goto(
-      `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from('esklp.mnn.кветиапин').toString('base64url')}`,
-    );
+    await early.locator('.result-group-header').click();
     const menu = page.getByRole('button', { name: 'Меню действий' });
     await expect(menu).toBeVisible({ timeout: 60_000 });
     await shoot(page, '2-card');

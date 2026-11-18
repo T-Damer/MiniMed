@@ -1,10 +1,20 @@
 import type { SearchResultGroup } from '@localmed/contracts';
 import type { AppGlyphName } from '@/components/AppGlyph';
+import type { ListTileTone } from '@/components/ListRow';
 import { ICD11_RESULT_LABEL } from '@/features/icd11/icd11-document';
 import type {
   SearchResultDocumentKind,
   SearchResultDocumentType,
 } from '@/features/search/ScopedMedicalCore';
+
+export const RESULT_ROW_TONES: Readonly<Record<SearchResultDocumentKind, ListTileTone>> = {
+  medication: 'green',
+  'clinical-recommendation': 'blue',
+  legal: 'gray',
+  calculator: 'orange',
+  assessment: 'purple',
+  reference: 'teal',
+};
 
 export const RESULT_KIND_VISUALS: Readonly<
   Record<SearchResultDocumentKind, { readonly icon: AppGlyphName; readonly label: string }>

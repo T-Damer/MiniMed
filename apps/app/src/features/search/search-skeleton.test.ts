@@ -1,21 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createLingerController,
-  skeletonCardCount,
-  skeletonColumnCount,
-} from '@/features/search/search-skeleton';
-
-describe('skeleton layout', () => {
-  it('uses the result grid column rule', () => {
-    expect(skeletonColumnCount(390)).toBe(1);
-    expect(skeletonColumnCount(1280)).toBe(2);
-  });
-
-  it('fills two rows of cards', () => {
-    expect(skeletonCardCount(1)).toBe(2);
-    expect(skeletonCardCount(2)).toBe(4);
-  });
-});
+import { createLingerController } from '@/features/search/search-skeleton';
 
 describe('createLingerController', () => {
   beforeEach(() => {

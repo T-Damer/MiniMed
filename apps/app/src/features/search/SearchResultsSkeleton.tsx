@@ -1,62 +1,32 @@
 import { For, type JSX } from 'solid-js';
-import { skeletonCardCount, skeletonColumnCount } from '@/features/search/search-skeleton';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import '@/features/search/search-results-skeleton.css';
 
-const CARD_INDEXES = (count: number): readonly number[] =>
-  Array.from({ length: count }, (_, index) => index);
+const ROWS = [0, 1, 2, 3] as const;
 
-/**
- * Placeholder for the result groups: the same card, header, tags row and excerpt rows as
- * `SearchResultGroupCard`, drawn as quiet bars. It sits in the results slot, so it never moves.
- */
-export function SearchResultsSkeleton(props: {
-  readonly leaving: boolean;
-  /** In the page's flow, under what is already found, instead of in the place of the results. */
-  readonly below?: boolean;
-}): JSX.Element {
-  const columns = skeletonColumnCount(window.innerWidth);
+/** The compact results list and the skeleton share the same layout. */
+export function SearchResultsSkeleton(props: { readonly leaving: boolean }): JSX.Element {
   return (
     <div
       class="results-skeleton"
-      classList={{
-        'results-skeleton--leaving': props.leaving,
-        'results-skeleton--below': props.below === true,
-      }}
+      classList={{ 'results-skeleton--leaving': props.leaving }}
       role="status"
       aria-label="Загружаем результаты поиска"
       data-testid="search-skeleton"
     >
-      <div class="layout-card-grid results-skeleton__grid" style={{ '--layout-cols': columns }}>
-        <For each={CARD_INDEXES(skeletonCardCount(columns))}>
-          {(index) => (
-            <section class="result-group results-skeleton__group" aria-hidden="true">
-              <div class="result-group-header results-skeleton__header">
-                <span class="result-group-header__index">{String(index + 1).padStart(2, '0')}</span>
-                <span class="result-group-header__body">
-                  <span class="results-skeleton__bar results-skeleton__bar--kind" />
-                  <span class="results-skeleton__bar results-skeleton__bar--meta" />
-                  <span class="results-skeleton__bar results-skeleton__bar--title" />
-                  <span class="results-skeleton__tags">
-                    <span class="results-skeleton__tag" />
-                    <span class="results-skeleton__tag" />
-                  </span>
-                  <span class="results-skeleton__bar results-skeleton__bar--note" />
-                </span>
-              </div>
-              <div class="result-group__snippets">
-                <div class="result-card results-skeleton__card">
-                  <span class="results-skeleton__category">
-                    <span class="results-skeleton__category-icon" />
-                    <span class="results-skeleton__bar results-skeleton__bar--stamp" />
-                  </span>
-                  <span class="results-skeleton__bar results-skeleton__bar--line results-skeleton__bar--first" />
-                  <span class="results-skeleton__bar results-skeleton__bar--line" />
-                  <span class="results-skeleton__bar results-skeleton__bar--line results-skeleton__bar--last" />
-                </div>
-              </div>
-            </section>
-          )}
-        </For>
+      <div aria-hidden="true" class="results-skeleton__list">
+        <ListGroup>
+          <For each={ROWS}>
+            {() => (
+              <ListRow
+                class="results-skeleton__group"
+                leading={<span class="results-skeleton__tile" />}
+                title={<span class="results-skeleton__bar results-skeleton__bar--title" />}
+                subtitle={<span class="results-skeleton__bar results-skeleton__bar--subtitle" />}
+              />
+            )}
+          </For>
+        </ListGroup>
       </div>
     </div>
   );

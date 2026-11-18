@@ -14,8 +14,12 @@ const METHODS = new Set([
   'getHealth',
   'close',
   'listAliases',
+  'listDocumentIdentities',
   'listNavigationDocuments',
   'listDocuments',
+  'getDocument',
+  'getSectionsByDocument',
+  'getChunksByDocument',
   'search',
 ]);
 
@@ -25,8 +29,12 @@ function realStore() {
     getHealth: vi.fn(async () => HEALTH),
     close: vi.fn(async () => undefined),
     listAliases: vi.fn(async () => [{ id: 'a' }]),
+    listDocumentIdentities: vi.fn(async () => [{ id: 'd', versionId: 'v1' }]),
     listNavigationDocuments: vi.fn(async () => [{ id: 'd' }]),
     listDocuments: vi.fn(async () => [{ id: 'd', metadata: { big: true } }]),
+    getDocument: vi.fn(async (id: string) => (id === 'd' ? { id } : null)),
+    getSectionsByDocument: vi.fn(async () => []),
+    getChunksByDocument: vi.fn(async () => []),
     search: vi.fn(async () => [{ chunk: { id: 'c' } }]),
   };
   return store as typeof store & MedicalStore;
@@ -97,6 +105,29 @@ describe('a large module mounted from kept facts', () => {
     });
     await store.listDocuments();
     expect(Object.keys(facts.saved.get('k')?.listings ?? {})).not.toContain('listDocuments');
+  });
+
+  it('opens a cold module for the reader only when it may hold the requested document', async () => {
+    const real = realStore();
+    const open = vi.fn(async () => real);
+    const store = createDeferredModuleStore({
+      key: 'drug-module',
+      facts: factsStore(),
+      kept: {
+        health: HEALTH,
+        listings: { listDocumentIdentities: [{ id: 'd', versionId: 'v1' }] },
+      },
+      open,
+      methods: METHODS,
+    });
+
+    expect(await store.getDocument('another-pack')).toBeNull();
+    expect(await store.getSectionsByDocument('another-pack')).toEqual([]);
+    expect(await store.getChunksByDocument('another-pack')).toEqual([]);
+    expect(open).not.toHaveBeenCalled();
+    expect(await store.getDocument('d')).toEqual({ id: 'd' });
+    expect(open).toHaveBeenCalledOnce();
+    await store.close();
   });
 
   it('offers only the methods the real store has', () => {

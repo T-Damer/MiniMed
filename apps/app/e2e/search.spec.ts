@@ -154,58 +154,36 @@ test('the tool row stays under the field while results show; «Все инстр
   expect(strip.y - (field.y + field.height)).toBeLessThan(40);
 });
 
-test('a found part shows three lines, unrolls in place, and is the only fragment of its card', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await waitForSearchReady(page);
-  await page.getByTestId('search-input').fill('депрессия');
-  await page.getByTestId('search-submit').click();
-  const toggleName = 'Показать фрагмент полностью';
-  await expect(page.getByRole('button', { name: toggleName }).first()).toBeVisible({
-    timeout: 60_000,
+test.describe('touch search results', () => {
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+
+  test('a text-only result stays compact until its own excerpt is opened', async ({ page }) => {
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    await waitForSearchReady(page);
+    await page.getByTestId('search-input').fill('депрессия');
+    await page.getByTestId('search-submit').click();
+    const heading = page.getByRole('heading', { name: 'Найдено в тексте' });
+    await expect(heading).toBeVisible({ timeout: 60_000 });
+    const section = page.locator('.search-results-section', { has: heading });
+    const row = section.getByTestId('search-result').first();
+    const toggle = row.getByRole('button', { name: /^Показать фрагмент/u });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(row.locator('.list-row__subtitle')).toHaveCount(0);
+    await expect(row.locator('.result-fragment')).toHaveCount(0);
+    await toggle.focus();
+    await toggle.press('Enter');
+    const opened = row.getByRole('button', { name: /^Свернуть фрагмент/u });
+    await expect(opened).toBeFocused();
+    await expect(opened).toHaveAttribute('aria-expanded', 'true');
+    await expect(row.locator('.result-fragment__text')).toHaveText(/\p{L}+\s+\p{L}+/u);
+    await expect(row.locator('.result-fragment__source')).not.toBeEmpty();
+    await opened.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    await opened.tap();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(row.locator('.result-fragment')).toHaveCount(0);
+    await row.locator('.result-group-header').click();
+    await expect(page).toHaveURL(/#\/modules\/documents\//u);
   });
-  const fragment = page
-    .locator('.result-fragment', { has: page.locator('.result-fragment__toggle') })
-    .first();
-  const toggle = fragment.getByRole('button', { name: toggleName });
-  const text = fragment.locator('.result-fragment__text');
-  const collapsed = (await text.boundingBox())?.height ?? 0;
-  // The text is cut by its height with a fade, never by an ellipsis clamp.
-  await expect(text).toHaveCSS('-webkit-line-clamp', 'none');
-  await toggle.click();
-  const open = fragment.getByRole('button', { name: 'Свернуть фрагмент' });
-  await expect(open).toHaveAttribute('aria-expanded', 'true');
-  await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeGreaterThan(collapsed);
-  // The round «more below» button floats over the middle of the bottom edge: bring the toggle to
-  // the middle of the screen, as a reader would before tapping it.
-  await open.evaluate((element) => element.scrollIntoView({ block: 'center' }));
-  await open.click();
-  await expect.poll(async () => (await text.boundingBox())?.height ?? 0).toBeCloseTo(collapsed, 0);
-
-  // Fold only what hides three or more lines (owner 2026-11-08): a fragment with a chevron hides
-  // at least three lines, one without it is shown whole.
-  const rule = await page.locator('.result-fragment').evaluateAll((fragments) =>
-    fragments.map((node) => {
-      const paragraph = node.querySelector<HTMLElement>('.result-fragment__text');
-      if (!paragraph) return { hidden: 0, toggle: false };
-      const lineHeight = Number.parseFloat(getComputedStyle(paragraph).lineHeight);
-      const hidden = (paragraph.scrollHeight - paragraph.clientHeight) / lineHeight;
-      return { hidden, toggle: node.querySelector('.result-fragment__toggle') !== null };
-    }),
-  );
-  for (const item of rule) {
-    if (item.toggle) continue;
-    expect(item.hidden).toBeLessThan(0.5);
-  }
-
-  // One finding per result (owner 2026-10-20): no «Ещё N фрагментов», no «Найдено ещё в».
-  await expect(page.getByRole('button', { name: /^Ещё \d+ фрагмент/u })).toHaveCount(0);
-  await expect(page.getByText(/Найдено ещё в/u)).toHaveCount(0);
-  // A tap on the text opens the document itself, not a card inside the search.
-  await fragment.getByTestId('search-result').click();
-  await expect(page).toHaveURL(/#\/modules\/documents\//u);
 });
 
 /** The active position dot names the slide in view: «Функция 2 из 4» → 2. */
@@ -837,7 +815,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await expect(overlay.locator('mark')).toHaveCount(0);
 });
 
-test('renders the complete virtualized document list', async ({ page }, testInfo) => {
+test('renders the complete compact result list', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
@@ -849,9 +827,9 @@ test('renders the complete virtualized document list', async ({ page }, testInfo
   // One finding per result card (owner 2026-10-20).
   const expandable = groups.first();
   await expect(expandable).toBeVisible();
-  await expect(expandable.getByTestId('search-result')).toHaveCount(1);
+  await expect(expandable).toHaveAttribute('data-testid', 'search-result');
   await expect(expandable.locator('.ui-disclosure')).toHaveCount(0);
-  const kind = expandable.locator('.result-group-header__kind');
+  const kind = expandable.locator('.result-group-header__kind-label');
   await expect(kind).toHaveCSS('opacity', '1');
   await expect(kind).toHaveCSS('position', 'static');
   for (const width of [375, 1280]) {

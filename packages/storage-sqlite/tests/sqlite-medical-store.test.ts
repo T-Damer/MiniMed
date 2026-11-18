@@ -48,6 +48,7 @@ describe('SqliteMedicalStore', () => {
       entityType: 'disease',
       conceptId: 'condition.test',
       contentMode: 'module-pointer',
+      documentKind: 'приказ',
       interactiveAssessmentId: 'assessment',
       interactiveCalculatorId: 'calculator',
       interactiveRoute: '#/assessments/pediatrics/assessment',
@@ -94,6 +95,7 @@ describe('SqliteMedicalStore', () => {
       expect(document.metadata).toEqual({
         ...metadata,
         targetDocumentId: 'downloaded-target',
+        sourceType: 'rls_mkb_reference',
         // Query-time identity bridges: МКБ codes and the Latin drug name (S3).
         icd10Codes: null,
         mkbCode: 'R05',

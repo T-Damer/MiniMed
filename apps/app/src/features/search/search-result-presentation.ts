@@ -45,6 +45,18 @@ export function displaySectionPath(sectionPath: readonly string[]): readonly str
   return sectionPath.map((segment) => TECHNICAL_SECTION_LABELS[segment] ?? segment);
 }
 
+/** An excerpt needs words around the match to be useful in a result row. */
+export function hasExcerptContext(text: string, ranges: readonly TextRange[] = []): boolean {
+  const words = [...text.matchAll(/[\p{L}\p{N}]+/gu)];
+  return (
+    words.length > 1 &&
+    words.some(
+      ({ index, 0: word }) =>
+        !ranges.some(({ start, end }) => index < end && index + word.length > start),
+    )
+  );
+}
+
 interface SnippetEdit {
   readonly start: number;
   readonly end: number;

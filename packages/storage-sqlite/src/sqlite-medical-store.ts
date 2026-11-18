@@ -381,6 +381,8 @@ const SEARCH_METADATA_FIELDS = [
   'entityType',
   'conceptId',
   'contentMode',
+  'sourceType',
+  'documentKind',
   'interactiveAssessmentId',
   'interactiveCalculatorId',
   'interactiveRoute',
@@ -406,7 +408,6 @@ const SEARCH_METADATA_FIELDS = [
 ] as const;
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,
-  'sourceType',
   'canonicalDefinition',
   'primaryModuleId',
   'moduleIds',
@@ -421,7 +422,6 @@ const NAVIGATION_METADATA_FIELDS = [
   'requestedRegistrationNumbers',
   'registrationNumbers',
   'sourceClass',
-  'documentKind',
   'fetchedAt',
   // A scan is a worse «instruction of the substance» than a text of its own.
   'ocr',

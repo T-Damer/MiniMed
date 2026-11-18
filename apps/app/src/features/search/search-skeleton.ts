@@ -1,18 +1,4 @@
 import { type Accessor, createEffect, createSignal, on, onCleanup } from 'solid-js';
-import { type LayoutColumnCount, layoutColumnCount } from '@/state/layout-columns';
-
-/** Rows of placeholder cards: enough to fill a phone screen under the field, no more. */
-const SKELETON_ROWS = 2;
-
-/** Same column rule as the real result grid, so the placeholder cards are as wide as the groups. */
-export function skeletonColumnCount(viewportWidth: number): LayoutColumnCount {
-  return layoutColumnCount(viewportWidth);
-}
-
-export function skeletonCardCount(columns: number): number {
-  return Math.max(1, Math.floor(columns)) * SKELETON_ROWS;
-}
-
 export interface LingerController {
   /** Reports whether the source is active now; an inactive source unmounts after the linger. */
   readonly update: (active: boolean) => void;

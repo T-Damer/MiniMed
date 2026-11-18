@@ -1,57 +1,64 @@
-/* The header row of a result card: the button that opens the document and the download offer in
-   the tag's row. The row carries the header's surface and bottom line. */
-.result-group__head {
-  display: flex;
-  position: relative;
-  min-width: 0;
-  align-items: flex-start;
-  border-bottom: 1px solid var(--theme-border);
-  background: var(--theme-surface-muted);
+.search-result-item.result-group {
+  flex-direction: row;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.result-group-header.result-group-header--in-head {
-  min-width: 0;
-  flex: 1 1 auto;
-  border-bottom: 0;
-}
-
-/* The download button sits in the tag's row, over the header's top-right corner (an icon layered
-   over the header), so the title below runs the card's full width. */
-.result-group__head-action {
-  display: flex;
-  position: absolute;
-  z-index: var(--z-raised);
-  top: 0.3rem;
-  right: 0.5rem;
+.search-result-item__open.result-group-header {
   align-items: center;
+  border: 0;
+  background: transparent;
 }
 
-/* Beside the button: the tag keeps clear of it, and the title starts below the button. */
-.result-group-header__kind--beside-action {
-  --result-group-action-reserve: 2.75rem;
-  margin-block: 0.15rem 0.45rem;
-}
-
-.result-card.result-card--selected {
+.search-result-item__open.list-row__main--selected {
   background: var(--theme-accent-soft);
 }
 
-.result-group-header__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.125rem 0.5rem;
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-  line-height: 1.35;
+.search-result-item__title.result-group-header__title {
+  font: inherit;
+  text-wrap: wrap;
 }
 
-.result-group-header__meta-item {
-  overflow-wrap: anywhere;
+.search-result-item__disclosure {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-text);
+  background: transparent;
+  cursor: pointer;
 }
 
-.result-group-header__atc {
-  margin-top: 0;
+.search-result-item__disclosure:focus-visible {
+  outline: var(--theme-outline-width) solid var(--theme-accent);
+  outline-offset: calc(-1 * var(--theme-outline-width));
+}
+
+.search-result-item__disclosure-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.search-result-item__disclosure-icon--open {
+  transform: rotate(180deg);
+}
+
+.search-result-item__detail-action {
+  padding: 0 0.875rem 0.75rem;
+}
+
+@media (hover: hover) {
+  .search-result-item__disclosure:hover,
+  .search-result-item__open.result-group-header:hover {
+    background: var(--theme-hover-surface);
+  }
 }
 
 /* The other sources of the same condition: a row of chips under the header, each opens its document. */
@@ -113,17 +120,6 @@
   }
 }
 
-/* The second part of a result list: what the query was only found inside. */
-.search-results-section__title {
-  margin: 1rem 0 0.5rem;
-  color: var(--theme-text-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.search-results-section__more {
-  justify-self: center;
-  margin: 0.75rem auto 0;
+.search-results-section {
+  margin-block-end: 0.625rem;
 }

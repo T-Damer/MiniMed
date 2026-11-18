@@ -57,22 +57,23 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
     try {
       const transaction = database.transaction(STORE, 'readwrite');
       const store = transaction.objectStore(STORE);
-      const rows = await new Promise<FactsRow[]>((resolve, reject) => {
-        const request = store.getAll() as IDBRequest<FactsRow[]>;
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error ?? new Error('Module facts failed.'));
-      });
       const facts = new Map<string, ShelfFacts>();
-      for (const row of rows) {
+      // IndexedDB deserializes results on this thread. A cursor returns one module per task.
+      const request = store.openCursor();
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        const row = cursor.value as FactsRow;
         // Kept by another build: that build may have read the file differently.
-        if (row.app !== appVersion) store.delete(row.file);
+        if (row.app !== appVersion) cursor.delete();
         else {
           facts.set(row.file, {
             ...(row.health ? { health: row.health } : {}),
             ...(row.listings ? { listings: row.listings } : {}),
           });
         }
-      }
+        cursor.continue();
+      };
       await done(transaction);
       return facts;
     } finally {
@@ -89,10 +90,16 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
     try {
       const transaction = database.transaction(STORE, 'readwrite');
       const store = transaction.objectStore(STORE);
-      for (const [file, facts] of rows) {
+      const pending = rows.values();
+      const writeNext = (): void => {
+        const next = pending.next();
+        if (next.done) return;
+        const [file, facts] = next.value;
         const row: FactsRow = { file, app: appVersion, ...facts };
-        store.put(row);
-      }
+        // A put clones its value synchronously. Wait for its callback before cloning another.
+        store.put(row).onsuccess = writeNext;
+      };
+      writeNext();
       await done(transaction);
     } finally {
       database.close();
@@ -116,4 +123,15 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
       }, SAVE_DELAY_MS);
     },
   };
+}
+
+let shared: { readonly version: string; readonly store: ShelfFactsStore } | undefined;
+
+/** Shelf shards and standalone OPFS pools read and write the same records in this page. */
+export function getBrowserModuleFacts(appVersion: string): ShelfFactsStore | undefined {
+  if (typeof indexedDB === 'undefined') return undefined;
+  if (shared?.version !== appVersion) {
+    shared = { version: appVersion, store: createIndexedDbShelfFacts(appVersion) };
+  }
+  return shared.store;
 }

@@ -20,6 +20,39 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Release 0.6.112 — 2026-11-18
+
+### Startup stalls and compact search results
+
+The 0.6.111 phone report covers three starts. Search became ready at 11.19, 16.00 and 18.41 s.
+The worst IndexedDB callback took 2.46 s, and keystrokes waited up to 1.13 s before their handlers
+ran. One early query showed its quick result 9.88 s after dispatch and finished after 13.81 s.
+The recorded lexical branch took 0.48 s. The earlier 0.6.109 report put readiness at 9.8–15.4 s,
+so the delay before the first answer remained. The settled reader's longer scroll samples had
+16.7 ms p95 frame intervals. A cold reader open showed text in 2.00 s and a cached reopen in 3 ms.
+
+- Shelf and standalone OPFS modules share one IndexedDB cache per build. The cache reads and
+  writes one module per callback, retaining build invalidation and offline fallback. In Chromium
+  at 4× CPU slowdown with 797 synthetic records, two paired runs took 756–780 ms before and
+  385–386 ms after for the shared startup read. The longest read task was 360–384 ms and the
+  longest write task was 260–265 ms before. After, the browser recorded no task of 50 ms or more
+  during either operation.
+- Search scopes can read compact descriptors while the navigation listing is pending. A deferred
+  OPFS module can answer a reader's document miss from its cached identities without waking its
+  worker. A positive match still opens the file, and a cache miss still reaches the store.
+- Name results use the compact list row from first display through refinement. The full answer
+  retains the displayed row and excludes duplicate targets. «Найдено в тексте» lists compact title
+  rows. Each disclosure opens its excerpt and source, using the local document for context when
+  the search snippet is too short. The title opens the reader, and additional sources remain
+  available on grouped results.
+
+The cache timings are browser measurements. Phone cold-start timing and longer reader workloads
+remain to be checked on the changed build.
+
+Release checks: full verification, full-corpus search benchmark, and targeted browser checks.
+The Android build uses version code 125.
+
+
 ## Release 0.6.111 — 2026-11-16
 
 SRCH-COLD1, SRCH-QUICK1, SRCH-QUICK2 and SCAN-TIDY1 (below). App only. Checks: `bun run verify`, unit; e2e

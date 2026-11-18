@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.112] - 2026-11-18
+
+- Read installed-module metadata in smaller steps to reduce pauses during startup.
+- Keep early name matches visible as search finishes. Text matches show titles first, with excerpts and sources available on demand.
+- Use cached module listings to avoid opening unrelated databases when looking up a document.
+
 ## [0.6.111] - 2026-11-16
 
 - A search typed right after a start answers at once: the typed words are found as text first, with exact names

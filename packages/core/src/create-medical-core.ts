@@ -1349,22 +1349,41 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   };
 
   const getSearchDocuments = (): Promise<readonly SearchDocumentDescriptor[]> => {
-    searchDocumentsPromise ??= (
-      navigationDocumentsPromise
-        ? navigationDocumentsPromise.then((result) => {
-            if (!result.ok) throw result.error;
-            return result.value.map((document) => ({
-              id: document.id,
-              title: document.title,
-              shortTitle: document.shortTitle,
-              sourceType: document.sourceType,
-              metadata: document.metadata ?? {},
-            }));
-          })
-        : options.store.listSearchDocuments
-          ? options.store.listSearchDocuments()
-          : options.store.listDocuments()
-    ).catch((error: unknown) => {
+    // Query scoping needs the compact descriptors. The navigation list sorts and projects the
+    // whole catalog for the UI, and can still be loading when the first query is typed.
+    const loadSearchDocuments = async (): Promise<readonly SearchDocumentDescriptor[]> => {
+      type SearchDocumentSource = {
+        readonly id: string;
+        readonly title: string;
+        readonly shortTitle: string | null;
+        readonly sourceType: string;
+        readonly metadata?: Readonly<Record<string, unknown>> | null;
+      };
+      let documents: readonly SearchDocumentSource[];
+      if (options.store.listSearchDocuments) {
+        documents = await options.store.listSearchDocuments();
+      } else if (navigationDocumentsPromise) {
+        const result = await navigationDocumentsPromise;
+        if (!result.ok) throw result.error;
+        documents = result.value;
+      } else if (options.store.listNavigationDocuments) {
+        documents = await options.store.listNavigationDocuments();
+      } else {
+        documents = await options.store.listDocuments();
+      }
+      return mapSliced(documents, (document) => {
+        const metadata = document.metadata ?? {};
+        return {
+          id: document.id,
+          title: document.title,
+          shortTitle: document.shortTitle,
+          sourceType: document.sourceType,
+          metadata,
+          ageGroups: metadataStrings(metadata, 'ageGroups'),
+        } satisfies SearchDocumentDescriptor & { readonly ageGroups: readonly string[] };
+      });
+    };
+    searchDocumentsPromise ??= loadSearchDocuments().catch((error: unknown) => {
       searchDocumentsPromise = undefined;
       queryDocumentIndex = undefined;
       terminologyIndex = undefined;
@@ -2401,13 +2420,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       try {
         const ready = await ensureInitialized();
         if (!ready.ok) return err(ready.error);
-        const documents = await getSearchDocuments();
-        return ok(
-          documents.map((document) => ({
-            ...document,
-            ageGroups: metadataStrings(document.metadata, 'ageGroups'),
-          })),
-        );
+        return ok(await getSearchDocuments());
       } catch (error) {
         return err(asLocalMedError(error));
       }

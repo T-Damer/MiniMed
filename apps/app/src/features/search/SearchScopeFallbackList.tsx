@@ -1,7 +1,7 @@
 import type { SearchResultGroup } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
+import { ListGroup } from '@/components/ListRow';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import {
   type ScopeFallbackResult,
@@ -24,22 +24,13 @@ export function SearchScopeFallbackList(props: {
     scope: NonNullable<ScopeFallbackResult['sections'][number]['scope']>,
   ) => void;
 }): JSX.Element {
-  // The numbers on the cards run on from one section to the next.
-  const offsets = () => {
-    let total = 0;
-    return props.fallback.sections.map((section) => {
-      const start = total;
-      total += section.groups.length;
-      return start;
-    });
-  };
   return (
     <div class="scope-fallback" data-testid="scope-fallback">
       <p class="scope-fallback__miss" role="status" data-testid="scope-fallback-miss">
         {scopeMissLine(props.fallback.query, props.fallback.missedLabel)}
       </p>
       <For each={props.fallback.sections}>
-        {(section, sectionIndex) => (
+        {(section) => (
           <section class="scope-fallback__section" data-testid="scope-fallback-section">
             <h2 class="scope-fallback__heading">
               <Show
@@ -65,18 +56,19 @@ export function SearchScopeFallbackList(props: {
                 )}
               </Show>
             </h2>
-            <LayoutVirtualizedGrid data={section.groups} bufferSize={400} align="start">
-              {(group, groupIndex) => (
-                <SearchResultGroupCard
-                  group={group}
-                  index={(offsets()[sectionIndex()] ?? 0) + groupIndex}
-                  selectedChunkId={props.selectedChunkId}
-                  action={props.action(group)}
-                  qualifier={props.qualifier(group)}
-                  onOpenDocument={props.onOpenDocument}
-                />
-              )}
-            </LayoutVirtualizedGrid>
+            <ListGroup>
+              <For each={section.groups}>
+                {(group) => (
+                  <SearchResultGroupCard
+                    group={group}
+                    selectedChunkId={props.selectedChunkId}
+                    action={props.action(group)}
+                    qualifier={props.qualifier(group)}
+                    onOpenDocument={props.onOpenDocument}
+                  />
+                )}
+              </For>
+            </ListGroup>
           </section>
         )}
       </For>

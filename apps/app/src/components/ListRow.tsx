@@ -45,12 +45,16 @@ export interface ListRowProps {
   readonly value?: JSX.Element | undefined;
   /** A button of its own after the row (download, delete): it does not open the row. */
   readonly action?: JSX.Element | undefined;
+  /** An optional body under the row and its action. */
+  readonly details?: JSX.Element | undefined;
   /** The chevron after the value; shown by default when the row opens something. */
   readonly chevron?: boolean | undefined;
   readonly selected?: boolean | undefined;
   readonly disabled?: boolean | undefined;
   readonly class?: string | undefined;
+  readonly mainClass?: string | undefined;
   readonly 'aria-label'?: string | undefined;
+  readonly 'data-document-id'?: string | undefined;
   readonly 'data-testid'?: string | undefined;
 }
 
@@ -90,11 +94,22 @@ export function ListRow(props: ListRowProps): JSX.Element {
     </>
   );
   const mainClass = (): string =>
-    `list-row__main${props.selected ? ' list-row__main--selected' : ''}`;
+    [
+      'list-row__main',
+      props.selected && 'list-row__main--selected',
+      props.details !== undefined && 'list-row__main--with-details',
+      props.mainClass,
+    ]
+      .filter(Boolean)
+      .join(' ');
   return (
     <li
       class={`list-row${props.class ? ` ${props.class}` : ''}`}
-      classList={{ 'list-row--with-action': Boolean(props.action) }}
+      classList={{
+        'list-row--with-action': Boolean(props.action),
+        'list-row--with-details': props.details !== undefined,
+      }}
+      data-document-id={props['data-document-id']}
       data-testid={props['data-testid']}
     >
       <Show
@@ -126,6 +141,9 @@ export function ListRow(props: ListRowProps): JSX.Element {
       </Show>
       <Show when={props.action}>
         <span class="list-row__action">{props.action}</span>
+      </Show>
+      <Show when={props.details !== undefined}>
+        <div class="list-row__details">{props.details}</div>
       </Show>
     </li>
   );

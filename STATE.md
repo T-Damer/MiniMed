@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-18 | Codex (PERF18) | Reproduce stalls from the 0.6.111 phone log and reduce startup and first-search blocking | `apps/app/src/composition/`, `apps/app/src/features/modules/browser-module-runtime.ts`, `apps/app/src/app/use-app-session.ts`, `packages/core/src/`, `docs/CURRENT_STATE.md` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; windowed local-model pass + controller adapter (task `visit-note`); Mac qualification of QVikhr 1.7B / Qwen3 0.6B (7 and 1 of 23 facts; QVikhr 15 with line citation); no UI yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note*.ts`, `apps/app/src/features/conversations/visit-note-model*.ts`, `apps/app/src/features/models/structured-output*.ts`, `tools/benchmarks/visit-note-consultations.json`, `tools/benchmarks/src/run-visit-note-model.ts` |
 | 2026-10-09 | claude-opus (KD1) | strong build-time embedding model, small on-device query model (owner 10-09; roadmap 8a): switched 2026-10-11 (modules + app); continuing to improve (owner 10-11) | `tools/benchmarks/embedding_eval.py`, `tools/benchmarks/embedding_distill.py`, `tools/ingest/scripts/embed_modules.py`, `scripts/reframe-modules.ts`, `scripts/publish-query-model-mirror.sh`, `apps/app/src/features/semantic/**`, `packages/search-semantic/src/profile.ts`, `docs/research/embedding-distillation-*.md` |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
@@ -183,6 +182,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-18 REL 0.6.112 (PERF18): sliced startup cache access, compact search listings and deferred document lookup.
 - 2026-11-16 claude-fable REL 0.6.111: SRCH-COLD1 + SRCH-QUICK1 + SRCH-QUICK2 + SCAN-TIDY1 (app-only); verify + unit + search/reader/dictionary/drug e2e; not on a phone
 - 2026-11-16 claude-fable SCAN-TIDY1 (released in 0.6.111; owner «fix all of this»): scanned instructions shown without empty chunks, doubled sentences and scrap headings (`scan-text-tidy.ts`, display only, `metadata.ocr`); unit + browser check on the Бетамакс sheet
 - 2026-11-16 claude-fable SRCH-QUICK2 (released in 0.6.111): quick answer finds exact names and trade names (name table + raw alias scan), late rewrite note / drug-class card under the list, clusters keep identity across a merge, the more-below arrow leaves after a scroll; core + unit tests, search e2e

@@ -5,8 +5,6 @@ import {
   audienceLabel,
   clusterResultGroups,
   conditionTitleKey,
-  IN_TEXT_PREVIEW,
-  shownInText,
   splitResultSections,
 } from './condition-clusters';
 
@@ -126,10 +124,10 @@ describe('result sections', () => {
   const cluster = (id: string, title: string) => ({ lead: group(id, title), others: [] });
   const names = (title: string) => title.toLowerCase().includes('мигрен');
 
-  it('keeps the best result and the results named by the query on top, the rest as found in text', () => {
+  it('keeps the substance and titles named by the query on top', () => {
     const sections = splitResultSections(
       [
-        cluster('substance', 'Суматриптан'),
+        { lead: group('substance', 'Суматриптан', 'medication'), others: [] },
         cluster('headache', 'Головная боль напряжения'),
         cluster('children', 'Мигрень у детей'),
         cluster('stroke', 'Ишемический инсульт'),
@@ -140,14 +138,8 @@ describe('result sections', () => {
     expect(sections.inText.map((item) => item.lead.documentId)).toEqual(['headache', 'stroke']);
   });
 
-  it('folds a long «found in text» part only when three or more would hide', () => {
-    const many = Array.from({ length: IN_TEXT_PREVIEW + 3 }, (_, index) =>
-      cluster(`t${String(index)}`, 'Текст'),
-    );
-    expect(shownInText(many, false)).toHaveLength(IN_TEXT_PREVIEW);
-    expect(shownInText(many, true)).toHaveLength(IN_TEXT_PREVIEW + 3);
-    expect(shownInText(many.slice(0, IN_TEXT_PREVIEW + 2), false)).toHaveLength(
-      IN_TEXT_PREVIEW + 2,
-    );
+  it('puts a text-only hit under found in text even when it ranked first', () => {
+    const text = cluster('headache', 'Головная боль напряжения');
+    expect(splitResultSections([text], names)).toEqual({ named: [], inText: [text] });
   });
 });

@@ -1,4 +1,4 @@
-import type { MedicalStore, StorageHealth } from '@localmed/storage';
+import type { DocumentIdentity, MedicalStore, StorageHealth } from '@localmed/storage';
 
 import type { ShelfFacts, ShelfFactsStore } from '@/composition/module-shelf-facts';
 
@@ -64,6 +64,7 @@ export function createDeferredModuleStore(options: DeferredModuleStoreOptions): 
     listings: { ...options.kept?.listings },
   };
   let opened: Promise<MedicalStore> | undefined;
+  let documentIds: ReadonlySet<string> | undefined;
   let closed = false;
 
   const remember = (): void => {
@@ -110,6 +111,7 @@ export function createDeferredModuleStore(options: DeferredModuleStoreOptions): 
           if (seed !== undefined) {
             kept.health = undefined;
             kept.listings = {};
+            documentIds = undefined;
             const store = await real();
             const health = await store.initialize(seed as never);
             kept.health = health;
@@ -155,6 +157,20 @@ export function createDeferredModuleStore(options: DeferredModuleStoreOptions): 
         };
       }
       return async (...args: unknown[]): Promise<unknown> => {
+        if (
+          !closed &&
+          typeof args[0] === 'string' &&
+          (property === 'getDocument' ||
+            property === 'getSectionsByDocument' ||
+            property === 'getChunksByDocument')
+        ) {
+          const identities = kept.listings['listDocumentIdentities'];
+          if (!documentIds && Array.isArray(identities)) {
+            documentIds = new Set((identities as DocumentIdentity[]).map(({ id }) => id));
+          }
+          if (documentIds && !documentIds.has(args[0]))
+            return property === 'getDocument' ? null : [];
+        }
         const store = await real();
         const method = (store as unknown as Record<string, unknown>)[property];
         if (typeof method !== 'function') {

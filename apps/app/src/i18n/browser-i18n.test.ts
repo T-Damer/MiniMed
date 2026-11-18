@@ -39,6 +39,19 @@ describe('browser-i18n', () => {
     expect(browserI18n.getMessage('specialty_pediatrics')).toBe('Педиатрия');
   });
 
+  it('localizes the text-results section and disclosure', () => {
+    expect(browserI18n.getMessage('search_found_in_text')).toBe('Найдено в тексте');
+    try {
+      setUILanguageForTests('en-US');
+      expect(browserI18n.getMessage('search_found_in_text')).toBe('Found in text');
+      expect(browserI18n.getMessage('search_show_excerpt', 'Article')).toBe(
+        'Show excerpt: Article',
+      );
+    } finally {
+      setUILanguageForTests(undefined);
+    }
+  });
+
   it('detects Cyrillic text as Russian', () => {
     expect(browserI18n.detectLanguage('Педиатрия')).toEqual([{ language: 'ru', percentage: 100 }]);
   });

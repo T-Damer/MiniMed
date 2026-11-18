@@ -2,14 +2,11 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { For, type JSX } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { ChoiceChip, ChoiceChipList } from '@/components/ChoiceChip';
-import { ListGroup, ListRow, type ListTileTone } from '@/components/ListRow';
+import { ListGroup, ListRow } from '@/components/ListRow';
 import { displayDocumentTitle } from '@/features/library/document-display';
-import {
-  type SearchResultDocumentKind,
-  searchResultDocumentKind,
-} from '@/features/search/ScopedMedicalCore';
+import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import type { SearchMeaning } from '@/features/search/search-meanings';
-import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
+import { RESULT_KIND_VISUALS, RESULT_ROW_TONES } from '@/features/search/searchResultKindVisuals';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 
 export type { SearchMeaning } from '@/features/search/search-meanings';
@@ -59,16 +56,6 @@ export function SearchMeaningChoices(props: {
   );
 }
 
-/** The tile colour of each kind of document in a list row. */
-const KIND_TONES: Readonly<Record<SearchResultDocumentKind, ListTileTone>> = {
-  medication: 'green',
-  'clinical-recommendation': 'blue',
-  legal: 'gray',
-  calculator: 'orange',
-  assessment: 'purple',
-  reference: 'teal',
-};
-
 /**
  * Documents whose titles carry the query words and that the results above do not list (owner
  * 2026-11-13: a document appears once). A narrower article («Пневмония у детей») is often one.
@@ -76,15 +63,9 @@ const KIND_TONES: Readonly<Record<SearchResultDocumentKind, ListTileTone>> = {
 export function SearchTitleExtras(props: {
   readonly documents: readonly MedicalDocumentSummary[];
   readonly onOpen: (documentId: string) => void;
-  /** «По названию» while the full search still runs; «Ещё по названию» under its results. */
-  readonly heading?: string;
 }): JSX.Element {
   return (
-    <ListGroup
-      class="search-title-extras"
-      heading={props.heading ?? 'Ещё по названию'}
-      label={props.heading ?? 'Ещё по названию'}
-    >
+    <ListGroup class="search-title-extras" heading="Ещё по названию" label="Ещё по названию">
       <For each={props.documents}>
         {(document) => {
           const kind = searchResultDocumentKind(document);
@@ -92,7 +73,7 @@ export function SearchTitleExtras(props: {
             <ListRow
               class="search-title-extras__row"
               icon={RESULT_KIND_VISUALS[kind].icon}
-              tone={KIND_TONES[kind]}
+              tone={RESULT_ROW_TONES[kind]}
               title={displayDocumentTitle(document)}
               subtitle={RESULT_KIND_VISUALS[kind].label}
               onClick={() => props.onOpen(document.id)}

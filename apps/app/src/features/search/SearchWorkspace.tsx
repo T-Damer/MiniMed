@@ -8,10 +8,12 @@ import type {
   SearchFilters,
   SearchRequest,
   SearchResponse,
+  SearchResult,
   SearchResultGroup,
   SearchSuggestion,
 } from '@localmed/contracts';
 import {
+  batch,
   children,
   createDeferred,
   createEffect,
@@ -32,7 +34,7 @@ import { afterBootReveal } from '@/app/boot-surface';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentText } from '@/components/DocumentText';
-import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
+import { ListGroup } from '@/components/ListRow';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { ScrollStripArrows } from '@/components/ScrollStripArrows';
 import { isCoreReadFailure } from '@/composition/calm-core-errors';
@@ -89,23 +91,19 @@ import { clinicalStage } from '@/features/search/clinical-stages';
 import {
   audienceLabel,
   clusterResultGroups,
-  conditionTitleKey,
   type ResultCluster,
   type ResultSections,
-  shownInText,
   splitResultSections,
 } from '@/features/search/condition-clusters';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
-import {
-  definitionHitHasText,
-  selectDefinitionPreview,
-} from '@/features/search/definition-preview';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
   SOURCE_COLLECTIONS,
   searchModeForScope,
+  searchResultDocumentKind,
+  searchResultDocumentType,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchCorrectionOverlay } from '@/features/search/SearchCorrectionOverlay';
 import { SearchExamples } from '@/features/search/SearchExamples';
@@ -130,6 +128,7 @@ import {
 } from '@/features/search/search-query-route';
 import { sameSearchOutcome } from '@/features/search/search-refresh';
 import {
+  hasExcerptContext,
   presentSourceChunkText,
   repeatedResultTitles,
   resultQualifier,
@@ -149,6 +148,7 @@ import { createLingeringFlag } from '@/features/search/search-skeleton';
 import { sourceCatalogOf } from '@/features/search/source-names';
 import '@/features/search/search-results-skeleton.css';
 import { distinctNavigationDocuments } from '@/features/search/navigation-documents';
+import { browserI18n } from '@/i18n';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
@@ -596,6 +596,49 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return titleIndexFor(documents).lookup(words, INSTANT_TITLE_LIMIT, acceptsTitle);
   });
 
+  // Once a title answer is visible, keep that row and its position through both text passes.
+  const [firstTitles, setFirstTitles] = createSignal<{
+    readonly query: string;
+    readonly scope: SearchScope;
+    readonly specialty: string | undefined;
+    readonly documents: readonly MedicalDocumentSummary[];
+  }>();
+  const retainedTitles = createMemo(() => {
+    const first = firstTitles();
+    return first?.query === titleQuery() &&
+      first.query === searchableQuery(query()) &&
+      first.scope === props.scope &&
+      first.specialty === props.specialty
+      ? first.documents
+      : [];
+  });
+  createEffect(() => {
+    if (retainedTitles().length > 0) return;
+    const documents = instantTitles();
+    const words = titleQuery();
+    if (documents.length && words === searchableQuery(query())) {
+      setFirstTitles({ query: words, scope: props.scope, specialty: props.specialty, documents });
+    }
+  });
+  createEffect(() => {
+    const first = firstTitles();
+    if (
+      first &&
+      (first.query !== searchableQuery(query()) ||
+        first.scope !== props.scope ||
+        first.specialty !== props.specialty)
+    ) {
+      setFirstTitles(undefined);
+    }
+  });
+  const resultIdentity = (id: string, document: MedicalDocumentSummary | undefined): string => {
+    const target = document?.metadata?.['targetDocumentId'];
+    return typeof target === 'string' ? target : id;
+  };
+  const titleKeys = createMemo(
+    () => new Set(retainedTitles().map((document) => resultIdentity(document.id, document))),
+  );
+
   // Clinical recommendation editions: a replaced edition shares its successor's title, so results
   // keep only the newest edition found. The edition sidecar (~60 kB gzip) loads after the page,
   // off the start-up path; until then results show as the core returned them.
@@ -644,7 +687,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let previousClusters: readonly ResultCluster[] = [];
   const resultClusters = createMemo((): readonly ResultCluster[] => {
     const added = appended();
-    const groups = visibleGroups();
+    const titles = titleKeys();
+    const groups =
+      titles.size === 0
+        ? visibleGroups()
+        : visibleGroups().filter(
+            (group) =>
+              !titles.has(
+                resultIdentity(group.documentId, contextDocumentsById().get(group.documentId)),
+              ),
+          );
     const next =
       added.size === 0
         ? clusterResultGroups(groups, audienceOf)
@@ -669,54 +721,31 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     });
     return previousClusters;
   });
-  // Results named by the query first, then what the query was only found inside. A drug class and
-  // the clinical analysis rank by other things than the title and keep one list.
-  /** Clusters a later answer added: listed under the first results, never among them. */
-  const addedClusters = createMemo(() => {
-    const added = appended();
-    return added.size === 0
-      ? []
-      : resultClusters().filter((cluster) => added.has(cluster.lead.documentId));
-  });
-  const resultSections = createMemo((): ResultSections => {
-    const added = appended();
-    const clusters =
-      added.size === 0
-        ? resultClusters()
-        : resultClusters().filter((cluster) => !added.has(cluster.lead.documentId));
-    const shown = response();
-    const words = searchableQuery(shown?.analysis.originalQuery ?? '');
-    if (!words || shown?.drugClass || props.scope === 'diagnosis' || props.scope === 'personal') {
-      return { named: clusters, inText: [] };
-    }
-    return splitResultSections(clusters, (title) => titleNamesWords(title, words));
-  });
-  const [inTextExpanded, setInTextExpanded] = createSignal(false);
-  // Names first, citations second: a card of «Найдено в тексте» shows its name at once and its
-  // found fragment joins it later, one card per idle period, so a long list never renders its
-  // fragments (linked, highlighted text) in one step.
-  const [inTextFragments, setInTextFragments] = createSignal(0);
-  createEffect(() => {
-    const total = resultSections().inText.length;
-    setInTextFragments(0);
-    if (total === 0) return;
-    let cancelled = false;
-    const next = (): void => {
-      if (cancelled) return;
-      const shown = untrack(inTextFragments) + 1;
-      setInTextFragments(shown);
-      if (shown < total) void whenIdle().then(next);
-    };
-    void whenIdle().then(next);
-    onCleanup(() => {
-      cancelled = true;
-    });
-  });
-  createEffect(on(response, () => setInTextExpanded(false), { defer: true }));
-  const inTextShown = createMemo(() => shownInText(resultSections().inText, inTextExpanded()));
-  // The definition card of the query. It comes with the full answer: over a quick answer already
-  // on screen it is placed under the first results, so the list does not move down.
+  // Match titles first, then text. New named results follow both parts of the first answer.
   const [identitiesLate, setIdentitiesLate] = createSignal(false);
+  const resultSections = createMemo(
+    (): ResultSections & { readonly added: readonly ResultCluster[] } => {
+      const added = appended();
+      const clusters = resultClusters();
+      const initial = clusters.filter((cluster) => !added.has(cluster.lead.documentId));
+      const late = clusters.filter((cluster) => added.has(cluster.lead.documentId));
+      const shown = response();
+      const words = searchableQuery(shown?.analysis.originalQuery ?? '');
+      if (
+        !words ||
+        (shown?.drugClass && !identitiesLate()) ||
+        props.scope === 'diagnosis' ||
+        props.scope === 'personal'
+      ) {
+        return { named: initial, inText: [], added: late };
+      }
+      const names = (title: string): boolean => titleNamesWords(title, words);
+      const first = splitResultSections(initial, names);
+      const more = splitResultSections(late, names);
+      return { named: first.named, inText: [...first.inText, ...more.inText], added: more.named };
+    },
+  );
+  const foundInTextLabel = () => browserI18n.getMessage('search_found_in_text');
   const identityCard = (): JSX.Element => (
     <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
       {(referenceCore) => (
@@ -761,28 +790,67 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       {(drugClass) => <DrugClassCard drugClass={drugClass()} />}
     </Show>
   );
-  const clusterCard = (
-    cluster: ResultCluster,
-    index: number,
-    first: boolean,
-    nameOnly?: () => boolean,
-  ): JSX.Element => (
+  const titleResults = createMemo(() => {
+    const keys = titleKeys();
+    const documents = contextDocumentsById();
+    const results = new Map<string, SearchResultGroup>();
+    for (const group of visibleGroups()) {
+      const key = resultIdentity(group.documentId, documents.get(group.documentId));
+      if (keys.has(key) && !results.has(key)) results.set(key, group);
+    }
+    return results;
+  });
+  const titleCard = (document: MedicalDocumentSummary): JSX.Element => {
+    const found = () => titleResults().get(resultIdentity(document.id, document));
+    const group = (): SearchResultGroup => ({
+      documentId: document.id,
+      title: displayDocumentTitle(document),
+      documentKind: searchResultDocumentKind(document),
+      documentType: searchResultDocumentType(document),
+      ...(document.metadata?.['contentMode'] === 'module-pointer'
+        ? { contentKind: 'pointer' }
+        : {}),
+      bestScore: found()?.bestScore ?? 0,
+      categories: found()?.categories ?? [],
+      results: found()?.results ?? [],
+    });
+    return (
+      <SearchResultGroupCard
+        group={group()}
+        selectedChunkId={context()?.focusChunkId}
+        action={props.groupAction?.(group())}
+        onOpenDocument={openDocumentInArchive}
+      />
+    );
+  };
+  const loadExcerptContext = async (hit: SearchResult): Promise<string | undefined> => {
+    const core = props.core;
+    if (!core) return undefined;
+    const result = await (core.getSearchResultContext?.(hit, 1) ?? core.getContext(hit.chunkId, 1));
+    if (!result.ok) return undefined;
+    const { chunks, focusChunkId, section } = result.value;
+    const focus = chunks.find((chunk) => chunk.id === focusChunkId);
+    const text =
+      focus && hasExcerptContext(focus.originalText)
+        ? focus.originalText
+        : chunks.map((chunk) => chunk.originalText).join('\n');
+    const excerpt = presentSourceChunkText(text, section.sectionPath);
+    if (!hasExcerptContext(excerpt)) return undefined;
+    return excerpt.length > 600 ? `${excerpt.slice(0, 600).replace(/\s+\S*$/u, '')}…` : excerpt;
+  };
+  const clusterCard = (cluster: ResultCluster, inText = false): JSX.Element => (
     <SearchResultGroupCard
       group={cluster.lead}
-      index={index}
       selectedChunkId={context()?.focusChunkId}
       action={props.groupAction?.(cluster.lead)}
       qualifier={qualifierOf(cluster.lead)}
+      source={
+        inText ? resultQualifier(contextDocumentsById().get(cluster.lead.documentId)) : undefined
+      }
       onOpenDocument={openDocumentInArchive}
       sources={sourcesOf(cluster)}
-      compact={
-        // Only a card that lists its sources stands in for the answer; a lone result keeps its
-        // fragment.
-        (first &&
-          cluster.others.length > 0 &&
-          answerKey() === conditionTitleKey(cluster.lead.title)) ||
-        nameOnly?.() === true
-      }
+      inText={inText}
+      loadContext={inText ? loadExcerptContext : undefined}
     />
   );
   const sourcesOf = (cluster: ResultCluster): readonly ResultSource[] =>
@@ -817,7 +885,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return titleMatchesBeyondResults(
       titleIndexFor(documents).lookup(words, TITLE_MATCH_LIMIT, acceptsTitle),
       displayDocumentTitle,
-      shown.groups,
+      [
+        ...shown.groups,
+        ...retainedTitles().map((document) => ({
+          documentId: document.id,
+          title: displayDocumentTitle(document),
+        })),
+      ],
     );
   });
   const resultCount = createMemo(() =>
@@ -863,17 +937,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       );
     }),
   );
-  // The definition shown above the results and the first card are one answer when they name the
-  // same thing: the card then lists its sources without repeating the text.
-  const answerKey = createMemo(() => {
-    const identities = visibleIdentities();
-    if (identities.length === 0 || !props.referenceCore) return undefined;
-    const preview = selectDefinitionPreview(identities, searchableQuery(query()));
-    return preview && definitionHitHasText(preview.main.primary)
-      ? conditionTitleKey(preview.main.title)
-      : undefined;
-  });
-
   const calculatorSchemas = createMemo(() => {
     calculatorPacksRevision();
     return installedCalculatorSchemas();
@@ -1377,9 +1440,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       // The quick answer is on screen: the full one never reshuffles it, its other results follow.
       const merged = appendRefinedResponse(quickShown, result.value);
       setPendingResponse(undefined);
-      setResponse(merged.response);
-      setAppended(merged.appended);
-      setIdentitiesLate(true);
+      batch(() => {
+        setAppended(merged.appended);
+        setIdentitiesLate(true);
+        setResponse(merged.response);
+      });
     } else {
       setPendingResponse(undefined);
       setAppended(new Set<string>());
@@ -1449,8 +1514,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     } else {
       // Found by meaning: added under the text results, which stay where they are.
       const merged = appendRefinedResponse(shown, result.value, appended());
-      setResponse(merged.response);
-      setAppended(merged.appended);
+      batch(() => {
+        setAppended(merged.appended);
+        setResponse(merged.response);
+      });
     }
     setDraftAnalysis(result.value.analysis);
     if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
@@ -2122,29 +2189,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             pending={
               (loading() && instantTitles().length > 0) || refinePending() || meaningPending()
             }
-            track={() => [response(), instantTitles(), inTextExpanded()]}
+            track={() => [response(), retainedTitles()]}
           />
         </Show>
-        <div class="search-results-slot">
-          {/* The names that carry the query, at once: the title index needs no database, while the
-              full search over every installed source is still running. */}
-          <Show when={instantTitles().length > 0}>
-            <div data-testid="search-instant-titles">
-              <SearchTitleExtras
-                heading="По названию"
-                documents={instantTitles()}
-                onOpen={(documentId) => openDocumentInArchive(documentId)}
-              />
+        <div
+          class="search-results-slot"
+          data-testid={props.scope !== 'personal' && response() ? 'search-results' : undefined}
+        >
+          <Show when={retainedTitles().length > 0}>
+            <div class="search-results-slot__titles" data-testid="search-instant-titles">
+              <ListGroup class="search-results-section">
+                <For each={retainedTitles()}>{titleCard}</For>
+              </ListGroup>
             </div>
           </Show>
-          {/* Under the names: what the text of the sources is still being searched for. */}
-          <Show when={skeletonMounted() && instantTitles().length > 0}>
-            <h3 class="search-results-section__title" data-testid="search-results-in-text-pending">
-              Найдено в тексте
-            </h3>
-          </Show>
           <Show when={skeletonMounted()}>
-            <SearchResultsSkeleton leaving={!resultsPending()} below={instantTitles().length > 0} />
+            <SearchResultsSkeleton leaving={!resultsPending()} />
           </Show>
           <Show when={response()}>
             {(_searchResponse) => (
@@ -2219,78 +2279,46 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 <Show when={props.scope !== 'personal'}>
                   <Show when={!identitiesLate()}>{drugClassCard()}</Show>
                   <Show when={!identitiesLate()}>{identityCard()}</Show>
-                  <div class="results-list" data-testid="search-results">
+                  <div class="results-list">
                     <Show
                       when={scopeFallback()}
                       fallback={
                         <>
-                          <LayoutVirtualizedGrid
-                            data={resultSections().named}
-                            bufferSize={400}
-                            align="start"
-                          >
-                            {(cluster, clusterIndex) =>
-                              clusterCard(cluster, clusterIndex, clusterIndex === 0)
-                            }
-                          </LayoutVirtualizedGrid>
-                          <Show when={inTextShown().length > 0}>
-                            <h3
-                              class="search-results-section__title"
-                              data-testid="search-results-in-text"
-                            >
-                              Найдено в тексте
-                            </h3>
-                            <LayoutVirtualizedGrid
-                              data={inTextShown()}
-                              bufferSize={400}
-                              align="start"
-                            >
-                              {(cluster, clusterIndex) =>
-                                clusterCard(
-                                  cluster,
-                                  resultSections().named.length + clusterIndex,
-                                  false,
-                                  () => clusterIndex >= inTextFragments(),
-                                )
+                          <Show when={resultSections().named.length > 0}>
+                            <ListGroup class="search-results-section">
+                              <For each={resultSections().named}>
+                                {(cluster) => clusterCard(cluster)}
+                              </For>
+                            </ListGroup>
+                          </Show>
+                          <Show when={resultSections().inText.length > 0}>
+                            <ListGroup
+                              class="search-results-section"
+                              heading={
+                                <span data-testid="search-results-in-text">
+                                  {foundInTextLabel()}
+                                </span>
                               }
-                            </LayoutVirtualizedGrid>
-                            <Show when={inTextShown().length < resultSections().inText.length}>
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                class="search-results-section__more"
-                                data-testid="search-results-more"
-                                onClick={() => setInTextExpanded(true)}
-                              >
-                                Показать ещё {resultSections().inText.length - inTextShown().length}
-                              </Button>
-                            </Show>
+                            >
+                              <For each={resultSections().inText}>
+                                {(cluster) => clusterCard(cluster, true)}
+                              </For>
+                            </ListGroup>
                           </Show>
                           <Show when={identitiesLate()}>
                             {rewriteNote()}
                             {drugClassCard()}
                             {identityCard()}
                           </Show>
-                          <Show when={addedClusters().length > 0}>
-                            <h3
-                              class="search-results-section__title"
-                              data-testid="search-results-added"
+                          <Show when={resultSections().added.length > 0}>
+                            <ListGroup
+                              class="search-results-section"
+                              heading={<span data-testid="search-results-added">Ещё найдено</span>}
                             >
-                              Ещё найдено
-                            </h3>
-                            <LayoutVirtualizedGrid
-                              data={addedClusters()}
-                              bufferSize={400}
-                              align="start"
-                            >
-                              {(cluster, clusterIndex) =>
-                                clusterCard(
-                                  cluster,
-                                  resultClusters().length - addedClusters().length + clusterIndex,
-                                  false,
-                                )
-                              }
-                            </LayoutVirtualizedGrid>
+                              <For each={resultSections().added}>
+                                {(cluster) => clusterCard(cluster)}
+                              </For>
+                            </ListGroup>
                           </Show>
                         </>
                       }

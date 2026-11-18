@@ -34,7 +34,9 @@ async function startSampling(page: Page): Promise<void> {
           ).opacity,
         ),
         // The definition card, when the query has one, opens the results above the list.
-        results: top('.definition-preview, [data-testid="search-results"]'),
+        results: top(
+          '.search-results-slot .definition-preview, .search-results-slot .results-list',
+        ),
       });
       requestAnimationFrame(frame);
     };
@@ -109,8 +111,8 @@ test('skeleton mirrors the result group and its shimmer stops under reduced moti
   await input.pressSequentially(QUERY, { delay: 10 });
   const skeleton = page.getByTestId('search-skeleton');
   await expect(skeleton).toBeVisible();
-  await expect(skeleton.locator('.result-group-header__body').first()).toBeVisible();
-  await expect(skeleton.locator('.result-card').first()).toBeVisible();
+  await expect(skeleton.locator('.results-skeleton__bar--title').first()).toBeVisible();
+  await expect(skeleton.locator('.results-skeleton__tile').first()).toBeVisible();
   const shimmer = await skeleton
     .locator('.results-skeleton__group')
     .first()

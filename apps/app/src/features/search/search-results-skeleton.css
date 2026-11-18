@@ -4,11 +4,17 @@
  */
 .search-results-slot {
   display: grid;
+  grid-template-areas: "titles" "results";
   grid-template-columns: minmax(0, 1fr);
 }
 
+.search-results-slot__titles {
+  grid-area: titles;
+  min-width: 0;
+}
+
 .search-results-slot__content {
-  grid-area: 1 / 1;
+  grid-area: results;
   min-width: 0;
 }
 
@@ -45,7 +51,7 @@
 
 .results-skeleton {
   z-index: var(--z-raised);
-  grid-area: 1 / 1;
+  grid-area: results;
   align-self: start;
   min-width: 0;
   animation: search-results-reveal 180ms ease-out;
@@ -54,11 +60,6 @@
 
 .results-skeleton--leaving {
   animation: search-results-hide 180ms ease-out forwards;
-}
-
-/* Under results already on screen (names found at once, the text results): its own row. */
-.results-skeleton--below {
-  grid-area: auto;
 }
 
 .results-skeleton__group {
@@ -109,77 +110,22 @@
   background: var(--skeleton-bar);
 }
 
-/* Heights follow the line boxes of the real header: kind pill, content kind, title, note. */
-.results-skeleton__bar--kind {
-  height: 1.4375rem;
-  width: 9rem;
-  max-width: 100%;
-}
-
-.results-skeleton__bar--meta {
-  width: 5.5rem;
-  margin-block: 0.25rem;
+.results-skeleton__tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.6rem;
+  background: var(--skeleton-bar);
 }
 
 .results-skeleton__bar--title {
-  width: 72%;
-  height: 0.8125rem;
-  margin-block: 0.1875rem;
+  width: min(72%, 24rem);
+  height: 0.75rem;
 }
 
-.results-skeleton__tags {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.results-skeleton__tag {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  background: var(--skeleton-bar);
-}
-
-.results-skeleton__bar--note {
-  width: 58%;
-  margin-block: 0.1875rem;
-}
-
-.results-skeleton__card {
-  display: block;
-  padding: 0.3125rem 0.875rem 0.8125rem;
-}
-
-.results-skeleton__category {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.results-skeleton__category-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.5rem;
-  background: var(--skeleton-bar);
-}
-
-.results-skeleton__bar--stamp {
-  width: 4.5rem;
-  height: 1.25rem;
-  border-radius: 0.25rem;
-}
-
-/* The excerpt text is 0.9375rem on a 1.48 line, so each bar sits in a 1.39rem pitch. */
-.results-skeleton__bar--line {
-  margin-block: 0.4rem;
-}
-
-.results-skeleton__bar--first {
-  margin-top: 0.8125rem;
-}
-
-.results-skeleton__bar--last {
-  width: 64%;
-  margin-bottom: 0.1875rem;
+.results-skeleton__bar--subtitle {
+  width: min(40%, 11rem);
+  margin-block-start: 0.1875rem;
 }
 
 /* The analysis row's placeholder keeps the real row's text (hidden) so it wraps and sizes the
