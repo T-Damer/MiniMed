@@ -58,7 +58,7 @@ requires a corresponding numeric token for each differing value. None of these c
 
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
-check compares the Ministry catalog with MiniMed daily and on demand in GitHub Actions.
+check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
 ## Release 0.6.112 — 2026-11-18
 

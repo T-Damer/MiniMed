@@ -14,7 +14,10 @@ concurrency:
 
 jobs:
   compare:
-    runs-on: ubuntu-24.04
+    # GitHub-hosted runners timed out against the Ministry endpoint. Schedule only where
+    # this repository has configured a runner that can reach the official network.
+    if: github.event_name == 'workflow_dispatch' || vars.CLINICAL_REGISTRY_RUNNER != ''
+    runs-on: ${{ vars.CLINICAL_REGISTRY_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
