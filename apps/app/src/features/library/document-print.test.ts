@@ -126,10 +126,17 @@ E75.2
 
 • Вторая организация
 Оглавление
-Текст следующего раздела`,
+Текст следующего раздела
+
+3. Первый пункт
+
+| УДД | Расшифровка |
+| --- | --- |
+| 1 | Пример |`,
               },
             ],
           },
+          { ...section, id: 'empty', title: 'Титульный лист', chunks: [] },
         ],
       },
       'https://example.test/source',
@@ -143,6 +150,12 @@ E75.2
     expect(cover).toContain('>Первая организация</li>');
     expect(cover).toContain('>Вторая организация</li>');
     expect(cover).not.toContain('Текст следующего раздела');
+    expect(html).toContain('<body class="doc-print doc-print--clinical">');
+    expect(html).toContain('@bottom-center');
+    expect(html).toContain('<li value="3">Первый пункт</li>');
+    expect(html).toContain('doc-print__table-heading--compact">УДД</th>');
+    expect(html).not.toContain('>Титульный лист</h2>');
+    expect(html).not.toContain('<footer class="doc-print__footer">');
   });
 
   it('renders headings, real lists, and real tables into the popup markup', () => {
@@ -160,6 +173,7 @@ E75.2
     expect(printDocument(buildDocument())).toBe(true);
 
     const markup = popupDocument.write.mock.calls[0]?.[0] as string;
+    expect(markup).toContain('<body class="doc-print">');
     expect(markup).toContain(
       '<h2 class="doc-print__heading doc-print__heading--h2">Разрешённые продукты</h2>',
     );

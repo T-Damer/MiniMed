@@ -3,6 +3,7 @@ import * as QRCode from 'qrcode';
 
 // Official state symbol as catalogued by the Presidential Library, item 1327586.
 import clinicalCoverEmblem from '@/features/library/clinical-cover-emblem.webp?inline';
+import clinicalPrintStyles from '@/features/library/clinical-document-print.css?inline';
 import { clinicalPrintCover } from '@/features/library/clinical-print-cover';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
 import { parseDocumentText } from '@/features/library/document-medication-links';
@@ -35,7 +36,7 @@ function renderQrCode(value: string): string {
   return `<svg class="doc-print__footer-qr" viewBox="-4 -4 ${size + 8} ${size + 8}" role="img" aria-label="QR-код страницы" shape-rendering="crispEdges"><path d="${path}" /></svg>`;
 }
 
-function renderTextBlocks(text: string): string {
+function renderTextBlocks(text: string, clinical: boolean): string {
   const blocks = parseDocumentText(text);
   const html: string[] = [];
   let listTag: 'ul' | 'ol' | null = null;
@@ -57,24 +58,26 @@ function renderTextBlocks(text: string): string {
         html.push('<ol class="doc-print__list">');
         listTag = 'ol';
       }
-      html.push(`<li>${escapeHtml(block.text)}</li>`);
+      html.push(`<li${clinical ? ` value="${block.ordinal}"` : ''}>${escapeHtml(block.text)}</li>`);
     } else if (block.kind === 'paragraph' || block.kind === 'cell') {
       closeList();
       html.push(`<p class="doc-print__paragraph">${escapeHtml(block.text)}</p>`);
     } else if (block.kind === 'table') {
       closeList();
-      html.push(renderRichBlockHtml(block.table));
+      html.push(renderRichBlockHtml(block.table, clinical));
     }
   }
   closeList();
   return html.join('');
 }
 
-function renderRichBlockHtml(block: DocumentRenderBlock): string {
+function renderRichBlockHtml(block: DocumentRenderBlock, clinical: boolean): string {
   if (block.kind === 'image') {
     const caption = visibleImageCaption(block.alt, block.title);
     return `<figure class="doc-print__figure"><img src="${escapeHtml(block.dataUrl)}" alt="${escapeHtml(caption || block.alt)}" />${
-      caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''
+      caption
+        ? `<figcaption${clinical ? ' class="doc-print__figure-caption"' : ''}>${escapeHtml(caption)}</figcaption>`
+        : ''
     }</figure>`;
   }
   const headerEnd = block.rows.findIndex(
@@ -89,27 +92,38 @@ function renderRichBlockHtml(block: DocumentRenderBlock): string {
             const rowSpan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
             const colSpan = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
             const alignment = cell.align ? ` style="text-align:${cell.align}"` : '';
-            return `<${tag}${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
+            const compactHeading = cell.header && /^\S{1,5}$/u.test(cell.text);
+            const roleClass = clinical
+              ? ` class="doc-print__table-${cell.header ? 'heading' : 'cell'}${compactHeading ? ' doc-print__table-heading--compact' : ''}"`
+              : '';
+            return `<${tag}${roleClass}${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
           })
           .join('');
         return `<tr>${cells}</tr>`;
       })
       .join('');
-  const caption = block.caption ? `<caption>${escapeHtml(block.caption)}</caption>` : '';
+  const caption = block.caption
+    ? `<caption${clinical ? ' class="doc-print__table-caption"' : ''}>${escapeHtml(block.caption)}</caption>`
+    : '';
   const head = headerEnd > 0 ? `<thead>${renderRows(block.rows.slice(0, headerEnd))}</thead>` : '';
   const rows = renderRows(block.rows.slice(Math.max(0, headerEnd)));
   return `<table class="doc-print__table">${caption}${head}<tbody>${rows}</tbody></table>`;
 }
 
-function renderSectionHtml(section: MedicalSection): string {
+function renderSectionHtml(
+  section: MedicalSection,
+  clinical: boolean,
+  parentSections: ReadonlySet<string | null> | undefined,
+): string {
   const tag = documentSectionHeadingTag(section.depth);
   const body = resolveDocumentChunkItems(section.chunks)
     .map((item) =>
       item.kind === 'rich'
-        ? renderRichBlockHtml(item.block)
-        : renderTextBlocks(item.chunk.originalText),
+        ? renderRichBlockHtml(item.block, clinical)
+        : renderTextBlocks(item.chunk.originalText, clinical),
     )
     .join('');
+  if (clinical && !body && !parentSections?.has(section.id)) return '';
   return `<section class="doc-print__section"><${tag} class="doc-print__heading doc-print__heading--${tag}">${escapeHtml(section.title)}</${tag}>${body}</section>`;
 }
 
@@ -141,7 +155,13 @@ function clinicalCover(document: MedicalDocument): string {
 }
 
 export function printableDocumentHtml(document: MedicalDocument, pageLink: string): string {
-  const body = document.sections.map(renderSectionHtml).join('');
+  const clinical = document.sourceType === 'clinical_recommendation';
+  const parentSections = clinical
+    ? new Set(document.sections.map((section) => section.parentSectionId))
+    : undefined;
+  const body = document.sections
+    .map((section) => renderSectionHtml(section, clinical, parentSections))
+    .join('');
   const escapedPageLink = escapeHtml(pageLink);
   const editionValue = documentEditionValue(document.versionLabel);
   return `<!doctype html>
@@ -175,42 +195,44 @@ export function printableDocumentHtml(document: MedicalDocument, pageLink: strin
     .doc-print__table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 8.5pt; table-layout: fixed; }
     .doc-print__table th, .doc-print__table td { border: 0.5pt solid var(--print-rule); padding: 1mm; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
     .doc-print__table tr { break-inside: avoid; }
-    .doc-print__table th { background: color-mix(in srgb, var(--print-accent) 12%, transparent); font-weight: 600; }
-    .doc-print__table tr:nth-child(even) td { background: color-mix(in srgb, var(--print-ink) 4%, transparent); }
+    .doc-print__table th { background: var(--print-table-heading, color-mix(in srgb, var(--print-accent) 12%, transparent)); font-weight: 600; }
+    .doc-print__table tr:nth-child(even) td { background: var(--print-table-stripe, color-mix(in srgb, var(--print-ink) 4%, transparent)); }
     .doc-print__figure { margin: 2mm 0 3mm; break-inside: avoid; }
     .doc-print__figure img { max-width: 100%; max-height: 230mm; object-fit: contain; }
     .doc-print__figure figcaption { font-size: 8pt; color: var(--print-ink-muted); margin-top: 1mm; }
     .doc-print__footer { display: flex; align-items: center; gap: 2mm; margin-top: 8mm; padding-top: 3mm; border-top: 0.6pt solid var(--print-rule); font-size: 7pt; color: var(--print-ink-muted); }
     .doc-print__footer-link { overflow-wrap: anywhere; }
     .doc-print__footer-qr { flex: 0 0 auto; width: 10mm; height: 10mm; fill: var(--print-ink); }
-    .doc-print__cover { break-after: page; font-family: "Times New Roman", Times, serif; color: #111; padding-block-start: 8mm; font-size: 12pt; line-height: 1.35; }
-    .doc-print__cover-emblem { display: block; width: 34mm; height: auto; margin: 0 auto 9mm; }
-    .doc-print__cover-heading { margin: 0 0 1.5mm; }
-    .doc-print__cover-title { margin: 0 0 11mm; font-size: 20pt; line-height: 1.2; }
-    .doc-print__cover-facts { margin: 0; }
-    .doc-print__cover-row { display: grid; grid-template-columns: 48% minmax(0, 1fr); gap: 4mm; align-items: start; margin-block: 5mm; }
-    .doc-print__cover-label { text-align: right; }
-    .doc-print__cover-value { margin: 0; overflow-wrap: anywhere; }
-    .doc-print__cover-developers-title { margin: 9mm 0 2mm; }
-    .doc-print__cover-developers { margin: 0; padding-inline-start: 7mm; }
-    .doc-print__cover-developer { margin-block: 1mm; font-weight: 700; }
   </style>
-</head>
-<body class="doc-print">
   ${
-    document.sourceType === 'clinical_recommendation'
+    clinical
+      ? `<style>
+    ${clinicalPrintStyles}
+    @page { @bottom-center { content: counter(page); font: 10pt "Times New Roman", "Liberation Serif", Times, serif; color: #000; } }
+    @page :first { @bottom-center { content: none; } }
+  </style>`
+      : ''
+  }
+</head>
+<body class="doc-print${clinical ? ' doc-print--clinical' : ''}">
+  ${
+    clinical
       ? clinicalCover(document)
       : `<h1 class="doc-print__title">${escapeHtml(document.title)}</h1>
   ${editionValue ? `<p class="doc-print__meta">Редакция: ${escapeHtml(editionValue)}</p>` : ''}`
   }
   ${body}
-  <footer class="doc-print__footer">
+  ${
+    clinical
+      ? ''
+      : `<footer class="doc-print__footer">
     <span>MiniMed</span>
     <span aria-hidden="true">⋅</span>
     <a class="doc-print__footer-link" href="${escapedPageLink}">${escapedPageLink}</a>
     <span aria-hidden="true">⋅</span>
     ${renderQrCode(pageLink)}
-  </footer>
+  </footer>`
+  }
 </body>
 </html>`;
 }

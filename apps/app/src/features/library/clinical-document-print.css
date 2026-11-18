@@ -1,0 +1,170 @@
+.doc-print--clinical,
+.native-print-preview--clinical .native-print-preview__content {
+  --print-accent: #000;
+  --print-ink: #000;
+  --print-ink-muted: #000;
+  --print-rule: #000;
+  --print-title-font: "Times New Roman", "Liberation Serif", Times, serif;
+  --print-body-font: var(--print-title-font);
+  --print-table-heading: #fff;
+  --print-table-stripe: #fff;
+  font-size: 12pt;
+  line-height: 1.35;
+}
+
+.doc-print--clinical .doc-print__heading,
+.native-print-preview--clinical .doc-print__heading {
+  margin: 3mm 0 1.5mm;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.doc-print--clinical .doc-print__heading--h2,
+.native-print-preview--clinical .doc-print__heading--h2 {
+  margin-block-start: 4mm;
+  text-align: center;
+}
+
+.doc-print--clinical .doc-print__paragraph,
+.native-print-preview--clinical .doc-print__paragraph {
+  margin-block-end: 2mm;
+  text-align: justify;
+  text-indent: 0;
+  line-height: inherit;
+}
+
+.doc-print--clinical .doc-print__list,
+.native-print-preview--clinical .doc-print__list {
+  padding-inline-start: 7mm;
+}
+
+.doc-print--clinical .doc-print__table,
+.native-print-preview--clinical .doc-print__table {
+  font-size: 10pt;
+}
+
+.doc-print--clinical .doc-print__table {
+  table-layout: auto;
+}
+
+.doc-print--clinical .doc-print__table-heading,
+.doc-print--clinical .doc-print__table-cell,
+.native-print-preview--clinical .doc-print__table-heading,
+.native-print-preview--clinical .doc-print__table-cell {
+  white-space: pre-line;
+}
+
+.doc-print--clinical .doc-print__table-heading--compact {
+  white-space: nowrap;
+}
+
+.doc-print--clinical .doc-print__table-caption,
+.native-print-preview--clinical .doc-print__table-caption {
+  padding-block-end: 1.5mm;
+  text-align: left;
+  font-size: 11pt;
+  font-weight: 700;
+  break-after: avoid-page;
+}
+
+.doc-print--clinical .doc-print__figure,
+.native-print-preview--clinical .doc-print__figure {
+  text-align: center;
+}
+
+.doc-print--clinical .doc-print__figure-caption,
+.native-print-preview--clinical .doc-print__figure-caption {
+  font-size: 10pt;
+}
+
+.doc-print__cover {
+  break-after: page;
+  font:
+    12pt / 1.35 "Times New Roman",
+    "Liberation Serif",
+    Times,
+    serif;
+  color: #000;
+  padding-block-start: 10mm;
+}
+
+.doc-print__cover-emblem {
+  display: block;
+  width: 34mm;
+  height: auto;
+  margin: 0 auto 8mm;
+}
+
+.doc-print__cover-heading {
+  margin: 0 0 2mm;
+}
+
+.doc-print__cover-title {
+  margin: 0 0 10mm;
+  font-size: 20pt;
+  line-height: 1.2;
+}
+
+.doc-print__cover-facts {
+  margin: 0;
+}
+
+.doc-print__cover-row {
+  display: grid;
+  grid-template-columns: 45% minmax(0, 1fr);
+  align-items: start;
+  gap: 3mm;
+  margin-block: 4mm;
+}
+
+.doc-print__cover-label {
+  text-align: right;
+}
+
+.doc-print__cover-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.doc-print__cover-developers-title {
+  margin: 8mm 0 2mm;
+}
+
+.doc-print__cover-developers {
+  margin: 0;
+  padding-inline-start: 7mm;
+}
+
+.doc-print__cover-developer {
+  margin-block: 1mm;
+  font-weight: 700;
+}
+
+@media screen {
+  .native-print-preview--clinical .native-print-preview__sheet-scaler {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(297mm + var(--print-page-overflow, 0px));
+    padding-block-end: 8mm;
+  }
+
+  .doc-print__page-number {
+    margin: auto 0 0;
+    text-align: center;
+    font:
+      10pt "Times New Roman",
+      "Liberation Serif",
+      Times,
+      serif;
+    color: #000;
+  }
+}
+
+@media print {
+  .doc-print__page-number {
+    display: none;
+  }
+}

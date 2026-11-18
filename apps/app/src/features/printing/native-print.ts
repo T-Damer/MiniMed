@@ -183,7 +183,9 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
     preview.classList.add('native-print-preview--landscape');
   }
   const printDocument = parsed.body.classList.contains('doc-print');
+  const clinical = parsed.body.classList.contains('doc-print--clinical');
   preview.classList.toggle('native-print-preview--document', printDocument);
+  preview.classList.toggle('native-print-preview--clinical', clinical);
   const printableFragments =
     presentationSlides.length > 0
       ? presentationSlides.map((slide) => slide.outerHTML)
@@ -221,12 +223,18 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
           if (pages.length === 0) return;
           const styles = Array.from(content.querySelectorAll('style'));
           stage.replaceChildren();
-          for (const page of pages) {
+          for (const [index, page] of pages.entries()) {
             const paper = sheet.cloneNode(false) as HTMLElement;
             const paperScaler = scaler.cloneNode(false) as HTMLElement;
             const paperBody = content.cloneNode(false) as HTMLElement;
             paperBody.append(page.content);
             paperScaler.append(paperBody);
+            if (clinical && index > 0) {
+              const number = document.createElement('footer');
+              number.className = 'doc-print__page-number';
+              number.textContent = String(index + 1);
+              paperScaler.append(number);
+            }
             paper.append(paperScaler);
             paper.style.setProperty('--print-page-overflow', `${page.overflow}px`);
             stage.append(paper);

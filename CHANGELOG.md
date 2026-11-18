@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.116] - 2026-11-18
+
+- Print clinical recommendations in an A4 layout based on the official PDFs, with the Герб, serif text, plain table rules, and numbered body pages.
+- Preserve source list numbering, keep short table headings together, and omit empty sections from the printout.
+
 ## [0.6.115] - 2026-11-18
 
 - Open Android search from the discovery base while installed packs attach in batches with visible progress.

@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 14 November 2026
-> Released version: `0.6.65` (public prerelease toward `1.0`)
+> Updated: 18 November 2026
+> Released version: `0.6.116` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,15 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.116 — 2026-11-18
+
+«Печать» prints installed clinical recommendations in an A4 layout based on the source PDFs. The
+cover uses the state coat of arms and the title facts available in the pack. Body pages use black
+serif text, centered top-level headings, justified paragraphs and plain table rules. The browser
+sizes table columns to their content. Numbered lists retain the source numbers. Page numbers
+start on the first body page. Other documents use the standard print layout. Chromium printed the
+published 216_2 pack as 21 A4 pages from the reader at desktop width and at phone width offline.
 
 ## Release 0.6.115 — 2026-11-18
 
@@ -120,8 +129,9 @@ other routes. The detail sheet shows pack document count and installed size when
 an explicit download action for downloadable packs. Clinical printing reconstructs the title page
 from pack metadata and the original opening pages. It includes the state coat of arms from the
 [Presidential Library](https://www.prlib.ru/node/1327586), with the title, МКБ-10, audience,
-approval year and developers in the source layout. The browser rendered those fields from the
-released 216_2 pack. Tables wrap on A4, repeat their headings across sheets when available and
+approval year and developers in the source layout. The browser rendered those fields from a
+PDF-derived 216_2 test pack. The published JSON-derived pack has fewer cover fields. Tables wrap
+on A4, repeat their headings across sheets when available and
 can break between rows. A browser PDF and simulated Android preview each produced five sheets for
 a 108-row fixture. This round was checked in Chromium while the Xiaomi was disconnected.
 

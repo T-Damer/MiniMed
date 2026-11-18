@@ -184,6 +184,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-18 print-layout (0.6.116): source-style A4 printing for clinical recommendations, with the Герб, serif body text, plain tables, and numbered pages. Chromium verified the published 216_2 pack at desktop width and at phone width offline.
+
 - 2026-11-18 REL 0.6.114: reader status bar, OCR table provenance and the prescription table calculation guard.
 - 2026-11-18 REL 0.6.113: Android search bridge fix, reader routing, News loading and scrolling fixes.
 - 2026-11-18 REL 0.6.112 (PERF18): sliced startup cache access, compact search listings and deferred document lookup.
