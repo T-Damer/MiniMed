@@ -44,7 +44,7 @@ describe('floating windows', () => {
 
     expect(manager?.isFloating('notes')).toBe(true);
     expect(manager?.windowFor('notes')).toEqual(
-      expect.objectContaining({ view: 'notes', route: '#/notes', width: 320, height: 432 }),
+      expect.objectContaining({ view: 'notes', route: '#/notes', width: 560, height: 347 }),
     );
     expect(storage.get('minimed.floating-windows.v3')).toContain('notes');
 
@@ -76,7 +76,7 @@ describe('floating windows', () => {
     storage.set(
       'minimed.floating-windows.v3',
       JSON.stringify([
-        { view: 'search', route: '#/search', x: 20, y: 80, width: 480, height: 360, zIndex: 100 },
+        { view: 'search', route: '#/search', x: 20, y: 80, width: 320, height: 432, zIndex: 100 },
       ]),
     );
 
@@ -84,7 +84,7 @@ describe('floating windows', () => {
     createRoot((dispose) => {
       manager = createFloatingWindows();
       expect(manager.windowFor('search')).toEqual(
-        expect.objectContaining({ view: 'search', x: 20, y: 80 }),
+        expect.objectContaining({ view: 'search', x: 20, y: 80, width: 320, height: 319 }),
       );
       dispose();
     });
@@ -157,6 +157,41 @@ describe('floating windows', () => {
     expect(manager?.windowFor('notes')?.y).toBe((origin?.y ?? 0) + 10);
     expect(storage.get('minimed.floating-windows.v3')).not.toBe(persisted);
     dispose?.();
+  });
+
+  it('docks at either edge and drags past the expanded window’s bottom limit', () => {
+    const { listeners } = installWindowMock();
+    vi.stubGlobal('Element', class {});
+    createRoot((dispose) => {
+      const manager = createFloatingWindows();
+      manager.setLayerSize(390, 650);
+      manager.open('notes');
+      const expanded = manager.windows()[0];
+      if (!expanded) throw new Error('Missing opened window');
+      manager.toggleCollapsed(expanded.id);
+      manager.beginDrag(expanded.id, {
+        button: 0,
+        pointerId: 3,
+        clientX: 365,
+        clientY: 140,
+        preventDefault: vi.fn(),
+      } as unknown as PointerEvent);
+      listeners.get('pointermove')?.({
+        pointerId: 3,
+        clientX: 0,
+        clientY: 700,
+      } as unknown as PointerEvent);
+      listeners.get('pointerup')?.({ pointerId: 3 } as unknown as PointerEvent);
+      const docked = manager.windows()[0];
+      if (!docked) throw new Error('Missing docked window');
+      const dock = manager.dockGeometry(docked);
+      expect(dock.x).toBe(0);
+      expect(dock.y + dock.height).toBe(650);
+      expect(dock.y).toBeGreaterThan(650 - expanded.height);
+      manager.toggleCollapsed(expanded.id);
+      expect(manager.windows()[0]).toEqual({ ...expanded, dock: { edge: 'left', y: dock.y } });
+      dispose();
+    });
   });
 
   it('does not open settings in a mini-window', () => {

@@ -515,7 +515,20 @@ function startTicks(): void {
   // A first sample soon after the start, then every 15 s.
   const first = setTimeout(tick, 1_000);
   const timer = setInterval(tick, TICK_MS);
-  const flushTimer = setInterval(() => void flushPerfSession(), FLUSH_MS);
+  let flushIdle: number | undefined;
+  const flushTimer = setInterval(() => {
+    if (typeof requestIdleCallback !== 'function') {
+      void flushPerfSession();
+      return;
+    }
+    flushIdle = requestIdleCallback(
+      () => {
+        flushIdle = undefined;
+        void flushPerfSession();
+      },
+      { timeout: 5000 },
+    );
+  }, FLUSH_MS);
   const onVisibility = (): void => {
     const hidden = document.visibilityState === 'hidden';
     push({ t: perfNow(), k: 'vis', n: hidden ? 'hidden' : 'visible', s: screen });
@@ -526,6 +539,7 @@ function startTicks(): void {
     clearTimeout(first);
     clearInterval(timer);
     clearInterval(flushTimer);
+    if (flushIdle !== undefined) cancelIdleCallback(flushIdle);
     document.removeEventListener('visibilitychange', onVisibility);
   });
 }
@@ -574,7 +588,13 @@ export async function flushPerfSession(): Promise<void> {
   const started = performance.now();
   current.durationMs = Math.round(perfNow());
   const copy: PerfSession = { ...current, entries: current.entries.slice() };
-  flushing = withStore('readwrite', (store) => store.put(copy))
+  let cloneMs = 0;
+  flushing = withStore('readwrite', (store) => {
+    const cloneStarted = performance.now();
+    const request = store.put(copy);
+    cloneMs = Math.round((performance.now() - cloneStarted) * 10) / 10;
+    return request;
+  })
     .then(() => {
       push({
         t: started - origin,
@@ -582,7 +602,7 @@ export async function flushPerfSession(): Promise<void> {
         n: 'perflog.flush',
         s: screen,
         d: Math.round(performance.now() - started),
-        f: { entries: copy.entries.length },
+        f: { entries: copy.entries.length, cloneMs },
       });
     })
     .catch((cause: unknown) => {

@@ -1,4 +1,4 @@
-/* Conversation recorder (REC1, owner 2026-11-13): the floating button with the live voice, the
+/* Conversation recorder (REC1, owner 2026-11-13): the floating status button, the
    recorder window, and the recording sheet (player, text, patient). The waveforms are canvases:
    their colour is their CSS `color`. */
 
@@ -9,44 +9,53 @@
 
   position: fixed;
   z-index: var(--z-scroll-top);
-  right: 0;
-  bottom: calc(var(--bottom-nav-clearance) + 0.25rem);
-  left: 0;
+  isolation: isolate;
+  bottom: calc(0.25rem + max(var(--bottom-nav-clearance), var(--safe-bottom)));
+  left: max(0.75rem, var(--safe-left));
   display: flex;
   width: max-content;
-  height: 2.75rem;
-  margin-inline: auto;
+  min-height: 2.75rem;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.875rem 0 0.75rem;
-  border: 1px solid rgb(246 238 219 / 22%);
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+  border: 0;
   border-radius: 999px;
   color: #f6eedb;
-  background: rgb(52 49 44 / 94%);
-  box-shadow: 0 0.625rem 1.5625rem rgb(24 22 19 / 27%);
+  background: transparent;
   cursor: pointer;
   animation: recorder-fab-in var(--motion-base) var(--motion-ease-out);
+}
+
+.recorder-fab::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0.375rem 0;
+  border: 1px solid rgb(246 238 219 / 22%);
+  border-radius: inherit;
+  background: rgb(52 49 44 / 94%);
+  box-shadow: 0 0.25rem 0.75rem rgb(24 22 19 / 27%);
+  content: "";
   transition: background-color var(--motion-fast) var(--motion-ease);
 }
 
 .recorder-fab__dot {
   display: grid;
-  width: 0.75rem;
-  height: 0.75rem;
-  flex: none;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--recorder-red);
-  box-shadow: 0 0 0 0.1875rem rgb(200 64 46 / 28%);
-}
-
-.recorder-fab__dot--paused {
   width: 1rem;
   height: 1rem;
-  border-radius: 0.25rem;
-  color: #f6eedb;
-  background: transparent;
-  box-shadow: none;
+  flex: none;
+  place-items: center;
+}
+
+.recorder-fab__dot::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--recorder-red);
+  content: "";
+}
+
+.recorder-fab__dot--paused::before {
+  display: none;
 }
 
 .recorder-fab__pause {
@@ -54,15 +63,8 @@
   height: 1rem;
 }
 
-.recorder-fab__wave {
-  display: block;
-  width: 4.5rem;
-  height: 1.5rem;
-  color: #f6eedb;
-}
-
 .recorder-fab__time {
-  min-width: 2.75rem;
+  min-width: 2.125rem;
   font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -70,7 +72,7 @@
 }
 
 @media (hover: hover) {
-  .recorder-fab:hover {
+  .recorder-fab:hover::before {
     background: rgb(71 69 63 / 96%);
   }
 }

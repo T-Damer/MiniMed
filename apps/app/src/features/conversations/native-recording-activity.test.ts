@@ -10,6 +10,7 @@ const bridge = vi.hoisted(() => ({
   requestPermissions: vi.fn(),
   update: vi.fn(),
   status: undefined as ((value: { presented: boolean }) => void) | undefined,
+  openRecording: undefined as (() => void) | undefined,
   openUrl: undefined as ((value: { url: string }) => void) | undefined,
 }));
 
@@ -22,8 +23,9 @@ vi.mock('@capacitor/core', () => ({
   registerPlugin: () => ({
     update: bridge.update,
     notificationSettings: bridge.notificationSettings,
-    addListener: (_event: string, listener: typeof bridge.status) => {
-      bridge.status = listener;
+    addListener: (event: string, listener: (value?: { presented: boolean }) => void) => {
+      if (event === 'openRecording') bridge.openRecording = listener;
+      else bridge.status = listener;
       return Promise.resolve();
     },
   }),
@@ -57,6 +59,7 @@ beforeEach(() => {
   bridge.requestPermissions.mockReset();
   bridge.update.mockReset();
   bridge.status = undefined;
+  bridge.openRecording = undefined;
   bridge.openUrl = undefined;
   const storage = new Map<string, string>();
   vi.stubGlobal('window', {
@@ -164,7 +167,8 @@ describe('system recording indicator', () => {
       '@/features/conversations/native-recording-activity'
     );
     const elapsedMs = vi.fn(() => 0);
-    updateNativeRecordingActivity('recording', elapsedMs, { open: vi.fn(), onPresented: vi.fn() });
+    const open = vi.fn();
+    updateNativeRecordingActivity('recording', elapsedMs, { open, onPresented: vi.fn() });
     await vi.waitFor(() => expect(bridge.requestPermissions).toHaveBeenCalledOnce());
     expect(bridge.update).not.toHaveBeenCalled();
     expect(nativeRecordingPresented()).toBe(false);
@@ -172,5 +176,10 @@ describe('system recording indicator', () => {
     grantPermission?.();
     await vi.waitFor(() => expect(nativeRecordingPresented()).toBe(true));
     expect(bridge.update).toHaveBeenCalledWith({ state: 'recording', elapsedMs: 8500 });
+    bridge.openRecording?.();
+    expect(open).toHaveBeenCalledOnce();
+    updateNativeRecordingActivity('ended', elapsedMs);
+    bridge.openRecording?.();
+    expect(open).toHaveBeenCalledOnce();
   });
 });

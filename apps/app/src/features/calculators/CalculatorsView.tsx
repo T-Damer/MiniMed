@@ -1483,6 +1483,7 @@ export function InlineCalculatorWorkspace(props: {
 }
 
 export function CalculatorsView(): JSX.Element {
+  const floating = new URLSearchParams(window.location.search).has('minimed-floating');
   const [route, setRoute] = createSignal(currentRoute());
   // The values a calculator link carries (`#/calculators/<id>?<input>=<value>`).
   const [linkQuery, setLinkQuery] = createSignal(calculatorRouteQuery(window.location.hash));
@@ -2144,7 +2145,7 @@ export function CalculatorsView(): JSX.Element {
               >
                 <div class="calculator-workspace">
                   <Page
-                    hero={PAGE_HEROES.calculators}
+                    hero={floating ? undefined : PAGE_HEROES.calculators}
                     class="calculator-subpage-header"
                     navigation={
                       <NavBack
@@ -2154,12 +2155,20 @@ export function CalculatorsView(): JSX.Element {
                       />
                     }
                     title={
-                      <Heading depth={3} class="calculator-subpage-title">
+                      <Heading
+                        depth={3}
+                        class={
+                          floating
+                            ? 'calculator-subpage-title calculator-subpage-title--compact'
+                            : 'calculator-subpage-title'
+                        }
+                      >
                         {definition().title}
                       </Heading>
                     }
-                    description={definition().summary}
-                    helpTitle="Информация"
+                    titleFill={floating}
+                    description={floating ? undefined : definition().summary}
+                    helpTitle={floating ? 'Как это работает' : 'Информация'}
                     help={
                       <>
                         <p>{definition().summary}</p>

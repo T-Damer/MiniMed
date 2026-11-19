@@ -1089,7 +1089,7 @@ describe('ScopedMedicalCore', () => {
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual(['guideline-summary']);
   });
 
-  it('includes medical references with recommendations and norms', async () => {
+  it('includes medical references with recommendations and keeps ICD-10 in its own scope', async () => {
     const base = coreWithDocuments(documents);
     const scoped = new ScopedMedicalCore(base.core, 'guidelines');
 
@@ -1099,7 +1099,6 @@ describe('ScopedMedicalCore', () => {
       'guideline',
       'guideline-summary',
       'reference',
-      'mkb',
     ]);
   });
 

@@ -77,7 +77,6 @@ const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<st
     'clinical_recommendation',
     'clinical_recommendation_summary',
     'medical_reference',
-    'rls_mkb_reference',
   ]),
   medications: new Set([
     'allmed_reference',

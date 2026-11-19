@@ -399,11 +399,14 @@ const CLINICAL_RECOMMENDATION_SOURCE_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * What a section's counter counts. Search scopes are wide on purpose («Клинические рекомендации»
- * also searches reference articles and the MKB reference), but the counter names its noun: an
- * installed reference pack must not show up as «рекомендации».
+ * The catalog and its counters use the same membership. Typed guideline searches can also
+ * surface reference articles, which belong to «Все источники» when browsing.
  */
-function countsTowardSection(document: MedicalDocumentSummary, sectionId: SearchScope): boolean {
+function documentBelongsToSearchCatalog(
+  document: MedicalDocumentSummary,
+  sectionId: SearchScope,
+): boolean {
+  if (!documentMatchesSearchScope(document, sectionId)) return false;
   if (sectionId !== 'guidelines') return true;
   return document.sourceType === 'core_catalog_pointer'
     ? document.metadata?.['catalogFamily'] === 'clinical'
@@ -439,10 +442,17 @@ export async function searchCatalogSectionsSliced(
   catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,
   signal?: AbortSignal,
   modules: readonly ContentModuleCatalogEntry[] = loadedModuleCatalog()?.modules ?? [],
+  documentsByScope?: Map<SearchScope, readonly MedicalDocumentSummary[]>,
 ): Promise<readonly SearchCatalogSection[] | undefined> {
   if (signal?.aborted) return undefined;
   const slice = createTimeSlicer(4);
-  const steps = searchCatalogSectionSteps(documents, tools, catalogCounts, modules);
+  const steps = searchCatalogSectionSteps(
+    documents,
+    tools,
+    catalogCounts,
+    modules,
+    documentsByScope,
+  );
   let step = steps.next();
   while (!step.done) {
     const due = slice();
@@ -458,6 +468,7 @@ function* searchCatalogSectionSteps(
   tools: readonly SearchCatalogTool[],
   catalogCounts: Readonly<Partial<Record<SearchScope, number>>> | undefined,
   modules: readonly ContentModuleCatalogEntry[],
+  documentsByScope?: Map<SearchScope, readonly MedicalDocumentSummary[]>,
 ): Generator<undefined, readonly SearchCatalogSection[], undefined> {
   const sections: SearchCatalogSection[] = [];
   const experimentalEnabled = getExperimentalModulesEnabled();
@@ -486,12 +497,15 @@ function* searchCatalogSectionSteps(
     };
     const conditionCounts = section.id === 'conditions' ? CONDITION_GROUPS.map(() => 0) : undefined;
     const fixedCount = catalogCounts?.[section.id];
+    const sectionDocuments: MedicalDocumentSummary[] | undefined =
+      documentsByScope && section.id !== 'all' ? [] : undefined;
     let countedDocuments = 0;
     let processed = 0;
     for (const entry of toolScope ? [] : documents) {
       if (++processed % 64 === 0) yield;
-      if (!documentMatchesSearchScope(entry, section.id)) continue;
-      if (fixedCount === undefined && countsTowardSection(entry, section.id)) countedDocuments++;
+      if (!documentBelongsToSearchCatalog(entry, section.id)) continue;
+      sectionDocuments?.push(entry);
+      if (fixedCount === undefined) countedDocuments++;
       if (conditionCounts) {
         CONDITION_GROUPS.forEach((group, index) => {
           if (documentMatchesConditionGroup(entry, group.id)) {
@@ -510,6 +524,7 @@ function* searchCatalogSectionSteps(
         );
       }
     }
+    if (sectionDocuments) documentsByScope?.set(section.id, sectionDocuments);
     if (section.id === 'medications') {
       for (const module of modules) {
         if (++processed % 64 === 0) yield;

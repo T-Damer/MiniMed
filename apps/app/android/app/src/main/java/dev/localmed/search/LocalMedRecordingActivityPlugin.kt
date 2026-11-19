@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -131,8 +132,8 @@ class LocalMedRecordingActivityPlugin : Plugin() {
                 NotificationChannel(CHANNEL, "Запись беседы", NotificationManager.IMPORTANCE_LOW)
             )
             val open = PendingIntent.getActivity(
-                context, NOTIFICATION, Intent(Intent.ACTION_VIEW, Uri.parse("minimed-recording://open"),
-                    context, MainActivity::class.java)
+                context, NOTIFICATION, Intent(context, MainActivity::class.java)
+                    .setAction(openAction)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
@@ -142,8 +143,10 @@ class LocalMedRecordingActivityPlugin : Plugin() {
             )
             val notification = NotificationCompat.Builder(context, CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-                .setContentTitle(if (paused) "Запись на паузе" else "Запись беседы")
+                .setColor(if (paused) Color.rgb(110, 105, 97) else Color.rgb(200, 64, 46))
+                .setContentTitle(if (paused) "Пауза" else "Запись")
                 .setContentIntent(open)
+                .addAction(0, "Открыть запись", open)
                 .setDeleteIntent(delete)
                 .setWhen(System.currentTimeMillis() - elapsed)
                 .setShowWhen(!paused)
@@ -182,6 +185,16 @@ class LocalMedRecordingActivityPlugin : Plugin() {
     private fun presentation(presented: Boolean) = JSObject().put("presented", presented)
 
     private val dismissAction get() = "${context.packageName}.RECORDING_ACTIVITY_DISMISSED"
+    private val openAction get() = "${context.packageName}.OPEN_RECORDING"
+
+    override fun handleOnNewIntent(intent: Intent) {
+        // Some system chips bring the app forward with its launcher intent instead of the content intent.
+        val promotedRelaunch = intent.action == Intent.ACTION_MAIN &&
+            intent.hasCategory(Intent.CATEGORY_LAUNCHER) && isPromoted()
+        if (intent.action == openAction || promotedRelaunch) {
+            notifyListeners("openRecording", JSObject())
+        }
+    }
 
     private fun clear() {
         active = false

@@ -32,7 +32,6 @@ import {
 } from '@/features/conversations/conversation-transcript';
 import { LiveWaveform } from '@/features/conversations/LiveWaveform';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
-import { nativeRecordingPresented } from '@/features/conversations/native-recording-activity';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { usePatientSnapshot } from '@/features/conversations/use-patient-snapshot';
 import { useSpeechOffer } from '@/features/conversations/use-speech-offer';
@@ -47,20 +46,12 @@ const ConversationRecordingSheet = lazy(() =>
 import './conversation-recorder.css';
 
 /**
- * The recording while the doctor uses the app (REC1, owner 2026-11-13): a floating pill centred
- * just above the bottom bar, with the voice drawn live and the time — out of the right-hand tools
- * column, which leaves a phone only a 44 px slot beside the bar. A tap opens the window.
+ * A tap on the compact recording indicator reopens the current recorder.
  */
 function RecorderFab(): JSX.Element {
   const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
   return (
-    <Show
-      when={
-        conversationSession.recorder() &&
-        !conversationSession.windowOpen() &&
-        !nativeRecordingPresented()
-      }
-    >
+    <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
       <Portal>
         <button
           type="button"
@@ -79,12 +70,6 @@ function RecorderFab(): JSX.Element {
               <AppGlyph name="pause-fill" class="recorder-fab__pause" />
             </Show>
           </span>
-          <LiveWaveform
-            class="recorder-fab__wave"
-            source={() => conversationSession.recorder()}
-            bar={2}
-            gap={2}
-          />
           <span class="recorder-fab__time">{time()}</span>
         </button>
       </Portal>

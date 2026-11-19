@@ -27,6 +27,7 @@ interface NativeRecordingActivity {
     event: 'presentationChanged',
     listener: (state: RecordingPresentation) => void,
   ): Promise<PluginListenerHandle>;
+  addListener(event: 'openRecording', listener: () => void): Promise<PluginListenerHandle>;
 }
 
 const Native = registerPlugin<NativeRecordingActivity>('LocalMedRecordingActivity');
@@ -103,14 +104,19 @@ let generation = 0;
 let active = false;
 let pending = Promise.resolve();
 
-function observePresentation(): Promise<void> {
+function observePresentation(platform: 'android' | 'ios'): Promise<void> {
+  const reopen = (): void => {
+    if (active) openRecording?.();
+  };
   listeners ??= Promise.all([
     Native.addListener('presentationChanged', ({ presented }) => {
       if (!presented) setPresented(false);
     }),
-    App.addListener('appUrlOpen', ({ url }) => {
-      if (url === RECORDING_URL && active) openRecording?.();
-    }),
+    platform === 'android'
+      ? Native.addListener('openRecording', reopen)
+      : App.addListener('appUrlOpen', ({ url }) => {
+          if (url === RECORDING_URL) reopen();
+        }),
   ]).then(() => undefined);
   return listeners;
 }
@@ -139,7 +145,7 @@ export function updateNativeRecordingActivity(
       // A stop must clear the old activity before a new recording can publish its own.
       if (state !== 'ended') {
         if (request !== generation) return;
-        await observePresentation();
+        await observePresentation(platform);
         if (request !== generation) return;
         if (controls?.onPresented && platform === 'android') {
           await requestRecordingNotificationsOnce().catch((cause: unknown) => {

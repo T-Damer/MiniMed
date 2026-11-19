@@ -3808,6 +3808,11 @@ html:root > body {
   pointer-events: none;
 }
 
+.app-shell--native:has(.app-view.active .search-home)
+  > .app-shell__status-cap:not(.app-shell__status-cap--suppressed) {
+  height: calc(var(--safe-top) + 0.375rem);
+}
+
 /* Clear, layered over the field's top-right corner so the field stays one clean surface. */
 .query-sheet__clear {
   position: absolute;

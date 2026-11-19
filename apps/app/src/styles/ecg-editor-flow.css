@@ -169,6 +169,10 @@
   overflow-y: auto;
 }
 
+.ecg-flow__panel--sources {
+  padding-block-start: 0.75rem;
+}
+
 .ecg-guide {
   font-size: 0.85rem;
   line-height: 1.45;

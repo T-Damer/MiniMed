@@ -203,6 +203,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const showSectionsOverview = () =>
     scope() === 'all' && !specialty() && catalogQuery().trim().length === 0;
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
+  const [documentsByScope, setDocumentsByScope] = createSignal<
+    ReadonlyMap<SearchScope, readonly MedicalDocumentSummary[]>
+  >(new Map());
   const [listedDocuments, setListedDocuments] = createSignal<readonly MedicalDocumentSummary[]>();
   const [catalogLoading, setCatalogLoading] = createSignal(true);
   const [catalogError, setCatalogError] = createSignal<string>();
@@ -224,6 +227,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const sources = sectionSources();
     if (!props.active || sources === displayedSources) return;
     const pending = new AbortController();
+    const scopedDocuments = new Map<SearchScope, readonly MedicalDocumentSummary[]>();
     onCleanup(() => pending.abort());
     void searchCatalogSectionsSliced(
       sources.documents ?? [],
@@ -231,6 +235,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       SECTION_DOCUMENT_COUNTS,
       pending.signal,
       sources.modules ?? [],
+      scopedDocuments,
     )
       .then((next) => {
         if (!next || pending.signal.aborted) return;
@@ -239,6 +244,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           setSections(next);
           if (sources.documents) {
             setDocuments(sources.documents);
+            setDocumentsByScope(scopedDocuments);
             setCatalogLoading(false);
           }
         });
@@ -331,21 +337,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const visibleTools = createMemo(() =>
     matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery()),
   );
-  const visibleDocuments = createMemo(() =>
-    documents().filter(
-      (entry) =>
-        documentMatchesSearchScope(entry, scope()) &&
-        (!specialty() ||
-          (scope() === 'conditions' && specialty()?.startsWith('kind:')
-            ? documentMatchesConditionGroup(entry, specialty() ?? '')
-            : scope() === 'medications'
-              ? medicationDocumentGroups(entry).includes(specialty() ?? '')
-              : entry.specialties.some(
-                  (group) =>
-                    (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
-                ))),
-    ),
-  );
+  const visibleDocuments = createMemo(() => {
+    const current = scope();
+    const group = specialty();
+    const candidates =
+      current === 'all' || current === 'diagnosis'
+        ? documents()
+        : (documentsByScope().get(current) ?? []);
+    if (!group) return candidates;
+    return candidates.filter((entry) =>
+      current === 'conditions' && group.startsWith('kind:')
+        ? documentMatchesConditionGroup(entry, group)
+        : current === 'medications'
+          ? medicationDocumentGroups(entry).includes(group)
+          : entry.specialties.some(
+              (entryGroup) =>
+                (current === 'all' ? unifiedSearchSpecialty(entryGroup) : entryGroup) === group,
+            ),
+    );
+  });
   /** Tools wait behind the documents for a bare disease name (searchCatalog `toolsFollowResults`). */
   const toolsAfterResults = createMemo(
     () => scope() === 'all' && toolsFollowResults(catalogQuery(), visibleTools(), leadIsDrug()),
@@ -609,10 +619,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           title="Запись беседы"
           text="Запись приёма в карточку пациента, только на устройстве"
           action={{
-            label: 'Начать запись',
+            label: conversationSession.recorder() ? 'Открыть запись' : 'Начать запись',
             icon: 'microphone',
             run: () => conversationSession.prepare(),
-            ...(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {}),
           }}
           secondary={{ label: 'Пациенты', icon: 'users', href: '#/notes/patients' }}
         />

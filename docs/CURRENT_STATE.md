@@ -60,14 +60,34 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## 0.6.119 phone follow-up — unreleased
+
+- Search extends the dark band below the native status inset. The ECG source picker has space
+  below its header. The «Клинические рекомендации» catalog and its counts use the same membership,
+  including download pointers for individual recommendations. ICD-10 records stay in «МКБ,
+  симптомы и состояния».
+- Mini-windows open in a wide layout with a vertical control rail. Collapsed windows use their
+  own dock position and fit between the app header and bottom bar. The compact calculator header
+  keeps its summary and sources in «?». The active calculator retains its inputs through collapse
+  and temporary fullscreen.
+- The recorder keeps its lower-left timer beside the system indicator. The search action reopens
+  an active recording. Android's notification and its «Открыть запись» action send a direct bridge
+  event to the recorder. Android controls the chip's rendering, including how much text fits.
+- The 0.6.119 phone log reached 821 ms in a background frame and 619 ms during search navigation.
+  Catalog sections now derive their document lists alongside their sliced counts. Browsing skips
+  text-filter and graph preparation until used. Reopening the warmed conditions list at 390 px in
+  Chromium with 4× CPU throttling took a median 34 ms in the click handler across five runs,
+  down from 97 ms. Periodic performance-log writes wait for idle with a deadline, and report the
+  synchronous IndexedDB enqueue separately. Physical-device timing remains to be measured.
+
 ## Recording notification controls — unreleased
 
 On Android 16 and newer, starting a recording can trigger the system notification permission
 prompt once. The recorder continues while the prompt is open, and the floating indicator stays
 available whenever Android declines to present a Live Update. Settings → «Основные» shows Android
 notification status and opens the relevant app, Live Update, or recording-channel settings.
-«Запись в системном индикаторе» lets Android and iOS users choose the in-app indicator, including
-during an active recording. The preference persists across launches.
+«Запись в системном индикаторе» lets Android and iOS users choose whether to also show the system
+indicator, including during an active recording. The preference persists across launches.
 
 ## Release 0.6.119 — 2026-11-19
 

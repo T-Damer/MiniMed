@@ -56,10 +56,12 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
   const deferredFilter = createDeferred(filter, { timeoutMs: 120 });
   const activeQuery = createMemo(() => props.query ?? deferredFilter());
-  const searchValuesById = createMemo(
-    () => new Map(documents().map((document) => [document.id, documentSearchValues(document)])),
+  const searching = createMemo(() => activeQuery().trim().length > 0);
+  const searchValuesById = createMemo(() =>
+    searching()
+      ? new Map(documents().map((document) => [document.id, documentSearchValues(document)]))
+      : undefined,
   );
-
   const filteredDocuments = createMemo(() => {
     const query = activeQuery().trim();
     if (!query) return wordTitlesFirst(documents());
@@ -68,17 +70,18 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       .map((document, index) => ({
         document,
         index,
-        score: fuzzyQueryScore(query, searchValues.get(document.id) ?? []),
+        score: fuzzyQueryScore(query, searchValues?.get(document.id) ?? []),
       }))
       .filter((entry) => entry.score > 0)
       .toSorted((left, right) => right.score - left.score || left.index - right.index)
       .map((entry) => entry.document);
   });
-  const graphSelection = createMemo(() =>
-    graphShowAll()
+  const graphSelection = createMemo(() => {
+    if (mode() !== 'graph' || !experimentalModulesEnabled()) return { documents: [], total: 0 };
+    return graphShowAll()
       ? { documents: filteredDocuments(), total: filteredDocuments().length, focused: false }
-      : selectGraphNeighborhood(filteredDocuments()),
-  );
+      : selectGraphNeighborhood(filteredDocuments());
+  });
 
   createEffect(() => {
     if (props.documents !== undefined) return;

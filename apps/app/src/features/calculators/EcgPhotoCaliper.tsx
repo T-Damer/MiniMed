@@ -122,7 +122,7 @@ export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.El
           <EcgStepper editor={editor} />
         </Show>
         <Show when={editor.step() === 1}>
-          <div class="ecg-flow__panel">
+          <div class="ecg-flow__panel" classList={{ 'ecg-flow__panel--sources': !editor.photo() }}>
             <Show
               when={editor.photo()}
               fallback={
