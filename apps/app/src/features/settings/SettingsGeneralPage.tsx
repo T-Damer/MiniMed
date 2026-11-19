@@ -10,6 +10,7 @@ import { Switch } from '@/components/Switch';
 import { restartOnboarding } from '@/features/onboarding/onboarding-state';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { DoctorProfileSettings } from '@/features/settings/DoctorProfileSettings';
+import { NotificationSettings } from '@/features/settings/NotificationSettings';
 import { PerfLogSettings } from '@/features/settings/PerfLogSettings';
 import { StatusPanel } from '@/features/status/StatusPanel';
 import {
@@ -65,6 +66,7 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
         onActivate={props.onActivateAppUpdate}
         onCancel={props.onCancelAppUpdate}
       />
+      <NotificationSettings recordingEnabled={() => preferences().recordingActivityEnabled} />
       <section
         class="settings-section settings-section--general paper-sheet"
         aria-label="Материалы и обучение"

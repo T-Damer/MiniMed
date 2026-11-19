@@ -60,6 +60,15 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Recording notification controls — unreleased
+
+On Android 16 and newer, starting a recording can trigger the system notification permission
+prompt once. The recorder continues while the prompt is open, and the floating indicator stays
+available whenever Android declines to present a Live Update. Settings → «Основные» shows Android
+notification status and opens the relevant app, Live Update, or recording-channel settings.
+«Запись в системном индикаторе» lets Android and iOS users choose the in-app indicator, including
+during an active recording. The preference persists across launches.
+
 ## Release 0.6.119 — 2026-11-19
 
 The 0.6.117 Xiaomi log reached discovery search in 191–605 ms. Installed-set mounting took

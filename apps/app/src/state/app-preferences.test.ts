@@ -21,6 +21,7 @@ import {
   setFloatingWindowsEnabled,
   setModuleAutoUpdatesEnabled,
   setMotionSpeed,
+  setRecordingActivityEnabled,
   setRememberSearchMode,
   setSoundsEnabled,
   setSoundVolume,
@@ -88,6 +89,7 @@ describe('app-preferences', () => {
       readerChromePinned: false,
       restoreLastPage: true,
       showPageRestoreNotice: true,
+      recordingActivityEnabled: true,
     });
   });
 
@@ -117,7 +119,15 @@ describe('app-preferences', () => {
       readerChromePinned: false,
       restoreLastPage: true,
       showPageRestoreNotice: true,
+      recordingActivityEnabled: true,
     });
+  });
+
+  it('saves the recording indicator opt-out', () => {
+    setRecordingActivityEnabled(false);
+    expect(loadAppPreferences().recordingActivityEnabled).toBe(false);
+    setRecordingActivityEnabled(true);
+    expect(loadAppPreferences().recordingActivityEnabled).toBe(true);
   });
 
   it('stores whether the useful-features block on the search home is closed', () => {

@@ -29,6 +29,7 @@ import {
   type SpeechEngine,
   type SpeechEngineState,
 } from '@/features/conversations/speech-engine';
+import { loadAppPreferences } from '@/state/app-preferences';
 import {
   type ConversationRecorder,
   type ConversationRecording,
@@ -238,6 +239,19 @@ export const conversationSession = {
   /** The in-memory text of a recording made or read in this session, if its run is still held. */
   transcript: (recordingId: string): ConversationTranscript | undefined => runs.get(recordingId),
   openWindow: () => setWindowOpen(true),
+  refreshRecordingActivity: (): void => {
+    const current = recorder();
+    if (!current) return;
+    if (!loadAppPreferences().recordingActivityEnabled) {
+      updateNativeRecordingActivity('ended', current.elapsedMs);
+      return;
+    }
+    updateNativeRecordingActivity(current.paused() ? 'paused' : 'recording', current.elapsedMs, {
+      open: () => {
+        if (recorder() === current) setWindowOpen(true);
+      },
+    });
+  },
   /**
    * The entry from the tools list: opens the recording window ready to start. The microphone stays
    * off until the doctor taps the big record button inside it.
@@ -265,15 +279,14 @@ export const conversationSession = {
     perfMark('recorder.pause');
     setPaused(recorder()?.paused() ?? false);
     const current = recorder();
-    if (current?.paused()) updateNativeRecordingActivity('paused', current.elapsedMs());
+    if (current?.paused()) updateNativeRecordingActivity('paused', current.elapsedMs);
   },
   resume: (): void => {
     recorder()?.resume();
     perfMark('recorder.resume');
     setPaused(recorder()?.paused() ?? false);
     const current = recorder();
-    if (current && !current.paused())
-      updateNativeRecordingActivity('recording', current.elapsedMs());
+    if (current && !current.paused()) updateNativeRecordingActivity('recording', current.elapsedMs);
   },
   dismissFinished: () => {
     const recording = finished();
@@ -353,7 +366,7 @@ export async function startConversation(): Promise<void> {
     setPaused(false);
     setElapsedSeconds(0);
     let openedFromSystem = false;
-    updateNativeRecordingActivity('recording', 0, {
+    updateNativeRecordingActivity('recording', next.elapsedMs, {
       open: () => {
         openedFromSystem = true;
         if (recorder() === next) setWindowOpen(true);
@@ -397,7 +410,7 @@ export async function stopConversation(): Promise<void> {
   fillFromActiveRecording = undefined;
   setWindowOpen(false);
   setRecorder(null);
-  updateNativeRecordingActivity('ended', current.elapsedMs());
+  updateNativeRecordingActivity('ended', current.elapsedMs);
   setPaused(false);
   setActiveRun(undefined);
   setLinkedPatientId('');

@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.getcapacitor.JSObject
@@ -51,6 +53,61 @@ class LocalMedRecordingActivityPlugin : Plugin() {
             } else {
                 post(call, state == "paused", elapsed)
             }
+        }
+    }
+
+    @PluginMethod
+    fun notificationSettings(call: PluginCall) {
+        val supported = Build.VERSION.SDK_INT >= 36
+        call.resolve(JSObject()
+            .put("notificationsEnabled", manager.areNotificationsEnabled())
+            .put("recordingSupported", supported)
+            .put("promotionEnabled", supported && manager.canPostPromotedNotifications())
+            .put("recordingChannelBlocked", supported &&
+                manager.getNotificationChannel(CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE))
+    }
+
+    @PluginMethod
+    fun openNotificationSettings(call: PluginCall) {
+        val recording = when (call.getString("kind")) {
+            "app" -> false
+            "recording" -> true
+            else -> {
+                call.reject("Invalid notification settings type")
+                return
+            }
+        }
+        handler.post {
+            val packageName = context.packageName
+            val actions = mutableListOf<Intent>()
+            if (recording && Build.VERSION.SDK_INT >= 36) {
+                val target = if (manager.getNotificationChannel(CHANNEL)?.importance ==
+                    NotificationManager.IMPORTANCE_NONE
+                ) {
+                    Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_CHANNEL_ID, CHANNEL)
+                } else {
+                    Intent(Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS)
+                }
+                actions.add(target.putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+            }
+            if (Build.VERSION.SDK_INT >= 26) {
+                actions.add(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+            }
+            actions.add(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+            for (intent in actions) {
+                try {
+                    context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    call.resolve()
+                    return@post
+                } catch (_: ActivityNotFoundException) {
+                    continue
+                } catch (_: SecurityException) {
+                    continue
+                }
+            }
+            call.reject("Unable to open notification settings")
         }
     }
 

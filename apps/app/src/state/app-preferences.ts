@@ -25,6 +25,7 @@ export interface AppPreferences {
   readonly vibrationChosen?: boolean;
   readonly rememberSearchMode: boolean;
   readonly restoreLastPage: boolean;
+  readonly recordingActivityEnabled: boolean;
   readonly showPageRestoreNotice: boolean;
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
@@ -53,6 +54,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   vibrationEnabled: false,
   rememberSearchMode: false,
   restoreLastPage: true,
+  recordingActivityEnabled: true,
   showPageRestoreNotice: true,
   soundVolume: DEFAULT_SOUND_VOLUME,
   bookReadingMode: false,
@@ -79,6 +81,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly vibrationChosen?: unknown;
     readonly rememberSearchMode?: unknown;
     readonly restoreLastPage?: unknown;
+    readonly recordingActivityEnabled?: unknown;
     readonly showPageRestoreNotice?: unknown;
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
@@ -112,6 +115,7 @@ function normalizePreferences(value: unknown): AppPreferences {
         ? candidate.rememberSearchMode
         : DEFAULT_PREFERENCES.rememberSearchMode,
     restoreLastPage: candidate.restoreLastPage !== false,
+    recordingActivityEnabled: candidate.recordingActivityEnabled !== false,
     showPageRestoreNotice: candidate.showPageRestoreNotice !== false,
     soundVolume: clampVolume(
       typeof candidate.soundVolume === 'number'
@@ -192,6 +196,10 @@ export function saveAppPreferences(preferences: AppPreferences): AppPreferences 
 
 export function setReaderChromePinned(pinned: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), readerChromePinned: pinned });
+}
+
+export function setRecordingActivityEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), recordingActivityEnabled: enabled });
 }
 
 export function setRestoreLastPage(enabled: boolean): AppPreferences {
