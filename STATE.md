@@ -184,8 +184,8 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-19 recording-island (unreleased): Android promoted recording notifications and the iOS ActivityKit widget use one Capacitor bridge, with fallback to the floating recorder. Native builds and browser flows passed. Physical-device presentation is unmeasured.
-- 2026-11-19 performance (unreleased): paged module facts eliminate a single large IndexedDB clone. Synthetic browser benchmark and phone log attribution are recorded in CURRENT_STATE.
+- 2026-11-19 recording-island (0.6.119): Android promoted recording notifications and the iOS ActivityKit widget use one Capacitor bridge, with fallback to the floating recorder. Native builds and browser flows passed. Physical-device presentation is unmeasured.
+- 2026-11-19 performance (0.6.119): paged module facts eliminate a single large IndexedDB clone. Synthetic browser benchmark and phone log attribution are recorded in CURRENT_STATE.
 
 - 2026-11-19 performance (0.6.118): discovery opens alone, verified clinical titles and direct readers open their own packs, and full offline search attaches on demand. The Chromium benchmark covered 774 packs and legacy migration. The owner requested release with the slower full-search pass and Android timing still unmeasured.
 

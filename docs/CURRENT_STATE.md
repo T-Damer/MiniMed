@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 19 November 2026
-> Released version: `0.6.118` (public prerelease toward `1.0`)
+> Released version: `0.6.119` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -60,7 +60,7 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
-## Unreleased — Paged module facts and recording activities
+## Release 0.6.119 — 2026-11-19
 
 The 0.6.117 Xiaomi log reached discovery search in 191–605 ms. Installed-set mounting took
 9.9–16.6 s, and completed rebuilds took 22.5–24.0 s. The worst frame was 2.98 s. Its script

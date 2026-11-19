@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.119] - 2026-11-19
+
+- Read and write cached module facts in small pages to reduce stalls while mounting installed packs.
+- Log the duration and page count of large module cache reads.
+- Move the recording indicator to Android Live Updates or iPhone Dynamic Island when the system accepts it. Tapping the indicator reopens the recorder, and the in-app controls remain available when system presentation is unavailable.
+
 ## [0.6.118] - 2026-11-19
 
 - Open only the SQLite discovery index at startup. Attach the installed library when the user needs a full offline search.
