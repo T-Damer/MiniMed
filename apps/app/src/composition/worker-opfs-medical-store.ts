@@ -65,20 +65,6 @@ function createPackWorker(): Worker {
 export class WorkerOpfsMedicalStore implements MedicalStore {
   private onDownloadWait: (waiting: boolean) => void = () => {};
   private static readonly sharedStores = new Map<string, SharedWorkerStore>();
-  private static readonly preparedWorkers = new Set<Worker>();
-
-  /** Compile SQLite while the native base opens, before any downloaded pack is requested. */
-  public static prepareReaderWorkers(): void {
-    if (WorkerOpfsMedicalStore.preparedWorkers.size > 0) return;
-    for (let index = 0; index < 2; index += 1) {
-      const worker = createPackWorker();
-      WorkerOpfsMedicalStore.preparedWorkers.add(worker);
-      worker.postMessage({ id: 0, type: 'prepare' } satisfies OpfsPackWorkerRequest);
-      setTimeout(() => {
-        if (WorkerOpfsMedicalStore.preparedWorkers.delete(worker)) worker.terminate();
-      }, 5000);
-    }
-  }
 
   private requestId = 0;
   private readonly pending = new Map<number, PendingCall>();
@@ -201,9 +187,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     downloadUi?: OpfsDownloadUi,
     onWaitingForOtherTab?: (waiting: boolean) => void,
   ): Promise<WorkerOpfsMedicalStore> {
-    const prepared = WorkerOpfsMedicalStore.preparedWorkers.values().next().value;
-    if (prepared) WorkerOpfsMedicalStore.preparedWorkers.delete(prepared);
-    const worker = prepared ?? createPackWorker();
+    const worker = createPackWorker();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let rejectTimeout: (error: Error) => void = () => undefined;
     const timedOut = new Promise<never>((_, reject) => {
@@ -334,6 +318,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public getChunkWindow(chunkId: string, radius: number): Promise<readonly ChunkRecord[]> {
     return this.call('getChunkWindow', [chunkId, radius]);
+  }
+
+  public lookupAliasTerms(spellings: readonly string[]): Promise<readonly string[]> {
+    return this.call('lookupAliasTerms', [spellings]);
   }
 
   public listAliases(): Promise<readonly AliasRecord[]> {

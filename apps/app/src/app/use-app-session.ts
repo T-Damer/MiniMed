@@ -47,11 +47,7 @@ import {
   watchAndroidApkTasks,
 } from '@/state/native-update';
 import { dueReminderNotes, loadPatientNotes, PATIENT_NOTES_EVENT } from '@/state/patient-notes';
-import {
-  publishCoreDataVersion,
-  readInstalledDataSnapshot,
-  readInstalledDataVersion,
-} from '@/state/search-data-version';
+import { publishCoreDataVersion, readInstalledDataVersion } from '@/state/search-data-version';
 import { installTakeoverListener } from '@/state/tab-takeover';
 import { installUiFeedback } from '@/state/ui-feedback';
 
@@ -408,7 +404,7 @@ export function useAppSession() {
     );
   };
 
-  const createSessionCore = async (onAndroidBase?: () => void) =>
+  const createSessionCore = async (onDiscoveryReady?: () => void) =>
     new RetirableMedicalCore(
       await createBrowserCore(
         {
@@ -445,7 +441,7 @@ export function useAppSession() {
           onModuleProgress: setInstalledProgress,
           onWaitingForOtherTab: setCoreWaitingForOtherTab,
         },
-        onAndroidBase,
+        onDiscoveryReady,
       ),
     );
 
@@ -460,13 +456,14 @@ export function useAppSession() {
       });
   }
 
-  const reconnectInstalledModules = async (): Promise<void> => {
+  const reconnectInstalledModules = async (contentChanged: boolean): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
     // The installed set the next core is built from; saved searches are labelled with it once
     // that core is the one searching, never earlier.
     const dataVersion = readInstalledDataVersion();
-    if (servesBaseOnly) baseAttachmentVersion = dataVersion;
+    const attachingDiscovery = servesBaseOnly;
+    if (attachingDiscovery) baseAttachmentVersion = dataVersion;
     const reloadStartedAt = performance.now();
     await swapMedicalCore(current, createSessionCore, (candidate) => {
       if (disposed) {
@@ -481,15 +478,14 @@ export function useAppSession() {
       const previousSearchCore = searchCore();
       const nextSearchCore = new WorkerSearchMedicalCore(candidate.core);
       publishCoreDataVersion(dataVersion);
+      servesBaseOnly = false;
       setSearchCore(nextSearchCore);
       coreToClose = candidate.core;
       setReady(candidate);
       if (previousSearchCore) void previousSearchCore.close();
-      if (servesBaseOnly) {
-        servesBaseOnly = false;
+      if (attachingDiscovery) {
         performance.mark('minimed:installed-search-ready');
       } else {
-        // The startup attachment leaves its large packs cold until an actual search or read.
         void scheduleIdle(() => candidate.core.warmUp?.() ?? Promise.resolve()).catch(
           (cause: unknown) => {
             console.warn('Search indexes were not prepared after the core reload.', cause);
@@ -503,22 +499,26 @@ export function useAppSession() {
     setDownloadedModuleCount(
       moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
     );
-    notifyContentChanged();
+    if (contentChanged) notifyContentChanged();
   };
 
   let reconnecting: Promise<void> | undefined;
   let reconnectRequested = false;
-  const connectInstalledModules = (): Promise<void> => {
+  let contentChangedWhileConnecting = false;
+  const requestInstalledModules = (contentChanged: boolean): Promise<void> => {
     if (reconnecting && servesBaseOnly && baseAttachmentVersion === readInstalledDataVersion()) {
       return reconnecting;
     }
     reconnectRequested = true;
+    contentChangedWhileConnecting ||= contentChanged;
     if (!ready() || disposed) return Promise.resolve();
     if (reconnecting) return reconnecting;
     reconnecting = (async () => {
       while (reconnectRequested && !disposed) {
         reconnectRequested = false;
-        await reconnectInstalledModules();
+        const changed = contentChangedWhileConnecting;
+        contentChangedWhileConnecting = false;
+        await reconnectInstalledModules(changed);
       }
     })().finally(() => {
       reconnecting = undefined;
@@ -526,6 +526,9 @@ export function useAppSession() {
     });
     return reconnecting;
   };
+  const connectInstalledModules = (): Promise<void> => requestInstalledModules(true);
+  const ensureInstalledModules = (): Promise<void> =>
+    servesBaseOnly ? requestInstalledModules(false) : Promise.resolve();
 
   const refreshDueReminders = (): void => {
     setDueReminderCount(dueReminderNotes(loadPatientNotes()).length);
@@ -576,15 +579,11 @@ export function useAppSession() {
     // catalog: its screens do not need them, and the first would fetch a database it never uses.
     if (activeProfile()?.skipSearchCore) return;
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
-    const initialData = readInstalledDataSnapshot();
+    const initialVersion = readInstalledDataVersion();
     const initializedPromise = initializeMedicalCore(() =>
-      createSessionCore(
-        initialData.hasActiveModules
-          ? () => {
-              servesBaseOnly = true;
-            }
-          : undefined,
-      ),
+      createSessionCore(() => {
+        servesBaseOnly = true;
+      }),
     );
     try {
       const initialized = await initializedPromise;
@@ -592,25 +591,19 @@ export function useAppSession() {
         await initialized.core.close();
         return;
       }
-      const initializedSearchCore = new WorkerSearchMedicalCore(initialized.core);
+      const startedWithDiscovery = servesBaseOnly;
+      const initializedSearchCore = new WorkerSearchMedicalCore(
+        initialized.core,
+        startedWithDiscovery ? ensureInstalledModules : undefined,
+      );
       coreToClose = initialized.core;
-      publishCoreDataVersion(initialData.version, servesBaseOnly);
+      publishCoreDataVersion(initialVersion, servesBaseOnly);
       setSearchCore(initializedSearchCore);
       setReady(initialized);
       performance.mark('minimed:search-ready');
       setCoreDownloading(false);
-      if (servesBaseOnly) {
-        void afterBootReveal()
-          .then(() =>
-            scheduleIdle(async () => {
-              if (!disposed && servesBaseOnly && !reconnecting) await connectInstalledModules();
-            }),
-          )
-          .catch((cause: unknown) => {
-            console.warn('Installed content was not connected at start-up.', cause);
-          });
-      } else {
-        if (reconnectRequested) await connectInstalledModules();
+      if (reconnectRequested) await connectInstalledModules();
+      if (!startedWithDiscovery) {
         // Prepare the first query's indexes after the first screen has painted.
         void afterBootReveal()
           .then(() => scheduleIdle(() => initialized.core.warmUp?.() ?? Promise.resolve()))
@@ -747,6 +740,7 @@ export function useAppSession() {
     cancelAvailableUpdate,
     checkAvailableUpdate,
     connectInstalledModules,
+    ensureInstalledModules,
     stagedModuleReader: () => (servesBaseOnly ? readInstalledModuleDocument : undefined),
   };
 }

@@ -113,6 +113,8 @@ export interface CreateMedicalCoreOptions {
   readonly platform?: CoreCapabilities['platform'];
   readonly embedder?: QueryEmbedder;
   readonly searchExecution?: CoreCapabilities['searchExecution'];
+  /** A short-lived core over the base SQLite file used before the installed packs attach. */
+  readonly discoveryOnly?: boolean;
   /** S3 switches, on by default; benchmarks turn one off to measure before/after. */
   readonly icdBridge?: boolean | Partial<IcdBridgeTuning>;
   readonly nameVariants?: boolean;
@@ -1903,12 +1905,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   /** How long a quick answer waits for the store's alias list before going on without it. */
   const QUICK_ALIAS_WAIT_MS = 250;
   /**
-   * The canonical terms of the aliases spelt exactly as the query («Нурофен» → «ИБУПРОФЕН»), three
-   * at most, read from the store's raw alias list when it arrives in time. A plain scan, no index.
+   * Up to three canonical terms for exact alias spellings. Discovery uses SQLite index keys.
+   * The combined core reuses its alias listing when it arrives in time.
    */
   const quickCanonicalTerms = async (query: string): Promise<readonly string[]> => {
     const wanted = query.trim().toLowerCase().replaceAll('ё', 'е');
     if (!wanted) return [];
+    if (options.discoveryOnly) {
+      const typed = query.trim();
+      const spellings = new Set([typed, typed.toLowerCase(), wanted]);
+      for (const spelling of [...spellings]) {
+        spellings.add(spelling.toUpperCase());
+        spellings.add(spelling.charAt(0).toUpperCase() + spelling.slice(1));
+      }
+      const terms = await options.store.lookupAliasTerms?.([...spellings]);
+      return [...new Set(terms)]
+        .filter((value) => normalizeSurfaceText(value) !== wanted)
+        .slice(0, 3);
+    }
     let timer: ReturnType<typeof setTimeout> | undefined;
     const aliases = await Promise.race([
       options.store.listAliases(),
@@ -1956,7 +1970,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 request.filters.documentIds.includes(hit.target.documentId)),
           )
         : [];
-      const canonicalPlans = (await quickCanonicalTerms(request.query)).flatMap((term) => {
+      const canonicalTerms = await quickCanonicalTerms(request.query);
+      const canonicalPlans = canonicalTerms.flatMap((term) => {
         const named = buildLookupQueryPlan(term, NO_ALIASES, undefined, { boundShortTerms: true });
         return named.branches.length > 0 ? [named] : [];
       });
@@ -2039,6 +2054,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         plan.lookupTermGroups,
       );
       const namedIds = new Set(namedGroups.map((item) => item.documentId));
+      const visibleGroups = [
+        ...namedGroups.filter(
+          (item, index) =>
+            namedGroups.findIndex((other) => other.documentId === item.documentId) === index,
+        ),
+        ...groups.filter((item) => !namedIds.has(item.documentId)),
+      ]
+        .slice(0, request.limit)
+        .map((group) =>
+          documents.get(group.documentId)?.metadata?.['contentMode'] === 'module-pointer'
+            ? { ...group, contentKind: 'pointer' as const }
+            : group,
+        );
       return ok({
         requestId: requestId(),
         identities,
@@ -2047,13 +2075,22 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         modeUsed: 'lexical',
         analysis: plan.analysis,
         suggestions: plan.analysis.suggestions,
-        groups: [
-          ...namedGroups.filter(
-            (item, index) =>
-              namedGroups.findIndex((other) => other.documentId === item.documentId) === index,
-          ),
-          ...groups.filter((item) => !namedIds.has(item.documentId)),
-        ].slice(0, request.limit),
+        groups: visibleGroups,
+        ...(options.discoveryOnly
+          ? {
+              matchedDocuments: visibleGroups.flatMap(({ documentId }) => {
+                const document = documents.get(documentId);
+                return document
+                  ? [
+                      {
+                        ...document,
+                        ageGroups: metadataStrings(document.metadata ?? {}, 'ageGroups'),
+                      },
+                    ]
+                  : [];
+              }),
+            }
+          : {}),
         diagnostics: {
           ftsQuery: branchHits.map(({ diagnostics }) => diagnostics.ftsQuery).join(' || '),
           candidateCount: new Set(branchHits.flatMap(({ hits }) => hits.map((hit) => hit.chunk.id)))

@@ -117,6 +117,7 @@ import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
+import { coreIsBaseOnly } from '@/state/search-data-version';
 import {
   appendSearchHistory,
   replaySearch,
@@ -141,6 +142,7 @@ interface SearchHomeProps {
   readonly onRetryCore?: () => void;
   readonly onDownloadCore?: () => void;
   readonly onContentChanged: () => Promise<void>;
+  readonly onOpenInstalledCatalog: () => Promise<void>;
   readonly active: boolean;
   readonly splitNavigation?: boolean;
   readonly onOpenKnowledgeBase: () => void;
@@ -643,11 +645,32 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const builtInIds = new Set(builtIn.map((tool) => tool.id));
     return [...builtIn, ...catalogQuickTools().filter((tool) => !builtInIds.has(tool.id))];
   });
+  const [helpMenuOpen, setHelpMenuOpen] = createSignal(false);
   let listedCore: MedicalCore | undefined;
   createEffect(() => {
     const core = props.baseCore;
     if (listedCore !== core) listedCore = undefined;
     if (!props.active || !core || listedCore === core) return;
+    if (coreIsBaseOnly()) {
+      const needsCatalog =
+        helpMenuOpen() ||
+        (!showSectionsOverview() &&
+          scope() !== 'diagnosis' &&
+          !catalogOnly() &&
+          !catalogQuery().trim());
+      if (!needsCatalog) return;
+      let current = true;
+      void props.onOpenInstalledCatalog().catch((cause: unknown) => {
+        console.warn('Unable to open the installed catalog.', cause);
+        if (!current) return;
+        setCatalogLoading(false);
+        setCatalogError('Не удалось открыть локальные разделы.');
+      });
+      onCleanup(() => {
+        current = false;
+      });
+      return;
+    }
     // Only the first read is «loading»: a core swap (module install, pack attach) rereads the list
     // behind the catalog and the section counts only while Search is visible. A refresh replaces
     // the existing list only if its contents changed.
@@ -687,8 +710,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
   const [tourOpen, setTourOpen] = createSignal(false);
-  // One array for the component's lifetime: a literal in JSX would rebuild the open menu's items.
-  const [helpMenuOpen, setHelpMenuOpen] = createSignal(false);
   /** The «?» panel, first part: where to learn the app and the search. */
   const helpActions: readonly HelpPanelAction[] = [
     {

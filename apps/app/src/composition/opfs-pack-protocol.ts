@@ -28,6 +28,7 @@ export type OpfsPackWorkerMethod =
   | 'getChunksBySection'
   | 'getChunk'
   | 'getChunkWindow'
+  | 'lookupAliasTerms'
   | 'listAliases'
   | 'listEmbeddingProfiles'
   | 'search'
@@ -38,7 +39,6 @@ export type OpfsPackWorkerMethod =
 
 export type OpfsPackWorkerRequest =
   | { readonly id: number; readonly type: 'approve-download' }
-  | { readonly id: number; readonly type: 'prepare' }
   | ({
       readonly id: number;
       readonly type: 'open';
@@ -113,6 +113,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly getChunksBySection: readonly [sectionId: string];
   readonly getChunk: readonly [id: string];
   readonly getChunkWindow: readonly [chunkId: string, radius: number];
+  readonly lookupAliasTerms: readonly [spellings: readonly string[]];
   readonly listAliases: readonly [];
   readonly listEmbeddingProfiles: readonly [];
   readonly search: readonly [request: LexicalSearchRequest];

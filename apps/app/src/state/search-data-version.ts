@@ -59,29 +59,18 @@ export function installedDataVersion(modules: readonly InstalledModuleVersion[])
 let unreadableReads = 0;
 
 /** The installed set as the registry (localStorage) holds it right now. */
-export function readInstalledDataSnapshot(): { version: string; hasActiveModules: boolean } {
+export function readInstalledDataVersion(): string {
   try {
     const registry = new PersistentInstalledModuleRegistry(
       new WebStorageInstalledModuleRegistryPersistence(window.localStorage),
     );
-    const modules = registry.list();
-    return {
-      version: installedDataVersion(modules),
-      hasActiveModules: modules.some(
-        (module) =>
-          module.moduleId !== CORE_MODULE_ID && module.state === 'installed' && module.enabled,
-      ),
-    };
+    return installedDataVersion(registry.list());
   } catch (cause) {
     console.warn('The installed-module registry could not be read for the search cache.', cause);
     // Unique per read: nothing saved under it is ever found again, which is the safe direction.
     unreadableReads += 1;
-    return { version: `unreadable:${Date.now()}.${unreadableReads}`, hasActiveModules: false };
+    return `unreadable:${Date.now()}.${unreadableReads}`;
   }
-}
-
-export function readInstalledDataVersion(): string {
-  return readInstalledDataSnapshot().version;
 }
 
 let coreDataVersion: string | undefined;
@@ -90,7 +79,7 @@ let baseOnlyCore = false;
 /** The installed-set version of the core the search now runs on; set when a core is published. */
 export function publishCoreDataVersion(version: string, baseOnly = false): void {
   baseOnlyCore = baseOnly;
-  coreDataVersion = baseOnly ? `${version}|base-only` : version;
+  coreDataVersion = version;
 }
 
 export function coreIsBaseOnly(): boolean {
@@ -104,7 +93,9 @@ export function coreIsBaseOnly(): boolean {
  * its search indexes (PERF6: ~1 s of main thread per open on the Mac, several on a phone).
  */
 export function coreServesInstalledSet(): boolean {
-  return coreDataVersion !== undefined && coreDataVersion === readInstalledDataVersion();
+  return (
+    !baseOnlyCore && coreDataVersion !== undefined && coreDataVersion === readInstalledDataVersion()
+  );
 }
 
 let semanticState: Promise<boolean> | undefined;
@@ -126,7 +117,7 @@ function semanticModelInstalled(): Promise<boolean> {
   return semanticState;
 }
 
-/** The data version a search started now would run against. */
+/** The installed version a saved search can match, even before all its packs have opened. */
 export async function searchDataVersion(): Promise<string> {
   const installed = coreDataVersion ?? readInstalledDataVersion();
   const semantic = (await semanticModelInstalled()) ? 'on' : 'off';

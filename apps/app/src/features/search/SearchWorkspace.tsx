@@ -98,6 +98,7 @@ import {
   splitResultSections,
 } from '@/features/search/condition-clusters';
 import { DrugClassCard } from '@/features/search/DrugClassCard';
+import { readDiscoveryClinicalTitles } from '@/features/search/discovery-clinical-titles';
 import {
   documentMatchesSearchScope,
   ScopedMedicalCore,
@@ -401,7 +402,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Mac, a few hundred on a phone), so the results never wait for them.
   createEffect(() => {
     const core = props.core;
-    if (!core || props.searchAllowed === false || props.catalogOnly) return;
+    if (!core || coreIsBaseOnly() || props.searchAllowed === false || props.catalogOnly) return;
     if (contextDocuments().length > 0) return;
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((available) => {
       if (!available.ok || contextDocuments().length > 0) return;
@@ -469,7 +470,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   // Names found at once are the answer on screen: what is still being searched below them (the
   // text of every source, the meaning model) shows its own placeholder there and leaves this alone.
   const submitBusy = (): boolean =>
-    (loading() && instantTitles().length === 0) ||
+    (loading() && retainedTitles().length === 0) ||
     refreshing() ||
     (props.searchAllowed === false && props.searchPending === true);
   /** The second part of a search by meaning is running under the results on screen. */
@@ -865,6 +866,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return (
       <SearchResultGroupCard
         group={group()}
+        qualifier={audienceLabel(document.metadata)}
         selectedChunkId={context()?.focusChunkId}
         action={props.groupAction?.(group())}
         onOpenDocument={openDocumentInArchive}
@@ -1369,6 +1371,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     const specialty = options.specialty ?? props.specialty;
     // The skeleton covers the (short) read of a saved copy for a query not yet on screen.
     if (response()?.analysis.originalQuery !== trimmed) setLoading(true);
+    const startedWithDiscovery = coreIsBaseOnly();
     const dataVersion = await searchDataVersion();
     performance.mark('minimed:search:version');
     if (generation !== searchGeneration) return;
@@ -1385,12 +1388,33 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         appendSearchHistory(rawQuery, props.scope, shownResponse, specialty, {
           auto: !recordHistory,
         });
-      if (generation === searchGeneration && contextDocuments().length === 0) {
+      if (!coreIsBaseOnly() && generation === searchGeneration && contextDocuments().length === 0) {
         await loadContextDocuments(core, generation, trimmed);
       }
       return;
     }
     if (generation !== searchGeneration) return;
+    let recordedEarly = false;
+    const rememberEarlySearch = (count: number): void => {
+      if (!recordHistory || recordedEarly) return;
+      recordedEarly = true;
+      appendSearchHistory(rawQuery, props.scope, count, specialty);
+    };
+    const scope = props.scope;
+    if (startedWithDiscovery && (scope === 'all' || scope === 'guidelines') && !specialty) {
+      const isCurrent = () =>
+        generation === searchGeneration && searchableQuery(query()) === trimmed;
+      void readDiscoveryClinicalTitles(trimmed, isCurrent)
+        .then((documents) => {
+          if (isCurrent() && documents.length > 0 && retainedTitles().length === 0) {
+            setFirstTitles({ query: trimmed, scope, specialty, documents });
+            rememberEarlySearch(documents.length);
+          }
+        })
+        .catch((cause: unknown) => {
+          console.warn('Clinical titles could not be read ahead of full search.', cause);
+        });
+    }
     const shown = response();
     const refreshOfShown = shown?.analysis.originalQuery === trimmed;
     // Search normalizes its own input; writing the trimmed text back into the field deleted the
@@ -1429,6 +1453,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         setDraftAnalysis(result.value.analysis);
         setLoading(false);
         setRefinePending(true);
+        rememberEarlySearch(quickShown.groups.length);
         perfMark('search.quick', { groups: result.value.groups.length });
       }
       result = await core.search({ ...request, mode: 'lexical' });
@@ -1507,7 +1532,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setResponse(result.value);
     }
     setDraftAnalysis(result.value.analysis);
-    if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, result.value);
+    const resultDataVersion = startedWithDiscovery ? await searchDataVersion() : dataVersion;
+    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
+    if (!everywhere)
+      void saveSearch(cacheIdentity(trimmed, specialty), resultDataVersion, result.value);
     if (recordHistory || options.autoRecord) {
       appendSearchHistory(rawQuery, props.scope, result.value, specialty, { auto: !recordHistory });
     }
@@ -1524,7 +1552,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         generation,
         trimmed,
         specialty,
-        dataVersion,
+        resultDataVersion,
         everywhere,
       );
     }
@@ -1651,7 +1679,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     value: SearchResponse,
   ): Promise<void> {
     try {
-      if ((await searchDataVersion()) !== dataVersion) return;
+      if (coreIsBaseOnly() || (await searchDataVersion()) !== dataVersion) return;
       await writeCachedSearch(identity, dataVersion, value);
     } catch (cause) {
       console.error('Не удалось сохранить результаты поиска.', cause);
@@ -2242,7 +2270,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={props.scope !== 'personal' && (response() || loading())}>
           <SearchMoreBelow
             pending={
-              (loading() && instantTitles().length > 0) || refinePending() || meaningPending()
+              (loading() && retainedTitles().length > 0) || refinePending() || meaningPending()
             }
             track={() => [response(), retainedTitles()]}
           />
@@ -2258,7 +2286,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </ListGroup>
             </div>
           </Show>
-          <Show when={skeletonMounted()}>
+          <Show when={skeletonMounted() && retainedTitles().length === 0}>
             <SearchResultsSkeleton leaving={!resultsPending()} />
           </Show>
           <Show when={response()}>

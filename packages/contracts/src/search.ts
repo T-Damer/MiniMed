@@ -1,4 +1,5 @@
 import type { CoreIdentityHit } from '@localmed/contracts/core-identities';
+import type { SearchDocumentDescriptor } from '@localmed/contracts/documents';
 import { z } from 'zod';
 import type { TerminologyMatchKind } from './terminology';
 
@@ -447,6 +448,8 @@ export interface SearchResponse {
    * words found as text, without aliases, name variants, exact names or typo correction.
    */
   readonly partial?: true;
+  /** Source descriptors for the displayed hits of a discovery-only quick search. */
+  readonly matchedDocuments?: readonly SearchDocumentDescriptor[];
 }
 
 export type DescriptionRecommendations =

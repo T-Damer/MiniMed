@@ -87,6 +87,8 @@ describe('core serves the installed set', () => {
     publishCoreDataVersion(readInstalledDataVersion());
     // A document missing from that core: building it again from the same set cannot find it.
     expect(coreServesInstalledSet()).toBe(true);
+    publishCoreDataVersion(readInstalledDataVersion(), true);
+    expect(coreServesInstalledSet()).toBe(false);
     // The core now searching was built from another set (an install it has not picked up yet).
     publishCoreDataVersion('core:0.6.47:sha256:core|modules:1.00000000000000');
     expect(coreServesInstalledSet()).toBe(false);

@@ -600,6 +600,7 @@ export function App(): JSX.Element {
             onRetryCore={() => window.location.reload()}
             onDownloadCore={session.downloadCore}
             onContentChanged={session.connectInstalledModules}
+            onOpenInstalledCatalog={session.ensureInstalledModules}
             splitNavigation={splitNavigation()}
             active={navigation.view() === 'search'}
             onOpenKnowledgeBase={() => navigation.navigate('modules')}

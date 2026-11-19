@@ -626,8 +626,11 @@ async function createPackagedCompanionStores(
  * The search core of the page. Every failed result of a storage fault reads as one calm message
  * (`withCalmCoreErrors`), so no screen can show the storage engine's own words.
  */
-export async function createBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () => void) {
-  return withCalmCoreErrors(await openBrowserCore(downloadUi, onAndroidBase));
+export async function createBrowserCore(
+  downloadUi?: CoreDownloadUi,
+  onDiscoveryReady?: () => void,
+) {
+  return withCalmCoreErrors(await openBrowserCore(downloadUi, onDiscoveryReady));
 }
 
 /** Reads one indexed document before the installed-set core is ready. The lease can be shared. */
@@ -666,7 +669,7 @@ export async function withInstalledReaderCore<T>(
 ): Promise<T | undefined> {
   const mount = await loadInstalledModuleMount(module);
   if (!mount) return undefined;
-  const core = createMedicalCore({ store: mount.store, platform: 'android' });
+  const core = createMedicalCore({ store: mount.store });
   try {
     return await read(core, mount.store);
   } finally {
@@ -676,7 +679,7 @@ export async function withInstalledReaderCore<T>(
   }
 }
 
-async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () => void) {
+async function openBrowserCore(downloadUi?: CoreDownloadUi, onDiscoveryReady?: () => void) {
   try {
     const externalCore = await createRegisteredExternalMedicalCore();
     if (externalCore) return externalCore;
@@ -688,11 +691,10 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () =
   const platform =
     nativePlatform === 'android' || nativePlatform === 'ios' ? nativePlatform : 'web';
 
+  const startWithBase = onDiscoveryReady !== undefined;
   let fallbackCoreUrl: string | undefined;
   if (platform === 'android' || platform === 'ios') {
     let nativeStore: CapacitorMedicalStore | undefined;
-    const startWithBase = platform === 'android' && onAndroidBase !== undefined;
-    if (startWithBase && hasOpfsSahPoolApis()) WorkerOpfsMedicalStore.prepareReaderWorkers();
     const mounts = startWithBase
       ? undefined
       : startInstalledModuleMounts(downloadUi?.onModuleProgress);
@@ -718,8 +720,9 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () =
         drugCodes: comparisonDrugCodes,
         // Search must reuse the native bridge and its installed packs, not open a second WASM core.
         searchExecution: 'direct-only',
+        discoveryOnly: startWithBase,
       });
-      if (startWithBase) onAndroidBase();
+      onDiscoveryReady?.();
       return core;
     } catch (error) {
       if (mounts) closeModuleMounts(mounts);
@@ -746,7 +749,9 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () =
     }
   }
 
-  const mounts = startInstalledModuleMounts(downloadUi?.onModuleProgress);
+  const mounts = startWithBase
+    ? undefined
+    : startInstalledModuleMounts(downloadUi?.onModuleProgress);
   try {
     const contentBaseUrl = getPackagedContentBaseUrl();
     const report = await readPackReport(contentBaseUrl);
@@ -757,24 +762,28 @@ async function openBrowserCore(downloadUi?: CoreDownloadUi, onAndroidBase?: () =
       fallbackCoreUrl || isFloatingWindowRuntime() ? undefined : downloadUi,
       downloadUi?.onWaitingForOtherTab,
     );
-    const companions = await createPackagedCompanionStores(contentBaseUrl, {
-      includeMedications: false,
-    });
-    const store = await withInstalledModules(coreStore, companions, mounts);
-    return createMedicalCore({
+    const companions = mounts
+      ? await createPackagedCompanionStores(contentBaseUrl, { includeMedications: false })
+      : undefined;
+    const store =
+      mounts && companions ? await withInstalledModules(coreStore, companions, mounts) : coreStore;
+    const core = createMedicalCore({
       store,
       platform,
       embedder: QUERY_EMBEDDER,
       drugCodes: comparisonDrugCodes,
       // SQL already runs in the OPFS owner worker. A second search core would reopen its
       // exclusive pool and wait on the live owner's lock.
+      discoveryOnly: startWithBase,
       searchExecution:
-        coreStore instanceof WorkerOpfsMedicalStore || companions.medicationsStore
+        startWithBase || coreStore instanceof WorkerOpfsMedicalStore || companions?.medicationsStore
           ? 'direct-only'
           : undefined,
     });
+    onDiscoveryReady?.();
+    return core;
   } catch (error) {
-    closeModuleMounts(mounts);
+    if (mounts) closeModuleMounts(mounts);
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Не удалось открыть основную базу MiniMed: ${message}`, { cause: error });
   }

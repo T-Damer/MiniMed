@@ -1313,6 +1313,19 @@ export class SqliteMedicalStore implements MedicalStore {
     ).map(toChunk);
   }
 
+  /** The cold lookup reads a few exact keys from the alias index. */
+  public async lookupAliasTerms(spellings: readonly string[]): Promise<readonly string[]> {
+    if (spellings.length === 0) return [];
+    this.assertInitialized();
+    const rows = queryRows(
+      this.database,
+      `SELECT canonical_term FROM aliases WHERE alias IN (${spellings.map(() => '?').join(',')})
+       ORDER BY alias, rowid LIMIT 32`,
+      spellings,
+    );
+    return rows.map((row) => readString(row, 'canonical_term'));
+  }
+
   public async listAliases(): Promise<readonly AliasRecord[]> {
     this.assertInitialized();
     // An alias-index walk randomly rereads rows beyond the OPFS cache; scan once, then sort.

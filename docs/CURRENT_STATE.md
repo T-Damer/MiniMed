@@ -60,6 +60,37 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Unreleased — SQLite discovery first
+
+A cold launch opens the existing discovery SQLite database. The default search screen skips the
+installed-set composition, navigation listing, bulk alias read, and reader-worker prewarm. The
+first lookup can answer from SQLite hits, exact identities, and point reads of the existing alias
+index. It classifies the displayed hits with their own source metadata. If the query names a
+clinical recommendation, search reads up to four matching installed pack headers through the
+verified reader path. The source edition and checksum still have to match. Early titles can
+open directly, and detailed lexical search attaches the installed set on demand. A separate status below the
+results tracks refinement once titles are visible. Saved full searches still use the matching
+installed-data version, and attaching those packs does not trigger a content-change refresh.
+
+Cold startup was repeated three times per build in Chromium at 390 × 844 with 4× CPU slowdown.
+Both builds used the same fixture of 774 local clinical packs in a persistent browser profile.
+The recommendation used for the title check was installed through its verified catalog entry. Each run launched a
+new Chromium process, cleared the saved-search cache, and blocked requests outside the locally
+served app. Times are medians; the query was submitted after a one-second idle interval.
+
+| Measurement | Released 0.6.117 | Candidate |
+| --- | ---: | ---: |
+| Search ready after navigation | 2.37 s | 1.21 s |
+| Installed-set mounts before the query | 1 | 0 |
+| First installed recommendation after input | 1.92 s | 1.30 s |
+| Named recommendation «Бронхиальная астма» | Outside the visible results | 1.30 s |
+| Full lexical search after input | 5.95 s | 9.48 s |
+
+The early title opened and scrolled before full search finished. A new launch could also open
+that exact document from a direct link and scroll it without attaching the installed set.
+The on-disk discovery pack remains 429 MiB. Android cold startup and presentation timing are
+unmeasured, and the full-search regression keeps this candidate unreleased.
+
 ## Release 0.6.117 — 2026-11-19
 
 ### Module cache and search catalog

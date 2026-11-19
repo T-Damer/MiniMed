@@ -45,8 +45,7 @@ function clinicalRecommendationResult(page: Page): Locator {
       }),
     })
     .first()
-    .getByTestId('search-result')
-    .first();
+    .locator('.result-group-header');
 }
 
 function navigationButton(page: Page, name: string): Locator {
@@ -630,7 +629,7 @@ test('finds a recommendation section and opens the document at it', async ({ pag
   // One tap opens the document itself, no context card in the search (owner 2026-10-20).
   await clinicalRecommendationResult(page).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
-  await expect(page.getByRole('heading', { name: /Пневмония/u, level: 1 })).toBeVisible({
+  await expect(page.getByRole('heading', { name: /пневмония/iu, level: 1 })).toBeVisible({
     timeout: 60_000,
   });
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
@@ -647,7 +646,7 @@ test('a medication result opens its page without the storage note', async ({ pag
     .filter({ has: page.locator('.result-group-header__kind-label', { hasText: 'Препарат' }) })
     .first();
   await expect(group).toBeVisible({ timeout: 60_000 });
-  await group.getByTestId('search-result').first().click();
+  await group.locator('.result-group-header').click();
   // The drug opens on its own page; its storage note is never shown.
   await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
   const page_ = page.locator('.document-page');
@@ -764,10 +763,11 @@ test('toggles the document outline on desktop and highlights exact reader matche
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await page.getByTestId('search-input').fill(query);
-  await page.getByTestId('search-submit').click();
-  await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
-  await clinicalRecommendationResult(page).click();
+  // Open the recommendation whose bundled text has the sections this test exercises.
+  const pointer = 'core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d';
+  await page.goto(
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(pointer).toString('base64url')}`,
+  );
 
   const overlay = page.locator('.document-overlay');
   const outline = overlay.locator('.document-overlay-outline');

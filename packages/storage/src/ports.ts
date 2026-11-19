@@ -94,6 +94,7 @@ export interface MedicalStore {
   getChunk(id: string): Promise<ChunkRecord | null>;
   getChunkWindow(chunkId: string, radius: number): Promise<readonly ChunkRecord[]>;
   listAliases(): Promise<readonly AliasRecord[]>;
+  lookupAliasTerms?(spellings: readonly string[]): Promise<readonly string[]>;
   listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]>;
   search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]>;
   searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]>;

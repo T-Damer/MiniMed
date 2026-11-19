@@ -17,8 +17,8 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp, waitForSearchEditable } from './mount-
  *
  * `MEM1_MODULES=774` runs the whole set (about a minute). The default is a quick slice.
  * `MEM1_PROFILE=<dir>` keeps the browser profile; a second run with `MEM1_UPGRADE=1` against a
- * newer build opens the library the earlier build left there instead of seeding one, so its first
- * start measures the upgrade (the shelf moving files into their shards). The browser is a
+ * newer build opens the library the earlier build left there instead of seeding one. Its first
+ * full query measures the upgrade (the shelf moving files into their shards). The browser is a
  * persistent profile on purpose: Playwright's default contexts are incognito, where OPFS is served
  * over IPC and a read costs ten times what it does for a person, so latency measured there says
  * nothing about the app.
@@ -151,7 +151,6 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     const openedAt = Date.now();
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     await waitForSearchEditable(page);
-    // With an earlier build's library (MEM1_UPGRADE) this first open is the upgrade itself.
     const initialOpenMs = Date.now() - openedAt;
 
     // The library as an app without the shelf left it: every index as bytes in IndexedDB.
@@ -191,12 +190,28 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
         database.close();
       }, list);
 
-    // The first start writes every module onto the shelf and drops its IndexedDB copy (upgrade:
-    // moves the files an earlier build left on the shelf into their shards).
+    // Cold startup leaves the installed packs alone. The first full query migrates the files
+    // onto the shelf and drops the older IndexedDB copies.
     const firstStartAt = Date.now();
     await page.reload();
     await waitForSearchEditable(page);
     const firstStartMs = Date.now() - firstStartAt;
+    expect(
+      await page.evaluate(
+        () => performance.getEntriesByName('minimed:install:core-mount-modules').length,
+      ),
+    ).toBe(0);
+    const migrationStartedAt = Date.now();
+    const migrationQuery = page.getByTestId('search-input');
+    await migrationQuery.fill(ALL_QUERIES[0] ?? '');
+    await migrationQuery.press('Enter');
+    await page.waitForFunction(
+      () => performance.getEntriesByName('minimed:search:core').length > 0,
+      undefined,
+      { timeout: 120_000 },
+    );
+    const firstAttachMs = Date.now() - migrationStartedAt;
+
     const rows = await page.evaluate(async () => {
       const database = await new Promise<IDBDatabase>((resolveDb, reject) => {
         const request = indexedDB.open('minimed-content-modules-v1', 2);
@@ -225,7 +240,7 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     await page.evaluate(() => {
       indexedDB.deleteDatabase('minimed-search-results');
     });
-    // A later start only opens the files: no payload moves, nothing is written.
+    // The next full search opens those files without migrating them again.
     const startedAt = Date.now();
     await page.reload();
     await waitForSearchEditable(page);
@@ -273,14 +288,14 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     const failures: string[] = [];
     for (const query of QUERIES) {
       await input.fill(query);
+      const previousAnswers = await page.evaluate(
+        () => performance.getEntriesByName('minimed:search:core').length,
+      );
       const queryStartedAt = Date.now();
       await input.press('Enter');
-      await page.waitForTimeout(200);
       await page.waitForFunction(
-        () =>
-          document.querySelector('[data-testid="search-submit"]')?.getAttribute('aria-busy') !==
-          'true',
-        undefined,
+        (count) => performance.getEntriesByName('minimed:search:core').length > count,
+        previousAnswers,
         { timeout: 120_000 },
       );
       timings.push(Date.now() - queryStartedAt);
@@ -332,6 +347,7 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
         modules: list.length,
         initialOpenMs,
         firstStartMs,
+        firstAttachMs,
         startupMs,
         phases,
         firstQueryMs: timings[0],

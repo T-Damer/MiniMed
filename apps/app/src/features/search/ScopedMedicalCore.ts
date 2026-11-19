@@ -47,6 +47,7 @@ import {
   type SourceNameIntent,
   sourceCatalogOf,
 } from '@/features/search/source-names';
+import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
 
 export type { SearchScope };
 export type SearchAudience = 'children' | 'adults';
@@ -819,6 +820,23 @@ export class ScopedMedicalCore implements MedicalCore {
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
+    if (
+      request.quick &&
+      request.analysisMode === 'lookup' &&
+      this.scope === 'all' &&
+      !this.includedDocumentIds &&
+      this.base instanceof WorkerSearchMedicalCore &&
+      this.base.isDiscoveryOnly
+    ) {
+      const result = await this.base.search(request);
+      if (!result.ok) return result;
+      return {
+        ok: true,
+        value: refineResponseHighlights(
+          this.presentResponse(request, result.value, result.value.matchedDocuments ?? []),
+        ),
+      };
+    }
     const documents = await this.listSearchDocuments();
     if (!documents.ok) return { ok: false, error: documents.error };
 
@@ -960,10 +978,19 @@ export class ScopedMedicalCore implements MedicalCore {
         },
       });
     }
-    if (!result.ok) return result;
+    return result.ok
+      ? { ok: true, value: this.presentResponse(request, result.value, documents) }
+      : result;
+  }
+
+  private presentResponse(
+    request: SearchRequest,
+    response: SearchResponse,
+    documents: readonly SearchDocumentDescriptor[],
+  ): SearchResponse {
     // Scopes without a source-type list (diagnosis) search the whole core: ICD-11 is dropped here.
     const withoutIcd11 =
-      this.scope === 'all' || this.scope === 'icd11' ? result.value : dropIcd11Groups(result.value);
+      this.scope === 'all' || this.scope === 'icd11' ? response : dropIcd11Groups(response);
 
     const explicitMedicationResponse =
       this.scope === 'medications' ? keepExplicitMedicationMatches(withoutIcd11) : withoutIcd11;
@@ -996,20 +1023,17 @@ export class ScopedMedicalCore implements MedicalCore {
       this.scope,
     );
     return {
-      ok: true,
-      value: {
-        ...scopedResponse,
-        groups: strictIdentityRanked.map((group) => {
-          const document = summaries.get(group.documentId);
-          const contentKind =
-            document?.metadata?.['contentMode'] === 'module-pointer'
-              ? 'pointer'
-              : document?.sourceType.endsWith('_summary')
-                ? 'summary'
-                : 'full-text';
-          return { ...group, contentKind };
-        }),
-      },
+      ...scopedResponse,
+      groups: strictIdentityRanked.map((group) => {
+        const document = summaries.get(group.documentId);
+        const contentKind =
+          document?.metadata?.['contentMode'] === 'module-pointer'
+            ? 'pointer'
+            : document?.sourceType.endsWith('_summary')
+              ? 'summary'
+              : 'full-text';
+        return { ...group, contentKind };
+      }),
     };
   }
 

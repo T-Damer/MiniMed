@@ -639,6 +639,17 @@ export class CapacitorMedicalStore implements MedicalStore {
     ).map(toChunk);
   }
 
+  /** The cold lookup reads a few exact keys from the alias index. */
+  public async lookupAliasTerms(spellings: readonly string[]): Promise<readonly string[]> {
+    if (spellings.length === 0) return [];
+    const rows = await this.query(
+      `SELECT canonical_term FROM aliases WHERE alias IN (${spellings.map(() => '?').join(',')})
+       ORDER BY alias, rowid LIMIT 32`,
+      spellings,
+    );
+    return rows.map((row) => readString(row, 'canonical_term'));
+  }
+
   public async listAliases(): Promise<readonly AliasRecord[]> {
     const aliases: AliasRecord[] = [];
     let after: { alias: string; rowId: number } | undefined;

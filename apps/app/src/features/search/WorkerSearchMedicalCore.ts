@@ -21,8 +21,9 @@ import type {
   SearchResponse,
   SearchResult,
 } from '@localmed/contracts';
-import { ok } from '@localmed/contracts';
+import { err, localMedError, ok } from '@localmed/contracts';
 
+import { CORE_READ_FAILED_MESSAGE } from '@/composition/calm-core-errors';
 import { getPackagedContentBaseUrl } from '@/composition/create-browser-core';
 import {
   rememberDocumentSummaries,
@@ -65,7 +66,28 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   private requestId = 0;
   private workerEligibility: Promise<boolean> | undefined;
 
-  public constructor(private readonly base: MedicalCore) {}
+  public constructor(
+    private readonly base: MedicalCore,
+    private readonly attachInstalled?: () => Promise<void>,
+  ) {}
+
+  public get isDiscoveryOnly(): boolean {
+    return !this.closed && this.attachInstalled !== undefined;
+  }
+
+  private async withInstalled<T>(
+    run: () => Promise<Result<T, LocalMedError>>,
+  ): Promise<Result<T, LocalMedError>> {
+    if (this.isDiscoveryOnly) {
+      try {
+        await this.attachInstalled?.();
+      } catch (cause) {
+        console.warn('Unable to open the installed search packs.', cause);
+        return err(localMedError('DATABASE_UNAVAILABLE', CORE_READ_FAILED_MESSAGE));
+      }
+    }
+    return run();
+  }
 
   private startWorker(): void {
     this.worker = new Worker(new URL('./search.worker.ts', import.meta.url), { type: 'module' });
@@ -89,7 +111,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   private async canUseWorker(): Promise<boolean> {
-    if (this.closed || typeof Worker === 'undefined') return false;
+    if (this.closed || this.isDiscoveryOnly || typeof Worker === 'undefined') return false;
     this.workerEligibility ??= this.base
       .getCapabilities()
       .then((result) => {
@@ -124,10 +146,11 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   public reference(
     request: DefinitionReferenceRequest,
   ): Promise<Result<DefinitionReferenceReply, LocalMedError>> {
-    if (this.closed) return Promise.reject(new Error('Search core is closed.'));
-    return this.base.reference
-      ? this.base.reference(request)
-      : Promise.resolve(ok({ op: 'unavailable' }));
+    return this.withInstalled(() =>
+      this.base.reference
+        ? this.base.reference(request)
+        : Promise.resolve(ok({ op: 'unavailable' })),
+    );
   }
 
   public initialize(): Promise<Result<CoreStatus, LocalMedError>> {
@@ -155,27 +178,33 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   public listSearchDocuments(): Promise<
     Result<readonly SearchDocumentDescriptor[], LocalMedError>
   > {
-    return this.base.listSearchDocuments
-      ? this.base.listSearchDocuments()
-      : this.base.listDocuments();
+    return this.withInstalled(() =>
+      this.base.listSearchDocuments ? this.base.listSearchDocuments() : this.base.listDocuments(),
+    );
   }
 
   public async analyzeQuery(
     request: AnalyzeQueryRequest,
   ): Promise<Result<QueryAnalysis, LocalMedError>> {
-    if (!(await this.canUseWorker())) return this.base.analyzeQuery(request);
-    try {
-      return (await this.request({ method: 'analyzeQuery', request })) as Result<
-        QueryAnalysis,
-        LocalMedError
-      >;
-    } catch {
-      return this.base.analyzeQuery(request);
-    }
+    return this.withInstalled(async () => {
+      if (!(await this.canUseWorker())) return this.base.analyzeQuery(request);
+      try {
+        return (await this.request({ method: 'analyzeQuery', request })) as Result<
+          QueryAnalysis,
+          LocalMedError
+        >;
+      } catch {
+        return this.base.analyzeQuery(request);
+      }
+    });
   }
 
   public async search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
-    return rememberSearchedDocuments(await this.searchOnce(request));
+    const result =
+      request.quick && request.analysisMode === 'lookup'
+        ? await this.searchOnce(request)
+        : await this.withInstalled(() => this.searchOnce(request));
+    return rememberSearchedDocuments(result);
   }
 
   private async searchOnce(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>> {
@@ -216,7 +245,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public ask(request: AskRequest): Promise<Result<AskResponse, LocalMedError>> {
-    return this.base.ask(request);
+    return this.withInstalled(() => this.base.ask(request));
   }
 
   public installContentPack(
