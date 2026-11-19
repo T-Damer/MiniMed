@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.118] - 2026-11-19
+
+- Open only the SQLite discovery index at startup. Attach the installed library when the user needs a full offline search.
+- Show verified installed clinical titles early and allow the reader to open their packs directly.
+- Look up exact aliases through the SQLite index and keep full results in the versioned search cache.
+
 ## [0.6.117] - 2026-11-19
 
 - Read installed-module cache records by file and defer Search catalog refreshes while the tab is hidden.

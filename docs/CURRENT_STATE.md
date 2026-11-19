@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 19 November 2026
-> Released version: `0.6.117` (public prerelease toward `1.0`)
+> Released version: `0.6.118` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -60,7 +60,7 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
-## Unreleased — SQLite discovery first
+## Release 0.6.118 — 2026-11-19
 
 A cold launch opens the existing discovery SQLite database. The default search screen skips the
 installed-set composition, navigation listing, bulk alias read, and reader-worker prewarm. The
@@ -89,7 +89,7 @@ served app. Times are medians; the query was submitted after a one-second idle i
 The early title opened and scrolled before full search finished. A new launch could also open
 that exact document from a direct link and scroll it without attaching the installed set.
 The on-disk discovery pack remains 429 MiB. Android cold startup and presentation timing are
-unmeasured, and the full-search regression keeps this candidate unreleased.
+unmeasured. The owner requested publication with the measured full-search tradeoff.
 
 ## Release 0.6.117 — 2026-11-19
 

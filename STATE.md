@@ -184,7 +184,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
-- 2026-11-19 performance (unreleased): discovery opens alone, verified clinical titles and direct readers open their own packs, and full offline search attaches on demand. Benchmarked 774 packs and verified legacy migration; the slower full-search pass and Android timings remain release checks.
+- 2026-11-19 performance (0.6.118): discovery opens alone, verified clinical titles and direct readers open their own packs, and full offline search attaches on demand. The Chromium benchmark covered 774 packs and legacy migration. The owner requested release with the slower full-search pass and Android timing still unmeasured.
 
 - 2026-11-19 performance (0.6.117): indexed module facts, visible-only catalog updates, sliced section counting and validation, and bounded Android alias replies. Browser checks covered the 774-pack reload. Phone frame timing is pending.
 - 2026-11-18 print-layout (0.6.116): source-style A4 printing for clinical recommendations, with the Герб, serif body text, plain tables, and numbered pages. Chromium verified the published 216_2 pack at desktop width and at phone width offline.
