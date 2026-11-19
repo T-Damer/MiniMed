@@ -1,13 +1,13 @@
-import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
-import { describe, expect, it, vi } from 'vitest';
-
 import {
   CapacitorMedicalStore,
   type LocalMedDatabasePlugin,
   type NativeQueryOptions,
+  type NativeQueryResult,
   type NativeSqlRow,
   type NativeVectorSearchOptions,
-} from '../src/index';
+} from '@localmed/storage-capacitor';
+import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
+import { describe, expect, it, vi } from 'vitest';
 
 function json(value: unknown): string {
   const result = JSON.stringify(value);
@@ -91,7 +91,7 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
     } as const;
   }
 
-  async query(options: NativeQueryOptions) {
+  async query(options: NativeQueryOptions): Promise<NativeQueryResult> {
     if (this.closed) throw new Error('native database is closed');
     this.calls.push(options);
 
@@ -227,6 +227,37 @@ describe('CapacitorMedicalStore', () => {
     expect(query).toHaveBeenCalledWith({
       sql: 'SELECT id, current_version_id FROM documents ORDER BY title COLLATE NOCASE, id',
     });
+  });
+
+  it('reads native aliases in pages without dropping identical names at a boundary', async () => {
+    const plugin = new FakeNativePlugin();
+    const rows = Array.from({ length: 2050 }, (_, index) => ({
+      row_key: index + 1,
+      id: `alias-${index}`,
+      alias: 'сокращение',
+      canonical_term: `термин ${index}`,
+      category: null,
+      weight: 1,
+    }));
+    const cursors: number[] = [];
+    vi.spyOn(plugin, 'query').mockImplementation(async ({ sql, argsJson }) => {
+      expect(sql).toContain('ORDER BY alias, rowid LIMIT ?');
+      const args = JSON.parse(argsJson ?? '[]') as [number] | [string, string, number, number];
+      const cursor = args.length === 1 ? 0 : args[2];
+      const limit = args.length === 1 ? args[0] : args[3];
+      expect(limit).toBe(1024);
+      if (args.length !== 1) {
+        expect(sql).toContain('alias >= ? AND (alias > ? OR rowid > ?)');
+        expect(args.slice(0, 2)).toEqual(['сокращение', 'сокращение']);
+      }
+      cursors.push(cursor);
+      return { rows: rows.slice(cursor, cursor + limit) };
+    });
+    const store = createStore(plugin);
+    await store.initialize();
+    expect((await store.listAliases()).map((entry) => entry.id)).toEqual(rows.map((row) => row.id));
+    expect(cursors).toEqual([0, 1024, 2048]);
+    await store.close();
   });
 
   it('pages the entire immutable catalog and shares it until the store closes', async () => {

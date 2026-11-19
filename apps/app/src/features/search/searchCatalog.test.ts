@@ -6,9 +6,10 @@ import {
   matchingCatalogTools,
   queryAsksForTool,
   searchCatalogSections,
+  searchCatalogSectionsSliced,
   searchCatalogTools,
   toolsFollowResults,
-} from './searchCatalog';
+} from '@/features/search/searchCatalog';
 
 describe('official forms in a search (S2)', () => {
   it('finds a form by its number and opens the filling screen', () => {
@@ -228,7 +229,7 @@ describe('unified tool catalog', () => {
     );
     expect(guidelines?.count).toBe(2);
   });
-  it('takes a section counter from the catalog manifest, not from the mounted documents', () => {
+  it('takes a section counter from the catalog manifest, not from the mounted documents', async () => {
     const base = {
       shortTitle: null,
       status: 'active' as const,
@@ -248,6 +249,12 @@ describe('unified tool catalog', () => {
     ];
     const counts = { medications: 3324, guidelines: 763 };
     const before = searchCatalogSections(mounted, [], counts);
+    expect(await searchCatalogSectionsSliced(mounted, [], counts)).toEqual(before);
+    const cancelled = new AbortController();
+    cancelled.abort();
+    expect(
+      await searchCatalogSectionsSliced(mounted, [], counts, cancelled.signal),
+    ).toBeUndefined();
     const after = searchCatalogSections(
       [...mounted, ...mounted.map((d) => ({ ...d, id: `${d.id}.b` }))],
       [],

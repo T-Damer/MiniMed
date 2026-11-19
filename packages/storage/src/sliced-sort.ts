@@ -19,16 +19,22 @@ function nextTask(): Promise<void> {
   });
 }
 
+/** Gives input and paint a chance to run between batches of store records. */
+export function createStorageTimeSlicer(budgetMs: number): () => Promise<void> | undefined {
+  let startedAt = performance.now();
+  return () => {
+    if (performance.now() - startedAt < budgetMs) return undefined;
+    return nextTask().then(() => {
+      startedAt = performance.now();
+    });
+  };
+}
+
 export async function stableSortSliced<T>(
   items: readonly T[],
   compare: (left: T, right: T) => number,
 ): Promise<T[]> {
-  let startedAt = performance.now();
-  const pause = async (): Promise<void> => {
-    if (performance.now() - startedAt < SLICE_MS) return;
-    await nextTask();
-    startedAt = performance.now();
-  };
+  const pause = createStorageTimeSlicer(SLICE_MS);
   let runs: T[][] = [];
   for (let start = 0; start < items.length; start += RUN_LENGTH) {
     runs.push(items.slice(start, start + RUN_LENGTH).sort(compare));

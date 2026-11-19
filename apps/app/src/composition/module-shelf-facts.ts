@@ -12,14 +12,15 @@ export interface ShelfFacts {
 }
 
 export interface ShelfFactsStore {
-  /** Every kept record of this app build, read once. */
-  load(): Promise<ReadonlyMap<string, ShelfFacts>>;
+  /** Only the requested file's facts for this app build. */
+  load(file: string): Promise<ShelfFacts | undefined>;
   /** Keeps `facts` of `file`; written a little later, many files in one transaction. */
   save(file: string, facts: ShelfFacts): void;
 }
 
 const DATABASE = 'minimed-module-facts-v1';
 const STORE = 'facts';
+const BUILD_FILE_INDEX = 'build-file';
 const SAVE_DELAY_MS = 800;
 
 interface FactsRow extends ShelfFacts {
@@ -29,11 +30,27 @@ interface FactsRow extends ShelfFacts {
 
 function openFactsDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE, 1);
+    const request = indexedDB.open(DATABASE, 2);
+    let blocked = false;
     request.onupgradeneeded = () => {
-      request.result.createObjectStore(STORE, { keyPath: 'file' });
+      const store = request.result.objectStoreNames.contains(STORE)
+        ? request.transaction?.objectStore(STORE)
+        : undefined;
+      // Version 1 already records both key fields. Build the index without reading the listings
+      // into the page so existing facts for this build can still be used.
+      (store ?? request.result.createObjectStore(STORE, { keyPath: 'file' })).createIndex(
+        BUILD_FILE_INDEX,
+        ['app', 'file'],
+      );
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onblocked = () => {
+      blocked = true;
+      reject(new Error('Another tab is using the previous module facts cache.'));
+    };
+    request.onsuccess = () => {
+      if (blocked) request.result.close();
+      else resolve(request.result);
+    };
     request.onerror = () => reject(request.error ?? new Error('Module facts are unavailable.'));
   });
 }
@@ -48,37 +65,50 @@ function done(transaction: IDBTransaction): Promise<void> {
 
 /** Facts in IndexedDB, valid for `appVersion` only. A storage failure means «nothing kept». */
 export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
-  let loaded: Promise<ReadonlyMap<string, ShelfFacts>> | undefined;
+  let connection: Promise<IDBDatabase> | undefined;
+  let readFailureReported = false;
+  let pruneScheduled = false;
   const unsaved = new Map<string, ShelfFacts>();
   let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const read = async (): Promise<ReadonlyMap<string, ShelfFacts>> => {
-    const database = await openFactsDatabase();
-    try {
-      const transaction = database.transaction(STORE, 'readwrite');
-      const store = transaction.objectStore(STORE);
-      const facts = new Map<string, ShelfFacts>();
-      // IndexedDB deserializes results on this thread. A cursor returns one module per task.
-      const request = store.openCursor();
-      request.onsuccess = () => {
-        const cursor = request.result;
-        if (!cursor) return;
-        const row = cursor.value as FactsRow;
-        // Kept by another build: that build may have read the file differently.
-        if (row.app !== appVersion) cursor.delete();
-        else {
-          facts.set(row.file, {
-            ...(row.health ? { health: row.health } : {}),
-            ...(row.listings ? { listings: row.listings } : {}),
-          });
-        }
-        cursor.continue();
+  const connect = (): Promise<IDBDatabase> => {
+    connection ??= openFactsDatabase().then((database) => {
+      database.onversionchange = () => {
+        database.close();
+        connection = undefined;
       };
-      await done(transaction);
-      return facts;
-    } finally {
-      database.close();
-    }
+      return database;
+    });
+    return connection;
+  };
+
+  const read = async (file: string): Promise<ShelfFacts | undefined> => {
+    const database = await connect();
+    return new Promise((resolve, reject) => {
+      const request = database
+        .transaction(STORE, 'readonly')
+        .objectStore(STORE)
+        .index(BUILD_FILE_INDEX)
+        .get([appVersion, file]);
+      request.onsuccess = () => resolve(request.result as FactsRow | undefined);
+      request.onerror = () => reject(request.error ?? new Error('Module facts could not be read.'));
+    });
+  };
+
+  const pruneOldBuilds = async (): Promise<void> => {
+    const database = await connect();
+    const transaction = database.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    // A key cursor never deserializes old document listings.
+    const request = store.index(BUILD_FILE_INDEX).openKeyCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      const [version] = cursor.key as [string, string];
+      if (version !== appVersion) store.delete(cursor.primaryKey);
+      cursor.continue();
+    };
+    await done(transaction);
   };
 
   const flush = async (): Promise<void> => {
@@ -86,33 +116,41 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
     const rows = [...unsaved];
     unsaved.clear();
     if (rows.length === 0) return;
-    const database = await openFactsDatabase();
-    try {
-      const transaction = database.transaction(STORE, 'readwrite');
-      const store = transaction.objectStore(STORE);
-      const pending = rows.values();
-      const writeNext = (): void => {
-        const next = pending.next();
-        if (next.done) return;
-        const [file, facts] = next.value;
-        const row: FactsRow = { file, app: appVersion, ...facts };
-        // A put clones its value synchronously. Wait for its callback before cloning another.
-        store.put(row).onsuccess = writeNext;
-      };
-      writeNext();
-      await done(transaction);
-    } finally {
-      database.close();
+    const database = await connect();
+    const transaction = database.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    const pending = rows.values();
+    const writeNext = (): void => {
+      const next = pending.next();
+      if (next.done) return;
+      const [file, facts] = next.value;
+      const row: FactsRow = { ...facts, file, app: appVersion };
+      // A put clones its value synchronously. Wait for its callback before cloning another.
+      store.put(row).onsuccess = writeNext;
+    };
+    writeNext();
+    await done(transaction);
+    if (!pruneScheduled && typeof requestIdleCallback === 'function') {
+      pruneScheduled = true;
+      requestIdleCallback(() => {
+        void pruneOldBuilds().catch((cause: unknown) => {
+          console.warn('Old module facts were not removed.', cause);
+        });
+      });
     }
   };
 
   return {
-    load() {
-      loaded ??= read().catch((cause: unknown) => {
-        console.warn('Module facts were not read; the module files are asked instead.', cause);
-        return new Map<string, ShelfFacts>();
+    async load(file) {
+      const waiting = unsaved.get(file);
+      if (waiting) return waiting;
+      return read(file).catch((cause: unknown) => {
+        if (!readFailureReported) {
+          readFailureReported = true;
+          console.warn('Module facts were not read; the module files are asked instead.', cause);
+        }
+        return undefined;
       });
-      return loaded;
     },
     save(file, facts) {
       unsaved.set(file, facts);

@@ -1,5 +1,6 @@
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import {
+  batch,
   createDeferred,
   createEffect,
   createMemo,
@@ -47,6 +48,7 @@ import { MEDICATION_ATC_HASH } from '@/features/medications/medication-routing';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import type { InstalledMountProgress } from '@/features/modules/browser-module-runtime';
 import { SECTION_DOCUMENT_COUNTS } from '@/features/modules/module-catalog-shell';
+import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
 import { LazyDefinitionReferencePanel } from '@/features/reference/LazyDefinitionReferencePanel';
 import { sameDocumentList } from '@/features/search/document-list';
@@ -93,6 +95,7 @@ import {
   matchingCatalogTools,
   SEARCH_SECTIONS,
   searchCatalogSections,
+  searchCatalogSectionsSliced,
   searchCatalogTools,
   toolsFollowResults,
   unifiedSearchSpecialty,
@@ -194,7 +197,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [catalogQuery, setCatalogQuery] = createSignal('');
   const [groups, setGroups] = createSignal<Partial<Record<SearchScope, string>>>({});
   const specialty = () => groups()[scope()];
+  /** The empty home lists sections instead of the endless all-sources catalog. */
+  const showSectionsOverview = () =>
+    scope() === 'all' && !specialty() && catalogQuery().trim().length === 0;
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
+  const [listedDocuments, setListedDocuments] = createSignal<readonly MedicalDocumentSummary[]>();
   const [catalogLoading, setCatalogLoading] = createSignal(true);
   const [catalogError, setCatalogError] = createSignal<string>();
   const [toolRevision, setToolRevision] = createSignal(0);
@@ -202,9 +209,45 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     toolRevision();
     return searchCatalogTools();
   });
-  const sections = createMemo(() =>
-    searchCatalogSections(documents(), toolRows(), SECTION_DOCUMENT_COUNTS),
+  const sectionSources = createMemo(() => ({
+    documents: listedDocuments(),
+    tools: toolRows(),
+    modules: loadedModuleCatalog()?.modules,
+  }));
+  let displayedSources = sectionSources();
+  const [sections, setSections] = createSignal(
+    searchCatalogSections([], displayedSources.tools, SECTION_DOCUMENT_COUNTS),
   );
+  createEffect(() => {
+    const sources = sectionSources();
+    if (!props.active || sources === displayedSources) return;
+    const pending = new AbortController();
+    onCleanup(() => pending.abort());
+    void searchCatalogSectionsSliced(
+      sources.documents ?? [],
+      sources.tools,
+      SECTION_DOCUMENT_COUNTS,
+      pending.signal,
+      sources.modules ?? [],
+    )
+      .then((next) => {
+        if (!next || pending.signal.aborted) return;
+        displayedSources = sources;
+        batch(() => {
+          setSections(next);
+          if (sources.documents) {
+            setDocuments(sources.documents);
+            setCatalogLoading(false);
+          }
+        });
+      })
+      .catch((cause: unknown) => {
+        if (pending.signal.aborted) return;
+        setCatalogLoading(false);
+        setCatalogError('Не удалось обновить каталог.');
+        console.warn('Search section counts could not be prepared.', cause);
+      });
+  });
   const catalogQuickTools = createMemo(() => quickToolsFromCatalog(toolRows()));
   const downloads = useSearchSectionDownloads(
     () => props.active,
@@ -354,19 +397,20 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     </Show>
   );
   /** Default graph: the current results and their neighbours, not the whole scope. */
-  const graphSelection = createMemo(() =>
-    graphShowAll()
-      ? { documents: visibleDocuments(), total: visibleDocuments().length, focused: false }
-      : selectGraphNeighborhood(visibleDocuments(), { focusIds: new Set(resultDocumentIds()) }),
-  );
+  const graphSelection = createMemo(() => {
+    if (!graphOpen()) return { documents: [], total: 0, focused: false };
+    const visible = visibleDocuments();
+    return graphShowAll()
+      ? { documents: visible, total: visible.length, focused: false }
+      : selectGraphNeighborhood(visible, { focusIds: new Set(resultDocumentIds()) });
+  });
   // «МКБ-11» opens on the 28 chapters: a flat list of tens of thousands of codes helps no one.
-  const catalogDocuments = createMemo(() =>
-    scope() === 'all'
-      ? homeDocumentOrder(visibleDocuments())
-      : scope() === 'icd11'
-        ? icd11ChapterDocuments(visibleDocuments())
-        : visibleDocuments(),
-  );
+  const catalogDocuments = createMemo(() => {
+    if (scope() === 'diagnosis' || catalogQuery().trim() || showSectionsOverview() || catalogOnly())
+      return [];
+    if (scope() === 'all') return homeDocumentOrder(visibleDocuments());
+    return scope() === 'icd11' ? icd11ChapterDocuments(visibleDocuments()) : visibleDocuments();
+  });
   /** Library documents: they tell whether the MRI example is already in «Мои файлы». */
   const libraryDocuments = createUserLibraryDocuments();
   const mriExample = createMemo(() =>
@@ -599,23 +643,29 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     const builtInIds = new Set(builtIn.map((tool) => tool.id));
     return [...builtIn, ...catalogQuickTools().filter((tool) => !builtInIds.has(tool.id))];
   });
+  let listedCore: MedicalCore | undefined;
   createEffect(() => {
     const core = props.baseCore;
+    if (listedCore !== core) listedCore = undefined;
+    if (!props.active || !core || listedCore === core) return;
     // Only the first read is «loading»: a core swap (module install, pack attach) rereads the list
-    // behind the catalog and the section counts already on screen, and replaces them only if they
-    // changed — a background refresh never turns the page back into a loader.
-    if (untrack(documents).length === 0) setCatalogLoading(true);
-    if (!core) return;
+    // behind the catalog and the section counts only while Search is visible. A refresh replaces
+    // the existing list only if its contents changed.
+    if (untrack(listedDocuments) === undefined) setCatalogLoading(true);
     let current = true;
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((result) => {
       if (!current) return;
-      setCatalogLoading(false);
       if (result.ok) {
+        listedCore = core;
         const next = distinctNavigationDocuments(preferReadableDocuments(result.value));
-        if (!sameDocumentList(untrack(documents), next)) setDocuments(next);
+        const previous = untrack(listedDocuments);
+        if (!previous || !sameDocumentList(previous, next)) setListedDocuments(next);
         setCatalogError(undefined);
         prepareDocumentLinksWhenIdle(result.value);
-      } else setCatalogError(result.error.message);
+      } else {
+        setCatalogLoading(false);
+        setCatalogError(result.error.message);
+      }
     });
     onCleanup(() => {
       current = false;
@@ -711,9 +761,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   /** The source the clinical-analysis switch returns to when it is turned off. */
   const [sourceScope, setSourceScope] = createSignal<SearchScope>('all');
   const clinicalAnalysis = () => scope() === 'diagnosis';
-  /** The empty home lists sections instead of the endless all-sources catalog. */
-  const showSectionsOverview = () =>
-    scope() === 'all' && !specialty() && catalogQuery().trim().length === 0;
   // Clinical analysis is a way of reading any source, so it is a switch, not a source.
   const sourceSections = createMemo(() =>
     sections().filter((section) => section.id !== 'diagnosis'),

@@ -230,8 +230,8 @@ function toChunk(row: NativeSqlRow): ChunkRecord {
   };
 }
 
-/** Documents per native reply: whole-catalog replies do not fit a WebView heap. */
-const DOCUMENT_PAGE_SIZE = 1024;
+/** Rows per native reply for large document and alias listings. */
+const NATIVE_LIST_PAGE_SIZE = 1024;
 
 // Keep this projection comment-free for the native bridge. Target IDs collapse duplicate results.
 const SEARCH_DOCUMENT_SELECT = `
@@ -555,9 +555,9 @@ export class CapacitorMedicalStore implements MedicalStore {
     const documents: T[] = [];
     // One catalog reply can run the Android WebView out of memory. Let interactive native queries
     // run between small pages and keep the immutable identity list's title order.
-    for (let offset = 0; offset < identities.length; offset += DOCUMENT_PAGE_SIZE) {
+    for (let offset = 0; offset < identities.length; offset += NATIVE_LIST_PAGE_SIZE) {
       const ids = identities
-        .slice(offset, offset + DOCUMENT_PAGE_SIZE)
+        .slice(offset, offset + NATIVE_LIST_PAGE_SIZE)
         .map((document) => document.id);
       const rows = await this.query(
         `${projection} WHERE d.id IN (SELECT value FROM json_each(?))
@@ -640,17 +640,31 @@ export class CapacitorMedicalStore implements MedicalStore {
   }
 
   public async listAliases(): Promise<readonly AliasRecord[]> {
-    return (
-      await this.query(
-        'SELECT id, canonical_term, alias, category, weight FROM aliases ORDER BY alias',
-      )
-    ).map((row) => ({
-      id: readString(row, 'id'),
-      canonicalTerm: readString(row, 'canonical_term'),
-      alias: readString(row, 'alias'),
-      category: readNullableString(row, 'category'),
-      weight: readNumber(row, 'weight'),
-    }));
+    const aliases: AliasRecord[] = [];
+    let after: { alias: string; rowId: number } | undefined;
+    for (;;) {
+      // Use the alias index and its rowid tie order. A page can end inside identical aliases.
+      const rows = await this.query(
+        `SELECT rowid AS row_key, id, canonical_term, alias, category, weight FROM aliases
+         ${after ? 'WHERE alias >= ? AND (alias > ? OR rowid > ?)' : ''}
+         ORDER BY alias, rowid LIMIT ?`,
+        after
+          ? [after.alias, after.alias, after.rowId, NATIVE_LIST_PAGE_SIZE]
+          : [NATIVE_LIST_PAGE_SIZE],
+      );
+      for (const row of rows) {
+        aliases.push({
+          id: readString(row, 'id'),
+          canonicalTerm: readString(row, 'canonical_term'),
+          alias: readString(row, 'alias'),
+          category: readNullableString(row, 'category'),
+          weight: readNumber(row, 'weight'),
+        });
+      }
+      const last = rows.at(-1);
+      if (rows.length < NATIVE_LIST_PAGE_SIZE || !last) return aliases;
+      after = { alias: readString(last, 'alias'), rowId: readNumber(last, 'row_key') };
+    }
   }
 
   public async listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {

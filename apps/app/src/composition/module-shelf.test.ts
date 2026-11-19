@@ -97,7 +97,7 @@ describe('ModuleShelf with kept facts', () => {
   function memoryFacts(initial: Record<string, ShelfFacts> = {}) {
     const saved = new Map<string, ShelfFacts>();
     const store: ShelfFactsStore = {
-      load: async () => new Map(Object.entries(initial)),
+      load: async (file) => initial[file],
       save: (file, facts) => saved.set(file, structuredClone(facts)),
     };
     return { store, saved };

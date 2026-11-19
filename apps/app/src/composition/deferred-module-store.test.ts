@@ -43,7 +43,11 @@ function realStore() {
 function factsStore(saved = new Map<string, ShelfFacts>()): ShelfFactsStore & {
   readonly saved: Map<string, ShelfFacts>;
 } {
-  return { saved, load: async () => saved, save: (file, facts) => void saved.set(file, facts) };
+  return {
+    saved,
+    load: async (file) => saved.get(file),
+    save: (file, facts) => void saved.set(file, facts),
+  };
 }
 
 afterEach(resetDeferredModuleStoresForTests);

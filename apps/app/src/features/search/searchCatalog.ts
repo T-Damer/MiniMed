@@ -1,4 +1,10 @@
-import { anyAgeScope, type MedicalDocumentSummary, type ToolAgeScope } from '@localmed/contracts';
+import {
+  anyAgeScope,
+  type ContentModuleCatalogEntry,
+  type MedicalDocumentSummary,
+  type ToolAgeScope,
+} from '@localmed/contracts';
+import { createTimeSlicer } from '@localmed/search-lexical';
 import type { AppGlyphName } from '@/components/AppGlyph';
 import {
   ASSESSMENT_SPECIALTIES,
@@ -18,7 +24,7 @@ import {
   medicationDocumentGroups,
   medicationGroupLabel,
 } from '@/features/medications/medicationGroups';
-import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import { isModuleReleasedWith } from '@/features/modules/local-packaged-modules';
 import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 import { PRESCRIPTION_TOOL } from '@/features/prescription/prescription-tool';
 import { PSY_STATUS_TOOL } from '@/features/psy-status/psy-status-tool';
@@ -32,6 +38,7 @@ import {
 import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
 import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { specialtyLabel } from '@/i18n/labels';
+import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 /** Russian one / few / many forms of what a section's count counts. */
@@ -414,30 +421,53 @@ export function searchCatalogSections(
   tools: readonly SearchCatalogTool[],
   catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,
 ): readonly SearchCatalogSection[] {
-  const sections = searchCatalogSectionRows(documents, tools, catalogCounts);
-  if (!catalogCounts) return sections;
-  // «Все источники (N)» has one meaning: everything the sections below it list (the catalog's
-  // counts of its document sections plus the questionnaire and calculator cards). It never
-  // follows what happens to be mounted, so a core that could not read an installed pack (257) and a
-  // core with every pack (25 019) show the same number as the home screen's sections add up to.
-  const total = sections
-    .filter((section) => section.id !== 'all' && section.id !== 'diagnosis')
-    .reduce((sum, section) => sum + (section.count ?? 0), 0);
-  return sections.map((section) => (section.id === 'all' ? { ...section, count: total } : section));
+  const steps = searchCatalogSectionSteps(
+    documents,
+    tools,
+    catalogCounts,
+    loadedModuleCatalog()?.modules ?? [],
+  );
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
 }
 
-function searchCatalogSectionRows(
+/** Leave time for input and rendering when a new core or catalog arrives. */
+export async function searchCatalogSectionsSliced(
   documents: readonly MedicalDocumentSummary[],
   tools: readonly SearchCatalogTool[],
   catalogCounts?: Readonly<Partial<Record<SearchScope, number>>>,
-): readonly SearchCatalogSection[] {
-  return SEARCH_SECTIONS.map((section) => {
-    if (section.id === 'diagnosis') return { ...section, groups: [] };
+  signal?: AbortSignal,
+  modules: readonly ContentModuleCatalogEntry[] = loadedModuleCatalog()?.modules ?? [],
+): Promise<readonly SearchCatalogSection[] | undefined> {
+  if (signal?.aborted) return undefined;
+  const slice = createTimeSlicer(4);
+  const steps = searchCatalogSectionSteps(documents, tools, catalogCounts, modules);
+  let step = steps.next();
+  while (!step.done) {
+    const due = slice();
+    if (due) await due;
+    if (signal?.aborted) return undefined;
+    step = steps.next();
+  }
+  return step.value;
+}
+
+function* searchCatalogSectionSteps(
+  documents: readonly MedicalDocumentSummary[],
+  tools: readonly SearchCatalogTool[],
+  catalogCounts: Readonly<Partial<Record<SearchScope, number>>> | undefined,
+  modules: readonly ContentModuleCatalogEntry[],
+): Generator<undefined, readonly SearchCatalogSection[], undefined> {
+  const sections: SearchCatalogSection[] = [];
+  const experimentalEnabled = getExperimentalModulesEnabled();
+  for (const section of SEARCH_SECTIONS) {
+    if (section.id === 'diagnosis') {
+      sections.push({ ...section, groups: [] });
+      continue;
+    }
     const toolScope = section.id === 'assessments' || section.id === 'calculators';
     const rows = tools.filter((entry) => section.id === 'all' || entry.scope === section.id);
-    const docs = toolScope
-      ? []
-      : documents.filter((entry) => documentMatchesSearchScope(entry, section.id));
     const counts = new Map<string, number>();
     const documentCounts = new Map<string, number>();
     const kinds = new Map<string, Set<SearchResultDocumentKind>>();
@@ -454,19 +484,37 @@ function searchCatalogSectionRows(
         kinds.set(group, present);
       }
     };
-    for (const entry of docs)
-      add(
-        section.id === 'medications'
-          ? medicationDocumentGroups(entry)
-          : section.id === 'all'
-            ? entry.specialties.map(unifiedSearchSpecialty)
-            : entry.specialties,
-        searchResultDocumentKind(entry),
-        true,
-      );
+    const conditionCounts = section.id === 'conditions' ? CONDITION_GROUPS.map(() => 0) : undefined;
+    const fixedCount = catalogCounts?.[section.id];
+    let countedDocuments = 0;
+    let processed = 0;
+    for (const entry of toolScope ? [] : documents) {
+      if (++processed % 64 === 0) yield;
+      if (!documentMatchesSearchScope(entry, section.id)) continue;
+      if (fixedCount === undefined && countsTowardSection(entry, section.id)) countedDocuments++;
+      if (conditionCounts) {
+        CONDITION_GROUPS.forEach((group, index) => {
+          if (documentMatchesConditionGroup(entry, group.id)) {
+            conditionCounts[index] = (conditionCounts[index] ?? 0) + 1;
+          }
+        });
+      } else {
+        add(
+          section.id === 'medications'
+            ? medicationDocumentGroups(entry)
+            : section.id === 'all'
+              ? entry.specialties.map(unifiedSearchSpecialty)
+              : entry.specialties,
+          searchResultDocumentKind(entry),
+          true,
+        );
+      }
+    }
     if (section.id === 'medications') {
-      for (const module of loadedModuleCatalog()?.modules ?? []) {
-        if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
+      for (const module of modules) {
+        if (++processed % 64 === 0) yield;
+        if (module.kind !== 'medication' || !isModuleReleasedWith(module, experimentalEnabled))
+          continue;
         const id = `module:${module.id}`;
         counts.set(id, module.documents.length);
         documentCounts.set(id, module.documents.length);
@@ -479,28 +527,30 @@ function searchCatalogSectionRows(
         entry.scope === 'assessments' ? 'assessment' : 'calculator',
         false,
       );
-    return {
+    sections.push({
       ...section,
-      count:
-        catalogCounts?.[section.id] ??
-        rows.length + docs.filter((entry) => countsTowardSection(entry, section.id)).length,
-      groups:
-        section.id === 'conditions'
-          ? CONDITION_GROUPS.map((group) => {
-              const count = docs.filter((document) =>
-                documentMatchesConditionGroup(document, group.id),
-              ).length;
-              return { ...group, count, documentCount: count, kinds: ['reference'] as const };
-            })
-          : [...counts]
-              .map(([id, count]) => ({
-                id,
-                count,
-                documentCount: documentCounts.get(id) ?? 0,
-                kinds: [...(kinds.get(id) ?? [])],
-                label: searchGroupLabel(section.id, id),
-              }))
-              .toSorted((a, b) => a.label.localeCompare(b.label, 'ru')),
-    };
-  });
+      count: fixedCount ?? rows.length + countedDocuments,
+      groups: conditionCounts
+        ? CONDITION_GROUPS.map((group, index) => {
+            const count = conditionCounts[index] ?? 0;
+            return { ...group, count, documentCount: count, kinds: ['reference'] as const };
+          })
+        : [...counts]
+            .map(([id, count]) => ({
+              id,
+              count,
+              documentCount: documentCounts.get(id) ?? 0,
+              kinds: [...(kinds.get(id) ?? [])],
+              label: searchGroupLabel(section.id, id),
+            }))
+            .toSorted((a, b) => a.label.localeCompare(b.label, 'ru')),
+    });
+    yield;
+  }
+  if (!catalogCounts) return sections;
+  // The all-sources count is the sum of the sections below it. Installed packs do not change it.
+  const total = sections
+    .filter((section) => section.id !== 'all' && section.id !== 'diagnosis')
+    .reduce((sum, section) => sum + (section.count ?? 0), 0);
+  return sections.map((section) => (section.id === 'all' ? { ...section, count: total } : section));
 }

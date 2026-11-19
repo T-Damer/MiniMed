@@ -106,8 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-18 | performance | Keep Search section counts and installed-pack validation within the frame budget, including bounded native alias replies. | `apps/app/src/features/search/{SearchHome.tsx,searchCatalog*.ts}`, `packages/storage/{package.json,src/multi-medical-store.ts,src/sliced-sort.ts}`, `packages/storage-capacitor/{src/capacitor-medical-store.ts,tests/capacitor-medical-store.test.ts}`, `docs/CURRENT_STATE.md` |
-| 2026-11-18 | performance | Keep installed-module cache reads bounded and skip hidden search catalog refreshes during attachment. | `apps/app/src/composition/{module-shelf,module-shelf-facts}.ts`, `apps/app/src/composition/module-shelf.test.ts`, `apps/app/src/features/{modules/browser-module-runtime.ts,search/SearchHome.tsx}`, `docs/CURRENT_STATE.md` |
 | 2026-11-18 | performance | Local candidate after 0.6.114: base-first startup, direct installed-pack reader and last-page restoration verified on Xiaomi. Empty-snapshot «Рисперидон» open still exceeds the one-second release target. | `apps/app/src/app/`, `apps/app/src/composition/`, `apps/app/src/state/last-page*`, `apps/app/src/features/library/`, `apps/app/src/features/medications/installed-substance-reader.ts`, `apps/app/src/features/modules/browser-module-runtime.ts`, `packages/core`, `packages/storage`, `docs/CURRENT_STATE.md` |
 | 2026-11-18 | performance | 0.6.115 WebView fixes: template history, device files, form recording and progress, questionnaire editor routing, reference catalog sheets, and КР title-page printing. Chromium checks cover the disconnected-phone follow-up. | `apps/app/src/components/Page*`, `apps/app/src/features/{assessments,conversations,form-fill,forms,library,modules,notes,printing,search}/`, `apps/app/src/styles/`, `docs/CURRENT_STATE.md` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; windowed local-model pass + controller adapter (task `visit-note`); Mac qualification of QVikhr 1.7B / Qwen3 0.6B (7 and 1 of 23 facts; QVikhr 15 with line citation); no UI yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note*.ts`, `apps/app/src/features/conversations/visit-note-model*.ts`, `apps/app/src/features/models/structured-output*.ts`, `tools/benchmarks/visit-note-consultations.json`, `tools/benchmarks/src/run-visit-note-model.ts` |
@@ -186,6 +184,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-19 performance (0.6.117): indexed module facts, visible-only catalog updates, sliced section counting and validation, and bounded Android alias replies. Browser checks covered the 774-pack reload. Phone frame timing is pending.
 - 2026-11-18 print-layout (0.6.116): source-style A4 printing for clinical recommendations, with the Герб, serif body text, plain tables, and numbered pages. Chromium verified the published 216_2 pack at desktop width and at phone width offline.
 
 - 2026-11-18 REL 0.6.114: reader status bar, OCR table provenance and the prescription table calculation guard.

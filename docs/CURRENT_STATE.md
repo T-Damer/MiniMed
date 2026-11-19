@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 18 November 2026
-> Released version: `0.6.116` (public prerelease toward `1.0`)
+> Updated: 19 November 2026
+> Released version: `0.6.117` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,32 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.117 — 2026-11-19
+
+### Module cache and search catalog
+
+Module attachment reads IndexedDB facts by app build and file. Upgrading the cache adds an index
+over the keys already stored, so a lookup no longer deserializes unrelated or stale document
+listings. Old cache keys are pruned during idle time after a successful write. Search refreshes its
+navigation catalog only while the Search tab is active and keeps the last visible list until the
+refresh finishes.
+
+### Frame pacing
+
+Search prepares section counts in short tasks and publishes them with the matching document list.
+It skips building the graph and ordering document cards until those views need them. Installed-pack
+validation reads at most sixteen stores at once for documents, aliases and embedding profiles.
+Document and alias checks yield during large batches before publishing the validated core.
+The Android SQLite bridge reads aliases in 1,024-row pages using the alias index. Against the
+released core, this kept all 62,965 rows in the same order and reduced the largest serialized
+reply from 19.9 MB to 0.55 MB.
+
+In a Chromium check at 4× CPU slowdown, the longest frame interval during section counting for
+50,000 documents fell from 84 to 9 ms, with the same counts. In a separate 834-store validation
+check, warm runs fell from 42 ms to 8–9 ms and the first run still had a 109 ms gap. Those checks
+measure browser frame callbacks. Android presentation timing still needs a device run using
+[Perfetto FrameTimeline](https://perfetto.dev/docs/data-sources/frametimeline).
 
 ## Release 0.6.116 — 2026-11-18
 

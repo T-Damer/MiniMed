@@ -7,6 +7,11 @@ import {
   type EmbeddingProfile,
 } from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
+import {
+  createStorageTimeSlicer,
+  SortedListingMemo,
+  stableSortSliced,
+} from '@localmed/storage/sliced-sort';
 import type {
   LexicalHit,
   LexicalSearchRequest,
@@ -16,7 +21,6 @@ import type {
   VectorHit,
   VectorSearchRequest,
 } from './ports';
-import { SortedListingMemo, stableSortSliced } from './sliced-sort';
 
 /**
  * One default-locale collator for every sort here: the same order as `a.localeCompare(b)` without
@@ -34,6 +38,7 @@ function compareText(left: string, right: string): number {
 }
 
 const DEFAULT_RRF_K = 60;
+const VALIDATION_READ_BATCH = 16;
 
 export interface MedicalStoreMount {
   readonly moduleId: string;
@@ -93,6 +98,16 @@ function profileSignature(profile: EmbeddingProfile): string {
 
 function unique<T>(values: readonly T[]): readonly T[] {
   return [...new Set(values)];
+}
+
+/** Keep worker and bridge replies from the whole library from arriving at once. */
+async function* readValidationRecords<T>(
+  mounts: readonly InternalMount[],
+  read: (mount: InternalMount) => Promise<T>,
+): AsyncGenerator<T> {
+  for (let start = 0; start < mounts.length; start += VALIDATION_READ_BATCH) {
+    yield* await Promise.all(mounts.slice(start, start + VALIDATION_READ_BATCH).map(read));
+  }
 }
 
 export class MultiMedicalStore implements MedicalStore {
@@ -552,45 +567,54 @@ export class MultiMedicalStore implements MedicalStore {
 
     const documentOwners = new Map<string, InternalMount>();
     const versionIds = new Set<string>();
-    const mountDocuments = await Promise.all(
-      active.map(async (mount) => ({
-        mount,
-        documents: await (mount.store.listDocumentIdentities
-          ? mount.store.listDocumentIdentities()
-          : mount.store.listDocuments().then((documents) =>
-              documents.map((document) => ({
-                id: document.id,
-                versionId: document.version.id,
-              })),
-            )),
-      })),
-    );
-    for (const { mount, documents } of mountDocuments) {
+    // The candidate core checks identifiers and aliases before it replaces the live core. With a
+    // large library, give the foreground a chance to paint while building these private maps.
+    const pause = createStorageTimeSlicer(4);
+    let checkedRecords = 0;
+    const mountDocuments = readValidationRecords(active, async (mount) => ({
+      mount,
+      documents: await (mount.store.listDocumentIdentities
+        ? mount.store.listDocumentIdentities()
+        : mount.store.listDocuments()),
+    }));
+    for await (const { mount, documents } of mountDocuments) {
       for (const document of documents) {
+        const versionId = 'versionId' in document ? document.versionId : document.version.id;
         if (documentOwners.has(document.id))
           throw new Error(`Duplicate active document ID: ${document.id}`);
-        if (versionIds.has(document.versionId)) {
-          throw new Error(`Duplicate active document-version ID: ${document.versionId}`);
+        if (versionIds.has(versionId)) {
+          throw new Error(`Duplicate active document-version ID: ${versionId}`);
         }
         documentOwners.set(document.id, mount);
-        versionIds.add(document.versionId);
+        versionIds.add(versionId);
+        if (++checkedRecords % 128 === 0) {
+          const due = pause();
+          if (due) await due;
+        }
       }
     }
 
     const aliases = new Map<string, AliasRecord>();
-    const aliasInputs = await Promise.all(active.map((mount) => mount.store.listAliases()));
-    for (const moduleAliases of aliasInputs) {
+    const aliasInputs: (readonly AliasRecord[])[] = [];
+    for await (const moduleAliases of readValidationRecords(active, (mount) =>
+      mount.store.listAliases(),
+    )) {
+      aliasInputs.push(moduleAliases);
       for (const alias of moduleAliases) {
         const existing = aliases.get(alias.id);
         if (existing && aliasSignature(existing) !== aliasSignature(alias))
           throw new Error(`Conflicting alias ID: ${alias.id}`);
         aliases.set(alias.id, alias);
+        if (++checkedRecords % 128 === 0) {
+          const due = pause();
+          if (due) await due;
+        }
       }
     }
 
     const profiles = new Map<string, string>();
-    for (const moduleProfiles of await Promise.all(
-      active.map((mount) => mount.store.listEmbeddingProfiles()),
+    for await (const moduleProfiles of readValidationRecords(active, (mount) =>
+      mount.store.listEmbeddingProfiles(),
     )) {
       for (const profile of moduleProfiles) {
         const signature = profileSignature(profile);

@@ -355,7 +355,7 @@ async function openMountedModuleStore(
       store: createDeferredModuleStore({
         key,
         facts: deferredFacts,
-        kept: (await deferredFacts.load()).get(key),
+        kept: await deferredFacts.load(key),
         open: () => openModuleStore(stored.moduleId, stored.version, source, stored.indexSha256),
         methods: WORKER_STORE_METHODS,
       }),

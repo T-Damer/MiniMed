@@ -233,7 +233,7 @@ class ShelfShard {
     const known =
       options.bytes || this.entries.has(file) || !this.options.facts
         ? undefined
-        : (await this.options.facts.load()).get(file);
+        : await this.options.facts.load(file);
     // Known facts and a file the pool lists: nothing has to be read now. A file the pool does not
     // list is opened at once, so a missing module is reported at the mount as before.
     let lazy = false;

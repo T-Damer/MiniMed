@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.117] - 2026-11-19
+
+- Read installed-module cache records by file and defer Search catalog refreshes while the tab is hidden.
+- Prepare section counts and validate installed packs in short tasks so input and rendering can continue during startup.
+- Page Android SQLite alias replies to reduce peak bridge payloads.
+
 ## [0.6.116] - 2026-11-18
 
 - Print clinical recommendations in an A4 layout based on the official PDFs, with the Герб, serif text, plain table rules, and numbered body pages.
