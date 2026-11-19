@@ -32,6 +32,7 @@ import {
 } from '@/features/conversations/conversation-transcript';
 import { LiveWaveform } from '@/features/conversations/LiveWaveform';
 import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
+import { nativeRecordingPresented } from '@/features/conversations/native-recording-activity';
 import { PulseDots } from '@/features/conversations/PulseDots';
 import { usePatientSnapshot } from '@/features/conversations/use-patient-snapshot';
 import { useSpeechOffer } from '@/features/conversations/use-speech-offer';
@@ -53,7 +54,13 @@ import './conversation-recorder.css';
 function RecorderFab(): JSX.Element {
   const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
   return (
-    <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
+    <Show
+      when={
+        conversationSession.recorder() &&
+        !conversationSession.windowOpen() &&
+        !nativeRecordingPresented()
+      }
+    >
       <Portal>
         <button
           type="button"

@@ -1,5 +1,7 @@
 import type { StorageHealth } from '@localmed/storage';
 
+import { recordInstallPhase } from '@/features/modules/install-timing';
+
 /**
  * What a module file answers the same way every time it is opened: its health and its whole-pack
  * listings. A module file never changes (its name carries the version and the checksum), yet every
@@ -19,29 +21,59 @@ export interface ShelfFactsStore {
 }
 
 const DATABASE = 'minimed-module-facts-v1';
-const STORE = 'facts';
-const BUILD_FILE_INDEX = 'build-file';
+const STORE = 'fact-pages';
+const LEGACY_STORE = 'facts';
+const PAGE_ROWS = 128;
 const SAVE_DELAY_MS = 800;
 
-interface FactsRow extends ShelfFacts {
-  readonly file: string;
+type FactsPage = {
   readonly app: string;
+  readonly file: string;
+  readonly part: number;
+} & (
+  | { readonly facts: ShelfFacts }
+  | { readonly listing: string; readonly rows: readonly unknown[] }
+);
+
+function filePages(app: string, file: string): IDBKeyRange {
+  return IDBKeyRange.bound([app, file, 0], [app, file, Number.MAX_SAFE_INTEGER]);
+}
+
+function* pages(app: string, file: string, facts: ShelfFacts): Generator<FactsPage> {
+  const entries = Object.entries(facts.listings ?? {});
+  const size = entries.reduce(
+    (total, [, value]) => total + (Array.isArray(value) ? value.length : 0),
+    0,
+  );
+  if (size <= PAGE_ROWS) {
+    yield { app, file, part: 0, facts };
+    return;
+  }
+
+  // Preserve empty listings in the header. Each subsequent IDB event clones one bounded page.
+  const listings: Record<string, unknown> = Object.fromEntries(
+    entries.map(([name, value]) => [name, Array.isArray(value) ? [] : value]),
+  );
+  yield { app, file, part: 0, facts: { ...facts, listings } };
+  let part = 1;
+  for (const [listing, value] of entries) {
+    if (!Array.isArray(value)) continue;
+    for (let offset = 0; offset < value.length; offset += PAGE_ROWS) {
+      yield { app, file, part: part++, listing, rows: value.slice(offset, offset + PAGE_ROWS) };
+    }
+  }
 }
 
 function openFactsDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE, 2);
+    const request = indexedDB.open(DATABASE, 3);
     let blocked = false;
     request.onupgradeneeded = () => {
-      const store = request.result.objectStoreNames.contains(STORE)
-        ? request.transaction?.objectStore(STORE)
-        : undefined;
-      // Version 1 already records both key fields. Build the index without reading the listings
-      // into the page so existing facts for this build can still be used.
-      (store ?? request.result.createObjectStore(STORE, { keyPath: 'file' })).createIndex(
-        BUILD_FILE_INDEX,
-        ['app', 'file'],
-      );
+      const database = request.result;
+      // The old rows are rebuildable facts. Reading them would clone all the listings at once.
+      if (database.objectStoreNames.contains(LEGACY_STORE))
+        database.deleteObjectStore(LEGACY_STORE);
+      database.createObjectStore(STORE, { keyPath: ['app', 'file', 'part'] });
     };
     request.onblocked = () => {
       blocked = true;
@@ -84,13 +116,32 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
 
   const read = async (file: string): Promise<ShelfFacts | undefined> => {
     const database = await connect();
+    const startedAt = performance.now();
     return new Promise((resolve, reject) => {
+      let facts: ShelfFacts | undefined;
+      let pageCount = 0;
       const request = database
         .transaction(STORE, 'readonly')
         .objectStore(STORE)
-        .index(BUILD_FILE_INDEX)
-        .get([appVersion, file]);
-      request.onsuccess = () => resolve(request.result as FactsRow | undefined);
+        .openCursor(filePages(appVersion, file));
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) {
+          if (pageCount > 1 || performance.now() - startedAt >= 250) {
+            recordInstallPhase('module-facts-read', startedAt, { pages: pageCount });
+          }
+          resolve(facts);
+          return;
+        }
+        const page = cursor.value as FactsPage;
+        if ('facts' in page) facts = page.facts;
+        else {
+          const listing = facts?.listings?.[page.listing];
+          if (Array.isArray(listing)) listing.push(...page.rows);
+        }
+        pageCount += 1;
+        cursor.continue();
+      };
       request.onerror = () => reject(request.error ?? new Error('Module facts could not be read.'));
     });
   };
@@ -100,11 +151,11 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
     const transaction = database.transaction(STORE, 'readwrite');
     const store = transaction.objectStore(STORE);
     // A key cursor never deserializes old document listings.
-    const request = store.index(BUILD_FILE_INDEX).openKeyCursor();
+    const request = store.openKeyCursor();
     request.onsuccess = () => {
       const cursor = request.result;
       if (!cursor) return;
-      const [version] = cursor.key as [string, string];
+      const [version] = cursor.key as [string, string, number];
       if (version !== appVersion) store.delete(cursor.primaryKey);
       cursor.continue();
     };
@@ -120,15 +171,21 @@ export function createIndexedDbShelfFacts(appVersion: string): ShelfFactsStore {
     const transaction = database.transaction(STORE, 'readwrite');
     const store = transaction.objectStore(STORE);
     const pending = rows.values();
-    const writeNext = (): void => {
+    const writeFile = (): void => {
       const next = pending.next();
       if (next.done) return;
       const [file, facts] = next.value;
-      const row: FactsRow = { ...facts, file, app: appVersion };
-      // A put clones its value synchronously. Wait for its callback before cloning another.
-      store.put(row).onsuccess = writeNext;
+      const fileRows = pages(appVersion, file, facts);
+      const writePage = (): void => {
+        const page = fileRows.next();
+        if (page.done) writeFile();
+        // A put clones synchronously. Let its callback schedule the next bounded clone.
+        else store.put(page.value).onsuccess = writePage;
+      };
+      // Remove trailing pages if a listing shrank, in the same transaction as its replacement.
+      store.delete(filePages(appVersion, file)).onsuccess = writePage;
     };
-    writeNext();
+    writeFile();
     await done(transaction);
     if (!pruneScheduled && typeof requestIdleCallback === 'function') {
       pruneScheduled = true;

@@ -19,7 +19,34 @@
 		7A0C10020000000000000002 /* LocalMedBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */; };
 		7A0C10030000000000000003 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A0C10130000000000000003 /* libsqlite3.tbd */; };
 		7A0C10040000000000000004 /* LocalMedPatientVaultPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */; };
+		7A0C20000000000000000006 /* RecordingActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C20000000000000000001; };
+		7A0C20000000000000000007 /* LocalMedRecordingActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C20000000000000000002; };
+		7A0C20000000000000000008 /* RecordingActivityAttributes.swift in Widget Sources */ = {isa = PBXBuildFile; fileRef = 7A0C20000000000000000001; };
+		7A0C20000000000000000009 /* RecordingActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0C20000000000000000003; };
+		7A0C2000000000000000000A /* RecordingActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 7A0C20000000000000000005; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7A0C20000000000000000011 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A0C2000000000000000000D;
+			remoteInfo = RecordingActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7A0C2000000000000000000B /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (7A0C2000000000000000000A /* RecordingActivity.appex in Embed App Extensions */, );
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -36,6 +63,11 @@
 		7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedBridgeViewController.swift; sourceTree = "<group>"; };
 		7A0C10130000000000000003 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedPatientVaultPlugin.swift; sourceTree = "<group>"; };
+		7A0C20000000000000000001 /* RecordingActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingActivityAttributes.swift; sourceTree = "<group>"; };
+		7A0C20000000000000000002 /* LocalMedRecordingActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMedRecordingActivityPlugin.swift; sourceTree = "<group>"; };
+		7A0C20000000000000000003 /* RecordingActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingActivityWidget.swift; sourceTree = "<group>"; };
+		7A0C20000000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7A0C20000000000000000005 /* RecordingActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RecordingActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +80,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7A0C2000000000000000000F /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -56,6 +89,7 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
+				7A0C2000000000000000000C /* RecordingActivity */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				7A0C20000000000000000005 /* RecordingActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,6 +111,8 @@
 				7A0C10110000000000000001 /* LocalMedDatabasePlugin.swift */,
 				7A0C10120000000000000002 /* LocalMedBridgeViewController.swift */,
 				7A0C10140000000000000004 /* LocalMedPatientVaultPlugin.swift */,
+				7A0C20000000000000000001 /* RecordingActivityAttributes.swift */,
+				7A0C20000000000000000002 /* LocalMedRecordingActivityPlugin.swift */,
 				7A0C10130000000000000003 /* libsqlite3.tbd */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
@@ -85,6 +122,15 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		7A0C2000000000000000000C /* RecordingActivity */ = {
+			isa = PBXGroup;
+			children = (
+				7A0C20000000000000000003 /* RecordingActivityWidget.swift */,
+				7A0C20000000000000000004 /* Info.plist */,
+			);
+			path = RecordingActivity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -97,10 +143,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				7A0C2000000000000000000B /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7A0C20000000000000000012 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -109,6 +157,21 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		7A0C2000000000000000000D /* RecordingActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7A0C20000000000000000013 /* Build configuration list for RecordingActivity */;
+			buildPhases = (
+				7A0C2000000000000000000E /* Sources */,
+				7A0C2000000000000000000F /* Frameworks */,
+				7A0C20000000000000000010 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = RecordingActivity;
+			productName = RecordingActivity;
+			productReference = 7A0C20000000000000000005 /* RecordingActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -143,6 +206,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				7A0C2000000000000000000D /* RecordingActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -161,6 +225,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7A0C20000000000000000010 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -172,6 +237,17 @@
 				7A0C10010000000000000001 /* LocalMedDatabasePlugin.swift in Sources */,
 				7A0C10020000000000000002 /* LocalMedBridgeViewController.swift in Sources */,
 				7A0C10040000000000000004 /* LocalMedPatientVaultPlugin.swift in Sources */,
+				7A0C20000000000000000006 /* RecordingActivityAttributes.swift in Sources */,
+				7A0C20000000000000000007 /* LocalMedRecordingActivityPlugin.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7A0C2000000000000000000E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A0C20000000000000000008 /* RecordingActivityAttributes.swift in Widget Sources */,
+				7A0C20000000000000000009 /* RecordingActivityWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +271,14 @@
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
+
+/* Begin PBXTargetDependency section */
+		7A0C20000000000000000012 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A0C2000000000000000000D /* RecordingActivity */;
+			targetProxy = 7A0C20000000000000000011;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		504EC3141FED79650016851F /* Debug */ = {
@@ -350,6 +434,46 @@
 			};
 			name = Release;
 		};
+		7A0C20000000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RecordingActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MiniMed";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				MARKETING_VERSION = 0.3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.localmed.search.RecordingActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7A0C20000000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RecordingActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MiniMed";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				MARKETING_VERSION = 0.3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.localmed.search.RecordingActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -367,6 +491,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7A0C20000000000000000013 /* Build configuration list for RecordingActivity */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A0C20000000000000000014 /* Debug */,
+				7A0C20000000000000000015 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

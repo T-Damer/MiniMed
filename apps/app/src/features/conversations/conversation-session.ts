@@ -22,6 +22,7 @@ import {
   type TranscriptSegment,
 } from '@/features/conversations/live-transcription';
 import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
+import { updateNativeRecordingActivity } from '@/features/conversations/native-recording-activity';
 import { peaksOfSamples } from '@/features/conversations/recording-audio';
 import {
   createSpeechEngine,
@@ -263,11 +264,16 @@ export const conversationSession = {
     recorder()?.pause();
     perfMark('recorder.pause');
     setPaused(recorder()?.paused() ?? false);
+    const current = recorder();
+    if (current?.paused()) updateNativeRecordingActivity('paused', current.elapsedMs());
   },
   resume: (): void => {
     recorder()?.resume();
     perfMark('recorder.resume');
     setPaused(recorder()?.paused() ?? false);
+    const current = recorder();
+    if (current && !current.paused())
+      updateNativeRecordingActivity('recording', current.elapsedMs());
   },
   dismissFinished: () => {
     const recording = finished();
@@ -346,6 +352,16 @@ export async function startConversation(): Promise<void> {
     setRecorder(next);
     setPaused(false);
     setElapsedSeconds(0);
+    let openedFromSystem = false;
+    updateNativeRecordingActivity('recording', 0, {
+      open: () => {
+        openedFromSystem = true;
+        if (recorder() === next) setWindowOpen(true);
+      },
+      onPresented: () => {
+        if (!openedFromSystem && recorder() === next) setWindowOpen(false);
+      },
+    });
     ticker = window.setInterval(() => {
       const seconds = Math.floor(next.elapsedMs() / 1000);
       if (seconds !== elapsedSeconds()) setElapsedSeconds(seconds);
@@ -381,6 +397,7 @@ export async function stopConversation(): Promise<void> {
   fillFromActiveRecording = undefined;
   setWindowOpen(false);
   setRecorder(null);
+  updateNativeRecordingActivity('ended', current.elapsedMs());
   setPaused(false);
   setActiveRun(undefined);
   setLinkedPatientId('');

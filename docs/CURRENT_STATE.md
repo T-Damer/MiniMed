@@ -60,6 +60,31 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Unreleased — Paged module facts and recording activities
+
+The 0.6.117 Xiaomi log reached discovery search in 191–605 ms. Installed-set mounting took
+9.9–16.6 s, and completed rebuilds took 22.5–24.0 s. The worst frame was 2.98 s. Its script
+offset resolves to the IndexedDB result getter for cached module facts in the shipped bundle.
+
+The cache now reads and writes at most 128 listing rows per IndexedDB page. Small packs still
+use one record. A write replaces a file's pages atomically, and the old derived cache rebuilds
+from verified module files. Large reads add a timing measure with their page count. In Chromium
+at 4× CPU slowdown, a synthetic pack with 63,000 aliases and 20,000 document descriptors had a
+median worst frame gap of 9 ms with paging and 99 ms before it. Median complete read time moved
+from 109 to 130 ms. The test also checked listing order, build isolation, and shorter replacement
+listings. The phone result is still unmeasured.
+
+The Capacitor recording bridge starts an ActivityKit Live Activity on known iPhones with
+Dynamic Island and requests a promoted Live Update on Android 16 or newer. After the system
+accepts the presentation, MiniMed collapses the recorder and hides its floating indicator.
+Tapping the system activity opens the controls. Pause and resume update the activity, and stop
+removes it. The app indicator returns if the system refuses or dismisses the presentation. Both
+native surfaces carry only recording state and elapsed time. This is a presentation change to
+the existing recorder lifecycle. The iOS simulator build and Android Kotlin and Java compilation
+pass. Physical-device presentation remains to be checked. Xiaomi's dedicated Super Island
+channel requires Xiaomi approval. Compatible HyperOS builds can use Android promotion when
+the ROM provides it.
+
 ## Release 0.6.118 — 2026-11-19
 
 A cold launch opens the existing discovery SQLite database. The default search screen skips the
