@@ -13,7 +13,10 @@ import {
   isClinicalRecommendationSource,
   promoteNumberedHeadingSections,
 } from '@/features/library/numbered-heading-sections';
-import { isSectionTitleEcho } from '@/features/library/reader-text-normalization';
+import {
+  isSectionTitleEcho,
+  tightenProsePunctuation,
+} from '@/features/library/reader-text-normalization';
 import { browserI18n } from '@/i18n/browser-i18n';
 import { sourceTypeReaderLabel as localizedSourceTypeReaderLabel } from '@/i18n/labels';
 
@@ -70,7 +73,7 @@ export function displayDocumentTitle(
     const inn = document.title.split('—')[0]?.trim();
     if (inn) return inn;
   }
-  const title = readableShortTitle(document) ?? document.title;
+  const title = tightenProsePunctuation(readableShortTitle(document) ?? document.title);
   const metadata = document.metadata;
   const code = metadata?.['mkbCode'];
   const path = metadata?.['classificationPath'];

@@ -122,6 +122,16 @@ describe('document-display', () => {
     ).toBe('Пневмония');
   });
 
+  it('closes extraction gaps around the alternate name in a reference title', () => {
+    expect(
+      displayDocumentTitle({
+        title: 'Аллергический альвеолит ( Гиперчувствительный пневмонит )',
+        shortTitle: null,
+        sourceType: 'krasotaimedicina_reference',
+      }),
+    ).toBe('Аллергический альвеолит (Гиперчувствительный пневмонит)');
+  });
+
   it('moves registry sections to the end', () => {
     const ordered = orderDocumentSections(
       [section('Регистрационная запись'), section('Показания'), section('Ограничения')],

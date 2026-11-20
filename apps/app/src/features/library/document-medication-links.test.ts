@@ -22,6 +22,26 @@ it('keeps extracted closing punctuation and opening brackets with their prose', 
   ]);
 });
 
+it('keeps reference prose searchable across source discretionary hyphens', () => {
+  // The released «Рахит» article includes soft hyphens throughout this sentence.
+  expect(
+    parseDocumentText(
+      'Диагноз устанавливается на основании выявления ла\u00adбо\u00adра\u00adтор\u00adных и рентгеноло\u00adги\u00adче\u00adских маркеров.',
+    ),
+  ).toEqual([
+    {
+      kind: 'paragraph',
+      text: 'Диагноз устанавливается на основании выявления лабораторных и рентгенологических маркеров.',
+    },
+  ]);
+});
+
+it('keeps a percentage on the same line as its number', () => {
+  expect(parseDocumentText('Распространённость варьировалась от 9,9 до 40,4 % [29].')).toEqual([
+    { kind: 'paragraph', text: 'Распространённость варьировалась от 9,9 до 40,4\u00a0% [29].' },
+  ]);
+});
+
 const medication = (
   id: string,
   title: string,

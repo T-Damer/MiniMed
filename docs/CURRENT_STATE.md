@@ -60,6 +60,20 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Release 0.6.122 — 2026-11-20
+
+Narrow-reader verification opens the actual downloadable clinical recommendations on
+Mycoplasma genitalium and sarcopenia and the full «Аллергический альвеолит» and «Рахит»
+reference articles through search. Chromium checks 320, 360, and 390 CSS px through long
+paragraphs, lists, links, and clinical tables.
+
+Paragraphs and lists wrap on word boundaries. Reference prose removes discretionary hyphens
+and restores spaces lost between adjacent bold spans by the extractor. External links flow
+with the surrounding text, internal term and tool links keep their adjacent punctuation,
+and a space between a number and the percent sign no longer permits a break. The reader
+uses the presented text for find and keeps the published pack text and anchors intact.
+Clinical tables retain their own layout and overflow controls.
+
 ## Release 0.6.121 — 2026-11-20
 
 Search examples, clarification chips, and automatic calculator suggestions are hidden for now.

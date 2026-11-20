@@ -61,6 +61,44 @@ function withTextOffsets<T extends { readonly value: string }>(
   });
 }
 
+type PunctuatedLinkSlice<T extends { readonly value: string }> = TextSlice<T> & {
+  readonly opening?: string;
+  readonly closing?: string;
+};
+
+const LINK_OPENING = /[([«]+$/u;
+const LINK_CLOSING = /^(?:[,;:!?…)\]»]|\.(?!\d))+/u;
+
+// An inline button is a line-break opportunity of its own. Keep touching punctuation with it
+// while preserving the offsets of the displayed text for find and highlighting.
+function withInlineLinkPunctuation<T extends { readonly kind: string; readonly value: string }>(
+  segments: readonly T[],
+): readonly PunctuatedLinkSlice<T>[] {
+  const slices = withTextOffsets(segments);
+  if (slices.length < 2) return slices;
+  return slices.map((slice, index) => {
+    const before = slices[index - 1];
+    const after = slices[index + 1];
+    if (slice.kind !== 'text') {
+      const opening = before?.kind === 'text' ? LINK_OPENING.exec(before.value)?.[0] : undefined;
+      const closing = after?.kind === 'text' ? LINK_CLOSING.exec(after.value)?.[0] : undefined;
+      return opening || closing
+        ? { ...slice, ...(opening && { opening }), ...(closing && { closing }) }
+        : slice;
+    }
+    const start =
+      before && before.kind !== 'text' ? (LINK_CLOSING.exec(slice.value)?.[0].length ?? 0) : 0;
+    const end =
+      after && after.kind !== 'text' ? (LINK_OPENING.exec(slice.value)?.[0].length ?? 0) : 0;
+    if (!start && !end) return slice;
+    return {
+      ...slice,
+      offset: slice.offset + start,
+      value: slice.value.slice(start, slice.value.length - end),
+    };
+  });
+}
+
 function glyphForDocumentLinkKind(kind: DocumentInlineLinkKind): AppGlyphName {
   switch (kind) {
     case 'medication':
@@ -97,6 +135,34 @@ function HighlightedLabel(props: {
         rangeOffset={props.rangeOffset}
       />
     </span>
+  );
+}
+
+function InlineLinkFrame(
+  props: Omit<Parameters<typeof HighlightedLabel>[0], 'text'> & {
+    readonly opening?: string | undefined;
+    readonly children: JSX.Element;
+  },
+): JSX.Element {
+  return (
+    <Show when={props.opening} fallback={props.children}>
+      {(opening) => (
+        <span class="document-inline-link-frame">
+          <QueryHighlightedText
+            text={opening()}
+            query={props.query ?? ''}
+            exact={props.exactQuery}
+            fuzzy={props.fuzzyQuery}
+            matchClass={props.highlightClass}
+            ranges={props.ranges}
+            unitId={props.unitId}
+            activeStart={props.activeStart}
+            rangeOffset={(props.rangeOffset ?? 0) - opening().length}
+          />
+          {props.children}
+        </span>
+      )}
+    </Show>
   );
 }
 
@@ -177,6 +243,8 @@ function InlineDocumentLink(props: {
   readonly unitId?: string | undefined;
   readonly activeStart?: number | undefined;
   readonly rangeOffset: number;
+  readonly opening?: string | undefined;
+  readonly closing?: string | undefined;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const [previewCard, setPreviewCard] = createSignal<HTMLElement>();
@@ -237,30 +305,33 @@ function InlineDocumentLink(props: {
       overflowPadding={8}
     >
       <Popover.Anchor as="span" class="document-inline-preview">
-        <button
-          type="button"
-          class="document-inline-link"
-          classList={{ 'document-inline-link--open': open() }}
-          aria-expanded={canPreview() ? open() : undefined}
-          aria-haspopup={canPreview() ? 'dialog' : undefined}
-          onClick={activate}
-        >
-          <AppGlyph
-            name={glyphForDocumentLinkKind(ambiguous() ? 'document' : props.segment.linkKind)}
-            class="document-inline-link__icon"
-          />
-          <HighlightedLabel
-            text={props.segment.value}
-            query={props.query}
-            exactQuery={props.exactQuery}
-            fuzzyQuery={props.fuzzyQuery}
-            highlightClass={props.highlightClass}
-            ranges={props.ranges}
-            unitId={props.unitId}
-            activeStart={props.activeStart}
-            rangeOffset={props.rangeOffset}
-          />
-        </button>
+        <InlineLinkFrame {...props}>
+          <button
+            type="button"
+            class="document-inline-link"
+            classList={{ 'document-inline-link--open': open() }}
+            aria-expanded={canPreview() ? open() : undefined}
+            aria-haspopup={canPreview() ? 'dialog' : undefined}
+            aria-label={props.closing ? props.segment.value : undefined}
+            onClick={activate}
+          >
+            <AppGlyph
+              name={glyphForDocumentLinkKind(ambiguous() ? 'document' : props.segment.linkKind)}
+              class="document-inline-link__icon"
+            />
+            <HighlightedLabel
+              text={props.segment.value + (props.closing ?? '')}
+              query={props.query}
+              exactQuery={props.exactQuery}
+              fuzzyQuery={props.fuzzyQuery}
+              highlightClass={props.highlightClass}
+              ranges={props.ranges}
+              unitId={props.unitId}
+              activeStart={props.activeStart}
+              rangeOffset={props.rangeOffset}
+            />
+          </button>
+        </InlineLinkFrame>
       </Popover.Anchor>
       <Show when={canPreview()}>
         <Popover.Portal>
@@ -493,7 +564,7 @@ function LinkedPlainText(props: {
   readonly rangeOffset?: number | undefined;
 }): JSX.Element {
   return (
-    <For each={withTextOffsets(segmentTextWithToolLinks(props.text))}>
+    <For each={withInlineLinkPunctuation(segmentTextWithToolLinks(props.text))}>
       {(segment) => {
         if (segment.kind === 'text') {
           return (
@@ -517,16 +588,12 @@ function LinkedPlainText(props: {
                     {(urlSegment) =>
                       urlSegment.kind === 'url' ? (
                         <a
-                          class="document-inline-link"
+                          class="document-inline-link document-inline-link--flow"
                           href={urlSegment.href}
                           target="_blank"
                           rel="noopener noreferrer"
                           title={urlSegment.href}
                         >
-                          <AppGlyph
-                            name="arrow-square-up-right"
-                            class="document-inline-link__icon"
-                          />
                           <HighlightedLabel
                             text={urlSegment.label ?? externalUrlLabel(urlSegment.href)}
                             query={props.query}
@@ -579,31 +646,38 @@ function LinkedPlainText(props: {
         }
         const assessment = segment.kind === 'assessment';
         return (
-          <button
-            type="button"
-            class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
-            onClick={() =>
-              assessment
-                ? openAssessment(segment.slug, { preferWindow: true })
-                : openCalculator(segment.slug, { preferWindow: true })
-            }
+          <InlineLinkFrame
+            {...props}
+            opening={segment.opening}
+            rangeOffset={(props.rangeOffset ?? 0) + segment.offset}
           >
-            <AppGlyph
-              name={assessment ? 'list-checks' : 'calculator'}
-              class="document-inline-link__icon"
-            />
-            <HighlightedLabel
-              text={segment.value}
-              query={props.query}
-              exactQuery={props.exactQuery}
-              fuzzyQuery={props.fuzzyQuery}
-              highlightClass={props.highlightClass}
-              ranges={props.ranges}
-              unitId={props.unitId}
-              activeStart={props.activeStart}
-              rangeOffset={(props.rangeOffset ?? 0) + segment.offset}
-            />
-          </button>
+            <button
+              type="button"
+              class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
+              aria-label={segment.closing ? segment.value : undefined}
+              onClick={() =>
+                assessment
+                  ? openAssessment(segment.slug, { preferWindow: true })
+                  : openCalculator(segment.slug, { preferWindow: true })
+              }
+            >
+              <AppGlyph
+                name={assessment ? 'list-checks' : 'calculator'}
+                class="document-inline-link__icon"
+              />
+              <HighlightedLabel
+                text={segment.value + (segment.closing ?? '')}
+                query={props.query}
+                exactQuery={props.exactQuery}
+                fuzzyQuery={props.fuzzyQuery}
+                highlightClass={props.highlightClass}
+                ranges={props.ranges}
+                unitId={props.unitId}
+                activeStart={props.activeStart}
+                rangeOffset={(props.rangeOffset ?? 0) + segment.offset}
+              />
+            </button>
+          </InlineLinkFrame>
         );
       }}
     </For>
@@ -668,8 +742,8 @@ function InlineDocumentText(props: {
           </button>
         ) : (
           <For
-            each={withTextOffsets(
-              props.segmentDocumentLinks?.(part.value) ?? [
+            each={withInlineLinkPunctuation(
+              (props.onDocumentLink && props.segmentDocumentLinks?.(part.value)) ?? [
                 { kind: 'text' as const, value: part.value },
               ],
             )}
@@ -688,6 +762,8 @@ function InlineDocumentText(props: {
                   unitId={props.unitId}
                   activeStart={props.activeStart}
                   rangeOffset={(props.rangeOffset ?? 0) + part.offset + segment.offset}
+                  opening={segment.opening}
+                  closing={segment.closing}
                 />
               ) : (
                 <LinkedPlainText

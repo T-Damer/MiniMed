@@ -65,6 +65,14 @@ describe('registry lines', () => {
 });
 
 describe('a chunk as the reader shows it', () => {
+  it('restores word boundaries around adjacent bold spans in the reference text', () => {
+    const raw =
+      '1. **Витамин-D-дефицитного****рахита**(кальцийпенического, фосфоропенического варианта)';
+    expect(readerChunkFindText(raw, 'Классификация', 'krasotaimedicina_reference')).toBe(
+      'Витамин-D-дефицитного рахита (кальцийпенического, фосфоропенического варианта)',
+    );
+  });
+
   it('cleans a technical card of a guideline', () => {
     const raw =
       'Название: Внебольничная пневмония у взрослых. Объявленные алиасы: внебольничная пневмония, ВП. Ключевые слова: не указано в каталоге. Официальный идентификатор: 654_2. МКБ-10: J13, J14. Специальности: pulmonology, allergology-immunology. Возрастные категории: Взрослые.\n\nПолные данные находятся в скачиваемом модуле «minimed.clinical.respiratory-allergy.ru» и не дублируются в ядре.';

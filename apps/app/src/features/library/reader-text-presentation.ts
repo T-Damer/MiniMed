@@ -78,6 +78,12 @@ export function presentReaderChunkText(
     result = result.replace(pattern, replacement);
   }
   result = dropRegistryIdentifiers(result);
+  if (sourceType === 'krasotaimedicina_reference' && result.includes('**')) {
+    // The reference extractor trimmed whitespace at inline tag boundaries.
+    result = result
+      .replace(/(?<=[a-zа-яё\d])\*{4}(?=[a-zа-яё\d])/giu, '** **')
+      .replace(/(?<=[a-zа-яё\d])\*\*\((?=[a-zа-яё\d])/giu, '** (');
+  }
   // A first line that repeats the heading, look-alike letters in codes, symbol-font characters.
   result = normalizeReaderText(withoutSectionTitleEcho(result, sectionTitle));
   // Lines of an official instruction that the PDF wrapped are one paragraph again. The marks keep

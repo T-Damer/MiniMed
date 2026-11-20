@@ -253,10 +253,12 @@ export function normalizeReaderText(text: string): string {
   return caretSuperscripts(result);
 }
 
-/** Display spacing around punctuation, including soft line breaks left by an extractor. */
+/** Remove discretionary hyphens and stray spacing around punctuation in displayed prose. */
 export function tightenProsePunctuation(text: string): string {
   return text
+    .replaceAll('\u00ad', '')
     .replace(/(?<=\S)[ \t\r\n\u00a0\u202f]+(?=[,;!?…)\]»]|\.(?!\d))/gu, '')
+    .replace(/(?<=\d)[ \t]+(?=%)/gu, '\u00a0')
     .replace(/(?<=[([«])[ \t\r\n\u00a0\u202f]+(?=\S)/gu, '');
 }
 

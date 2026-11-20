@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.122] - 2026-11-20
+
+- Wrap clinical and reference prose at word boundaries. Keep punctuation with linked terms and percentage signs with their numbers.
+- Restore missing spaces around inline formatting in reference articles and remove discretionary hyphens from displayed text and in-document find.
+
 ## [0.6.121] - 2026-11-20
 
 - Temporarily hide suggested searches, clarification chips, and automatic calculator suggestions. Direct searches and explicitly selected tools remain available.

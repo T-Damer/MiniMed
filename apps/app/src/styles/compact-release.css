@@ -2222,6 +2222,7 @@ fieldset.search-mode-picker {
 .document-text-list__item {
   margin: 0.25rem 0;
   line-height: 1.55;
+  hyphens: none;
 }
 
 .document-text-chunk {

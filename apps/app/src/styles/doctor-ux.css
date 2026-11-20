@@ -505,6 +505,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
 .document-overlay-section__paragraph {
   max-width: 74ch;
   margin: 0 0 0.9em;
+  hyphens: none;
   /* 14px body text on phones was below comfortable reading size for long guidelines. */
   font-size: var(--document-text-size, 1rem);
   line-height: 1.62;
@@ -1155,6 +1156,10 @@ html.app-chrome-hidden .document-overlay-paper::before {
   text-underline-offset: var(--theme-text-underline-offset);
 }
 
+.document-inline-link--flow {
+  display: inline;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .document-inline-link:hover {
     color: var(--inline-link-hover);
@@ -1168,6 +1173,12 @@ html.app-chrome-hidden .document-overlay-paper::before {
 .document-inline-preview {
   position: relative;
   display: inline;
+}
+
+.document-inline-link-frame {
+  display: inline-flex;
+  align-items: baseline;
+  max-inline-size: 100%;
 }
 
 .document-inline-preview__card {
