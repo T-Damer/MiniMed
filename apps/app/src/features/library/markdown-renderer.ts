@@ -1,9 +1,10 @@
 import DOMPurify from 'dompurify';
 import { toHtml } from 'hast-util-to-html';
 import { type Handler, toHast } from 'mdast-util-to-hast';
-import { visit } from 'unist-util-visit';
+import { CONTINUE, SKIP, visit } from 'unist-util-visit';
 
 import type { ParsedMarkdownDocument } from '@/features/library/markdown-parser';
+import { tightenProsePunctuation } from '@/features/library/reader-text-normalization';
 
 type RenderedHastRoot = Extract<ReturnType<typeof toHast>, { type: 'root' }>;
 type RenderedHastElement = Extract<RenderedHastRoot['children'][number], { type: 'element' }>;
@@ -146,6 +147,18 @@ export function renderMarkdownHtml(
   });
   if (hast?.type !== 'root') return '';
   decorateHast(hast, lazyBlocks);
+  visit(hast, (node) => {
+    if (
+      node.type === 'element' &&
+      (node.tagName === 'pre' ||
+        node.tagName === 'code' ||
+        node.tagName === 'table' ||
+        hasClass(node, 'safe-markdown__math-inline'))
+    )
+      return SKIP;
+    if (node.type === 'text') node.value = tightenProsePunctuation(node.value);
+    return CONTINUE;
+  });
   return toHtml(hast, { allowDangerousHtml: true });
 }
 

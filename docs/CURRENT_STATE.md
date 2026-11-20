@@ -60,6 +60,21 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Release 0.6.121 — 2026-11-20
+
+Search examples, clarification chips, and automatic calculator suggestions are hidden for now.
+Named search results, disambiguation, and explicitly selected tools remain available. The shared
+document-link matcher is built after an actual query or when a reader needs links.
+
+Reader prose joins punctuation orphaned by extraction and keeps an opening bracket with the
+following text. Imported Markdown repairs spacing in its rendered prose while keeping code,
+tables, the stored source, and document anchors intact.
+
+The 0.6.120 export also contained a 0.6.119 session. Its reported 96% reader drop rate included an
+18.9-minute background suspension. Reanalyzing the mixed log without the suspended interaction
+window gives 15% missed refreshes in the sampled reader interactions. Frame sampling now ends
+when the app is hidden. On the newest session, the installed-library reload still took 12.3 s.
+
 ## Release 0.6.120 — 2026-11-20
 
 - The Settings back arrow opens its parent even if restoring the tab left Search immediately

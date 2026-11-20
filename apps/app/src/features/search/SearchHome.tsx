@@ -34,7 +34,6 @@ import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interac
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { ICD11_COLLECTION, icd11ChapterDocuments } from '@/features/icd11/icd11-document';
 import { preferReadableDocuments } from '@/features/library/document-display';
-import { prepareDocumentLinksWhenIdle } from '@/features/library/document-link-prewarm';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
 import {
   createUserLibraryDocuments,
@@ -693,7 +692,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         const previous = untrack(listedDocuments);
         if (!previous || !sameDocumentList(previous, next)) setListedDocuments(next);
         setCatalogError(undefined);
-        prepareDocumentLinksWhenIdle(result.value);
       } else {
         setCatalogLoading(false);
         setCatalogError(result.error.message);

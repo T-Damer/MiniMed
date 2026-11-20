@@ -4,6 +4,12 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.121] - 2026-11-20
+
+- Temporarily hide suggested searches, clarification chips, and automatic calculator suggestions. Direct searches and explicitly selected tools remain available.
+- Keep punctuation and opening brackets attached to the adjacent words in the reader, including when imported text put them on separate lines.
+- Build the shared document-link index on demand and exclude background suspension from dropped-frame reports.
+
 ## [0.6.120] - 2026-11-20
 
 - Return to the parent Settings screen when the back arrow is used from a restored subsection.

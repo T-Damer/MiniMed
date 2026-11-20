@@ -9,60 +9,14 @@ async function openHomeSection(page: Page, name: string): Promise<void> {
 }
 
 for (const width of [390, 1280]) {
-  test(`example arrows sit on the chips row and are fully visible at ${width}px`, async ({
+  test(`suggested queries stay hidden while search and sections remain at ${width}px`, async ({
     page,
-  }, testInfo) => {
+  }) => {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    const row = page.locator('.example-row');
-    await row.scrollIntoViewIfNeeded();
-    const chips = page.locator('.example-scroll-content__chip');
-    // Scroll the chips so both arrows show.
-    await chips.nth(1).hover();
-    await chips.nth(2).scrollIntoViewIfNeeded();
-    // The row scrolls smoothly; an arrow counted mid-scroll can vanish when the end is reached, so
-    // wait until the scroll position stops changing before reading the arrows.
-    const viewport = page.locator('.example-scroll__viewport [data-overlayscrollbars-viewport]');
-    let lastLeft = -1;
-    await expect
-      .poll(async () => {
-        const left = await viewport.evaluate((element) => element.scrollLeft).catch(() => 0);
-        const settled = left === lastLeft;
-        lastLeft = left;
-        return settled;
-      })
-      .toBe(true);
-    // The tool row above has arrows of its own since a first run pins tools: scope to the examples.
-    const next = row.locator('.horizontal-scroll-control.next');
-    const previous = row.locator('.horizontal-scroll-control.previous');
-    // Wide screens fit every chip, so there is nothing to scroll and no arrow to measure.
-    if ((await next.or(previous).count()) === 0) {
-      await row.screenshot({ path: testInfo.outputPath(`examples-${width}.png`) });
-      return;
-    }
-    await expect(next.or(previous).first()).toBeVisible();
-
-    const chip = await chips.first().boundingBox();
-    if (!chip) throw new Error('No chip');
-    const chipCentre = chip.y + chip.height / 2;
-    for (const arrow of [next, previous]) {
-      if ((await arrow.count()) === 0) continue;
-      const box = await arrow.boundingBox();
-      if (!box) throw new Error('No arrow box');
-      expect(Math.abs(box.y + box.height / 2 - chipCentre)).toBeLessThanOrEqual(2);
-      // Not clipped: every corner of the arrow hits the arrow (or its icon), not a clipping parent.
-      const hits = await arrow.evaluate((element) => {
-        const rect = element.getBoundingClientRect();
-        return [
-          [rect.left + 1, rect.top + 1],
-          [rect.right - 1, rect.top + 1],
-          [rect.left + 1, rect.bottom - 1],
-          [rect.right - 1, rect.bottom - 1],
-        ].map(([x, y]) => element.contains(document.elementFromPoint(x ?? 0, y ?? 0)));
-      });
-      expect(hits).toEqual([true, true, true, true]);
-    }
-    await row.screenshot({ path: testInfo.outputPath(`examples-${width}.png`) });
+    await expect(page.getByTestId('search-input')).toBeVisible();
+    await expect(page.locator('.search-sections__row').first()).toBeVisible();
+    await expect(page.locator('.example-row')).toHaveCount(0);
   });
 }
 

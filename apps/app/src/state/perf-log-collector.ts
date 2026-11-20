@@ -331,6 +331,10 @@ function sampleFramesOnInteraction(): void {
   };
   const tick = (time: number): void => {
     frame = 0;
+    if (document.visibilityState !== 'visible') {
+      finish();
+      return;
+    }
     if (last > 0) {
       const delta = time - last;
       frames += 1;
@@ -347,23 +351,34 @@ function sampleFramesOnInteraction(): void {
       lastTop = pageTop();
     }
     last = time;
-    if (time < until && document.visibilityState === 'visible') {
+    if (time < until) {
       frame = requestAnimationFrame(tick);
     } else {
       finish();
     }
   };
   const arm = (): void => {
+    if (document.visibilityState !== 'visible') return;
     until = performance.now() + INTERACTION_WINDOW_MS;
     if (frame === 0) frame = requestAnimationFrame(tick);
   };
   const options = { capture: true, passive: true } as const;
   const events = ['pointerdown', 'keydown', 'wheel', 'scroll', 'touchmove'] as const;
   for (const name of events) document.addEventListener(name, arm, options);
-  stopFns.push(() => {
-    for (const name of events) document.removeEventListener(name, arm, options);
+  const endWindow = (): void => {
     if (frame !== 0) cancelAnimationFrame(frame);
     frame = 0;
+    until = 0;
+    finish();
+  };
+  const onVisibility = (): void => {
+    if (document.visibilityState === 'hidden') endWindow();
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+  stopFns.push(() => {
+    for (const name of events) document.removeEventListener(name, arm, options);
+    document.removeEventListener('visibilitychange', onVisibility);
+    endWindow();
   });
 }
 

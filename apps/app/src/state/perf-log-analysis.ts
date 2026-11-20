@@ -200,6 +200,9 @@ export function analysePerfLog(file: Pick<PerfLogFile, 'sessions'>): PerfAnalysi
   };
 
   for (const session of file.sessions) {
+    const hiddenTimes = session.entries.flatMap((entry) =>
+      entry.k === 'vis' && entry.n === 'hidden' ? [entry.t] : [],
+    );
     // Frames the browser had buffered before the switch was turned on come with t < 0.
     const firstAt = session.entries.reduce((low, entry) => Math.min(low, entry.t), 0);
     const spanMs = session.durationMs - firstAt;
@@ -233,6 +236,9 @@ export function analysePerfLog(file: Pick<PerfLogFile, 'sessions'>): PerfAnalysi
         if (inRanges(entry.t, recordingRanges)) blockedRecording += blocking(entry);
         else blockedOther += blocking(entry);
       } else if (entry.k === 'jank') {
+        const windowEnd = entry.t + (entry.d ?? 0);
+        // Early collectors counted time suspended in the background as one frame.
+        if (hiddenTimes.some((hiddenAt) => hiddenAt >= entry.t && hiddenAt < windowEnd)) continue;
         const key = entry.s ?? '?';
         const row = jank.get(key) ?? {
           screen: key,

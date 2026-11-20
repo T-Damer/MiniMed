@@ -232,6 +232,8 @@ const SearchInlineCalculatorWorkspace = lazy(async () => {
   return { default: calculatorModule.InlineCalculatorWorkspace };
 });
 
+const SHOW_SEARCH_SUGGESTIONS = false;
+
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
   conditions: ['J18', 'Головная боль', 'Отёк'],
   icd11: ['1A00', 'BA41', 'Холера'],
@@ -424,14 +426,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   );
   // The matcher over every document name is built when the browser is idle, not in the task that
   // receives the list: that task already builds the home catalog (1.7 s in one piece at phone speed).
-  const linkDocuments = createDeferred(contextDocuments, { timeoutMs: 2000 });
-  // The same matcher the home prepares for the readers, built once, in slices: a second copy built
-  // here in one piece was a 0.5 s step at phone speed.
+  const linkDocuments = createDeferred(() => (response() ? contextDocuments() : undefined), {
+    timeoutMs: 2000,
+  });
+  // Search only needs the shared matcher to disambiguate actual results.
   const [queryLinkMatcher, setQueryLinkMatcher] =
     createSignal<DocumentLinkMatcher>(EMPTY_LINK_MATCHER);
   createEffect(() => {
     const documents = linkDocuments();
-    if (documents.length === 0) {
+    if (!documents?.length) {
       setQueryLinkMatcher(() => EMPTY_LINK_MATCHER);
       return;
     }
@@ -1019,6 +1022,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const calculatorSuggestion = createMemo(() => {
     const searched = response();
     if (
+      !SHOW_SEARCH_SUGGESTIONS ||
       explicitCalculator() ||
       !searched ||
       props.scope === 'personal' ||
@@ -1226,7 +1230,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       return;
     }
     analysisTimer = setTimeout(async () => {
-      const result = await core.analyzeQuery({ query: trimmed, includeSuggestions: true });
+      const result = await core.analyzeQuery({
+        query: trimmed,
+        includeSuggestions: SHOW_SEARCH_SUGGESTIONS,
+      });
       if (searchableQuery(query()) !== trimmed) return;
       setAnalysisLoading(false);
       if (result.ok) {
@@ -1435,7 +1442,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       analysisMode: props.scope === 'diagnosis' ? ('clinical' as const) : ('lookup' as const),
       filters: props.filters ?? {},
       limit: 20,
-      includeSuggestions: props.scope === 'diagnosis',
+      includeSuggestions: SHOW_SEARCH_SUGGESTIONS && props.scope === 'diagnosis',
       ...(everywhere ? { sourceNames: false } : {}),
     };
     // Answer at once with what is ready: right after a start the full search waits for its
@@ -2045,7 +2052,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
           {(analysis) => (
             <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
-              <Show when={analysis().suggestions.length > 0}>
+              <Show when={SHOW_SEARCH_SUGGESTIONS && analysis().suggestions.length > 0}>
                 <div class="index-row query-index__suggestions">
                   <div class="index-label query-index__label">
                     <span class="index-label__title">Полезно уточнить</span>
@@ -2217,6 +2224,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <Show
           when={
+            SHOW_SEARCH_SUGGESTIONS &&
             (props.showExamples ?? !props.catalog) &&
             props.searchAllowed !== false &&
             !response() &&

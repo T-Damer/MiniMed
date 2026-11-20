@@ -1194,15 +1194,14 @@ test('opens a random record of the current section', async ({ page }) => {
   expect(documentId).toMatch(/kr\.rf\.|clinical/u);
 });
 
-test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
+test('keeps neuroinfection results visible with clarification prompts hidden', async ({ page }) => {
   test.slow();
   await mountBuiltApp(page);
   await waitForSearchEditable(page);
-  // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
   await setClinicalAnalysis(page, true);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
-  await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
   await expect(page.getByTestId('search-results')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toHaveCount(0);
 });
 
 test('shows a settings update checker and nav dot when a web update is waiting', async ({

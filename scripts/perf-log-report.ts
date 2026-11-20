@@ -67,6 +67,8 @@ export function renderPerfReport(
   out.push(
     `- Recorded: ${fixed(analysis.minutes, 1)} min in ${String(analysis.sessions)} session(s), from ${first?.startedAt ?? '?'}; exported ${file.exportedAt}`,
   );
+  const versions = [...new Set(file.sessions.map((session) => session.version))];
+  if (versions.length > 1) out.push(`- Session versions: ${versions.join(', ')}`);
   const vsync = file.sessions.at(-1)?.vsyncMs;
   if (vsync)
     out.push(

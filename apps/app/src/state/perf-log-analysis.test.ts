@@ -166,4 +166,33 @@ describe('analysePerfLog', () => {
     expect(chunkName('index.js')).toBe('index');
     expect(chunkName(undefined)).toBe('(без файла)');
   });
+
+  it('excludes suspended windows without discarding slow foreground frames', () => {
+    const file = syntheticLog();
+    const session = file.sessions[0];
+    if (!session) throw new Error('Missing fixture session');
+    const analysis = analysePerfLog({
+      sessions: [
+        {
+          ...session,
+          entries: [
+            ...session.entries,
+            {
+              t: 105_000,
+              k: 'jank',
+              n: 'frames',
+              s: 'notes',
+              d: 600_000,
+              f: { frames: 5, dropped: 35000, worst: 599000 },
+            },
+            { t: 106_000, k: 'vis', n: 'hidden' },
+            { t: 704_000, k: 'vis', n: 'visible' },
+          ],
+        },
+      ],
+    });
+    expect(analysis.jank).toEqual([
+      expect.objectContaining({ screen: 'notes', frames: 170, dropped: 10, worst: 70 }),
+    ]);
+  });
 });

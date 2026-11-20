@@ -1,8 +1,7 @@
 /**
  * Display repairs of stored source text that the formatting audit (FMT-AUDIT, 2026-11-08) found in
  * every family of documents. They change what the reader shows (and what in-document find
- * searches), never the stored text. Every repair here keeps the text length except the symbol-font
- * and superscript ones, which the reader treats like any other presented text.
+ * searches), never the stored text. The reader builds its highlight ranges from the presented text.
  */
 
 /** Cyrillic letters that look like Latin capitals, and back. */
@@ -252,6 +251,17 @@ export function normalizeReaderText(text: string): string {
   result = cyrillicPrepositions(result);
   result = symbolFontCharacters(result);
   return caretSuperscripts(result);
+}
+
+/** Display spacing around punctuation, including soft line breaks left by an extractor. */
+export function tightenProsePunctuation(text: string): string {
+  return text
+    .replace(/(?<=\S)[ \t\r\n\u00a0\u202f]+(?=[,;!?…)\]»]|\.(?!\d))/gu, '')
+    .replace(/(?<=[([«])[ \t\r\n\u00a0\u202f]+(?=\S)/gu, '');
+}
+
+export function punctuationContinuesProse(previous: string, next: string): boolean {
+  return /[([«]$/u.test(previous) || /^[,;!?…)\]»]|^\.(?!\d)/u.test(next);
 }
 
 function titleKey(value: string): string {

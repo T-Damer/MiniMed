@@ -11,7 +11,11 @@ import {
   SOURCE_BLOCK_SEPARATOR,
   storedBlockCount,
 } from '@/features/library/instruction-text-repair';
-import { joinWrappedLines } from '@/features/library/reader-text-normalization';
+import {
+  joinWrappedLines,
+  punctuationContinuesProse,
+  tightenProsePunctuation,
+} from '@/features/library/reader-text-normalization';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -304,22 +308,28 @@ export function parseDocumentText(
       previousSourceIndex = line.sourceIndex;
       continue;
     }
-    const bullet = /^[•▪◦●○·*+\-–—−]\s+(.+)$/u.exec(line.text);
+    const prose = !inFence && !line.text.startsWith('```');
+    const text = prose ? tightenProsePunctuation(line.text) : line.text;
+    const bullet = /^[•▪◦●○·*+\-–—−]\s+(.+)$/u.exec(text);
     if (bullet?.[1]) {
       blocks.push({ kind: 'bullet', text: bullet[1] });
       activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
       previousSourceIndex = line.sourceIndex;
       continue;
     }
-    const ordered = /^(\d+)[.)]\s+(.+)$/u.exec(line.text);
+    const ordered = /^(\d+)[.)]\s+(.+)$/u.exec(text);
     if (ordered?.[1] && ordered[2]) {
-      blocks.push({ kind: 'ordered', ordinal: Number(ordered[1]), text: ordered[2] });
+      blocks.push({
+        kind: 'ordered',
+        ordinal: Number(ordered[1]),
+        text: ordered[2],
+      });
       activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
       previousSourceIndex = line.sourceIndex;
       continue;
     }
     if (implicitList.has(lineIndex)) {
-      blocks.push({ kind: 'bullet', text: line.text });
+      blocks.push({ kind: 'bullet', text });
       activeListIndent = sourceSpanLeft(sourceSpans, line.sourceIndex);
       previousSourceIndex = line.sourceIndex;
       continue;
@@ -337,8 +347,17 @@ export function parseDocumentText(
       (currentLeft !== undefined ||
         line.sourceIndex === previousSourceIndex ||
         /^[a-zа-яёα-ω]/u.test(line.text));
-    if (continuesList) {
-      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, line.text) };
+    if (
+      prose &&
+      (previous?.kind === 'paragraph' ||
+        previous?.kind === 'bullet' ||
+        previous?.kind === 'ordered') &&
+      !/^#{1,6}\s/u.test(text) &&
+      punctuationContinuesProse(previous.text, text)
+    ) {
+      blocks[blocks.length - 1] = { ...previous, text: previous.text + text };
+    } else if (continuesList) {
+      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, text) };
     } else if (
       previous?.kind === 'paragraph' &&
       !/[.!?;:]$/u.test(previous.text) &&
@@ -349,9 +368,9 @@ export function parseDocumentText(
       previousSourceIndex !== undefined &&
       Math.abs(currentLeft - (sourceSpanLeft(sourceSpans, previousSourceIndex) ?? currentLeft)) < 4
     ) {
-      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, line.text) };
+      blocks[blocks.length - 1] = { ...previous, text: joinWrappedLines(previous.text, text) };
     } else {
-      blocks.push({ kind: 'paragraph', text: line.text });
+      blocks.push({ kind: 'paragraph', text });
       activeListIndent = undefined;
     }
     previousSourceIndex = line.sourceIndex;

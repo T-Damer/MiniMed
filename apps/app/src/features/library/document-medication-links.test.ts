@@ -11,6 +11,17 @@ import {
   segmentTextWithMedicationLinks,
 } from '@/features/library/document-medication-links';
 
+it('keeps extracted closing punctuation and opening brackets with their prose', () => {
+  expect(parseDocumentText('Слово, слово, слово\n;\n\nSome sentence (\n\nexplanation).')).toEqual([
+    { kind: 'paragraph', text: 'Слово, слово, слово;' },
+    { kind: 'paragraph', text: 'Some sentence (explanation).' },
+  ]);
+  expect(parseDocumentText('• Сначала слово ;\n\n• Потом ( объяснение )')).toEqual([
+    { kind: 'bullet', text: 'Сначала слово;' },
+    { kind: 'bullet', text: 'Потом (объяснение)' },
+  ]);
+});
+
 const medication = (
   id: string,
   title: string,
