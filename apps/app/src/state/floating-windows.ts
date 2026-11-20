@@ -292,7 +292,7 @@ export function createFloatingWindows() {
     const width = Math.min(FLOATING_TOOLBAR_WIDTH, viewport.width);
     const height = Math.min(DOCK_HEIGHT, viewport.height);
     const dock = state.dock ?? {
-      edge: state.x + state.width / 2 < viewport.width / 2 ? 'left' : 'right',
+      edge: 'right',
       y: state.y,
     };
     return {

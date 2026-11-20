@@ -9,6 +9,7 @@ const bridge = vi.hoisted(() => ({
   checkPermissions: vi.fn(),
   requestPermissions: vi.fn(),
   update: vi.fn(),
+  launchUrl: vi.fn(),
   status: undefined as ((value: { presented: boolean }) => void) | undefined,
   openRecording: undefined as (() => void) | undefined,
   openUrl: undefined as ((value: { url: string }) => void) | undefined,
@@ -25,7 +26,7 @@ vi.mock('@capacitor/core', () => ({
     notificationSettings: bridge.notificationSettings,
     addListener: (event: string, listener: (value?: { presented: boolean }) => void) => {
       if (event === 'openRecording') bridge.openRecording = listener;
-      else bridge.status = listener;
+      if (event === 'presentationChanged') bridge.status = listener;
       return Promise.resolve();
     },
   }),
@@ -41,6 +42,7 @@ vi.mock('@/state/app-preferences', () => ({
 }));
 vi.mock('@capacitor/app', () => ({
   App: {
+    getLaunchUrl: bridge.launchUrl,
     addListener: (_event: string, listener: typeof bridge.openUrl) => {
       bridge.openUrl = listener;
       return Promise.resolve();
@@ -58,6 +60,7 @@ beforeEach(() => {
   bridge.checkPermissions.mockReset();
   bridge.requestPermissions.mockReset();
   bridge.update.mockReset();
+  bridge.launchUrl.mockReset().mockResolvedValue(undefined);
   bridge.status = undefined;
   bridge.openRecording = undefined;
   bridge.openUrl = undefined;
@@ -71,6 +74,19 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.unstubAllGlobals());
+
+it('delivers a cold launch action for the exact recording before a recorder is running', async () => {
+  bridge.launchUrl.mockResolvedValue({ url: 'minimed-recording://open?id=conv-interrupted' });
+  const { watchNativeRecordingActions } = await import(
+    '@/features/conversations/native-recording-activity'
+  );
+  const action = vi.fn();
+  const unwatch = watchNativeRecordingActions(action);
+  await vi.waitFor(() => expect(action).toHaveBeenCalledWith('open', 'conv-interrupted'));
+  bridge.openUrl?.({ url: 'minimed-recording://stop?id=conv-interrupted' });
+  expect(action).toHaveBeenLastCalledWith('stop', 'conv-interrupted');
+  unwatch();
+});
 
 describe('system recording indicator', () => {
   it('keeps the app indicator when the device has no usable native surface', async () => {

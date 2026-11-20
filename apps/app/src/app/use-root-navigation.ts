@@ -13,6 +13,7 @@ import { medicalImageViewerActive } from '@/features/library/document-reading-mo
 import { visitRoute } from '@/state/app-back';
 import { isDocumentReadRoute } from '@/state/document-route';
 import { currentHistoryEntry, installHistoryEntryTracking } from '@/state/history-entries';
+import { perfLogOn, perfSpan } from '@/state/perf-log';
 import { extendReaderChromeHold, READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { readerChromePinned } from '@/state/reader-chrome-pin';
 import { installScrollRestoration, rememberedScroll } from '@/state/scroll-restore';
@@ -92,6 +93,10 @@ export function useRootNavigation() {
   const moveToRootView = (next: RootView): boolean => {
     if (view() === next) return false;
     const mounted = mountedViews().has(next);
+    if (perfLogOn()) {
+      const end = perfSpan('navigation.first-frame', { view: next, mounted });
+      requestAnimationFrame(() => requestAnimationFrame(() => end()));
+    }
     setView(next);
     setMountedViews((current) => {
       if (current.has(next)) return current;

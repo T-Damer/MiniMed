@@ -22,7 +22,7 @@
 }
 
 /* The recording button sits in the same place: this one stands above it. */
-:root:has(.recorder-fab) .search-more-below {
+:root:has(.recorder-fab:not(.recorder-fab--hidden)) .search-more-below {
   bottom: calc(var(--bottom-nav-clearance, 4.75rem) + 0.25rem + 2.75rem + 0.5rem);
 }
 

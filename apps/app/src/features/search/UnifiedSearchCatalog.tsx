@@ -4,6 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalTags } from '@/components/ClinicalTags';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
+import type { InstalledMountProgress } from '@/features/modules/browser-module-runtime';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchSectionWait } from '@/features/search/SearchSectionWait';
 import type { SearchCoreStatus } from '@/features/search/search-core-status';
@@ -20,6 +21,9 @@ export function UnifiedSearchCatalog(props: {
   readonly core?: MedicalCore | undefined;
   /** Why the core is not ready yet; undefined once it is. */
   readonly coreStatus?: SearchCoreStatus | undefined;
+  readonly installedProgress?: InstalledMountProgress | undefined;
+  readonly onRetryCore?: (() => void) | undefined;
+  readonly onDownloadCore?: (() => void) | undefined;
   readonly scope: SearchScope;
   readonly query: string;
   readonly hideDocuments?: boolean;
@@ -87,7 +91,12 @@ export function UnifiedSearchCatalog(props: {
       <Show when={!props.hideDocuments && !tools() && !props.query.trim()}>
         {/* One loading state until the catalog stands: it names the waiting core and its progress. */}
         <Show when={props.loading || (!props.core && !props.error)}>
-          <SearchSectionWait status={props.coreStatus} />
+          <SearchSectionWait
+            status={props.coreStatus}
+            installedProgress={props.installedProgress}
+            onRetry={props.onRetryCore}
+            onDownload={props.onDownloadCore}
+          />
         </Show>
         <Show when={props.error}>
           {(message) => (

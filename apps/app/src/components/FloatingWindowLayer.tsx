@@ -8,6 +8,7 @@ import {
   FLOATING_TOOLBAR_WIDTH,
   type FloatingWindowState,
 } from '@/state/floating-windows';
+import { motionMs } from '@/state/motion';
 
 type FloatingWindowsManager = ReturnType<typeof createFloatingWindows>;
 
@@ -70,6 +71,8 @@ function FloatingWindowSlot(props: {
   readonly windowState: () => FloatingWindowState;
   readonly onClose: (id: string) => void;
 }): JSX.Element {
+  let panel: HTMLElement | undefined;
+  let transition: Animation | undefined;
   const id = () => props.windowState().id;
   const view = () => props.windowState().view;
   const isActive = () => props.manager.activeWindowId() === id();
@@ -79,6 +82,34 @@ function FloatingWindowSlot(props: {
 
   const windowState = () => props.windowState();
   const displayWindowState = () => props.manager.displayWindowFor(id()) ?? windowState();
+  const dockOnLeft = () => windowState().dock?.edge === 'left';
+  const toggleFullscreen = (): void => {
+    const node = panel;
+    const duration = motionMs(240);
+    if (!node || !duration) {
+      props.manager.toggleFullscreen(id());
+      return;
+    }
+    const from = node.getBoundingClientRect();
+    transition?.cancel();
+    props.manager.toggleFullscreen(id());
+    queueMicrotask(() => {
+      if (!node.isConnected) return;
+      const to = node.getBoundingClientRect();
+      if (to.width <= 0 || to.height <= 0) return;
+      // Commit the iframe's final viewport once. The flight is a compositor transform.
+      transition = node.animate(
+        [
+          {
+            transform: `translate(${from.x - to.x}px, ${from.y - to.y}px) scale(${from.width / to.width}, ${from.height / to.height})`,
+          },
+          { transform: 'none' },
+        ],
+        { duration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      );
+    });
+  };
+  onCleanup(() => transition?.cancel());
   const style = () => {
     const current = displayWindowState();
     if (isFullscreen()) {
@@ -106,6 +137,7 @@ function FloatingWindowSlot(props: {
 
   return (
     <section
+      ref={panel}
       class="floating-window"
       classList={{
         'floating-window--active': isActive(),
@@ -113,6 +145,7 @@ function FloatingWindowSlot(props: {
         'floating-window--stacked': props.manager.stacked(),
         'floating-window--resizing': props.manager.resizingWindowId() === id(),
         'floating-window--collapsed': isCollapsed(),
+        'floating-window--docked-left': isCollapsed() && dockOnLeft(),
         'floating-window--fullscreen': isFullscreen(),
       }}
       style={style()}
@@ -155,7 +188,7 @@ function FloatingWindowSlot(props: {
               aria-label={isFullscreen() ? 'Свернуть в маленькое окно' : 'Открыть на весь экран'}
               title={isFullscreen() ? 'Свернуть в маленькое окно' : 'На весь экран'}
               onPointerDown={(event) => event.stopPropagation()}
-              onClick={() => props.manager.toggleFullscreen(id())}
+              onClick={toggleFullscreen}
             >
               <AppGlyph
                 name={isFullscreen() ? 'arrows-in' : 'arrows-out'}
@@ -175,7 +208,7 @@ function FloatingWindowSlot(props: {
               onClick={() => props.manager.toggleCollapsed(id())}
             >
               <AppGlyph
-                name={isCollapsed() ? 'caret-right' : 'caret-left'}
+                name={isCollapsed() === dockOnLeft() ? 'caret-right' : 'caret-left'}
                 class="floating-window__icon"
               />
             </button>

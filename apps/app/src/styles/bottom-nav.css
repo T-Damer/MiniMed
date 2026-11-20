@@ -61,6 +61,11 @@
   place-items: center;
 }
 
+.app-bottom-nav--toolbar {
+  background: #3a3933;
+  backdrop-filter: none;
+}
+
 .app-bottom-nav__bubble {
   box-sizing: border-box;
   position: absolute;

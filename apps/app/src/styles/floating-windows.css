@@ -21,6 +21,7 @@ html:not(:has(.app-bottom-nav)) .floating-windows-layer {
   box-sizing: border-box;
   flex-direction: row;
   margin: 0;
+  transform-origin: top left;
   overflow: hidden;
   border: 1px solid var(--theme-border-strong);
   border-radius: 0.875rem;
@@ -85,12 +86,14 @@ html:not(:has(.app-bottom-nav)) .floating-windows-layer {
 .floating-window__toolbar--fullscreen {
   min-height: calc(var(--floating-window-toolbar-height) + var(--safe-top));
   padding-top: calc(0.1875rem + var(--safe-top));
+  background: var(--theme-surface-raised);
 }
 
 .floating-window__toolbar--rail {
   flex: 0 0 calc(var(--floating-window-rail-width) - 2px);
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
   justify-items: center;
   padding: 0.25rem 0;
   border-right: 1px solid var(--theme-border);
@@ -114,13 +117,14 @@ html:not(:has(.app-bottom-nav)) .floating-windows-layer {
 
 .floating-window__actions--vertical {
   flex-direction: column;
+  align-self: end;
 }
 
 .floating-window__title--vertical {
-  justify-self: stretch;
+  justify-self: center;
   min-height: 0;
   max-height: 100%;
-  align-self: stretch;
+  align-self: center;
   display: block;
   margin-inline: auto;
   padding-block: 0.125rem;
@@ -389,6 +393,10 @@ html:has(.app-shell--floating-child) body::-webkit-scrollbar {
   touch-action: auto;
 }
 
+.app-shell--floating-child .search-home {
+  padding-inline: 0;
+}
+
 .app-shell--floating-child .search-mode-picker__option {
   flex: 1 1 calc(50% - 0.125rem);
 }
@@ -520,4 +528,13 @@ html:has(.floating-windows-layer--fullscreen) body {
 
 .floating-window--collapsed .floating-window__resize-corner {
   display: none;
+}
+
+.floating-window--collapsed {
+  border-radius: 0.875rem 0 0 0;
+}
+
+.floating-window--docked-left {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0.875rem;
 }

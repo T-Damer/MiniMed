@@ -1720,13 +1720,14 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         title={meta()?.title ?? 'Изображение'}
         class="user-doc-image-lightbox"
         bodyClass="user-doc-image-lightbox__body"
+        headerClass="user-doc-image-lightbox__header"
         presentation="screen"
         onClose={() => setImageLightboxOpen(false)}
       >
         <Show when={imageUrl()}>
           {(url) => (
             <PinchZoomSurface
-              class="pinch-zoom-surface pinch-zoom-surface--image"
+              class="pinch-zoom-surface pinch-zoom-surface--image user-doc-image-lightbox__pinch"
               zoomOptions={IMAGE_ZOOM_OPTIONS}
             >
               <img

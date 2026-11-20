@@ -157,6 +157,14 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   /* A definite height, so the body is a measurable free area and the picture is fitted to it. Fitted
      to the window instead, it ran under the title bar and past the bottom edge. */
   height: calc(100dvh - 2rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.user-doc-image-lightbox__header,
+.user-doc-image-lightbox__pinch {
+  pointer-events: auto;
 }
 
 @media (max-width: 760px) {
@@ -171,6 +179,10 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   justify-content: center;
   overflow: hidden;
   container-type: size;
+}
+
+.user-doc-image-lightbox__pinch .pinch-zoom-surface__content--zoomed {
+  background: transparent;
 }
 
 .user-doc-image-lightbox__image {

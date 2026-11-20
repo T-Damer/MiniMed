@@ -215,29 +215,27 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           classList={{ 'document-library-grid--embedded': props.embedded }}
         >
           <Show when={filteredDocuments().length > 0}>
-            <LayoutVirtualizedGrid data={filteredDocuments()} bufferSize={500}>
-              {(document, index) => (
-                <button
-                  class="document-library-card catalog-card paper-card"
-                  type="button"
-                  onClick={() => openDocumentOverlay(document.id)}
-                >
-                  <span class="catalog-card__tags">
-                    <span class="catalog-card__index">{String(index + 1).padStart(2, '0')}</span>
-                    <AppGlyph
-                      name={RESULT_KIND_VISUALS[searchResultDocumentKind(document)].icon}
-                      class="unified-catalog__icon"
-                    />
-                    <ClinicalTags title={document.title} specialties={document.specialties} />
-                  </span>
-                  <strong class="catalog-card__title">
-                    <IcdText text={document.title} />
-                  </strong>
-                  <span class="catalog-card__description">
-                    {RESULT_KIND_VISUALS[searchResultDocumentKind(document)].label}
-                  </span>
-                </button>
-              )}
+            <LayoutVirtualizedGrid data={filteredDocuments()} bufferSize={350} rowSize={116}>
+              {(document, index) => {
+                const visual = RESULT_KIND_VISUALS[searchResultDocumentKind(document)];
+                return (
+                  <button
+                    class="document-library-card catalog-card paper-card"
+                    type="button"
+                    onClick={() => openDocumentOverlay(document.id)}
+                  >
+                    <span class="catalog-card__tags">
+                      <span class="catalog-card__index">{String(index + 1).padStart(2, '0')}</span>
+                      <AppGlyph name={visual.icon} class="unified-catalog__icon" />
+                      <ClinicalTags title={document.title} specialties={document.specialties} />
+                    </span>
+                    <strong class="catalog-card__title">
+                      <IcdText text={document.title} />
+                    </strong>
+                    <span class="catalog-card__description">{visual.label}</span>
+                  </button>
+                );
+              }}
             </LayoutVirtualizedGrid>
           </Show>
           <Show when={filteredDocuments().length === 0}>

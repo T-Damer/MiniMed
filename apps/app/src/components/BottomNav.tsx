@@ -42,6 +42,7 @@ export function BottomNav<V extends string>(props: {
       classList={{
         'app-bottom-nav--dragging': props.dragging(),
         'app-bottom-nav--pressed': props.pressed(),
+        'app-bottom-nav--toolbar': props.tour === 'nav',
       }}
       aria-label={props.label}
       onPointerDown={props.onPointerDown}
@@ -66,8 +67,9 @@ export function BottomNav<V extends string>(props: {
                 aria-label={label()}
                 aria-current={props.view() === item.id ? 'page' : undefined}
                 title={label()}
-                onPointerEnter={() => props.onPrefetch?.(item.id)}
-                onPointerDown={() => props.onPrefetch?.(item.id)}
+                onPointerEnter={(event) => {
+                  if (event.pointerType !== 'touch') props.onPrefetch?.(item.id);
+                }}
                 onClick={() => props.onItemClick(item.id)}
               >
                 <AppGlyph

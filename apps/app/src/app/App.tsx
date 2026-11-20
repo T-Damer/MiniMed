@@ -384,7 +384,7 @@ export function App(): JSX.Element {
     ].filter((view) => view !== navigation.view());
     const idle = (run: () => void): void => {
       if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(run, { timeout: 4000 });
+        window.requestIdleCallback(run);
       } else setTimeout(run, 1500);
     };
     const next = (): void => {
@@ -732,7 +732,10 @@ export function App(): JSX.Element {
           </button>
         </Show>
         <Show when={!embeddedFloatingWindow && !floatingWindows.fullscreenWindowId()}>
-          <ScrollTop scroller={fullscreenReader} />
+          <ScrollTop
+            scroller={() => (navigation.documentReadActive() ? fullscreenReader() : null)}
+            showAfterScreens={navigation.view() === 'news' ? 0.35 : undefined}
+          />
         </Show>
       </div>
     </div>

@@ -19,6 +19,7 @@ export interface ScrollTopProps {
    * called on every scroll, so it may come and go.
    */
   readonly scroller?: () => HTMLElement | null | undefined;
+  readonly showAfterScreens?: number | undefined;
 }
 
 function withoutMotion(): boolean {
@@ -40,8 +41,14 @@ export function ScrollTop(props: ScrollTopProps): JSX.Element {
 
   const scrolledFar = (): boolean => {
     const scroller = props.scroller?.();
-    if (scroller) return scroller.scrollTop > scroller.clientHeight * SHOW_AFTER_SCREENS;
-    return window.scrollY > window.innerHeight * SHOW_AFTER_SCREENS;
+    const height = scroller?.clientHeight ?? window.innerHeight;
+    const top = scroller?.scrollTop ?? window.scrollY;
+    const distance = props.showAfterScreens;
+    if (distance === undefined) return top > height * SHOW_AFTER_SCREENS;
+    if (top <= 0) return false;
+    // A short feed can reach its end before it has moved even half a screen.
+    const scrollHeight = scroller?.scrollHeight ?? document.documentElement.scrollHeight;
+    return top > Math.min(height * distance, Math.max(0, (scrollHeight - height) / 2));
   };
 
   onMount(() => {

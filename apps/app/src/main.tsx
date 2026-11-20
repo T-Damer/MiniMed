@@ -61,9 +61,10 @@ import '@/styles/paper-dots.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
+const floatingChild = new URLSearchParams(window.location.search).has('minimed-floating');
 
 // The opt-in performance log first, so it sees the start-up frames (off: one localStorage read).
-initPerfLog();
+if (!floatingChild) initPerfLog();
 installChunkRecovery();
 const stopMotionManager = installMotionManager();
 const stopPressFeedback = installPressFeedback();
@@ -90,21 +91,34 @@ if (standby) {
   mountApp(root);
 }
 const stopNativeSafeBottomLock = standby ? () => undefined : lockNativeSafeBottom();
-const stopReminderNotifications = standby ? () => undefined : startReminderNotifications();
+const stopReminderNotifications =
+  standby || floatingChild ? () => undefined : startReminderNotifications();
 // The browser's bars take the header's colour (an installed diaries app above all); the Android
 // app colours its own.
 let stopThemeColor = (): void => undefined;
-if (Capacitor.getPlatform() === 'android') {
-  // The transparent status bar shows the page header: its icons take the shade it needs.
-  void Promise.all([import('@/state/web-theme-color'), import('@/state/native-system-ui')])
-    .then(([{ watchTopEdgeContrast }, { setTopEdgeStatusBarIcons }]) => {
-      stopThemeColor = watchTopEdgeContrast(setTopEdgeStatusBarIcons);
-    })
+if (!floatingChild && Capacitor.isNativePlatform()) {
+  void Promise.all([
+    import('@/state/web-theme-color'),
+    import('@/state/native-system-ui'),
+    import('@/state/system-bars'),
+  ])
+    .then(
+      ([
+        { watchTopEdgeContrast },
+        { setTopEdgeStatusBarIcons },
+        { setFloatingFullscreenStatusBar },
+      ]) => {
+        stopThemeColor = watchTopEdgeContrast((darkIcons, floatingFullscreen) => {
+          setTopEdgeStatusBarIcons(darkIcons);
+          setFloatingFullscreenStatusBar(floatingFullscreen ? darkIcons : undefined);
+        });
+      },
+    )
     .catch((cause: unknown) => {
       console.warn('Значки status bar не будут следовать странице:', cause);
     });
 }
-if (!Capacitor.isNativePlatform()) {
+if (!floatingChild && !Capacitor.isNativePlatform()) {
   // Chrome offers its install prompt once, early: the diaries app's install row needs it.
   listenForInstallPrompt();
   // Full screen installed app: the cutout inset pinned, so pulling the bars down moves nothing.
@@ -132,7 +146,7 @@ if (import.meta.hot) {
   });
 }
 
-if (!standby && 'serviceWorker' in navigator && import.meta.env.PROD) {
+if (!standby && !floatingChild && 'serviceWorker' in navigator && import.meta.env.PROD) {
   void registerAppServiceWorker().catch(() => {
     console.warn('Не удалось проверить обновление приложения.');
   });

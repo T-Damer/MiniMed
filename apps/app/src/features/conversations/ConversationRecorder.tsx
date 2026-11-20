@@ -6,6 +6,7 @@ import {
   type JSX,
   lazy,
   Match,
+  onCleanup,
   onMount,
   Show,
   Suspense,
@@ -51,11 +52,13 @@ import './conversation-recorder.css';
 function RecorderFab(): JSX.Element {
   const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
   return (
-    <Show when={conversationSession.recorder() && !conversationSession.windowOpen()}>
+    <Show when={conversationSession.recorder()}>
       <Portal>
         <button
           type="button"
           class="recorder-fab"
+          classList={{ 'recorder-fab--hidden': conversationSession.windowOpen() }}
+          disabled={conversationSession.windowOpen()}
           aria-label={`${conversationSession.paused() ? 'Запись на паузе' : 'Идёт запись беседы'}, ${time()}. Открыть запись`}
           title="Открыть запись"
           data-testid="recorder-fab"
@@ -359,7 +362,7 @@ function RecorderWindow(): JSX.Element {
 
 /** App-wide host: the floating button, the recorder window, the recording sheet, crash recovery. */
 export function ConversationRecorderHost(): JSX.Element {
-  onMount(recoverConversations);
+  onMount(() => onCleanup(recoverConversations()));
   createEffect(() => {
     const message = conversationSession.error();
     if (!message) return;

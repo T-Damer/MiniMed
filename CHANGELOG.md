@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.123] - 2026-11-20
+
+- Show section progress in the section loader. Slice catalog preparation, reduce work during navigation, and time catalog reads and first frames in the performance log.
+- Keep the News header visible behind sheets, show its scroll-to-top control sooner, and close zoomed image previews from the backdrop.
+- Place the round recording control beside the navigation. Add system Stop actions and open the saved recording when a notification relaunches the app.
+- Keep the search session available in floating windows, center their titles, correct the docking controls, and animate transitions to full screen with matching status-bar contrast.
+
 ## [0.6.122] - 2026-11-20
 
 - Wrap clinical and reference prose at word boundaries. Keep punctuation with linked terms and percentage signs with their numbers.

@@ -9,17 +9,32 @@ import { Capacitor, SystemBars, SystemBarsStyle, SystemBarType } from '@capacito
 
 let holds = 0;
 let applied: SystemBarsStyle | undefined;
+let floatingFullscreenDarkIcons: boolean | undefined;
 
 function apply(): void {
   // Android samples the visible surface and writes through LocalMedSystemUi.
   if (Capacitor.getPlatform() !== 'ios') return;
-  const style = holds > 0 ? SystemBarsStyle.Dark : SystemBarsStyle.Default;
+  if (window.parent !== window) return;
+  const style =
+    floatingFullscreenDarkIcons !== undefined
+      ? floatingFullscreenDarkIcons
+        ? SystemBarsStyle.Light
+        : SystemBarsStyle.Dark
+      : holds > 0
+        ? SystemBarsStyle.Dark
+        : SystemBarsStyle.Default;
   if (style === applied) return;
   applied = style;
   SystemBars.setStyle({ style, bar: SystemBarType.StatusBar }).catch((error: unknown) => {
     applied = undefined;
     console.warn('system bars: style not applied', error instanceof Error ? error.name : error);
   });
+}
+
+export function setFloatingFullscreenStatusBar(darkIcons: boolean | undefined): void {
+  if (darkIcons === floatingFullscreenDarkIcons) return;
+  floatingFullscreenDarkIcons = darkIcons;
+  apply();
 }
 
 /** Light status-bar text while a dark surface is under it; call the result to let go. */

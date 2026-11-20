@@ -6,13 +6,15 @@ let savedScrollY = 0;
 export function lockBodyScroll(): () => void {
   if (lockCount === 0) {
     const root = document.documentElement;
-    savedOverflow = document.body.style.overflow;
+    savedOverflow = root.style.overflow;
     savedGutter = root.style.scrollbarGutter;
     savedScrollY = window.scrollY;
     // A page with a classic (space-taking) scrollbar keeps its gutter while locked, so hiding the
     // scrollbar does not widen the page and shift everything under the dialog.
     if (window.innerWidth > root.clientWidth) root.style.scrollbarGutter = 'stable';
-    document.body.style.overflow = 'hidden';
+    // Lock the viewport itself. Making body a scroll container changes which box sticky headers
+    // follow, so a pinned header scrolls away behind a newly opened dialog.
+    root.style.overflow = 'hidden';
   }
   lockCount += 1;
 
@@ -22,7 +24,7 @@ export function lockBodyScroll(): () => void {
     released = true;
     lockCount = Math.max(0, lockCount - 1);
     if (lockCount === 0) {
-      document.body.style.overflow = savedOverflow;
+      document.documentElement.style.overflow = savedOverflow;
       document.documentElement.style.scrollbarGutter = savedGutter;
       window.scrollTo(0, savedScrollY);
     }

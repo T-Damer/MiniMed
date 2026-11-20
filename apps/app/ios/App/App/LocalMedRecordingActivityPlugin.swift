@@ -20,14 +20,16 @@ final class LocalMedRecordingActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let elapsed = max(0, call.getInt("elapsedMs") ?? 0)
+        let recordingId = call.getString("recordingId")
         Task { @MainActor in
             if state == "ended" {
                 dismissed = false
-                let current = activity
                 activity = nil
                 observer?.cancel()
                 observer = nil
-                await current?.end(nil, dismissalPolicy: .immediate)
+                for current in Activity<RecordingActivityAttributes>.activities {
+                    await current.end(nil, dismissalPolicy: .immediate)
+                }
                 call.resolve(["presented": false])
                 return
             }
@@ -51,7 +53,7 @@ final class LocalMedRecordingActivityPlugin: CAPPlugin, CAPBridgedPlugin {
                         await previous.end(nil, dismissalPolicy: .immediate)
                     }
                     let current = try Activity.request(
-                        attributes: RecordingActivityAttributes(), content: content
+                        attributes: RecordingActivityAttributes(recordingId: recordingId), content: content
                     )
                     activity = current
                     observer = Task { [weak self] in

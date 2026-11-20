@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -30,9 +31,11 @@ class LocalMedRecordingActivityPlugin : Plugin() {
     private var active = false
     private var registered = false
     private var dismissedByUser = false
+    private var promotedExpected = false
     private val dismissed = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             active = false
+            promotedExpected = false
             dismissedByUser = true
             notifyListeners("presentationChanged", presentation(false))
         }
@@ -46,13 +49,14 @@ class LocalMedRecordingActivityPlugin : Plugin() {
             return
         }
         val elapsed = (call.getLong("elapsedMs") ?: 0L).coerceAtLeast(0L)
+        val recordingId = call.getString("recordingId")
         handler.post {
             if (state == "ended") dismissedByUser = false
-            if (Build.VERSION.SDK_INT < 36 || state == "ended" || dismissedByUser) {
+            if (state == "ended" || dismissedByUser) {
                 clear()
                 call.resolve(presentation(false))
             } else {
-                post(call, state == "paused", elapsed)
+                post(call, state == "paused", elapsed, recordingId)
             }
         }
     }
@@ -62,7 +66,7 @@ class LocalMedRecordingActivityPlugin : Plugin() {
         val supported = Build.VERSION.SDK_INT >= 36
         call.resolve(JSObject()
             .put("notificationsEnabled", manager.areNotificationsEnabled())
-            .put("recordingSupported", supported)
+            .put("recordingSupported", true)
             .put("promotionEnabled", supported && manager.canPostPromotedNotifications())
             .put("recordingChannelBlocked", supported &&
                 manager.getNotificationChannel(CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE))
@@ -112,10 +116,8 @@ class LocalMedRecordingActivityPlugin : Plugin() {
         }
     }
 
-    private fun post(call: PluginCall, paused: Boolean, elapsed: Long) {
-        if (Build.VERSION.SDK_INT < 36 ||
-            !manager.areNotificationsEnabled() || !manager.canPostPromotedNotifications()
-        ) {
+    private fun post(call: PluginCall, paused: Boolean, elapsed: Long, recordingId: String?) {
+        if (!manager.areNotificationsEnabled()) {
             clear()
             call.resolve(presentation(false))
             return
@@ -128,12 +130,22 @@ class LocalMedRecordingActivityPlugin : Plugin() {
                 )
                 registered = true
             }
-            manager.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Запись беседы", NotificationManager.IMPORTANCE_LOW)
-            )
+            if (Build.VERSION.SDK_INT >= 26) {
+                manager.createNotificationChannel(
+                    NotificationChannel(CHANNEL, "Запись беседы", NotificationManager.IMPORTANCE_LOW)
+                )
+            }
             val open = PendingIntent.getActivity(
                 context, NOTIFICATION, Intent(context, MainActivity::class.java)
                     .setAction(openAction)
+                    .putExtra(RECORDING_ID, recordingId)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            val stop = PendingIntent.getActivity(
+                context, NOTIFICATION + 1, Intent(context, MainActivity::class.java)
+                    .setAction(stopAction)
+                    .putExtra(RECORDING_ID, recordingId)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
@@ -147,12 +159,14 @@ class LocalMedRecordingActivityPlugin : Plugin() {
                 .setContentTitle(if (paused) "Пауза" else "Запись")
                 .setContentIntent(open)
                 .addAction(0, "Открыть запись", open)
+                .addAction(0, "Остановить", stop)
+                .addExtras(Bundle().apply { putString(RECORDING_ID, recordingId) })
                 .setDeleteIntent(delete)
                 .setWhen(System.currentTimeMillis() - elapsed)
                 .setShowWhen(!paused)
                 .setUsesChronometer(!paused)
                 .setShortCriticalText(if (paused) "Пауза" else null)
-                .setRequestPromotedOngoing(true)
+                .setRequestPromotedOngoing(Build.VERSION.SDK_INT >= 36 && manager.canPostPromotedNotifications())
                 .setOnlyAlertOnce(true)
                 .setOngoing(true)
                 .setVisibility(Notification.VISIBILITY_PRIVATE)
@@ -170,7 +184,7 @@ class LocalMedRecordingActivityPlugin : Plugin() {
     private fun confirmPromotion(call: PluginCall, attemptsLeft: Int) {
         val promoted = isPromoted()
         if (promoted || !active || attemptsLeft == 0) {
-            if (!promoted) clear()
+            promotedExpected = promoted
             call.resolve(presentation(promoted))
         } else {
             handler.postDelayed({ confirmPromotion(call, attemptsLeft - 1) }, 125L)
@@ -186,23 +200,39 @@ class LocalMedRecordingActivityPlugin : Plugin() {
 
     private val dismissAction get() = "${context.packageName}.RECORDING_ACTIVITY_DISMISSED"
     private val openAction get() = "${context.packageName}.OPEN_RECORDING"
+    private val stopAction get() = "${context.packageName}.STOP_RECORDING"
+
+    override fun load() {
+        deliverAction(activity.intent)
+    }
 
     override fun handleOnNewIntent(intent: Intent) {
-        // Some system chips bring the app forward with its launcher intent instead of the content intent.
-        val promotedRelaunch = intent.action == Intent.ACTION_MAIN &&
-            intent.hasCategory(Intent.CATEGORY_LAUNCHER) && isPromoted()
-        if (intent.action == openAction || promotedRelaunch) {
-            notifyListeners("openRecording", JSObject())
+        deliverAction(intent)
+    }
+
+    private fun deliverAction(intent: Intent?) {
+        if (intent == null) return
+        val posted = if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+            manager.activeNotifications.firstOrNull { it.id == NOTIFICATION }
+        } else null
+        val event = when {
+            intent.action == stopAction -> "stopRecording"
+            intent.action == openAction || posted != null -> "openRecording"
+            else -> return
         }
+        val id = intent.getStringExtra(RECORDING_ID) ?: posted?.notification?.extras?.getString(RECORDING_ID)
+        if (intent.action != Intent.ACTION_MAIN) intent.action = null
+        notifyListeners(event, JSObject().put("recordingId", id), true)
     }
 
     private fun clear() {
         active = false
+        promotedExpected = false
         manager.cancel(NOTIFICATION)
     }
 
     override fun handleOnResume() {
-        if (active && !isPromoted()) {
+        if (active && promotedExpected && !isPromoted()) {
             dismissedByUser = true
             clear()
             notifyListeners("presentationChanged", presentation(false))
@@ -219,5 +249,6 @@ class LocalMedRecordingActivityPlugin : Plugin() {
     companion object {
         private const val CHANNEL = "minimed-recording"
         private const val NOTIFICATION = 7301
+        private const val RECORDING_ID = "recordingId"
     }
 }

@@ -1,7 +1,11 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
-import { distinctNavigationDocuments } from '@/features/search/navigation-documents';
+import { preferReadableDocuments } from '@/features/library/document-display';
+import {
+  distinctNavigationDocuments,
+  prepareNavigationDocuments,
+} from '@/features/search/navigation-documents';
 
 function document(id: string, metadata?: Record<string, unknown>): MedicalDocumentSummary {
   return {
@@ -38,5 +42,20 @@ describe('distinctNavigationDocuments', () => {
   it('keeps pointers whose module is not installed', () => {
     const list = [pointer('pointer.1', 'kr.1')];
     expect(distinctNavigationDocuments(list)).toEqual(list);
+  });
+
+  it('prepares the same readable catalog in slices and drops a cancelled preparation', async () => {
+    const list = [
+      pointer('pointer.1', 'kr.1'),
+      document('kr.1'),
+      document('kr.1'),
+      document('kr.2'),
+    ];
+    const pending = new AbortController();
+    expect(await prepareNavigationDocuments(list, pending.signal)).toEqual(
+      distinctNavigationDocuments(preferReadableDocuments(list)),
+    );
+    pending.abort();
+    expect(await prepareNavigationDocuments(list, pending.signal)).toBeUndefined();
   });
 });

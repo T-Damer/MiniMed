@@ -28,6 +28,7 @@ function medicalImageStatusBarColor(): string {
 
 function syncStatusBar(): void {
   if (Capacitor.getPlatform() !== 'android') return;
+  if (typeof window !== 'undefined' && window.parent && window.parent !== window) return;
   const lightIcons = medicalImageStatusBarActive || darkHeaderOverlayCount > 0;
   void localMedSystemUi
     .setStatusBar({

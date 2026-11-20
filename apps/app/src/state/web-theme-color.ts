@@ -21,6 +21,8 @@ function opaqueBackground(element: Element | null): string | undefined {
 
 /** The colour the top edge of the screen shows now. */
 export function topEdgeColor(): string | undefined {
+  const fullscreenToolbar = document.querySelector('.floating-window__toolbar--fullscreen');
+  if (fullscreenToolbar) return opaqueBackground(fullscreenToolbar);
   const cap = document.querySelector('.app-shell__status-cap');
   if (cap?.getClientRects().length) {
     const color = opaqueBackground(cap);
@@ -89,16 +91,22 @@ function computedColorOf(color: string): string {
  * hero band in the light theme took dark icons from the theme and hid them. Calls `apply` with the
  * icon shade the top edge needs; returns a stop function.
  */
-export function watchTopEdgeContrast(apply: (darkIcons: boolean) => void): () => void {
+export function watchTopEdgeContrast(
+  apply: (darkIcons: boolean, floatingFullscreen: boolean) => void,
+): () => void {
   let timer = 0;
   let last: boolean | undefined;
+  let wasFloatingFullscreen = false;
   const sync = (): void => {
     timer = 0;
     const color = topEdgeColor();
     const dark = color ? wantsDarkIcons(color) : undefined;
-    if (dark === undefined || dark === last) return;
+    const floatingFullscreen = Boolean(document.querySelector('.floating-window--fullscreen'));
+    if (dark === undefined || (dark === last && floatingFullscreen === wasFloatingFullscreen))
+      return;
     last = dark;
-    apply(dark);
+    wasFloatingFullscreen = floatingFullscreen;
+    apply(dark, floatingFullscreen);
   };
   const schedule = (): void => {
     if (!timer) timer = window.setTimeout(sync, 100);
@@ -109,13 +117,13 @@ export function watchTopEdgeContrast(apply: (darkIcons: boolean) => void): () =>
     attributeFilter: ['class', 'data-theme'],
   });
   observer.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener('scroll', schedule, { capture: true, passive: true });
+  window.addEventListener('scrollend', schedule, { capture: true, passive: true });
   window.addEventListener('hashchange', schedule);
   schedule();
   return () => {
     if (timer) window.clearTimeout(timer);
     observer.disconnect();
-    window.removeEventListener('scroll', schedule, { capture: true });
+    window.removeEventListener('scrollend', schedule, { capture: true });
     window.removeEventListener('hashchange', schedule);
   };
 }

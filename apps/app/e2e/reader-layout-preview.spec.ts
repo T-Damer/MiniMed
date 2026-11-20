@@ -136,6 +136,20 @@ for (const viewport of FIT_VIEWPORTS) {
     await page.screenshot({
       path: `${process.env['UX12_SHOTS'] ?? 'playwright/test-results'}/ux12-mediaviewer-${String(viewport.width)}x${String(viewport.height)}.png`,
     });
+    if (viewport.width === 390) {
+      const viewer = page.locator('.media-viewer');
+      await viewer.getByRole('button', { name: 'Увеличить', exact: true }).click();
+      await expect(
+        viewer.locator(
+          '.media-viewer__pinch-content--zoomed, .pinch-zoom-surface__content--zoomed',
+        ),
+      ).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      const panel = await viewer.locator('.media-viewer__panel').boundingBox();
+      const toolbar = await viewer.locator('.media-viewer__toolbar').boundingBox();
+      if (!panel || !toolbar) throw new Error('The image viewer and zoom toolbar are visible.');
+      await page.mouse.click(panel.x + 8, toolbar.y + 8);
+      await expect(viewer).toHaveCount(0);
+    }
   });
 }
 

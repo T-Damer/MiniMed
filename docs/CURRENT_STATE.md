@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 19 November 2026
-> Released version: `0.6.119` (public prerelease toward `1.0`)
+> Updated: 20 November 2026
+> Released version: `0.6.123` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,25 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.123 — 2026-11-20
+
+The section loader owns catalog progress and recovery actions. Navigation prepares installed
+document listings in cancellable slices, and the virtualized document grid builds fewer offscreen
+cards. Tap-to-frame and catalog preparation spans are available in the opt-in log. The 0.6.122 phone
+log recorded up to 528 ms for a floating-window resize interaction. In a separate 390 × 844
+Chromium check at 4× CPU slowdown, the first document-list scroll's longest frame was 258 ms on
+0.6.122 and 58 ms on the candidate. The next two runs had a 9.3 ms p95 on both builds. Device
+latency after the change is unmeasured.
+
+The News header keeps its scroll position behind sheets, the feed offers «Наверх» after scrolling,
+and image previews close from the backdrop. The main navigation stays centered between side
+controls. Floating tools update the full-screen viewport once and animate via a transform.
+Floating Search shares the parent session and the existing OPFS owner.
+
+Android's expanded recording notification and iOS's expanded Live Activity can stop the current
+recording through the app. A cold notification launch opens the exact interrupted recording and its
+saved audio. The WebView recorder cannot continue capturing after the process is killed.
 
 ## Release 0.6.122 — 2026-11-20
 

@@ -1,4 +1,6 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
+import { isSupersededSummaryDocument } from '@localmed/core';
+import { createTimeSlicer } from '@localmed/search-lexical';
 
 import { parseModulePointerMetadata } from '@/features/modules/module-pointer-install';
 
@@ -23,4 +25,40 @@ export function distinctNavigationDocuments(
     const pointer = parseModulePointerMetadata(document.metadata);
     return !pointer || !real.has(pointer.targetDocumentId);
   });
+}
+
+/** Prepare a complete catalog without monopolizing the thread while a section is opening. */
+export async function prepareNavigationDocuments(
+  documents: readonly MedicalDocumentSummary[],
+  signal: AbortSignal,
+): Promise<readonly MedicalDocumentSummary[] | undefined> {
+  const slice = createTimeSlicer();
+  const available = new Set<string>();
+  for (const document of documents) {
+    available.add(document.id);
+  }
+  const real = new Set<string>();
+  for (const document of documents) {
+    if (
+      !isSupersededSummaryDocument(document.id, available) &&
+      !parseModulePointerMetadata(document.metadata)
+    )
+      real.add(document.id);
+    const due = slice();
+    if (due) await due;
+    if (signal.aborted) return undefined;
+  }
+  const seen = new Set<string>();
+  const readable: MedicalDocumentSummary[] = [];
+  for (const document of documents) {
+    if (!seen.has(document.id) && !isSupersededSummaryDocument(document.id, available)) {
+      seen.add(document.id);
+      const pointer = parseModulePointerMetadata(document.metadata);
+      if (!pointer || !real.has(pointer.targetDocumentId)) readable.push(document);
+    }
+    const due = slice();
+    if (due) await due;
+    if (signal.aborted) return undefined;
+  }
+  return readable;
 }

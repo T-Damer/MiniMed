@@ -338,7 +338,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    queueMicrotask(() => panel?.focus());
+    queueMicrotask(() => panel?.focus({ preventScroll: true }));
     onCleanup(() => {
       drag = undefined;
       setDragging(false);
@@ -347,7 +347,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       window.removeEventListener('keydown', handleKeyDown);
       historyLayer?.dispose();
       historyLayer = undefined;
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      if (previouslyFocused?.isConnected) previouslyFocused.focus({ preventScroll: true });
     });
   });
 

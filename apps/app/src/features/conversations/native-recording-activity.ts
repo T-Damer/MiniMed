@@ -22,16 +22,22 @@ type NotificationSettingsKind = 'app' | 'recording';
 interface NativeRecordingActivity {
   notificationSettings(): Promise<AndroidNotificationSettings>;
   openNotificationSettings(options: { kind: NotificationSettingsKind }): Promise<void>;
-  update(options: { state: RecordingState; elapsedMs: number }): Promise<RecordingPresentation>;
+  update(options: {
+    state: RecordingState;
+    elapsedMs: number;
+    recordingId?: string;
+  }): Promise<RecordingPresentation>;
   addListener(
     event: 'presentationChanged',
     listener: (state: RecordingPresentation) => void,
   ): Promise<PluginListenerHandle>;
-  addListener(event: 'openRecording', listener: () => void): Promise<PluginListenerHandle>;
+  addListener(
+    event: 'openRecording' | 'stopRecording',
+    listener: (data?: { recordingId?: string }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 const Native = registerPlugin<NativeRecordingActivity>('LocalMedRecordingActivity');
-const RECORDING_URL = 'minimed-recording://open';
 const [nativeRecordingPresented, setPresented] = createSignal(false);
 
 export { nativeRecordingPresented };
@@ -99,26 +105,65 @@ async function requestRecordingNotificationsOnce(): Promise<void> {
 }
 
 let openRecording: (() => void) | undefined;
+let recordingId: string | undefined;
+type RecordingAction = 'open' | 'stop';
+let recordingAction: ((action: RecordingAction, id?: string) => void) | undefined;
 let listeners: Promise<void> | undefined;
 let generation = 0;
 let active = false;
 let pending = Promise.resolve();
 
 function observePresentation(platform: 'android' | 'ios'): Promise<void> {
-  const reopen = (): void => {
-    if (active) openRecording?.();
+  const dispatch = (action: RecordingAction, id?: string): void => {
+    if (action === 'open' && active && (!id || id === recordingId) && openRecording) {
+      openRecording();
+    } else if (id || action === 'open') {
+      recordingAction?.(action, id);
+    }
+  };
+  const dispatchUrl = (url: string): void => {
+    const target = new URL(url);
+    if (target.protocol !== 'minimed-recording:') return;
+    if (target.hostname === 'open' || target.hostname === 'stop') {
+      dispatch(target.hostname, target.searchParams.get('id') ?? undefined);
+    }
   };
   listeners ??= Promise.all([
     Native.addListener('presentationChanged', ({ presented }) => {
       if (!presented) setPresented(false);
     }),
-    platform === 'android'
-      ? Native.addListener('openRecording', reopen)
-      : App.addListener('appUrlOpen', ({ url }) => {
-          if (url === RECORDING_URL) reopen();
-        }),
+    ...(platform === 'android'
+      ? [
+          Native.addListener('openRecording', (data) => dispatch('open', data?.recordingId)),
+          Native.addListener('stopRecording', (data) => dispatch('stop', data?.recordingId)),
+        ]
+      : [
+          (async () => {
+            let delivered: string | undefined;
+            await App.addListener('appUrlOpen', ({ url }) => {
+              delivered = url;
+              dispatchUrl(url);
+            });
+            const launch = await App.getLaunchUrl();
+            if (launch?.url && launch.url !== delivered) dispatchUrl(launch.url);
+          })(),
+        ]),
   ]).then(() => undefined);
   return listeners;
+}
+
+export function watchNativeRecordingActions(
+  listener: NonNullable<typeof recordingAction>,
+): () => void {
+  const platform = nativeRecordingPlatform();
+  if (!platform) return () => {};
+  recordingAction = listener;
+  void observePresentation(platform).catch((cause: unknown) =>
+    console.warn('Unable to receive recording actions.', cause),
+  );
+  return () => {
+    if (recordingAction === listener) recordingAction = undefined;
+  };
 }
 
 /** The OS owns the clock. The bridge only runs when recording starts, pauses, resumes or ends. */
@@ -127,6 +172,7 @@ export function updateNativeRecordingActivity(
   elapsedMs: () => number,
   controls?: {
     readonly open: () => void;
+    readonly recordingId?: string;
     readonly onPresented?: () => void;
   },
 ): void {
@@ -134,9 +180,14 @@ export function updateNativeRecordingActivity(
   if (!platform) return;
   if (state !== 'ended' && !loadAppPreferences().recordingActivityEnabled) return;
   active = state !== 'ended';
-  if (controls) openRecording = controls.open;
+  if (controls) {
+    openRecording = controls.open;
+    recordingId = controls.recordingId;
+  }
+  const id = recordingId;
   if (!active) {
     openRecording = undefined;
+    recordingId = undefined;
     setPresented(false);
   }
   const request = ++generation;
@@ -154,7 +205,11 @@ export function updateNativeRecordingActivity(
           if (request !== generation) return;
         }
       }
-      const result = await Native.update({ state, elapsedMs: Math.floor(elapsedMs()) });
+      const result = await Native.update({
+        state,
+        elapsedMs: Math.floor(elapsedMs()),
+        ...(id ? { recordingId: id } : {}),
+      });
       if (request !== generation) return;
       setPresented(active && result.presented);
       if (active && result.presented) controls?.onPresented?.();

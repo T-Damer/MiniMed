@@ -1,6 +1,6 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
-import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount, untrack } from 'solid-js';
 import { toast } from 'solid-sonner';
 import { afterBootReveal } from '@/app/boot-surface';
 import { BULK_INSTALL_RECONNECT_GAP_MS, createReconnectPacer } from '@/app/reconnect-pacer';
@@ -90,7 +90,89 @@ function sameApkUpdate(
   );
 }
 
-export function useAppSession() {
+type AppSession = ReturnType<typeof createAppSession>;
+type AppSessionHost = {
+  readonly session: AppSession;
+  readonly listeners: Set<() => void>;
+};
+type AppSessionWindow = Window & { minimedAppSession?: AppSessionHost };
+
+function parentSession(): AppSessionHost | undefined {
+  if (
+    window.parent === window ||
+    !new URLSearchParams(window.location.search).has('minimed-floating')
+  ) {
+    return undefined;
+  }
+  try {
+    return (window.parent as AppSessionWindow).minimedAppSession;
+  } catch (cause) {
+    // This app can be visited inside a third-party iframe as well.
+    if (!(cause instanceof DOMException) || cause.name !== 'SecurityError') throw cause;
+    return undefined;
+  }
+}
+
+export function useAppSession(): AppSession {
+  const parent = parentSession();
+  if (parent) {
+    const [revision, setRevision] = createSignal(0);
+    const refresh = () => setRevision((previous) => previous + 1);
+    parent.listeners.add(refresh);
+    onCleanup(() => parent.listeners.delete(refresh));
+    const tracked =
+      <T>(read: () => T) =>
+      () => {
+        revision();
+        return read();
+      };
+    const session = parent.session;
+    return {
+      ...session,
+      ready: tracked(session.ready),
+      searchCore: tracked(session.searchCore),
+      error: tracked(session.error),
+      installedProgress: tracked(session.installedProgress),
+      coreProgress: tracked(session.coreProgress),
+      coreDownloading: tracked(session.coreDownloading),
+      coreDownloadRequired: tracked(session.coreDownloadRequired),
+      coreDownloadDeferred: tracked(session.coreDownloadDeferred),
+      coreWaitingForNetwork: tracked(session.coreWaitingForNetwork),
+      coreWaitingForOtherTab: tracked(session.coreWaitingForOtherTab),
+      stagedModuleReader: tracked(session.stagedModuleReader),
+    };
+  }
+
+  const session = createAppSession();
+  if (window === window.parent) {
+    const host: AppSessionHost = { session, listeners: new Set() };
+    const owner = window as AppSessionWindow;
+    owner.minimedAppSession = host;
+    // A frame has a different Solid runtime. Relay changes without opening another OPFS owner.
+    createEffect(() => {
+      session.ready();
+      session.searchCore();
+      session.error();
+      session.installedProgress();
+      session.coreProgress();
+      session.coreDownloading();
+      session.coreDownloadRequired();
+      session.coreDownloadDeferred();
+      session.coreWaitingForNetwork();
+      session.coreWaitingForOtherTab();
+      untrack(() => {
+        for (const listener of host.listeners) listener();
+      });
+    });
+    onCleanup(() => {
+      if (owner.minimedAppSession === host) delete owner.minimedAppSession;
+      host.listeners.clear();
+    });
+  }
+  return session;
+}
+
+function createAppSession() {
   const isNativeShell = Capacitor.getPlatform() !== 'web';
   const [ready, setReady] = createSignal<InitializedMedicalCore>();
   const [error, setError] = createSignal<string>();

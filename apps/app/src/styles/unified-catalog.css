@@ -12,6 +12,10 @@
 .document-library-grid.document-library-grid--embedded {
   padding-inline: 0;
 }
+
+.document-library-card {
+  contain: layout style;
+}
 .catalog-card {
   display: flex;
   flex-direction: column;

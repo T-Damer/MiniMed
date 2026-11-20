@@ -22,7 +22,10 @@ import {
   type TranscriptSegment,
 } from '@/features/conversations/live-transcription';
 import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
-import { updateNativeRecordingActivity } from '@/features/conversations/native-recording-activity';
+import {
+  updateNativeRecordingActivity,
+  watchNativeRecordingActions,
+} from '@/features/conversations/native-recording-activity';
 import { peaksOfSamples } from '@/features/conversations/recording-audio';
 import {
   createSpeechEngine,
@@ -34,6 +37,7 @@ import {
   type ConversationRecorder,
   type ConversationRecording,
   deleteConversationRecording,
+  listConversationRecordings,
   markConversationAttached,
   RECORDING_SAMPLE_RATE,
   readConversationAudio,
@@ -247,6 +251,7 @@ export const conversationSession = {
       return;
     }
     updateNativeRecordingActivity(current.paused() ? 'paused' : 'recording', current.elapsedMs, {
+      recordingId: current.id,
       open: () => {
         if (recorder() === current) setWindowOpen(true);
       },
@@ -367,6 +372,7 @@ export async function startConversation(): Promise<void> {
     setElapsedSeconds(0);
     let openedFromSystem = false;
     updateNativeRecordingActivity('recording', next.elapsedMs, {
+      recordingId: next.id,
       open: () => {
         openedFromSystem = true;
         if (recorder() === next) setWindowOpen(true);
@@ -439,10 +445,32 @@ export async function stopConversation(): Promise<void> {
 }
 
 /** On app start: anything still marked «recording» was cut off by a closed tab or a crash. */
-export function recoverConversations(): void {
-  void recoverInterruptedRecordings(recorder()?.id).catch(() =>
+export function recoverConversations(): () => void {
+  const restored = recoverInterruptedRecordings(recorder()?.id).catch(() =>
     setError('Не удалось проверить прерванные записи.'),
   );
+  return watchNativeRecordingActions((action, id) => {
+    const current = recorder();
+    if (current && (!id || current.id === id)) {
+      if (action === 'stop') void stopConversation();
+      else conversationSession.openWindow();
+      return;
+    }
+    if (current && action === 'stop') return;
+    void restored
+      .then(async () => {
+        const saved = id
+          ? await readConversationRecording(id)
+          : (await listConversationRecordings()).find((item) => item.status === 'interrupted');
+        if (saved && saved.status !== 'recording') {
+          if (!recorder()) updateNativeRecordingActivity('ended', () => saved.durationMs);
+          conversationSession.openFinished(saved);
+        } else {
+          setError('Запись беседы не найдена.');
+        }
+      })
+      .catch(() => setError('Не удалось открыть запись беседы.'));
+  });
 }
 
 export function conversationTitle(recording: ConversationRecording): string {

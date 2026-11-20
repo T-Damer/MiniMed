@@ -104,12 +104,12 @@ export function displayDocumentTitle(
 export function wordTitlesFirst(
   documents: readonly MedicalDocumentSummary[],
 ): readonly MedicalDocumentSummary[] {
-  const startsWithLetter = (document: MedicalDocumentSummary): boolean =>
-    /^\p{L}/u.test(displayDocumentTitle(document).trim());
-  const words = documents.filter(startsWithLetter);
-  return words.length === 0 || words.length === documents.length
-    ? documents
-    : [...words, ...documents.filter((document) => !startsWithLetter(document))];
+  const words: MedicalDocumentSummary[] = [];
+  const other: MedicalDocumentSummary[] = [];
+  for (const document of documents) {
+    (/^\p{L}/u.test(displayDocumentTitle(document).trim()) ? words : other).push(document);
+  }
+  return words.length === 0 || other.length === 0 ? documents : words.concat(other);
 }
 
 export function displayDocumentSubtitle(

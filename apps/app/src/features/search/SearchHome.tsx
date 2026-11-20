@@ -33,7 +33,6 @@ import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { ICD11_COLLECTION, icd11ChapterDocuments } from '@/features/icd11/icd11-document';
-import { preferReadableDocuments } from '@/features/library/document-display';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
 import {
   createUserLibraryDocuments,
@@ -53,7 +52,7 @@ import { LazyDefinitionReferencePanel } from '@/features/reference/LazyDefinitio
 import { sameDocumentList } from '@/features/search/document-list';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
-import { distinctNavigationDocuments } from '@/features/search/navigation-documents';
+import { prepareNavigationDocuments } from '@/features/search/navigation-documents';
 import {
   APP_FEATURE_AGE_SCOPE,
   APP_TOOL_IDS,
@@ -116,6 +115,7 @@ import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
+import { perfSpan } from '@/state/perf-log';
 import { coreIsBaseOnly } from '@/state/search-data-version';
 import {
   appendSearchHistory,
@@ -359,6 +359,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const toolsAfterResults = createMemo(
     () => scope() === 'all' && toolsFollowResults(catalogQuery(), visibleTools(), leadIsDrug()),
   );
+  const sectionHasLoader = () =>
+    !showSectionsOverview() &&
+    !catalogOnly() &&
+    scope() !== 'diagnosis' &&
+    !icd11Missing() &&
+    !catalogQuery().trim() &&
+    (catalogLoading() || (!props.baseCore && !catalogError()));
   const catalogView = (): JSX.Element => (
     <Show
       when={showSectionsOverview()}
@@ -382,6 +389,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           <UnifiedSearchCatalog
             core={props.baseCore}
             coreStatus={waitingCoreStatus()}
+            installedProgress={props.installedProgress}
+            onRetryCore={props.onRetryCore}
+            onDownloadCore={props.onDownloadCore}
             scope={scope()}
             query={catalogQuery()}
             catalogOnly={catalogOnly()}
@@ -683,23 +693,32 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     // behind the catalog and the section counts only while Search is visible. A refresh replaces
     // the existing list only if its contents changed.
     if (untrack(listedDocuments) === undefined) setCatalogLoading(true);
-    let current = true;
-    void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((result) => {
-      if (!current) return;
-      if (result.ok) {
-        listedCore = core;
-        const next = distinctNavigationDocuments(preferReadableDocuments(result.value));
-        const previous = untrack(listedDocuments);
-        if (!previous || !sameDocumentList(previous, next)) setListedDocuments(next);
-        setCatalogError(undefined);
-      } else {
+    const pending = new AbortController();
+    const end = perfSpan('navigation.catalog');
+    void (core.listNavigationDocuments?.() ?? core.listDocuments())
+      .then(async (result) => {
+        if (pending.signal.aborted) return;
+        if (result.ok) {
+          const next = await prepareNavigationDocuments(result.value, pending.signal);
+          if (!next || pending.signal.aborted) return;
+          listedCore = core;
+          const previous = untrack(listedDocuments);
+          if (!previous || !sameDocumentList(previous, next)) setListedDocuments(next);
+          setCatalogError(undefined);
+          end({ count: next.length });
+        } else {
+          setCatalogLoading(false);
+          setCatalogError(result.error.message);
+        }
+      })
+      .catch((cause: unknown) => {
+        if (pending.signal.aborted) return;
         setCatalogLoading(false);
-        setCatalogError(result.error.message);
-      }
-    });
-    onCleanup(() => {
-      current = false;
-    });
+        setCatalogError('Не удалось обновить каталог.');
+        console.warn('Search catalog could not be prepared.', cause);
+      })
+      .finally(() => end());
+    onCleanup(() => pending.abort());
   });
   const filters = createMemo(() => {
     const selected = specialty();
@@ -1181,40 +1200,42 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             props.coreStatus.kind !== 'waiting'
           }
           fieldStatus={
-            <Show
-              when={
-                noteCoreStatus()?.kind !== 'opening' && noteCoreStatus()
-                  ? undefined
-                  : props.installedProgress
-              }
-              fallback={
-                <Show when={noteCoreStatus()}>
-                  {(status) => (
-                    <SearchCoreStatusNote
-                      variant="inline"
-                      status={status()}
-                      {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
-                      {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
+            <Show when={!sectionHasLoader()}>
+              <Show
+                when={
+                  noteCoreStatus()?.kind !== 'opening' && noteCoreStatus()
+                    ? undefined
+                    : props.installedProgress
+                }
+                fallback={
+                  <Show when={noteCoreStatus()}>
+                    {(status) => (
+                      <SearchCoreStatusNote
+                        variant="inline"
+                        status={status()}
+                        {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
+                        {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
+                      />
+                    )}
+                  </Show>
+                }
+              >
+                {(progress) => (
+                  <div class="search-core-status search-core-status--inline">
+                    <span class="search-core-status__title">
+                      {progress().processed === progress().total
+                        ? 'Подготавливаем поиск по наборам…'
+                        : `Подключаем локальные наборы · ${progress().processed} / ${progress().total}`}
+                    </span>
+                    <progress
+                      class="search-core-status__progress"
+                      aria-label="Подключение локальных наборов"
+                      value={progress().processed}
+                      max={progress().total}
                     />
-                  )}
-                </Show>
-              }
-            >
-              {(progress) => (
-                <div class="search-core-status search-core-status--inline">
-                  <span class="search-core-status__title">
-                    {progress().processed === progress().total
-                      ? 'Подготавливаем поиск по наборам…'
-                      : `Подключаем локальные наборы · ${progress().processed} / ${progress().total}`}
-                  </span>
-                  <progress
-                    class="search-core-status__progress"
-                    aria-label="Подключение локальных наборов"
-                    value={progress().processed}
-                    max={progress().total}
-                  />
-                </div>
-              )}
+                  </div>
+                )}
+              </Show>
             </Show>
           }
           specialty={specialty()}
