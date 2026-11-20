@@ -6,7 +6,7 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import type { SettingsTileTone } from '@/features/settings/settings-pages';
-import { navigateBack } from '@/state/app-back';
+import { visitRoute } from '@/state/app-back';
 
 export interface SettingsSubpageProps {
   readonly icon: AppGlyphName;
@@ -42,9 +42,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
             <NavBack
               class="knowledge-back-button"
               aria-label={props.backLabel}
-              onClick={() => {
-                navigateBack(props.backHash);
-              }}
+              onClick={() => visitRoute(props.backHash, '', 'replace')}
               icon={<AppGlyph name="arrow-left" class="settings-page__back-icon" />}
             />
           </Show>

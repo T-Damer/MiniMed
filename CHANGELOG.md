@@ -4,6 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.120] - 2026-11-20
+
+- Return to the parent Settings screen when the back arrow is used from a restored subsection.
+- Ask for Android notification permission when starting a recording on compatible devices. Manage notifications and the system recording indicator in Settings.
+- Keep a compact in-app recording timer and reopen the active recording from the home button or Android notification.
+- Open mini-windows in a wide layout with a vertical control rail, dock them at the screen edge, and move calculator details behind «?».
+- Restore the dark band below the Android status bar, add space below the ECG header, and keep ICD-10 records out of the clinical recommendation catalog.
+- Make catalog navigation faster, and write periodic performance logs when the interface is idle.
+
 ## [0.6.119] - 2026-11-19
 
 - Read and write cached module facts in small pages to reduce stalls while mounting installed packs.

@@ -60,7 +60,10 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
-## 0.6.119 phone follow-up — unreleased
+## Release 0.6.120 — 2026-11-20
+
+- The Settings back arrow opens its parent even if restoring the tab left Search immediately
+  below the subsection in history. When the parent has a history entry, the arrow returns to it.
 
 - Search extends the dark band below the native status inset. The ECG source picker has space
   below its header. The «Клинические рекомендации» catalog and its counts use the same membership,
@@ -80,7 +83,7 @@ check runs on demand in GitHub Actions, and daily when a runner with Ministry AP
   down from 97 ms. Periodic performance-log writes wait for idle with a deadline, and report the
   synchronous IndexedDB enqueue separately. Physical-device timing remains to be measured.
 
-## Recording notification controls — unreleased
+### Recording notification controls
 
 On Android 16 and newer, starting a recording can trigger the system notification permission
 prompt once. The recorder continues while the prompt is open, and the floating indicator stays

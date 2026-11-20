@@ -1,5 +1,9 @@
 # Release process
 
+Publish a patch release after each completed round of MiniMed fixes once its release checks pass.
+If the owner asks to hold publication or a required check fails, keep the build local and identify
+what is pending.
+
 ## Pre-release checklist
 
 1. Update `CHANGELOG.md` and root `release.json`; update the corpus manifest only when its snapshot
