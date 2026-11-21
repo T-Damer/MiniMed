@@ -219,6 +219,10 @@ export class WorkerSearchMedicalCore implements MedicalCore {
     }
   }
 
+  public get getDocumentSummary(): MedicalCore['getDocumentSummary'] {
+    return this.base.getDocumentSummary?.bind(this.base);
+  }
+
   public getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>> {
     return this.base.getDocument(documentId);
   }

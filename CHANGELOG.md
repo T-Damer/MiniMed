@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.126] - 2026-11-21
+
+- Read medication registry metadata in small batches and release the catalog rows when leaving the page.
+- Search the medication catalog in cancellable slices without keeping a second copy of product and package text in memory.
+
 ## [0.6.125] - 2026-11-21
 
 - Read only the immediate ICD parent title in navigation catalogs. The reader still loads complete classifications.

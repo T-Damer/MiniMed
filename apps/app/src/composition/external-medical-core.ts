@@ -25,6 +25,7 @@ function asDirectSearchCore(core: MedicalCore): MedicalCore {
       core.listSearchDocuments ? core.listSearchDocuments() : core.listDocuments(),
     analyzeQuery: (request) => core.analyzeQuery(request),
     search: (request) => core.search(request),
+    ...(core.getDocumentSummary ? { getDocumentSummary: core.getDocumentSummary.bind(core) } : {}),
     getDocument: (documentId) => core.getDocument(documentId),
     getSection: (sectionId) => core.getSection(sectionId),
     getContext: (chunkId, radius) => core.getContext(chunkId, radius),

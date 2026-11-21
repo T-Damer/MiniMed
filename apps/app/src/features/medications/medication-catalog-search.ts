@@ -1,4 +1,5 @@
 import {
+  createTimeSlicer,
   lightStemRussian,
   normalizeSurfaceText,
   parseAtcQueries,
@@ -60,50 +61,6 @@ function isCombinationName(value: string): boolean {
   return /[+/]|(\sи\s)|(\sс\s)/u.test(value);
 }
 
-interface MedicationSearchEntry {
-  readonly trade: string;
-  readonly inn: string;
-  readonly tradeStems: ReadonlySet<string>;
-  readonly innStems: ReadonlySet<string>;
-  readonly tradeCombination: boolean;
-  readonly innCombination: boolean;
-  readonly presentationStems: readonly ReadonlySet<string>[];
-  readonly haystack: string;
-}
-
-const medicationSearchEntries = new WeakMap<MedicationProduct, MedicationSearchEntry>();
-
-function medicationSearchEntry(product: MedicationProduct): MedicationSearchEntry {
-  const cached = medicationSearchEntries.get(product);
-  if (cached) return cached;
-  const trade = normalizeSurfaceText(product.tradeName);
-  const inn = normalizeSurfaceText(product.inn);
-  const entry = {
-    trade,
-    inn,
-    tradeStems: new Set(stems(trade)),
-    innStems: new Set(stems(inn)),
-    tradeCombination: isCombinationName(trade),
-    innCombination: isCombinationName(inn),
-    presentationStems: product.presentations.map(
-      (presentation) =>
-        new Set(
-          stems(
-            [
-              presentation.dosageForm,
-              presentation.strength ?? '',
-              presentation.route ?? '',
-              ...presentation.packages.map((item) => item.description),
-            ].join(' '),
-          ),
-        ),
-    ),
-    haystack: normalizeSurfaceText(medicationSearchText(product)),
-  };
-  medicationSearchEntries.set(product, entry);
-  return entry;
-}
-
 /** Score of a product whose ATC code (registry or consensus) starts with the code searched for. */
 const ATC_CODE_SCORE = 60;
 
@@ -133,45 +90,61 @@ function medicationNameScore(
   normalizedQuery: string,
   queryStems: readonly string[],
 ): number {
-  const entry = medicationSearchEntry(product);
-  const { trade, inn } = entry;
+  const trade = normalizeSurfaceText(product.tradeName);
+  const inn = normalizeSurfaceText(product.inn);
+  const tradeCombination = isCombinationName(trade);
 
   if (trade === normalizedQuery) return 100;
-  if (trade.startsWith(normalizedQuery) && !entry.tradeCombination) return 92;
+  if (trade.startsWith(normalizedQuery) && !tradeCombination) return 92;
   if (trade.startsWith(normalizedQuery)) return 82;
   if (inn === normalizedQuery) return 48;
+  const innStems = new Set(stems(inn));
   if (
     inn.startsWith(normalizedQuery) &&
-    !entry.innCombination &&
-    entry.innStems.size === queryStems.length
+    !isCombinationName(inn) &&
+    innStems.size === queryStems.length
   ) {
     return 46;
   }
   if (inn.startsWith(normalizedQuery)) return 38;
 
-  if (queryStemsMatch(entry.tradeStems, queryStems) && !entry.tradeCombination) {
+  const tradeStems = new Set(stems(trade));
+  const tradeMatch = queryStemsMatch(tradeStems, queryStems);
+  if (tradeMatch && !tradeCombination) {
     return 70;
   }
-  if (queryStemsMatch(entry.innStems, queryStems) && entry.innStems.size === queryStems.length) {
+  const innMatch = queryStemsMatch(innStems, queryStems);
+  if (innMatch && innStems.size === queryStems.length) {
     return 44;
   }
-  if (
-    queryStemsMatch(entry.tradeStems, queryStems) ||
-    queryStemsMatch(entry.innStems, queryStems)
-  ) {
+  if (tradeMatch || innMatch) {
     return 36;
   }
 
-  const presentationMatch = entry.presentationStems.some((presentation) =>
-    queryStemsMatch(new Set([...entry.tradeStems, ...presentation]), queryStems),
+  const missingTradeStems = queryStems.filter((stem) => !fieldContainsStem(tradeStems, stem));
+  const presentationMatch = product.presentations.some((presentation) =>
+    queryStemsMatch(
+      new Set(
+        stems(
+          [
+            presentation.dosageForm,
+            presentation.strength ?? '',
+            presentation.route ?? '',
+            ...presentation.packages.map((item) => item.description),
+          ].join(' '),
+        ),
+      ),
+      missingTradeStems,
+    ),
   );
-  if (presentationMatch && !entry.tradeCombination) return 88;
+  if (presentationMatch && !tradeCombination) return 88;
   if (presentationMatch) return 76;
 
-  if (entry.haystack.includes(normalizedQuery)) return 18;
+  const haystack = normalizeSurfaceText(medicationSearchText(product));
+  if (haystack.includes(normalizedQuery)) return 18;
   if (
     queryStems.every((stem) =>
-      stemAlternatives(stem).some((alternative) => entry.haystack.includes(alternative)),
+      stemAlternatives(stem).some((alternative) => haystack.includes(alternative)),
     )
   ) {
     return 12;
@@ -187,28 +160,57 @@ export function medicationCatalogMatchScore(product: MedicationProduct, query: s
   return medicationCatalogEntryScore(product, normalizedQuery, queryStems, atcCodeQueries(query));
 }
 
-export function rankMedicationCatalog(
+const nameCollator = new Intl.Collator('ru');
+
+function* medicationCatalogRanking(
   products: readonly MedicationProduct[],
   query: string,
-): readonly MedicationProduct[] {
+): Generator<void, readonly MedicationProduct[]> {
   const normalizedQuery = normalizeSurfaceText(query).trim();
   if (!normalizedQuery) return products;
   const queryStems = stems(normalizedQuery);
   if (queryStems.length === 0) return [];
   const atcQueries = atcCodeQueries(query);
 
-  return products
-    .map((product, index) => ({
-      product,
-      index,
-      score: medicationCatalogEntryScore(product, normalizedQuery, queryStems, atcQueries),
-    }))
-    .filter((entry) => entry.score > 0)
-    .toSorted(
+  const matches: { product: MedicationProduct; score: number }[] = [];
+  for (const product of products) {
+    const score = medicationCatalogEntryScore(product, normalizedQuery, queryStems, atcQueries);
+    if (score > 0) matches.push({ product, score });
+    yield;
+  }
+  return matches
+    .sort(
       (left, right) =>
         right.score - left.score ||
-        left.product.tradeName.localeCompare(right.product.tradeName, 'ru') ||
-        left.index - right.index,
+        nameCollator.compare(left.product.tradeName, right.product.tradeName),
     )
     .map((entry) => entry.product);
+}
+
+export function rankMedicationCatalog(
+  products: readonly MedicationProduct[],
+  query: string,
+): readonly MedicationProduct[] {
+  const ranking = medicationCatalogRanking(products, query);
+  let step = ranking.next();
+  while (!step.done) step = ranking.next();
+  return step.value;
+}
+
+export async function rankMedicationCatalogSliced(
+  products: readonly MedicationProduct[],
+  query: string,
+  signal: AbortSignal,
+): Promise<readonly MedicationProduct[]> {
+  if (signal.aborted) return [];
+  const ranking = medicationCatalogRanking(products, query);
+  const slice = createTimeSlicer();
+  let step = ranking.next();
+  while (!step.done) {
+    const due = slice();
+    if (due) await due;
+    if (signal.aborted) return [];
+    step = ranking.next();
+  }
+  return step.value;
 }

@@ -465,6 +465,25 @@ afterEach(async () => {
 });
 
 describe('MedicalCore', () => {
+  it('reads one catalog record without reading document sections or chunks', async () => {
+    const store = new InMemoryMedicalStore();
+    const sections = vi.spyOn(store, 'getSectionsByDocument');
+    const chunks = vi.spyOn(store, 'getChunksByDocument');
+    const core = createMedicalCore({ store, seed: MEDICATION_SEARCH_PACK, platform: 'test' });
+    try {
+      const result = await core.getDocumentSummary?.('med.miramistin');
+      expect(result).toMatchObject({
+        ok: true,
+        value: { id: 'med.miramistin', metadata: { contentMode: 'esklp-mnn' } },
+      });
+      expect(result?.ok && 'sections' in result.value).toBe(false);
+      expect(sections).not.toHaveBeenCalled();
+      expect(chunks).not.toHaveBeenCalled();
+    } finally {
+      await core.close();
+    }
+  });
+
   it('offers medicine spelling alternatives only for words absent from the searched sources', async () => {
     const core = createInMemoryMedicalCore(
       ContentPackSeedSchema.parse({

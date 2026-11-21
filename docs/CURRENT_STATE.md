@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 20 November 2026
-> Released version: `0.6.125` (public prerelease toward `1.0`)
+> Updated: 21 November 2026
+> Released version: `0.6.126` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,21 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.126 — 2026-11-21
+
+The medication catalog reads compact navigation metadata for instruction links and hydrates product
+summaries four at a time. It reuses identical packaging entries, matches reference supplements
+within the same substance, and releases the resident rows when the user leaves the catalog.
+Catalog queries score products in cancellable slices with no persistent full-text search index.
+
+In Chromium with 774 clinical packs and 32 medication and instruction packs, the sampled catalog
+fell from 881 MiB to 367 MiB of retained page JavaScript heap. «Рисперидон» in the medication
+catalog retained 376 MiB, down from 450 MiB with the metadata fix alone. Search, the archive,
+the clinical reader, Notes, Patients, News, tools and the settings subpages sampled 304–347 MiB
+after collection. These are page-heap measurements after explicit garbage collection. Temporary
+allocations during the three main searches reached 1,129 MiB before collection. Android process
+memory, worker heaps, media processing and active model inference were not qualified.
 
 ## Release 0.6.125 — 2026-11-21
 

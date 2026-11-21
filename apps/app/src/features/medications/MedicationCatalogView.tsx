@@ -30,7 +30,7 @@ import {
 } from '@/features/medications/drug-screen';
 import type { InstructionSourceClass } from '@/features/medications/instruction-source';
 import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
-import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
+import { rankMedicationCatalogSliced } from '@/features/medications/medication-catalog-search';
 import { processMedicationSummariesInBatches } from '@/features/medications/medication-loading';
 import {
   consumeMedicationCatalogQuery,
@@ -38,6 +38,7 @@ import {
 } from '@/features/medications/medication-navigation';
 import {
   composeMedicationProducts,
+  type MedicationPackage,
   type MedicationProduct,
   medicationDocumentRegistration,
   parseAllmedMedicationProduct,
@@ -45,6 +46,7 @@ import {
   parseMedicationProduct,
 } from '@/features/medications/medication-record';
 import {
+  isMedicationCatalogRoute,
   legacyMedicationRegistrationFromHash,
   MEDICATION_ATC_HASH,
   MEDICATION_CATALOG_HASH,
@@ -74,26 +76,6 @@ interface MedicationCatalogViewProps {
   readonly onBack: () => void;
   /** Reconnects the core after packages are installed; falls back to the content event. */
   readonly onContentChanged?: () => Promise<void>;
-}
-
-interface PackageVariant {
-  readonly key: string;
-  readonly dosageForm: string;
-  readonly strength: string | null;
-  readonly description: string;
-  readonly prescriptionStatus: string | null;
-}
-
-function productVariants(product: MedicationProduct): readonly PackageVariant[] {
-  return product.presentations.flatMap((presentation, presentationIndex) =>
-    presentation.packages.map((item, packageIndex) => ({
-      key: `${presentationIndex}-${packageIndex}`,
-      dosageForm: stripKnownHtmlMarkupInline(presentation.dosageForm),
-      strength: presentation.strength,
-      description: stripKnownHtmlMarkupInline(item.description),
-      prescriptionStatus: item.prescriptionStatus ?? product.prescriptionStatus,
-    })),
-  );
 }
 
 interface MedicationSummaryMetadata extends Readonly<Record<string, unknown>> {
@@ -172,14 +154,16 @@ function addProducts(
   }
 }
 
+const catalogCollator = new Intl.Collator('ru');
+
 function sortProducts(products: readonly MedicationProduct[]): readonly MedicationProduct[] {
-  return [...products].toSorted((left, right) => {
+  return products.toSorted((left, right) => {
     const leftForm = left.presentations[0]?.dosageForm ?? '';
     const rightForm = right.presentations[0]?.dosageForm ?? '';
     return (
-      left.tradeName.localeCompare(right.tradeName, 'ru') ||
-      left.registrationNumber.localeCompare(right.registrationNumber, 'ru') ||
-      leftForm.localeCompare(rightForm, 'ru')
+      catalogCollator.compare(left.tradeName, right.tradeName) ||
+      catalogCollator.compare(left.registrationNumber, right.registrationNumber) ||
+      catalogCollator.compare(leftForm, rightForm)
     );
   });
 }
@@ -223,12 +207,16 @@ function productDescription(product: MedicationProduct): string {
  */
 async function loadProducts(
   core: MedicalCore,
+  signal: AbortSignal,
   onUpdate: (products: readonly MedicationProduct[], substances: readonly AtcSubstance[]) => void,
 ): Promise<{
   readonly products: readonly MedicationProduct[];
   readonly substances: readonly AtcSubstance[];
 }> {
-  const summaries = await core.listDocuments();
+  const listNavigation = core.listNavigationDocuments?.bind(core);
+  const getSummary = listNavigation && core.getDocumentSummary?.bind(core);
+  const summaries = await (getSummary && listNavigation ? listNavigation() : core.listDocuments());
+  if (signal.aborted) return { products: [], substances: [] };
   if (!summaries.ok) throw new Error(summaries.error.message);
   const medicationSummaries = summaries.value.filter((document) =>
     isMedicationSummary(document.metadata, document.sourceType),
@@ -246,13 +234,52 @@ async function loadProducts(
   const registryProducts = new Map<string, MedicationProduct>();
   const allmedProducts = new Map<string, MedicationProduct>();
   const substances = new Map<string, AtcSubstance>();
-  await processMedicationSummariesInBatches(otherSummaries, (batchDocuments) => {
-    const parsed = parseProducts(batchDocuments, instructions, instructionSourceClasses);
-    addProducts(registryProducts, parsed.registry);
-    addProducts(allmedProducts, parsed.allmed);
-    for (const substance of parsed.substances) substances.set(substance.documentId, substance);
-    onUpdate(toProducts(registryProducts, allmedProducts), [...substances.values()]);
+  // The same packaging wording is repeated across registrations. Reuse immutable entries so
+  // keeping the product list open does not retain a separate copy for every registration.
+  const packaging = new Map<string, MedicationPackage>();
+  const sharePackaging = (product: MedicationProduct): MedicationProduct => ({
+    ...product,
+    presentations: product.presentations.map((presentation) => ({
+      ...presentation,
+      packages: presentation.packages.map((item) => {
+        const kept = packaging.get(item.description);
+        if (kept?.prescriptionStatus === item.prescriptionStatus) return kept;
+        if (!kept) packaging.set(item.description, item);
+        return item;
+      }),
+    })),
   });
+  let publishAt = 1;
+  let lastPublishedAt = -Infinity;
+  let processed = 0;
+  await processMedicationSummariesInBatches(
+    otherSummaries,
+    (batchDocuments) => {
+      const parsed = parseProducts(batchDocuments, instructions, instructionSourceClasses);
+      addProducts(registryProducts, parsed.registry.map(sharePackaging));
+      addProducts(allmedProducts, parsed.allmed.map(sharePackaging));
+      for (const substance of parsed.substances) substances.set(substance.documentId, substance);
+      processed += batchDocuments.length;
+      if (processed >= publishAt && performance.now() - lastPublishedAt >= 250) {
+        onUpdate(toProducts(registryProducts, allmedProducts), [...substances.values()]);
+        publishAt = processed + 60;
+        lastPublishedAt = performance.now();
+      }
+    },
+    {
+      signal,
+      ...(getSummary
+        ? {
+            read: async (id) => {
+              const result = await getSummary(id);
+              if (!result.ok) throw new Error(result.error.message);
+              return result.value;
+            },
+          }
+        : {}),
+    },
+  );
+  if (signal.aborted) return { products: [], substances: [] };
   return {
     products: toProducts(registryProducts, allmedProducts),
     substances: [...substances.values()],
@@ -277,7 +304,11 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   useStickySurface(headingElement);
   const mfgCountries = useMfgCountries(() => true);
 
+  let pending: AbortController | undefined;
   const refresh = async (): Promise<void> => {
+    pending?.abort();
+    const request = new AbortController();
+    pending = request;
     setLoading(true);
     setCatalogComplete(false);
     setError(undefined);
@@ -285,7 +316,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     setSubstances([]);
     let firstBatchSeen = false;
     try {
-      const complete = await loadProducts(props.core, (next, nextSubstances) => {
+      const complete = await loadProducts(props.core, request.signal, (next, nextSubstances) => {
         setProducts(next);
         setSubstances(nextSubstances);
         if (!firstBatchSeen) {
@@ -293,33 +324,76 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           setLoading(false);
         }
       });
-      setProducts(complete.products);
-      setSubstances(complete.substances);
+      if (!request.signal.aborted) {
+        setProducts(complete.products);
+        setSubstances(complete.substances);
+      }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось открыть базу препаратов.');
+      if (!request.signal.aborted) {
+        setError(cause instanceof Error ? cause.message : 'Не удалось открыть базу препаратов.');
+      }
     } finally {
-      setLoading(false);
-      setCatalogComplete(true);
+      if (pending === request && !request.signal.aborted) {
+        pending = undefined;
+        setLoading(false);
+        setCatalogComplete(true);
+      }
     }
   };
 
-  const syncLegacyRegistration = (): void => {
+  let active = isMedicationCatalogRoute(window.location.hash);
+  let suspended:
+    | WeakRef<readonly [readonly MedicationProduct[], readonly AtcSubstance[]]>
+    | undefined;
+
+  const syncCatalogRoute = (): void => {
+    const visible = isMedicationCatalogRoute(window.location.hash);
+    if (!visible) {
+      if (active) {
+        if (catalogComplete() && !error())
+          suspended = new WeakRef([products(), substances()] as const);
+        pending?.abort();
+        pending = undefined;
+        setProducts([]);
+        setSubstances([]);
+        setCatalogComplete(false);
+      }
+      active = false;
+      return;
+    }
+    active = true;
     setLegacyRegistration(legacyMedicationRegistrationFromHash(window.location.hash));
     setViewState(medicationCatalogViewFromHash(window.location.hash));
-    // A link (a pharmacological group, an ATC code) opened the list while the view was already
-    // mounted: the query it handed over is taken now, not at a mount that will not come.
     const requested = consumeMedicationCatalogQuery();
     if (requested) setSearchQuery(requested);
+
+    if (catalogComplete() || pending) return;
+    const kept = suspended?.deref();
+    suspended = undefined;
+    if (kept) {
+      setProducts(kept[0]);
+      setSubstances(kept[1]);
+      setLoading(false);
+      setCatalogComplete(true);
+    } else {
+      void refresh();
+    }
+  };
+
+  const refreshIfVisible = (): void => {
+    suspended = undefined;
+    if (active) void refresh();
   };
 
   onMount(() => {
-    void refresh();
-    window.addEventListener('hashchange', syncLegacyRegistration);
-    window.addEventListener(CONTENT_CHANGED_EVENT, refresh);
+    syncCatalogRoute();
+    window.addEventListener('hashchange', syncCatalogRoute);
+    window.addEventListener(CONTENT_CHANGED_EVENT, refreshIfVisible);
   });
   onCleanup(() => {
-    window.removeEventListener('hashchange', syncLegacyRegistration);
-    window.removeEventListener(CONTENT_CHANGED_EVENT, refresh);
+    pending?.abort();
+    window.removeEventListener('hashchange', syncCatalogRoute);
+    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshIfVisible);
   });
 
   const legacyProduct = createMemo(() => {
@@ -352,9 +426,24 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   };
 
   const deferredSearchQuery = createDeferred(searchQuery, { timeoutMs: 120 });
-  const visibleProducts = createMemo(() =>
-    rankMedicationCatalog(products(), deferredSearchQuery()),
-  );
+  const [visibleProducts, setVisibleProducts] = createSignal<readonly MedicationProduct[]>([]);
+  createEffect(() => {
+    const query = deferredSearchQuery();
+    const rows = products();
+    if (mode() !== 'list' || rows.length === 0) {
+      setVisibleProducts([]);
+      return;
+    }
+    if (!query.trim()) {
+      setVisibleProducts(rows);
+      return;
+    }
+    const request = new AbortController();
+    onCleanup(() => request.abort());
+    void rankMedicationCatalogSliced(rows, query, request.signal).then((matches) => {
+      if (!request.signal.aborted) setVisibleProducts(matches);
+    });
+  });
 
   // The core holds only pointers until a medication package is installed: an empty catalog that
   // has finished loading is «not downloaded yet», not «no drugs».
@@ -370,7 +459,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   };
 
   return (
-    <section class="medication-page">
+    <section class="medication-page" aria-busy={!catalogComplete()}>
       <Page
         hero={PAGE_HEROES.medications}
         class="medication-page-header"
@@ -455,7 +544,10 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
           <div class="medication-grid">
             <LayoutVirtualizedGrid data={visibleProducts()} bufferSize={500}>
               {(product) => {
-                const variants = () => productVariants(product);
+                const variants = product.presentations.reduce(
+                  (count, presentation) => count + presentation.packages.length,
+                  0,
+                );
                 const description = () => productDescription(product);
                 const country = () =>
                   countryMarkText(
@@ -491,8 +583,8 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                       <span class="medication-product-card__description">{description()}</span>
                     </div>
                     <p class="medication-product-card-meta">
-                      {product.registrationStatus} · {variants().length}{' '}
-                      {pluralRu(variants().length, 'вариант', 'варианта', 'вариантов')} упаковки
+                      {product.registrationStatus} · {variants}{' '}
+                      {pluralRu(variants, 'вариант', 'варианта', 'вариантов')} упаковки
                     </p>
                   </button>
                 );

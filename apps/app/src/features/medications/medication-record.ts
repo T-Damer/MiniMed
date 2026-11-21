@@ -531,25 +531,60 @@ function mergeGrlsRegistration(
   };
 }
 
+function productsBySubstance(
+  products: readonly MedicationProduct[],
+  substanceOf: (product: MedicationProduct) => string | null,
+): ReadonlyMap<string, readonly MedicationProduct[]> {
+  const groups = new Map<string, MedicationProduct[]>();
+  for (const product of products) {
+    const substance = substanceOf(product);
+    if (substance === null) continue;
+    const group = groups.get(substance);
+    if (group) group.push(product);
+    else groups.set(substance, [product]);
+  }
+  return groups;
+}
+
 export function composeMedicationProducts(
   registryProducts: readonly MedicationProduct[],
   allmedProducts: readonly MedicationProduct[],
 ): readonly MedicationProduct[] {
   const esklpProducts = registryProducts.filter((product) => product.sourceKind === 'esklp');
   const grlsProducts = registryProducts.filter((product) => product.sourceKind === 'grls');
+  const grlsBySubstance = productsBySubstance(grlsProducts, (product) => product.mnnDocumentId);
+  const supplementsBySubstance = productsBySubstance(
+    allmedProducts,
+    (product) => product.linkedMnnDocumentId,
+  );
   const consumedGrls = new Set<MedicationProduct>();
   const unified = esklpProducts.map((esklp) => {
-    const matches = grlsProducts.filter((grls) => sameMedicationRegistration(esklp, grls));
+    if (!esklp.mnnDocumentId) return esklp;
+    const matches = grlsBySubstance
+      .get(esklp.mnnDocumentId)
+      ?.filter((grls) => sameMedicationRegistration(esklp, grls));
+    if (!matches) return esklp;
     if (matches.length !== 1) return esklp;
     const grls = matches[0];
     if (!grls) return esklp;
     consumedGrls.add(grls);
     return mergeGrlsRegistration(esklp, grls);
   });
+  const sharedDescriptions = new Map<string, string>();
   const registry = [
     ...unified,
     ...grlsProducts.filter((product) => !consumedGrls.has(product)),
-  ].map((product) => mergeAllmedSupplementalText(product, allmedProducts));
+  ].map((product) => {
+    const supplements = product.mnnDocumentId && supplementsBySubstance.get(product.mnnDocumentId);
+    if (!supplements) return product;
+    const merged = mergeAllmedSupplementalText(product, supplements);
+    const description = merged.supplementalDescription;
+    if (!description) return merged;
+    const shared = sharedDescriptions.get(description);
+    if (shared) return { ...merged, supplementalDescription: shared };
+    sharedDescriptions.set(description, description);
+    return merged;
+  });
   const registryMnnIds = new Set(
     registry
       .map((product) => product.mnnDocumentId)

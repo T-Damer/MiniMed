@@ -43,6 +43,41 @@ describe('parseMedicationProduct', () => {
     expect(documentFromSummary(withoutMetadata)).toBeNull();
   });
 
+  it('hydrates only a bounded batch of catalog records and stops after cancellation', async () => {
+    const catalog = Array.from({ length: 16 }, (_, index) => ({
+      id: `document-${index}`,
+      title: `Препарат ${index}`,
+      shortTitle: null,
+      sourceType: 'allmed_reference',
+      status: 'reference',
+      specialties: [],
+      versionId: `document-${index}@1`,
+      versionLabel: '1',
+      effectiveFrom: null,
+    }));
+    const controller = new AbortController();
+    const reads: string[] = [];
+    const batches: string[][] = [];
+    await processMedicationSummariesInBatches(
+      catalog,
+      (batch) => {
+        batches.push(batch.map((document) => document.id));
+        controller.abort();
+      },
+      {
+        signal: controller.signal,
+        read: async (id) => {
+          reads.push(id);
+          const summary = catalog.find((entry) => entry.id === id);
+          if (!summary) throw new Error('Unknown fixture document');
+          return { ...summary, metadata: { registry: true } };
+        },
+      },
+    );
+    expect(reads).toEqual(catalog.slice(0, 4).map((entry) => entry.id));
+    expect(batches).toEqual([reads]);
+  });
+
   it('keeps every package variant from a normalized registry document', () => {
     const product = parseMedicationProduct(
       {

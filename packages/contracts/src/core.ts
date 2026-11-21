@@ -73,6 +73,10 @@ export interface MedicalCore {
   listSearchDocuments?(): Promise<Result<readonly SearchDocumentDescriptor[], LocalMedError>>;
   analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>>;
   search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>>;
+  /** Reads one document's metadata without opening its sections or chunks. */
+  readonly getDocumentSummary?:
+    | ((documentId: string) => Promise<Result<MedicalDocumentSummary, LocalMedError>>)
+    | undefined;
   getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>>;
   getSection(sectionId: string): Promise<Result<MedicalSection, LocalMedError>>;
   getContext(chunkId: string, radius?: number): Promise<Result<ChunkContext, LocalMedError>>;

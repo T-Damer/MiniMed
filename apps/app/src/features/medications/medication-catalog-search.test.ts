@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   medicationCatalogMatchScore,
   rankMedicationCatalog,
+  rankMedicationCatalogSliced,
 } from '@/features/medications/medication-catalog-search';
 import type { MedicationProduct } from '@/features/medications/medication-record';
 
@@ -38,6 +39,22 @@ function product(
 }
 
 describe('rankMedicationCatalog', () => {
+  it('keeps identical names stable in the cancellable ranking', async () => {
+    const products = [
+      product('Антигриппин', 'парацетамол'),
+      product('Парацетамол', 'парацетамол', { registrationNumber: '2' }),
+      product('Парацетамол', 'парацетамол', { registrationNumber: '1' }),
+    ];
+    const request = new AbortController();
+    expect(await rankMedicationCatalogSliced(products, 'Парацетамол', request.signal)).toEqual([
+      products[1],
+      products[2],
+      products[0],
+    ]);
+    request.abort();
+    expect(await rankMedicationCatalogSliced(products, 'Парацетамол', request.signal)).toEqual([]);
+  });
+
   it('keeps the original order when the query is empty', () => {
     const products = [product('Колдрекс', 'парацетамол'), product('Парацетамол', 'парацетамол')];
     expect(rankMedicationCatalog(products, ' ').map((item) => item.tradeName)).toEqual([

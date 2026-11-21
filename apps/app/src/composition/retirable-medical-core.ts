@@ -114,6 +114,12 @@ export class RetirableMedicalCore implements MedicalCore {
     });
   }
 
+  public get getDocumentSummary(): MedicalCore['getDocumentSummary'] {
+    if (!(this.successor ?? this.inner).getDocumentSummary) return undefined;
+    return (documentId) =>
+      this.route((core) => core.getDocumentSummary?.(documentId) ?? core.getDocument(documentId));
+  }
+
   public getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>> {
     return this.route((core) => core.getDocument(documentId));
   }
