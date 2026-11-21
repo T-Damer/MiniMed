@@ -2417,8 +2417,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           return err(asLocalMedError(error));
         }
       })();
-      const result = await documentSummariesPromise;
-      if (!result.ok) documentSummariesPromise = undefined;
+      const pending = documentSummariesPromise;
+      const result = await pending;
+      // Full metadata is needed by a few screens only. Keep the pending read shared and let its
+      // result go when the caller has finished using it.
+      if (documentSummariesPromise === pending) documentSummariesPromise = undefined;
       await ownTask();
       return result;
     },

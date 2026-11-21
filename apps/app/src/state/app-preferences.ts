@@ -25,6 +25,7 @@ export interface AppPreferences {
   readonly vibrationChosen?: boolean;
   readonly rememberSearchMode: boolean;
   readonly restoreLastPage: boolean;
+  readonly notificationsEnabled: boolean;
   readonly recordingActivityEnabled: boolean;
   readonly showPageRestoreNotice: boolean;
   readonly soundVolume: number;
@@ -54,6 +55,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   vibrationEnabled: false,
   rememberSearchMode: false,
   restoreLastPage: true,
+  notificationsEnabled: true,
   recordingActivityEnabled: true,
   showPageRestoreNotice: true,
   soundVolume: DEFAULT_SOUND_VOLUME,
@@ -81,6 +83,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly vibrationChosen?: unknown;
     readonly rememberSearchMode?: unknown;
     readonly restoreLastPage?: unknown;
+    readonly notificationsEnabled?: unknown;
     readonly recordingActivityEnabled?: unknown;
     readonly showPageRestoreNotice?: unknown;
     readonly soundVolume?: unknown;
@@ -115,6 +118,7 @@ function normalizePreferences(value: unknown): AppPreferences {
         ? candidate.rememberSearchMode
         : DEFAULT_PREFERENCES.rememberSearchMode,
     restoreLastPage: candidate.restoreLastPage !== false,
+    notificationsEnabled: candidate.notificationsEnabled !== false,
     recordingActivityEnabled: candidate.recordingActivityEnabled !== false,
     showPageRestoreNotice: candidate.showPageRestoreNotice !== false,
     soundVolume: clampVolume(
@@ -196,6 +200,15 @@ export function saveAppPreferences(preferences: AppPreferences): AppPreferences 
 
 export function setReaderChromePinned(pinned: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), readerChromePinned: pinned });
+}
+
+export function setNotificationsEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), notificationsEnabled: enabled });
+}
+
+export function getRecordingActivityEnabled(): boolean {
+  const preferences = loadAppPreferences();
+  return preferences.notificationsEnabled && preferences.recordingActivityEnabled;
 }
 
 export function setRecordingActivityEnabled(enabled: boolean): AppPreferences {

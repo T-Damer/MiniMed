@@ -47,6 +47,30 @@ test.describe('settings list on a phone', () => {
     await expect(page.getByRole('link', { name: /^Функции ИИ/u })).toBeVisible();
   });
 
+  test('switches permitted notifications off and back on in the app', async ({ page }) => {
+    // Headless Chromium can deny the host notification permission even when its context grants it.
+    await page.addInitScript(() => {
+      Object.defineProperty(Notification, 'permission', { value: 'granted', configurable: true });
+    });
+    await mountBuiltApp(page, { splitNavigation: false });
+    await openSettings(page);
+    await openSettingsPage(page, 'Основные');
+    const row = page.getByRole('region', { name: 'Уведомления', exact: true });
+    const toggle = row.getByRole('switch', { name: 'Уведомления', exact: true });
+    await expect(row.locator('.settings-row__label-icon')).toBeVisible();
+    await expect(toggle).toBeChecked();
+    await expect(page.locator('.settings-page__heading--subroute .page__description')).toHaveCount(
+      0,
+    );
+    await toggle.click();
+    await expect(toggle).not.toBeChecked();
+    await page.reload();
+    await expect(toggle).not.toBeChecked();
+    expect(await page.evaluate(() => Notification.permission)).toBe('granted');
+    await toggle.click();
+    await expect(toggle).toBeChecked();
+  });
+
   test('each row shows a status computed from the stores', async ({ page }) => {
     await mountBuiltApp(page);
     await openSettings(page);

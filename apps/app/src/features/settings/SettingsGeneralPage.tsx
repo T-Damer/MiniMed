@@ -66,7 +66,10 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
         onActivate={props.onActivateAppUpdate}
         onCancel={props.onCancelAppUpdate}
       />
-      <NotificationSettings recordingEnabled={() => preferences().recordingActivityEnabled} />
+      <NotificationSettings
+        enabled={() => preferences().notificationsEnabled}
+        recordingEnabled={() => preferences().recordingActivityEnabled}
+      />
       <section
         class="settings-section settings-section--general paper-sheet"
         aria-label="Материалы и обучение"
@@ -78,7 +81,6 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
               <AppGlyph name="refresh" class="settings-row__label-icon" aria-hidden="true" />
               Обновлять материалы автоматически
             </span>
-            <p class="settings-row__helper">Новые версии уже скачанных наборов загружаются сами.</p>
           </div>
           <Switch
             checked={preferences().moduleAutoUpdatesEnabled}
@@ -88,7 +90,10 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
         </div>
         <Show when={Capacitor.isNativePlatform()}>
           <div class="settings-row">
-            <span class="settings-row__label">Восстанавливать последнюю страницу</span>
+            <span class="settings-row__label settings-row__label--with-icon">
+              <AppGlyph name="history" class="settings-row__label-icon" aria-hidden="true" />
+              Восстанавливать последнюю страницу
+            </span>
             <Switch
               checked={preferences().restoreLastPage}
               aria-label="Восстанавливать последнюю страницу"
@@ -97,7 +102,10 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
           </div>
           <Show when={preferences().restoreLastPage}>
             <div class="settings-row">
-              <span class="settings-row__label">Сообщать о восстановлении страницы</span>
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="bell" class="settings-row__label-icon" aria-hidden="true" />
+                Сообщать о восстановлении страницы
+              </span>
               <Switch
                 checked={preferences().showPageRestoreNotice}
                 aria-label="Сообщать о восстановлении страницы"
@@ -112,9 +120,6 @@ export function SettingsGeneralPage(props: SettingsGeneralPageProps): JSX.Elemen
               <AppGlyph name="question" class="settings-row__label-icon" aria-hidden="true" />
               Обучение
             </span>
-            <p class="settings-row__helper">
-              Короткая экскурсия по поиску, файлам, инструментам и голосу.
-            </p>
           </div>
           <Button class="settings-row__action" onClick={restartOnboarding}>
             Пройти заново

@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
+import { loadAppPreferences, subscribeAppPreferences } from '@/state/app-preferences';
 import {
   isReminderDue,
   loadPatientNotes,
@@ -40,6 +41,9 @@ function notificationExtra(
 }
 
 export async function requestReminderNotificationPermission(): Promise<ReminderNotificationPermission> {
+  if (!loadAppPreferences().notificationsEnabled) {
+    return { granted: false, message: 'Включите уведомления в настройках MiniMed.' };
+  }
   if (Capacitor.isNativePlatform()) {
     const current = await LocalNotifications.checkPermissions();
     const permission =
@@ -61,8 +65,6 @@ export async function requestReminderNotificationPermission(): Promise<ReminderN
 }
 
 async function reconcileNativeNotifications(): Promise<void> {
-  const permission = await LocalNotifications.checkPermissions();
-  if (permission.display !== 'granted') return;
   const pending = await LocalNotifications.getPending();
   const owned = pending.notifications.filter(
     (notification) => notificationExtra(notification.extra)?.source === NOTIFICATION_SOURCE,
@@ -72,6 +74,9 @@ async function reconcileNativeNotifications(): Promise<void> {
       notifications: owned.map((notification) => ({ id: notification.id })),
     });
   }
+  if (!loadAppPreferences().notificationsEnabled) return;
+  const permission = await LocalNotifications.checkPermissions();
+  if (permission.display !== 'granted' || !loadAppPreferences().notificationsEnabled) return;
   const notifications = loadPatientNotes().notes.flatMap((note) => {
     const reminder = note.reminder;
     if (
@@ -106,6 +111,12 @@ function startNativeNotifications(): () => void {
   };
   const handleNotesChanged = (): void => reconcile();
   window.addEventListener(PATIENT_NOTES_EVENT, handleNotesChanged);
+  let enabled = loadAppPreferences().notificationsEnabled;
+  const unsubscribe = subscribeAppPreferences((preferences) => {
+    if (preferences.notificationsEnabled === enabled) return;
+    enabled = preferences.notificationsEnabled;
+    reconcile();
+  });
   void LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
     const extra = notificationExtra(action.notification.extra);
     if (extra?.source === NOTIFICATION_SOURCE) window.location.hash = extra.path;
@@ -116,6 +127,7 @@ function startNativeNotifications(): () => void {
   reconcile();
   return () => {
     stopped = true;
+    unsubscribe();
     window.removeEventListener(PATIENT_NOTES_EVENT, handleNotesChanged);
     void actionListener?.remove();
   };
@@ -124,8 +136,15 @@ function startNativeNotifications(): () => void {
 function startBrowserNotifications(): () => void {
   if (!('Notification' in window)) return () => undefined;
   const shown = new Set<string>();
+  const active = new Set<Notification>();
+  const closeActive = () => {
+    for (const notification of active) notification.close();
+    active.clear();
+  };
   const notifyDue = (): void => {
-    if (Notification.permission !== 'granted') return;
+    if (Notification.permission !== 'granted' || !loadAppPreferences().notificationsEnabled) {
+      return;
+    }
     for (const note of loadPatientNotes().notes) {
       const reminder = note.reminder;
       if (!reminder?.notificationEnabled || !isReminderDue(reminder)) continue;
@@ -135,6 +154,8 @@ function startBrowserNotifications(): () => void {
         body: 'Откройте запланированную запись.',
         tag: signature,
       });
+      active.add(notification);
+      notification.onclose = () => active.delete(notification);
       notification.onclick = () => {
         window.focus();
         window.location.hash = notePath(note);
@@ -146,12 +167,27 @@ function startBrowserNotifications(): () => void {
   const handleVisibility = (): void => notifyDue();
   window.addEventListener(PATIENT_NOTES_EVENT, notifyDue);
   document.addEventListener('visibilitychange', handleVisibility);
-  const timer = window.setInterval(notifyDue, CHECK_INTERVAL_MS);
+  let enabled = loadAppPreferences().notificationsEnabled;
+  let timer = enabled ? window.setInterval(notifyDue, CHECK_INTERVAL_MS) : undefined;
+  const unsubscribe = subscribeAppPreferences((preferences) => {
+    if (preferences.notificationsEnabled === enabled) return;
+    enabled = preferences.notificationsEnabled;
+    if (enabled) {
+      timer = window.setInterval(notifyDue, CHECK_INTERVAL_MS);
+      notifyDue();
+    } else {
+      window.clearInterval(timer);
+      timer = undefined;
+      closeActive();
+    }
+  });
   notifyDue();
   return () => {
     window.removeEventListener(PATIENT_NOTES_EVENT, notifyDue);
     document.removeEventListener('visibilitychange', handleVisibility);
     window.clearInterval(timer);
+    unsubscribe();
+    closeActive();
   };
 }
 

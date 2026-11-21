@@ -409,6 +409,8 @@ const SEARCH_METADATA_FIELDS = [
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,
   'canonicalDefinition',
+  'classificationPath',
+  'keywords',
   'primaryModuleId',
   'moduleIds',
   'definitionPreviewAnchor',

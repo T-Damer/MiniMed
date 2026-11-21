@@ -134,7 +134,10 @@ export function SearchSectionPicker(props: {
             }
             class="search-source-picker__icon"
           />
-          <span class="search-source-picker__label">
+          <span
+            class="search-source-picker__label"
+            title={selectedGroup()?.label ?? selected()?.label}
+          >
             {selectedGroup()?.label ?? selected()?.label}{' '}
             {/* Until documents load only tools are counted, so the total would jump (71 → 24 819). */}
             <Show

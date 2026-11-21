@@ -28,6 +28,7 @@ import type {
   OpfsPackWorkerResponse,
 } from '@/composition/opfs-pack-protocol';
 import { recordEpochInstallPhase } from '@/features/modules/install-timing';
+import { perfSpan } from '@/state/perf-log';
 
 type PendingCall = {
   readonly resolve: (result: unknown) => void;
@@ -275,7 +276,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public listDocuments(): Promise<readonly DocumentRecord[]> {
-    return this.call('listDocuments', []);
+    return this.readCatalog('listDocuments');
   }
 
   public listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
@@ -410,7 +411,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     const owner = this.owner;
     let pending = owner.listings.get(method);
     if (!pending) {
-      pending = this.call(method, []);
+      pending =
+        method === 'listNavigationDocuments' || method === 'listSearchDocuments'
+          ? this.readCatalog(method)
+          : this.call(method, []);
       owner.listings.set(method, pending);
       // Callers still receive the failure through `pending`; only the cache entry is dropped.
       pending.catch(() => owner.listings.delete(method));
@@ -419,6 +423,26 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     // over 20 000 records does not run back to back in one frame (it held the main thread for over
     // a second at phone speed and turned the home's pulse yellow).
     return pending.then(nextTask) as Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>>;
+  }
+
+  private async readCatalog<
+    M extends 'listDocuments' | 'listNavigationDocuments' | 'listSearchDocuments',
+  >(method: M): Promise<Awaited<ReturnType<NonNullable<MedicalStore[M]>>>> {
+    const end = perfSpan('storage.catalog', {
+      projection:
+        method === 'listDocuments'
+          ? 'full'
+          : method === 'listNavigationDocuments'
+            ? 'navigation'
+            : 'search',
+    });
+    try {
+      const documents = await this.call(method, []);
+      end({ count: documents.length });
+      return documents;
+    } finally {
+      end();
+    }
   }
 
   private call<M extends Exclude<OpfsPackWorkerMethod, 'inspectIntegrity'>>(

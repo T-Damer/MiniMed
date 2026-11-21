@@ -3,7 +3,7 @@ import { Capacitor, type PluginListenerHandle, registerPlugin } from '@capacitor
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { createSignal } from 'solid-js';
 
-import { loadAppPreferences } from '@/state/app-preferences';
+import { getRecordingActivityEnabled } from '@/state/app-preferences';
 
 type RecordingState = 'recording' | 'paused' | 'ended';
 interface RecordingPresentation {
@@ -79,7 +79,7 @@ export function openAndroidNotificationSettings(kind: NotificationSettingsKind):
   return Native.openNotificationSettings({ kind });
 }
 
-export function observeAndroidSettingsReturn(refresh: () => void): () => void {
+export function observeNativeSettingsReturn(refresh: () => void): () => void {
   const listener = App.addListener('appStateChange', ({ isActive }) => {
     if (isActive) refresh();
   }).catch((cause: unknown) => {
@@ -98,7 +98,7 @@ async function requestRecordingNotificationsOnce(): Promise<void> {
   if (window.localStorage.getItem(PROMPTED_KEY)) return;
   const settings = await readAndroidNotificationSettings();
   if (!settings.recordingSupported || settings.permission !== 'prompt') return;
-  if (window.localStorage.getItem(PROMPTED_KEY) || !loadAppPreferences().recordingActivityEnabled) {
+  if (window.localStorage.getItem(PROMPTED_KEY) || !getRecordingActivityEnabled()) {
     return;
   }
   await requestAndroidNotifications();
@@ -178,7 +178,7 @@ export function updateNativeRecordingActivity(
 ): void {
   const platform = nativeRecordingPlatform();
   if (!platform) return;
-  if (state !== 'ended' && !loadAppPreferences().recordingActivityEnabled) return;
+  if (state !== 'ended' && !getRecordingActivityEnabled()) return;
   active = state !== 'ended';
   if (controls) {
     openRecording = controls.open;

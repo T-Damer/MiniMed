@@ -1493,11 +1493,51 @@ html.app-chrome-hidden .document-overlay-paper::before {
 }
 
 .document-library-grid {
-  /* WindowVirtualizer cannot measure CSS multi-column grids, so rows are chunked in
-     LayoutVirtualizedGrid using --layout-cols from breakpoints.css. */
   display: grid;
   gap: var(--layout-gap);
   padding-bottom: 2.5rem;
+  scroll-margin-block-start: calc(var(--sticky-header-top, 0px) + 7rem);
+}
+
+.document-library-grid__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.document-library-grid__total {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.document-library-grid__pagination,
+.document-library-grid__page-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.document-library-grid__page-number {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.document-library-grid__page-input {
+  min-width: 2.5rem;
+  padding: 0.375rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font: inherit;
+  text-align: center;
+}
+
+.document-library-grid__pagination {
+  margin-block: 0.375rem;
 }
 
 .document-library-card {

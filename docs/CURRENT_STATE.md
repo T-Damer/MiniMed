@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 20 November 2026
-> Released version: `0.6.123` (public prerelease toward `1.0`)
+> Released version: `0.6.124` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,27 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.124 — 2026-11-21
+
+The 0.6.123 phone export recorded 87,473 catalog entries and an OPFS worker reply frame of
+9.5 s. The archive and search source lists mount 40 cards, show the deduplicated count, and
+offer previous, next and direct page selection. The archive uses the shared compact navigation
+listing. Titles are still collected from the installed packs before the first sorted page.
+The database overview uses catalog sizes and mounted pack IDs. It no longer loads all summaries
+for tile counts. Full metadata reads share an in-flight request and can be reclaimed after use.
+Catalog worker replies split by row count and serialized size. The opt-in log records reply
+projection, elapsed time and row count. The original phone data does not establish a leak.
+In two cold archive runs per version at 390 × 844 with Chromium at 4× CPU slowdown, the
+median tap-to-first-card time was 3.06 s in 0.6.123 and 2.20 s in 0.6.124. Main JavaScript
+heap after collection fell from 190 MiB to 129 MiB. The same 3,430 px scroll measured about
+16.8 ms per frame at p95 before and 9.3 ms after. The runs used the 20,002-document core,
+with large companion packs skipped. Phone timing and the fully installed corpus remain unmeasured.
+
+General settings has a persisted notification switch. With system permission granted, it
+controls app reminders and the recording activity while retaining per-feature choices.
+Search truncates a long section name within the controls row. The personal files screen
+shows the total document count.
 
 ## Release 0.6.123 — 2026-11-20
 

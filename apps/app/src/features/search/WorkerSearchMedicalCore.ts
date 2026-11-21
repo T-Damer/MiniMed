@@ -162,7 +162,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
-    return this.base.listDocuments().then(rememberListedDocuments);
+    return this.base.listDocuments();
   }
 
   public listNavigationDocuments(): Promise<

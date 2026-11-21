@@ -38,7 +38,7 @@ vi.mock('@capacitor/local-notifications', () => ({
   },
 }));
 vi.mock('@/state/app-preferences', () => ({
-  loadAppPreferences: () => ({ recordingActivityEnabled: bridge.activityEnabled() }),
+  getRecordingActivityEnabled: bridge.activityEnabled,
 }));
 vi.mock('@capacitor/app', () => ({
   App: {

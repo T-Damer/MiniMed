@@ -4,9 +4,58 @@ import { expect, test } from '@playwright/test';
 import { openSettingsPage } from './settings-nav';
 
 for (const width of [375, 1280]) {
-  test(`unified selector, tool history, folders and long catalog at ${width}px`, async ({
-    page,
-  }) => {
+  const viewportWidth = width === 375 ? 320 : width;
+  test(`document pages and the search row stay usable at ${viewportWidth}px`, async ({ page }) => {
+    await page.setViewportSize({ width: viewportWidth, height: 844 });
+    await mountBuiltApp(page, {
+      splitNavigation: false,
+      skipLargeCompanionPacks: true,
+      waitForCore: true,
+    });
+    await waitForHomeSections(page);
+    const picker = page.getByRole('button', { name: 'Раздел поиска', exact: true });
+    const input = page.getByTestId('search-input');
+    await selectSearchSection(page, 'МКБ, симптомы и состояния');
+    const cards = page.locator('.document-library-card');
+    const pager = page.getByRole('navigation', { name: 'Страницы документов', exact: true });
+    await expect(cards).toHaveCount(40);
+    await expect(cards.first().locator('.catalog-card__index')).toHaveText('01');
+    await expect(page.locator('.document-library-grid__total')).toHaveText(/^\d+.*документ/u);
+    await pager.getByRole('button', { name: 'Следующая страница' }).click();
+    await expect(cards).toHaveCount(40);
+    await expect(cards.first().locator('.catalog-card__index')).toHaveText('41');
+    const pageNumber = pager.getByRole('textbox', { name: 'Страница' });
+    await pageNumber.fill('26');
+    await pageNumber.press('Enter');
+    await expect(cards.first().locator('.catalog-card__index')).toHaveText('1001');
+    await page.evaluate(() => window.scrollTo({ top: 1_400_000, behavior: 'instant' }));
+    const nextPage = page
+      .getByRole('navigation', { name: 'Страницы документов в конце списка' })
+      .getByRole('button', { name: 'Следующая страница' });
+    await expect(nextPage).toBeInViewport();
+    await nextPage.click();
+    await expect(cards.first().locator('.catalog-card__index')).toHaveText('1041');
+    await page.screenshot({ path: test.info().outputPath('paged-catalog.png') });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await expect(input).toBeInViewport();
+
+    await input.fill('артериальная гипертензия');
+    const submit = page.getByTestId('search-submit');
+    await expect(submit).toBeVisible();
+    await expect
+      .poll(async () => {
+        const trigger = await picker.boundingBox();
+        const button = await submit.boundingBox();
+        return (
+          trigger &&
+          button &&
+          Math.abs(trigger.y + trigger.height / 2 - button.y - button.height / 2) < 4
+        );
+      })
+      .toBe(true);
+  });
+
+  test(`unified selector, tool history and folders at ${width}px`, async ({ page }) => {
     const height = width === 375 ? 684 : 844;
     await page.setViewportSize({ width, height });
     await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
@@ -99,33 +148,7 @@ for (const width of [375, 1280]) {
     await expect(input).toHaveValue('препарат');
     await selectSearchSection(page, 'Все источники');
     await input.fill('');
-    // The empty home lists sections; the long virtualized catalog lives in the largest section.
     await waitForHomeSections(page);
-    await selectSearchSection(page, 'МКБ, симптомы и состояния');
-    await expect(page.locator('.document-library-card').first()).toBeVisible();
-    await page.evaluate(() => window.scrollTo({ top: 1_400_000, behavior: 'instant' }));
-    await expect
-      .poll(() => page.locator('.catalog-card__index').first().textContent())
-      .toMatch(/\d{4,}/u);
-    // The virtualized grid re-renders its window after the jump; measure once it has settled.
-    await expect
-      .poll(() =>
-        page
-          .locator('.document-library-card')
-          .first()
-          .evaluate((card) => {
-            const index = card.querySelector('.catalog-card__index')?.getBoundingClientRect();
-            const title = card.querySelector('.catalog-card__title')?.getBoundingClientRect();
-            if (!index || !title) throw new Error('Catalog card is missing its number or title');
-            return index.height > 0 && title.top > index.bottom;
-          }),
-      )
-      .toBe(true);
-    await page.screenshot({ path: test.info().outputPath('long-catalog.png') });
-    await page.getByRole('button', { name: 'Наверх' }).click();
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
-    await expect(input).toBeInViewport();
-
     await nav.getByRole('button', { name: 'Мои файлы', exact: true }).click();
     for (const name of [
       'Исследования',

@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.124] - 2026-11-21
+
+- List documents in pages of 40, show totals, and let readers jump to a page or return to it after opening a document.
+- Open the database overview without scanning every pack. Use compact listings for the archive and conditions, bound worker catalog replies, and release full metadata once its consumer finishes.
+- Keep the selected search section and submit button in one row on narrow screens.
+- Add the in-app notification switch and icons in General settings. Show the total in My Files.
+
 ## [0.6.123] - 2026-11-20
 
 - Show section progress in the section loader. Slice catalog preparation, reduce work during navigation, and time catalog reads and first frames in the performance log.

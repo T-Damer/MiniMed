@@ -64,7 +64,7 @@ import { ensureOcrLanguagePackFiles } from '@/features/ocr/ocr-language-pack';
 import { quickToolsFromCatalog } from '@/features/search/quick-tools';
 import { searchCatalogTools } from '@/features/search/searchCatalog';
 import { getPluralMessage } from '@/i18n/browser-i18n';
-import { pluralRu } from '@/i18n/labels';
+import { documentCountLabel, pluralRu } from '@/i18n/labels';
 import { navigateBack } from '@/state/app-back';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { itemCollections } from '@/state/item-collections';
@@ -2233,7 +2233,12 @@ export function UserLibraryPage(props: {
 
         <Show when={showPlaces()}>
           <UserLibraryPlaces kinds={kindCounts()} onOpen={navigate} />
-          <h2 class="list-group__heading user-library-page__folders-heading">Папки и файлы</h2>
+          <div class="user-library-page__folders-summary">
+            <h2 class="list-group__heading user-library-page__folders-heading">Папки и файлы</h2>
+            <span class="user-library-page__document-count">
+              {documentCountLabel(documents().length)}
+            </span>
+          </div>
         </Show>
         <Show when={place().kind === 'computer'}>
           <ComputerFolderView

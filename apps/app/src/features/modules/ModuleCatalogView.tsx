@@ -35,7 +35,6 @@ import {
   CALCULATOR_SECTION_CATEGORY_IDS,
   CALCULATOR_SECTIONS,
 } from '@/features/calculators/calculator-packs';
-import { buildConditionCatalog } from '@/features/conditions/condition-catalog';
 import {
   canPrioritizeModules,
   prioritizeModuleDownloads,
@@ -95,10 +94,6 @@ import {
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 import {
-  countDocumentsByOverviewBucket,
-  EMPTY_OVERVIEW_DOCUMENT_COUNTS,
-} from '@/features/modules/overview-document-counts';
-import {
   type ModuleGroupTaskState,
   moduleCollectionStats,
   moduleGroupDownloadProgress,
@@ -113,13 +108,11 @@ import {
 import {
   collectionLabel,
   documentCountLabel,
-  pluralRu,
   recommendationCountLabel,
   sectionCountLabel,
 } from '@/i18n/labels';
 import { navigateBack } from '@/state/app-back';
 import { getModuleAutoUpdatesEnabled, subscribeAppPreferences } from '@/state/app-preferences';
-import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import {
@@ -258,9 +251,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     Boolean(returnTo());
   const catalogOverviewVisible = (): boolean =>
     !coreLibraryOpen() && !lawsSpecialty() && !recommendationBrowserOpen() && !regularCollection();
-  const [overviewDocumentCounts, setOverviewDocumentCounts] = createSignal(
-    EMPTY_OVERVIEW_DOCUMENT_COUNTS,
-  );
   let refreshedOnce = false;
   let unsubscribeTask: (() => void) | undefined;
   let unsubscribeCatalog: (() => void) | undefined;
@@ -338,16 +328,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const openHerbalBook = (): void => {
     window.location.hash = HERBAL_BOOK_HASH;
   };
-  const [overviewConditionCount, setOverviewConditionCount] = createSignal(0);
-
-  const refreshOverviewDocumentCounts = (): void => {
-    void (props.core.listNavigationDocuments?.() ?? props.core.listDocuments()).then((result) => {
-      if (!result.ok) return;
-      setOverviewDocumentCounts(countDocumentsByOverviewBucket(result.value));
-      setOverviewConditionCount(buildConditionCatalog(result.value).length);
-    });
-  };
-
   const overviewSubtitle = (
     countLabel: string | null,
     stats: { readonly downloadBytes: number; readonly installedBytes: number },
@@ -367,15 +347,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
       ),
     );
     syncSelectionFromLocation();
-    const initialCountsFrame = requestAnimationFrame(refreshOverviewDocumentCounts);
     window.addEventListener('hashchange', syncSelectionFromLocation);
-    window.addEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
     const syncReturnTo = () => {
       setReturnTo(peekReturnTo());
     };
     window.addEventListener(RETURN_TO_EVENT, syncReturnTo);
     onCleanup(() => {
-      cancelAnimationFrame(initialCountsFrame);
       window.removeEventListener(RETURN_TO_EVENT, syncReturnTo);
     });
   });
@@ -383,7 +360,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     unsubscribeTask?.();
     unsubscribeCatalog?.();
     window.removeEventListener('hashchange', syncSelectionFromLocation);
-    window.removeEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
   });
 
   const recommendationSectionModules = createMemo(() =>
@@ -438,7 +414,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     })[section] ?? collectionLabel(section);
   const preinstallOptions = createMemo(
     (): PreinstalledCatalogModuleOptions => ({
-      companionMedicationsMounted: isCompanionMedicationsMounted(overviewDocumentCounts()),
+      companionMedicationsMounted: isCompanionMedicationsMounted(props.status.contentPackIds),
     }),
   );
   const installedWithBundled = createMemo(() =>
@@ -1289,9 +1265,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <AppGlyph name="book-open" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Заболевания и состояния</strong>
                   <span class="recommendation-section-card-meta">
-                    {overviewConditionCount() > 0
-                      ? `${overviewConditionCount()} ${pluralRu(overviewConditionCount(), 'запись', 'записи', 'записей')} · МКБ-10, рекомендации и справочники`
-                      : 'МКБ-10, рекомендации и справочники'}
+                    МКБ-10, рекомендации и справочники
                   </span>
                   {sectionDownloadControls(
                     'conditions',
@@ -1317,14 +1291,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="notes" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Лекарства</strong>
-                  <Show
-                    when={overviewSubtitle(
-                      overviewDocumentCounts().medications > 0
-                        ? documentCountLabel(overviewDocumentCounts().medications)
-                        : null,
-                      medicationCollectionStats(),
-                    )}
-                  >
+                  <Show when={overviewSubtitle(null, medicationCollectionStats())}>
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}
@@ -1461,14 +1428,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                 >
                   <AppGlyph name="modules" class="recommendation-section-card-icon" />
                   <strong class="recommendation-section-card-title">Ядро</strong>
-                  <Show
-                    when={overviewSubtitle(
-                      overviewDocumentCounts().core > 0
-                        ? documentCountLabel(overviewDocumentCounts().core)
-                        : null,
-                      coreCollectionStats(),
-                    )}
-                  >
+                  <Show when={overviewSubtitle(null, coreCollectionStats())}>
                     {(subtitle) => (
                       <span class="recommendation-section-card-meta">{subtitle()}</span>
                     )}

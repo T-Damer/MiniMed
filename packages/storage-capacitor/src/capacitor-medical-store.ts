@@ -292,6 +292,8 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'contentMode', json_extract(d.metadata_json, '$.contentMode'),
       'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
       'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
+      'classificationPath', json_extract(d.metadata_json, '$.classificationPath'),
+      'keywords', json_extract(d.metadata_json, '$.keywords'),
       'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
       'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
       'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
@@ -538,13 +540,13 @@ export class CapacitorMedicalStore implements MedicalStore {
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    this.documents ??= this.readDocumentPages(DOCUMENT_SELECT, toDocument).catch(
-      (error: unknown) => {
-        this.documents = undefined;
-        throw error;
-      },
-    );
-    return this.documents;
+    this.documents ??= this.readDocumentPages(DOCUMENT_SELECT, toDocument);
+    const pending = this.documents;
+    try {
+      return await pending;
+    } finally {
+      if (this.documents === pending) this.documents = undefined;
+    }
   }
 
   private async readDocumentPages<T>(

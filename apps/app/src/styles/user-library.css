@@ -1660,3 +1660,16 @@
 .user-library-page__recordings {
   margin-top: 0.75rem;
 }
+
+.user-library-page__folders-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.user-library-page__document-count {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}

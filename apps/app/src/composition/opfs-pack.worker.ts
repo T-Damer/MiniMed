@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 
+import { createTimeSlicer } from '@localmed/search-lexical';
 import { type OpfsPackSource, SqliteMedicalStore } from '@localmed/storage-sqlite';
 
 import type {
@@ -13,8 +14,34 @@ import {
 } from '@/features/modules/encoded-index-reader';
 import { type EpochInstallPhase, epochNow } from '@/features/modules/install-timing';
 
-/** Rows per message of a long array result (about 2 MB of document records). */
 const RESULT_PAGE_ROWS = 1000;
+// Catalog rows can contain large nested metadata. Measure their weight on the worker,
+// before a structured clone reaches the UI thread.
+const CATALOG_PAGE_ROWS = 128;
+const CATALOG_PAGE_CHARACTERS = 256 * 1024;
+
+async function sendCatalogRows(id: number, rows: readonly unknown[]): Promise<void> {
+  const slice = createTimeSlicer();
+  let part: unknown[] = [];
+  let characters = 0;
+  for (const row of rows) {
+    const size = JSON.stringify(row).length;
+    if (
+      part.length > 0 &&
+      (part.length >= CATALOG_PAGE_ROWS || characters + size > CATALOG_PAGE_CHARACTERS)
+    ) {
+      self.postMessage({ id, part } satisfies OpfsPackWorkerResponse);
+      part = [];
+      characters = 0;
+    }
+    part.push(row);
+    characters += size;
+    const due = slice();
+    if (due) await due;
+  }
+  if (part.length > 0) self.postMessage({ id, part } satisfies OpfsPackWorkerResponse);
+  self.postMessage({ id, result: [] } satisfies OpfsPackWorkerResponse);
+}
 
 let store: SqliteMedicalStore | undefined;
 let downloadApproval: { id: number; resolve: () => void } | undefined;
@@ -192,6 +219,15 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       ...args: readonly unknown[]
     ) => Promise<unknown>;
     const result = await method(...message.args);
+    if (
+      Array.isArray(result) &&
+      (message.method === 'listDocuments' ||
+        message.method === 'listNavigationDocuments' ||
+        message.method === 'listSearchDocuments')
+    ) {
+      await sendCatalogRows(message.id, result);
+      return;
+    }
     if (Array.isArray(result) && result.length > RESULT_PAGE_ROWS) {
       for (let start = 0; start < result.length; start += RESULT_PAGE_ROWS) {
         self.postMessage({

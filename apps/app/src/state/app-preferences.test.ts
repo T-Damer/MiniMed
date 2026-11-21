@@ -89,6 +89,7 @@ describe('app-preferences', () => {
       readerChromePinned: false,
       restoreLastPage: true,
       showPageRestoreNotice: true,
+      notificationsEnabled: true,
       recordingActivityEnabled: true,
     });
   });
@@ -119,6 +120,7 @@ describe('app-preferences', () => {
       readerChromePinned: false,
       restoreLastPage: true,
       showPageRestoreNotice: true,
+      notificationsEnabled: true,
       recordingActivityEnabled: true,
     });
   });

@@ -36,6 +36,9 @@ export async function prepareNavigationDocuments(
   const available = new Set<string>();
   for (const document of documents) {
     available.add(document.id);
+    const due = slice();
+    if (due) await due;
+    if (signal.aborted) return undefined;
   }
   const real = new Set<string>();
   for (const document of documents) {

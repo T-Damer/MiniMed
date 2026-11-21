@@ -1,86 +1,113 @@
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { type Accessor, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Switch } from '@/components/Switch';
 import { conversationSession } from '@/features/conversations/conversation-session';
 import {
   nativeRecordingPlatform,
-  observeAndroidSettingsReturn,
+  observeNativeSettingsReturn,
   openAndroidNotificationSettings,
   readAndroidNotificationSettings,
   requestAndroidNotifications,
 } from '@/features/conversations/native-recording-activity';
-import { setRecordingActivityEnabled } from '@/state/app-preferences';
+import { setNotificationsEnabled, setRecordingActivityEnabled } from '@/state/app-preferences';
 
 type AndroidSettings = Awaited<ReturnType<typeof readAndroidNotificationSettings>>;
 
 export function NotificationSettings(props: {
+  readonly enabled: Accessor<boolean>;
   readonly recordingEnabled: Accessor<boolean>;
 }): JSX.Element {
-  const platform = nativeRecordingPlatform();
-  if (!platform) return null;
-  const android = platform === 'android';
+  const native = Capacitor.isNativePlatform();
+  const recordingPlatform = nativeRecordingPlatform();
+  const android = recordingPlatform === 'android';
+  if (!native && !('Notification' in window)) return null;
   const [settings, setSettings] = createSignal<AndroidSettings>();
+  const [permission, setPermission] = createSignal<AndroidSettings['permission']>();
   const [busy, setBusy] = createSignal(false);
   const [requested, setRequested] = createSignal(false);
   const [readFailed, setReadFailed] = createSignal(false);
   let disposed = false;
   let read = 0;
 
-  const canRequest = () => {
-    const permission = settings()?.permission;
-    return !requested() && (permission === 'prompt' || permission === 'prompt-with-rationale');
-  };
+  const canRequest = () =>
+    !requested() && (permission() === 'prompt' || permission() === 'prompt-with-rationale');
 
   async function refresh(): Promise<void> {
     if (disposed) return;
     const attempt = ++read;
     try {
-      const next = await readAndroidNotificationSettings();
-      if (disposed || attempt !== read) return;
-      const previous = settings();
-      setSettings(next);
-      setReadFailed(false);
-      if (
-        previous &&
-        (previous.notificationsEnabled !== next.notificationsEnabled ||
-          previous.promotionEnabled !== next.promotionEnabled ||
-          previous.recordingChannelBlocked !== next.recordingChannelBlocked)
-      ) {
-        conversationSession.refreshRecordingActivity();
+      if (android) {
+        const next = await readAndroidNotificationSettings();
+        if (disposed || attempt !== read) return;
+        const previous = settings();
+        setSettings(next);
+        // The native plugin reports system-wide and channel-level controls separately.
+        setPermission(
+          next.notificationsEnabled
+            ? 'granted'
+            : next.permission === 'granted'
+              ? 'denied'
+              : next.permission,
+        );
+        if (
+          previous &&
+          (previous.notificationsEnabled !== next.notificationsEnabled ||
+            previous.promotionEnabled !== next.promotionEnabled ||
+            previous.recordingChannelBlocked !== next.recordingChannelBlocked)
+        ) {
+          conversationSession.refreshRecordingActivity();
+        }
+      } else {
+        const next = native
+          ? (await LocalNotifications.checkPermissions()).display
+          : Notification.permission;
+        if (disposed || attempt !== read) return;
+        setPermission(next === 'default' ? 'prompt' : next);
       }
+      setReadFailed(false);
     } catch (cause) {
-      console.warn('Unable to read Android notification settings.', cause);
+      console.warn('Unable to read notification settings.', cause);
       if (!disposed && attempt === read) setReadFailed(true);
     }
   }
 
-  if (android) {
-    onMount(() => {
-      void refresh();
-      const stopObserving = observeAndroidSettingsReturn(() => void refresh());
-      onCleanup(() => {
-        disposed = true;
-        stopObserving();
-      });
+  onMount(() => {
+    const refreshStatus = () => void refresh();
+    refreshStatus();
+    const stopObserving = native ? observeNativeSettingsReturn(refreshStatus) : undefined;
+    if (!native) window.addEventListener('focus', refreshStatus);
+    onCleanup(() => {
+      disposed = true;
+      stopObserving?.();
+      if (!native) window.removeEventListener('focus', refreshStatus);
     });
-  }
+  });
 
   async function manage(kind: 'app' | 'recording'): Promise<void> {
     if (busy()) return;
     setBusy(true);
     try {
-      if (kind === 'app' && canRequest()) {
-        setRequested(true);
-        await requestAndroidNotifications();
-        await refresh();
-      } else {
+      if (kind === 'app' && (canRequest() || readFailed())) {
+        if (readFailed()) {
+          await refresh();
+        } else {
+          setRequested(true);
+          if (android) await requestAndroidNotifications();
+          else if (native) await LocalNotifications.requestPermissions();
+          else await Notification.requestPermission();
+          await refresh();
+        }
+      } else if (android) {
         await openAndroidNotificationSettings(kind);
       }
     } catch (cause) {
-      console.warn('Unable to change Android notification settings.', cause);
-      if (!disposed) toast.error('Не удалось открыть настройки уведомлений');
+      console.warn('Unable to change notification settings.', cause);
+      if (!disposed) toast.error('Не удалось изменить настройки уведомлений');
     } finally {
       if (!disposed) setBusy(false);
     }
@@ -89,6 +116,7 @@ export function NotificationSettings(props: {
   const recordingSetupNeeded = () => {
     const status = settings();
     return (
+      props.enabled() &&
       status?.recordingSupported &&
       status.notificationsEnabled &&
       props.recordingEnabled() &&
@@ -101,35 +129,43 @@ export function NotificationSettings(props: {
       class="settings-section settings-section--general paper-sheet"
       aria-label="Уведомления"
     >
-      <Show when={android}>
-        <div class="settings-row">
-          <div class="settings-row__text">
-            <span class="settings-row__label">Уведомления</span>
-            <Show
-              when={settings()}
-              fallback={
-                <Show when={readFailed()}>
-                  <p class="settings-row__helper">Статус недоступен</p>
-                </Show>
-              }
-            >
-              {(status) => (
-                <p class="settings-row__helper">
-                  {status().notificationsEnabled ? 'Разрешены' : 'Отключены'}
-                </p>
-              )}
-            </Show>
-          </div>
-          <Button class="settings-row__action" disabled={busy()} onClick={() => void manage('app')}>
-            {canRequest() ? 'Разрешить' : 'Настройки Android'}
-          </Button>
+      <div class="settings-row">
+        <div class="settings-row__text">
+          <span class="settings-row__label settings-row__label--with-icon">
+            <AppGlyph name="bell" class="settings-row__label-icon" aria-hidden="true" />
+            Уведомления
+          </span>
+          <Show when={permission() === 'denied' && !android}>
+            <p class="settings-row__helper">
+              {native ? 'Разрешите в настройках устройства.' : 'Разрешите в настройках браузера.'}
+            </p>
+          </Show>
         </div>
-      </Show>
-      <Show when={!android || settings()?.recordingSupported}>
+        <Show when={permission() === 'granted'}>
+          <Switch
+            checked={props.enabled()}
+            aria-label="Уведомления"
+            onChange={(enabled) => {
+              setNotificationsEnabled(enabled);
+              conversationSession.refreshRecordingActivity();
+            }}
+          />
+        </Show>
+        <Show when={permission() !== 'granted' && (android || canRequest() || readFailed())}>
+          <Button class="settings-row__action" disabled={busy()} onClick={() => void manage('app')}>
+            {readFailed() ? 'Повторить' : canRequest() ? 'Разрешить' : 'Настройки Android'}
+          </Button>
+        </Show>
+      </div>
+      <Show when={recordingPlatform === 'ios' || settings()?.recordingSupported}>
         <div class="settings-row">
-          <span class="settings-row__label">Запись в системном индикаторе</span>
+          <span class="settings-row__label settings-row__label--with-icon">
+            <AppGlyph name="microphone" class="settings-row__label-icon" aria-hidden="true" />
+            Запись в системном индикаторе
+          </span>
           <Switch
             checked={props.recordingEnabled()}
+            disabled={!props.enabled()}
             aria-label="Запись в системном индикаторе"
             onChange={(enabled) => {
               setRecordingActivityEnabled(enabled);
@@ -140,7 +176,10 @@ export function NotificationSettings(props: {
       </Show>
       <Show when={recordingSetupNeeded()}>
         <div class="settings-row">
-          <span class="settings-row__label">Системный индикатор отключён в Android</span>
+          <span class="settings-row__label settings-row__label--with-icon">
+            <AppGlyph name="system" class="settings-row__label-icon" aria-hidden="true" />
+            Системный индикатор отключён в Android
+          </span>
           <Button
             class="settings-row__action"
             disabled={busy()}

@@ -90,7 +90,8 @@ export function ConditionCatalogView(props: ConditionCatalogViewProps): JSX.Elem
     setLoading(true);
     setError(undefined);
     try {
-      const result = await props.core.listDocuments();
+      const core = props.core;
+      const result = await (core.listNavigationDocuments?.() ?? core.listDocuments());
       if (!result.ok) throw new Error(result.error.message);
       setEntries(buildConditionCatalog(result.value));
     } catch (cause) {

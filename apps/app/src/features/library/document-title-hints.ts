@@ -13,20 +13,23 @@ type TitleSource = Pick<
 /** The newest catalog lists the app has read; indexed on the first lookup, not when received. */
 const MAX_REMEMBERED_LISTS = 3;
 const MAX_EXPLICIT_TITLES = 200;
-let rememberedLists: Array<readonly TitleSource[]> = [];
+let rememberedLists: Array<WeakRef<readonly TitleSource[]>> = [];
 const listIndexes = new WeakMap<readonly TitleSource[], Map<string, TitleSource>>();
 const explicitTitles = new Map<string, string>();
 
 /**
  * Remembers the document list the core has just returned, so a document opened later is named
- * before its own text has loaded. Only the reference is kept; nothing is copied or indexed here.
+ * before its own text has loaded. A hint must not keep old editions' catalogs alive.
  */
 export function rememberDocumentSummaries(summaries: readonly TitleSource[]): void {
-  if (summaries.length === 0 || rememberedLists[0] === summaries) return;
-  rememberedLists = [summaries, ...rememberedLists.filter((list) => list !== summaries)].slice(
-    0,
-    MAX_REMEMBERED_LISTS,
-  );
+  if (summaries.length === 0 || rememberedLists[0]?.deref() === summaries) return;
+  rememberedLists = [
+    new WeakRef(summaries),
+    ...rememberedLists.filter((reference) => {
+      const list = reference.deref();
+      return list !== undefined && list !== summaries;
+    }),
+  ].slice(0, MAX_REMEMBERED_LISTS);
 }
 
 /** A title the opener already knows (a link's label, a card's heading). */
@@ -54,7 +57,9 @@ function indexOf(list: readonly TitleSource[]): Map<string, TitleSource> {
 export function knownDocumentTitle(documentId: string): string | undefined {
   const explicit = explicitTitles.get(documentId);
   if (explicit) return explicit;
-  for (const list of rememberedLists) {
+  for (const reference of rememberedLists) {
+    const list = reference.deref();
+    if (!list) continue;
     const summary = indexOf(list).get(documentId);
     if (summary) {
       const title = displayDocumentTitle(summary).trim();

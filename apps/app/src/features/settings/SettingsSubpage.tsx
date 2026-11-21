@@ -58,7 +58,7 @@ export function SettingsSubpage(props: SettingsSubpageProps): JSX.Element {
             {props.title}
           </Dynamic>
         }
-        description={props.description}
+        description={props.description || undefined}
         {...(props.help !== undefined ? { help: props.help } : {})}
       />
       {props.children}

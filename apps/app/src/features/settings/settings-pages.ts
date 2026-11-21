@@ -31,7 +31,7 @@ export const SETTINGS_PAGES: readonly SettingsPageDefinition[] = [
   {
     id: 'general',
     title: 'Основные',
-    description: 'Версия, обновления и обучение.',
+    description: '',
     icon: 'system-fill',
     tone: 'gray',
     keywords: [

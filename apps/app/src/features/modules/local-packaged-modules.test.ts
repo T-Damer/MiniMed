@@ -2,7 +2,6 @@ import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  CORE_MEDICATION_REGISTRY_CARD_COUNT,
   catalogModuleHidesInstallAction,
   catalogModuleHidesRemoveAction,
   isCompanionMedicationsMounted,
@@ -237,16 +236,11 @@ describe('local packaged modules', () => {
     ).toContain(previewTool.id);
   });
 
-  it('treats the medications companion as installed when mounted document counts exceed core cards', () => {
+  it('treats the medications companion as installed only when its pack is mounted', () => {
     const medicationsModule = moduleById(MEDICATIONS_COMPANION_MODULE_ID);
+    expect(isCompanionMedicationsMounted(['minimed.core.ru'])).toBe(false);
     expect(
-      isCompanionMedicationsMounted({
-        medications: CORE_MEDICATION_REGISTRY_CARD_COUNT + 1,
-        reference: 0,
-        regulatory: 0,
-        clinical: 0,
-        core: 0,
-      }),
+      isCompanionMedicationsMounted(['minimed.core.ru', MEDICATIONS_COMPANION_MODULE_ID]),
     ).toBe(true);
     expect(
       isPreinstalledCatalogModule(medicationsModule, { companionMedicationsMounted: true }),

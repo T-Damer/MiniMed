@@ -5,7 +5,6 @@ import {
   hasLocalModuleArtifacts,
   type InstalledContentModule,
 } from '@localmed/contracts';
-import type { OverviewDocumentCounts } from '@/features/modules/overview-document-counts';
 import { getExperimentalModulesEnabled } from '@/state/app-preferences';
 
 export const MEDICATIONS_COMPANION_MODULE_ID = 'minimed.medications.ru';
@@ -39,15 +38,12 @@ export function isModuleReleasedWith(
   );
 }
 
-/** Core ships eight registry summary cards without the Allmed medications companion. */
-export const CORE_MEDICATION_REGISTRY_CARD_COUNT = 8;
-
 export interface PreinstalledCatalogModuleOptions {
   readonly companionMedicationsMounted?: boolean;
 }
 
-export function isCompanionMedicationsMounted(counts: OverviewDocumentCounts | undefined): boolean {
-  return (counts?.medications ?? 0) > CORE_MEDICATION_REGISTRY_CARD_COUNT;
+export function isCompanionMedicationsMounted(contentPackIds: readonly string[]): boolean {
+  return contentPackIds.includes(MEDICATIONS_COMPANION_MODULE_ID);
 }
 
 export function isPreinstalledCatalogModule(

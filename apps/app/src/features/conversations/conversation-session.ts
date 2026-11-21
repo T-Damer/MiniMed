@@ -32,7 +32,7 @@ import {
   type SpeechEngine,
   type SpeechEngineState,
 } from '@/features/conversations/speech-engine';
-import { loadAppPreferences } from '@/state/app-preferences';
+import { getRecordingActivityEnabled } from '@/state/app-preferences';
 import {
   type ConversationRecorder,
   type ConversationRecording,
@@ -246,7 +246,7 @@ export const conversationSession = {
   refreshRecordingActivity: (): void => {
     const current = recorder();
     if (!current) return;
-    if (!loadAppPreferences().recordingActivityEnabled) {
+    if (!getRecordingActivityEnabled()) {
       updateNativeRecordingActivity('ended', current.elapsedMs);
       return;
     }
