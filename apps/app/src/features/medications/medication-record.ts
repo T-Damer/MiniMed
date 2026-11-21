@@ -130,7 +130,7 @@ interface MedicationMetadata extends Readonly<Record<string, unknown>> {
 }
 
 function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' ? value.trim() || null : null;
 }
 
 function stringList(value: unknown): readonly string[] {
@@ -197,10 +197,12 @@ function recordField(record: MedicationRecord, key: string): unknown {
 
 function recordList(value: unknown): readonly MedicationRecord[] {
   if (!Array.isArray(value)) return [];
-  return value.flatMap((item) => {
+  const records: MedicationRecord[] = [];
+  for (const item of value) {
     const record = recordValue(item);
-    return record ? [record] : [];
-  });
+    if (record) records.push(record);
+  }
+  return records;
 }
 
 function normalizedIdentity(value: string | null): string {
@@ -252,14 +254,18 @@ export function safePackagingImageReference(value: unknown): string | null {
   return reference;
 }
 
-function normalizedStrength(value: string | null): string {
-  return normalizedIdentity(value).replace(/\d+(?:[.,]\d+)?/gu, (number) => {
+function normalizedStrength(value: string): string {
+  return value.replace(/\d+(?:[.,]\d+)?/gu, (number) => {
     const normalized = Number(number.replace(',', '.'));
     return Number.isFinite(normalized) ? String(normalized) : number;
   });
 }
 
 interface EsklpVariant {
+  readonly tradeKey: string;
+  readonly registrationKey: string;
+  readonly formKey: string;
+  readonly strengthKey: string | null;
   readonly tradeName: string;
   readonly registrationNumber: string;
   readonly smnnCode: string;
@@ -275,42 +281,6 @@ interface EsklpVariant {
   readonly instructionDocumentId: string | null;
   readonly klpCodes: Set<string>;
   readonly packages: Map<string, MedicationPackage>;
-}
-
-function esklpVariantKey(
-  smnnCode: string,
-  tradeName: string,
-  registrationNumber: string,
-  dosageForm: string,
-  strength: string | null,
-): string {
-  return [smnnCode, tradeName, registrationNumber, dosageForm, strength]
-    .map(normalizedIdentity)
-    .join('\u001f');
-}
-
-function esklpBaseKey(tradeName: string, registrationNumber: string, dosageForm: string): string {
-  return [tradeName, registrationNumber, dosageForm].map(normalizedIdentity).join('\u001f');
-}
-
-function esklpKlpMatchesVariant(position: MedicationRecord, variant: EsklpVariant): boolean {
-  const tradeName = recordString(position, 'tradeName');
-  const registrationNumber = recordString(position, 'registrationNumber');
-  const dosageForm = recordString(position, 'dosageForm');
-  if (
-    normalizedIdentity(tradeName) !== normalizedIdentity(variant.tradeName) ||
-    normalizedIdentity(registrationNumber) !== normalizedIdentity(variant.registrationNumber) ||
-    normalizedIdentity(dosageForm) !== normalizedIdentity(variant.dosageForm)
-  ) {
-    return false;
-  }
-  const strength = recordString(position, 'strength');
-  return (
-    (strength === null && variant.strength === null) ||
-    (strength !== null &&
-      variant.strength !== null &&
-      normalizedStrength(strength) === normalizedStrength(variant.strength))
-  );
 }
 
 function esklpPackageDescription(position: MedicationRecord, fallback: string): string {
@@ -366,10 +336,30 @@ export function parseEsklpMedicationProducts(
   const nodes = recordList(metadata.smnnNodes);
   const variants = new Map<string, EsklpVariant>();
   const registrationStatus = stringValue(metadata.registrationStatus) ?? 'Государственный реестр';
+  // Package positions repeat the same trade name, registration, form and strength many times.
+  // Reuse the exact keys within this document, then let the raw metadata and keys be collected.
+  const identities = new Map<string, string>();
+  const identity = (value: string): string => {
+    const known = identities.get(value);
+    if (known !== undefined) return known;
+    const normalized = normalizedIdentity(value);
+    identities.set(value, normalized);
+    return normalized;
+  };
+  const strengths = new Map<string, string>();
+  const strengthKeyOf = (value: string | null): string | null => {
+    if (value === null) return null;
+    const known = strengths.get(value);
+    if (known !== undefined) return known;
+    const normalized = normalizedStrength(identity(value));
+    strengths.set(value, normalized);
+    return normalized;
+  };
 
   for (const node of nodes) {
     const smnnCode = recordString(node, 'smnnCode');
     if (!smnnCode) continue;
+    const smnnKey = identity(smnnCode);
     const nodeDosageForm = recordString(node, 'dosageForm');
     const nodeStrength = recordString(node, 'strength');
     const pharmacotherapeuticGroup = recordString(node, 'pharmacotherapeuticGroup');
@@ -384,10 +374,18 @@ export function parseEsklpMedicationProducts(
       const dosageForm = recordString(trade, 'dosageForm') ?? nodeDosageForm;
       const strength = recordString(trade, 'strength') ?? nodeStrength;
       if (!tradeName || !registrationNumber || !dosageForm) continue;
-      const key = esklpVariantKey(smnnCode, tradeName, registrationNumber, dosageForm, strength);
+      const tradeKey = identity(tradeName);
+      const registrationKey = identity(registrationNumber);
+      const formKey = identity(dosageForm);
+      const baseKey = `${tradeKey}\u001f${registrationKey}\u001f${formKey}`;
+      const key = `${smnnKey}\u001f${baseKey}\u001f${strength === null ? '' : identity(strength)}`;
       let variant = variants.get(key);
       if (!variant) {
         variant = {
+          tradeKey,
+          registrationKey,
+          formKey,
+          strengthKey: strengthKeyOf(strength),
           tradeName,
           registrationNumber,
           smnnCode,
@@ -409,7 +407,6 @@ export function parseEsklpMedicationProducts(
         };
         variants.set(key, variant);
       }
-      const baseKey = esklpBaseKey(tradeName, registrationNumber, dosageForm);
       const baseVariants = nodeVariants.get(baseKey) ?? [];
       if (!baseVariants.includes(variant)) baseVariants.push(variant);
       nodeVariants.set(baseKey, baseVariants);
@@ -420,9 +417,19 @@ export function parseEsklpMedicationProducts(
       const registrationNumber = recordString(position, 'registrationNumber');
       const dosageForm = recordString(position, 'dosageForm');
       if (!tradeName || !registrationNumber || !dosageForm) continue;
-      const candidates = nodeVariants.get(esklpBaseKey(tradeName, registrationNumber, dosageForm));
+      const tradeKey = identity(tradeName);
+      const registrationKey = identity(registrationNumber);
+      const formKey = identity(dosageForm);
+      const candidates = nodeVariants.get(`${tradeKey}\u001f${registrationKey}\u001f${formKey}`);
       if (!candidates || candidates.length === 0) continue;
-      const exact = candidates.find((candidate) => esklpKlpMatchesVariant(position, candidate));
+      const strengthKey = strengthKeyOf(recordString(position, 'strength'));
+      const exact = candidates.find(
+        (candidate) =>
+          candidate.tradeKey === tradeKey &&
+          candidate.registrationKey === registrationKey &&
+          candidate.formKey === formKey &&
+          candidate.strengthKey === strengthKey,
+      );
       const base = exact ?? (candidates.length === 1 ? candidates[0] : undefined);
       if (!base) continue;
       addEsklpKlpPosition(base, position);

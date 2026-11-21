@@ -75,7 +75,10 @@ export interface MedicalCore {
   search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>>;
   /** Reads one document's metadata without opening its sections or chunks. */
   readonly getDocumentSummary?:
-    | ((documentId: string) => Promise<Result<MedicalDocumentSummary, LocalMedError>>)
+    | ((
+        documentId: string,
+        projection?: 'medication-catalog',
+      ) => Promise<Result<MedicalDocumentSummary, LocalMedError>>)
     | undefined;
   getDocument(documentId: string): Promise<Result<MedicalDocument, LocalMedError>>;
   getSection(sectionId: string): Promise<Result<MedicalSection, LocalMedError>>;

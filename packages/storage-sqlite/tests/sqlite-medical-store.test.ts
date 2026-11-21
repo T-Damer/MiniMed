@@ -171,6 +171,62 @@ describe('SqliteMedicalStore', () => {
     expect(full[0]?.document.metadata['unrelated']).toHaveLength(4096);
   });
 
+  it('projects medication variants without changing the full document', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    const fixture = CORE_SLICE_PACK.documents[0];
+    if (!fixture) throw new Error('Missing document fixture.');
+    const metadata = {
+      contentMode: 'esklp-mnn',
+      standardizedInn: 'Ибупрофен',
+      provenance: { edition: 'unchanged' },
+      smnnNodes: [
+        {
+          smnnCode: 'smnn.suspension',
+          atcConsensus: { code: 'M01AE01', sources: ['registry'] },
+          tradeNames: [
+            { tradeName: 'Нурофен', registrationNumber: 'РФ-1', registrationDate: '2026' },
+          ],
+          klpPositions: [
+            { klpCode: 'klp.1', strength: '100 мг', unitCount: 20, price: { amount: 42 } },
+            { klpCode: 'klp.2', strength: '200 мг', unitCount: '10', diagnostics: true },
+          ],
+        },
+      ],
+    };
+    await store.initialize({
+      ...CORE_SLICE_PACK,
+      documents: CORE_SLICE_PACK.documents.map((document) =>
+        document.id === fixture.id ? { ...document, metadata } : document,
+      ),
+    });
+
+    const projected = await store.getDocument(fixture.id, 'medication-catalog');
+    expect(projected?.metadata).toMatchObject({
+      standardizedInn: 'Ибупрофен',
+      smnnNodes: [
+        {
+          smnnCode: 'smnn.suspension',
+          atcConsensus: metadata.smnnNodes[0]?.atcConsensus,
+          tradeNames: metadata.smnnNodes[0]?.tradeNames,
+          klpPositions: [
+            { klpCode: 'klp.1', strength: '100 мг', unitCount: 20 },
+            { klpCode: 'klp.2', strength: '200 мг', unitCount: '10' },
+          ],
+        },
+      ],
+    });
+    expect(projected?.metadata).not.toHaveProperty('provenance');
+    expect(projected?.metadata).not.toHaveProperty([
+      'smnnNodes',
+      '0',
+      'klpPositions',
+      '0',
+      'price',
+    ]);
+    expect(await store.getDocument(fixture.id)).toMatchObject({ metadata });
+  });
+
   describe('whole-pack listings', () => {
     interface TestDatabase {
       readonly exec: (sql: string) => void;

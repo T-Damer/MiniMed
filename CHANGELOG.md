@@ -6,6 +6,7 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 - Rank lexical matches in SQLite and fetch excerpts only for the combined top hits across installed packs.
 - Share repeated medication catalog data and keep one-off search strings out of the shared name cache.
+- Trim medication catalog records in the storage workers and reuse normalized keys for repeated package positions.
 
 ## [0.6.126] - 2026-11-21
 

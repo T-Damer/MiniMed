@@ -112,7 +112,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly listNavigationDocuments: readonly [];
   readonly listInstructionDocuments: readonly [registrations: readonly string[]];
   readonly listDocuments: readonly [];
-  readonly getDocument: readonly [id: string];
+  readonly getDocument: readonly [id: string, projection?: 'medication-catalog'];
   readonly getDocumentByVersionId: readonly [versionId: string];
   readonly getSectionsByDocument: readonly [documentId: string];
   readonly getSection: readonly [id: string];

@@ -303,7 +303,7 @@ async function loadProducts(
       ...(getSummary
         ? {
             read: async (id) => {
-              const result = await getSummary(id);
+              const result = await getSummary(id, 'medication-catalog');
               if (!result.ok) throw new Error(result.error.message);
               return result.value;
             },

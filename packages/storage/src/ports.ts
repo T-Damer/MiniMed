@@ -92,7 +92,7 @@ export interface MedicalStore {
   listDocumentIdentities?(): Promise<readonly DocumentIdentity[]>;
   /** Compact ranking, audience and content-kind metadata; never a full document record. */
   listSearchDocuments?(): Promise<readonly SearchDocumentDescriptor[]>;
-  getDocument(id: string): Promise<DocumentRecord | null>;
+  getDocument(id: string, projection?: 'medication-catalog'): Promise<DocumentRecord | null>;
   getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null>;
   getSectionsByDocument(documentId: string): Promise<readonly SectionRecord[]>;
   getSection(id: string): Promise<SectionRecord | null>;

@@ -2600,11 +2600,13 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
     },
 
-    async getDocumentSummary(documentId) {
+    async getDocumentSummary(documentId, projection) {
       try {
         const ready = await ensureInitialized();
         if (!ready.ok) return err(ready.error);
-        const document = await options.store.getDocument(documentId);
+        const document = await (projection
+          ? options.store.getDocument(documentId, projection)
+          : options.store.getDocument(documentId));
         return document
           ? ok(toDocumentSummary(document))
           : err(localMedError('CONTENT_NOT_FOUND', `Document not found: ${documentId}`));

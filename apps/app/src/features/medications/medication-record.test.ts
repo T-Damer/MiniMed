@@ -381,7 +381,7 @@ describe('parseMedicationProduct', () => {
     expect(products.find((item) => item.tradeName === 'Иммустат')).not.toHaveProperty('atcCodes');
   });
 
-  it('attaches sibling KLP positions to the node trade variant without duplicating it', () => {
+  it('attaches KLP positions to the exact strength among variants of the same registration', () => {
     const products = parseEsklpMedicationProducts({
       id: 'esklp.mnn.single',
       title: 'Ибупрофен',
@@ -408,6 +408,12 @@ describe('parseMedicationProduct', () => {
                 dosageForm: 'Суспензия для приема внутрь',
                 strength: '100 мг/5 мл',
               },
+              {
+                tradeName: 'Нурофен для детей',
+                registrationNumber: 'РФ-CHILD',
+                dosageForm: 'Суспензия для приема внутрь',
+                strength: '200 мг/5 мл',
+              },
             ],
             klpPositions: [
               {
@@ -418,18 +424,26 @@ describe('parseMedicationProduct', () => {
                 strength: '100.0 мг/5 мл',
                 primaryPackage: 'Флакон 100 мл',
               },
+              {
+                klpCode: 'klp.child.200mg',
+                tradeName: 'НУРОФЕН  ДЛЯ ДЕТЕЙ',
+                registrationNumber: 'рф-child',
+                dosageForm: 'Суспензия для приема внутрь',
+                strength: '200,00 мг/5 мл',
+                primaryPackage: 'Флакон 100 мл',
+              },
             ],
           },
         ],
       },
     });
 
-    expect(products).toHaveLength(1);
-    expect(products[0]).toMatchObject({
-      smnnCode: 'smnn.suspension',
-      klpCodes: ['klp.child.100ml'],
-      tradeName: 'Нурофен для детей',
-    });
+    expect(
+      products.map((product) => [product.presentations[0]?.strength, product.klpCodes]),
+    ).toEqual([
+      ['100 мг/5 мл', ['klp.child.100ml']],
+      ['200 мг/5 мл', ['klp.child.200mg']],
+    ]);
   });
 
   it('keeps distinct registrations and forms separate even when trade names match', () => {

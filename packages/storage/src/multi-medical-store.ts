@@ -317,9 +317,13 @@ export class MultiMedicalStore implements MedicalStore {
     ).flat();
   }
 
-  public async getDocument(id: string): Promise<DocumentRecord | null> {
+  public async getDocument(
+    id: string,
+    projection?: 'medication-catalog',
+  ): Promise<DocumentRecord | null> {
     this.assertInitialized();
-    return this.documentOwner(id)?.getDocument(id) ?? null;
+    const owner = this.documentOwner(id);
+    return (projection ? owner?.getDocument(id, projection) : owner?.getDocument(id)) ?? null;
   }
 
   public async getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {

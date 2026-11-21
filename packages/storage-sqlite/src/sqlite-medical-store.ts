@@ -532,6 +532,84 @@ const DOCUMENT_SELECT = `
   JOIN document_versions dv ON dv.id = d.current_version_id
 `;
 
+const MEDICATION_CATALOG_FIELDS = [
+  'contentMode',
+  'standardizedInn',
+  'inn',
+  'registrationStatus',
+  'atcCodes',
+] as const;
+const MEDICATION_NODE_FIELDS = [
+  'smnnCode',
+  'dosageForm',
+  'strength',
+  'pharmacotherapeuticGroup',
+  'atcCode',
+  'atcConsensus',
+] as const;
+const MEDICATION_TRADE_FIELDS = [
+  'tradeName',
+  'registrationNumber',
+  'dosageForm',
+  'strength',
+  'prescriptionStatus',
+  'registrationDate',
+  'instructionDocumentId',
+] as const;
+const MEDICATION_PACKAGE_FIELDS = [
+  'tradeName',
+  'registrationNumber',
+  'dosageForm',
+  'strength',
+  'primaryPackage',
+  'secondaryPackage',
+  'packageContents',
+  'unitCount',
+  'unit',
+  'klpCode',
+  'holder',
+  'manufacturer',
+  'prescriptionStatus',
+] as const;
+
+type MetadataRecord = Readonly<Record<string, unknown>>;
+
+function metadataRecord(value: unknown): value is MetadataRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function selectMetadata(record: MetadataRecord, keys: readonly string[]): MetadataRecord {
+  const selected: Record<string, unknown> = {};
+  for (const key of keys) {
+    if (Object.hasOwn(record, key)) selected[key] = record[key];
+  }
+  return selected;
+}
+
+function selectRegistryRows(value: unknown, keys: readonly string[]): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((entry: unknown) =>
+    metadataRecord(entry) ? selectMetadata(entry, keys) : entry,
+  );
+}
+
+/** Strip unused registry fields before sending catalog records across the storage worker boundary. */
+function medicationCatalogMetadata(metadata: MetadataRecord): MetadataRecord {
+  if (metadata['contentMode'] !== 'esklp-mnn' || !Array.isArray(metadata['smnnNodes']))
+    return metadata;
+  return {
+    ...selectMetadata(metadata, MEDICATION_CATALOG_FIELDS),
+    smnnNodes: metadata['smnnNodes'].map((node: unknown) => {
+      if (!metadataRecord(node)) return node;
+      return {
+        ...selectMetadata(node, MEDICATION_NODE_FIELDS),
+        tradeNames: selectRegistryRows(node['tradeNames'], MEDICATION_TRADE_FIELDS),
+        klpPositions: selectRegistryRows(node['klpPositions'], MEDICATION_PACKAGE_FIELDS),
+      };
+    }),
+  };
+}
+
 const SECTION_SELECT = `
   SELECT s.id AS section_id, s.document_version_id, s.parent_section_id,
     s.title AS section_title, s.normalized_title, s.section_type, s.depth,
@@ -1258,10 +1336,16 @@ export class SqliteMedicalStore implements MedicalStore {
     ).map((row) => toDocument(row));
   }
 
-  public async getDocument(id: string): Promise<DocumentRecord | null> {
+  public async getDocument(
+    id: string,
+    projection?: 'medication-catalog',
+  ): Promise<DocumentRecord | null> {
     this.assertInitialized();
     const row = queryRows(this.database, `${DOCUMENT_SELECT} WHERE d.id = ? LIMIT 1`, id)[0];
-    return row ? toDocument(row) : null;
+    if (!row) return null;
+    const document = toDocument(row);
+    if (projection !== 'medication-catalog') return document;
+    return { ...document, metadata: medicationCatalogMetadata(document.metadata) };
   }
 
   public async getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {

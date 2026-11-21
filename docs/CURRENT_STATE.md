@@ -72,8 +72,16 @@ peaked at 362 MiB of page JS heap. The instrumented 0.6.126 reproduction peaked 
 The first search took 4.65 s on the candidate and 7.32 s in that baseline. The three-query medians
 were 1.20 s and 1.15 s, respectively. The medication catalog retained 344 MiB after collection
 both before and after a «Рисперидон» query, down from 367 and 376 MiB. The open-catalog sample
-before collection was 661 MiB. Phone process RAM and WebView renderer memory remain unmeasured.
-Publication is pending the physical Android check.
+before collection was 661 MiB.
+
+The catalog now projects the ЕСКЛП names, forms and package fields in the storage worker. Full
+registry records remain available to the reader. The catalog parser reuses normalized keys for
+repeated positions within the same substance. With allocation profiling and the same 806 packs,
+the sampled catalog-open peak fell from 764 to 587 MiB and the catalog settled in 7.4 s instead
+of 14.3 s. The first product appeared in about 90 ms, and the «Рисперидон» query retained 341 MiB.
+A fresh-tab repeat without allocation profiling peaked at 580 MiB and settled in 7.3 s. Phone
+process RAM and WebView renderer memory remain unmeasured. Publication is pending the physical
+Android check.
 
 ## Release 0.6.126 — 2026-11-21
 

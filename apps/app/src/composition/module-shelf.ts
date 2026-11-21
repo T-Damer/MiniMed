@@ -717,9 +717,12 @@ export class ShelfModuleStore implements MedicalStore {
     return this.call('listInstructionDocuments', [registrations]);
   }
 
-  public getDocument(id: string): Promise<DocumentRecord | null> {
+  public getDocument(
+    id: string,
+    projection?: 'medication-catalog',
+  ): Promise<DocumentRecord | null> {
     if (this.lacksDocument(id)) return Promise.resolve(null);
-    return this.call('getDocument', [id]);
+    return this.call('getDocument', projection ? [id, projection] : [id]);
   }
 
   public getDocumentByVersionId(versionId: string): Promise<DocumentRecord | null> {
