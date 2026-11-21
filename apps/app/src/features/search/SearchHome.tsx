@@ -18,6 +18,7 @@ import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { PageHeroBand, remToPx, setLength, watchInsets } from '@/components/PageHero';
+import { SkeletonLines } from '@/components/PageSkeleton';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -32,7 +33,8 @@ import { conversationSession } from '@/features/conversations/conversation-sessi
 import { DRUG_COMPARISON_TOOL } from '@/features/drug-comparison/drug-comparison-tool';
 import { DRUG_INTERACTION_TOOL } from '@/features/drug-interactions/drug-interaction-tool';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
-import { ICD11_COLLECTION, icd11ChapterDocuments } from '@/features/icd11/icd11-document';
+import { Icd11Catalog } from '@/features/icd11/Icd11Catalog';
+import { ICD11_MODULE_ID } from '@/features/icd11/icd11-document';
 import { ImagingViewerEntry } from '@/features/library/ImagingViewerEntry';
 import {
   createUserLibraryDocuments,
@@ -62,7 +64,6 @@ import {
 import { pickRandomDocument } from '@/features/search/random-document';
 import {
   documentMatchesConditionGroup,
-  documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
   searchResultDocumentKind,
@@ -308,15 +309,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       return pending.length ? [{ id: section.id, label: section.label, modules: pending }] : [];
     });
   });
-  /** The «МКБ-11» section with no pack installed: the size of the download instead of an empty list. */
-  const icd11Missing = createMemo(
-    () =>
-      scope() === 'icd11' &&
-      catalogQuery().trim() === '' &&
-      !catalogLoading() &&
-      !catalogError() &&
-      documents().every((entry) => !documentMatchesSearchScope(entry, 'icd11')),
+  const browsingIcd11 = () => scope() === 'icd11' && !catalogQuery().trim();
+  const icd11Module = createMemo(() =>
+    browsingIcd11()
+      ? downloads.catalog().modules.find((module) => module.id === ICD11_MODULE_ID)
+      : undefined,
   );
+  const icd11ExperimentalOff = () =>
+    !experimentalModulesEnabled() && icd11Module()?.releaseState === 'preview';
+  const icd11Modules = createMemo(() => {
+    const module = icd11Module();
+    return module && !icd11ExperimentalOff() ? [module] : [];
+  });
+  const icd11Installed = createMemo(() => {
+    const module = icd11Module();
+    return module && downloads.installedIds([module]).has(module.id) ? module : undefined;
+  });
+  createEffect(() => {
+    if (props.active && browsingIcd11()) untrack(downloads.refresh);
+  });
   const catalogOnly = createMemo(() => {
     if (scope() === 'calculators' || scope() === 'assessments') return true;
     const group = sections()
@@ -363,7 +374,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     !showSectionsOverview() &&
     !catalogOnly() &&
     scope() !== 'diagnosis' &&
-    !icd11Missing() &&
+    !browsingIcd11() &&
     !catalogQuery().trim() &&
     (catalogLoading() || (!props.baseCore && !catalogError()));
   const catalogView = (): JSX.Element => (
@@ -371,20 +382,33 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       when={showSectionsOverview()}
       fallback={
         <div class="search-section-page">
-          <Show when={icd11Missing()}>
-            <SearchIcd11Offer
-              modules={downloadBlocks().get('icd11/')?.modules ?? []}
-              experimentalOff={
-                !experimentalModulesEnabled() &&
-                downloads
-                  .catalog()
-                  .modules.some(
-                    (module) =>
-                      module.collection === ICD11_COLLECTION && module.releaseState === 'preview',
-                  )
+          <Show when={browsingIcd11()}>
+            <Show
+              when={icd11Installed()}
+              keyed
+              fallback={
+                <Show
+                  when={downloads.ready()}
+                  fallback={
+                    downloads.error() ? (
+                      <p class="unified-catalog__error" role="alert">
+                        {downloads.error()}
+                      </p>
+                    ) : (
+                      <SkeletonLines label="Открываем МКБ-11" lines={4} />
+                    )
+                  }
+                >
+                  <SearchIcd11Offer
+                    modules={icd11Modules()}
+                    experimentalOff={icd11ExperimentalOff()}
+                    downloads={downloads}
+                  />
+                </Show>
               }
-              downloads={downloads}
-            />
+            >
+              {(module) => <Icd11Catalog module={module} />}
+            </Show>
           </Show>
           <UnifiedSearchCatalog
             core={props.baseCore}
@@ -395,7 +419,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             scope={scope()}
             query={catalogQuery()}
             catalogOnly={catalogOnly()}
-            hideDocuments={scope() === 'diagnosis' || icd11Missing()}
+            hideDocuments={scope() === 'diagnosis' || scope() === 'icd11'}
             documents={catalogDocuments()}
             tools={visibleTools()}
             onOpenTool={() => {
@@ -425,12 +449,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       ? { documents: visible, total: visible.length, focused: false }
       : selectGraphNeighborhood(visible, { focusIds: new Set(resultDocumentIds()) });
   });
-  // «МКБ-11» opens on the 28 chapters: a flat list of tens of thousands of codes helps no one.
   const catalogDocuments = createMemo(() => {
-    if (scope() === 'diagnosis' || catalogQuery().trim() || showSectionsOverview() || catalogOnly())
+    if (
+      scope() === 'diagnosis' ||
+      scope() === 'icd11' ||
+      catalogQuery().trim() ||
+      showSectionsOverview() ||
+      catalogOnly()
+    )
       return [];
     if (scope() === 'all') return homeDocumentOrder(visibleDocuments());
-    return scope() === 'icd11' ? icd11ChapterDocuments(visibleDocuments()) : visibleDocuments();
+    return visibleDocuments();
   });
   /** Library documents: they tell whether the MRI example is already in «Мои файлы». */
   const libraryDocuments = createUserLibraryDocuments();
@@ -668,7 +697,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   createEffect(() => {
     const core = props.baseCore;
     if (listedCore !== core) listedCore = undefined;
-    if (!props.active || !core || listedCore === core) return;
+    if (!props.active || !core || listedCore === core || scope() === 'icd11') return;
     if (coreIsBaseOnly()) {
       const needsCatalog =
         helpMenuOpen() ||
@@ -1306,7 +1335,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           modePicker={
             <div class="search-source-controls">
               <SearchSectionPicker
-                loading={catalogLoading()}
+                loading={catalogLoading() && !showSectionsOverview()}
                 documents={documents()}
                 tools={toolRows()}
                 downloads={downloads}

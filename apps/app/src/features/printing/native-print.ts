@@ -179,7 +179,7 @@ export function printHtmlInNativeShell(html: string, title: string): boolean {
   if (presentationSlides.length > 0) {
     preview.classList.add('native-print-preview--presentation');
   }
-  if (parsed.querySelector('.rich-sheet')) {
+  if (parsed.querySelector('.rich-sheet, .media-print__table--landscape')) {
     preview.classList.add('native-print-preview--landscape');
   }
   const printDocument = parsed.body.classList.contains('doc-print');

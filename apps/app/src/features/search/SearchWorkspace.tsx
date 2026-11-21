@@ -12,6 +12,7 @@ import type {
   SearchResultGroup,
   SearchSuggestion,
 } from '@localmed/contracts';
+import { classifyMedicalQueryIntent } from '@localmed/search-lexical';
 import {
   batch,
   children,
@@ -101,6 +102,7 @@ import { DrugClassCard } from '@/features/search/DrugClassCard';
 import { readDiscoveryClinicalTitles } from '@/features/search/discovery-clinical-titles';
 import {
   documentMatchesSearchScope,
+  inferSearchScope,
   ScopedMedicalCore,
   type SearchScope,
   SOURCE_COLLECTIONS,
@@ -1105,7 +1107,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (allowed && trimmed.length >= 2) {
       const cached = response();
       const hasMatchingCache = Boolean(cached && cached.analysis.originalQuery === trimmed);
-      if (hasMatchingCache) {
+      if (hasMatchingCache && !cached?.partial) {
         lastSearchedQuery = trimmed;
       } else if (scopeChanged || !searchWasAllowed || urlRestorePending) {
         urlRestorePending = false;
@@ -1294,15 +1296,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
   /**
    * The copy of `trimmed` made with the data installed now (`search-result-cache.ts`), shown at
-   * once; a copy made with other data is never read. True when it was shown, so the search need
-   * not run.
+   * once; an unfinished copy stays on screen while the detailed search runs.
    */
   async function showSavedSearch(
     trimmed: string,
     generation: number,
     specialty: string | undefined,
     dataVersion: string,
-  ): Promise<boolean> {
+  ): Promise<SearchResponse | undefined> {
     const saved = await readCachedSearch(cacheIdentity(trimmed, specialty), dataVersion).catch(
       (cause: unknown) => {
         console.error('Сохранённые результаты поиска недоступны.', cause);
@@ -1310,20 +1311,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       },
     );
     if (!saved || generation !== searchGeneration || searchableQuery(query()) !== trimmed) {
-      return false;
+      return undefined;
     }
-    // A saved empty search of a section is widened again (item 23); the copy holds the scoped
-    // answer only.
-    const widened = await searchOtherSectionsFor(trimmed, saved.response);
-    if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return false;
-    setFallbackResult(widened);
     if (response()?.analysis.originalQuery !== trimmed) {
       setResponse(saved.response);
       setDraftAnalysis(saved.response.analysis);
       setContext(undefined);
     }
     setLoading(false);
-    return true;
+    if (!saved.response.partial) {
+      // Only a completed empty search of a section can have an all-sources fallback.
+      const widened = await searchOtherSectionsFor(trimmed, saved.response);
+      if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return undefined;
+      setFallbackResult(widened);
+    }
+    return saved.response;
   }
 
   async function runSearch(
@@ -1367,6 +1369,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setLoading(false);
       return;
     }
+    // An instant title can be opened while the SQLite answer or a cached copy is still arriving.
+    // Commit the query to this history entry before the reader can push its own.
+    if (recordHistory || options.autoRecord || options.apply) replaceSearchQueryInAddress(rawQuery);
     const core = props.core;
     if (props.searchAllowed === false || !core) {
       setLoading(false);
@@ -1384,12 +1389,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (generation !== searchGeneration) return;
     // A search of the plain words is neither read from nor saved to the copies of source searches.
     const everywhere = everywhereQuery() === trimmed;
-    if (!everywhere && (await showSavedSearch(trimmed, generation, specialty, dataVersion))) {
+    const saved = everywhere
+      ? undefined
+      : await showSavedSearch(trimmed, generation, specialty, dataVersion);
+    if (saved && !saved.partial) {
       performance.mark('minimed:search:saved');
       lastSearchedQuery = trimmed;
-      if (recordHistory || options.autoRecord || options.apply) {
-        replaceSearchQueryInAddress(rawQuery);
-      }
       const shownResponse = response();
       if (shownResponse && (recordHistory || options.autoRecord))
         appendSearchHistory(rawQuery, props.scope, shownResponse, specialty, {
@@ -1403,9 +1408,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (generation !== searchGeneration) return;
     let recordedEarly = false;
     const rememberEarlySearch = (count: number): void => {
-      if (!recordHistory || recordedEarly) return;
+      if (!(recordHistory || options.autoRecord) || recordedEarly) return;
       recordedEarly = true;
-      appendSearchHistory(rawQuery, props.scope, count, specialty);
+      appendSearchHistory(rawQuery, props.scope, count, specialty, { auto: !recordHistory });
     };
     const scope = props.scope;
     if (startedWithDiscovery && (scope === 'all' || scope === 'guidelines') && !specialty) {
@@ -1423,11 +1428,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         });
     }
     const shown = response();
-    const refreshOfShown = shown?.analysis.originalQuery === trimmed;
+    const refreshOfShown = shown?.analysis.originalQuery === trimmed && !shown.partial;
     // Search normalizes its own input; writing the trimmed text back into the field deleted the
     // space or newline the doctor had just typed mid-sentence.
     if (refreshOfShown) setRefreshing(true);
-    else setLoading(true);
+    else if (!shown?.partial) setLoading(true);
     setError(undefined);
     if (!refreshOfShown) setContext(undefined);
 
@@ -1445,27 +1450,58 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       includeSuggestions: SHOW_SEARCH_SUGGESTIONS && props.scope === 'diagnosis',
       ...(everywhere ? { sourceNames: false } : {}),
     };
-    // Answer at once with what is ready: right after a start the full search waits for its
-    // indexes for seconds. A quick answer is shown as it is; the full one is added under it.
-    let result = await core.search({ ...request, mode: 'lexical', quick: true });
-    let quickShown: SearchResponse | undefined;
-    if (result.ok && result.value.partial) {
-      if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
-      if (result.value.groups.length > 0 && !refreshOfShown) {
-        quickShown = orderQuickAnswer(result.value, trimmed);
+    const isCurrent = () => generation === searchGeneration && searchableQuery(query()) === trimmed;
+    let quickShown = shown?.partial && shown.analysis.originalQuery === trimmed ? shown : undefined;
+    const showEarly = (value: SearchResponse): void => {
+      if (quickShown || refreshOfShown || value.groups.length === 0) return;
+      quickShown = orderQuickAnswer({ ...value, partial: true }, trimmed);
+      batch(() => {
         setIdentitiesLate(false);
         setAppended(new Set<string>());
         setPendingResponse(undefined);
         setResponse(quickShown);
-        setDraftAnalysis(result.value.analysis);
+        setDraftAnalysis(value.analysis);
         setLoading(false);
         setRefinePending(true);
-        rememberEarlySearch(quickShown.groups.length);
-        perfMark('search.quick', { groups: result.value.groups.length });
+      });
+      rememberEarlySearch(quickShown.groups.length);
+      if (!everywhere) void saveSearch(cacheIdentity(trimmed, specialty), dataVersion, quickShown);
+      perfMark('search.quick', { groups: value.groups.length });
+    };
+    if (quickShown) setRefinePending(true);
+
+    const preferred =
+      !refreshOfShown &&
+      !quickShown &&
+      !everywhere &&
+      !specialty &&
+      !startedWithDiscovery &&
+      props.scope === 'all' &&
+      core instanceof ScopedMedicalCore
+        ? inferSearchScope(classifyMedicalQueryIntent(trimmed))
+        : undefined;
+    if (preferred && core instanceof ScopedMedicalCore) {
+      const scoped = core.forScope(preferred);
+      let first = await scoped.search({ ...request, mode: 'lexical', quick: true });
+      if (!isCurrent()) return;
+      if (first.ok && first.value.partial && scopedSearchFoundNothing(first.value)) {
+        // The full scoped pass includes local spelling correction and aliases.
+        first = await scoped.search({ ...request, mode: 'lexical' });
+        if (!isCurrent()) return;
       }
-      result = await core.search({ ...request, mode: 'lexical' });
-      if (generation === searchGeneration) setRefinePending(false);
+      if (first.ok) showEarly(first.value);
     }
+
+    // Discovery and cached partial answers keep the top rows while the full library is ranked.
+    let result = await core.search(
+      quickShown ? { ...request, mode: 'lexical' } : { ...request, mode: 'lexical', quick: true },
+    );
+    if (result.ok && result.value.partial) {
+      if (!isCurrent()) return;
+      showEarly(result.value);
+      result = await core.search({ ...request, mode: 'lexical' });
+    }
+    if (isCurrent()) setRefinePending(false);
     performance.mark('minimed:search:core');
     // Where the time went inside the core: its own total, the query model and the text branches.
     endSearchSpan(
@@ -1508,7 +1544,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
 
     lastSearchedQuery = trimmed;
-    if (recordHistory || options.autoRecord || options.apply) replaceSearchQueryInAddress(rawQuery);
     // A refresh after installed content changed never swaps the list under the reader: an
     // identical outcome is applied silently, a different one is offered. Any other search of the
     // query on screen (a return to the page, a retyped query) is applied at once, so «Обновить»
@@ -1686,7 +1721,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     value: SearchResponse,
   ): Promise<void> {
     try {
-      if (coreIsBaseOnly() || (await searchDataVersion()) !== dataVersion) return;
+      if ((!value.partial && coreIsBaseOnly()) || (await searchDataVersion()) !== dataVersion)
+        return;
       await writeCachedSearch(identity, dataVersion, value);
     } catch (cause) {
       console.error('Не удалось сохранить результаты поиска.', cause);

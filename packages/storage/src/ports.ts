@@ -77,7 +77,16 @@ export interface DocumentIdentity {
   readonly versionId: string;
 }
 
+export interface DocumentTitlePageRequest {
+  readonly offset: number;
+  readonly limit: number;
+  readonly titlePrefix?: string;
+}
+
+export type DocumentTitleRow = Pick<DocumentRecord, 'id' | 'title'>;
+
 export interface MedicalStore {
+  listDocumentTitles?(request: DocumentTitlePageRequest): Promise<readonly DocumentTitleRow[]>;
   lookupCoreIdentities?(query: string): Promise<readonly CoreIdentityHit[]>;
   /** Every distinct exact source name of `core_identities`: words a misspelt query is corrected to. */
   listCoreIdentityNames?(): Promise<readonly string[]>;

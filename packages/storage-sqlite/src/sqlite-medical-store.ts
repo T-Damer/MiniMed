@@ -21,6 +21,8 @@ import {
 } from '@localmed/domain';
 import type {
   DocumentIdentity,
+  DocumentTitlePageRequest,
+  DocumentTitleRow,
   LexicalHit,
   LexicalMatch,
   LexicalSearchRequest,
@@ -1290,6 +1292,45 @@ export class SqliteMedicalStore implements MedicalStore {
         metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
       }),
     );
+  }
+
+  public async listDocumentTitles({
+    offset,
+    limit,
+    titlePrefix,
+  }: DocumentTitlePageRequest): Promise<readonly DocumentTitleRow[]> {
+    this.assertInitialized();
+    if (
+      !Number.isSafeInteger(offset) ||
+      offset < 0 ||
+      !Number.isSafeInteger(limit) ||
+      limit < 1 ||
+      limit > 128
+    )
+      throw new RangeError('Invalid document page.');
+    // The inner read skips through the covering primary-key index. Titles and metadata are on
+    // table pages; retrieve the title only for the selected IDs.
+    const rows =
+      titlePrefix === undefined
+        ? queryRows(
+            this.database,
+            `
+          SELECT page.id, (SELECT d.title FROM documents d WHERE d.id = page.id) AS title
+          FROM (SELECT id FROM documents ORDER BY id LIMIT ? OFFSET ?) AS page
+            ORDER BY page.id
+        `,
+            [limit, offset],
+          )
+        : queryRows(
+            this.database,
+            `
+          SELECT id, title FROM documents
+          WHERE substr(title, 1, length(?)) = ?
+          ORDER BY title, id LIMIT ? OFFSET ?
+        `,
+            [titlePrefix, titlePrefix, limit, offset],
+          );
+    return rows.map((row) => ({ id: readString(row, 'id'), title: readString(row, 'title') }));
   }
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {

@@ -1,4 +1,3 @@
-import type { MedicalCore } from '@localmed/contracts';
 import {
   createDeferred,
   createEffect,
@@ -11,14 +10,21 @@ import {
   Show,
 } from 'solid-js';
 import { PAGE_HEROES } from '@/app/page-heroes';
-
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { withInstalledReaderCore } from '@/composition/create-browser-core';
 import { ModuleDownloadOffer } from '@/features/modules/ModuleDownloadOffer';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
+import { installedModuleVersion } from '@/features/modules/module-pointer-install';
+import {
+  getContentModuleRuntime,
+  peekContentModuleRuntime,
+} from '@/features/modules/module-runtime-service';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { fuzzyQueryScore } from '@/state/fuzzy-text';
@@ -38,7 +44,6 @@ import { herbalBookActionFromHash, herbalBookHash } from './herbal-routing';
 import '@/components/page-skeleton.css';
 
 interface HerbalBookViewProps {
-  readonly core: MedicalCore;
   readonly onBack: () => void;
   readonly onContentChanged?: () => Promise<void>;
 }
@@ -123,16 +128,33 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
   const [toolbarElement, setToolbarElement] = createSignal<HTMLElement | undefined>();
   useStickySurface(toolbarElement);
 
+  let readGeneration = 0;
   const refresh = async (): Promise<void> => {
+    const generation = ++readGeneration;
+    setLoading(true);
     setError(undefined);
     try {
-      const result = await props.core.listDocuments();
-      if (!result.ok) throw new Error(result.error.message);
-      setBook(buildHerbalBook(result.value));
+      const runtime =
+        peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+      const module = runtime.getCatalog().modules.find((entry) => entry.id === HERBAL_MODULE_ID);
+      const installed = module && installedModuleVersion(module, runtime.listInstalled());
+      const next = !module
+        ? EMPTY_BOOK
+        : await withInstalledReaderCore(module, async (core) => {
+            const result = await core.listDocuments();
+            if (!result.ok) throw new Error(result.error.message);
+            return buildHerbalBook(result.value);
+          });
+      if (generation !== readGeneration) return;
+      if (installed && !next?.plants.length) throw new Error('Не удалось прочитать справочник.');
+      setBook(next ?? EMPTY_BOOK);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось открыть травник.');
+      if (generation === readGeneration) {
+        console.warn('Unable to read the installed herbal book.', cause);
+        setError('Не удалось открыть травник.');
+      }
     } finally {
-      setLoading(false);
+      if (generation === readGeneration) setLoading(false);
     }
   };
   const handleContentChanged = (): void => {
@@ -142,13 +164,16 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
     void refresh();
     window.addEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
   });
-  onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged));
+  onCleanup(() => {
+    readGeneration += 1;
+    window.removeEventListener(CONTENT_CHANGED_EVENT, handleContentChanged);
+  });
 
   const contentChanged = async (): Promise<void> => {
     setOpening(true);
     try {
-      await props.onContentChanged?.();
       await refresh();
+      await props.onContentChanged?.();
     } finally {
       setOpening(false);
     }
@@ -341,6 +366,9 @@ export function HerbalBookView(props: HerbalBookViewProps): JSX.Element {
         {(message) => (
           <div class="error-card" role="alert">
             {message()}
+            <Button variant="secondary" class="herbal-book__retry" onClick={() => void refresh()}>
+              Повторить
+            </Button>
           </div>
         )}
       </Show>

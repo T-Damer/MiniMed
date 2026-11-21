@@ -58,8 +58,17 @@ test('installs «Травник», opens a chapter and shows a source quote', as
   // The corner icon of the picture opens it full screen, like a tap on the picture itself.
   await page.locator('.reader-hero__expand').click();
   await expect(page.locator('.media-viewer__image')).toBeVisible();
-  await page.goBack();
-  await expect(page.locator('.media-viewer__image')).toHaveCount(0);
+  const viewer = page.locator('.media-viewer');
+  await expect(viewer.locator('.media-viewer__counter')).toHaveText('1/1');
+  const zoom = viewer.getByRole('button', { name: 'Увеличить', exact: true });
+  const zoomOut = viewer.getByRole('button', { name: 'Уменьшить', exact: true });
+  await zoom.click();
+  await expect(zoomOut).toBeEnabled();
+  const backdrop = viewer.getByRole('button', { name: 'Закрыть просмотр' });
+  await backdrop.click({ position: { x: 3, y: 3 } });
+  await expect(zoomOut).toBeDisabled();
+  await backdrop.click({ position: { x: 3, y: 3 } });
+  await expect(viewer).toHaveCount(0);
   const chapter = page.locator('.herbal-chapter');
   await expect(chapter).toContainText('Как заварить');
   await expect(chapter).toContainText('Кому нельзя');

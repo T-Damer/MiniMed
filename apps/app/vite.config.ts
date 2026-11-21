@@ -299,19 +299,24 @@ function excalidrawCjkFontStubs(): Plugin {
   };
 }
 
-/** File names of the index packs of catalog modules tagged `remote-only`. */
+/** Artifacts that belong to the download catalog and never ship inside the app. */
 function remoteOnlyModuleFiles(): string[] {
   const catalog = JSON.parse(
     readFileSync(
       fileURLToPath(new URL('./src/features/modules/catalog.preview.json', import.meta.url)),
       'utf8',
     ),
-  ) as { modules: { tags?: string[]; artifacts?: { url?: string }[] }[] };
+  ) as { modules: { id: string; tags?: string[]; artifacts?: { url?: string }[] }[] };
   return catalog.modules
-    .filter((module) => module.tags?.includes('remote-only'))
+    .filter(
+      (module) =>
+        module.tags?.includes('remote-only') ||
+        module.id === 'minimed.reference.herbal' ||
+        module.id === 'minimed.reference.herbal.plates',
+    )
     .flatMap((module) => module.artifacts ?? [])
     .map((artifact) => artifact.url?.split('/').at(-1) ?? '')
-    .filter((file) => file.endsWith('.db'));
+    .filter((file) => /\.(?:db(?:\.gz|\.zst)?|zip)$/u.test(file));
 }
 
 function excludeOptionalPublicAssets(): Plugin {
@@ -330,8 +335,7 @@ function excludeOptionalPublicAssets(): Plugin {
       rmSync(join(outDir, 'tessdata'), { recursive: true, force: true });
       // Illustrations are verified optional downloads; keep their small manifest in the app.
       rmSync(join(outDir, 'content/reference-images/assets'), { recursive: true, force: true });
-      // Packs the catalog tags `remote-only` (a licensed questionnaire that may have to be withdrawn)
-      // are only ever downloaded from the module host, so they never ride inside an installed app.
+      // Keep remote-only packs and the herbal book's text and plates available on demand.
       if (process.env['VITE_USE_LOCAL_MODULE_ARTIFACTS'] !== 'true') {
         for (const file of remoteOnlyModuleFiles()) {
           rmSync(join(outDir, 'content/modules', file), { force: true });

@@ -1047,6 +1047,9 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   ).toBeVisible();
   await page.locator('article[aria-label="Открыть набор «Клинические рекомендации»"]').click();
   await expect(page).toHaveURL(/#\/modules\/documents\/recommendations/u);
+  await expect(page.locator('.module-catalog-toolbar')).toHaveClass(
+    /knowledge-subroute-heading--blurred/u,
+  );
   await expect(
     page.locator('article[aria-label="Открыть раздел «Инфекционные болезни и эпидемиология»"]'),
   ).toBeVisible();

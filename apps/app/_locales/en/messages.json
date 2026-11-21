@@ -2,6 +2,9 @@
   "search_found_in_text": { "message": "Found in text" },
   "search_show_excerpt": { "message": "Show excerpt: $1" },
   "search_hide_excerpt": { "message": "Hide excerpt: $1" },
+  "specialty_anatomy": { "message": "Anatomy" },
+  "specialty_physiology": { "message": "Physiology" },
+  "specialty_phytotherapy": { "message": "Phytotherapy" },
   "specialty_pediatrics": {
     "message": "Pediatrics",
     "description": "Medical specialty slug: pediatrics"

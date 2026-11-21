@@ -255,9 +255,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   let unsubscribeTask: (() => void) | undefined;
   let unsubscribeCatalog: (() => void) | undefined;
   let reconnectPending = false;
-  let moduleCatalogHeading: HTMLDivElement | undefined;
+  const [moduleCatalogHeading, setModuleCatalogHeading] = createSignal<HTMLDivElement>();
 
-  useStickySurface(() => moduleCatalogHeading);
+  useStickySurface(moduleCatalogHeading);
 
   const bindRuntime = (nextCatalog: ContentModuleCatalog): void => {
     unsubscribeTask?.();
@@ -1059,8 +1059,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         }
       >
         <div
-          ref={moduleCatalogHeading}
-          class="module-catalog-toolbar knowledge-subroute-heading--blurred route-sticky-chrome route-sticky-chrome--transparent"
+          ref={setModuleCatalogHeading}
+          class="module-catalog-toolbar route-sticky-chrome route-sticky-chrome--transparent"
+          classList={{ 'knowledge-subroute-heading--blurred': !catalogOverviewVisible() }}
         >
           <div
             class="knowledge-subroute-heading module-catalog-heading module-catalog-heading--in-toolbar"

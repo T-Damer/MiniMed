@@ -79,6 +79,16 @@ describe('saved search results', () => {
     expect(await readCachedSearch(identity, V2)).toBeNull();
   });
 
+  it('restores an unfinished answer and retains the completed replacement', async () => {
+    const completed = responseFor(identity.query);
+    const partial = { ...completed, partial: true } as const;
+    await writeCachedSearch(identity, V1, partial);
+    expect((await readCachedSearch(identity, V1))?.response.partial).toBe(true);
+    await writeCachedSearch(identity, V1, completed);
+    await writeCachedSearch(identity, V1, partial);
+    expect((await readCachedSearch(identity, V1))?.response).toEqual(completed);
+  });
+
   it('drops the copies of earlier data when a search is saved under new data', async () => {
     await writeCachedSearch(identity, V1, responseFor('пневмония'));
     await writeCachedSearch({ ...identity, query: 'астма' }, V2, responseFor('астма'));

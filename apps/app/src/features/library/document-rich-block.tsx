@@ -36,7 +36,11 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#039;');
 }
 
-function printableMediaPage(title: string, body: string): string {
+function printableMediaPage(
+  title: string,
+  body: string,
+  tableOrientation?: 'portrait' | 'landscape',
+): string {
   return `<!doctype html>
 <html lang="ru">
 <head>
@@ -44,42 +48,67 @@ function printableMediaPage(title: string, body: string): string {
   <title>${escapeHtml(title)}</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 1rem; font-family: system-ui, -apple-system, sans-serif; color: #292720; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #cbc0a7; padding: 0.5rem 0.625rem; text-align: left; vertical-align: top; background: #fff; }
-    th { font-weight: 600; }
-    img { display: block; max-width: 100%; height: auto; background: #fff; }
-    figcaption { margin-top: 0.5rem; font-size: 0.875rem; color: #585349; }
+    .media-print { margin: 0; padding: 1rem; font-family: system-ui, -apple-system, sans-serif; color: #292720; }
+    ${
+      tableOrientation
+        ? `@page { size: A4 ${tableOrientation}; margin: 12mm; }
+    @media print { .media-print { padding: 0; } }
+    .media-print__table { border-collapse: collapse; width: max-content; max-width: 100%; font-size: 14pt; }
+    .media-print__heading { display: table-header-group; }
+    .media-print__row { break-inside: avoid; }`
+        : ''
+    }
+    .media-print__cell { border: 1px solid #cbc0a7; padding: 0.25em 0.4em; text-align: left; vertical-align: top; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .media-print__image { display: block; max-width: 100%; height: auto; background: #fff; }
+    .media-print__caption { margin-top: 0.5rem; font-size: 0.875rem; color: #585349; }
   </style>
 </head>
-<body>
+<body class="media-print">
   ${body}
 </body>
 </html>`;
 }
 
 function renderTableMarkup(block: DocumentTableBlock, tableClass: string): string {
-  const rows = block.rows
-    .map((row: DocumentTableRow) => {
-      const cells = row.cells
-        .map((cell) => {
-          const tag = cell.header ? 'th' : 'td';
-          const rowSpan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
-          const colSpan = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
-          const alignment = cell.align ? ` style="text-align:${cell.align}"` : '';
-          return `<${tag}${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
-        })
-        .join('');
-      return `<tr>${cells}</tr>`;
-    })
-    .join('');
+  const rows = block.rows.map((row: DocumentTableRow) => {
+    const cells = row.cells
+      .map((cell) => {
+        const tag = cell.header ? 'th' : 'td';
+        const rowSpan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
+        const colSpan = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
+        const alignment = cell.align ? ` style="text-align:${cell.align}"` : '';
+        return `<${tag} class="media-print__cell"${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
+      })
+      .join('');
+    return `<tr class="media-print__row">${cells}</tr>`;
+  });
   const caption = block.caption ? `<caption>${escapeHtml(block.caption)}</caption>` : '';
-  return `<table class="${tableClass}">${caption}<tbody>${rows}</tbody></table>`;
+  const firstIsHeader = block.rows[0]?.cells.every((cell) => cell.header && cell.rowSpan === 1);
+  const heading = firstIsHeader
+    ? `<thead class="media-print__heading">${rows.shift()}</thead>`
+    : '';
+  return `<table class="${tableClass}">${caption}${heading}<tbody>${rows.join('')}</tbody></table>`;
 }
 
 function buildTablePrintHtml(block: DocumentTableBlock): string {
   const title = block.caption || 'Таблица';
-  return printableMediaPage(title, renderTableMarkup(block, 'media-print__table'));
+  // At 14 pt the 186 mm printable portrait width is about 75 average characters.
+  const wide = block.rows.some(({ cells }) => {
+    const columns = cells.reduce((total, cell) => total + cell.colSpan, 0);
+    const preferredWidth = cells.reduce(
+      (total, cell) => total + Math.min(24, cell.text.trim().length) + 4,
+      0,
+    );
+    return columns >= 6 || (columns >= 3 && preferredWidth > 75);
+  });
+  return printableMediaPage(
+    title,
+    renderTableMarkup(
+      block,
+      wide ? 'media-print__table media-print__table--landscape' : 'media-print__table',
+    ),
+    wide ? 'landscape' : 'portrait',
+  );
 }
 
 function buildImagePrintHtml(image: {
@@ -88,8 +117,8 @@ function buildImagePrintHtml(image: {
   readonly title?: string;
 }): string {
   const caption = visibleImageCaption(image.alt, image.title);
-  const figure = `<figure><img src="${escapeHtml(image.dataUrl)}" alt="${escapeHtml(image.alt)}" />${
-    caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''
+  const figure = `<figure><img class="media-print__image" src="${escapeHtml(image.dataUrl)}" alt="${escapeHtml(image.alt)}" />${
+    caption ? `<figcaption class="media-print__caption">${escapeHtml(caption)}</figcaption>` : ''
   }</figure>`;
   return printableMediaPage(caption || 'Изображение', figure);
 }
@@ -103,6 +132,7 @@ export function MediaViewer(props: {
    * wheel and text selection keep working.
    */
   readonly zoomMode?: 'image' | 'document';
+  readonly imageCaption?: JSX.Element;
   readonly printHtmlContent?: () => string;
   readonly onClose: () => void;
   readonly children: JSX.Element;
@@ -154,7 +184,10 @@ export function MediaViewer(props: {
             class="media-viewer__backdrop"
             classList={{ 'media-viewer__backdrop--image': props.zoomMode === 'image' }}
             aria-label="Закрыть просмотр"
-            onClick={props.onClose}
+            onClick={() => {
+              if (props.zoomMode === 'image' && pinch.scale() > 1) pinch.reset({ animated: true });
+              else props.onClose();
+            }}
           />
           <div
             class="media-viewer__panel"
@@ -164,7 +197,15 @@ export function MediaViewer(props: {
               class="media-viewer__toolbar"
               classList={{ 'media-viewer__toolbar--image': props.zoomMode === 'image' }}
             >
-              <div class="media-viewer__toolbar-group">
+              <Show when={props.zoomMode === 'image'}>
+                <span class="media-viewer__counter" role="img" aria-label="Изображение 1 из 1">
+                  1/1
+                </span>
+              </Show>
+              <div
+                class="media-viewer__toolbar-group"
+                classList={{ 'media-viewer__toolbar-group--zoom': props.zoomMode === 'image' }}
+              >
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
@@ -199,7 +240,10 @@ export function MediaViewer(props: {
                   <AppGlyph name="plus" class="media-viewer__toolbar-icon" />
                 </button>
               </div>
-              <div class="media-viewer__toolbar-group">
+              <div
+                class="media-viewer__toolbar-group"
+                classList={{ 'media-viewer__toolbar-group--actions': props.zoomMode === 'image' }}
+              >
                 <Show when={props.printHtmlContent}>
                   <button
                     type="button"
@@ -217,7 +261,10 @@ export function MediaViewer(props: {
                 <button
                   type="button"
                   class="media-viewer__toolbar-button"
-                  classList={{ 'media-viewer__toolbar-button--image': props.zoomMode === 'image' }}
+                  classList={{
+                    'media-viewer__toolbar-button--image': props.zoomMode === 'image',
+                    'media-viewer__toolbar-button--close': props.zoomMode === 'image',
+                  }}
                   aria-label="Закрыть"
                   title="Закрыть"
                   onClick={props.onClose}
@@ -233,11 +280,18 @@ export function MediaViewer(props: {
               <PinchZoomSurface
                 pinch={pinch}
                 class="media-viewer__pinch"
-                contentClass="media-viewer__pinch-content"
+                contentClass={
+                  props.zoomMode === 'image'
+                    ? 'media-viewer__pinch-content media-viewer__pinch-content--image'
+                    : 'media-viewer__pinch-content'
+                }
               >
                 {props.children}
               </PinchZoomSurface>
             </div>
+            <Show when={props.imageCaption}>
+              {(caption) => <div class="media-viewer__caption">{caption()}</div>}
+            </Show>
           </div>
         </div>
       </Portal>
@@ -368,39 +422,32 @@ function ZoomableImage(props: {
         open={open()}
         zoomMode="image"
         title={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
+        imageCaption={
+          <Show when={visibleImageCaption(props.image.alt, props.image.title)}>
+            {(caption) => (
+              <QueryHighlightedText
+                text={caption()}
+                query={props.highlight?.query ?? ''}
+                exact={props.highlight?.exact}
+                fuzzy={props.highlight?.fuzzy}
+                matchClass={props.highlight?.matchClass}
+                ranges={props.highlight?.ranges}
+                unitId={props.highlight?.unitId}
+                activeStart={props.highlight?.activeStart}
+              />
+            )}
+          </Show>
+        }
         printHtmlContent={() => buildImagePrintHtml(props.image)}
         onClose={() => setOpen(false)}
       >
-        <figure
-          class="media-viewer__figure"
-          classList={{
-            'media-viewer__figure--captioned': Boolean(
-              visibleImageCaption(props.image.alt, props.image.title),
-            ),
-          }}
-        >
+        <figure class="media-viewer__figure">
           <img
             class="media-viewer__image"
             src={props.image.dataUrl}
             alt={visibleImageCaption(props.image.alt, props.image.title) || 'Изображение'}
             decoding="async"
           />
-          <Show when={visibleImageCaption(props.image.alt, props.image.title)}>
-            {(caption) => (
-              <figcaption class="media-viewer__caption">
-                <QueryHighlightedText
-                  text={caption()}
-                  query={props.highlight?.query ?? ''}
-                  exact={props.highlight?.exact}
-                  fuzzy={props.highlight?.fuzzy}
-                  matchClass={props.highlight?.matchClass}
-                  ranges={props.highlight?.ranges}
-                  unitId={props.highlight?.unitId}
-                  activeStart={props.highlight?.activeStart}
-                />
-              </figcaption>
-            )}
-          </Show>
         </figure>
       </MediaViewer>
     </>
@@ -469,15 +516,15 @@ export function PreviewableImage(props: {
           </button>
         )}
       </Show>
-      <MediaViewer open={open()} zoomMode="image" title={title()} onClose={() => setOpen(false)}>
-        <figure
-          class="media-viewer__figure"
-          classList={{ 'media-viewer__figure--captioned': Boolean(props.caption) }}
-        >
+      <MediaViewer
+        open={open()}
+        zoomMode="image"
+        title={title()}
+        imageCaption={props.caption}
+        onClose={() => setOpen(false)}
+      >
+        <figure class="media-viewer__figure">
           <img class="media-viewer__image" src={large() ?? props.src} alt={props.alt || title()} />
-          <Show when={props.caption}>
-            {(caption) => <figcaption class="media-viewer__caption">{caption()}</figcaption>}
-          </Show>
         </figure>
       </MediaViewer>
     </>

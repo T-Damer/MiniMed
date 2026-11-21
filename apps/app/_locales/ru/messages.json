@@ -154,6 +154,9 @@
     "message": "Оториноларингология",
     "description": "Medical specialty slug: otorhinolaryngology"
   },
+  "specialty_anatomy": { "message": "Анатомия" },
+  "specialty_physiology": { "message": "Физиология" },
+  "specialty_phytotherapy": { "message": "Фитотерапия" },
   "specialty_pediatrics": {
     "message": "Педиатрия",
     "description": "Medical specialty slug: pediatrics"

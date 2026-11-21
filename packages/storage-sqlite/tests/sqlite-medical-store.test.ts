@@ -27,6 +27,21 @@ afterEach(async () => {
 });
 
 describe('SqliteMedicalStore', () => {
+  it('reads a bounded title page in ID order without carrying document metadata', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const titles = CORE_SLICE_PACK.documents
+      .map(({ id, title }) => ({ id, title }))
+      .toSorted((left, right) => Number(left.id > right.id) - Number(left.id < right.id));
+    expect(await store.listDocumentTitles({ offset: 0, limit: 2 })).toEqual(titles.slice(0, 2));
+    expect(await store.listDocumentTitles({ offset: 2, limit: 2 })).toEqual(titles.slice(2, 4));
+    expect(await store.listDocumentTitles({ offset: titles.length, limit: 2 })).toEqual([]);
+    await expect(store.listDocumentTitles({ offset: 0, limit: 129 })).rejects.toThrow(
+      'Invalid document page.',
+    );
+  });
+
   it('reads instruction summaries for exact registrations in the same installed index', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);

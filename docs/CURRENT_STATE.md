@@ -83,6 +83,33 @@ A fresh-tab repeat without allocation profiling peaked at 580 MiB and settled in
 process RAM and WebView renderer memory remain unmeasured. Publication is pending the physical
 Android check.
 
+## Paged ICD-11, search history and reader tools — local candidate, 2026-11-21
+
+The ICD-11 section scrolls through its full installed classification, with the catalog count and
+separate chapter shortcuts. Its title-only SQLite reads use 40 rows per request and keep up to
+three result pages. Opening the list leases only the verified module. «Травник» opens its own
+downloadable pack directly and can retry a failed read. Its text and plate archives are omitted
+from production app bundles.
+
+Exact offline search still ranks matches in SQLite. Multi-pack lexical requests dispatch in
+groups of up to 16 files and about 64 MiB of combined on-disk size per group; a larger pack runs
+alone through its own index. Confident intent on a ready core can present a scoped first answer.
+Search history can restore an early answer from IndexedDB and then finish the wider search.
+The cache keeps six recent answers in memory and up to 50 on disk.
+
+Inline terms use a preview with an explicit source action. Image preview controls and captions
+are independent of the zoomed image. Standalone tables use 14-point text and choose portrait or
+landscape A4 by column count and text width. Knowledge-base section lists use the shared sticky
+backdrop. The Files overview hides the computer/device shortcut.
+
+A log pulled from the phone on 0.6.126 recorded 177 long frames and 16.7 s of blocking across
+three minutes. The largest catalog burst returned full records from many packs, including all
+37,052 ICD-11 entries, after opening «Травник». The candidate removes that whole-library read.
+Chromium checks exercised scrolling and opening ICD-11 records, history replay, the herbal
+download over its public URL, image zoom and dismissal, the recommendations header on a mobile
+viewport, and A4 print settings on tables from a downloaded clinical recommendation. Physical
+Android RAM and frame timings after these changes are pending.
+
 ## Release 0.6.126 — 2026-11-21
 
 The medication catalog reads compact navigation metadata for instruction links and hydrates product

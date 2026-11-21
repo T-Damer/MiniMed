@@ -9,6 +9,8 @@ import type {
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 import type {
   DocumentIdentity,
+  DocumentTitlePageRequest,
+  DocumentTitleRow,
   LexicalHit,
   LexicalMatch,
   LexicalSearchRequest,
@@ -705,6 +707,12 @@ export class ShelfModuleStore implements MedicalStore {
 
   public listDocuments(): Promise<readonly DocumentRecord[]> {
     return this.call('listDocuments', []);
+  }
+
+  public listDocumentTitles(
+    request: DocumentTitlePageRequest,
+  ): Promise<readonly DocumentTitleRow[]> {
+    return this.call('listDocumentTitles', [request]);
   }
 
   public listNavigationDocuments(): Promise<readonly DocumentRecord[]> {

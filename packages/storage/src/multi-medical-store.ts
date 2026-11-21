@@ -40,6 +40,8 @@ function compareText(left: string, right: string): number {
 
 const DEFAULT_RRF_K = 60;
 const VALIDATION_READ_BATCH = 16;
+const LEXICAL_BATCH_PACKS = 16;
+const LEXICAL_BATCH_BYTES = 64 * 1024 * 1024;
 
 export interface MedicalStoreMount {
   readonly moduleId: string;
@@ -114,6 +116,7 @@ async function* readValidationRecords<T>(
 export class MultiMedicalStore implements MedicalStore {
   private readonly mounts = new Map<string, InternalMount>();
   private initialized = false;
+  private readonly mountedSizes = new Map<InternalMount, number>();
   private documentOwners = new Map<string, InternalMount>();
   private validatedAliases: readonly AliasRecord[] | undefined;
   private aliasesPending: Promise<readonly AliasRecord[]> | undefined;
@@ -164,6 +167,7 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
     this.documentOwners.clear();
+    this.mountedSizes.clear();
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -455,44 +459,60 @@ export class MultiMedicalStore implements MedicalStore {
       }
       mounts = mounts.filter((mount) => idsByMount.has(mount));
     }
-    const ranked: readonly {
-      mount: InternalMount;
-      matches: readonly (LexicalMatch & { readonly hit?: LexicalHit })[];
-    }[] = await Promise.all(
-      mounts.map(async (mount) => {
-        const { store } = mount;
-        const ids = idsByMount.get(mount);
-        const scoped = ids
-          ? { ...request, filters: { ...request.filters, documentIds: ids } }
-          : request;
-        if (store.rankLexicalMatches && store.hydrateLexicalMatches) {
-          return { mount, matches: await store.rankLexicalMatches(scoped) };
-        }
-        const hits = await store.search(scoped);
-        return {
-          mount,
-          matches: hits.map((hit) => ({ chunkId: hit.chunk.id, rank: hit.rank, hit })),
-        };
-      }),
-    );
-    const fused = new Map<
-      string,
-      { mount: InternalMount; match: LexicalMatch; hit?: LexicalHit }
-    >();
-    for (const { mount, matches } of ranked) {
-      for (const [index, match] of matches.entries()) {
-        const rank = mount.searchWeight / (DEFAULT_RRF_K + index + 1);
-        const existing = fused.get(match.chunkId);
-        if (!existing || rank > existing.match.rank) {
-          fused.set(match.chunkId, {
+    const fuse = new Map<string, { mount: InternalMount; match: LexicalMatch; hit?: LexicalHit }>();
+    // Keep simultaneous replies small. A large pack searches its own SQLite index by page.
+    for (let start = 0; start < mounts.length; ) {
+      const batch: InternalMount[] = [];
+      let bytes = 0;
+      while (start < mounts.length && batch.length < LEXICAL_BATCH_PACKS) {
+        const mount = mounts[start];
+        if (!mount) break;
+        const size = this.mountedSizes.get(mount) ?? LEXICAL_BATCH_BYTES;
+        if (batch.length && bytes + size > LEXICAL_BATCH_BYTES) break;
+        batch.push(mount);
+        bytes += size;
+        start += 1;
+      }
+      const ranked = await Promise.all(
+        batch.map(
+          async (
             mount,
-            match: { chunkId: match.chunkId, rank },
-            ...(match.hit ? { hit: { ...match.hit, rank } } : {}),
-          });
+          ): Promise<{
+            mount: InternalMount;
+            matches: readonly (LexicalMatch & { readonly hit?: LexicalHit })[];
+          }> => {
+            const { store } = mount;
+            const ids = idsByMount.get(mount);
+            const scoped = ids
+              ? { ...request, filters: { ...request.filters, documentIds: ids } }
+              : request;
+            if (store.rankLexicalMatches && store.hydrateLexicalMatches) {
+              return { mount, matches: await store.rankLexicalMatches(scoped) };
+            }
+            const hits = await store.search(scoped);
+            return {
+              mount,
+              matches: hits.map((hit) => ({ chunkId: hit.chunk.id, rank: hit.rank, hit })),
+            };
+          },
+        ),
+      );
+      for (const { mount, matches } of ranked) {
+        for (const [index, match] of matches.entries()) {
+          const rank = mount.searchWeight / (DEFAULT_RRF_K + index + 1);
+          const existing = fuse.get(match.chunkId);
+          if (!existing || rank > existing.match.rank) {
+            const { hit } = match;
+            fuse.set(match.chunkId, {
+              mount,
+              match: { chunkId: match.chunkId, rank },
+              ...(hit ? { hit: { ...hit, rank } } : {}),
+            });
+          }
         }
       }
     }
-    const chosen = [...fused.values()]
+    const chosen = [...fuse.values()]
       .sort((left, right) => right.match.rank - left.match.rank)
       .slice(0, request.limit);
     const waiting = new Map<InternalMount, LexicalMatch[]>();
@@ -592,6 +612,7 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async close(): Promise<void> {
     this.documentOwners.clear();
+    this.mountedSizes.clear();
     this.validatedAliases = undefined;
     this.aliasesPending = undefined;
     this.checkedAliases = undefined;
@@ -719,6 +740,10 @@ export class MultiMedicalStore implements MedicalStore {
     this.aliasesPending = undefined;
     this.checkedAliases = { inputs: aliasInputs, byId: aliases };
     this.documentOwners = documentOwners;
+    this.mountedSizes.clear();
+    for (const [index, mount] of active.entries()) {
+      this.mountedSizes.set(mount, health[index]?.sizeBytes ?? LEXICAL_BATCH_BYTES);
+    }
     return health;
   }
 

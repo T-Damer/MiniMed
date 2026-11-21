@@ -105,7 +105,20 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
       <Show when={route() === 'documents' && isUserLibraryCatalogRoute(documentsRoute())}>
         <UserLibraryPage knowledgeBaseEntry={props.knowledgeBaseEntry ?? false} />
       </Show>
-      <Show when={!ready() && !isUserLibraryCatalogRoute(documentsRoute()) && props.coreStatus}>
+      <Show when={route() === 'herbal'}>
+        <HerbalBookView
+          onBack={leaveCatalogPage}
+          {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+        />
+      </Show>
+      <Show
+        when={
+          !ready() &&
+          route() !== 'herbal' &&
+          !isUserLibraryCatalogRoute(documentsRoute()) &&
+          props.coreStatus
+        }
+      >
         {(status) => (
           <div class="knowledge-base-page__pending">
             <Page
@@ -149,13 +162,6 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
             <Show when={route() === 'conditions'}>
               <ConditionCatalogView core={state().core} onBack={leaveCatalogPage} />
-            </Show>
-            <Show when={route() === 'herbal'}>
-              <HerbalBookView
-                core={state().core}
-                onBack={leaveCatalogPage}
-                {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
-              />
             </Show>
           </>
         )}

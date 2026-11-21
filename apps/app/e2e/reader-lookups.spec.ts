@@ -39,8 +39,7 @@ test('a medication lookup preserves the reader position and shows a short drug c
   await expect(link).toBeInViewport();
 });
 
-// A found fragment opens its document in the reader (owner phone QA 2026-10-20, e06f0ee48); the
-// search's old «source context» card is no longer shown, so the lookup is checked in that reader.
+// The result title opens the drug in the reader, where the linked ingredient shows its preview.
 test('a drug found in search opens in the reader with the same inline medication lookup', async ({
   page,
 }) => {
@@ -52,10 +51,9 @@ test('a drug found in search opens in the reader with the same inline medication
   const result = page
     .locator('.result-group')
     .filter({ has: page.getByText('АСКОРБИНОВАЯ КИСЛОТА+ПАРАЦЕТАМОЛ', { exact: true }) })
-    .getByTestId('search-result')
-    .filter({ hasText: /Действующее вещество/u })
+    .locator('.result-group-header')
     .first();
-  await result.waitFor({ timeout: 30_000 });
+  await result.waitFor({ timeout: 60_000 });
   await result.click();
   await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
   const link = page

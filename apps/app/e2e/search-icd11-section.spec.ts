@@ -146,15 +146,24 @@ test('finds ICD-11 codes and words, opens the card and returns to the section wi
   const counts = await homeCounts(page);
   await openHomeSection(page, SECTION);
   await expect(page).toHaveURL(/#\/search\/section\/icd11$/u);
-  // No download offer once installed; the section opens on the chapters, not on 37 000 codes.
+  // The complete classification can be scrolled without mounting thousands of card nodes.
   await expect(page.locator('.search-icd11-offer')).toHaveCount(0);
-  const chapters = page.locator('.document-library-card');
-  await expect(chapters.first()).toBeVisible({ timeout: 60_000 });
+  const catalog = page.getByRole('region', { name: 'Записи МКБ-11' });
+  await expect(catalog.locator('.icd11-catalog__count')).toHaveText(/^37\s052\sзаписи$/u);
+  const rows = catalog.locator('.icd11-catalog__slot .icd11-catalog__row');
+  await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+  const firstId = await rows.first().getAttribute('data-document-id');
+  await page.evaluate(() => window.scrollBy(0, 5_000));
+  await expect(rows.first()).not.toHaveAttribute('data-document-id', firstId ?? '');
+  await expect.poll(() => rows.count()).toBeLessThan(50);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(rows.first()).toHaveAttribute('data-document-id', firstId ?? '');
+
+  await catalog.getByRole('button', { name: 'Главы' }).click();
+  const chapters = catalog.locator('.icd11-catalog__chapter-list .icd11-catalog__row');
+  await expect(chapters).toHaveCount(28, { timeout: 30_000 });
   await expect(chapters.first()).toContainText('Глава 01');
   await expect(chapters.nth(1)).toContainText('Глава 02');
-  // The list is virtualized: only chapters, never a code card, are in it.
-  await expect(chapters.filter({ hasText: /^\d+.*Глава /u })).not.toHaveCount(0);
-  await expect(chapters.filter({ hasText: 'BA41' })).toHaveCount(0);
 
   // A code leads, whatever the letter case; a word finds the rubric by its Russian name.
   await search(page, 'ba41');

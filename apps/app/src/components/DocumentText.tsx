@@ -267,23 +267,17 @@ function InlineDocumentLink(props: {
       openDocumentOverlay(source.documentId, source.anchor ?? null, { preferSummary: true });
     else props.onOpen(documentId);
   };
-  const canPreview = () =>
-    Boolean(
-      ambiguous() ||
-        props.segment.preview ||
-        (props.segment.linkKind === 'medication' && props.core),
-    );
+  const needsMedicationSummary = () => props.segment.linkKind === 'medication' && props.core;
   const activate = async () => {
-    if (!canPreview()) {
-      props.onOpen(props.segment.documentId);
-      return;
-    }
     setOpen((value) => !value);
-    if (!open() || ambiguous() || props.segment.preview || summary() || !props.core) return;
+    if (!open() || ambiguous() || props.segment.preview || summary() || !needsMedicationSummary())
+      return;
+    const core = props.core;
+    if (!core) return;
     setPreviewError();
     try {
       setSummary(
-        await loadMedicationLinkSummary(props.core, props.segment.documentId, MEDICATION_ASSETS),
+        await loadMedicationLinkSummary(core, props.segment.documentId, MEDICATION_ASSETS),
       );
     } catch (error) {
       console.error('Не удалось открыть сведения о препарате.', error);
@@ -310,8 +304,8 @@ function InlineDocumentLink(props: {
             type="button"
             class="document-inline-link"
             classList={{ 'document-inline-link--open': open() }}
-            aria-expanded={canPreview() ? open() : undefined}
-            aria-haspopup={canPreview() ? 'dialog' : undefined}
+            aria-expanded={open()}
+            aria-haspopup="dialog"
             aria-label={props.closing ? props.segment.value : undefined}
             onClick={activate}
           >
@@ -333,121 +327,106 @@ function InlineDocumentLink(props: {
           </button>
         </InlineLinkFrame>
       </Popover.Anchor>
-      <Show when={canPreview()}>
-        <Popover.Portal>
-          <Popover.Content
-            ref={setPreviewCard}
-            class="document-inline-preview__card"
-            aria-label={
-              ambiguous()
-                ? `${props.segment.value}: значения`
-                : (props.segment.preview?.title ?? props.segment.value)
-            }
-            onOpenAutoFocus={(event) => {
-              if (!ambiguous()) event.preventDefault();
-            }}
-          >
-            <div class="document-inline-preview__header">
-              <div class="document-inline-preview__heading">
-                <strong class="document-inline-preview__title">
-                  {ambiguous()
-                    ? `${props.segment.value}: выберите значение`
-                    : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
-                </strong>
-                <Show when={!ambiguous()}>
-                  <PreviewOpenButton
-                    label={props.segment.preview?.title ?? props.segment.value}
-                    title={props.segment.preview?.source?.label}
-                    onOpen={() =>
-                      openSource(props.segment.preview?.source, props.segment.documentId)
-                    }
-                  />
-                </Show>
-              </div>
-              <Show when={manyChoices()}>
-                <select
-                  class="document-inline-preview__choice"
-                  aria-label="Выберите документ"
-                  value={choice()}
-                  onChange={(event) => setChoice(event.currentTarget.value)}
-                >
-                  <option class="document-inline-preview__choice-option" value="">
-                    Выберите документ…
-                  </option>
-                  <For each={props.segment.alternatives}>
-                    {(alternative, index) => (
-                      <option
-                        class="document-inline-preview__choice-option"
-                        value={String(index())}
-                      >
-                        {alternative.title}
-                      </option>
-                    )}
-                  </For>
-                </select>
+      <Popover.Portal>
+        <Popover.Content
+          ref={setPreviewCard}
+          class="document-inline-preview__card"
+          aria-label={
+            ambiguous()
+              ? `${props.segment.value}: значения`
+              : (props.segment.preview?.title ?? props.segment.value)
+          }
+          onOpenAutoFocus={(event) => {
+            if (!ambiguous()) event.preventDefault();
+          }}
+        >
+          <div class="document-inline-preview__header">
+            <div class="document-inline-preview__heading">
+              <strong class="document-inline-preview__title">
+                {ambiguous()
+                  ? `${props.segment.value}: выберите значение`
+                  : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
+              </strong>
+              <Show when={!ambiguous()}>
+                <PreviewOpenButton
+                  label={props.segment.preview?.title ?? props.segment.value}
+                  title={props.segment.preview?.source?.label}
+                  onOpen={() => openSource(props.segment.preview?.source, props.segment.documentId)}
+                />
               </Show>
             </div>
-            <Show when={ambiguous()}>
-              <For
-                each={
-                  manyChoices()
-                    ? props.segment.alternatives?.filter(
-                        (_item, index) => String(index) === choice(),
-                      )
-                    : props.segment.alternatives
-                }
+            <Show when={manyChoices()}>
+              <select
+                class="document-inline-preview__choice"
+                aria-label="Выберите документ"
+                value={choice()}
+                onChange={(event) => setChoice(event.currentTarget.value)}
               >
-                {(alternative) => (
-                  <div class="document-inline-preview__meaning">
-                    <div class="document-inline-preview__heading">
-                      <span class="document-inline-preview__meaning-title">
-                        {alternative.title}
-                      </span>
-                      <PreviewOpenButton
-                        label={alternative.title}
-                        title={alternative.preview?.source?.label}
-                        onOpen={() =>
-                          openSource(alternative.preview?.source, alternative.documentId)
-                        }
-                      />
-                    </div>
-                    <Show when={alternative.preview}>
-                      {(preview) => (
-                        <>
-                          <ClampedDefinition
-                            class="document-inline-preview__definition--choice"
-                            text={preview().definition}
-                          />
-                        </>
-                      )}
-                    </Show>
+                <option class="document-inline-preview__choice-option" value="">
+                  Выберите документ…
+                </option>
+                <For each={props.segment.alternatives}>
+                  {(alternative, index) => (
+                    <option class="document-inline-preview__choice-option" value={String(index())}>
+                      {alternative.title}
+                    </option>
+                  )}
+                </For>
+              </select>
+            </Show>
+          </div>
+          <Show when={ambiguous()}>
+            <For
+              each={
+                manyChoices()
+                  ? props.segment.alternatives?.filter((_item, index) => String(index) === choice())
+                  : props.segment.alternatives
+              }
+            >
+              {(alternative) => (
+                <div class="document-inline-preview__meaning">
+                  <div class="document-inline-preview__heading">
+                    <span class="document-inline-preview__meaning-title">{alternative.title}</span>
+                    <PreviewOpenButton
+                      label={alternative.title}
+                      title={alternative.preview?.source?.label}
+                      onOpen={() => openSource(alternative.preview?.source, alternative.documentId)}
+                    />
                   </div>
-                )}
-              </For>
-            </Show>
-            <Show when={!ambiguous() && props.segment.preview}>
-              {(preview) => <ClampedDefinition text={preview().definition} />}
-            </Show>
-            <Show when={!ambiguous() && !props.segment.preview}>
-              <Show when={previewError()}>
-                {(error) => (
-                  <p class="document-inline-preview__definition" role="alert">
-                    {error()}
-                  </p>
-                )}
-              </Show>
-              <Show when={!summary() && !previewError()}>
-                <p class="document-inline-preview__definition" role="status">
-                  Открываем локальные данные…
+                  <Show when={alternative.preview}>
+                    {(preview) => (
+                      <>
+                        <ClampedDefinition
+                          class="document-inline-preview__definition--choice"
+                          text={preview().definition}
+                        />
+                      </>
+                    )}
+                  </Show>
+                </div>
+              )}
+            </For>
+          </Show>
+          <Show when={!ambiguous() && props.segment.preview}>
+            {(preview) => <ClampedDefinition text={preview().definition} />}
+          </Show>
+          <Show when={!ambiguous() && !props.segment.preview && needsMedicationSummary()}>
+            <Show when={previewError()}>
+              {(error) => (
+                <p class="document-inline-preview__definition" role="alert">
+                  {error()}
                 </p>
-              </Show>
-              <Show when={summary()}>
-                {(drug) => <MedicationLinkSummaryBody summary={drug()} />}
-              </Show>
+              )}
             </Show>
-          </Popover.Content>
-        </Popover.Portal>
-      </Show>
+            <Show when={!summary() && !previewError()}>
+              <p class="document-inline-preview__definition" role="status">
+                Открываем локальные данные…
+              </p>
+            </Show>
+            <Show when={summary()}>{(drug) => <MedicationLinkSummaryBody summary={drug()} />}</Show>
+          </Show>
+        </Popover.Content>
+      </Popover.Portal>
     </Popover>
   );
 }

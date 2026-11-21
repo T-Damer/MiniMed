@@ -4,6 +4,7 @@ import type {
   SearchFilters,
 } from '@localmed/contracts';
 import type {
+  DocumentTitlePageRequest,
   LexicalMatch,
   LexicalSearchRequest,
   VectorScore,
@@ -23,6 +24,7 @@ export type OpfsPackWorkerMethod =
   | 'lookupCoreIdentities'
   | 'listSearchDocuments'
   | 'listNavigationDocuments'
+  | 'listDocumentTitles'
   | 'listInstructionDocuments'
   | 'listDocuments'
   | 'getDocument'
@@ -110,6 +112,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly lookupCoreIdentities: readonly [query: string];
   readonly listSearchDocuments: readonly [];
   readonly listNavigationDocuments: readonly [];
+  readonly listDocumentTitles: readonly [request: DocumentTitlePageRequest];
   readonly listInstructionDocuments: readonly [registrations: readonly string[]];
   readonly listDocuments: readonly [];
   readonly getDocument: readonly [id: string, projection?: 'medication-catalog'];

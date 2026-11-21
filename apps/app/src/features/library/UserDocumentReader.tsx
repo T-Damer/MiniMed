@@ -57,7 +57,6 @@ import {
 } from '@/features/library/SafeMarkdown';
 import { sheetAnchorId } from '@/features/library/SpreadsheetRenderer';
 import { UserDocumentHighlights } from '@/features/library/UserDocumentHighlights';
-import { IMAGE_ZOOM_OPTIONS } from '@/features/library/use-pinch-zoom';
 import {
   buildUserDocumentOutlineItems,
   buildUserDocumentPrintHtml,
@@ -1715,31 +1714,25 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           )}
         </Show>
       </MediaViewer>
-      <OverlayDialog
+      <MediaViewer
         open={imageLightboxOpen()}
         title={meta()?.title ?? 'Изображение'}
-        class="user-doc-image-lightbox"
-        bodyClass="user-doc-image-lightbox__body"
-        headerClass="user-doc-image-lightbox__header"
-        presentation="screen"
+        zoomMode="image"
         onClose={() => setImageLightboxOpen(false)}
       >
         <Show when={imageUrl()}>
           {(url) => (
-            <PinchZoomSurface
-              class="pinch-zoom-surface pinch-zoom-surface--image user-doc-image-lightbox__pinch"
-              zoomOptions={IMAGE_ZOOM_OPTIONS}
-            >
+            <figure class="media-viewer__figure">
               <img
                 src={url()}
-                class="user-doc-image-lightbox__image"
+                class="media-viewer__image"
                 alt={meta()?.title ?? 'Изображение'}
                 draggable={false}
               />
-            </PinchZoomSurface>
+            </figure>
           )}
         </Show>
-      </OverlayDialog>
+      </MediaViewer>
       <OverlayDialog open={discardOpen()} title="Несохранённый черновик" onClose={stayInDraft}>
         <p class="user-document-reader__discard-copy">
           В черновике есть изменения. Сохранить их перед выходом?

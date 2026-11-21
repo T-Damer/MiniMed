@@ -776,6 +776,10 @@ export class ScopedMedicalCore implements MedicalCore {
     private readonly includedDocumentIds?: ReadonlySet<string>,
   ) {}
 
+  public forScope(scope: SearchScope): ScopedMedicalCore {
+    return new ScopedMedicalCore(this.base, scope);
+  }
+
   /** Whether a document belongs to this section (and to its chosen subsection). */
   public acceptsDocument(
     document: Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>,

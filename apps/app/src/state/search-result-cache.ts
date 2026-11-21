@@ -3,7 +3,7 @@ import type { SearchResponse } from '@localmed/contracts';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 
 /**
- * Device-local copies of finished searches (owner 2026-10-07, versioned 2026-10-08): a query asked
+ * Device-local copies of completed and in-progress searches (owner 2026-10-07, versioned 2026-10-08): a query asked
  * again — typed, from the history or after the app was closed — shows its results at once instead
  * of running the whole search and its skeleton again.
  *
@@ -22,6 +22,7 @@ export const SEARCH_CACHE_DATABASE = 'minimed-search-results';
 const DATABASE_VERSION = 2;
 const STORE = 'searches';
 export const MAX_ENTRIES = 50;
+const MAX_MEMORY_ENTRIES = 6;
 const USED_AT = 'usedAt';
 const DATA_VERSION = 'dataVersion';
 
@@ -187,7 +188,8 @@ function remember(record: StoredSearch): void {
   memory.delete(record.key);
   memory.set(record.key, record);
   for (const key of staleKeys([...memory.values()], record.dataVersion)) memory.delete(key);
-  for (const key of keysToEvict([...memory.values()])) memory.delete(key);
+  const limit = available() ? MAX_MEMORY_ENTRIES : MAX_ENTRIES;
+  for (const key of keysToEvict([...memory.values()], limit)) memory.delete(key);
 }
 
 /** The copy of a query made with this data version, or null. Reading it counts as a use. */
@@ -205,7 +207,7 @@ export async function readCachedSearch(
   if (!stored) return null;
   const used: StoredSearch = { ...stored, usedAt: new Date(now).toISOString() };
   remember(used);
-  if (available()) {
+  if (available() && !used.response.partial) {
     void withStore('readwrite', (store) => requestResult(store.put(used))).catch(
       (cause: unknown) => {
         console.error('Не удалось отметить использование сохранённого поиска.', cause);
@@ -229,9 +231,18 @@ export async function writeCachedSearch(
     usedAt: stamp,
     response,
   };
-  remember(record);
-  if (!available()) return;
+  const previous = memory.get(record.key);
+  if (response.partial && previous && !previous.response.partial) return;
+  if (!available()) {
+    remember(record);
+    return;
+  }
   await withStore('readwrite', async (store) => {
+    if (response.partial) {
+      const persisted: unknown = await requestResult(store.get(record.key));
+      if (isStoredSearch(persisted) && !persisted.response.partial) return;
+    }
+    remember(record);
     await requestResult(store.put(record));
     await trimStore(store, dataVersion);
   });
