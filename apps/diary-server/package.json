@@ -19,6 +19,6 @@
     "@ydbjs/value": "6.0.8"
   },
   "devDependencies": {
-    "@types/bun": "1.2.3"
+    "@types/bun": "1.4.4"
   }
 }
