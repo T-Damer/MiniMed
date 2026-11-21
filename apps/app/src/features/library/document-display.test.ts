@@ -112,6 +112,22 @@ describe('document-display', () => {
     ).toBe('Ибупрофен');
   });
 
+  it('uses the same ICD title for navigation and the full document', () => {
+    const document = {
+      title: 'T51.0 Этанол',
+      shortTitle: null,
+      sourceType: 'rls_mkb_reference',
+    };
+    for (const classification of [
+      { classificationParentTitle: 'Токсическое действие алкоголя' },
+      { classificationPath: [{ title: 'Токсическое действие алкоголя' }] },
+    ]) {
+      expect(
+        displayDocumentTitle({ ...document, metadata: { mkbCode: 'T51.0', ...classification } }),
+      ).toBe('T51.0 Токсическое действие алкоголя — Этанол');
+    }
+  });
+
   it('keeps clinical titles unchanged', () => {
     expect(
       displayDocumentTitle({

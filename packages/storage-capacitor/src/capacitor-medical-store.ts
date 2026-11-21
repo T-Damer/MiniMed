@@ -292,7 +292,7 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'contentMode', json_extract(d.metadata_json, '$.contentMode'),
       'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
       'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
-      'classificationPath', json_extract(d.metadata_json, '$.classificationPath'),
+      'classificationParentTitle', json_extract(d.metadata_json, '$.classificationPath[0].title'),
       'keywords', json_extract(d.metadata_json, '$.keywords'),
       'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
       'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),

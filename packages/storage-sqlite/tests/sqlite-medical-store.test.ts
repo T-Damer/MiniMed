@@ -93,6 +93,7 @@ describe('SqliteMedicalStore', () => {
           terminologyMentionAnchors: { 'discovery#term': 'source#exact-anchor' },
           sourceType: 'rls_mkb_reference',
           mkbCode: 'R05',
+          classificationPath: [{ title: 'Непосредственная группа' }, { title: 'Корневой раздел' }],
           publisher: 'Красота и медицина',
           linkedMnnDocumentId: 'esklp.mnn.test',
           canonicalDefinition: { text: 'Определение', sourceDocumentId: document.id },
@@ -150,12 +151,16 @@ describe('SqliteMedicalStore', () => {
       });
       expect(document.metadata['sourceType']).toBe('rls_mkb_reference');
       expect(document.metadata['mkbCode']).toBe('R05');
+      expect(document.metadata['classificationParentTitle']).toBe('Непосредственная группа');
+      expect(document.metadata).not.toHaveProperty('classificationPath');
       expect(document.metadata['canonicalDefinition']).toEqual(
         original?.metadata.canonicalDefinition,
       );
       expect(document.metadata).not.toHaveProperty('unrelated');
     }
-    expect((await store.listDocuments())[0]?.metadata['unrelated']).toHaveLength(4096);
+    const fullDocument = (await store.listDocuments())[0];
+    expect(fullDocument?.metadata['unrelated']).toHaveLength(4096);
+    expect(fullDocument?.metadata['classificationPath']).toHaveLength(2);
   });
 
   describe('whole-pack listings', () => {

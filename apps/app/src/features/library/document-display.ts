@@ -78,20 +78,20 @@ export function displayDocumentTitle(
   const code = metadata?.['mkbCode'];
   const path = metadata?.['classificationPath'];
   const parent: unknown = Array.isArray(path) ? path[0] : undefined;
+  const parentTitle =
+    metadata?.['classificationParentTitle'] ??
+    (parent && typeof parent === 'object' && 'title' in parent ? parent.title : undefined);
   if (
     (document.sourceType === 'rls_mkb_reference' ||
       metadata?.['sourceType'] === 'rls_mkb_reference') &&
     typeof code === 'string' &&
     code.includes('.') &&
-    parent &&
-    typeof parent === 'object' &&
-    'title' in parent &&
-    typeof parent.title === 'string' &&
-    parent.title.trim()
+    typeof parentTitle === 'string' &&
+    parentTitle.trim()
   ) {
     const prefix = `${code} `;
     const subject = title.startsWith(prefix) ? title.slice(prefix.length) : title;
-    return `${prefix}${parent.title.trim()} — ${subject}`;
+    return `${prefix}${parentTitle.trim()} — ${subject}`;
   }
   return title;
 }

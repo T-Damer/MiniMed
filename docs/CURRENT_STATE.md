@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 20 November 2026
-> Released version: `0.6.124` (public prerelease toward `1.0`)
+> Released version: `0.6.125` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,20 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Release 0.6.125 — 2026-11-21
+
+The 690 MiB heap snapshot in the 0.6.124 run with 774 clinical packs was taken before
+collection. On a repeat with three queries, the released build measured 407 MiB
+before collection and 253 MiB retained. The smaller ICD projection measured 338 MiB
+before collection and 237 MiB retained on the same workload. Across the core the
+selected ICD classification data fell from 13.15 million characters to 0.63 million.
+The catalog uses the immediate parent title and the reader keeps the full path.
+
+The 774-pack reload test records both readings and checks a 350 MiB retained JS heap
+budget. The 20-query run passed with 591 MiB before collection and 245 MiB retained.
+This covers the Chromium page target after searches. SQLite page caches, workers,
+WebView backing allocations and native memory need their own measurements.
 
 ## Release 0.6.124 — 2026-11-21
 

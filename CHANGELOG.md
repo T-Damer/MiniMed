@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.125] - 2026-11-21
+
+- Read only the immediate ICD parent title in navigation catalogs. The reader still loads complete classifications.
+- Qualify search with 774 clinical packs against a 350 MiB retained JavaScript heap budget. Report heap usage before and after collection.
+
 ## [0.6.124] - 2026-11-21
 
 - List documents in pages of 40, show totals, and let readers jump to a page or return to it after opening a document.

@@ -409,7 +409,7 @@ const SEARCH_METADATA_FIELDS = [
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,
   'canonicalDefinition',
-  'classificationPath',
+  'classificationParentTitle',
   'keywords',
   'primaryModuleId',
   'moduleIds',
@@ -429,6 +429,11 @@ const NAVIGATION_METADATA_FIELDS = [
   'ocr',
   'clinicalMedicationLinks',
 ] as const;
+
+// The navigation list uses the immediate parent title for ICD labels. Ancestors belong to the reader.
+const NAVIGATION_METADATA_PATHS = NAVIGATION_METADATA_FIELDS.map((key) =>
+  key === 'classificationParentTitle' ? "'$.classificationPath[0].title'" : `'$.${key}'`,
+).join(', ');
 
 function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string, unknown> {
   const values: unknown = JSON.parse(readString(row, 'metadata_fields'));
@@ -1203,7 +1208,7 @@ export class SqliteMedicalStore implements MedicalStore {
       `
       SELECT d.rowid AS doc_rowid, d.id, d.content_pack_id, d.title, d.short_title, d.source_type,
         d.status, d.specialty_json,
-        json_extract(d.metadata_json, ${NAVIGATION_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields,
+        json_extract(d.metadata_json, ${NAVIGATION_METADATA_PATHS}) AS metadata_fields,
         dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
         dv.source_checksum, dv.extracted_at
       FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
@@ -1227,7 +1232,7 @@ export class SqliteMedicalStore implements MedicalStore {
       `
       WITH registrations AS (SELECT value FROM json_each(?))
       SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status, d.specialty_json,
-        json_extract(d.metadata_json, ${NAVIGATION_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields,
+        json_extract(d.metadata_json, ${NAVIGATION_METADATA_PATHS}) AS metadata_fields,
         dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
         dv.source_checksum, dv.extracted_at
       FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id

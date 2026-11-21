@@ -40,6 +40,8 @@ for (const directory of DIRECTORIES.toReversed()) {
 }
 const COUNT = Number(process.env['MEM1_MODULES'] ?? 120);
 const KEPT_PROFILE = process.env['MEM1_PROFILE'];
+const FULL_CLINICAL_PACK_COUNT = 774;
+const RETAINED_JS_HEAP_LIMIT_MIB = 350;
 const UPGRADE = process.env['MEM1_UPGRADE'] === '1';
 
 interface Seed {
@@ -338,10 +340,12 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
       return pools;
     });
     const session = await context.newCDPSession(page);
-    const heap = (await session.send('Runtime.getHeapUsage')) as {
-      usedSize: number;
-      totalSize: number;
-    };
+    const allocated = await session.send('Runtime.getHeapUsage');
+    // This qualification distinguishes live JS objects from objects V8 has yet to collect.
+    await session.send('HeapProfiler.collectGarbage');
+    const retained = await session.send('Runtime.getHeapUsage');
+    const retainedJsHeapMiB = retained.usedSize / 1048576;
+
     console.log(
       `MEM1RESULT ${JSON.stringify({
         modules: list.length,
@@ -354,7 +358,8 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
         medianQueryMs: median(timings),
         rssStartMb,
         rssEndMb,
-        mainJsHeapMb: Math.round(heap.usedSize / 1048576),
+        mainJsHeapMb: Math.round(allocated.usedSize / 1048576),
+        retainedJsHeapMiB: Math.round(retainedJsHeapMiB),
         failures: failures.length,
         throttle,
         shelfPools,
@@ -362,6 +367,9 @@ test(`search survives a reload with ${COUNT} installed modules`, async () => {
     );
     expect(problems).toEqual([]);
     expect(failures).toEqual([]);
+    if (list.length === FULL_CLINICAL_PACK_COUNT) {
+      expect(retainedJsHeapMiB).toBeLessThanOrEqual(RETAINED_JS_HEAP_LIMIT_MIB);
+    }
   } finally {
     await context.close();
     if (!KEPT_PROFILE) rmSync(profile, { recursive: true, force: true });

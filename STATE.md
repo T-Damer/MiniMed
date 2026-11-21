@@ -106,7 +106,6 @@ WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1�
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-11-21 | heap-budget | Qualify the 774-pack heap budget and trim catalog navigation payloads. | Search document naming, SQLite projections, memory benchmark, release documentation. |
 | 2026-11-18 | performance | Local candidate after 0.6.114: base-first startup, direct installed-pack reader and last-page restoration verified on Xiaomi. Empty-snapshot «Рисперидон» open still exceeds the one-second release target. | `apps/app/src/app/`, `apps/app/src/composition/`, `apps/app/src/state/last-page*`, `apps/app/src/features/library/`, `apps/app/src/features/medications/installed-substance-reader.ts`, `apps/app/src/features/modules/browser-module-runtime.ts`, `packages/core`, `packages/storage`, `docs/CURRENT_STATE.md` |
 | 2026-11-18 | performance | 0.6.115 WebView fixes: template history, device files, form recording and progress, questionnaire editor routing, reference catalog sheets, and КР title-page printing. Chromium checks cover the disconnected-phone follow-up. | `apps/app/src/components/Page*`, `apps/app/src/features/{assessments,conversations,form-fill,forms,library,modules,notes,printing,search}/`, `apps/app/src/styles/`, `docs/CURRENT_STATE.md` |
 | 2026-11-02 | claude-opus (SCRIBE1) | visit-note draft from a conversation transcript, first slice: portable quote check (every claim needs a verbatim transcript/prior-record quote with its line span), draft contract, remote-visit exam check; windowed local-model pass + controller adapter (task `visit-note`); Mac qualification of QVikhr 1.7B / Qwen3 0.6B (7 and 1 of 23 facts; QVikhr 15 with line citation); no UI yet; branch `scribe1` in `.claude/worktrees/scribe1` | `packages/contracts/src/visit-note*.ts`, `packages/core/src/visit-note*.ts`, `apps/app/src/features/conversations/visit-note-model*.ts`, `apps/app/src/features/models/structured-output*.ts`, `tools/benchmarks/visit-note-consultations.json`, `tools/benchmarks/src/run-visit-note-model.ts` |
@@ -185,6 +184,7 @@ Native requests are closed by the 2026-10-01 freeze.
 
 ## Recently done
 
+- 2026-11-21 REL 0.6.125. Trimmed navigation ICD metadata and checked the retained heap budget. The Chromium 774-pack search run ended at 245 MiB retained after 20 queries.
 - 2026-11-21 REL 0.6.124: paged document lists and totals, smaller catalog replies, lighter archive memory use, a compact search scope row, and app-level notifications. Base-catalog Chromium results are in CURRENT_STATE.
 - 2026-11-20 10:33 REL 0.6.123: section progress, sliced catalog and navigation telemetry, News and preview fixes, recording notification actions and cold recovery, and a shared search session in floating windows. Browser and native compile checks passed. Phone timing and system presentation remain unverified.
 - 2026-11-20 09:06 REL 0.6.122: fixed wrapping in clinical and reference prose, including punctuation beside links and spaces lost in extraction. Checked two downloaded guidelines and two full reference articles at 320, 360, and 390 px.
