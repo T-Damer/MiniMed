@@ -732,7 +732,7 @@ function groupResults(
 
 function filterSupersededSummaryResults(
   results: readonly SearchResult[],
-  availableDocumentIds: ReadonlySet<string>,
+  availableDocumentIds: Pick<ReadonlySet<string>, 'has'>,
 ): readonly SearchResult[] {
   return results.filter(
     (result) => !isSupersededSummaryDocument(result.documentId, availableDocumentIds),
@@ -1343,6 +1343,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     // Query scoping needs the compact descriptors. The navigation list sorts and projects the
     // whole catalog for the UI, and can still be loading when the first query is typed.
     const loadSearchDocuments = async (): Promise<readonly SearchDocumentDescriptor[]> => {
+      if (options.store.listSearchDocuments) {
+        const compact = await options.store.listSearchDocuments();
+        return mapSliced(compact, (document) => {
+          const ageGroups = metadataStrings(document.metadata, 'ageGroups');
+          // Keep the adapter's compact descriptor when there is no audience field to add.
+          // A store without a compact projection can also appear in a mixed library.
+          if (!('version' in document))
+            return ageGroups.length ? { ...document, ageGroups } : document;
+          return {
+            id: document.id,
+            title: document.title,
+            shortTitle: document.shortTitle,
+            sourceType: document.sourceType,
+            metadata: document.metadata,
+            ageGroups,
+          };
+        });
+      }
       type SearchDocumentSource = {
         readonly id: string;
         readonly title: string;
@@ -1351,9 +1369,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         readonly metadata?: Readonly<Record<string, unknown>> | null;
       };
       let documents: readonly SearchDocumentSource[];
-      if (options.store.listSearchDocuments) {
-        documents = await options.store.listSearchDocuments();
-      } else if (navigationDocumentsPromise) {
+      if (navigationDocumentsPromise) {
         const result = await navigationDocumentsPromise;
         if (!result.ok) throw result.error;
         documents = result.value;
@@ -1563,6 +1579,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               filters,
               limit: perBranchLimit,
               diversifyDocuments: parsed.data.analysisMode === 'lookup',
+              compactDocumentMetadata: true,
             });
             return {
               branch,
@@ -1748,10 +1765,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         spellingSearches.map(({ branch }) => branch.ftsQuery),
         true,
       );
-      const availableDocumentIds = documentIndex.availableIds;
       const results = filterSupersededSummaryResults(
         mergeExactIdentityResults(retainedResults, [...exactIdentityResults, ...spellingResults]),
-        availableDocumentIds,
+        documentIndex.byId,
       );
       const candidateIds = new Set([
         ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
@@ -1989,6 +2005,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           filters: request.filters,
           limit: perBranchLimit,
           diversifyDocuments: true,
+          compactDocumentMetadata: true,
         });
         // Only documents named as the canonical term: the alias names them, not their mentions.
         const wanted = normalizeSurfaceText(named.analysis.normalizedQuery);
@@ -2021,6 +2038,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             filters: request.filters,
             limit: perBranchLimit,
             diversifyDocuments: true,
+            compactDocumentMetadata: true,
           });
           return {
             branch,

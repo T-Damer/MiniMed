@@ -45,7 +45,7 @@ export function fullDocumentCandidateIds(documentId: string): readonly string[] 
 
 export function resolveReadableDocumentId(
   documentId: string,
-  availableIds: ReadonlySet<string>,
+  availableIds: Pick<ReadonlySet<string>, 'has'>,
 ): string {
   return (
     fullDocumentCandidateIds(documentId).find((candidate) => availableIds.has(candidate)) ??
@@ -55,7 +55,7 @@ export function resolveReadableDocumentId(
 
 export function isSupersededSummaryDocument(
   documentId: string,
-  availableIds: ReadonlySet<string>,
+  availableIds: Pick<ReadonlySet<string>, 'has'>,
 ): boolean {
   return resolveReadableDocumentId(documentId, availableIds) !== documentId;
 }

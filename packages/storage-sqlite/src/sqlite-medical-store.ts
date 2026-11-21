@@ -22,6 +22,7 @@ import {
 import type {
   DocumentIdentity,
   LexicalHit,
+  LexicalMatch,
   LexicalSearchRequest,
   MedicalStore,
   SearchDocumentDescriptor,
@@ -440,15 +441,20 @@ function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string,
   if (!Array.isArray(values) || values.length !== keys.length)
     throw new Error('Invalid document metadata projection.');
   const fields: readonly unknown[] = values;
-  const metadata: Record<string, unknown> = Object.fromEntries(
-    keys.map((key, index) => [key, fields[index]]),
-  );
-  metadata['calculationRequired'] = metadata['calculationRequired'] === true;
-  metadata['notLegalAdvice'] = metadata['notLegalAdvice'] === true;
+  const metadata: Record<string, unknown> = {};
+  for (const [index, key] of keys.entries()) {
+    const value = fields[index];
+    if (value === null || value === undefined) continue;
+    metadata[key] =
+      key === 'calculationRequired' || key === 'notLegalAdvice' ? value === true : value;
+  }
   return metadata;
 }
 
-function toDocument(row: SqlRow): DocumentRecord {
+function toDocument(
+  row: SqlRow,
+  metadataFields: readonly string[] = NAVIGATION_METADATA_FIELDS,
+): DocumentRecord {
   return {
     id: readString(row, 'id'),
     contentPackId: readString(row, 'content_pack_id'),
@@ -459,7 +465,7 @@ function toDocument(row: SqlRow): DocumentRecord {
     specialties: parseJsonStringArray(readString(row, 'specialty_json')),
     metadata:
       'metadata_fields' in row
-        ? projectedMetadata(row, NAVIGATION_METADATA_FIELDS)
+        ? projectedMetadata(row, metadataFields)
         : parseJsonObject(readString(row, 'metadata_json')),
     version: {
       id: readString(row, 'version_id'),
@@ -543,7 +549,13 @@ const CHUNK_SELECT = `
   FROM chunks c
 `;
 
-const LEXICAL_HIT_SELECT = `
+const LEXICAL_METADATA_PATHS = SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ');
+
+function lexicalHitSelect(compactDocumentMetadata: boolean): string {
+  const metadata = compactDocumentMetadata
+    ? `json_extract(d.metadata_json, ${LEXICAL_METADATA_PATHS}) AS metadata_fields`
+    : 'd.metadata_json';
+  return `
   SELECT
     c.id AS chunk_id, c.document_version_id, c.section_id,
     c.order_index AS chunk_order_index, c.original_text, c.normalized_text,
@@ -555,7 +567,7 @@ const LEXICAL_HIT_SELECT = `
     s.page_start AS section_page_start, s.page_end AS section_page_end,
     s.anchor AS section_anchor, s.path_json,
     d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
-    d.specialty_json, d.metadata_json,
+    d.specialty_json, ${metadata},
     dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
     dv.source_checksum, dv.extracted_at
   FROM chunks c
@@ -563,6 +575,7 @@ const LEXICAL_HIT_SELECT = `
   JOIN document_versions dv ON dv.id = c.document_version_id
   JOIN documents d ON d.id = dv.document_id
 `;
+}
 
 function metadataStrings(
   metadata: Readonly<Record<string, unknown>>,
@@ -1242,7 +1255,7 @@ export class SqliteMedicalStore implements MedicalStore {
         OR EXISTS (SELECT 1 FROM json_each(d.metadata_json, '$.registrationNumbers') related JOIN registrations r ON r.value = related.value)
       )`,
       [JSON.stringify(registrations)],
-    ).map(toDocument);
+    ).map((row) => toDocument(row));
   }
 
   public async getDocument(id: string): Promise<DocumentRecord | null> {
@@ -1535,6 +1548,13 @@ export class SqliteMedicalStore implements MedicalStore {
   }
 
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
+    const matches = await this.rankLexicalMatches(request);
+    return (
+      await this.hydrateLexicalMatches(matches, request.compactDocumentMetadata === true)
+    ).filter((hit) => matchesPostFilters(hit.document, request.filters));
+  }
+
+  public async rankLexicalMatches(request: LexicalSearchRequest): Promise<readonly LexicalMatch[]> {
     this.assertInitialized();
     // Keep the FTS phase narrow: bm25 only needs the matching virtual-table row. The expensive
     // chunk/section/document projection is hydrated after the candidate window is bounded.
@@ -1672,43 +1692,39 @@ export class SqliteMedicalStore implements MedicalStore {
         candidateLimit,
       ],
     );
-    if (candidateRows.length === 0) return [];
-
-    const rankByChunk = new Map<string, number>();
-    const orderByChunk = new Map<string, number>();
-    for (const [index, row] of candidateRows.entries()) {
-      const chunkId = readString(row, 'chunk_id');
+    return candidateRows.map((row) => {
       const rawRank = readNumber(row, 'bm25_rank');
-      rankByChunk.set(chunkId, rawRank < 0 ? -rawRank : 1 / (1 + rawRank));
-      orderByChunk.set(chunkId, index);
-    }
+      return {
+        chunkId: readString(row, 'chunk_id'),
+        rank: rawRank < 0 ? -rawRank : 1 / (1 + rawRank),
+      };
+    });
+  }
 
+  public async hydrateLexicalMatches(
+    matches: readonly LexicalMatch[],
+    compactMetadata: boolean,
+  ): Promise<readonly LexicalHit[]> {
+    this.assertInitialized();
+    if (matches.length === 0) return [];
     const rows = queryRows(
       this.database,
-      `${LEXICAL_HIT_SELECT} WHERE c.id IN (${placeholders(rankByChunk.size)})`,
-      [...rankByChunk.keys()],
+      `${lexicalHitSelect(compactMetadata)} WHERE c.id IN (${placeholders(matches.length)})`,
+      matches.map((match) => match.chunkId),
     );
-
-    return rows
-      .map((row): LexicalHit | null => {
-        const chunk = toChunk(row);
-        const rank = rankByChunk.get(chunk.id);
-        if (rank === undefined) return null;
-        return {
-          chunk,
-          section: toSection(row),
-          document: toDocument(row),
-          rank,
-        };
-      })
-      .filter((hit): hit is LexicalHit => hit !== null)
-      .filter((hit) => matchesPostFilters(hit.document, request.filters))
-      .toSorted(
-        (left, right) =>
-          (orderByChunk.get(left.chunk.id) ?? Number.MAX_SAFE_INTEGER) -
-          (orderByChunk.get(right.chunk.id) ?? Number.MAX_SAFE_INTEGER),
-      )
-      .slice(0, request.limit);
+    const rowByChunk = new Map(rows.map((row) => [readString(row, 'chunk_id'), row]));
+    const documents = new Map<string, DocumentRecord>();
+    return matches.flatMap(({ chunkId, rank }) => {
+      const row = rowByChunk.get(chunkId);
+      if (!row) return [];
+      const documentId = readString(row, 'id');
+      let document = documents.get(documentId);
+      if (!document) {
+        document = toDocument(row, SEARCH_METADATA_FIELDS);
+        documents.set(documentId, document);
+      }
+      return [{ chunk: toChunk(row), section: toSection(row), document, rank }];
+    });
   }
 
   /**

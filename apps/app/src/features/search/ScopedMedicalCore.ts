@@ -993,22 +993,25 @@ export class ScopedMedicalCore implements MedicalCore {
 
     const explicitMedicationResponse =
       this.scope === 'medications' ? keepExplicitMedicationMatches(withoutIcd11) : withoutIcd11;
+    // Presentation only looks up the returned groups. Keep each ranking pass off the full catalog.
+    const resultIds = new Set(explicitMedicationResponse.groups.map((group) => group.documentId));
+    const resultDocuments = documents.filter((document) => resultIds.has(document.id));
     const scopedResponse = filterMedicationDocuments(
       explicitMedicationResponse,
-      documents,
+      resultDocuments,
       this.scope,
     );
     const requestedAudience = inferRequestedAudience(request.query);
     const audienceRanked = rankSearchGroupsByAudience(
       scopedResponse.groups,
-      documents,
+      resultDocuments,
       requestedAudience,
       // Narrative cases and hybrid results keep the plain audience order; a lexical lookup names its subject.
       request.analysisMode === 'lookup' && scopedResponse.modeUsed === 'lexical'
         ? request.query
         : undefined,
     );
-    const summaries = new Map(documents.map((document) => [document.id, document]));
+    const summaries = new Map(resultDocuments.map((document) => [document.id, document]));
     const ranked =
       this.scope === 'diagnosis'
         ? rankDiagnosisGroups(audienceRanked)

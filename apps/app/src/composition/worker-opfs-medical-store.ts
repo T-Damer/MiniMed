@@ -10,6 +10,7 @@ import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@l
 import type {
   DocumentIdentity,
   LexicalHit,
+  LexicalMatch,
   LexicalSearchRequest,
   MedicalStore,
   SearchDocumentDescriptor,
@@ -335,6 +336,17 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
     return this.call('search', [request]);
+  }
+
+  public rankLexicalMatches(request: LexicalSearchRequest): Promise<readonly LexicalMatch[]> {
+    return this.call('rankLexicalMatches', [request]);
+  }
+
+  public hydrateLexicalMatches(
+    matches: readonly LexicalMatch[],
+    compactMetadata: boolean,
+  ): Promise<readonly LexicalHit[]> {
+    return this.call('hydrateLexicalMatches', [matches, compactMetadata]);
   }
 
   public searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {

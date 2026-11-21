@@ -1,7 +1,9 @@
 import type { TextRange } from '@localmed/contracts';
-
+import {
+  normalizeSurfaceText,
+  normalizeSurfaceTextWithSourceRange,
+} from '@localmed/search-lexical/normalize';
 import { stripKnownHtmlMarkup } from './html-markup';
-import { normalizeSurfaceText, normalizeSurfaceTextWithOffsets } from './normalize';
 
 export interface SnippetResult {
   readonly text: string;
@@ -28,7 +30,7 @@ export function buildSnippet(
   maxLength = 360,
 ): SnippetResult {
   const readableText = stripKnownHtmlMarkup(originalText).replaceAll('**', '');
-  const normalizedWithOffsets = normalizeSurfaceTextWithOffsets(readableText);
+  const normalizedWithOffsets = normalizeSurfaceTextWithSourceRange(readableText);
   const normalized = normalizedWithOffsets.text;
   const occurrences = terms.flatMap((term) => {
     const normalizedTerm = normalizeSurfaceText(term);
@@ -44,18 +46,16 @@ export function buildSnippet(
     while (offset < normalized.length) {
       const position = normalized.indexOf(normalizedTerm, offset);
       if (position < 0) break;
-      const firstOffset = normalizedWithOffsets.offsets[position];
-      const lastOffset = normalizedWithOffsets.offsets[position + normalizedTerm.length - 1];
-      if (firstOffset && lastOffset) {
-        const before = readableText.slice(0, firstOffset.start);
-        const after = readableText.slice(lastOffset.end).replace(/^[ \t\r]+/u, '');
+      const range = normalizedWithOffsets.sourceRange(position, position + normalizedTerm.length);
+      if (range) {
+        const before = readableText.slice(0, range.start);
+        const after = readableText.slice(range.end).replace(/^[ \t\r]+/u, '');
         const fieldMatch = /(?:^|[\s;])(?:тн|торговое\s+наименование)\s*:\s*$/iu.exec(before);
         const isExactKnownFieldValue =
           fieldMatch !== null && (after.length === 0 || /^[.;,\n]/u.test(after));
         matches.push({
           normalizedTerm,
-          start: firstOffset.start,
-          end: lastOffset.end,
+          ...range,
           isExactKnownFieldValue,
           knownFieldStart: isExactKnownFieldValue ? fieldMatch.index : null,
         });
@@ -75,21 +75,23 @@ export function buildSnippet(
   let bestTermCount = -1;
   let bestExactKnownFieldValueCount = -1;
   let bestSpan = Number.POSITIVE_INFINITY;
+  const insideTerms = new Set<string>();
   for (const candidateStart of candidateStarts) {
     const boundedStart = Math.min(candidateStart, readableText.length);
     const candidateEnd = Math.min(readableText.length, boundedStart + maxLength);
-    const inside = occurrences.filter(
-      (occurrence) => occurrence.start >= boundedStart && occurrence.end <= candidateEnd,
-    );
-    const termCount = new Set(inside.map((occurrence) => occurrence.normalizedTerm)).size;
-    const exactKnownFieldValueCount = inside.filter(
-      (occurrence) => occurrence.isExactKnownFieldValue,
-    ).length;
-    const span =
-      inside.length > 0
-        ? Math.max(...inside.map((occurrence) => occurrence.end)) -
-          Math.min(...inside.map((occurrence) => occurrence.start))
-        : Number.POSITIVE_INFINITY;
+    insideTerms.clear();
+    let exactKnownFieldValueCount = 0;
+    let firstMatch = Number.POSITIVE_INFINITY;
+    let lastMatch = 0;
+    for (const occurrence of occurrences) {
+      if (occurrence.start < boundedStart || occurrence.end > candidateEnd) continue;
+      insideTerms.add(occurrence.normalizedTerm);
+      if (occurrence.isExactKnownFieldValue) exactKnownFieldValueCount += 1;
+      firstMatch = Math.min(firstMatch, occurrence.start);
+      lastMatch = Math.max(lastMatch, occurrence.end);
+    }
+    const termCount = insideTerms.size;
+    const span = termCount ? lastMatch - firstMatch : Number.POSITIVE_INFINITY;
     if (
       termCount > bestTermCount ||
       (termCount === bestTermCount &&
@@ -109,7 +111,7 @@ export function buildSnippet(
   const body = readableText.slice(start, end);
   const text = `${prefix}${body}${suffix}`;
   const bodyOffset = prefix.length;
-  const normalizedBodyWithOffsets = normalizeSurfaceTextWithOffsets(body);
+  const normalizedBodyWithOffsets = normalizeSurfaceTextWithSourceRange(body);
   const normalizedBody = normalizedBodyWithOffsets.text;
   const ranges: TextRange[] = [];
 
@@ -120,12 +122,11 @@ export function buildSnippet(
     while (offset < normalizedBody.length) {
       const index = normalizedBody.indexOf(normalizedTerm, offset);
       if (index < 0) break;
-      const firstOffset = normalizedBodyWithOffsets.offsets[index];
-      const lastOffset = normalizedBodyWithOffsets.offsets[index + normalizedTerm.length - 1];
-      if (firstOffset && lastOffset) {
+      const range = normalizedBodyWithOffsets.sourceRange(index, index + normalizedTerm.length);
+      if (range) {
         ranges.push({
-          start: bodyOffset + firstOffset.start,
-          end: bodyOffset + lastOffset.end,
+          start: bodyOffset + range.start,
+          end: bodyOffset + range.end,
         });
       }
       offset = index + normalizedTerm.length;

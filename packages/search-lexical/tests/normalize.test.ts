@@ -6,6 +6,7 @@ import {
   normalizeIcd10Lookalikes,
   normalizeSurfaceText,
   normalizeSurfaceTextWithOffsets,
+  normalizeSurfaceTextWithSourceRange,
 } from '../src/index';
 
 describe('ICD-10 lookalike normalization', () => {
@@ -28,6 +29,15 @@ describe('ICD-10 lookalike normalization', () => {
 
     expect(normalized.text).toBe('мкб: a09');
     expect(normalized.offsets[5]).toEqual({ start: 5, end: 6 });
+  });
+
+  it('maps expanded characters and collapsed whitespace to original UTF-16 coordinates', () => {
+    const value = '  А09\n\tﬃ 🙂 Ё  ';
+    const normalized = normalizeSurfaceTextWithSourceRange(value);
+    expect(normalized.text).toBe('a09 ffi е');
+    expect(normalized.sourceRange(0, 3)).toEqual({ start: 2, end: 5 });
+    expect(normalized.sourceRange(4, 7)).toEqual({ start: 7, end: 8 });
+    expect(normalized.sourceRange(8, 9)).toEqual({ start: 12, end: 13 });
   });
 
   it('normalizes lookalikes without changing token length', () => {

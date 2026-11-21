@@ -123,13 +123,9 @@ describe('SqliteMedicalStore', () => {
         targetDocumentId: 'downloaded-target',
         sourceType: 'rls_mkb_reference',
         // Query-time identity bridges: МКБ codes and the Latin drug name (S3).
-        icd10Codes: null,
         mkbCode: 'R05',
-        nameLat: null,
         // Query-time source names and the substance a product record is linked to.
         publisher: 'Красота и медицина',
-        sourceLabel: null,
-        issuer: null,
         linkedMnnDocumentId: 'esklp.mnn.test',
       });
     }
@@ -161,6 +157,18 @@ describe('SqliteMedicalStore', () => {
     const fullDocument = (await store.listDocuments())[0];
     expect(fullDocument?.metadata['unrelated']).toHaveLength(4096);
     expect(fullDocument?.metadata['classificationPath']).toHaveLength(2);
+
+    const query = { ftsQuery: '"пневмония"*', terms: ['пневмония'], filters: {}, limit: 8 };
+    const matches = await store.rankLexicalMatches(query);
+    const condensed = await store.hydrateLexicalMatches(matches, true);
+    const full = await store.search(query);
+    expect(condensed.length).toBeGreaterThan(0);
+    expect(condensed.map(({ chunk, rank }) => [chunk.id, rank])).toEqual(
+      full.map(({ chunk, rank }) => [chunk.id, rank]),
+    );
+    expect(condensed[0]?.document.metadata).toHaveProperty('conceptId', 'condition.test');
+    expect(condensed[0]?.document.metadata).not.toHaveProperty('unrelated');
+    expect(full[0]?.document.metadata['unrelated']).toHaveLength(4096);
   });
 
   describe('whole-pack listings', () => {

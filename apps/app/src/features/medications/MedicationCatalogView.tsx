@@ -39,6 +39,7 @@ import {
 import {
   composeMedicationProducts,
   type MedicationPackage,
+  type MedicationPresentation,
   type MedicationProduct,
   medicationDocumentRegistration,
   parseAllmedMedicationProduct,
@@ -237,18 +238,48 @@ async function loadProducts(
   // The same packaging wording is repeated across registrations. Reuse immutable entries so
   // keeping the product list open does not retain a separate copy for every registration.
   const packaging = new Map<string, MedicationPackage>();
-  const sharePackaging = (product: MedicationProduct): MedicationProduct => ({
-    ...product,
-    presentations: product.presentations.map((presentation) => ({
-      ...presentation,
-      packages: presentation.packages.map((item) => {
-        const kept = packaging.get(item.description);
-        if (kept?.prescriptionStatus === item.prescriptionStatus) return kept;
-        if (!kept) packaging.set(item.description, item);
-        return item;
-      }),
-    })),
-  });
+  const presentationsByKey = new Map<string, readonly MedicationPresentation[]>();
+  const productStrings = new Map<string, string>();
+  const codeLists = new Map<string, readonly string[]>();
+  const shareString = (value: string): string => {
+    const shared = productStrings.get(value);
+    if (shared !== undefined) return shared;
+    productStrings.set(value, value);
+    return value;
+  };
+  const shareList = (value: readonly string[]): readonly string[] => {
+    const key = JSON.stringify(value);
+    const shared = codeLists.get(key);
+    if (shared) return shared;
+    codeLists.set(key, value);
+    return value;
+  };
+  const shareProductDetails = (product: MedicationProduct): MedicationProduct => {
+    const key = JSON.stringify(product.presentations);
+    let presentations = presentationsByKey.get(key);
+    if (!presentations) {
+      presentations = product.presentations.map((presentation) => ({
+        ...presentation,
+        packages: presentation.packages.map((item) => {
+          const kept = packaging.get(item.description);
+          if (kept?.prescriptionStatus === item.prescriptionStatus) return kept;
+          if (!kept) packaging.set(item.description, item);
+          return item;
+        }),
+      }));
+      presentationsByKey.set(key, presentations);
+    }
+    return {
+      ...product,
+      registrationNumber: shareString(product.registrationNumber),
+      registrationStatus: shareString(product.registrationStatus),
+      tradeName: shareString(product.tradeName),
+      inn: shareString(product.inn),
+      smnnCodes: shareList(product.smnnCodes),
+      pharmacotherapeuticGroups: shareList(product.pharmacotherapeuticGroups),
+      presentations,
+    };
+  };
   let publishAt = 1;
   let lastPublishedAt = -Infinity;
   let processed = 0;
@@ -256,13 +287,14 @@ async function loadProducts(
     otherSummaries,
     (batchDocuments) => {
       const parsed = parseProducts(batchDocuments, instructions, instructionSourceClasses);
-      addProducts(registryProducts, parsed.registry.map(sharePackaging));
-      addProducts(allmedProducts, parsed.allmed.map(sharePackaging));
+      addProducts(registryProducts, parsed.registry.map(shareProductDetails));
+      addProducts(allmedProducts, parsed.allmed.map(shareProductDetails));
       for (const substance of parsed.substances) substances.set(substance.documentId, substance);
       processed += batchDocuments.length;
       if (processed >= publishAt && performance.now() - lastPublishedAt >= 250) {
         onUpdate(toProducts(registryProducts, allmedProducts), [...substances.values()]);
-        publishAt = processed + 60;
+        // A late publication sorts the entire catalog. Grow the batches with the catalog.
+        publishAt = processed + Math.max(60, Math.floor(processed / 4));
         lastPublishedAt = performance.now();
       }
     },

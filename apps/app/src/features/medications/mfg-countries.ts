@@ -33,20 +33,37 @@ export function parseMfgCountryCatalog(value: unknown): MfgCountryCatalog {
   }
   if (!isRecord(registrations)) throw new Error('Manufacturing countries: registrations missing');
   const names = countries as readonly string[];
-  const entries = new Map<string, MfgCountryEntry>();
+  const keys = new Set<string>();
+  const groups: { basis: MfgBasis; registrations: Readonly<Record<string, unknown>> }[] = [];
   for (const basis of MFG_BASES) {
     const group = registrations[basis];
     if (group === undefined) continue;
     if (!isRecord(group)) throw new Error(`Manufacturing countries: ${basis} is not a map`);
     for (const [key, indices] of Object.entries(group)) {
       const list: readonly unknown[] = Array.isArray(indices) ? indices : [indices];
-      const resolved = list.map((index) => (typeof index === 'number' ? names[index] : undefined));
-      if (resolved.length === 0 || resolved.some((name) => name === undefined)) {
+      if (
+        list.length === 0 ||
+        list.some((index) => typeof index !== 'number' || names[index] === undefined)
+      ) {
         throw new Error(`Manufacturing countries: ${key} points at an unknown country`);
       }
-      entries.set(key, { countries: resolved as readonly string[], basis: basis as MfgBasis });
+      keys.add(key);
     }
+    groups.unshift({ basis, registrations: group });
   }
+  // Reuse the packaged index and materialize country names only for registrations on screen.
+  const entries: MfgCountryCatalog['entries'] = {
+    size: keys.size,
+    get(key): MfgCountryEntry | undefined {
+      for (const { basis, registrations } of groups) {
+        if (!Object.hasOwn(registrations, key)) continue;
+        const indices = registrations[key] as number | readonly number[];
+        const list = typeof indices === 'number' ? [indices] : indices;
+        return { basis, countries: list.flatMap((index) => names[index] ?? []) };
+      }
+      return undefined;
+    },
+  };
   return { source, sourceEdition, entries };
 }
 

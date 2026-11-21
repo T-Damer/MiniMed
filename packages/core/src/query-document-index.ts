@@ -9,14 +9,21 @@ import {
 } from '@localmed/search-lexical';
 import type { SearchDocumentDescriptor } from '@localmed/storage';
 
+type IdentityIndex = Map<string, string | Set<string>>;
+const NO_IDENTITY_IDS: ReadonlySet<string> = new Set();
+
+function exactIds(index: IdentityIndex, query: string): ReadonlySet<string> {
+  const ids = index.get(searchSubjectText(query));
+  return typeof ids === 'string' ? new Set([ids]) : (ids ?? NO_IDENTITY_IDS);
+}
+
 /** Immutable per-core projection; never shared across installed corpus generations. */
 export class QueryDocumentIndex {
   readonly byId: ReadonlyMap<string, SearchDocumentDescriptor>;
-  readonly availableIds: ReadonlySet<string>;
-  private readonly aliases = new Map<string, Set<string>>();
-  private readonly titles = new Map<string, Set<string>>();
-  private readonly navigationAliases = new Map<string, Set<string>>();
-  private readonly shortTitles = new Map<string, Set<string>>();
+  private readonly aliases: IdentityIndex = new Map();
+  private readonly titles: IdentityIndex = new Map();
+  private readonly navigationAliases: IdentityIndex = new Map();
+  private readonly shortTitles: IdentityIndex = new Map();
   private readonly documents: readonly SearchDocumentDescriptor[];
   private namePrefixes: ReadonlySet<string> | undefined;
   private names: NameVocabulary | undefined;
@@ -28,7 +35,6 @@ export class QueryDocumentIndex {
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.documents = documents;
     this.byId = new Map(documents.map((document) => [document.id, document]));
-    this.availableIds = new Set(this.byId.keys());
     for (const document of documents) {
       this.addIdentity(document.title, document.id, this.titles);
       if (document.shortTitle) {
@@ -52,19 +58,19 @@ export class QueryDocumentIndex {
   }
 
   exactAliasIds(query: string): ReadonlySet<string> {
-    return this.aliases.get(searchSubjectText(query)) ?? new Set();
+    return exactIds(this.aliases, query);
   }
 
   exactTitleIds(query: string): ReadonlySet<string> {
-    return this.titles.get(searchSubjectText(query)) ?? new Set();
+    return exactIds(this.titles, query);
   }
 
   exactNavigationAliasIds(query: string): ReadonlySet<string> {
-    return this.navigationAliases.get(searchSubjectText(query)) ?? new Set();
+    return exactIds(this.navigationAliases, query);
   }
 
   exactShortTitleIds(query: string): ReadonlySet<string> {
-    return this.shortTitles.get(searchSubjectText(query)) ?? new Set();
+    return exactIds(this.shortTitles, query);
   }
 
   /**
@@ -209,14 +215,16 @@ export class QueryDocumentIndex {
     ];
   }
 
-  private addIdentity(value: string, documentId: string, index: Map<string, Set<string>>): void {
+  private addIdentity(value: string, documentId: string, index: IdentityIndex): void {
     const normalized = normalizeSurfaceText(value);
-    let ids = index.get(normalized);
-    if (!ids) {
-      ids = new Set();
-      index.set(normalized, ids);
+    const ids = index.get(normalized);
+    if (ids === undefined) {
+      index.set(normalized, documentId);
+    } else if (typeof ids === 'string') {
+      if (ids !== documentId) index.set(normalized, new Set([ids, documentId]));
+    } else {
+      ids.add(documentId);
     }
-    ids.add(documentId);
   }
 }
 

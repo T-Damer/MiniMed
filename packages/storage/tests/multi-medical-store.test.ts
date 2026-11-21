@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   InMemoryMedicalStore,
+  type LexicalMatch,
   type MedicalStore,
   MultiMedicalStore,
   type VectorScore,
@@ -256,6 +257,53 @@ describe('MultiMedicalStore', () => {
     ]);
 
     await expect(multi.initialize()).rejects.toThrow('Duplicate active document ID');
+  });
+
+  it('hydrates only selected lexical hits and scopes rank requests to their owning pack', async () => {
+    const core = await store(seed({ packId: 'core', documentId: 'core.topic', term: 'кашель' }));
+    const clinical = await store(
+      seed({ packId: 'clinical', documentId: 'clinical.cough', term: 'кашель' }),
+    );
+    const request = { ftsQuery: 'кашель', terms: ['кашель'], filters: {}, limit: 1 };
+    const mountStore = async (base: InMemoryMedicalStore) => {
+      const hits = await base.search(request);
+      const rankLexicalMatches = vi.fn(async () =>
+        hits.map(({ chunk, rank }) => ({ chunkId: chunk.id, rank })),
+      );
+      const hydrateLexicalMatches = vi.fn(async (matches: readonly LexicalMatch[]) =>
+        matches.flatMap(({ chunkId, rank }) => {
+          const hit = hits.find(({ chunk }) => chunk.id === chunkId);
+          return hit ? [{ ...hit, rank }] : [];
+        }),
+      );
+      return Object.assign(base, { rankLexicalMatches, hydrateLexicalMatches });
+    };
+    const coreStore = await mountStore(core);
+    const clinicalStore = await mountStore(clinical);
+    const multi = new MultiMedicalStore([
+      { moduleId: 'core', store: coreStore, required: true },
+      { moduleId: 'clinical', store: clinicalStore, searchWeight: 2 },
+    ]);
+    await multi.initialize();
+
+    const normal = await multi.search(request);
+    const compact = await multi.search({ ...request, compactDocumentMetadata: true });
+    expect(compact).toEqual(normal);
+    expect(compact[0]?.document.id).toBe('clinical.cough');
+    expect(coreStore.hydrateLexicalMatches).not.toHaveBeenCalled();
+    expect(clinicalStore.hydrateLexicalMatches).toHaveBeenCalledTimes(1);
+
+    const scoped = {
+      ...request,
+      compactDocumentMetadata: true,
+      filters: { documentIds: ['core.topic', 'missing'] },
+    };
+    expect((await multi.search(scoped))[0]?.document.id).toBe('core.topic');
+    expect(coreStore.rankLexicalMatches).toHaveBeenLastCalledWith({
+      ...scoped,
+      filters: { documentIds: ['core.topic'] },
+    });
+    expect(clinicalStore.rankLexicalMatches).toHaveBeenCalledTimes(1);
   });
 
   it('hydrates only the global vector window across packs', async () => {

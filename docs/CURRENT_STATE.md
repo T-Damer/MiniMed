@@ -60,6 +60,21 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
+## Offline search and medication memory — local candidate, 2026-11-21
+
+Multi-pack lexical retrieval ranks chunk IDs in the installed SQLite files and fetches excerpts
+only for the merged candidate window. Search replies carry the fields used for ranking and
+presentation. The reader still fetches the full source. Result presentation indexes only the
+returned documents, and snippet matching maps just the spans it needs back to source offsets.
+
+With 806 installed packs in Chromium and external requests blocked, the 100 ms search samples
+peaked at 362 MiB of page JS heap. The instrumented 0.6.126 reproduction peaked at 846 MiB.
+The first search took 4.65 s on the candidate and 7.32 s in that baseline. The three-query medians
+were 1.20 s and 1.15 s, respectively. The medication catalog retained 344 MiB after collection
+both before and after a «Рисперидон» query, down from 367 and 376 MiB. The open-catalog sample
+before collection was 661 MiB. Phone process RAM and WebView renderer memory remain unmeasured.
+Publication is pending the physical Android check.
+
 ## Release 0.6.126 — 2026-11-21
 
 The medication catalog reads compact navigation metadata for instruction links and hydrates product

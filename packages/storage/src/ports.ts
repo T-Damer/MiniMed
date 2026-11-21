@@ -30,12 +30,19 @@ export interface LexicalSearchRequest {
   readonly limit: number;
   /** Defaults to true for lookup; clinical branches retain their bounded context candidates. */
   readonly diversifyDocuments?: boolean;
+  /** The caller only needs metadata used for search ranking and presentation. */
+  readonly compactDocumentMetadata?: boolean;
 }
 
 export interface LexicalHit {
   readonly chunk: ChunkRecord;
   readonly section: SectionRecord;
   readonly document: DocumentRecord;
+  readonly rank: number;
+}
+
+export interface LexicalMatch {
+  readonly chunkId: string;
   readonly rank: number;
 }
 
@@ -97,6 +104,12 @@ export interface MedicalStore {
   lookupAliasTerms?(spellings: readonly string[]): Promise<readonly string[]>;
   listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]>;
   search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]>;
+  /** Rank in SQLite first so a multi-pack search only hydrates its combined top hits. */
+  rankLexicalMatches?(request: LexicalSearchRequest): Promise<readonly LexicalMatch[]>;
+  hydrateLexicalMatches?(
+    matches: readonly LexicalMatch[],
+    compactMetadata: boolean,
+  ): Promise<readonly LexicalHit[]>;
   searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]>;
   /**
    * Optional two-phase vector search for multi-pack scans: the best `request.limit` scores after

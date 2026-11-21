@@ -3,7 +3,12 @@ import type {
   DefinitionReferenceRequest,
   SearchFilters,
 } from '@localmed/contracts';
-import type { LexicalSearchRequest, VectorScore, VectorSearchRequest } from '@localmed/storage';
+import type {
+  LexicalMatch,
+  LexicalSearchRequest,
+  VectorScore,
+  VectorSearchRequest,
+} from '@localmed/storage';
 import type { IntegrityScan } from '@localmed/storage-sqlite';
 import type { EncodedModuleIndex } from '@/features/modules/encoded-index-reader';
 import type { EpochInstallPhase } from '@/features/modules/install-timing';
@@ -32,6 +37,8 @@ export type OpfsPackWorkerMethod =
   | 'listAliases'
   | 'listEmbeddingProfiles'
   | 'search'
+  | 'rankLexicalMatches'
+  | 'hydrateLexicalMatches'
   | 'searchVector'
   | 'scoreVectors'
   | 'hydrateVectorHits'
@@ -117,6 +124,11 @@ export type OpfsPackWorkerCallArgs = {
   readonly listAliases: readonly [];
   readonly listEmbeddingProfiles: readonly [];
   readonly search: readonly [request: LexicalSearchRequest];
+  readonly rankLexicalMatches: readonly [request: LexicalSearchRequest];
+  readonly hydrateLexicalMatches: readonly [
+    matches: readonly LexicalMatch[],
+    compactMetadata: boolean,
+  ];
   readonly searchVector: readonly [request: VectorSearchRequest];
   readonly scoreVectors: readonly [request: VectorSearchRequest];
   readonly hydrateVectorHits: readonly [scores: readonly VectorScore[], filters: SearchFilters];

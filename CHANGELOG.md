@@ -4,6 +4,9 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Rank lexical matches in SQLite and fetch excerpts only for the combined top hits across installed packs.
+- Share repeated medication catalog data and keep one-off search strings out of the shared name cache.
+
 ## [0.6.126] - 2026-11-21
 
 - Read medication registry metadata in small batches and release the catalog rows when leaving the page.

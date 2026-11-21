@@ -234,32 +234,37 @@ function toChunk(row: NativeSqlRow): ChunkRecord {
 const NATIVE_LIST_PAGE_SIZE = 1024;
 
 // Keep this projection comment-free for the native bridge. Target IDs collapse duplicate results.
+const SEARCH_DOCUMENT_METADATA = `json_object(
+    'terminology', json_extract(d.metadata_json, '$.terminology'),
+    'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
+    'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
+    'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),
+    'ageGroups', json_extract(d.metadata_json, '$.ageGroups'),
+    'entityType', json_extract(d.metadata_json, '$.entityType'),
+    'conceptId', json_extract(d.metadata_json, '$.conceptId'),
+    'contentMode', json_extract(d.metadata_json, '$.contentMode'),
+    'sourceType', json_extract(d.metadata_json, '$.sourceType'),
+    'documentKind', json_extract(d.metadata_json, '$.documentKind'),
+    'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
+    'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
+    'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
+    'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
+      THEN 'true' ELSE 'false' END),
+    'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'
+      THEN 'true' ELSE 'false' END),
+    'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
+    'icd10Codes', json_extract(d.metadata_json, '$.icd10Codes'),
+    'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
+    'nameLat', json_extract(d.metadata_json, '$.nameLat'),
+    'publisher', json_extract(d.metadata_json, '$.publisher'),
+    'sourceLabel', json_extract(d.metadata_json, '$.sourceLabel'),
+    'issuer', json_extract(d.metadata_json, '$.issuer'),
+    'linkedMnnDocumentId', json_extract(d.metadata_json, '$.linkedMnnDocumentId')
+  )`;
+
 const SEARCH_DOCUMENT_SELECT = `
-  SELECT d.id, d.title, d.short_title, d.source_type, json_object(
-    'terminology', json_extract(metadata_json, '$.terminology'),
-    'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
-    'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
-    'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
-    'ageGroups', json_extract(metadata_json, '$.ageGroups'),
-    'entityType', json_extract(metadata_json, '$.entityType'),
-    'conceptId', json_extract(metadata_json, '$.conceptId'),
-    'contentMode', json_extract(metadata_json, '$.contentMode'),
-    'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
-    'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
-    'interactiveRoute', json_extract(metadata_json, '$.interactiveRoute'),
-    'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
-      THEN 'true' ELSE 'false' END),
-    'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
-      THEN 'true' ELSE 'false' END),
-    'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId'),
-    'icd10Codes', json_extract(metadata_json, '$.icd10Codes'),
-    'mkbCode', json_extract(metadata_json, '$.mkbCode'),
-    'nameLat', json_extract(metadata_json, '$.nameLat'),
-    'publisher', json_extract(metadata_json, '$.publisher'),
-    'sourceLabel', json_extract(metadata_json, '$.sourceLabel'),
-    'issuer', json_extract(metadata_json, '$.issuer'),
-    'linkedMnnDocumentId', json_extract(metadata_json, '$.linkedMnnDocumentId')
-  ) AS metadata_json FROM documents d
+  SELECT d.id, d.title, d.short_title, d.source_type, ${SEARCH_DOCUMENT_METADATA} AS metadata_json
+  FROM documents d
 `;
 
 // `clinicalMedicationLinks`: a drug card lists the recommendations naming it from this listing (the
@@ -332,7 +337,8 @@ const CHUNK_SELECT = `
   FROM chunks c
 `;
 
-const VECTOR_HIT_SELECT = `
+function chunkHitSelect(metadata = 'd.metadata_json'): string {
+  return `
   SELECT
     c.id AS chunk_id, c.document_version_id, c.section_id,
     c.order_index AS chunk_order_index, c.original_text, c.normalized_text,
@@ -344,7 +350,7 @@ const VECTOR_HIT_SELECT = `
     s.page_start AS section_page_start, s.page_end AS section_page_end,
     s.anchor AS section_anchor, s.path_json,
     d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
-    d.specialty_json, d.metadata_json,
+    d.specialty_json, ${metadata},
     dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
     dv.source_checksum, dv.extracted_at
   FROM chunks c
@@ -352,6 +358,7 @@ const VECTOR_HIT_SELECT = `
   JOIN document_versions dv ON dv.id = c.document_version_id
   JOIN documents d ON d.id = dv.document_id
 `;
+}
 
 function metadataStrings(
   metadata: Readonly<Record<string, unknown>>,
@@ -730,7 +737,7 @@ export class CapacitorMedicalStore implements MedicalStore {
     const scoreByChunk = new Map(scores.map((hit) => [hit.chunkId, hit.score]));
     const chunkIds = [...scoreByChunk.keys()];
     const rows = await this.query(
-      `${VECTOR_HIT_SELECT} WHERE c.id IN (${placeholders(chunkIds.length)})`,
+      `${chunkHitSelect()} WHERE c.id IN (${placeholders(chunkIds.length)})`,
       chunkIds,
     );
 
@@ -873,10 +880,12 @@ export class CapacitorMedicalStore implements MedicalStore {
       orderByChunk.set(chunkId, index);
     }
 
-    const rows = await this.query(
-      `${VECTOR_HIT_SELECT} WHERE c.id IN (${placeholders(rankByChunk.size)})`,
-      [...rankByChunk.keys()],
-    );
+    const select = request.compactDocumentMetadata
+      ? chunkHitSelect(`${SEARCH_DOCUMENT_METADATA} AS metadata_json`)
+      : chunkHitSelect();
+    const rows = await this.query(`${select} WHERE c.id IN (${placeholders(rankByChunk.size)})`, [
+      ...rankByChunk.keys(),
+    ]);
 
     return rows
       .map((row): LexicalHit | null => {

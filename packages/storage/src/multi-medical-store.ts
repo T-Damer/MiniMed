@@ -14,6 +14,7 @@ import {
 } from '@localmed/storage/sliced-sort';
 import type {
   LexicalHit,
+  LexicalMatch,
   LexicalSearchRequest,
   MedicalStore,
   SearchDocumentDescriptor,
@@ -409,6 +410,9 @@ export class MultiMedicalStore implements MedicalStore {
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
     this.assertInitialized();
     const active = this.activeMounts();
+    if (request.compactDocumentMetadata && active.length > 1) {
+      return this.searchCompact(active, request);
+    }
     const resultSets = await Promise.all(
       active.map(async (mount) => ({
         mount,
@@ -429,6 +433,85 @@ export class MultiMedicalStore implements MedicalStore {
     return [...fused.values()]
       .toSorted((left, right) => right.rank - left.rank)
       .slice(0, request.limit);
+  }
+
+  private async searchCompact(
+    mounts: readonly InternalMount[],
+    request: LexicalSearchRequest,
+  ): Promise<readonly LexicalHit[]> {
+    const documentIds = request.filters.documentIds;
+    const idsByMount = new Map<InternalMount, string[]>();
+    if (documentIds?.length) {
+      for (const id of documentIds) {
+        const owner = this.documentOwners.get(id);
+        if (!owner) continue;
+        const ids = idsByMount.get(owner);
+        if (ids) ids.push(id);
+        else idsByMount.set(owner, [id]);
+      }
+      mounts = mounts.filter((mount) => idsByMount.has(mount));
+    }
+    const ranked: readonly {
+      mount: InternalMount;
+      matches: readonly (LexicalMatch & { readonly hit?: LexicalHit })[];
+    }[] = await Promise.all(
+      mounts.map(async (mount) => {
+        const { store } = mount;
+        const ids = idsByMount.get(mount);
+        const scoped = ids
+          ? { ...request, filters: { ...request.filters, documentIds: ids } }
+          : request;
+        if (store.rankLexicalMatches && store.hydrateLexicalMatches) {
+          return { mount, matches: await store.rankLexicalMatches(scoped) };
+        }
+        const hits = await store.search(scoped);
+        return {
+          mount,
+          matches: hits.map((hit) => ({ chunkId: hit.chunk.id, rank: hit.rank, hit })),
+        };
+      }),
+    );
+    const fused = new Map<
+      string,
+      { mount: InternalMount; match: LexicalMatch; hit?: LexicalHit }
+    >();
+    for (const { mount, matches } of ranked) {
+      for (const [index, match] of matches.entries()) {
+        const rank = mount.searchWeight / (DEFAULT_RRF_K + index + 1);
+        const existing = fused.get(match.chunkId);
+        if (!existing || rank > existing.match.rank) {
+          fused.set(match.chunkId, {
+            mount,
+            match: { chunkId: match.chunkId, rank },
+            ...(match.hit ? { hit: { ...match.hit, rank } } : {}),
+          });
+        }
+      }
+    }
+    const chosen = [...fused.values()]
+      .sort((left, right) => right.match.rank - left.match.rank)
+      .slice(0, request.limit);
+    const waiting = new Map<InternalMount, LexicalMatch[]>();
+    const byId = new Map<string, LexicalHit>();
+    for (const { mount, match, hit } of chosen) {
+      if (hit) {
+        byId.set(match.chunkId, hit);
+        continue;
+      }
+      const matches = waiting.get(mount);
+      if (matches) matches.push(match);
+      else waiting.set(mount, [match]);
+    }
+    await Promise.all(
+      [...waiting].map(async ([{ store }, matches]) => {
+        const hits = await store.hydrateLexicalMatches?.(matches, true);
+        for (const hit of hits ?? []) byId.set(hit.chunk.id, hit);
+      }),
+    );
+    return chosen.flatMap(({ match }) => {
+      const hit = byId.get(match.chunkId);
+      return hit ? [hit] : [];
+    });
   }
 
   public async searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {

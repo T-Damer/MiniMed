@@ -26,7 +26,7 @@ export interface MfgCountryEntry {
 export interface MfgCountryCatalog {
   readonly source: string;
   readonly sourceEdition: string;
-  readonly entries: ReadonlyMap<string, MfgCountryEntry>;
+  readonly entries: Pick<ReadonlyMap<string, MfgCountryEntry>, 'get' | 'size'>;
 }
 
 const LATIN_TO_CYRILLIC: Readonly<Record<string, string>> = {

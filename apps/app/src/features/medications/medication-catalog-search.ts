@@ -2,8 +2,9 @@ import {
   createTimeSlicer,
   lightStemRussian,
   normalizeSurfaceText,
+  normalizeTransientSurfaceText,
   parseAtcQueries,
-  tokenize,
+  tokenizeNormalizedSurfaceText,
 } from '@localmed/search-lexical';
 
 import type { MedicationProduct } from '@/features/medications/medication-record';
@@ -30,7 +31,7 @@ export function medicationSearchText(product: MedicationProduct): string {
 }
 
 function stems(value: string): readonly string[] {
-  return tokenize(normalizeSurfaceText(value)).map((token) => lightStemRussian(token));
+  return tokenizeNormalizedSurfaceText(value).map((token) => lightStemRussian(token));
 }
 
 const FORM_SYNONYM_STEMS = new Set([
@@ -90,8 +91,8 @@ function medicationNameScore(
   normalizedQuery: string,
   queryStems: readonly string[],
 ): number {
-  const trade = normalizeSurfaceText(product.tradeName);
-  const inn = normalizeSurfaceText(product.inn);
+  const trade = normalizeTransientSurfaceText(product.tradeName);
+  const inn = normalizeTransientSurfaceText(product.inn);
   const tradeCombination = isCombinationName(trade);
 
   if (trade === normalizedQuery) return 100;
@@ -126,12 +127,14 @@ function medicationNameScore(
     queryStemsMatch(
       new Set(
         stems(
-          [
-            presentation.dosageForm,
-            presentation.strength ?? '',
-            presentation.route ?? '',
-            ...presentation.packages.map((item) => item.description),
-          ].join(' '),
+          normalizeTransientSurfaceText(
+            [
+              presentation.dosageForm,
+              presentation.strength ?? '',
+              presentation.route ?? '',
+              ...presentation.packages.map((item) => item.description),
+            ].join(' '),
+          ),
         ),
       ),
       missingTradeStems,
@@ -140,7 +143,7 @@ function medicationNameScore(
   if (presentationMatch && !tradeCombination) return 88;
   if (presentationMatch) return 76;
 
-  const haystack = normalizeSurfaceText(medicationSearchText(product));
+  const haystack = normalizeTransientSurfaceText(medicationSearchText(product));
   if (haystack.includes(normalizedQuery)) return 18;
   if (
     queryStems.every((stem) =>

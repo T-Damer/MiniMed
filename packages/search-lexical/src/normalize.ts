@@ -114,7 +114,8 @@ export function normalizeIcd10Lookalikes(value: string): string {
   );
 }
 
-function computeSurfaceText(value: string): string {
+/** Normalize one-off text that should not use up the name and alias cache. */
+export function normalizeTransientSurfaceText(value: string): string {
   return normalizeIcd10Lookalikes(
     value
       .normalize('NFKC')
@@ -138,10 +139,10 @@ const surfaceCache = new Map<string, string>();
  * at phone speed. The result depends only on the input, so short strings are computed once.
  */
 export function normalizeSurfaceText(value: string): string {
-  if (value.length > SURFACE_CACHE_MAX_LENGTH) return computeSurfaceText(value);
+  if (value.length > SURFACE_CACHE_MAX_LENGTH) return normalizeTransientSurfaceText(value);
   const known = surfaceCache.get(value);
   if (known !== undefined) return known;
-  const normalized = computeSurfaceText(value);
+  const normalized = normalizeTransientSurfaceText(value);
   if (surfaceCache.size >= SURFACE_CACHE_MAX_ENTRIES) surfaceCache.clear();
   surfaceCache.set(value, normalized);
   return normalized;
@@ -169,28 +170,38 @@ export interface NormalizedTextWithOffsets {
   readonly offsets: readonly NormalizedTextOffset[];
 }
 
-export function normalizeSurfaceTextWithOffsets(value: string): NormalizedTextWithOffsets {
+const normalizedCodePoints = new Map<string, string>();
+
+function normalizeCodePoint(character: string): string {
+  const kept = normalizedCodePoints.get(character);
+  if (kept !== undefined) return kept;
+  const normalized = character
+    .normalize('NFKC')
+    .toLowerCase()
+    .replaceAll('ё', 'е')
+    .replace(/[‐‑‒–—−]/gu, '-')
+    .replace(/[^0-9a-zа-я\s.,:+/%-]/gu, ' ')
+    .replace(/\s/gu, ' ');
+  if (normalizedCodePoints.size < 2048) normalizedCodePoints.set(character, normalized);
+  return normalized;
+}
+
+function surfacePositions(value: string): {
+  text: string;
+  positions: readonly number[];
+  first: number;
+} {
   const normalizedChars: string[] = [];
-  const offsets: NormalizedTextOffset[] = [];
+  // Store integer pairs. Search only needs offsets for the characters its terms matched.
+  const positions: number[] = [];
   let sourceIndex = 0;
   for (const character of value) {
     const start = sourceIndex;
     sourceIndex += character.length;
-    const normalized = character
-      .normalize('NFKC')
-      .toLowerCase()
-      .replaceAll('ё', 'е')
-      .replace(/[‐‑‒–—−]/gu, '-')
-      .replace(/[^0-9a-zа-я\s.,:+/%-]/gu, ' ');
-    for (const normalizedCharacter of normalized) {
-      if (/\s/u.test(normalizedCharacter)) {
-        if (normalizedChars.at(-1) === ' ') continue;
-        normalizedChars.push(' ');
-        offsets.push({ start, end: sourceIndex });
-      } else {
-        normalizedChars.push(normalizedCharacter);
-        offsets.push({ start, end: sourceIndex });
-      }
+    for (const normalizedCharacter of normalizeCodePoint(character)) {
+      if (normalizedCharacter === ' ' && normalizedChars.at(-1) === ' ') continue;
+      normalizedChars.push(normalizedCharacter);
+      positions.push(start, sourceIndex);
     }
   }
   let first = 0;
@@ -200,12 +211,47 @@ export function normalizeSurfaceTextWithOffsets(value: string): NormalizedTextWi
   const text = normalizedChars.slice(first, last).join('');
   return {
     text: normalizeIcd10Lookalikes(text),
-    offsets: offsets.slice(first, last),
+    positions,
+    first,
   };
 }
 
+/** Maps a normalized interval back to the original UTF-16 interval only when requested. */
+export function normalizeSurfaceTextWithSourceRange(value: string): {
+  readonly text: string;
+  sourceRange(start: number, end: number): NormalizedTextOffset | undefined;
+} {
+  const { text, positions, first } = surfacePositions(value);
+  return {
+    text,
+    sourceRange(start, end) {
+      if (start < 0 || end > text.length || start >= end) return undefined;
+      const sourceStart = positions[2 * (first + start)];
+      const sourceEnd = positions[2 * (first + end) - 1];
+      return sourceStart === undefined || sourceEnd === undefined
+        ? undefined
+        : { start: sourceStart, end: sourceEnd };
+    },
+  };
+}
+
+export function normalizeSurfaceTextWithOffsets(value: string): NormalizedTextWithOffsets {
+  const { text, positions, first } = surfacePositions(value);
+  const offsets: NormalizedTextOffset[] = [];
+  for (let index = 2 * first; index < 2 * (first + text.length); index += 2) {
+    const start = positions[index];
+    const end = positions[index + 1];
+    if (start !== undefined && end !== undefined) offsets.push({ start, end });
+  }
+  return { text, offsets };
+}
+
 export function tokenize(value: string): readonly string[] {
-  return [...normalizeSurfaceText(value).matchAll(/[0-9a-zа-я]+/gu)]
+  return tokenizeNormalizedSurfaceText(normalizeSurfaceText(value));
+}
+
+export function tokenizeNormalizedSurfaceText(value: string): readonly string[] {
+  return [...value.matchAll(/[0-9a-zа-я]+/gu)]
     .map((match) => match[0])
     .filter((token) => token.length >= 2 && !STOP_WORDS.has(token));
 }
